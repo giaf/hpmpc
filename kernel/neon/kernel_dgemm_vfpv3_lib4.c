@@ -336,7 +336,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 /*		"pldw   [%6, #32]                \n\t"*/
 #endif
 /*		"pldw   [%6, #64]                \n\t"*/
-#endif
+#if defined(TARGET_CORTEX_A9)
 /*		"pldw   [%6, #96]                \n\t"*/
 #endif
 //		"pld    [%6, #0]                 \n\t" // prefetch C
