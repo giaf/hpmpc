@@ -550,7 +550,7 @@ int main()
 
 
 		// timing 
-		struct timeval tv0, tv1, tv2, tv3;
+		struct timeval tv0, tv1, tv2, tv3, tv4;
 
 		// double precision
 		gettimeofday(&tv0, NULL); // start
@@ -603,6 +603,32 @@ int main()
 
 		gettimeofday(&tv3, NULL); // start
 
+		// solve for ADMM
+		for(rep=0; rep<nrep; rep++)
+			{
+			// clear solution 
+			for(ii=0; ii<N; ii++)
+				{
+				for(jj=0; jj<nu; jj++) hux[ii][jj] = 0;
+				for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = 0;
+				}
+
+			// restore linear part of cost function 
+			for(ii=0; ii<N; ii++)
+				{
+				for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+pnz*jj];
+				}
+			for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
+
+			// call the solver 
+			if(FREE_X0==0)
+				s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 0, hPb, 0, hpi);
+			else
+				s_ric_trs_mhe(nx, nu, N, hpBAbt, hpL, hq, hux, work, 0, hPb, 0, hpi);
+			}
+		
+		gettimeofday(&tv4, NULL); // start
+
 
 		float time_sv = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		float flop_sv = (1.0/3.0*nx*nx*nx+3.0/2.0*nx*nx) + N*(7.0/3.0*nx*nx*nx+4.0*nx*nx*nu+2.0*nx*nu*nu+1.0/3.0*nu*nu*nu+13.0/2.0*nx*nx+9.0*nx*nu+5.0/2.0*nu*nu);
@@ -611,11 +637,15 @@ int main()
 		float Gflops_sv = 1e-9*flop_sv/time_sv;
 	
 		float time_trs = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
-		float flop_trs = N*(8.0*nx*nx+8.0*nx*nu+2.0*nu*nu);
+		float flop_trs = N*(6.0*nx*nx+8.0*nx*nu+2.0*nu*nu);
 		if(COMPUTE_MULT==1)
 			flop_trs += N*2*nx*nx;
 		float Gflops_trs = 1e-9*flop_trs/time_trs;
 		
+		float time_trs_admm = (float) (tv4.tv_sec-tv3.tv_sec)/(nrep+0.0)+(tv4.tv_usec-tv3.tv_usec)/(nrep*1e6);
+		float flop_trs_admm = N*(4.0*nx*nx+8.0*nx*nu+2.0*nu*nu);
+		float Gflops_trs_admm = 1e-9*flop_trs_admm/time_trs_admm;
+
 		float Gflops_max = flops_max * GHz_max;
 
 		if(ll==0)
@@ -623,8 +653,9 @@ int main()
 			printf("\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
 			fprintf(f, "\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
 			}
-		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max);
-		fprintf(f, "%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max);
+		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max);
+		fprintf(f, "%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max);
+
 	
 
 /************************************************
