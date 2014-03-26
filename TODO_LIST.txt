@@ -1,0 +1,6 @@
+- _mm_mul & _mm_add instead of += *
+- register renaming & ooo in kernels
+- dtrmm_pu & dpotrf_p_dcopy_u
+- dpotrf(m, n) to factorize only a band of C
+- ip & dricposv: free x0 vs fixed x0
+- optimized condensing
