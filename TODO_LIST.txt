@@ -3,11 +3,13 @@ AVX kernel:
 - register renaming & ooo in kernels
 - pack to simd size
 
-Add other kernels (SSE, NEON, C99)
+Add other kernels (SSE, NEON, C99, POWERPC)
 
 BLAS:
 - dtrmm_pu & dpotrf_p_dcopy_u
 - dpotrf(m, n) to factorize only a band of C
+- code generation version ?
+- use -DTARGET
 
 LQCP & IP
 - ip & dricposv: free x0 vs fixed x0
