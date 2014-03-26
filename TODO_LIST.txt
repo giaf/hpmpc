@@ -1,6 +1,14 @@
-- _mm_mul & _mm_add instead of += *
+AVX kernel:
+- _mm_mul & _mm_add instead of += * (add support to icc)
 - register renaming & ooo in kernels
+- pack to simd size
+
+Add other kernels (SSE, NEON, C99)
+
+BLAS:
 - dtrmm_pu & dpotrf_p_dcopy_u
 - dpotrf(m, n) to factorize only a band of C
+
+LQCP & IP
 - ip & dricposv: free x0 vs fixed x0
 - optimized condensing
