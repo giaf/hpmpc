@@ -1,0 +1,13 @@
+# Target architecture, currently supported:
+# AVX  : machine with AVX instruction set (recent Intel and AMD processors), 64 bit operating system
+TARGET = AVX
+
+# C Compiler
+CC = gcc-4.6
+#CC = gcc
+
+# Common ptimization/debugging flags
+OPT = -O3
+DEBUG = #-pg #-Wall -pedantic
+LDFLAGS =
+
