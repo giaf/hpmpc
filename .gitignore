@@ -162,7 +162,7 @@ Session.vim
 ### CMake ###
 CMakeCache.txt
 CMakeFiles
-Makefile
+# Makefile
 cmake_install.cmake
 install_manifest.txt
 
