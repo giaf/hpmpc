@@ -14,7 +14,7 @@ int main()
 	{
 		
 	// maximum frequency of the processor
-	const float GHz_max = 3.6; //2.9; //3.6; //2.9;
+	const float GHz_max = 2.9; //3.6; //2.9;
 	// maximum flops per cycle, double precision
 	const float d_flops_max = 8; //4; //2;
 	// maximum flops per cycle, single precision
@@ -111,9 +111,10 @@ int main()
 			{
 
 //			dgemm_nt_lib2(n, pB, pA, pC, pnd);
-			dgemm_ppp_nt_lib(n, n, n, pA, pnd, pB, pnd, pC, pnd, 0);
+/*			dgemm_ppp_nt_lib(n, n, n, pA, pnd, pB, pnd, pC, pnd, 0);*/
 /*			dgemm_pup_nn_lib(n, n, n, pA, pnd, B, n, pC, pnd, 0);*/
 //			dgemm_(&cn, &cn, &n, &n, &n, &alpha, A, &n, B, &n, &beta, C, &n);
+			dsyrk_ppp_lib(n, n, pA, pnd, pC, pnd);
 
 			}
 	
@@ -125,8 +126,8 @@ int main()
 //			sgemm_nt_lib4(n, spB, spA, spC, pns);
 /*			sgemm_nt_lib(n, n, n, spA, pns, spB, pns, spC, pns, 0);*/
 //			sgemm_(&cn, &cn, &n, &n, &n, &salpha, sA, &n, sB, &n, &sbeta, sC, &n);
-			dtrmm_pup_nn_lib(n, n, pA, pnd, B, n, pC, pnd);
-/*			dgemm_pup_nn_lib(n, n, n, pA, pnd, B, n, pC, pnd, 0);*/
+/*			dtrmm_pup_nn_lib(n, n, pA, pnd, B, n, pC, pnd);*/
+			dgemm_pup_nn_lib(n, n, n, pA, pnd, B, n, pC, pnd, 0);
 			}
 	
 		gettimeofday(&tv3, NULL); // stop
@@ -149,12 +150,12 @@ int main()
 		float Gflops_max_d_c99 = d_flops_max * GHz_max;
 
 		float time_d = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
-		float flop_d = 2.0*n*n*n;
+		float flop_d = 1.0*n*n*n;
 		float Gflops_d = 1e-9*flop_d/time_d;
 		float Gflops_max_d = d_flops_max * GHz_max;
 
 		float time_s = (float) (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
-		float flop_s = 1.0*n*n*n;
+		float flop_s = 2.0*n*n*n;
 		float Gflops_s = 1e-9*flop_s/time_s;
 		float Gflops_max_s = s_flops_max * GHz_max;
 	

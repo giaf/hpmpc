@@ -14,6 +14,7 @@ BLAS:
 - use -DTARGET
 
 LQCP & IP
+- avoid copy of Q in IP
 - free x0 vs fixed x0
 - take out lagrangian multipliers
 - optimized condensing
