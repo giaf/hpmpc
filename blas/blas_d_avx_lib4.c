@@ -63,9 +63,9 @@ void dgemm_ppp_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int 
 
 
 /* preforms                                          */
-/* C  = A * B                                        */
+/* C  = A * B'                                       */
 /* where A, B and C are packed with block size 4,    */
-/* and B is lower triangular                         */
+/* and B is upper triangular                         */
 void dtrmm_ppp_lib(int m, int n, int offset, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
 	{
 	
@@ -137,6 +137,65 @@ void dsyrk_ppp_lib(int n, int m, double *pA, int sda, double *pC, int sdc)
 			{
 			kernel_dgemm_pp_nt_4x4_avx_lib4(m, &pA[0+i*sda], &pA[0+j*sda], &pC[0+(j+0)*bs+i*sdc], bs, 1);
 			}
+		}
+
+	}
+
+
+
+/* computes the lower triangular Cholesky factor of pC, */
+/* and copies its transposed in pL                      */
+void dpotrf_dcopy_lib(int n, int nna, double *pC, int sdc, double *pL, int sdl)
+	{
+
+	const int bs = 4;
+	
+	int
+		i, j, jj;
+
+	j = 0;
+	while(j<nna-3)
+		{
+		jj = 0;
+		if(j==0)
+			{
+			kernel_dpotrf_dtrsv_4x4_sse_lib4(n-j-4, (bs-(j+4)%bs)%bs, &pC[0+j*bs+j*sdc], sdc);
+			j += 4;
+			jj += 4;
+			}
+		for(; jj<8; jj+=4)
+			{
+			i = j;
+			for(; i<n-4; i+=8)
+				{
+				kernel_dgemm_pp_nt_8x4_avx_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
+				}
+			for(; i<n; i+=4)
+				{
+				kernel_dgemm_pp_nt_4x4_avx_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
+				}
+			kernel_dpotrf_dtrsv_4x4_sse_lib4(n-j-4, (bs-(j+4)%bs)%bs, &pC[0+j*bs+j*sdc], sdc);
+			j += 4;
+			}
+		}
+	int j0 = j;
+	if(j==0) // assume that n>0
+		{
+		kernel_dpotrf_dtrsv_dcopy_4x4_sse_lib4(n-j-4, (bs-(j+4)%bs)%bs, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl);
+		j += 4;
+		}
+	for(; j<n; j+=4)
+		{
+		i = j;
+		for(; i<n-4; i+=8)
+			{
+			kernel_dgemm_pp_nt_8x4_avx_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
+			}
+		for(; i<n; i+=4)
+			{
+			kernel_dgemm_pp_nt_4x4_avx_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
+			}
+		kernel_dpotrf_dtrsv_dcopy_4x4_sse_lib4(n-j-4, (bs-(j+4)%bs)%bs, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl);
 		}
 
 	}

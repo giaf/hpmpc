@@ -68,6 +68,7 @@ int main()
 	double *pA; d_zeros_align(&pA, pn, pn);
 	double *pB; d_zeros_align(&pB, pn, pn);
 	double *pC; d_zeros_align(&pC, pn, pn);
+	double *pL; d_zeros_align(&pL, pn, pn);
 /*	float *spA; s_zeros_align(&spA, pns, pns);*/
 /*	float *spB; s_zeros_align(&spB, pns, pns);*/
 /*	float *spC; s_zeros_align(&spC, pns, pns);*/
@@ -109,9 +110,10 @@ int main()
 /*		dgemm_ppp_nt_lib(n, n, n, pA, pn, pB, pn, pC, pn, 0);*/
 /*		dgemm_ppp_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
 /*		dtrmm_pup_nn_lib(n, n, pA, pn, B, n, pC, pn);*/
-/*		dsyrk_ppp_lib(n, n, pA, pn, pC, pn);*/
+		dsyrk_ppp_lib(n, n, pA, pn, pC, pn);
 /*		dgemm_ppp_nt_lib(n, n, n, pA, pn, pA, pn, pB, pn, 0);*/
-		dtrmm_ppp_lib(n, n, 0, pA, pn, pB, pn, pC, pn);
+/*		dtrmm_ppp_lib(n, n, 0, pA, pn, pB, pn, pC, pn);*/
+		dpotrf_dcopy_lib(n, 0, pC, pn, pL, pn);
 
 
 
@@ -153,6 +155,7 @@ int main()
 /*		d_print_mat(n, n, B, n);*/
 		d_print_pmat(n, n, bs, pB, pn);
 		d_print_pmat(n, n, bs, pC, pn);
+		d_print_pmat(n, n, bs, pL, pn);
 //		s_print_pmat(n, n, bss, spC, pns);
 /*		d_print_mat(n, 1, y, pn);*/
 		}

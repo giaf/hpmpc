@@ -2,7 +2,7 @@ include ./Makefile.rule
 
 ifeq ($(TARGET), AVX)
 AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/block_size_avx.o 
-KERNEL_OBJS = ./kernel/kernel_dgemm_avx_lib4.o 
+KERNEL_OBJS = ./kernel/kernel_dgemm_avx_lib4.o ./kernel/kernel_dpotrf_sse_lib4.o 
 BLAS_OBJS = ./blas/blas_d_avx_lib4.o
 LQCP_OBJS =
 MPC_OBJS =

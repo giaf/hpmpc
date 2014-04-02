@@ -67,12 +67,15 @@ int main()
 		double *pA; d_zeros_align(&pA, pnd, pnd);
 		double *pB; d_zeros_align(&pB, pnd, pnd);
 		double *pC; d_zeros_align(&pC, pnd, pnd);
+		double *pD; d_zeros_align(&pD, pnd, pnd);
+		double *pL; d_zeros_align(&pL, pnd, pnd);
 /*		float *spA; s_zeros_align(&spA, pns, pns);*/
 /*		float *spB; s_zeros_align(&spB, pns, pns);*/
 /*		float *spC; s_zeros_align(&spC, pns, pns);*/
 	
 		d_cvt_mat2pmat(n, n, 0, bsd, A, n, pA, pnd);
 		d_cvt_mat2pmat(n, n, 0, bsd, B, n, pB, pnd);
+		d_cvt_mat2pmat(n, n, 0, bsd, B, n, pD, pnd);
 /*		s_cvt_mat2pmat(n, n, 0, bss, sA, n, spA, pns);*/
 /*		s_cvt_mat2pmat(n, n, 0, bss, sB, n, spB, pns);*/
 	
@@ -140,6 +143,7 @@ int main()
 /*			sgemm_nt_lib(n, n, n, spA, pns, spB, pns, spC, pns, 0);*/
 //			sgemm_(&cn, &cn, &n, &n, &n, &salpha, sA, &n, sB, &n, &sbeta, sC, &n);
 /*			dtrmm_pup_nn_lib(n, n, pA, pnd, B, n, pC, pnd);*/
+			dpotrf_dcopy_lib(n, 0, pD, pnd, pL, pnd);
 
 			}
 	
@@ -161,7 +165,7 @@ int main()
 		float Gflops_max_s = s_flops_max * GHz_max;
 	
 		float time_s_asm = (float) (tv4.tv_sec-tv3.tv_sec)/(nrep+0.0)+(tv4.tv_usec-tv3.tv_usec)/(nrep*1e6);
-		float flop_s_asm = 1.0*n*n*n;
+		float flop_s_asm = 1.0/3.0*n*n*n;
 		float Gflops_s_asm = 1e-9*flop_s_asm/time_s_asm;
 		float Gflops_max_s_asm = s_flops_max * GHz_max;
 
