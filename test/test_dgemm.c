@@ -127,7 +127,8 @@ int main()
 /*			sgemm_nt_lib(n, n, n, spA, pns, spB, pns, spC, pns, 0);*/
 //			sgemm_(&cn, &cn, &n, &n, &n, &salpha, sA, &n, sB, &n, &sbeta, sC, &n);
 /*			dtrmm_pup_nn_lib(n, n, pA, pnd, B, n, pC, pnd);*/
-			dgemm_pup_nn_lib(n, n, n, pA, pnd, B, n, pC, pnd, 0);
+/*			dgemm_pup_nn_lib(n, n, n, pA, pnd, B, n, pC, pnd, 0);*/
+			dtrmm_ppp_lib(n, n, 0, pA, pnd, pB, pnd, pC, pnd);
 			}
 	
 		gettimeofday(&tv3, NULL); // stop
@@ -138,7 +139,7 @@ int main()
 //			sgemm_nt_lib4(n, spB, spA, spC, pns);
 /*			sgemm_nt_lib(n, n, n, spA, pns, spB, pns, spC, pns, 0);*/
 //			sgemm_(&cn, &cn, &n, &n, &n, &salpha, sA, &n, sB, &n, &sbeta, sC, &n);
-			dtrmm_pup_nn_lib(n, n, pA, pnd, B, n, pC, pnd);
+/*			dtrmm_pup_nn_lib(n, n, pA, pnd, B, n, pC, pnd);*/
 
 			}
 	
@@ -155,7 +156,7 @@ int main()
 		float Gflops_max_d = d_flops_max * GHz_max;
 
 		float time_s = (float) (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
-		float flop_s = 2.0*n*n*n;
+		float flop_s = 1.0*n*n*n;
 		float Gflops_s = 1e-9*flop_s/time_s;
 		float Gflops_max_s = s_flops_max * GHz_max;
 	
