@@ -143,7 +143,7 @@ int main()
 /*			sgemm_nt_lib(n, n, n, spA, pns, spB, pns, spC, pns, 0);*/
 //			sgemm_(&cn, &cn, &n, &n, &n, &salpha, sA, &n, sB, &n, &sbeta, sC, &n);
 /*			dtrmm_pup_nn_lib(n, n, pA, pnd, B, n, pC, pnd);*/
-			dpotrf_dcopy_lib(n, 0, pD, pnd, pL, pnd);
+			dpotrf_p_dcopy_p_t_lib(n, 0, pD, pnd, pL, pnd);
 
 			}
 	
