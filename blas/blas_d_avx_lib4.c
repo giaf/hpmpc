@@ -154,16 +154,11 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 		i, j, jj;
 
 	j = 0;
-	while(j<nna-3)
+	if(j<nna-3)
 		{
-		jj = 0;
-		if(j==0)
-			{
-			kernel_dpotrf_dtrsv_4x4_sse_lib4(n-j-4, (bs-(j+4)%bs)%bs, &pC[0+j*bs+j*sdc], sdc);
-			j += 4;
-			jj += 4;
-			}
-		for(; jj<8; jj+=4)
+		kernel_dpotrf_dtrsv_4x4_sse_lib4(n-j-4, (bs-(j+4)%bs)%bs, &pC[0+j*bs+j*sdc], sdc);
+		j += 4;
+		for(; j<nna-3; j+=4)
 			{
 			i = j;
 			for(; i<n-4; i+=8)
@@ -175,7 +170,6 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 				kernel_dgemm_pp_nt_4x4_avx_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 				}
 			kernel_dpotrf_dtrsv_4x4_sse_lib4(n-j-4, (bs-(j+4)%bs)%bs, &pC[0+j*bs+j*sdc], sdc);
-			j += 4;
 			}
 		}
 	int j0 = j;
@@ -688,31 +682,40 @@ void dtrsv_p_t_lib(int n, double *pA, int sda, double *x)
 
 	// blocks of 8 TODO
 	j = 0;
-/*	for(; j<qn-1; j+=2)*/
-/*		{*/
-/*		*/
-/*		// last 4 rows*/
-/*		ptrA = pA + (qn-j-1)*bs*(sda+bs) + bs*sda + 4*bs ;*/
-/*		ptrx = x  + (qn-j-1)*bs          + bs*sda        ;*/
+	for(; j<qn-1; j+=2)
+		{
+		
+		// all 4 rows
+		ptrA = pA + (qn-j-2)*bs*(sda+bs) ;
+		ptrx = x  + (qn-j-2)*bs          ;
 
-/*		kernel_dgemv_t_4_avx_lib4(rn+j*bs, 0, &ptrA[4+bs*(sda-1)], sda, &ptrx[4], &ptrx[0], -1);*/
-/*		ptrx[3] = (ptrx[3]) / ptrA[3+bs*3];*/
-/*		ptrx[2] = (ptrx[2] - ptrA[3+bs*2]*ptrx[3]) / ptrA[2+bs*2];*/
-/*		ptrx[1] = (ptrx[1] - ptrA[3+bs*1]*ptrx[3] - ptrA[2+bs*1]*ptrx[2]) / ptrA[1+bs*1];*/
-/*		ptrx[0] = (ptrx[0] - ptrA[3+bs*0]*ptrx[3] - ptrA[2+bs*0]*ptrx[2] - ptrA[1+bs*0]*ptrx[1]) / ptrA[0+bs*0];*/
-/*		*/
+		// correct
+		kernel_dgemv_t_8_avx_lib4(rn+j*bs, 0, ptrA+2*bs*sda, sda, ptrx+8, ptrx, -1);
 
-/*		// first 4 rows*/
-/*		ptrA = pA + (qn-j-1)*bs*(sda+bs) ;*/
-/*		ptrx = x  + (qn-j-1)*bs          ;*/
-/*		*/
-/*		kernel_dgemv_t_4_avx_lib4(rn+j*bs+4, 4, &ptrA[4], sda, &ptrx[4], &ptrx[0], -1);*/
-/*		ptrx[3] = (ptrx[3]) / ptrA[3+bs*3];*/
-/*		ptrx[2] = (ptrx[2] - ptrA[3+bs*2]*ptrx[3]) / ptrA[2+bs*2];*/
-/*		ptrx[1] = (ptrx[1] - ptrA[3+bs*1]*ptrx[3] - ptrA[2+bs*1]*ptrx[2]) / ptrA[1+bs*1];*/
-/*		ptrx[0] = (ptrx[0] - ptrA[3+bs*0]*ptrx[3] - ptrA[2+bs*0]*ptrx[2] - ptrA[1+bs*0]*ptrx[1]) / ptrA[0+bs*0];*/
+		// last 4 rows
+		ptrA = pA + (qn-j-1)*bs*(sda+bs) ;
+		ptrx = x  + (qn-j-1)*bs          ;
 
-/*		}*/
+		// solve
+		ptrx[3] = (ptrx[3]) / ptrA[3+bs*3];
+		ptrx[2] = (ptrx[2] - ptrA[3+bs*2]*ptrx[3]) / ptrA[2+bs*2];
+		ptrx[1] = (ptrx[1] - ptrA[3+bs*1]*ptrx[3] - ptrA[2+bs*1]*ptrx[2]) / ptrA[1+bs*1];
+		ptrx[0] = (ptrx[0] - ptrA[3+bs*0]*ptrx[3] - ptrA[2+bs*0]*ptrx[2] - ptrA[1+bs*0]*ptrx[1]) / ptrA[0+bs*0];
+
+		// first 4 rows
+		ptrA = pA + (qn-j-2)*bs*(sda+bs) ;
+		ptrx = x  + (qn-j-2)*bs          ;
+
+		// correct
+		kernel_dgemv_t_4_avx_lib4(4, 0, ptrA+bs*sda, sda, ptrx+4, ptrx, -1);
+
+		// solve
+		ptrx[3] = (ptrx[3]) / ptrA[3+bs*3];
+		ptrx[2] = (ptrx[2] - ptrA[3+bs*2]*ptrx[3]) / ptrA[2+bs*2];
+		ptrx[1] = (ptrx[1] - ptrA[3+bs*1]*ptrx[3] - ptrA[2+bs*1]*ptrx[2]) / ptrA[1+bs*1];
+		ptrx[0] = (ptrx[0] - ptrA[3+bs*0]*ptrx[3] - ptrA[2+bs*0]*ptrx[2] - ptrA[1+bs*0]*ptrx[1]) / ptrA[0+bs*0];
+
+		}
 	
 	// blocks of 4
 	for(; j<qn; j++)

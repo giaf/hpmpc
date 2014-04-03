@@ -4,8 +4,8 @@ ifeq ($(TARGET), AVX)
 AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/block_size_avx.o 
 KERNEL_OBJS = ./kernel/kernel_dgemm_avx_lib4.o ./kernel/kernel_dpotrf_sse_lib4.o ./kernel/kernel_dgemv_avx_lib4.o 
 BLAS_OBJS = ./blas/blas_d_avx_lib4.o
-LQCP_OBJS = ./lqcp_solvers/dricposv.c
-MPC_OBJS = ./mpc_solvers/ip_d_box.c
+LQCP_OBJS = ./lqcp_solvers/dricposv.o
+MPC_OBJS = #./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
 endif
 
