@@ -680,7 +680,7 @@ void dtrsv_p_t_lib(int n, double *pA, int sda, double *x)
 		ptrx[i+0] = (ptrx[i+0] - ptrA[(i+1)+bs*(i+0)]*ptrx[i+1]) / ptrA[(i+0)+bs*(i+0)];
 		}
 
-	// blocks of 8 TODO
+	// blocks of 8
 	j = 0;
 	for(; j<qn-1; j+=2)
 		{
