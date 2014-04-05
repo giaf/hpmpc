@@ -1,7 +1,7 @@
 // problem size (states, inputs, horizon)
-#define NX 30
-#define NU 14
-#define NN 10
+//#define NX 30
+//#define NU 14
+//#define NN 10
 
 // number of inequality constraints
 #define NL 0

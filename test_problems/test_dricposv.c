@@ -3,8 +3,12 @@
 #include <sys/time.h>
 #include <xmmintrin.h> // needed to flush to zero sub-normals with _MM_SET_FLUSH_ZERO_MODE (_MM_FLUSH_ZERO_ON); in the main()
 
-#include "test_param.h"
+// to throw floating-point exception
+#define _GNU_SOURCE
+#include <fenv.h>
 
+#include "test_param.h"
+#include "../problem_size.h"
 #include "../include/aux_d.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/block_size.h"
@@ -128,6 +132,9 @@ int main()
 
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); // flush to zero subnormals !!! works only with one thread !!!
 
+	// to throw floating-point exception
+    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+
 	printf("\nnx\tnu\tN\tkernel\n\n");
 
 	int err;
@@ -150,12 +157,12 @@ int main()
 
 		{
 
-		int nx = 16;//nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
-		int nu = 5; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-		int N  = 10; // horizon lenght
+		int nx = NX;//16;//nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
+		int nu = NU;//5; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+		int N  = NN;//10; // horizon lenght
 
 		int rep;
-		int nrep = nnrep[ll];// nnrep[ll];
+		int nrep = 10000;//nnrep[ll];// nnrep[ll];
 	
 		int nz = nx+nu+1;
 		int pnz = bsd*((nz+bsd-nu%bsd+bsd-1)/bsd);

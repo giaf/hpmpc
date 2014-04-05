@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "problem_size.h"
+#include "../problem_size.h"
 
 /*#include "../include/blas_d.h"*/
 #include "../include/block_size.h"
