@@ -215,7 +215,8 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 		kernel_dpotrf_dtrsv_dcopy_4x4_sse_lib4(n-j-4, (bs-(j+4)%bs)%bs, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl);
 		j += 4;
 		}
-	for(; j<n; j+=4)
+/*	for(; j<n; j+=4)*/
+	for(; j<n-2; j+=4)
 		{
 		i = j;
 		for(; i<n-4; i+=8)
@@ -227,6 +228,12 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 			kernel_dgemm_pp_nt_4x4_avx_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
 		kernel_dpotrf_dtrsv_dcopy_4x4_sse_lib4(n-j-4, (bs-(j+4)%bs)%bs, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl);
+		}
+	if(j<n)
+		{
+		i = j;
+		kernel_dgemm_pp_nt_4x2_avx_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
+		corner_dpotrf_dtrsv_dcopy_2x2_sse_lib4(&pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl);
 		}
 
 	}

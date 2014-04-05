@@ -150,7 +150,7 @@ int main()
 
 		{
 
-		int nx = 15;//nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
+		int nx = 16;//nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
 		int nu = 5; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 		int N  = 10; // horizon lenght
 
