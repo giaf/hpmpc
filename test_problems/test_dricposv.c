@@ -281,7 +281,7 @@ int main()
 		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 		/* call the solver */
-		dricposv(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL);
+		dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL);
 
 
 		if(PRINTRES==1)
@@ -313,7 +313,7 @@ int main()
 			for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 			/* call the solver */
-			dricposv(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL);
+			dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL);
 			}
 			
 		gettimeofday(&tv1, NULL); // start

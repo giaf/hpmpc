@@ -34,7 +34,7 @@ void main()
 	fprintf(f, "#include \"../include/kernel_d_avx.h\"\n");
 	fprintf(f, "\n");
 /*	fprintf(f, "void dgemm_%dx%dx%d(double *A, int lda, double *B, int ldb, double *C, int ldc)\n", m, n, k);*/
-	fprintf(f, "void dricposv(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hux, double *pL, double *pBAbtL)\n");
+	fprintf(f, "void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hux, double *pL, double *pBAbtL)\n");
 	fprintf(f, "	{\n");
 	fprintf(f, "	if(!(nx==%d && nu==%d && N==%d))\n", nx, nu, N);
 	fprintf(f, "		{\n");
@@ -48,14 +48,17 @@ void main()
 	fprintf(f, "	\n");
 /*	fprintf(f, "	const int bs = D_MR;\n");*/
 /*	fprintf(f, "	\n");*/
-	fprintf(f, "	/* initial Cholesky factorization */\n");
+	fprintf(f, "	/* factorization and backward substitution */\n");
+	fprintf(f, "	\n");
+	fprintf(f, "	/* final stage */\n");
+	fprintf(f, "	\n");
 	fprintf(f, "	/* dpotrf */\n");
 /*	dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N], sda, pL, sda);*/
 	fprintf(f, "	pC = hpQ[%d];\n", N);
 	dpotrf_p_dcopy_p_t_code_generator(f, nz, nu);
 	fprintf(f, "	\n");
-	fprintf(f, "	/* factorization and backward substitution */\n");
-	fprintf(f, "	for(ii=0; ii<N; ii++)\n");
+	fprintf(f, "	/* middle stages */\n");
+	fprintf(f, "	for(ii=0; ii<N-1; ii++)\n");
 	fprintf(f, "		{\n");
 	fprintf(f, "		\n");
 	fprintf(f, "		/* dtrmm */\n");
@@ -69,7 +72,7 @@ void main()
 /*		dsyrk_ppp_lib(nz, nx, pBAbtL, sda, hpQ[N-ii-1], sda);*/
 	fprintf(f, "		pA = pBAbtL;\n");
 	fprintf(f, "		pC = hpQ[%d-ii];\n", N-1);
-	dsyrk_ppp_code_generator(f, nz, nx);
+	dsyrk_ppp_code_generator(f, nz, nz, nx);
 	fprintf(f, "		\n");
 	fprintf(f, "		/* dpotrf */\n");
 /*		dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N-ii-1], sda, pL, sda);*/
@@ -77,6 +80,28 @@ void main()
 	dpotrf_p_dcopy_p_t_code_generator(f, nz, nu);
 	fprintf(f, "		\n");
 	fprintf(f, "		}\n");
+	fprintf(f, "	\n");
+	fprintf(f, "	/* initial stage */\n");
+	fprintf(f, "	\n");
+	fprintf(f, "		/* dtrmm */\n");
+/*		dtrmm_ppp_lib(nz, nx, nu, hpBAbt[N-ii-1], sda, pL, sda, pBAbtL, sda);*/
+	fprintf(f, "		pA = hpBAbt[%d-ii];\n", N-1);
+	fprintf(f, "		pB = pL;\n");
+	fprintf(f, "		pC = pBAbtL;\n");
+	dtrmm_ppp_code_generator(f, nz, nx, nu);
+	fprintf(f, "		\n");
+	fprintf(f, "		/* dsyrk */\n");
+/*		dsyrk_ppp_lib(nz, nx, pBAbtL, sda, hpQ[N-ii-1], sda);*/
+	fprintf(f, "		pA = pBAbtL;\n");
+	fprintf(f, "		pC = hpQ[%d-ii];\n", N-1);
+	dsyrk_ppp_code_generator(f, nz, nu, nx);
+	fprintf(f, "		\n");
+	fprintf(f, "		/* dpotrf */\n");
+/*		dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N-ii-1], sda, pL, sda);*/
+	fprintf(f, "		pC = hpQ[%d-ii];\n", N-1);
+	dpotrf_p_code_generator(f, nz, nu);
+	fprintf(f, "	\n");
+	fprintf(f, "	\n");
 	fprintf(f, "	\n");
 /*	fprintf(f, "	d_print_pmat(%d, %d, %d, hpQ[0], %d);\n", nz, nz, bs, sda);*/
 /*	fprintf(f, "	d_print_pmat(%d, %d, %d, hpQ[1], %d);\n", nz, nz, bs, sda);*/
