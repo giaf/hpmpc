@@ -89,19 +89,41 @@ void dtrmm_ppp_code_generator(FILE *f, int m, int n, int offset)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
-		for(; j<n; j+=4)
+		for(; j<n-3; j+=4)
 			{
-	fprintf(f, "	kernel_dgemm_pp_nt_8x4_avx_lib4(%d, &pA[%d], &pA[%d], &pB[%d], &pC[%d], &pC[%d], %d, 0);\n", n-j, (j+0)*bs+i*sda, (j+0)*bs+(i+4)*sda, (j+0)*bs+j*sdb, (j+0)*bs+i*sdc, (j+0)*bs+(i+4)*sdc, bs);
-			
+fprintf(f, "	kernel_dgemm_pp_nt_8x4_avx_lib4(%d, &pA[%d], &pA[%d], &pB[%d], &pC[%d], &pC[%d], %d, 0);\n", n-j, j*bs+i*sda, j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
+			}
+		if(n-j==1)
+			{
+fprintf(f, "	corner_dtrmm_pp_nt_8x1_avx_lib4(&pA[%d], &pA[%d], &pB[%d], &pC[%d], &pC[%d], %d);\n", j*bs+i*sda, j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
+			}
+		else if(n-j==2)
+			{
+fprintf(f, "	corner_dtrmm_pp_nt_8x2_avx_lib4(&pA[%d], &pA[%d], &pB[%d], &pC[%d], &pC[%d], %d);\n", j*bs+i*sda, j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
+			}
+		else if(n-j==3)
+			{
+fprintf(f, "	corner_dtrmm_pp_nt_8x3_avx_lib4(&pA[%d], &pA[%d], &pB[%d], &pC[%d], &pC[%d], %d);\n", j*bs+i*sda, j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
 			}
 		}
 	for(; i<m; i+=4)
 		{
 		j = 0;
-		for(; j<n; j+=4)
+		for(; j<n-3; j+=4)
 			{
-	fprintf(f, "	kernel_dgemm_pp_nt_4x4_avx_lib4(%d, &pA[%d], &pB[%d], &pC[%d], %d, 0);\n", n-j, (j+0)*bs+i*sda, (j+0)*bs+j*sdb, (j+0)*bs+i*sdc, bs);
-			
+fprintf(f, "	kernel_dgemm_pp_nt_4x4_avx_lib4(%d, &pA[%d], &pB[%d], &pC[%d], %d, 0);\n", n-j, j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc, bs);
+			}
+		if(n-j==1)
+			{
+fprintf(f, "	corner_dtrmm_pp_nt_4x1_avx_lib4(&pA[%d], &pB[%d], &pC[%d], %d);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc, bs);
+			}
+		else if(n-j==2)
+			{
+fprintf(f, "	corner_dtrmm_pp_nt_4x2_avx_lib4(&pA[%d], &pB[%d], &pC[%d], %d);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc, bs);
+			}
+		else if(n-j==3)
+			{
+fprintf(f, "	corner_dtrmm_pp_nt_4x3_avx_lib4(&pA[%d], &pB[%d], &pC[%d], %d);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc, bs);
 			}
 		}
 

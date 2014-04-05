@@ -1,3 +1,3 @@
-#define NX 18
+#define NX 9
 #define NU 5
 #define NN 10

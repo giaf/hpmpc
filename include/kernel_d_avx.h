@@ -1,3 +1,4 @@
+// kernel
 void kernel_dgemm_pp_nt_8x4_avx_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, int ldc, int alg);
 void kernel_dgemm_pp_nt_8x2_avx_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, int ldc, int alg);
 void kernel_dgemm_pp_nt_8x1_avx_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, int ldc, int alg);
@@ -14,5 +15,11 @@ void kernel_dgemv_n_8_avx_lib4(int kmax, double *A0, double *A1, double *x, doub
 void kernel_dgemv_n_4_avx_lib4(int kmax, double *A, double *x, double *y, int alg);
 void kernel_dgemv_n_2_avx_lib4(int kmax, double *A, double *x, double *y, int alg);
 void kernel_dgemv_n_1_avx_lib4(int kmax, double *A, double *x, double *y, int alg);
-
+// corner
+void corner_dtrmm_pp_nt_8x3_avx_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc);
+void corner_dtrmm_pp_nt_8x2_avx_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc);
+void corner_dtrmm_pp_nt_8x1_avx_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc);
+void corner_dtrmm_pp_nt_4x3_avx_lib4(double *A, double *B, double *C, int ldc);
+void corner_dtrmm_pp_nt_4x2_avx_lib4(double *A, double *B, double *C, int ldc);
+void corner_dtrmm_pp_nt_4x1_avx_lib4(double *A, double *B, double *C, int ldc);
 
