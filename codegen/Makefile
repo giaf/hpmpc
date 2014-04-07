@@ -1,10 +1,14 @@
 include ../Makefile.rule
 
-CODEGEN_OBJS = code_generator_blas_d_avx_lib4.o code_generator_dricposv.o
 OBJS = dricposv_codegen.o
 
 ifeq ($(TARGET), AVX)
+CODEGEN_OBJS = code_generator_blas_d_avx_lib4.o code_generator_dricposv.o
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
+endif
+ifeq ($(TARGET), C99_4X4)
+CODEGEN_OBJS = code_generator_blas_d_c99_lib4.o code_generator_dricposv.o
+CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_C99_4X4 $(DEBUG)
 endif
 
 codegen: $(CODEGEN_OBJS)

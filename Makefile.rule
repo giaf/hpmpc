@@ -1,6 +1,7 @@
 # Target architecture, currently supported:
-# AVX  : machine with AVX instruction set (recent Intel and AMD processors), 64 bit operating system
-TARGET = AVX
+# AVX     : machine with AVX instruction set (recent Intel and AMD processors), 64 bit operating system
+# C99_4X4 : c99 reference code for a machine with 32 scalar registers
+TARGET = C99_4X4
 
 # C Compiler
 CC = gcc-4.6

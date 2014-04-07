@@ -9,6 +9,9 @@ OBJS_TEST = tools.o test_dricposv.o
 ifeq ($(TARGET), AVX)
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
 endif
+ifeq ($(TARGET), C99_4X4)
+CFLAGS = $(OPT) -std=c99 -DTARGET_C99_4X4 $(DEBUG)
+endif
 
 obj: $(OBJS_TEST)
 	$(CC) -o test.out $(OBJS_TEST) -L. HPMPC.a $(LIBS) #-pg
