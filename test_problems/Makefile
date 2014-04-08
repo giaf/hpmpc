@@ -25,3 +25,5 @@ clean:
 	rm -f test.out
 	rm -f HPMPC.a
 
+test_dricposv.o: test_dricposv.c test_param.h problem_size.h
+test_ip_box_lib.o: test_ip_box_lib.c test_param.h problem_size.h

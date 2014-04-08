@@ -166,7 +166,7 @@ int main()
 		int N  = NN;//10; // horizon lenght
 
 		int rep;
-		int nrep = 10000;//nnrep[ll];// nnrep[ll];
+		int nrep = 1000;//nnrep[ll];// nnrep[ll];
 	
 		int nz = nx+nu+1;
 		int pnz = bsd*((nz+bsd-nu%bsd+bsd-1)/bsd);

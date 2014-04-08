@@ -4,6 +4,7 @@
 # C99_4X4 : c99 reference code for a machine with 32 scalar registers
 #TARGET = AVX
 TARGET = C99_4X4
+#TARGET = NEON
 
 # C Compiler
 CC = gcc-4.6
