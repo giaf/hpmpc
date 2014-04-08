@@ -117,7 +117,7 @@ int main()
 /*			dgemm_ppp_nt_lib(n, n, n, pA, pnd, pB, pnd, pC, pnd, 0);*/
 /*			dgemm_pup_nn_lib(n, n, n, pA, pnd, B, n, pC, pnd, 0);*/
 //			dgemm_(&cn, &cn, &n, &n, &n, &alpha, A, &n, B, &n, &beta, C, &n);
-			dsyrk_ppp_lib(n, n, pA, pnd, pC, pnd);
+			dsyrk_ppp_lib(n, n, n, pA, pnd, pC, pnd);
 
 			}
 	
