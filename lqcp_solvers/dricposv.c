@@ -59,7 +59,9 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 	/* factorization and backward substitution */
 
 	/* final stage */
-	dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N], sda, pL, sda);
+/*	dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N], sda, pL, sda);*/
+	int nu4 = (nu/bs)*bs;
+	dpotrf_p_dcopy_p_t_lib(nz-nu4, nu%bs, hpQ[N]+nu4*(sda+bs), sda, pL, sda);
 
 /*d_print_pmat(nz, nz, bs, hpQ[N], sda);*/
 
