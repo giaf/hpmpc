@@ -72,8 +72,8 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_c99_lib4(int kmax, double *A, int sda, int sh
 		b_10, b_11, b_12, b_13,
 		*AA, *LL;
 	
-	AA = A+4;
-	LL = L+4*lda;
+	AA = A + 4;
+	LL = L + 4*lda;
 	k = 0;
 	for(; k<kmax-3; k+=4)
 		{
@@ -257,7 +257,7 @@ void kernel_dpotrf_dtrsv_4x4_c99_lib4(int kmax, double *A, int sda)
 		b_10, b_11, b_12, b_13,
 		*AA;
 	
-	AA = A+4;
+	AA = A + 4;
 	k = 0;
 	for(; k<kmax-3; k+=4)
 		{
@@ -366,7 +366,7 @@ void kernel_dpotrf_dtrsv_4x4_c99_lib4(int kmax, double *A, int sda)
 
 
 
-void kernel_dpotrf_dtrsv_3x3_c99_lib4(int kmax, int kna_dummy, double *A, int sda)
+void kernel_dpotrf_dtrsv_3x3_c99_lib4(int kmax, double *A, int sda)
 	{
 	
 	const int lda = 4;
@@ -435,8 +435,6 @@ void kernel_dpotrf_dtrsv_3x3_c99_lib4(int kmax, int kna_dummy, double *A, int sd
 
 		AA += 1;
 		}
-
-	AA += lda*(sda-1);
 
 	for(; k<kmax-3; k+=4)
 		{
@@ -524,7 +522,7 @@ void kernel_dpotrf_dtrsv_3x3_c99_lib4(int kmax, int kna_dummy, double *A, int sd
 
 
 
-void kernel_dpotrf_dtrsv_2x2_c99_lib4(int kmax, int kna_dummy, double *A, int sda)
+void kernel_dpotrf_dtrsv_2x2_c99_lib4(int kmax, double *A, int sda)
 	{
 	
 	const int lda = 4;
@@ -580,8 +578,6 @@ void kernel_dpotrf_dtrsv_2x2_c99_lib4(int kmax, int kna_dummy, double *A, int sd
 
 		AA += 1;
 		}
-
-	AA += lda*(sda-1);
 
 	for(; k<kmax-3; k+=4)
 		{
@@ -648,7 +644,7 @@ void kernel_dpotrf_dtrsv_2x2_c99_lib4(int kmax, int kna_dummy, double *A, int sd
 
 
 
-void kernel_dpotrf_dtrsv_1x1_c99_lib4(int kmax, int kna_dummy, double *A, int sda)
+void kernel_dpotrf_dtrsv_1x1_c99_lib4(int kmax, double *A, int sda)
 	{
 	
 	const int lda = 4;
@@ -693,8 +689,6 @@ void kernel_dpotrf_dtrsv_1x1_c99_lib4(int kmax, int kna_dummy, double *A, int sd
 
 		AA += 1;
 		}
-
-	AA += lda*(sda-1);
 
 	for(; k<kmax-3; k+=4)
 		{

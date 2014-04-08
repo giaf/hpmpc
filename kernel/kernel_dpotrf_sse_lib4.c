@@ -512,16 +512,20 @@ void kernel_dpotrf_dtrsv_3x3_sse_lib4(int kmax, double *A, int sda)
 	a_21 = _mm_movedup_pd( a_21 );
 	a_22 = _mm_movedup_pd( a_22 );
 	
-	int k, kk, kend;
+	int k, kna;
 	
 	double
 		*AA;
 	
-	AA = A+3;
+	AA = A + 3;
 	k = 0;
 
 	// clean up unaligned stuff at the beginning
-	for(; k<1; k++)
+	kna = 1;
+	if(kmax<kna)
+		kna = kmax;
+
+	for(; k<kna; k++)
 		{
 		b_00_10 = _mm_load_sd( &AA[lda*0] );
 		b_01_11 = _mm_load_sd( &AA[lda*1] );
@@ -661,18 +665,21 @@ void kernel_dpotrf_dtrsv_2x2_sse_lib4(int kmax, double *A, int sda)
 	a_10 = _mm_movedup_pd( a_10 );
 	a_11 = _mm_movedup_pd( a_11 );
 	
-	int k, kk, kend;
+	int k, kna;
 	
 	double
 		*AA;
 	
-	AA = A+2;
+	AA = A + 2;
 
-	
 	k = 0;
 	
 	// clean up unaligned stuff at the beginning
-	for(; k<2; k++)
+	kna = 2;
+	if(kmax<kna)
+		kna = kmax;
+
+	for(; k<kna; k++)
 		{
 		b_00_10 = _mm_load_sd( &AA[lda*0] );
 		b_01_11 = _mm_load_sd( &AA[lda*1] );
@@ -767,16 +774,20 @@ void kernel_dpotrf_dtrsv_1x1_sse_lib4(int kmax, double *A, int sda)
 
 	a_00 = _mm_movedup_pd( a_00 );
 	
-	int k, kk, kend;
+	int k, kna;
 	
 	double
 		*AA;
 	
-	AA = A+1;
+	AA = A + 1;
 	k = 0;
 
 	// clean up unaligned stuff at the beginning
-	for(; k<3; k++)
+	kna = 3;
+	if(kmax<kna)
+		kna = kmax;
+
+	for(; k<kna; k++)
 		{
 		b_00_10 = _mm_load_sd( &AA[lda*0] );
 

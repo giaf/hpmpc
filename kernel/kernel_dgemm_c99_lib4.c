@@ -1,11 +1,11 @@
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dgemm_pp_nt_4x4_c99_lib4(int kmax, double *A, double *B, double *C, int alg)
+void kernel_dgemm_pp_nt_4x4_c99_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 
-	const int lda = 4;
+/*	const int bs = 4;*/
 
 	int k;
 	
@@ -189,69 +189,69 @@ void kernel_dgemm_pp_nt_4x4_c99_lib4(int kmax, double *A, double *B, double *C, 
 
 	if(alg==0)
 		{
-		C[0+lda*0] = c_00;
-		C[1+lda*0] = c_10;
-		C[2+lda*0] = c_20;
-		C[3+lda*0] = c_30;
+		C[0+ldc*0] = c_00;
+		C[1+ldc*0] = c_10;
+		C[2+ldc*0] = c_20;
+		C[3+ldc*0] = c_30;
 
-		C[0+lda*1] = c_01;
-		C[1+lda*1] = c_11;
-		C[2+lda*1] = c_21;
-		C[3+lda*1] = c_31;
+		C[0+ldc*1] = c_01;
+		C[1+ldc*1] = c_11;
+		C[2+ldc*1] = c_21;
+		C[3+ldc*1] = c_31;
 
-		C[0+lda*2] = c_02;
-		C[1+lda*2] = c_12;
-		C[2+lda*2] = c_22;
-		C[3+lda*2] = c_32;
+		C[0+ldc*2] = c_02;
+		C[1+ldc*2] = c_12;
+		C[2+ldc*2] = c_22;
+		C[3+ldc*2] = c_32;
 
-		C[0+lda*3] = c_03;
-		C[1+lda*3] = c_13;
-		C[2+lda*3] = c_23;
-		C[3+lda*3] = c_33;
+		C[0+ldc*3] = c_03;
+		C[1+ldc*3] = c_13;
+		C[2+ldc*3] = c_23;
+		C[3+ldc*3] = c_33;
 		}
 	else if(alg==1)
 		{
-		C[0+lda*0] += c_00;
-		C[1+lda*0] += c_10;
-		C[2+lda*0] += c_20;
-		C[3+lda*0] += c_30;
+		C[0+ldc*0] += c_00;
+		C[1+ldc*0] += c_10;
+		C[2+ldc*0] += c_20;
+		C[3+ldc*0] += c_30;
 
-		C[0+lda*1] += c_01;
-		C[1+lda*1] += c_11;
-		C[2+lda*1] += c_21;
-		C[3+lda*1] += c_31;
+		C[0+ldc*1] += c_01;
+		C[1+ldc*1] += c_11;
+		C[2+ldc*1] += c_21;
+		C[3+ldc*1] += c_31;
 
-		C[0+lda*2] += c_02;
-		C[1+lda*2] += c_12;
-		C[2+lda*2] += c_22;
-		C[3+lda*2] += c_32;
+		C[0+ldc*2] += c_02;
+		C[1+ldc*2] += c_12;
+		C[2+ldc*2] += c_22;
+		C[3+ldc*2] += c_32;
 
-		C[0+lda*3] += c_03;
-		C[1+lda*3] += c_13;
-		C[2+lda*3] += c_23;
-		C[3+lda*3] += c_33;
+		C[0+ldc*3] += c_03;
+		C[1+ldc*3] += c_13;
+		C[2+ldc*3] += c_23;
+		C[3+ldc*3] += c_33;
 		}
 	else
 		{
-		C[0+lda*0] -= c_00;
-		C[1+lda*0] -= c_10;
-		C[2+lda*0] -= c_20;
-		C[3+lda*0] -= c_30;
+		C[0+ldc*0] -= c_00;
+		C[1+ldc*0] -= c_10;
+		C[2+ldc*0] -= c_20;
+		C[3+ldc*0] -= c_30;
 
-		C[0+lda*1] -= c_01;
-		C[1+lda*1] -= c_11;
-		C[2+lda*1] -= c_21;
-		C[3+lda*1] -= c_31;
+		C[0+ldc*1] -= c_01;
+		C[1+ldc*1] -= c_11;
+		C[2+ldc*1] -= c_21;
+		C[3+ldc*1] -= c_31;
 
-		C[0+lda*2] -= c_02;
-		C[1+lda*2] -= c_12;
-		C[2+lda*2] -= c_22;
-		C[3+lda*2] -= c_32;
+		C[0+ldc*2] -= c_02;
+		C[1+ldc*2] -= c_12;
+		C[2+ldc*2] -= c_22;
+		C[3+ldc*2] -= c_32;
 
-		C[0+lda*3] -= c_03;
-		C[1+lda*3] -= c_13;
-		C[2+lda*3] -= c_23;
-		C[3+lda*3] -= c_33;
+		C[0+ldc*3] -= c_03;
+		C[1+ldc*3] -= c_13;
+		C[2+ldc*3] -= c_23;
+		C[3+ldc*3] -= c_33;
 		}
 
 	}
@@ -259,13 +259,13 @@ void kernel_dgemm_pp_nt_4x4_c99_lib4(int kmax, double *A, double *B, double *C, 
 
 
 // normal-transposed, 4x3 with data packed in 4
-void kernel_dgemm_pp_nt_4x3_c99_lib4(int kmax, double *A, double *B, double *C, int alg)
+void kernel_dgemm_pp_nt_4x3_c99_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 
-	const int lda = 4;
+/*	const int bs = 4;*/
 
 	int k;
 	
@@ -419,54 +419,54 @@ void kernel_dgemm_pp_nt_4x3_c99_lib4(int kmax, double *A, double *B, double *C, 
 
 	if(alg==0)
 		{
-		C[0+lda*0] = c_00;
-		C[1+lda*0] = c_10;
-		C[2+lda*0] = c_20;
-		C[3+lda*0] = c_30;
+		C[0+ldc*0] = c_00;
+		C[1+ldc*0] = c_10;
+		C[2+ldc*0] = c_20;
+		C[3+ldc*0] = c_30;
 
-		C[0+lda*1] = c_01;
-		C[1+lda*1] = c_11;
-		C[2+lda*1] = c_21;
-		C[3+lda*1] = c_31;
+		C[0+ldc*1] = c_01;
+		C[1+ldc*1] = c_11;
+		C[2+ldc*1] = c_21;
+		C[3+ldc*1] = c_31;
 
-		C[0+lda*2] = c_02;
-		C[1+lda*2] = c_12;
-		C[2+lda*2] = c_22;
-		C[3+lda*2] = c_32;
+		C[0+ldc*2] = c_02;
+		C[1+ldc*2] = c_12;
+		C[2+ldc*2] = c_22;
+		C[3+ldc*2] = c_32;
 		}
 	else if(alg==1)
 		{
-		C[0+lda*0] += c_00;
-		C[1+lda*0] += c_10;
-		C[2+lda*0] += c_20;
-		C[3+lda*0] += c_30;
+		C[0+ldc*0] += c_00;
+		C[1+ldc*0] += c_10;
+		C[2+ldc*0] += c_20;
+		C[3+ldc*0] += c_30;
 
-		C[0+lda*1] += c_01;
-		C[1+lda*1] += c_11;
-		C[2+lda*1] += c_21;
-		C[3+lda*1] += c_31;
+		C[0+ldc*1] += c_01;
+		C[1+ldc*1] += c_11;
+		C[2+ldc*1] += c_21;
+		C[3+ldc*1] += c_31;
 
-		C[0+lda*2] += c_02;
-		C[1+lda*2] += c_12;
-		C[2+lda*2] += c_22;
-		C[3+lda*2] += c_32;
+		C[0+ldc*2] += c_02;
+		C[1+ldc*2] += c_12;
+		C[2+ldc*2] += c_22;
+		C[3+ldc*2] += c_32;
 		}
 	else
 		{
-		C[0+lda*0] -= c_00;
-		C[1+lda*0] -= c_10;
-		C[2+lda*0] -= c_20;
-		C[3+lda*0] -= c_30;
+		C[0+ldc*0] -= c_00;
+		C[1+ldc*0] -= c_10;
+		C[2+ldc*0] -= c_20;
+		C[3+ldc*0] -= c_30;
 
-		C[0+lda*1] -= c_01;
-		C[1+lda*1] -= c_11;
-		C[2+lda*1] -= c_21;
-		C[3+lda*1] -= c_31;
+		C[0+ldc*1] -= c_01;
+		C[1+ldc*1] -= c_11;
+		C[2+ldc*1] -= c_21;
+		C[3+ldc*1] -= c_31;
 
-		C[0+lda*2] -= c_02;
-		C[1+lda*2] -= c_12;
-		C[2+lda*2] -= c_22;
-		C[3+lda*2] -= c_32;
+		C[0+ldc*2] -= c_02;
+		C[1+ldc*2] -= c_12;
+		C[2+ldc*2] -= c_22;
+		C[3+ldc*2] -= c_32;
 		}
 
 	}
@@ -474,13 +474,13 @@ void kernel_dgemm_pp_nt_4x3_c99_lib4(int kmax, double *A, double *B, double *C, 
 
 
 // normal-transposed, 4x2 with data packed in 4
-void kernel_dgemm_pp_nt_4x2_c99_lib4(int kmax, double *A, double *B, double *C, int alg)
+void kernel_dgemm_pp_nt_4x2_c99_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 
-	const int lda = 4;
+/*	const int ldc = 4;*/
 
 	int k;
 	
@@ -604,39 +604,39 @@ void kernel_dgemm_pp_nt_4x2_c99_lib4(int kmax, double *A, double *B, double *C, 
 
 	if(alg==0)
 		{
-		C[0+lda*0] = c_00;
-		C[1+lda*0] = c_10;
-		C[2+lda*0] = c_20;
-		C[3+lda*0] = c_30;
+		C[0+ldc*0] = c_00;
+		C[1+ldc*0] = c_10;
+		C[2+ldc*0] = c_20;
+		C[3+ldc*0] = c_30;
 
-		C[0+lda*1] = c_01;
-		C[1+lda*1] = c_11;
-		C[2+lda*1] = c_21;
-		C[3+lda*1] = c_31;
+		C[0+ldc*1] = c_01;
+		C[1+ldc*1] = c_11;
+		C[2+ldc*1] = c_21;
+		C[3+ldc*1] = c_31;
 		}
 	else if(alg==1)
 		{
-		C[0+lda*0] += c_00;
-		C[1+lda*0] += c_10;
-		C[2+lda*0] += c_20;
-		C[3+lda*0] += c_30;
+		C[0+ldc*0] += c_00;
+		C[1+ldc*0] += c_10;
+		C[2+ldc*0] += c_20;
+		C[3+ldc*0] += c_30;
 
-		C[0+lda*1] += c_01;
-		C[1+lda*1] += c_11;
-		C[2+lda*1] += c_21;
-		C[3+lda*1] += c_31;
+		C[0+ldc*1] += c_01;
+		C[1+ldc*1] += c_11;
+		C[2+ldc*1] += c_21;
+		C[3+ldc*1] += c_31;
 		}
 	else
 		{
-		C[0+lda*0] -= c_00;
-		C[1+lda*0] -= c_10;
-		C[2+lda*0] -= c_20;
-		C[3+lda*0] -= c_30;
+		C[0+ldc*0] -= c_00;
+		C[1+ldc*0] -= c_10;
+		C[2+ldc*0] -= c_20;
+		C[3+ldc*0] -= c_30;
 
-		C[0+lda*1] -= c_01;
-		C[1+lda*1] -= c_11;
-		C[2+lda*1] -= c_21;
-		C[3+lda*1] -= c_31;
+		C[0+ldc*1] -= c_01;
+		C[1+ldc*1] -= c_11;
+		C[2+ldc*1] -= c_21;
+		C[3+ldc*1] -= c_31;
 		}
 
 	}
@@ -644,13 +644,13 @@ void kernel_dgemm_pp_nt_4x2_c99_lib4(int kmax, double *A, double *B, double *C, 
 
 
 // normal-transposed, 4x1 with data packed in 4
-void kernel_dgemm_pp_nt_4x1_c99_lib4(int kmax, double *A, double *B, double *C, int alg)
+void kernel_dgemm_pp_nt_4x1_c99_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 
-	const int lda = 4;
+/*	const int ldc = 4;*/
 
 	int k;
 	
@@ -744,24 +744,24 @@ void kernel_dgemm_pp_nt_4x1_c99_lib4(int kmax, double *A, double *B, double *C, 
 
 	if(alg==0)
 		{
-		C[0+lda*0] = c_00;
-		C[1+lda*0] = c_10;
-		C[2+lda*0] = c_20;
-		C[3+lda*0] = c_30;
+		C[0+ldc*0] = c_00;
+		C[1+ldc*0] = c_10;
+		C[2+ldc*0] = c_20;
+		C[3+ldc*0] = c_30;
 		}
 	else if(alg==1)
 		{
-		C[0+lda*0] += c_00;
-		C[1+lda*0] += c_10;
-		C[2+lda*0] += c_20;
-		C[3+lda*0] += c_30;
+		C[0+ldc*0] += c_00;
+		C[1+ldc*0] += c_10;
+		C[2+ldc*0] += c_20;
+		C[3+ldc*0] += c_30;
 		}
 	else
 		{
-		C[0+lda*0] -= c_00;
-		C[1+lda*0] -= c_10;
-		C[2+lda*0] -= c_20;
-		C[3+lda*0] -= c_30;
+		C[0+ldc*0] -= c_00;
+		C[1+ldc*0] -= c_10;
+		C[2+ldc*0] -= c_20;
+		C[3+ldc*0] -= c_30;
 		}
 
 	}

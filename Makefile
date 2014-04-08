@@ -19,6 +19,8 @@ MPC_OBJS = #./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
 endif
 
+all: clean library test_problem run
+
 library:
 	make -C auxiliary obj
 	make -C kernel obj

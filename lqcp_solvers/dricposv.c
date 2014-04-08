@@ -61,21 +61,28 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 	/* final stage */
 	dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N], sda, pL, sda);
 
+/*d_print_pmat(nz, nz, bs, hpQ[N], sda);*/
+
 	/* middle stages */
 	for(ii=0; ii<N-1; ii++)
 		{	
+/*d_print_pmat(nz, nz, bs, hpBAbt[N-ii-1], sda);*/
 		dtrmm_ppp_lib(nz, nx, nu, hpBAbt[N-ii-1], sda, pL, sda, pBAbtL, sda);
+/*d_print_pmat(nz, nz, bs, pBAbtL, sda);*/
 		dsyrk_ppp_lib(nz, nz, nx, pBAbtL, sda, hpQ[N-ii-1], sda);
+/*d_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
 		dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N-ii-1], sda, pL, sda);
+/*d_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
+/*exit(3);*/
 		}
 
 	/* initial stage */
 	dtrmm_ppp_lib(nz, nx, nu, hpBAbt[0], sda, pL, sda, pBAbtL, sda);
+/*d_print_pmat(nz, nx, bs, pBAbtL, sda);*/
 	dsyrk_ppp_lib(nz, nu, nx, pBAbtL, sda, hpQ[0], sda);
-	dpotrf_p_lib(nz, nu, hpQ[0], sda);
-
 /*d_print_pmat(nz, nu, bs, hpQ[0], sda);*/
-/*exit(3);*/
+	dpotrf_p_lib(nz, nu, hpQ[0], sda);
+/*d_print_pmat(nz, nu, bs, hpQ[0], sda);*/
 
 	/* forward substitution */
 	for(ii=0; ii<N; ii++)
@@ -88,6 +95,8 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 		dgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], sda, &hux[ii][0], &hux[ii+1][nu], 1);
 		}
 	
+/*exit(3);*/
+
 	}
 
 

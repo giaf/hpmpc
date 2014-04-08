@@ -133,7 +133,7 @@ int main()
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); // flush to zero subnormals !!! works only with one thread !!!
 
 	// to throw floating-point exception
-/*    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);*/
+    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 
 	printf("\nnx\tnu\tN\tkernel\n\n");
 

@@ -199,6 +199,7 @@ void dpotrf_p_lib(int m, int n, double *pC, int sdc)
 	j = 0;
 	for(; j<n-3; j+=4)
 		{
+/*printf("\n4\n");*/
 		i = j;
 		for(; i<m; i+=4)
 			{
@@ -206,10 +207,12 @@ void dpotrf_p_lib(int m, int n, double *pC, int sdc)
 			}
 		kernel_dpotrf_dtrsv_4x4_c99_lib4(m-j-4, &pC[0+j*bs+j*sdc], sdc);
 		}
+/*printf("\nciao %d\n", n-j);*/
 	if(j<n)
 		{
 		if(n-j==1)
 			{
+/*printf("\n1\n");*/
 			i = j;
 			for(; i<m; i+=4)
 				{
@@ -219,6 +222,7 @@ void dpotrf_p_lib(int m, int n, double *pC, int sdc)
 			}
 		else if(n-j==2)
 			{
+/*printf("\n2\n");*/
 			i = j;
 			for(; i<m; i+=4)
 				{
@@ -228,12 +232,14 @@ void dpotrf_p_lib(int m, int n, double *pC, int sdc)
 			}
 		else if(n-j==3)
 			{
+/*printf("\n3\n");*/
 			i = j;
 			for(; i<m; i+=4)
 				{
 				kernel_dgemm_pp_nt_4x3_c99_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 				}
 			kernel_dpotrf_dtrsv_3x3_c99_lib4(m-j-3, &pC[0+j*bs+j*sdc], sdc);
+/*printf("\nhola\n");*/
 			}
 		}
 
