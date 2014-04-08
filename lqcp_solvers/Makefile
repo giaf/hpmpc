@@ -4,6 +4,10 @@ ifeq ($(TARGET), AVX)
 OBJS = dricposv.o
 CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_AVX $(DEBUG)
 endif
+ifeq ($(TARGET), NEON)
+OBJS = dricposv.o
+CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
+endif
 ifeq ($(TARGET), C99_4X4)
 OBJS = dricposv.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
