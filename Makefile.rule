@@ -2,8 +2,8 @@
 # AVX     : machine with AVX instruction set (recent Intel and AMD processors), 64 bit operating system
 # NEON    : machine with ARMv7a processor with VPFv3 or VPFv4 (both D32 versions) and NEON
 # C99_4X4 : c99 reference code for a machine with 32 scalar registers
-TARGET = AVX
-#TARGET = C99_4X4
+#TARGET = AVX
+TARGET = C99_4X4
 
 # C Compiler
 CC = gcc-4.6
