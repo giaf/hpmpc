@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/time.h>
+#if defined(AVX)
 #include <xmmintrin.h> // needed to flush to zero sub-normals with _MM_SET_FLUSH_ZERO_MODE (_MM_FLUSH_ZERO_ON); in the main()
+#endif
 
 // to throw floating-point exception
 #define _GNU_SOURCE
@@ -130,7 +132,9 @@ int main()
 	// maximum flops per cycle, double precision
 	const float d_flops_max = 8; //4; //2;
 
+#if defined(AVX)
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); // flush to zero subnormals !!! works only with one thread !!!
+#endif
 
 	// to throw floating-point exception
     feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
