@@ -21,6 +21,8 @@ endif
 
 all: clean library test_problem run
 
+code: clean codegenerator test_problem run
+
 library:
 	make -C auxiliary obj
 	make -C kernel obj
