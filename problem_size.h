@@ -22,6 +22,6 @@
  *
  */
 
-#define NX 8
-#define NU 3
+#define NX 22
+#define NU 10
 #define NN 10
