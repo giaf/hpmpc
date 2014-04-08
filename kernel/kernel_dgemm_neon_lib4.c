@@ -1,5 +1,5 @@
 // prefetch optimized for Cortex-A9 (cache line is 32 bytes, while A15 is 64 bytes)
-void kernel_dgemm_pp_nt_4x4_vfpv3_lib4(int kmax, double *A, double *B, double *C, int bs, int alg)
+void kernel_dgemm_pp_nt_4x4_vfpv3_lib4(int kmax, double *A, double *B, double *C, int bs_dummy, int alg)
 	{
 	
 	if(kmax<=0)
