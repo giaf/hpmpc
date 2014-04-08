@@ -118,8 +118,10 @@ void kernel_dgemm_pp_nt_4x4_vfpv3_lib4(int kmax, double *A, double *B, double *C
 		"fldd   d23, [r1, #88]           \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"pld    [r0, #192]               \n\t"
-		"pld    [r1, #192]               \n\t"
+/*		"pld    [r0, #192]               \n\t"*/
+/*		"pld    [r1, #192]               \n\t"*/
+		"pld    [r0, #160]               \n\t"
+		"pld    [r1, #160]               \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"fmacd  d0, d24, d28             \n\t"
@@ -152,8 +154,10 @@ void kernel_dgemm_pp_nt_4x4_vfpv3_lib4(int kmax, double *A, double *B, double *C
 		"fldd   d31, [r1, #120]          \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"pld    [r0, #256]               \n\t"
-		"pld    [r1, #256]               \n\t"
+/*		"pld    [r0, #256]               \n\t"*/
+/*		"pld    [r1, #256]               \n\t"*/
+		"pld    [r0, #192]               \n\t"
+		"pld    [r1, #192]               \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"fmacd  d0, d16, d20             \n\t"
@@ -186,8 +190,10 @@ void kernel_dgemm_pp_nt_4x4_vfpv3_lib4(int kmax, double *A, double *B, double *C
 		"fldd   d19, [r0, #152]          \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"pld    [r0, #384]               \n\t"
-		"pld    [r1, #384]               \n\t"
+/*		"pld    [r0, #384]               \n\t"*/
+/*		"pld    [r1, #384]               \n\t"*/
+		"pld    [r0, #224]               \n\t"
+		"pld    [r1, #224]               \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"fmacd  d0, d24, d28             \n\t"
