@@ -36,12 +36,12 @@
 #define S_MR 4
 #define S_NR 4
 
-//#elif defined( TARGET_C99 )
+#elif defined( TARGET_C99_2X2 )
 
-//#define D_MR 2
-//#define D_NR 2
-//#define S_MR 2
-//#define S_NR 2
+#define D_MR 2
+#define D_NR 2
+#define S_MR 2
+#define S_NR 2
 
 //#elif defined( TARGET_SCAL )
 

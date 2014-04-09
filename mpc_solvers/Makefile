@@ -11,6 +11,9 @@ endif
 ifeq ($(TARGET), C99_4X4)
 CFLAGS = $(OPT) -std=c99 -DTARGET_C99_4X4 $(DEBUG)
 endif
+ifeq ($(TARGET), C99_2X2)
+CFLAGS = $(OPT) -std=c99 -DTARGET_C99_2X2 $(DEBUG)
+endif
 
 obj: $(OBJS)
 

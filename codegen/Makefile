@@ -14,6 +14,10 @@ ifeq ($(TARGET), C99_4X4)
 CODEGEN_OBJS = code_generator_blas_d_c99_4x4_lib4.o code_generator_dricposv.o
 CFLAGS = $(OPT) -std=c99 -DTARGET_C99_4X4 $(DEBUG)
 endif
+ifeq ($(TARGET), C99_2X2)
+CODEGEN_OBJS = code_generator_blas_d_c99_2x2_lib4.o code_generator_dricposv.o
+CFLAGS = $(OPT) -std=c99 -DTARGET_C99_2X2 $(DEBUG)
+endif
 
 codegen: $(CODEGEN_OBJS)
 	gcc -o code_generator.out $(CODEGEN_OBJS) -O2
@@ -29,3 +33,4 @@ code_generator_dricposv.o: code_generator_dricposv.c ../problem_size.h
 code_generator_blas_d_avx_lib4.o: code_generator_blas_d_avx_lib4.c ../problem_size.h
 code_generator_blas_d_neon_lib4.o: code_generator_blas_d_neon_lib4.c ../problem_size.h
 code_generator_blas_d_c99_4x4_lib4.o: code_generator_blas_d_c99_4x4_lib4.c ../problem_size.h
+code_generator_blas_d_c99_2x2_lib2.o: code_generator_blas_d_c99_2x2_lib2.c ../problem_size.h

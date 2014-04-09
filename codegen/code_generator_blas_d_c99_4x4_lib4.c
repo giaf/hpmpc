@@ -41,7 +41,7 @@ fprintf(f, "	kernel_dpotrf_dtrsv_4x4_c99_lib4(%d, &pC[%d], %d);\n", n-j-4, j*bs+
 fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_4x4_c99_lib4(%d, &pC[%d], %d, %d, &pL[%d], %d);\n", n-j-4, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
 		j += 4;
 		}
-	for(; j<n-2; j+=4)
+	for(; j<n-3; j+=4)
 		{
 		i = j;
 		for(; i<n; i+=4)
