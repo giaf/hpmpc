@@ -16,6 +16,10 @@ ifeq ($(TARGET), C99_2X2)
 OBJS = dricposv.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_2X2 $(DEBUG)
 endif
+ifeq ($(TARGET), ATOM)
+OBJS = dricposv.o
+CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -fPIC -DTARGET_ATOM $(DEBUG)
+endif
 
 obj: $(OBJS)
 

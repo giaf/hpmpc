@@ -1,4 +1,4 @@
-#include "../include/kernel_d_c99_2x2.h"
+#include "../include/kernel_d_atom.h"
 
 
 
@@ -20,7 +20,7 @@ void dgemm_ppp_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int 
 		j = 0;
 		for(; j<n-1; j+=2)
 			{
-			kernel_dgemm_pp_nt_2x2_c99_lib2(k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs, alg);
+			kernel_dgemm_pp_nt_2x2_atom_lib2(k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs, alg);
 			}
 		jj = 0;
 		for(; jj<n-j; jj++)
@@ -53,7 +53,7 @@ void dtrmm_ppp_lib(int m, int n, int offset, double *pA, int sda, double *pB, in
 		j = 0;
 		for(; j<n-1; j+=2)
 			{
-			kernel_dgemm_pp_nt_2x2_c99_lib2(n-j-0, &pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs, 0);
+			kernel_dgemm_pp_nt_2x2_atom_lib2(n-j-0, &pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs, 0);
 			}
 		if(n-j==1)
 			{
@@ -90,7 +90,7 @@ void dsyrk_ppp_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc
 			j_end = n-1;
 		for(; j<j_end; j+=2)
 			{
-			kernel_dgemm_pp_nt_2x2_c99_lib2(k, &pA[0+i*sda], &pA[0+j*sda], &pC[0+(j+0)*bs+i*sdc], bs, 1);
+			kernel_dgemm_pp_nt_2x2_atom_lib2(k, &pA[0+i*sda], &pA[0+j*sda], &pC[0+(j+0)*bs+i*sdc], bs, 1);
 			}
 		if(n-j==1)
 			{
@@ -122,7 +122,7 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 			i = j;
 			for(; i<n; i+=2)
 				{
-				kernel_dgemm_pp_nt_2x2_c99_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
+				kernel_dgemm_pp_nt_2x2_atom_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 				}
 			kernel_dpotrf_dtrsv_2x2_c99_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc);
 			}
@@ -138,7 +138,7 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 		i = j;
 		for(; i<n; i+=2)
 			{
-			kernel_dgemm_pp_nt_2x2_c99_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
+			kernel_dgemm_pp_nt_2x2_atom_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
 		kernel_dpotrf_dtrsv_dcopy_2x2_c99_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl);
 		}
@@ -167,7 +167,7 @@ void dpotrf_p_lib(int m, int n, double *pC, int sdc)
 		i = j;
 		for(; i<m; i+=2)
 			{
-			kernel_dgemm_pp_nt_2x2_c99_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
+			kernel_dgemm_pp_nt_2x2_atom_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
 		kernel_dpotrf_dtrsv_2x2_c99_lib2(m-j-2, &pC[0+j*bs+j*sdc], sdc);
 		}

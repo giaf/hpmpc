@@ -16,6 +16,10 @@ ifeq ($(TARGET), C99_2X2)
 OBJS = kernel_dgemm_c99_lib2.o kernel_dpotrf_c99_lib2.o kernel_dgemv_c99_lib2.o corner_dtrmm_c99_lib2.o corner_dpotrf_c99_lib2.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_2X2 $(DEBUG)
 endif
+ifeq ($(TARGET), ATOM)
+OBJS = kernel_dgemm_atom_lib2.o kernel_dpotrf_c99_lib2.o kernel_dgemv_c99_lib2.o corner_dtrmm_c99_lib2.o corner_dpotrf_c99_lib2.o
+CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -fPIC -DTARGET_ATOM $(DEBUG)
+endif
 
 obj: $(OBJS)
 

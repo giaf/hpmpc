@@ -15,8 +15,12 @@ CODEGEN_OBJS = code_generator_blas_d_c99_4x4_lib4.o code_generator_dricposv.o
 CFLAGS = $(OPT) -std=c99 -DTARGET_C99_4X4 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_2X2)
-CODEGEN_OBJS = code_generator_blas_d_c99_2x2_lib4.o code_generator_dricposv.o
+CODEGEN_OBJS = code_generator_blas_d_c99_2x2_lib2.o code_generator_dricposv.o
 CFLAGS = $(OPT) -std=c99 -DTARGET_C99_2X2 $(DEBUG)
+endif
+ifeq ($(TARGET), ATOM)
+CODEGEN_OBJS = code_generator_blas_d_atom_lib2.o code_generator_dricposv.o
+CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -DTARGET_ATOM $(DEBUG)
 endif
 
 codegen: $(CODEGEN_OBJS)
