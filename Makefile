@@ -53,10 +53,10 @@ CFLAGS = $(OPT) -std=c99 -fPIC -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4)
 AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_c99_4x4.o 
-KERNEL_OBJS = ./kernel/kernel_dgemm_c99_lib4.o ./kernel/kernel_dpotrf_c99_lib4.o ./kernel/kernel_dgemv_c99_lib4.o ./kernel/corner_dtrmm_c99_lib4.o ./kernel/corner_dpotrf_c99_lib4.o
-BLAS_OBJS = ./blas/blas_d_c99_lib4.o
-LQCP_OBJS = ./lqcp_solvers/dricposv.o
-LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o
+KERNEL_OBJS = ./kernel/kernel_dgemm_c99_lib4.o ./kernel/kernel_dpotrf_c99_lib4.o ./kernel/kernel_dgemv_c99_lib4.o ./kernel/corner_dtrmm_c99_lib4.o ./kernel/corner_dpotrf_c99_lib4.o ./kernel/kernel_sgemm_c99_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_c99_lib4.o ./kernel/corner_strmm_c99_lib4.o ./kernel/corner_spotrf_c99_lib4.o
+BLAS_OBJS = ./blas/blas_d_c99_lib4.o ./blas/blas_s_c99_lib4.o
+LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o
+LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
 endif

@@ -15,7 +15,7 @@
 #include <math.h>
 
 #include "../include/aux_d.h"
-/*#include "../include/aux_s.h"*/
+#include "../include/aux_s.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/block_size.h"
 
@@ -39,9 +39,9 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 	int it_ref;	
 
 	const int dbs = D_MR; //d_get_mr();
-/*	const int sbs = S_MR; //s_get_mr();*/
+	const int sbs = S_MR; //s_get_mr();
 	int dsda = dbs*((nx+nu+1+dbs-nu%dbs+dbs-1)/dbs); // second (orizontal) dimension of matrices
-/*	int ssda = sbs*((nx+nu+1+sbs-nu%sbs+sbs-1)/sbs); // second (orizontal) dimension of matrices*/
+	int ssda = sbs*((nx+nu+1+sbs-nu%sbs+sbs-1)/sbs); // second (orizontal) dimension of matrices
 	
 /*	printf("\n\n%d %d %d %d\n\n", dbs, dsda, sbs, ssda);*/
 
@@ -83,38 +83,38 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 		
 
 
-/*	float *(sdux[N+1]);*/
-/*	float *(psL[N+1]);*/
-/*	float *(psl[N+1]);*/
-/*	float *psBAbtL;*/
-/*	float *psLt;*/
+	float *(sdux[N+1]);
+	float *(psL[N+1]);
+	float *(psl[N+1]);
+	float *psBAbtL;
+	float *psLt;
 
-/*	float *sptr = (float *) ptr;*/
+	float *sptr = (float *) ptr;
 
-/*	// inputs and states, single prec*/
-/*	for(jj=0; jj<=N; jj++)*/
-/*		{*/
-/*		sdux[jj] = sptr+jj*ssda;*/
-/*		}*/
-/*	sptr += (N+1)*ssda;*/
+	// inputs and states, single prec
+	for(jj=0; jj<=N; jj++)
+		{
+		sdux[jj] = sptr+jj*ssda;
+		}
+	sptr += (N+1)*ssda;
 
 
-/*	// cost function*/
-/*	for(jj=0; jj<=N; jj++)*/
-/*		{*/
-/*		psL[jj] = sptr+jj*ssda*ssda;*/
-/*		psl[jj] = psL[jj] + nxu%sbs + (nxu/sbs)*sbs*ssda;*/
-/*		}*/
-/*	sptr += (N+1)*ssda*ssda;*/
+	// cost function
+	for(jj=0; jj<=N; jj++)
+		{
+		psL[jj] = sptr+jj*ssda*ssda;
+		psl[jj] = psL[jj] + nxu%sbs + (nxu/sbs)*sbs*ssda;
+		}
+	sptr += (N+1)*ssda*ssda;
 
-/*	// work space*/
-/*	psBAbtL = sptr;*/
-/*	sptr += ssda*ssda;*/
+	// work space
+	psBAbtL = sptr;
+	sptr += ssda*ssda;
 
-/*	psLt = sptr;*/
-/*	sptr += ssda*ssda;*/
-/*	*/
-/*	ptr = (double *) sptr;*/
+	psLt = sptr;
+	sptr += ssda*ssda;
+	
+	ptr = (double *) sptr;
 
 
 
@@ -247,8 +247,8 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 	for(ll=0; ll<nx; ll++)
 		dux[0][nu+ll] = ux[0][nu+ll];
 	// single precision
-/*	for(ll=0; ll<nx; ll++)*/
-/*		sdux[0][nu+ll] = ux[0][nu+ll];*/
+	for(ll=0; ll<nx; ll++)
+		sdux[0][nu+ll] = ux[0][nu+ll];
 
 
 
@@ -275,8 +275,8 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 
 		//update cost function matrices and vectors (box constraints)
 
-/*		if(prec=='d' && mu<sp_thr)*/
-/*			{*/
+		if(prec=='d' && mu<sp_thr)
+			{
 
 			for(jj=0; jj<=N; jj++)
 				{
@@ -310,56 +310,56 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 /*d_print_pmat(nz, nz, dbs, pL[jj], dsda);*/
 				}
 
-/*			}*/
-/*		else*/
-/*			{*/
+			}
+		else
+			{
 
-/*			for(jj=0; jj<=N; jj++)*/
-/*				{*/
+			for(jj=0; jj<=N; jj++)
+				{
 
-/*				// convert Q in sL*/
-/*				s_copy_pmat_lo(nz, sbs, psQ[jj], ssda, psL[jj], ssda);*/
+				// convert Q in sL
+				s_copy_pmat_lo(nz, sbs, psQ[jj], ssda, psL[jj], ssda);
 
-/*				// box constraints*/
-/*				for(ii=0; ii<nb; ii+=2*sbs)*/
-/*					{*/
-/*					bs0 = nb-ii;*/
-/*					if(2*sbs<bs0) bs0 = 2*sbs;*/
-/*					for(ll=0; ll<bs0; ll+=2)*/
-/*						{*/
-/*						temp0 = 1.0/t[jj][ii+ll+0];*/
-/*						temp1 = 1.0/t[jj][ii+ll+1];*/
-/*						lamt[jj][ii+ll+0] = lam[jj][ii+ll+0]*temp0;*/
-/*						lamt[jj][ii+ll+1] = lam[jj][ii+ll+1]*temp1;*/
-/*						dlam[jj][ii+ll+0] = temp0*(sigma*mu); // !!!!!*/
-/*						dlam[jj][ii+ll+1] = temp1*(sigma*mu); // !!!!!*/
-/*						psL[jj][ll/2+(ii+ll)/2*sbs+ii/2*ssda] += (float) lamt[jj][ii+ll+0] + lamt[jj][ii+ll+1];*/
-/*						psl[jj][(ii+ll)/2*sbs] += (float) lam[jj][ii+ll+1] + lamt[jj][ii+ll+1]*db[jj][ii+ll+1] + dlam[jj][ii+ll+1] */
-/*						                       - lam[jj][ii+ll+0] - lamt[jj][ii+ll+0]*db[jj][ii+ll+0] - dlam[jj][ii+ll+0];*/
-/*						}*/
-/*					}*/
-/*				}*/
+				// box constraints
+				for(ii=0; ii<nb; ii+=2*sbs)
+					{
+					bs0 = nb-ii;
+					if(2*sbs<bs0) bs0 = 2*sbs;
+					for(ll=0; ll<bs0; ll+=2)
+						{
+						temp0 = 1.0/t[jj][ii+ll+0];
+						temp1 = 1.0/t[jj][ii+ll+1];
+						lamt[jj][ii+ll+0] = lam[jj][ii+ll+0]*temp0;
+						lamt[jj][ii+ll+1] = lam[jj][ii+ll+1]*temp1;
+						dlam[jj][ii+ll+0] = temp0*(sigma*mu); // !!!!!
+						dlam[jj][ii+ll+1] = temp1*(sigma*mu); // !!!!!
+						psL[jj][ll/2+(ii+ll)/2*sbs+ii/2*ssda] += (float) lamt[jj][ii+ll+0] + lamt[jj][ii+ll+1];
+						psl[jj][(ii+ll)/2*sbs] += (float) lam[jj][ii+ll+1] + lamt[jj][ii+ll+1]*db[jj][ii+ll+1] + dlam[jj][ii+ll+1] 
+						                       - lam[jj][ii+ll+0] - lamt[jj][ii+ll+0]*db[jj][ii+ll+0] - dlam[jj][ii+ll+0];
+						}
+					}
+				}
 
-/*			}*/
+			}
 
 
-/*		if(prec=='d' && mu<sp_thr)*/
-/*			{*/
+		if(prec=='d' && mu<sp_thr)
+			{
 			// compute the search direction: factorize and solve the KKT system
 			dricposv_mpc(nx, nu, N, dsda, pBAbt, pL, dux, pLt, pBAbtL);
-/*			}*/
-/*		else*/
-/*			{*/
-/*			// compute the search direction: factorize and solve the KKT system*/
-/*			s_ric_po_sv(nx, nu, N, ssda, psBAbt, psL, sdux, psLt, psBAbtL);*/
+			}
+		else
+			{
+			// compute the search direction: factorize and solve the KKT system
+			sricposv_mpc(nx, nu, N, ssda, psBAbt, psL, sdux, psLt, psBAbtL);
 
-/*			// solution in double precision*/
-/*			for(ll=0; ll<nu; ll++)*/
-/*				dux[0][ll] = (double) sdux[0][ll];*/
-/*			for(jj=1; jj<=N; jj++)*/
-/*				for(ll=0; ll<nxu; ll++)*/
-/*					dux[jj][ll] = (double) sdux[jj][ll];*/
-/*			}*/
+			// solution in double precision
+			for(ll=0; ll<nu; ll++)
+				dux[0][ll] = (double) sdux[0][ll];
+			for(jj=1; jj<=N; jj++)
+				for(ll=0; ll<nxu; ll++)
+					dux[jj][ll] = (double) sdux[jj][ll];
+			}
 
 /*d_print_mat(nx+nu, N, dux[0], dsda);*/
 /*exit(2);*/

@@ -13,7 +13,7 @@ OBJS = kernel_dgemm_ppc_g2_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4
 CFLAGS = $(OPT) -std=c99 -fPIC -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4)
-OBJS = kernel_dgemm_c99_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o corner_dtrmm_c99_lib4.o corner_dpotrf_c99_lib4.o
+OBJS = kernel_dgemm_c99_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o corner_dtrmm_c99_lib4.o corner_dpotrf_c99_lib4.o kernel_sgemm_c99_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_c99_lib4.o corner_spotrf_c99_lib4.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_2X2)

@@ -17,7 +17,7 @@
 #define PRINTSTAT 1
 
 // double/single/mixed ('d'/'s'/'m') precision
-#define PREC 's'
+#define PREC 'd'
 
 // number of iterations of IP method
 #define K_MAX 10
