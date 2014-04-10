@@ -9,7 +9,7 @@ OBJS = blas_d_neon_lib4.o
 CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
 endif
 ifeq ($(TARGET), POWERPC_G2)
-OBJS = blas_d_ppc_lib4.o
+OBJS = blas_d_ppc_lib4.o blas_s_ppc_lib4.o
 CFLAGS = $(OPT) -std=c99 -fPIC -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4)
