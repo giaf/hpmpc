@@ -1,25 +1,27 @@
-#
-#	This file is part of HPMPC.
-#
-#	HPMPC -- Library for High-Performance implementation of solvers for MPC.
-#	Copyright (C) 2014 by Technical Univeristy of Denmark. All rights reserved.
-#
-#	HPMPC is free software; you can redistribute it and/or
-#	modify it under the terms of the GNU Lesser General Public
-#	License as published by the Free Software Foundation; either
-#	version 2.1 of the License, or (at your option) any later version.
-#
-#	HPMPC is distributed in the hope that it will be useful,
-#	but WITHOUT ANY WARRANTY; without even the implied warranty of
-#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#	See the GNU Lesser General Public License for more details.
-#
-#	You should have received a copy of the GNU Lesser General Public
-#	License along with HPMPC; if not, write to the Free Software
-#	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-#
-#	Author: Gianluca Frison, giaf (at) dtu.dk
-#
+###################################################################################################
+#                                                                                                 #
+#	This file is part of HPMPC.                                                                   #
+#                                                                                                 #
+#	HPMPC -- Library for High-Performance implementation of solvers for MPC.                      #
+#	Copyright (C) 2014 by Technical Univeristy of Denmark. All rights reserved.                   #
+#                                                                                                 #
+#	HPMPC is free software; you can redistribute it and/or                                        #
+#	modify it under the terms of the GNU Lesser General Public                                    #
+#	License as published by the Free Software Foundation; either                                  #
+#	version 2.1 of the License, or (at your option) any later version.                            #
+#                                                                                                 #
+#	HPMPC is distributed in the hope that it will be useful,                                      #
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of                                #
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                                          #
+#	See the GNU Lesser General Public License for more details.                                   #
+#                                                                                                 #
+#	You should have received a copy of the GNU Lesser General Public                              #
+#	License along with HPMPC; if not, write to the Free Software                                  #
+#	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA                #
+#                                                                                                 #
+#	Author: Gianluca Frison, giaf (at) dtu.dk                                                     #
+#                                                                                                 #
+###################################################################################################
 
 
 include ./Makefile.rule
@@ -74,9 +76,10 @@ endif
 ifeq ($(TARGET), ATOM)
 AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_atom.o 
 KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_atom_lib2.o ./kernel/kernel_dpotrf_c99_lib2.o ./kernel/kernel_dgemv_c99_lib2.o ./kernel/corner_dtrmm_c99_lib2.o ./kernel/corner_dpotrf_c99_lib2.o
-BLAS_OBJS = ./blas/blas_d_atom_lib2.o
-LQCP_OBJS = ./lqcp_solvers/dricposv.o
-LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o
+KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_atom_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_c99_lib4.o ./kernel/corner_strmm_c99_lib4.o ./kernel/corner_spotrf_c99_lib4.o
+BLAS_OBJS = ./blas/blas_d_atom_lib2.o ./blas/blas_s_atom_lib4.o
+LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o
+LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -fPIC -msse3 -mfpmath=sse -march=atom -DTARGET_ATOM $(DEBUG)
 endif

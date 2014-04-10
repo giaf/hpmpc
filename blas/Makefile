@@ -21,7 +21,7 @@ OBJS = blas_d_c99_lib2.o
 CFLAGS = $(OPT) -std=c99 -DTARGET_C99_2X2 -fPIC $(DEBUG)
 endif
 ifeq ($(TARGET), ATOM)
-OBJS = blas_d_atom_lib2.o
+OBJS = blas_d_atom_lib2.o blas_s_atom_lib4.o
 CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -DTARGET_ATOM -fPIC $(DEBUG)
 endif
 
