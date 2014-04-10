@@ -125,7 +125,7 @@ void kernel_dpotrf_dtrsv_2x2_c99_lib2(int kmax, double *A, int sda)
 		a_0b, a_1b,
 		*AA;
 	
-	AA = A+2;
+	AA = A + 2;
 	k = 0;
 	for(; k<kmax-1; k+=2)
 		{
@@ -201,12 +201,12 @@ void kernel_dpotrf_dtrsv_1x1_c99_lib2(int kmax, double *A, int sda)
 	AA[0+lda*0] = b_00;
 
 	AA += 1;
+	k++;
 
-	for(; k<kmax-3; k+=4)
+	for(; k<kmax-1; k+=2)
 		{
 
 		AA += lda*(sda-1);
-		
 
 		b_00 = AA[0+lda*0];
 		b_10 = AA[1+lda*0];
@@ -216,17 +216,7 @@ void kernel_dpotrf_dtrsv_1x1_c99_lib2(int kmax, double *A, int sda)
 		AA[0+lda*0] = b_00;
 		AA[1+lda*0] = b_10;
 
-
-		b_00 = AA[2+lda*0];
-		b_10 = AA[3+lda*0];
-
-		b_00 *= a_00;
-		b_10 *= a_00;
-		AA[2+lda*0] = b_00;
-		AA[3+lda*0] = b_10;
-
-
-		AA += 4;
+		AA += 2;
 		
 		}
 
