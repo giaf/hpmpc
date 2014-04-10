@@ -6,7 +6,10 @@ ifeq ($(TARGET), AVX)
 CFLAGS = $(OPT) -std=c99 -fPIC -mavx -DTARGET_AVX $(DEBUG)
 endif
 ifeq ($(TARGET), NEON)
-CFLAGS = $(OPT) -std=c99 -fPIC -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
+endif
+ifeq ($(TARGET), POWERPC_G2)
+CFLAGS = $(OPT) -std=c99 -fPIC -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4)
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)

@@ -40,7 +40,16 @@ BLAS_OBJS = ./blas/blas_d_neon_lib4.o
 LQCP_OBJS = ./lqcp_solvers/dricposv.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
-CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
+endif
+ifeq ($(TARGET), POWERPC_G2)
+AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_ppc.o 
+KERNEL_OBJS = ./kernel/kernel_dgemm_ppc_g2_lib4.o ./kernel/kernel_dpotrf_c99_lib4.o ./kernel/kernel_dgemv_c99_lib4.o ./kernel/corner_dtrmm_c99_lib4.o ./kernel/corner_dpotrf_c99_lib4.o
+BLAS_OBJS = ./blas/blas_d_ppc_lib4.o
+LQCP_OBJS = ./lqcp_solvers/dricposv.o
+LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o
+MPC_OBJS = ./mpc_solvers/ip_d_box.o
+CFLAGS = $(OPT) -std=c99 -fPIC -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4)
 AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_c99_4x4.o 
@@ -49,7 +58,7 @@ BLAS_OBJS = ./blas/blas_d_c99_lib4.o
 LQCP_OBJS = ./lqcp_solvers/dricposv.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
-CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_2X2)
 AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_c99_2x2.o 
@@ -58,7 +67,7 @@ BLAS_OBJS = ./blas/blas_d_c99_lib2.o
 LQCP_OBJS = ./lqcp_solvers/dricposv.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
-CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_2X2 $(DEBUG)
 endif
 ifeq ($(TARGET), ATOM)
 AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_atom.o 
@@ -67,7 +76,7 @@ BLAS_OBJS = ./blas/blas_d_atom_lib2.o
 LQCP_OBJS = ./lqcp_solvers/dricposv.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
-CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -fPIC -msse3 -mfpmath=sse -march=atom -DTARGET_ATOM $(DEBUG)
 endif
 
 all: clean library test_problem run

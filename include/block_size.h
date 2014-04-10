@@ -50,12 +50,12 @@
 //#define S_MR 4
 //#define S_NR 2
 
-//#elif defined( TARGET_POWERPC )
+#elif defined( TARGET_POWERPC_G2 )
 
-//#define D_MR 4
-//#define D_NR 4
-//#define S_MR 4
-//#define S_NR 4
+#define D_MR 4
+#define D_NR 4
+#define S_MR 4
+#define S_NR 4
 
 #else
 #error "Unknown architecture"

@@ -8,6 +8,10 @@ ifeq ($(TARGET), NEON)
 OBJS = aux_d_c99.o aux_s_c99.o block_size_neon.o
 CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
 endif
+ifeq ($(TARGET), POWERPC_G2)
+OBJS = aux_d_c99.o aux_s_c99.o block_size_ppc.o
+CFLAGS = $(OPT) -std=c99 -fPIC -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
+endif
 ifeq ($(TARGET), C99_4X4)
 OBJS = aux_d_c99.o aux_s_c99.o block_size_c99_4x4.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)

@@ -13,6 +13,9 @@ endif
 ifeq ($(TARGET), NEON)
 CFLAGS = $(OPT) -std=c99 -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
 endif
+ifeq ($(TARGET), POWERPC_G2)
+CFLAGS = $(OPT) -std=c99 -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
+endif
 ifeq ($(TARGET), C99_4X4)
 CFLAGS = $(OPT) -std=c99 -DTARGET_C99_4X4 $(DEBUG)
 endif
