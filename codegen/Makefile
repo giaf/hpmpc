@@ -35,13 +35,13 @@ codegen: $(CODEGEN_OBJS_DOUBLE) $(CODEGEN_OBJS_SINGLE)
 	./code_generator.out
 	gcc -o code_generator.out $(CODEGEN_OBJS_SINGLE) -O2
 	./code_generator.out
-	sleep 1
+#	sleep 5
 
 obj: codegen $(OBJS)
 
 clean:
-	rm -f dricposv_codegen.c 
-	rm -f sricposv_codegen.c
+#	rm -f dricposv_codegen.c 
+#	rm -f sricposv_codegen.c
 	rm -f *.o
 	rm -f code_generator.out
 

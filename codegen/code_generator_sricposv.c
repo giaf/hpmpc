@@ -13,7 +13,7 @@
 void main()
 	{
 	
-	const int bs = D_MR;
+	const int bs = S_MR;
 	
 	int jj;
 	
@@ -30,7 +30,7 @@ void main()
 	fprintf(f, "#include <stdlib.h>\n");
 	fprintf(f, "#include <stdio.h>\n");
 	fprintf(f, "\n");
-	fprintf(f, "#include \"../include/blas_d.h\"\n");
+/*	fprintf(f, "#include \"../include/blas_d.h\"\n");*/
 	fprintf(f, "#include \"../include/kernel_d_avx.h\"\n");
 	fprintf(f, "\n");
 /*	fprintf(f, "void dgemm_%dx%dx%d(float *A, int lda, float *B, int ldb, float *C, int ldc)\n", m, n, k);*/

@@ -11,13 +11,13 @@
 #define NREP 100
 
 // print results
-#define PRINTRES 1
+#define PRINTRES 0
 
 // print statistics
 #define PRINTSTAT 1
 
 // double/single/mixed ('d'/'s'/'m') precision
-#define PREC 'd'
+#define PREC 's'
 
 // number of iterations of IP method
 #define K_MAX 10

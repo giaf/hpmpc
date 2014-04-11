@@ -1,5 +1,5 @@
 // normal-transposed, 2x2 with data packed in 2
-void kernel_dgemm_nt_2x2_atom_lib2(int kmax, double *A, double *B, double *C, int bs_dummy, int alg)
+void kernel_dgemm_pp_nt_2x2_atom_lib2(int kmax, double *A, double *B, double *C, int bs_dummy, int alg)
 	{
 
 	if(kmax<=0)

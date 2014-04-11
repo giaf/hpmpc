@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/time.h>
-#if defined(AVX)
+#if defined(TARGET_AVX) || defined(TARGET_ATOM)
 #include <xmmintrin.h> // needed to flush to zero sub-normals with _MM_SET_FLUSH_ZERO_MODE (_MM_FLUSH_ZERO_ON); in the main()
 #endif
 
@@ -126,7 +126,8 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 int main()
 	{
 	
-#if defined(AVX)
+#if defined(TARGET_AVX) || defined(TARGET_ATOM)
+/*	printf("\nflush subnormals to zero\n");*/
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); // flush to zero subnormals !!! works only with one thread !!!
 #endif
 
