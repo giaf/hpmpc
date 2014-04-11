@@ -4,7 +4,7 @@
 #include "../include/block_size.h"
 
 #define NZ NX+NU+1
-#define PNZ D_MR*((NZ+D_MR-NU%D_MR+D_MR-1)/D_MR);
+#define PNZ S_MR*((NZ+S_MR-NU%S_MR+S_MR-1)/S_MR);
 
 
 
