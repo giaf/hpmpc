@@ -8,6 +8,7 @@ CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
 endif
 ifeq ($(TARGET), NEON)
 CODEGEN_OBJS_DOUBLE = code_generator_blas_d_neon_lib4.o code_generator_dricposv.o
+CODEGEN_OBJS_SINGLE = code_generator_blas_s_neon_lib4.o code_generator_sricposv.o
 CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
 endif
 ifeq ($(TARGET), POWERPC_G2)
@@ -49,6 +50,7 @@ code_generator_dricposv.o: code_generator_dricposv.c ../problem_size.h
 code_generator_sricposv.o: code_generator_dricposv.c ../problem_size.h
 code_generator_blas_d_avx_lib4.o: code_generator_blas_d_avx_lib4.c ../problem_size.h
 code_generator_blas_d_neon_lib4.o: code_generator_blas_d_neon_lib4.c ../problem_size.h
+code_generator_blas_s_neon_lib4.o: code_generator_blas_s_neon_lib4.c ../problem_size.h
 code_generator_blas_d_atom_lib2.o: code_generator_blas_d_atom_lib2.c ../problem_size.h
 code_generator_blas_s_atom_lib4.o: code_generator_blas_s_atom_lib4.c ../problem_size.h
 code_generator_blas_d_ppc_lib4.o: code_generator_blas_d_ppc_lib4.c ../problem_size.h

@@ -38,9 +38,10 @@ endif
 ifeq ($(TARGET), NEON)
 AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_neon.o 
 KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_neon_lib4.o ./kernel/kernel_dpotrf_c99_lib4.o ./kernel/kernel_dgemv_c99_lib4.o ./kernel/corner_dtrmm_c99_lib4.o ./kernel/corner_dpotrf_c99_lib4.o
-BLAS_OBJS = ./blas/blas_d_neon_lib4.o
-LQCP_OBJS = ./lqcp_solvers/dricposv.o
-LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o
+KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_neon_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_c99_lib4.o ./kernel/corner_strmm_c99_lib4.o ./kernel/corner_spotrf_c99_lib4.o
+BLAS_OBJS = ./blas/blas_d_neon_lib4.o ./blas/blas_s_neon_lib4.o
+LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o
+LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
 endif

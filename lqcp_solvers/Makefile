@@ -5,7 +5,7 @@ OBJS = dricposv.o
 CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_AVX $(DEBUG)
 endif
 ifeq ($(TARGET), NEON)
-OBJS = dricposv.o
+OBJS = dricposv.o sricposv.o
 CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
 endif
 ifeq ($(TARGET), POWERPC_G2)
