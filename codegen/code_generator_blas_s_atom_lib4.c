@@ -241,21 +241,17 @@ void sgemv_p_t_code_generator(FILE *f, int n, int m, int offset, int alg)
 	int j;
 	
 	j=0;
-	for(; j<m-7; j+=8)
-		{
-	fprintf(f, "	kernel_sgemv_t_8_c99_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
-		}
 	for(; j<m-3; j+=4)
 		{
-	fprintf(f, "	kernel_sgemv_t_4_c99_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
+	fprintf(f, "	kernel_sgemv_t_4_atom_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
 		}
 	for(; j<m-1; j+=2)
 		{
-	fprintf(f, "	kernel_sgemv_t_2_c99_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
+	fprintf(f, "	kernel_sgemv_t_2_sse_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
 		}
 	for(; j<m; j++)
 		{
-	fprintf(f, "	kernel_sgemv_t_1_c99_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
+	fprintf(f, "	kernel_sgemv_t_1_sse_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
 		}
 
 /*	fprintf(f, "	\n");*/
@@ -286,56 +282,18 @@ void strsv_p_t_code_generator(FILE *f, int n)
 	for(; j<rn%2; j++)
 		{
 		i = rn-1-j;
-	fprintf(f, "	kernel_sgemv_t_1_c99_lib4(%d, %d, &ptrA[%d], %d, &ptrx[%d], &ptrx[%d], -1);\n", j, j, i+1+bs*(i+0), sda, i+1, i);
+	fprintf(f, "	kernel_sgemv_t_1_sse_lib4(%d, %d, &ptrA[%d], %d, &ptrx[%d], &ptrx[%d], -1);\n", j, j, i+1+bs*(i+0), sda, i+1, i);
 	fprintf(f, "	ptrx[%d] = (ptrx[%d]) / ptrA[%d];\n", i+0, i+0, i+0+bs*(i+0));
 		}
 	for(; j<rn; j+=2)
 		{
 		i = rn-2-j;
-	fprintf(f, "	kernel_sgemv_t_2_c99_lib4(%d, %d, &ptrA[%d], %d, &ptrx[%d], &ptrx[%d], -1);\n", j, j, i+2+bs*(i+0), sda, i+2, i);
+	fprintf(f, "	kernel_sgemv_t_2_sse_lib4(%d, %d, &ptrA[%d], %d, &ptrx[%d], &ptrx[%d], -1);\n", j, j, i+2+bs*(i+0), sda, i+2, i);
 	fprintf(f, "	ptrx[%d] = (ptrx[%d]) / ptrA[%d];\n", i+1, i+1, (i+1)+bs*(i+1));
 	fprintf(f, "	ptrx[%d] = (ptrx[%d] - ptrA[%d]*ptrx[%d]) / ptrA[%d];\n", i+0, i+0, (i+1)+bs*(i+0), i+1, (i+0)+bs*(i+0));
 		}
 
-	// blocks of 8
 	j = 0;
-	for(; j<qn-1; j+=2)
-		{
-		
-		// all 4 rows
-	fprintf(f, "	ptrA = pA + %d;\n", (qn-j-2)*bs*(sda+bs));
-	fprintf(f, "	ptrx = x  + %d;\n", (qn-j-2)*bs);
-		
-
-		// correct
-	fprintf(f, "	kernel_sgemv_t_8_c99_lib4(%d, 0, ptrA+%d, sda, ptrx+8, ptrx, -1);\n", rn+j*bs, 2*bs*sda);
-		
-
-		// last 4 rows
-	fprintf(f, "	ptrA = pA + %d;\n", (qn-j-1)*bs*(sda+bs));
-	fprintf(f, "	ptrx = x  + %d;\n", (qn-j-1)*bs);
-
-		// solve
-	fprintf(f, "	ptrx[3] = (ptrx[3]) / ptrA[%d];\n", 3+bs*3);
-	fprintf(f, "	ptrx[2] = (ptrx[2] - ptrA[%d]*ptrx[3]) / ptrA[%d];\n", 3+bs*2, 2+bs*2);
-	fprintf(f, "	ptrx[1] = (ptrx[1] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2]) / ptrA[%d];\n", 3+bs*1, 2+bs*1, 1+bs*1);
-	fprintf(f, "	ptrx[0] = (ptrx[0] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2] - ptrA[%d]*ptrx[1]) / ptrA[%d];\n", 3+bs*0, 2+bs*0, 1+bs*0, 0+bs*0);
-
-		// first 4 rows
-	fprintf(f, "	ptrA = pA + %d;\n", (qn-j-2)*bs*(sda+bs));
-	fprintf(f, "	ptrx = x  + %d;\n", (qn-j-2)*bs);
-
-		// correct
-	fprintf(f, "	kernel_sgemv_t_4_c99_lib4(4, 0, ptrA+%d, sda, ptrx+4, ptrx, -1);\n", bs*sda);
-
-		// solve
-	fprintf(f, "	ptrx[3] = (ptrx[3]) / ptrA[%d];\n", 3+bs*3);
-	fprintf(f, "	ptrx[2] = (ptrx[2] - ptrA[%d]*ptrx[3]) / ptrA[%d];\n", 3+bs*2, 2+bs*2);
-	fprintf(f, "	ptrx[1] = (ptrx[1] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2]) / ptrA[%d];\n", 3+bs*1, 2+bs*1, 1+bs*1);
-	fprintf(f, "	ptrx[0] = (ptrx[0] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2] - ptrA[%d]*ptrx[1]) / ptrA[%d];\n", 3+bs*0, 2+bs*0, 1+bs*0, 0+bs*0);
-
-		}
-	
 	// blocks of 4
 	for(; j<qn; j++)
 		{
@@ -344,7 +302,7 @@ void strsv_p_t_code_generator(FILE *f, int n)
 	fprintf(f, "	ptrA = pA + %d;\n", (qn-j-1)*bs*(sda+bs));
 	fprintf(f, "	ptrx = x  + %d;\n", (qn-j-1)*bs);
 		
-	fprintf(f, "	kernel_sgemv_t_4_c99_lib4(%d, 0, ptrA+%d, sda, ptrx+4, ptrx, -1);\n", rn+j*bs, bs*sda);
+	fprintf(f, "	kernel_sgemv_t_4_atom_lib4(%d, 0, ptrA+%d, sda, ptrx+4, ptrx, -1);\n", rn+j*bs, bs*sda);
 	fprintf(f, "	ptrx[3] = (ptrx[3]) / ptrA[%d];\n", 3+bs*3);
 	fprintf(f, "	ptrx[2] = (ptrx[2] - ptrA[%d]*ptrx[3]) / ptrA[%d];\n", 3+bs*2, 2+bs*2);
 	fprintf(f, "	ptrx[1] = (ptrx[1] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2]) / ptrA[%d];\n", 3+bs*1, 2+bs*1, 1+bs*1);

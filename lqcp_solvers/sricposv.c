@@ -40,8 +40,8 @@ void sricposv_orig(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, 
 		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hux[ii][jj];
 		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
 		sgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], sda, &hux[ii][0], &hux[ii+1][nu], 1);
+/*exit(2);	*/
 		}
-	
 	}
 
 
@@ -93,6 +93,7 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 		{
 		for(jj=0; jj<nu; jj++) hux[ii][jj] = hpQ[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
 		sgemv_p_t_lib(nx, nu, nu, &hpQ[ii][(nu/bs)*bs*sda+nu%bs], sda, &hux[ii][nu], &hux[ii][0], 1);
+/*s_print_mat(nu, 1, &hux[ii][0],nu);*/
 		strsv_p_t_lib(nu, hpQ[ii], sda, &hux[ii][0]);
 		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hux[ii][jj];
 		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];

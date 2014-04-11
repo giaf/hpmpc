@@ -16,15 +16,18 @@ void kernel_sgemv_t_4_atom_lib4(int kmax, int kna, float *A, int sda, float *x, 
 	if(kmax<=0) 
 		return;
 	
-/*	const int lda = 4;*/
+	const int lda = 4;
 	
 	int k;
 	int ka = kmax-kna; // number from aligned positon
 	int rka = ka%4;
-	int qka = (ka/4)*4;
+	int qka = ka/4;
 	
-	int offset = (sda-1)*lda;
+	int offset = (sda-1)*lda*sizeof(float);
 	
+/*printf("\nciao %d %d %d\n", kna, qka, rka);*/
+
+	__asm__ volatile
 	(
 		"                                \n\t"
 		"                                \n\t"
@@ -78,26 +81,26 @@ void kernel_sgemv_t_4_atom_lib4(int kmax, int kna, float *A, int sda, float *x, 
 		"je     .DCONSCLEANLOOP          \n\t" // if qka==0, jump to clean-up loop
 		"                                \n\t"
 		"                                \n\t"
-		".DMAINLOOP                      \n\t"
+		".DMAINLOOP:                     \n\t"
 		"                                \n\t"
 		"movups	(%%edi), %%xmm4          \n\t"
-		"subl   $4, %%ecx                \n\t" // ka -= 4;
+		"decl   %%ecx                    \n\t" // qka -= 1;
 		"movaps	%%xmm4, %%xmm5           \n\t"
-/*		"shufps	$0, %%xmm4, %%xmm4       \n\t" // unroll #1*/
+//		"shufps	$0, %%xmm4, %%xmm4       \n\t" // unroll #1
 		"mulps	0(%%esi), %%xmm4         \n\t"
 		"movaps	%%xmm5, %%xmm6           \n\t"
-/*		"shufps	$85, %%xmm5, %%xmm5      \n\t"*/
+//		"shufps	$85, %%xmm5, %%xmm5      \n\t"
 		"mulps	16(%%esi), %%xmm5        \n\t"
 		"movaps	%%xmm6, %%xmm7           \n\t"
-/*		"shufps	$170, %%xmm6, %%xmm6     \n\t"*/
+//		"shufps	$170, %%xmm6, %%xmm6     \n\t"
 		"mulps	32(%%esi), %%xmm6        \n\t"
 		"addps	%%xmm4, %%xmm0           \n\t"
-/*		"shufps	$255, %%xmm7, %%xmm7     \n\t"*/
+//		"shufps	$255, %%xmm7, %%xmm7     \n\t"
 		"mulps	48(%%esi), %%xmm7        \n\t"
 		"addps	%%xmm5, %%xmm1           \n\t"
 		"leal	16(%%edi), %%edi         \n\t" // x += 4
 		"addps	%%xmm6, %%xmm2           \n\t"
-		"leal	16(%%esi), %%esi         \n\t" // A += 4
+		"leal	16(%%esi, %%eax), %%esi         \n\t" // A += 4
 		"addps	%%xmm7, %%xmm3           \n\t"
 		"                                \n\t"
 		"jne    .DMAINLOOP               \n\t" // iterate again if kna != 0.
@@ -167,7 +170,7 @@ void kernel_sgemv_t_4_atom_lib4(int kmax, int kna, float *A, int sda, float *x, 
 		"                                \n\t"
 		".DZERO:                         \n\t" // alg==0
 		"                                \n\t"
-		"movaps	%%xmm0, (%%eax)          \n\t"
+		"movups	%%xmm0, (%%eax)          \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"

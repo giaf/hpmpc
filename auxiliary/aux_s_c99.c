@@ -279,7 +279,7 @@ void s_print_mat(int row, int col, float *A, int lda)
 //			printf("%5.2f ", *(A+i+j*lda));
 //			printf("%7.3f ", *(A+i+j*lda));
 			printf("%9.5f ", *(A+i+j*lda));
-//			printf("%19.15f ", *(A+i+j*lda));
+/*			printf("%19.15f ", *(A+i+j*lda));*/
 //			printf("%e\t", *(A+i+j*lda));
 			}
 		printf("\n");
