@@ -61,7 +61,8 @@ fprintf(f, "	corner_spotrf_strsv_scopy_1x1_c99_lib4(&pC[%d], %d, %d, &pL[%d], %d
 		else if(n-j==2)
 			{
 			i = j;
-fprintf(f, "	kernel_sgemm_pp_nt_4x2_c99_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
+/*fprintf(f, "	kernel_sgemm_pp_nt_4x2_c99_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);*/
+fprintf(f, "	kernel_sgemm_pp_nt_4x2_atom_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
 fprintf(f, "	corner_spotrf_strsv_scopy_2x2_c99_lib4(&pC[%d], %d, %d, &pL[%d], %d);\n", j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
 			}
 		else if(n-j==3)
@@ -112,7 +113,8 @@ fprintf(f, "	kernel_spotrf_strsv_1x1_c99_lib4(%d, &pC[%d], %d);\n", m-j-1, j*bs+
 			i = j;
 			for(; i<m; i+=4)
 				{
-fprintf(f, "	kernel_sgemm_pp_nt_4x2_c99_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
+/*fprintf(f, "	kernel_sgemm_pp_nt_4x2_c99_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);*/
+fprintf(f, "	kernel_sgemm_pp_nt_4x2_atom_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
 				}
 fprintf(f, "	kernel_spotrf_strsv_2x2_c99_lib4(%d, &pC[%d], %d);\n", m-j-2, j*bs+j*sdc, sdc);
 			}
@@ -215,7 +217,8 @@ fprintf(f, "	kernel_sgemm_pp_nt_4x1_c99_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 
 			}
 		else if(n-j==2)
 			{
-fprintf(f, "	kernel_sgemm_pp_nt_4x2_c99_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 1);\n", k, i*sda, j*sda, j*bs+i*sdc, bs);
+/*fprintf(f, "	kernel_sgemm_pp_nt_4x2_c99_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 1);\n", k, i*sda, j*sda, j*bs+i*sdc, bs);*/
+fprintf(f, "	kernel_sgemm_pp_nt_4x2_atom_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 1);\n", k, i*sda, j*sda, j*bs+i*sdc, bs);
 			}
 		else if(n-j==3)
 			{

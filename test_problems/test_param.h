@@ -11,7 +11,7 @@
 #define NREP 100
 
 // print results
-#define PRINTRES 0
+#define PRINTRES 1
 
 // print statistics
 #define PRINTSTAT 1

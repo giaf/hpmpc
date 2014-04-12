@@ -653,10 +653,10 @@ void kernel_sgemm_pp_nt_4x2_atom_lib4(int kmax, float *A, float *B, float *C, in
 		"movl   %3, %%edx                \n\t" // load address of B
 		"                                \n\t"
 		"                                \n\t"
-		"prefetcht0 0(%%eax)             \n\t"
-		"prefetcht0 0(%%edx)             \n\t"
-		"prefetcht0 64(%%eax)            \n\t"
-		"prefetcht0 64(%%edx)            \n\t"
+/*		"prefetcht0 0(%%eax)             \n\t"*/
+/*		"prefetcht0 0(%%edx)             \n\t"*/
+/*		"prefetcht0 64(%%eax)            \n\t"*/
+/*		"prefetcht0 64(%%edx)            \n\t"*/
 		"                                \n\t"
 		"                                \n\t" // zero registers
 		"movaps (%%edx), %%xmm0          \n\t" // B[0]
@@ -681,8 +681,8 @@ void kernel_sgemm_pp_nt_4x2_atom_lib4(int kmax, float *A, float *B, float *C, in
 		".DLOOPKITER2:                   \n\t" // MAIN LOOP
 		"                                \n\t"
 		"                                \n\t"
-		"prefetcht0 128(%%eax)           \n\t"
-		"prefetcht0 128(%%edx)           \n\t"
+/*		"prefetcht0 128(%%eax)           \n\t"*/
+/*		"prefetcht0 128(%%edx)           \n\t"*/
 		"                                \n\t"
 		"                                \n\t"
 		"addps	%%xmm1, %%xmm5           \n\t"
@@ -709,7 +709,7 @@ void kernel_sgemm_pp_nt_4x2_atom_lib4(int kmax, float *A, float *B, float *C, in
 		"shufps	$0, %%xmm0, %%xmm0       \n\t" // b_0
 		"mulps	32(%%eax), %%xmm0        \n\t"
 		"addps	%%xmm2, %%xmm6           \n\t"
-		"movaps	32(%%edx), %%xmm2        \n\t" // b_k+1
+		"movaps	48(%%edx), %%xmm2        \n\t" // b_k+1
 		"shufps	$85, %%xmm1, %%xmm1      \n\t" // b_1
 		"leal	64(%%edx), %%edx         \n\t"
 		"mulps	32(%%eax), %%xmm1        \n\t"
@@ -730,6 +730,8 @@ void kernel_sgemm_pp_nt_4x2_atom_lib4(int kmax, float *A, float *B, float *C, in
 		"addps	%%xmm1, %%xmm5           \n\t"
 		"addps	%%xmm2, %%xmm6           \n\t"
 		"addps	%%xmm3, %%xmm7           \n\t"
+		"addps	%%xmm6, %%xmm4           \n\t"
+		"addps	%%xmm7, %%xmm5           \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DCONSIDKLEFT2:                 \n\t"
@@ -747,13 +749,12 @@ void kernel_sgemm_pp_nt_4x2_atom_lib4(int kmax, float *A, float *B, float *C, in
 		"movaps	%%xmm0, %%xmm1           \n\t"
 		"shufps	$0, %%xmm0, %%xmm0       \n\t" // b_0
 		"mulps	0(%%eax), %%xmm0         \n\t"
-		"addps	%%xmm2, %%xmm6           \n\t"
-		"movaps	16(%%edx), %%xmm2        \n\t" // b_k+1
 		"shufps	$85, %%xmm1, %%xmm1      \n\t" // b_1
 		"mulps	0(%%eax), %%xmm1         \n\t"
 		"decl   %%ecx                    \n\t" // i -= 1;
 		"leal	16(%%edx), %%edx         \n\t"
 		"addps	%%xmm0, %%xmm4           \n\t"
+		"movaps	0(%%edx), %%xmm0        \n\t" // b_k+1
 		"leal	16(%%eax), %%eax         \n\t"
 		"addps	%%xmm1, %%xmm5           \n\t"
 		"                                \n\t"
@@ -764,8 +765,6 @@ void kernel_sgemm_pp_nt_4x2_atom_lib4(int kmax, float *A, float *B, float *C, in
 		"                                \n\t"
 		".DPOSTACCUM2:                   \n\t"
 		"                                \n\t"
-		"addps	%%xmm6, %%xmm4           \n\t"
-		"addps	%%xmm7, %%xmm5           \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"movl   %4, %%eax                \n\t" // load address of C
