@@ -1,24 +1,27 @@
-/* ----------------------------------------------------------------------------------------
-**
-** Utilities functions. 
-**
-** Temporary version, do not diffuse.
-**
-** Author: Gianluca Frison, giaf@imm.dtu.dk
-**
------------------------------------------------------------------------------------------*/
-	
-/* Copies the entries of the matrix A into the matrix B (of the same size).
-** Arguments:
-** trans - character: if 'n', the matrix A is copied into B; if 't' the transposed of
-**         the matrix A in copied into B
-** row - integer that specifies the number of rows of the matrices A and B
-** col - integer that specifies the number of columns of the matrices A and B
-** ptrA - pointer to double, pointing to the first element of the A matrix
-** lda - integer that specifies the leading dimension of the array A
-** ptrB - pointer to double, pointing to the first element fo the B matrix
-** ldb - integer that specifies the leading dimension of the array B
-*/
+/**************************************************************************************************
+*                                                                                                 *
+* This file is part of HPMPC.                                                                     *
+*                                                                                                 *
+* HPMPC -- Library for High-Performance implementation of solvers for MPC.                        *
+* Copyright (C) 2014 by Technical Univeristy of Denmark. All rights reserved.                     *
+*                                                                                                 *
+* HPMPC is free software; you can redistribute it and/or                                          *
+* modify it under the terms of the GNU Lesser General Public                                      *
+* License as published by the Free Software Foundation; either                                    *
+* version 2.1 of the License, or (at your option) any later version.                              *
+*                                                                                                 *
+* HPMPC is distributed in the hope that it will be useful,                                        *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of                                  *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                                            *
+* See the GNU Lesser General Public License for more details.                                     *
+*                                                                                                 *
+* You should have received a copy of the GNU Lesser General Public                                *
+* License along with HPMPC; if not, write to the Free Software                                    *
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA                  *
+*                                                                                                 *
+* Author: Gianluca Frison, giaf (at) dtu.dk                                                       *
+*                                                                                                 *
+**************************************************************************************************/
 
 void dgemm_nn_3l(int m, int n, int k, double *A, int lda , double *B, int ldb, double *C, int ldc);
 void daxpy_3l(int n, double da, double *dx, double *dy);
