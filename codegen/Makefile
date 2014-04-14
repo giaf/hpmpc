@@ -23,6 +23,7 @@ CFLAGS = $(OPT) -std=c99 -DTARGET_C99_4X4 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_2X2)
 CODEGEN_OBJS_DOUBLE = code_generator_blas_d_c99_2x2_lib2.o code_generator_dricposv.o
+CODEGEN_OBJS_SINGLE = code_generator_blas_s_c99_2x2_lib2.o code_generator_dricposv.o
 CFLAGS = $(OPT) -std=c99 -DTARGET_C99_2X2 $(DEBUG)
 endif
 ifeq ($(TARGET), ATOM)

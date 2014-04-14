@@ -17,7 +17,7 @@ OBJS = dricposv.o sricposv.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_2X2)
-OBJS = dricposv.o
+OBJS = dricposv.o sricposv.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_2X2 $(DEBUG)
 endif
 ifeq ($(TARGET), ATOM)

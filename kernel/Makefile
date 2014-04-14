@@ -21,6 +21,7 @@ CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_2X2)
 OBJS_DOUBLE = kernel_dgemm_c99_lib2.o kernel_dpotrf_c99_lib2.o kernel_dgemv_c99_lib2.o corner_dtrmm_c99_lib2.o corner_dpotrf_c99_lib2.o
+OBJS_SINGLE = kernel_sgemm_c99_lib2.o kernel_spotrf_c99_lib2.o kernel_sgemv_c99_lib2.o corner_strmm_c99_lib2.o corner_spotrf_c99_lib2.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_2X2 $(DEBUG)
 endif
 ifeq ($(TARGET), ATOM)
