@@ -23,65 +23,29 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-#ifndef __HPMPC_BLOCK_SIZE__
-#define __HPMPC_BLOCK_SIZE__
+// kernel
+void kernel_dgemm_pp_nt_4x4_sse_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg);
+void kernel_dgemm_pp_nt_4x3_sse_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg);
+void kernel_dgemm_pp_nt_4x2_sse_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg);
+void kernel_dgemm_pp_nt_4x1_sse_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg);
+void kernel_dpotrf_dtrsv_dcopy_4x4_sse_lib4(int kmax, double *A, int sda, int shf, double *L, int sdl);
+void kernel_dpotrf_dtrsv_4x4_sse_lib4(int kmax, double *A, int sda);
+void kernel_dpotrf_dtrsv_3x3_sse_lib4(int kmax, double *A, int sda);
+void kernel_dpotrf_dtrsv_2x2_sse_lib4(int kmax, double *A, int sda);
+void kernel_dpotrf_dtrsv_1x1_sse_lib4(int kmax, double *A, int sda);
+void kernel_dgemv_t_8_sse_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg);
+void kernel_dgemv_t_4_sse_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg);
+void kernel_dgemv_t_2_sse_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg);
+void kernel_dgemv_t_1_sse_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg);
+void kernel_dgemv_n_8_sse_lib4(int kmax, double *A0, double *A1, double *x, double *y, int alg);
+void kernel_dgemv_n_4_sse_lib4(int kmax, double *A, double *x, double *y, int alg);
+void kernel_dgemv_n_2_sse_lib4(int kmax, double *A, double *x, double *y, int alg);
+void kernel_dgemv_n_1_sse_lib4(int kmax, double *A, double *x, double *y, int alg);
+//// corner
+void corner_dtrmm_pp_nt_4x3_sse_lib4(double *A, double *B, double *C, int ldc);
+void corner_dtrmm_pp_nt_4x2_sse_lib4(double *A, double *B, double *C, int ldc);
+void corner_dtrmm_pp_nt_4x1_sse_lib4(double *A, double *B, double *C, int ldc);
+void corner_dpotrf_dtrsv_dcopy_3x3_sse_lib4(double *A, int sda, int shf, double *L, int sdl);
+void corner_dpotrf_dtrsv_dcopy_2x2_sse_lib4(double *A, int sda, int shf, double *L, int sdl);
+void corner_dpotrf_dtrsv_dcopy_1x1_sse_lib4(double *A, int sda, int shf, double *L, int sdl);
 
-#if defined( TARGET_AVX )
-
-#define D_MR 4
-#define D_NR 4
-#define S_MR 8
-#define S_NR 4
-
-#elif defined( TARGET_C99_4X4 )
-
-#define D_MR 4
-#define D_NR 4
-#define S_MR 4
-#define S_NR 4
-
-#elif defined( TARGET_SSE4 )
-
-#define D_MR 4
-#define D_NR 4
-#define S_MR 8
-#define S_NR 4
-
-#elif defined( TARGET_ATOM )
-
-#define D_MR 2
-#define D_NR 2
-#define S_MR 4
-#define S_NR 4
-
-#elif defined( TARGET_NEON )
-
-#define D_MR 4
-#define D_NR 4
-#define S_MR 4
-#define S_NR 4
-
-#elif defined( TARGET_C99_2X2 )
-
-#define D_MR 2
-#define D_NR 2
-#define S_MR 2
-#define S_NR 2
-
-#elif defined( TARGET_POWERPC_G2 )
-
-#define D_MR 4
-#define D_NR 4
-#define S_MR 4
-#define S_NR 4
-
-#else
-#error "Unknown architecture"
-#endif /* __HPMPC_BLOCK_SIZE__ */
-
-int d_get_mr();
-int d_get_nr();
-int s_get_mr();
-int s_get_nr();
-
-#endif /* __HPMPC_BLOCK_SIZE__ */

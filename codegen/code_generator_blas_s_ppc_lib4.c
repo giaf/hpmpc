@@ -228,23 +228,31 @@ void ssyrk_ppp_code_generator(FILE *f, int m, int n, int k)
 		{
 		j = 0;
 		j_end = i+4;
-		if(n-3<j_end)
-			j_end = n-3;
-		for(; j<j_end; j+=4)
+		if(j_end>n)
 			{
+			for(; j<n-3; j+=4)
+				{
 fprintf(f, "	kernel_sgemm_pp_nt_4x4_ppc_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 1);\n", k, i*sda, j*sda, j*bs+i*sdc, bs);
-			}
-		if(n-j==1)
-			{
+				}
+			if(n-j==1)
+				{
 fprintf(f, "	kernel_sgemm_pp_nt_4x1_c99_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 1);\n", k, i*sda, j*sda, j*bs+i*sdc, bs);
-			}
-		else if(n-j==2)
-			{
+				}
+			else if(n-j==2)
+				{
 fprintf(f, "	kernel_sgemm_pp_nt_4x2_c99_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 1);\n", k, i*sda, j*sda, j*bs+i*sdc, bs);
-			}
-		else if(n-j==3)
-			{
+				}
+			else if(n-j==3)
+				{
 fprintf(f, "	kernel_sgemm_pp_nt_4x3_c99_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 1);\n", k, i*sda, j*sda, j*bs+i*sdc, bs);
+				}
+			}
+		else
+			{
+			for(; j<j_end; j+=4)
+				{
+fprintf(f, "	kernel_sgemm_pp_nt_4x4_ppc_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 1);\n", k, i*sda, j*sda, j*bs+i*sdc, bs);
+				}
 			}
 		}
 

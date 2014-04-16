@@ -31,6 +31,10 @@ ifeq ($(TARGET), AVX)
 CODEGEN_OBJS_DOUBLE = code_generator_blas_d_avx_lib4.o code_generator_dricposv.o
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
 endif
+ifeq ($(TARGET), SSE4)
+CODEGEN_OBJS_DOUBLE = code_generator_blas_d_sse_lib4.o code_generator_dricposv.o
+CFLAGS = $(OPT) -std=c99 -msse4 -DTARGET_SSE4 $(DEBUG)
+endif
 ifeq ($(TARGET), NEON)
 CODEGEN_OBJS_DOUBLE = code_generator_blas_d_neon_lib4.o code_generator_dricposv.o
 CODEGEN_OBJS_SINGLE = code_generator_blas_s_neon_lib4.o code_generator_sricposv.o

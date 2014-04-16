@@ -30,6 +30,9 @@ OBJS = ip_d_box.o
 ifeq ($(TARGET), AVX)
 CFLAGS = $(OPT) -std=c99 -fPIC -mavx -DTARGET_AVX $(DEBUG)
 endif
+ifeq ($(TARGET), SSE4)
+CFLAGS = $(OPT) -std=c99 -fPIC -msse4 -DTARGET_SSE4 $(DEBUG)
+endif
 ifeq ($(TARGET), NEON)
 CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
 endif

@@ -29,6 +29,10 @@ ifeq ($(TARGET), AVX)
 OBJS = aux_d_c99.o aux_s_c99.o block_size_avx.o
 CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_AVX $(DEBUG)
 endif
+ifeq ($(TARGET), SSE4)
+OBJS = aux_d_c99.o aux_s_c99.o block_size_sse.o
+CFLAGS = $(OPT) -std=c99 -msse4 -fPIC -DTARGET_SSE4 $(DEBUG)
+endif
 ifeq ($(TARGET), NEON)
 OBJS = aux_d_c99.o aux_s_c99.o block_size_neon.o
 CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)

@@ -35,6 +35,15 @@ LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
 endif
+ifeq ($(TARGET), SSE4)
+AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_sse.o 
+KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_sse_lib4.o ./kernel/kernel_dpotrf_sse_lib4.o ./kernel/kernel_dgemv_sse_lib4.o ./kernel/corner_dtrmm_sse_lib4.o ./kernel/corner_dpotrf_sse_lib4.o
+BLAS_OBJS = ./blas/blas_d_sse_lib4.o
+LQCP_OBJS = ./lqcp_solvers/dricposv.o
+LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o
+MPC_OBJS = ./mpc_solvers/ip_d_box.o
+CFLAGS = $(OPT) -std=c99 -msse4 -DTARGET_SSE4 $(DEBUG)
+endif
 ifeq ($(TARGET), NEON)
 AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_neon.o 
 KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_neon_lib4.o ./kernel/kernel_dpotrf_c99_lib4.o ./kernel/kernel_dgemv_c99_lib4.o ./kernel/corner_dtrmm_c99_lib4.o ./kernel/corner_dpotrf_c99_lib4.o

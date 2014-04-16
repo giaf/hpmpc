@@ -29,6 +29,10 @@ ifeq ($(TARGET), AVX)
 OBJS = blas_d_avx_lib4.o
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX -fPIC $(DEBUG)
 endif
+ifeq ($(TARGET), SSE4)
+OBJS = blas_d_sse_lib4.o
+CFLAGS = $(OPT) -std=c99 -msse4 -DTARGET_SSE4 -fPIC $(DEBUG)
+endif
 ifeq ($(TARGET), NEON)
 OBJS = blas_d_neon_lib4.o blas_s_neon_lib4.o
 CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
