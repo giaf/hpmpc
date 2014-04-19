@@ -27,7 +27,7 @@
 
 
 
-void kernel_dpotrf_dtrsv_dcopy_2x2_c99_lib2(int kmax, double *A, int sda, int shf, double *L, int sdl)
+void kernel_dpotrf_dtrsv_dcopy_2x2_lib2(int kmax, double *A, int sda, int shf, double *L, int sdl)
 	{
 	
 	const int lda = 2;
@@ -116,7 +116,7 @@ void kernel_dpotrf_dtrsv_dcopy_2x2_c99_lib2(int kmax, double *A, int sda, int sh
 
 
 
-void kernel_dpotrf_dtrsv_2x2_c99_lib2(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_2x2_lib2(int kmax, double *A, int sda)
 	{
 	
 	const int lda = 2;
@@ -187,7 +187,7 @@ void kernel_dpotrf_dtrsv_2x2_c99_lib2(int kmax, double *A, int sda)
 	}
 
 
-void kernel_dpotrf_dtrsv_1x1_c99_lib2(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_1x1_lib2(int kmax, double *A, int sda)
 	{
 	
 	const int lda = 2;

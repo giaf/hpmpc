@@ -27,7 +27,7 @@
 
 
 
-void corner_spotrf_strsv_scopy_1x1_c99_lib2(float *A, int sda, int shf, float *L, int sdl)
+void corner_spotrf_strsv_scopy_1x1_lib2(float *A, int sda, int shf, float *L, int sdl)
 	{
 	
 	const int lda = 2;

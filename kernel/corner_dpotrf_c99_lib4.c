@@ -27,7 +27,7 @@
 
 
 
-void corner_dpotrf_dtrsv_dcopy_3x3_c99_lib4(double *A, int sda, int shf, double *L, int sdl)
+void corner_dpotrf_dtrsv_dcopy_3x3_lib4(double *A, int sda, int shf, double *L, int sdl)
 	{
 	
 	const int lda = 4;
@@ -70,7 +70,7 @@ void corner_dpotrf_dtrsv_dcopy_3x3_c99_lib4(double *A, int sda, int shf, double 
 
 
 
-void corner_dpotrf_dtrsv_dcopy_2x2_c99_lib4(double *A, int sda, int shf, double *L, int sdl)
+void corner_dpotrf_dtrsv_dcopy_2x2_lib4(double *A, int sda, int shf, double *L, int sdl)
 	{
 	
 	const int lda = 4;
@@ -100,7 +100,7 @@ void corner_dpotrf_dtrsv_dcopy_2x2_c99_lib4(double *A, int sda, int shf, double 
 	}
 
 
-void corner_dpotrf_dtrsv_dcopy_1x1_c99_lib4(double *A, int sda, int shf, double *L, int sdl)
+void corner_dpotrf_dtrsv_dcopy_1x1_lib4(double *A, int sda, int shf, double *L, int sdl)
 	{
 	
 	const int lda = 4;

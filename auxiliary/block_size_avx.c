@@ -40,7 +40,7 @@ int d_get_nr()
 /* return the number of rows of the C sub-matrix in the dgemm micro-kernel, single precision */
 int s_get_mr()
 	{
-	int bs = 8;
+	int bs = 4;
 	return bs;
 	}
 

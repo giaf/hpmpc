@@ -24,7 +24,7 @@
 **************************************************************************************************/
 
 // normal-transposed, 2x2 with data packed in 2
-void kernel_sgemm_pp_nt_2x2_c99_lib2(int kmax, float *A, float *B, float *C, int bs, int alg)
+void kernel_sgemm_pp_nt_2x2_lib2(int kmax, float *A, float *B, float *C, int bs, int alg)
 	{
 	
 	if(kmax<=0)
@@ -140,7 +140,7 @@ void kernel_sgemm_pp_nt_2x2_c99_lib2(int kmax, float *A, float *B, float *C, int
 
 
 // normal-transposed, 2x1 with data packed in 2
-void kernel_sgemm_pp_nt_2x1_c99_lib2(int kmax, float *A, float *B, float *C, int bs, int alg)
+void kernel_sgemm_pp_nt_2x1_lib2(int kmax, float *A, float *B, float *C, int bs, int alg)
 	{
 	
 	if(kmax<=0)

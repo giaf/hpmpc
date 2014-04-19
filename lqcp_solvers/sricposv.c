@@ -23,6 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#include <stdlib.h>
+
 #include "../include/blas_s.h"
 #include "../include/block_size.h"
 
@@ -81,6 +83,9 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 	
 	int nz = nx+nu+1;
 
+/*size_t align = 32;*/
+/*printf("\nalign %d\n", ((size_t) &hpQ[0])%align);*/
+
 	/* factorization and backward substitution */
 
 	/* final stage */
@@ -88,7 +93,7 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 	int nu4 = (nu/bs)*bs;
 	spotrf_p_scopy_p_t_lib(nz-nu4, nu%bs, hpQ[N]+nu4*(sda+bs), sda, pL, sda);
 
-/*d_print_pmat(nz, nz, bs, hpQ[N], sda);*/
+/*s_print_pmat(nz, nz, bs, hpQ[N], sda);*/
 
 	/* middle stages */
 	for(ii=0; ii<N-1; ii++)
@@ -99,7 +104,7 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 		ssyrk_ppp_lib(nz, nz, nx, pBAbtL, sda, hpQ[N-ii-1], sda);
 /*d_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
 		spotrf_p_scopy_p_t_lib(nz, nu, hpQ[N-ii-1], sda, pL, sda);
-/*d_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
+/*s_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
 /*exit(3);*/
 		}
 
@@ -109,7 +114,7 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 	ssyrk_ppp_lib(nz, nu, nx, pBAbtL, sda, hpQ[0], sda);
 /*d_print_pmat(nz, nu, bs, hpQ[0], sda);*/
 	spotrf_p_lib(nz, nu, hpQ[0], sda);
-/*d_print_pmat(nz, nu, bs, hpQ[0], sda);*/
+/*s_print_pmat(nz, nu, bs, hpQ[0], sda);*/
 
 /*exit(3);*/
 

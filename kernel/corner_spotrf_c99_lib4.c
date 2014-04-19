@@ -27,7 +27,7 @@
 
 
 
-void corner_spotrf_strsv_scopy_3x3_c99_lib4(float *A, int sda, int shf, float *L, int sdl)
+void corner_spotrf_strsv_scopy_3x3_lib4(float *A, int sda, int shf, float *L, int sdl)
 	{
 	
 	const int lda = 4;
@@ -70,7 +70,7 @@ void corner_spotrf_strsv_scopy_3x3_c99_lib4(float *A, int sda, int shf, float *L
 
 
 
-void corner_spotrf_strsv_scopy_2x2_c99_lib4(float *A, int sda, int shf, float *L, int sdl)
+void corner_spotrf_strsv_scopy_2x2_lib4(float *A, int sda, int shf, float *L, int sdl)
 	{
 	
 	const int lda = 4;
@@ -100,7 +100,7 @@ void corner_spotrf_strsv_scopy_2x2_c99_lib4(float *A, int sda, int shf, float *L
 	}
 
 
-void corner_spotrf_strsv_scopy_1x1_c99_lib4(float *A, int sda, int shf, float *L, int sdl)
+void corner_spotrf_strsv_scopy_1x1_lib4(float *A, int sda, int shf, float *L, int sdl)
 	{
 	
 	const int lda = 4;

@@ -26,11 +26,11 @@
 include ../Makefile.rule
 
 ifeq ($(TARGET), AVX)
-OBJS = dricposv.o
+OBJS = dricposv.o sricposv.o
 CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_AVX $(DEBUG)
 endif
 ifeq ($(TARGET), SSE4)
-OBJS = dricposv.o
+OBJS = dricposv.o sricposv.o
 CFLAGS = $(OPT) -std=c99 -msse4 -fPIC -DTARGET_SSE4 $(DEBUG)
 endif
 ifeq ($(TARGET), NEON)

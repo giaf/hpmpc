@@ -27,6 +27,7 @@ include ../Makefile.rule
 
 ifeq ($(TARGET), AVX)
 OBJS_DOUBLE = kernel_dgemm_avx_lib4.o kernel_dpotrf_sse_lib4.o kernel_dgemv_avx_lib4.o corner_dtrmm_avx_lib4.o corner_dpotrf_sse_lib4.o
+OBJS_SINGLE = kernel_sgemm_sse3_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o
 CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_AVX $(DEBUG)
 endif
 ifeq ($(TARGET), SSE4)

@@ -27,7 +27,7 @@
 
 
 
-void corner_dpotrf_dtrsv_dcopy_1x1_c99_lib2(double *A, int sda, int shf, double *L, int sdl)
+void corner_dpotrf_dtrsv_dcopy_1x1_lib2(double *A, int sda, int shf, double *L, int sdl)
 	{
 	
 	const int lda = 2;

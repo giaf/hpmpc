@@ -23,7 +23,7 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void corner_dtrmm_pp_nt_4x3_c99_lib4(double *A, double *B, double *C, int ldc)
+void corner_dtrmm_pp_nt_4x3_lib4(double *A, double *B, double *C, int ldc)
 	{
 	
 	const int bs = 4;
@@ -71,7 +71,7 @@ void corner_dtrmm_pp_nt_4x3_c99_lib4(double *A, double *B, double *C, int ldc)
 
 
 
-void corner_dtrmm_pp_nt_4x2_c99_lib4(double *A, double *B, double *C, int ldc)
+void corner_dtrmm_pp_nt_4x2_lib4(double *A, double *B, double *C, int ldc)
 	{
 	
 	const int bs = 4;
@@ -108,7 +108,7 @@ void corner_dtrmm_pp_nt_4x2_c99_lib4(double *A, double *B, double *C, int ldc)
 
 
 
-void corner_dtrmm_pp_nt_4x1_c99_lib4(double *A, double *B, double *C, int ldc)
+void corner_dtrmm_pp_nt_4x1_lib4(double *A, double *B, double *C, int ldc)
 	{
 	
 	const int bs = 4;

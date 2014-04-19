@@ -35,7 +35,7 @@
 
 
 
-void kernel_sgemv_t_4_atom_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg)
+void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg)
 	{
 
 	if(kmax<=0) 
@@ -223,7 +223,7 @@ void kernel_sgemv_t_4_atom_lib4(int kmax, int kna, float *A, int sda, float *x, 
 
 
 
-void kernel_sgemv_t_2_sse_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg)
+void kernel_sgemv_t_2_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -351,7 +351,7 @@ void kernel_sgemv_t_2_sse_lib4(int kmax, int kna, float *A, int sda, float *x, f
 
 
 
-void kernel_sgemv_t_1_sse_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg)
+void kernel_sgemv_t_1_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg)
 	{
 	if(kmax<=0) return;
 	
@@ -456,7 +456,7 @@ void kernel_sgemv_t_1_sse_lib4(int kmax, int kna, float *A, int sda, float *x, f
 
 
 // it moves horizontally inside a block
-void kernel_sgemv_n_4_sse_lib4(int kmax, float *A, float *x, float *y, int alg)
+void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -541,7 +541,7 @@ void kernel_sgemv_n_4_sse_lib4(int kmax, float *A, float *x, float *y, int alg)
 
 
 // it moves horizontally inside a block
-void kernel_sgemv_n_2_sse_lib4(int kmax, float *A, float *x, float *y, int alg)
+void kernel_sgemv_n_2_lib4(int kmax, float *A, float *x, float *y, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -644,7 +644,7 @@ void kernel_sgemv_n_2_sse_lib4(int kmax, float *A, float *x, float *y, int alg)
 
 
 // it moves horizontally inside a block
-void kernel_sgemv_n_1_sse_lib4(int kmax, float *A, float *x, float *y, int alg)
+void kernel_sgemv_n_1_lib4(int kmax, float *A, float *x, float *y, int alg)
 	{
 	if(kmax<=0) 
 		return;

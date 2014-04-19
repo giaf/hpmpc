@@ -33,14 +33,14 @@
 
 
 // normal-transposed, 8x4 with data packed in 4
-void kernel_sgemm_pp_nt_8x4_sse_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, int ldc_dummy, int alg)
+void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, int ldc_dummy, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 	
-	size_t k_iter = kmax / 4;
-	size_t k_left = kmax % 4;
+	int k_iter = kmax / 4;
+	int k_left = kmax % 4;
 
 	__asm__ volatile
 	(
@@ -72,8 +72,8 @@ void kernel_sgemm_pp_nt_8x4_sse_lib4(int kmax, float *A0, float *A1, float *B, f
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"movq      %0, %%rsi             \n\t" // i = k_iter;
-		"testq  %%rsi, %%rsi             \n\t" // check i via logical AND.
+		"movl      %0, %%esi             \n\t" // i = k_iter;
+		"testl  %%esi, %%esi             \n\t" // check i via logical AND.
 		"je     .SCONSIDKLEFT            \n\t" // if i == 0, jump to code that
 		"                                \n\t" // contains the k_left loop.
 		"                                \n\t"
@@ -202,7 +202,7 @@ void kernel_sgemm_pp_nt_8x4_sse_lib4(int kmax, float *A0, float *A1, float *B, f
 		"addq       $64, %%rcx           \n\t" // A1 += 16
 		"                                \n\t"
 		"addps   %%xmm7, %%xmm9          \n\t"
-		"decq    %%rsi                   \n\t" // i -= 1;
+		"decl    %%esi                   \n\t" // i -= 1;
 		"addps   %%xmm5, %%xmm13         \n\t"
 		"movaps  %%xmm4, %%xmm5          \n\t"
 		"mulps   %%xmm0, %%xmm4          \n\t"
@@ -217,8 +217,8 @@ void kernel_sgemm_pp_nt_8x4_sse_lib4(int kmax, float *A0, float *A1, float *B, f
 		"                                \n\t"
 		".SCONSIDKLEFT:                  \n\t"
 		"                                \n\t"
-		"movq      %1, %%rsi             \n\t" // i = k_left;
-		"testq  %%rsi, %%rsi             \n\t" // check i via logical AND.
+		"movl      %1, %%esi             \n\t" // i = k_left;
+		"testl  %%esi, %%esi             \n\t" // check i via logical AND.
 		"je     .SPOSTACCUM              \n\t" // if i == 0, we're done; jump to end.
 		"                                \n\t" // else, we prepare to enter k_left loop.
 		"                                \n\t"
@@ -260,7 +260,7 @@ void kernel_sgemm_pp_nt_8x4_sse_lib4(int kmax, float *A0, float *A1, float *B, f
 		"addq          $16, %%rbx        \n\t" // B += 4
 		"                                \n\t"
 		"                                \n\t"
-		"decq    %%rsi                   \n\t" // i -= 1;
+		"decl    %%esi                   \n\t" // i -= 1;
 		"jne    .SLOOPKLEFT              \n\t" // iterate again if i != 0.
 		"                                \n\t"
 		"                                \n\t"
@@ -302,8 +302,8 @@ void kernel_sgemm_pp_nt_8x4_sse_lib4(int kmax, float *A0, float *A1, float *B, f
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"movl   %5, %%eax                \n\t" // load address of C0
-		"movl   %6, %%ebx                \n\t" // load address of C1
+		"movq   %5, %%rax                \n\t" // load address of C0
+		"movq   %6, %%rbx                \n\t" // load address of C1
 		"                                \n\t"
 		"                                \n\t"
 		"movl   %7, %%ecx                \n\t" // alg
@@ -312,14 +312,14 @@ void kernel_sgemm_pp_nt_8x4_sse_lib4(int kmax, float *A0, float *A1, float *B, f
 		"                                \n\t"
 		"cmpl	$1, %%ecx                \n\t"
 		"                                \n\t"
-		"movaps  (%%eax),   %%xmm0       \n\t" // load C0
-		"movaps  16(%%eax), %%xmm1       \n\t"
-		"movaps  32(%%eax), %%xmm2       \n\t"
-		"movaps  48(%%eax), %%xmm3       \n\t"
-		"movaps  (%%ebx),   %%xmm4       \n\t" // load C0
-		"movaps  16(%%ebx), %%xmm5       \n\t"
-		"movaps  32(%%ebx), %%xmm6       \n\t"
-		"movaps  48(%%ebx), %%xmm7       \n\t"
+		"movaps  (%%rax),   %%xmm0       \n\t" // load C0
+		"movaps  16(%%rax), %%xmm1       \n\t"
+		"movaps  32(%%rax), %%xmm2       \n\t"
+		"movaps  48(%%rax), %%xmm3       \n\t"
+		"movaps  (%%rbx),   %%xmm4       \n\t" // load C0
+		"movaps  16(%%rbx), %%xmm5       \n\t"
+		"movaps  32(%%rbx), %%xmm6       \n\t"
+		"movaps  48(%%rbx), %%xmm7       \n\t"
 		"                                \n\t"
 		"je     .S1                      \n\t" // if alg==1, jump
 		"                                \n\t"
@@ -333,14 +333,14 @@ void kernel_sgemm_pp_nt_8x4_sse_lib4(int kmax, float *A0, float *A1, float *B, f
 		"subps  %%xmm14, %%xmm6           \n\t"
 		"subps  %%xmm15, %%xmm7           \n\t"
 		"                                \n\t"
-		"movaps  %%xmm0, (%%eax)         \n\t"
-		"movaps  %%xmm1, 16(%%eax)       \n\t"
-		"movaps  %%xmm2, 32(%%eax)       \n\t"
-		"movaps  %%xmm3, 48(%%eax)       \n\t"
-		"movaps  %%xmm4, (%%ebx)         \n\t"
-		"movaps  %%xmm5, 16(%%ebx)       \n\t"
-		"movaps  %%xmm6, 32(%%ebx)       \n\t"
-		"movaps  %%xmm7, 48(%%ebx)       \n\t"
+		"movaps  %%xmm0, (%%rax)         \n\t"
+		"movaps  %%xmm1, 16(%%rax)       \n\t"
+		"movaps  %%xmm2, 32(%%rax)       \n\t"
+		"movaps  %%xmm3, 48(%%rax)       \n\t"
+		"movaps  %%xmm4, (%%rbx)         \n\t"
+		"movaps  %%xmm5, 16(%%rbx)       \n\t"
+		"movaps  %%xmm6, 32(%%rbx)       \n\t"
+		"movaps  %%xmm7, 48(%%rbx)       \n\t"
 		"                                \n\t"
 		"jmp    .SDONE                   \n\t" // jump to end
 		"                                \n\t"
@@ -359,14 +359,14 @@ void kernel_sgemm_pp_nt_8x4_sse_lib4(int kmax, float *A0, float *A1, float *B, f
 		"                                \n\t"
 		".S0:                            \n\t" // alg==0
 		"                                \n\t"
-		"movaps	%%xmm8,  (%%eax)          \n\t"
-		"movaps	%%xmm9,  16(%%eax)        \n\t"
-		"movaps	%%xmm10, 32(%%eax)        \n\t"
-		"movaps	%%xmm11, 48(%%eax)        \n\t"
-		"movaps	%%xmm12, (%%ebx)          \n\t"
-		"movaps	%%xmm13, 16(%%ebx)        \n\t"
-		"movaps	%%xmm14, 32(%%ebx)        \n\t"
-		"movaps	%%xmm15, 48(%%ebx)        \n\t"
+		"movaps	%%xmm8,  (%%rax)          \n\t"
+		"movaps	%%xmm9,  16(%%rax)        \n\t"
+		"movaps	%%xmm10, 32(%%rax)        \n\t"
+		"movaps	%%xmm11, 48(%%rax)        \n\t"
+		"movaps	%%xmm12, (%%rbx)          \n\t"
+		"movaps	%%xmm13, 16(%%rbx)        \n\t"
+		"movaps	%%xmm14, 32(%%rbx)        \n\t"
+		"movaps	%%xmm15, 48(%%rbx)        \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -397,7 +397,7 @@ void kernel_sgemm_pp_nt_8x4_sse_lib4(int kmax, float *A0, float *A1, float *B, f
 
 
 // normal-transposed, 8x3 with data packed in 4
-void kernel_sgemm_pp_nt_8x3_sse_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, int ldc, int alg)
+void kernel_sgemm_pp_nt_8x3_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -655,7 +655,7 @@ void kernel_sgemm_pp_nt_8x3_sse_lib4(int kmax, float *A0, float *A1, float *B, f
 
 
 // normal-transposed, 8x2 with data packed in 4
-void kernel_sgemm_pp_nt_8x2_sse_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, int ldc, int alg)
+void kernel_sgemm_pp_nt_8x2_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -857,7 +857,7 @@ void kernel_sgemm_pp_nt_8x2_sse_lib4(int kmax, float *A0, float *A1, float *B, f
 
 
 // normal-transposed, 8x1 with data packed in 4
-void kernel_sgemm_pp_nt_8x1_sse_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, int ldc, int alg)
+void kernel_sgemm_pp_nt_8x1_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -1003,7 +1003,7 @@ void kernel_sgemm_pp_nt_8x1_sse_lib4(int kmax, float *A0, float *A1, float *B, f
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_sgemm_pp_nt_4x4_sse_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
+void kernel_sgemm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -1216,7 +1216,7 @@ void kernel_sgemm_pp_nt_4x4_sse_lib4(int kmax, float *A, float *B, float *C, int
 
 
 // normal-transposed, 4x3 with data packed in 4
-void kernel_sgemm_pp_nt_4x3_sse_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
+void kernel_sgemm_pp_nt_4x3_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -1396,7 +1396,7 @@ void kernel_sgemm_pp_nt_4x3_sse_lib4(int kmax, float *A, float *B, float *C, int
 
 
 // normal-transposed, 4x2 with data packed in 4
-void kernel_sgemm_pp_nt_4x2_sse_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
+void kernel_sgemm_pp_nt_4x2_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -1543,7 +1543,7 @@ void kernel_sgemm_pp_nt_4x2_sse_lib4(int kmax, float *A, float *B, float *C, int
 
 
 // normal-transposed, 4x1 with data packed in 4
-void kernel_sgemm_pp_nt_4x1_sse_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
+void kernel_sgemm_pp_nt_4x1_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)

@@ -32,7 +32,7 @@
 
 
 
-void kernel_dpotrf_dtrsv_dcopy_4x4_sse_lib4(int kmax, double *A, int sda, int shf, double *L, int sdl)
+void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, double *L, int sdl)
 	{
 	
 	const int lda = 4;
@@ -276,7 +276,7 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_sse_lib4(int kmax, double *A, int sda, int sh
 
 
 
-void kernel_dpotrf_dtrsv_4x4_sse_lib4(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda)
 	{
 	
 	const int lda = 4;
@@ -480,7 +480,7 @@ void kernel_dpotrf_dtrsv_4x4_sse_lib4(int kmax, double *A, int sda)
 
 
 
-void kernel_dpotrf_dtrsv_3x3_sse_lib4(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda)
 	{
 	
 	const int lda = 4;
@@ -653,7 +653,7 @@ void kernel_dpotrf_dtrsv_3x3_sse_lib4(int kmax, double *A, int sda)
 
 
 
-void kernel_dpotrf_dtrsv_2x2_sse_lib4(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_2x2_lib4(int kmax, double *A, int sda)
 	{
 	
 	const int lda = 4;
@@ -775,7 +775,7 @@ void kernel_dpotrf_dtrsv_2x2_sse_lib4(int kmax, double *A, int sda)
 
 
 
-void kernel_dpotrf_dtrsv_1x1_sse_lib4(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_1x1_lib4(int kmax, double *A, int sda)
 	{
 	
 	const int lda = 4;

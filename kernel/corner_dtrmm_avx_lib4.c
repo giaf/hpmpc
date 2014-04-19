@@ -32,8 +32,8 @@
 
 
 
-/*inline void corner_dtrmm_pp_nt_8x3_avx_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
-void corner_dtrmm_pp_nt_8x3_avx_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)
+/*inline void corner_dtrmm_pp_nt_8x3_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
+void corner_dtrmm_pp_nt_8x3_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)
 	{
 	
 	__m256d
@@ -98,8 +98,8 @@ void corner_dtrmm_pp_nt_8x3_avx_lib4(double *A0, double *A1, double *B, double *
 	
 
 
-/*inline void corner_dtrmm_pp_nt_8x2_avx_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
-void corner_dtrmm_pp_nt_8x2_avx_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)
+/*inline void corner_dtrmm_pp_nt_8x2_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
+void corner_dtrmm_pp_nt_8x2_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)
 	{
 	
 	__m256d
@@ -141,8 +141,8 @@ void corner_dtrmm_pp_nt_8x2_avx_lib4(double *A0, double *A1, double *B, double *
 
 
 
-/*inline void corner_dtrmm_pp_nt_8x1_avx_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
-void corner_dtrmm_pp_nt_8x1_avx_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)
+/*inline void corner_dtrmm_pp_nt_8x1_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
+void corner_dtrmm_pp_nt_8x1_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)
 	{
 	
 	__m256d
@@ -166,8 +166,8 @@ void corner_dtrmm_pp_nt_8x1_avx_lib4(double *A0, double *A1, double *B, double *
 	}
 
 
-/*inline void corner_dtrmm_pp_nt_4x3_avx_lib4(double *A, double *B, double *C, int ldc)*/
-void corner_dtrmm_pp_nt_4x3_avx_lib4(double *A, double *B, double *C, int ldc)
+/*inline void corner_dtrmm_pp_nt_4x3_lib4(double *A, double *B, double *C, int ldc)*/
+void corner_dtrmm_pp_nt_4x3_lib4(double *A, double *B, double *C, int ldc)
 	{
 	
 	__m256d
@@ -217,8 +217,8 @@ void corner_dtrmm_pp_nt_4x3_avx_lib4(double *A, double *B, double *C, int ldc)
 	
 
 
-/*inline void corner_dtrmm_pp_nt_4x2_avx_lib4(double *A, double *B, double *C, int ldc)*/
-void corner_dtrmm_pp_nt_4x2_avx_lib4(double *A, double *B, double *C, int ldc)
+/*inline void corner_dtrmm_pp_nt_4x2_lib4(double *A, double *B, double *C, int ldc)*/
+void corner_dtrmm_pp_nt_4x2_lib4(double *A, double *B, double *C, int ldc)
 	{
 	
 	__m256d
@@ -252,8 +252,8 @@ void corner_dtrmm_pp_nt_4x2_avx_lib4(double *A, double *B, double *C, int ldc)
 
 
 
-/*inline void corner_dtrmm_pp_nt_4x1_avx_lib4(double *A, double *B, double *C, int ldc)*/
-void corner_dtrmm_pp_nt_4x1_avx_lib4(double *A, double *B, double *C, int ldc)
+/*inline void corner_dtrmm_pp_nt_4x1_lib4(double *A, double *B, double *C, int ldc)*/
+void corner_dtrmm_pp_nt_4x1_lib4(double *A, double *B, double *C, int ldc)
 	{
 	
 	__m256d

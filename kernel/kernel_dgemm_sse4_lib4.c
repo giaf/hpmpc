@@ -33,7 +33,7 @@
 
 
 // 4x4 with data packed in 4
-void kernel_dgemm_pp_nt_4x4_sse_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
+void kernel_dgemm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -326,7 +326,7 @@ void kernel_dgemm_pp_nt_4x4_sse_lib4(int kmax, double *A, double *B, double *C, 
 
 
 // 4x3 with data packed in 4
-void kernel_dgemm_pp_nt_4x3_sse_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
+void kernel_dgemm_pp_nt_4x3_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -558,7 +558,7 @@ void kernel_dgemm_pp_nt_4x3_sse_lib4(int kmax, double *A, double *B, double *C, 
 
 
 // 4x2 with data packed in 4
-void kernel_dgemm_pp_nt_4x2_sse_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
+void kernel_dgemm_pp_nt_4x2_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -745,7 +745,7 @@ void kernel_dgemm_pp_nt_4x2_sse_lib4(int kmax, double *A, double *B, double *C, 
 
 
 // 4x1 with data packed in 4
-void kernel_dgemm_pp_nt_4x1_sse_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
+void kernel_dgemm_pp_nt_4x1_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)

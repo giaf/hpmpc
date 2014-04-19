@@ -23,7 +23,7 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void corner_strmm_pp_nt_2x1_c99_lib2(float *A, float *B, float *C, int ldc)
+void corner_strmm_pp_nt_2x1_lib2(float *A, float *B, float *C, int ldc)
 	{
 	
 	const int bs = 2;

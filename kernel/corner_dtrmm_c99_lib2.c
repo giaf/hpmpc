@@ -23,7 +23,7 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void corner_dtrmm_pp_nt_2x1_c99_lib2(double *A, double *B, double *C, int ldc)
+void corner_dtrmm_pp_nt_2x1_lib2(double *A, double *B, double *C, int ldc)
 	{
 	
 	const int bs = 2;

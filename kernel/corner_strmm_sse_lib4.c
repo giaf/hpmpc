@@ -32,8 +32,8 @@
 
 
 
-/*inline void corner_strmm_pp_nt_8x3_sse_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
-void corner_strmm_pp_nt_8x3_sse_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)
+/*inline void corner_strmm_pp_nt_8x3_lib4(float *A0, float *A1, float *B, float *C0, float *C1, int ldc)*/
+void corner_strmm_pp_nt_8x3_lib4(float *A0, float *A1, float *B, float *C0, float *C1, int ldc)
 	{
 
 	__m128
@@ -103,8 +103,8 @@ void corner_strmm_pp_nt_8x3_sse_lib4(double *A0, double *A1, double *B, double *
 
 	
 
-/*inline void corner_strmm_pp_nt_8x2_sse_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
-void corner_strmm_pp_nt_8x2_sse_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)
+/*inline void corner_strmm_pp_nt_8x2_lib4(float *A0, float *A1, float *B, float *C0, float *C1, int ldc)*/
+void corner_strmm_pp_nt_8x2_lib4(float *A0, float *A1, float *B, float *C0, float *C1, int ldc)
 	{
 
 	__m128
@@ -147,8 +147,8 @@ void corner_strmm_pp_nt_8x2_sse_lib4(double *A0, double *A1, double *B, double *
 
 
 
-/*inline void corner_strmm_pp_nt_8x1_sse_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
-void corner_strmm_pp_nt_8x1_sse_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)
+/*inline void corner_strmm_pp_nt_8x1_lib4(float *A0, float *A1, float *B, float *C0, float *C1, int ldc)*/
+void corner_strmm_pp_nt_8x1_lib4(float *A0, float *A1, float *B, float *C0, float *C1, int ldc)
 	{
 
 	__m128
@@ -172,8 +172,8 @@ void corner_strmm_pp_nt_8x1_sse_lib4(double *A0, double *A1, double *B, double *
 
 
 
-/*inline void corner_strmm_pp_nt_4x3_sse_lib4(double *A, double *B, double *C, int ldc)*/
-void corner_strmm_pp_nt_4x3_sse_lib4(double *A, double *B, double *C, int ldc)
+/*inline void corner_strmm_pp_nt_4x3_lib4(float *A, float *B, float *C, int ldc)*/
+void corner_strmm_pp_nt_4x3_lib4(float *A, float *B, float *C, int ldc)
 	{
 
 	__m128
@@ -225,8 +225,8 @@ void corner_strmm_pp_nt_4x3_sse_lib4(double *A, double *B, double *C, int ldc)
 
 
 
-/*inline void corner_strmm_pp_nt_4x2_sse_lib4(double *A, double *B, double *C, int ldc)*/
-void corner_strmm_pp_nt_4x2_sse_lib4(double *A, double *B, double *C, int ldc)
+/*inline void corner_strmm_pp_nt_4x2_lib4(float *A, float *B, float *C, int ldc)*/
+void corner_strmm_pp_nt_4x2_lib4(float *A, float *B, float *C, int ldc)
 	{
 
 	__m128
@@ -260,8 +260,8 @@ void corner_strmm_pp_nt_4x2_sse_lib4(double *A, double *B, double *C, int ldc)
 
 
 
-/*inline void corner_strmm_pp_nt_4x1_sse_lib4(double *A, double *B, double *C, int ldc)*/
-void corner_strmm_pp_nt_4x1_sse_lib4(double *A, double *B, double *C, int ldc)
+/*inline void corner_strmm_pp_nt_4x1_lib4(float *A, float *B, float *C, int ldc)*/
+void corner_strmm_pp_nt_4x1_lib4(float *A, float *B, float *C, int ldc)
 	{
 
 	__m128

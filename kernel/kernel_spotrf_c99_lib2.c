@@ -27,7 +27,7 @@
 
 
 
-void kernel_spotrf_strsv_scopy_2x2_c99_lib2(int kmax, float *A, int sda, int shf, float *L, int sdl)
+void kernel_spotrf_strsv_scopy_2x2_lib2(int kmax, float *A, int sda, int shf, float *L, int sdl)
 	{
 	
 	const int lda = 2;
@@ -116,7 +116,7 @@ void kernel_spotrf_strsv_scopy_2x2_c99_lib2(int kmax, float *A, int sda, int shf
 
 
 
-void kernel_spotrf_strsv_2x2_c99_lib2(int kmax, float *A, int sda)
+void kernel_spotrf_strsv_2x2_lib2(int kmax, float *A, int sda)
 	{
 	
 	const int lda = 2;
@@ -187,7 +187,7 @@ void kernel_spotrf_strsv_2x2_c99_lib2(int kmax, float *A, int sda)
 	}
 
 
-void kernel_spotrf_strsv_1x1_c99_lib2(int kmax, float *A, int sda)
+void kernel_spotrf_strsv_1x1_lib2(int kmax, float *A, int sda)
 	{
 	
 	const int lda = 2;

@@ -27,7 +27,7 @@
 
 
 
-void kernel_spotrf_strsv_scopy_4x4_c99_lib4(int kmax, float *A, int sda, int shf, float *L, int sdl)
+void kernel_spotrf_strsv_scopy_4x4_lib4(int kmax, float *A, int sda, int shf, float *L, int sdl)
 	{
 	
 	const int lda = 4;
@@ -229,7 +229,7 @@ void kernel_spotrf_strsv_scopy_4x4_c99_lib4(int kmax, float *A, int sda, int shf
 
 
 
-void kernel_spotrf_strsv_4x4_c99_lib4(int kmax, float *A, int sda)
+void kernel_spotrf_strsv_4x4_lib4(int kmax, float *A, int sda)
 	{
 	
 	const int lda = 4;
@@ -391,7 +391,7 @@ void kernel_spotrf_strsv_4x4_c99_lib4(int kmax, float *A, int sda)
 
 
 
-void kernel_spotrf_strsv_3x3_c99_lib4(int kmax, float *A, int sda)
+void kernel_spotrf_strsv_3x3_lib4(int kmax, float *A, int sda)
 	{
 	
 	const int lda = 4;
@@ -547,7 +547,7 @@ void kernel_spotrf_strsv_3x3_c99_lib4(int kmax, float *A, int sda)
 
 
 
-void kernel_spotrf_strsv_2x2_c99_lib4(int kmax, float *A, int sda)
+void kernel_spotrf_strsv_2x2_lib4(int kmax, float *A, int sda)
 	{
 	
 	const int lda = 4;
@@ -669,7 +669,7 @@ void kernel_spotrf_strsv_2x2_c99_lib4(int kmax, float *A, int sda)
 
 
 
-void kernel_spotrf_strsv_1x1_c99_lib4(int kmax, float *A, int sda)
+void kernel_spotrf_strsv_1x1_lib4(int kmax, float *A, int sda)
 	{
 	
 	const int lda = 4;

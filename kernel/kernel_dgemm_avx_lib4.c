@@ -33,7 +33,7 @@
 
 
 // normal-transposed, 8x4 with data packed in 4
-void kernel_dgemm_pp_nt_8x4_avx_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, int ldc, int alg)
+void kernel_dgemm_pp_nt_8x4_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -362,7 +362,7 @@ void kernel_dgemm_pp_nt_8x4_avx_lib4(int kmax, double *A0, double *A1, double *B
 
 
 // normal-transposed, 8x2 with data packed in 4 TODO prefetch
-void kernel_dgemm_pp_nt_8x2_avx_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, int ldc, int alg)
+void kernel_dgemm_pp_nt_8x2_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -584,7 +584,7 @@ void kernel_dgemm_pp_nt_8x2_avx_lib4(int kmax, double *A0, double *A1, double *B
 
 
 // normal-transposed, 8x1 with data packed in 4 TODO prefetch
-void kernel_dgemm_pp_nt_8x1_avx_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, int ldc, int alg)
+void kernel_dgemm_pp_nt_8x1_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -734,7 +734,7 @@ void kernel_dgemm_pp_nt_8x1_avx_lib4(int kmax, double *A0, double *A1, double *B
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dgemm_pp_nt_4x4_avx_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
+void kernel_dgemm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -952,7 +952,7 @@ void kernel_dgemm_pp_nt_4x4_avx_lib4(int kmax, double *A, double *B, double *C, 
 
 
 // normal-transposed, 4x3 with data packed in 8 TODO prefetch
-void kernel_dgemm_pp_nt_4x3_avx_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
+void kernel_dgemm_pp_nt_4x3_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -1121,7 +1121,7 @@ void kernel_dgemm_pp_nt_4x3_avx_lib4(int kmax, double *A, double *B, double *C, 
 
 
 // normal-transposed, 4x2 with data packed in 4 TODO prefetch
-void kernel_dgemm_pp_nt_4x2_avx_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
+void kernel_dgemm_pp_nt_4x2_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -1288,7 +1288,7 @@ void kernel_dgemm_pp_nt_4x2_avx_lib4(int kmax, double *A, double *B, double *C, 
 
 
 // normal-transposed, 4x1 with data packed in 8 TODO prefetch
-void kernel_dgemm_pp_nt_4x1_avx_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
+void kernel_dgemm_pp_nt_4x1_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -1411,7 +1411,7 @@ void kernel_dgemm_pp_nt_4x1_avx_lib4(int kmax, double *A, double *B, double *C, 
 
 
 /*// packed-normal, 8x4 with data packed in 4*/
-/*void kernel_dgemm_pu_nn_8x4_avx_lib4(int kmax, double *A0, double *A1, double *B, int ldb, double *C0, double *C1, int ldc, int alg, int triang)*/
+/*void kernel_dgemm_pu_nn_8x4_lib4(int kmax, double *A0, double *A1, double *B, int ldb, double *C0, double *C1, int ldc, int alg, int triang)*/
 /*	{*/
 
 /*	if(kmax<=0)*/
@@ -1806,7 +1806,7 @@ void kernel_dgemm_pp_nt_4x1_avx_lib4(int kmax, double *A, double *B, double *C, 
 
 
 /*// packed-normal, 4x4 with data packed in 4*/
-/*void kernel_dgemm_pu_nn_4x4_avx_lib4(int kmax, double *A0, double *B, int ldb, double *C0, int ldc, int alg, int triang)*/
+/*void kernel_dgemm_pu_nn_4x4_lib4(int kmax, double *A0, double *B, int ldb, double *C0, int ldc, int alg, int triang)*/
 /*	{*/
 
 /*	if(kmax<=0)*/

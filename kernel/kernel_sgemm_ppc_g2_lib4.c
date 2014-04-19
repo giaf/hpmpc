@@ -23,7 +23,7 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void kernel_sgemm_pp_nt_4x4_ppc_lib4(int kmax, float *A, float *B, float *C, int bs_dummy, int alg)
+void kernel_sgemm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int bs_dummy, int alg)
 	{
 	
 	if(kmax<=0)
@@ -436,7 +436,7 @@ void kernel_sgemm_pp_nt_4x4_ppc_lib4(int kmax, float *A, float *B, float *C, int
 
 
 // normal-transposed, 4x3 with data packed in 4
-void kernel_sgemm_pp_nt_4x3_c99_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
+void kernel_sgemm_pp_nt_4x3_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -651,7 +651,7 @@ void kernel_sgemm_pp_nt_4x3_c99_lib4(int kmax, float *A, float *B, float *C, int
 
 
 // normal-transposed, 4x2 with data packed in 4
-void kernel_sgemm_pp_nt_4x2_c99_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
+void kernel_sgemm_pp_nt_4x2_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
@@ -821,7 +821,7 @@ void kernel_sgemm_pp_nt_4x2_c99_lib4(int kmax, float *A, float *B, float *C, int
 
 
 // normal-transposed, 4x1 with data packed in 4
-void kernel_sgemm_pp_nt_4x1_c99_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
+void kernel_sgemm_pp_nt_4x1_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg)
 	{
 	
 	if(kmax<=0)
