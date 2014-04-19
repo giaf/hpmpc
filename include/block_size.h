@@ -44,7 +44,7 @@
 
 #define D_MR 4
 #define D_NR 4
-#define S_MR 8
+#define S_MR 4
 #define S_NR 4
 
 #elif defined( TARGET_ATOM )

@@ -23,30 +23,57 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-/* return the number of rows of the C sub-matrix in the dgemm micro-kernel, double precision */
-int d_get_mr()
+/*#include "../include/kernel_s_ppc_4x4.h"*/
+
+
+
+/* preforms                                          */
+/* C  = A * B' (alg== 0)                             */
+/* C += A * B' (alg== 1)                             */
+/* C -= A * B' (alg==-1)                             */
+/* where A, B and C are packed with block size 4     */
+void sgemm_ppp_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sdb, float *pC, int sdc, int alg)
 	{
-	int bs = 4;
-	return bs;
+
+	const int bs = 4;
+
+	int i, j, jj;
+	
+	i = 0;
+	for(; i<m-4; i+=8)
+		{
+		j = 0;
+		for(; j<n-3; j+=4)
+			{
+			kernel_sgemm_pp_nt_8x4_sse_lib4(k, &pA[0+i*sda], &pA[0+(i+4)*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs, alg);
+			}
+		jj = 0;
+		for(; jj<n-j-1; jj+=2)
+			{
+			kernel_sgemm_pp_nt_8x2_sse_lib4(k, &pA[0+i*sda], &pA[0+(i+4)*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+(i+4)*sdc], bs, alg);
+			}
+		for(; jj<n-j; jj++)
+			{
+			kernel_sgemm_pp_nt_8x1_sse_lib4(k, &pA[0+i*sda], &pA[0+(i+4)*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+(i+4)*sdc], bs, alg);
+			}
+		}
+	for(; i<m; i+=4)
+		{
+		j = 0;
+		for(; j<n-3; j+=4)
+			{
+			kernel_sgemm_pp_nt_4x4_sse_lib4(k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs, alg);
+			}
+		jj = 0;
+		for(; jj<n-j-1; jj+=2)
+			{
+			kernel_sgemm_pp_nt_4x2_sse_lib4(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], bs, alg);
+			}
+		for(; jj<n-j; jj++)
+			{
+			kernel_sgemm_pp_nt_4x1_sse_lib4(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], bs, alg);
+			}
+		}
+	
 	}
 
-/* return the number of columns of the C sub-matrix in the dgemm micro-kernel, double precision */
-int d_get_nr()
-	{
-	int bs = 4;
-	return bs;
-	}
-
-/* return the number of rows of the C sub-matrix in the dgemm micro-kernel, single precision */
-int s_get_mr()
-	{
-	int bs = 4;
-	return bs;
-	}
-
-/* return the number of columns of the C sub-matrix in the dgemm micro-kernel, single precision */
-int s_get_nr()
-	{
-	int bs = 4;
-	return bs;
-	}

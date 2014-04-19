@@ -148,7 +148,7 @@ int main()
 /*			dgemm_pup_nn_lib(n, n, n, pA, pnd, B, n, pC, pnd, 0);*/
 //			dgemm_(&cn, &cn, &n, &n, &n, &alpha, A, &n, B, &n, &beta, C, &n);
 /*			dsyrk_ppp_lib(n, n, n, pA, pnd, pC, pnd);*/
-			ssyrk_ppp_lib(n, n, n, spA, pns, spC, pns);
+/*			ssyrk_ppp_lib(n, n, n, spA, pns, spC, pns);*/
 
 			}
 	
@@ -163,7 +163,7 @@ int main()
 /*			dtrmm_pup_nn_lib(n, n, pA, pnd, B, n, pC, pnd);*/
 /*			dgemm_pup_nn_lib(n, n, n, pA, pnd, B, n, pC, pnd, 0);*/
 /*			dtrmm_ppp_lib(n, n, 0, pA, pnd, pB, pnd, pC, pnd);*/
-			strmm_ppp_lib(n, n, 0, spA, pns, spB, pns, spC, pns);
+/*			strmm_ppp_lib(n, n, 0, spA, pns, spB, pns, spC, pns);*/
 			}
 	
 		gettimeofday(&tv3, NULL); // stop
@@ -176,7 +176,7 @@ int main()
 //			sgemm_(&cn, &cn, &n, &n, &n, &salpha, sA, &n, sB, &n, &sbeta, sC, &n);
 /*			dtrmm_pup_nn_lib(n, n, pA, pnd, B, n, pC, pnd);*/
 /*			dpotrf_p_dcopy_p_t_lib(n, 0, pD, pnd, pL, pnd);*/
-			spotrf_p_scopy_p_t_lib(n, 0, spD, pns, spL, pns);
+/*			spotrf_p_scopy_p_t_lib(n, 0, spD, pns, spL, pns);*/
 
 			}
 	
