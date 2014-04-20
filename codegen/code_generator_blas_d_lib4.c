@@ -177,9 +177,7 @@ fprintf(f, "	kernel_dpotrf_dtrsv_2x2_lib4(%d, &pC[%d], %d);\n", m-j-2, j*bs+j*sd
 #if defined(TARGET_AVX)
 			for(; i<m-4; i+=8)
 				{
-/*				kernel_dgemm_pp_nt_8x3_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);*/
-fprintf(f, "	kernel_dgemm_pp_nt_4x3_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-fprintf(f, "	kernel_dgemm_pp_nt_4x3_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, (i+4)*sdc, j*sdc, j*bs+(i+4)*sdc, bs);
+fprintf(f, "	kernel_dgemm_pp_nt_8x3_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
 				}
 #endif
 			for(; i<m; i+=4)
@@ -341,9 +339,7 @@ fprintf(f, "	kernel_dgemm_pp_nt_8x2_lib4(%d, &pA[%d], &pA[%d], &pA[%d], &pC[%d],
 				}
 			else if(n-j==3)
 				{
-/*fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pA[%d], &pA[%d], &pA[%d], &pC[%d], &pC[%d], %d, 1);\n", k, i*sda, (i+4)*sda, j*sda, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);*/
-fprintf(f, "	kernel_dgemm_pp_nt_4x3_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 1);\n", k, i*sda, j*sda, j*bs+i*sdc, bs);
-fprintf(f, "	kernel_dgemm_pp_nt_4x3_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 1);\n", k, (i+4)*sda, j*sda, j*bs+(i+4)*sdc, bs);
+fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pA[%d], &pA[%d], &pA[%d], &pC[%d], &pC[%d], %d, 1);\n", k, i*sda, (i+4)*sda, j*sda, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
 				}
 			}
 		}

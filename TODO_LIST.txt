@@ -1,17 +1,17 @@
 AVX kernel:
-- _mm_mul & _mm_add instead of += * (add support to icc)
-- register renaming & ooo in kernels
-- pack to simd size
+- DONE _mm_mul & _mm_add instead of += * (add support to icc)
+- DONE register renaming & ooo in kernels
+- DONE pack to simd size
 - flag for dtrmm kernel CHANGE OF PLAN
 (- faster and lower accuracy kernels for dpotrf and dtrsv)
 
-Add other kernels (SSE, NEON, C99, POWERPC)
+DONE Add other kernels (SSE, NEON, C99, POWERPC)
 
 BLAS:
 - dtrmm_pu & dpotrf_p_dcopy_u CHANGE OF PLAN
-- dpotrf(m, n) to factorize only a band of C
-(- code generation version ?)
-- use -DTARGET
+- DONE dpotrf(m, n) to factorize only a band of C
+(- DONE code generation version ?)
+- DONE use -DTARGET
 
 LQCP & IP
 - avoid copy of Q in IP

@@ -23,14 +23,6 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-/*#include <math.h>*/
-/*#include <mmintrin.h>*/
-/*#include <xmmintrin.h>  // SSE*/
-/*#include <emmintrin.h>  // SSE2*/
-/*#include <pmmintrin.h>  // SSE3*/
-/*#include <smmintrin.h>  // SSE4*/
-/*#include <immintrin.h>  // AVX*/
-
 #include "../include/kernel_d_lib4.h"
 
 
@@ -225,9 +217,7 @@ void dsyrk_ppp_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc
 				}
 			else if(n-j==3)
 				{
-/*				kernel_dgemm_pp_nt_8x4_lib4(k, &pA[0+i*sda], &pA[0+(i+4)*sda], &pA[0+j*sda], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs, 1);*/
-				kernel_dgemm_pp_nt_4x3_lib4(k, &pA[0+i*sda], &pA[0+j*sda], &pC[0+(j+0)*bs+i*sdc], bs, 1);
-				kernel_dgemm_pp_nt_4x3_lib4(k, &pA[0+(i+4)*sda], &pA[0+j*sda], &pC[0+(j+0)*bs+(i+4)*sdc], bs, 1);
+				kernel_dgemm_pp_nt_8x3_lib4(k, &pA[0+i*sda], &pA[0+(i+4)*sda], &pA[0+j*sda], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs, 1);
 				}
 			}
 		}
@@ -432,9 +422,7 @@ void dpotrf_p_lib(int m, int n, double *pC, int sdc)
 #if defined(TARGET_AVX)
 			for(; i<m-4; i+=8)
 				{
-/*				kernel_dgemm_pp_nt_8x3_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);*/
-				kernel_dgemm_pp_nt_4x3_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
-				kernel_dgemm_pp_nt_4x3_lib4(j, &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
+				kernel_dgemm_pp_nt_8x3_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
 				}
 #endif
 			for(; i<m; i+=4)
