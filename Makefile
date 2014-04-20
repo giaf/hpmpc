@@ -116,6 +116,8 @@ codegenerator:
 	make -C auxiliary obj
 	make -C kernel obj
 #	make -C blas obj
+	touch ./codegen/dricposv_codegen.c 
+	touch ./codegen/sricposv_codegen.c
 	make -C codegen obj
 	make -C mpc_solvers obj
 	ar rcs HPMPC.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS)
