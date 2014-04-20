@@ -26,8 +26,7 @@
 #include <stdio.h>
 
 #include "../problem_size.h"
-
-/*#include "../include/blas_d.h"*/
+#include "blas_s_codegen.h"
 #include "../include/block_size.h"
 
 #define NZ NX+NU+1

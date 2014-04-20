@@ -30,6 +30,7 @@ void s_copy_mat(int row, int col, float *A, int lda, float *B, int ldb);
 void s_copy_pmat(int row, int col, int bs, float *A, int sda, float *B, int sdb);
 void s_copy_pmat_lo(int row, int bs, float *A, int sda, float *B, int sdb);
 void s_align_pmat(int row, int col, int offset, int bs, float *A, int sda, float *B, int sdb);
+void s_cvt_d2s_pmat(int row, int col, int dbs, double *A, int sda, int sbs, float *B, int sdb);
 void s_cvt_mat2pmat(int row, int col, int offset, int bs, float *A, int lda, float *B, int sdb);
 void s_cvt_pmat2mat(int row, int col, int offset, int bs, float *pA, int sda, float *A, int lda);
 void s_print_mat(int row, int col, float *A, int lda);

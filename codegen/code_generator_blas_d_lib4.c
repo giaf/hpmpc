@@ -210,7 +210,7 @@ void dtrmm_ppp_code_generator(FILE *f, int m, int n, int offset)
 	const int sdc = PNZ;
 
 	if(offset%bs!=0)
-	fprintf(f, "	pB = pB+%d;\n", bs*sdb+bs*bs);
+fprintf(f, "	pB = pB+%d;\n", bs*sdb+bs*bs);
 	
 	i = 0;
 #if defined(TARGET_AVX)
@@ -259,7 +259,7 @@ fprintf(f, "	corner_dtrmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], %d);\n", j*b
 	// add to the last row
 	for(j=0; j<n; j++)
 		{
-	fprintf(f, "	pC[%d] += pB[%d];\n", (m-1)%bs+j*bs+((m-1)/bs)*bs*sdc, j%bs+n*bs+(j/bs)*bs*sdb);
+fprintf(f, "	pC[%d] += pB[%d];\n", (m-1)%bs+j*bs+((m-1)/bs)*bs*sdc, j%bs+n*bs+(j/bs)*bs*sdb);
 		
 		}
 
@@ -424,19 +424,19 @@ void dgemv_p_t_code_generator(FILE *f, int n, int m, int offset, int alg)
 	j=0;
 	for(; j<m-7; j+=8)
 		{
-	fprintf(f, "	kernel_dgemv_t_8_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
+fprintf(f, "	kernel_dgemv_t_8_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
 		}
 	for(; j<m-3; j+=4)
 		{
-	fprintf(f, "	kernel_dgemv_t_4_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
+fprintf(f, "	kernel_dgemv_t_4_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
 		}
 	for(; j<m-1; j+=2)
 		{
-	fprintf(f, "	kernel_dgemv_t_2_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
+fprintf(f, "	kernel_dgemv_t_2_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
 		}
 	for(; j<m; j++)
 		{
-	fprintf(f, "	kernel_dgemv_t_1_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
+fprintf(f, "	kernel_dgemv_t_1_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
 		}
 
 /*	fprintf(f, "	\n");*/
@@ -461,21 +461,21 @@ void dtrsv_p_t_code_generator(FILE *f, int n)
 	
 	// clean up stuff at the end
 	j = 0;
-	fprintf(f, "	ptrA = pA + %d;\n", qn*bs*(sda+bs));
-	fprintf(f, "	ptrx = x + %d;\n", qn*bs);
+fprintf(f, "	ptrA = pA + %d;\n", qn*bs*(sda+bs));
+fprintf(f, "	ptrx = x + %d;\n", qn*bs);
 
 	for(; j<rn%2; j++)
 		{
 		i = rn-1-j;
-	fprintf(f, "	kernel_dgemv_t_1_lib4(%d, %d, &ptrA[%d], %d, &ptrx[%d], &ptrx[%d], -1);\n", j, j, i+1+bs*(i+0), sda, i+1, i);
-	fprintf(f, "	ptrx[%d] = (ptrx[%d]) / ptrA[%d];\n", i+0, i+0, i+0+bs*(i+0));
+fprintf(f, "	kernel_dgemv_t_1_lib4(%d, %d, &ptrA[%d], %d, &ptrx[%d], &ptrx[%d], -1);\n", j, j, i+1+bs*(i+0), sda, i+1, i);
+fprintf(f, "	ptrx[%d] = (ptrx[%d]) / ptrA[%d];\n", i+0, i+0, i+0+bs*(i+0));
 		}
 	for(; j<rn; j+=2)
 		{
 		i = rn-2-j;
-	fprintf(f, "	kernel_dgemv_t_2_lib4(%d, %d, &ptrA[%d], %d, &ptrx[%d], &ptrx[%d], -1);\n", j, j, i+2+bs*(i+0), sda, i+2, i);
-	fprintf(f, "	ptrx[%d] = (ptrx[%d]) / ptrA[%d];\n", i+1, i+1, (i+1)+bs*(i+1));
-	fprintf(f, "	ptrx[%d] = (ptrx[%d] - ptrA[%d]*ptrx[%d]) / ptrA[%d];\n", i+0, i+0, (i+1)+bs*(i+0), i+1, (i+0)+bs*(i+0));
+fprintf(f, "	kernel_dgemv_t_2_lib4(%d, %d, &ptrA[%d], %d, &ptrx[%d], &ptrx[%d], -1);\n", j, j, i+2+bs*(i+0), sda, i+2, i);
+fprintf(f, "	ptrx[%d] = (ptrx[%d]) / ptrA[%d];\n", i+1, i+1, (i+1)+bs*(i+1));
+fprintf(f, "	ptrx[%d] = (ptrx[%d] - ptrA[%d]*ptrx[%d]) / ptrA[%d];\n", i+0, i+0, (i+1)+bs*(i+0), i+1, (i+0)+bs*(i+0));
 		}
 
 	// blocks of 8
@@ -484,36 +484,36 @@ void dtrsv_p_t_code_generator(FILE *f, int n)
 		{
 		
 		// all 4 rows
-	fprintf(f, "	ptrA = pA + %d;\n", (qn-j-2)*bs*(sda+bs));
-	fprintf(f, "	ptrx = x  + %d;\n", (qn-j-2)*bs);
+fprintf(f, "	ptrA = pA + %d;\n", (qn-j-2)*bs*(sda+bs));
+fprintf(f, "	ptrx = x  + %d;\n", (qn-j-2)*bs);
 		
 
 		// correct
-	fprintf(f, "	kernel_dgemv_t_8_lib4(%d, 0, ptrA+%d, sda, ptrx+8, ptrx, -1);\n", rn+j*bs, 2*bs*sda);
+fprintf(f, "	kernel_dgemv_t_8_lib4(%d, 0, ptrA+%d, sda, ptrx+8, ptrx, -1);\n", rn+j*bs, 2*bs*sda);
 		
 
 		// last 4 rows
-	fprintf(f, "	ptrA = pA + %d;\n", (qn-j-1)*bs*(sda+bs));
-	fprintf(f, "	ptrx = x  + %d;\n", (qn-j-1)*bs);
+fprintf(f, "	ptrA = pA + %d;\n", (qn-j-1)*bs*(sda+bs));
+fprintf(f, "	ptrx = x  + %d;\n", (qn-j-1)*bs);
 
 		// solve
-	fprintf(f, "	ptrx[3] = (ptrx[3]) / ptrA[%d];\n", 3+bs*3);
-	fprintf(f, "	ptrx[2] = (ptrx[2] - ptrA[%d]*ptrx[3]) / ptrA[%d];\n", 3+bs*2, 2+bs*2);
-	fprintf(f, "	ptrx[1] = (ptrx[1] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2]) / ptrA[%d];\n", 3+bs*1, 2+bs*1, 1+bs*1);
-	fprintf(f, "	ptrx[0] = (ptrx[0] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2] - ptrA[%d]*ptrx[1]) / ptrA[%d];\n", 3+bs*0, 2+bs*0, 1+bs*0, 0+bs*0);
+fprintf(f, "	ptrx[3] = (ptrx[3]) / ptrA[%d];\n", 3+bs*3);
+fprintf(f, "	ptrx[2] = (ptrx[2] - ptrA[%d]*ptrx[3]) / ptrA[%d];\n", 3+bs*2, 2+bs*2);
+fprintf(f, "	ptrx[1] = (ptrx[1] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2]) / ptrA[%d];\n", 3+bs*1, 2+bs*1, 1+bs*1);
+fprintf(f, "	ptrx[0] = (ptrx[0] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2] - ptrA[%d]*ptrx[1]) / ptrA[%d];\n", 3+bs*0, 2+bs*0, 1+bs*0, 0+bs*0);
 
 		// first 4 rows
-	fprintf(f, "	ptrA = pA + %d;\n", (qn-j-2)*bs*(sda+bs));
-	fprintf(f, "	ptrx = x  + %d;\n", (qn-j-2)*bs);
+fprintf(f, "	ptrA = pA + %d;\n", (qn-j-2)*bs*(sda+bs));
+fprintf(f, "	ptrx = x  + %d;\n", (qn-j-2)*bs);
 
 		// correct
-	fprintf(f, "	kernel_dgemv_t_4_lib4(4, 0, ptrA+%d, sda, ptrx+4, ptrx, -1);\n", bs*sda);
+fprintf(f, "	kernel_dgemv_t_4_lib4(4, 0, ptrA+%d, sda, ptrx+4, ptrx, -1);\n", bs*sda);
 
 		// solve
-	fprintf(f, "	ptrx[3] = (ptrx[3]) / ptrA[%d];\n", 3+bs*3);
-	fprintf(f, "	ptrx[2] = (ptrx[2] - ptrA[%d]*ptrx[3]) / ptrA[%d];\n", 3+bs*2, 2+bs*2);
-	fprintf(f, "	ptrx[1] = (ptrx[1] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2]) / ptrA[%d];\n", 3+bs*1, 2+bs*1, 1+bs*1);
-	fprintf(f, "	ptrx[0] = (ptrx[0] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2] - ptrA[%d]*ptrx[1]) / ptrA[%d];\n", 3+bs*0, 2+bs*0, 1+bs*0, 0+bs*0);
+fprintf(f, "	ptrx[3] = (ptrx[3]) / ptrA[%d];\n", 3+bs*3);
+fprintf(f, "	ptrx[2] = (ptrx[2] - ptrA[%d]*ptrx[3]) / ptrA[%d];\n", 3+bs*2, 2+bs*2);
+fprintf(f, "	ptrx[1] = (ptrx[1] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2]) / ptrA[%d];\n", 3+bs*1, 2+bs*1, 1+bs*1);
+fprintf(f, "	ptrx[0] = (ptrx[0] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2] - ptrA[%d]*ptrx[1]) / ptrA[%d];\n", 3+bs*0, 2+bs*0, 1+bs*0, 0+bs*0);
 
 		}
 	
@@ -522,14 +522,14 @@ void dtrsv_p_t_code_generator(FILE *f, int n)
 		{
 		
 		// first 4 rows
-	fprintf(f, "	ptrA = pA + %d;\n", (qn-j-1)*bs*(sda+bs));
-	fprintf(f, "	ptrx = x  + %d;\n", (qn-j-1)*bs);
+fprintf(f, "	ptrA = pA + %d;\n", (qn-j-1)*bs*(sda+bs));
+fprintf(f, "	ptrx = x  + %d;\n", (qn-j-1)*bs);
 		
-	fprintf(f, "	kernel_dgemv_t_4_lib4(%d, 0, ptrA+%d, sda, ptrx+4, ptrx, -1);\n", rn+j*bs, bs*sda);
-	fprintf(f, "	ptrx[3] = (ptrx[3]) / ptrA[%d];\n", 3+bs*3);
-	fprintf(f, "	ptrx[2] = (ptrx[2] - ptrA[%d]*ptrx[3]) / ptrA[%d];\n", 3+bs*2, 2+bs*2);
-	fprintf(f, "	ptrx[1] = (ptrx[1] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2]) / ptrA[%d];\n", 3+bs*1, 2+bs*1, 1+bs*1);
-	fprintf(f, "	ptrx[0] = (ptrx[0] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2] - ptrA[%d]*ptrx[1]) / ptrA[%d];\n", 3+bs*0, 2+bs*0, 1+bs*0, 0+bs*0);
+fprintf(f, "	kernel_dgemv_t_4_lib4(%d, 0, ptrA+%d, sda, ptrx+4, ptrx, -1);\n", rn+j*bs, bs*sda);
+fprintf(f, "	ptrx[3] = (ptrx[3]) / ptrA[%d];\n", 3+bs*3);
+fprintf(f, "	ptrx[2] = (ptrx[2] - ptrA[%d]*ptrx[3]) / ptrA[%d];\n", 3+bs*2, 2+bs*2);
+fprintf(f, "	ptrx[1] = (ptrx[1] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2]) / ptrA[%d];\n", 3+bs*1, 2+bs*1, 1+bs*1);
+fprintf(f, "	ptrx[0] = (ptrx[0] - ptrA[%d]*ptrx[3] - ptrA[%d]*ptrx[2] - ptrA[%d]*ptrx[1]) / ptrA[%d];\n", 3+bs*0, 2+bs*0, 1+bs*0, 0+bs*0);
 
 		}
 

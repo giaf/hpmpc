@@ -32,7 +32,7 @@ KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_avx_lib4.o ./kernel/kernel_dpotrf_sse
 KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_sse3_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_c99_lib4.o ./kernel/corner_strmm_sse_lib4.o ./kernel/corner_spotrf_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o
-LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o
+LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
 endif
@@ -42,7 +42,7 @@ KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_sse4_lib4.o ./kernel/kernel_dpotrf_ss
 KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_sse3_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_c99_lib4.o ./kernel/corner_strmm_sse_lib4.o ./kernel/corner_spotrf_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o
-LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o
+LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -msse4 -DTARGET_SSE4 $(DEBUG)
 endif

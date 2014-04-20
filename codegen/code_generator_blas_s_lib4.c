@@ -210,7 +210,7 @@ void strmm_ppp_code_generator(FILE *f, int m, int n, int offset)
 	const int sdc = PNZ;
 
 	if(offset%bs!=0)
-	fprintf(f, "	pB = pB+%d;\n", bs*sdb+bs*bs);
+fprintf(f, "	pB = pB+%d;\n", bs*sdb+bs*bs);
 	
 	i = 0;
 #if defined(TARGET_AVX) || defined(TARGET_SSE4) || defined(TARGET_NEON)
@@ -259,7 +259,7 @@ fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], %d);\n", j*b
 	// add to the last row
 	for(j=0; j<n; j++)
 		{
-	fprintf(f, "	pC[%d] += pB[%d];\n", (m-1)%bs+j*bs+((m-1)/bs)*bs*sdc, j%bs+n*bs+(j/bs)*bs*sdb);
+fprintf(f, "	pC[%d] += pB[%d];\n", (m-1)%bs+j*bs+((m-1)/bs)*bs*sdc, j%bs+n*bs+(j/bs)*bs*sdb);
 		
 		}
 
