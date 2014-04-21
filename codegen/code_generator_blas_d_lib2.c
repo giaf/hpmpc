@@ -48,7 +48,8 @@ void dpotrf_p_dcopy_p_t_code_generator(FILE *f, int n, int nna)
 	j = 0;
 	if(j<nna-1)
 		{
-fprintf(f, "	kernel_dpotrf_dtrsv_2x2_lib2(%d, &pC[%d], %d);\n", n-j-2, j*bs+j*sdc, sdc);
+fprintf(f, "	kernel_dpotrf_dtrsv_2x2_lib2(%d, &pC[%d], %d, info);\n", n-j-2, j*bs+j*sdc, sdc);
+fprintf(f, "	if(*info!=0) return;\n");
 	            	j += 2;     
 	            	for(; j<nna-1; j+=2)
 	            		{     
@@ -57,13 +58,15 @@ fprintf(f, "	kernel_dpotrf_dtrsv_2x2_lib2(%d, &pC[%d], %d);\n", n-j-2, j*bs+j*sd
 	            			{     
 fprintf(f, "	kernel_dgemm_pp_nt_2x2_lib2(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
 	            			}     
-fprintf(f, "	kernel_dpotrf_dtrsv_2x2_lib2(%d, &pC[%d], %d);\n", n-j-2, j*bs+j*sdc, sdc);
+fprintf(f, "	kernel_dpotrf_dtrsv_2x2_lib2(%d, &pC[%d], %d, info);\n", n-j-2, j*bs+j*sdc, sdc);
+fprintf(f, "	if(*info!=0) return;\n");
 	            		}     
 		}
 	int j0 = j;
 	if(j==0) // assume that n>0
 		{
-fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_2x2_lib2(%d, &pC[%d], %d, %d, &pL[%d], %d);\n", n-j-2, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_2x2_lib2(%d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", n-j-2, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	if(*info!=0) return;\n");
 		j += 2;
 		}
 	for(; j<n-1; j+=2)
@@ -73,13 +76,15 @@ fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_2x2_lib2(%d, &pC[%d], %d, %d, &pL[%d], %d
 			{
 fprintf(f, "	kernel_dgemm_pp_nt_2x2_lib2(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
 			}
-fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_2x2_lib2(%d, &pC[%d], %d, %d, &pL[%d], %d);\n", n-j-2, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_2x2_lib2(%d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", n-j-2, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	if(*info!=0) return;\n");
 		}
 	if(n-j==1)
 		{
 		i = j;
 fprintf(f, "	kernel_dgemm_pp_nt_2x1_lib2(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-fprintf(f, "	corner_dpotrf_dtrsv_dcopy_1x1_lib2(&pC[%d], %d, %d, &pL[%d], %d);\n", j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	corner_dpotrf_dtrsv_dcopy_1x1_lib2(&pC[%d], %d, %d, &pL[%d], %d, info);\n", j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	if(*info!=0) return;\n");
 		}
 
 	}
@@ -104,7 +109,8 @@ void dpotrf_p_code_generator(FILE *f, int m, int n)
 			{
 fprintf(f, "	kernel_dgemm_pp_nt_2x2_lib2(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
 			}
-fprintf(f, "	kernel_dpotrf_dtrsv_2x2_lib2(%d, &pC[%d], %d);\n", m-j-2, j*bs+j*sdc, sdc);
+fprintf(f, "	kernel_dpotrf_dtrsv_2x2_lib2(%d, &pC[%d], %d, info);\n", m-j-2, j*bs+j*sdc, sdc);
+fprintf(f, "	if(*info!=0) return;\n");
 		}
 	if(n-j==1)
 		{
@@ -113,7 +119,8 @@ fprintf(f, "	kernel_dpotrf_dtrsv_2x2_lib2(%d, &pC[%d], %d);\n", m-j-2, j*bs+j*sd
 			{
 fprintf(f, "	kernel_dgemm_pp_nt_2x1_lib2(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
 			}
-fprintf(f, "	kernel_dpotrf_dtrsv_1x1_lib2(%d, &pC[%d], %d);\n", m-j-1, j*bs+j*sdc, sdc);
+fprintf(f, "	kernel_dpotrf_dtrsv_1x1_lib2(%d, &pC[%d], %d, info);\n", m-j-1, j*bs+j*sdc, sdc);
+fprintf(f, "	if(*info!=0) return;\n");
 		}
 
 	}

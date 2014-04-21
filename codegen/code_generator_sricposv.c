@@ -51,6 +51,31 @@ void main()
 	FILE *f;
     f = fopen("sricposv_codegen.c", "w"); // a
 
+	fprintf(f, "/**************************************************************************************************\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "* This file is part of HPMPC.                                                                     *\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "* HPMPC -- Library for High-Performance implementation of solvers for MPC.                        *\n");
+	fprintf(f, "* Copyright (C) 2014 by Technical Univeristy of Denmark. All rights reserved.                     *\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "* HPMPC is free software; you can redistribute it and/or                                          *\n");
+	fprintf(f, "* modify it under the terms of the GNU Lesser General Public                                      *\n");
+	fprintf(f, "* License as published by the Free Software Foundation; either                                    *\n");
+	fprintf(f, "* version 2.1 of the License, or (at your option) any later version.                              *\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "* HPMPC is distributed in the hope that it will be useful,                                        *\n");
+	fprintf(f, "* but WITHOUT ANY WARRANTY; without even the implied warranty of                                  *\n");
+	fprintf(f, "* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                                            *\n");
+	fprintf(f, "* See the GNU Lesser General Public License for more details.                                     *\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "* You should have received a copy of the GNU Lesser General Public                                *\n");
+	fprintf(f, "* License along with HPMPC; if not, write to the Free Software                                    *\n");
+	fprintf(f, "* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA                  *\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "* Author: Gianluca Frison, giaf (at) dtu.dk                                                       *\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "**************************************************************************************************/\n");
+	fprintf(f, "\n");
 	fprintf(f, "#include <stdlib.h>\n");
 	fprintf(f, "#include <stdio.h>\n");
 	fprintf(f, "\n");
@@ -59,7 +84,7 @@ void main()
 	fprintf(f, "#include \"../include/kernel_s_lib4.h\"\n");
 	fprintf(f, "\n");
 /*	fprintf(f, "void dgemm_%dx%dx%d(float *A, int lda, float *B, int ldb, float *C, int ldc)\n", m, n, k);*/
-	fprintf(f, "void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hux, float *pL, float *pBAbtL)\n");
+	fprintf(f, "void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hux, float *pL, float *pBAbtL, int *info)\n");
 	fprintf(f, "	{\n");
 	fprintf(f, "	if(!(nx==%d && nu==%d && N==%d))\n", nx, nu, N);
 	fprintf(f, "		{\n");
