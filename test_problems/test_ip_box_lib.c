@@ -169,7 +169,9 @@ int main()
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
 	int nb = NB; // number of box constraints (it has to be even, and the first 2*nu constraints are for the inputs, the following for the states)
-	
+
+	int info = 0;
+		
 	const int dbs = D_MR; //d_get_mr();
 	const int sbs = S_MR; //s_get_mr();
 	
@@ -254,7 +256,7 @@ int main()
 	for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
 	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
 	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 0.1;
-	Q[(nx+nu)*(pnz+1)] = 1e6;
+	Q[(nx+nu)*(pnz+1)] = 1e15;
 	
 	/* packed into contiguous memory */
 	double *pQ; d_zeros_align(&pQ, pnz, pnz);
@@ -304,7 +306,7 @@ int main()
 	int k_max = K_MAX; // maximum number of iterations in the IP method
 	double tol = TOL; // tolerance in the duality measure
 	double sigma[] = {0.4, 0.3, 0.01}; // control primal-dual IP behaviour
-	double *info; d_zeros(&info, 5, k_max); // infos from the IP routine
+	double *stat; d_zeros(&stat, 5, k_max); // stats from the IP routine
 	
 	double *work; d_zeros_align(&work, 2*((N+1)*(pnz*pnz+pnz+5*nb)+2*pnz*pnz), 1); // work space
 
@@ -341,7 +343,7 @@ int main()
 	hux[0][nu+1] = xx0[2*idx+1];
 
 	// call the IP solver
-	ip_d_box(prec, sp_thr, &kk, k_max, tol, sigma, info, nx, nu, N, nb, hpBAbt, hpsBAbt, hpQ, hpsQ, hdb, hux, work);
+	ip_d_box(prec, sp_thr, &kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpsBAbt, hpQ, hpsQ, hdb, hux, work, &info);
 
 
 
@@ -365,7 +367,7 @@ int main()
 		hux[0][nu+1] = xx0[2*idx+1];
 
 		// call the IP solver
-		ip_d_box(prec, sp_thr, &kk, k_max, tol, sigma, info, nx, nu, N, nb, hpBAbt, hpsBAbt, hpQ, hpsQ, hdb, hux, work);
+		ip_d_box(prec, sp_thr, &kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpsBAbt, hpQ, hpsQ, hdb, hux, work, &info);
 
 		}
 	
@@ -382,7 +384,7 @@ int main()
 		{
 
 		for(jj=0; jj<kk; jj++)
-			printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, info[5*jj], info[5*jj+1], info[5*jj+2], info[5*jj+2], info[5*jj+3], info[5*jj+4], info[5*jj+4]);
+			printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, stat[5*jj], stat[5*jj+1], stat[5*jj+2], stat[5*jj+2], stat[5*jj+3], stat[5*jj+4], stat[5*jj+4]);
 		printf("\n");
 		
 		}
@@ -414,7 +416,7 @@ int main()
 /*	free(pL);*/
 /*	free(pBAbtL);*/
 	free(work);
-	free(info);
+	free(stat);
 	for(jj=0; jj<N; jj++)
 		{
 		free(hpQ[jj]);

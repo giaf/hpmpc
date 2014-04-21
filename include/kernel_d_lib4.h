@@ -32,11 +32,11 @@ void kernel_dgemm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, int 
 void kernel_dgemm_pp_nt_4x3_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg);
 void kernel_dgemm_pp_nt_4x2_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg);
 void kernel_dgemm_pp_nt_4x1_lib4(int kmax, double *A, double *B, double *C, int ldc, int alg);
-void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, double *L, int sdl);
-void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda);
-void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda);
-void kernel_dpotrf_dtrsv_2x2_lib4(int kmax, double *A, int sda);
-void kernel_dpotrf_dtrsv_1x1_lib4(int kmax, double *A, int sda);
+void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, double *L, int sdl, int *info);
+void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda, int *info);
+void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda, int *info);
+void kernel_dpotrf_dtrsv_2x2_lib4(int kmax, double *A, int sda, int *info);
+void kernel_dpotrf_dtrsv_1x1_lib4(int kmax, double *A, int sda, int *info);
 void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg);
 void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg);
 void kernel_dgemv_t_2_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg);
@@ -52,7 +52,7 @@ void corner_dtrmm_pp_nt_8x1_lib4(double *A0, double *A1, double *B, double *C0, 
 void corner_dtrmm_pp_nt_4x3_lib4(double *A, double *B, double *C, int ldc);
 void corner_dtrmm_pp_nt_4x2_lib4(double *A, double *B, double *C, int ldc);
 void corner_dtrmm_pp_nt_4x1_lib4(double *A, double *B, double *C, int ldc);
-void corner_dpotrf_dtrsv_dcopy_3x3_lib4(double *A, int sda, int shf, double *L, int sdl);
-void corner_dpotrf_dtrsv_dcopy_2x2_lib4(double *A, int sda, int shf, double *L, int sdl);
-void corner_dpotrf_dtrsv_dcopy_1x1_lib4(double *A, int sda, int shf, double *L, int sdl);
+void corner_dpotrf_dtrsv_dcopy_3x3_lib4(double *A, int sda, int shf, double *L, int sdl, int *info);
+void corner_dpotrf_dtrsv_dcopy_2x2_lib4(double *A, int sda, int shf, double *L, int sdl, int *info);
+void corner_dpotrf_dtrsv_dcopy_1x1_lib4(double *A, int sda, int shf, double *L, int sdl, int *info);
 

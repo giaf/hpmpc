@@ -27,7 +27,7 @@
 
 
 
-void corner_spotrf_strsv_scopy_3x3_lib4(float *A, int sda, int shf, float *L, int sdl)
+void corner_spotrf_strsv_scopy_3x3_lib4(float *A, int sda, int shf, float *L, int sdl, int *info)
 	{
 	
 	const int lda = 4;
@@ -43,7 +43,9 @@ void corner_spotrf_strsv_scopy_3x3_lib4(float *A, int sda, int shf, float *L, in
 
 	// dpotrf
 		
-	a_00 = sqrt(A[0+lda*0]);
+	a_00 = A[0+lda*0];
+	if( a_00 <= 0.0 ) { *info = 1; return; }
+	a_00 = sqrt( a_00 );
 	A[0+lda*0] = a_00;
 	L[0+0*lda+shfi0] = a_00;
 	a_00 = 1.0/a_00;
@@ -54,7 +56,9 @@ void corner_spotrf_strsv_scopy_3x3_lib4(float *A, int sda, int shf, float *L, in
 	L[0+1*lda+shfi0] = a_10;
 	L[0+2*lda+shfi0] = a_20;
 
-	a_11 = sqrt(A[1+lda*1] - a_10*a_10);
+	a_11 = A[1+lda*1] - a_10*a_10;
+	if( a_11 <= 0.0 ) { *info = 1; return; }
+	a_11 = sqrt( a_11 );
 	A[1+lda*1] = a_11;
 	L[1+1*lda+shfi1] = a_11;
 	a_11 = 1.0/a_11;
@@ -62,7 +66,9 @@ void corner_spotrf_strsv_scopy_3x3_lib4(float *A, int sda, int shf, float *L, in
 	A[2+lda*1] = a_21;
 	L[1+2*lda+shfi1] = a_21;
 	
-	a_22 = sqrt(A[2+lda*2] - a_20*a_20 - a_21*a_21);
+	a_22 = A[2+lda*2] - a_20*a_20 - a_21*a_21;
+	if( a_22 <= 0.0 ) { *info = 1; return; }
+	a_22 = sqrt( a_22 );
 	A[2+lda*2] = a_22;
 	L[2+2*lda+shfi2] = a_22;
 
@@ -70,7 +76,7 @@ void corner_spotrf_strsv_scopy_3x3_lib4(float *A, int sda, int shf, float *L, in
 
 
 
-void corner_spotrf_strsv_scopy_2x2_lib4(float *A, int sda, int shf, float *L, int sdl)
+void corner_spotrf_strsv_scopy_2x2_lib4(float *A, int sda, int shf, float *L, int sdl, int *info)
 	{
 	
 	const int lda = 4;
@@ -85,7 +91,9 @@ void corner_spotrf_strsv_scopy_2x2_lib4(float *A, int sda, int shf, float *L, in
 
 	// dpotrf
 		
-	a_00 = sqrt(A[0+lda*0]);
+	a_00 = A[0+lda*0];
+	if( a_00 <= 0.0 ) { *info = 1; return; }
+	a_00 = sqrt( a_00 );
 	A[0+lda*0] = a_00;
 	L[0+0*lda+shfi0] = a_00;
 	a_00 = 1.0/a_00;
@@ -93,14 +101,16 @@ void corner_spotrf_strsv_scopy_2x2_lib4(float *A, int sda, int shf, float *L, in
 	A[1+lda*0] = a_10;
 	L[0+1*lda+shfi0] = a_10;
 
-	a_11 = sqrt(A[1+lda*1] - a_10*a_10);
+	a_11 = A[1+lda*1] - a_10*a_10;
+	if( a_11 <= 0.0 ) { *info = 1; return; }
+	a_11 = sqrt( a_11 );
 	A[1+lda*1] = a_11;
 	L[1+1*lda+shfi1] = a_11;
 
 	}
 
 
-void corner_spotrf_strsv_scopy_1x1_lib4(float *A, int sda, int shf, float *L, int sdl)
+void corner_spotrf_strsv_scopy_1x1_lib4(float *A, int sda, int shf, float *L, int sdl, int *info)
 	{
 	
 	const int lda = 4;
@@ -114,7 +124,9 @@ void corner_spotrf_strsv_scopy_1x1_lib4(float *A, int sda, int shf, float *L, in
 
 	// dpotrf
 		
-	a_00 = sqrt(A[0+lda*0]);
+	a_00 = A[0+lda*0];
+	if( a_00 <= 0.0 ) { *info = 1; return; }
+	a_00 = sqrt( a_00 );
 	A[0+lda*0] = a_00;
 	L[0+0*lda+shfi0] = a_00;
 

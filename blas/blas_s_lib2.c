@@ -129,7 +129,7 @@ void ssyrk_ppp_lib(int m, int n, int k, float *pA, int sda, float *pC, int sdc)
 
 /* computes the lower triangular Cholesky factor of pC, */
 /* and copies its transposed in pL                      */
-void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int sdl)
+void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int sdl, int *info)
 	{
 
 	const int bs = 2;
@@ -140,7 +140,8 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 	j = 0;
 	if(j<nna-1)
 		{
-		kernel_spotrf_strsv_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc);
+		kernel_spotrf_strsv_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc, info);
+		if(*info!=0) return;
 		j += 2;
 		for(; j<nna-1; j+=2)
 			{
@@ -149,13 +150,15 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 				{
 				kernel_sgemm_pp_nt_2x2_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 				}
-			kernel_spotrf_strsv_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc);
+			kernel_spotrf_strsv_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc, info);
+			if(*info!=0) return;
 			}
 		}
 	int j0 = j;
 	if(j==0) // assume that n>0
 		{
-		kernel_spotrf_strsv_scopy_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl);
+		kernel_spotrf_strsv_scopy_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+		if(*info!=0) return;
 		j += 2;
 		}
 	for(; j<n-1; j+=2)
@@ -165,13 +168,15 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 			{
 			kernel_sgemm_pp_nt_2x2_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
-		kernel_spotrf_strsv_scopy_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl);
+		kernel_spotrf_strsv_scopy_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+		if(*info!=0) return;
 		}
 	if(n-j==1)
 		{
 		i = j;
 		kernel_sgemm_pp_nt_2x1_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
-		corner_spotrf_strsv_scopy_1x1_lib2(&pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl);
+		corner_spotrf_strsv_scopy_1x1_lib2(&pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+		if(*info!=0) return;
 		}
 
 	}
@@ -179,7 +184,7 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 
 
 /* computes an mxn band of the lower triangular Cholesky factor of pC, supposed to be aligned */
-void spotrf_p_lib(int m, int n, float *pC, int sdc)
+void spotrf_p_lib(int m, int n, float *pC, int sdc, int *info)
 	{
 
 	const int bs = 2;
@@ -194,7 +199,8 @@ void spotrf_p_lib(int m, int n, float *pC, int sdc)
 			{
 			kernel_sgemm_pp_nt_2x2_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
-		kernel_spotrf_strsv_2x2_lib2(m-j-2, &pC[0+j*bs+j*sdc], sdc);
+		kernel_spotrf_strsv_2x2_lib2(m-j-2, &pC[0+j*bs+j*sdc], sdc, info);
+		if(*info!=0) return;
 		}
 	if(n-j==1)
 		{
@@ -203,7 +209,8 @@ void spotrf_p_lib(int m, int n, float *pC, int sdc)
 			{
 			kernel_sgemm_pp_nt_2x1_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
-		kernel_spotrf_strsv_1x1_lib2(m-j-1, &pC[0+j*bs+j*sdc], sdc);
+		kernel_spotrf_strsv_1x1_lib2(m-j-1, &pC[0+j*bs+j*sdc], sdc, info);
+		if(*info!=0) return;
 		}
 
 	}

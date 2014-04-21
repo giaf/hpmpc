@@ -171,6 +171,8 @@ int main()
 	int i, j, ii, jj, idx;
 	
 	const int bsd = D_MR; //d_get_mr();
+	
+	int info = 0;
 
 	int nn[] = {8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300};
 	int nnrep[] = {1000, 1000, 1000, 1000, 1000, 1000, 1000, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
@@ -310,7 +312,7 @@ int main()
 		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 		/* call the solver */
-		dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL);
+		dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, &info);
 
 
 		if(PRINTRES==1)
@@ -342,7 +344,7 @@ int main()
 			for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 			/* call the solver */
-			dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL);
+			dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, &info);
 			}
 			
 		gettimeofday(&tv1, NULL); // start

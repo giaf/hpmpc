@@ -27,7 +27,7 @@
 
 
 
-void kernel_dpotrf_dtrsv_dcopy_2x2_lib2(int kmax, double *A, int sda, int shf, double *L, int sdl)
+void kernel_dpotrf_dtrsv_dcopy_2x2_lib2(int kmax, double *A, int sda, int shf, double *L, int sdl, int *info)
 	{
 	
 	const int lda = 2;
@@ -42,7 +42,9 @@ void kernel_dpotrf_dtrsv_dcopy_2x2_lib2(int kmax, double *A, int sda, int shf, d
 	
 	// dpotrf
 		
-	a_00 = sqrt(A[0+lda*0]);
+	a_00 = A[0+lda*0];
+	if( a_00 <= 0.0 ) { *info = 1; return; }
+	a_00 = sqrt( a_00 );
 	A[0+lda*0] = a_00;
 	L[0+0*lda+shfi0] = a_00;
 	a_00 = 1.0/a_00;
@@ -50,7 +52,9 @@ void kernel_dpotrf_dtrsv_dcopy_2x2_lib2(int kmax, double *A, int sda, int shf, d
 	A[1+lda*0] = a_10;
 	L[0+1*lda+shfi0] = a_10;
 	
-	a_11 = sqrt(A[1+lda*1] - a_10*a_10);
+	a_11 = A[1+lda*1] - a_10*a_10;
+	if( a_11 <= 0.0 ) { *info = 1; return; }
+	a_11 = sqrt( a_11 );
 	A[1+lda*1] = a_11;
 	L[1+1*lda+shfi1] = a_11;
 	
@@ -116,7 +120,7 @@ void kernel_dpotrf_dtrsv_dcopy_2x2_lib2(int kmax, double *A, int sda, int shf, d
 
 
 
-void kernel_dpotrf_dtrsv_2x2_lib2(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_2x2_lib2(int kmax, double *A, int sda, int *info)
 	{
 	
 	const int lda = 2;
@@ -126,13 +130,17 @@ void kernel_dpotrf_dtrsv_2x2_lib2(int kmax, double *A, int sda)
 	
 	// dpotrf
 		
-	a_00 = sqrt(A[0+lda*0]);
+	a_00 = A[0+lda*0];
+	if( a_00 <= 0.0 ) { *info = 1; return; }
+	a_00 = sqrt( a_00 );
 	A[0+lda*0] = a_00;
 	a_00 = 1.0/a_00;
 	a_10 = A[1+lda*0] * a_00;
 	A[1+lda*0] = a_10;
 	
-	a_11 = sqrt(A[1+lda*1] - a_10*a_10);
+	a_11 = A[1+lda*1] - a_10*a_10;
+	if( a_11 <= 0.0 ) { *info = 1; return; }
+	a_11 = sqrt( a_11 );
 	A[1+lda*1] = a_11;
 	
 	if(kmax<=0)
@@ -187,7 +195,7 @@ void kernel_dpotrf_dtrsv_2x2_lib2(int kmax, double *A, int sda)
 	}
 
 
-void kernel_dpotrf_dtrsv_1x1_lib2(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_1x1_lib2(int kmax, double *A, int sda, int *info)
 	{
 	
 	const int lda = 2;
@@ -197,7 +205,9 @@ void kernel_dpotrf_dtrsv_1x1_lib2(int kmax, double *A, int sda)
 
 	// dpotrf
 		
-	a_00 = sqrt(A[0+lda*0]);
+	a_00 = A[0+lda*0];
+	if( a_00 <= 0.0 ) { *info = 1; return; }
+	a_00 = sqrt( a_00 );
 	A[0+lda*0] = a_00;
 
 

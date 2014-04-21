@@ -27,7 +27,7 @@
 
 
 
-void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, double *L, int sdl)
+void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, double *L, int sdl, int *info)
 	{
 	
 	const int lda = 4;
@@ -44,7 +44,9 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, d
 
 	// dpotrf
 		
-	a_00 = sqrt(A[0+lda*0]);
+	a_00 = A[0+lda*0];
+	if( a_00 <= 0.0 ) { *info = 1; return; }
+	a_00 = sqrt( a_00 );
 	A[0+lda*0] = a_00;
 	L[0+0*lda+shfi0] = a_00;
 	a_00 = 1.0/a_00;
@@ -58,7 +60,9 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, d
 	L[0+2*lda+shfi0] = a_20;
 	L[0+3*lda+shfi0] = a_30;
 
-	a_11 = sqrt(A[1+lda*1] - a_10*a_10);
+	a_11 = A[1+lda*1] - a_10*a_10;
+	if( a_11 <= 0.0 ) { *info = 1; return; }
+	a_11 = sqrt( a_11 );
 	A[1+lda*1] = a_11;
 	L[1+1*lda+shfi1] = a_11;
 	a_11 = 1.0/a_11;
@@ -69,7 +73,9 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, d
 	L[1+2*lda+shfi1] = a_21;
 	L[1+3*lda+shfi1] = a_31;
 	
-	a_22 = sqrt(A[2+lda*2] - a_20*a_20 - a_21*a_21);
+	a_22 = A[2+lda*2] - a_20*a_20 - a_21*a_21;
+	if( a_22 <= 0.0 ) { *info = 1; return; }
+	a_22 = sqrt( a_22 );
 	A[2+lda*2] = a_22;
 	L[2+2*lda+shfi2] = a_22;
 	a_22 = 1.0/a_22;
@@ -77,7 +83,9 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, d
 	A[3+lda*2] = a_32;
 	L[2+3*lda+shfi2] = a_32;
 	
-	a_33 = sqrt(A[3+lda*3] - a_30*a_30 - a_31*a_31 - a_32*a_32);
+	a_33 = A[3+lda*3] - a_30*a_30 - a_31*a_31 - a_32*a_32;
+	if( a_33 <= 0.0 ) { *info = 1; return; }
+	a_33 = sqrt( a_33 );
 	A[3+lda*3] = a_33;
 	L[3+3*lda+shfi3] = a_33;
 
@@ -229,7 +237,7 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, d
 
 
 
-void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda, int *info)
 	{
 	
 	const int lda = 4;
@@ -239,7 +247,9 @@ void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda)
 
 	// dpotrf
 		
-	a_00 = sqrt(A[0+lda*0]);
+	a_00 = A[0+lda*0];
+	if( a_00 <= 0.0 ) { *info = 1; return; }
+	a_00 = sqrt( a_00 );
 	A[0+lda*0] = a_00;
 	a_00 = 1.0/a_00;
 	a_10 = A[1+lda*0] * a_00;
@@ -249,7 +259,9 @@ void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda)
 	A[2+lda*0] = a_20;
 	A[3+lda*0] = a_30;
 
-	a_11 = sqrt(A[1+lda*1] - a_10*a_10);
+	a_11 = A[1+lda*1] - a_10*a_10;
+	if( a_11 <= 0.0 ) { *info = 1; return; }
+	a_11 = sqrt( a_11 );
 	A[1+lda*1] = a_11;
 	a_11 = 1.0/a_11;
 	a_21 = (A[2+lda*1] - a_20*a_10) * a_11;
@@ -257,13 +269,17 @@ void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda)
 	A[2+lda*1] = a_21;
 	A[3+lda*1] = a_31;
 	
-	a_22 = sqrt(A[2+lda*2] - a_20*a_20 - a_21*a_21);
+	a_22 = A[2+lda*2] - a_20*a_20 - a_21*a_21;
+	if( a_22 <= 0.0 ) { *info = 1; return; }
+	a_22 = sqrt( a_22 );
 	A[2+lda*2] = a_22;
 	a_22 = 1.0/a_22;
 	a_32 = (A[3+lda*2] - a_30*a_20 - a_31*a_21) * a_22;
 	A[3+lda*2] = a_32;
 	
-	a_33 = sqrt(A[3+lda*3] - a_30*a_30 - a_31*a_31 - a_32*a_32);
+	a_33 = A[3+lda*3] - a_30*a_30 - a_31*a_31 - a_32*a_32;
+	if( a_33 <= 0.0 ) { *info = 1; return; }
+	a_33 = sqrt( a_33 );
 	A[3+lda*3] = a_33;
 
 
@@ -391,7 +407,7 @@ void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda)
 
 
 
-void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda, int *info)
 	{
 	
 	const int lda = 4;
@@ -401,7 +417,9 @@ void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda)
 
 	// dpotrf
 		
-	a_00 = sqrt(A[0+lda*0]);
+	a_00 = A[0+lda*0];
+	if( a_00 <= 0.0 ) { *info = 1; return; }
+	a_00 = sqrt( a_00 );
 	A[0+lda*0] = a_00;
 	a_00 = 1.0/a_00;
 	a_10 = A[1+lda*0] * a_00;
@@ -409,13 +427,17 @@ void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda)
 	A[1+lda*0] = a_10;
 	A[2+lda*0] = a_20;
 
-	a_11 = sqrt(A[1+lda*1] - a_10*a_10);
+	a_11 = A[1+lda*1] - a_10*a_10;
+	if( a_11 <= 0.0 ) { *info = 1; return; }
+	a_11 = sqrt( a_11 );
 	A[1+lda*1] = a_11;
 	a_11 = 1.0/a_11;
 	a_21 = (A[2+lda*1] - a_20*a_10) * a_11;
 	A[2+lda*1] = a_21;
 	
-	a_22 = sqrt(A[2+lda*2] - a_20*a_20 - a_21*a_21);
+	a_22 = A[2+lda*2] - a_20*a_20 - a_21*a_21;
+	if( a_22 <= 0.0 ) { *info = 1; return; }
+	a_22 = sqrt( a_22 );
 	A[2+lda*2] = a_22;
 
 
@@ -547,7 +569,7 @@ void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda)
 
 
 
-void kernel_dpotrf_dtrsv_2x2_lib4(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_2x2_lib4(int kmax, double *A, int sda, int *info)
 	{
 	
 	const int lda = 4;
@@ -557,13 +579,17 @@ void kernel_dpotrf_dtrsv_2x2_lib4(int kmax, double *A, int sda)
 
 	// dpotrf
 		
-	a_00 = sqrt(A[0+lda*0]);
+	a_00 = A[0+lda*0];
+	if( a_00 <= 0.0 ) { *info = 1; return; }
+	a_00 = sqrt( a_00 );
 	A[0+lda*0] = a_00;
 	a_00 = 1.0/a_00;
 	a_10 = A[1+lda*0] * a_00;
 	A[1+lda*0] = a_10;
 
-	a_11 = sqrt(A[1+lda*1] - a_10*a_10);
+	a_11 = A[1+lda*1] - a_10*a_10;
+	if( a_11 <= 0.0 ) { *info = 1; return; }
+	a_11 = sqrt( a_11 );
 	A[1+lda*1] = a_11;
 
 
@@ -669,7 +695,7 @@ void kernel_dpotrf_dtrsv_2x2_lib4(int kmax, double *A, int sda)
 
 
 
-void kernel_dpotrf_dtrsv_1x1_lib4(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_1x1_lib4(int kmax, double *A, int sda, int *info)
 	{
 	
 	const int lda = 4;
@@ -679,7 +705,9 @@ void kernel_dpotrf_dtrsv_1x1_lib4(int kmax, double *A, int sda)
 
 	// dpotrf
 		
-	a_00 = sqrt(A[0+lda*0]);
+	a_00 = A[0+lda*0];
+	if( a_00 <= 0.0 ) { *info = 1; return; }
+	a_00 = sqrt( a_00 );
 	A[0+lda*0] = a_00;
 
 

@@ -30,51 +30,8 @@
 
 
 
-void sricposv_orig(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hux, float *pL, float *pBAbtL)
-	{
-	
-	const int bs = S_MR; //d_get_mr();
-
-	int ii, jj;
-	
-	int nz = nx+nu+1;
-
-	/* initial Cholesky factorization */
-	spotrf_p_scopy_p_t_lib(nz, nu, hpQ[N], sda, pL, sda);
-
-/*	d_print_pmat(nz, nz, bs, hpQ[N], sda);*/
-/*	d_print_pmat(nz, nz, bs, pL, sda);*/
-
-	/* factorization and backward substitution */
-	for(ii=0; ii<N; ii++)
-		{	
-		strmm_ppp_lib(nz, nx, nu, hpBAbt[N-ii-1], sda, pL, sda, pBAbtL, sda);
-/*	d_print_pmat(nz, nz, bs, pBAbtL, sda);*/
-		ssyrk_ppp_lib(nz, nz, nx, pBAbtL, sda, hpQ[N-ii-1], sda);
-/*	d_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
-		spotrf_p_scopy_p_t_lib(nz, nu, hpQ[N-ii-1], sda, pL, sda);
-/*	d_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
-/*	exit(2);*/
-		}
-
-
-	/* forward substitution */
-	for(ii=0; ii<N; ii++)
-		{
-		for(jj=0; jj<nu; jj++) hux[ii][jj] = hpQ[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
-		sgemv_p_t_lib(nx, nu, nu, &hpQ[ii][(nu/bs)*bs*sda+nu%bs], sda, &hux[ii][nu], &hux[ii][0], 1);
-		strsv_p_t_lib(nu, hpQ[ii], sda, &hux[ii][0]);
-		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hux[ii][jj];
-		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
-		sgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], sda, &hux[ii][0], &hux[ii+1][nu], 1);
-/*exit(2);	*/
-		}
-	}
-
-
-
 /* version tailoerd for mpc (x0 fixed) */
-void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hux, float *pL, float *pBAbtL)
+void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hux, float *pL, float *pBAbtL, int *info)
 	{
 	
 	const int bs = S_MR; //d_get_mr();
@@ -91,7 +48,8 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 	/* final stage */
 /*	dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N], sda, pL, sda);*/
 	int nu4 = (nu/bs)*bs;
-	spotrf_p_scopy_p_t_lib(nz-nu4, nu%bs, hpQ[N]+nu4*(sda+bs), sda, pL, sda);
+	spotrf_p_scopy_p_t_lib(nz-nu4, nu%bs, hpQ[N]+nu4*(sda+bs), sda, pL, sda, info);
+	if(*info!=0) return;
 
 /*s_print_pmat(nz, nz, bs, hpQ[N], sda);*/
 
@@ -103,7 +61,8 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 /*d_print_pmat(nz, nz, bs, pBAbtL, sda);*/
 		ssyrk_ppp_lib(nz, nz, nx, pBAbtL, sda, hpQ[N-ii-1], sda);
 /*d_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
-		spotrf_p_scopy_p_t_lib(nz, nu, hpQ[N-ii-1], sda, pL, sda);
+		spotrf_p_scopy_p_t_lib(nz, nu, hpQ[N-ii-1], sda, pL, sda, info);
+		if(*info!=0) return;
 /*s_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
 /*exit(3);*/
 		}
@@ -113,7 +72,8 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 /*d_print_pmat(nz, nx, bs, pBAbtL, sda);*/
 	ssyrk_ppp_lib(nz, nu, nx, pBAbtL, sda, hpQ[0], sda);
 /*d_print_pmat(nz, nu, bs, hpQ[0], sda);*/
-	spotrf_p_lib(nz, nu, hpQ[0], sda);
+	spotrf_p_lib(nz, nu, hpQ[0], sda, info);
+	if(*info!=0) return;
 /*s_print_pmat(nz, nu, bs, hpQ[0], sda);*/
 
 /*exit(3);*/
@@ -170,4 +130,40 @@ void sricpotrs(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, floa
 		}
 	
 	}
+
+
+
+/*void sricposv_orig(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hux, float *pL, float *pBAbtL)*/
+/*	{*/
+/*	*/
+/*	const int bs = S_MR; //d_get_mr();*/
+
+/*	int ii, jj;*/
+/*	*/
+/*	int nz = nx+nu+1;*/
+
+/*	spotrf_p_scopy_p_t_lib(nz, nu, hpQ[N], sda, pL, sda);*/
+
+
+/*	for(ii=0; ii<N; ii++)*/
+/*		{	*/
+/*		strmm_ppp_lib(nz, nx, nu, hpBAbt[N-ii-1], sda, pL, sda, pBAbtL, sda);*/
+/*		ssyrk_ppp_lib(nz, nz, nx, pBAbtL, sda, hpQ[N-ii-1], sda);*/
+/*		spotrf_p_scopy_p_t_lib(nz, nu, hpQ[N-ii-1], sda, pL, sda);*/
+/*		}*/
+
+
+/*	for(ii=0; ii<N; ii++)*/
+/*		{*/
+/*		for(jj=0; jj<nu; jj++) hux[ii][jj] = hpQ[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];*/
+/*		sgemv_p_t_lib(nx, nu, nu, &hpQ[ii][(nu/bs)*bs*sda+nu%bs], sda, &hux[ii][nu], &hux[ii][0], 1);*/
+/*		strsv_p_t_lib(nu, hpQ[ii], sda, &hux[ii][0]);*/
+/*		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hux[ii][jj];*/
+/*		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];*/
+/*		sgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], sda, &hux[ii][0], &hux[ii+1][nu], 1);*/
+/*		}*/
+/*	}*/
+
+
+
 

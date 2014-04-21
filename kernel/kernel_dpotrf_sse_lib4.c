@@ -32,7 +32,7 @@
 
 
 
-void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, double *L, int sdl)
+void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, double *L, int sdl, int *info)
 	{
 	
 	const int lda = 4;
@@ -45,11 +45,12 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, d
 	const int shfi3 = ((shfi+3)/lda)*lda*(sdl-1);
 
 	__m128d
-		ones, ab_temp,
+		zeros, ones, ab_temp,
 		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33,
 		b_00_10, b_01_11, b_02_12, b_03_13;
 	
 	a_00 = _mm_load_sd( &A[0+lda*0] );
+	if( _mm_comile_sd ( a_00, zeros ) ) { *info = 1; return; }
 	a_00 = _mm_sqrt_sd( a_00, a_00 );
 	ones = _mm_set_sd( 1.0 );
 	_mm_store_sd( &A[0+lda*0], a_00 );
@@ -71,6 +72,7 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, d
 	a_11 = _mm_load_sd( &A[1+lda*1] );
 	ab_temp = _mm_mul_sd( a_10, a_10 );
 	a_11 = _mm_sub_sd( a_11, ab_temp );
+	if( _mm_comile_sd ( a_11, zeros ) ) { *info = 1; return; }
 	a_11 = _mm_sqrt_sd( a_11, a_11 );
 	_mm_store_sd( &A[1+lda*1], a_11 );
 	_mm_store_sd( &L[1+1*lda+shfi1], a_11 );
@@ -93,6 +95,7 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, d
 	a_22 = _mm_sub_sd( a_22, ab_temp );
 	ab_temp = _mm_mul_sd( a_21, a_21 );
 	a_22 = _mm_sub_sd( a_22, ab_temp );
+	if( _mm_comile_sd ( a_22, zeros ) ) { *info = 1; return; }
 	a_22 = _mm_sqrt_sd( a_22, a_22 );
 	_mm_store_sd( &A[2+lda*2], a_22 );
 	_mm_store_sd( &L[2+2*lda+shfi2], a_22 );
@@ -113,6 +116,7 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, d
 	a_33 = _mm_sub_sd( a_33, ab_temp );
 	ab_temp = _mm_mul_sd( a_32, a_32 );
 	a_33 = _mm_sub_sd( a_33, ab_temp );
+	if( _mm_comile_sd ( a_33, zeros ) ) { *info = 1; return; }
 	a_33 = _mm_sqrt_sd( a_33, a_33 );
 	_mm_store_sd( &A[3+lda*3], a_33 );
 	_mm_store_sd( &L[3+3*lda+shfi3], a_33 );
@@ -276,17 +280,18 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, double *A, int sda, int shf, d
 
 
 
-void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda, int *info)
 	{
 	
 	const int lda = 4;
 	
 	__m128d
-		ones, ab_temp,
+		zeros, ones, ab_temp,
 		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33,
 		b_00_10, b_01_11, b_02_12, b_03_13;
 	
 	a_00 = _mm_load_sd( &A[0+lda*0] );
+	if( _mm_comile_sd ( a_00, zeros ) ) { *info = 1; return; }
 	a_00 = _mm_sqrt_sd( a_00, a_00 );
 	ones = _mm_set_sd( 1.0 );
 	_mm_store_sd( &A[0+lda*0], a_00 );
@@ -304,6 +309,7 @@ void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda)
 	a_11 = _mm_load_sd( &A[1+lda*1] );
 	ab_temp = _mm_mul_sd( a_10, a_10 );
 	a_11 = _mm_sub_sd( a_11, ab_temp );
+	if( _mm_comile_sd ( a_11, zeros ) ) { *info = 1; return; }
 	a_11 = _mm_sqrt_sd( a_11, a_11 );
 	_mm_store_sd( &A[1+lda*1], a_11 );
 	a_11 = _mm_div_sd( ones, a_11 );
@@ -323,6 +329,7 @@ void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda)
 	a_22 = _mm_sub_sd( a_22, ab_temp );
 	ab_temp = _mm_mul_sd( a_21, a_21 );
 	a_22 = _mm_sub_sd( a_22, ab_temp );
+	if( _mm_comile_sd ( a_22, zeros ) ) { *info = 1; return; }
 	a_22 = _mm_sqrt_sd( a_22, a_22 );
 	_mm_store_sd( &A[2+lda*2], a_22 );
 	a_22 = _mm_div_sd( ones, a_22 );
@@ -341,6 +348,7 @@ void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda)
 	a_33 = _mm_sub_sd( a_33, ab_temp );
 	ab_temp = _mm_mul_sd( a_32, a_32 );
 	a_33 = _mm_sub_sd( a_33, ab_temp );
+	if( _mm_comile_sd ( a_33, zeros ) ) { *info = 1; return; }
 	a_33 = _mm_sqrt_sd( a_33, a_33 );
 	_mm_store_sd( &A[3+lda*3], a_33 );
 
@@ -480,17 +488,18 @@ void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda)
 
 
 
-void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda, int *info)
 	{
 	
 	const int lda = 4;
 	
 	__m128d
-		ones, ab_temp,
+		zeros, ones, ab_temp,
 		a_00, a_10, a_20, a_11, a_21, a_22,
 		b_00_10, b_01_11, b_02_12;
 	
 	a_00 = _mm_load_sd( &A[0+lda*0] );
+	if( _mm_comile_sd ( a_00, zeros ) ) { *info = 1; return; }
 	a_00 = _mm_sqrt_sd( a_00, a_00 );
 	ones = _mm_set_sd( 1.0 );
 	_mm_store_sd( &A[0+lda*0], a_00 );
@@ -505,6 +514,7 @@ void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda)
 	a_11 = _mm_load_sd( &A[1+lda*1] );
 	ab_temp = _mm_mul_sd( a_10, a_10 );
 	a_11 = _mm_sub_sd( a_11, ab_temp );
+	if( _mm_comile_sd ( a_11, zeros ) ) { *info = 1; return; }
 	a_11 = _mm_sqrt_sd( a_11, a_11 );
 	_mm_store_sd( &A[1+lda*1], a_11 );
 	a_11 = _mm_div_sd( ones, a_11 );
@@ -519,6 +529,7 @@ void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda)
 	a_22 = _mm_sub_sd( a_22, ab_temp );
 	ab_temp = _mm_mul_sd( a_21, a_21 );
 	a_22 = _mm_sub_sd( a_22, ab_temp );
+	if( _mm_comile_sd ( a_22, zeros ) ) { *info = 1; return; }
 	a_22 = _mm_sqrt_sd( a_22, a_22 );
 	_mm_store_sd( &A[2+lda*2], a_22 );
 
@@ -653,17 +664,18 @@ void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda)
 
 
 
-void kernel_dpotrf_dtrsv_2x2_lib4(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_2x2_lib4(int kmax, double *A, int sda, int *info)
 	{
 	
 	const int lda = 4;
 	
 	__m128d
-		ones, ab_temp,
+		zeros, ones, ab_temp,
 		a_00, a_10, a_11,
 		b_00_10, b_01_11;
 	
 	a_00 = _mm_load_sd( &A[0+lda*0] );
+	if( _mm_comile_sd ( a_00, zeros ) ) { *info = 1; return; }
 	a_00 = _mm_sqrt_sd( a_00, a_00 );
 	ones = _mm_set_sd( 1.0 );
 	_mm_store_sd( &A[0+lda*0], a_00 );
@@ -675,6 +687,7 @@ void kernel_dpotrf_dtrsv_2x2_lib4(int kmax, double *A, int sda)
 	a_11 = _mm_load_sd( &A[1+lda*1] );
 	ab_temp = _mm_mul_sd( a_10, a_10 );
 	a_11 = _mm_sub_sd( a_11, ab_temp );
+	if( _mm_comile_sd ( a_11, zeros ) ) { *info = 1; return; }
 	a_11 = _mm_sqrt_sd( a_11, a_11 );
 	_mm_store_sd( &A[1+lda*1], a_11 );
 
@@ -775,17 +788,18 @@ void kernel_dpotrf_dtrsv_2x2_lib4(int kmax, double *A, int sda)
 
 
 
-void kernel_dpotrf_dtrsv_1x1_lib4(int kmax, double *A, int sda)
+void kernel_dpotrf_dtrsv_1x1_lib4(int kmax, double *A, int sda, int *info)
 	{
 	
 	const int lda = 4;
 	
 	__m128d
-		ones, ab_temp,
+		zeros, ones, ab_temp,
 		a_00,
 		b_00_10;
 	
 	a_00 = _mm_load_sd( &A[0+lda*0] );
+	if( _mm_comile_sd ( a_00, zeros ) ) { *info = 1; return; }
 	a_00 = _mm_sqrt_sd( a_00, a_00 );
 	ones = _mm_set_sd( 1.0 );
 	_mm_store_sd( &A[0+lda*0], a_00 );

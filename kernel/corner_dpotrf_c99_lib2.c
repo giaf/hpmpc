@@ -27,7 +27,7 @@
 
 
 
-void corner_dpotrf_dtrsv_dcopy_1x1_lib2(double *A, int sda, int shf, double *L, int sdl)
+void corner_dpotrf_dtrsv_dcopy_1x1_lib2(double *A, int sda, int shf, double *L, int sdl, int *info)
 	{
 	
 	const int lda = 2;
@@ -41,7 +41,9 @@ void corner_dpotrf_dtrsv_dcopy_1x1_lib2(double *A, int sda, int shf, double *L, 
 
 	// dpotrf
 		
-	a_00 = sqrt(A[0+lda*0]);
+	a_00 = A[0+lda*0];
+	if( a_00 <= 0.0 ) { *info = 1; return; }
+	a_00 = sqrt( a_00 );
 	A[0+lda*0] = a_00;
 	L[0+0*lda+shfi0] = a_00;
 

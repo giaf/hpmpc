@@ -50,6 +50,8 @@ int main()
 	const int bsd = D_MR; //d_get_mr();
 	const int bss = S_MR; //s_get_mr();
 	
+	int info = 0;
+	
 	printf("\nn\tGflops c99\t\t%%\tGflops d\t\t%%\tGflops s\t\t%%\n\n");
 	
 /*	int nn[] = {4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 96, 128, 144, 160, 192, 256};*/
@@ -176,7 +178,7 @@ int main()
 //			sgemm_(&cn, &cn, &n, &n, &n, &salpha, sA, &n, sB, &n, &sbeta, sC, &n);
 /*			dtrmm_pup_nn_lib(n, n, pA, pnd, B, n, pC, pnd);*/
 /*			dpotrf_p_dcopy_p_t_lib(n, 0, pD, pnd, pL, pnd);*/
-			spotrf_p_scopy_p_t_lib(n, 0, spD, pns, spL, pns);
+			spotrf_p_scopy_p_t_lib(n, 0, spD, pns, spL, pns, &info);
 
 			}
 	

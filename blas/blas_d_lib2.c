@@ -129,7 +129,7 @@ void dsyrk_ppp_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc
 
 /* computes the lower triangular Cholesky factor of pC, */
 /* and copies its transposed in pL                      */
-void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int sdl)
+void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int sdl, int *info)
 	{
 
 	const int bs = 2;
@@ -140,7 +140,8 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 	j = 0;
 	if(j<nna-1)
 		{
-		kernel_dpotrf_dtrsv_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc);
+		kernel_dpotrf_dtrsv_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc, info);
+		if(*info!=0) return;
 		j += 2;
 		for(; j<nna-1; j+=2)
 			{
@@ -149,13 +150,15 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 				{
 				kernel_dgemm_pp_nt_2x2_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 				}
-			kernel_dpotrf_dtrsv_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc);
+			kernel_dpotrf_dtrsv_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc, info);
+			if(*info!=0) return;
 			}
 		}
 	int j0 = j;
 	if(j==0) // assume that n>0
 		{
-		kernel_dpotrf_dtrsv_dcopy_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl);
+		kernel_dpotrf_dtrsv_dcopy_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+		if(*info!=0) return;
 		j += 2;
 		}
 	for(; j<n-1; j+=2)
@@ -165,13 +168,15 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 			{
 			kernel_dgemm_pp_nt_2x2_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
-		kernel_dpotrf_dtrsv_dcopy_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl);
+		kernel_dpotrf_dtrsv_dcopy_2x2_lib2(n-j-2, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+		if(*info!=0) return;
 		}
 	if(n-j==1)
 		{
 		i = j;
 		kernel_dgemm_pp_nt_2x1_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
-		corner_dpotrf_dtrsv_dcopy_1x1_lib2(&pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl);
+		corner_dpotrf_dtrsv_dcopy_1x1_lib2(&pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+		if(*info!=0) return;
 		}
 
 	}
@@ -179,7 +184,7 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 
 
 /* computes an mxn band of the lower triangular Cholesky factor of pC, supposed to be aligned */
-void dpotrf_p_lib(int m, int n, double *pC, int sdc)
+void dpotrf_p_lib(int m, int n, double *pC, int sdc, int *info)
 	{
 
 	const int bs = 2;
@@ -194,7 +199,8 @@ void dpotrf_p_lib(int m, int n, double *pC, int sdc)
 			{
 			kernel_dgemm_pp_nt_2x2_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
-		kernel_dpotrf_dtrsv_2x2_lib2(m-j-2, &pC[0+j*bs+j*sdc], sdc);
+		kernel_dpotrf_dtrsv_2x2_lib2(m-j-2, &pC[0+j*bs+j*sdc], sdc, info);
+		if(*info!=0) return;
 		}
 	if(n-j==1)
 		{
@@ -203,7 +209,8 @@ void dpotrf_p_lib(int m, int n, double *pC, int sdc)
 			{
 			kernel_dgemm_pp_nt_2x1_lib2(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
-		kernel_dpotrf_dtrsv_1x1_lib2(m-j-1, &pC[0+j*bs+j*sdc], sdc);
+		kernel_dpotrf_dtrsv_1x1_lib2(m-j-1, &pC[0+j*bs+j*sdc], sdc, info);
+		if(*info!=0) return;
 		}
 
 	}

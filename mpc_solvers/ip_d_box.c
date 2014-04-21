@@ -36,7 +36,7 @@
 
 
 /* primal-dual interior-point method, box constraints, time invariant matrices */
-void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *sigma_par, double *info, int nx, int nu, int N, int nb, double **pBAbt, float **psBAbt, double **pQ, float **psQ, double **db, double **ux, double *work)
+void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, float **psBAbt, double **pQ, float **psQ, double **db, double **ux, double *work, int *info)
 	{
 	
 	int nl = 0; // set to zero for the moment
@@ -357,12 +357,14 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 		if(prec=='d' && mu<sp_thr)
 			{
 			// compute the search direction: factorize and solve the KKT system
-			dricposv_mpc(nx, nu, N, dsda, pBAbt, pL, dux, pLt, pBAbtL);
+			dricposv_mpc(nx, nu, N, dsda, pBAbt, pL, dux, pLt, pBAbtL, info);
+			if(*info!=0) return;
 			}
 		else
 			{
 			// compute the search direction: factorize and solve the KKT system
-			sricposv_mpc(nx, nu, N, ssda, psBAbt, psL, sdux, psLt, psBAbtL);
+			sricposv_mpc(nx, nu, N, ssda, psBAbt, psL, sdux, psLt, psBAbtL, info);
+			if(*info!=0) return;
 
 			// solution in double precision
 			for(ll=0; ll<nu; ll++)
@@ -434,8 +436,8 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 			if(temp1<alpha)
 				alpha = temp1;
 			}
-		info[5*(*kk)] = sigma;
-		info[5*(*kk)+1] = alpha;
+		stat[5*(*kk)] = sigma;
+		stat[5*(*kk)+1] = alpha;
 			
 		alpha *= 0.995;
 
@@ -476,7 +478,7 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 			}
 		mu /= N*nb + nbx;
 
-		info[5*(*kk)+2] = mu;
+		stat[5*(*kk)+2] = mu;
 		
 
 

@@ -49,6 +49,8 @@ int main()
 	
 	const int bsd = D_MR; //d_get_mr();
 /*	const int bss = S_MR; //s_get_mr();*/
+
+	int info = 0;
 	
 	printf("\nn\tGflops c99\t\t%%\tGflops d\t\t%%\tGflops s\t\t%%\n\n");
 	
@@ -168,7 +170,7 @@ int main()
 /*			sgemm_nt_lib(n, n, n, spA, pns, spB, pns, spC, pns, 0);*/
 //			sgemm_(&cn, &cn, &n, &n, &n, &salpha, sA, &n, sB, &n, &sbeta, sC, &n);
 /*			dtrmm_pup_nn_lib(n, n, pA, pnd, B, n, pC, pnd);*/
-			dpotrf_p_dcopy_p_t_lib(n, 0, pD, pnd, pL, pnd);
+			dpotrf_p_dcopy_p_t_lib(n, 0, pD, pnd, pL, pnd, &info);
 
 			}
 	
