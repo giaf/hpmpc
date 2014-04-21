@@ -39,6 +39,9 @@
 void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, float **psBAbt, double **pQ, float **psQ, double **db, double **ux, double *work, int *info)
 	{
 	
+	double *(pi_dummy[N+1]); // equality constranits lagrangian multipliers
+	float *(spi_dummy[N+1]); // equality constranits lagrangian multipliers
+
 	int nl = 0; // set to zero for the moment
 	
 	int nbx = nb - 2*nu;
@@ -357,13 +360,13 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 		if(prec=='d' && mu<sp_thr)
 			{
 			// compute the search direction: factorize and solve the KKT system
-			dricposv_mpc(nx, nu, N, dsda, pBAbt, pL, dux, pLt, pBAbtL, info);
+			dricposv_mpc(nx, nu, N, dsda, pBAbt, pL, dux, pLt, pBAbtL, 0, pi_dummy, info);
 			if(*info!=0) return;
 			}
 		else
 			{
 			// compute the search direction: factorize and solve the KKT system
-			sricposv_mpc(nx, nu, N, ssda, psBAbt, psL, sdux, psLt, psBAbtL, info);
+			sricposv_mpc(nx, nu, N, ssda, psBAbt, psL, sdux, psLt, psBAbtL, 0, spi_dummy, info);
 			if(*info!=0) return;
 
 			// solution in double precision

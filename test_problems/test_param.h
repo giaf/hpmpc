@@ -41,6 +41,9 @@
 // print statistics
 #define PRINTSTAT 1
 
+// compute lagrangian multipliers
+#define LAGR_MULT 1
+
 // double/single/mixed ('d'/'s'/'m') precision
 #define PREC 'd'
 

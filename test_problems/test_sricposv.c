@@ -164,7 +164,7 @@ int main()
 #endif
 
 	// to throw floating-point exception
-    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+/*    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);*/
 
 	printf("\nnx\tnu\tN\tkernel\n\n");
 
@@ -284,7 +284,7 @@ int main()
 		float *(hpQ[N+1]);
 		float *(hq[N+1]);
 		float *(hux[N+1]);
-//	double *(hpi[N+1]);
+		float *(hpi[N+1]);
 		float *(hpBAbt[N]);
 //		double *(hBAb[N]);
 		for(jj=0; jj<N; jj++)
@@ -292,14 +292,14 @@ int main()
 			s_zeros_align(&hpQ[jj], pnz, pnz);
 			s_zeros_align(&hq[jj], pnz, 1);
 			s_zeros_align(&hux[jj], pnz, 1);
-//		d_zeros_align(&hpi[jj], nx, 1);
+			s_zeros_align(&hpi[jj], nx, 1);
 			hpBAbt[jj] = psBAbt;
 //			hBAb[jj] = BAb;
 			}
 		s_zeros_align(&hpQ[N], pnz, pnz);
 		s_zeros_align(&hq[N], pnz, 1);
 		s_zeros_align(&hux[N], pnz, 1);
-//	d_zeros_align(&hpi[N], nx, 1);
+		s_zeros_align(&hpi[N], nx, 1);
 	
 		// starting guess
 		for(jj=0; jj<nx; jj++) hux[0][nu+jj] = (float) x0[jj];
@@ -322,7 +322,7 @@ int main()
 		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 		// call the solver
-		sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, &info);
+		sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, LAGR_MULT, hpi, &info);
 
 		if(PRINTRES==1)
 			{
@@ -330,6 +330,13 @@ int main()
 			printf("\n\nsv\n\n");
 			for(ii=0; ii<N; ii++)
 				s_print_mat(1, nu, hux[ii], 1);
+			}
+		if(PRINTRES==1 && LAGR_MULT==1)
+			{
+			// print result 
+			printf("\n\nsv\n\n");
+			for(ii=0; ii<N; ii++)
+				s_print_mat(1, nx, hpi[ii+1], 1);
 			}
 
 		// corrector
@@ -349,7 +356,7 @@ int main()
 		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 		// call the solver 
-		sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL);
+		sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, LAGR_MULT, hpi);
 
 		if(PRINTRES==1)
 			{
@@ -357,6 +364,13 @@ int main()
 			printf("\n\ntrs\n\n");
 			for(ii=0; ii<N; ii++)
 				s_print_mat(1, nu, hux[ii], 1);
+			}
+		if(PRINTRES==1 && LAGR_MULT==1)
+			{
+			// print result 
+			printf("\n\ntrs\n\n");
+			for(ii=0; ii<N; ii++)
+				s_print_mat(1, nx, hpi[ii+1], 1);
 			}
 
 /*		return;*/
@@ -380,7 +394,7 @@ int main()
 			for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 			// call the solver 
-			sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, &info);
+			sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, LAGR_MULT, hpi, &info);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
@@ -402,7 +416,7 @@ int main()
 			for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 			// call the solver 
-			sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL);
+			sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, LAGR_MULT, hpi);
 			}
 		
 		gettimeofday(&tv2, NULL); // start

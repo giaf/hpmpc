@@ -285,7 +285,7 @@ void sgemv_p_t_lib(int n, int m, int offset, float *pA, int sda, float *x, float
 
 
 
-void strmv_p_n_lib(int m, int offset, float *pA, int sda, float *x, float *y)
+void strmv_p_n_lib(int m, int offset, float *pA, int sda, float *x, float *y, int alg)
 	{
 	
 	const int bs = 2;
@@ -297,30 +297,32 @@ void strmv_p_n_lib(int m, int offset, float *pA, int sda, float *x, float *y)
 	j=0;
 	if(mna==1)
 		{
-		kernel_sgemv_n_1_lib2(j+1, pA, x, y, 1);
+		kernel_sgemv_n_1_lib2(j+1, pA, x, y, alg);
 		pA += 1;
 		y  += 1;
 		pA += (sda-1)*bs;
 		}
-/*	for(; j<m-3; j+=4)*/
-/*		{*/
-/*		kernel_sgemv_n_4_lib2(j+1, pA, x, y, 1);*/
-/*		y[1] += pA[1+bs*(j+1)] * x[j+1];*/
-/*		y[2] += pA[2+bs*(j+1)] * x[j+1] + pA[2+bs*(j+2)] * x[j+2];*/
-/*		y[3] += pA[3+bs*(j+1)] * x[j+1] + pA[3+bs*(j+2)] * x[j+2] + pA[3+bs*(j+3)] * x[j+3];*/
-/*		pA += 2*sda*bs;*/
-/*		y  += 2*bs;*/
-/*		}*/
 	for(; j<m-1; j+=2)
 		{
-		kernel_sgemv_n_2_lib2(j+1, pA, x, y, 1);
-		y[1] += pA[(j+1)*bs+1] * x[j+1];
+		kernel_sgemv_n_2_lib2(j+1, pA, x, y, alg);
+		if(alg==0)
+			{
+			y[1] = pA[(j+1)*bs+1] * x[j+1];
+			}
+		else if(alg==1)
+			{
+			y[1] += pA[(j+1)*bs+1] * x[j+1];
+			}
+		else
+			{
+			y[1] -= pA[(j+1)*bs+1] * x[j+1];
+			}
 		pA += sda*bs;
 		y  += bs;
 		}
 	for(; j<m; j++)
 		{
-		kernel_sgemv_n_1_lib2(j+1, pA, x, y, 1);
+		kernel_sgemv_n_1_lib2(j+1, pA, x, y, alg);
 		pA += 1;
 		y  += 1;
 		}
@@ -329,7 +331,7 @@ void strmv_p_n_lib(int m, int offset, float *pA, int sda, float *x, float *y)
 
 
 
-void strmv_p_t_lib(int m, int offset, float *pA, int sda, float *x, float *y)
+void strmv_p_t_lib(int m, int offset, float *pA, int sda, float *x, float *y, int alg)
 	{
 	
 	const int bs = 2;
@@ -342,7 +344,7 @@ void strmv_p_t_lib(int m, int offset, float *pA, int sda, float *x, float *y)
 	j=0;
 	if(mna==1)
 		{
-		kernel_sgemv_t_1_lib2(mmax-j, mna-j, pA+j*bs+j, sda, x+j, y+j, 1);
+		kernel_sgemv_t_1_lib2(mmax-j, mna-j, pA+j*bs+j, sda, x+j, y+j, alg);
 		pA += 1 + sda*bs;
 		x  += 1;
 		y  += 1;
@@ -350,8 +352,19 @@ void strmv_p_t_lib(int m, int offset, float *pA, int sda, float *x, float *y)
 		}
 	for(; j<m-1; j+=2)
 		{
-		y[0] += pA[0+bs*0] * x[0];
-		kernel_sgemv_t_2_lib2(mmax, mmax, pA, sda, x, y, 1);
+		if(alg==0)
+			{
+			y[0] = pA[0+bs*0] * x[0];
+			}
+		else if(alg==1)
+			{
+			y[0] += pA[0+bs*0] * x[0];
+			}
+		else
+			{
+			y[0] -= pA[0+bs*0] * x[0];
+			}
+		kernel_sgemv_t_2_lib2(mmax, mmax, pA, sda, x, y, alg);
 		pA += bs*sda + bs*bs;
 		x  += bs;
 		y  += bs;
@@ -359,7 +372,7 @@ void strmv_p_t_lib(int m, int offset, float *pA, int sda, float *x, float *y)
 		}
 	for(; j<m; j++)
 		{
-		kernel_sgemv_t_1_lib2(mmax, mmax, pA, sda, x, y, 1);
+		kernel_sgemv_t_1_lib2(mmax, mmax, pA, sda, x, y, alg);
 		pA += 1 + bs;
 		x  += 1;
 		y  += 1;

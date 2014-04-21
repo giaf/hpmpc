@@ -275,7 +275,7 @@ void dgemv_p_t_lib(int n, int m, int offset, double *pA, int sda, double *x, dou
 
 
 
-void dtrmv_p_n_lib(int m, int offset, double *pA, int sda, double *x, double *y)
+void dtrmv_p_n_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg)
 	{
 	
 	const int bs = 2;
@@ -287,21 +287,32 @@ void dtrmv_p_n_lib(int m, int offset, double *pA, int sda, double *x, double *y)
 	j=0;
 	if(mna==1)
 		{
-		kernel_dgemv_n_1_lib2(j+1, pA, x, y, 1);
+		kernel_dgemv_n_1_lib2(j+1, pA, x, y, alg);
 		pA += 1;
 		y  += 1;
 		pA += (sda-1)*bs;
 		}
 	for(; j<m-1; j+=2)
 		{
-		kernel_dgemv_n_2_lib2(j+1, pA, x, y, 1);
-		y[1] += pA[(j+1)*bs+1] * x[j+1];
+		kernel_dgemv_n_2_lib2(j+1, pA, x, y, alg);
+		if(alg==0)
+			{
+			y[1] = pA[(j+1)*bs+1] * x[j+1];
+			}
+		else if(alg==1)
+			{
+			y[1] += pA[(j+1)*bs+1] * x[j+1];
+			}
+		else
+			{
+			y[1] -= pA[(j+1)*bs+1] * x[j+1];
+			}
 		pA += sda*bs;
 		y  += bs;
 		}
 	for(; j<m; j++)
 		{
-		kernel_dgemv_n_1_lib2(j+1, pA, x, y, 1);
+		kernel_dgemv_n_1_lib2(j+1, pA, x, y, alg);
 		pA += 1;
 		y  += 1;
 		}
@@ -310,7 +321,7 @@ void dtrmv_p_n_lib(int m, int offset, double *pA, int sda, double *x, double *y)
 
 
 
-void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y)
+void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg)
 	{
 	
 	const int bs = 2;
@@ -323,7 +334,7 @@ void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y)
 	j=0;
 	if(mna==1)
 		{
-		kernel_dgemv_t_1_lib2(mmax-j, mna-j, pA+j*bs+j, sda, x+j, y+j, 1);
+		kernel_dgemv_t_1_lib2(mmax-j, mna-j, pA+j*bs+j, sda, x+j, y+j, alg);
 		pA += 1 + sda*bs;
 		x  += 1;
 		y  += 1;
@@ -331,8 +342,19 @@ void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y)
 		}
 	for(; j<m-1; j+=2)
 		{
-		y[0] += pA[0+bs*0] * x[0];
-		kernel_dgemv_t_2_lib2(mmax, mmax, pA, sda, x, y, 1);
+		if(alg==0)
+			{
+			y[0] = pA[0+bs*0] * x[0];
+			}
+		else if(alg==1)
+			{
+			y[0] += pA[0+bs*0] * x[0];
+			}
+		else
+			{
+			y[0] -= pA[0+bs*0] * x[0];
+			}
+		kernel_dgemv_t_2_lib2(mmax, mmax, pA, sda, x, y, alg);
 		pA += bs*sda + bs*bs;
 		x  += bs;
 		y  += bs;
@@ -340,7 +362,7 @@ void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y)
 		}
 	for(; j<m; j++)
 		{
-		kernel_dgemv_t_1_lib2(mmax, mmax, pA, sda, x, y, 1);
+		kernel_dgemv_t_1_lib2(mmax, mmax, pA, sda, x, y, alg);
 		pA += 1 + bs;
 		x  += 1;
 		y  += 1;
