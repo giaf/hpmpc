@@ -96,7 +96,7 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 
 
 
-void sricpotrs(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hq, float **hux, float *pBAbtL)
+void sricpotrs_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hq, float **hux, float *pBAbtL)
 	{
 	
 	const int bs = S_MR; //d_get_mr();

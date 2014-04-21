@@ -37,6 +37,7 @@
 #include "test_param.h"
 #include "../problem_size.h"
 #include "../include/aux_d.h"
+#include "../include/aux_s.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/block_size.h"
 #include "tools.h"
@@ -172,6 +173,7 @@ int main()
 	int i, j, ii, jj, idx;
 	
 	const int bsd = D_MR; //d_get_mr();
+	const int bss = S_MR; //s_get_mr();
 	
 	int info = 0;
 
@@ -197,7 +199,8 @@ int main()
 		int nrep = 1000;//nnrep[ll];// nnrep[ll];
 	
 		int nz = nx+nu+1;
-		int pnz = bsd*((nz+bsd-nu%bsd+bsd-1)/bsd);
+/*		int pnz = bsd*((nz+bsd-nu%bsd+bsd-1)/bsd);*/
+		int pnz = bss*((nz+bss-nu%bss+bss-1)/bss);
 	
 /************************************************
 * dynamical system
@@ -251,6 +254,9 @@ int main()
 		double *pBAbt; d_zeros_align(&pBAbt, pnz, pnz);
 		d_cvt_mat2pmat(nz, nx, 0, bsd, BAbt, pnz, pBAbt, pnz);
 
+		float *psBAbt; s_zeros_align(&psBAbt, pnz, pnz);
+		s_cvt_d2s_pmat(nz, nx, bsd, pBAbt, pnz, bss, psBAbt, pnz);
+
 //	d_print_pmat(nz, nx, bsd, pBAbt, pnz);
 //	s_print_pmat(nz, nx, bss, spBAbt, pnz);
 
@@ -268,36 +274,39 @@ int main()
 		double *pQ; d_zeros_align(&pQ, pnz, pnz);
 		d_cvt_mat2pmat(nz, nz, 0, bsd, Q, pnz, pQ, pnz);
 
+		float *psQ; s_zeros_align(&psQ, pnz, pnz);
+		s_cvt_d2s_pmat(nz, nz, bsd, pQ, pnz, bss, psQ, pnz);
+
 //	d_print_pmat(nz, nz, bsd, pQ, pnz);
 //	s_print_pmat(nz, nz, bss, spQ, pnz);
 
 	/* matrices series */
-		double *(hpQ[N+1]);
-		double *(hq[N+1]);
-		double *(hux[N+1]);
+		float *(hpQ[N+1]);
+		float *(hq[N+1]);
+		float *(hux[N+1]);
 //	double *(hpi[N+1]);
-		double *(hpBAbt[N]);
+		float *(hpBAbt[N]);
 //		double *(hBAb[N]);
 		for(jj=0; jj<N; jj++)
 			{
-			d_zeros_align(&hpQ[jj], pnz, pnz);
-			d_zeros_align(&hq[jj], pnz, 1);
-			d_zeros_align(&hux[jj], pnz, 1);
+			s_zeros_align(&hpQ[jj], pnz, pnz);
+			s_zeros_align(&hq[jj], pnz, 1);
+			s_zeros_align(&hux[jj], pnz, 1);
 //		d_zeros_align(&hpi[jj], nx, 1);
-			hpBAbt[jj] = pBAbt;
+			hpBAbt[jj] = psBAbt;
 //			hBAb[jj] = BAb;
 			}
-		d_zeros_align(&hpQ[N], pnz, pnz);
-		d_zeros_align(&hq[N], pnz, 1);
-		d_zeros_align(&hux[N], pnz, 1);
+		s_zeros_align(&hpQ[N], pnz, pnz);
+		s_zeros_align(&hq[N], pnz, 1);
+		s_zeros_align(&hux[N], pnz, 1);
 //	d_zeros_align(&hpi[N], nx, 1);
 	
 		// starting guess
-		for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
+		for(jj=0; jj<nx; jj++) hux[0][nu+jj] = (float) x0[jj];
 	
-		double *pL; d_zeros_align(&pL, pnz, pnz);
+		float *pL; s_zeros_align(&pL, pnz, pnz);
 	
-		double *pBAbtL; d_zeros_align(&pBAbtL, pnz, pnz);
+		float *pBAbtL; s_zeros_align(&pBAbtL, pnz, pnz);
 
 /************************************************
 * riccati-like iteration
@@ -313,14 +322,14 @@ int main()
 		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 		// call the solver
-		dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, &info);
+		sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, &info);
 
 		if(PRINTRES==1)
 			{
 			/* print result */
 			printf("\n\nsv\n\n");
 			for(ii=0; ii<N; ii++)
-				d_print_mat(1, nu, hux[ii], 1);
+				s_print_mat(1, nu, hux[ii], 1);
 			}
 
 		// corrector
@@ -340,14 +349,14 @@ int main()
 		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 		// call the solver 
-		dricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL);
+		sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL);
 
 		if(PRINTRES==1)
 			{
 			// print result 
 			printf("\n\ntrs\n\n");
 			for(ii=0; ii<N; ii++)
-				d_print_mat(1, nu, hux[ii], 1);
+				s_print_mat(1, nu, hux[ii], 1);
 			}
 
 /*		return;*/
@@ -371,7 +380,7 @@ int main()
 			for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 			// call the solver 
-			dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, &info);
+			sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, &info);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
@@ -393,7 +402,7 @@ int main()
 			for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 			// call the solver 
-			dricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL);
+			sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL);
 			}
 		
 		gettimeofday(&tv2, NULL); // start
