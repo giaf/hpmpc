@@ -31,8 +31,8 @@ LIBS = -lm #-lopenblas
 #OBJS_TEST = test_sgemm_orig.o
 #OBJS_TEST = test_dgemm.o
 #OBJS_TEST = test_sgemm.o
-#OBJS_TEST = tools.o test_dricposv.o
-OBJS_TEST = tools.o test_sricposv.o
+OBJS_TEST = tools.o test_dricposv.o
+#OBJS_TEST = tools.o test_sricposv.o
 #OBJS_TEST = tools.o test_ip_box_lib.o
 
 ifeq ($(TARGET), AVX)

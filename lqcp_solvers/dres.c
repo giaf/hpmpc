@@ -23,6 +23,71 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-#define NX 16
-#define NU 7
-#define NN 10
+
+#include "../include/blas_d.h"
+#include "../include/block_size.h"
+
+
+
+void dres(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb)
+	{
+
+	const int bs = D_MR; //d_get_mr();
+
+	int ii, jj;
+	
+	int nz = nx+nu+1;
+	int nxu = nx+nu;
+	
+
+	/* correction & copy -rhs & change sign */
+	for(jj=0; jj<nu; jj++) hrq[0][jj] = - hq[0][jj];
+	for(jj=0; jj<nx; jj++) hrb[0][jj] = hux[1][nu+jj] - hpBAbt[0][(nxu/bs)*bs*sda+nxu%bs+bs*jj];
+	for(ii=1; ii<N; ii++)
+		{
+		for(jj=0; jj<nu; jj++) hrq[ii][jj] = - hq[ii][jj];
+		for(jj=0; jj<nx; jj++) hrq[ii][nu+jj] = hpi[ii][jj] - hq[ii][nu+jj];
+		for(jj=0; jj<nx; jj++) hrb[ii][jj] = hux[ii+1][nu+jj] - hpBAbt[ii][(nxu/bs)*bs*sda+nxu%bs+bs*jj];
+		}
+	for(jj=0; jj<nx; jj++) hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj];
+
+
+
+	/* dense matrix-vector products */
+	// first block
+/*	dgemv_(&ct, &nx, &nu, &d1, Q[0]+nu, &lda, ux[0]+nu, &i1, &d1, rq[0], &i1);*/
+	dgemv_p_t_lib(nx, nu, nu, hpQ[0]+(nu/bs)*bs*sda+nu%bs, sda, hux[0]+nu, hrq[0], -1);
+/*	dsymv_(&cl, &nu, &d1, Q[0], &lda, ux[0], &i1, &d1, rq[0], &i1);*/
+/*d_print_mat(1, nu, hux[0], 1);*/
+/*d_print_pmat(nu, nu, bs, hpQ[0], sda);*/
+	dsymv_p_lib(nu, 0, hpQ[0], sda, hux[0], hrq[0], -1);
+/*d_print_mat(1, nu, hrq[0], 1);*/
+/*return;*/
+	dgemv_p_t_lib(nxu, nx, 0, hpBAbt[0], sda, hux[0], hrb[0], -1);
+/*	dgemv_(&cn, &nu, &nx, &d1, BAbt[0], &lda, pi[1], &i1, &d1, rq[0], &i1);	*/
+	dgemv_p_n_lib(nu, nx, 0, hpBAbt[0], sda, hpi[1], hrq[0], -1);
+
+	// middle blocks
+	for(ii=1; ii<N; ii++)
+		{
+/*		dsymv_(&cl, &nxu, &d1, Q[i], &lda, ux[i], &i1, &d1, rq[i], &i1);		*/
+		dsymv_p_lib(nxu, 0, hpQ[ii], sda, hux[ii], hrq[ii], -1);
+		dgemv_p_t_lib(nxu, nx, 0, hpBAbt[ii], sda, hux[ii], hrb[ii], -1);
+/*		dgemv_(&cn, &nxu, &nx, &d1, BAbt[i], &lda, pi[i+1], &i1, &d1, rq[i], &i1);		*/
+		dgemv_p_n_lib(nxu, nx, 0, hpBAbt[ii], sda, hpi[ii+1], hrq[ii], -1);
+		}
+	
+	// last block
+/*	dsymv_(&cl, &nx, &d1, Q[N]+nu*(lda+1), &lda, ux[N]+nu, &i1, &d1, rq[N]+nu, &i1);		*/
+	dsymv_p_lib(nx, nu, hpQ[N]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, hux[N]+nu, hrq[N]+nu, -1);
+	
+	// change sign
+/*	for(i=0; i<N; i++)*/
+/*		{*/
+/*		for(j=0; j<nxu; j++) rq[i][j] = - rq[i][j];*/
+/*		for(j=0; j<nx; j++) rb[i][j] = - rb[i][j];*/
+/*		}*/
+/*	for(j=0; j<nx; j++) rq[N][nu+j] = - rq[N][nu+j];*/
+	
+	}
+

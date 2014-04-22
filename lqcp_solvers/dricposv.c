@@ -28,7 +28,7 @@
 
 
 
-/* version tailoerd for mpc (x0 fixed) */
+/* version tailored for mpc (x0 fixed) */
 void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hux, double *pL, double *pBAbtL, int compute_pi, double **hpi, int *info)
 	{
 	
@@ -135,8 +135,15 @@ void dricpotrs_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ
 		if(compute_pi)
 			{
 			for(jj=0; jj<nx; jj++) pBAbtL[nu+jj] = hpQ[ii+1][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*(nu+jj)];
+/*if(ii==N-1) */
+/*	{*/
+/*	printf("\nciao\n");*/
+/*	d_print_mat(1, nx, pBAbtL+nu, 1);*/
+/*	}*/
 			dtrmv_p_t_lib(nx, nu, hpQ[ii+1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, &hux[ii+1][nu], &pBAbtL[nu], 1); // L'*pi
+/*if(ii==N-1) d_print_mat(1, nx, pBAbtL+nu, 1);*/
 			dtrmv_p_n_lib(nx, nu, hpQ[ii+1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, &pBAbtL[nu], &hpi[ii+1][0], 0); // L*(L'*b) + p
+/*if(ii==N-1) d_print_mat(1, nx, hpi[ii+1], 1);*/
 			}
 		}
 	

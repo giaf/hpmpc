@@ -32,7 +32,7 @@ void dgemv_p_n_lib(int n, int m, int offset, double *pA, int sda, double *x, dou
 void dgemv_p_t_lib(int n, int m, int offset, double *pA, int sda, double *x, double *y, int alg);
 void dtrmv_p_n_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg);
 void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg);
-void dsymv_p_lib(int m, double *pA, int sda, double *x, double *y);
+void dsymv_p_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg);
 void dtrsv_p_n_lib(int n, double *pA, int sda, double *x);
 void dtrsv_p_t_lib(int n, double *pA, int sda, double *x);
 
