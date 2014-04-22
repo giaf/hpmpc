@@ -106,7 +106,8 @@ int main()
 	double *x; d_zeros_align(&x, n, 1);
 	double *y; d_zeros_align(&y, n, 1);
 	
-	x[2] = 1;
+	pA[0] = -1;
+	x[5] = 1;
 
 /*	for(i=0; i<pn*pn; i++) pC[i] = -1;*/
 /*	for(i=0; i<pn*pn; i++) spC[i] = -1;*/
@@ -135,10 +136,10 @@ int main()
 /*		dgemm_ppp_nt_lib(n, n, n, pA, pn, pB, pn, pC, pn, 0);*/
 /*		dgemm_ppp_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
 /*		dtrmm_pup_nn_lib(n, n, pA, pn, B, n, pC, pn);*/
-		dsyrk_ppp_lib(n, n, pA, pn, pC, pn);
+/*		dsyrk_ppp_lib(n, n, pA, pn, pC, pn);*/
 /*		dgemm_ppp_nt_lib(n, n, n, pA, pn, pA, pn, pB, pn, 0);*/
 /*		dtrmm_ppp_lib(n, n, 0, pA, pn, pB, pn, pC, pn);*/
-		dpotrf_dcopy_lib(n, 0, pC, pn, pL, pn);
+/*		dpotrf_dcopy_lib(n, 0, pC, pn, pL, pn);*/
 
 
 
@@ -157,8 +158,8 @@ int main()
 //		dpotrf_lib(n, B, n);
 //		dgemm_nt_lib2(n, pB, pA, pC, pn);
 //		dgemv_n_lib(n-1, n, 1, pn, pA+1, x, y);
-//		dtrmv_n_lib(n-1, 1, pA+1, pn, x, y);
-/*		dtrmv_t_lib(n-1, 1, pA+1, pn, x, y);*/
+/*		dtrmv_p_n_lib(n-1, 1, pA+1+bs, pn, x, y, 0);*/
+		dtrmv_p_t_lib(n-1, 1, pA+1+bs, pn, x, y, 0);
 
 		}
 	
@@ -178,11 +179,11 @@ int main()
 //		d_print_pmat(n, n, bs, pB, pn);
 		d_print_pmat(n, n, bs, pA, pn);
 /*		d_print_mat(n, n, B, n);*/
-		d_print_pmat(n, n, bs, pB, pn);
-		d_print_pmat(n, n, bs, pC, pn);
-		d_print_pmat(n, n, bs, pL, pn);
+/*		d_print_pmat(n, n, bs, pB, pn);*/
+/*		d_print_pmat(n, n, bs, pC, pn);*/
+/*		d_print_pmat(n, n, bs, pL, pn);*/
 //		s_print_pmat(n, n, bss, spC, pns);
-/*		d_print_mat(n, 1, y, pn);*/
+		d_print_mat(n, 1, y, pn);
 		}
 
 

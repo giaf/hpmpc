@@ -570,31 +570,81 @@ void dtrmv_p_n_lib(int m, int offset, double *pA, int sda, double *x, double *y,
 	
 	int j;
 	
-	if(mna>m) // it is always mna < bs , thus m<bs !!!!!
+	if(alg==0 || alg==1)
 		{
-		if(mna%2==1)
+		if(mna>m) // it is always mna < bs , thus m<bs !!!!!
 			{
-			kernel_dgemv_n_1_lib4(j+1, pA, x, y, alg);
-			pA += 1;
-			y  += 1;
-			m  -= 1;
+			if(mna%2==1)
+				{
+				kernel_dgemv_n_1_lib4(j+1, pA, x, y, alg);
+				pA += 1;
+				y  += 1;
+				m  -= 1;
+				}
+			j = 0;
+			for(; j<m-1; j+=2)
+				{
+				kernel_dgemv_n_2_lib4(j+1, pA, x, y, alg);
+				y[1] += pA[(j+1)*bs+1] * x[j+1];
+				pA += 2;
+				y  += 2;
+				}
+			for(; j<m; j++)
+				{
+				kernel_dgemv_n_1_lib4(j+1, pA, x, y, alg);
+				pA += 1;
+				y  += 1;
+				}
+			return;
 			}
-		j = 0;
+		j=0;
+		if(mna>0)
+			{
+			for(; j<mna%2; j++)
+				{
+				kernel_dgemv_n_1_lib4(j+1, pA, x, y, alg);
+				pA += 1;
+				y  += 1;
+				}
+			for(; j<mna; j+=2)
+				{
+				kernel_dgemv_n_2_lib4(j+1, pA, x, y, alg);
+				y[1] += pA[(j+1)*bs+1] * x[j+1];
+				pA += 2;
+				y  += 2;
+				}
+			pA += (sda-1)*bs;
+			}
+		for(; j<m-7; j+=8)
+			{
+			kernel_dgemv_n_8_lib4(j+1, pA, pA+sda*bs, x, y, alg);
+			y[1] += pA[1+bs*(j+1)] * x[j+1];
+			y[2] += pA[2+bs*(j+1)] * x[j+1] + pA[2+bs*(j+2)] * x[j+2];
+			y[3] += pA[3+bs*(j+1)] * x[j+1] + pA[3+bs*(j+2)] * x[j+2] + pA[3+bs*(j+3)] * x[j+3];
+			pA += sda*bs;
+			y  += bs;
+
+			kernel_dgemv_n_4_lib4(4, pA+bs*(j+1), x+j+1, y, 1); // 1 !!!
+			y[1] += pA[1+bs*(j+5)] * x[j+5];
+			y[2] += pA[2+bs*(j+5)] * x[j+5] + pA[2+bs*(j+6)] * x[j+6];
+			y[3] += pA[3+bs*(j+5)] * x[j+5] + pA[3+bs*(j+6)] * x[j+6] + pA[3+bs*(j+7)] * x[j+7];
+
+			pA += sda*bs;
+			y  += bs;
+			}
+		for(; j<m-3; j+=4)
+			{
+			kernel_dgemv_n_4_lib4(j+1, pA, x, y, alg);
+			y[1] += pA[1+bs*(j+1)] * x[j+1];
+			y[2] += pA[2+bs*(j+1)] * x[j+1] + pA[2+bs*(j+2)] * x[j+2];
+			y[3] += pA[3+bs*(j+1)] * x[j+1] + pA[3+bs*(j+2)] * x[j+2] + pA[3+bs*(j+3)] * x[j+3];
+			pA += sda*bs;
+			y  += bs;
+			}
 		for(; j<m-1; j+=2)
 			{
 			kernel_dgemv_n_2_lib4(j+1, pA, x, y, alg);
-			if(alg==0)
-				{
-				y[1] = pA[(j+1)*bs+1] * x[j+1];
-				}
-			else if(alg==1)
-				{
-				y[1] += pA[(j+1)*bs+1] * x[j+1];
-				}
-			else
-				{
-				y[1] -= pA[(j+1)*bs+1] * x[j+1];
-				}
+			y[1] += pA[(j+1)*bs+1] * x[j+1];
 			pA += 2;
 			y  += 2;
 			}
@@ -604,137 +654,98 @@ void dtrmv_p_n_lib(int m, int offset, double *pA, int sda, double *x, double *y,
 			pA += 1;
 			y  += 1;
 			}
-		return;
 		}
-	j=0;
-	if(mna>0)
+	else
 		{
-		for(; j<mna%2; j++)
+		if(mna>m) // it is always mna < bs , thus m<bs !!!!!
 			{
-			kernel_dgemv_n_1_lib4(j+1, pA, x, y, alg);
-			pA += 1;
-			y  += 1;
-			}
-/*		for(; j<m-1; j+=2)*/
-		for(; j<mna; j+=2)
-			{
-			kernel_dgemv_n_2_lib4(j+1, pA, x, y, alg);
-			if(alg==0)
+			if(mna%2==1)
 				{
-				y[1] = pA[(j+1)*bs+1] * x[j+1];
+				kernel_dgemv_n_1_lib4(j+1, pA, x, y, -1);
+				pA += 1;
+				y  += 1;
+				m  -= 1;
 				}
-			else if(alg==1)
+			j = 0;
+			for(; j<m-1; j+=2)
 				{
-				y[1] += pA[(j+1)*bs+1] * x[j+1];
-				}
-			else
-				{
+				kernel_dgemv_n_2_lib4(j+1, pA, x, y, -1);
 				y[1] -= pA[(j+1)*bs+1] * x[j+1];
+				pA += 2;
+				y  += 2;
 				}
-			pA += 2;
-			y  += 2;
+			for(; j<m; j++)
+				{
+				kernel_dgemv_n_1_lib4(j+1, pA, x, y, -1);
+				pA += 1;
+				y  += 1;
+				}
+			return;
 			}
-		pA += (sda-1)*bs;
-		}
-	for(; j<m-7; j+=8)
-		{
-		kernel_dgemv_n_8_lib4(j+1, pA, pA+sda*bs, x, y, alg);
-		if(alg==0)
+		j=0;
+		if(mna>0)
 			{
-			y[1] = pA[1+bs*(j+1)] * x[j+1];
-			y[2] = pA[2+bs*(j+1)] * x[j+1] + pA[2+bs*(j+2)] * x[j+2];
-			y[3] = pA[3+bs*(j+1)] * x[j+1] + pA[3+bs*(j+2)] * x[j+2] + pA[3+bs*(j+3)] * x[j+3];
+			for(; j<mna%2; j++)
+				{
+				kernel_dgemv_n_1_lib4(j+1, pA, x, y, -1);
+				pA += 1;
+				y  += 1;
+				}
+			for(; j<mna; j+=2)
+				{
+				kernel_dgemv_n_2_lib4(j+1, pA, x, y, -1);
+				y[1] -= pA[(j+1)*bs+1] * x[j+1];
+				pA += 2;
+				y  += 2;
+				}
+			pA += (sda-1)*bs;
 			}
-		else if(alg==1)
+		for(; j<m-7; j+=8)
 			{
-			y[1] += pA[1+bs*(j+1)] * x[j+1];
-			y[2] += pA[2+bs*(j+1)] * x[j+1] + pA[2+bs*(j+2)] * x[j+2];
-			y[3] += pA[3+bs*(j+1)] * x[j+1] + pA[3+bs*(j+2)] * x[j+2] + pA[3+bs*(j+3)] * x[j+3];
-			}
-		else
-			{
+			kernel_dgemv_n_8_lib4(j+1, pA, pA+sda*bs, x, y, -1);
 			y[1] -= pA[1+bs*(j+1)] * x[j+1];
 			y[2] -= pA[2+bs*(j+1)] * x[j+1] + pA[2+bs*(j+2)] * x[j+2];
 			y[3] -= pA[3+bs*(j+1)] * x[j+1] + pA[3+bs*(j+2)] * x[j+2] + pA[3+bs*(j+3)] * x[j+3];
-			}
-		pA += sda*bs;
-		y  += bs;
+			pA += sda*bs;
+			y  += bs;
 
-		kernel_dgemv_n_4_lib4(4, pA+bs*(j+1), x+j+1, y, alg);
-		if(alg==0)
-			{
-			y[1] = pA[1+bs*(j+5)] * x[j+5];
-			y[2] = pA[2+bs*(j+5)] * x[j+5] + pA[2+bs*(j+6)] * x[j+6];
-			y[3] = pA[3+bs*(j+5)] * x[j+5] + pA[3+bs*(j+6)] * x[j+6] + pA[3+bs*(j+7)] * x[j+7];
-			}
-		else if(alg==1)
-			{
-			y[1] += pA[1+bs*(j+5)] * x[j+5];
-			y[2] += pA[2+bs*(j+5)] * x[j+5] + pA[2+bs*(j+6)] * x[j+6];
-			y[3] += pA[3+bs*(j+5)] * x[j+5] + pA[3+bs*(j+6)] * x[j+6] + pA[3+bs*(j+7)] * x[j+7];
-			}
-		else
-			{
+			kernel_dgemv_n_4_lib4(4, pA+bs*(j+1), x+j+1, y, -1);
 			y[1] -= pA[1+bs*(j+5)] * x[j+5];
 			y[2] -= pA[2+bs*(j+5)] * x[j+5] + pA[2+bs*(j+6)] * x[j+6];
 			y[3] -= pA[3+bs*(j+5)] * x[j+5] + pA[3+bs*(j+6)] * x[j+6] + pA[3+bs*(j+7)] * x[j+7];
+
+			pA += sda*bs;
+			y  += bs;
 			}
-		pA += sda*bs;
-		y  += bs;
-		}
-	for(; j<m-3; j+=4)
-		{
-		kernel_dgemv_n_4_lib4(j+1, pA, x, y, alg);
-		if(alg==0)
+		for(; j<m-3; j+=4)
 			{
-			y[1] = pA[1+bs*(j+1)] * x[j+1];
-			y[2] = pA[2+bs*(j+1)] * x[j+1] + pA[2+bs*(j+2)] * x[j+2];
-			y[3] = pA[3+bs*(j+1)] * x[j+1] + pA[3+bs*(j+2)] * x[j+2] + pA[3+bs*(j+3)] * x[j+3];
-			}
-		else if(alg==1)
-			{
-			y[1] += pA[1+bs*(j+1)] * x[j+1];
-			y[2] += pA[2+bs*(j+1)] * x[j+1] + pA[2+bs*(j+2)] * x[j+2];
-			y[3] += pA[3+bs*(j+1)] * x[j+1] + pA[3+bs*(j+2)] * x[j+2] + pA[3+bs*(j+3)] * x[j+3];
-			}
-		else
-			{
+			kernel_dgemv_n_4_lib4(j+1, pA, x, y, -1);
 			y[1] -= pA[1+bs*(j+1)] * x[j+1];
 			y[2] -= pA[2+bs*(j+1)] * x[j+1] + pA[2+bs*(j+2)] * x[j+2];
 			y[3] -= pA[3+bs*(j+1)] * x[j+1] + pA[3+bs*(j+2)] * x[j+2] + pA[3+bs*(j+3)] * x[j+3];
+			pA += sda*bs;
+			y  += bs;
 			}
-		pA += sda*bs;
-		y  += bs;
-		}
-	for(; j<m-1; j+=2)
-		{
-		kernel_dgemv_n_2_lib4(j+1, pA, x, y, alg);
-		if(alg==0)
+		for(; j<m-1; j+=2)
 			{
-			y[1] = pA[(j+1)*bs+1] * x[j+1];
-			}
-		else if(alg==1)
-			{
-			y[1] += pA[(j+1)*bs+1] * x[j+1];
-			}
-		else
-			{
+			kernel_dgemv_n_2_lib4(j+1, pA, x, y, -1);
 			y[1] -= pA[(j+1)*bs+1] * x[j+1];
+			pA += 2;
+			y  += 2;
 			}
-		pA += 2;
-		y  += 2;
-		}
-	for(; j<m; j++)
-		{
-		kernel_dgemv_n_1_lib4(j+1, pA, x, y, alg);
-		pA += 1;
-		y  += 1;
+		for(; j<m; j++)
+			{
+			kernel_dgemv_n_1_lib4(j+1, pA, x, y, -1);
+			pA += 1;
+			y  += 1;
+			}
 		}
 
 	}
 
 
 
+// !!! x and y can not be the same vector !!!
 void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg)
 	{
 	
@@ -745,123 +756,131 @@ void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y,
 	
 	int j;
 	
-	j=0;
-	if(mna>0)
+	if(alg==0 || alg==1)
 		{
-		for(; j<mna; j++)
+		j=0;
+		if(mna>0)
 			{
-			kernel_dgemv_t_1_lib4(mmax-j, mna-j, pA+j*bs+j, sda, x+j, y+j, alg);
+			for(; j<mna; j++)
+				{
+				kernel_dgemv_t_1_lib4(mmax-j, mna-j, pA+j*bs+j, sda, x+j, y+j, alg);
+				}
+			pA += j + (sda-1)*bs + j*bs;
+			x  += j;
+			y  += j;
+			mmax -= j;
 			}
-		pA += j + sda*bs;
-		x  += j;
-		y  += j;
-		mmax -= j;
-		}
-	for(; j<m-7; j+=8)
-		{
-		if(alg==0)
+		for(; j<m-7; j+=8)
 			{
-			y[0] = pA[0+bs*0] * x[0] + pA[1+bs*0] * x[1] + pA[2+bs*0] * x[2];
-			y[1] = pA[1+bs*1] * x[1] + pA[2+bs*1] * x[2];
-			y[2] = pA[2+bs*2] * x[2];
-			}
-		else if(alg==1)
-			{
+			pA += bs*sda;
+			
+			kernel_dgemv_t_8_lib4(mmax-7, 1, pA+3, sda, x+7, y, alg);
+			y[4] += pA[0+bs*4] * x[4] + pA[1+bs*4] * x[5] + pA[2+bs*4] * x[6];
+			y[5] += pA[1+bs*5] * x[5] + pA[2+bs*5] * x[6];
+			y[6] += pA[2+bs*6] * x[6];
+
+			pA -= bs*sda;
+
+			kernel_dgemv_t_4_lib4(4, 1, pA+3, sda, x+3, y, 1); // !!! 1
 			y[0] += pA[0+bs*0] * x[0] + pA[1+bs*0] * x[1] + pA[2+bs*0] * x[2];
 			y[1] += pA[1+bs*1] * x[1] + pA[2+bs*1] * x[2];
 			y[2] += pA[2+bs*2] * x[2];
-			}
-		else
-			{
-			y[0] -= pA[0+bs*0] * x[0] + pA[1+bs*0] * x[1] + pA[2+bs*0] * x[2];
-			y[1] -= pA[1+bs*1] * x[1] + pA[2+bs*1] * x[2];
-			y[2] -= pA[2+bs*2] * x[2];
-			}
 
-/*		kernel_dgemv_t_4_lib4(mmax-3, 1, pA+3, sda, x+3, y, 1);*/
-		kernel_dgemv_t_4_lib4(4, 1, pA+3, sda, x+3, y, alg);
-
-		if(alg==0)
-			{
-			y[4] = pA[4+bs*4] * x[4] + pA[5+bs*4] * x[5] + pA[6+bs*4] * x[6];
-			y[5] = pA[5+bs*5] * x[5] + pA[6+bs*5] * x[6];
-			y[6] = pA[6+bs*6] * x[6];
+			pA += 2*bs*sda + 2*bs*bs;
+			x  += 2*bs;
+			y  += 2*bs;
+			mmax -= 2*bs;
 			}
-		else if(alg==1)
+		for(; j<m-3; j+=4)
 			{
-			y[4] += pA[4+bs*4] * x[4] + pA[5+bs*4] * x[5] + pA[6+bs*4] * x[6];
-			y[5] += pA[5+bs*5] * x[5] + pA[6+bs*5] * x[6];
-			y[6] += pA[6+bs*6] * x[6];
-			}
-		else
-			{
-			y[4] -= pA[4+bs*4] * x[4] + pA[5+bs*4] * x[5] + pA[6+bs*4] * x[6];
-			y[5] -= pA[5+bs*5] * x[5] + pA[6+bs*5] * x[6];
-			y[6] -= pA[6+bs*6] * x[6];
-			}
-
-/*		kernel_dgemv_t_4_lib4(mmax-7, 1, pA+7+4*bs, sda, x+7, y+4, 1);*/
-		kernel_dgemv_t_8_lib4(mmax-7, 1, pA+7, sda, x+7, y, alg);
-
-		pA += 2*bs*sda + 2*bs*bs;
-		x  += 2*bs;
-		y  += 2*bs;
-		mmax -= 2*bs;
-		}
-	// clean-up loop
-	for(; j<m-3; j+=4)
-		{
-		if(alg==0)
-			{
-			y[0] = pA[0+bs*0] * x[0] + pA[1+bs*0] * x[1] + pA[2+bs*0] * x[2];
-			y[1] = pA[1+bs*1] * x[1] + pA[2+bs*1] * x[2];
-			y[2] = pA[2+bs*2] * x[2];
-			}
-		else if(alg==1)
-			{
+			kernel_dgemv_t_4_lib4(mmax-3, 1, pA+3, sda, x+3, y, alg);
 			y[0] += pA[0+bs*0] * x[0] + pA[1+bs*0] * x[1] + pA[2+bs*0] * x[2];
 			y[1] += pA[1+bs*1] * x[1] + pA[2+bs*1] * x[2];
 			y[2] += pA[2+bs*2] * x[2];
+			pA += bs*sda + bs*bs;
+			x  += bs;
+			y  += bs;
+			mmax -= bs;
 			}
-		else
+		for(; j<m-1; j+=2)
 			{
-			y[0] -= pA[0+bs*0] * x[0] + pA[1+bs*0] * x[1] + pA[2+bs*0] * x[2];
-			y[1] -= pA[1+bs*1] * x[1] + pA[2+bs*1] * x[2];
-			y[2] -= pA[2+bs*2] * x[2];
-			}
-		kernel_dgemv_t_4_lib4(mmax, mmax, pA, sda, x, y, alg);
-		pA += bs*sda + bs*bs;
-		x  += bs;
-		y  += bs;
-		mmax -= bs;
-		}
-	for(; j<m-1; j+=2)
-		{
-		if(alg==0)
-			{
-			y[0] = pA[0+bs*0] * x[0];
-			}
-		else if(alg==1)
-			{
+			kernel_dgemv_t_2_lib4(mmax-1, mmax-1, pA+1, sda, x+1, y, alg);
 			y[0] += pA[0+bs*0] * x[0];
+			pA += 2 + 2*bs;
+			x  += 2;
+			y  += 2;
+			mmax -= 2;
 			}
-		else
+		for(; j<m; j++)
 			{
-			y[0] -= pA[0+bs*0] * x[0];
+			kernel_dgemv_t_1_lib4(mmax, mmax, pA, sda, x, y, alg);
+			pA += 1 + bs;
+			x  += 1;
+			y  += 1;
+			mmax -= 1;
 			}
-		kernel_dgemv_t_2_lib4(mmax, mmax, pA, sda, x, y, alg);
-		pA += 2 + 2*bs;
-		x  += 2;
-		y  += 2;
-		mmax -= 2;
 		}
-	for(; j<m; j++)
+	else
 		{
-		kernel_dgemv_t_1_lib4(mmax, mmax, pA, sda, x, y, alg);
-		pA += 1 + bs;
-		x  += 1;
-		y  += 1;
-		mmax -= 1;
+		j=0;
+		if(mna>0)
+			{
+			for(; j<mna; j++)
+				{
+				kernel_dgemv_t_1_lib4(mmax-j, mna-j, pA+j*bs+j, sda, x+j, y+j, -1);
+				}
+			pA += j + (sda-1)*bs + j*bs;
+			x  += j;
+			y  += j;
+			mmax -= j;
+			}
+		for(; j<m-7; j+=8)
+			{
+			kernel_dgemv_t_4_lib4(4, 1, pA+3, sda, x+3, y, -1);
+			y[0] -= pA[0+bs*0] * x[0] + pA[1+bs*0] * x[1] + pA[2+bs*0] * x[2];
+			y[1] -= pA[1+bs*1] * x[1] + pA[2+bs*1] * x[2];
+			y[2] -= pA[2+bs*2] * x[2];
+
+			pA += bs*sda;
+			
+			kernel_dgemv_t_8_lib4(mmax-7, 1, pA+3, sda, x+7, y, -1);
+			y[4] -= pA[0+bs*4] * x[4] + pA[1+bs*4] * x[5] + pA[1+bs*4] * x[6];
+			y[5] -= pA[1+bs*5] * x[5] + pA[2+bs*5] * x[6];
+			y[6] -= pA[2+bs*6] * x[6];
+
+			pA += bs*sda + 2*bs*bs;
+			x  += 2*bs;
+			y  += 2*bs;
+			mmax -= 2*bs;
+			}
+		for(; j<m-3; j+=4)
+			{
+			kernel_dgemv_t_4_lib4(mmax-3, 1, pA+3, sda, x+3, y, -1);
+			y[0] -= pA[0+bs*0] * x[0] + pA[1+bs*0] * x[1] + pA[2+bs*0] * x[2];
+			y[1] -= pA[1+bs*1] * x[1] + pA[2+bs*1] * x[2];
+			y[2] -= pA[2+bs*2] * x[2];
+			pA += bs*sda + bs*bs;
+			x  += bs;
+			y  += bs;
+			mmax -= bs;
+			}
+		for(; j<m-1; j+=2)
+			{
+			kernel_dgemv_t_2_lib4(mmax-1, mmax-1, pA+1, sda, x+1, y, -1);
+			y[0] -= pA[0+bs*0] * x[0];
+			pA += 2 + 2*bs;
+			x  += 2;
+			y  += 2;
+			mmax -= 2;
+			}
+		for(; j<m; j++)
+			{
+			kernel_dgemv_t_1_lib4(mmax, mmax, pA, sda, x, y, -1);
+			pA += 1 + bs;
+			x  += 1;
+			y  += 1;
+			mmax -= 1;
+			}
 		}
 
 	}
