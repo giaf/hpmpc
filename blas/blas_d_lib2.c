@@ -571,7 +571,7 @@ void dtrsv_p_t_lib(int n, double *pA, int sda, double *x)
 		i = rn-1-j;
 		kernel_dgemv_t_1_lib2(j, j, &ptrA[i+1+bs*(i+0)], sda, &ptrx[i+1], &ptrx[i], -1);
 		ptrx[i+0] = (ptrx[i+0]) / ptrA[i+0+bs*(i+0)];
-		j++;
+/*		j++;*/
 		}
 
 	// blocks of 2

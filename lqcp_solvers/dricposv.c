@@ -79,10 +79,13 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 		{
 		for(jj=0; jj<nu; jj++) hux[ii][jj] = hpQ[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
 		dgemv_p_t_lib(nx, nu, nu, &hpQ[ii][(nu/bs)*bs*sda+nu%bs], sda, &hux[ii][nu], &hux[ii][0], 1);
+/*d_print_mat(nu, 1, &hux[ii][0], nu);*/
 		dtrsv_p_t_lib(nu, hpQ[ii], sda, &hux[ii][0]);
 		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hux[ii][jj];
+/*d_print_mat(nu, 1, &hux[ii][0], nu);*/
 		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
 		dgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], sda, &hux[ii][0], &hux[ii+1][nu], 1);
+/*d_print_mat(nx, 1, &hux[ii+1][nu], nx);*/
 		if(compute_pi)
 			{
 /*printf("\n%d\n", ii);*/
