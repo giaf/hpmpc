@@ -24,15 +24,15 @@
 **************************************************************************************************/
 
 
-#include "../include/blas_d.h"
+#include "../include/blas_s.h"
 #include "../include/block_size.h"
 
 
 
-void dres(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb)
+void sres(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hq, float **hux, float **hpi, float **hrq, float **hrb)
 	{
 
-	const int bs = D_MR; //d_get_mr();
+	const int bs = S_MR; //s_get_mr();
 
 	int ii, jj;
 	
@@ -41,26 +41,26 @@ void dres(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double 
 
 	// first block
 	for(jj=0; jj<nu; jj++) hrq[0][jj] = - hq[0][jj];
-	dgemv_p_t_lib(nx, nu, nu, hpQ[0]+(nu/bs)*bs*sda+nu%bs, sda, hux[0]+nu, hrq[0], -1);
-	dsymv_p_lib(nu, 0, hpQ[0], sda, hux[0], hrq[0], -1);
-	dgemv_p_n_lib(nu, nx, 0, hpBAbt[0], sda, hpi[1], hrq[0], -1);
+	sgemv_p_t_lib(nx, nu, nu, hpQ[0]+(nu/bs)*bs*sda+nu%bs, sda, hux[0]+nu, hrq[0], -1);
+	ssymv_p_lib(nu, 0, hpQ[0], sda, hux[0], hrq[0], -1);
+	sgemv_p_n_lib(nu, nx, 0, hpBAbt[0], sda, hpi[1], hrq[0], -1);
 	for(jj=0; jj<nx; jj++) hrb[0][jj] = hux[1][nu+jj] - hpBAbt[0][(nxu/bs)*bs*sda+nxu%bs+bs*jj];
-	dgemv_p_t_lib(nxu, nx, 0, hpBAbt[0], sda, hux[0], hrb[0], -1);
+	sgemv_p_t_lib(nxu, nx, 0, hpBAbt[0], sda, hux[0], hrb[0], -1);
 
 	// middle blocks
 	for(ii=1; ii<N; ii++)
 		{
 		for(jj=0; jj<nu; jj++) hrq[ii][jj] = - hq[ii][jj];
 		for(jj=0; jj<nx; jj++) hrq[ii][nu+jj] = hpi[ii][jj] - hq[ii][nu+jj];
-		dsymv_p_lib(nxu, 0, hpQ[ii], sda, hux[ii], hrq[ii], -1);
-		dgemv_p_n_lib(nxu, nx, 0, hpBAbt[ii], sda, hpi[ii+1], hrq[ii], -1);
+		ssymv_p_lib(nxu, 0, hpQ[ii], sda, hux[ii], hrq[ii], -1);
+		sgemv_p_n_lib(nxu, nx, 0, hpBAbt[ii], sda, hpi[ii+1], hrq[ii], -1);
 		for(jj=0; jj<nx; jj++) hrb[ii][jj] = hux[ii+1][nu+jj] - hpBAbt[ii][(nxu/bs)*bs*sda+nxu%bs+bs*jj];
-		dgemv_p_t_lib(nxu, nx, 0, hpBAbt[ii], sda, hux[ii], hrb[ii], -1);
+		sgemv_p_t_lib(nxu, nx, 0, hpBAbt[ii], sda, hux[ii], hrb[ii], -1);
 		}
 	
 	// last block
 	for(jj=0; jj<nx; jj++) hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj];
-	dsymv_p_lib(nx, nu, hpQ[N]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, hux[N]+nu, hrq[N]+nu, -1);
+	ssymv_p_lib(nx, nu, hpQ[N]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, hux[N]+nu, hrq[N]+nu, -1);
 	
 	}
 

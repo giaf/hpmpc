@@ -387,7 +387,6 @@ int main()
 			}
 		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
-/*d_print_pmat(nz, nz, bsd, hpQ[0], pnz);*/
 		// residuals computation
 		dres(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 

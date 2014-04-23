@@ -77,24 +77,16 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 	/* forward substitution */
 	for(ii=0; ii<N; ii++)
 		{
-		for(jj=0; jj<nu; jj++) hux[ii][jj] = hpQ[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
-		dgemv_p_t_lib(nx, nu, nu, &hpQ[ii][(nu/bs)*bs*sda+nu%bs], sda, &hux[ii][nu], &hux[ii][0], 1);
-/*d_print_mat(nu, 1, &hux[ii][0], nu);*/
+		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hpQ[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
+		dgemv_p_t_lib(nx, nu, nu, &hpQ[ii][(nu/bs)*bs*sda+nu%bs], sda, &hux[ii][nu], &hux[ii][0], -1);
 		dtrsv_p_t_lib(nu, hpQ[ii], sda, &hux[ii][0]);
-		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hux[ii][jj];
-/*d_print_mat(nu, 1, &hux[ii][0], nu);*/
 		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
 		dgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], sda, &hux[ii][0], &hux[ii+1][nu], 1);
-/*d_print_mat(nx, 1, &hux[ii+1][nu], nx);*/
 		if(compute_pi)
 			{
-/*printf("\n%d\n", ii);*/
 			for(jj=0; jj<nx; jj++) pBAbtL[nu+jj] = hpQ[ii+1][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*(nu+jj)];
-/*d_print_mat(nx, 1, &pBAbtL[nu], nx);*/
 			dtrmv_p_t_lib(nx, nu, hpQ[ii+1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, &hux[ii+1][nu], &pBAbtL[nu], 1); // L'*pi
-/*d_print_mat(nx, 1, &pBAbtL[nu], nx);*/
 			dtrmv_p_n_lib(nx, nu, hpQ[ii+1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, &pBAbtL[nu], &hpi[ii+1][0], 0); // L*(L'*b) + p
-/*d_print_mat(nx, 1, &hpi[ii+1][0], nx);*/
 			}
 		}
 	
@@ -117,7 +109,6 @@ void dricpotrs_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ
 	for(ii=0; ii<N; ii++)
 		{
 		for(jj=0; jj<nx; jj++) pBAbtL[nu+jj] = hpBAbt[N-ii-1][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj]; // copy b
-/*		for(jj=0; jj<nx; jj++) pBAbtL[sda+nu+jj] = 0; // clean*/
 		dtrmv_p_t_lib(nx, nu, hpQ[N-ii]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, pBAbtL+nu, pBAbtL+sda+nu, 0); // L'*b
 		for(jj=0; jj<nx; jj++) pBAbtL[jj] = hq[N-ii][jj]; // copy p
 		dtrmv_p_n_lib(nx, nu, hpQ[N-ii]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, pBAbtL+sda+nu, pBAbtL, 1); // L*(L'*b) + p
@@ -129,24 +120,16 @@ void dricpotrs_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ
 	/* forward substitution */
 	for(ii=0; ii<N; ii++)
 		{
-		for(jj=0; jj<nu; jj++) hux[ii][jj] = hpQ[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
-		dgemv_p_t_lib(nx, nu, nu, &hpQ[ii][(nu/bs)*bs*sda+nu%bs], sda, &hux[ii][nu], &hux[ii][0], 1);
+		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hpQ[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
+		dgemv_p_t_lib(nx, nu, nu, &hpQ[ii][(nu/bs)*bs*sda+nu%bs], sda, &hux[ii][nu], &hux[ii][0], -1);
 		dtrsv_p_t_lib(nu, hpQ[ii], sda, &hux[ii][0]);
-		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hux[ii][jj];
 		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
 		dgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], sda, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
 			for(jj=0; jj<nx; jj++) pBAbtL[nu+jj] = hpQ[ii+1][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*(nu+jj)];
-/*if(ii==N-1) */
-/*	{*/
-/*	printf("\nciao\n");*/
-/*	d_print_mat(1, nx, pBAbtL+nu, 1);*/
-/*	}*/
 			dtrmv_p_t_lib(nx, nu, hpQ[ii+1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, &hux[ii+1][nu], &pBAbtL[nu], 1); // L'*pi
-/*if(ii==N-1) d_print_mat(1, nx, pBAbtL+nu, 1);*/
 			dtrmv_p_n_lib(nx, nu, hpQ[ii+1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, &pBAbtL[nu], &hpi[ii+1][0], 0); // L*(L'*b) + p
-/*if(ii==N-1) d_print_mat(1, nx, hpi[ii+1], 1);*/
 			}
 		}
 	

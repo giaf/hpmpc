@@ -286,6 +286,8 @@ int main()
 		float *(hux[N+1]);
 		float *(hpi[N+1]);
 		float *(hpBAbt[N]);
+		float *(hrb[N]);
+		float *(hrq[N+1]);
 //		double *(hBAb[N]);
 		for(jj=0; jj<N; jj++)
 			{
@@ -294,12 +296,15 @@ int main()
 			s_zeros_align(&hux[jj], pnz, 1);
 			s_zeros_align(&hpi[jj], nx, 1);
 			hpBAbt[jj] = psBAbt;
+			s_zeros_align(&hrb[jj], nx, 1);
+			s_zeros_align(&hrq[jj], nx+nu, 1);
 //			hBAb[jj] = BAb;
 			}
 		s_zeros_align(&hpQ[N], pnz, pnz);
 		s_zeros_align(&hq[N], pnz, 1);
 		s_zeros_align(&hux[N], pnz, 1);
 		s_zeros_align(&hpi[N], nx, 1);
+		s_zeros_align(&hrq[N], nx+nu, 1);
 	
 		// starting guess
 		for(jj=0; jj<nx; jj++) hux[0][nu+jj] = (float) x0[jj];
@@ -373,7 +378,34 @@ int main()
 				s_print_mat(1, nx, hpi[ii+1], 1);
 			}
 
-/*		return;*/
+		// restore cost function 
+		for(ii=0; ii<N; ii++)
+			{
+			for(jj=0; jj<pnz*pnz; jj++) hpQ[ii][jj]=pQ[jj];
+			}
+		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
+
+		// restore linear part of cost function 
+		for(ii=0; ii<N; ii++)
+			{
+			for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+pnz*jj];
+			}
+		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
+
+		// residuals computation
+		sres(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+
+		if(PRINTRES==1 && LAGR_MULT==1)
+			{
+			// print result 
+			printf("\n\nres\n\n");
+			for(ii=0; ii<+N; ii++)
+				s_print_mat(1, nx+nu, hrq[ii], 1);
+			for(ii=0; ii<N; ii++)
+				s_print_mat(1, nx, hrb[ii], 1);
+			}
+
+		return;
 
 
 

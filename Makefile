@@ -31,7 +31,7 @@ AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_siz
 KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_avx_lib4.o ./kernel/kernel_dpotrf_sse_lib4.o ./kernel/kernel_dgemv_avx_lib4.o ./kernel/corner_dtrmm_avx_lib4.o ./kernel/corner_dpotrf_sse_lib4.o
 KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_sse3_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_c99_lib4.o ./kernel/corner_strmm_sse_lib4.o ./kernel/corner_spotrf_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
-LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o
+LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o ./lqcp_solvers/sres.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
@@ -41,7 +41,7 @@ AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_siz
 KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_sse4_lib4.o ./kernel/kernel_dpotrf_sse_lib4.o ./kernel/kernel_dgemv_sse_lib4.o ./kernel/corner_dtrmm_sse_lib4.o ./kernel/corner_dpotrf_sse_lib4.o
 KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_sse3_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_c99_lib4.o ./kernel/corner_strmm_sse_lib4.o ./kernel/corner_spotrf_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
-LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o
+LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o ./lqcp_solvers/sres.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -msse4 -DTARGET_SSE4 $(DEBUG)
@@ -51,7 +51,7 @@ AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_siz
 KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_neon_lib4.o ./kernel/kernel_dpotrf_c99_lib4.o ./kernel/kernel_dgemv_c99_lib4.o ./kernel/corner_dtrmm_c99_lib4.o ./kernel/corner_dpotrf_c99_lib4.o
 KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_neon_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_c99_lib4.o ./kernel/corner_strmm_c99_lib4.o ./kernel/corner_spotrf_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
-LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o
+LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o ./lqcp_solvers/sres.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
@@ -61,7 +61,7 @@ AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_siz
 KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_ppc_g2_lib4.o ./kernel/kernel_dpotrf_c99_lib4.o ./kernel/kernel_dgemv_c99_lib4.o ./kernel/corner_dtrmm_c99_lib4.o ./kernel/corner_dpotrf_c99_lib4.o
 KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_ppc_g2_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_c99_lib4.o ./kernel/corner_strmm_c99_lib4.o ./kernel/corner_spotrf_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
-LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o
+LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o ./lqcp_solvers/sres.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -fPIC -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
@@ -71,7 +71,7 @@ AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_siz
 KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_c99_lib4.o ./kernel/kernel_dpotrf_c99_lib4.o ./kernel/kernel_dgemv_c99_lib4.o ./kernel/corner_dtrmm_c99_lib4.o ./kernel/corner_dpotrf_c99_lib4.o 
 KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_c99_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_c99_lib4.o ./kernel/corner_strmm_c99_lib4.o ./kernel/corner_spotrf_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
-LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o
+LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o ./lqcp_solvers/sres.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
@@ -81,7 +81,7 @@ AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_siz
 KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_c99_lib2.o ./kernel/kernel_dpotrf_c99_lib2.o ./kernel/kernel_dgemv_c99_lib2.o ./kernel/corner_dtrmm_c99_lib2.o ./kernel/corner_dpotrf_c99_lib2.o
 KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_c99_lib2.o ./kernel/kernel_spotrf_c99_lib2.o ./kernel/kernel_sgemv_c99_lib2.o ./kernel/corner_strmm_c99_lib2.o ./kernel/corner_spotrf_c99_lib2.o
 BLAS_OBJS = ./blas/blas_d_lib2.o ./blas/blas_s_lib2.o
-LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o
+LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o ./lqcp_solvers/sres.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_2X2 $(DEBUG)
@@ -91,7 +91,7 @@ AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_siz
 KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_atom_lib2.o ./kernel/kernel_dpotrf_c99_lib2.o ./kernel/kernel_dgemv_c99_lib2.o ./kernel/corner_dtrmm_c99_lib2.o ./kernel/corner_dpotrf_c99_lib2.o
 KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_atom_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_atom_lib4.o ./kernel/corner_strmm_c99_lib4.o ./kernel/corner_spotrf_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib2.o ./blas/blas_s_lib4.o
-LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o
+LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o ./lqcp_solvers/sres.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -fPIC -msse3 -mfpmath=sse -march=atom -DTARGET_ATOM $(DEBUG)

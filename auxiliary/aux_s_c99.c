@@ -312,6 +312,20 @@ void s_print_mat(int row, int col, float *A, int lda)
 	printf("\n");
 	}	
 
+void s_print_mat_e(int row, int col, float *A, int lda)
+	{
+	int i, j;
+	for(i=0; i<row; i++)
+		{
+		for(j=0; j<col; j++)
+			{
+			printf("%e\t", *(A+i+j*lda));
+			}
+		printf("\n");
+		}
+	printf("\n");
+	}	
+
 
 
 /* prints a packed matrix */

@@ -25,6 +25,7 @@
 
 void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hux, double *pL, double *pBAbtL, int compute_pi, double **hpi, int *info);
 void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hux, float *pL, float *pBAbtL, int compute_pi, float **hpi, int *info);
-void dricpotrs(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hq, double **hux, double *pBAbtL, int compute_pi, double **hpi);
-void sricpotrs(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hq, float **hux, float *pBAbtL, int compute_pi, float **hpi);
-
+void dricpotrs_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hq, double **hux, double *pBAbtL, int compute_pi, double **hpi);
+void sricpotrs_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hq, float **hux, float *pBAbtL, int compute_pi, float **hpi);
+void dres(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb);
+void sres(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hq, float **hux, float **hpi, float **hrq, float **hrb);
