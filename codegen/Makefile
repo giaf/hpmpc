@@ -25,7 +25,7 @@
 
 include ../Makefile.rule
 
-OBJS = dricposv_codegen.o sricposv_codegen.o
+OBJS = dricposv_codegen.o sricposv_codegen.o dres_codegen.o sres_codegen.o
 
 ifeq ($(TARGET), AVX)
 CODEGEN_OBJS_DOUBLE = code_generator_blas_d_lib4.o code_generator_dricposv.o
@@ -80,13 +80,8 @@ clean:
 
 code_generator_dricposv.o: code_generator_dricposv.c ../problem_size.h
 code_generator_sricposv.o: code_generator_dricposv.c ../problem_size.h
-code_generator_blas_d_avx_lib4.o: code_generator_blas_d_avx_lib4.c ../problem_size.h
-code_generator_blas_d_neon_lib4.o: code_generator_blas_d_neon_lib4.c ../problem_size.h
-code_generator_blas_s_neon_lib4.o: code_generator_blas_s_neon_lib4.c ../problem_size.h
+code_generator_blas_d_lib4.o: code_generator_blas_d_lib4.c ../problem_size.h
+code_generator_blas_s_lib4.o: code_generator_blas_s_lib4.c ../problem_size.h
 code_generator_blas_d_lib2.o: code_generator_blas_d_lib2.c ../problem_size.h
 code_generator_blas_s_lib2.o: code_generator_blas_s_lib2.c ../problem_size.h
-code_generator_blas_s_atom_lib4.o: code_generator_blas_s_atom_lib4.c ../problem_size.h
-code_generator_blas_d_ppc_lib4.o: code_generator_blas_d_ppc_lib4.c ../problem_size.h
-code_generator_blas_s_ppc_lib4.o: code_generator_blas_s_ppc_lib4.c ../problem_size.h
-code_generator_blas_d_c99_4x4_lib4.o: code_generator_blas_d_c99_4x4_lib4.c ../problem_size.h
-code_generator_blas_s_c99_4x4_lib4.o: code_generator_blas_s_c99_4x4_lib4.c ../problem_size.h
+

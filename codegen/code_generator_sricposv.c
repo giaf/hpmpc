@@ -46,6 +46,7 @@ void main()
 	int N = NN;
 	
 	int nz  = nx+nu+1;
+	int nxu  = nx+nu;
 	int sda = PNZ;
 	
 	FILE *f;
@@ -443,6 +444,219 @@ void main()
 
     fclose(f);
 	
+	
+
+
+
+    f = fopen("sres_codegen.c", "w"); // a
+
+	fprintf(f, "/**************************************************************************************************\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "* This file is part of HPMPC.                                                                     *\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "* HPMPC -- Library for High-Performance implementation of solvers for MPC.                        *\n");
+	fprintf(f, "* Copyright (C) 2014 by Technical Univeristy of Denmark. All rights reserved.                     *\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "* HPMPC is free software; you can redistribute it and/or                                          *\n");
+	fprintf(f, "* modify it under the terms of the GNU Lesser General Public                                      *\n");
+	fprintf(f, "* License as published by the Free Software Foundation; either                                    *\n");
+	fprintf(f, "* version 2.1 of the License, or (at your option) any later version.                              *\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "* HPMPC is distributed in the hope that it will be useful,                                        *\n");
+	fprintf(f, "* but WITHOUT ANY WARRANTY; without even the implied warranty of                                  *\n");
+	fprintf(f, "* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                                            *\n");
+	fprintf(f, "* See the GNU Lesser General Public License for more details.                                     *\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "* You should have received a copy of the GNU Lesser General Public                                *\n");
+	fprintf(f, "* License along with HPMPC; if not, write to the Free Software                                    *\n");
+	fprintf(f, "* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA                  *\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "* Author: Gianluca Frison, giaf (at) dtu.dk                                                       *\n");
+	fprintf(f, "*                                                                                                 *\n");
+	fprintf(f, "**************************************************************************************************/\n");
+	fprintf(f, "\n");
+	fprintf(f, "#include <stdlib.h>\n");
+	fprintf(f, "#include <stdio.h>\n");
+	fprintf(f, "\n");
+	fprintf(f, "#include \"../include/kernel_s_lib2.h\"\n");
+	fprintf(f, "#include \"../include/kernel_s_lib4.h\"\n");
+	fprintf(f, "\n");
+	fprintf(f, "void sres(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **hq, float **hux, float **hpi, float **hrq, float **hrb)\n");
+	fprintf(f, "	{\n");
+	fprintf(f, "	if(!(nx==%d && nu==%d && N==%d))\n", nx, nu, N);
+	fprintf(f, "		{\n");
+	fprintf(f, "		printf(\"\\nError: solver not generated for that problem size\\n\\n\");\n");
+	fprintf(f, "		exit(1);\n");
+	fprintf(f, "		}\n");
+	fprintf(f, "	\n");
+	fprintf(f, "	float *pA, *pB, *pC, *x, *y;\n");
+	fprintf(f, "	\n");
+	fprintf(f, "	int i, j, k, ii, jj, kk;\n");
+	fprintf(f, "	\n");
+	fprintf(f, "	/* first block */\n");
+	fprintf(f, "	\n");
+	fprintf(f, "	/* */\n");
+	fprintf(f, "	for(jj=0; jj<%d; jj+=4)\n", nu-3);
+	fprintf(f, "		{\n");
+	fprintf(f, "		hrq[0][jj+%d] = - hq[0][jj+%d];\n", 0, 0);
+	fprintf(f, "		hrq[0][jj+%d] = - hq[0][jj+%d];\n", 1, 1);
+	fprintf(f, "		hrq[0][jj+%d] = - hq[0][jj+%d];\n", 2, 2);
+	fprintf(f, "		hrq[0][jj+%d] = - hq[0][jj+%d];\n", 3, 3);
+	fprintf(f, "		}\n");
+	for(jj=0; jj<nu%4; jj++)
+		{
+	fprintf(f, "	hrq[0][%d] = - hq[0][%d];\n", (nu/4)*4+jj, (nu/4)*4+jj );
+		}
+	fprintf(f, "	\n");
+	fprintf(f, "	/* sgemv_t */\n");
+	fprintf(f, "	pA = &hpQ[0][%d];\n", (nu/bs)*bs*sda+nu%bs);
+	fprintf(f, "	x = &hux[0][%d];\n", nu);
+	fprintf(f, "	y = &hrq[0][0];\n");
+
+	sgemv_p_t_code_generator(f, nx, nu, nu, -1);
+
+	fprintf(f, "	\n");
+	fprintf(f, "	/* ssymv_t */\n");
+	fprintf(f, "	pA = &hpQ[0][0];\n");
+	fprintf(f, "	x = &hux[0][0];\n");
+	fprintf(f, "	y = &hrq[0][0];\n");
+	
+	ssymv_p_code_generator(f, nu, 0, -1);
+
+	fprintf(f, "	\n");
+	fprintf(f, "	/* sgemv_n */\n");
+	fprintf(f, "	pA = &hpBAbt[0][0];\n");
+	fprintf(f, "	x = &hpi[1][0];\n");
+	fprintf(f, "	y = &hrq[0][0];\n");
+
+	sgemv_p_n_code_generator(f, nu, nx, 0, -1);
+
+	fprintf(f, "	\n");
+	fprintf(f, "	/* */\n");
+	fprintf(f, "	for(jj=0; jj<%d; jj+=4)\n", nx-3);
+	fprintf(f, "		{\n");
+	fprintf(f, "		hrb[0][jj+%d] = hux[1][jj+%d] - hpBAbt[0][%d+%d*(jj+%d)];\n", 0, nu+0, (nxu/bs)*bs*sda+nxu%bs, bs, 0);
+	fprintf(f, "		hrb[0][jj+%d] = hux[1][jj+%d] - hpBAbt[0][%d+%d*(jj+%d)];\n", 1, nu+1, (nxu/bs)*bs*sda+nxu%bs, bs, 1);
+	fprintf(f, "		hrb[0][jj+%d] = hux[1][jj+%d] - hpBAbt[0][%d+%d*(jj+%d)];\n", 2, nu+2, (nxu/bs)*bs*sda+nxu%bs, bs, 2);
+	fprintf(f, "		hrb[0][jj+%d] = hux[1][jj+%d] - hpBAbt[0][%d+%d*(jj+%d)];\n", 3, nu+3, (nxu/bs)*bs*sda+nxu%bs, bs, 3);
+	fprintf(f, "		}\n");
+	for(jj=0; jj<nx%4; jj++)
+		{
+	fprintf(f, "	hrb[0][%d] = hux[1][%d] - hpBAbt[0][%d];\n", (nx/4)*4+jj, nu+(nx/4)*4+jj, (nxu/bs)*bs*sda+nxu%bs+bs*((nx/4)*4+jj) );
+		}
+	fprintf(f, "	\n");
+	fprintf(f, "	/* sgemv_t */\n");
+	fprintf(f, "	pA = &hpBAbt[0][0];\n");
+	fprintf(f, "	x = &hux[0][0];\n");
+	fprintf(f, "	y = &hrb[0][0];\n");
+
+	sgemv_p_t_code_generator(f, nxu, nx, 0, -1);
+
+	fprintf(f, "	\n");
+	fprintf(f, "	/* middle blocks */\n");
+	fprintf(f, "	\n");
+	fprintf(f, "	for(ii=1; ii<N; ii++)\n");
+	fprintf(f, "		{\n");
+	fprintf(f, "		\n");
+	fprintf(f, "		/* */\n");
+	fprintf(f, "		for(jj=0; jj<%d; jj+=4)\n", nu-3);
+	fprintf(f, "			{\n");
+	fprintf(f, "			hrq[ii][jj+%d] = - hq[ii][jj+%d];\n", 0, 0);
+	fprintf(f, "			hrq[ii][jj+%d] = - hq[ii][jj+%d];\n", 1, 1);
+	fprintf(f, "			hrq[ii][jj+%d] = - hq[ii][jj+%d];\n", 2, 2);
+	fprintf(f, "			hrq[ii][jj+%d] = - hq[ii][jj+%d];\n", 3, 3);
+	fprintf(f, "			}\n");
+	for(jj=0; jj<nu%4; jj++)
+		{
+	fprintf(f, "		hrq[ii][%d] = - hq[ii][%d];\n", (nu/4)*4+jj, (nu/4)*4+jj );
+		}
+	fprintf(f, "		\n");
+	fprintf(f, "		/* */\n");
+	fprintf(f, "		for(jj=0; jj<%d; jj+=4)\n", nx-3);
+	fprintf(f, "			{\n");
+	fprintf(f, "			hrq[ii][jj+%d] = hpi[ii][jj+%d] - hq[ii][jj+%d];\n", nu+0, 0, nu+0);
+	fprintf(f, "			hrq[ii][jj+%d] = hpi[ii][jj+%d] - hq[ii][jj+%d];\n", nu+1, 1, nu+1);
+	fprintf(f, "			hrq[ii][jj+%d] = hpi[ii][jj+%d] - hq[ii][jj+%d];\n", nu+2, 2, nu+2);
+	fprintf(f, "			hrq[ii][jj+%d] = hpi[ii][jj+%d] - hq[ii][jj+%d];\n", nu+3, 3, nu+3);
+	fprintf(f, "			}\n");
+	for(jj=0; jj<nx%4; jj++)
+		{
+	fprintf(f, "		hrq[ii][%d] = hpi[ii][%d] - hq[ii][%d];\n", nu+(nx/4)*4+jj, (nx/4)*4+jj, nu+(nx/4)*4+jj );
+		}
+	fprintf(f, "		\n");
+	fprintf(f, "		/* ssymv_t */\n");
+	fprintf(f, "		pA = &hpQ[ii][0];\n");
+	fprintf(f, "		x = &hux[ii][0];\n");
+	fprintf(f, "		y = &hrq[ii][0];\n");
+	
+	ssymv_p_code_generator(f, nxu, 0, -1);
+
+	fprintf(f, "		\n");
+	fprintf(f, "		/* sgemv_n */\n");
+	fprintf(f, "		pA = &hpBAbt[ii][0];\n");
+	fprintf(f, "		x = &hpi[ii+1][0];\n");
+	fprintf(f, "		y = &hrq[ii][0];\n");
+
+	sgemv_p_n_code_generator(f, nxu, nx, 0, -1);
+
+	fprintf(f, "	\n");
+	fprintf(f, "		/* */\n");
+	fprintf(f, "		for(jj=0; jj<%d; jj+=4)\n", nx-3);
+	fprintf(f, "			{\n");
+	fprintf(f, "			hrb[ii][jj+%d] = hux[ii+1][jj+%d] - hpBAbt[ii][%d+%d*(jj+%d)];\n", 0, nu+0, (nxu/bs)*bs*sda+nxu%bs, bs, 0);
+	fprintf(f, "			hrb[ii][jj+%d] = hux[ii+1][jj+%d] - hpBAbt[ii][%d+%d*(jj+%d)];\n", 1, nu+1, (nxu/bs)*bs*sda+nxu%bs, bs, 1);
+	fprintf(f, "			hrb[ii][jj+%d] = hux[ii+1][jj+%d] - hpBAbt[ii][%d+%d*(jj+%d)];\n", 2, nu+2, (nxu/bs)*bs*sda+nxu%bs, bs, 2);
+	fprintf(f, "			hrb[ii][jj+%d] = hux[ii+1][jj+%d] - hpBAbt[ii][%d+%d*(jj+%d)];\n", 3, nu+3, (nxu/bs)*bs*sda+nxu%bs, bs, 3);
+	fprintf(f, "			}\n");
+	for(jj=0; jj<nx%4; jj++)
+		{
+	fprintf(f, "		hrb[ii][%d] = hux[ii+1][%d] - hpBAbt[ii][%d];\n", (nx/4)*4+jj, nu+(nx/4)*4+jj, (nxu/bs)*bs*sda+nxu%bs+bs*((nx/4)*4+jj) );
+		}
+	fprintf(f, "		\n");
+	fprintf(f, "		/* sgemv_t */\n");
+	fprintf(f, "		pA = &hpBAbt[ii][0];\n");
+	fprintf(f, "		x = &hux[ii][0];\n");
+	fprintf(f, "		y = &hrb[ii][0];\n");
+
+	sgemv_p_t_code_generator(f, nxu, nx, 0, -1);
+
+	fprintf(f, "		\n");
+	fprintf(f, "		}\n");
+	fprintf(f, "	\n");
+	fprintf(f, "	/* last block */\n");
+	fprintf(f, "	\n");
+	fprintf(f, "	/* */\n");
+	fprintf(f, "	for(jj=0; jj<%d; jj+=4)\n", nx-3);
+	fprintf(f, "		{\n");
+	fprintf(f, "		hrq[N][jj+%d] = hpi[N][jj+%d] - hq[N][jj+%d];\n", nu+0, 0, nu+0);
+	fprintf(f, "		hrq[N][jj+%d] = hpi[N][jj+%d] - hq[N][jj+%d];\n", nu+1, 1, nu+1);
+	fprintf(f, "		hrq[N][jj+%d] = hpi[N][jj+%d] - hq[N][jj+%d];\n", nu+2, 2, nu+2);
+	fprintf(f, "		hrq[N][jj+%d] = hpi[N][jj+%d] - hq[N][jj+%d];\n", nu+3, 3, nu+3);
+	fprintf(f, "		}\n");
+	for(jj=0; jj<nx%4; jj++)
+		{
+	fprintf(f, "	hrq[N][%d] = hpi[N][%d] - hq[N][%d];\n", nu+(nx/4)*4+jj, (nx/4)*4+jj, nu+(nx/4)*4+jj );
+		}
+	fprintf(f, "	\n");
+	fprintf(f, "	/* ssymv_t */\n");
+	fprintf(f, "	pA = &hpQ[N][%d];\n", (nu/bs)*bs*sda+nu%bs+nu*bs);
+	fprintf(f, "	x = &hux[N][%d];\n", nu);
+	fprintf(f, "	y = &hrq[N][%d];\n", nu);
+	
+	ssymv_p_code_generator(f, nx, nu, -1);
+
+	fprintf(f, "	\n");
+	fprintf(f, "	\n");
+	fprintf(f, "	\n");
+	fprintf(f, "	\n");
+	fprintf(f, "	}\n");
+	fprintf(f, "	\n");
+
+	
+    fclose(f);
+
+
+
 	return;
 
 	}

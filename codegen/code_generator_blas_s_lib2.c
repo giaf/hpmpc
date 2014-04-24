@@ -457,7 +457,7 @@ fprintf(f, "	kernel_sgemv_t_1_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], 1);\n", m
 			{
 fprintf(f, "	kernel_sgemv_n_2_lib2(%d, &pA[%d], &x[%d], &y[%d], %d);\n", j, idxA, idxx, idxy, alg);
 fprintf(f, "	y[%d] += pA[%d]*x[%d] + pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j, idxA+j*bs+1, idxx+j+1);
-fprintf(f, "	y[%d] += pA[%d]*x[%d];\n", idxy+1, idxA+j*bs+1, idxx+j, idxA+j*bs+1+bs*1, idxx+j+1);
+fprintf(f, "	y[%d] += pA[%d]*x[%d] + pA[%d]*x[%d];\n", idxy+1, idxA+j*bs+1, idxx+j, idxA+j*bs+1+bs*1, idxx+j+1);
 fprintf(f, "	kernel_sgemv_t_2_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], 1);\n", m-j-2, idxA+j*bs+sda*bs, sda, idxx+j+2, idxy);
 			idxA += sda*bs;
 			idxy += bs;
@@ -487,7 +487,7 @@ fprintf(f, "	kernel_sgemv_t_1_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], -1);\n", 
 			{
 fprintf(f, "	kernel_sgemv_n_2_lib2(%d, &pA[%d], &x[%d], &y[%d], -1);\n", j, idxA, idxx, idxy);
 fprintf(f, "	y[%d] -= pA[%d]*x[%d] + pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j, idxA+j*bs+1, idxx+j+1);
-fprintf(f, "	y[%d] -= pA[%d]*x[%d];\n", idxy+1, idxA+j*bs+1, idxx+j, idxA+j*bs+1+bs*1, idxx+j+1);
+fprintf(f, "	y[%d] -= pA[%d]*x[%d] + pA[%d]*x[%d];\n", idxy+1, idxA+j*bs+1, idxx+j, idxA+j*bs+1+bs*1, idxx+j+1);
 fprintf(f, "	kernel_sgemv_t_2_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], -1);\n", m-j-2, idxA+j*bs+sda*bs, sda, idxx+j+2, idxy);
 			idxA += sda*bs;
 			idxy += bs;
