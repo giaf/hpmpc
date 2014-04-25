@@ -3,7 +3,7 @@
 * This file is part of HPMPC.                                                                     *
 *                                                                                                 *
 * HPMPC -- Library for High-Performance implementation of solvers for MPC.                        *
-* Copyright (C) 2014 by Technical Univeristy of Denmark. All rights reserved.                     *
+* Copyright (C) 2014 by Technical University of Denmark. All rights reserved.                     *
 *                                                                                                 *
 * HPMPC is free software; you can redistribute it and/or                                          *
 * modify it under the terms of the GNU Lesser General Public                                      *
@@ -57,7 +57,7 @@ void main()
 	fprintf(f, "* This file is part of HPMPC.                                                                     *\n");
 	fprintf(f, "*                                                                                                 *\n");
 	fprintf(f, "* HPMPC -- Library for High-Performance implementation of solvers for MPC.                        *\n");
-	fprintf(f, "* Copyright (C) 2014 by Technical Univeristy of Denmark. All rights reserved.                     *\n");
+	fprintf(f, "* Copyright (C) 2014 by Technical University of Denmark. All rights reserved.                     *\n");
 	fprintf(f, "*                                                                                                 *\n");
 	fprintf(f, "* HPMPC is free software; you can redistribute it and/or                                          *\n");
 	fprintf(f, "* modify it under the terms of the GNU Lesser General Public                                      *\n");
@@ -455,7 +455,7 @@ void main()
 	fprintf(f, "* This file is part of HPMPC.                                                                     *\n");
 	fprintf(f, "*                                                                                                 *\n");
 	fprintf(f, "* HPMPC -- Library for High-Performance implementation of solvers for MPC.                        *\n");
-	fprintf(f, "* Copyright (C) 2014 by Technical Univeristy of Denmark. All rights reserved.                     *\n");
+	fprintf(f, "* Copyright (C) 2014 by Technical University of Denmark. All rights reserved.                     *\n");
 	fprintf(f, "*                                                                                                 *\n");
 	fprintf(f, "* HPMPC is free software; you can redistribute it and/or                                          *\n");
 	fprintf(f, "* modify it under the terms of the GNU Lesser General Public                                      *\n");

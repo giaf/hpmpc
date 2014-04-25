@@ -3,7 +3,7 @@
 # This file is part of HPMPC.                                                                     #
 #                                                                                                 #
 # HPMPC -- Library for High-Performance implementation of solvers for MPC.                        #
-# Copyright (C) 2014 by Technical Univeristy of Denmark. All rights reserved.                     #
+# Copyright (C) 2014 by Technical University of Denmark. All rights reserved.                     #
 #                                                                                                 #
 # HPMPC is free software; you can redistribute it and/or                                          #
 # modify it under the terms of the GNU Lesser General Public                                      #
@@ -75,6 +75,8 @@ obj: codegen $(OBJS)
 clean:
 	rm -f dricposv_codegen.c 
 	rm -f sricposv_codegen.c
+	rm -f dres_codegen.c 
+	rm -f sres_codegen.c
 	rm -f *.o
 	rm -f code_generator.out
 

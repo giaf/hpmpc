@@ -23,30 +23,15 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-/* return the number of rows of the C sub-matrix in the dgemm micro-kernel, double precision */
-int d_get_mr()
-	{
-	int bs = 2;
-	return bs;
-	}
+void spotrf_p_scopy_p_t_code_generator(FILE *f, int n, int nna);
+void spotrf_p_code_generator(FILE *f, int m, int n);
+void strmm_ppp_code_generator(FILE *f, int m, int n, int offset);
+void ssyrk_ppp_code_generator(FILE *f, int m, int n, int k);
+void sgemv_p_n_code_generator(FILE *f, int n, int m, int offset, int alg);
+void sgemv_p_t_code_generator(FILE *f, int n, int m, int offset, int alg);
+void strmv_p_n_code_generator(FILE *f, int m, int offset, int alg);
+void strmv_p_t_code_generator(FILE *f, int m, int offset, int alg);
+void ssymv_p_code_generator(FILE *f, int m, int offset, int alg);
+void strsv_p_n_code_generator(FILE *f, int n);
+void strsv_p_t_code_generator(FILE *f, int n);
 
-/* return the number of columns of the C sub-matrix in the dgemm micro-kernel, double precision */
-int d_get_nr()
-	{
-	int bs = 2;
-	return bs;
-	}
-
-/* return the number of rows of the C sub-matrix in the dgemm micro-kernel, single precision */
-int s_get_mr()
-	{
-	int bs = 2;
-	return bs;
-	}
-
-/* return the number of columns of the C sub-matrix in the dgemm micro-kernel, single precision */
-int s_get_nr()
-	{
-	int bs = 2;
-	return bs;
-	}
