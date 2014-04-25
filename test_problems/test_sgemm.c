@@ -63,7 +63,7 @@ int main()
 	
 	int info = 0;
 	
-	printf("\nn\tGflops dgemm %%\tGflops dsyrk %%\tGflops dtrmm %%\tGflops dpotrf %%\tGflops dgemv_n%%\tGflops dgemv_t%%\tGflops dsymv %%\tGflops dtrmv_n%%\tGflops dtrmv_t%%\n\n");
+	printf("\nn\tGflops dgemm %%\tGflops dsyrk %%\tGflops dtrmm %%\tGflops dpotrf %%\tGflops dgemv_n%%\tGflops dgemv_t%%\tGflops dsymv %%\tGflops dtrmv_n%%\tGflops dtrmv_t%%\tGflops dmvmv%%\n\n");
 	
 /*	int nn[] = {4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 96, 128, 144, 160, 192, 256};*/
 /*	int nnrep[] = {10000, 10000, 10000, 10000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 100, 100, 100, 100};*/
@@ -108,6 +108,8 @@ int main()
 		float *pL; s_zeros_align(&pL, pns, pns);
 		float *x; s_zeros_align(&x, pns, 1);
 		float *y; s_zeros_align(&y, pns, 1);
+		float *x2; s_zeros_align(&x2, pns, 1);
+		float *y2; s_zeros_align(&y2, pns, 1);
 	
 		s_cvt_mat2pmat(n, n, 0, bss, sA, n, pA, pns);
 		s_cvt_mat2pmat(n, n, 0, bss, sB, n, pB, pns);
@@ -116,9 +118,10 @@ int main()
 		for(i=0; i<pns*pns; i++) pC[i] = -1;
 		
 		for(i=0; i<pns; i++) x[i] = 1;
+		for(i=0; i<pns; i++) x2[i] = 1;
 
 		/* timing */
-		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6, tv7, tv8, tv9;
+		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6, tv7, tv8, tv9, tv10;
 
 		/* warm up */
 		for(rep=0; rep<nrep; rep++)
@@ -210,6 +213,15 @@ int main()
 	
 		gettimeofday(&tv9, NULL); // stop
 
+		for(rep=0; rep<nrep; rep++)
+			{
+
+			smvmv_p_lib(n, n, 0, pA, pns, x, y, x2, y2, 0);
+
+			}
+	
+		gettimeofday(&tv10, NULL); // stop
+
 
 
 		float Gflops_max = d_flops_max * GHz_max;
@@ -250,7 +262,11 @@ int main()
 		float flop_dtrmv_t = 1.0*n*n;
 		float Gflops_dtrmv_t = 1e-9*flop_dtrmv_t/time_dtrmv_t;
 
-		printf("%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_dgemm, 100.0*Gflops_dgemm/Gflops_max, Gflops_dsyrk, 100.0*Gflops_dsyrk/Gflops_max, Gflops_dtrmm, 100.0*Gflops_dtrmm/Gflops_max, Gflops_dpotrf, 100.0*Gflops_dpotrf/Gflops_max, Gflops_dgemv_n, 100.0*Gflops_dgemv_n/Gflops_max, Gflops_dgemv_t, 100.0*Gflops_dgemv_t/Gflops_max, Gflops_dsymv, 100.0*Gflops_dsymv/Gflops_max, Gflops_dtrmv_n, 100.0*Gflops_dtrmv_n/Gflops_max, Gflops_dtrmv_t, 100.0*Gflops_dtrmv_t/Gflops_max);
+		float time_dmvmv = (float) (tv10.tv_sec-tv9.tv_sec)/(nrep+0.0)+(tv10.tv_usec-tv9.tv_usec)/(nrep*1e6);
+		float flop_dmvmv = 4.0*n*n;
+		float Gflops_dmvmv = 1e-9*flop_dmvmv/time_dmvmv;
+
+		printf("%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_dgemm, 100.0*Gflops_dgemm/Gflops_max, Gflops_dsyrk, 100.0*Gflops_dsyrk/Gflops_max, Gflops_dtrmm, 100.0*Gflops_dtrmm/Gflops_max, Gflops_dpotrf, 100.0*Gflops_dpotrf/Gflops_max, Gflops_dgemv_n, 100.0*Gflops_dgemv_n/Gflops_max, Gflops_dgemv_t, 100.0*Gflops_dgemv_t/Gflops_max, Gflops_dsymv, 100.0*Gflops_dsymv/Gflops_max, Gflops_dtrmv_n, 100.0*Gflops_dtrmv_n/Gflops_max, Gflops_dtrmv_t, 100.0*Gflops_dtrmv_t/Gflops_max, Gflops_dmvmv, 100.0*Gflops_dmvmv/Gflops_max);
 
 		free(A);
 		free(B);
@@ -261,6 +277,8 @@ int main()
 		free(pL);
 		free(x);
 		free(y);
+		free(x2);
+		free(y2);
 		
 		}
 

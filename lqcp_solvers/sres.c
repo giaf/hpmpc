@@ -53,9 +53,10 @@ void sres(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **h
 		for(jj=0; jj<nu; jj++) hrq[ii][jj] = - hq[ii][jj];
 		for(jj=0; jj<nx; jj++) hrq[ii][nu+jj] = hpi[ii][jj] - hq[ii][nu+jj];
 		ssymv_p_lib(nxu, 0, hpQ[ii], sda, hux[ii], hrq[ii], -1);
-		sgemv_p_n_lib(nxu, nx, 0, hpBAbt[ii], sda, hpi[ii+1], hrq[ii], -1);
 		for(jj=0; jj<nx; jj++) hrb[ii][jj] = hux[ii+1][nu+jj] - hpBAbt[ii][(nxu/bs)*bs*sda+nxu%bs+bs*jj];
-		sgemv_p_t_lib(nxu, nx, 0, hpBAbt[ii], sda, hux[ii], hrb[ii], -1);
+/*		sgemv_p_n_lib(nxu, nx, 0, hpBAbt[ii], sda, hpi[ii+1], hrq[ii], -1);*/
+/*		sgemv_p_t_lib(nxu, nx, 0, hpBAbt[ii], sda, hux[ii], hrb[ii], -1);*/
+		smvmv_p_lib(nxu, nx, 0, hpBAbt[ii], sda, hpi[ii+1], hrq[ii], hux[ii], hrb[ii], -1);
 		}
 	
 	// last block

@@ -594,6 +594,82 @@ void ssymv_p_lib(int m, int offset, float *pA, int sda, float *x, float *y, int 
 
 
 
+void smvmv_p_lib(int m, int n, int offset, float *pA, int sda, float *x_n, float *y_n, float *x_t, float *y_t, int alg)
+	{
+	
+	const int bs = 2;
+	
+	int mna = (bs-offset%bs)%bs;
+	
+	int j;
+	
+	if(alg==0)
+		{
+		for(j=0; j<m; j++)
+			y_n[j] = 0.0;
+		for(j=0; j<n; j++)
+			y_t[j] = 0.0;
+		}
+	
+	if(alg==0 || alg==1)
+		{
+		j=0;
+		if(mna==1)
+			{
+			kernel_ssymv_1_lib2(n, pA, x_n, y_n, x_t, y_t, 0, 1);
+			pA  += 1;
+			y_n += 1;
+			x_t += 1;
+			pA  += (sda-1)*bs;
+			j++;
+			}
+		for(; j<m-1; j+=2)
+			{
+			kernel_ssymv_2_lib2(n, pA, x_n, y_n, x_t, y_t, 0, 1);
+			pA  += sda*bs;
+			y_n += bs;
+			x_t += bs;
+			}
+		for(; j<m; j++)
+			{
+			kernel_ssymv_1_lib2(n, pA, x_n, y_n, x_t, y_t, 0, 1);
+			pA  += 1;
+			y_n += 1;
+			x_t += 1;
+			}
+		}
+	else // alg==-1
+		{
+		j=0;
+		if(mna==1)
+			{
+			kernel_ssymv_1_lib2(n, pA, x_n, y_n, x_t, y_t, 0, -1);
+			pA  += 1;
+			y_n += 1;
+			x_t += 1;
+			pA  += (sda-1)*bs;
+			j++;
+			}
+		for(; j<m-1; j+=2)
+			{
+			kernel_ssymv_2_lib2(n, pA, x_n, y_n, x_t, y_t, 0, -1);
+			pA  += sda*bs;
+			y_n += bs;
+			x_t += bs;
+			}
+		for(; j<m; j++)
+			{
+			kernel_ssymv_1_lib2(n, pA, x_n, y_n, x_t, y_t, 0, -1);
+			pA  += 1;
+			y_n += 1;
+			x_t += 1;
+			}
+		}
+
+	}
+
+
+
 void strsv_p_n_lib(int n, float *pA, int sda, float *x)
 	{
 	
