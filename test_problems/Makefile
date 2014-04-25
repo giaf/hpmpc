@@ -42,7 +42,7 @@ ifeq ($(TARGET), SSE4)
 CFLAGS = $(OPT) -std=c99 -msse4 -DTARGET_SSE4 $(DEBUG)
 endif
 ifeq ($(TARGET), NEON)
-CFLAGS = $(OPT) -std=c99 -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_CORTEXA9 $(DEBUG)
 endif
 ifeq ($(TARGET), POWERPC_G2)
 CFLAGS = $(OPT) -std=c99 -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)

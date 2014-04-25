@@ -107,7 +107,7 @@ int main()
 	double *y; d_zeros_align(&y, n, 1);
 	
 	pA[0] = -1;
-	x[5] = 1;
+	x[2] = 1;
 
 /*	for(i=0; i<pn*pn; i++) pC[i] = -1;*/
 /*	for(i=0; i<pn*pn; i++) spC[i] = -1;*/
@@ -159,7 +159,8 @@ int main()
 //		dgemm_nt_lib2(n, pB, pA, pC, pn);
 //		dgemv_n_lib(n-1, n, 1, pn, pA+1, x, y);
 /*		dtrmv_p_n_lib(n-1, 1, pA+1+bs, pn, x, y, 0);*/
-		dtrmv_p_t_lib(n-1, 1, pA+1+bs, pn, x, y, 0);
+/*		dtrmv_p_t_lib(n-1, 1, pA+1+bs, pn, x, y, 0);*/
+		dsymv_p_lib(n, 0, pA, pn, x, y, 0);
 
 		}
 	

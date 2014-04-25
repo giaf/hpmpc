@@ -33,6 +33,8 @@ void kernel_sgemv_t_2_lib2(int kmax, int kna, float *A, int sda, float *x, float
 void kernel_sgemv_t_1_lib2(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
 void kernel_sgemv_n_2_lib2(int kmax, float *A, float *x, float *y, int alg);
 void kernel_sgemv_n_1_lib2(int kmax, float *A, float *x, float *y, int alg);
+void kernel_ssymv_2_lib2(int kmax, float *A, float *x_n, float *y_n, float *x_t, float *y_t, int tri, int alg);
+void kernel_ssymv_1_lib2(int kmax, float *A, float *x_n, float *y_n, float *x_t, float *y_t, int tri, int alg);
 //// corner
 void corner_strmm_pp_nt_2x1_lib2(float *A, float *B, float *C, int ldc);
 void corner_spotrf_strsv_scopy_1x1_lib2(float *A, int sda, int shf, float *L, int sdl, int *info);

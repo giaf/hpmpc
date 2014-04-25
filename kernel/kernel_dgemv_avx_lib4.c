@@ -45,7 +45,7 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	int ka = kmax-kna; // number from aligned positon
 	
 	__m256d
-		aaxx_temp,
+		aaxx_temp, 
 		a_00_10_20_30, a_01_11_21_31, a_02_12_22_32, a_03_13_23_33,
 		x_0_1_2_3,
 		y_00, y_11, y_22, y_33, y_44, y_55, y_66, y_77;
@@ -174,6 +174,16 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 		A += (sda-1)*lda;
 		}
 
+/*	if(kmax>64)*/
+/*		{*/
+
+/*		__builtin_prefetch( A + 0*lda );*/
+/*		__builtin_prefetch( A + 2*lda );*/
+/*		__builtin_prefetch( A + 4*lda );*/
+/*		__builtin_prefetch( A + 6*lda );*/
+/*		*/
+/*		}*/
+
 	k = lda*(ka/lda);
 	tA = A + (ka/lda)*sda*lda;
 	tx = x + (ka/lda)*lda;
@@ -285,51 +295,103 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	y_66 = _mm256_castpd128_pd256(y_6);
 	y_77 = _mm256_castpd128_pd256(y_7);
 
-	k=0;
-	for(; k<ka-3; k+=4)
+	if(kmax<=64)
+		{
+
+		k=0;
+		for(; k<ka-3; k+=4)
+			{
+		
+/*			__builtin_prefetch( A + 4 + (sda-1)*lda + 0*lda );*/
+/*			__builtin_prefetch( A + 4 + (sda-1)*lda + 2*lda );*/
+
+			x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+
+			a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+			a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+			a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+			a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
+		
+			aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+			y_00 = _mm256_add_pd( y_00, aaxx_temp );
+			aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+			y_11 = _mm256_add_pd( y_11, aaxx_temp );
+			aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+			y_22 = _mm256_add_pd( y_22, aaxx_temp );
+			aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+			y_33 = _mm256_add_pd( y_33, aaxx_temp );
+		
+/*			__builtin_prefetch( A + 4 + (sda-1)*lda + 4*lda );*/
+/*			__builtin_prefetch( A + 4 + (sda-1)*lda + 6*lda );*/
+
+			a_00_10_20_30 = _mm256_load_pd( &A[0+lda*4] );
+			a_01_11_21_31 = _mm256_load_pd( &A[0+lda*5] );
+			a_02_12_22_32 = _mm256_load_pd( &A[0+lda*6] );
+			a_03_13_23_33 = _mm256_load_pd( &A[0+lda*7] );
+		
+			aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+			y_44 = _mm256_add_pd( y_44, aaxx_temp );
+			aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+			y_55 = _mm256_add_pd( y_55, aaxx_temp );
+			aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+			y_66 = _mm256_add_pd( y_66, aaxx_temp );
+			aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+			y_77 = _mm256_add_pd( y_77, aaxx_temp );
+
+			A += 4 + (sda-1)*lda;
+			x += 4;
+
+			}
+		
+		}
+	else
 		{
 		
-		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+		k=0;
+		for(; k<ka-3; k+=4)
+			{
 
-		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
-		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
-		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
-		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
-		
-/*		y_00 += a_00_10_20_30 * x_0_1_2_3;*/
-		aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
-		y_00 = _mm256_add_pd( y_00, aaxx_temp );
-/*		y_11 += a_01_11_21_31 * x_0_1_2_3;*/
-		aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
-		y_11 = _mm256_add_pd( y_11, aaxx_temp );
-/*		y_22 += a_02_12_22_32 * x_0_1_2_3;*/
-		aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
-		y_22 = _mm256_add_pd( y_22, aaxx_temp );
-/*		y_33 += a_03_13_23_33 * x_0_1_2_3;*/
-		aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
-		y_33 = _mm256_add_pd( y_33, aaxx_temp );
-		
-		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*4] );
-		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*5] );
-		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*6] );
-		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*7] );
-		
-/*		y_00 += a_00_10_20_30 * x_0_1_2_3;*/
-		aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
-		y_44 = _mm256_add_pd( y_44, aaxx_temp );
-/*		y_11 += a_01_11_21_31 * x_0_1_2_3;*/
-		aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
-		y_55 = _mm256_add_pd( y_55, aaxx_temp );
-/*		y_22 += a_02_12_22_32 * x_0_1_2_3;*/
-		aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
-		y_66 = _mm256_add_pd( y_66, aaxx_temp );
-/*		y_33 += a_03_13_23_33 * x_0_1_2_3;*/
-		aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
-		y_77 = _mm256_add_pd( y_77, aaxx_temp );
+			__builtin_prefetch( A + 4 + (sda-1)*lda + 0*lda );
+			__builtin_prefetch( A + 4 + (sda-1)*lda + 2*lda );
 
-		A += 4 + (sda-1)*lda;
-		x += 4;
+			x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
 
+			a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+			a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+			a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+			a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
+		
+			aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+			y_00 = _mm256_add_pd( y_00, aaxx_temp );
+			aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+			y_11 = _mm256_add_pd( y_11, aaxx_temp );
+			aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+			y_22 = _mm256_add_pd( y_22, aaxx_temp );
+			aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+			y_33 = _mm256_add_pd( y_33, aaxx_temp );
+		
+			__builtin_prefetch( A + 4 + (sda-1)*lda + 4*lda );
+			__builtin_prefetch( A + 4 + (sda-1)*lda + 6*lda );
+
+			a_00_10_20_30 = _mm256_load_pd( &A[0+lda*4] );
+			a_01_11_21_31 = _mm256_load_pd( &A[0+lda*5] );
+			a_02_12_22_32 = _mm256_load_pd( &A[0+lda*6] );
+			a_03_13_23_33 = _mm256_load_pd( &A[0+lda*7] );
+		
+			aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+			y_44 = _mm256_add_pd( y_44, aaxx_temp );
+			aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+			y_55 = _mm256_add_pd( y_55, aaxx_temp );
+			aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+			y_66 = _mm256_add_pd( y_66, aaxx_temp );
+			aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+			y_77 = _mm256_add_pd( y_77, aaxx_temp );
+
+			A += 4 + (sda-1)*lda;
+			x += 4;
+
+			}
+		
 		}
 
 	__m256d
@@ -838,57 +900,131 @@ void kernel_dgemv_n_8_lib4(int kmax, double *A0, double *A1, double *x, double *
 	y_0_1_2_3_b = _mm256_setzero_pd();	
 	y_4_5_6_7_b = _mm256_setzero_pd();	
 
-	k=0;
-	for(; k<kmax-3; k+=4)
+	if(kmax<=64)
 		{
 
-		x_0 = _mm256_broadcast_sd( &x[0] );
-		x_1 = _mm256_broadcast_sd( &x[1] );
+		k=0;
+		for(; k<kmax-3; k+=4)
+			{
 
-		a_00_10_20_30 = _mm256_load_pd( &A0[0+lda*0] );
-		a_40_50_60_70 = _mm256_load_pd( &A1[0+lda*0] );
-		a_01_11_21_31 = _mm256_load_pd( &A0[0+lda*1] );
-		a_41_51_61_71 = _mm256_load_pd( &A1[0+lda*1] );
+/*			__builtin_prefetch( A0 + 4*lda );*/
+/*			__builtin_prefetch( A1 + 4*lda );*/
 
-/*		y_0_1_2_3   += a_00_10_20_30 * x_0;*/
-		ax_temp = _mm256_mul_pd( a_00_10_20_30, x_0 );
-		y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, ax_temp );
-/*		y_4_5_6_7   += a_40_50_60_70 * x_0;*/
-		ax_temp = _mm256_mul_pd( a_40_50_60_70, x_0 );
-		y_4_5_6_7 = _mm256_add_pd( y_4_5_6_7, ax_temp );
-/*		y_0_1_2_3_b += a_01_11_21_31 * x_1;*/
-		ax_temp = _mm256_mul_pd( a_01_11_21_31, x_1 );
-		y_0_1_2_3_b = _mm256_add_pd( y_0_1_2_3_b, ax_temp );
-/*		y_4_5_6_7_b += a_41_51_61_71 * x_1;*/
-		ax_temp = _mm256_mul_pd( a_41_51_61_71, x_1 );
-		y_4_5_6_7_b = _mm256_add_pd( y_4_5_6_7_b, ax_temp );
+			x_0 = _mm256_broadcast_sd( &x[0] );
+			x_1 = _mm256_broadcast_sd( &x[1] );
 
-		x_0 = _mm256_broadcast_sd( &x[2] );
-		x_1 = _mm256_broadcast_sd( &x[3] );
+			a_00_10_20_30 = _mm256_load_pd( &A0[0+lda*0] );
+			a_40_50_60_70 = _mm256_load_pd( &A1[0+lda*0] );
+			a_01_11_21_31 = _mm256_load_pd( &A0[0+lda*1] );
+			a_41_51_61_71 = _mm256_load_pd( &A1[0+lda*1] );
 
-		a_00_10_20_30 = _mm256_load_pd( &A0[0+lda*2] );
-		a_40_50_60_70 = _mm256_load_pd( &A1[0+lda*2] );
-		a_01_11_21_31 = _mm256_load_pd( &A0[0+lda*3] );
-		a_41_51_61_71 = _mm256_load_pd( &A1[0+lda*3] );
+	/*		y_0_1_2_3   += a_00_10_20_30 * x_0;*/
+			ax_temp = _mm256_mul_pd( a_00_10_20_30, x_0 );
+			y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, ax_temp );
+	/*		y_4_5_6_7   += a_40_50_60_70 * x_0;*/
+			ax_temp = _mm256_mul_pd( a_40_50_60_70, x_0 );
+			y_4_5_6_7 = _mm256_add_pd( y_4_5_6_7, ax_temp );
+	/*		y_0_1_2_3_b += a_01_11_21_31 * x_1;*/
+			ax_temp = _mm256_mul_pd( a_01_11_21_31, x_1 );
+			y_0_1_2_3_b = _mm256_add_pd( y_0_1_2_3_b, ax_temp );
+	/*		y_4_5_6_7_b += a_41_51_61_71 * x_1;*/
+			ax_temp = _mm256_mul_pd( a_41_51_61_71, x_1 );
+			y_4_5_6_7_b = _mm256_add_pd( y_4_5_6_7_b, ax_temp );
 
-/*		y_0_1_2_3   += a_00_10_20_30 * x_0;*/
-		ax_temp = _mm256_mul_pd( a_00_10_20_30, x_0 );
-		y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, ax_temp );
-/*		y_4_5_6_7   += a_40_50_60_70 * x_0;*/
-		ax_temp = _mm256_mul_pd( a_40_50_60_70, x_0 );
-		y_4_5_6_7 = _mm256_add_pd( y_4_5_6_7, ax_temp );
-/*		y_0_1_2_3_b += a_01_11_21_31 * x_1;*/
-		ax_temp = _mm256_mul_pd( a_01_11_21_31, x_1 );
-		y_0_1_2_3_b = _mm256_add_pd( y_0_1_2_3_b, ax_temp );
-/*		y_4_5_6_7_b += a_41_51_61_71 * x_1;*/
-		ax_temp = _mm256_mul_pd( a_41_51_61_71, x_1 );
-		y_4_5_6_7_b = _mm256_add_pd( y_4_5_6_7_b, ax_temp );
+/*			__builtin_prefetch( A0 + 5*lda );*/
+/*			__builtin_prefetch( A1 + 5*lda );*/
+
+			x_0 = _mm256_broadcast_sd( &x[2] );
+			x_1 = _mm256_broadcast_sd( &x[3] );
+
+			a_00_10_20_30 = _mm256_load_pd( &A0[0+lda*2] );
+			a_40_50_60_70 = _mm256_load_pd( &A1[0+lda*2] );
+			a_01_11_21_31 = _mm256_load_pd( &A0[0+lda*3] );
+			a_41_51_61_71 = _mm256_load_pd( &A1[0+lda*3] );
+
+	/*		y_0_1_2_3   += a_00_10_20_30 * x_0;*/
+			ax_temp = _mm256_mul_pd( a_00_10_20_30, x_0 );
+			y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, ax_temp );
+	/*		y_4_5_6_7   += a_40_50_60_70 * x_0;*/
+			ax_temp = _mm256_mul_pd( a_40_50_60_70, x_0 );
+			y_4_5_6_7 = _mm256_add_pd( y_4_5_6_7, ax_temp );
+	/*		y_0_1_2_3_b += a_01_11_21_31 * x_1;*/
+			ax_temp = _mm256_mul_pd( a_01_11_21_31, x_1 );
+			y_0_1_2_3_b = _mm256_add_pd( y_0_1_2_3_b, ax_temp );
+	/*		y_4_5_6_7_b += a_41_51_61_71 * x_1;*/
+			ax_temp = _mm256_mul_pd( a_41_51_61_71, x_1 );
+			y_4_5_6_7_b = _mm256_add_pd( y_4_5_6_7_b, ax_temp );
 		
-		A0 += 4*lda;
-		A1 += 4*lda;
-		x  += 4;
+			A0 += 4*lda;
+			A1 += 4*lda;
+			x  += 4;
 
+			}
+		
 		}
+	else
+		{
+
+		k=0;
+		for(; k<kmax-3; k+=4)
+			{
+
+			__builtin_prefetch( A0 + 4*lda );
+			__builtin_prefetch( A1 + 4*lda );
+
+			x_0 = _mm256_broadcast_sd( &x[0] );
+			x_1 = _mm256_broadcast_sd( &x[1] );
+
+			a_00_10_20_30 = _mm256_load_pd( &A0[0+lda*0] );
+			a_40_50_60_70 = _mm256_load_pd( &A1[0+lda*0] );
+			a_01_11_21_31 = _mm256_load_pd( &A0[0+lda*1] );
+			a_41_51_61_71 = _mm256_load_pd( &A1[0+lda*1] );
+
+	/*		y_0_1_2_3   += a_00_10_20_30 * x_0;*/
+			ax_temp = _mm256_mul_pd( a_00_10_20_30, x_0 );
+			y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, ax_temp );
+	/*		y_4_5_6_7   += a_40_50_60_70 * x_0;*/
+			ax_temp = _mm256_mul_pd( a_40_50_60_70, x_0 );
+			y_4_5_6_7 = _mm256_add_pd( y_4_5_6_7, ax_temp );
+	/*		y_0_1_2_3_b += a_01_11_21_31 * x_1;*/
+			ax_temp = _mm256_mul_pd( a_01_11_21_31, x_1 );
+			y_0_1_2_3_b = _mm256_add_pd( y_0_1_2_3_b, ax_temp );
+	/*		y_4_5_6_7_b += a_41_51_61_71 * x_1;*/
+			ax_temp = _mm256_mul_pd( a_41_51_61_71, x_1 );
+			y_4_5_6_7_b = _mm256_add_pd( y_4_5_6_7_b, ax_temp );
+
+			__builtin_prefetch( A0 + 5*lda );
+			__builtin_prefetch( A1 + 5*lda );
+
+			x_0 = _mm256_broadcast_sd( &x[2] );
+			x_1 = _mm256_broadcast_sd( &x[3] );
+
+			a_00_10_20_30 = _mm256_load_pd( &A0[0+lda*2] );
+			a_40_50_60_70 = _mm256_load_pd( &A1[0+lda*2] );
+			a_01_11_21_31 = _mm256_load_pd( &A0[0+lda*3] );
+			a_41_51_61_71 = _mm256_load_pd( &A1[0+lda*3] );
+
+	/*		y_0_1_2_3   += a_00_10_20_30 * x_0;*/
+			ax_temp = _mm256_mul_pd( a_00_10_20_30, x_0 );
+			y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, ax_temp );
+	/*		y_4_5_6_7   += a_40_50_60_70 * x_0;*/
+			ax_temp = _mm256_mul_pd( a_40_50_60_70, x_0 );
+			y_4_5_6_7 = _mm256_add_pd( y_4_5_6_7, ax_temp );
+	/*		y_0_1_2_3_b += a_01_11_21_31 * x_1;*/
+			ax_temp = _mm256_mul_pd( a_01_11_21_31, x_1 );
+			y_0_1_2_3_b = _mm256_add_pd( y_0_1_2_3_b, ax_temp );
+	/*		y_4_5_6_7_b += a_41_51_61_71 * x_1;*/
+			ax_temp = _mm256_mul_pd( a_41_51_61_71, x_1 );
+			y_4_5_6_7_b = _mm256_add_pd( y_4_5_6_7_b, ax_temp );
+		
+			A0 += 4*lda;
+			A1 += 4*lda;
+			x  += 4;
+
+			}
+	
+		}
+
 
 	if(kmax%4>=2)
 		{

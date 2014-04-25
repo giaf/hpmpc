@@ -26,38 +26,38 @@
 include ../Makefile.rule
 
 ifeq ($(TARGET), AVX)
-OBJS_DOUBLE = kernel_dgemm_avx_lib4.o kernel_dpotrf_sse_lib4.o kernel_dgemv_avx_lib4.o corner_dtrmm_avx_lib4.o corner_dpotrf_sse_lib4.o
-OBJS_SINGLE = kernel_sgemm_sse3_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o
+OBJS_DOUBLE = kernel_dgemm_avx_lib4.o kernel_dpotrf_sse_lib4.o kernel_dgemv_avx_lib4.o corner_dtrmm_avx_lib4.o corner_dpotrf_sse_lib4.o kernel_dsymv_c99_lib4.o
+OBJS_SINGLE = kernel_sgemm_sse3_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_c99_lib4.o
 CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_AVX $(DEBUG)
 endif
 ifeq ($(TARGET), SSE4)
-OBJS_DOUBLE = kernel_dgemm_sse4_lib4.o kernel_dpotrf_sse_lib4.o kernel_dgemv_sse_lib4.o corner_dtrmm_sse_lib4.o corner_dpotrf_sse_lib4.o
-OBJS_SINGLE = kernel_sgemm_sse3_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o
+OBJS_DOUBLE = kernel_dgemm_sse4_lib4.o kernel_dpotrf_sse_lib4.o kernel_dgemv_sse_lib4.o corner_dtrmm_sse_lib4.o corner_dpotrf_sse_lib4.o kernel_dsymv_c99_lib4.o
+OBJS_SINGLE = kernel_sgemm_sse3_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_c99_lib4.o
 CFLAGS = $(OPT) -std=c99 -msse4 -fPIC -DTARGET_SSE4 $(DEBUG)
 endif
 ifeq ($(TARGET), NEON)
-OBJS_DOUBLE = kernel_dgemm_neon_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o corner_dtrmm_c99_lib4.o corner_dpotrf_c99_lib4.o
-OBJS_SINGLE = kernel_sgemm_neon_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_c99_lib4.o corner_spotrf_c99_lib4.o
+OBJS_DOUBLE = kernel_dgemm_neon_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o corner_dtrmm_c99_lib4.o corner_dpotrf_c99_lib4.o kernel_dsymv_c99_lib4.o
+OBJS_SINGLE = kernel_sgemm_neon_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_c99_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_c99_lib4.o
 CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
 endif
 ifeq ($(TARGET), POWERPC_G2)
-OBJS_DOUBLE = kernel_dgemm_ppc_g2_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o corner_dtrmm_c99_lib4.o corner_dpotrf_c99_lib4.o
-OBJS_SINGLE = kernel_sgemm_ppc_g2_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_c99_lib4.o corner_spotrf_c99_lib4.o
+OBJS_DOUBLE = kernel_dgemm_ppc_g2_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o corner_dtrmm_c99_lib4.o corner_dpotrf_c99_lib4.o kernel_dsymv_c99_lib4.o
+OBJS_SINGLE = kernel_sgemm_ppc_g2_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_c99_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_c99_lib4.o
 CFLAGS = $(OPT) -std=c99 -fPIC -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4)
-OBJS_DOUBLE = kernel_dgemm_c99_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o corner_dtrmm_c99_lib4.o corner_dpotrf_c99_lib4.o 
-OBJS_SINGLE = kernel_sgemm_c99_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_c99_lib4.o corner_spotrf_c99_lib4.o
+OBJS_DOUBLE = kernel_dgemm_c99_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o corner_dtrmm_c99_lib4.o corner_dpotrf_c99_lib4.o kernel_dsymv_c99_lib4.o  
+OBJS_SINGLE = kernel_sgemm_c99_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_c99_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_c99_lib4.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_2X2)
-OBJS_DOUBLE = kernel_dgemm_c99_lib2.o kernel_dpotrf_c99_lib2.o kernel_dgemv_c99_lib2.o corner_dtrmm_c99_lib2.o corner_dpotrf_c99_lib2.o
-OBJS_SINGLE = kernel_sgemm_c99_lib2.o kernel_spotrf_c99_lib2.o kernel_sgemv_c99_lib2.o corner_strmm_c99_lib2.o corner_spotrf_c99_lib2.o
+OBJS_DOUBLE = kernel_dgemm_c99_lib2.o kernel_dpotrf_c99_lib2.o kernel_dgemv_c99_lib2.o corner_dtrmm_c99_lib2.o corner_dpotrf_c99_lib2.o kernel_dsymv_c99_lib2.o 
+OBJS_SINGLE = kernel_sgemm_c99_lib2.o kernel_spotrf_c99_lib2.o kernel_sgemv_c99_lib2.o corner_strmm_c99_lib2.o corner_spotrf_c99_lib2.o kernel_ssymv_c99_lib2.o 
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_2X2 $(DEBUG)
 endif
 ifeq ($(TARGET), ATOM)
-OBJS_DOUBLE = kernel_dgemm_atom_lib2.o kernel_dpotrf_c99_lib2.o kernel_dgemv_c99_lib2.o corner_dtrmm_c99_lib2.o corner_dpotrf_c99_lib2.o
-OBJS_SINGLE = kernel_sgemm_atom_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_atom_lib4.o corner_strmm_c99_lib4.o corner_spotrf_c99_lib4.o
+OBJS_DOUBLE = kernel_dgemm_atom_lib2.o kernel_dpotrf_c99_lib2.o kernel_dgemv_c99_lib2.o corner_dtrmm_c99_lib2.o corner_dpotrf_c99_lib2.o kernel_dsymv_c99_lib2.o 
+OBJS_SINGLE = kernel_sgemm_atom_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_atom_lib4.o corner_strmm_c99_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_c99_lib4.o
 CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -fPIC -DTARGET_ATOM $(DEBUG)
 endif
 

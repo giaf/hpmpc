@@ -887,197 +887,298 @@ void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y,
 
 
 
+/*void dsymv_p_lib_old(int m, int offset, double *pA, int sda, double *x, double *y, int alg)*/
+/*	{*/
+/*	*/
+/*	const int bs = 4;*/
+
+/*	int mna = (bs-offset%bs)%bs;*/
+
+/*	int j;*/
+/*	*/
+/*	double *ptrA, *ptrx;*/
+/*	*/
+/*	if(alg==0 || alg==1)*/
+/*		{*/
+/*		j=0;*/
+/*		if(mna%2==1)*/
+/*			{*/
+/*			kernel_dgemv_n_1_lib4(j, pA, x, y, alg);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] += ptrA[0+bs*0]*ptrx[0];*/
+/*			kernel_dgemv_t_1_lib4(m-j-1, 0, ptrA+1, sda, ptrx+1, y, 1);*/
+/*			pA += 1;*/
+/*			y  += 1;*/
+/*			j  += 1;*/
+/*			}*/
+/*		if(mna%4>=2)*/
+/*			{*/
+/*			kernel_dgemv_n_2_lib4(j, pA, x, y, alg);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] += ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1];*/
+/*			y[1] += ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1];*/
+/*			kernel_dgemv_t_2_lib4(m-j-2, 0, ptrA+sda*bs, sda, ptrx+2, y, 1);*/
+/*			pA += 2;*/
+/*			y  += bs;*/
+/*			j  += 2;*/
+/*			}*/
+/*		if(mna>0)*/
+/*			{*/
+/*			pA += (sda-1)*bs;*/
+/*			}*/
+/*		for(; j<m-7; j+=8)*/
+/*			{*/
+/*			kernel_dgemv_n_8_lib4(j, pA, pA+sda*bs, x, y, alg);*/
+
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+
+/*			y[0] += ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1] + ptrA[2+bs*0]*ptrx[2] + ptrA[3+bs*0]*ptrx[3];*/
+/*			y[1] += ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1] + ptrA[2+bs*1]*ptrx[2] + ptrA[3+bs*1]*ptrx[3];*/
+/*			y[2] += ptrA[2+bs*0]*ptrx[0] + ptrA[2+bs*1]*ptrx[1] + ptrA[2+bs*2]*ptrx[2] + ptrA[3+bs*2]*ptrx[3];*/
+/*			y[3] += ptrA[3+bs*0]*ptrx[0] + ptrA[3+bs*1]*ptrx[1] + ptrA[3+bs*2]*ptrx[2] + ptrA[3+bs*3]*ptrx[3];*/
+
+/*			kernel_dgemv_n_4_lib4(4, ptrA+sda*bs, ptrx, y+4, 1);*/
+
+/*			kernel_dgemv_t_4_lib4(4, 0, ptrA+sda*bs, sda, ptrx+4, y, 1);*/
+
+/*			y[4] += ptrA[0+bs*4+sda*bs]*ptrx[4] + ptrA[1+bs*4+sda*bs]*ptrx[5] + ptrA[2+bs*4+sda*bs]*ptrx[6] + ptrA[3+bs*4+sda*bs]*ptrx[7];*/
+/*			y[5] += ptrA[1+bs*4+sda*bs]*ptrx[4] + ptrA[1+bs*5+sda*bs]*ptrx[5] + ptrA[2+bs*5+sda*bs]*ptrx[6] + ptrA[3+bs*5+sda*bs]*ptrx[7];*/
+/*			y[6] += ptrA[2+bs*4+sda*bs]*ptrx[4] + ptrA[2+bs*5+sda*bs]*ptrx[5] + ptrA[2+bs*6+sda*bs]*ptrx[6] + ptrA[3+bs*6+sda*bs]*ptrx[7];*/
+/*			y[7] += ptrA[3+bs*4+sda*bs]*ptrx[4] + ptrA[3+bs*5+sda*bs]*ptrx[5] + ptrA[3+bs*6+sda*bs]*ptrx[6] + ptrA[3+bs*7+sda*bs]*ptrx[7];*/
+/*		*/
+/*			kernel_dgemv_t_8_lib4(m-j-8, 0, ptrA+2*sda*bs, sda, ptrx+8, y, 1);*/
+/*		*/
+/*			pA += 2*sda*bs;*/
+/*			y  += 8;*/
+/*			}*/
+/*		for(; j<m-3; j+=4)*/
+/*			{*/
+/*			kernel_dgemv_n_4_lib4(j, pA, x, y, alg);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] += ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1] + ptrA[2+bs*0]*ptrx[2] + ptrA[3+bs*0]*ptrx[3];*/
+/*			y[1] += ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1] + ptrA[2+bs*1]*ptrx[2] + ptrA[3+bs*1]*ptrx[3];*/
+/*			y[2] += ptrA[2+bs*0]*ptrx[0] + ptrA[2+bs*1]*ptrx[1] + ptrA[2+bs*2]*ptrx[2] + ptrA[3+bs*2]*ptrx[3];*/
+/*			y[3] += ptrA[3+bs*0]*ptrx[0] + ptrA[3+bs*1]*ptrx[1] + ptrA[3+bs*2]*ptrx[2] + ptrA[3+bs*3]*ptrx[3];*/
+/*			kernel_dgemv_t_4_lib4(m-j-4, 0, ptrA+sda*bs, sda, ptrx+4, y, 1);*/
+/*			pA += 4 + (sda-1)*bs;*/
+/*			y  += 4;*/
+/*			}*/
+/*		for(; j<m-1; j+=2)*/
+/*			{*/
+/*			kernel_dgemv_n_2_lib4(j, pA, x, y, alg);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] += ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1];*/
+/*			y[1] += ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1];*/
+/*			kernel_dgemv_t_2_lib4(m-j-2, 0, ptrA+2, sda, ptrx+2, y, 1);*/
+/*			pA += 2;*/
+/*			y  += 2;*/
+/*			}*/
+/*		for(; j<m; j++)*/
+/*			{*/
+/*			kernel_dgemv_n_1_lib4(j, pA, x, y, alg);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] += ptrA[0+bs*0]*ptrx[0];*/
+/*			kernel_dgemv_t_1_lib4(m-j-1, 0, ptrA+1, sda, ptrx+1, y, 1);*/
+/*			pA += 1;*/
+/*			y  += 1;*/
+/*			}*/
+/*		}*/
+/*	else*/
+/*		{*/
+/*		j=0;*/
+/*		if(mna%2==1)*/
+/*			{*/
+/*			kernel_dgemv_n_1_lib4(j, pA, x, y, -1);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] -= ptrA[0+bs*0]*ptrx[0];*/
+/*			kernel_dgemv_t_1_lib4(m-j-1, 0, ptrA+1, sda, ptrx+1, y, -1);*/
+/*			pA += 1;*/
+/*			y  += 1;*/
+/*			j  += 1;*/
+/*			}*/
+/*		if(mna%4>=2)*/
+/*			{*/
+/*			kernel_dgemv_n_2_lib4(j, pA, x, y, -1);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] -= ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1];*/
+/*			y[1] -= ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1];*/
+/*			kernel_dgemv_t_2_lib4(m-j-2, 0, ptrA+sda*bs, sda, ptrx+2, y, -1);*/
+/*			pA += 2;*/
+/*			y  += bs;*/
+/*			j  += 2;*/
+/*			}*/
+/*		if(mna>0)*/
+/*			{*/
+/*			pA += (sda-1)*bs;*/
+/*			}*/
+/*		for(; j<m-7; j+=8)*/
+/*			{*/
+/*			kernel_dgemv_n_8_lib4(j, pA, pA+sda*bs, x, y, -1);*/
+
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+
+/*			y[0] -= ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1] + ptrA[2+bs*0]*ptrx[2] + ptrA[3+bs*0]*ptrx[3];*/
+/*			y[1] -= ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1] + ptrA[2+bs*1]*ptrx[2] + ptrA[3+bs*1]*ptrx[3];*/
+/*			y[2] -= ptrA[2+bs*0]*ptrx[0] + ptrA[2+bs*1]*ptrx[1] + ptrA[2+bs*2]*ptrx[2] + ptrA[3+bs*2]*ptrx[3];*/
+/*			y[3] -= ptrA[3+bs*0]*ptrx[0] + ptrA[3+bs*1]*ptrx[1] + ptrA[3+bs*2]*ptrx[2] + ptrA[3+bs*3]*ptrx[3];*/
+
+/*			kernel_dgemv_n_4_lib4(4, ptrA+sda*bs, ptrx, y+4, -1);*/
+
+/*			kernel_dgemv_t_4_lib4(4, 0, ptrA+sda*bs, sda, ptrx+4, y, -1);*/
+
+/*			y[4] -= ptrA[0+bs*4+sda*bs]*ptrx[4] + ptrA[1+bs*4+sda*bs]*ptrx[5] + ptrA[2+bs*4+sda*bs]*ptrx[6] + ptrA[3+bs*4+sda*bs]*ptrx[7];*/
+/*			y[5] -= ptrA[1+bs*4+sda*bs]*ptrx[4] + ptrA[1+bs*5+sda*bs]*ptrx[5] + ptrA[2+bs*5+sda*bs]*ptrx[6] + ptrA[3+bs*5+sda*bs]*ptrx[7];*/
+/*			y[6] -= ptrA[2+bs*4+sda*bs]*ptrx[4] + ptrA[2+bs*5+sda*bs]*ptrx[5] + ptrA[2+bs*6+sda*bs]*ptrx[6] + ptrA[3+bs*6+sda*bs]*ptrx[7];*/
+/*			y[7] -= ptrA[3+bs*4+sda*bs]*ptrx[4] + ptrA[3+bs*5+sda*bs]*ptrx[5] + ptrA[3+bs*6+sda*bs]*ptrx[6] + ptrA[3+bs*7+sda*bs]*ptrx[7];*/
+/*		*/
+/*			kernel_dgemv_t_8_lib4(m-j-8, 0, ptrA+2*sda*bs, sda, ptrx+8, y, -1);*/
+/*		*/
+/*			pA += 2*sda*bs;*/
+/*			y  += 8;*/
+/*			}*/
+/*		for(; j<m-3; j+=4)*/
+/*			{*/
+/*			kernel_dgemv_n_4_lib4(j, pA, x, y, -1);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] -= ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1] + ptrA[2+bs*0]*ptrx[2] + ptrA[3+bs*0]*ptrx[3];*/
+/*			y[1] -= ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1] + ptrA[2+bs*1]*ptrx[2] + ptrA[3+bs*1]*ptrx[3];*/
+/*			y[2] -= ptrA[2+bs*0]*ptrx[0] + ptrA[2+bs*1]*ptrx[1] + ptrA[2+bs*2]*ptrx[2] + ptrA[3+bs*2]*ptrx[3];*/
+/*			y[3] -= ptrA[3+bs*0]*ptrx[0] + ptrA[3+bs*1]*ptrx[1] + ptrA[3+bs*2]*ptrx[2] + ptrA[3+bs*3]*ptrx[3];*/
+/*			kernel_dgemv_t_4_lib4(m-j-4, 0, ptrA+sda*bs, sda, ptrx+4, y, -1);*/
+/*			pA += sda*bs;*/
+/*			y  += 4;*/
+/*			}*/
+/*		for(; j<m-1; j+=2)*/
+/*			{*/
+/*			kernel_dgemv_n_2_lib4(j, pA, x, y, -1);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] -= ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1];*/
+/*			y[1] -= ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1];*/
+/*			kernel_dgemv_t_2_lib4(m-j-2, 0, ptrA+2, sda, ptrx+2, y, -1);*/
+/*			pA += 2;*/
+/*			y  += 2;*/
+/*			}*/
+/*		for(; j<m; j++)*/
+/*			{*/
+/*			kernel_dgemv_n_1_lib4(j, pA, x, y, -1);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] -= ptrA[0+bs*0]*ptrx[0];*/
+/*			kernel_dgemv_t_1_lib4(m-j-1, 0, ptrA+1, sda, ptrx+1, y, -1);*/
+/*			pA += 1;*/
+/*			y  += 1;*/
+/*			}*/
+/*		}*/
+
+/*	}*/
+
+
+
 void dsymv_p_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg)
 	{
 	
 	const int bs = 4;
-
+	
 	int mna = (bs-offset%bs)%bs;
-
+	if(m<mna)
+		mna = m;
+	
 	int j;
 	
-	double *ptrA, *ptrx;
+	double *x_n, *y_n, *x_t, *y_t;
+	
+	x_n = x;
+	x_t = x;
+	y_n = y;
+	y_t = y;
+	
+	if(alg==0)
+		{
+		for(j=0; j<m; j++)
+			y[j] = 0.0;
+		}
 	
 	if(alg==0 || alg==1)
 		{
 		j=0;
-		if(mna%2==1)
-			{
-			kernel_dgemv_n_1_lib4(j, pA, x, y, alg);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] += ptrA[0+bs*0]*ptrx[0];
-			kernel_dgemv_t_1_lib4(m-j-1, 0, ptrA+1, sda, ptrx+1, y, 1);
-			pA += 1;
-			y  += 1;
-			j  += 1;
-			}
-		if(mna%4>=2)
-			{
-			kernel_dgemv_n_2_lib4(j, pA, x, y, alg);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] += ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1];
-			y[1] += ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1];
-			kernel_dgemv_t_2_lib4(m-j-2, 0, ptrA+sda*bs, sda, ptrx+2, y, 1);
-			pA += 2;
-			y  += bs;
-			j  += 2;
-			}
 		if(mna>0)
 			{
-			pA += (sda-1)*bs;
-			}
-		for(; j<m-7; j+=8)
-			{
-			kernel_dgemv_n_8_lib4(j, pA, pA+sda*bs, x, y, alg);
-
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-
-			y[0] += ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1] + ptrA[2+bs*0]*ptrx[2] + ptrA[3+bs*0]*ptrx[3];
-			y[1] += ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1] + ptrA[2+bs*1]*ptrx[2] + ptrA[3+bs*1]*ptrx[3];
-			y[2] += ptrA[2+bs*0]*ptrx[0] + ptrA[2+bs*1]*ptrx[1] + ptrA[2+bs*2]*ptrx[2] + ptrA[3+bs*2]*ptrx[3];
-			y[3] += ptrA[3+bs*0]*ptrx[0] + ptrA[3+bs*1]*ptrx[1] + ptrA[3+bs*2]*ptrx[2] + ptrA[3+bs*3]*ptrx[3];
-
-			kernel_dgemv_n_4_lib4(4, ptrA+sda*bs, ptrx, y+4, 1);
-
-			kernel_dgemv_t_4_lib4(4, 0, ptrA+sda*bs, sda, ptrx+4, y, 1);
-
-			y[4] += ptrA[0+bs*4+sda*bs]*ptrx[4] + ptrA[1+bs*4+sda*bs]*ptrx[5] + ptrA[2+bs*4+sda*bs]*ptrx[6] + ptrA[3+bs*4+sda*bs]*ptrx[7];
-			y[5] += ptrA[1+bs*4+sda*bs]*ptrx[4] + ptrA[1+bs*5+sda*bs]*ptrx[5] + ptrA[2+bs*5+sda*bs]*ptrx[6] + ptrA[3+bs*5+sda*bs]*ptrx[7];
-			y[6] += ptrA[2+bs*4+sda*bs]*ptrx[4] + ptrA[2+bs*5+sda*bs]*ptrx[5] + ptrA[2+bs*6+sda*bs]*ptrx[6] + ptrA[3+bs*6+sda*bs]*ptrx[7];
-			y[7] += ptrA[3+bs*4+sda*bs]*ptrx[4] + ptrA[3+bs*5+sda*bs]*ptrx[5] + ptrA[3+bs*6+sda*bs]*ptrx[6] + ptrA[3+bs*7+sda*bs]*ptrx[7];
-		
-			kernel_dgemv_t_8_lib4(m-j-8, 0, ptrA+2*sda*bs, sda, ptrx+8, y, 1);
-		
-			pA += 2*sda*bs;
-			y  += 8;
+			for( ; j<mna; j++)
+				{
+				kernel_dsymv_1_lib4(j, pA, x_n, y_n, x_t, y_t, 1, 1);
+				pA  += 1;
+				y_n += 1;
+				x_t += 1;
+				}
+			pA  += (sda-1)*bs;
 			}
 		for(; j<m-3; j+=4)
 			{
-			kernel_dgemv_n_4_lib4(j, pA, x, y, alg);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] += ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1] + ptrA[2+bs*0]*ptrx[2] + ptrA[3+bs*0]*ptrx[3];
-			y[1] += ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1] + ptrA[2+bs*1]*ptrx[2] + ptrA[3+bs*1]*ptrx[3];
-			y[2] += ptrA[2+bs*0]*ptrx[0] + ptrA[2+bs*1]*ptrx[1] + ptrA[2+bs*2]*ptrx[2] + ptrA[3+bs*2]*ptrx[3];
-			y[3] += ptrA[3+bs*0]*ptrx[0] + ptrA[3+bs*1]*ptrx[1] + ptrA[3+bs*2]*ptrx[2] + ptrA[3+bs*3]*ptrx[3];
-			kernel_dgemv_t_4_lib4(m-j-4, 0, ptrA+sda*bs, sda, ptrx+4, y, 1);
-			pA += 4 + (sda-1)*bs;
-			y  += 4;
+			kernel_dsymv_4_lib4(j, pA, x_n, y_n, x_t, y_t, 1, 1);
+			pA  += sda*bs;
+			y_n += bs;
+			x_t += bs;
 			}
 		for(; j<m-1; j+=2)
 			{
-			kernel_dgemv_n_2_lib4(j, pA, x, y, alg);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] += ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1];
-			y[1] += ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1];
-			kernel_dgemv_t_2_lib4(m-j-2, 0, ptrA+2, sda, ptrx+2, y, 1);
-			pA += 2;
-			y  += 2;
+			kernel_dsymv_2_lib4(j, pA, x_n, y_n, x_t, y_t, 1, 1);
+			pA  += 2;
+			y_n += 2;
+			x_t += 2;
 			}
 		for(; j<m; j++)
 			{
-			kernel_dgemv_n_1_lib4(j, pA, x, y, alg);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] += ptrA[0+bs*0]*ptrx[0];
-			kernel_dgemv_t_1_lib4(m-j-1, 0, ptrA+1, sda, ptrx+1, y, 1);
-			pA += 1;
-			y  += 1;
+			kernel_dsymv_1_lib4(j, pA, x_n, y_n, x_t, y_t, 1, 1);
+			pA  += 1;
+			y_n += 1;
+			x_t += 1;
 			}
 		}
-	else
+	else // alg==-1
 		{
 		j=0;
-		if(mna%2==1)
-			{
-			kernel_dgemv_n_1_lib4(j, pA, x, y, -1);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] -= ptrA[0+bs*0]*ptrx[0];
-			kernel_dgemv_t_1_lib4(m-j-1, 0, ptrA+1, sda, ptrx+1, y, -1);
-			pA += 1;
-			y  += 1;
-			j  += 1;
-			}
-		if(mna%4>=2)
-			{
-			kernel_dgemv_n_2_lib4(j, pA, x, y, -1);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] -= ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1];
-			y[1] -= ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1];
-			kernel_dgemv_t_2_lib4(m-j-2, 0, ptrA+sda*bs, sda, ptrx+2, y, -1);
-			pA += 2;
-			y  += bs;
-			j  += 2;
-			}
 		if(mna>0)
 			{
-			pA += (sda-1)*bs;
-			}
-		for(; j<m-7; j+=8)
-			{
-			kernel_dgemv_n_8_lib4(j, pA, pA+sda*bs, x, y, -1);
-
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-
-			y[0] -= ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1] + ptrA[2+bs*0]*ptrx[2] + ptrA[3+bs*0]*ptrx[3];
-			y[1] -= ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1] + ptrA[2+bs*1]*ptrx[2] + ptrA[3+bs*1]*ptrx[3];
-			y[2] -= ptrA[2+bs*0]*ptrx[0] + ptrA[2+bs*1]*ptrx[1] + ptrA[2+bs*2]*ptrx[2] + ptrA[3+bs*2]*ptrx[3];
-			y[3] -= ptrA[3+bs*0]*ptrx[0] + ptrA[3+bs*1]*ptrx[1] + ptrA[3+bs*2]*ptrx[2] + ptrA[3+bs*3]*ptrx[3];
-
-			kernel_dgemv_n_4_lib4(4, ptrA+sda*bs, ptrx, y+4, -1);
-
-			kernel_dgemv_t_4_lib4(4, 0, ptrA+sda*bs, sda, ptrx+4, y, -1);
-
-			y[4] -= ptrA[0+bs*4+sda*bs]*ptrx[4] + ptrA[1+bs*4+sda*bs]*ptrx[5] + ptrA[2+bs*4+sda*bs]*ptrx[6] + ptrA[3+bs*4+sda*bs]*ptrx[7];
-			y[5] -= ptrA[1+bs*4+sda*bs]*ptrx[4] + ptrA[1+bs*5+sda*bs]*ptrx[5] + ptrA[2+bs*5+sda*bs]*ptrx[6] + ptrA[3+bs*5+sda*bs]*ptrx[7];
-			y[6] -= ptrA[2+bs*4+sda*bs]*ptrx[4] + ptrA[2+bs*5+sda*bs]*ptrx[5] + ptrA[2+bs*6+sda*bs]*ptrx[6] + ptrA[3+bs*6+sda*bs]*ptrx[7];
-			y[7] -= ptrA[3+bs*4+sda*bs]*ptrx[4] + ptrA[3+bs*5+sda*bs]*ptrx[5] + ptrA[3+bs*6+sda*bs]*ptrx[6] + ptrA[3+bs*7+sda*bs]*ptrx[7];
-		
-			kernel_dgemv_t_8_lib4(m-j-8, 0, ptrA+2*sda*bs, sda, ptrx+8, y, -1);
-		
-			pA += 2*sda*bs;
-			y  += 8;
+			for( ; j<mna; j++)
+				{
+				kernel_dsymv_1_lib4(j, pA, x_n, y_n, x_t, y_t, 1, -1);
+				pA  += 1;
+				y_n += 1;
+				x_t += 1;
+				}
+			pA  += (sda-1)*bs;
 			}
 		for(; j<m-3; j+=4)
 			{
-			kernel_dgemv_n_4_lib4(j, pA, x, y, -1);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] -= ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1] + ptrA[2+bs*0]*ptrx[2] + ptrA[3+bs*0]*ptrx[3];
-			y[1] -= ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1] + ptrA[2+bs*1]*ptrx[2] + ptrA[3+bs*1]*ptrx[3];
-			y[2] -= ptrA[2+bs*0]*ptrx[0] + ptrA[2+bs*1]*ptrx[1] + ptrA[2+bs*2]*ptrx[2] + ptrA[3+bs*2]*ptrx[3];
-			y[3] -= ptrA[3+bs*0]*ptrx[0] + ptrA[3+bs*1]*ptrx[1] + ptrA[3+bs*2]*ptrx[2] + ptrA[3+bs*3]*ptrx[3];
-			kernel_dgemv_t_4_lib4(m-j-4, 0, ptrA+sda*bs, sda, ptrx+4, y, -1);
-			pA += sda*bs;
-			y  += 4;
+			kernel_dsymv_4_lib4(j, pA, x_n, y_n, x_t, y_t, 1, -1);
+			pA  += sda*bs;
+			y_n += bs;
+			x_t += bs;
 			}
 		for(; j<m-1; j+=2)
 			{
-			kernel_dgemv_n_2_lib4(j, pA, x, y, -1);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] -= ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1];
-			y[1] -= ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1];
-			kernel_dgemv_t_2_lib4(m-j-2, 0, ptrA+2, sda, ptrx+2, y, -1);
-			pA += 2;
-			y  += 2;
+			kernel_dsymv_2_lib4(j, pA, x_n, y_n, x_t, y_t, 1, -1);
+			pA  += 2;
+			y_n += 2;
+			x_t += 2;
 			}
 		for(; j<m; j++)
 			{
-			kernel_dgemv_n_1_lib4(j, pA, x, y, -1);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] -= ptrA[0+bs*0]*ptrx[0];
-			kernel_dgemv_t_1_lib4(m-j-1, 0, ptrA+1, sda, ptrx+1, y, -1);
-			pA += 1;
-			y  += 1;
+			kernel_dsymv_1_lib4(j, pA, x_n, y_n, x_t, y_t, 1, -1);
+			pA  += 1;
+			y_n += 1;
+			x_t += 1;
 			}
 		}
 

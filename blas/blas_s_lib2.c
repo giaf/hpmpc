@@ -425,51 +425,141 @@ void strmv_p_t_lib(int m, int offset, float *pA, int sda, float *x, float *y, in
 
 
 
+/*void ssymv_p_lib_old(int m, int offset, float *pA, int sda, float *x, float *y, int alg)*/
+/*	{*/
+/*	*/
+/*	const int bs = 2;*/
+
+/*	int mna = (bs-offset%bs)%bs;*/
+
+/*	int j;*/
+/*	*/
+/*	float *ptrA, *ptrx;*/
+/*	*/
+/*	if(alg==0 || alg==1)*/
+/*		{*/
+/*		j=0;*/
+/*		if(mna==1)*/
+/*			{*/
+/*			kernel_sgemv_n_1_lib2(j, pA, x, y, alg);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] += ptrA[0+bs*0]*ptrx[0];*/
+/*			kernel_sgemv_t_1_lib2(m-j-1, 0, ptrA+1, sda, ptrx+1, y, 1); // !!! 1*/
+/*			pA += 1 + (sda-1)*bs;*/
+/*			y  += 1;*/
+/*			j  += 1;*/
+/*			}*/
+/*		for(; j<m-1; j+=2)*/
+/*			{*/
+/*			kernel_sgemv_n_2_lib2(j, pA, x, y, alg);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] += ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1];*/
+/*			y[1] += ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1];*/
+/*			kernel_sgemv_t_2_lib2(m-j-2, 0, ptrA+sda*bs, sda, ptrx+2, y, 1); // !!! 1*/
+/*			pA += sda*bs;*/
+/*			y  += bs;*/
+/*			}*/
+/*		for(; j<m; j++)*/
+/*			{*/
+/*			kernel_sgemv_n_1_lib2(j, pA, x, y, alg);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] += ptrA[0+bs*0]*ptrx[0];*/
+/*			kernel_sgemv_t_1_lib2(m-j-1, 0, ptrA+1, sda, ptrx+1, y, 1); // !!! 1*/
+/*			pA += 1;*/
+/*			y  += 1;*/
+/*			}*/
+/*		}*/
+/*	else // alg==-1*/
+/*		{*/
+/*		j=0;*/
+/*		if(mna==1)*/
+/*			{*/
+/*			kernel_sgemv_n_1_lib2(j, pA, x, y, -1);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] -= ptrA[0+bs*0]*ptrx[0];*/
+/*			kernel_sgemv_t_1_lib2(m-j-1, 0, ptrA+1, sda, ptrx+1, y, -1);*/
+/*			pA += 1 + (sda-1)*bs;*/
+/*			y  += 1;*/
+/*			j  += 1;*/
+/*			}*/
+/*		for(; j<m-1; j+=2)*/
+/*			{*/
+/*			kernel_sgemv_n_2_lib2(j, pA, x, y, -1);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] -= ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1];*/
+/*			y[1] -= ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1];*/
+/*			kernel_sgemv_t_2_lib2(m-j-2, 0, ptrA+sda*bs, sda, ptrx+2, y, -1);*/
+/*			pA += sda*bs;*/
+/*			y  += bs;*/
+/*			}*/
+/*		for(; j<m; j++)*/
+/*			{*/
+/*			kernel_sgemv_n_1_lib2(j, pA, x, y, -1);*/
+/*			ptrA = pA + j*bs;*/
+/*			ptrx =  x + j;*/
+/*			y[0] -= ptrA[0+bs*0]*ptrx[0];*/
+/*			kernel_sgemv_t_1_lib2(m-j-1, 0, ptrA+1, sda, ptrx+1, y, -1);*/
+/*			pA += 1;*/
+/*			y  += 1;*/
+/*			}*/
+/*		}*/
+
+/*	}*/
+
+
+
 void ssymv_p_lib(int m, int offset, float *pA, int sda, float *x, float *y, int alg)
 	{
 	
 	const int bs = 2;
-
+	
 	int mna = (bs-offset%bs)%bs;
-
+	
 	int j;
 	
-	float *ptrA, *ptrx;
+	float *x_n, *y_n, *x_t, *y_t;
+	
+	x_n = x;
+	x_t = x;
+	y_n = y;
+	y_t = y;
+	
+	if(alg==0)
+		{
+		for(j=0; j<m; j++)
+			y[j] = 0.0;
+		}
 	
 	if(alg==0 || alg==1)
 		{
 		j=0;
 		if(mna==1)
 			{
-			kernel_sgemv_n_1_lib2(j, pA, x, y, alg);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] += ptrA[0+bs*0]*ptrx[0];
-			kernel_sgemv_t_1_lib2(m-j-1, 0, ptrA+1, sda, ptrx+1, y, 1); // !!! 1
-			pA += 1 + (sda-1)*bs;
-			y  += 1;
-			j  += 1;
+			kernel_ssymv_1_lib2(j, pA, x_n, y_n, x_t, y_t, 1, 1);
+			pA  += 1;
+			y_n += 1;
+			x_t += 1;
+			pA  += (sda-1)*bs;
+			j++;
 			}
 		for(; j<m-1; j+=2)
 			{
-			kernel_sgemv_n_2_lib2(j, pA, x, y, alg);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] += ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1];
-			y[1] += ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1];
-			kernel_sgemv_t_2_lib2(m-j-2, 0, ptrA+sda*bs, sda, ptrx+2, y, 1); // !!! 1
-			pA += sda*bs;
-			y  += bs;
+			kernel_ssymv_2_lib2(j, pA, x_n, y_n, x_t, y_t, 1, 1);
+			pA  += sda*bs;
+			y_n += bs;
+			x_t += bs;
 			}
 		for(; j<m; j++)
 			{
-			kernel_sgemv_n_1_lib2(j, pA, x, y, alg);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] += ptrA[0+bs*0]*ptrx[0];
-			kernel_sgemv_t_1_lib2(m-j-1, 0, ptrA+1, sda, ptrx+1, y, 1); // !!! 1
-			pA += 1;
-			y  += 1;
+			kernel_ssymv_1_lib2(j, pA, x_n, y_n, x_t, y_t, 1, 1);
+			pA  += 1;
+			y_n += 1;
+			x_t += 1;
 			}
 		}
 	else // alg==-1
@@ -477,35 +567,26 @@ void ssymv_p_lib(int m, int offset, float *pA, int sda, float *x, float *y, int 
 		j=0;
 		if(mna==1)
 			{
-			kernel_sgemv_n_1_lib2(j, pA, x, y, -1);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] -= ptrA[0+bs*0]*ptrx[0];
-			kernel_sgemv_t_1_lib2(m-j-1, 0, ptrA+1, sda, ptrx+1, y, -1);
-			pA += 1 + (sda-1)*bs;
-			y  += 1;
-			j  += 1;
+			kernel_ssymv_1_lib2(j, pA, x_n, y_n, x_t, y_t, 1, -1);
+			pA  += 1;
+			y_n += 1;
+			x_t += 1;
+			pA  += (sda-1)*bs;
+			j++;
 			}
 		for(; j<m-1; j+=2)
 			{
-			kernel_sgemv_n_2_lib2(j, pA, x, y, -1);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] -= ptrA[0+bs*0]*ptrx[0] + ptrA[1+bs*0]*ptrx[1];
-			y[1] -= ptrA[1+bs*0]*ptrx[0] + ptrA[1+bs*1]*ptrx[1];
-			kernel_sgemv_t_2_lib2(m-j-2, 0, ptrA+sda*bs, sda, ptrx+2, y, -1);
-			pA += sda*bs;
-			y  += bs;
+			kernel_ssymv_2_lib2(j, pA, x_n, y_n, x_t, y_t, 1, -1);
+			pA  += sda*bs;
+			y_n += bs;
+			x_t += bs;
 			}
 		for(; j<m; j++)
 			{
-			kernel_sgemv_n_1_lib2(j, pA, x, y, -1);
-			ptrA = pA + j*bs;
-			ptrx =  x + j;
-			y[0] -= ptrA[0+bs*0]*ptrx[0];
-			kernel_sgemv_t_1_lib2(m-j-1, 0, ptrA+1, sda, ptrx+1, y, -1);
-			pA += 1;
-			y  += 1;
+			kernel_ssymv_1_lib2(j, pA, x_n, y_n, x_t, y_t, 1, -1);
+			pA  += 1;
+			y_n += 1;
+			x_t += 1;
 			}
 		}
 
