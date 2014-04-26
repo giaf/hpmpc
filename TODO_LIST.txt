@@ -14,6 +14,7 @@ BLAS:
 - DONE use -DTARGET
 
 LQCP & IP
+- imporve alpha avoiding divisions
 - avoid copy of Q in IP
 - free x0 vs fixed x0
 - take out lagrangian multipliers
