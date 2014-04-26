@@ -1078,6 +1078,8 @@ void kernel_dgemv_n_1_lib4(int kmax, double *A, double *x, double *y, int alg)
 
 		}
 
+	y_0_1  = _mm_add_sd( y_0_1, y_0_1_b );
+
 	for(; k<kmax; k++)
 		{
 
