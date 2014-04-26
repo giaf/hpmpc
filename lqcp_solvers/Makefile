@@ -29,9 +29,9 @@ ifeq ($(TARGET), AVX)
 OBJS = dricposv.o sricposv.o dres.o sres.o
 CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_AVX $(DEBUG)
 endif
-ifeq ($(TARGET), SSE4)
+ifeq ($(TARGET), X64_SSE3)
 OBJS = dricposv.o sricposv.o dres.o sres.o
-CFLAGS = $(OPT) -std=c99 -msse4 -fPIC -DTARGET_SSE4 $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -msse3 -fPIC -DTARGET_X64_SSE3 $(DEBUG)
 endif
 ifeq ($(TARGET), NEON)
 OBJS = dricposv.o sricposv.o dres.o sres.o

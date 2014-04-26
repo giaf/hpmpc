@@ -40,7 +40,7 @@ void sgemm_ppp_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sd
 	int i, j, jj;
 	
 	i = 0;
-#if defined(TARGET_AVX) || defined(TARGET_SSE4) || defined(TARGET_NEON)
+#if defined(TARGET_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
@@ -96,7 +96,7 @@ void strmm_ppp_lib(int m, int n, int offset, float *pA, int sda, float *pB, int 
 		pB = pB+bs*sdb+bs*bs; // shift to the next block
 	
 	i = 0;
-#if defined(TARGET_AVX) || defined(TARGET_SSE4) || defined(TARGET_NEON)
+#if defined(TARGET_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
@@ -160,7 +160,7 @@ void ssyrk_ppp_lib(int m, int n, int k, float *pA, int sda, float *pC, int sdc)
 	int i, j, j_end;
 	
 	i = 0;
-#if defined(TARGET_AVX) || defined(TARGET_SSE4) || defined(TARGET_NEON)
+#if defined(TARGET_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
 	if(m==n)
 		{
 		for(; i<m-4; i+=8)
@@ -303,7 +303,7 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 		for(; j<nna-3; j+=4)
 			{
 			i = j;
-#if defined(TARGET_AVX) || defined(TARGET_SSE4) || defined(TARGET_NEON)
+#if defined(TARGET_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
 			for(; i<n-4; i+=8)
 				{
 				kernel_sgemm_pp_nt_8x4_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -327,7 +327,7 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 	for(; j<n-3; j+=4)
 		{
 		i = j;
-#if defined(TARGET_AVX) || defined(TARGET_SSE4) || defined(TARGET_NEON)
+#if defined(TARGET_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
 		for(; i<n-4; i+=8)
 			{
 			kernel_sgemm_pp_nt_8x4_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -381,7 +381,7 @@ void spotrf_p_lib(int m, int n, float *pC, int sdc, int *info)
 	for(; j<n-3; j+=4)
 		{
 		i = j;
-#if defined(TARGET_AVX) || defined(TARGET_SSE4) || defined(TARGET_NEON)
+#if defined(TARGET_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
 		for(; i<m-4; i+=8)
 			{
 			kernel_sgemm_pp_nt_8x4_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -399,7 +399,7 @@ void spotrf_p_lib(int m, int n, float *pC, int sdc, int *info)
 		if(n-j==1)
 			{
 			i = j;
-#if defined(TARGET_AVX) || defined(TARGET_SSE4) || defined(TARGET_NEON)
+#if defined(TARGET_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
 			for(; i<m-4; i+=8)
 				{
 				kernel_sgemm_pp_nt_8x1_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -415,7 +415,7 @@ void spotrf_p_lib(int m, int n, float *pC, int sdc, int *info)
 		else if(n-j==2)
 			{
 			i = j;
-#if defined(TARGET_AVX) || defined(TARGET_SSE4) || defined(TARGET_NEON)
+#if defined(TARGET_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
 			for(; i<m-4; i+=8)
 				{
 				kernel_sgemm_pp_nt_8x2_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -431,7 +431,7 @@ void spotrf_p_lib(int m, int n, float *pC, int sdc, int *info)
 		else if(n-j==3)
 			{
 			i = j;
-#if defined(TARGET_AVX) || defined(TARGET_SSE4) || defined(TARGET_NEON)
+#if defined(TARGET_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
 			for(; i<m-4; i+=8)
 				{
 /*				kernel_sgemm_pp_nt_8x3_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);*/

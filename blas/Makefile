@@ -29,9 +29,9 @@ ifeq ($(TARGET), AVX)
 OBJS = blas_d_lib4.o blas_s_lib4.o
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX -fPIC $(DEBUG)
 endif
-ifeq ($(TARGET), SSE4)
+ifeq ($(TARGET), X64_SSE3)
 OBJS = blas_d_lib4.o blas_s_lib4.o
-CFLAGS = $(OPT) -std=c99 -msse4 -DTARGET_SSE4 -fPIC $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -msse3 -DTARGET_X64_SSE3 -fPIC $(DEBUG)
 endif
 ifeq ($(TARGET), NEON)
 OBJS = blas_d_lib4.o blas_s_lib4.o

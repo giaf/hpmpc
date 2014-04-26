@@ -27,7 +27,7 @@
 #include <xmmintrin.h>  // SSE
 #include <emmintrin.h>  // SSE2
 #include <pmmintrin.h>  // SSE3
-#include <smmintrin.h>  // SSE4
+/*#include <smmintrin.h>  // SSE4*/
 //#include <immintrin.h>  // AVX
 
 
@@ -242,14 +242,23 @@ void kernel_dgemm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, int 
 		c_00_10, c_20_30, c_01_11, c_21_31, c_02_12, c_22_32, c_03_13, c_23_33,
 		d_00_10, d_20_30, d_01_11, d_21_31, d_02_12, d_22_32, d_03_13, d_23_33;
 
-	c_00_10 = _mm_blend_pd(c_00_11, c_01_10, 2);
-	c_01_11 = _mm_blend_pd(c_01_10, c_00_11, 2);
-	c_02_12 = _mm_blend_pd(c_02_13, c_03_12, 2);
-	c_03_13 = _mm_blend_pd(c_03_12, c_02_13, 2);
-	c_20_30 = _mm_blend_pd(c_20_31, c_21_30, 2);
-	c_21_31 = _mm_blend_pd(c_21_30, c_20_31, 2);
-	c_22_32 = _mm_blend_pd(c_22_33, c_23_32, 2);
-	c_23_33 = _mm_blend_pd(c_23_32, c_22_33, 2);
+/*	c_00_10 = _mm_blend_pd(c_00_11, c_01_10, 2);*/
+/*	c_01_11 = _mm_blend_pd(c_01_10, c_00_11, 2);*/
+/*	c_02_12 = _mm_blend_pd(c_02_13, c_03_12, 2);*/
+/*	c_03_13 = _mm_blend_pd(c_03_12, c_02_13, 2);*/
+/*	c_20_30 = _mm_blend_pd(c_20_31, c_21_30, 2);*/
+/*	c_21_31 = _mm_blend_pd(c_21_30, c_20_31, 2);*/
+/*	c_22_32 = _mm_blend_pd(c_22_33, c_23_32, 2);*/
+/*	c_23_33 = _mm_blend_pd(c_23_32, c_22_33, 2);*/
+
+	c_00_10 = _mm_shuffle_pd(c_00_11, c_01_10, 2);
+	c_01_11 = _mm_shuffle_pd(c_01_10, c_00_11, 2);
+	c_02_12 = _mm_shuffle_pd(c_02_13, c_03_12, 2);
+	c_03_13 = _mm_shuffle_pd(c_03_12, c_02_13, 2);
+	c_20_30 = _mm_shuffle_pd(c_20_31, c_21_30, 2);
+	c_21_31 = _mm_shuffle_pd(c_21_30, c_20_31, 2);
+	c_22_32 = _mm_shuffle_pd(c_22_33, c_23_32, 2);
+	c_23_33 = _mm_shuffle_pd(c_23_32, c_22_33, 2);
 
 	if(alg==0)
 		{
@@ -693,10 +702,15 @@ void kernel_dgemm_pp_nt_4x2_lib4(int kmax, double *A, double *B, double *C, int 
 		c_00_10, c_20_30, c_01_11, c_21_31,
 		d_00_10, d_20_30, d_01_11, d_21_31;
 
-	c_00_10 = _mm_blend_pd(c_00_11, c_01_10, 2);
-	c_01_11 = _mm_blend_pd(c_01_10, c_00_11, 2);
-	c_20_30 = _mm_blend_pd(c_20_31, c_21_30, 2);
-	c_21_31 = _mm_blend_pd(c_21_30, c_20_31, 2);
+/*	c_00_10 = _mm_blend_pd(c_00_11, c_01_10, 2);*/
+/*	c_01_11 = _mm_blend_pd(c_01_10, c_00_11, 2);*/
+/*	c_20_30 = _mm_blend_pd(c_20_31, c_21_30, 2);*/
+/*	c_21_31 = _mm_blend_pd(c_21_30, c_20_31, 2);*/
+
+	c_00_10 = _mm_shuffle_pd(c_00_11, c_01_10, 2);
+	c_01_11 = _mm_shuffle_pd(c_01_10, c_00_11, 2);
+	c_20_30 = _mm_shuffle_pd(c_20_31, c_21_30, 2);
+	c_21_31 = _mm_shuffle_pd(c_21_30, c_20_31, 2);
 
 	if(alg==0)
 		{

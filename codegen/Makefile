@@ -32,10 +32,10 @@ CODEGEN_OBJS_DOUBLE = code_generator_blas_d_lib4.o code_generator_dricposv.o
 CODEGEN_OBJS_SINGLE = code_generator_blas_s_lib4.o code_generator_sricposv.o
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
 endif
-ifeq ($(TARGET), SSE4)
+ifeq ($(TARGET), X64_SSE3)
 CODEGEN_OBJS_DOUBLE = code_generator_blas_d_lib4.o code_generator_dricposv.o
 CODEGEN_OBJS_SINGLE = code_generator_blas_s_lib4.o code_generator_sricposv.o
-CFLAGS = $(OPT) -std=c99 -msse4 -DTARGET_SSE4 $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -msse3 -DTARGET_X64_SSE3 $(DEBUG)
 endif
 ifeq ($(TARGET), NEON)
 CODEGEN_OBJS_DOUBLE = code_generator_blas_d_lib4.o code_generator_dricposv.o

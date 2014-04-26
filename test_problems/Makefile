@@ -31,15 +31,15 @@ LIBS = -lm #-lopenblas
 #OBJS_TEST = test_sgemm_orig.o
 #OBJS_TEST = test_dgemm.o
 #OBJS_TEST = test_sgemm.o
-OBJS_TEST = tools.o test_dricposv.o
-#OBJS_TEST = tools.o test_sricposv.o
+#OBJS_TEST = tools.o test_dricposv.o
+OBJS_TEST = tools.o test_sricposv.o
 #OBJS_TEST = tools.o test_ip_box_lib.o
 
 ifeq ($(TARGET), AVX)
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
 endif
-ifeq ($(TARGET), SSE4)
-CFLAGS = $(OPT) -std=c99 -msse4 -DTARGET_SSE4 $(DEBUG)
+ifeq ($(TARGET), X64_SSE3)
+CFLAGS = $(OPT) -std=c99 -msse3 -DTARGET_X64_SSE3 $(DEBUG)
 endif
 ifeq ($(TARGET), NEON)
 CFLAGS = $(OPT) -std=c99 -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_CORTEXA9 $(DEBUG)

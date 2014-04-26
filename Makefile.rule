@@ -31,7 +31,7 @@
 # C99_4X4 : c99 reference code for a machine with at least 32 scalar registers
 # C99_2X2 : c99 reference code for a machine with at least 8 scalar registers
 #TARGET = AVX
-TARGET = SSE4
+TARGET = X64_SSE3
 #TARGET = C99_4X4
 #TARGET = NEON
 #TARGET = C99_2X2
