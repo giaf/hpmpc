@@ -54,7 +54,7 @@ fprintf(f, "	if(*info!=0) return;\n");
 	            	for(; j<nna-3; j+=4)
 	            		{     
 	            		i = j;     
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 	            		for(; i<n-4; i+=8)     
 	            			{
 fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
@@ -78,7 +78,7 @@ fprintf(f, "	if(*info!=0) return;\n");
 	for(; j<n-3; j+=4)
 		{
 		i = j;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 		for(; i<n-4; i+=8)
 			{
 fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
@@ -134,7 +134,7 @@ void dpotrf_p_code_generator(FILE *f, int m, int n)
 	for(; j<n-3; j+=4)
 		{
 		i = j;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 		for(; i<m-4; i+=8)
 			{
 fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
@@ -152,7 +152,7 @@ fprintf(f, "	if(*info!=0) return;\n");
 		if(n-j==1)
 			{
 			i = j;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 			for(; i<m-4; i+=8)
 				{
 fprintf(f, "	kernel_dgemm_pp_nt_8x1_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
@@ -168,7 +168,7 @@ fprintf(f, "	if(*info!=0) return;\n");
 		else if(n-j==2)
 			{
 			i = j;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 			for(; i<m-4; i+=8)
 				{
 fprintf(f, "	kernel_dgemm_pp_nt_8x2_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
@@ -184,7 +184,7 @@ fprintf(f, "	if(*info!=0) return;\n");
 		else if(n-j==3)
 			{
 			i = j;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 			for(; i<m-4; i+=8)
 				{
 fprintf(f, "	kernel_dgemm_pp_nt_8x3_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
@@ -222,7 +222,7 @@ void dtrmm_ppp_code_generator(FILE *f, int m, int n, int offset)
 fprintf(f, "	pB = pB+%d;\n", bs*sdb+bs*bs);
 	
 	i = 0;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
@@ -293,7 +293,7 @@ void dsyrk_ppp_code_generator(FILE *f, int m, int n, int k)
 	const int sdc = PNZ;
 	
 	i = 0;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 	if(m==n)
 		{
 		for(; i<m-4; i+=8)

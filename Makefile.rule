@@ -30,12 +30,12 @@
 # NEON    : machine with ARMv7a processor with VPFv3 or VPFv4 (both D32 versions) and NEON
 # C99_4X4 : c99 reference code for a machine with at least 32 scalar registers
 # C99_2X2 : c99 reference code for a machine with at least 8 scalar registers
-#TARGET = AVX
+TARGET = X64_AVX
 #TARGET = X64_SSE3
 #TARGET = C99_4X4
 #TARGET = NEON
 #TARGET = C99_2X2
-TARGET = X86_ATOM
+#TARGET = X86_ATOM
 #TARGET = POWERPC_G2
 
 # C Compiler

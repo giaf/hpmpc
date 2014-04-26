@@ -26,7 +26,7 @@
 #ifndef __HPMPC_BLOCK_SIZE__
 #define __HPMPC_BLOCK_SIZE__
 
-#if defined( TARGET_AVX )
+#if defined( TARGET_X64_AVX )
 
 #define D_MR 4
 //#define D_NR 4

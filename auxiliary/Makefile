@@ -25,9 +25,9 @@
 
 include ../Makefile.rule
 
-ifeq ($(TARGET), AVX)
-OBJS = aux_d_c99.o aux_s_c99.o block_size_avx.o
-CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_AVX $(DEBUG)
+ifeq ($(TARGET), X64_AVX)
+OBJS = aux_d_c99.o aux_s_c99.o block_size_x64_avx.o
+CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_X64_AVX $(DEBUG)
 endif
 ifeq ($(TARGET), X64_SSE3)
 OBJS = aux_d_c99.o aux_s_c99.o block_size_x64_sse.o

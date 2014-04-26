@@ -27,8 +27,8 @@ include ../Makefile.rule
 
 OBJS = ip_d_box.o
 
-ifeq ($(TARGET), AVX)
-CFLAGS = $(OPT) -std=c99 -fPIC -mavx -DTARGET_AVX $(DEBUG)
+ifeq ($(TARGET), X64_AVX)
+CFLAGS = $(OPT) -std=c99 -fPIC -mavx -DTARGET_X64_AVX $(DEBUG)
 endif
 ifeq ($(TARGET), X64_SSE3)
 CFLAGS = $(OPT) -std=c99 -fPIC -msse3 -DTARGET_X64_SSE3 $(DEBUG)

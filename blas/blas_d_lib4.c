@@ -40,7 +40,7 @@ void dgemm_ppp_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int 
 	int i, j, jj;
 	
 	i = 0;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
@@ -96,7 +96,7 @@ void dtrmm_ppp_lib(int m, int n, int offset, double *pA, int sda, double *pB, in
 		pB = pB+bs*sdb+bs*bs; // shift to the next block
 	
 	i = 0;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
@@ -160,7 +160,7 @@ void dsyrk_ppp_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc
 	int i, j, j_end;
 	
 	i = 0;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 	if(m==n)
 		{
 		for(; i<m-4; i+=8)
@@ -301,7 +301,7 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 		for(; j<nna-3; j+=4)
 			{
 			i = j;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 			for(; i<n-4; i+=8)
 				{
 				kernel_dgemm_pp_nt_8x4_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -325,7 +325,7 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 	for(; j<n-3; j+=4)
 		{
 		i = j;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 		for(; i<n-4; i+=8)
 			{
 			kernel_dgemm_pp_nt_8x4_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -379,7 +379,7 @@ void dpotrf_p_lib(int m, int n, double *pC, int sdc, int *info)
 	for(; j<n-3; j+=4)
 		{
 		i = j;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 		for(; i<m-4; i+=8)
 			{
 			kernel_dgemm_pp_nt_8x4_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -397,7 +397,7 @@ void dpotrf_p_lib(int m, int n, double *pC, int sdc, int *info)
 		if(n-j==1)
 			{
 			i = j;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 			for(; i<m-4; i+=8)
 				{
 				kernel_dgemm_pp_nt_8x1_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -413,7 +413,7 @@ void dpotrf_p_lib(int m, int n, double *pC, int sdc, int *info)
 		else if(n-j==2)
 			{
 			i = j;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 			for(; i<m-4; i+=8)
 				{
 				kernel_dgemm_pp_nt_8x2_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -429,7 +429,7 @@ void dpotrf_p_lib(int m, int n, double *pC, int sdc, int *info)
 		else if(n-j==3)
 			{
 			i = j;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX)
 			for(; i<m-4; i+=8)
 				{
 				kernel_dgemm_pp_nt_8x3_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);

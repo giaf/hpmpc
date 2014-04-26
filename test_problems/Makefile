@@ -35,8 +35,8 @@ LIBS = -lm #-lopenblas
 OBJS_TEST = tools.o test_sricposv.o
 #OBJS_TEST = tools.o test_ip_box_lib.o
 
-ifeq ($(TARGET), AVX)
-CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_AVX $(DEBUG)
+ifeq ($(TARGET), X64_AVX)
+CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_X64_AVX $(DEBUG)
 endif
 ifeq ($(TARGET), X64_SSE3)
 CFLAGS = $(OPT) -std=c99 -msse3 -DTARGET_X64_SSE3 $(DEBUG)

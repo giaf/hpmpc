@@ -25,9 +25,9 @@
 
 include ../Makefile.rule
 
-ifeq ($(TARGET), AVX)
+ifeq ($(TARGET), X64_AVX)
 OBJS = dricposv.o sricposv.o dres.o sres.o
-CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_AVX $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_X64_AVX $(DEBUG)
 endif
 ifeq ($(TARGET), X64_SSE3)
 OBJS = dricposv.o sricposv.o dres.o sres.o
