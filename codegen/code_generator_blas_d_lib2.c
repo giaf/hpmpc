@@ -716,13 +716,6 @@ void dtrsv_p_n_code_generator(FILE *f, int n)
 	int idxAd = 0;
 	int idxx = 0;
 
-/*	double *ptrA, *ptrAd, *ptrx;*/
-
-	// blocks of 2 (pA is supposed to be properly aligned)
-/*	ptrA  = pA;*/
-/*	ptrAd = pA;*/
-/*	ptrx  = x;*/
-
 	j = 0;
 	for(; j<n-1; j+=2)
 		{

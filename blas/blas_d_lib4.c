@@ -844,7 +844,7 @@ void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y,
 			pA += bs*sda;
 			
 			kernel_dgemv_t_8_lib4(mmax-7, 1, pA+3, sda, x+7, y, -1);
-			y[4] -= pA[0+bs*4] * x[4] + pA[1+bs*4] * x[5] + pA[1+bs*4] * x[6];
+			y[4] -= pA[0+bs*4] * x[4] + pA[1+bs*4] * x[5] + pA[2+bs*4] * x[6];
 			y[5] -= pA[1+bs*5] * x[5] + pA[2+bs*5] * x[6];
 			y[6] -= pA[2+bs*6] * x[6];
 

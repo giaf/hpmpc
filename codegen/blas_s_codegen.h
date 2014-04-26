@@ -32,6 +32,7 @@ void sgemv_p_t_code_generator(FILE *f, int n, int m, int offset, int alg);
 void strmv_p_n_code_generator(FILE *f, int m, int offset, int alg);
 void strmv_p_t_code_generator(FILE *f, int m, int offset, int alg);
 void ssymv_p_code_generator(FILE *f, int m, int offset, int alg);
+void smvmv_p_code_generator(FILE *f, int m, int n, int offset, int alg);
 void strsv_p_n_code_generator(FILE *f, int n);
 void strsv_p_t_code_generator(FILE *f, int n);
 
