@@ -488,7 +488,7 @@ void main()
 	fprintf(f, "		exit(1);\n");
 	fprintf(f, "		}\n");
 	fprintf(f, "	\n");
-	fprintf(f, "	double *pA, *pB, *pC, *x, *y;\n");
+	fprintf(f, "	double *pA, *pB, *pC, *x, *y, *x_n, *y_n, *x_t, *y_t;\n");
 	fprintf(f, "	\n");
 	fprintf(f, "	int i, j, k, ii, jj, kk;\n");
 	fprintf(f, "	\n");
@@ -591,14 +591,6 @@ void main()
 	dsymv_p_code_generator(f, nxu, 0, -1);
 
 	fprintf(f, "		\n");
-	fprintf(f, "		/* dgemv_n */\n");
-	fprintf(f, "		pA = &hpBAbt[ii][0];\n");
-	fprintf(f, "		x = &hpi[ii+1][0];\n");
-	fprintf(f, "		y = &hrq[ii][0];\n");
-
-	dgemv_p_n_code_generator(f, nxu, nx, 0, -1);
-
-	fprintf(f, "	\n");
 	fprintf(f, "		/* */\n");
 	fprintf(f, "		for(jj=0; jj<%d; jj+=4)\n", nx-3);
 	fprintf(f, "			{\n");
@@ -612,12 +604,14 @@ void main()
 	fprintf(f, "		hrb[ii][%d] = hux[ii+1][%d] - hpBAbt[ii][%d];\n", (nx/4)*4+jj, nu+(nx/4)*4+jj, (nxu/bs)*bs*sda+nxu%bs+bs*((nx/4)*4+jj) );
 		}
 	fprintf(f, "		\n");
-	fprintf(f, "		/* dgemv_t */\n");
+	fprintf(f, "		/* dmvmv */\n");
 	fprintf(f, "		pA = &hpBAbt[ii][0];\n");
-	fprintf(f, "		x = &hux[ii][0];\n");
-	fprintf(f, "		y = &hrb[ii][0];\n");
+	fprintf(f, "		x_n = &hpi[ii+1][0];\n");
+	fprintf(f, "		y_n = &hrq[ii][0];\n");
+	fprintf(f, "		x_t = &hux[ii][0];\n");
+	fprintf(f, "		y_t = &hrb[ii][0];\n");
 
-	dgemv_p_t_code_generator(f, nxu, nx, 0, -1);
+	dmvmv_p_code_generator(f, nxu, nx, 0, -1);
 
 	fprintf(f, "		\n");
 	fprintf(f, "		}\n");

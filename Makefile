@@ -99,7 +99,7 @@ endif
 
 all: clean library test_problem run
 
-code: clean codegenerator test_problem run
+codegen: clean codegenerator test_problem run
 
 library:
 	make -C auxiliary obj
@@ -115,15 +115,13 @@ library:
 codegenerator:
 	make -C auxiliary obj
 	make -C kernel obj
-	make -C blas obj # TODO remove !!!
-	make -C lqcp_solvers obj # TODO remove !!!
 	touch ./codegen/dricposv_codegen.c 
 	touch ./codegen/sricposv_codegen.c
 	touch ./codegen/dres_codegen.c 
 	touch ./codegen/sres_codegen.c 
 	make -C codegen obj
 	make -C mpc_solvers obj
-	ar rcs HPMPC.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(LQCP_CODEGEN_OBJS) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS)
+	ar rcs HPMPC.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS)
 	@echo
 	@echo " HPMPC.a code generator build complete."
 	@echo

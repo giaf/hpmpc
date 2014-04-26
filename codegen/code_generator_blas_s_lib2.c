@@ -424,51 +424,144 @@ fprintf(f, "	kernel_sgemv_t_1_lib2(%d, %d, &pA[%d], %d, &x[%d], &y[%d], -1);\n",
 
 
 
+/*void ssymv_p_code_generator(FILE *f, int m, int offset, int alg)*/
+/*	{*/
+/*	*/
+/*	const int bs = 2;*/
+
+/*	const int sda = PNZ;*/
+
+/*	int mna = (bs-offset%bs)%bs;*/
+
+/*	int j;*/
+/*	*/
+/*	int idxA = 0;*/
+/*	int idxx = 0;*/
+/*	int idxy = 0;*/
+
+/*	if(alg==0 || alg==1)*/
+/*		{*/
+/*		j=0;*/
+/*		if(mna==1)*/
+/*			{*/
+/*fprintf(f, "	kernel_sgemv_n_1_lib2(%d, &pA[%d], &x[%d], &y[%d], %d);\n", j, idxA, idxx, idxy, alg);*/
+/*fprintf(f, "	y[%d] += pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j);*/
+/*fprintf(f, "	kernel_sgemv_t_1_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], 1);\n", m-j-1, idxA+j*bs+1, sda, idxx+j+1, idxy);*/
+/*			idxA += 1 + (sda-1)*bs;*/
+/*			idxy += 1;*/
+/*			j += 1;*/
+/*			}*/
+/*		for(; j<m-1; j+=2)*/
+/*			{*/
+/*fprintf(f, "	kernel_sgemv_n_2_lib2(%d, &pA[%d], &x[%d], &y[%d], %d);\n", j, idxA, idxx, idxy, alg);*/
+/*fprintf(f, "	y[%d] += pA[%d]*x[%d] + pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j, idxA+j*bs+1, idxx+j+1);*/
+/*fprintf(f, "	y[%d] += pA[%d]*x[%d] + pA[%d]*x[%d];\n", idxy+1, idxA+j*bs+1, idxx+j, idxA+j*bs+1+bs*1, idxx+j+1);*/
+/*fprintf(f, "	kernel_sgemv_t_2_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], 1);\n", m-j-2, idxA+j*bs+sda*bs, sda, idxx+j+2, idxy);*/
+/*			idxA += sda*bs;*/
+/*			idxy += bs;*/
+/*			}*/
+/*		for(; j<m; j++)*/
+/*			{*/
+/*fprintf(f, "	kernel_sgemv_n_1_lib2(%d, &pA[%d], &x[%d], &y[%d], %d);\n", j, idxA, idxx, idxy, alg);*/
+/*fprintf(f, "	y[%d] += pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j);*/
+/*fprintf(f, "	kernel_sgemv_t_1_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], 1);\n", m-j-1, idxA+j*bs+1, sda, idxx+j+1, idxy);*/
+/*			idxA += 1;*/
+/*			idxy += 1;*/
+/*			}*/
+/*		}*/
+/*	else // alg==-1*/
+/*		{*/
+/*		j=0;*/
+/*		if(mna==1)*/
+/*			{*/
+/*fprintf(f, "	kernel_sgemv_n_1_lib2(%d, &pA[%d], &x[%d], &y[%d], -1);\n", j, idxA, idxx, idxy);*/
+/*fprintf(f, "	y[%d] -= pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j);*/
+/*fprintf(f, "	kernel_sgemv_t_1_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], -1);\n", m-j-1, idxA+j*bs+1, sda, idxx+j+1, idxy);*/
+/*			idxA += 1 + (sda-1)*bs;*/
+/*			idxy += 1;*/
+/*			j += 1;*/
+/*			}*/
+/*		for(; j<m-1; j+=2)*/
+/*			{*/
+/*fprintf(f, "	kernel_sgemv_n_2_lib2(%d, &pA[%d], &x[%d], &y[%d], -1);\n", j, idxA, idxx, idxy);*/
+/*fprintf(f, "	y[%d] -= pA[%d]*x[%d] + pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j, idxA+j*bs+1, idxx+j+1);*/
+/*fprintf(f, "	y[%d] -= pA[%d]*x[%d] + pA[%d]*x[%d];\n", idxy+1, idxA+j*bs+1, idxx+j, idxA+j*bs+1+bs*1, idxx+j+1);*/
+/*fprintf(f, "	kernel_sgemv_t_2_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], -1);\n", m-j-2, idxA+j*bs+sda*bs, sda, idxx+j+2, idxy);*/
+/*			idxA += sda*bs;*/
+/*			idxy += bs;*/
+/*			}*/
+/*		for(; j<m; j++)*/
+/*			{*/
+/*fprintf(f, "	kernel_sgemv_n_1_lib2(%d, &pA[%d], &x[%d], &y[%d], -1);\n", j, idxA, idxx, idxy);*/
+/*fprintf(f, "	y[%d] -= pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j);*/
+/*fprintf(f, "	kernel_sgemv_t_1_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], -1);\n", m-j-1, idxA+j*bs+1, sda, idxx+j+1, idxy);*/
+/*			idxA += 1;*/
+/*			idxy += 1;*/
+/*			}*/
+/*		}*/
+
+/*	}*/
+
+
+
 void ssymv_p_code_generator(FILE *f, int m, int offset, int alg)
 	{
 	
 	const int bs = 2;
-
+	
 	const int sda = PNZ;
 
 	int mna = (bs-offset%bs)%bs;
-
-	int j;
+	
+	int j, jj;
 	
 	int idxA = 0;
-	int idxx = 0;
-	int idxy = 0;
+	int idxx_n = 0;
+	int idxy_n = 0;
+	int idxx_t = 0;
+	int idxy_t = 0;
 
-/*	float *ptrA, *ptrx;*/
+	if(alg==0)
+		{
+fprintf(f, "	for(jj=0; jj<%d; jj+=4)\n", m-3);
+fprintf(f, "		{\n");
+fprintf(f, "		y[jj+%d] = 0.0;\n", 0);
+fprintf(f, "		y[jj+%d] = 0.0;\n", 1);
+fprintf(f, "		y[jj+%d] = 0.0;\n", 2);
+fprintf(f, "		y[jj+%d] = 0.0;\n", 3);
+fprintf(f, "		}\n");
+		for(jj=0; jj<m%4; jj++)
+			{
+fprintf(f, "	y[%d] = 0.0;\n", (m/4)*4+jj );
+			}
+fprintf(f, "	\n");
+		}
 	
 	if(alg==0 || alg==1)
 		{
 		j=0;
 		if(mna==1)
 			{
-fprintf(f, "	kernel_sgemv_n_1_lib2(%d, &pA[%d], &x[%d], &y[%d], %d);\n", j, idxA, idxx, idxy, alg);
-fprintf(f, "	y[%d] += pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j);
-fprintf(f, "	kernel_sgemv_t_1_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], 1);\n", m-j-1, idxA+j*bs+1, sda, idxx+j+1, idxy);
-			idxA += 1 + (sda-1)*bs;
-			idxy += 1;
-			j += 1;
+fprintf(f, "	kernel_ssymv_1_lib2(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, 1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
+			idxA  += 1;
+			idxy_n += 1;
+			idxx_t += 1;
+			idxA  += (sda-1)*bs;
+			j++;
 			}
 		for(; j<m-1; j+=2)
 			{
-fprintf(f, "	kernel_sgemv_n_2_lib2(%d, &pA[%d], &x[%d], &y[%d], %d);\n", j, idxA, idxx, idxy, alg);
-fprintf(f, "	y[%d] += pA[%d]*x[%d] + pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j, idxA+j*bs+1, idxx+j+1);
-fprintf(f, "	y[%d] += pA[%d]*x[%d] + pA[%d]*x[%d];\n", idxy+1, idxA+j*bs+1, idxx+j, idxA+j*bs+1+bs*1, idxx+j+1);
-fprintf(f, "	kernel_sgemv_t_2_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], 1);\n", m-j-2, idxA+j*bs+sda*bs, sda, idxx+j+2, idxy);
-			idxA += sda*bs;
-			idxy += bs;
+fprintf(f, "	kernel_ssymv_2_lib2(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, 1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
+			idxA  += sda*bs;
+			idxy_n += bs;
+			idxx_t += bs;
 			}
 		for(; j<m; j++)
 			{
-fprintf(f, "	kernel_sgemv_n_1_lib2(%d, &pA[%d], &x[%d], &y[%d], %d);\n", j, idxA, idxx, idxy, alg);
-fprintf(f, "	y[%d] += pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j);
-fprintf(f, "	kernel_sgemv_t_1_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], 1);\n", m-j-1, idxA+j*bs+1, sda, idxx+j+1, idxy);
-			idxA += 1;
-			idxy += 1;
+fprintf(f, "	kernel_ssymv_1_lib2(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, 1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
+			idxA  += 1;
+			idxy_n += 1;
+			idxx_t += 1;
 			}
 		}
 	else // alg==-1
@@ -476,29 +569,132 @@ fprintf(f, "	kernel_sgemv_t_1_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], 1);\n", m
 		j=0;
 		if(mna==1)
 			{
-fprintf(f, "	kernel_sgemv_n_1_lib2(%d, &pA[%d], &x[%d], &y[%d], -1);\n", j, idxA, idxx, idxy);
-fprintf(f, "	y[%d] -= pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j);
-fprintf(f, "	kernel_sgemv_t_1_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], -1);\n", m-j-1, idxA+j*bs+1, sda, idxx+j+1, idxy);
-			idxA += 1 + (sda-1)*bs;
-			idxy += 1;
-			j += 1;
+fprintf(f, "	kernel_ssymv_1_lib2(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, -1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
+			idxA  += 1;
+			idxy_n += 1;
+			idxx_t += 1;
+			idxA  += (sda-1)*bs;
+			j++;
 			}
 		for(; j<m-1; j+=2)
 			{
-fprintf(f, "	kernel_sgemv_n_2_lib2(%d, &pA[%d], &x[%d], &y[%d], -1);\n", j, idxA, idxx, idxy);
-fprintf(f, "	y[%d] -= pA[%d]*x[%d] + pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j, idxA+j*bs+1, idxx+j+1);
-fprintf(f, "	y[%d] -= pA[%d]*x[%d] + pA[%d]*x[%d];\n", idxy+1, idxA+j*bs+1, idxx+j, idxA+j*bs+1+bs*1, idxx+j+1);
-fprintf(f, "	kernel_sgemv_t_2_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], -1);\n", m-j-2, idxA+j*bs+sda*bs, sda, idxx+j+2, idxy);
-			idxA += sda*bs;
-			idxy += bs;
+fprintf(f, "	kernel_ssymv_2_lib2(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, -1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
+			idxA  += sda*bs;
+			idxy_n += bs;
+			idxx_t += bs;
 			}
 		for(; j<m; j++)
 			{
-fprintf(f, "	kernel_sgemv_n_1_lib2(%d, &pA[%d], &x[%d], &y[%d], -1);\n", j, idxA, idxx, idxy);
-fprintf(f, "	y[%d] -= pA[%d]*x[%d];\n", idxy, idxA+j*bs, idxx+j);
-fprintf(f, "	kernel_sgemv_t_1_lib2(%d, 0, &pA[%d], %d, &x[%d], &y[%d], -1);\n", m-j-1, idxA+j*bs+1, sda, idxx+j+1, idxy);
-			idxA += 1;
-			idxy += 1;
+fprintf(f, "	kernel_ssymv_1_lib2(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, -1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
+			idxA  += 1;
+			idxy_n += 1;
+			idxx_t += 1;
+			}
+		}
+
+/*fprintf(f, "	\n");*/
+
+	}
+
+
+
+void smvmv_p_code_generator(FILE *f, int m, int n, int offset, int alg)
+	{
+	
+	const int bs = 2;
+	
+	const int sda = PNZ;
+
+	int mna = (bs-offset%bs)%bs;
+	
+	int j, jj;
+	
+	int idxA = 0;
+	int idxx_n = 0;
+	int idxy_n = 0;
+	int idxx_t = 0;
+	int idxy_t = 0;
+
+	if(alg==0)
+		{
+fprintf(f, "	for(jj=0; jj<%d; jj+=4)\n", m-3);
+fprintf(f, "		{\n");
+fprintf(f, "		y_n[jj+%d] = 0.0;\n", 0);
+fprintf(f, "		y_n[jj+%d] = 0.0;\n", 1);
+fprintf(f, "		y_n[jj+%d] = 0.0;\n", 2);
+fprintf(f, "		y_n[jj+%d] = 0.0;\n", 3);
+fprintf(f, "		}\n");
+		for(jj=0; jj<m%4; jj++)
+			{
+fprintf(f, "	y_n[%d] = 0.0;\n", (m/4)*4+jj );
+			}
+fprintf(f, "	\n");
+fprintf(f, "	for(jj=0; jj<%d; jj+=4)\n", n-3);
+fprintf(f, "		{\n");
+fprintf(f, "		y_t[jj+%d] = 0.0;\n", 0);
+fprintf(f, "		y_t[jj+%d] = 0.0;\n", 1);
+fprintf(f, "		y_t[jj+%d] = 0.0;\n", 2);
+fprintf(f, "		y_t[jj+%d] = 0.0;\n", 3);
+fprintf(f, "		}\n");
+		for(jj=0; jj<n%4; jj++)
+			{
+fprintf(f, "	y_t[%d] = 0.0;\n", (n/4)*4+jj );
+			}
+fprintf(f, "	\n");
+		}
+
+	if(alg==0 || alg==1)
+		{
+		j=0;
+		if(mna==1)
+			{
+fprintf(f, "	kernel_ssymv_1_lib2(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, 1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
+			idxA  += 1;
+			idxy_n += 1;
+			idxx_t += 1;
+			idxA  += (sda-1)*bs;
+			j++;
+			}
+		for(; j<m-1; j+=2)
+			{
+fprintf(f, "	kernel_ssymv_2_lib2(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, 1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
+			idxA  += sda*bs;
+			idxy_n += bs;
+			idxx_t += bs;
+			}
+		for(; j<m; j++)
+			{
+fprintf(f, "	kernel_ssymv_1_lib2(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, 1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
+			idxA  += 1;
+			idxy_n += 1;
+			idxx_t += 1;
+			}
+		}
+	else // alg==-1
+		{
+		j=0;
+		if(mna==1)
+			{
+fprintf(f, "	kernel_ssymv_1_lib2(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, -1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
+			idxA  += 1;
+			idxy_n += 1;
+			idxx_t += 1;
+			idxA  += (sda-1)*bs;
+			j++;
+			}
+		for(; j<m-1; j+=2)
+			{
+fprintf(f, "	kernel_ssymv_2_lib2(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, -1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
+			idxA  += sda*bs;
+			idxy_n += bs;
+			idxx_t += bs;
+			}
+		for(; j<m; j++)
+			{
+fprintf(f, "	kernel_ssymv_1_lib2(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, -1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
+			idxA  += 1;
+			idxy_n += 1;
+			idxx_t += 1;
 			}
 		}
 
