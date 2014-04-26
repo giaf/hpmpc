@@ -478,7 +478,7 @@ fprintf(f, "	kernel_sgemv_n_2_lib4(%d, &pA[%d], x, &y[%d], %d);\n", m, idxA, idx
 			}
 		idxA += (sda-1)*bs;
 		}
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 	for(; j<n-7; j+=8)
 		{
 fprintf(f, "	kernel_sgemv_n_8_lib4(%d, &pA[%d], &pA[%d], x, &y[%d], %d);\n", m, idxA, idxA+sda*bs, idxy, alg);
@@ -521,7 +521,7 @@ void sgemv_p_t_code_generator(FILE *f, int n, int m, int offset, int alg)
 	int j;
 	
 	j=0;
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 	for(; j<m-7; j+=8)
 		{
 fprintf(f, "	kernel_sgemv_t_8_lib4(%d, %d, pA+%d, %d, x, y+%d, %d);\n", n, nna, j*bs, sda, j, alg);
@@ -604,7 +604,7 @@ fprintf(f, "	y[%d] += pA[%d] * x[%d];\n", idxy+1, idxA+(j+1)*bs+1, j+1);
 				}
 			idxA += (sda-1)*bs;
 			}
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 		for(; j<m-7; j+=8)
 			{
 fprintf(f, "	kernel_sgemv_n_8_lib4(%d, &pA[%d], &pA[%d], x, &y[%d], %d);\n", j+1, idxA, idxA+sda*bs, idxy, alg);
@@ -691,7 +691,7 @@ fprintf(f, "	y[%d] -= pA[%d] * x[%d];\n", idxy+1, idxA+(j+1)*bs+1, j+1);
 				}
 			idxA += (sda-1)*bs;
 			}
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 		for(; j<m-7; j+=8)
 			{
 fprintf(f, "	kernel_sgemv_n_8_lib4(%d, &pA[%d], &pA[%d], x, &y[%d], -1);\n", j+1, idxA, idxA+sda*bs, idxy);
@@ -769,7 +769,7 @@ fprintf(f, "	kernel_sgemv_t_1_lib4(%d, %d, &pA[%d], %d, &x[%d], &y[%d], %d);\n",
 			idxy  += j;
 			mmax -= j;
 			}
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 		for(; j<m-7; j+=8)
 			{
 			idxA += bs*sda;
@@ -835,7 +835,7 @@ fprintf(f, "	kernel_sgemv_t_1_lib4(%d, %d, &pA[%d], %d, &x[%d], &y[%d], %d);\n",
 			idxy  += j;
 			mmax -= j;
 			}
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 		for(; j<m-7; j+=8)
 			{
 fprintf(f, "	kernel_sgemv_t_4_lib4(%d, 1, &pA[%d], %d, &x[%d], &y[%d], %d);\n", 4, idxA+3, sda, idxx+3, idxy, -1);
@@ -1141,7 +1141,7 @@ void strsv_p_n_code_generator(FILE *f, int n)
 	int idxx = 0;
 
 	j = 0;
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 	for(; j<n-7; j+=8)
 		{
 		// correct
@@ -1256,7 +1256,7 @@ fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d]) / pA[%d];\n", i+idxx, i+idxx, (i+1)+
 
 	// blocks of 8
 	j = 0;
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 	for(; j<qn-1; j+=2)
 		{
 		

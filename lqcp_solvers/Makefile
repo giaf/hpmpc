@@ -49,9 +49,9 @@ ifeq ($(TARGET), C99_2X2)
 OBJS = dricposv.o sricposv.o dres.o sres.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_2X2 $(DEBUG)
 endif
-ifeq ($(TARGET), ATOM)
+ifeq ($(TARGET), X86_ATOM)
 OBJS = dricposv.o sricposv.o dres.o sres.o
-CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -fPIC -DTARGET_ATOM $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -fPIC -DTARGET_X86_ATOM $(DEBUG)
 endif
 
 obj: $(OBJS)

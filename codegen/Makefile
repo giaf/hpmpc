@@ -57,10 +57,10 @@ CODEGEN_OBJS_DOUBLE = code_generator_blas_d_lib2.o code_generator_dricposv.o
 CODEGEN_OBJS_SINGLE = code_generator_blas_s_lib2.o code_generator_sricposv.o
 CFLAGS = $(OPT) -std=c99 -DTARGET_C99_2X2 $(DEBUG)
 endif
-ifeq ($(TARGET), ATOM)
+ifeq ($(TARGET), X86_ATOM)
 CODEGEN_OBJS_DOUBLE = code_generator_blas_d_lib2.o code_generator_dricposv.o
 CODEGEN_OBJS_SINGLE = code_generator_blas_s_lib4.o code_generator_sricposv.o
-CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -DTARGET_ATOM $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -DTARGET_X86_ATOM $(DEBUG)
 endif
 
 codegen: $(CODEGEN_OBJS_DOUBLE) $(CODEGEN_OBJS_SINGLE)

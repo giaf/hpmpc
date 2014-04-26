@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/time.h>
-#if defined(TARGET_AVX) || defined(TARGET_SSE4) || defined(TARGET_ATOM)
+#if defined(TARGET_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM)
 #include <xmmintrin.h> // needed to flush to zero sub-normals with _MM_SET_FLUSH_ZERO_MODE (_MM_FLUSH_ZERO_ON); in the main()
 #endif
 
@@ -158,7 +158,7 @@ int main()
 	// maximum flops per cycle, double precision
 	const float d_flops_max = 8; //4; //2;
 
-#if defined(TARGET_AVX) || defined(TARGET_SSE4) || defined(TARGET_ATOM)
+#if defined(TARGET_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM)
 	printf("\nflush to zero on\n");
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); // flush to zero subnormals !!! works only with one thread !!!
 #endif

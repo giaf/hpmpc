@@ -53,8 +53,8 @@ endif
 ifeq ($(TARGET), C99_2X2)
 CFLAGS = $(OPT) -std=c99 -DTARGET_C99_2X2 $(DEBUG)
 endif
-ifeq ($(TARGET), ATOM)
-CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -DTARGET_ATOM $(DEBUG)
+ifeq ($(TARGET), X86_ATOM)
+CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -DTARGET_X86_ATOM $(DEBUG)
 endif
 
 obj: $(OBJS_TEST)

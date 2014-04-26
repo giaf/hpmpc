@@ -86,15 +86,15 @@ LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o  .
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_2X2 $(DEBUG)
 endif
-ifeq ($(TARGET), ATOM)
-AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_atom.o 
-KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_atom_lib2.o ./kernel/kernel_dpotrf_c99_lib2.o ./kernel/kernel_dgemv_c99_lib2.o ./kernel/corner_dtrmm_c99_lib2.o ./kernel/corner_dpotrf_c99_lib2.o ./kernel/kernel_dsymv_c99_lib2.o
-KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_atom_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_atom_lib4.o ./kernel/corner_strmm_c99_lib4.o ./kernel/corner_spotrf_c99_lib4.o ./kernel/kernel_ssymv_c99_lib4.o
+ifeq ($(TARGET), X86_ATOM)
+AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_x86_atom.o 
+KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_x86_atom_lib2.o ./kernel/kernel_dpotrf_c99_lib2.o ./kernel/kernel_dgemv_c99_lib2.o ./kernel/corner_dtrmm_c99_lib2.o ./kernel/corner_dpotrf_c99_lib2.o ./kernel/kernel_dsymv_c99_lib2.o
+KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_x86_atom_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_x86_atom_lib4.o ./kernel/corner_strmm_c99_lib4.o ./kernel/corner_spotrf_c99_lib4.o ./kernel/kernel_ssymv_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib2.o ./blas/blas_s_lib4.o
 LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o ./lqcp_solvers/sres.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o  ./codegen/dres_codegen.o ./codegen/sres_codegen.o 
 MPC_OBJS = ./mpc_solvers/ip_d_box.o
-CFLAGS = $(OPT) -std=c99 -fPIC -msse3 -mfpmath=sse -march=atom -DTARGET_ATOM $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -fPIC -msse3 -mfpmath=sse -march=atom -DTARGET_X86_ATOM $(DEBUG)
 endif
 
 all: clean library test_problem run

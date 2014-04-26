@@ -505,7 +505,7 @@ void sgemv_p_n_lib(int n, int m, int offset, float *pA, int sda, float *x, float
 		pA += (sda-1)*bs;
 		}
 /*	for(; j<n-(bs-1); j+=bs)*/
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 	for(; j<n-7; j+=8)
 		{
 		kernel_sgemv_n_8_lib4(m, pA, pA+sda*bs, x, y, alg);
@@ -546,7 +546,7 @@ void sgemv_p_t_lib(int n, int m, int offset, float *pA, int sda, float *x, float
 	int j;
 	
 	j=0;
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 	for(; j<m-7; j+=8)
 		{
 		kernel_sgemv_t_8_lib4(n, nna, pA+j*bs, sda, x, y+j, alg);
@@ -623,7 +623,7 @@ void strmv_p_n_lib(int m, int offset, float *pA, int sda, float *x, float *y, in
 				}
 			pA += (sda-1)*bs;
 			}
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 		for(; j<m-7; j+=8)
 			{
 			kernel_sgemv_n_8_lib4(j+1, pA, pA+sda*bs, x, y, alg);
@@ -710,7 +710,7 @@ void strmv_p_n_lib(int m, int offset, float *pA, int sda, float *x, float *y, in
 				}
 			pA += (sda-1)*bs;
 			}
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 		for(; j<m-7; j+=8)
 			{
 			kernel_sgemv_n_8_lib4(j+1, pA, pA+sda*bs, x, y, -1);
@@ -782,7 +782,7 @@ void strmv_p_t_lib(int m, int offset, float *pA, int sda, float *x, float *y, in
 			y  += j;
 			mmax -= j;
 			}
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 		for(; j<m-7; j+=8)
 			{
 			pA += bs*sda;
@@ -848,7 +848,7 @@ void strmv_p_t_lib(int m, int offset, float *pA, int sda, float *x, float *y, in
 			y  += j;
 			mmax -= j;
 			}
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 		for(; j<m-7; j+=8)
 			{
 			kernel_sgemv_t_4_lib4(4, 1, pA+3, sda, x+3, y, -1);
@@ -944,7 +944,7 @@ void strmv_p_t_lib(int m, int offset, float *pA, int sda, float *x, float *y, in
 /*			{*/
 /*			pA += (sda-1)*bs;*/
 /*			}*/
-/*#if !defined(TARGET_ATOM)*/
+/*#if !defined(TARGET_X86_ATOM)*/
 /*		for(; j<m-7; j+=8)*/
 /*			{*/
 /*			kernel_sgemv_n_8_lib4(j, pA, pA+sda*bs, x, y, alg);*/
@@ -1037,7 +1037,7 @@ void strmv_p_t_lib(int m, int offset, float *pA, int sda, float *x, float *y, in
 /*			{*/
 /*			pA += (sda-1)*bs;*/
 /*			}*/
-/*#if !defined(TARGET_ATOM)*/
+/*#if !defined(TARGET_X86_ATOM)*/
 /*		for(; j<m-7; j+=8)*/
 /*			{*/
 /*			kernel_sgemv_n_8_lib4(j, pA, pA+sda*bs, x, y, -1);*/
@@ -1317,7 +1317,7 @@ void strsv_p_n_lib(int n, float *pA, int sda, float *x)
 	ptrx  = x;
 
 	j = 0;
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 	for(; j<n-7; j+=8)
 		{
 		// correct
@@ -1429,7 +1429,7 @@ void strsv_p_t_lib(int n, float *pA, int sda, float *x)
 
 	// blocks of 8
 	j = 0;
-#if !defined(TARGET_ATOM)
+#if !defined(TARGET_X86_ATOM)
 	for(; j<qn-1; j+=2)
 		{
 		
