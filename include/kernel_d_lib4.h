@@ -45,9 +45,12 @@ void kernel_dgemv_n_8_lib4(int kmax, double *A0, double *A1, double *x, double *
 void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, int alg);
 void kernel_dgemv_n_2_lib4(int kmax, double *A, double *x, double *y, int alg);
 void kernel_dgemv_n_1_lib4(int kmax, double *A, double *x, double *y, int alg);
-void kernel_dsymv_4_lib4(int kmax, double *A, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg);
-void kernel_dsymv_2_lib4(int kmax, double *A, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg);
-void kernel_dsymv_1_lib4(int kmax, double *A, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg);
+//void kernel_dsymv_4_lib4(int kmax, double *A, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg);
+//void kernel_dsymv_2_lib4(int kmax, double *A, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg);
+//void kernel_dsymv_1_lib4(int kmax, double *A, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg);
+void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg);
+void kernel_dsymv_2_lib4(int kmax, int kna, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg);
+void kernel_dsymv_1_lib4(int kmax, int kna, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg);
 // corner
 void corner_dtrmm_pp_nt_8x3_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc);
 void corner_dtrmm_pp_nt_8x2_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc);

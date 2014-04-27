@@ -1,3 +1,28 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                                                 %
+% This file is part of HPMPC.                                                                     %
+%                                                                                                 %
+% HPMPC -- Library for High-Performance implementation of solvers for MPC.                        %
+% Copyright (C) 2014 by Technical University of Denmark. All rights reserved.                     %
+%                                                                                                 %
+% HPMPC is free software; you can redistribute it and/or                                          %
+% modify it under the terms of the GNU Lesser General Public                                      %
+% License as published by the Free Software Foundation; either                                    %
+% version 2.1 of the License, or (at your option) any later version.                              %
+%                                                                                                 %
+% HPMPC is distributed in the hope that it will be useful,                                        %
+% but WITHOUT ANY WARRANTY; without even the implied warranty of                                  %
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                                            %
+% See the GNU Lesser General Public License for more details.                                     %
+%                                                                                                 %
+% You should have received a copy of the GNU Lesser General Public                                %
+% License along with HPMPC; if not, write to the Free Software                                    %
+% Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA                  %
+%                                                                                                 %
+% Author: Gianluca Frison, giaf (at) dtu.dk                                                       %
+%                                                                                                 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % prints the results of the performance test on blas
 
 test_blas
@@ -10,12 +35,12 @@ plot(B(:,1), B(:,6), 'g-*', 'LineWidth', 2)
 plot(B(:,1), B(:,8), 'm-^', 'LineWidth', 2)
 plot(B(:,1), B(:,10), 'c-d', 'LineWidth', 2)
 plot(B(:,1), B(:,12), 'k-s', 'LineWidth', 2)
-plot(B(:,1), B(:,14), 'b-s', 'LineWidth', 2)
-plot(B(:,1), B(:,16), 'r-d', 'LineWidth', 2)
+plot(B(:,1), B(:,14), 'c-s', 'LineWidth', 2)
+plot(B(:,1), B(:,16), 'k-d', 'LineWidth', 2)
 plot(B(:,1), B(:,18), 'g-^', 'LineWidth', 2)
 plot(B(:,1), B(:,20), 'm-*', 'LineWidth', 2)
-plot(B(:,1), B(:,22), 'c-o', 'LineWidth', 2)
-plot(B(:,1), B(:,24), 'k-x', 'LineWidth', 2)
+plot(B(:,1), B(:,22), 'b-o', 'LineWidth', 2)
+plot(B(:,1), B(:,24), 'r-x', 'LineWidth', 2)
 hold off
 
 title(['test HPMPC BLAS'])

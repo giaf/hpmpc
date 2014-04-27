@@ -28,7 +28,7 @@ include ./Makefile.rule
 
 ifeq ($(TARGET), X64_AVX)
 AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_x64_avx.o 
-KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_avx_lib4.o ./kernel/kernel_dpotrf_sse3_lib4.o ./kernel/kernel_dgemv_avx_lib4.o ./kernel/corner_dtrmm_avx_lib4.o ./kernel/corner_dpotrf_sse2_lib4.o ./kernel/kernel_dsymv_c99_lib4.o 
+KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_avx_lib4.o ./kernel/kernel_dpotrf_sse3_lib4.o ./kernel/kernel_dgemv_avx_lib4.o ./kernel/corner_dtrmm_avx_lib4.o ./kernel/corner_dpotrf_sse2_lib4.o ./kernel/kernel_dsymv_avx_lib4.o 
 KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_sse_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_c99_lib4.o ./kernel/corner_strmm_sse_lib4.o ./kernel/corner_spotrf_c99_lib4.o ./kernel/kernel_ssymv_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o ./lqcp_solvers/sres.o

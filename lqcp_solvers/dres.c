@@ -59,6 +59,8 @@ void dres(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double 
 		dmvmv_p_lib(nxu, nx, 0, hpBAbt[ii], sda, hpi[ii+1], hrq[ii], hux[ii], hrb[ii], -1);
 		}
 	
+/*exit(3);*/
+
 	// last block
 	for(jj=0; jj<nx; jj++) hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj];
 	dsymv_p_lib(nx, nu, hpQ[N]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, hux[N]+nu, hrq[N]+nu, -1);

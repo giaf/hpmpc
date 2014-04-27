@@ -536,33 +536,33 @@ void sgemv_p_n_lib(int n, int m, int offset, float *pA, int sda, float *x, float
 
 
 
-void sgemv_p_t_lib(int n, int m, int offset, float *pA, int sda, float *x, float *y, int alg)
+void sgemv_p_t_lib(int m, int n, int offset, float *pA, int sda, float *x, float *y, int alg)
 	{
 	
 	const int bs = 4;
 	
-	int nna = (bs-offset%bs)%bs;
+	int mna = (bs-offset%bs)%bs;
 	
 	int j;
 	
 	j=0;
 #if !defined(TARGET_X86_ATOM)
-	for(; j<m-7; j+=8)
+	for(; j<n-7; j+=8)
 		{
-		kernel_sgemv_t_8_lib4(n, nna, pA+j*bs, sda, x, y+j, alg);
+		kernel_sgemv_t_8_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
 		}
 #endif
-	for(; j<m-3; j+=4)
+	for(; j<n-3; j+=4)
 		{
-		kernel_sgemv_t_4_lib4(n, nna, pA+j*bs, sda, x, y+j, alg);
+		kernel_sgemv_t_4_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
 		}
-	for(; j<m-1; j+=2)
+	for(; j<n-1; j+=2)
 		{
-		kernel_sgemv_t_2_lib4(n, nna, pA+j*bs, sda, x, y+j, alg);
+		kernel_sgemv_t_2_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
 		}
-	for(; j<m; j++)
+	for(; j<n; j++)
 		{
-		kernel_sgemv_t_1_lib4(n, nna, pA+j*bs, sda, x, y+j, alg);
+		kernel_sgemv_t_1_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
 		}
 
 	}
