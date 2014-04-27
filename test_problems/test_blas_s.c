@@ -28,9 +28,9 @@
 #include <sys/time.h>
 
 #include "../include/aux_d.h"
-/*#include "../include/aux_s.h"*/
+#include "../include/aux_s.h"
 #include "../include/blas_d.h"
-/*#include "../include/blas_lib_s.h"*/
+#include "../include/blas_s.h"
 #include "../include/block_size.h"
 
 
@@ -41,25 +41,61 @@ int main()
 	// maximum frequency of the processor
 	const float GHz_max = 2.9; //3.6; //2.9;
 
-	// maximum flops per cycle, double precision
-/*#if defined(TARGET_AVX)*/
+	// maximum flops per cycle, single precision
+#if defined(TARGET_X64_AVX)
+	const float d_flops_max = 16;
+#elif defined(TARGET_X64_SSE3)
 	const float d_flops_max = 8;
-/*#elif defined(TARGET_SSE4)*/
-/*	const float d_flops_max = 4;*/
-/*#elif defined(TARGET_CORTEXA9)*/
-/*	const float d_flops_max = 1;*/
-/*#elif defined(TARGET_ATOM)*/
-/*	const float d_flops_max = 1;*/
-/*#elif defined(TARGET_POWERPC_G2)*/
-/*	const float d_flops_max = 1;*/
-/*#else*/
-/*	const float d_flops_max = 2;*/
-/*#endif*/
+#elif defined(TARGET_CORTEXA9)
+	const float d_flops_max = 4;
+#elif defined(TARGET_X86_ATOM)
+	const float d_flops_max = 4;
+#elif defined(TARGET_POWERPC_G2)
+	const float d_flops_max = 2;
+#elif defined(TARGET_C99_4X4)
+	const float d_flops_max = 2;
+#elif defined(TARGET_C99_2X2)
+	const float d_flops_max = 2;
+#endif
 	
+	FILE *f;
+	f = fopen("./test_problems/results/test_blas.m", "w"); // a
+
+#if defined(TARGET_X64_AVX)
+	fprintf(f, "C = 's_x64_avx';\n", GHz_max, d_flops_max);
+	fprintf(f, "\n");
+#elif defined(TARGET_X64_SSE3)
+	fprintf(f, "C = 's_x64_sse3';\n", GHz_max, d_flops_max);
+	fprintf(f, "\n");
+#elif defined(TARGET_CORTEXA9)
+	fprintf(f, "C = 's_ARM_cortex_A9';\n", GHz_max, d_flops_max);
+	fprintf(f, "\n");
+#elif defined(TARGET_X86_ATOM)
+	fprintf(f, "C = 's_x86_atom';\n", GHz_max, d_flops_max);
+	fprintf(f, "\n");
+#elif defined(TARGET_POWERPC_G2)
+	fprintf(f, "C = 's_PowerPC_G2';\n", GHz_max, d_flops_max);
+	fprintf(f, "\n");
+#elif defined(TARGET_C99_4X4)
+	fprintf(f, "C = 's_c99_2x2';\n", GHz_max, d_flops_max);
+	fprintf(f, "\n");
+#elif defined(TARGET_C99_2X2)
+	fprintf(f, "C = 's_c99_4x4';\n", GHz_max, d_flops_max);
+	fprintf(f, "\n");
+#endif
+
+	fprintf(f, "A = [%f %f];\n", GHz_max, d_flops_max);
+	fprintf(f, "\n");
+
+	fprintf(f, "B = [\n");
+
+
+
 	int i, j, rep, ll;
 	
 	const int bsd = D_MR; //d_get_mr();
-
+	const int bss = S_MR; //s_get_mr();
+	
 	int info = 0;
 	
 	printf("\nn\tGflops dgemm %%\tGflops dsyrk %%\tGflops dtrmm %%\tGflops dpotrf %%\tGflops dgemv_n%%\tGflops dgemv_t%%\tGflops dsymv %%\tGflops dtrmv_n%%\tGflops dtrmv_t%%\tGflops dmvmv%%\n\n");
@@ -82,6 +118,9 @@ int main()
 		double *A; d_zeros(&A, n, n);
 		double *B; d_zeros(&B, n, n);
 		double *C; d_zeros(&C, n, n);
+		float *sA; s_zeros(&sA, n, n);
+		float *sB; s_zeros(&sB, n, n);
+		float *sC; s_zeros(&sC, n, n);
 	
 		for(i=0; i<n*n; i++)
 			A[i] = i;
@@ -89,34 +128,40 @@ int main()
 		for(i=0; i<n; i++)
 			B[i*(n+1)] = 1;
 	
-		int pnd = ((n+bsd-1)/bsd)*bsd;	
+		for(i=0; i<n*n; i++)
+			sA[i] = i;
+	
+		for(i=0; i<n; i++)
+			sB[i*(n+1)] = 1;
+	
+		int pns = ((n+bss-1)/bss)*bss;	
 
-		double *pA; d_zeros_align(&pA, pnd, pnd);
-		double *pB; d_zeros_align(&pB, pnd, pnd);
-		double *pC; d_zeros_align(&pC, pnd, pnd);
-		double *pD; d_zeros_align(&pD, pnd, pnd);
-		double *pL; d_zeros_align(&pL, pnd, pnd);
-		double *x; d_zeros_align(&x, pnd, 1);
-		double *y; d_zeros_align(&y, pnd, 1);
-		double *x2; d_zeros_align(&x2, pnd, 1);
-		double *y2; d_zeros_align(&y2, pnd, 1);
+		float *pA; s_zeros_align(&pA, pns, pns);
+		float *pB; s_zeros_align(&pB, pns, pns);
+		float *pC; s_zeros_align(&pC, pns, pns);
+		float *pD; s_zeros_align(&pD, pns, pns);
+		float *pL; s_zeros_align(&pL, pns, pns);
+		float *x; s_zeros_align(&x, pns, 1);
+		float *y; s_zeros_align(&y, pns, 1);
+		float *x2; s_zeros_align(&x2, pns, 1);
+		float *y2; s_zeros_align(&y2, pns, 1);
 	
-		d_cvt_mat2pmat(n, n, 0, bsd, A, n, pA, pnd);
-		d_cvt_mat2pmat(n, n, 0, bsd, B, n, pB, pnd);
-		d_cvt_mat2pmat(n, n, 0, bsd, B, n, pD, pnd);
+		s_cvt_mat2pmat(n, n, 0, bss, sA, n, pA, pns);
+		s_cvt_mat2pmat(n, n, 0, bss, sB, n, pB, pns);
+		s_cvt_mat2pmat(n, n, 0, bss, sB, n, pD, pns);
 	
-		for(i=0; i<pnd*pnd; i++) pC[i] = -1;
+		for(i=0; i<pns*pns; i++) pC[i] = -1;
 		
-		for(i=0; i<pnd; i++) x[i] = 1;
-		for(i=0; i<pnd; i++) x2[i] = 1;
+		for(i=0; i<pns; i++) x[i] = 1;
+		for(i=0; i<pns; i++) x2[i] = 1;
 
 		/* timing */
-		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6, tv7, tv8, tv9, tv10;
+		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6, tv7, tv8, tv9, tv10, tv11, tv12;
 
 		/* warm up */
 		for(rep=0; rep<nrep; rep++)
 			{
-			dgemm_ppp_nt_lib(n, n, n, pA, pnd, pB, pnd, pC, pnd, 0);
+			sgemm_ppp_nt_lib(n, n, n, pA, pns, pB, pns, pC, pns, 0);
 			}
 
 		gettimeofday(&tv0, NULL); // start
@@ -124,7 +169,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dgemm_ppp_nt_lib(n, n, n, pA, pnd, pB, pnd, pC, pnd, 0);
+			sgemm_ppp_nt_lib(n, n, n, pA, pns, pB, pns, pC, pns, 0);
 
 			}
 	
@@ -133,7 +178,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dsyrk_ppp_lib(n, n, n, pA, pnd, pC, pnd);
+			ssyrk_ppp_lib(n, n, n, pA, pns, pC, pns);
 
 			}
 	
@@ -142,7 +187,8 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dtrmm_ppp_lib(n, n, 0, pA, pnd, pB, pnd, pC, pnd);
+			strmm_ppp_lib(n, n, 0, pA, pns, pB, pns, pC, pns);
+
 			}
 	
 		gettimeofday(&tv3, NULL); // stop
@@ -150,7 +196,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dpotrf_p_dcopy_p_t_lib(n, 0, pD, pnd, pL, pnd, &info);
+			spotrf_p_scopy_p_t_lib(n, 0, pD, pns, pL, pns, &info);
 
 			}
 	
@@ -159,7 +205,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dgemv_p_n_lib(n, n, 0, pA, pnd, x, y, 0);
+			sgemv_p_n_lib(n, n, 0, pA, pns, x, y, 0);
 
 			}
 	
@@ -168,7 +214,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dgemv_p_t_lib(n, n, 0, pA, pnd, x, y, 0);
+			sgemv_p_t_lib(n, n, 0, pA, pns, x, y, 0);
 
 			}
 	
@@ -177,7 +223,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dsymv_p_lib(n, 0, pA, pnd, x, y, 0);
+			strmv_p_n_lib(n, 0, pA, pns, x, y, 0);
 
 			}
 	
@@ -187,7 +233,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dtrmv_p_n_lib(n, 0, pA, pnd, x, y, 0);
+			strmv_p_t_lib(n, 0, pA, pns, x, y, 0);
 
 			}
 	
@@ -197,7 +243,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dtrmv_p_t_lib(n, 0, pA, pnd, x, y, 0);
+			strsv_p_n_lib(n, pB, pns, x);
 
 			}
 	
@@ -206,11 +252,29 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dmvmv_p_lib(n, n, 0, pA, pnd, x, y, x2, y2, 0);
+			strsv_p_t_lib(n, pB, pns, x);
 
 			}
 	
 		gettimeofday(&tv10, NULL); // stop
+
+		for(rep=0; rep<nrep; rep++)
+			{
+
+			ssymv_p_lib(n, 0, pA, pns, x, y, 0);
+
+			}
+	
+		gettimeofday(&tv11, NULL); // stop
+
+		for(rep=0; rep<nrep; rep++)
+			{
+
+			smvmv_p_lib(n, n, 0, pA, pns, x, y, x2, y2, 0);
+
+			}
+	
+		gettimeofday(&tv12, NULL); // stop
 
 
 
@@ -240,23 +304,33 @@ int main()
 		float flop_dgemv_t = 2.0*n*n;
 		float Gflops_dgemv_t = 1e-9*flop_dgemv_t/time_dgemv_t;
 
-		float time_dsymv = (float) (tv7.tv_sec-tv6.tv_sec)/(nrep+0.0)+(tv7.tv_usec-tv6.tv_usec)/(nrep*1e6);
-		float flop_dsymv = 2.0*n*n;
-		float Gflops_dsymv = 1e-9*flop_dsymv/time_dsymv;
-
-		float time_dtrmv_n = (float) (tv8.tv_sec-tv7.tv_sec)/(nrep+0.0)+(tv8.tv_usec-tv7.tv_usec)/(nrep*1e6);
+		float time_dtrmv_n = (float) (tv7.tv_sec-tv6.tv_sec)/(nrep+0.0)+(tv7.tv_usec-tv6.tv_usec)/(nrep*1e6);
 		float flop_dtrmv_n = 1.0*n*n;
 		float Gflops_dtrmv_n = 1e-9*flop_dtrmv_n/time_dtrmv_n;
 
-		float time_dtrmv_t = (float) (tv9.tv_sec-tv8.tv_sec)/(nrep+0.0)+(tv9.tv_usec-tv8.tv_usec)/(nrep*1e6);
+		float time_dtrmv_t = (float) (tv8.tv_sec-tv7.tv_sec)/(nrep+0.0)+(tv8.tv_usec-tv7.tv_usec)/(nrep*1e6);
 		float flop_dtrmv_t = 1.0*n*n;
 		float Gflops_dtrmv_t = 1e-9*flop_dtrmv_t/time_dtrmv_t;
 
-		float time_dmvmv = (float) (tv10.tv_sec-tv9.tv_sec)/(nrep+0.0)+(tv10.tv_usec-tv9.tv_usec)/(nrep*1e6);
+		float time_dtrsv_n = (float) (tv9.tv_sec-tv8.tv_sec)/(nrep+0.0)+(tv9.tv_usec-tv8.tv_usec)/(nrep*1e6);
+		float flop_dtrsv_n = 1.0*n*n;
+		float Gflops_dtrsv_n = 1e-9*flop_dtrsv_n/time_dtrsv_n;
+
+		float time_dtrsv_t = (float) (tv10.tv_sec-tv9.tv_sec)/(nrep+0.0)+(tv10.tv_usec-tv9.tv_usec)/(nrep*1e6);
+		float flop_dtrsv_t = 1.0*n*n;
+		float Gflops_dtrsv_t = 1e-9*flop_dtrsv_t/time_dtrsv_t;
+
+		float time_dsymv = (float) (tv11.tv_sec-tv10.tv_sec)/(nrep+0.0)+(tv11.tv_usec-tv10.tv_usec)/(nrep*1e6);
+		float flop_dsymv = 2.0*n*n;
+		float Gflops_dsymv = 1e-9*flop_dsymv/time_dsymv;
+
+		float time_dmvmv = (float) (tv12.tv_sec-tv11.tv_sec)/(nrep+0.0)+(tv12.tv_usec-tv11.tv_usec)/(nrep*1e6);
 		float flop_dmvmv = 4.0*n*n;
 		float Gflops_dmvmv = 1e-9*flop_dmvmv/time_dmvmv;
 
-		printf("%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_dgemm, 100.0*Gflops_dgemm/Gflops_max, Gflops_dsyrk, 100.0*Gflops_dsyrk/Gflops_max, Gflops_dtrmm, 100.0*Gflops_dtrmm/Gflops_max, Gflops_dpotrf, 100.0*Gflops_dpotrf/Gflops_max, Gflops_dgemv_n, 100.0*Gflops_dgemv_n/Gflops_max, Gflops_dgemv_t, 100.0*Gflops_dgemv_t/Gflops_max, Gflops_dsymv, 100.0*Gflops_dsymv/Gflops_max, Gflops_dtrmv_n, 100.0*Gflops_dtrmv_n/Gflops_max, Gflops_dtrmv_t, 100.0*Gflops_dtrmv_t/Gflops_max, Gflops_dmvmv, 100.0*Gflops_dmvmv/Gflops_max);
+		printf("%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_dgemm, 100.0*Gflops_dgemm/Gflops_max, Gflops_dsyrk, 100.0*Gflops_dsyrk/Gflops_max, Gflops_dtrmm, 100.0*Gflops_dtrmm/Gflops_max, Gflops_dpotrf, 100.0*Gflops_dpotrf/Gflops_max, Gflops_dgemv_n, 100.0*Gflops_dgemv_n/Gflops_max, Gflops_dgemv_t, 100.0*Gflops_dgemv_t/Gflops_max, Gflops_dtrmv_n, 100.0*Gflops_dtrmv_n/Gflops_max, Gflops_dtrmv_t, 100.0*Gflops_dtrmv_t/Gflops_max, Gflops_dtrsv_n, 100.0*Gflops_dtrsv_n/Gflops_max, Gflops_dtrsv_t, 100.0*Gflops_dtrsv_t/Gflops_max, Gflops_dsymv, 100.0*Gflops_dsymv/Gflops_max, Gflops_dmvmv, 100.0*Gflops_dmvmv/Gflops_max);
+
+	fprintf(f, "%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_dgemm, 100.0*Gflops_dgemm/Gflops_max, Gflops_dsyrk, 100.0*Gflops_dsyrk/Gflops_max, Gflops_dtrmm, 100.0*Gflops_dtrmm/Gflops_max, Gflops_dpotrf, 100.0*Gflops_dpotrf/Gflops_max, Gflops_dgemv_n, 100.0*Gflops_dgemv_n/Gflops_max, Gflops_dgemv_t, 100.0*Gflops_dgemv_t/Gflops_max, Gflops_dtrmv_n, 100.0*Gflops_dtrmv_n/Gflops_max, Gflops_dtrmv_t, 100.0*Gflops_dtrmv_t/Gflops_max, Gflops_dtrsv_n, 100.0*Gflops_dtrsv_n/Gflops_max, Gflops_dtrsv_t, 100.0*Gflops_dtrsv_t/Gflops_max, Gflops_dsymv, 100.0*Gflops_dsymv/Gflops_max, Gflops_dmvmv, 100.0*Gflops_dmvmv/Gflops_max);
 
 		free(A);
 		free(B);
@@ -273,6 +347,9 @@ int main()
 		}
 
 	printf("\n");
+
+	fprintf(f, "];\n");
+	fclose(f);
 
 	return 0;
 	
