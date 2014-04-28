@@ -39,6 +39,11 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	
 	const int lda = 4;
 	
+	__builtin_prefetch( A + 0*lda );
+	__builtin_prefetch( A + 2*lda );
+	__builtin_prefetch( A + 4*lda );
+	__builtin_prefetch( A + 6*lda );
+
 	double *tA, *tx;
 
 	int k;
@@ -87,16 +92,12 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 			a_02_12 = _mm_load_sd( &A[0+lda*2] );
 			a_03_13 = _mm_load_sd( &A[0+lda*3] );
 
-/*			y_0 += a_00_10 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_00_10, x_0_1 );	
 			y_0 = _mm_add_sd (y_0, ax_temp );
-/*			y_1 += a_01_11 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_01_11, x_0_1 );	
 			y_1 = _mm_add_sd (y_1, ax_temp );
-/*			y_2 += a_02_12 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_02_12, x_0_1 );	
 			y_2 = _mm_add_sd (y_2, ax_temp );
-/*			y_3 += a_03_13 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_03_13, x_0_1 );	
 			y_3 = _mm_add_sd (y_3, ax_temp );
 		
@@ -105,16 +106,12 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 			a_02_12 = _mm_load_sd( &A[0+lda*6] );
 			a_03_13 = _mm_load_sd( &A[0+lda*7] );
 
-/*			y_0 += a_00_10 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_00_10, x_0_1 );	
 			y_4 = _mm_add_sd (y_4, ax_temp );
-/*			y_1 += a_01_11 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_01_11, x_0_1 );	
 			y_5 = _mm_add_sd (y_5, ax_temp );
-/*			y_2 += a_02_12 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_02_12, x_0_1 );	
 			y_6 = _mm_add_sd (y_6, ax_temp );
-/*			y_3 += a_03_13 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_03_13, x_0_1 );	
 			y_7 = _mm_add_sd (y_7, ax_temp );
 		
@@ -134,16 +131,12 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 			a_02_12 = _mm_load_pd( &A[0+lda*2] );
 			a_03_13 = _mm_load_pd( &A[0+lda*3] );
 
-/*			y_0 += a_00_10 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_00_10, x_0_1 );	
 			y_0 = _mm_add_pd (y_0, ax_temp );
-/*			y_1 += a_01_11 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_01_11, x_0_1 );	
 			y_1 = _mm_add_pd (y_1, ax_temp );
-/*			y_2 += a_02_12 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_02_12, x_0_1 );	
 			y_2 = _mm_add_pd (y_2, ax_temp );
-/*			y_3 += a_03_13 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_03_13, x_0_1 );	
 			y_3 = _mm_add_pd (y_3, ax_temp );
 		
@@ -152,16 +145,12 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 			a_02_12 = _mm_load_pd( &A[0+lda*6] );
 			a_03_13 = _mm_load_pd( &A[0+lda*7] );
 
-/*			y_0 += a_00_10 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_00_10, x_0_1 );	
 			y_4 = _mm_add_pd (y_4, ax_temp );
-/*			y_1 += a_01_11 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_01_11, x_0_1 );	
 			y_5 = _mm_add_pd (y_5, ax_temp );
-/*			y_2 += a_02_12 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_02_12, x_0_1 );	
 			y_6 = _mm_add_pd (y_6, ax_temp );
-/*			y_3 += a_03_13 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_03_13, x_0_1 );	
 			y_7 = _mm_add_pd (y_7, ax_temp );
 		
@@ -173,16 +162,6 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 
 		A += (sda-1)*lda;
 		}
-
-/*	if(kmax>64)*/
-/*		{*/
-
-/*		__builtin_prefetch( A + 0*lda );*/
-/*		__builtin_prefetch( A + 2*lda );*/
-/*		__builtin_prefetch( A + 4*lda );*/
-/*		__builtin_prefetch( A + 6*lda );*/
-/*		*/
-/*		}*/
 
 	k = lda*(ka/lda);
 	tA = A + (ka/lda)*sda*lda;
@@ -200,16 +179,12 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 			a_02_12 = _mm_load_pd( &tA[0+lda*2] );
 			a_03_13 = _mm_load_pd( &tA[0+lda*3] );
 
-/*			y_0 += a_00_10 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_00_10, x_0_1 );	
 			y_0 = _mm_add_pd (y_0, ax_temp );
-/*			y_1 += a_01_11 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_01_11, x_0_1 );	
 			y_1 = _mm_add_pd (y_1, ax_temp );
-/*			y_2 += a_02_12 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_02_12, x_0_1 );	
 			y_2 = _mm_add_pd (y_2, ax_temp );
-/*			y_3 += a_03_13 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_03_13, x_0_1 );	
 			y_3 = _mm_add_pd (y_3, ax_temp );
 		
@@ -218,16 +193,12 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 			a_02_12 = _mm_load_pd( &tA[0+lda*6] );
 			a_03_13 = _mm_load_pd( &tA[0+lda*7] );
 
-/*			y_0 += a_00_10 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_00_10, x_0_1 );	
 			y_4 = _mm_add_pd (y_4, ax_temp );
-/*			y_1 += a_01_11 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_01_11, x_0_1 );	
 			y_5 = _mm_add_pd (y_5, ax_temp );
-/*			y_2 += a_02_12 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_02_12, x_0_1 );	
 			y_6 = _mm_add_pd (y_6, ax_temp );
-/*			y_3 += a_03_13 * x_0_1;*/
 			ax_temp = _mm_mul_pd( a_03_13, x_0_1 );	
 			y_7 = _mm_add_pd (y_7, ax_temp );
 		
@@ -247,16 +218,12 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 			a_02_12 = _mm_load_sd( &tA[0+lda*2] );
 			a_03_13 = _mm_load_sd( &tA[0+lda*3] );
 
-/*			y_0 += a_00_10 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_00_10, x_0_1 );	
 			y_0 = _mm_add_sd (y_0, ax_temp );
-/*			y_1 += a_01_11 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_01_11, x_0_1 );	
 			y_1 = _mm_add_sd (y_1, ax_temp );
-/*			y_2 += a_02_12 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_02_12, x_0_1 );	
 			y_2 = _mm_add_sd (y_2, ax_temp );
-/*			y_3 += a_03_13 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_03_13, x_0_1 );	
 			y_3 = _mm_add_sd (y_3, ax_temp );
 		
@@ -265,16 +232,12 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 			a_02_12 = _mm_load_sd( &tA[0+lda*6] );
 			a_03_13 = _mm_load_sd( &tA[0+lda*7] );
 
-/*			y_0 += a_00_10 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_00_10, x_0_1 );	
 			y_4 = _mm_add_sd (y_4, ax_temp );
-/*			y_1 += a_01_11 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_01_11, x_0_1 );	
 			y_5 = _mm_add_sd (y_5, ax_temp );
-/*			y_2 += a_02_12 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_02_12, x_0_1 );	
 			y_6 = _mm_add_sd (y_6, ax_temp );
-/*			y_3 += a_03_13 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_03_13, x_0_1 );	
 			y_7 = _mm_add_sd (y_7, ax_temp );
 		
@@ -294,106 +257,135 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	y_55 = _mm256_castpd128_pd256(y_5);
 	y_66 = _mm256_castpd128_pd256(y_6);
 	y_77 = _mm256_castpd128_pd256(y_7);
-
-	if(kmax<=64)
+		
+	k=0;
+	for(; k<ka-7; k+=8)
 		{
 
-		k=0;
-		for(; k<ka-3; k+=4)
-			{
-		
-/*			__builtin_prefetch( A + 4 + (sda-1)*lda + 0*lda );*/
-/*			__builtin_prefetch( A + 4 + (sda-1)*lda + 2*lda );*/
+		__builtin_prefetch( A + sda*lda + 0*lda );
+		__builtin_prefetch( A + sda*lda + 2*lda );
 
-			x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
 
-			a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
-			a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
-			a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
-			a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
-		
-			aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
-			y_00 = _mm256_add_pd( y_00, aaxx_temp );
-			aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
-			y_11 = _mm256_add_pd( y_11, aaxx_temp );
-			aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
-			y_22 = _mm256_add_pd( y_22, aaxx_temp );
-			aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
-			y_33 = _mm256_add_pd( y_33, aaxx_temp );
-		
-/*			__builtin_prefetch( A + 4 + (sda-1)*lda + 4*lda );*/
-/*			__builtin_prefetch( A + 4 + (sda-1)*lda + 6*lda );*/
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
+	
+		aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_11 = _mm256_add_pd( y_11, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+		y_22 = _mm256_add_pd( y_22, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+		y_33 = _mm256_add_pd( y_33, aaxx_temp );
+	
+		__builtin_prefetch( A + sda*lda + 4*lda );
+		__builtin_prefetch( A + sda*lda + 6*lda );
 
-			a_00_10_20_30 = _mm256_load_pd( &A[0+lda*4] );
-			a_01_11_21_31 = _mm256_load_pd( &A[0+lda*5] );
-			a_02_12_22_32 = _mm256_load_pd( &A[0+lda*6] );
-			a_03_13_23_33 = _mm256_load_pd( &A[0+lda*7] );
-		
-			aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
-			y_44 = _mm256_add_pd( y_44, aaxx_temp );
-			aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
-			y_55 = _mm256_add_pd( y_55, aaxx_temp );
-			aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
-			y_66 = _mm256_add_pd( y_66, aaxx_temp );
-			aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
-			y_77 = _mm256_add_pd( y_77, aaxx_temp );
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*4] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*5] );
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*6] );
+		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*7] );
+	
+		aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		y_44 = _mm256_add_pd( y_44, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_55 = _mm256_add_pd( y_55, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+		y_66 = _mm256_add_pd( y_66, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+		y_77 = _mm256_add_pd( y_77, aaxx_temp );
 
-			A += 4 + (sda-1)*lda;
-			x += 4;
+		A += 4 + (sda-1)*lda;
+		x += 4;
 
-			}
-		
+
+		__builtin_prefetch( A + sda*lda + 0*lda );
+		__builtin_prefetch( A + sda*lda + 2*lda );
+
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
+	
+		aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_11 = _mm256_add_pd( y_11, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+		y_22 = _mm256_add_pd( y_22, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+		y_33 = _mm256_add_pd( y_33, aaxx_temp );
+	
+		__builtin_prefetch( A + sda*lda + 4*lda );
+		__builtin_prefetch( A + sda*lda + 6*lda );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*4] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*5] );
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*6] );
+		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*7] );
+	
+		aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		y_44 = _mm256_add_pd( y_44, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_55 = _mm256_add_pd( y_55, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+		y_66 = _mm256_add_pd( y_66, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+		y_77 = _mm256_add_pd( y_77, aaxx_temp );
+
+		A += 4 + (sda-1)*lda;
+		x += 4;
+
 		}
-	else
+	for(; k<ka-3; k+=4)
 		{
-		
-		k=0;
-		for(; k<ka-3; k+=4)
-			{
 
-			__builtin_prefetch( A + 4 + (sda-1)*lda + 0*lda );
-			__builtin_prefetch( A + 4 + (sda-1)*lda + 2*lda );
+		__builtin_prefetch( A + sda*lda + 0*lda );
+		__builtin_prefetch( A + sda*lda + 2*lda );
 
-			x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
 
-			a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
-			a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
-			a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
-			a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
-		
-			aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
-			y_00 = _mm256_add_pd( y_00, aaxx_temp );
-			aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
-			y_11 = _mm256_add_pd( y_11, aaxx_temp );
-			aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
-			y_22 = _mm256_add_pd( y_22, aaxx_temp );
-			aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
-			y_33 = _mm256_add_pd( y_33, aaxx_temp );
-		
-			__builtin_prefetch( A + 4 + (sda-1)*lda + 4*lda );
-			__builtin_prefetch( A + 4 + (sda-1)*lda + 6*lda );
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
+	
+		aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_11 = _mm256_add_pd( y_11, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+		y_22 = _mm256_add_pd( y_22, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+		y_33 = _mm256_add_pd( y_33, aaxx_temp );
+	
+		__builtin_prefetch( A + sda*lda + 4*lda );
+		__builtin_prefetch( A + sda*lda + 6*lda );
 
-			a_00_10_20_30 = _mm256_load_pd( &A[0+lda*4] );
-			a_01_11_21_31 = _mm256_load_pd( &A[0+lda*5] );
-			a_02_12_22_32 = _mm256_load_pd( &A[0+lda*6] );
-			a_03_13_23_33 = _mm256_load_pd( &A[0+lda*7] );
-		
-			aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
-			y_44 = _mm256_add_pd( y_44, aaxx_temp );
-			aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
-			y_55 = _mm256_add_pd( y_55, aaxx_temp );
-			aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
-			y_66 = _mm256_add_pd( y_66, aaxx_temp );
-			aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
-			y_77 = _mm256_add_pd( y_77, aaxx_temp );
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*4] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*5] );
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*6] );
+		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*7] );
+	
+		aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		y_44 = _mm256_add_pd( y_44, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_55 = _mm256_add_pd( y_55, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+		y_66 = _mm256_add_pd( y_66, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+		y_77 = _mm256_add_pd( y_77, aaxx_temp );
 
-			A += 4 + (sda-1)*lda;
-			x += 4;
+		A += 4 + (sda-1)*lda;
+		x += 4;
 
-			}
-		
 		}
-
+		
 	__m256d
 		y_0_1_2_3, y_4_5_6_7;
 
@@ -420,7 +412,6 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 		y_0_1_2_3 = _mm256_loadu_pd( &y[0] );
 		y_4_5_6_7 = _mm256_loadu_pd( &y[4] );
 
-/*		y_0_1_2_3 += y_00;*/
 		y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, y_00 );
 		y_4_5_6_7 = _mm256_add_pd( y_4_5_6_7, y_44 );
 
@@ -432,7 +423,6 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 		y_0_1_2_3 = _mm256_loadu_pd( &y[0] );
 		y_4_5_6_7 = _mm256_loadu_pd( &y[4] );
 	
-/*		y_0_1_2_3 -= y_00;*/
 		y_0_1_2_3 = _mm256_sub_pd( y_0_1_2_3, y_00 );
 		y_4_5_6_7 = _mm256_sub_pd( y_4_5_6_7, y_44 );
 	
@@ -451,6 +441,9 @@ void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	
 	const int lda = 4;
 	
+	__builtin_prefetch( A + 0*lda );
+	__builtin_prefetch( A + 2*lda );
+
 	double *tA, *tx;
 
 	int k;
@@ -491,16 +484,12 @@ void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 			a_02_12 = _mm_load_sd( &A[0+lda*2] );
 			a_03_13 = _mm_load_sd( &A[0+lda*3] );
 
-/*			y_0 += a_00_10 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_00_10, x_0_1 );	
 			y_0 = _mm_add_sd (y_0, ax_temp );
-/*			y_1 += a_01_11 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_01_11, x_0_1 );	
 			y_1 = _mm_add_sd (y_1, ax_temp );
-/*			y_2 += a_02_12 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_02_12, x_0_1 );	
 			y_2 = _mm_add_sd (y_2, ax_temp );
-/*			y_3 += a_03_13 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_03_13, x_0_1 );	
 			y_3 = _mm_add_sd (y_3, ax_temp );
 		
@@ -525,16 +514,12 @@ void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 		a_02_12 = _mm_load_sd( &tA[0+lda*2] );
 		a_03_13 = _mm_load_sd( &tA[0+lda*3] );
 		
-/*			y_0 += a_00_10 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_00_10, x_0_1 );	
 			y_0 = _mm_add_sd (y_0, ax_temp );
-/*			y_1 += a_01_11 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_01_11, x_0_1 );	
 			y_1 = _mm_add_sd (y_1, ax_temp );
-/*			y_2 += a_02_12 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_02_12, x_0_1 );	
 			y_2 = _mm_add_sd (y_2, ax_temp );
-/*			y_3 += a_03_13 * x_0_1;*/
 			ax_temp = _mm_mul_sd( a_03_13, x_0_1 );	
 			y_3 = _mm_add_sd (y_3, ax_temp );
 		
@@ -549,9 +534,12 @@ void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	y_33 = _mm256_castpd128_pd256(y_3);
 
 	k=0;
-	for(; k<ka-3; k+=4)
+	for(; k<ka-7; k+=8)
 		{
 		
+		__builtin_prefetch( A + sda*lda + 0*lda );
+		__builtin_prefetch( A + sda*lda + 2*lda );
+
 		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
 
 		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
@@ -559,16 +547,61 @@ void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
 		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
 		
-/*		y_00 += a_00_10_20_30 * x_0_1_2_3;*/
 		aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
 		y_00 = _mm256_add_pd( y_00, aaxx_temp );
-/*		y_11 += a_01_11_21_31 * x_0_1_2_3;*/
 		aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
 		y_11 = _mm256_add_pd( y_11, aaxx_temp );
-/*		y_22 += a_02_12_22_32 * x_0_1_2_3;*/
 		aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
 		y_22 = _mm256_add_pd( y_22, aaxx_temp );
-/*		y_33 += a_03_13_23_33 * x_0_1_2_3;*/
+		aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+		y_33 = _mm256_add_pd( y_33, aaxx_temp );
+		
+		A += 4 + (sda-1)*lda;
+		x += 4;
+
+
+		__builtin_prefetch( A + sda*lda + 0*lda );
+		__builtin_prefetch( A + sda*lda + 2*lda );
+
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
+		
+		aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_11 = _mm256_add_pd( y_11, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+		y_22 = _mm256_add_pd( y_22, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+		y_33 = _mm256_add_pd( y_33, aaxx_temp );
+		
+		A += 4 + (sda-1)*lda;
+		x += 4;
+
+		}
+	for(; k<ka-3; k+=4)
+		{
+		
+		__builtin_prefetch( A + sda*lda + 0*lda );
+		__builtin_prefetch( A + sda*lda + 2*lda );
+
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
+		
+		aaxx_temp = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_11 = _mm256_add_pd( y_11, aaxx_temp );
+		aaxx_temp = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+		y_22 = _mm256_add_pd( y_22, aaxx_temp );
 		aaxx_temp = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
 		y_33 = _mm256_add_pd( y_33, aaxx_temp );
 		
@@ -586,7 +619,6 @@ void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	y_11 = _mm256_permute2f128_pd(y_22, y_00, 2 );	
 	y_00 = _mm256_permute2f128_pd(y_22, y_00, 19);	
 
-/*	y_00 += y_11;*/
 	y_00 = _mm256_add_pd( y_00, y_11 );
 
 	if(alg==0)
@@ -597,7 +629,6 @@ void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 		{
 		y_0_1_2_3 = _mm256_loadu_pd( &y[0] );
 
-/*		y_0_1_2_3 += y_00;*/
 		y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, y_00 );
 
 		_mm256_storeu_pd(&y[0], y_0_1_2_3);
@@ -606,7 +637,6 @@ void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 		{
 		y_0_1_2_3 = _mm256_loadu_pd( &y[0] );
 	
-/*		y_0_1_2_3 -= y_00;*/
 		y_0_1_2_3 = _mm256_sub_pd( y_0_1_2_3, y_00 );
 	
 		_mm256_storeu_pd(&y[0], y_0_1_2_3);
