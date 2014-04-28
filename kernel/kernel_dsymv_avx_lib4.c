@@ -230,6 +230,81 @@ void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 
 		}
 
+	for(; k<ka-7; k+=2*bs)
+		{
+		
+		__builtin_prefetch( A + sda*bs +bs*0 );
+		__builtin_prefetch( A + sda*bs +bs*2 );
+
+		y_n_0 = _mm256_loadu_pd( &y_n[0] );
+		x_t_0 = _mm256_loadu_pd( &x_t[0] );
+		
+		a_00 = _mm256_load_pd( &A[0+bs*0] );
+		a_01 = _mm256_load_pd( &A[0+bs*1] );
+		a_02 = _mm256_load_pd( &A[0+bs*2] );
+		a_03 = _mm256_load_pd( &A[0+bs*3] );
+		
+		temp  = _mm256_mul_pd( a_00, x_n_0 );
+		y_n_0 = _mm256_add_pd( y_n_0, temp );
+		temp  = _mm256_mul_pd( a_00, x_t_0 );
+		y_t_0 = _mm256_add_pd( y_t_0, temp );
+		temp  = _mm256_mul_pd( a_01, x_n_1 );
+		y_n_0 = _mm256_add_pd( y_n_0, temp );
+		temp  = _mm256_mul_pd( a_01, x_t_0 );
+		y_t_1 = _mm256_add_pd( y_t_1, temp );
+		temp  = _mm256_mul_pd( a_02, x_n_2 );
+		y_n_0 = _mm256_add_pd( y_n_0, temp );
+		temp  = _mm256_mul_pd( a_02, x_t_0 );
+		y_t_2 = _mm256_add_pd( y_t_2, temp );
+		temp  = _mm256_mul_pd( a_03, x_n_3 );
+		y_n_0 = _mm256_add_pd( y_n_0, temp );
+		temp  = _mm256_mul_pd( a_03, x_t_0 );
+		y_t_3 = _mm256_add_pd( y_t_3, temp );
+		
+		_mm256_storeu_pd( &y_n[0], y_n_0 );
+
+		
+		A += sda*bs;
+		y_n += 4;
+		x_t += 4;
+
+		__builtin_prefetch( A + sda*bs +bs*0 );
+		__builtin_prefetch( A + sda*bs +bs*2 );
+
+		y_n_0 = _mm256_loadu_pd( &y_n[0] );
+		x_t_0 = _mm256_loadu_pd( &x_t[0] );
+		
+		a_00 = _mm256_load_pd( &A[0+bs*0] );
+		a_01 = _mm256_load_pd( &A[0+bs*1] );
+		a_02 = _mm256_load_pd( &A[0+bs*2] );
+		a_03 = _mm256_load_pd( &A[0+bs*3] );
+		
+		temp  = _mm256_mul_pd( a_00, x_n_0 );
+		y_n_0 = _mm256_add_pd( y_n_0, temp );
+		temp  = _mm256_mul_pd( a_00, x_t_0 );
+		y_t_0 = _mm256_add_pd( y_t_0, temp );
+		temp  = _mm256_mul_pd( a_01, x_n_1 );
+		y_n_0 = _mm256_add_pd( y_n_0, temp );
+		temp  = _mm256_mul_pd( a_01, x_t_0 );
+		y_t_1 = _mm256_add_pd( y_t_1, temp );
+		temp  = _mm256_mul_pd( a_02, x_n_2 );
+		y_n_0 = _mm256_add_pd( y_n_0, temp );
+		temp  = _mm256_mul_pd( a_02, x_t_0 );
+		y_t_2 = _mm256_add_pd( y_t_2, temp );
+		temp  = _mm256_mul_pd( a_03, x_n_3 );
+		y_n_0 = _mm256_add_pd( y_n_0, temp );
+		temp  = _mm256_mul_pd( a_03, x_t_0 );
+		y_t_3 = _mm256_add_pd( y_t_3, temp );
+		
+		_mm256_storeu_pd( &y_n[0], y_n_0 );
+
+		
+		A += sda*bs;
+		y_n += 4;
+		x_t += 4;
+
+		}
+
 	for(; k<ka-3; k+=bs)
 		{
 		
