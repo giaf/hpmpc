@@ -27,7 +27,7 @@
 
 
 
-void corner_dpotrf_dtrsv_dcopy_3x3_lib4(double *A, int sda, int shf, double *L, int sdl, int *info)
+void corner_dpotrf_dtrsv_dcopy_3x3_lib4(int kinv, double *A, int sda, int shf, double *L, int sdl, int *info)
 	{
 	
 	const int lda = 4;
@@ -43,28 +43,66 @@ void corner_dpotrf_dtrsv_dcopy_3x3_lib4(double *A, int sda, int shf, double *L, 
 
 	// dpotrf
 		
-	a_00 = A[0+lda*0];
-	if( a_00 <= 0.0 ) { *info = 1; return; }
-	a_00 = sqrt( a_00 );
-	A[0+lda*0] = a_00;
-	L[0+0*lda+shfi0] = a_00;
-	a_00 = 1.0/a_00;
-	a_10 = A[1+lda*0] * a_00;
-	a_20 = A[2+lda*0] * a_00;
-	A[1+lda*0] = a_10;
-	A[2+lda*0] = a_20;
-	L[0+1*lda+shfi0] = a_10;
-	L[0+2*lda+shfi0] = a_20;
+	if(kinv==0)
+		{
 
-	a_11 = A[1+lda*1] - a_10*a_10;
-	if( a_11 <= 0.0 ) { *info = 1; return; }
-	a_11 = sqrt( a_11 );
-	A[1+lda*1] = a_11;
-	L[1+1*lda+shfi1] = a_11;
-	a_11 = 1.0/a_11;
-	a_21 = (A[2+lda*1] - a_20*a_10) * a_11;
-	A[2+lda*1] = a_21;
-	L[1+2*lda+shfi1] = a_21;
+		a_00 = A[0+lda*0];
+		if( a_00 <= 0.0 ) { *info = 1; return; }
+		a_00 = sqrt( a_00 );
+		A[0+lda*0] = a_00;
+		L[0+0*lda+shfi0] = a_00;
+		a_00 = 1.0/a_00;
+		a_10 = A[1+lda*0] * a_00;
+		a_20 = A[2+lda*0] * a_00;
+		A[1+lda*0] = a_10;
+		A[2+lda*0] = a_20;
+		L[0+1*lda+shfi0] = a_10;
+		L[0+2*lda+shfi0] = a_20;
+
+		a_11 = A[1+lda*1] - a_10*a_10;
+		if( a_11 <= 0.0 ) { *info = 1; return; }
+		a_11 = sqrt( a_11 );
+		A[1+lda*1] = a_11;
+		L[1+1*lda+shfi1] = a_11;
+		a_11 = 1.0/a_11;
+		a_21 = (A[2+lda*1] - a_20*a_10) * a_11;
+		A[2+lda*1] = a_21;
+		L[1+2*lda+shfi1] = a_21;
+		
+		}
+	else // kinv == {1,2}
+		{
+
+		a_00 = A[0+lda*0];
+		if( a_00 <= 0.0 ) { *info = 1; return; }
+		a_00 = sqrt( a_00 );
+/*		A[0+lda*0] = a_00;*/
+/*		L[0+0*lda+shfi0] = a_00;*/
+		a_00 = 1.0/a_00;
+		A[0+lda*0] = a_00;
+		a_10 = A[1+lda*0] * a_00;
+		a_20 = A[2+lda*0] * a_00;
+		A[1+lda*0] = a_10;
+		A[2+lda*0] = a_20;
+		L[0+1*lda+shfi0] = a_10;
+		L[0+2*lda+shfi0] = a_20;
+
+		a_11 = A[1+lda*1] - a_10*a_10;
+		if( a_11 <= 0.0 ) { *info = 1; return; }
+		a_11 = sqrt( a_11 );
+		if(kinv<=1)
+			{
+			A[1+lda*1] = a_11;
+			L[1+1*lda+shfi1] = a_11;
+			}
+		a_11 = 1.0/a_11;
+		if(kinv>1)
+			A[1+lda*1] = a_11;
+		a_21 = (A[2+lda*1] - a_20*a_10) * a_11;
+		A[2+lda*1] = a_21;
+		L[1+2*lda+shfi1] = a_21;
+
+		}
 	
 	a_22 = A[2+lda*2] - a_20*a_20 - a_21*a_21;
 	if( a_22 <= 0.0 ) { *info = 1; return; }
@@ -76,7 +114,7 @@ void corner_dpotrf_dtrsv_dcopy_3x3_lib4(double *A, int sda, int shf, double *L, 
 
 
 
-void corner_dpotrf_dtrsv_dcopy_2x2_lib4(double *A, int sda, int shf, double *L, int sdl, int *info)
+void corner_dpotrf_dtrsv_dcopy_2x2_lib4(int kinv, double *A, int sda, int shf, double *L, int sdl, int *info)
 	{
 	
 	const int lda = 4;
@@ -91,15 +129,34 @@ void corner_dpotrf_dtrsv_dcopy_2x2_lib4(double *A, int sda, int shf, double *L, 
 
 	// dpotrf
 		
-	a_00 = A[0+lda*0];
-	if( a_00 <= 0.0 ) { *info = 1; return; }
-	a_00 = sqrt( a_00 );
-	A[0+lda*0] = a_00;
-	L[0+0*lda+shfi0] = a_00;
-	a_00 = 1.0/a_00;
-	a_10 = A[1+lda*0] * a_00;
-	A[1+lda*0] = a_10;
-	L[0+1*lda+shfi0] = a_10;
+	if(kinv==0)
+		{
+
+		a_00 = A[0+lda*0];
+		if( a_00 <= 0.0 ) { *info = 1; return; }
+		a_00 = sqrt( a_00 );
+		A[0+lda*0] = a_00;
+		L[0+0*lda+shfi0] = a_00;
+		a_00 = 1.0/a_00;
+		a_10 = A[1+lda*0] * a_00;
+		A[1+lda*0] = a_10;
+		L[0+1*lda+shfi0] = a_10;
+		
+		}
+	else // kinv == 1
+		{
+
+		a_00 = A[0+lda*0];
+		if( a_00 <= 0.0 ) { *info = 1; return; }
+		a_00 = sqrt( a_00 );
+/*		L[0+0*lda+shfi0] = a_00;*/
+		a_00 = 1.0/a_00;
+		A[0+lda*0] = a_00;
+		a_10 = A[1+lda*0] * a_00;
+		A[1+lda*0] = a_10;
+		L[0+1*lda+shfi0] = a_10;
+		
+		}
 
 	a_11 = A[1+lda*1] - a_10*a_10;
 	if( a_11 <= 0.0 ) { *info = 1; return; }

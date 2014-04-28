@@ -44,10 +44,12 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 /*	dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N], sda, pL, sda);*/
 	int nu4 = (nu/bs)*bs;
 	dpotrf_p_dcopy_p_t_lib(nz-nu4, nu%bs, hpQ[N]+nu4*(sda+bs), sda, pL, sda, info);
+/*	dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N], sda, pL, sda, info);*/
 	if(*info!=0) return;
 
 /*d_print_pmat(nz, nz, bs, hpQ[N], sda);*/
 /*printf("\nciao\n");*/
+/*exit(3);*/
 
 	/* middle stages */
 	for(ii=0; ii<N-1; ii++)

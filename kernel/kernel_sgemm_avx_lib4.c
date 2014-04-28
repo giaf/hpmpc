@@ -32,345 +32,289 @@
 
 
 
-// normal-transposed, 16x4 with data packed in 4
-void kernel_sgemm_pp_nt_16x4_lib4(int kmax, float *A0, float *A1, float *A2, float *A3, float *B, float *C0, float *C1, float *C2, float *C3, int ldc, int alg)
-	{
-	
-	if(kmax<=0)
-		return;
-	
-	int k;
-	
-	__m128
-		la_07, ha_07, la_8f, ha_8f,
-		lb_03; 
+/*// normal-transposed, 16x4 with data packed in 4*/
+/*void kernel_sgemm_pp_nt_16x4_lib4(int kmax, float *A0, float *A1, float *A2, float *A3, float *B, float *C0, float *C1, float *C2, float *C3, int ldc, int alg)*/
+/*	{*/
+/*	*/
+/*	if(kmax<=0)*/
+/*		return;*/
+/*	*/
+/*	int k;*/
+/*	*/
+/*	__m128*/
+/*		la_07, ha_07, la_8f, ha_8f,*/
+/*		lb_03; */
 
-	__m256
-		temp,
-		c_00, c_01, c_02, c_03,
-		c_80, c_81, c_82, c_83,
-		a_07, a_8f,
-		b_03, b_0, b_1, b_2, b_3; 
-	
-	c_00 = _mm256_setzero_ps();
-	c_01 = _mm256_setzero_ps();
-	c_02 = _mm256_setzero_ps();
-	c_03 = _mm256_setzero_ps();
-	c_80 = _mm256_setzero_ps();
-	c_81 = _mm256_setzero_ps();
-	c_82 = _mm256_setzero_ps();
-	c_83 = _mm256_setzero_ps();
+/*	__m256*/
+/*		temp,*/
+/*		c_00, c_01, c_02, c_03,*/
+/*		c_80, c_81, c_82, c_83,*/
+/*		a_07, a_8f,*/
+/*		b_03, b_0, b_1, b_2, b_3; */
+/*	*/
+/*	c_00 = _mm256_setzero_ps();*/
+/*	c_01 = _mm256_setzero_ps();*/
+/*	c_02 = _mm256_setzero_ps();*/
+/*	c_03 = _mm256_setzero_ps();*/
+/*	c_80 = _mm256_setzero_ps();*/
+/*	c_81 = _mm256_setzero_ps();*/
+/*	c_82 = _mm256_setzero_ps();*/
+/*	c_83 = _mm256_setzero_ps();*/
 
-	for(k=0; k<kmax-3; k+=4)
-		{
-
-//		_mm256_loadu2_m128 (float const* hiaddr, float const* loaddr)
-		
-		la_07 = _mm_load_ps( &A0[0] );
-		ha_07 = _mm_load_ps( &A1[0] );
-/*		a_07 = _mm256_set_m128( ha_07, la_07 );*/
-		a_07 = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_07), _mm256_castps128_ps256(ha_07), 0 );
-
-		la_8f = _mm_load_ps( &A2[0] );
-		ha_8f = _mm_load_ps( &A3[0] );
-/*		a_8f = _mm256_set_m128( ha_8f, la_8f );*/
-		a_8f = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_8f), _mm256_castps128_ps256(ha_8f), 0 );
-
-		lb_03 = _mm_load_ps( &B[0] );
-		b_03 = _mm256_castps128_ps256( lb_03 );
-		b_03 = _mm256_permute2f128_ps(b_03, b_03, 0);
-		
-		b_0 = _mm256_shuffle_ps( b_03, b_03, 0 );
-		temp = _mm256_mul_ps( a_07, b_0 );
-		c_00 = _mm256_add_ps( c_00, temp );
-		temp = _mm256_mul_ps( a_8f, b_0 );
-		c_80 = _mm256_add_ps( c_80, temp );
-		
-		b_1 = _mm256_shuffle_ps( b_03, b_03, 85 );
-		temp = _mm256_mul_ps( a_07, b_1 );
-		c_01 = _mm256_add_ps( c_01, temp );
-		temp = _mm256_mul_ps( a_8f, b_1 );
-		c_81 = _mm256_add_ps( c_81, temp );
-		
-		b_2 = _mm256_shuffle_ps( b_03, b_03, 170 );
-		temp = _mm256_mul_ps( a_07, b_2 );
-		c_02 = _mm256_add_ps( c_02, temp );
-		temp = _mm256_mul_ps( a_8f, b_2 );
-		c_82 = _mm256_add_ps( c_82, temp );
-	
-		b_3 = _mm256_shuffle_ps( b_03, b_03, 255 );
-		temp = _mm256_mul_ps( a_07, b_3 );
-		c_03 = _mm256_add_ps( c_03, temp );
-		temp = _mm256_mul_ps( a_8f, b_3 );
-		c_83 = _mm256_add_ps( c_83, temp );
-
-
-
-		la_07 = _mm_load_ps( &A0[4] );
-		ha_07 = _mm_load_ps( &A1[4] );
-/*		a_07 = _mm256_set_m128 ( ha_07, la_07 );*/
-		a_07 = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_07), _mm256_castps128_ps256(ha_07), 0 );
-
-		la_8f = _mm_load_ps( &A2[4] );
-		ha_8f = _mm_load_ps( &A3[4] );
-/*		a_8f = _mm256_set_m128 ( ha_8f, la_8f );*/
-		a_8f = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_8f), _mm256_castps128_ps256(ha_8f), 0 );
-
-		lb_03 = _mm_load_ps( &B[4] );
-		b_03 = _mm256_castps128_ps256( lb_03 );
-		b_03 = _mm256_permute2f128_ps(b_03, b_03, 0);
-		
-		b_0 = _mm256_shuffle_ps( b_03, b_03, 0 );
-		temp = _mm256_mul_ps( a_07, b_0 );
-		c_00 = _mm256_add_ps( c_00, temp );
-		temp = _mm256_mul_ps( a_8f, b_0 );
-		c_80 = _mm256_add_ps( c_80, temp );
-		
-		b_1 = _mm256_shuffle_ps( b_03, b_03, 85 );
-		temp = _mm256_mul_ps( a_07, b_1 );
-		c_01 = _mm256_add_ps( c_01, temp );
-		temp = _mm256_mul_ps( a_8f, b_1 );
-		c_81 = _mm256_add_ps( c_81, temp );
-		
-		b_2 = _mm256_shuffle_ps( b_03, b_03, 170 );
-		temp = _mm256_mul_ps( a_07, b_2 );
-		c_02 = _mm256_add_ps( c_02, temp );
-		temp = _mm256_mul_ps( a_8f, b_2 );
-		c_82 = _mm256_add_ps( c_82, temp );
-	
-		b_3 = _mm256_shuffle_ps( b_03, b_03, 255 );
-		temp = _mm256_mul_ps( a_07, b_3 );
-		c_03 = _mm256_add_ps( c_03, temp );
-		temp = _mm256_mul_ps( a_8f, b_3 );
-		c_83 = _mm256_add_ps( c_83, temp );
-
-
-		
-		la_07 = _mm_load_ps( &A0[8] );
-		ha_07 = _mm_load_ps( &A1[8] );
-/*		a_07 = _mm256_set_m128 ( ha_07, la_07 );*/
-		a_07 = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_07), _mm256_castps128_ps256(ha_07), 0 );
-
-		la_8f = _mm_load_ps( &A2[8] );
-		ha_8f = _mm_load_ps( &A3[8] );
-/*		a_8f = _mm256_set_m128 ( ha_8f, la_8f );*/
-		a_8f = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_8f), _mm256_castps128_ps256(ha_8f), 0 );
-
-		lb_03 = _mm_load_ps( &B[8] );
-		b_03 = _mm256_castps128_ps256( lb_03 );
-		b_03 = _mm256_permute2f128_ps(b_03, b_03, 0);
-		
-		b_0 = _mm256_shuffle_ps( b_03, b_03, 0 );
-		temp = _mm256_mul_ps( a_07, b_0 );
-		c_00 = _mm256_add_ps( c_00, temp );
-		temp = _mm256_mul_ps( a_8f, b_0 );
-		c_80 = _mm256_add_ps( c_80, temp );
-		
-		b_1 = _mm256_shuffle_ps( b_03, b_03, 85 );
-		temp = _mm256_mul_ps( a_07, b_1 );
-		c_01 = _mm256_add_ps( c_01, temp );
-		temp = _mm256_mul_ps( a_8f, b_1 );
-		c_81 = _mm256_add_ps( c_81, temp );
-		
-		b_2 = _mm256_shuffle_ps( b_03, b_03, 170 );
-		temp = _mm256_mul_ps( a_07, b_2 );
-		c_02 = _mm256_add_ps( c_02, temp );
-		temp = _mm256_mul_ps( a_8f, b_2 );
-		c_82 = _mm256_add_ps( c_82, temp );
-	
-		b_3 = _mm256_shuffle_ps( b_03, b_03, 255 );
-		temp = _mm256_mul_ps( a_07, b_3 );
-		c_03 = _mm256_add_ps( c_03, temp );
-		temp = _mm256_mul_ps( a_8f, b_3 );
-		c_83 = _mm256_add_ps( c_83, temp );
-
-
-
-		la_07 = _mm_load_ps( &A0[12] );
-		ha_07 = _mm_load_ps( &A1[12] );
-/*		a_07 = _mm256_set_m128 ( ha_07, la_07 );*/
-		a_07 = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_07), _mm256_castps128_ps256(ha_07), 0 );
-
-		la_8f = _mm_load_ps( &A2[12] );
-		ha_8f = _mm_load_ps( &A3[12] );
-/*		a_8f = _mm256_set_m128 ( ha_8f, la_8f );*/
-		a_8f = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_8f), _mm256_castps128_ps256(ha_8f), 0 );
-
-		lb_03 = _mm_load_ps( &B[12] );
-		b_03 = _mm256_castps128_ps256( lb_03 );
-		b_03 = _mm256_permute2f128_ps(b_03, b_03, 0);
-		
-		b_0 = _mm256_shuffle_ps( b_03, b_03, 0 );
-		temp = _mm256_mul_ps( a_07, b_0 );
-		c_00 = _mm256_add_ps( c_00, temp );
-		temp = _mm256_mul_ps( a_8f, b_0 );
-		c_80 = _mm256_add_ps( c_80, temp );
-		
-		b_1 = _mm256_shuffle_ps( b_03, b_03, 85 );
-		temp = _mm256_mul_ps( a_07, b_1 );
-		c_01 = _mm256_add_ps( c_01, temp );
-		temp = _mm256_mul_ps( a_8f, b_1 );
-		c_81 = _mm256_add_ps( c_81, temp );
-		
-		b_2 = _mm256_shuffle_ps( b_03, b_03, 170 );
-		temp = _mm256_mul_ps( a_07, b_2 );
-		c_02 = _mm256_add_ps( c_02, temp );
-		temp = _mm256_mul_ps( a_8f, b_2 );
-		c_82 = _mm256_add_ps( c_82, temp );
-	
-		b_3 = _mm256_shuffle_ps( b_03, b_03, 255 );
-		temp = _mm256_mul_ps( a_07, b_3 );
-		c_03 = _mm256_add_ps( c_03, temp );
-		temp = _mm256_mul_ps( a_8f, b_3 );
-		c_83 = _mm256_add_ps( c_83, temp );
-
-
-		A0 += 16;
-		A1 += 16;
-		A2 += 16;
-		A3 += 16;
-		B  += 16;
-
-		}
-	
-	for(; k<kmax; k++)
-		{
-		
-		la_07 = _mm_load_ps( &A0[0] );
-		ha_07 = _mm_load_ps( &A1[0] );
-/*		a_07 = _mm256_set_m128 ( ha_07, la_07 );*/
-		a_07 = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_07), _mm256_castps128_ps256(ha_07), 0 );
-
-		la_8f = _mm_load_ps( &A2[0] );
-		ha_8f = _mm_load_ps( &A3[0] );
-/*		a_8f = _mm256_set_m128 ( ha_8f, la_8f );*/
-		a_8f = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_8f), _mm256_castps128_ps256(ha_8f), 0 );
-
-		lb_03 = _mm_load_ps( &B[0] );
-		b_03 = _mm256_castps128_ps256( lb_03 );
-		b_03 = _mm256_permute2f128_ps(b_03, b_03, 0);
-		
-		b_0 = _mm256_shuffle_ps( b_03, b_03, 0 );
-		temp = _mm256_mul_ps( a_07, b_0 );
-		c_00 = _mm256_add_ps( c_00, temp );
-		temp = _mm256_mul_ps( a_8f, b_0 );
-		c_80 = _mm256_add_ps( c_80, temp );
-		
-		b_1 = _mm256_shuffle_ps( b_03, b_03, 85 );
-		temp = _mm256_mul_ps( a_07, b_1 );
-		c_01 = _mm256_add_ps( c_01, temp );
-		temp = _mm256_mul_ps( a_8f, b_1 );
-		c_81 = _mm256_add_ps( c_81, temp );
-		
-		b_2 = _mm256_shuffle_ps( b_03, b_03, 170 );
-		temp = _mm256_mul_ps( a_07, b_2 );
-		c_02 = _mm256_add_ps( c_02, temp );
-		temp = _mm256_mul_ps( a_8f, b_2 );
-		c_82 = _mm256_add_ps( c_82, temp );
-	
-		b_3 = _mm256_shuffle_ps( b_03, b_03, 255 );
-		temp = _mm256_mul_ps( a_07, b_3 );
-		c_03 = _mm256_add_ps( c_03, temp );
-		temp = _mm256_mul_ps( a_8f, b_3 );
-		c_83 = _mm256_add_ps( c_83, temp );
-		
-		A0 += 4;
-		A1 += 4;
-		A2 += 4;
-		A3 += 4;
-		B  += 4;
-		
-		}
-
-	__m128
-		lc_00, lc_01, lc_02, lc_03,
-		hc_00, hc_01, hc_02, hc_03,
-		lc_80, lc_81, lc_82, lc_83,
-		hc_80, hc_81, hc_82, hc_83,
-		d_00, d_01, d_02, d_03,
-		d_40, d_41, d_42, d_43;
-
-	hc_00 = _mm256_extractf128_ps ( c_00, 1 );
-	lc_00 = _mm256_castps256_ps128( c_00 );
-	hc_01 = _mm256_extractf128_ps ( c_01, 1 );
-	lc_01 = _mm256_castps256_ps128( c_01 );
-	hc_02 = _mm256_extractf128_ps ( c_02, 1 );
-	lc_02 = _mm256_castps256_ps128( c_02 );
-	hc_03 = _mm256_extractf128_ps ( c_03, 1 );
-	lc_03 = _mm256_castps256_ps128( c_03 );
-	hc_80 = _mm256_extractf128_ps ( c_80, 1 );
-	lc_80 = _mm256_castps256_ps128( c_80 );
-	hc_81 = _mm256_extractf128_ps ( c_81, 1 );
-	lc_81 = _mm256_castps256_ps128( c_81 );
-	hc_82 = _mm256_extractf128_ps ( c_82, 1 );
-	lc_82 = _mm256_castps256_ps128( c_82 );
-	hc_83 = _mm256_extractf128_ps ( c_83, 1 );
-	lc_83 = _mm256_castps256_ps128( c_83 );
-
-/*	if(alg==0)*/
+/*	for(k=0; k<kmax-3; k+=4)*/
 /*		{*/
-		_mm_store_ps( &C0[0+ldc*0], lc_00 );
-		_mm_store_ps( &C0[0+ldc*1], lc_01 );
-		_mm_store_ps( &C0[0+ldc*2], lc_02 );
-		_mm_store_ps( &C0[0+ldc*3], lc_03 );
-		_mm_store_ps( &C1[0+ldc*0], hc_00 );
-		_mm_store_ps( &C1[0+ldc*1], hc_01 );
-		_mm_store_ps( &C1[0+ldc*2], hc_02 );
-		_mm_store_ps( &C1[0+ldc*3], hc_03 );
-		_mm_store_ps( &C2[0+ldc*0], lc_80 );
-		_mm_store_ps( &C2[0+ldc*1], lc_81 );
-		_mm_store_ps( &C2[0+ldc*2], lc_82 );
-		_mm_store_ps( &C2[0+ldc*3], lc_83 );
-		_mm_store_ps( &C3[0+ldc*0], hc_80 );
-		_mm_store_ps( &C3[0+ldc*1], hc_81 );
-		_mm_store_ps( &C3[0+ldc*2], hc_82 );
-		_mm_store_ps( &C3[0+ldc*3], hc_83 );
-/*		}*/
-/*	else*/
-/*		{*/
-/*		d_00 = _mm_load_ps( &C0[0+ldc*0] );*/
-/*		d_01 = _mm_load_ps( &C0[0+ldc*1] );*/
-/*		d_02 = _mm_load_ps( &C0[0+ldc*2] );*/
-/*		d_03 = _mm_load_ps( &C0[0+ldc*3] );*/
-/*		d_40 = _mm_load_ps( &C1[0+ldc*0] );*/
-/*		d_41 = _mm_load_ps( &C1[0+ldc*1] );*/
-/*		d_42 = _mm_load_ps( &C1[0+ldc*2] );*/
-/*		d_43 = _mm_load_ps( &C1[0+ldc*3] );*/
+
+/*//		_mm256_loadu2_m128 (float const* hiaddr, float const* loaddr)*/
 /*		*/
-/*		if(alg==1)*/
-/*			{*/
-/*			d_00 = _mm_add_ps( d_00, c_00 );*/
-/*			d_01 = _mm_add_ps( d_01, c_01 );*/
-/*			d_02 = _mm_add_ps( d_02, c_02 );*/
-/*			d_03 = _mm_add_ps( d_03, c_03 );*/
-/*			d_40 = _mm_add_ps( d_40, c_40 );*/
-/*			d_41 = _mm_add_ps( d_41, c_41 );*/
-/*			d_42 = _mm_add_ps( d_42, c_42 );*/
-/*			d_43 = _mm_add_ps( d_43, c_43 );*/
-/*			}*/
-/*		else // alg == -1*/
-/*			{*/
-/*			d_00 = _mm_sub_ps( d_00, c_00 );*/
-/*			d_01 = _mm_sub_ps( d_01, c_01 );*/
-/*			d_02 = _mm_sub_ps( d_02, c_02 );*/
-/*			d_03 = _mm_sub_ps( d_03, c_03 );*/
-/*			d_40 = _mm_sub_ps( d_40, c_40 );*/
-/*			d_41 = _mm_sub_ps( d_41, c_41 );*/
-/*			d_42 = _mm_sub_ps( d_42, c_42 );*/
-/*			d_43 = _mm_sub_ps( d_43, c_43 );*/
-/*			}*/
+/*		la_07 = _mm_load_ps( &A0[0] );*/
+/*		ha_07 = _mm_load_ps( &A1[0] );*/
+/*		a_07 = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_07), _mm256_castps128_ps256(ha_07), 0 );*/
 
-/*		_mm_store_ps( &C0[0+ldc*0], d_00 );*/
-/*		_mm_store_ps( &C0[0+ldc*1], d_01 );*/
-/*		_mm_store_ps( &C0[0+ldc*2], d_02 );*/
-/*		_mm_store_ps( &C0[0+ldc*3], d_03 );*/
-/*		_mm_store_ps( &C1[0+ldc*0], d_40 );*/
-/*		_mm_store_ps( &C1[0+ldc*1], d_41 );*/
-/*		_mm_store_ps( &C1[0+ldc*2], d_42 );*/
-/*		_mm_store_ps( &C1[0+ldc*3], d_43 );*/
+/*		la_8f = _mm_load_ps( &A2[0] );*/
+/*		ha_8f = _mm_load_ps( &A3[0] );*/
+/*		a_8f = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_8f), _mm256_castps128_ps256(ha_8f), 0 );*/
+
+/*		lb_03 = _mm_load_ps( &B[0] );*/
+/*		b_03 = _mm256_castps128_ps256( lb_03 );*/
+/*		b_03 = _mm256_permute2f128_ps(b_03, b_03, 0);*/
+/*		*/
+/*		b_0 = _mm256_shuffle_ps( b_03, b_03, 0 );*/
+/*		temp = _mm256_mul_ps( a_07, b_0 );*/
+/*		c_00 = _mm256_add_ps( c_00, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_0 );*/
+/*		c_80 = _mm256_add_ps( c_80, temp );*/
+/*		*/
+/*		b_1 = _mm256_shuffle_ps( b_03, b_03, 85 );*/
+/*		temp = _mm256_mul_ps( a_07, b_1 );*/
+/*		c_01 = _mm256_add_ps( c_01, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_1 );*/
+/*		c_81 = _mm256_add_ps( c_81, temp );*/
+/*		*/
+/*		b_2 = _mm256_shuffle_ps( b_03, b_03, 170 );*/
+/*		temp = _mm256_mul_ps( a_07, b_2 );*/
+/*		c_02 = _mm256_add_ps( c_02, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_2 );*/
+/*		c_82 = _mm256_add_ps( c_82, temp );*/
+/*	*/
+/*		b_3 = _mm256_shuffle_ps( b_03, b_03, 255 );*/
+/*		temp = _mm256_mul_ps( a_07, b_3 );*/
+/*		c_03 = _mm256_add_ps( c_03, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_3 );*/
+/*		c_83 = _mm256_add_ps( c_83, temp );*/
+
+
+
+/*		la_07 = _mm_load_ps( &A0[4] );*/
+/*		ha_07 = _mm_load_ps( &A1[4] );*/
+/*		a_07 = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_07), _mm256_castps128_ps256(ha_07), 0 );*/
+
+/*		la_8f = _mm_load_ps( &A2[4] );*/
+/*		ha_8f = _mm_load_ps( &A3[4] );*/
+/*		a_8f = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_8f), _mm256_castps128_ps256(ha_8f), 0 );*/
+
+/*		lb_03 = _mm_load_ps( &B[4] );*/
+/*		b_03 = _mm256_castps128_ps256( lb_03 );*/
+/*		b_03 = _mm256_permute2f128_ps(b_03, b_03, 0);*/
+/*		*/
+/*		b_0 = _mm256_shuffle_ps( b_03, b_03, 0 );*/
+/*		temp = _mm256_mul_ps( a_07, b_0 );*/
+/*		c_00 = _mm256_add_ps( c_00, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_0 );*/
+/*		c_80 = _mm256_add_ps( c_80, temp );*/
+/*		*/
+/*		b_1 = _mm256_shuffle_ps( b_03, b_03, 85 );*/
+/*		temp = _mm256_mul_ps( a_07, b_1 );*/
+/*		c_01 = _mm256_add_ps( c_01, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_1 );*/
+/*		c_81 = _mm256_add_ps( c_81, temp );*/
+/*		*/
+/*		b_2 = _mm256_shuffle_ps( b_03, b_03, 170 );*/
+/*		temp = _mm256_mul_ps( a_07, b_2 );*/
+/*		c_02 = _mm256_add_ps( c_02, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_2 );*/
+/*		c_82 = _mm256_add_ps( c_82, temp );*/
+/*	*/
+/*		b_3 = _mm256_shuffle_ps( b_03, b_03, 255 );*/
+/*		temp = _mm256_mul_ps( a_07, b_3 );*/
+/*		c_03 = _mm256_add_ps( c_03, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_3 );*/
+/*		c_83 = _mm256_add_ps( c_83, temp );*/
+
+
+/*		*/
+/*		la_07 = _mm_load_ps( &A0[8] );*/
+/*		ha_07 = _mm_load_ps( &A1[8] );*/
+/*		a_07 = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_07), _mm256_castps128_ps256(ha_07), 0 );*/
+
+/*		la_8f = _mm_load_ps( &A2[8] );*/
+/*		ha_8f = _mm_load_ps( &A3[8] );*/
+/*		a_8f = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_8f), _mm256_castps128_ps256(ha_8f), 0 );*/
+
+/*		lb_03 = _mm_load_ps( &B[8] );*/
+/*		b_03 = _mm256_castps128_ps256( lb_03 );*/
+/*		b_03 = _mm256_permute2f128_ps(b_03, b_03, 0);*/
+/*		*/
+/*		b_0 = _mm256_shuffle_ps( b_03, b_03, 0 );*/
+/*		temp = _mm256_mul_ps( a_07, b_0 );*/
+/*		c_00 = _mm256_add_ps( c_00, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_0 );*/
+/*		c_80 = _mm256_add_ps( c_80, temp );*/
+/*		*/
+/*		b_1 = _mm256_shuffle_ps( b_03, b_03, 85 );*/
+/*		temp = _mm256_mul_ps( a_07, b_1 );*/
+/*		c_01 = _mm256_add_ps( c_01, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_1 );*/
+/*		c_81 = _mm256_add_ps( c_81, temp );*/
+/*		*/
+/*		b_2 = _mm256_shuffle_ps( b_03, b_03, 170 );*/
+/*		temp = _mm256_mul_ps( a_07, b_2 );*/
+/*		c_02 = _mm256_add_ps( c_02, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_2 );*/
+/*		c_82 = _mm256_add_ps( c_82, temp );*/
+/*	*/
+/*		b_3 = _mm256_shuffle_ps( b_03, b_03, 255 );*/
+/*		temp = _mm256_mul_ps( a_07, b_3 );*/
+/*		c_03 = _mm256_add_ps( c_03, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_3 );*/
+/*		c_83 = _mm256_add_ps( c_83, temp );*/
+
+
+
+/*		la_07 = _mm_load_ps( &A0[12] );*/
+/*		ha_07 = _mm_load_ps( &A1[12] );*/
+/*		a_07 = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_07), _mm256_castps128_ps256(ha_07), 0 );*/
+
+/*		la_8f = _mm_load_ps( &A2[12] );*/
+/*		ha_8f = _mm_load_ps( &A3[12] );*/
+/*		a_8f = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_8f), _mm256_castps128_ps256(ha_8f), 0 );*/
+
+/*		lb_03 = _mm_load_ps( &B[12] );*/
+/*		b_03 = _mm256_castps128_ps256( lb_03 );*/
+/*		b_03 = _mm256_permute2f128_ps(b_03, b_03, 0);*/
+/*		*/
+/*		b_0 = _mm256_shuffle_ps( b_03, b_03, 0 );*/
+/*		temp = _mm256_mul_ps( a_07, b_0 );*/
+/*		c_00 = _mm256_add_ps( c_00, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_0 );*/
+/*		c_80 = _mm256_add_ps( c_80, temp );*/
+/*		*/
+/*		b_1 = _mm256_shuffle_ps( b_03, b_03, 85 );*/
+/*		temp = _mm256_mul_ps( a_07, b_1 );*/
+/*		c_01 = _mm256_add_ps( c_01, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_1 );*/
+/*		c_81 = _mm256_add_ps( c_81, temp );*/
+/*		*/
+/*		b_2 = _mm256_shuffle_ps( b_03, b_03, 170 );*/
+/*		temp = _mm256_mul_ps( a_07, b_2 );*/
+/*		c_02 = _mm256_add_ps( c_02, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_2 );*/
+/*		c_82 = _mm256_add_ps( c_82, temp );*/
+/*	*/
+/*		b_3 = _mm256_shuffle_ps( b_03, b_03, 255 );*/
+/*		temp = _mm256_mul_ps( a_07, b_3 );*/
+/*		c_03 = _mm256_add_ps( c_03, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_3 );*/
+/*		c_83 = _mm256_add_ps( c_83, temp );*/
+
+
+/*		A0 += 16;*/
+/*		A1 += 16;*/
+/*		A2 += 16;*/
+/*		A3 += 16;*/
+/*		B  += 16;*/
+
+/*		}*/
+/*	*/
+/*	for(; k<kmax; k++)*/
+/*		{*/
+/*		*/
+/*		la_07 = _mm_load_ps( &A0[0] );*/
+/*		ha_07 = _mm_load_ps( &A1[0] );*/
+/*		a_07 = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_07), _mm256_castps128_ps256(ha_07), 0 );*/
+
+/*		la_8f = _mm_load_ps( &A2[0] );*/
+/*		ha_8f = _mm_load_ps( &A3[0] );*/
+/*		a_8f = _mm256_permute2f128_ps( _mm256_castps128_ps256(la_8f), _mm256_castps128_ps256(ha_8f), 0 );*/
+
+/*		lb_03 = _mm_load_ps( &B[0] );*/
+/*		b_03 = _mm256_castps128_ps256( lb_03 );*/
+/*		b_03 = _mm256_permute2f128_ps(b_03, b_03, 0);*/
+/*		*/
+/*		b_0 = _mm256_shuffle_ps( b_03, b_03, 0 );*/
+/*		temp = _mm256_mul_ps( a_07, b_0 );*/
+/*		c_00 = _mm256_add_ps( c_00, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_0 );*/
+/*		c_80 = _mm256_add_ps( c_80, temp );*/
+/*		*/
+/*		b_1 = _mm256_shuffle_ps( b_03, b_03, 85 );*/
+/*		temp = _mm256_mul_ps( a_07, b_1 );*/
+/*		c_01 = _mm256_add_ps( c_01, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_1 );*/
+/*		c_81 = _mm256_add_ps( c_81, temp );*/
+/*		*/
+/*		b_2 = _mm256_shuffle_ps( b_03, b_03, 170 );*/
+/*		temp = _mm256_mul_ps( a_07, b_2 );*/
+/*		c_02 = _mm256_add_ps( c_02, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_2 );*/
+/*		c_82 = _mm256_add_ps( c_82, temp );*/
+/*	*/
+/*		b_3 = _mm256_shuffle_ps( b_03, b_03, 255 );*/
+/*		temp = _mm256_mul_ps( a_07, b_3 );*/
+/*		c_03 = _mm256_add_ps( c_03, temp );*/
+/*		temp = _mm256_mul_ps( a_8f, b_3 );*/
+/*		c_83 = _mm256_add_ps( c_83, temp );*/
+/*		*/
+/*		A0 += 4;*/
+/*		A1 += 4;*/
+/*		A2 += 4;*/
+/*		A3 += 4;*/
+/*		B  += 4;*/
+/*		*/
 /*		}*/
 
-	}
+/*	__m128*/
+/*		lc_00, lc_01, lc_02, lc_03,*/
+/*		hc_00, hc_01, hc_02, hc_03,*/
+/*		lc_80, lc_81, lc_82, lc_83,*/
+/*		hc_80, hc_81, hc_82, hc_83,*/
+/*		d_00, d_01, d_02, d_03,*/
+/*		d_40, d_41, d_42, d_43;*/
+
+/*	hc_00 = _mm256_extractf128_ps ( c_00, 1 );*/
+/*	lc_00 = _mm256_castps256_ps128( c_00 );*/
+/*	hc_01 = _mm256_extractf128_ps ( c_01, 1 );*/
+/*	lc_01 = _mm256_castps256_ps128( c_01 );*/
+/*	hc_02 = _mm256_extractf128_ps ( c_02, 1 );*/
+/*	lc_02 = _mm256_castps256_ps128( c_02 );*/
+/*	hc_03 = _mm256_extractf128_ps ( c_03, 1 );*/
+/*	lc_03 = _mm256_castps256_ps128( c_03 );*/
+/*	hc_80 = _mm256_extractf128_ps ( c_80, 1 );*/
+/*	lc_80 = _mm256_castps256_ps128( c_80 );*/
+/*	hc_81 = _mm256_extractf128_ps ( c_81, 1 );*/
+/*	lc_81 = _mm256_castps256_ps128( c_81 );*/
+/*	hc_82 = _mm256_extractf128_ps ( c_82, 1 );*/
+/*	lc_82 = _mm256_castps256_ps128( c_82 );*/
+/*	hc_83 = _mm256_extractf128_ps ( c_83, 1 );*/
+/*	lc_83 = _mm256_castps256_ps128( c_83 );*/
+
+/*		_mm_store_ps( &C0[0+ldc*0], lc_00 );*/
+/*		_mm_store_ps( &C0[0+ldc*1], lc_01 );*/
+/*		_mm_store_ps( &C0[0+ldc*2], lc_02 );*/
+/*		_mm_store_ps( &C0[0+ldc*3], lc_03 );*/
+/*		_mm_store_ps( &C1[0+ldc*0], hc_00 );*/
+/*		_mm_store_ps( &C1[0+ldc*1], hc_01 );*/
+/*		_mm_store_ps( &C1[0+ldc*2], hc_02 );*/
+/*		_mm_store_ps( &C1[0+ldc*3], hc_03 );*/
+/*		_mm_store_ps( &C2[0+ldc*0], lc_80 );*/
+/*		_mm_store_ps( &C2[0+ldc*1], lc_81 );*/
+/*		_mm_store_ps( &C2[0+ldc*2], lc_82 );*/
+/*		_mm_store_ps( &C2[0+ldc*3], lc_83 );*/
+/*		_mm_store_ps( &C3[0+ldc*0], hc_80 );*/
+/*		_mm_store_ps( &C3[0+ldc*1], hc_81 );*/
+/*		_mm_store_ps( &C3[0+ldc*2], hc_82 );*/
+/*		_mm_store_ps( &C3[0+ldc*3], hc_83 );*/
+
+/*	}*/
 
 
 
