@@ -293,7 +293,6 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 		i, j, jj;
 
 	int kinv = nna%bs;
-/*printf("\n%d\n", kinv);*/
 
 	j = 0;
 	if(j<nna-3)
@@ -351,7 +350,6 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 			kernel_dgemm_pp_nt_4x1_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			corner_dpotrf_dtrsv_dcopy_1x1_lib4(&pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
 			if(*info!=0) return;
-/*			kinv = 0;*/
 			}
 		else if(n-j==2)
 			{
@@ -468,14 +466,14 @@ void dgemv_p_n_lib(int n, int m, int offset, double *pA, int sda, double *x, dou
 
 	if(nna>n) // it is always nna < bs , thus n<bs !!!!!
 		{
+		j = 0;
 		if(nna%2==1)
 			{
 			kernel_dgemv_n_1_lib4(m, pA, x, y, alg);
 			pA += 1;
 			y  += 1;
-			n  -= 1;
+			j  += 1;
 			}
-		j = 0;
 		for(; j<n-1; j+=2)
 			{
 			kernel_dgemv_n_2_lib4(m, pA, x, y, alg);
@@ -572,7 +570,7 @@ void dgemv_p_t_lib(int m, int n, int offset, double *pA, int sda, double *x, dou
 
 void dtrmv_p_n_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg)
 	{
-	
+
 	const int bs = 4;
 	
 	int mna = (bs-offset%bs)%bs;
@@ -583,14 +581,14 @@ void dtrmv_p_n_lib(int m, int offset, double *pA, int sda, double *x, double *y,
 		{
 		if(mna>m) // it is always mna < bs , thus m<bs !!!!!
 			{
+			j = 0;
 			if(mna%2==1)
 				{
 				kernel_dgemv_n_1_lib4(j+1, pA, x, y, alg);
 				pA += 1;
 				y  += 1;
-				m  -= 1;
+				j  += 1;
 				}
-			j = 0;
 			for(; j<m-1; j+=2)
 				{
 				kernel_dgemv_n_2_lib4(j+1, pA, x, y, alg);
@@ -668,14 +666,14 @@ void dtrmv_p_n_lib(int m, int offset, double *pA, int sda, double *x, double *y,
 		{
 		if(mna>m) // it is always mna < bs , thus m<bs !!!!!
 			{
+			j = 0;
 			if(mna%2==1)
 				{
 				kernel_dgemv_n_1_lib4(j+1, pA, x, y, -1);
 				pA += 1;
 				y  += 1;
-				m  -= 1;
+				j  += 1;
 				}
-			j = 0;
 			for(; j<m-1; j+=2)
 				{
 				kernel_dgemv_n_2_lib4(j+1, pA, x, y, -1);
@@ -896,7 +894,7 @@ void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y,
 
 
 
-/*void dsymv_p_lib_old(int m, int offset, double *pA, int sda, double *x, double *y, int alg)*/
+/*void dsymv_p_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg)*/
 /*	{*/
 /*	*/
 /*	const int bs = 4;*/
@@ -1203,6 +1201,7 @@ void dsymv_p_lib(int m, int offset, double *pA, int sda, double *x, double *y, i
 	const int bs = 4;
 	
 	int mna = (bs-offset%bs)%bs;
+	int ma = m - mna;
 
 	int j, j0;
 	
@@ -1220,23 +1219,23 @@ void dsymv_p_lib(int m, int offset, double *pA, int sda, double *x, double *y, i
 			{
 			kernel_dsymv_1_lib4(m-j, mna-j, pA+j+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
 			}
-		pA += j + (sda-1)*bs;
+		pA += j + (sda-1)*bs + j*bs;
 		x += j;
 		y += j;
 		}
 	j=0;
-	for(; j<m-3; j+=4)
+	for(; j<ma-3; j+=4)
 		{
-		kernel_dsymv_4_lib4(m-j, 0, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+		kernel_dsymv_4_lib4(ma-j, 0, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
 		}
 	j0 = j;
-	for(; j<m-1; j+=2)
+	for(; j<ma-1; j+=2)
 		{
-		kernel_dsymv_2_lib4(m-j, 0, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+		kernel_dsymv_2_lib4(ma-j, ma-j, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
 		}
-	for(; j<m; j++)
+	for(; j<ma; j++)
 		{
-		kernel_dsymv_1_lib4(m-j, 0, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+		kernel_dsymv_1_lib4(ma-j, ma-j, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
 		}
 
 	}

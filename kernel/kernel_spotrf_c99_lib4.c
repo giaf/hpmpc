@@ -27,7 +27,7 @@
 
 
 
-void kernel_spotrf_strsv_scopy_4x4_lib4(int kmax, float *A, int sda, int shf, float *L, int sdl, int *info)
+void kernel_spotrf_strsv_scopy_4x4_lib4(int kmax, int kinv, float *A, int sda, int shf, float *L, int sdl, int *info)
 	{
 	
 	const int lda = 4;
@@ -42,46 +42,107 @@ void kernel_spotrf_strsv_scopy_4x4_lib4(int kmax, float *A, int sda, int shf, fl
 	float
 		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33;
 
-	// dpotrf
-		
-	a_00 = A[0+lda*0];
-	if( a_00 <= 0.0 ) { *info = 1; return; }
-	a_00 = sqrt( a_00 );
-	A[0+lda*0] = a_00;
-	L[0+0*lda+shfi0] = a_00;
-	a_00 = 1.0/a_00;
-	a_10 = A[1+lda*0] * a_00;
-	a_20 = A[2+lda*0] * a_00;
-	a_30 = A[3+lda*0] * a_00;
-	A[1+lda*0] = a_10;
-	A[2+lda*0] = a_20;
-	A[3+lda*0] = a_30;
-	L[0+1*lda+shfi0] = a_10;
-	L[0+2*lda+shfi0] = a_20;
-	L[0+3*lda+shfi0] = a_30;
+	// spotrf
 
-	a_11 = A[1+lda*1] - a_10*a_10;
-	if( a_11 <= 0.0 ) { *info = 1; return; }
-	a_11 = sqrt( a_11 );
-	A[1+lda*1] = a_11;
-	L[1+1*lda+shfi1] = a_11;
-	a_11 = 1.0/a_11;
-	a_21 = (A[2+lda*1] - a_20*a_10) * a_11;
-	a_31 = (A[3+lda*1] - a_30*a_10) * a_11;
-	A[2+lda*1] = a_21;
-	A[3+lda*1] = a_31;
-	L[1+2*lda+shfi1] = a_21;
-	L[1+3*lda+shfi1] = a_31;
+	if(kinv==0)
+		{
+		
+		a_00 = A[0+lda*0];
+		if( a_00 <= 0.0 ) { *info = 1; return; }
+		a_00 = sqrt( a_00 );
+		A[0+lda*0] = a_00;
+		L[0+0*lda+shfi0] = a_00;
+		a_00 = 1.0/a_00;
+		a_10 = A[1+lda*0] * a_00;
+		a_20 = A[2+lda*0] * a_00;
+		a_30 = A[3+lda*0] * a_00;
+		A[1+lda*0] = a_10;
+		A[2+lda*0] = a_20;
+		A[3+lda*0] = a_30;
+		L[0+1*lda+shfi0] = a_10;
+		L[0+2*lda+shfi0] = a_20;
+		L[0+3*lda+shfi0] = a_30;
+
+		a_11 = A[1+lda*1] - a_10*a_10;
+		if( a_11 <= 0.0 ) { *info = 1; return; }
+		a_11 = sqrt( a_11 );
+		A[1+lda*1] = a_11;
+		L[1+1*lda+shfi1] = a_11;
+		a_11 = 1.0/a_11;
+		a_21 = (A[2+lda*1] - a_20*a_10) * a_11;
+		a_31 = (A[3+lda*1] - a_30*a_10) * a_11;
+		A[2+lda*1] = a_21;
+		A[3+lda*1] = a_31;
+		L[1+2*lda+shfi1] = a_21;
+		L[1+3*lda+shfi1] = a_31;
 	
-	a_22 = A[2+lda*2] - a_20*a_20 - a_21*a_21;
-	if( a_22 <= 0.0 ) { *info = 1; return; }
-	a_22 = sqrt( a_22 );
-	A[2+lda*2] = a_22;
-	L[2+2*lda+shfi2] = a_22;
-	a_22 = 1.0/a_22;
-	a_32 = (A[3+lda*2] - a_30*a_20 - a_31*a_21) * a_22;
-	A[3+lda*2] = a_32;
-	L[2+3*lda+shfi2] = a_32;
+		a_22 = A[2+lda*2] - a_20*a_20 - a_21*a_21;
+		if( a_22 <= 0.0 ) { *info = 1; return; }
+		a_22 = sqrt( a_22 );
+		A[2+lda*2] = a_22;
+		L[2+2*lda+shfi2] = a_22;
+		a_22 = 1.0/a_22;
+		a_32 = (A[3+lda*2] - a_30*a_20 - a_31*a_21) * a_22;
+		A[3+lda*2] = a_32;
+		L[2+3*lda+shfi2] = a_32;
+			
+		}
+	else // kinv == {1, 2, 3}
+		{		
+
+		a_00 = A[0+lda*0];
+		if( a_00 <= 0.0 ) { *info = 1; return; }
+		a_00 = sqrt( a_00 );
+/*		if(kinv<=0)*/
+/*			A[0+lda*0] = a_00;*/
+/*		L[0+0*lda+shfi0] = a_00;*/
+		a_00 = 1.0/a_00;
+/*		if(kinv>0)*/
+			A[0+lda*0] = a_00;
+		a_10 = A[1+lda*0] * a_00;
+		a_20 = A[2+lda*0] * a_00;
+		a_30 = A[3+lda*0] * a_00;
+		A[1+lda*0] = a_10;
+		A[2+lda*0] = a_20;
+		A[3+lda*0] = a_30;
+		L[0+1*lda+shfi0] = a_10;
+		L[0+2*lda+shfi0] = a_20;
+		L[0+3*lda+shfi0] = a_30;
+
+		a_11 = A[1+lda*1] - a_10*a_10;
+		if( a_11 <= 0.0 ) { *info = 1; return; }
+		a_11 = sqrt( a_11 );
+		if(kinv<=1)
+			{
+			A[1+lda*1] = a_11;
+			L[1+1*lda+shfi1] = a_11;
+			}
+		a_11 = 1.0/a_11;
+		if(kinv>1)
+			A[1+lda*1] = a_11;
+		a_21 = (A[2+lda*1] - a_20*a_10) * a_11;
+		a_31 = (A[3+lda*1] - a_30*a_10) * a_11;
+		A[2+lda*1] = a_21;
+		A[3+lda*1] = a_31;
+		L[1+2*lda+shfi1] = a_21;
+		L[1+3*lda+shfi1] = a_31;
+	
+		a_22 = A[2+lda*2] - a_20*a_20 - a_21*a_21;
+		if( a_22 <= 0.0 ) { *info = 1; return; }
+		a_22 = sqrt( a_22 );
+		if(kinv<=2)
+			{
+			A[2+lda*2] = a_22;
+			L[2+2*lda+shfi2] = a_22;
+			}
+		a_22 = 1.0/a_22;
+		if(kinv>2)
+			A[2+lda*2] = a_22;
+		a_32 = (A[3+lda*2] - a_30*a_20 - a_31*a_21) * a_22;
+		A[3+lda*2] = a_32;
+		L[2+3*lda+shfi2] = a_32;
+	
+		}
 	
 	a_33 = A[3+lda*3] - a_30*a_30 - a_31*a_31 - a_32*a_32;
 	if( a_33 <= 0.0 ) { *info = 1; return; }
@@ -89,12 +150,10 @@ void kernel_spotrf_strsv_scopy_4x4_lib4(int kmax, float *A, int sda, int shf, fl
 	A[3+lda*3] = a_33;
 	L[3+3*lda+shfi3] = a_33;
 
-
-	
 	if(kmax<=0)
 		return;
 	
-	// dtrsv
+	// strsv
 
 	a_33 = 1.0/a_33;
 
@@ -237,6 +296,7 @@ void kernel_spotrf_strsv_scopy_4x4_lib4(int kmax, float *A, int sda, int shf, fl
 
 
 
+// inverted diagonal !!!
 void kernel_spotrf_strsv_4x4_lib4(int kmax, float *A, int sda, int *info)
 	{
 	
@@ -245,13 +305,13 @@ void kernel_spotrf_strsv_4x4_lib4(int kmax, float *A, int sda, int *info)
 	float
 		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33;
 
-	// dpotrf
+	// spotrf
 		
 	a_00 = A[0+lda*0];
 	if( a_00 <= 0.0 ) { *info = 1; return; }
 	a_00 = sqrt( a_00 );
-	A[0+lda*0] = a_00;
 	a_00 = 1.0/a_00;
+	A[0+lda*0] = a_00;
 	a_10 = A[1+lda*0] * a_00;
 	a_20 = A[2+lda*0] * a_00;
 	a_30 = A[3+lda*0] * a_00;
@@ -262,8 +322,8 @@ void kernel_spotrf_strsv_4x4_lib4(int kmax, float *A, int sda, int *info)
 	a_11 = A[1+lda*1] - a_10*a_10;
 	if( a_11 <= 0.0 ) { *info = 1; return; }
 	a_11 = sqrt( a_11 );
-	A[1+lda*1] = a_11;
 	a_11 = 1.0/a_11;
+	A[1+lda*1] = a_11;
 	a_21 = (A[2+lda*1] - a_20*a_10) * a_11;
 	a_31 = (A[3+lda*1] - a_30*a_10) * a_11;
 	A[2+lda*1] = a_21;
@@ -272,14 +332,15 @@ void kernel_spotrf_strsv_4x4_lib4(int kmax, float *A, int sda, int *info)
 	a_22 = A[2+lda*2] - a_20*a_20 - a_21*a_21;
 	if( a_22 <= 0.0 ) { *info = 1; return; }
 	a_22 = sqrt( a_22 );
-	A[2+lda*2] = a_22;
 	a_22 = 1.0/a_22;
+	A[2+lda*2] = a_22;
 	a_32 = (A[3+lda*2] - a_30*a_20 - a_31*a_21) * a_22;
 	A[3+lda*2] = a_32;
 	
 	a_33 = A[3+lda*3] - a_30*a_30 - a_31*a_31 - a_32*a_32;
 	if( a_33 <= 0.0 ) { *info = 1; return; }
 	a_33 = sqrt( a_33 );
+	a_33 = 1.0/a_33;
 	A[3+lda*3] = a_33;
 
 
@@ -287,9 +348,8 @@ void kernel_spotrf_strsv_4x4_lib4(int kmax, float *A, int sda, int *info)
 	if(kmax<=0)
 		return;
 	
-	// dtrsv
+	// strsv
 
-	a_33 = 1.0/a_33;
 
 	int k;
 	
@@ -407,6 +467,7 @@ void kernel_spotrf_strsv_4x4_lib4(int kmax, float *A, int sda, int *info)
 
 
 
+// inverted diagonal !!!
 void kernel_spotrf_strsv_3x3_lib4(int kmax, float *A, int sda, int *info)
 	{
 	
@@ -415,13 +476,13 @@ void kernel_spotrf_strsv_3x3_lib4(int kmax, float *A, int sda, int *info)
 	float
 		a_00, a_10, a_20, a_11, a_21, a_22;
 
-	// dpotrf
+	// spotrf
 		
 	a_00 = A[0+lda*0];
 	if( a_00 <= 0.0 ) { *info = 1; return; }
 	a_00 = sqrt( a_00 );
-	A[0+lda*0] = a_00;
 	a_00 = 1.0/a_00;
+	A[0+lda*0] = a_00;
 	a_10 = A[1+lda*0] * a_00;
 	a_20 = A[2+lda*0] * a_00;
 	A[1+lda*0] = a_10;
@@ -430,14 +491,15 @@ void kernel_spotrf_strsv_3x3_lib4(int kmax, float *A, int sda, int *info)
 	a_11 = A[1+lda*1] - a_10*a_10;
 	if( a_11 <= 0.0 ) { *info = 1; return; }
 	a_11 = sqrt( a_11 );
-	A[1+lda*1] = a_11;
 	a_11 = 1.0/a_11;
+	A[1+lda*1] = a_11;
 	a_21 = (A[2+lda*1] - a_20*a_10) * a_11;
 	A[2+lda*1] = a_21;
 	
 	a_22 = A[2+lda*2] - a_20*a_20 - a_21*a_21;
 	if( a_22 <= 0.0 ) { *info = 1; return; }
 	a_22 = sqrt( a_22 );
+	a_22 = 1.0/a_22;
 	A[2+lda*2] = a_22;
 
 
@@ -445,9 +507,8 @@ void kernel_spotrf_strsv_3x3_lib4(int kmax, float *A, int sda, int *info)
 	if(kmax<=0)
 		return;
 	
-	// dtrsv
+	// strsv
 
-	a_22 = 1.0/a_22;
 
 	int k, kna;
 	
@@ -569,6 +630,7 @@ void kernel_spotrf_strsv_3x3_lib4(int kmax, float *A, int sda, int *info)
 
 
 
+// inverted diagonal !!!
 void kernel_spotrf_strsv_2x2_lib4(int kmax, float *A, int sda, int *info)
 	{
 	
@@ -577,19 +639,20 @@ void kernel_spotrf_strsv_2x2_lib4(int kmax, float *A, int sda, int *info)
 	float
 		a_00, a_10, a_11;
 
-	// dpotrf
+	// spotrf
 		
 	a_00 = A[0+lda*0];
 	if( a_00 <= 0.0 ) { *info = 1; return; }
 	a_00 = sqrt( a_00 );
-	A[0+lda*0] = a_00;
 	a_00 = 1.0/a_00;
+	A[0+lda*0] = a_00;
 	a_10 = A[1+lda*0] * a_00;
 	A[1+lda*0] = a_10;
 
 	a_11 = A[1+lda*1] - a_10*a_10;
 	if( a_11 <= 0.0 ) { *info = 1; return; }
 	a_11 = sqrt( a_11 );
+	a_11 = 1.0/a_11;
 	A[1+lda*1] = a_11;
 
 
@@ -597,9 +660,8 @@ void kernel_spotrf_strsv_2x2_lib4(int kmax, float *A, int sda, int *info)
 	if(kmax<=0)
 		return;
 	
-	// dtrsv
+	// strsv
 
-	a_11 = 1.0/a_11;
 
 	int k, kna;
 	
@@ -695,6 +757,7 @@ void kernel_spotrf_strsv_2x2_lib4(int kmax, float *A, int sda, int *info)
 
 
 
+// inverted diagonal !!!
 void kernel_spotrf_strsv_1x1_lib4(int kmax, float *A, int sda, int *info)
 	{
 	
@@ -703,11 +766,12 @@ void kernel_spotrf_strsv_1x1_lib4(int kmax, float *A, int sda, int *info)
 	float
 		a_00;
 
-	// dpotrf
+	// spotrf
 		
 	a_00 = A[0+lda*0];
 	if( a_00 <= 0.0 ) { *info = 1; return; }
 	a_00 = sqrt( a_00 );
+	a_00 = 1.0/a_00;
 	A[0+lda*0] = a_00;
 
 
@@ -715,9 +779,8 @@ void kernel_spotrf_strsv_1x1_lib4(int kmax, float *A, int sda, int *info)
 	if(kmax<=0)
 		return;
 	
-	// dtrsv
+	// strsv
 
-	a_00 = 1.0/a_00;
 
 	int k, kna;
 	

@@ -32,7 +32,7 @@ void kernel_sgemm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 void kernel_sgemm_pp_nt_4x3_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg);
 void kernel_sgemm_pp_nt_4x2_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg);
 void kernel_sgemm_pp_nt_4x1_lib4(int kmax, float *A, float *B, float *C, int ldc, int alg);
-void kernel_spotrf_strsv_scopy_4x4_lib4(int kmax, float *A, int sda, int shf, float *L, int sdl, int *info);
+void kernel_spotrf_strsv_scopy_4x4_lib4(int kmax, int kinv, float *A, int sda, int shf, float *L, int sdl, int *info);
 void kernel_spotrf_strsv_4x4_lib4(int kmax, float *A, int sda, int *info);
 void kernel_spotrf_strsv_3x3_lib4(int kmax, float *A, int sda, int *info);
 void kernel_spotrf_strsv_2x2_lib4(int kmax, float *A, int sda, int *info);
@@ -58,7 +58,7 @@ void corner_strmm_pp_nt_8x1_lib4(float *A0, float *A1, float *B, float *C0, floa
 void corner_strmm_pp_nt_4x3_lib4(float *A, float *B, float *C, int ldc);
 void corner_strmm_pp_nt_4x2_lib4(float *A, float *B, float *C, int ldc);
 void corner_strmm_pp_nt_4x1_lib4(float *A, float *B, float *C, int ldc);
-void corner_spotrf_strsv_scopy_3x3_lib4(float *A, int sda, int shf, float *L, int sdl, int *info);
-void corner_spotrf_strsv_scopy_2x2_lib4(float *A, int sda, int shf, float *L, int sdl, int *info);
+void corner_spotrf_strsv_scopy_3x3_lib4(int kinv, float *A, int sda, int shf, float *L, int sdl, int *info);
+void corner_spotrf_strsv_scopy_2x2_lib4(int kinv, float *A, int sda, int shf, float *L, int sdl, int *info);
 void corner_spotrf_strsv_scopy_1x1_lib4(float *A, int sda, int shf, float *L, int sdl, int *info);
 

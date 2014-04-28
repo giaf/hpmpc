@@ -294,6 +294,8 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 	int
 		i, j, jj;
 
+	int kinv = nna%bs;
+
 	j = 0;
 	if(j<nna-3)
 		{
@@ -320,8 +322,9 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 	int j0 = j;
 	if(j==0) // assume that n>0
 		{
-		kernel_spotrf_strsv_scopy_4x4_lib4(n-j-4, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+		kernel_spotrf_strsv_scopy_4x4_lib4(n-j-4, kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
 		if(*info!=0) return;
+		kinv = 0;
 		j += 4;
 		}
 	for(; j<n-3; j+=4)
@@ -337,8 +340,9 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 			{
 			kernel_sgemm_pp_nt_4x4_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
-		kernel_spotrf_strsv_scopy_4x4_lib4(n-j-4, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+		kernel_spotrf_strsv_scopy_4x4_lib4(n-j-4, kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
 		if(*info!=0) return;
+		kinv = 0;
 		}
 	if(j<n)
 		{
@@ -353,15 +357,17 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 			{
 			i = j;
 			kernel_sgemm_pp_nt_4x2_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
-			corner_spotrf_strsv_scopy_2x2_lib4(&pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+			corner_spotrf_strsv_scopy_2x2_lib4(kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
 			if(*info!=0) return;
+/*			kinv = 0;*/
 			}
 		else if(n-j==3)
 			{
 			i = j;
 			kernel_sgemm_pp_nt_4x3_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
-			corner_spotrf_strsv_scopy_3x3_lib4(&pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+			corner_spotrf_strsv_scopy_3x3_lib4(kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
 			if(*info!=0) return;
+/*			kinv = 0;*/
 			}
 		}
 
@@ -463,14 +469,14 @@ void sgemv_p_n_lib(int n, int m, int offset, float *pA, int sda, float *x, float
 
 	if(nna>n) // it is always nna < bs , thus n<bs !!!!!
 		{
+		j = 0;
 		if(nna%2==1)
 			{
 			kernel_sgemv_n_1_lib4(m, pA, x, y, alg);
 			pA += 1;
 			y  += 1;
-			n  -= 1;
+			j  += 1;
 			}
-		j = 0;
 		for(; j<n-1; j+=2)
 			{
 			kernel_sgemv_n_2_lib4(m, pA, x, y, alg);
@@ -582,14 +588,14 @@ void strmv_p_n_lib(int m, int offset, float *pA, int sda, float *x, float *y, in
 		{
 		if(mna>m) // it is always mna < bs , thus m<bs !!!!!
 			{
+			j = 0;
 			if(mna%2==1)
 				{
 				kernel_sgemv_n_1_lib4(j+1, pA, x, y, alg);
 				pA += 1;
 				y  += 1;
-				m  -= 1;
+				j  += 1;
 				}
-			j = 0;
 			for(; j<m-1; j+=2)
 				{
 				kernel_sgemv_n_2_lib4(j+1, pA, x, y, alg);
@@ -669,14 +675,14 @@ void strmv_p_n_lib(int m, int offset, float *pA, int sda, float *x, float *y, in
 		{
 		if(mna>m) // it is always mna < bs , thus m<bs !!!!!
 			{
+			j = 0;
 			if(mna%2==1)
 				{
 				kernel_sgemv_n_1_lib4(j+1, pA, x, y, -1);
 				pA += 1;
 				y  += 1;
-				m  -= 1;
+				j  += 1;
 				}
-			j = 0;
 			for(; j<m-1; j+=2)
 				{
 				kernel_sgemv_n_2_lib4(j+1, pA, x, y, -1);
@@ -1213,6 +1219,7 @@ void ssymv_p_lib(int m, int offset, float *pA, int sda, float *x, float *y, int 
 	const int bs = 4;
 	
 	int mna = (bs-offset%bs)%bs;
+	int ma = m - mna;
 
 	int j, j0;
 	
@@ -1230,23 +1237,23 @@ void ssymv_p_lib(int m, int offset, float *pA, int sda, float *x, float *y, int 
 			{
 			kernel_ssymv_1_lib4(m-j, mna-j, pA+j+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
 			}
-		pA += j + (sda-1)*bs;
+		pA += j + (sda-1)*bs + j*bs;
 		x += j;
 		y += j;
 		}
 	j=0;
-	for(; j<m-3; j+=4)
+	for(; j<ma-3; j+=4)
 		{
-		kernel_ssymv_4_lib4(m-j, 0, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+		kernel_ssymv_4_lib4(ma-j, 0, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
 		}
 	j0 = j;
-	for(; j<m-1; j+=2)
+	for(; j<ma-1; j+=2)
 		{
-		kernel_ssymv_2_lib4(m-j, 0, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+		kernel_ssymv_2_lib4(ma-j, ma-j, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
 		}
-	for(; j<m; j++)
+	for(; j<ma; j++)
 		{
-		kernel_ssymv_1_lib4(m-j, 0, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+		kernel_ssymv_1_lib4(ma-j, ma-j, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
 		}
 
 	}
@@ -1408,10 +1415,10 @@ void strsv_p_n_lib(int n, float *pA, int sda, float *x)
 		kernel_sgemv_n_8_lib4(j, ptrA, ptrA+bs*sda, x, ptrx, -1);
 
 		// solve
-		ptrx[0] = (ptrx[0]) / ptrAd[0+bs*0];
-		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) / ptrAd[1+bs*1];
-		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) / ptrAd[2+bs*2];
-		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) / ptrAd[3+bs*3];
+		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];
+		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) * ptrAd[1+bs*1];
+		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) * ptrAd[2+bs*2];
+		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) * ptrAd[3+bs*3];
 
 		// correct
 		kernel_sgemv_n_4_lib4(4, ptrAd+bs*sda, ptrx, ptrx+4, -1);
@@ -1421,10 +1428,10 @@ void strsv_p_n_lib(int n, float *pA, int sda, float *x)
 		ptrx  += bs;
 
 		// solve
-		ptrx[0] = (ptrx[0]) / ptrAd[0+bs*0];
-		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) / ptrAd[1+bs*1];
-		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) / ptrAd[2+bs*2];
-		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) / ptrAd[3+bs*3];
+		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];
+		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) * ptrAd[1+bs*1];
+		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) * ptrAd[2+bs*2];
+		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) * ptrAd[3+bs*3];
 
 		ptrA  += bs*sda;
 		ptrAd += bs*(sda+bs);
@@ -1439,10 +1446,10 @@ void strsv_p_n_lib(int n, float *pA, int sda, float *x)
 		kernel_sgemv_n_4_lib4(j, ptrA, x, ptrx, -1);
 
 		// solve
-		ptrx[0] = (ptrx[0]) / ptrAd[0+bs*0];
-		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) / ptrAd[1+bs*1];
-		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) / ptrAd[2+bs*2];
-		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) / ptrAd[3+bs*3];
+		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];
+		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) * ptrAd[1+bs*1];
+		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) * ptrAd[2+bs*2];
+		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) * ptrAd[3+bs*3];
 
 		ptrA  += bs*sda;
 		ptrAd += bs*(sda+bs);
@@ -1455,8 +1462,8 @@ void strsv_p_n_lib(int n, float *pA, int sda, float *x)
 		kernel_sgemv_n_2_lib4(j, ptrA, x, ptrx, -1);
 
 		// solve
-		ptrx[0] = (ptrx[0]) / ptrAd[0+bs*0];
-		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) / ptrAd[1+bs*1];
+		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];
+		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) * ptrAd[1+bs*1];
 		
 		ptrA  += 2;
 		ptrAd += 2*bs+2;
@@ -1468,7 +1475,7 @@ void strsv_p_n_lib(int n, float *pA, int sda, float *x)
 		kernel_sgemv_n_1_lib4(j, ptrA, x, ptrx, -1);
 
 		// solve
-		ptrx[0] = (ptrx[0]) / ptrAd[0+bs*0];
+		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];
 		
 		ptrA  += 1;
 		ptrAd += bs+1;
@@ -1501,14 +1508,14 @@ void strsv_p_t_lib(int n, float *pA, int sda, float *x)
 		{
 		i = rn-1-j;
 		kernel_sgemv_t_1_lib4(j, j, &ptrA[i+1+bs*(i+0)], sda, &ptrx[i+1], &ptrx[i], -1);
-		ptrx[i+0] = (ptrx[i+0]) / ptrA[i+0+bs*(i+0)];
+		ptrx[i+0] = (ptrx[i+0]) * ptrA[i+0+bs*(i+0)];
 		}
 	for(; j<rn; j+=2)
 		{
 		i = rn-2-j;
 		kernel_sgemv_t_2_lib4(j, j, &ptrA[i+2+bs*(i+0)], sda, &ptrx[i+2], &ptrx[i], -1);
-		ptrx[i+1] = (ptrx[i+1]) / ptrA[(i+1)+bs*(i+1)];
-		ptrx[i+0] = (ptrx[i+0] - ptrA[(i+1)+bs*(i+0)]*ptrx[i+1]) / ptrA[(i+0)+bs*(i+0)];
+		ptrx[i+1] = (ptrx[i+1]) * ptrA[(i+1)+bs*(i+1)];
+		ptrx[i+0] = (ptrx[i+0] - ptrA[(i+1)+bs*(i+0)]*ptrx[i+1]) * ptrA[(i+0)+bs*(i+0)];
 		}
 
 	// blocks of 8
@@ -1529,10 +1536,10 @@ void strsv_p_t_lib(int n, float *pA, int sda, float *x)
 		ptrx = x  + (qn-j-1)*bs          ;
 
 		// solve
-		ptrx[3] = (ptrx[3]) / ptrA[3+bs*3];
-		ptrx[2] = (ptrx[2] - ptrA[3+bs*2]*ptrx[3]) / ptrA[2+bs*2];
-		ptrx[1] = (ptrx[1] - ptrA[3+bs*1]*ptrx[3] - ptrA[2+bs*1]*ptrx[2]) / ptrA[1+bs*1];
-		ptrx[0] = (ptrx[0] - ptrA[3+bs*0]*ptrx[3] - ptrA[2+bs*0]*ptrx[2] - ptrA[1+bs*0]*ptrx[1]) / ptrA[0+bs*0];
+		ptrx[3] = (ptrx[3]) * ptrA[3+bs*3];
+		ptrx[2] = (ptrx[2] - ptrA[3+bs*2]*ptrx[3]) * ptrA[2+bs*2];
+		ptrx[1] = (ptrx[1] - ptrA[3+bs*1]*ptrx[3] - ptrA[2+bs*1]*ptrx[2]) * ptrA[1+bs*1];
+		ptrx[0] = (ptrx[0] - ptrA[3+bs*0]*ptrx[3] - ptrA[2+bs*0]*ptrx[2] - ptrA[1+bs*0]*ptrx[1]) * ptrA[0+bs*0];
 
 		// first 4 rows
 		ptrA = pA + (qn-j-2)*bs*(sda+bs) ;
@@ -1542,10 +1549,10 @@ void strsv_p_t_lib(int n, float *pA, int sda, float *x)
 		kernel_sgemv_t_4_lib4(4, 0, ptrA+bs*sda, sda, ptrx+4, ptrx, -1);
 
 		// solve
-		ptrx[3] = (ptrx[3]) / ptrA[3+bs*3];
-		ptrx[2] = (ptrx[2] - ptrA[3+bs*2]*ptrx[3]) / ptrA[2+bs*2];
-		ptrx[1] = (ptrx[1] - ptrA[3+bs*1]*ptrx[3] - ptrA[2+bs*1]*ptrx[2]) / ptrA[1+bs*1];
-		ptrx[0] = (ptrx[0] - ptrA[3+bs*0]*ptrx[3] - ptrA[2+bs*0]*ptrx[2] - ptrA[1+bs*0]*ptrx[1]) / ptrA[0+bs*0];
+		ptrx[3] = (ptrx[3]) * ptrA[3+bs*3];
+		ptrx[2] = (ptrx[2] - ptrA[3+bs*2]*ptrx[3]) * ptrA[2+bs*2];
+		ptrx[1] = (ptrx[1] - ptrA[3+bs*1]*ptrx[3] - ptrA[2+bs*1]*ptrx[2]) * ptrA[1+bs*1];
+		ptrx[0] = (ptrx[0] - ptrA[3+bs*0]*ptrx[3] - ptrA[2+bs*0]*ptrx[2] - ptrA[1+bs*0]*ptrx[1]) * ptrA[0+bs*0];
 
 		}
 #endif	
@@ -1558,10 +1565,10 @@ void strsv_p_t_lib(int n, float *pA, int sda, float *x)
 		ptrx = x  + (qn-j-1)*bs          ;
 		
 		kernel_sgemv_t_4_lib4(rn+j*bs, 0, ptrA+bs*sda, sda, ptrx+4, ptrx, -1);
-		ptrx[3] = (ptrx[3]) / ptrA[3+bs*3];
-		ptrx[2] = (ptrx[2] - ptrA[3+bs*2]*ptrx[3]) / ptrA[2+bs*2];
-		ptrx[1] = (ptrx[1] - ptrA[3+bs*1]*ptrx[3] - ptrA[2+bs*1]*ptrx[2]) / ptrA[1+bs*1];
-		ptrx[0] = (ptrx[0] - ptrA[3+bs*0]*ptrx[3] - ptrA[2+bs*0]*ptrx[2] - ptrA[1+bs*0]*ptrx[1]) / ptrA[0+bs*0];
+		ptrx[3] = (ptrx[3]) * ptrA[3+bs*3];
+		ptrx[2] = (ptrx[2] - ptrA[3+bs*2]*ptrx[3]) * ptrA[2+bs*2];
+		ptrx[1] = (ptrx[1] - ptrA[3+bs*1]*ptrx[3] - ptrA[2+bs*1]*ptrx[2]) * ptrA[1+bs*1];
+		ptrx[0] = (ptrx[0] - ptrA[3+bs*0]*ptrx[3] - ptrA[2+bs*0]*ptrx[2] - ptrA[1+bs*0]*ptrx[1]) * ptrA[0+bs*0];
 
 		}
 

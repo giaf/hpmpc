@@ -394,7 +394,7 @@ int main()
 			{
 			// print result 
 			printf("\n\nres\n\n");
-			for(ii=0; ii<+N; ii++)
+			for(ii=0; ii<=N; ii++)
 				d_print_mat(1, nx+nu, hrq[ii], 1);
 			for(ii=0; ii<N; ii++)
 				d_print_mat(1, nx, hrb[ii], 1);
