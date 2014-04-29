@@ -400,7 +400,7 @@ int main()
 				d_print_mat(1, nx, hrb[ii], 1);
 			}
 
-		return;
+		return 0;
 
 
 

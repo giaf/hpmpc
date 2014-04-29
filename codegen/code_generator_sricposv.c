@@ -34,7 +34,7 @@
 
 
 
-void main()
+int main()
 	{
 	
 	const int bs = S_MR;
@@ -651,7 +651,7 @@ void main()
 
 
 
-	return;
+	return 0;
 
 	}
 
