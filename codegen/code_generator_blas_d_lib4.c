@@ -33,176 +33,6 @@
 
 
 
-/* computes the lower triangular Cholesky factor of pC, */
-/* and copies its transposed in pL                      */
-void dpotrf_p_dcopy_p_t_code_generator(FILE *f, int n, int nna)
-	{
-
-	int i, j;
-	
-	const int bs = 4;
-	
-	const int sdc = PNZ;
-	const int sdl = PNZ;
-	
-	j = 0;
-	if(j<nna-3)
-		{
-fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, &pC[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc);
-fprintf(f, "	if(*info!=0) return;\n");
-	            	j += 4;     
-	            	for(; j<nna-3; j+=4)
-	            		{     
-	            		i = j;     
-#if defined(TARGET_X64_AVX)
-	            		for(; i<n-4; i+=8)     
-	            			{
-fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
-	            			}     
-#endif
-	            		for(; i<n; i+=4)     
-	            			{     
-fprintf(f, "	kernel_dgemm_pp_nt_4x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-	            			}     
-fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, &pC[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc);
-fprintf(f, "	if(*info!=0) return;\n");
-	            		}     
-		}
-	int j0 = j;
-	if(j==0) // assume that n>0
-		{
-fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_4x4_lib4(%d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
-fprintf(f, "	if(*info!=0) return;\n");
-		j += 4;
-		}
-	for(; j<n-3; j+=4)
-		{
-		i = j;
-#if defined(TARGET_X64_AVX)
-		for(; i<n-4; i+=8)
-			{
-fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
-			}
-#endif
-		for(; i<n; i+=4)
-			{
-fprintf(f, "	kernel_dgemm_pp_nt_4x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-			}
-fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_4x4_lib4(%d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
-fprintf(f, "	if(*info!=0) return;\n");
-		}
-	if(j<n)
-		{
-		if(n-j==1)
-			{
-			i = j;
-fprintf(f, "	kernel_dgemm_pp_nt_4x1_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-fprintf(f, "	corner_dpotrf_dtrsv_dcopy_1x1_lib4(&pC[%d], %d, %d, &pL[%d], %d, info);\n", j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
-fprintf(f, "	if(*info!=0) return;\n");
-			}
-		else if(n-j==2)
-			{
-			i = j;
-fprintf(f, "	kernel_dgemm_pp_nt_4x2_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-fprintf(f, "	corner_dpotrf_dtrsv_dcopy_2x2_lib4(&pC[%d], %d, %d, &pL[%d], %d, info);\n", j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
-fprintf(f, "	if(*info!=0) return;\n");
-			}
-		else if(n-j==3)
-			{
-			i = j;
-fprintf(f, "	kernel_dgemm_pp_nt_4x3_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-fprintf(f, "	corner_dpotrf_dtrsv_dcopy_3x3_lib4(&pC[%d], %d, %d, &pL[%d], %d, info);\n", j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
-fprintf(f, "	if(*info!=0) return;\n");
-			}
-		}
-
-	}
-
-
-
-/* computes an mxn band of the lower triangular Cholesky factor of pC, supposed to be aligned */
-void dpotrf_p_code_generator(FILE *f, int m, int n)
-	{
-
-	int i, j;
-	
-	const int bs = 4;
-	
-	const int sdc = PNZ;
-
-	j = 0;
-	for(; j<n-3; j+=4)
-		{
-		i = j;
-#if defined(TARGET_X64_AVX)
-		for(; i<m-4; i+=8)
-			{
-fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
-			}
-#endif
-		for(; i<m; i+=4)
-			{
-fprintf(f, "	kernel_dgemm_pp_nt_4x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-			}
-fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, &pC[%d], %d, info);\n", m-j-4, j*bs+j*sdc, sdc);
-fprintf(f, "	if(*info!=0) return;\n");
-		}
-	if(j<n)
-		{
-		if(n-j==1)
-			{
-			i = j;
-#if defined(TARGET_X64_AVX)
-			for(; i<m-4; i+=8)
-				{
-fprintf(f, "	kernel_dgemm_pp_nt_8x1_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
-				}
-#endif
-			for(; i<m; i+=4)
-				{
-fprintf(f, "	kernel_dgemm_pp_nt_4x1_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-				}
-fprintf(f, "	kernel_dpotrf_dtrsv_1x1_lib4(%d, &pC[%d], %d, info);\n", m-j-1, j*bs+j*sdc, sdc);
-fprintf(f, "	if(*info!=0) return;\n");
-			}
-		else if(n-j==2)
-			{
-			i = j;
-#if defined(TARGET_X64_AVX)
-			for(; i<m-4; i+=8)
-				{
-fprintf(f, "	kernel_dgemm_pp_nt_8x2_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
-				}
-#endif
-			for(; i<m; i+=4)
-				{
-fprintf(f, "	kernel_dgemm_pp_nt_4x2_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-				}
-fprintf(f, "	kernel_dpotrf_dtrsv_2x2_lib4(%d, &pC[%d], %d, info);\n", m-j-2, j*bs+j*sdc, sdc);
-fprintf(f, "	if(*info!=0) return;\n");
-			}
-		else if(n-j==3)
-			{
-			i = j;
-#if defined(TARGET_X64_AVX)
-			for(; i<m-4; i+=8)
-				{
-fprintf(f, "	kernel_dgemm_pp_nt_8x3_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
-				}
-#endif
-			for(; i<m; i+=4)
-				{
-fprintf(f, "	kernel_dgemm_pp_nt_4x3_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-				}
-fprintf(f, "	kernel_dpotrf_dtrsv_3x3_lib4(%d, &pC[%d], %d, info);\n", m-j-3, j*bs+j*sdc, sdc);
-fprintf(f, "	if(*info!=0) return;\n");
-			}
-		}
-
-	}
-
-
-
 /* preforms                                          */
 /* C  = A * B'                                       */
 /* where A, B and C are packed with block size 4,    */
@@ -412,6 +242,180 @@ fprintf(f, "	kernel_dgemm_pp_nt_4x4_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 1);\
 #endif
 
 /*	fprintf(f, "	\n");*/
+
+	}
+
+
+
+/* computes the lower triangular Cholesky factor of pC, */
+/* and copies its transposed in pL                      */
+void dpotrf_p_dcopy_p_t_code_generator(FILE *f, int n, int nna)
+	{
+
+	int i, j;
+	
+	const int bs = 4;
+	
+	const int sdc = PNZ;
+	const int sdl = PNZ;
+	
+	int kinv = nna%bs;
+
+	j = 0;
+	if(j<nna-3)
+		{
+fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, &pC[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc);
+fprintf(f, "	if(*info!=0) return;\n");
+	            	j += 4;     
+	            	for(; j<nna-3; j+=4)
+	            		{     
+	            		i = j;     
+#if defined(TARGET_X64_AVX)
+	            		for(; i<n-4; i+=8)     
+	            			{
+fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
+	            			}     
+#endif
+	            		for(; i<n; i+=4)     
+	            			{     
+fprintf(f, "	kernel_dgemm_pp_nt_4x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
+	            			}     
+fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, &pC[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc);
+fprintf(f, "	if(*info!=0) return;\n");
+	            		}     
+		}
+	int j0 = j;
+	if(j==0) // assume that n>0
+		{
+fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_4x4_lib4(%d, %d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", n-j-4, kinv, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	if(*info!=0) return;\n");
+		kinv = 0;
+		j += 4;
+		}
+	for(; j<n-3; j+=4)
+		{
+		i = j;
+#if defined(TARGET_X64_AVX)
+		for(; i<n-4; i+=8)
+			{
+fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
+			}
+#endif
+		for(; i<n; i+=4)
+			{
+fprintf(f, "	kernel_dgemm_pp_nt_4x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
+			}
+fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_4x4_lib4(%d, %d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", n-j-4, kinv, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	if(*info!=0) return;\n");
+		kinv = 0;
+		}
+	if(j<n) // clean up
+		{
+		if(n-j==1)
+			{
+			i = j;
+fprintf(f, "	kernel_dgemm_pp_nt_4x1_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
+fprintf(f, "	corner_dpotrf_dtrsv_dcopy_1x1_lib4(&pC[%d], %d, %d, &pL[%d], %d, info);\n", j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	if(*info!=0) return;\n");
+			}
+		else if(n-j==2)
+			{
+			i = j;
+fprintf(f, "	kernel_dgemm_pp_nt_4x2_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
+fprintf(f, "	corner_dpotrf_dtrsv_dcopy_2x2_lib4(%d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", kinv, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	if(*info!=0) return;\n");
+			}
+		else if(n-j==3)
+			{
+			i = j;
+fprintf(f, "	kernel_dgemm_pp_nt_4x3_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
+fprintf(f, "	corner_dpotrf_dtrsv_dcopy_3x3_lib4(%d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", kinv, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	if(*info!=0) return;\n");
+			}
+		}
+
+	}
+
+
+
+/* computes an mxn band of the lower triangular Cholesky factor of pC, supposed to be aligned */
+void dpotrf_p_code_generator(FILE *f, int m, int n)
+	{
+
+	int i, j;
+	
+	const int bs = 4;
+	
+	const int sdc = PNZ;
+
+	j = 0;
+	for(; j<n-3; j+=4)
+		{
+		i = j;
+#if defined(TARGET_X64_AVX)
+		for(; i<m-4; i+=8)
+			{
+fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
+			}
+#endif
+		for(; i<m; i+=4)
+			{
+fprintf(f, "	kernel_dgemm_pp_nt_4x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
+			}
+fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, &pC[%d], %d, info);\n", m-j-4, j*bs+j*sdc, sdc);
+fprintf(f, "	if(*info!=0) return;\n");
+		}
+	if(j<n)
+		{
+		if(n-j==1)
+			{
+			i = j;
+#if defined(TARGET_X64_AVX)
+			for(; i<m-4; i+=8)
+				{
+fprintf(f, "	kernel_dgemm_pp_nt_8x1_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
+				}
+#endif
+			for(; i<m; i+=4)
+				{
+fprintf(f, "	kernel_dgemm_pp_nt_4x1_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
+				}
+fprintf(f, "	kernel_dpotrf_dtrsv_1x1_lib4(%d, &pC[%d], %d, info);\n", m-j-1, j*bs+j*sdc, sdc);
+fprintf(f, "	if(*info!=0) return;\n");
+			}
+		else if(n-j==2)
+			{
+			i = j;
+#if defined(TARGET_X64_AVX)
+			for(; i<m-4; i+=8)
+				{
+fprintf(f, "	kernel_dgemm_pp_nt_8x2_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
+				}
+#endif
+			for(; i<m; i+=4)
+				{
+fprintf(f, "	kernel_dgemm_pp_nt_4x2_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
+				}
+fprintf(f, "	kernel_dpotrf_dtrsv_2x2_lib4(%d, &pC[%d], %d, info);\n", m-j-2, j*bs+j*sdc, sdc);
+fprintf(f, "	if(*info!=0) return;\n");
+			}
+		else if(n-j==3)
+			{
+			i = j;
+#if defined(TARGET_X64_AVX)
+			for(; i<m-4; i+=8)
+				{
+fprintf(f, "	kernel_dgemm_pp_nt_8x3_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, (i+4)*sdc, j*sdc, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
+				}
+#endif
+			for(; i<m; i+=4)
+				{
+fprintf(f, "	kernel_dgemm_pp_nt_4x3_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
+				}
+fprintf(f, "	kernel_dpotrf_dtrsv_3x3_lib4(%d, &pC[%d], %d, info);\n", m-j-3, j*bs+j*sdc, sdc);
+fprintf(f, "	if(*info!=0) return;\n");
+			}
+		}
 
 	}
 
@@ -874,6 +878,7 @@ fprintf(f, "	kernel_dgemv_t_1_lib4(%d, %d, &pA[%d], %d, &x[%d], &y[%d], %d);\n",
 
 
 
+// it moves vertically across block
 void dsymv_p_code_generator(FILE *f, int m, int offset, int alg)
 	{
 	
@@ -882,17 +887,14 @@ void dsymv_p_code_generator(FILE *f, int m, int offset, int alg)
 	const int sda = PNZ;
 
 	int mna = (bs-offset%bs)%bs;
-	if(m<mna)
-		mna = m;
-	
-	int j, jj;
+	int ma = m - mna;
+
+	int j, jj, j0;
 	
 	int idxA = 0;
-	int idxx_n = 0;
-	int idxy_n = 0;
-	int idxx_t = 0;
-	int idxy_t = 0;
-	
+	int idxx = 0;
+	int idxy = 0;
+
 	if(alg==0)
 		{
 fprintf(f, "	for(jj=0; jj<%d; jj+=4)\n", m-3);
@@ -909,101 +911,167 @@ fprintf(f, "	y[%d] = 0.0;\n", (m/4)*4+jj );
 fprintf(f, "	\n");
 		}
 	
-	if(alg==0 || alg==1)
+	if(mna>0)
 		{
 		j=0;
-		if(mna>0)
+		for(; j<mna; j++)
 			{
-			for( ; j<mna; j++)
-				{
-fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, 1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-				idxA  += 1;
-				idxy_n += 1;
-				idxx_t += 1;
-				}
-			idxA  += (sda-1)*bs;
+/*			kernel_dsymv_1_lib4(m-j, mna-j, pA+j+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);*/
+fprintf(f, "	kernel_dsymv_1_lib4(%d, %d, &pA[%d], %d, &x[%d], &y[%d], &x[%d], &y[%d], 1, %d);\n", m-j, mna-j, idxA+j+j*bs, sda, idxx+j, idxy+j, idxx+j, idxy+j, alg);
 			}
-		for(; j<m-3; j+=4)
-			{
-fprintf(f, "	kernel_dsymv_4_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, 1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-			idxA  += sda*bs;
-			idxy_n += bs;
-			idxx_t += bs;
-			}
-		for(; j<m-1; j+=2)
-			{
-fprintf(f, "	kernel_dsymv_2_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, 1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-			idxA  += 2;
-			idxy_n += 2;
-			idxx_t += 2;
-			}
-		for(; j<m; j++)
-			{
-fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, 1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-			idxA  += 1;
-			idxy_n += 1;
-			idxx_t += 1;
-			}
+		idxA += j + (sda-1)*bs + j*bs;
+		idxx += j;
+		idxy += j;
 		}
-	else // alg==-1
+	j=0;
+	for(; j<ma-3; j+=4)
 		{
-		j=0;
-		if(mna>0)
-			{
-			for( ; j<mna; j++)
-				{
-fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, -1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-				idxA  += 1;
-				idxy_n += 1;
-				idxx_t += 1;
-				}
-			idxA  += (sda-1)*bs;
-			}
-		for(; j<m-3; j+=4)
-			{
-fprintf(f, "	kernel_dsymv_4_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, -1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-			idxA  += sda*bs;
-			idxy_n += bs;
-			idxx_t += bs;
-			}
-		for(; j<m-1; j+=2)
-			{
-fprintf(f, "	kernel_dsymv_2_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, -1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-			idxA  += 2;
-			idxy_n += 2;
-			idxx_t += 2;
-			}
-		for(; j<m; j++)
-			{
-fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, -1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-			idxA  += 1;
-			idxy_n += 1;
-			idxx_t += 1;
-			}
+/*		kernel_dsymv_4_lib4(ma-j, 0, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);*/
+fprintf(f, "	kernel_dsymv_4_lib4(%d, %d, &pA[%d], %d, &x[%d], &y[%d], &x[%d], &y[%d], 1, %d);\n", ma-j, 0, idxA+j*sda+j*bs, sda, idxx+j, idxy+j, idxx+j, idxy+j, alg);
+		}
+	j0 = j;
+	for(; j<ma-1; j+=2)
+		{
+/*		kernel_dsymv_2_lib4(ma-j, ma-j, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);*/
+fprintf(f, "	kernel_dsymv_2_lib4(%d, %d, &pA[%d], %d, &x[%d], &y[%d], &x[%d], &y[%d], 1, %d);\n", ma-j, ma-j, idxA+(j-j0)+j0*sda+j*bs, sda, idxx+j, idxy+j, idxx+j, idxy+j, alg);
+		}
+	for(; j<ma; j++)
+		{
+/*		kernel_dsymv_1_lib4(ma-j, ma-j, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);*/
+fprintf(f, "	kernel_dsymv_1_lib4(%d, %d, &pA[%d], %d, &x[%d], &y[%d], &x[%d], &y[%d], 1, %d);\n", ma-j, ma-j, idxA+(j-j0)+j0*sda+j*bs, sda, idxx+j, idxy+j, idxx+j, idxy+j, alg);
 		}
 
 	}
 
 
 
+/*void dsymv_p_code_generator(FILE *f, int m, int offset, int alg)*/
+/*	{*/
+/*	*/
+/*	const int bs = 4;*/
+/*	*/
+/*	const int sda = PNZ;*/
+
+/*	int mna = (bs-offset%bs)%bs;*/
+/*	if(m<mna)*/
+/*		mna = m;*/
+/*	*/
+/*	int j, jj;*/
+/*	*/
+/*	int idxA = 0;*/
+/*	int idxx_n = 0;*/
+/*	int idxy_n = 0;*/
+/*	int idxx_t = 0;*/
+/*	int idxy_t = 0;*/
+/*	*/
+/*	if(alg==0)*/
+/*		{*/
+/*fprintf(f, "	for(jj=0; jj<%d; jj+=4)\n", m-3);*/
+/*fprintf(f, "		{\n");*/
+/*fprintf(f, "		y[jj+%d] = 0.0;\n", 0);*/
+/*fprintf(f, "		y[jj+%d] = 0.0;\n", 1);*/
+/*fprintf(f, "		y[jj+%d] = 0.0;\n", 2);*/
+/*fprintf(f, "		y[jj+%d] = 0.0;\n", 3);*/
+/*fprintf(f, "		}\n");*/
+/*		for(jj=0; jj<m%4; jj++)*/
+/*			{*/
+/*fprintf(f, "	y[%d] = 0.0;\n", (m/4)*4+jj );*/
+/*			}*/
+/*fprintf(f, "	\n");*/
+/*		}*/
+/*	*/
+/*	if(alg==0 || alg==1)*/
+/*		{*/
+/*		j=0;*/
+/*		if(mna>0)*/
+/*			{*/
+/*			for( ; j<mna; j++)*/
+/*				{*/
+/*fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, 1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*				idxA  += 1;*/
+/*				idxy_n += 1;*/
+/*				idxx_t += 1;*/
+/*				}*/
+/*			idxA  += (sda-1)*bs;*/
+/*			}*/
+/*		for(; j<m-3; j+=4)*/
+/*			{*/
+/*fprintf(f, "	kernel_dsymv_4_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, 1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*			idxA  += sda*bs;*/
+/*			idxy_n += bs;*/
+/*			idxx_t += bs;*/
+/*			}*/
+/*		for(; j<m-1; j+=2)*/
+/*			{*/
+/*fprintf(f, "	kernel_dsymv_2_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, 1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*			idxA  += 2;*/
+/*			idxy_n += 2;*/
+/*			idxx_t += 2;*/
+/*			}*/
+/*		for(; j<m; j++)*/
+/*			{*/
+/*fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, 1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*			idxA  += 1;*/
+/*			idxy_n += 1;*/
+/*			idxx_t += 1;*/
+/*			}*/
+/*		}*/
+/*	else // alg==-1*/
+/*		{*/
+/*		j=0;*/
+/*		if(mna>0)*/
+/*			{*/
+/*			for( ; j<mna; j++)*/
+/*				{*/
+/*fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, -1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*				idxA  += 1;*/
+/*				idxy_n += 1;*/
+/*				idxx_t += 1;*/
+/*				}*/
+/*			idxA  += (sda-1)*bs;*/
+/*			}*/
+/*		for(; j<m-3; j+=4)*/
+/*			{*/
+/*fprintf(f, "	kernel_dsymv_4_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, -1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*			idxA  += sda*bs;*/
+/*			idxy_n += bs;*/
+/*			idxx_t += bs;*/
+/*			}*/
+/*		for(; j<m-1; j+=2)*/
+/*			{*/
+/*fprintf(f, "	kernel_dsymv_2_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, -1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*			idxA  += 2;*/
+/*			idxy_n += 2;*/
+/*			idxx_t += 2;*/
+/*			}*/
+/*		for(; j<m; j++)*/
+/*			{*/
+/*fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x[%d], &y[%d], &x[%d], &y[%d], 1, -1);\n", j, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*			idxA  += 1;*/
+/*			idxy_n += 1;*/
+/*			idxx_t += 1;*/
+/*			}*/
+/*		}*/
+
+/*	}*/
+
+
+
+// it moves vertically across block
 void dmvmv_p_code_generator(FILE *f, int m, int n, int offset, int alg)
 	{
 	
 	const int bs = 4;
-	
+
 	const int sda = PNZ;
 
 	int mna = (bs-offset%bs)%bs;
-	if(m<mna)
-		mna = m;
-	
+
 	int j, jj;
 	
 	int idxA = 0;
-	int idxx_n = 0;
-	int idxy_n = 0;
-	int idxx_t = 0;
-	int idxy_t = 0;
+	int idxx = 0;
+	int idxy = 0;
 
 	if(alg==0)
 		{
@@ -1033,80 +1101,148 @@ fprintf(f, "	y_t[%d] = 0.0;\n", (n/4)*4+jj );
 fprintf(f, "	\n");
 		}
 	
-	if(alg==0 || alg==1)
+	j=0;
+	for(; j<n-3; j+=4)
 		{
-		j=0;
-		if(mna>0)
-			{
-			for( ; j<mna; j++)
-				{
-fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, 1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-				idxA  += 1;
-				idxy_n += 1;
-				idxx_t += 1;
-				}
-			idxA  += (sda-1)*bs;
-			}
-		for(; j<m-3; j+=4)
-			{
-fprintf(f, "	kernel_dsymv_4_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, 1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-			idxA  += sda*bs;
-			idxy_n += bs;
-			idxx_t += bs;
-			}
-		for(; j<m-1; j+=2)
-			{
-fprintf(f, "	kernel_dsymv_2_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, 1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-			idxA  += 2;
-			idxy_n += 2;
-			idxx_t += 2;
-			}
-		for(; j<m; j++)
-			{
-fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, 1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-			idxA  += 1;
-			idxy_n += 1;
-			idxx_t += 1;
-			}
+/*		kernel_dsymv_4_lib4(m, mna, pA+j*bs, sda, x_n+j, y_n, x_t, y_t+j, 0, alg);*/
+fprintf(f, "	kernel_dsymv_4_lib4(%d, %d, &pA[%d], %d, &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, %d);\n", m, mna, idxA+j*bs, sda, idxx+j, idxy, idxx, idxy+j, alg);
 		}
-	else // alg==-1
+	for(; j<n-1; j+=2)
 		{
-		j=0;
-		if(mna>0)
-			{
-			for( ; j<mna; j++)
-				{
-fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, -1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-				idxA  += 1;
-				idxy_n += 1;
-				idxx_t += 1;
-				}
-			idxA  += (sda-1)*bs;
-			}
-		for(; j<m-3; j+=4)
-			{
-fprintf(f, "	kernel_dsymv_4_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, -1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-			idxA  += sda*bs;
-			idxy_n += bs;
-			idxx_t += bs;
-			}
-		for(; j<m-1; j+=2)
-			{
-fprintf(f, "	kernel_dsymv_2_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, -1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-			idxA  += 2;
-			idxy_n += 2;
-			idxx_t += 2;
-			}
-		for(; j<m; j++)
-			{
-fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, -1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);
-			idxA  += 1;
-			idxy_n += 1;
-			idxx_t += 1;
-			}
+/*		kernel_dsymv_2_lib4(m, mna, pA+j*bs, sda, x_n+j, y_n, x_t, y_t+j, 0, alg);*/
+fprintf(f, "	kernel_dsymv_2_lib4(%d, %d, &pA[%d], %d, &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, %d);\n", m, mna, idxA+j*bs, sda, idxx+j, idxy, idxx, idxy+j, alg);
+		}
+	for(; j<n; j++)
+		{
+/*		kernel_dsymv_1_lib4(m, mna, pA+j*bs, sda, x_n+j, y_n, x_t, y_t+j, 0, alg);*/
+fprintf(f, "	kernel_dsymv_1_lib4(%d, %d, &pA[%d], %d, &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, %d);\n", m, mna, idxA+j*bs, sda, idxx+j, idxy, idxx, idxy+j, alg);
 		}
 
 	}
+
+
+
+/*void dmvmv_p_code_generator(FILE *f, int m, int n, int offset, int alg)*/
+/*	{*/
+/*	*/
+/*	const int bs = 4;*/
+/*	*/
+/*	const int sda = PNZ;*/
+
+/*	int mna = (bs-offset%bs)%bs;*/
+/*	if(m<mna)*/
+/*		mna = m;*/
+/*	*/
+/*	int j, jj;*/
+/*	*/
+/*	int idxA = 0;*/
+/*	int idxx_n = 0;*/
+/*	int idxy_n = 0;*/
+/*	int idxx_t = 0;*/
+/*	int idxy_t = 0;*/
+
+/*	if(alg==0)*/
+/*		{*/
+/*fprintf(f, "	for(jj=0; jj<%d; jj+=4)\n", m-3);*/
+/*fprintf(f, "		{\n");*/
+/*fprintf(f, "		y_n[jj+%d] = 0.0;\n", 0);*/
+/*fprintf(f, "		y_n[jj+%d] = 0.0;\n", 1);*/
+/*fprintf(f, "		y_n[jj+%d] = 0.0;\n", 2);*/
+/*fprintf(f, "		y_n[jj+%d] = 0.0;\n", 3);*/
+/*fprintf(f, "		}\n");*/
+/*		for(jj=0; jj<m%4; jj++)*/
+/*			{*/
+/*fprintf(f, "	y_n[%d] = 0.0;\n", (m/4)*4+jj );*/
+/*			}*/
+/*fprintf(f, "	\n");*/
+/*fprintf(f, "	for(jj=0; jj<%d; jj+=4)\n", n-3);*/
+/*fprintf(f, "		{\n");*/
+/*fprintf(f, "		y_t[jj+%d] = 0.0;\n", 0);*/
+/*fprintf(f, "		y_t[jj+%d] = 0.0;\n", 1);*/
+/*fprintf(f, "		y_t[jj+%d] = 0.0;\n", 2);*/
+/*fprintf(f, "		y_t[jj+%d] = 0.0;\n", 3);*/
+/*fprintf(f, "		}\n");*/
+/*		for(jj=0; jj<n%4; jj++)*/
+/*			{*/
+/*fprintf(f, "	y_t[%d] = 0.0;\n", (n/4)*4+jj );*/
+/*			}*/
+/*fprintf(f, "	\n");*/
+/*		}*/
+/*	*/
+/*	if(alg==0 || alg==1)*/
+/*		{*/
+/*		j=0;*/
+/*		if(mna>0)*/
+/*			{*/
+/*			for( ; j<mna; j++)*/
+/*				{*/
+/*fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, 1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*				idxA  += 1;*/
+/*				idxy_n += 1;*/
+/*				idxx_t += 1;*/
+/*				}*/
+/*			idxA  += (sda-1)*bs;*/
+/*			}*/
+/*		for(; j<m-3; j+=4)*/
+/*			{*/
+/*fprintf(f, "	kernel_dsymv_4_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, 1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*			idxA  += sda*bs;*/
+/*			idxy_n += bs;*/
+/*			idxx_t += bs;*/
+/*			}*/
+/*		for(; j<m-1; j+=2)*/
+/*			{*/
+/*fprintf(f, "	kernel_dsymv_2_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, 1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*			idxA  += 2;*/
+/*			idxy_n += 2;*/
+/*			idxx_t += 2;*/
+/*			}*/
+/*		for(; j<m; j++)*/
+/*			{*/
+/*fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, 1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*			idxA  += 1;*/
+/*			idxy_n += 1;*/
+/*			idxx_t += 1;*/
+/*			}*/
+/*		}*/
+/*	else // alg==-1*/
+/*		{*/
+/*		j=0;*/
+/*		if(mna>0)*/
+/*			{*/
+/*			for( ; j<mna; j++)*/
+/*				{*/
+/*fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, -1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*				idxA  += 1;*/
+/*				idxy_n += 1;*/
+/*				idxx_t += 1;*/
+/*				}*/
+/*			idxA  += (sda-1)*bs;*/
+/*			}*/
+/*		for(; j<m-3; j+=4)*/
+/*			{*/
+/*fprintf(f, "	kernel_dsymv_4_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, -1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*			idxA  += sda*bs;*/
+/*			idxy_n += bs;*/
+/*			idxx_t += bs;*/
+/*			}*/
+/*		for(; j<m-1; j+=2)*/
+/*			{*/
+/*fprintf(f, "	kernel_dsymv_2_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, -1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*			idxA  += 2;*/
+/*			idxy_n += 2;*/
+/*			idxx_t += 2;*/
+/*			}*/
+/*		for(; j<m; j++)*/
+/*			{*/
+/*fprintf(f, "	kernel_dsymv_1_lib4(%d, &pA[%d], &x_n[%d], &y_n[%d], &x_t[%d], &y_t[%d], 0, -1);\n", n, idxA, idxx_n, idxy_n, idxx_t, idxy_t);*/
+/*			idxA  += 1;*/
+/*			idxy_n += 1;*/
+/*			idxx_t += 1;*/
+/*			}*/
+/*		}*/
+
+/*	}*/
 
 
 
@@ -1131,10 +1267,10 @@ void dtrsv_p_n_code_generator(FILE *f, int n)
 fprintf(f, "	kernel_dgemv_n_8_lib4(%d, &pA[%d], &pA[%d], &x[0], &x[%d], -1);\n", j, idxA, idxA+bs*sda, idxx);
 
 		// solve
-fprintf(f, "	x[%d] = (x[%d]) / pA[%d];\n", idxx, idxx, idxAd);
-fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d]) / pA[%d];\n", idxx+1, idxx+1, idxx, idxAd+1, idxAd+1+bs*1);
-fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) / pA[%d];\n", idxx+2, idxx+2, idxx, idxAd+2, idxx+1, idxAd+2+bs*1, idxAd+2+bs*2);
-fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) / pA[%d];\n", idxx+3, idxx+3, idxx, idxAd+3, idxx+1, idxAd+3+bs*1, idxx+2, idxAd+3+bs*2, idxAd+3+bs*3);
+fprintf(f, "	x[%d] = (x[%d]) * pA[%d];\n", idxx, idxx, idxAd);
+fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d]) * pA[%d];\n", idxx+1, idxx+1, idxx, idxAd+1, idxAd+1+bs*1);
+fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) * pA[%d];\n", idxx+2, idxx+2, idxx, idxAd+2, idxx+1, idxAd+2+bs*1, idxAd+2+bs*2);
+fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) * pA[%d];\n", idxx+3, idxx+3, idxx, idxAd+3, idxx+1, idxAd+3+bs*1, idxx+2, idxAd+3+bs*2, idxAd+3+bs*3);
 
 		// correct
 fprintf(f, "	kernel_dgemv_n_4_lib4(%d, &pA[%d], &x[%d], &x[%d], -1);\n", 4, idxA+bs*sda, idxx, idxx+4);
@@ -1144,10 +1280,10 @@ fprintf(f, "	kernel_dgemv_n_4_lib4(%d, &pA[%d], &x[%d], &x[%d], -1);\n", 4, idxA
 		idxx  += bs;
 
 		// solve
-fprintf(f, "	x[%d] = (x[%d]) / pA[%d];\n", idxx, idxx, idxAd);
-fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d]) / pA[%d];\n", idxx+1, idxx+1, idxx, idxAd+1, idxAd+1+bs*1);
-fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) / pA[%d];\n", idxx+2, idxx+2, idxx, idxAd+2, idxx+1, idxAd+2+bs*1, idxAd+2+bs*2);
-fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) / pA[%d];\n", idxx+3, idxx+3, idxx, idxAd+3, idxx+1, idxAd+3+bs*1, idxx+2, idxAd+3+bs*2, idxAd+3+bs*3);
+fprintf(f, "	x[%d] = (x[%d]) * pA[%d];\n", idxx, idxx, idxAd);
+fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d]) * pA[%d];\n", idxx+1, idxx+1, idxx, idxAd+1, idxAd+1+bs*1);
+fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) * pA[%d];\n", idxx+2, idxx+2, idxx, idxAd+2, idxx+1, idxAd+2+bs*1, idxAd+2+bs*2);
+fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) * pA[%d];\n", idxx+3, idxx+3, idxx, idxAd+3, idxx+1, idxAd+3+bs*1, idxx+2, idxAd+3+bs*2, idxAd+3+bs*3);
 
 		idxA  += bs*sda;
 		idxAd += bs*(sda+bs);
@@ -1162,10 +1298,10 @@ fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) 
 fprintf(f, "	kernel_dgemv_n_4_lib4(%d, &pA[%d], &x[0], &x[%d], -1);\n", j, idxA, idxx);
 
 		// solve
-fprintf(f, "	x[%d] = (x[%d]) / pA[%d];\n", idxx, idxx, idxAd);
-fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d]) / pA[%d];\n", idxx+1, idxx+1, idxx, idxAd+1, idxAd+1+bs*1);
-fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) / pA[%d];\n", idxx+2, idxx+2, idxx, idxAd+2, idxx+1, idxAd+2+bs*1, idxAd+2+bs*2);
-fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) / pA[%d];\n", idxx+3, idxx+3, idxx, idxAd+3, idxx+1, idxAd+3+bs*1, idxx+2, idxAd+3+bs*2, idxAd+3+bs*3);
+fprintf(f, "	x[%d] = (x[%d]) * pA[%d];\n", idxx, idxx, idxAd);
+fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d]) * pA[%d];\n", idxx+1, idxx+1, idxx, idxAd+1, idxAd+1+bs*1);
+fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) * pA[%d];\n", idxx+2, idxx+2, idxx, idxAd+2, idxx+1, idxAd+2+bs*1, idxAd+2+bs*2);
+fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) * pA[%d];\n", idxx+3, idxx+3, idxx, idxAd+3, idxx+1, idxAd+3+bs*1, idxx+2, idxAd+3+bs*2, idxAd+3+bs*3);
 
 		idxA  += bs*sda;
 		idxAd += bs*(sda+bs);
@@ -1178,8 +1314,8 @@ fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d] - x[%d] * pA[%d] - x[%d] * pA[%d]) 
 fprintf(f, "	kernel_dgemv_n_2_lib4(%d, &pA[%d], &x[0], &x[%d], -1);\n", j, idxA, idxx);
 
 		// solve
-fprintf(f, "	x[%d] = (x[%d]) / pA[%d];\n", idxx, idxx, idxAd);
-fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d]) / pA[%d];\n", idxx+1, idxx+1, idxx, idxAd+1, idxAd+1+bs*1);
+fprintf(f, "	x[%d] = (x[%d]) * pA[%d];\n", idxx, idxx, idxAd);
+fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d]) * pA[%d];\n", idxx+1, idxx+1, idxx, idxAd+1, idxAd+1+bs*1);
 		
 		idxA  += 2;
 		idxAd += 2*bs+2;
@@ -1191,7 +1327,7 @@ fprintf(f, "	x[%d] = (x[%d] - x[%d] * pA[%d]) / pA[%d];\n", idxx+1, idxx+1, idxx
 fprintf(f, "	kernel_dgemv_n_1_lib4(%d, &pA[%d], &x[0], &x[%d], -1);\n", j, idxA, idxx);
 
 		// solve
-fprintf(f, "	x[%d] = (x[%d]) / pA[%d];\n", idxx, idxx, idxAd);
+fprintf(f, "	x[%d] = (x[%d]) * pA[%d];\n", idxx, idxx, idxAd);
 		
 		idxA  += 1;
 		idxAd += bs+1;
@@ -1227,14 +1363,14 @@ void dtrsv_p_t_code_generator(FILE *f, int n)
 		{
 		i = rn-1-j;
 fprintf(f, "	kernel_dgemv_t_1_lib4(%d, %d, &pA[%d], %d, &x[%d], &x[%d], -1);\n", j, j, i+1+bs*(i+0)+idxA, sda, i+1+qn*bs, i+qn*bs);
-fprintf(f, "	x[%d] = (x[%d]) / pA[%d];\n", i+idxx, i+idxx, i+0+bs*(i+0)+idxA );
+fprintf(f, "	x[%d] = (x[%d]) * pA[%d];\n", i+idxx, i+idxx, i+0+bs*(i+0)+idxA );
 		}
 	for(; j<rn; j+=2)
 		{
 		i = rn-2-j;
 fprintf(f, "	kernel_dgemv_t_2_lib4(%d, %d, &pA[%d], %d, &x[%d], &x[%d], -1);\n", j, j, i+2+bs*(i+0)+idxA, sda, i+2+idxx, i+idxx);
-fprintf(f, "	x[%d] = (x[%d]) / pA[%d];\n", i+1+idxx, i+1+idxx, (i+1)+bs*(i+1)+idxA );
-fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d]) / pA[%d];\n", i+idxx, i+idxx, (i+1)+bs*(i+0)+idxA, i+1+qn*bs, (i+0)+bs*(i+0)+idxA );
+fprintf(f, "	x[%d] = (x[%d]) * pA[%d];\n", i+1+idxx, i+1+idxx, (i+1)+bs*(i+1)+idxA );
+fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d]) * pA[%d];\n", i+idxx, i+idxx, (i+1)+bs*(i+0)+idxA, i+1+qn*bs, (i+0)+bs*(i+0)+idxA );
 		}
 
 	// blocks of 8
@@ -1256,10 +1392,10 @@ fprintf(f, "	kernel_dgemv_t_8_lib4(%d, 0, &pA[%d], %d, &x[%d], &x[%d], -1);\n", 
 	idxx = (qn-j-1)*bs;
 
 		// solve
-fprintf(f, "	x[%d] = (x[%d]) / pA[%d];\n", idxx+3, idxx+3, 3+bs*3+idxA);
-fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d]) / pA[%d];\n", idxx+2, idxx+2, 3+bs*2+idxA, idxx+3, 2+bs*2+idxA);
-fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) / pA[%d];\n", idxx+1, idxx+1, 3+bs*1+idxA, idxx+3, 2+bs*1+idxA, idxx+2, 1+bs*1+idxA);
-fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) / pA[%d];\n", idxx, idxx, 3+idxA, idxx+3, 2+idxA, idxx+2, 1+idxA, idxx+1, idxA);
+fprintf(f, "	x[%d] = (x[%d]) * pA[%d];\n", idxx+3, idxx+3, 3+bs*3+idxA);
+fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d]) * pA[%d];\n", idxx+2, idxx+2, 3+bs*2+idxA, idxx+3, 2+bs*2+idxA);
+fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) * pA[%d];\n", idxx+1, idxx+1, 3+bs*1+idxA, idxx+3, 2+bs*1+idxA, idxx+2, 1+bs*1+idxA);
+fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) * pA[%d];\n", idxx, idxx, 3+idxA, idxx+3, 2+idxA, idxx+2, 1+idxA, idxx+1, idxA);
 
 		// first 4 rows
 	idxA = (qn-j-2)*bs*(sda+bs);
@@ -1269,10 +1405,10 @@ fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) / pA[%
 fprintf(f, "	kernel_dgemv_t_4_lib4(%d, 0, &pA[%d], %d, &x[%d], &x[%d], -1);\n", 4, bs*sda+idxA, sda, idxx+4, idxx );
 
 		// solve
-fprintf(f, "	x[%d] = (x[%d]) / pA[%d];\n", idxx+3, idxx+3, 3+bs*3+idxA);
-fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d]) / pA[%d];\n", idxx+2, idxx+2, 3+bs*2+idxA, idxx+3, 2+bs*2+idxA);
-fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) / pA[%d];\n", idxx+1, idxx+1, 3+bs*1+idxA, idxx+3, 2+bs*1+idxA, idxx+2, 1+bs*1+idxA);
-fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) / pA[%d];\n", idxx, idxx, 3+idxA, idxx+3, 2+idxA, idxx+2, 1+idxA, idxx+1, idxA);
+fprintf(f, "	x[%d] = (x[%d]) * pA[%d];\n", idxx+3, idxx+3, 3+bs*3+idxA);
+fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d]) * pA[%d];\n", idxx+2, idxx+2, 3+bs*2+idxA, idxx+3, 2+bs*2+idxA);
+fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) * pA[%d];\n", idxx+1, idxx+1, 3+bs*1+idxA, idxx+3, 2+bs*1+idxA, idxx+2, 1+bs*1+idxA);
+fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) * pA[%d];\n", idxx, idxx, 3+idxA, idxx+3, 2+idxA, idxx+2, 1+idxA, idxx+1, idxA);
 
 		}
 	
@@ -1288,10 +1424,10 @@ fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) / pA[%
 fprintf(f, "	kernel_dgemv_t_4_lib4(%d, 0, &pA[%d], %d, &x[%d], &x[%d], -1);\n", rn+j*bs, bs*sda+idxA, sda, idxx+4, idxx );
 
 		// solve
-fprintf(f, "	x[%d] = (x[%d]) / pA[%d];\n", idxx+3, idxx+3, 3+bs*3+idxA);
-fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d]) / pA[%d];\n", idxx+2, idxx+2, 3+bs*2+idxA, idxx+3, 2+bs*2+idxA);
-fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) / pA[%d];\n", idxx+1, idxx+1, 3+bs*1+idxA, idxx+3, 2+bs*1+idxA, idxx+2, 1+bs*1+idxA);
-fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) / pA[%d];\n", idxx, idxx, 3+idxA, idxx+3, 2+idxA, idxx+2, 1+idxA, idxx+1, idxA);
+fprintf(f, "	x[%d] = (x[%d]) * pA[%d];\n", idxx+3, idxx+3, 3+bs*3+idxA);
+fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d]) * pA[%d];\n", idxx+2, idxx+2, 3+bs*2+idxA, idxx+3, 2+bs*2+idxA);
+fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) * pA[%d];\n", idxx+1, idxx+1, 3+bs*1+idxA, idxx+3, 2+bs*1+idxA, idxx+2, 1+bs*1+idxA);
+fprintf(f, "	x[%d] = (x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d] - pA[%d]*x[%d]) * pA[%d];\n", idxx, idxx, 3+idxA, idxx+3, 2+idxA, idxx+2, 1+idxA, idxx+1, idxA);
 
 		}
 

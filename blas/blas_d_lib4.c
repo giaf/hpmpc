@@ -342,7 +342,7 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 		if(*info!=0) return;
 		kinv = 0;
 		}
-	if(j<n)
+	if(j<n) // clean up
 		{
 		if(n-j==1)
 			{
@@ -355,10 +355,8 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 			{
 			i = j;
 			kernel_dgemm_pp_nt_4x2_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
-/*printf("\nciao %d\n", kinv);*/
 			corner_dpotrf_dtrsv_dcopy_2x2_lib4(kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
 			if(*info!=0) return;
-/*			kinv = 0;*/
 			}
 		else if(n-j==3)
 			{
@@ -366,7 +364,6 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 			kernel_dgemm_pp_nt_4x3_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			corner_dpotrf_dtrsv_dcopy_3x3_lib4(kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
 			if(*info!=0) return;
-/*			kinv = 0;*/
 			}
 		}
 
