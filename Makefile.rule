@@ -42,8 +42,8 @@ TARGET = X64_AVX
 #TARGET = C99_2X2
 
 # C Compiler
-CC = gcc-4.6
-#CC = gcc
+#CC = gcc-4.6
+CC = gcc
 
 # Common ptimization/debugging flags
 OPT = -O2
