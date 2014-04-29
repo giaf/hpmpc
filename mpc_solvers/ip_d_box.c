@@ -43,7 +43,10 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 
 	int nl = 0; // set to zero for the moment
 	
-	int idx_alpha_max = -1;
+/*	int idx_alpha_max = -1;*/
+	int idx_alpha_max_ll = -1;
+	int idx_alpha_max_jj = -1;
+	int idx_alpha_max_case = -1;
 	int itemp;
 	double dlam_temp, dt_temp;
 	
@@ -97,6 +100,8 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 
 	pLt = ptr;
 	ptr += dsda*dsda;
+	for(jj=0; jj<dsda*dsda; jj++)
+		pLt[jj] = 0.0;
 		
 
 
@@ -295,14 +300,49 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 /*exit(2);*/
 
 
-
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1;
-		temp0 = 2;
-		temp1 = 2;
-/*		if(idx_alpha_max>=0)*/
 /*		if(0)*/
+/*		if(idx_alpha_max_ll>=0)*/
 /*			{*/
+/*			if(idx_alpha_max_case==0)*/
+/*				{*/
+/*				dt_temp =   dux[idx_alpha_max_jj][idx_alpha_max_ll/2] - db[idx_alpha_max_jj][idx_alpha_max_ll+0];*/
+/*				dlam_temp = dlam[idx_alpha_max_jj][idx_alpha_max_ll+0] - lamt[idx_alpha_max_jj][idx_alpha_max_ll+0] * dt_temp;*/
+/*				if( dlam_temp<0 && -alpha*dlam_temp>lam[idx_alpha_max_jj][idx_alpha_max_ll+0] )*/
+/*					{*/
+/*					alpha = - lam[idx_alpha_max_jj][idx_alpha_max_ll+0] / dlam_temp;*/
+/*					}*/
+/*				}*/
+/*			else if(idx_alpha_max_case==1)*/
+/*				{*/
+/*				dt_temp = - dux[idx_alpha_max_jj][idx_alpha_max_ll/2] - db[idx_alpha_max_jj][idx_alpha_max_ll+1];*/
+/*				dlam_temp = dlam[idx_alpha_max_jj][idx_alpha_max_ll+1] - lamt[idx_alpha_max_jj][idx_alpha_max_ll+1] * dt_temp;*/
+/*				if( dlam_temp<0 && -alpha*dlam_temp>lam[idx_alpha_max_jj][idx_alpha_max_ll+1] )*/
+/*					{*/
+/*					alpha = - lam[idx_alpha_max_jj][idx_alpha_max_ll+1] / dlam_temp;*/
+/*					}*/
+/*				}*/
+/*			else if(idx_alpha_max_case==2)*/
+/*				{*/
+/*				dt_temp =   dux[idx_alpha_max_jj][idx_alpha_max_ll/2] - db[idx_alpha_max_jj][idx_alpha_max_ll+0];*/
+/*				dlam_temp = dlam[idx_alpha_max_jj][idx_alpha_max_ll+0] - lamt[idx_alpha_max_jj][idx_alpha_max_ll+0] * dt_temp;*/
+/*				dt_temp -= t[idx_alpha_max_jj][idx_alpha_max_ll+0];*/
+/*				if( dt_temp<0 && -alpha*dt_temp>t[idx_alpha_max_jj][idx_alpha_max_ll+0] )*/
+/*					{*/
+/*					alpha = - t[idx_alpha_max_jj][idx_alpha_max_ll+0] / dt_temp;*/
+/*					}*/
+/*				}*/
+/*			else if(idx_alpha_max_case==3)*/
+/*				{*/
+/*				dt_temp = - dux[idx_alpha_max_jj][idx_alpha_max_ll/2] - db[idx_alpha_max_jj][idx_alpha_max_ll+1];*/
+/*				dlam_temp = dlam[idx_alpha_max_jj][idx_alpha_max_ll+1] - lamt[idx_alpha_max_jj][idx_alpha_max_ll+1] * dt_temp;*/
+/*				dt_temp -= t[idx_alpha_max_jj][idx_alpha_max_ll+1];*/
+/*				if( dt_temp<0 && -alpha*dt_temp>t[idx_alpha_max_jj][idx_alpha_max_ll+1] )*/
+/*					{*/
+/*					alpha = - t[idx_alpha_max_jj][idx_alpha_max_ll+1] / dt_temp;*/
+/*					}*/
+/*				}*/
 /*			}*/
 		for(jj=0; jj<N; jj++)
 			{
@@ -314,29 +354,33 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 				dlam[jj][ll+1] -= lamt[jj][ll+1] * dt[jj][ll+1];
 				if( dlam[jj][ll+0]<0 && -alpha*dlam[jj][ll+0]>lam[jj][ll+0] )
 					{
-					temp0 = - lam[jj][ll+0] / dlam[jj][ll+0];
-					alpha = temp0;
-					idx_alpha_max = jj*2*nb + 2*(ll+0) + 0;
+					alpha = - lam[jj][ll+0] / dlam[jj][ll+0];
+/*					idx_alpha_max_ll = ll;*/
+/*					idx_alpha_max_jj = jj;*/
+/*					idx_alpha_max_case = 0;*/
 					}
 				if( dlam[jj][ll+1]<0 && -alpha*dlam[jj][ll+1]>lam[jj][ll+1] )
 					{
-					temp1 = - lam[jj][ll+1] / dlam[jj][ll+1];
-					alpha = temp1;
-					idx_alpha_max = jj*2*nb + 2*(ll+1) + 0;
+					alpha = - lam[jj][ll+1] / dlam[jj][ll+1];
+/*					idx_alpha_max_ll = ll;*/
+/*					idx_alpha_max_jj = jj;*/
+/*					idx_alpha_max_case = 1;*/
 					}
 				dt[jj][ll+0] -= t[jj][ll+0];
 				dt[jj][ll+1] -= t[jj][ll+1];
 				if( dt[jj][ll+0]<0 && -alpha*dt[jj][ll+0]>t[jj][ll+0] )
 					{
-					temp0 = - t[jj][ll+0] / dt[jj][ll+0];
-					alpha = temp0;
-					idx_alpha_max = jj*2*nb + 2*(ll+0) + 1;
+					alpha = - t[jj][ll+0] / dt[jj][ll+0];
+/*					idx_alpha_max_ll = ll;*/
+/*					idx_alpha_max_jj = jj;*/
+/*					idx_alpha_max_case = 2;*/
 					}
 				if( dt[jj][ll+1]<0 && -alpha*dt[jj][ll+1]>t[jj][ll+1] )
 					{
-					temp1 = - t[jj][ll+1] / dt[jj][ll+1];
-					alpha = temp1;
-					idx_alpha_max = jj*2*nb + 2*(ll+1) + 1;
+					alpha = - t[jj][ll+1] / dt[jj][ll+1];
+/*					idx_alpha_max_ll = ll;*/
+/*					idx_alpha_max_jj = jj;*/
+/*					idx_alpha_max_case = 3;*/
 					}
 				}
 			}
@@ -348,29 +392,33 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 			dlam[N][ll+1] -= lamt[N][ll+1] * dt[N][ll+1];
 			if( dlam[N][ll+0]<0 && -alpha*dlam[N][ll+0]>lam[N][ll+0] )
 				{
-				temp0 = - lam[N][ll+0] / dlam[N][ll+0];
-				alpha = temp0;
-				idx_alpha_max = N*2*nb + ll*2 + 0;
+				alpha = - lam[N][ll+0] / dlam[N][ll+0];
+/*				idx_alpha_max_ll = ll;*/
+/*				idx_alpha_max_jj = N;*/
+/*				idx_alpha_max_case = 0;*/
 				}
 			if( dlam[N][ll+1]<0 && -alpha*dlam[N][ll+1]>lam[N][ll+1] )
 				{
-				temp1 = - lam[N][ll+1] / dlam[N][ll+1];
-				alpha = temp1;
-				idx_alpha_max = N*2*nb + ll*2 + 1;
+				alpha = - lam[N][ll+1] / dlam[N][ll+1];
+/*				idx_alpha_max_ll = ll;*/
+/*				idx_alpha_max_jj = N;*/
+/*				idx_alpha_max_case = 1;*/
 				}
 			dt[N][ll+0] -= t[N][ll+0];
 			dt[N][ll+1] -= t[N][ll+1];
 			if( dt[N][ll+0]<0 && -alpha*dt[N][ll+0]>t[N][ll+0] )
 				{
-				temp0 = - t[N][ll+0] / dt[N][ll+0];
-				alpha = temp0;
-				idx_alpha_max = N*2*nb + ll*2 + 2;
+				alpha = - t[N][ll+0] / dt[N][ll+0];
+/*				idx_alpha_max_ll = ll;*/
+/*				idx_alpha_max_jj = N;*/
+/*				idx_alpha_max_case = 2;*/
 				}
 			if( dt[N][ll+1]<0 && -alpha*dt[N][ll+1]>t[N][ll+1] )
 				{
-				temp1 = - t[N][ll+1] / dt[N][ll+1];
-				alpha = temp1;
-				idx_alpha_max = N*2*nb + ll*2 + 3;
+				alpha = - t[N][ll+1] / dt[N][ll+1];
+/*				idx_alpha_max_ll = ll;*/
+/*				idx_alpha_max_jj = N;*/
+/*				idx_alpha_max_case = 3;*/
 				}
 			}
 
