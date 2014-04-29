@@ -33,7 +33,7 @@
 #define NB 2*NU+2*NX
 
 // number of repetition for timing
-#define NREP 1000
+#define NREP 100
 
 // print results
 #define PRINTRES 1

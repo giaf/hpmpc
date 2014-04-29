@@ -32,8 +32,8 @@ LIBS = -lm #-lopenblas
 #OBJS_TEST = test_blas_d.o
 #OBJS_TEST = test_blas_s.o
 #OBJS_TEST = tools.o test_dricposv.o
-#OBJS_TEST = tools.o test_sricposv.o
-OBJS_TEST = tools.o test_ip_box_lib.o
+OBJS_TEST = tools.o test_sricposv.o
+#OBJS_TEST = tools.o test_ip_box_lib.o
 
 ifeq ($(TARGET), X64_AVX)
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_X64_AVX $(DEBUG)
@@ -42,7 +42,7 @@ ifeq ($(TARGET), X64_SSE3)
 CFLAGS = $(OPT) -std=c99 -msse3 -DTARGET_X64_SSE3 $(DEBUG)
 endif
 ifeq ($(TARGET), NEON)
-CFLAGS = $(OPT) -std=c99 -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_CORTEXA9 $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
 endif
 ifeq ($(TARGET), POWERPC_G2)
 CFLAGS = $(OPT) -std=c99 -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
