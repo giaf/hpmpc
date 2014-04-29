@@ -1,4 +1,4 @@
-###################################################################################################
+####################################################################################################
 #                                                                                                 #
 # This file is part of HPMPC.                                                                     #
 #                                                                                                 #
@@ -33,8 +33,8 @@
 # POWERPC_G2 : machine supporting 32-bit PowerPC Architecture, code optimized for G2 core (a variant of PowerPC 603e processor).
 # C99_4X4    : c99 reference code, performing better on a machine with at least 32 scalar registers.
 # C99_2X2    : c99 reference code, performing better on a machine with at least 8 scalar registers.
-TARGET = X64_AVX
-#TARGET = X64_SSE3
+#TARGET = X64_AVX
+TARGET = X64_SSE3
 #TARGET = X86_ATOM
 #TARGET = NEON
 #TARGET = POWERPC_G2
