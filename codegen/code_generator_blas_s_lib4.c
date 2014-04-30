@@ -563,6 +563,7 @@ void strmv_p_n_code_generator(FILE *f, int m, int offset, int alg)
 
 	int j;
 	
+	j = 0;
 	if(alg==0 || alg==1)
 		{
 		if(mna>m) // it is always mna < bs , thus m<bs !!!!!
@@ -574,7 +575,7 @@ fprintf(f, "	kernel_sgemv_n_1_lib4(%d, &pA[%d], x, &y[%d], %d);\n", j+1, idxA, i
 				idxy  += 1;
 				m  -= 1;
 				}
-			j = 0;
+/*			j = 0;*/
 			for(; j<m-1; j+=2)
 				{
 fprintf(f, "	kernel_sgemv_n_2_lib4(%d, &pA[%d], x, &y[%d], %d);\n", j+1, idxA, idxy, alg);
@@ -590,7 +591,7 @@ fprintf(f, "	kernel_sgemv_n_1_lib4(%d, &pA[%d], x, &y[%d], %d);\n", j+1, idxA, i
 				}
 			return;
 			}
-		j=0;
+/*		j=0;*/
 		if(mna>0)
 			{
 			for(; j<mna%2; j++)
@@ -661,7 +662,7 @@ fprintf(f, "	kernel_sgemv_n_1_lib4(%d, &pA[%d], x, &y[%d], -1);\n", j+1, idxA, i
 				idxy  += 1;
 				m  -= 1;
 				}
-			j = 0;
+/*			j = 0;*/
 			for(; j<m-1; j+=2)
 				{
 fprintf(f, "	kernel_sgemv_n_2_lib4(%d, &pA[%d], x, &y[%d], -1);\n", j+1, idxA, idxy);
@@ -677,7 +678,7 @@ fprintf(f, "	kernel_sgemv_n_1_lib4(%d, &pA[%d], x, &y[%d], -1);\n", j+1, idxA, i
 				}
 			return;
 			}
-		j=0;
+/*		j=0;*/
 		if(mna>0)
 			{
 			for(; j<mna%2; j++)
@@ -1359,7 +1360,7 @@ void strsv_p_t_code_generator(FILE *f, int n)
 	
 	int rn = n%bs;
 	int qn = n/bs;
-	int ri, qi;
+/*	int ri, qi;*/
 	
 	int idxA = 0;
 	int idxx = 0;

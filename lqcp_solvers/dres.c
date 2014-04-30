@@ -36,7 +36,7 @@ void dres(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double 
 
 	int ii, jj;
 	
-	int nz = nx+nu+1;
+/*	int nz = nx+nu+1;*/
 	int nxu = nx+nu;
 
 	// first block

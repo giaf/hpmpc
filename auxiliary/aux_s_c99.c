@@ -222,7 +222,7 @@ void s_cvt_mat2pmat(int row, int col, int offset, int bs, float *A, int lda, flo
 			{
 			for(i=0; i<row0; i++)
 				{
-				pA[i+j*bs+ii*sda] = A[i+ii+j*lda];
+				pA[i+j*bs] = A[i+j*lda];
 				}
 			}
 	

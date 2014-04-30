@@ -36,7 +36,7 @@ void sres(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, float **h
 
 	int ii, jj;
 	
-	int nz = nx+nu+1;
+/*	int nz = nx+nu+1;*/
 	int nxu = nx+nu;
 
 	// first block

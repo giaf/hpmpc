@@ -339,8 +339,8 @@ int main()
 		for(jj=0; jj<nx+nu; jj++)
 			hux[ii][jj] = 0;
 
-	hux[0][nu+0] = xx0[2*idx];
-	hux[0][nu+1] = xx0[2*idx+1];
+	hux[0][nu+0] = xx0[0];
+	hux[0][nu+1] = xx0[1];
 
 	// call the IP solver
 	ip_d_box(prec, sp_thr, &kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, work, &info);

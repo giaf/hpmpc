@@ -424,7 +424,7 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 	const int bs = 4;
 	
 	int
-		i, j, jj;
+		i, j;
 
 	int kinv = nna%bs;
 
@@ -1639,7 +1639,6 @@ void strsv_p_t_lib(int n, float *pA, int sda, float *x)
 	
 	int rn = n%bs;
 	int qn = n/bs;
-	int ri, qi;
 	
 	float *ptrA, *ptrx;
 	

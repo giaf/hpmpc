@@ -290,7 +290,7 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 	const int bs = 4;
 	
 	int
-		i, j, jj;
+		i, j;
 
 	int kinv = nna%bs;
 
@@ -1476,7 +1476,6 @@ void dtrsv_p_t_lib(int n, double *pA, int sda, double *x)
 	
 	int rn = n%bs;
 	int qn = n/bs;
-	int ri, qi;
 	
 	double *ptrA, *ptrx;
 	

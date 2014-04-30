@@ -107,7 +107,7 @@ void sricpotrs_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, 
 
 	int ii, jj;
 	
-	int nz = nx+nu+1;
+/*	int nz = nx+nu+1;*/
 
 	/* backward substitution */
 	for(ii=0; ii<N; ii++)

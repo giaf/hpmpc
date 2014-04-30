@@ -49,6 +49,8 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, int kinv, double *A, int sda, 
 		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33,
 		b_00_10, b_01_11, b_02_12, b_03_13;
 	
+	zeros = _mm_set_sd( 0.0 );
+
 	if(kinv==0)
 		{
 		
@@ -220,7 +222,7 @@ void kernel_dpotrf_dtrsv_dcopy_4x4_lib4(int kmax, int kinv, double *A, int sda, 
 	a_32 = _mm_movedup_pd( a_32 );
 	a_33 = _mm_movedup_pd( a_33 );
 	
-	int k, kk, kend;
+	int k;
 	
 	double
 		*AA, *LL;
@@ -370,6 +372,8 @@ void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda, int *info)
 		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33,
 		b_00_10, b_01_11, b_02_12, b_03_13;
 	
+	zeros = _mm_set_sd( 0.0 );
+
 	a_00 = _mm_load_sd( &A[0+lda*0] );
 	if( _mm_comile_sd ( a_00, zeros ) ) { *info = 1; return; }
 	a_00 = _mm_sqrt_sd( a_00, a_00 );
@@ -452,7 +456,7 @@ void kernel_dpotrf_dtrsv_4x4_lib4(int kmax, double *A, int sda, int *info)
 	a_32 = _mm_movedup_pd( a_32 );
 	a_33 = _mm_movedup_pd( a_33 );
 	
-	int k, kk, kend;
+	int k;
 	
 	double
 		*AA;
@@ -579,6 +583,8 @@ void kernel_dpotrf_dtrsv_3x3_lib4(int kmax, double *A, int sda, int *info)
 		a_00, a_10, a_20, a_11, a_21, a_22,
 		b_00_10, b_01_11, b_02_12;
 	
+	zeros = _mm_set_sd( 0.0 );
+
 	a_00 = _mm_load_sd( &A[0+lda*0] );
 	if( _mm_comile_sd ( a_00, zeros ) ) { *info = 1; return; }
 	a_00 = _mm_sqrt_sd( a_00, a_00 );
@@ -756,6 +762,8 @@ void kernel_dpotrf_dtrsv_2x2_lib4(int kmax, double *A, int sda, int *info)
 		a_00, a_10, a_11,
 		b_00_10, b_01_11;
 	
+	zeros = _mm_set_sd( 0.0 );
+
 	a_00 = _mm_load_sd( &A[0+lda*0] );
 	if( _mm_comile_sd ( a_00, zeros ) ) { *info = 1; return; }
 	a_00 = _mm_sqrt_sd( a_00, a_00 );
@@ -877,10 +885,12 @@ void kernel_dpotrf_dtrsv_1x1_lib4(int kmax, double *A, int sda, int *info)
 	const int lda = 4;
 	
 	__m128d
-		zeros, ones, ab_temp,
+		zeros, ones,
 		a_00,
 		b_00_10;
 	
+	zeros = _mm_set_sd( 0.0 );
+
 	a_00 = _mm_load_sd( &A[0+lda*0] );
 	if( _mm_comile_sd ( a_00, zeros ) ) { *info = 1; return; }
 	a_00 = _mm_sqrt_sd( a_00, a_00 );

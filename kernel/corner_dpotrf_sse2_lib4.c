@@ -153,6 +153,8 @@ void corner_dpotrf_dtrsv_dcopy_2x2_lib4(int kinv, double *A, int sda, int shf, d
 		zeros, ones, ab_temp,
 		a_00, a_10, a_11;
 	
+	zeros = _mm_set_sd( 0.0 );
+
 	if(kinv==0)
 		{
 
@@ -207,13 +209,14 @@ void corner_dpotrf_dtrsv_dcopy_1x1_lib4(double *A, int sda, int shf, double *L, 
 	const int shfi0 = ((shfi+0)/lda)*lda*(sdl-1);
 
 	__m128d
-		zeros, ones, ab_temp,
+		zeros,
 		a_00;
 	
+	zeros = _mm_set_sd( 0.0 );
+
 	a_00 = _mm_load_sd( &A[0+lda*0] );
 	if( _mm_comile_sd ( a_00, zeros ) ) { *info = 1; return; }
 	a_00 = _mm_sqrt_sd( a_00, a_00 );
-	ones = _mm_set_sd( 1.0 );
 	_mm_store_sd( &A[0+lda*0], a_00 );
 	_mm_store_sd( &L[0+0*lda+shfi0], a_00 );
 	

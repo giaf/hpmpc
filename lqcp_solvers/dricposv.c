@@ -105,7 +105,7 @@ void dricpotrs_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ
 
 	int ii, jj;
 	
-	int nz = nx+nu+1;
+/*	int nz = nx+nu+1;*/
 
 	/* backward substitution */
 	for(ii=0; ii<N; ii++)

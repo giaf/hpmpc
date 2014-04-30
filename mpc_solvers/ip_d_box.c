@@ -41,14 +41,14 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 	
 	double *(pi_dummy[N+1]); // equality constranits lagrangian multipliers
 
-	int nl = 0; // set to zero for the moment
+/*	int nl = 0; // set to zero for the moment*/
 	
 /*	int idx_alpha_max = -1;*/
-	int idx_alpha_max_ll = -1;
-	int idx_alpha_max_jj = -1;
-	int idx_alpha_max_case = -1;
-	int itemp;
-	double dlam_temp, dt_temp;
+/*	int idx_alpha_max_ll = -1;*/
+/*	int idx_alpha_max_jj = -1;*/
+/*	int idx_alpha_max_case = -1;*/
+/*	int itemp;*/
+/*	double dlam_temp, dt_temp;*/
 	
 	int nbx = nb - 2*nu;
 	if(nbx<0)
@@ -56,12 +56,12 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 
 	// indeces
 	int jj, ll, ii, bs0;
-	int it_ref;	
+/*	int it_ref;	*/
 
 	const int dbs = D_MR; //d_get_mr();
-	const int sbs = S_MR; //s_get_mr();
+/*	const int sbs = S_MR; //s_get_mr();*/
 	int dsda = dbs*((nx+nu+1+dbs-nu%dbs+dbs-1)/dbs); // second (orizontal) dimension of matrices
-	int ssda = sbs*((nx+nu+1+sbs-nu%sbs+sbs-1)/sbs); // second (orizontal) dimension of matrices
+/*	int ssda = sbs*((nx+nu+1+sbs-nu%sbs+sbs-1)/sbs); // second (orizontal) dimension of matrices*/
 	
 /*	printf("\n\n%d %d %d %d\n\n", dbs, dsda, sbs, ssda);*/
 

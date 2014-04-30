@@ -243,7 +243,7 @@ void dgetf2_3l(int m, int n, double *A, int lda, int *ipiv, int *info)
 void dlaswp_3l(int n, double *A, int lda, int k1, int k2, int *ipiv)
 	{
 	
-	int i, j, k, ix, ix0, i1, i2, inc, n32, ip;
+	int i, j, k, ix, ix0, i1, i2, n32, ip;
 	double temp;
 
 	ix0 = k1;
@@ -396,6 +396,7 @@ double onenorm(int row, int col, double *ptrA)
 	{
 	double max, temp;
 	int i, j;
+	temp = 0;
 	for(j=0; j<col; j++)
 		{
 		temp = abs(*(ptrA+j*row));
@@ -415,10 +416,10 @@ double onenorm(int row, int col, double *ptrA)
 void padeapprox(int m, int row, double *A)
 	{
 	int row2 = row*row;
-	int i1 = 1;
-	double d0 = 0;
-	double d1 = 1;
-	double dm1 = -1;
+/*	int i1 = 1;*/
+/*	double d0 = 0;*/
+/*	double d1 = 1;*/
+/*	double dm1 = -1;*/
 	
 	double *U; d_zeros(&U, row, row); 
 	double *V; d_zeros(&V, row, row);
@@ -683,7 +684,7 @@ void expm(int row, double *A)
 		s = s - (t==0.5);
 		t = pow(2,-s);
 		int row2 = row*row;
-		int i1 = 1;
+/*		int i1 = 1;*/
 //		dscal_(&row2, &t, A, &i1);
 		dscal_3l(row2, t, A);
 		padeapprox(m_vals[4], row, A);
