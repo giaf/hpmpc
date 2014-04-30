@@ -48,8 +48,9 @@ ENDIF( NOT CMAKE_BUILD_TYPE )
 # Target type
 #
 IF ( NOT HPMPC_TARGET )
-   SET( HPMPC_TARGET C99_4x4 CACHE STRING
-   		"Choose build target: C99_4x4, C99_2x2, X64_SSE3, X64_AVX, X86_ATOM, POWERPC_G2")
+    SET( HPMPC_TARGET X64_SSE3 CACHE STRING
+   	    "Choose build target: C99_4x4, C99_2x2, X64_SSE3, X64_AVX, X86_ATOM, POWERPC_G2"
+    )
 ENDIF( )
 
 ################################################################################
@@ -117,6 +118,26 @@ ADD_SUBDIRECTORY( mpc_solvers )
 ADD_SUBDIRECTORY( codegen )
 
 ADD_LIBRARY( hpmpc STATIC ${SOURCES} )
+
+################################################################################
+#
+# Installation rules
+#
+################################################################################
+
+INSTALL(
+    DIRECTORY
+	    include/
+    DESTINATION
+        include/hpmpc
+)
+
+INSTALL(
+	TARGETS
+	    hpmpc
+    DESTINATION
+        lib
+)
 
 ################################################################################
 #
