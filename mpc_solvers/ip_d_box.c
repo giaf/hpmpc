@@ -36,12 +36,8 @@
 
 
 /* primal-dual interior-point method, box constraints, time invariant matrices */
-void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **lb, double **ub, double **ux, int compute_mult, double **pi, double *work, int *info)
+void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **lb, double **ub, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work, int *info)
 	{
-	
-/*	double *(pi_dummy[N+1]); // equality constranits lagrangian multipliers*/
-
-/*	int nl = 0; // set to zero for the moment*/
 	
 /*	int idx_alpha_max = -1;*/
 /*	int idx_alpha_max_ll = -1;*/
@@ -56,15 +52,10 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 
 	// indeces
 	int jj, ll, ii, bs0;
-/*	int it_ref;	*/
 
 	const int dbs = D_MR; //d_get_mr();
-/*	const int sbs = S_MR; //s_get_mr();*/
 	int dsda = dbs*((nx+nu+1+dbs-nu%dbs+dbs-1)/dbs); // second (orizontal) dimension of matrices
-/*	int ssda = sbs*((nx+nu+1+sbs-nu%sbs+sbs-1)/sbs); // second (orizontal) dimension of matrices*/
 	
-/*	printf("\n\n%d %d %d %d\n\n", dbs, dsda, sbs, ssda);*/
-
 	// compound quantities
 	int nz = nx+nu+1;
 	int nxu = nx+nu;
@@ -113,22 +104,23 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 		
 
 
-	double *(lam[N+1]);
+/*	double *(lam[N+1]);*/
 	double *(dlam[N+1]);
-	double *(t[N+1]);
+/*	double *(t[N+1]);*/
 	double *(dt[N+1]);
 	double *(lamt[N+1]);
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space
 	for(jj=0; jj<=N; jj++)
 		{
-		lam[jj]  = ptr + jj*5*2*nb;
+/*		lam[jj]  = ptr + jj*5*2*nb;*/
 		dlam[jj] = ptr + jj*5*2*nb + 2*nb;
-		t[jj]    = ptr + jj*5*2*nb + 2*2*nb;
+/*		t[jj]    = ptr + jj*5*2*nb + 2*2*nb;*/
 		dt[jj]   = ptr + jj*5*2*nb + 3*2*nb;
 		lamt[jj] = ptr + jj*5*2*nb + 4*2*nb;
 		}
-	ptr += (N+1)*5*2*nb;
+/*	ptr += (N+1)*5*2*nb;*/
+	ptr += (N+1)*3*2*nb;
 	
 	double temp0, temp1;
 	double alpha, mu;
@@ -138,37 +130,15 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 	sigma_decay = sigma_par[1]; //0.3;
 	sigma_min = sigma_par[2]; //0.01;
 	
-/*	double d1 = 1;*/
-/*	double dm1 = -1;*/
-/*	char cl = 'l';*/
-/*	char ct = 't';*/
-/*	char cn = 'n';*/
-/*	int i1 = 1;*/
-	
-/*	// initialize x0*/
-/*	for(ll=0; ll<nx; ll++)*/
-/*		ux[0][nu+ll] = x0[ll];*/
-/*	// initialize x*/
-/*	for(jj=1; jj<=N; jj++)*/
-/*		for(ll=0; ll<nx; ll++)*/
-/*			ux[jj][nu+ll] = 0;*/
-
-/*	// initialize u*/
-/*	for(jj=0; jj<N; jj++)*/
-/*		for(ll=0; ll<nu; ll++)*/
-/*			ux[jj][ll] = 0;*/
-
-
-
 	// initialize t>0 (slack variable)
 /*	for(jj=0; jj<=N; jj++)*/
 /*		{*/
-/*		for(ll=0; ll<nb; ll++)*/
+/*		for(ll=0; ll<2*nb; ll++)*/
 /*			t[jj][ll] = 1;*/
 /*		}*/
 /*	for(ll=0; ll<2*nu; ll++) // this has to be strictly positive !!!*/
 /*		t[N][ll] = 1;*/
-/*	for(ll=2*nu; ll<nb; ll++)*/
+/*	for(ll=2*nu; ll<2*nb; ll++)*/
 /*		t[N][ll] = 1;*/
 
 	double thr0 = 1e-3;
@@ -215,12 +185,12 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 	// initialize lambda>0 (multiplier of the inequality constr)
 /*	for(jj=0; jj<N; jj++)*/
 /*		{*/
-/*		for(ll=0; ll<nb; ll++)*/
+/*		for(ll=0; ll<2*nb; ll++)*/
 /*			lam[jj][ll] = 1;*/
 /*		}*/
 /*	for(ll=0; ll<2*nu; ll++) // this has to be strictly positive !!!*/
 /*		lam[N][ll] = 1;*/
-/*	for(ll=2*nu; ll<nb; ll++)*/
+/*	for(ll=2*nu; ll<2*nb; ll++)*/
 /*		lam[N][ll] = 1;*/
 	
 	for(jj=0; jj<N; jj++)
@@ -281,10 +251,6 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 			d_copy_pmat_lo(nz, dbs, pQ[jj], dsda, pL[jj], dsda);
 /*				d_copy_pmat(nz, nz, dbs, pQ[jj], dsda, pL[jj], dsda);*/
 		
-/*printf("\n%d\n", jj);*/
-/*d_print_pmat(nz, nz, dbs, pQ[jj], dsda);*/
-/*d_print_pmat(nz, nz, dbs, pL[jj], dsda);*/
-
 			// box constraints
 			for(ii=0; ii<2*nb; ii+=2*dbs)
 				{
@@ -303,16 +269,12 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 					                       - lam[jj][ii+ll+0] - lamt[jj][ii+ll+0]*lb[jj][ii/2+ll/2] - dlam[jj][ii+ll+0];
 					}
 				}
-/*d_print_pmat(nz, nz, dbs, pL[jj], dsda);*/
 			}
 
 
 			// compute the search direction: factorize and solve the KKT system
 		dricposv_mpc(nx, nu, N, dsda, pBAbt, pL, dux, pLt, pBAbtL, compute_mult, dpi, info);
 		if(*info!=0) return;
-
-/*d_print_mat(nx+nu, N, dux[0], dsda);*/
-/*exit(2);*/
 
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
@@ -439,7 +401,6 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+1] = alpha;
-/*printf("\n%d\n", idx_alpha_max);*/
 			
 		alpha *= 0.995;
 

@@ -272,6 +272,8 @@ int main()
 	double *(hq[N+1]);
 	double *(hux[N+1]);
 	double *(hpi[N+1]);
+	double *(hlam[N+1]);
+	double *(ht[N+1]);
 	double *(hpBAbt[N]);
 	double *(hlb[N+1]);
 	double *(hub[N+1]);
@@ -283,6 +285,8 @@ int main()
 		d_zeros_align(&hq[jj], pnz, 1);
 		d_zeros_align(&hux[jj], nz, 1);
 		d_zeros(&hpi[jj], nx, 1);
+		d_zeros(&hlam[jj],2*nb, 1);
+		d_zeros(&ht[jj], 2*nb, 1);
 		hpBAbt[jj] = pBAbt;
 		hlb[jj] = lb;
 		hub[jj] = ub;
@@ -293,6 +297,8 @@ int main()
 	d_zeros_align(&hq[N], pnz, 1);
 	d_zeros_align(&hux[N], nz, 1);
 	d_zeros(&hpi[N], nx, 1);
+	d_zeros(&hlam[N], 2*nb, 1);
+	d_zeros(&ht[N], 2*nb, 1);
 	hlb[N] = lb;
 	hub[N] = ub;
 	d_zeros_align(&hrq[N], nx+nu, 1);
@@ -308,7 +314,7 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-	double *work; d_zeros_align(&work, 2*((N+1)*(pnz*pnz+pnz+2*5*nb)+2*pnz*pnz), 1); // work space
+	double *work; d_zeros_align(&work, 2*((N+1)*(pnz*pnz+pnz+2*3*nb)+2*pnz*pnz), 1); // work space
 	int kk=0; // acutal number of iterations
 	char prec = PREC; // double/single precision
 	double sp_thr = SP_THR; // threshold to switch between double and single precision
@@ -345,7 +351,7 @@ int main()
 	hux[0][nu+1] = xx0[1];
 
 	// call the IP solver
-	ip_d_box(&kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, work, &info);
+	ip_d_box(&kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
 
 
 
@@ -369,7 +375,7 @@ int main()
 		hux[0][nu+1] = xx0[2*idx+1];
 
 		// call the IP solver
-		ip_d_box(&kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, work, &info);
+		ip_d_box(&kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
 
 		}
 	
@@ -447,6 +453,8 @@ int main()
 		free(hq[jj]);
 		free(hux[jj]);
 		free(hpi[jj]);
+		free(hlam[jj]);
+		free(ht[jj]);
 		free(hrb[jj]);
 		free(hrq[jj]);
 		}
@@ -454,6 +462,8 @@ int main()
 	free(hq[N]);
 	free(hux[N]);
 	free(hpi[N]);
+	free(hlam[N]);
+	free(ht[N]);
 	free(hrq[N]);
 
 
