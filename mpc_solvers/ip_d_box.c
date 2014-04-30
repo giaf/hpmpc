@@ -36,7 +36,7 @@
 
 
 /* primal-dual interior-point method, box constraints, time invariant matrices */
-void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double *work, int *info)
+void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **lb, double **ub, double **ux, int compute_mult, double **pi, double *work, int *info)
 	{
 	
 /*	double *(pi_dummy[N+1]); // equality constranits lagrangian multipliers*/
@@ -50,7 +50,7 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 /*	int itemp;*/
 /*	double dlam_temp, dt_temp;*/
 	
-	int nbx = nb - 2*nu;
+	int nbx = nb - nu;
 	if(nbx<0)
 		nbx = 0;
 
@@ -122,13 +122,13 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 	// slack variables, Lagrangian multipliers for inequality constraints and work space
 	for(jj=0; jj<=N; jj++)
 		{
-		lam[jj]  = ptr + jj*5*nb;
-		dlam[jj] = ptr + jj*5*nb + nb;
-		t[jj]    = ptr + jj*5*nb + 2*nb;
-		dt[jj]   = ptr + jj*5*nb + 3*nb;
-		lamt[jj] = ptr + jj*5*nb + 4*nb;
+		lam[jj]  = ptr + jj*5*2*nb;
+		dlam[jj] = ptr + jj*5*2*nb + 2*nb;
+		t[jj]    = ptr + jj*5*2*nb + 2*2*nb;
+		dt[jj]   = ptr + jj*5*2*nb + 3*2*nb;
+		lamt[jj] = ptr + jj*5*2*nb + 4*2*nb;
 		}
-	ptr += (N+1)*5*nb;
+	ptr += (N+1)*5*2*nb;
 	
 	double temp0, temp1;
 	double alpha, mu;
@@ -174,39 +174,39 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 	double thr0 = 1e-3;
 	for(jj=0; jj<N; jj++)
 		{
-		for(ll=0; ll<nb; ll+=2)
+		for(ll=0; ll<2*nb; ll+=2)
 			{
-			t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
+			t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
 			if(t[jj][ll+0] < thr0)
 				{
 				t[jj][ll+0] = thr0;
-				ux[jj][ll/2] = thr0 + db[jj][ll+0];
+				ux[jj][ll/2] = lb[jj][ll/2] + thr0;
 				}
 
-			t[jj][ll+1] = - ux[jj][ll/2] - db[jj][ll+1];
+			t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
 			if(t[jj][ll+1] < thr0)
 				{
 				t[jj][ll+1] = thr0;
-				ux[jj][ll/2] = thr0 - db[jj][ll+0];
+				ux[jj][ll/2] = ub[jj][ll/2] - thr0;
 				}
 			}
 		}
 	for(ll=0; ll<2*nu; ll++) // this has to be strictly positive !!!
 		t[N][ll] = 1;
-	for(ll=2*nu; ll<nb; ll+=2)
+	for(ll=2*nu; ll<2*nb; ll+=2)
 		{
-		t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+		t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
 		if(t[N][ll+0] < thr0)
 			{
 			t[N][ll+0] = thr0;
-			ux[N][ll/2] = thr0 + db[N][ll+0];
+			ux[N][ll/2] = lb[N][ll/2] + thr0;
 			}
 
-		t[N][ll+1] = - ux[N][ll/2] - db[N][ll+1];
+		t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
 		if(t[N][ll+1] < thr0)
 			{
 			t[N][ll+1] = thr0;
-			ux[N][ll/2] = thr0 - db[N][ll+0];
+			ux[N][ll/2] = ub[N][ll/2] - thr0;
 			}
 		}
 
@@ -225,13 +225,13 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 	
 	for(jj=0; jj<N; jj++)
 		{
-		for(ll=0; ll<nb; ll++)
+		for(ll=0; ll<2*nb; ll++)
 			lam[jj][ll] = 1/t[jj][ll];
 /*			lam[jj][ll] = thr0/t[jj][ll];*/
 		}
 	for(ll=0; ll<2*nu; ll++) // this has to be strictly positive !!!
 		lam[N][ll] = 1;
-	for(ll=2*nu; ll<nb; ll++)
+	for(ll=2*nu; ll<2*nb; ll++)
 		lam[N][ll] = 1/t[jj][ll];
 /*		lam[N][ll] = thr0/t[jj][ll];*/
 
@@ -255,12 +255,12 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 	mu = 0;
 	for(jj=0; jj<N; jj++)
 		{
-		for(ll=0 ; ll<nb; ll+=2)
+		for(ll=0 ; ll<2*nb; ll+=2)
 			mu += lam[jj][ll+0] * t[jj][ll+0] + lam[jj][ll+1] * t[jj][ll+1];
 		}
-	for(ll=2*nu ; ll<nb; ll+=2)
+	for(ll=2*nu ; ll<2*nb; ll+=2)
 		mu += lam[N][ll+0] * t[N][ll+0] + lam[N][ll+1] * t[N][ll+1];
-	mu /= N*nb + nbx;
+	mu /= N*2*nb + 2*nbx;
 	
 	*kk = 0;	
 	
@@ -286,9 +286,9 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 /*d_print_pmat(nz, nz, dbs, pL[jj], dsda);*/
 
 			// box constraints
-			for(ii=0; ii<nb; ii+=2*dbs)
+			for(ii=0; ii<2*nb; ii+=2*dbs)
 				{
-				bs0 = nb-ii;
+				bs0 = 2*nb-ii;
 				if(2*dbs<bs0) bs0 = 2*dbs;
 				for(ll=0; ll<bs0; ll+=2)
 					{
@@ -299,8 +299,8 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 					dlam[jj][ii+ll+0] = temp0*(sigma*mu); // !!!!!
 					dlam[jj][ii+ll+1] = temp1*(sigma*mu); // !!!!!
 					pL[jj][ll/2+(ii+ll)/2*dbs+ii/2*dsda] += lamt[jj][ii+ll+0] + lamt[jj][ii+ll+1];
-					pl[jj][(ii+ll)/2*dbs] += lam[jj][ii+ll+1] + lamt[jj][ii+ll+1]*db[jj][ii+ll+1] + dlam[jj][ii+ll+1] 
-					                       - lam[jj][ii+ll+0] - lamt[jj][ii+ll+0]*db[jj][ii+ll+0] - dlam[jj][ii+ll+0];
+					pl[jj][(ii+ll)/2*dbs] += lam[jj][ii+ll+1] - lamt[jj][ii+ll+1]*ub[jj][ii/2+ll/2] + dlam[jj][ii+ll+1] 
+					                       - lam[jj][ii+ll+0] - lamt[jj][ii+ll+0]*lb[jj][ii/2+ll/2] - dlam[jj][ii+ll+0];
 					}
 				}
 /*d_print_pmat(nz, nz, dbs, pL[jj], dsda);*/
@@ -361,10 +361,10 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 /*			}*/
 		for(jj=0; jj<N; jj++)
 			{
-			for(ll=0; ll<nb; ll+=2)
+			for(ll=0; ll<2*nb; ll+=2)
 				{
-				dt[jj][ll+0] =   dux[jj][ll/2] - db[jj][ll+0];
-				dt[jj][ll+1] = - dux[jj][ll/2] - db[jj][ll+1];
+				dt[jj][ll+0] =   dux[jj][ll/2] - lb[jj][ll/2];
+				dt[jj][ll+1] = - dux[jj][ll/2] + ub[jj][ll/2];
 				dlam[jj][ll+0] -= lamt[jj][ll+0] * dt[jj][ll+0];
 				dlam[jj][ll+1] -= lamt[jj][ll+1] * dt[jj][ll+1];
 				if( dlam[jj][ll+0]<0 && -alpha*dlam[jj][ll+0]>lam[jj][ll+0] )
@@ -399,10 +399,10 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 					}
 				}
 			}
-		for(ll=2*nu; ll<nb; ll+=2)
+		for(ll=2*nu; ll<2*nb; ll+=2)
 			{
-			dt[N][ll+0] =   dux[N][ll/2] - db[N][ll+0];
-			dt[N][ll+1] = - dux[N][ll/2] - db[N][ll+1];
+			dt[N][ll+0] =   dux[N][ll/2] - lb[N][ll/2];
+			dt[N][ll+1] = - dux[N][ll/2] + ub[N][ll/2];
 			dlam[N][ll+0] -= lamt[N][ll+0] * dt[N][ll+0];
 			dlam[N][ll+1] -= lamt[N][ll+1] * dt[N][ll+1];
 			if( dlam[N][ll+0]<0 && -alpha*dlam[N][ll+0]>lam[N][ll+0] )
@@ -460,7 +460,7 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 			for(ll=0; ll<nx; ll++)
 				pi[jj][ll] += alpha*(dpi[jj][ll] - pi[jj][ll]);
 			// box constraints
-			for(ll=0; ll<nb; ll+=2)
+			for(ll=0; ll<2*nb; ll+=2)
 				{
 				lam[jj][ll+0] += alpha*dlam[jj][ll+0];
 				lam[jj][ll+1] += alpha*dlam[jj][ll+1];
@@ -476,7 +476,7 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 		for(ll=0; ll<nx; ll++)
 			pi[N][ll] += alpha*(dpi[N][ll] - pi[N][ll]);
 		// box constraints
-		for(ll=2*nu; ll<nb; ll+=2)
+		for(ll=2*nu; ll<2*nb; ll+=2)
 			{
 			lam[N][ll+0] += alpha*dlam[N][ll+0];
 			lam[N][ll+1] += alpha*dlam[N][ll+1];
@@ -484,7 +484,7 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 			t[N][ll+1] += alpha*dt[N][ll+1];
 			mu += lam[N][ll+0] * t[N][ll+0] + lam[N][ll+1] * t[N][ll+1];
 			}
-		mu /= N*nb + nbx;
+		mu /= N*2*nb + 2*nbx;
 
 		stat[5*(*kk)+2] = mu;
 		

@@ -30,7 +30,7 @@
 
 // number of inequality constraints
 #define NL 0
-#define NB 2*NU+2*NX
+#define NB NU+NX
 
 // number of repetition for timing
 #define NREP 1000

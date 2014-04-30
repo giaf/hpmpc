@@ -173,11 +173,9 @@ int main()
 	int info = 0;
 		
 	const int dbs = D_MR; //d_get_mr();
-	const int sbs = S_MR; //s_get_mr();
 	
 	int nz = nx+nu+1;
 	int pnz = dbs*((nz+dbs-nu%dbs+dbs-1)/dbs);
-	int spnz = sbs*((nz+sbs-nu%sbs+sbs-1)/sbs);
 	
 /*	printf("\n\n%d %d %d %d\n\n", dbs, pnz, sbs, spnz);*/
 
@@ -231,9 +229,6 @@ int main()
 	double *pBAbt; d_zeros_align(&pBAbt, pnz, pnz);
 	d_cvt_mat2pmat(nz, nx, 0, dbs, BAbt, pnz, pBAbt, pnz);
 
-	float *psBAbt; s_zeros_align(&psBAbt, spnz, spnz);
-	s_cvt_d2s_pmat(nz, nx, dbs, pBAbt, pnz, sbs, psBAbt, spnz);
-
 /*	d_print_pmat(nz, nx, dbs, pBAbt, pnz);*/
 /*	s_print_pmat(nz, nx, sbs, psBAbt, spnz);*/
 /*	return 0;*/
@@ -242,11 +237,17 @@ int main()
 * box constraints
 ************************************************/	
 
-	double *db; d_zeros(&db, nb, 1);
-	for(jj=0; jj<2*nu; jj++)
-		db[jj] = -0.5;   // umin & -umax
+	double *lb; d_zeros(&lb, nb, 1);
+	for(jj=0; jj<nu; jj++)
+		lb[jj] = - 0.5;   // umin
 	for(; jj<nb; jj++)
-		db[jj] = -4.0;   // xmin & -xmax
+		lb[jj] = - 4.0;   // xmin
+
+	double *ub; d_zeros(&ub, nb, 1);
+	for(jj=0; jj<nu; jj++)
+		ub[jj] = 0.5;   // umax
+	for(; jj<nb; jj++)
+		ub[jj] = 4.0;   // xmax
 
 /************************************************
 * cost function
@@ -262,8 +263,6 @@ int main()
 	double *pQ; d_zeros_align(&pQ, pnz, pnz);
 	d_cvt_mat2pmat(nz, nz, 0, dbs, Q, pnz, pQ, pnz);
 
-	float *psQ; s_zeros_align(&psQ, spnz, spnz);
-	s_cvt_d2s_pmat(nz, nz, dbs, pQ, pnz, sbs, psQ, spnz);
 /*	d_cvt_mat2pmat(nz, nz, 0, dbs, Q, pnz, pQ, pnz);*/
 
 /************************************************
@@ -274,7 +273,8 @@ int main()
 	double *(hux[N+1]);
 	double *(hpi[N+1]);
 	double *(hpBAbt[N]);
-	double *(hdb[N+1]);
+	double *(hlb[N+1]);
+	double *(hub[N+1]);
 	double *(hrb[N]);
 	double *(hrq[N+1]);
 	for(jj=0; jj<N; jj++)
@@ -284,7 +284,8 @@ int main()
 		d_zeros_align(&hux[jj], nz, 1);
 		d_zeros(&hpi[jj], nx, 1);
 		hpBAbt[jj] = pBAbt;
-		hdb[jj] = db;
+		hlb[jj] = lb;
+		hub[jj] = ub;
 		d_zeros_align(&hrb[jj], nx, 1);
 		d_zeros_align(&hrq[jj], nx+nu, 1);
 		}
@@ -292,7 +293,8 @@ int main()
 	d_zeros_align(&hq[N], pnz, 1);
 	d_zeros_align(&hux[N], nz, 1);
 	d_zeros(&hpi[N], nx, 1);
-	hdb[jj] = db;
+	hlb[N] = lb;
+	hub[N] = ub;
 	d_zeros_align(&hrq[N], nx+nu, 1);
 	
 	// starting guess
@@ -306,7 +308,7 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-	double *work; d_zeros_align(&work, 2*((N+1)*(pnz*pnz+pnz+5*nb)+2*pnz*pnz), 1); // work space
+	double *work; d_zeros_align(&work, 2*((N+1)*(pnz*pnz+pnz+2*5*nb)+2*pnz*pnz), 1); // work space
 	int kk=0; // acutal number of iterations
 	char prec = PREC; // double/single precision
 	double sp_thr = SP_THR; // threshold to switch between double and single precision
@@ -343,7 +345,7 @@ int main()
 	hux[0][nu+1] = xx0[1];
 
 	// call the IP solver
-	ip_d_box(&kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, work, &info);
+	ip_d_box(&kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, work, &info);
 
 
 
@@ -367,7 +369,7 @@ int main()
 		hux[0][nu+1] = xx0[2*idx+1];
 
 		// call the IP solver
-		ip_d_box(&kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, work, &info);
+		ip_d_box(&kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, work, &info);
 
 		}
 	
@@ -433,8 +435,8 @@ int main()
 	free(BAb);
 	free(BAbt);
 	free(pBAbt);
-	free(psBAbt);
-	free(db);
+	free(lb);
+	free(ub);
 	free(Q);
 	free(pQ);
 	free(work);
