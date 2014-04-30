@@ -23,4 +23,4 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, double *work, int *info);
+void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double *work, int *info);

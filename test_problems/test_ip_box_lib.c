@@ -270,24 +270,30 @@ int main()
 * matrices series
 ************************************************/	
 	double *(hpQ[N+1]);
-	float *(hpsQ[N+1]);
+	double *(hq[N+1]);
 	double *(hux[N+1]);
+	double *(hpi[N+1]);
 	double *(hpBAbt[N]);
-	float *(hpsBAbt[N]);
 	double *(hdb[N+1]);
+	double *(hrb[N]);
+	double *(hrq[N+1]);
 	for(jj=0; jj<N; jj++)
 		{
 		d_zeros_align(&hpQ[jj], pnz, pnz);
-		s_zeros_align(&hpsQ[jj], spnz, spnz);
+		d_zeros_align(&hq[jj], pnz, 1);
 		d_zeros_align(&hux[jj], nz, 1);
+		d_zeros(&hpi[jj], nx, 1);
 		hpBAbt[jj] = pBAbt;
-		hpsBAbt[jj] = psBAbt;
 		hdb[jj] = db;
+		d_zeros_align(&hrb[jj], nx, 1);
+		d_zeros_align(&hrq[jj], nx+nu, 1);
 		}
 	d_zeros_align(&hpQ[N], pnz, pnz);
-	s_zeros_align(&hpsQ[N], spnz, spnz);
+	d_zeros_align(&hq[N], pnz, 1);
 	d_zeros_align(&hux[N], nz, 1);
+	d_zeros(&hpi[N], nx, 1);
 	hdb[jj] = db;
+	d_zeros_align(&hrq[N], nx+nu, 1);
 	
 	// starting guess
 	for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
@@ -300,6 +306,7 @@ int main()
 * riccati-like iteration
 ************************************************/
 
+	double *work; d_zeros_align(&work, 2*((N+1)*(pnz*pnz+pnz+5*nb)+2*pnz*pnz), 1); // work space
 	int kk=0; // acutal number of iterations
 	char prec = PREC; // double/single precision
 	double sp_thr = SP_THR; // threshold to switch between double and single precision
@@ -307,9 +314,8 @@ int main()
 	double tol = TOL; // tolerance in the duality measure
 	double sigma[] = {0.4, 0.3, 0.01}; // control primal-dual IP behaviour
 	double *stat; d_zeros(&stat, 5, k_max); // stats from the IP routine
+	int compute_mult = COMPUTE_MULT;
 	
-	double *work; d_zeros_align(&work, 2*((N+1)*(pnz*pnz+pnz+5*nb)+2*pnz*pnz), 1); // work space
-
 
 
 	/* initizile the cost function */
@@ -318,12 +324,6 @@ int main()
 		for(jj=0; jj<pnz*pnz; jj++) hpQ[ii][jj]=pQ[jj];
 		}
 	for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
-
-	for(ii=0; ii<N; ii++)
-		{
-		for(jj=0; jj<spnz*spnz; jj++) hpsQ[ii][jj]=psQ[jj];
-		}
-	for(jj=0; jj<spnz*spnz; jj++) hpsQ[N][jj]=psQ[jj];
 
 
 
@@ -343,7 +343,7 @@ int main()
 	hux[0][nu+1] = xx0[1];
 
 	// call the IP solver
-	ip_d_box(prec, sp_thr, &kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, work, &info);
+	ip_d_box(&kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, work, &info);
 
 
 
@@ -367,7 +367,7 @@ int main()
 		hux[0][nu+1] = xx0[2*idx+1];
 
 		// call the IP solver
-		ip_d_box(prec, sp_thr, &kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, work, &info);
+		ip_d_box(&kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, work, &info);
 
 		}
 	
@@ -380,6 +380,20 @@ int main()
 	printf("\nnx\tnu\tN\tkernel\n\n");
 	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);
 	
+
+
+	// restore linear part of cost function 
+	for(ii=0; ii<N; ii++)
+		{
+		for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+pnz*jj];
+		}
+	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
+
+	// residuals computation
+	dres(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+
+
+
 	if(PRINTSTAT==1)
 		{
 
@@ -398,6 +412,16 @@ int main()
 		
 		}
 
+	if(PRINTRES==1 && COMPUTE_MULT==1)
+		{
+		// print result 
+		printf("\n\nres\n\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nx+nu, hrq[ii], 1);
+		for(ii=0; ii<N; ii++)
+			d_print_mat(1, nx, hrb[ii], 1);
+		}
+
 /************************************************
 * free memory and return
 ************************************************/
@@ -413,17 +437,22 @@ int main()
 	free(db);
 	free(Q);
 	free(pQ);
-/*	free(pL);*/
-/*	free(pBAbtL);*/
 	free(work);
 	free(stat);
 	for(jj=0; jj<N; jj++)
 		{
 		free(hpQ[jj]);
+		free(hq[jj]);
 		free(hux[jj]);
+		free(hpi[jj]);
+		free(hrb[jj]);
+		free(hrq[jj]);
 		}
 	free(hpQ[N]);
+	free(hq[N]);
 	free(hux[N]);
+	free(hpi[N]);
+	free(hrq[N]);
 
 
 

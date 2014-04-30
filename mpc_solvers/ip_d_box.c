@@ -36,10 +36,10 @@
 
 
 /* primal-dual interior-point method, box constraints, time invariant matrices */
-void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, double *work, int *info)
+void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double *work, int *info)
 	{
 	
-	double *(pi_dummy[N+1]); // equality constranits lagrangian multipliers
+/*	double *(pi_dummy[N+1]); // equality constranits lagrangian multipliers*/
 
 /*	int nl = 0; // set to zero for the moment*/
 	
@@ -74,6 +74,7 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 	ptr = work;
 
 	double *(dux[N+1]);
+	double *(dpi[N+1]);
 	double *(pL[N+1]);
 	double *(pl[N+1]);
 	double *pBAbtL;
@@ -83,6 +84,13 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 	for(jj=0; jj<=N; jj++)
 		{
 		dux[jj] = ptr+jj*dsda;
+		}
+	ptr += (N+1)*dsda;
+
+	// equality constr multipliers
+	for(jj=0; jj<=N; jj++)
+		{
+		dpi[jj] = ptr+jj*dsda;
 		}
 	ptr += (N+1)*dsda;
 
@@ -229,6 +237,13 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 
 
 
+	// initialize pi
+	for(jj=0; jj<=N; jj++)
+		for(ll=0; ll<nx; ll++)
+			dpi[0][ll] = 0.0;
+
+
+
 	// initialize dux
 	// double precision
 	for(ll=0; ll<nx; ll++)
@@ -293,7 +308,7 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 
 
 			// compute the search direction: factorize and solve the KKT system
-		dricposv_mpc(nx, nu, N, dsda, pBAbt, pL, dux, pLt, pBAbtL, 0, pi_dummy, info);
+		dricposv_mpc(nx, nu, N, dsda, pBAbt, pL, dux, pLt, pBAbtL, compute_mult, dpi, info);
 		if(*info!=0) return;
 
 /*d_print_mat(nx+nu, N, dux[0], dsda);*/
@@ -441,6 +456,9 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 			// update states
 			for(ll=0; ll<nx; ll++)
 				ux[jj][nu+ll] += alpha*(dux[jj][nu+ll] - ux[jj][nu+ll]);
+			// update equality constrained multipliers
+			for(ll=0; ll<nx; ll++)
+				pi[jj][ll] += alpha*(dpi[jj][ll] - pi[jj][ll]);
 			// box constraints
 			for(ll=0; ll<nb; ll+=2)
 				{
@@ -454,6 +472,9 @@ void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *
 		// update states
 		for(ll=0; ll<nx; ll++)
 			ux[N][nu+ll] += alpha*(dux[N][nu+ll] - ux[N][nu+ll]);
+		// update equality constrained multipliers
+		for(ll=0; ll<nx; ll++)
+			pi[N][ll] += alpha*(dpi[N][ll] - pi[N][ll]);
 		// box constraints
 		for(ll=2*nu; ll<nb; ll+=2)
 			{

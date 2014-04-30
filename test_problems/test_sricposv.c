@@ -327,7 +327,7 @@ int main()
 		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 		// call the solver
-		sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, LAGR_MULT, hpi, &info);
+		sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, COMPUTE_MULT, hpi, &info);
 
 		if(PRINTRES==1)
 			{
@@ -336,7 +336,7 @@ int main()
 			for(ii=0; ii<N; ii++)
 				s_print_mat(1, nu, hux[ii], 1);
 			}
-		if(PRINTRES==1 && LAGR_MULT==1)
+		if(PRINTRES==1 && COMPUTE_MULT==1)
 			{
 			// print result 
 			printf("\n\nsv\n\n");
@@ -361,7 +361,7 @@ int main()
 		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 		// call the solver 
-		sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, LAGR_MULT, hpi);
+		sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, COMPUTE_MULT, hpi);
 
 		if(PRINTRES==1)
 			{
@@ -370,7 +370,7 @@ int main()
 			for(ii=0; ii<N; ii++)
 				s_print_mat(1, nu, hux[ii], 1);
 			}
-		if(PRINTRES==1 && LAGR_MULT==1)
+		if(PRINTRES==1 && COMPUTE_MULT==1)
 			{
 			// print result 
 			printf("\n\ntrs\n\n");
@@ -395,7 +395,7 @@ int main()
 		// residuals computation
 		sres(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 
-		if(PRINTRES==1 && LAGR_MULT==1)
+		if(PRINTRES==1 && COMPUTE_MULT==1)
 			{
 			// print result 
 			printf("\n\nres\n\n");
@@ -426,7 +426,7 @@ int main()
 			for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 			// call the solver 
-			sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, LAGR_MULT, hpi, &info);
+			sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, COMPUTE_MULT, hpi, &info);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
@@ -448,7 +448,7 @@ int main()
 			for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 			// call the solver 
-			sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, LAGR_MULT, hpi);
+			sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, COMPUTE_MULT, hpi);
 			}
 		
 		gettimeofday(&tv2, NULL); // start
