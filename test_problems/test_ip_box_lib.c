@@ -279,6 +279,7 @@ int main()
 	double *(hub[N+1]);
 	double *(hrb[N]);
 	double *(hrq[N+1]);
+	double *(hrd[N+1]);
 	for(jj=0; jj<N; jj++)
 		{
 		d_zeros_align(&hpQ[jj], pnz, pnz);
@@ -292,6 +293,7 @@ int main()
 		hub[jj] = ub;
 		d_zeros_align(&hrb[jj], nx, 1);
 		d_zeros_align(&hrq[jj], nx+nu, 1);
+		d_zeros_align(&hrd[jj], 2*nb, 1);
 		}
 	d_zeros_align(&hpQ[N], pnz, pnz);
 	d_zeros_align(&hq[N], pnz, 1);
@@ -302,6 +304,7 @@ int main()
 	hlb[N] = lb;
 	hub[N] = ub;
 	d_zeros_align(&hrq[N], nx+nu, 1);
+	d_zeros_align(&hrd[N], 2*nb, 1);
 	
 	// starting guess
 	for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
@@ -315,7 +318,7 @@ int main()
 ************************************************/
 
 	double *work; d_zeros_align(&work, 2*((N+1)*(pnz*pnz+pnz+2*3*nb)+2*pnz*pnz), 1); // work space
-	int kk=0; // acutal number of iterations
+	int kk = 0; // acutal number of iterations
 	char prec = PREC; // double/single precision
 	double sp_thr = SP_THR; // threshold to switch between double and single precision
 	int k_max = K_MAX; // maximum number of iterations in the IP method
@@ -323,6 +326,7 @@ int main()
 	double sigma[] = {0.4, 0.3, 0.01}; // control primal-dual IP behaviour
 	double *stat; d_zeros(&stat, 5, k_max); // stats from the IP routine
 	int compute_mult = COMPUTE_MULT;
+	double mu = -1.0;
 	
 
 
@@ -398,7 +402,7 @@ int main()
 	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 	// residuals computation
-	dres(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+	dres_ip_box(nx, nu, N, nb, pnz, hpBAbt, hpQ, hq, hux, hlb, hub, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 
 
@@ -424,10 +428,17 @@ int main()
 		{
 		// print result 
 		printf("\n\nres\n\n");
+		printf("\n\nrq = \n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat(1, nx+nu, hrq[ii], 1);
+			d_print_mat_e(1, nx+nu, hrq[ii], 1);
+		printf("\n\nrb = \n\n");
 		for(ii=0; ii<N; ii++)
-			d_print_mat(1, nx, hrb[ii], 1);
+			d_print_mat_e(1, nx, hrb[ii], 1);
+		printf("\n\nrd = \n\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat_e(1, 2*nb, hrd[ii], 1);
+		printf("\n\nmu = %e\n\n", mu);
+		
 		}
 
 /************************************************
@@ -457,6 +468,7 @@ int main()
 		free(ht[jj]);
 		free(hrb[jj]);
 		free(hrq[jj]);
+		free(hrd[jj]);
 		}
 	free(hpQ[N]);
 	free(hq[N]);
@@ -465,6 +477,7 @@ int main()
 	free(hlam[N]);
 	free(ht[N]);
 	free(hrq[N]);
+	free(hrd[N]);
 
 
 

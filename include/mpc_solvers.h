@@ -24,3 +24,4 @@
 **************************************************************************************************/
 
 void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **lb, double **ub, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work, int *info);
+void dres_ip_box(int nx, int nu, int N, int nb, int sda, double **hpBAbt, double **hpQ, double **hq, double **hux, double **lb, double **ub, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double *mu);
