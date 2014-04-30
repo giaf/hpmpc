@@ -95,6 +95,21 @@ ENDIF( )
 
 ################################################################################
 #
+# Configure the target header file
+#
+################################################################################
+
+STRING(TOUPPER ${HPMPC_TARGET} TARGET_DEF)
+SET( TARGET_DEF TARGET_${TARGET_DEF})
+
+CONFIGURE_FILE(
+	"${PROJECT_SOURCE_DIR}/include/target.h.in"
+	"${PROJECT_BINARY_DIR}/include/target.h"
+	@ONLY
+)
+
+################################################################################
+#
 # Include directories
 #
 ################################################################################
@@ -128,6 +143,14 @@ ADD_LIBRARY( hpmpc STATIC ${SOURCES} )
 INSTALL(
     DIRECTORY
 	    include/
+    DESTINATION
+        include/hpmpc
+	PATTERN "*.h.in*" EXCLUDE
+)
+
+INSTALL(
+    DIRECTORY
+		${PROJECT_BINARY_DIR}/include/
     DESTINATION
         include/hpmpc
 )
