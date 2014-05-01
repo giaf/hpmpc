@@ -326,6 +326,7 @@ int main()
 	double sigma[] = {0.4, 0.3, 0.01}; // control primal-dual IP behaviour
 	double *stat; d_zeros(&stat, 5, k_max); // stats from the IP routine
 	int compute_mult = COMPUTE_MULT;
+	int warm_start = WARM_START;
 	double mu = -1.0;
 	
 
@@ -355,7 +356,7 @@ int main()
 	hux[0][nu+1] = xx0[1];
 
 	// call the IP solver
-	ip_d_box(&kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
+	ip_d_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
 
 
 
@@ -379,7 +380,7 @@ int main()
 		hux[0][nu+1] = xx0[2*idx+1];
 
 		// call the IP solver
-		ip_d_box(&kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
+		ip_d_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
 
 		}
 	
@@ -427,16 +428,19 @@ int main()
 	if(PRINTRES==1 && COMPUTE_MULT==1)
 		{
 		// print result 
-		printf("\n\nres\n\n");
+		printf("\n\nresiduals\n\n");
 		printf("\n\nrq = \n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat_e(1, nx+nu, hrq[ii], 1);
+/*			d_print_mat_e(1, nx+nu, hrq[ii], 1);*/
+			d_print_mat(1, nx+nu, hrq[ii], 1);
 		printf("\n\nrb = \n\n");
 		for(ii=0; ii<N; ii++)
-			d_print_mat_e(1, nx, hrb[ii], 1);
+/*			d_print_mat_e(1, nx, hrb[ii], 1);*/
+			d_print_mat(1, nx, hrb[ii], 1);
 		printf("\n\nrd = \n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat_e(1, 2*nb, hrd[ii], 1);
+/*			d_print_mat_e(1, 2*nb, hrd[ii], 1);*/
+			d_print_mat(1, 2*nb, hrd[ii], 1);
 		printf("\n\nmu = %e\n\n", mu);
 		
 		}

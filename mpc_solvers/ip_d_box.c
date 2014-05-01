@@ -36,7 +36,7 @@
 
 
 /* primal-dual interior-point method, box constraints, time invariant matrices */
-void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **lb, double **ub, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work, int *info)
+void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **lb, double **ub, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work, int *info)
 	{
 	
 /*	int idx_alpha_max = -1;*/
@@ -104,22 +104,17 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 		
 
 
-/*	double *(lam[N+1]);*/
 	double *(dlam[N+1]);
-/*	double *(t[N+1]);*/
 	double *(dt[N+1]);
 	double *(lamt[N+1]);
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space
 	for(jj=0; jj<=N; jj++)
 		{
-/*		lam[jj]  = ptr + jj*5*2*nb;*/
-		dlam[jj] = ptr + jj*5*2*nb + 2*nb;
-/*		t[jj]    = ptr + jj*5*2*nb + 2*2*nb;*/
-		dt[jj]   = ptr + jj*5*2*nb + 3*2*nb;
-		lamt[jj] = ptr + jj*5*2*nb + 4*2*nb;
+		dlam[jj] = ptr + jj*3*2*nb + 0*2*nb;
+		dt[jj]   = ptr + jj*3*2*nb + 1*2*nb;
+		lamt[jj] = ptr + jj*3*2*nb + 2*2*nb;
 		}
-/*	ptr += (N+1)*5*2*nb;*/
 	ptr += (N+1)*3*2*nb;
 	
 	double temp0, temp1;
@@ -141,42 +136,126 @@ void ip_d_box(int *kk, int k_max, double tol, double *sigma_par, double *stat, i
 /*	for(ll=2*nu; ll<2*nb; ll++)*/
 /*		t[N][ll] = 1;*/
 
-	double thr0 = 1e-3;
-	for(jj=0; jj<N; jj++)
+	if(warm_start==1)
 		{
-		for(ll=0; ll<2*nb; ll+=2)
+		double thr0 = 1e-3;
+		for(ll=0; ll<( nu<nb ? 2*nu : 2*nb); ll+=2)
 			{
-			t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
-			if(t[jj][ll+0] < thr0)
+			t[0][ll+0] = ux[0][ll/2] - lb[0][ll/2];
+			t[0][ll+1] = ub[0][ll/2] - ux[0][ll/2];
+			if(t[0][ll+0] < thr0)
 				{
-				t[jj][ll+0] = thr0;
-				ux[jj][ll/2] = lb[jj][ll/2] + thr0;
+				if(t[0][ll+1] < thr0)
+					{
+					ux[0][ll/2] = (ub[0][ll/2] - ub[0][ll/2])/2.0;
+					t[0][ll+0] = ux[0][ll/2] - lb[0][ll/2];
+					t[0][ll+1] = ub[0][ll/2] - ux[0][ll/2];
+					}
+				else
+					{
+					t[0][ll+0] = thr0;
+					ux[0][ll/2] = lb[0][ll/2] + thr0;
+					}
+				}
+			else if(t[0][ll+1] < thr0)
+				{
+				t[0][ll+1] = thr0;
+				ux[0][ll/2] = ub[0][ll/2] - thr0;
+				}
+			}
+		for(; ll<2*nb; ll++)
+			t[0][ll] = 1.0; // this has to be strictly positive !!!
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<2*nb; ll+=2)
+				{
+				t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
+				t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
+				if(t[jj][ll+0] < thr0)
+					{
+					if(t[jj][ll+1] < thr0)
+						{
+						ux[jj][ll/2] = (ub[jj][ll/2] - ub[jj][ll/2])/2.0;
+						t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
+						t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
+						}
+					else
+						{
+						t[jj][ll+0] = thr0;
+						ux[jj][ll/2] = lb[jj][ll/2] + thr0;
+						}
+					}
+				else if(t[jj][ll+1] < thr0)
+					{
+					t[jj][ll+1] = thr0;
+					ux[jj][ll/2] = ub[jj][ll/2] - thr0;
+					}
+				}
+			}
+		for(ll=0; ll<( nu<nb ? 2*nu : 2*nb); ll++) // this has to be strictly positive !!!
+			t[N][ll] = 1;
+		for(ll=2*nu; ll<2*nb; ll+=2)
+			{
+			t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
+			if(t[N][ll+0] < thr0)
+				{
+				t[N][ll+0] = thr0;
+				ux[N][ll/2] = lb[N][ll/2] + thr0;
 				}
 
-			t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
-			if(t[jj][ll+1] < thr0)
+			t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
+			if(t[N][ll+1] < thr0)
 				{
-				t[jj][ll+1] = thr0;
-				ux[jj][ll/2] = ub[jj][ll/2] - thr0;
+				t[N][ll+1] = thr0;
+				ux[N][ll/2] = ub[N][ll/2] - thr0;
 				}
 			}
 		}
-	for(ll=0; ll<2*nu; ll++) // this has to be strictly positive !!!
-		t[N][ll] = 1;
-	for(ll=2*nu; ll<2*nb; ll+=2)
+	else
 		{
-		t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
-		if(t[N][ll+0] < thr0)
+		double thr0 = 1e-6;
+		for(ll=0; ll<( nu<nb ? 2*nu : 2*nb); ll+=2)
 			{
-			t[N][ll+0] = thr0;
-			ux[N][ll/2] = lb[N][ll/2] + thr0;
+			ux[0][ll/2] = 0.0;
+			t[0][ll+0] = ux[0][ll/2] - lb[0][ll/2];
+			t[0][ll+1] = ub[0][ll/2] - ux[0][ll/2];
+			if(t[0][ll+0] < thr0 || t[0][ll+1] < thr0)
+				{
+				ux[0][ll/2] = (ub[0][ll/2] - lb[0][ll/2])/2.0;
+				t[0][ll+0] = ux[0][ll/2] - lb[0][ll/2];
+				t[0][ll+1] = ub[0][ll/2] - ux[0][ll/2];
+				}
 			}
-
-		t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
-		if(t[N][ll+1] < thr0)
+		for(; ll<2*nb; ll++)
+			t[0][ll] = 1.0; // this has to be strictly positive !!!
+		for(jj=1; jj<N; jj++)
 			{
-			t[N][ll+1] = thr0;
-			ux[N][ll/2] = ub[N][ll/2] - thr0;
+			for(ll=0; ll<2*nb; ll+=2)
+				{
+				ux[jj][ll/2] = 0.0;
+				t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
+				t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
+				if(t[jj][ll+0] < thr0 || t[jj][ll+1] < thr0)
+					{
+					ux[jj][ll/2] = (ub[jj][ll/2] - lb[jj][ll/2])/2.0;
+					t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
+					t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
+					}
+				}
+			}
+		for(ll=0; ll<( nu<nb ? 2*nu : 2*nb); ll++)
+			t[N][ll] = 1.0; // this has to be strictly positive !!!
+		for(ll=2*nu; ll<2*nb; ll+=2)
+			{
+			ux[N][ll/2] = 0.0;
+			t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
+			t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
+			if(t[N][ll+0] < thr0 || t[N][ll+1] < thr0)
+				{
+				ux[N][ll/2] = (ub[N][ll/2] - lb[N][ll/2])/2.0;
+				t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
+				t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
+				}
 			}
 		}
 
