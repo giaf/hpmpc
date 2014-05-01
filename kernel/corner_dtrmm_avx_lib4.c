@@ -146,7 +146,6 @@ void corner_dtrmm_pp_nt_8x1_lib4(double *A0, double *A1, double *B, double *C0, 
 	{
 	
 	__m256d
-		ab_temp,
 		a_00_10_20_30, a_40_50_60_70,
 		b_00,
 		c_00_10_20_30, c_40_50_60_70;
@@ -257,7 +256,6 @@ void corner_dtrmm_pp_nt_4x1_lib4(double *A, double *B, double *C, int ldc)
 	{
 	
 	__m256d
-		ab_temp,
 		a_00_10_20_30,
 		b_00,
 		c_00_10_20_30;

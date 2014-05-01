@@ -58,12 +58,12 @@ CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -DTARGET_X86_ATOM $(DEB
 endif
 
 obj: $(OBJS_TEST)
-	$(CC) -o test.out $(OBJS_TEST) -L. HPMPC.a $(LIBS) #-pg
+	$(CC) -o test.out $(OBJS_TEST) -L. libhpmpc.a $(LIBS) #-pg
 
 clean:
 	rm -f *.o
 	rm -f test.out
-	rm -f HPMPC.a
+	rm -f libhpmpc.a
 
 test_dricposv.o: test_dricposv.c test_param.h ../problem_size.h
 test_sricposv.o: test_sricposv.c test_param.h ../problem_size.h

@@ -39,6 +39,8 @@
 void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **lb, double **ub, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work, int *info)
 	{
 	
+/*printf("\ncazzo\n");*/
+
 /*	int nbx = nb - nu;*/
 /*	if(nbx<0)*/
 /*		nbx = 0;*/
@@ -266,7 +268,6 @@ void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 /*	for(ll=2*nu; ll<2*nb; ll++)*/
 /*		lam[N][ll] = 1;*/
 	
-
 	for(ll=0; ll<2*nbu; ll++)
 		lam[0][ll] = 1/t[0][ll];
 	for(; ll<2*nb; ll++)
@@ -309,6 +310,8 @@ void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 	for(ll=2*nu ; ll<2*nb; ll+=2)
 		mu += lam[N][ll+0] * t[N][ll+0] + lam[N][ll+1] * t[N][ll+1];
 	mu /= N*2*nb;// + 2*nbx;
+
+printf("\nmu = %f\n", mu);
 	
 	*kk = 0;	
 	
@@ -544,6 +547,7 @@ void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		stat[5*(*kk)+2] = mu;
 		
 
+printf("\nmu = %f\n", mu);
 
 
 

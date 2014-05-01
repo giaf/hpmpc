@@ -107,9 +107,9 @@ library:
 	make -C blas obj
 	make -C lqcp_solvers obj
 	make -C mpc_solvers obj
-	ar rcs HPMPC.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS)
+	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS)
 	@echo
-	@echo " HPMPC.a library build complete."
+	@echo " libhpmpc.a library build complete."
 	@echo
 
 codegenerator:
@@ -121,13 +121,13 @@ codegenerator:
 	touch ./codegen/sres_codegen.c 
 	make -C codegen obj
 	make -C mpc_solvers obj
-	ar rcs HPMPC.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS)
+	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS)
 	@echo
-	@echo " HPMPC.a code generator build complete."
+	@echo " libhpmpc.a code generator build complete."
 	@echo
 
 test_problem:
-	cp HPMPC.a ./test_problems/HPMPC.a
+	cp libhpmpc.a ./test_problems/libhpmpc.a
 #	cp HPMPC.a ./matlab/HPMPC.a
 	make -C test_problems obj
 	@echo
@@ -137,6 +137,14 @@ test_problem:
 run:
 	./test_problems/test.out
 
+install: library
+	cp libhpmpc.a /lib/libhpmpc.a
+	cp -r ./include /include/hpmpc
+	
+uninstall:
+	rm /lib/libhpmpc.a
+	rm -r /include/hpmpc
+	
 clean:
 	make -C auxiliary clean
 	make -C kernel clean
@@ -150,6 +158,6 @@ clean:
 	rm -f test.out
 	rm -f *.s
 	rm -f *.o
-	rm -f HPMPC.a
+	rm -f libhpmpc.a
 #	rm -f ./matlab/HPMPC.a
 

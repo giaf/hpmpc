@@ -68,7 +68,7 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 //	char cn = 'n';
 
 	int pp = nx/2; // number of masses
-	int mm = nu;   // number of forces
+/*	int mm = nu;   // number of forces*/
 	
 /************************************************
 * build the continuous time system 
@@ -157,12 +157,8 @@ int main()
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); // flush to zero subnormals !!! works only with one thread !!!
 #endif
 
-	int err;
+	int ii, jj, idx;
 	
-	int i, j, ii, jj, idx;
-	
-	double d1=1.0, d0=0.0, dm1=-1.0;
-
 	int rep, nrep=NREP;
 
 	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
@@ -319,8 +315,8 @@ int main()
 
 	double *work; d_zeros_align(&work, 2*((N+1)*(pnz*pnz+pnz+2*3*nb)+2*pnz*pnz), 1); // work space
 	int kk = 0; // acutal number of iterations
-	char prec = PREC; // double/single precision
-	double sp_thr = SP_THR; // threshold to switch between double and single precision
+/*	char prec = PREC; // double/single precision*/
+/*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
 	int k_max = K_MAX; // maximum number of iterations in the IP method
 	double tol = TOL; // tolerance in the duality measure
 	double sigma[] = {0.4, 0.3, 0.01}; // control primal-dual IP behaviour

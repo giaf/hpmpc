@@ -46,7 +46,7 @@ TARGET = X64_AVX
 CC = gcc
 
 # Common ptimization/debugging flags
-OPT = -O2
-DEBUG = #-pg #-Wall -pedantic
+OPT = -O2 
+DEBUG = -Wall -pedantic -Wfloat-equal
 LDFLAGS =
 
