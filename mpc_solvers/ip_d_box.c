@@ -143,7 +143,7 @@ void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 				{
 				if(t[0][ll+1] < thr0)
 					{
-					ux[0][ll/2] = (ub[0][ll/2] - ub[0][ll/2])/2.0;
+					ux[0][ll/2] = (ub[0][ll/2] + ub[0][ll/2])/2.0;
 					t[0][ll+0] = ux[0][ll/2] - lb[0][ll/2];
 					t[0][ll+1] = ub[0][ll/2] - ux[0][ll/2];
 					}
@@ -171,7 +171,7 @@ void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 					{
 					if(t[jj][ll+1] < thr0)
 						{
-						ux[jj][ll/2] = (ub[jj][ll/2] - ub[jj][ll/2])/2.0;
+						ux[jj][ll/2] = (ub[jj][ll/2] + ub[jj][ll/2])/2.0;
 						t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
 						t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
 						}
@@ -193,33 +193,61 @@ void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		for(ll=2*nu; ll<2*nb; ll+=2)
 			{
 			t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
+			t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
 			if(t[N][ll+0] < thr0)
 				{
-				t[N][ll+0] = thr0;
-				ux[N][ll/2] = lb[N][ll/2] + thr0;
+				if(t[N][ll+1] < thr0)
+					{
+					ux[N][ll/2] = (ub[N][ll/2] + ub[N][ll/2])/2.0;
+					t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
+					t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
+					}
+				else
+					{
+					t[N][ll+0] = thr0;
+					ux[N][ll/2] = lb[N][ll/2] + thr0;
+					}
 				}
-
-			t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
-			if(t[N][ll+1] < thr0)
+			else if(t[N][ll+1] < thr0)
 				{
 				t[N][ll+1] = thr0;
 				ux[N][ll/2] = ub[N][ll/2] - thr0;
 				}
 			}
+
+/*printf("\nt = \n");*/
+/*for(jj=0; jj<=N; jj++)*/
+/*	d_print_mat(1, 2*nb, t[jj], 1);*/
+
 		}
 	else
 		{
-		double thr0 = 1e-6;
+		double thr0 = 1e-3;
 		for(ll=0; ll<2*nbu; ll+=2)
 			{
 			ux[0][ll/2] = 0.0;
+/*			t[0][ll+0] = 1.0;*/
+/*			t[0][ll+1] = 1.0;*/
 			t[0][ll+0] = ux[0][ll/2] - lb[0][ll/2];
 			t[0][ll+1] = ub[0][ll/2] - ux[0][ll/2];
-			if(t[0][ll+0] < thr0 || t[0][ll+1] < thr0)
+			if(t[0][ll+0] < thr0)
 				{
-				ux[0][ll/2] = (ub[0][ll/2] - lb[0][ll/2])/2.0;
-				t[0][ll+0] = ux[0][ll/2] - lb[0][ll/2];
-				t[0][ll+1] = ub[0][ll/2] - ux[0][ll/2];
+				if(t[0][ll+1] < thr0)
+					{
+					ux[0][ll/2] = (ub[0][ll/2] + ub[0][ll/2])/2.0;
+					t[0][ll+0] = ux[0][ll/2] - lb[0][ll/2];
+					t[0][ll+1] = ub[0][ll/2] - ux[0][ll/2];
+					}
+				else
+					{
+					t[0][ll+0] = thr0;
+					ux[0][ll/2] = lb[0][ll/2] + thr0;
+					}
+				}
+			else if(t[0][ll+1] < thr0)
+				{
+				t[0][ll+1] = thr0;
+				ux[0][ll/2] = ub[0][ll/2] - thr0;
 				}
 			}
 		for(; ll<2*nb; ll++)
@@ -229,13 +257,28 @@ void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 			for(ll=0; ll<2*nb; ll+=2)
 				{
 				ux[jj][ll/2] = 0.0;
+/*				t[jj][ll+0] = 1.0;*/
+/*				t[jj][ll+1] = 1.0;*/
 				t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
 				t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
-				if(t[jj][ll+0] < thr0 || t[jj][ll+1] < thr0)
+				if(t[jj][ll+0] < thr0)
 					{
-					ux[jj][ll/2] = (ub[jj][ll/2] - lb[jj][ll/2])/2.0;
-					t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
-					t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
+					if(t[jj][ll+1] < thr0)
+						{
+						ux[jj][ll/2] = (ub[jj][ll/2] + ub[jj][ll/2])/2.0;
+						t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
+						t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
+						}
+					else
+						{
+						t[jj][ll+0] = thr0;
+						ux[jj][ll/2] = lb[jj][ll/2] + thr0;
+						}
+					}
+				else if(t[jj][ll+1] < thr0)
+					{
+					t[jj][ll+1] = thr0;
+					ux[jj][ll/2] = ub[jj][ll/2] - thr0;
 					}
 				}
 			}
@@ -244,15 +287,35 @@ void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		for(ll=2*nu; ll<2*nb; ll+=2)
 			{
 			ux[N][ll/2] = 0.0;
+/*			t[N][ll+0] = 1.0;*/
+/*			t[N][ll+1] = 1.0;*/
 			t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
 			t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
-			if(t[N][ll+0] < thr0 || t[N][ll+1] < thr0)
+			if(t[N][ll+0] < thr0)
 				{
-				ux[N][ll/2] = (ub[N][ll/2] - lb[N][ll/2])/2.0;
-				t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
-				t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
+				if(t[N][ll+1] < thr0)
+					{
+					ux[N][ll/2] = (ub[N][ll/2] + ub[N][ll/2])/2.0;
+					t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
+					t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
+					}
+				else
+					{
+					t[N][ll+0] = thr0;
+					ux[N][ll/2] = lb[N][ll/2] + thr0;
+					}
+				}
+			else if(t[N][ll+1] < thr0)
+				{
+				t[N][ll+1] = thr0;
+				ux[N][ll/2] = ub[N][ll/2] - thr0;
 				}
 			}
+
+/*printf("\nt = \n");*/
+/*for(jj=0; jj<=N; jj++)*/
+/*	d_print_mat(1, 2*nb, t[jj], 1);*/
+
 		}
 
 
@@ -348,12 +411,13 @@ void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 				}
 			}
 
+
 		for(jj=1; jj<N; jj++)
 			{
 
 			// copy Q in L
 			d_copy_pmat_lo(nz, dbs, pQ[jj], dsda, pL[jj], dsda);
-		
+
 			// box constraints
 			for(ii=0; ii<2*nb; ii+=2*dbs)
 				{
@@ -378,8 +442,10 @@ void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		// copy Q in L
 		d_copy_pmat_lo(nz, dbs, pQ[N], dsda, pL[N], dsda);
 	
+/*d_print_pmat(nz, nz, dbs, pL[N], dsda);*/
+
 		// box constraints
-		for(ii=2*nu; ii<2*nb; ii+=2*dbs)
+		for(ii=0*nu; ii<2*nb; ii+=2*dbs)
 			{
 			bs0 = 2*nb-ii;
 			if(2*dbs<bs0) bs0 = 2*dbs;
@@ -396,9 +462,10 @@ void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 				                       - lam[N][ii+ll+0] - lamt[N][ii+ll+0]*lb[N][ii/2+ll/2] - dlam[N][ii+ll+0];
 				}
 			}
+/*d_print_pmat(nz, nz, dbs, pL[N], dsda);*/
 
 
-			// compute the search direction: factorize and solve the KKT system
+		// compute the search direction: factorize and solve the KKT system
 		dricposv_mpc(nx, nu, N, dsda, pBAbt, pL, dux, pLt, pBAbtL, compute_mult, dpi, info);
 		if(*info!=0) return;
 
