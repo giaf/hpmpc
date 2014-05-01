@@ -311,7 +311,7 @@ void ip_d_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		mu += lam[N][ll+0] * t[N][ll+0] + lam[N][ll+1] * t[N][ll+1];
 	mu /= N*2*nb;// + 2*nbx;
 
-printf("\nmu = %f\n", mu);
+/*printf("\nmu = %f\n", mu);*/
 	
 	*kk = 0;	
 	
@@ -547,7 +547,7 @@ printf("\nmu = %f\n", mu);
 		stat[5*(*kk)+2] = mu;
 		
 
-printf("\nmu = %f\n", mu);
+/*printf("\nmu = %f\n", mu);*/
 
 
 
