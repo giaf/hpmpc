@@ -43,10 +43,12 @@ void dres_ip_box(int nx, int nu, int N, int nb, int sda, double **hpBAbt, double
 /*	int nz = nx+nu+1;*/
 	int nxu = nx+nu;
 	
+	int nbu = nu<nb ? nu : nb ;
+	
 	// first block
 	mu[0] = 0;
-	for(jj=0 ; jj<2*nb; jj+=2) mu[0] += hlam[0][jj+0] * ht[0][jj+0] + hlam[0][jj+1] * ht[0][jj+1];
-	for(jj=0; jj<2*nb; jj+=2) {	hrd[0][jj+0] = hux[0][jj/2] - hlb[0][jj/2] - ht[0][jj+0]; hrd[0][jj+1] = hub[0][jj/2] - hux[0][jj/2] - ht[0][jj+1]; }
+	for(jj=0 ; jj<2*nbu; jj+=2) mu[0] += hlam[0][jj+0] * ht[0][jj+0] + hlam[0][jj+1] * ht[0][jj+1];
+	for(jj=0; jj<2*nbu; jj+=2) { hrd[0][jj+0] = hux[0][jj/2] - hlb[0][jj/2] - ht[0][jj+0]; hrd[0][jj+1] = hub[0][jj/2] - hux[0][jj/2] - ht[0][jj+1]; }
 	for(jj=0; jj<nu; jj++) hrq[0][jj] = - hq[0][jj] + hlam[0][2*jj+0] - hlam[0][2*jj+1];
 	dgemv_p_t_lib(nx, nu, nu, hpQ[0]+(nu/bs)*bs*sda+nu%bs, sda, hux[0]+nu, hrq[0], -1);
 	dsymv_p_lib(nu, 0, hpQ[0], sda, hux[0], hrq[0], -1);
@@ -70,7 +72,7 @@ void dres_ip_box(int nx, int nu, int N, int nb, int sda, double **hpBAbt, double
 
 	// last block
 	for(jj=2*nu ; jj<2*nb; jj+=2) mu[0] += hlam[N][jj+0] * ht[N][jj+0] + hlam[N][jj+1] * ht[N][jj+1];
-	mu[0] /= N*2*nb + 2*nbx;
+	mu[0] /= N*2*nb; // + 2*nbx;
 	for(jj=2*nu; jj<2*nb; jj+=2) { hrd[N][jj+0] = hux[N][jj/2] - hlb[N][jj/2] - ht[N][jj+0]; hrd[N][jj+1] = hub[N][jj/2] - hux[N][jj/2] - ht[N][jj+1]; }
 	for(jj=0; jj<nx; jj++) hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj] + hlam[N][2*nu+2*jj+0] - hlam[N][2*nu+2*jj+1];
 	dsymv_p_lib(nx, nu, hpQ[N]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, hux[N]+nu, hrq[N]+nu, -1);
