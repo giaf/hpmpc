@@ -352,7 +352,7 @@ int main()
 	hux[0][nu+1] = xx0[1];
 
 	// call the IP solver
-	ip_d_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
+	d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
 
 
 
@@ -376,7 +376,7 @@ int main()
 		hux[0][nu+1] = xx0[2*idx+1];
 
 		// call the IP solver
-		ip_d_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
+		d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
 
 		}
 	
