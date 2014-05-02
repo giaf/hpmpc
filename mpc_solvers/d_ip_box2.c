@@ -39,11 +39,6 @@
 void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **lb, double **ub, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work, int *info)
 	{
 	
-/*printf("\ncazzo\n");*/
-
-/*	int nbx = nb - nu;*/
-/*	if(nbx<0)*/
-/*		nbx = 0;*/
 	int nbu = nu<nb ? nu : nb ;
 
 	// indeces
@@ -375,11 +370,10 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 				t_inv[0][ii+ll+1] = 1.0/t[0][ii+ll+1];
 				lamt[0][ii+ll+0] = lam[0][ii+ll+0]*t_inv[0][ii+ll+0];
 				lamt[0][ii+ll+1] = lam[0][ii+ll+1]*t_inv[0][ii+ll+1];
-/*				dlam[0][ii+ll+0] = temp0*(sigma*mu); // !!!!!*/
-/*				dlam[0][ii+ll+1] = temp1*(sigma*mu); // !!!!!*/
 				pL[0][ll/2+(ii+ll)/2*bs+ii/2*sda] += lamt[0][ii+ll+0] + lamt[0][ii+ll+1];
-				pl[0][(ii+ll)/2*bs] += lam[0][ii+ll+1] - lamt[0][ii+ll+1]*ub[0][ii/2+ll/2] //+ dlam[0][ii+ll+1] 
-				                       - lam[0][ii+ll+0] - lamt[0][ii+ll+0]*lb[0][ii/2+ll/2]; //- dlam[0][ii+ll+0];
+				pl[0][(ii+ll)/2*bs] += lam[0][ii+ll+1] - lamt[0][ii+ll+1]*ub[0][ii/2+ll/2]
+				                     - lam[0][ii+ll+0] - lamt[0][ii+ll+0]*lb[0][ii/2+ll/2];
+				pl2[0][(ii+ll)/2] = pl[0][(ii+ll)/2*bs]; // backup for correction step
 				}
 			}
 
@@ -401,11 +395,10 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 					t_inv[jj][ii+ll+1] = 1.0/t[jj][ii+ll+1];
 					lamt[jj][ii+ll+0] = lam[jj][ii+ll+0]*t_inv[jj][ii+ll+0];
 					lamt[jj][ii+ll+1] = lam[jj][ii+ll+1]*t_inv[jj][ii+ll+1];
-/*					dlam[jj][ii+ll+0] = temp0*(sigma*mu); // !!!!!*/
-/*					dlam[jj][ii+ll+1] = temp1*(sigma*mu); // !!!!!*/
 					pL[jj][ll/2+(ii+ll)/2*bs+ii/2*sda] += lamt[jj][ii+ll+0] + lamt[jj][ii+ll+1];
-					pl[jj][(ii+ll)/2*bs] += lam[jj][ii+ll+1] - lamt[jj][ii+ll+1]*ub[jj][ii/2+ll/2] //+ dlam[jj][ii+ll+1] 
-					                       - lam[jj][ii+ll+0] - lamt[jj][ii+ll+0]*lb[jj][ii/2+ll/2]; //- dlam[jj][ii+ll+0];
+					pl[jj][(ii+ll)/2*bs] += lam[jj][ii+ll+1] - lamt[jj][ii+ll+1]*ub[jj][ii/2+ll/2] 
+					                      - lam[jj][ii+ll+0] - lamt[jj][ii+ll+0]*lb[jj][ii/2+ll/2];
+					pl2[jj][(ii+ll)/2] = pl[jj][(ii+ll)/2*bs]; // backup for correction step
 					}
 				}
 
@@ -425,11 +418,10 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 				t_inv[N][ii+ll+1] = 1.0/t[N][ii+ll+1];
 				lamt[N][ii+ll+0] = lam[N][ii+ll+0]*t_inv[N][ii+ll+0];
 				lamt[N][ii+ll+1] = lam[N][ii+ll+1]*t_inv[N][ii+ll+1];
-/*				dlam[N][ii+ll+0] = temp0*(sigma*mu); // !!!!!*/
-/*				dlam[N][ii+ll+1] = temp1*(sigma*mu); // !!!!!*/
 				pL[N][ll/2+(ii+ll)/2*bs+ii/2*sda] += lamt[N][ii+ll+0] + lamt[N][ii+ll+1];
-				pl[N][(ii+ll)/2*bs] += lam[N][ii+ll+1] - lamt[N][ii+ll+1]*ub[N][ii/2+ll/2] //+ dlam[N][ii+ll+1] 
-				                       - lam[N][ii+ll+0] - lamt[N][ii+ll+0]*lb[N][ii/2+ll/2]; //- dlam[N][ii+ll+0];
+				pl[N][(ii+ll)/2*bs] += lam[N][ii+ll+1] - lamt[N][ii+ll+1]*ub[N][ii/2+ll/2] 
+				                     - lam[N][ii+ll+0] - lamt[N][ii+ll+0]*lb[N][ii/2+ll/2];
+				pl2[N][(ii+ll)/2] = pl[N][(ii+ll)/2*bs]; // backup for correction step
 				}
 			}
 
@@ -447,8 +439,6 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 			{
 			dt[0][ll+0] =   dux[0][ll/2] - lb[0][ll/2];
 			dt[0][ll+1] = - dux[0][ll/2] + ub[0][ll/2];
-/*			dlam[0][ll+0] -= lamt[0][ll+0] * dt[0][ll+0];*/
-/*			dlam[0][ll+1] -= lamt[0][ll+1] * dt[0][ll+1];*/
 			dlam[0][ll+0] = - lamt[0][ll+0] * dt[0][ll+0];
 			dlam[0][ll+1] = - lamt[0][ll+1] * dt[0][ll+1];
 			if( dlam[0][ll+0]<0 && -alpha*dlam[0][ll+0]>lam[0][ll+0] )
@@ -476,8 +466,6 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 				{
 				dt[jj][ll+0] =   dux[jj][ll/2] - lb[jj][ll/2];
 				dt[jj][ll+1] = - dux[jj][ll/2] + ub[jj][ll/2];
-/*				dlam[jj][ll+0] -= lamt[jj][ll+0] * dt[jj][ll+0];*/
-/*				dlam[jj][ll+1] -= lamt[jj][ll+1] * dt[jj][ll+1];*/
 				dlam[jj][ll+0] = - lamt[jj][ll+0] * dt[jj][ll+0];
 				dlam[jj][ll+1] = - lamt[jj][ll+1] * dt[jj][ll+1];
 				if( dlam[jj][ll+0]<0 && -alpha*dlam[jj][ll+0]>lam[jj][ll+0] )
@@ -504,8 +492,6 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 			{
 			dt[N][ll+0] =   dux[N][ll/2] - lb[N][ll/2];
 			dt[N][ll+1] = - dux[N][ll/2] + ub[N][ll/2];
-/*			dlam[N][ll+0] -= lamt[N][ll+0] * dt[N][ll+0];*/
-/*			dlam[N][ll+1] -= lamt[N][ll+1] * dt[N][ll+1];*/
 			dlam[N][ll+0] = - lamt[N][ll+0] * dt[N][ll+0];
 			dlam[N][ll+1] = - lamt[N][ll+1] * dt[N][ll+1];
 			if( dlam[N][ll+0]<0 && -alpha*dlam[N][ll+0]>lam[N][ll+0] )
@@ -565,7 +551,7 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 			{
 			dlam[0][ii+0] = t_inv[0][ii+0]*(sigma*mu - dlam[0][ii+0]*dt[0][ii+0]); // !!!!!
 			dlam[0][ii+1] = t_inv[0][ii+1]*(sigma*mu - dlam[0][ii+1]*dt[0][ii+1]); // !!!!!
-			pl2[0][ii/2*bs] += dlam[0][ii+1] - dlam[0][ii+0];
+			pl2[0][ii/2] += dlam[0][ii+1] - dlam[0][ii+0];
 			}
 
 		// middle stages
@@ -575,7 +561,7 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 				{
 				dlam[jj][ii+0] = t_inv[jj][ii+0]*(sigma*mu - dlam[jj][ii+0]*dt[jj][ii+0]); // !!!!!
 				dlam[jj][ii+1] = t_inv[jj][ii+1]*(sigma*mu - dlam[jj][ii+1]*dt[jj][ii+1]); // !!!!!
-				pl2[jj][ii/2*bs] += dlam[jj][ii+1] - dlam[jj][ii+0];
+				pl2[jj][ii/2] += dlam[jj][ii+1] - dlam[jj][ii+0];
 				}
 			}
 
@@ -584,18 +570,17 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 			{
 			dlam[jj][ii+0] = t_inv[jj][ii+0]*(sigma*mu - dlam[jj][ii+0]*dt[jj][ii+0]); // !!!!!
 			dlam[jj][ii+1] = t_inv[jj][ii+1]*(sigma*mu - dlam[jj][ii+1]*dt[jj][ii+1]); // !!!!!
-			pl2[jj][ii/2*bs] += dlam[jj][ii+1] - dlam[jj][ii+0];
+			pl2[jj][ii/2] += dlam[jj][ii+1] - dlam[jj][ii+0];
 			}
 
 
 
 		// solve the system
 		dricpotrs_mpc(nx, nu, N, sda, pBAbt, pL, pl2, dux, pBAbtL, compute_mult, dpi);
-/*		dricposv_mpc(nx, nu, N, sda, pBAbt, pL, dux, pLt, pBAbtL, compute_mult, dpi, info);*/
 
 
 
-		// compute t & dlam & dt & alpha
+/*		// compute t & dlam & dt & alpha*/
 		alpha = 1;
 		for(ll=0; ll<2*nbu; ll+=2)
 			{
@@ -603,8 +588,6 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 			dt[0][ll+1] = - dux[0][ll/2] + ub[0][ll/2];
 			dlam[0][ll+0] -= lamt[0][ll+0] * dt[0][ll+0];
 			dlam[0][ll+1] -= lamt[0][ll+1] * dt[0][ll+1];
-/*			dlam[0][ll+0] = - lamt[0][ll+0] * dt[0][ll+0];*/
-/*			dlam[0][ll+1] = - lamt[0][ll+1] * dt[0][ll+1];*/
 			if( dlam[0][ll+0]<0 && -alpha*dlam[0][ll+0]>lam[0][ll+0] )
 				{
 				alpha = - lam[0][ll+0] / dlam[0][ll+0];
@@ -632,8 +615,6 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 				dt[jj][ll+1] = - dux[jj][ll/2] + ub[jj][ll/2];
 				dlam[jj][ll+0] -= lamt[jj][ll+0] * dt[jj][ll+0];
 				dlam[jj][ll+1] -= lamt[jj][ll+1] * dt[jj][ll+1];
-/*				dlam[jj][ll+0] = - lamt[jj][ll+0] * dt[jj][ll+0];*/
-/*				dlam[jj][ll+1] = - lamt[jj][ll+1] * dt[jj][ll+1];*/
 				if( dlam[jj][ll+0]<0 && -alpha*dlam[jj][ll+0]>lam[jj][ll+0] )
 					{
 					alpha = - lam[jj][ll+0] / dlam[jj][ll+0];
@@ -660,8 +641,6 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 			dt[N][ll+1] = - dux[N][ll/2] + ub[N][ll/2];
 			dlam[N][ll+0] -= lamt[N][ll+0] * dt[N][ll+0];
 			dlam[N][ll+1] -= lamt[N][ll+1] * dt[N][ll+1];
-/*			dlam[N][ll+0] = - lamt[N][ll+0] * dt[N][ll+0];*/
-/*			dlam[N][ll+1] = - lamt[N][ll+1] * dt[N][ll+1];*/
 			if( dlam[N][ll+0]<0 && -alpha*dlam[N][ll+0]>lam[N][ll+0] )
 				{
 				alpha = - lam[N][ll+0] / dlam[N][ll+0];
@@ -743,9 +722,6 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 
 		stat[5*(*kk)+4] = mu;
 		
-
-/*printf("\nmu = %f\n", mu);*/
-
 
 
 		// update sigma
