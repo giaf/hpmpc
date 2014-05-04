@@ -44,7 +44,7 @@ int main()
 	// maximum flops per cycle, double precision
 #if defined(TARGET_X64_AVX)
 	const float d_flops_max = 8;
-#elif defined(TARGET_X64_SSE3)
+#elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	const float d_flops_max = 4;
 #elif defined(TARGET_CORTEXA9)
 	const float d_flops_max = 1;
@@ -64,7 +64,7 @@ int main()
 #if defined(TARGET_X64_AVX)
 	fprintf(f, "C = 'd_x64_avx';\n", GHz_max, d_flops_max);
 	fprintf(f, "\n");
-#elif defined(TARGET_X64_SSE3)
+#elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	fprintf(f, "C = 'd_x64_sse3';\n", GHz_max, d_flops_max);
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEXA9)

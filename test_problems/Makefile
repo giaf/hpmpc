@@ -41,6 +41,9 @@ endif
 ifeq ($(TARGET), X64_SSE3)
 CFLAGS = $(OPT) -std=c99 -msse3 -DTARGET_X64_SSE3 $(DEBUG)
 endif
+ifeq ($(TARGET), AMD_SSE3)
+CFLAGS = $(OPT) -std=c99 -msse3 -DTARGET_AMD_SSE3 $(DEBUG)
+endif
 ifeq ($(TARGET), NEON)
 CFLAGS = $(OPT) -std=c99 -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
 endif

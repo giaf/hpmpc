@@ -33,6 +33,10 @@ ifeq ($(TARGET), X64_SSE3)
 OBJS = dricposv.o sricposv.o dres.o sres.o
 CFLAGS = $(OPT) -std=c99 -msse3 -fPIC -DTARGET_X64_SSE3 $(DEBUG)
 endif
+ifeq ($(TARGET), AMD_SSE3)
+OBJS = dricposv.o sricposv.o dres.o sres.o
+CFLAGS = $(OPT) -std=c99 -msse3 -fPIC -DTARGET_AMD_SSE3 $(DEBUG)
+endif
 ifeq ($(TARGET), NEON)
 OBJS = dricposv.o sricposv.o dres.o sres.o
 CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
