@@ -84,7 +84,7 @@ CFLAGS = $(OPT) -std=c99 -fPIC -msse3 -mfpmath=sse -march=atom -DTARGET_X86_ATOM
 endif
 LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o ./lqcp_solvers/sres.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o  ./codegen/dres_codegen.o ./codegen/sres_codegen.o 
-MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/dres_ip_box.o ./mpc_solvers/d_ip_box2.o
+MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/dres_ip_box.o ./mpc_solvers/d_ip_box2.o ./mpc_solvers/s_ip_box.o
 
 all: clean library test_problem run
 

@@ -67,7 +67,8 @@ void kernel_dgemm_pp_nt_8x4_lib4(int kmax, double *A0, double *A1, double *B, do
 	for(k=0; k<kmax-3; k+=4)
 		{
 		
-/*	__builtin_prefetch( A+32 );*/
+/*	__builtin_prefetch( A0+16 );*/
+/*	__builtin_prefetch( A1+16 );*/
 		ab_temp       = _mm256_mul_pd( a_0123, b_0123 );
 		c_00_11_22_33 = _mm256_add_pd( c_00_11_22_33, ab_temp );
 		ab_temp       = _mm256_mul_pd( a_4567, b_0123 );
@@ -92,7 +93,6 @@ void kernel_dgemm_pp_nt_8x4_lib4(int kmax, double *A0, double *A1, double *B, do
 		c_42_53_60_71 = _mm256_add_pd( c_42_53_60_71, ab_temp );
 		
 		
-/*	__builtin_prefetch( A+40 );*/
 		ab_temp       = _mm256_mul_pd( a_0123, b_0123 );
 		c_00_11_22_33 = _mm256_add_pd( c_00_11_22_33, ab_temp );
 		ab_temp       = _mm256_mul_pd( a_4567, b_0123 );
@@ -117,7 +117,8 @@ void kernel_dgemm_pp_nt_8x4_lib4(int kmax, double *A0, double *A1, double *B, do
 		c_42_53_60_71 = _mm256_add_pd( c_42_53_60_71, ab_temp );
 
 
-/*	__builtin_prefetch( A+48 );*/
+/*	__builtin_prefetch( A0+24 );*/
+/*	__builtin_prefetch( A1+24 );*/
 		ab_temp       = _mm256_mul_pd( a_0123, b_0123 );
 		c_00_11_22_33 = _mm256_add_pd( c_00_11_22_33, ab_temp );
 		ab_temp       = _mm256_mul_pd( a_4567, b_0123 );
@@ -142,7 +143,6 @@ void kernel_dgemm_pp_nt_8x4_lib4(int kmax, double *A0, double *A1, double *B, do
 		c_42_53_60_71 = _mm256_add_pd( c_42_53_60_71, ab_temp );
 
 
-/*	__builtin_prefetch( A+56 );*/
 		ab_temp       = _mm256_mul_pd( a_0123, b_0123 );
 		c_00_11_22_33 = _mm256_add_pd( c_00_11_22_33, ab_temp );
 		ab_temp       = _mm256_mul_pd( a_4567, b_0123 );

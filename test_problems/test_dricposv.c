@@ -60,15 +60,15 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 
 	int nx2 = nx*nx;
 
-	double d0 = 0;
-	double d1 = 1;
-	double dm1 = -1;
-	int i1 = 1;
+/*	double d0 = 0;*/
+/*	double d1 = 1;*/
+/*	double dm1 = -1;*/
+/*	int i1 = 1;*/
 	int info = 0;
-	char cn = 'n';
+/*	char cn = 'n';*/
 
 	int pp = nx/2; // number of masses
-	int mm = nu;   // number of forces
+/*	int mm = nu;   // number of forces*/
 	
 /************************************************
 * build the continuous time system 
@@ -167,9 +167,9 @@ int main()
 
 	printf("\nnx\tnu\tN\tkernel\n\n");
 
-	int err;
+/*	int err;*/
 	
-	int i, j, ii, jj, idx;
+	int ii, jj;
 	
 	const int bsd = D_MR; //d_get_mr();
 	
@@ -198,7 +198,7 @@ int main()
 
 		int rep;
 /*		int nrep = 1000;//nnrep[ll];// nnrep[ll];*/
-		int nrep = nnrep[ll];// nnrep[ll];
+		int nrep = NREP; //nnrep[ll];// nnrep[ll];
 	
 		int nz = nx+nu+1;
 		int pnz = bsd*((nz+bsd-nu%bsd+bsd-1)/bsd);

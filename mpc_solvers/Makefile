@@ -25,7 +25,7 @@
 
 include ../Makefile.rule
 
-OBJS = d_ip_box.o dres_ip_box.o d_ip_box2.o
+OBJS = d_ip_box.o dres_ip_box.o d_ip_box2.o s_ip_box.o 
 
 ifeq ($(TARGET), X64_AVX)
 CFLAGS = $(OPT) -std=c99 -fPIC -mavx -DTARGET_X64_AVX $(DEBUG)
