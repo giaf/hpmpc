@@ -84,7 +84,7 @@ CFLAGS = $(OPT) -std=c99 -fPIC -msse3 -mfpmath=sse -march=atom -DTARGET_X86_ATOM
 endif
 LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/sricposv.o ./lqcp_solvers/dres.o ./lqcp_solvers/sres.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o  ./codegen/dres_codegen.o ./codegen/sres_codegen.o 
-MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/dres_ip_box.o ./mpc_solvers/d_ip_box2.o ./mpc_solvers/s_ip_box.o
+MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/dres_ip_box.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/sres_ip_box.o
 
 all: clean library test_problem run
 
@@ -127,9 +127,10 @@ test_problem:
 run:
 	./test_problems/test.out
 
-install: library
-	cp libhpmpc.a /lib/libhpmpc.a
-	cp -r ./include /include/hpmpc
+#install: library
+install:
+	cp -f libhpmpc.a /lib/libhpmpc.a
+	cp -rf ./include /include/hpmpc
 	
 uninstall:
 	rm /lib/libhpmpc.a

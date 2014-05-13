@@ -49,7 +49,7 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 /*	dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N], sda, pL, sda);*/
 	int nu4 = (nu/bs)*bs;
 	spotrf_p_scopy_p_t_lib(nz-nu4, nu%bs, hpQ[N]+nu4*(sda+bs), sda, pL, sda, info);
-	if(*info!=0) return;
+	if(*info!=0) { *info += 100*N; return; }
 
 /*s_print_pmat(nz, nz, bs, hpQ[N], sda);*/
 
@@ -62,7 +62,7 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 		ssyrk_ppp_lib(nz, nz, nx, pBAbtL, sda, hpQ[N-ii-1], sda);
 /*d_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
 		spotrf_p_scopy_p_t_lib(nz, nu, hpQ[N-ii-1], sda, pL, sda, info);
-		if(*info!=0) return;
+		if(*info!=0) { *info += 100*(N-ii-1); return; }
 /*s_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
 /*exit(3);*/
 		}
@@ -73,7 +73,7 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 	ssyrk_ppp_lib(nz, nu, nx, pBAbtL, sda, hpQ[0], sda);
 /*d_print_pmat(nz, nu, bs, hpQ[0], sda);*/
 	spotrf_p_lib(nz, nu, hpQ[0], sda, info);
-	if(*info!=0) return;
+	if(*info!=0) { *info += 100*0; return; }
 /*s_print_pmat(nz, nu, bs, hpQ[0], sda);*/
 
 /*exit(3);*/

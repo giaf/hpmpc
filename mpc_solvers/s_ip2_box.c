@@ -36,7 +36,7 @@
 
 
 /* primal-dual interior-point method, box constraints, time invariant matrices */
-void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **lb, double **ub, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work, int *info)
+void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, float *stat, int nx, int nu, int N, int nb, float **pBAbt, float **pQ, float **lb, float **ub, float **ux, int compute_mult, float **pi, float **lam, float **t, float *work, int *info)
 	{
 	
 	int nbu = nu<nb ? nu : nb ;
@@ -44,7 +44,7 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 	// indeces
 	int jj, ll, ii, bs0;
 
-	const int bs = D_MR; //d_get_mr();
+	const int bs = S_MR; //d_get_mr();
 	int sda = bs*((nx+nu+1+bs-nu%bs+bs-1)/bs); // second (orizontal) dimension of matrices
 	
 	// compound quantities
@@ -52,16 +52,16 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 	int nxu = nx+nu;
 	
 	// initialize work space
-	double *ptr;
+	float *ptr;
 	ptr = work;
 
-	double *(dux[N+1]);
-	double *(dpi[N+1]);
-	double *(pL[N+1]);
-	double *(pl[N+1]);
-	double *(pl2[N+1]);
-	double *pBAbtL;
-	double *pLt;
+	float *(dux[N+1]);
+	float *(dpi[N+1]);
+	float *(pL[N+1]);
+	float *(pl[N+1]);
+	float *(pl2[N+1]);
+	float *pBAbtL;
+	float *pLt;
 
 	// inputs and states
 	for(jj=0; jj<=N; jj++)
@@ -101,10 +101,10 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 		
 
 
-	double *(dlam[N+1]);
-	double *(dt[N+1]);
-	double *(lamt[N+1]);
-	double *(t_inv[N+1]);
+	float *(dlam[N+1]);
+	float *(dt[N+1]);
+	float *(lamt[N+1]);
+	float *(t_inv[N+1]);
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space
 	for(jj=0; jj<=N; jj++)
@@ -116,10 +116,10 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 		}
 	ptr += (N+1)*4*2*nb;
 	
-	double temp0, temp1;
-	double alpha, mu, mu_aff;
-	double mu_scal = 1.0/(N*2*nb);
-	double sigma, sigma_decay, sigma_min;
+	float temp0, temp1;
+	float alpha, mu, mu_aff;
+	float mu_scal = 1.0/(N*2*nb);
+	float sigma, sigma_decay, sigma_min;
 
 	sigma = sigma_par[0]; //0.4;
 	sigma_decay = sigma_par[1]; //0.3;
@@ -128,7 +128,7 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 	// initialize t>0 (slack variable)
 	if(warm_start==1)
 		{
-		double thr0 = 1e-3;
+		float thr0 = 1e-3;
 		for(ll=0; ll<2*nbu; ll+=2)
 			{
 			t[0][ll+0] = ux[0][ll/2] - lb[0][ll/2];
@@ -211,7 +211,7 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 		}
 	else
 		{
-		double thr0 = 1e-3;
+		float thr0 = 1e-3;
 		for(ll=0; ll<2*nbu; ll+=2)
 			{
 			ux[0][ll/2] = 0.0;
@@ -357,7 +357,7 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 
 		// first stage
 		// copy Q in L
-		d_copy_pmat_lo(nz, bs, pQ[0], sda, pL[0], sda);
+		s_copy_pmat_lo(nz, bs, pQ[0], sda, pL[0], sda);
 	
 		// box constraints
 		for(ii=0; ii<2*nbu; ii+=2*bs)
@@ -382,7 +382,7 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 			{
 
 			// copy Q in L
-			d_copy_pmat_lo(nz, bs, pQ[jj], sda, pL[jj], sda);
+			s_copy_pmat_lo(nz, bs, pQ[jj], sda, pL[jj], sda);
 
 			// box constraints
 			for(ii=0; ii<2*nb; ii+=2*bs)
@@ -405,7 +405,7 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 			}
 		// last stage
 		// copy Q in L
-		d_copy_pmat_lo(nz, bs, pQ[N], sda, pL[N], sda);
+		s_copy_pmat_lo(nz, bs, pQ[N], sda, pL[N], sda);
 	
 		// box constraints
 		for(ii=0*nu; ii<2*nb; ii+=2*bs)
@@ -428,7 +428,7 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 
 
 		// compute the search direction: factorize and solve the KKT system
-		dricposv_mpc(nx, nu, N, sda, pBAbt, pL, dux, pLt, pBAbtL, compute_mult, dpi, info);
+		sricposv_mpc(nx, nu, N, sda, pBAbt, pL, dux, pLt, pBAbtL, compute_mult, dpi, info);
 		if(*info!=0) return;
 
 
@@ -576,11 +576,11 @@ void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 
 
 		// solve the system
-		dricpotrs_mpc(nx, nu, N, sda, pBAbt, pL, pl2, dux, pBAbtL, compute_mult, dpi);
+		sricpotrs_mpc(nx, nu, N, sda, pBAbt, pL, pl2, dux, pBAbtL, compute_mult, dpi);
 
 
 
-/*		// compute t & dlam & dt & alpha*/
+		// compute t & dlam & dt & alpha
 		alpha = 1;
 		for(ll=0; ll<2*nbu; ll+=2)
 			{

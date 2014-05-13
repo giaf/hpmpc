@@ -43,11 +43,11 @@
 
 /*void openblas_set_num_threads(int num_threads);*/
 
-void dgesv_(int *n, int *nrhs, double *A, int *lda, int *ipiv, double *B, int *ldb, int *info);
-void dgemm_(char *transa, char *transb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc);
-void dcopy_(int *n, double *dx, int *incx, double *dy, int *incy);
-void daxpy_(int *n, double *da, double *dx, int *incx, double *dy, int *incy);
-void dscal_(int *n, double *da, double *dx, int *incx);
+/*void dgesv_(int *n, int *nrhs, double *A, int *lda, int *ipiv, double *B, int *ldb, int *info);*/
+/*void dgemm_(char *transa, char *transb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc);*/
+/*void dcopy_(int *n, double *dx, int *incx, double *dy, int *incy);*/
+/*void daxpy_(int *n, double *da, double *dx, int *incx, double *dy, int *incy);*/
+/*void dscal_(int *n, double *da, double *dx, int *incx);*/
 
 
 
@@ -352,8 +352,10 @@ int main()
 	hux[0][nu+1] = xx0[1];
 
 	// call the IP solver
-	d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
-/*	d_ip_box2(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);*/
+	if(IP==1)
+		d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
+	else
+		d_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
 
 
 
@@ -377,8 +379,10 @@ int main()
 		hux[0][nu+1] = xx0[2*idx+1];
 
 		// call the IP solver
-		d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
-/*		d_ip_box2(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);*/
+		if(IP==1)
+			d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
+		else
+			d_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
 
 		}
 	

@@ -39,6 +39,8 @@
 void s_ip_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, float *stat, int nx, int nu, int N, int nb, float **pBAbt, float **pQ, float **lb, float **ub, float **ux, int compute_mult, float **pi, float **lam, float **t, float *work, int *info)
 	{
 	
+/*printf("\ntol = %f\n", tol);*/
+
 /*printf("\ncazzo\n");*/
 
 /*	int nbx = nb - nu;*/
@@ -49,8 +51,8 @@ void s_ip_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, f
 	// indeces
 	int jj, ll, ii, bs0;
 
-	const int sbs = S_MR; //d_get_mr();
-	int ssda = sbs*((nx+nu+1+sbs-nu%sbs+sbs-1)/sbs); // second (orizontal) dimension of matrices
+	const int bs = S_MR; //d_get_mr();
+	int sda = bs*((nx+nu+1+bs-nu%bs+bs-1)/bs); // second (orizontal) dimension of matrices
 	
 	// compound quantities
 	int nz = nx+nu+1;
@@ -70,32 +72,32 @@ void s_ip_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, f
 	// inputs and states
 	for(jj=0; jj<=N; jj++)
 		{
-		dux[jj] = ptr+jj*ssda;
+		dux[jj] = ptr+jj*sda;
 		}
-	ptr += (N+1)*ssda;
+	ptr += (N+1)*sda;
 
 	// equality constr multipliers
 	for(jj=0; jj<=N; jj++)
 		{
-		dpi[jj] = ptr+jj*ssda;
+		dpi[jj] = ptr+jj*sda;
 		}
-	ptr += (N+1)*ssda;
+	ptr += (N+1)*sda;
 
 	// cost function
 	for(jj=0; jj<=N; jj++)
 		{
-		pL[jj] = ptr+jj*ssda*ssda;
-		pl[jj] = pL[jj] + nxu%sbs + (nxu/sbs)*sbs*ssda;
+		pL[jj] = ptr+jj*sda*sda;
+		pl[jj] = pL[jj] + nxu%bs + (nxu/bs)*bs*sda;
 		}
-	ptr += (N+1)*ssda*ssda;
+	ptr += (N+1)*sda*sda;
 
 	// work space
 	pBAbtL = ptr;
-	ptr += ssda*ssda;
+	ptr += sda*sda;
 
 	pLt = ptr;
-	ptr += ssda*ssda;
-	for(jj=0; jj<ssda*ssda; jj++)
+	ptr += sda*sda;
+	for(jj=0; jj<sda*sda; jj++)
 		pLt[jj] = 0.0;
 		
 
@@ -385,19 +387,19 @@ void s_ip_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, f
 	while( *kk<k_max && mu>tol )
 		{
 						
-
+/*printf("\n%d %f %f\n", mu>tol, mu, tol);*/
 
 		//update cost function matrices and vectors (box constraints)
 
 		// first stage
 		// copy Q in L
-		s_copy_pmat_lo(nz, sbs, pQ[0], ssda, pL[0], ssda);
+		s_copy_pmat_lo(nz, bs, pQ[0], sda, pL[0], sda);
 	
 		// box constraints
-		for(ii=0; ii<2*nbu; ii+=2*sbs)
+		for(ii=0; ii<2*nbu; ii+=2*bs)
 			{
 			bs0 = 2*nb-ii;
-			if(2*sbs<bs0) bs0 = 2*sbs;
+			if(2*bs<bs0) bs0 = 2*bs;
 			for(ll=0; ll<bs0; ll+=2)
 				{
 				temp0 = 1.0/t[0][ii+ll+0];
@@ -406,8 +408,8 @@ void s_ip_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, f
 				lamt[0][ii+ll+1] = lam[0][ii+ll+1]*temp1;
 				dlam[0][ii+ll+0] = temp0*(sigma*mu); // !!!!!
 				dlam[0][ii+ll+1] = temp1*(sigma*mu); // !!!!!
-				pL[0][ll/2+(ii+ll)/2*sbs+ii/2*ssda] += lamt[0][ii+ll+0] + lamt[0][ii+ll+1];
-				pl[0][(ii+ll)/2*sbs] += lam[0][ii+ll+1] - lamt[0][ii+ll+1]*ub[0][ii/2+ll/2] + dlam[0][ii+ll+1] 
+				pL[0][ll/2+(ii+ll)/2*bs+ii/2*sda] += lamt[0][ii+ll+0] + lamt[0][ii+ll+1];
+				pl[0][(ii+ll)/2*bs] += lam[0][ii+ll+1] - lamt[0][ii+ll+1]*ub[0][ii/2+ll/2] + dlam[0][ii+ll+1] 
 				                       - lam[0][ii+ll+0] - lamt[0][ii+ll+0]*lb[0][ii/2+ll/2] - dlam[0][ii+ll+0];
 				}
 			}
@@ -417,13 +419,13 @@ void s_ip_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, f
 			{
 
 			// copy Q in L
-			s_copy_pmat_lo(nz, sbs, pQ[jj], ssda, pL[jj], ssda);
+			s_copy_pmat_lo(nz, bs, pQ[jj], sda, pL[jj], sda);
 
 			// box constraints
-			for(ii=0; ii<2*nb; ii+=2*sbs)
+			for(ii=0; ii<2*nb; ii+=2*bs)
 				{
 				bs0 = 2*nb-ii;
-				if(2*sbs<bs0) bs0 = 2*sbs;
+				if(2*bs<bs0) bs0 = 2*bs;
 				for(ll=0; ll<bs0; ll+=2)
 					{
 					temp0 = 1.0/t[jj][ii+ll+0];
@@ -432,8 +434,8 @@ void s_ip_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, f
 					lamt[jj][ii+ll+1] = lam[jj][ii+ll+1]*temp1;
 					dlam[jj][ii+ll+0] = temp0*(sigma*mu); // !!!!!
 					dlam[jj][ii+ll+1] = temp1*(sigma*mu); // !!!!!
-					pL[jj][ll/2+(ii+ll)/2*sbs+ii/2*ssda] += lamt[jj][ii+ll+0] + lamt[jj][ii+ll+1];
-					pl[jj][(ii+ll)/2*sbs] += lam[jj][ii+ll+1] - lamt[jj][ii+ll+1]*ub[jj][ii/2+ll/2] + dlam[jj][ii+ll+1] 
+					pL[jj][ll/2+(ii+ll)/2*bs+ii/2*sda] += lamt[jj][ii+ll+0] + lamt[jj][ii+ll+1];
+					pl[jj][(ii+ll)/2*bs] += lam[jj][ii+ll+1] - lamt[jj][ii+ll+1]*ub[jj][ii/2+ll/2] + dlam[jj][ii+ll+1] 
 					                       - lam[jj][ii+ll+0] - lamt[jj][ii+ll+0]*lb[jj][ii/2+ll/2] - dlam[jj][ii+ll+0];
 					}
 				}
@@ -441,15 +443,15 @@ void s_ip_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, f
 			}
 		// last stage
 		// copy Q in L
-		s_copy_pmat_lo(nz, sbs, pQ[N], ssda, pL[N], ssda);
+		s_copy_pmat_lo(nz, bs, pQ[N], sda, pL[N], sda);
 	
-/*d_print_pmat(nz, nz, sbs, pL[N], ssda);*/
+/*d_print_pmat(nz, nz, bs, pL[N], sda);*/
 
 		// box constraints
-		for(ii=0*nu; ii<2*nb; ii+=2*sbs)
+		for(ii=0*nu; ii<2*nb; ii+=2*bs)
 			{
 			bs0 = 2*nb-ii;
-			if(2*sbs<bs0) bs0 = 2*sbs;
+			if(2*bs<bs0) bs0 = 2*bs;
 			for(ll=0; ll<bs0; ll+=2)
 				{
 				temp0 = 1.0/t[N][ii+ll+0];
@@ -458,17 +460,17 @@ void s_ip_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, f
 				lamt[N][ii+ll+1] = lam[N][ii+ll+1]*temp1;
 				dlam[N][ii+ll+0] = temp0*(sigma*mu); // !!!!!
 				dlam[N][ii+ll+1] = temp1*(sigma*mu); // !!!!!
-				pL[N][ll/2+(ii+ll)/2*sbs+ii/2*ssda] += lamt[N][ii+ll+0] + lamt[N][ii+ll+1];
-				pl[N][(ii+ll)/2*sbs] += lam[N][ii+ll+1] - lamt[N][ii+ll+1]*ub[N][ii/2+ll/2] + dlam[N][ii+ll+1] 
+				pL[N][ll/2+(ii+ll)/2*bs+ii/2*sda] += lamt[N][ii+ll+0] + lamt[N][ii+ll+1];
+				pl[N][(ii+ll)/2*bs] += lam[N][ii+ll+1] - lamt[N][ii+ll+1]*ub[N][ii/2+ll/2] + dlam[N][ii+ll+1] 
 				                       - lam[N][ii+ll+0] - lamt[N][ii+ll+0]*lb[N][ii/2+ll/2] - dlam[N][ii+ll+0];
 				}
 			}
-/*d_print_pmat(nz, nz, sbs, pL[N], ssda);*/
+/*d_print_pmat(nz, nz, bs, pL[N], sda);*/
 
 
 		// compute the search direction: factorize and solve the KKT system
-		sricposv_mpc(nx, nu, N, ssda, pBAbt, pL, dux, pLt, pBAbtL, compute_mult, dpi, info);
-		if(*info!=0) return;
+		sricposv_mpc(nx, nu, N, sda, pBAbt, pL, dux, pLt, pBAbtL, compute_mult, dpi, info);
+		if(*info!=0) {*info += 10000*(*kk); return; }
 
 
 		// compute t_aff & dlam_aff & dt_aff & alpha

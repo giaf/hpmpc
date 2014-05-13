@@ -205,6 +205,48 @@ void s_align_pmat(int row, int col, int offset, int bs, float *A, int sda, float
 
 
 
+/* converts a double matrix into a single packed matrix */
+void cvt_d2s_mat2pmat(int row, int col, int offset, int bs, double *A, int lda, float *pA, int sda)
+	{
+	
+	int i, ii, j, row0, row1, row2;
+
+	row0 = (bs-offset%bs)%bs;
+	if(row0>row)
+		row0 = row;
+	row1 = row - row0;
+	
+	if(row0>0)
+		{
+		for(j=0; j<col; j++)
+			{
+			for(i=0; i<row0; i++)
+				{
+				pA[i+j*bs] = (float) A[i+j*lda];
+				}
+			}
+	
+		A += row0;
+		pA += row0 + bs*(sda-1);
+		}
+
+	for(ii=0; ii<row1; ii+=bs)
+		{
+		row2 = row1-ii;
+		if(bs<row2) row2 = bs;
+		for(j=0; j<col; j++)
+			{
+			for(i=0; i<row2; i++)
+				{
+				pA[i+j*bs+ii*sda] = (float) A[i+ii+j*lda];
+				}
+			}
+		}
+	
+	}
+
+
+
 /* converts a matrix into a packed matrix */
 void s_cvt_mat2pmat(int row, int col, int offset, int bs, float *A, int lda, float *pA, int sda)
 	{
