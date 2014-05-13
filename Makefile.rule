@@ -48,6 +48,6 @@ CC = gcc
 
 # Common ptimization/debugging flags
 OPT = -O2 
-DEBUG = -Wall -pedantic -Wfloat-equal
+DEBUG = -Wall -pedantic -Wfloat-equal #-pg
 LDFLAGS =
 
