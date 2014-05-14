@@ -47,7 +47,7 @@ title(['test HPMPC BLAS'])
 xlabel('matrix size n')
 ylabel('Gflops')
 axis([0 B(end,1) 0 A(1)*A(2)])
-legend('gemm', 'syrk', 'trmm', 'potrf\_copy','gemv\_n', 'gemv\_t','trmv\_n', 'trmv\_t','trsv\_n', 'trsv\_t','symv', 'mvmv', 'Location', 'NorthEast')
+legend('gemm', 'syrk', 'trmm', 'potrf','gemv\_n', 'gemv\_t','trmv\_n', 'trmv\_t','trsv\_n', 'trsv\_t','symv', 'mvmv', 'Location', 'NorthEast')
 
 W = 6; H = 5;
 set(f1,'PaperUnits','inches')
