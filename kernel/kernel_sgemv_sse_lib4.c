@@ -103,6 +103,80 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		}
 
 	k = 0;
+	for(; k<ka-7; k+=8)
+		{
+		
+		x_03 = _mm_loadu_ps( &x[0] );
+
+		a_03_0 = _mm_load_ps( &A[0+lda*0] );
+		a_03_1 = _mm_load_ps( &A[0+lda*1] );
+		a_03_2 = _mm_load_ps( &A[0+lda*2] );
+		a_03_3 = _mm_load_ps( &A[0+lda*3] );
+		
+		a_03_0 = _mm_mul_ps( a_03_0, x_03 );
+		y_0    = _mm_add_ps( y_0, a_03_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_03 );
+		y_1    = _mm_add_ps( y_1, a_03_1 );
+		a_03_2 = _mm_mul_ps( a_03_2, x_03 );
+		y_2    = _mm_add_ps( y_2, a_03_2 );
+		a_03_3 = _mm_mul_ps( a_03_3, x_03 );
+		y_3    = _mm_add_ps( y_3, a_03_3 );
+		
+		a_03_0 = _mm_load_ps( &A[0+lda*4] );
+		a_03_1 = _mm_load_ps( &A[0+lda*5] );
+		a_03_2 = _mm_load_ps( &A[0+lda*6] );
+		a_03_3 = _mm_load_ps( &A[0+lda*7] );
+		
+		a_03_0 = _mm_mul_ps( a_03_0, x_03 );
+		y_4    = _mm_add_ps( y_4, a_03_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_03 );
+		y_5    = _mm_add_ps( y_5, a_03_1 );
+		a_03_2 = _mm_mul_ps( a_03_2, x_03 );
+		y_6    = _mm_add_ps( y_6, a_03_2 );
+		a_03_3 = _mm_mul_ps( a_03_3, x_03 );
+		y_7    = _mm_add_ps( y_7, a_03_3 );
+		
+		x += 4;
+		A += 4;
+
+		A += (sda-1)*lda;
+
+		x_03 = _mm_loadu_ps( &x[0] );
+
+		a_03_0 = _mm_load_ps( &A[0+lda*0] );
+		a_03_1 = _mm_load_ps( &A[0+lda*1] );
+		a_03_2 = _mm_load_ps( &A[0+lda*2] );
+		a_03_3 = _mm_load_ps( &A[0+lda*3] );
+		
+		a_03_0 = _mm_mul_ps( a_03_0, x_03 );
+		y_0    = _mm_add_ps( y_0, a_03_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_03 );
+		y_1    = _mm_add_ps( y_1, a_03_1 );
+		a_03_2 = _mm_mul_ps( a_03_2, x_03 );
+		y_2    = _mm_add_ps( y_2, a_03_2 );
+		a_03_3 = _mm_mul_ps( a_03_3, x_03 );
+		y_3    = _mm_add_ps( y_3, a_03_3 );
+		
+		a_03_0 = _mm_load_ps( &A[0+lda*4] );
+		a_03_1 = _mm_load_ps( &A[0+lda*5] );
+		a_03_2 = _mm_load_ps( &A[0+lda*6] );
+		a_03_3 = _mm_load_ps( &A[0+lda*7] );
+		
+		a_03_0 = _mm_mul_ps( a_03_0, x_03 );
+		y_4    = _mm_add_ps( y_4, a_03_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_03 );
+		y_5    = _mm_add_ps( y_5, a_03_1 );
+		a_03_2 = _mm_mul_ps( a_03_2, x_03 );
+		y_6    = _mm_add_ps( y_6, a_03_2 );
+		a_03_3 = _mm_mul_ps( a_03_3, x_03 );
+		y_7    = _mm_add_ps( y_7, a_03_3 );
+		
+		x += 4;
+		A += 4;
+
+		A += (sda-1)*lda;
+
+		}
 	for(; k<ka-3; k+=4)
 		{
 		
@@ -276,7 +350,7 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		}
 
 	k = 0;
-	for(; k<ka-3; k+=4)
+	for(; k<ka-7; k+=8)
 		{
 		
 		x_03 = _mm_loadu_ps( &x[0] );
@@ -295,6 +369,51 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		a_03_3 = _mm_mul_ps( a_03_3, x_03 );
 		y_3    = _mm_add_ps( y_3, a_03_3 );
 		
+		x += 4;
+		A += 4;
+
+		A += (sda-1)*lda;
+
+		x_03 = _mm_loadu_ps( &x[0] );
+
+		a_03_0 = _mm_load_ps( &A[0+lda*0] );
+		a_03_1 = _mm_load_ps( &A[0+lda*1] );
+		a_03_2 = _mm_load_ps( &A[0+lda*2] );
+		a_03_3 = _mm_load_ps( &A[0+lda*3] );
+		
+		a_03_0 = _mm_mul_ps( a_03_0, x_03 );
+		y_0    = _mm_add_ps( y_0, a_03_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_03 );
+		y_1    = _mm_add_ps( y_1, a_03_1 );
+		a_03_2 = _mm_mul_ps( a_03_2, x_03 );
+		y_2    = _mm_add_ps( y_2, a_03_2 );
+		a_03_3 = _mm_mul_ps( a_03_3, x_03 );
+		y_3    = _mm_add_ps( y_3, a_03_3 );
+		
+		x += 4;
+		A += 4;
+
+		A += (sda-1)*lda;
+
+		}
+	for(; k<ka-3; k+=4)
+		{
+		
+		x_03 = _mm_loadu_ps( &x[0] );
+
+		a_03_0 = _mm_load_ps( &A[0+lda*0] );
+		a_03_1 = _mm_load_ps( &A[0+lda*1] );
+		a_03_2 = _mm_load_ps( &A[0+lda*2] );
+		a_03_3 = _mm_load_ps( &A[0+lda*3] );
+		
+		a_03_0 = _mm_mul_ps( a_03_0, x_03 );
+		y_0    = _mm_add_ps( y_0, a_03_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_03 );
+		y_1    = _mm_add_ps( y_1, a_03_1 );
+		a_03_2 = _mm_mul_ps( a_03_2, x_03 );
+		y_2    = _mm_add_ps( y_2, a_03_2 );
+		a_03_3 = _mm_mul_ps( a_03_3, x_03 );
+		y_3    = _mm_add_ps( y_3, a_03_3 );
 		
 		x += 4;
 		A += 4;
@@ -560,6 +679,88 @@ void kernel_sgemv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, i
 	Y_47 = _mm_setzero_ps();	
 
 	k=0;
+	for(; k<kmax-7; k+=8)
+		{
+
+		x_0 = _mm_load1_ps( &x[0] );
+		x_1 = _mm_load1_ps( &x[1] );
+
+		a_03_0 = _mm_load_ps( &A0[0+lda*0] );
+		a_47_0 = _mm_load_ps( &A1[0+lda*0] );
+		a_03_1 = _mm_load_ps( &A0[0+lda*1] );
+		a_47_1 = _mm_load_ps( &A1[0+lda*1] );
+
+		a_03_0 = _mm_mul_ps( a_03_0, x_0 );
+		y_03   = _mm_add_ps( y_03, a_03_0 );
+		a_47_0 = _mm_mul_ps( a_47_0, x_0 );
+		y_47   = _mm_add_ps( y_47, a_47_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_1 );
+		Y_03   = _mm_add_ps( Y_03, a_03_1 );
+		a_47_1 = _mm_mul_ps( a_47_1, x_1 );
+		Y_47   = _mm_add_ps( Y_47, a_47_1 );
+
+
+		x_0 = _mm_load1_ps( &x[2] );
+		x_1 = _mm_load1_ps( &x[3] );
+
+		a_03_0 = _mm_load_ps( &A0[0+lda*2] );
+		a_47_0 = _mm_load_ps( &A1[0+lda*2] );
+		a_03_1 = _mm_load_ps( &A0[0+lda*3] );
+		a_47_1 = _mm_load_ps( &A1[0+lda*3] );
+
+		a_03_0 = _mm_mul_ps( a_03_0, x_0 );
+		y_03   = _mm_add_ps( y_03, a_03_0 );
+		a_47_0 = _mm_mul_ps( a_47_0, x_0 );
+		y_47   = _mm_add_ps( y_47, a_47_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_1 );
+		Y_03   = _mm_add_ps( Y_03, a_03_1 );
+		a_47_1 = _mm_mul_ps( a_47_1, x_1 );
+		Y_47   = _mm_add_ps( Y_47, a_47_1 );
+		
+		A0 += 4*lda;
+		A1 += 4*lda;
+		x  += 4;
+
+		x_0 = _mm_load1_ps( &x[0] );
+		x_1 = _mm_load1_ps( &x[1] );
+
+		a_03_0 = _mm_load_ps( &A0[0+lda*0] );
+		a_47_0 = _mm_load_ps( &A1[0+lda*0] );
+		a_03_1 = _mm_load_ps( &A0[0+lda*1] );
+		a_47_1 = _mm_load_ps( &A1[0+lda*1] );
+
+		a_03_0 = _mm_mul_ps( a_03_0, x_0 );
+		y_03   = _mm_add_ps( y_03, a_03_0 );
+		a_47_0 = _mm_mul_ps( a_47_0, x_0 );
+		y_47   = _mm_add_ps( y_47, a_47_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_1 );
+		Y_03   = _mm_add_ps( Y_03, a_03_1 );
+		a_47_1 = _mm_mul_ps( a_47_1, x_1 );
+		Y_47   = _mm_add_ps( Y_47, a_47_1 );
+
+
+		x_0 = _mm_load1_ps( &x[2] );
+		x_1 = _mm_load1_ps( &x[3] );
+
+		a_03_0 = _mm_load_ps( &A0[0+lda*2] );
+		a_47_0 = _mm_load_ps( &A1[0+lda*2] );
+		a_03_1 = _mm_load_ps( &A0[0+lda*3] );
+		a_47_1 = _mm_load_ps( &A1[0+lda*3] );
+
+		a_03_0 = _mm_mul_ps( a_03_0, x_0 );
+		y_03   = _mm_add_ps( y_03, a_03_0 );
+		a_47_0 = _mm_mul_ps( a_47_0, x_0 );
+		y_47   = _mm_add_ps( y_47, a_47_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_1 );
+		Y_03   = _mm_add_ps( Y_03, a_03_1 );
+		a_47_1 = _mm_mul_ps( a_47_1, x_1 );
+		Y_47   = _mm_add_ps( Y_47, a_47_1 );
+		
+		A0 += 4*lda;
+		A1 += 4*lda;
+		x  += 4;
+
+		}
 	for(; k<kmax-3; k+=4)
 		{
 
@@ -603,7 +804,6 @@ void kernel_sgemv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, i
 		x  += 4;
 
 		}
-
 	if(kmax%4>=2)
 		{
 
@@ -704,6 +904,62 @@ void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 	Y_03 = _mm_setzero_ps();	
 
 	k=0;
+	for(; k<kmax-7; k+=8)
+		{
+
+		x_0 = _mm_load1_ps( &x[0] );
+		x_1 = _mm_load1_ps( &x[1] );
+
+		a_03_0 = _mm_load_ps( &A[0+lda*0] );
+		a_03_1 = _mm_load_ps( &A[0+lda*1] );
+
+		a_03_0 = _mm_mul_ps( a_03_0, x_0 );
+		y_03   = _mm_add_ps( y_03, a_03_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_1 );
+		Y_03   = _mm_add_ps( Y_03, a_03_1 );
+
+
+		x_0 = _mm_load1_ps( &x[2] );
+		x_1 = _mm_load1_ps( &x[3] );
+
+		a_03_0 = _mm_load_ps( &A[0+lda*2] );
+		a_03_1 = _mm_load_ps( &A[0+lda*3] );
+
+		a_03_0 = _mm_mul_ps( a_03_0, x_0 );
+		y_03   = _mm_add_ps( y_03, a_03_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_1 );
+		Y_03   = _mm_add_ps( Y_03, a_03_1 );
+		
+		A += 4*lda;
+		x += 4;
+
+		x_0 = _mm_load1_ps( &x[0] );
+		x_1 = _mm_load1_ps( &x[1] );
+
+		a_03_0 = _mm_load_ps( &A[0+lda*0] );
+		a_03_1 = _mm_load_ps( &A[0+lda*1] );
+
+		a_03_0 = _mm_mul_ps( a_03_0, x_0 );
+		y_03   = _mm_add_ps( y_03, a_03_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_1 );
+		Y_03   = _mm_add_ps( Y_03, a_03_1 );
+
+
+		x_0 = _mm_load1_ps( &x[2] );
+		x_1 = _mm_load1_ps( &x[3] );
+
+		a_03_0 = _mm_load_ps( &A[0+lda*2] );
+		a_03_1 = _mm_load_ps( &A[0+lda*3] );
+
+		a_03_0 = _mm_mul_ps( a_03_0, x_0 );
+		y_03   = _mm_add_ps( y_03, a_03_0 );
+		a_03_1 = _mm_mul_ps( a_03_1, x_1 );
+		Y_03   = _mm_add_ps( Y_03, a_03_1 );
+		
+		A += 4*lda;
+		x += 4;
+
+		}
 	for(; k<kmax-3; k+=4)
 		{
 
@@ -734,7 +990,6 @@ void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 		x += 4;
 
 		}
-
 	if(kmax%4>=2)
 		{
 
