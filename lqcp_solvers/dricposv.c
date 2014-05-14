@@ -41,40 +41,27 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 	/* factorization and backward substitution */
 
 	/* final stage */
-/*	dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N], sda, pL, sda);*/
 	int nu4 = (nu/bs)*bs;
-	dpotrf_p_dcopy_p_t_lib(nz-nu4, nu%bs, hpQ[N]+nu4*(sda+bs), sda, pL, sda, info);
-/*	dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N], sda, pL, sda, info);*/
+	dpotrf_p_lib(nz-nu4, nu%bs, hpQ[N]+nu4*(sda+bs), sda, info);
 	if(*info!=0) return;
-
-/*d_print_pmat(nz, nz, bs, hpQ[N], sda);*/
-/*printf("\nciao\n");*/
-/*exit(3);*/
+	d_transpose_pmat_lo(nx, nu, hpQ[N]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, pL, sda);
 
 	/* middle stages */
 	for(ii=0; ii<N-1; ii++)
 		{	
-/*d_print_pmat(nz, nz, bs, hpBAbt[N-ii-1], sda);*/
 		dtrmm_ppp_lib(nz, nx, nu, hpBAbt[N-ii-1], sda, pL, sda, pBAbtL, sda);
-/*d_print_pmat(nz, nz, bs, pBAbtL, sda);*/
+		for(jj=0; jj<nx; jj++) pBAbtL[((nx+nu)/bs)*bs*sda+(nx+nu)%bs+jj*bs] += hpQ[N-ii][((nx+nu)/bs)*bs*sda+(nx+nu)%bs+(nu+jj)*bs];
 		dsyrk_ppp_lib(nz, nz, nx, pBAbtL, sda, hpQ[N-ii-1], sda);
-/*d_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
-		dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N-ii-1], sda, pL, sda, info);
+		dpotrf_p_lib(nz, nu, hpQ[N-ii-1], sda, info);
 		if(*info!=0) return;
-/*d_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
-/*exit(3);*/
+		d_transpose_pmat_lo(nx, nu, hpQ[N-ii-1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, pL, sda);
 		}
 
 	/* initial stage */
 	dtrmm_ppp_lib(nz, nx, nu, hpBAbt[0], sda, pL, sda, pBAbtL, sda);
-/*d_print_pmat(nz, nx, bs, pBAbtL, sda);*/
 	dsyrk_ppp_lib(nz, nu, nx, pBAbtL, sda, hpQ[0], sda);
-/*d_print_pmat(nz, nu, bs, hpQ[0], sda);*/
-	dpotrf_p_lib(nz, nu, hpQ[0], sda, info);
+	dpotrf_rec_p_lib(nz, nu, hpQ[0], sda, info);
 	if(*info!=0) return;
-/*d_print_pmat(nz, nu, bs, hpQ[0], sda);*/
-
-/*exit(3);*/
 
 	/* forward substitution */
 	for(ii=0; ii<N; ii++)
@@ -92,8 +79,6 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 			}
 		}
 	
-/*exit(3);*/
-
 	}
 
 
@@ -105,8 +90,6 @@ void dricpotrs_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ
 
 	int ii, jj;
 	
-/*	int nz = nx+nu+1;*/
-
 	/* backward substitution */
 	for(ii=0; ii<N; ii++)
 		{
@@ -117,8 +100,6 @@ void dricpotrs_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ
 		dgemv_p_n_lib(nx+nu, nx, 0, hpBAbt[N-ii-1], sda, pBAbtL+nu, hq[N-ii-1], 1);
 		dtrsv_p_n_lib(nu, hpQ[N-ii-1], sda, hq[N-ii-1]);
 		dgemv_p_n_lib(nx, nu, nu, hpQ[N-ii-1]+(nu/bs)*bs*sda+nu%bs, sda, hq[N-ii-1], hq[N-ii-1]+nu, -1);
-/*d_print_mat(1, nx+nu, hq[N-ii-1], 1);*/
-/*exit(2);*/
 		}
 
 

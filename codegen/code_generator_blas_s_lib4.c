@@ -48,8 +48,8 @@ void strmm_ppp_code_generator(FILE *f, int m, int n, int offset)
 	const int sdb = PNZ;
 	const int sdc = PNZ;
 
-	if(offset%bs!=0)
-fprintf(f, "	pB = pB+%d;\n", bs*sdb+bs*bs);
+/*	if(offset%bs!=0)*/
+/*fprintf(f, "	pB = pB+%d;\n", bs*sdb+bs*bs);*/
 	
 	i = 0;
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
@@ -95,12 +95,11 @@ fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], %d);\n", j*b
 			}
 		}
 
-	// add to the last row
-	for(j=0; j<n; j++)
-		{
-fprintf(f, "	pC[%d] += pB[%d];\n", (m-1)%bs+j*bs+((m-1)/bs)*bs*sdc, j%bs+n*bs+(j/bs)*bs*sdb);
-		
-		}
+/*	// add to the last row*/
+/*	for(j=0; j<n; j++)*/
+/*		{*/
+/*fprintf(f, "	pC[%d] += pB[%d];\n", (m-1)%bs+j*bs+((m-1)/bs)*bs*sdc, j%bs+n*bs+(j/bs)*bs*sdb);*/
+/*		}*/
 
 /*	fprintf(f, "	\n");*/
 
@@ -251,7 +250,7 @@ fprintf(f, "	kernel_sgemm_pp_nt_4x4_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 1);\
 
 /* computes the lower triangular Cholesky factor of pC, */
 /* and copies its transposed in pL                      */
-void spotrf_p_scopy_p_t_code_generator(FILE *f, int n, int nna)
+void spotrf_p_code_generator(FILE *f, int n, int nna)
 	{
 
 	int i, j;
@@ -266,7 +265,7 @@ void spotrf_p_scopy_p_t_code_generator(FILE *f, int n, int nna)
 	j = 0;
 	if(j<nna-3)
 		{
-fprintf(f, "	kernel_spotrf_strsv_4x4_lib4(%d, &pC[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc);
+fprintf(f, "	kernel_spotrf_strsv_4x4_lib4(%d, 4, &pC[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 	            	j += 4;     
 	            	for(; j<nna-3; j+=4)
@@ -282,14 +281,14 @@ fprintf(f, "	kernel_sgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d],
 	            			{     
 fprintf(f, "	kernel_sgemm_pp_nt_4x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
 	            			}     
-fprintf(f, "	kernel_spotrf_strsv_4x4_lib4(%d, &pC[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc);
+fprintf(f, "	kernel_spotrf_strsv_4x4_lib4(%d, 4, &pC[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 	            		}     
 		}
 	int j0 = j;
 	if(j==0) // assume that n>0
 		{
-fprintf(f, "	kernel_spotrf_strsv_scopy_4x4_lib4(%d, %d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", n-j-4, kinv, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	kernel_spotrf_strsv_4x4_lib4(%d, %d, &pC[%d], %d, info);\n", n-j-4, kinv, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 		kinv = 0;
 		j += 4;
@@ -307,7 +306,7 @@ fprintf(f, "	kernel_sgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d],
 			{
 fprintf(f, "	kernel_sgemm_pp_nt_4x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
 			}
-fprintf(f, "	kernel_spotrf_strsv_scopy_4x4_lib4(%d, %d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", n-j-4, kinv, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	kernel_spotrf_strsv_4x4_lib4(%d, %d, &pC[%d], %d, info);\n", n-j-4, kinv, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 		kinv = 0;
 		}
@@ -317,21 +316,21 @@ fprintf(f, "	if(*info!=0) return;\n");
 			{
 			i = j;
 fprintf(f, "	kernel_sgemm_pp_nt_4x1_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-fprintf(f, "	corner_spotrf_strsv_scopy_1x1_lib4(&pC[%d], %d, %d, &pL[%d], %d, info);\n", j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	corner_spotrf_strsv_1x1_lib4(&pC[%d], %d, info);\n", j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 			}
 		else if(n-j==2)
 			{
 			i = j;
 fprintf(f, "	kernel_sgemm_pp_nt_4x2_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-fprintf(f, "	corner_spotrf_strsv_scopy_2x2_lib4(%d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", kinv, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	corner_spotrf_strsv_2x2_lib4(%d, &pC[%d], %d, info);\n", kinv, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 			}
 		else if(n-j==3)
 			{
 			i = j;
 fprintf(f, "	kernel_sgemm_pp_nt_4x3_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-fprintf(f, "	corner_spotrf_strsv_scopy_3x3_lib4(%d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", kinv, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	corner_spotrf_strsv_3x3_lib4(%d, &pC[%d], %d, info);\n", kinv, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 			}
 		}
@@ -341,7 +340,7 @@ fprintf(f, "	if(*info!=0) return;\n");
 
 
 /* computes an mxn band of the lower triangular Cholesky factor of pC, supposed to be aligned */
-void spotrf_p_code_generator(FILE *f, int m, int n)
+void spotrf_rec_p_code_generator(FILE *f, int m, int n)
 	{
 
 	int i, j;
@@ -364,7 +363,7 @@ fprintf(f, "	kernel_sgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d],
 			{
 fprintf(f, "	kernel_sgemm_pp_nt_4x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
 			}
-fprintf(f, "	kernel_spotrf_strsv_4x4_lib4(%d, &pC[%d], %d, info);\n", m-j-4, j*bs+j*sdc, sdc);
+fprintf(f, "	kernel_spotrf_strsv_4x4_lib4(%d, 4, &pC[%d], %d, info);\n", m-j-4, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 		}
 	if(j<n)

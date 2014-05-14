@@ -102,8 +102,10 @@ void main()
 	fprintf(f, "	/* spotrf */\n");
 	fprintf(f, "	pC = hpQ[%d];\n", N);
 
-	spotrf_p_scopy_p_t_code_generator(f, nz, nu);
+	spotrf_p_code_generator(f, nz, nu);
 
+	fprintf(f, "	\n");
+	fprintf(f, "	s_transpose_pmat_lo(%d, %d, hpQ[%d]+%d, %d, pL, %d);\n", nx, nu, N, (nu/bs)*bs*sda+nu%bs+nu*bs, sda, sda);
 	fprintf(f, "	\n");
 	fprintf(f, "	/* middle stages */\n");
 	fprintf(f, "	for(ii=0; ii<N-1; ii++)\n");
@@ -117,6 +119,19 @@ void main()
 	strmm_ppp_code_generator(f, nz, nx, nu);
 
 	fprintf(f, "		\n");
+	fprintf(f, "		/* */\n");
+	fprintf(f, "		for(jj=0; jj<%d; jj+=4)\n", nx-3);
+	fprintf(f, "			{\n");
+	fprintf(f, "			pBAbtL[%d+%d*(jj+0)] += hpQ[%d-ii][%d+%d*(jj+%d)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, N, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+0);
+	fprintf(f, "			pBAbtL[%d+%d*(jj+1)] += hpQ[%d-ii][%d+%d*(jj+%d)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, N, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+1);
+	fprintf(f, "			pBAbtL[%d+%d*(jj+2)] += hpQ[%d-ii][%d+%d*(jj+%d)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, N, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+2);
+	fprintf(f, "			pBAbtL[%d+%d*(jj+3)] += hpQ[%d-ii][%d+%d*(jj+%d)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, N, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+3);
+	fprintf(f, "			}\n");
+	for(jj=0; jj<nx%4; jj++)
+		{
+	fprintf(f, "		pBAbtL[%d] += hpQ[%d-ii][%d];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*((nx/4)*4+jj), N, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*((nx/4)*4+nu+jj));
+		}
+	fprintf(f, "		\n");
 	fprintf(f, "		/* ssyrk */\n");
 	fprintf(f, "		pA = pBAbtL;\n");
 	fprintf(f, "		pC = hpQ[%d-ii];\n", N-1);
@@ -127,8 +142,10 @@ void main()
 	fprintf(f, "		/* spotrf */\n");
 	fprintf(f, "		pC = hpQ[%d-ii];\n", N-1);
 
-	spotrf_p_scopy_p_t_code_generator(f, nz, nu);
+	spotrf_p_code_generator(f, nz, nu);
 
+	fprintf(f, "		\n");
+	fprintf(f, "		s_transpose_pmat_lo(%d, %d, hpQ[%d-ii]+%d, %d, pL, %d);\n", nx, nu, N-1, (nu/bs)*bs*sda+nu%bs+nu*bs, sda, sda);
 	fprintf(f, "		\n");
 	fprintf(f, "		}\n");
 	fprintf(f, "	\n");
@@ -152,7 +169,7 @@ void main()
 	fprintf(f, "		/* spotrf */\n");
 	fprintf(f, "		pC = hpQ[%d-ii];\n", N-1);
 
-	spotrf_p_code_generator(f, nz, nu);
+	spotrf_rec_p_code_generator(f, nz, nu);
 
 	fprintf(f, "	\n");
 	fprintf(f, "	\n");

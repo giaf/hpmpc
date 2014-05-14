@@ -44,7 +44,7 @@ int main()
 	// maximum flops per cycle, single precision
 #if defined(TARGET_X64_AVX)
 	const float d_flops_max = 16;
-#elif defined(TARGET_X64_SSE3)
+#elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	const float d_flops_max = 8;
 #elif defined(TARGET_CORTEXA9)
 	const float d_flops_max = 4;
@@ -196,7 +196,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			spotrf_p_scopy_p_t_lib(n, 0, pD, pns, pL, pns, &info);
+			spotrf_p_lib(n, 0, pD, pns, &info);
 
 			}
 	
