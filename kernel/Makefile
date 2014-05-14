@@ -33,12 +33,12 @@ endif
 ifeq ($(TARGET), X64_SSE3)
 OBJS_DOUBLE = kernel_dgemm_sse3_lib4.o kernel_dpotrf_sse3_lib4.o kernel_dgemv_sse3_lib4.o corner_dtrmm_sse3_lib4.o corner_dpotrf_sse2_lib4.o kernel_dsymv_c99_lib4.o
 OBJS_SINGLE = kernel_sgemm_sse_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_sse_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_sse_lib4.o
-CFLAGS = $(OPT) -std=c99 -msse4 -fPIC -DTARGET_X64_SSE3 $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -msse3 -fPIC -DTARGET_X64_SSE3 $(DEBUG)
 endif
 ifeq ($(TARGET), AMD_SSE3)
 OBJS_DOUBLE = kernel_dgemm_amd_sse3_lib4.o kernel_dpotrf_sse3_lib4.o kernel_dgemv_sse3_lib4.o corner_dtrmm_sse3_lib4.o corner_dpotrf_sse2_lib4.o kernel_dsymv_c99_lib4.o
 OBJS_SINGLE = kernel_sgemm_sse_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_sse_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_sse_lib4.o
-CFLAGS = $(OPT) -std=c99 -msse4 -fPIC -DTARGET_AMD_SSE3 $(DEBUG)
+CFLAGS = $(OPT) -std=c99 -msse3 -fPIC -DTARGET_AMD_SSE3 $(DEBUG)
 endif
 ifeq ($(TARGET), NEON)
 OBJS_DOUBLE = kernel_dgemm_neon_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o corner_dtrmm_c99_lib4.o corner_dpotrf_c99_lib4.o kernel_dsymv_c99_lib4.o

@@ -25,9 +25,9 @@
 
 #include <mmintrin.h>
 #include <xmmintrin.h>  // SSE
-#include <emmintrin.h>  // SSE2
+/*#include <emmintrin.h>  // SSE2*/
 #include <pmmintrin.h>  // SSE3
-#include <smmintrin.h>  // SSE4
+/*#include <smmintrin.h>  // SSE4*/
 /*#include <immintrin.h>  // AVX*/
 
 
@@ -85,14 +85,20 @@ void kernel_ssymv_4_lib4(int kmax, int kna, float *A, int sda, float *x_n, float
 		
 		a_00 = _mm_load_ps( &A[0+bs*0] );
 		a_01 = _mm_load_ps( &A[0+bs*1] );
-		a_01 = _mm_blend_ps( zeros, a_01, 14 );
+/*		a_01 = _mm_blend_ps( zeros, a_01, 14 );*/
+		a_01 = _mm_move_ss( a_01, zeros );
 		a_02 = _mm_load_ps( &A[0+bs*2] );
-		a_02 = _mm_blend_ps( zeros, a_02, 12 );
+/*		a_02 = _mm_blend_ps( zeros, a_02, 12 );*/
+		a_02 = _mm_move_ss( a_02, zeros );
+		a_02 = _mm_shuffle_ps( a_02, a_02, 0xe0 );
 		a_03 = _mm_load_ps( &A[0+bs*3] );
-		a_03 = _mm_blend_ps( zeros, a_03, 8 );
+/*		a_03 = _mm_blend_ps( zeros, a_03, 8 );*/
+		a_03 = _mm_move_ss( a_03, zeros );
+		a_03 = _mm_shuffle_ps( a_03, a_03, 0xc0 );
 		
 		a_tmp = a_00;
-		a_tmp = _mm_blend_ps( zeros, a_tmp, 14 );
+/*		a_tmp = _mm_blend_ps( zeros, a_tmp, 14 );*/
+		a_tmp = _mm_move_ss( a_tmp, zeros );
 		a_00  = _mm_mul_ps( a_00, x_n_0 );
 		y_n_0 = _mm_add_ps( y_n_0, a_00 );
 		y_t_0 = _mm_mul_ps( a_tmp, x_t_0 );
@@ -100,7 +106,8 @@ void kernel_ssymv_4_lib4(int kmax, int kna, float *A, int sda, float *x_n, float
 /*		y_t_0 = _mm_add_ps( y_t_0, a_tmp );*/
 
 		a_tmp = a_01;
-		a_tmp = _mm_blend_ps( zeros, a_tmp, 12 );
+/*		a_tmp = _mm_blend_ps( zeros, a_tmp, 12 );*/
+		a_tmp = _mm_shuffle_ps( a_tmp, a_tmp, 0xe0 );
 		a_01  = _mm_mul_ps( a_01, x_n_1 );
 		y_n_0 = _mm_add_ps( y_n_0, a_01 );
 		y_t_1 = _mm_mul_ps( a_tmp, x_t_0 );
@@ -108,7 +115,8 @@ void kernel_ssymv_4_lib4(int kmax, int kna, float *A, int sda, float *x_n, float
 /*		y_t_1 = _mm_add_ps( y_t_1, a_tmp );*/
 
 		a_tmp = a_02;
-		a_tmp = _mm_blend_ps( zeros, a_tmp, 8 );
+/*		a_tmp = _mm_blend_ps( zeros, a_tmp, 8 );*/
+		a_tmp = _mm_shuffle_ps( a_tmp, a_tmp, 0xc0 );
 		a_02  = _mm_mul_ps( a_02, x_n_2 );
 		y_n_0 = _mm_add_ps( y_n_0, a_02 );
 		y_t_2 = _mm_mul_ps( a_tmp, x_t_0 );
