@@ -95,19 +95,17 @@ void d_copy_mat(int row, int col, double *A, int lda, double *B, int ldb)
 void d_copy_pmat(int row, int col, int bs_dummy, double *A, int sda, double *B, int sdb)
 	{
 	
-	const int bs = 4;
+	const int bs = 2;
 	
 	int i, ii, j, row2;
 	
 	ii = 0;
-	for(; ii<row-3; ii+=bs)
+	for(; ii<row-1; ii+=bs)
 		{
 		for(j=0; j<col; j++)
 			{
 			B[0+j*bs+ii*sdb] = A[0+j*bs+ii*sda];
 			B[1+j*bs+ii*sdb] = A[1+j*bs+ii*sda];
-			B[2+j*bs+ii*sdb] = A[2+j*bs+ii*sda];
-			B[3+j*bs+ii*sdb] = A[3+j*bs+ii*sda];
 			}
 		}
 	if(ii<row)
@@ -121,7 +119,7 @@ void d_copy_pmat(int row, int col, int bs_dummy, double *A, int sda, double *B, 
 				}
 			}
 		}
-	
+
 	}
 
 
@@ -130,20 +128,18 @@ void d_copy_pmat(int row, int col, int bs_dummy, double *A, int sda, double *B, 
 void d_copy_pmat_lo(int row, int bs_dummy, double *A, int sda, double *B, int sdb)
 	{
 	
-	const int bs = 4;
+	const int bs = 2;
 
 	int i, ii, j, row2, row0;
 	
 	ii = 0;
-	for(; ii<row-3; ii+=bs)
+	for(; ii<row-1; ii+=bs)
 		{
 		j = 0;
 		for(; j<ii; j++)
 			{
 			B[0+j*bs+ii*sdb] = A[0+j*bs+ii*sda];
 			B[1+j*bs+ii*sdb] = A[1+j*bs+ii*sda];
-			B[2+j*bs+ii*sdb] = A[2+j*bs+ii*sda];
-			B[3+j*bs+ii*sdb] = A[3+j*bs+ii*sda];
 			}
 		for(; j<ii+bs; j++)
 			{
@@ -178,7 +174,7 @@ void d_copy_pmat_lo(int row, int bs_dummy, double *A, int sda, double *B, int sd
 void d_transpose_pmat_lo(int row, int offset, double *A, int sda, double *B, int sdb)
 	{
 	
-	const int bs = 4;
+	const int bs = 2;
 
 /*	printf("\nbs = %d\trow = %d\n", bs, row);*/
 /*	printf("\nsda = %d\tsdb = %d\n", sda, sdb);*/
@@ -193,7 +189,7 @@ void d_transpose_pmat_lo(int row, int offset, double *A, int sda, double *B, int
 	double *pA, *pB;
 
 	jj = 0;
-	for(; jj<row-3; jj+=4)
+	for(; jj<row-1; jj+=2)
 		{
 		row1 = row - jj;
 		pA = A + jj*bs + jj*sda;
@@ -215,10 +211,10 @@ void d_transpose_pmat_lo(int row, int offset, double *A, int sda, double *B, int
 				}
 			pA += (sda-1)*bs;
 			}
-		row3 = row2 + 4;
+		row3 = row2 + 2;
 		if(row1<row3)
 			row3 = row1;
-		row2 = 4;
+		row2 = 2;
 		if(row1<row2)
 			row2 = row1;
 		for(; i<row2; i++)
@@ -234,44 +230,26 @@ void d_transpose_pmat_lo(int row, int offset, double *A, int sda, double *B, int
 			{
 			pB[0] = pA[0*bs];
 			pB[1] = pA[1*bs];
-			pB[2] = pA[2*bs];
-			pB[3] = pA[3*bs];
 			pA += 1;
 			pB += bs;
 			}
 		pA += (sda-1)*bs;
-		for(; i<row1-3; i+=4)
+		for(; i<row1-1; i+=2)
 			{
 			// buildin_prefetch
 			// unroll 0
 			pB[0+0*bs] = pA[0+0*bs];
 			pB[1+0*bs] = pA[0+1*bs];
-			pB[2+0*bs] = pA[0+2*bs];
-			pB[3+0*bs] = pA[0+3*bs];
 			// unroll 1
 			pB[0+1*bs] = pA[1+0*bs];
 			pB[1+1*bs] = pA[1+1*bs];
-			pB[2+1*bs] = pA[1+2*bs];
-			pB[3+1*bs] = pA[1+3*bs];
-			// unroll 2
-			pB[0+2*bs] = pA[2+0*bs];
-			pB[1+2*bs] = pA[2+1*bs];
-			pB[2+2*bs] = pA[2+2*bs];
-			pB[3+2*bs] = pA[2+3*bs];
-			// unroll 3
-			pB[0+3*bs] = pA[3+0*bs];
-			pB[1+3*bs] = pA[3+1*bs];
-			pB[2+3*bs] = pA[3+2*bs];
-			pB[3+3*bs] = pA[3+3*bs];
 			pA += sda*bs;
-			pB += 4*bs;
+			pB += 2*bs;
 			}
 		for(; i<row1; i++)
 			{
 			pB[0] = pA[0*bs];
 			pB[1] = pA[1*bs];
-			pB[2] = pA[2*bs];
-			pB[3] = pA[3*bs];
 			pA += 1;
 			pB += bs;
 			}
@@ -298,7 +276,7 @@ void d_transpose_pmat_lo(int row, int offset, double *A, int sda, double *B, int
 				}
 			pA += (sda-1)*bs;
 			}
-		row2 = 4;
+		row2 = 2;
 		if(row1<row2)
 			row2 = row1;
 		for(; i<row2; i++)
@@ -320,8 +298,8 @@ void d_transpose_pmat_lo(int row, int offset, double *A, int sda, double *B, int
 void d_align_pmat(int row, int col, int offset, int bs_dummy, double *A, int sda, double *B, int sdb)
 	{
 	
-	const int bs = 4;
-
+	const int bs = 2;
+	
 	int i, j;
 	
 	double *ptrA, *ptrB;
@@ -344,7 +322,7 @@ void d_align_pmat(int row, int col, int offset, int bs_dummy, double *A, int sda
 void d_cvt_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, int lda, double *pA, int sda)
 	{
 	
-	const int bs = 4;
+	const int bs = 2;
 
 	int i, ii, j, row0, row1, row2;
 	
@@ -369,14 +347,12 @@ void d_cvt_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, int l
 		}
 	
 	ii = 0;
-	for(; ii<row1-3; ii+=bs)
+	for(; ii<row1-1; ii+=bs)
 		{
 		for(j=0; j<col; j++)
 			{
 			pA[0+j*bs+ii*sda] = A[0+ii+j*lda];
 			pA[1+j*bs+ii*sda] = A[1+ii+j*lda];
-			pA[2+j*bs+ii*sda] = A[2+ii+j*lda];
-			pA[3+j*bs+ii*sda] = A[3+ii+j*lda];
 			}
 		}
 	if(ii<row1)
@@ -400,8 +376,8 @@ void d_cvt_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, int l
 void d_cvt_pmat2mat(int row, int col, int offset, int bs_dummy, double *pA, int sda, double *A, int lda)
 	{
 	
-	const int bs = 4;
-
+	const int bs = 2;
+	
 	int i, ii, jj;
 	
 	int row0 = (bs-offset%bs)%bs;

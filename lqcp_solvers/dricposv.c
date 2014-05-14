@@ -24,6 +24,7 @@
 **************************************************************************************************/
 
 #include "../include/blas_d.h"
+#include "../include/aux_d.h"
 #include "../include/block_size.h"
 
 
@@ -40,11 +41,18 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 
 	/* factorization and backward substitution */
 
+/*printf("\nbs = %d\n", bs);*/
+/*d_print_pmat(nz, nz, bs, hpQ[N], sda);*/
+
 	/* final stage */
 	int nu4 = (nu/bs)*bs;
 	dpotrf_p_lib(nz-nu4, nu%bs, hpQ[N]+nu4*(sda+bs), sda, info);
 	if(*info!=0) return;
 	d_transpose_pmat_lo(nx, nu, hpQ[N]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, pL, sda);
+
+/*d_print_pmat(nz, nz, bs, hpQ[N], sda);*/
+/*d_print_pmat(nx, nx, bs, pL, sda);*/
+/*exit(3);*/
 
 	/* middle stages */
 	for(ii=0; ii<N-1; ii++)

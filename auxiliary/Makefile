@@ -50,11 +50,11 @@ OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o block_size_c99_4x4.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_2X2)
-OBJS = aux_d_c99.o aux_s_c99.o block_size_c99_2x2.o
+OBJS = aux_d_c99_lib2.o aux_s_c99_lib2.o block_size_c99_2x2.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_2X2 $(DEBUG)
 endif
 ifeq ($(TARGET), X86_ATOM)
-OBJS = aux_d_c99.o aux_s_c99.o block_size_x86_atom.o
+OBJS = aux_d_c99_lib2.o aux_s_c99_lib2.o block_size_x86_atom.o
 CFLAGS = $(OPT) -std=c99 -fPIC -msse3 -mfpmath=sse -march=atom -DTARGET_X86_ATOM $(DEBUG)
 endif
 

@@ -26,6 +26,7 @@
 #include <stdlib.h>
 
 #include "../include/blas_s.h"
+#include "../include/aux_s.h"
 #include "../include/block_size.h"
 
 

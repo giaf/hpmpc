@@ -27,15 +27,11 @@
 
 
 
-void corner_spotrf_strsv_scopy_1x1_lib2(float *A, int sda, int shf, float *L, int sdl, int *info)
+void corner_spotrf_strsv_1x1_lib2(float *A, int sda, int *info)
 	{
 	
 	const int lda = 2;
 	
-	L += shf*(lda+1);
-	const int shfi = shf + lda - 4;
-	const int shfi0 = ((shfi+0)/lda)*lda*(sdl-1);
-
 	float
 		a_00;
 
@@ -45,7 +41,6 @@ void corner_spotrf_strsv_scopy_1x1_lib2(float *A, int sda, int shf, float *L, in
 	if( a_00 <= 0.0 ) { *info = 1; return; }
 	a_00 = sqrt( a_00 );
 	A[0+lda*0] = a_00;
-	L[0+0*lda+shfi0] = a_00;
 
 	}
 

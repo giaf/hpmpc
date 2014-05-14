@@ -69,14 +69,14 @@ BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_2X2)
-AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_c99_2x2.o 
+AUX_OBJS = ./auxiliary/aux_d_c99_lib2.o ./auxiliary/aux_s_c99_lib2.o ./auxiliary/block_size_c99_2x2.o 
 KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_c99_lib2.o ./kernel/kernel_dpotrf_c99_lib2.o ./kernel/kernel_dgemv_c99_lib2.o ./kernel/corner_dtrmm_c99_lib2.o ./kernel/corner_dpotrf_c99_lib2.o ./kernel/kernel_dsymv_c99_lib2.o
 KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_c99_lib2.o ./kernel/kernel_spotrf_c99_lib2.o ./kernel/kernel_sgemv_c99_lib2.o ./kernel/corner_strmm_c99_lib2.o ./kernel/corner_spotrf_c99_lib2.o ./kernel/kernel_ssymv_c99_lib2.o
 BLAS_OBJS = ./blas/blas_d_lib2.o ./blas/blas_s_lib2.o
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_2X2 $(DEBUG)
 endif
 ifeq ($(TARGET), X86_ATOM)
-AUX_OBJS = ./auxiliary/aux_d_c99.o ./auxiliary/aux_s_c99.o ./auxiliary/block_size_x86_atom.o 
+AUX_OBJS = ./auxiliary/aux_d_c99_lib2.o ./auxiliary/aux_s_c99_lib2.o ./auxiliary/block_size_x86_atom.o 
 KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_x86_atom_lib2.o ./kernel/kernel_dpotrf_c99_lib2.o ./kernel/kernel_dgemv_c99_lib2.o ./kernel/corner_dtrmm_c99_lib2.o ./kernel/corner_dpotrf_c99_lib2.o ./kernel/kernel_dsymv_c99_lib2.o
 KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_x86_atom_lib4.o ./kernel/kernel_spotrf_c99_lib4.o ./kernel/kernel_sgemv_x86_atom_lib4.o ./kernel/corner_strmm_c99_lib4.o ./kernel/corner_spotrf_c99_lib4.o ./kernel/kernel_ssymv_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib2.o ./blas/blas_s_lib4.o
