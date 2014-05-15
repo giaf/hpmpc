@@ -23,8 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void spotrf_p_scopy_p_t_code_generator(FILE *f, int n, int nna);
-void spotrf_p_code_generator(FILE *f, int m, int n);
+void spotrf_p_code_generator(FILE *f, int n, int nna);
+void spotrf_rec_p_code_generator(FILE *f, int m, int n);
 void strmm_ppp_code_generator(FILE *f, int m, int n, int offset);
 void ssyrk_ppp_code_generator(FILE *f, int m, int n, int k);
 void sgemv_p_n_code_generator(FILE *f, int n, int m, int offset, int alg);

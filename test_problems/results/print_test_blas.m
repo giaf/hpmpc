@@ -28,26 +28,26 @@
 test_blas
 
 f1 = figure()
-plot(B(:,1), B(:,2), 'b-x', 'LineWidth', 2)
+plot(B(:,1), B(:,2), 'b-x')%, 'LineWidth', 2)
 hold on
-plot(B(:,1), B(:,4), 'r-o', 'LineWidth', 2)
-plot(B(:,1), B(:,6), 'g-*', 'LineWidth', 2)
-plot(B(:,1), B(:,8), 'm-^', 'LineWidth', 2)
-plot(B(:,1), B(:,10), 'c-d', 'LineWidth', 2)
-plot(B(:,1), B(:,12), 'k-s', 'LineWidth', 2)
-plot(B(:,1), B(:,14), 'c-s', 'LineWidth', 2)
-plot(B(:,1), B(:,16), 'k-d', 'LineWidth', 2)
-plot(B(:,1), B(:,18), 'g-^', 'LineWidth', 2)
-plot(B(:,1), B(:,20), 'm-*', 'LineWidth', 2)
-plot(B(:,1), B(:,22), 'b-o', 'LineWidth', 2)
-plot(B(:,1), B(:,24), 'r-x', 'LineWidth', 2)
+plot(B(:,1), B(:,4), 'r-o')%, 'LineWidth', 2)
+plot(B(:,1), B(:,6), 'g-*')%, 'LineWidth', 2)
+plot(B(:,1), B(:,8), 'm-^')%, 'LineWidth', 2)
+plot(B(:,1), B(:,10), 'c-d')%, 'LineWidth', 2)
+plot(B(:,1), B(:,12), 'k-s')%, 'LineWidth', 2)
+plot(B(:,1), B(:,14), 'c-s')%, 'LineWidth', 2)
+plot(B(:,1), B(:,16), 'k-d')%, 'LineWidth', 2)
+plot(B(:,1), B(:,18), 'g-^')%, 'LineWidth', 2)
+plot(B(:,1), B(:,20), 'm-*')%, 'LineWidth', 2)
+plot(B(:,1), B(:,22), 'b-o')%, 'LineWidth', 2)
+plot(B(:,1), B(:,24), 'r-x')%, 'LineWidth', 2)
 hold off
 
 title(['test HPMPC BLAS'])
 xlabel('matrix size n')
 ylabel('Gflops')
 axis([0 B(end,1) 0 A(1)*A(2)])
-legend('gemm', 'syrk', 'trmm', 'potrf\_copy','gemv\_n', 'gemv\_t','trmv\_n', 'trmv\_t','trsv\_n', 'trsv\_t','symv', 'mvmv', 'Location', 'NorthEast')
+legend('gemm', 'syrk', 'trmm', 'potrf','gemv\_n', 'gemv\_t','trmv\_n', 'trmv\_t','trsv\_n', 'trsv\_t','symv', 'mvmv', 'Location', 'NorthEast')
 
 W = 6; H = 5;
 set(f1,'PaperUnits','inches')

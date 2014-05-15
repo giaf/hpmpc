@@ -92,15 +92,27 @@ void s_copy_mat(int row, int col, float *A, int lda, float *B, int ldb)
 
 
 /* copies a packed matrix */
-void s_copy_pmat(int row, int col, int bs, float *A, int sda, float *B, int sdb)
+void s_copy_pmat(int row, int col, int bs_dummy, float *A, int sda, float *B, int sdb)
 	{
+	
+	const int bs = 4;
 	
 	int i, ii, j, row2;
 	
-	for(ii=0; ii<row; ii+=bs)
+	ii = 0;
+	for(; ii<row-3; ii+=4)
+		{
+		for(j=0; j<col; j++)
+			{
+			B[0+j*bs+ii*sdb] = A[0+j*bs+ii*sda];
+			B[1+j*bs+ii*sdb] = A[1+j*bs+ii*sda];
+			B[2+j*bs+ii*sdb] = A[2+j*bs+ii*sda];
+			B[3+j*bs+ii*sdb] = A[3+j*bs+ii*sda];
+			}
+		}
+	if(ii<row)
 		{
 		row2 = row-ii;
-		if(bs<row2) row2 = bs;
 		for(j=0; j<col; j++)
 			{
 			for(i=0; i<row2; i++)
@@ -115,12 +127,35 @@ void s_copy_pmat(int row, int col, int bs, float *A, int sda, float *B, int sdb)
 
 
 /* copies a lower triangular packed matrix */
-void s_copy_pmat_lo(int row, int bs, float *A, int sda, float *B, int sdb)
+void s_copy_pmat_lo(int row, int bs_dummy, float *A, int sda, float *B, int sdb)
 	{
 	
+	const int bs = 4;
+
 	int i, ii, j, row2, row0;
 	
-	for(ii=0; ii<row; ii+=bs)
+	ii = 0;
+	for(; ii<row-3; ii+=bs)
+		{
+		j = 0;
+		for(; j<ii; j++)
+			{
+			B[0+j*bs+ii*sdb] = A[0+j*bs+ii*sda];
+			B[1+j*bs+ii*sdb] = A[1+j*bs+ii*sda];
+			B[2+j*bs+ii*sdb] = A[2+j*bs+ii*sda];
+			B[3+j*bs+ii*sdb] = A[3+j*bs+ii*sda];
+			}
+		for(; j<ii+bs; j++)
+			{
+			row0 = j-ii;
+			if(row0<0) row0=0;
+			for(i=row0; i<bs; i++)
+				{
+				B[i+j*bs+ii*sdb] = A[i+j*bs+ii*sda];
+				}
+			}
+		}
+	for(; ii<row; ii+=bs)
 		{
 		row2 = row-ii;
 		if(bs<row2) row2 = bs;
@@ -132,6 +167,148 @@ void s_copy_pmat_lo(int row, int bs, float *A, int sda, float *B, int sdb)
 				{
 				B[i+j*bs+ii*sdb] = A[i+j*bs+ii*sda];
 				}
+			}
+		}
+	
+	}
+
+
+
+/* transposes a lower triangular packed matrix */
+void s_transpose_pmat_lo(int row, int offset, float *A, int sda, float *B, int sdb)
+	{
+	
+	const int bs = 4;
+
+/*	printf("\nbs = %d\trow = %d\n", bs, row);*/
+/*	printf("\nsda = %d\tsdb = %d\n", sda, sdb);*/
+	
+	int i, j, jj;
+	
+	int row0, row1, row2, row3;
+	row0 = (bs-offset%bs)%bs; // row2 < bs !!!
+/*	if(row<row2)*/
+/*		row2 = row;*/
+	
+	float *pA, *pB;
+
+	jj = 0;
+	for(; jj<row-3; jj+=4)
+		{
+		row1 = row - jj;
+		pA = A + jj*bs + jj*sda;
+		pB = B + jj*bs + jj*sdb;
+		row2 = row0; // row2 < bs !!!
+		if(row1<row2)
+			row2 = row1;
+		i = 0;
+		if(row2>0)
+			{
+			for(; i<row2; i++)
+				{
+				for(j=0; j<=i; j++)
+					{
+					pB[j] = pA[j*bs];
+					}
+				pA += 1;
+				pB += bs;
+				}
+			pA += (sda-1)*bs;
+			}
+		row3 = row2 + 4;
+		if(row1<row3)
+			row3 = row1;
+		row2 = 4;
+		if(row1<row2)
+			row2 = row1;
+		for(; i<row2; i++)
+			{
+			for(j=0; j<=i; j++)
+				{
+				pB[j] = pA[j*bs];
+				}
+			pA += 1;
+			pB += bs;
+			}
+		for(; i<row3; i++)
+			{
+			pB[0] = pA[0*bs];
+			pB[1] = pA[1*bs];
+			pB[2] = pA[2*bs];
+			pB[3] = pA[3*bs];
+			pA += 1;
+			pB += bs;
+			}
+		pA += (sda-1)*bs;
+		for(; i<row1-3; i+=4)
+			{
+			// buildin_prefetch
+			// unroll 0
+			pB[0+0*bs] = pA[0+0*bs];
+			pB[1+0*bs] = pA[0+1*bs];
+			pB[2+0*bs] = pA[0+2*bs];
+			pB[3+0*bs] = pA[0+3*bs];
+			// unroll 1
+			pB[0+1*bs] = pA[1+0*bs];
+			pB[1+1*bs] = pA[1+1*bs];
+			pB[2+1*bs] = pA[1+2*bs];
+			pB[3+1*bs] = pA[1+3*bs];
+			// unroll 2
+			pB[0+2*bs] = pA[2+0*bs];
+			pB[1+2*bs] = pA[2+1*bs];
+			pB[2+2*bs] = pA[2+2*bs];
+			pB[3+2*bs] = pA[2+3*bs];
+			// unroll 3
+			pB[0+3*bs] = pA[3+0*bs];
+			pB[1+3*bs] = pA[3+1*bs];
+			pB[2+3*bs] = pA[3+2*bs];
+			pB[3+3*bs] = pA[3+3*bs];
+			pA += sda*bs;
+			pB += 4*bs;
+			}
+		for(; i<row1; i++)
+			{
+			pB[0] = pA[0*bs];
+			pB[1] = pA[1*bs];
+			pB[2] = pA[2*bs];
+			pB[3] = pA[3*bs];
+			pA += 1;
+			pB += bs;
+			}
+		}
+	if(jj<row)
+		{
+		row1 = row - jj;
+		pA = A + jj*bs + jj*sda;
+		pB = B + jj*bs + jj*sdb;
+		row2 = row0; // row2 < bs !!!
+		if(row1<row2)
+			row2 = row1;
+		i = 0;
+		if(row2>0)
+			{
+			for(; i<row2; i++)
+				{
+				for(j=0; j<=i; j++)
+					{
+					pB[j] = pA[j*bs];
+					}
+				pA += 1;
+				pB += bs;
+				}
+			pA += (sda-1)*bs;
+			}
+		row2 = 4;
+		if(row1<row2)
+			row2 = row1;
+		for(; i<row2; i++)
+			{
+			for(j=0; j<=i; j++)
+				{
+				pB[j] = pA[j*bs];
+				}
+			pA += 1;
+			pB += bs;
 			}
 		}
 	
@@ -206,31 +383,45 @@ void s_align_pmat(int row, int col, int offset, int bs, float *A, int sda, float
 
 
 /* converts a double matrix into a single packed matrix */
-void cvt_d2s_mat2pmat(int row, int col, int offset, int bs, double *A, int lda, float *pA, int sda)
+void cvt_d2s_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, int lda, float *pA, int sda)
 	{
 	
-	int i, ii, j, row0, row1, row2;
+	const int bs = 4;
 
+	int i, ii, j, row0, row1, row2;
+	
 	row0 = (bs-offset%bs)%bs;
 	if(row0>row)
 		row0 = row;
 	row1 = row - row0;
 	
+	ii = 0;
 	if(row0>0)
 		{
 		for(j=0; j<col; j++)
 			{
 			for(i=0; i<row0; i++)
 				{
-				pA[i+j*bs] = (float) A[i+j*lda];
+				pA[i+j*bs+ii*sda] = (float) A[i+ii+j*lda];
 				}
 			}
 	
-		A += row0;
+		A  += row0;
 		pA += row0 + bs*(sda-1);
 		}
-
-	for(ii=0; ii<row1; ii+=bs)
+	
+	ii = 0;
+	for(; ii<row1-3; ii+=bs)
+		{
+		for(j=0; j<col; j++)
+			{
+			pA[0+j*bs+ii*sda] = (float) A[0+ii+j*lda];
+			pA[1+j*bs+ii*sda] = (float) A[1+ii+j*lda];
+			pA[2+j*bs+ii*sda] = (float) A[2+ii+j*lda];
+			pA[3+j*bs+ii*sda] = (float) A[3+ii+j*lda];
+			}
+		}
+	if(ii<row1)
 		{
 		row2 = row1-ii;
 		if(bs<row2) row2 = bs;
@@ -248,31 +439,45 @@ void cvt_d2s_mat2pmat(int row, int col, int offset, int bs, double *A, int lda, 
 
 
 /* converts a matrix into a packed matrix */
-void s_cvt_mat2pmat(int row, int col, int offset, int bs, float *A, int lda, float *pA, int sda)
+void s_cvt_mat2pmat(int row, int col, int offset, int bs_dummy, float *A, int lda, float *pA, int sda)
 	{
 	
-	int i, ii, j, row0, row1, row2;
+	const int bs = 4;
 
+	int i, ii, j, row0, row1, row2;
+	
 	row0 = (bs-offset%bs)%bs;
 	if(row0>row)
 		row0 = row;
 	row1 = row - row0;
 	
+	ii = 0;
 	if(row0>0)
 		{
 		for(j=0; j<col; j++)
 			{
 			for(i=0; i<row0; i++)
 				{
-				pA[i+j*bs] = A[i+j*lda];
+				pA[i+j*bs+ii*sda] = A[i+ii+j*lda];
 				}
 			}
 	
-		A += row0;
+		A  += row0;
 		pA += row0 + bs*(sda-1);
 		}
-
-	for(ii=0; ii<row1; ii+=bs)
+	
+	ii = 0;
+	for(; ii<row1-3; ii+=bs)
+		{
+		for(j=0; j<col; j++)
+			{
+			pA[0+j*bs+ii*sda] = A[0+ii+j*lda];
+			pA[1+j*bs+ii*sda] = A[1+ii+j*lda];
+			pA[2+j*bs+ii*sda] = A[2+ii+j*lda];
+			pA[3+j*bs+ii*sda] = A[3+ii+j*lda];
+			}
+		}
+	if(ii<row1)
 		{
 		row2 = row1-ii;
 		if(bs<row2) row2 = bs;

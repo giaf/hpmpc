@@ -30,6 +30,8 @@
 #include <smmintrin.h>  // SSE4
 #include <immintrin.h>  // AVX
 
+
+
 // it moves vertically across blocks
 void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
 	{
@@ -122,7 +124,7 @@ void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 			stemp  = _mm_mul_sd( sa_03, sx_t_0 );
 			sy_t_3 = _mm_add_sd( sy_t_3, stemp );
 		
-			_mm_store_sd( &sy_n[0], sy_n_0 );
+			_mm_store_sd( &y_n[0], sy_n_0 );
 
 		
 			A += 1;

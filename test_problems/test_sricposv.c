@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/time.h>
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
 #include <xmmintrin.h> // needed to flush to zero sub-normals with _MM_SET_FLUSH_ZERO_MODE (_MM_FLUSH_ZERO_ON); in the main()
 #endif
 
@@ -155,10 +155,25 @@ int main()
 	
 	// maximum frequency of the processor
 	const float GHz_max = 2.9; //3.6; //2.9;
-	// maximum flops per cycle, double precision
-	const float d_flops_max = 8; //4; //2;
 
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM)
+	// maximum flops per cycle, single precision
+#if defined(TARGET_X64_AVX)
+	const float d_flops_max = 16;
+#elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
+	const float d_flops_max = 8;
+#elif defined(TARGET_CORTEXA9)
+	const float d_flops_max = 4;
+#elif defined(TARGET_X86_ATOM)
+	const float d_flops_max = 4;
+#elif defined(TARGET_POWERPC_G2)
+	const float d_flops_max = 2;
+#elif defined(TARGET_C99_4X4)
+	const float d_flops_max = 2;
+#elif defined(TARGET_C99_2X2)
+	const float d_flops_max = 2;
+#endif
+
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
 	printf("\nflush to zero on\n");
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); // flush to zero subnormals !!! works only with one thread !!!
 #endif
@@ -327,7 +342,7 @@ int main()
 		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 		// call the solver
-		sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, LAGR_MULT, hpi, &info);
+		sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, COMPUTE_MULT, hpi, &info);
 
 		if(PRINTRES==1)
 			{
@@ -336,7 +351,7 @@ int main()
 			for(ii=0; ii<N; ii++)
 				s_print_mat(1, nu, hux[ii], 1);
 			}
-		if(PRINTRES==1 && LAGR_MULT==1)
+		if(PRINTRES==1 && COMPUTE_MULT==1)
 			{
 			// print result 
 			printf("\n\nsv\n\n");
@@ -361,7 +376,7 @@ int main()
 		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 		// call the solver 
-		sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, LAGR_MULT, hpi);
+		sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, COMPUTE_MULT, hpi);
 
 		if(PRINTRES==1)
 			{
@@ -370,7 +385,7 @@ int main()
 			for(ii=0; ii<N; ii++)
 				s_print_mat(1, nu, hux[ii], 1);
 			}
-		if(PRINTRES==1 && LAGR_MULT==1)
+		if(PRINTRES==1 && COMPUTE_MULT==1)
 			{
 			// print result 
 			printf("\n\ntrs\n\n");
@@ -395,7 +410,7 @@ int main()
 		// residuals computation
 		sres(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 
-		if(PRINTRES==1 && LAGR_MULT==1)
+		if(PRINTRES==1 && COMPUTE_MULT==1)
 			{
 			// print result 
 			printf("\n\nres\n\n");
@@ -405,7 +420,7 @@ int main()
 				s_print_mat(1, nx, hrb[ii], 1);
 			}
 
-		return;
+/*		return;*/
 
 
 
@@ -426,7 +441,7 @@ int main()
 			for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 			// call the solver 
-			sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, LAGR_MULT, hpi, &info);
+			sricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, COMPUTE_MULT, hpi, &info);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
@@ -448,7 +463,7 @@ int main()
 			for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 			// call the solver 
-			sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, LAGR_MULT, hpi);
+			sricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, COMPUTE_MULT, hpi);
 			}
 		
 		gettimeofday(&tv2, NULL); // start

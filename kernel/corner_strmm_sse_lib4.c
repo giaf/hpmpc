@@ -152,7 +152,6 @@ void corner_strmm_pp_nt_8x1_lib4(float *A0, float *A1, float *B, float *C0, floa
 	{
 
 	__m128
-		ab_temp,
 		a_0_0, a_4_0,
 		b_00;
 	
@@ -265,7 +264,6 @@ void corner_strmm_pp_nt_4x1_lib4(float *A, float *B, float *C, int ldc)
 	{
 
 	__m128
-		ab_temp,
 		a_0_0,
 		b_00;
 	

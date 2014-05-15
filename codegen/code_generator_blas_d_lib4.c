@@ -48,8 +48,8 @@ void dtrmm_ppp_code_generator(FILE *f, int m, int n, int offset)
 	const int sdb = PNZ;
 	const int sdc = PNZ;
 
-	if(offset%bs!=0)
-fprintf(f, "	pB = pB+%d;\n", bs*sdb+bs*bs);
+/*	if(offset%bs!=0)*/
+/*fprintf(f, "	pB = pB+%d;\n", bs*sdb+bs*bs);*/
 	
 	i = 0;
 #if defined(TARGET_X64_AVX)
@@ -95,12 +95,11 @@ fprintf(f, "	corner_dtrmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], %d);\n", j*b
 			}
 		}
 
-	// add to the last row
-	for(j=0; j<n; j++)
-		{
-fprintf(f, "	pC[%d] += pB[%d];\n", (m-1)%bs+j*bs+((m-1)/bs)*bs*sdc, j%bs+n*bs+(j/bs)*bs*sdb);
-		
-		}
+/*	// add to the last row*/
+/*	for(j=0; j<n; j++)*/
+/*		{*/
+/*fprintf(f, "	pC[%d] += pB[%d];\n", (m-1)%bs+j*bs+((m-1)/bs)*bs*sdc, j%bs+n*bs+(j/bs)*bs*sdb);*/
+/*		}*/
 
 /*	fprintf(f, "	\n");*/
 
@@ -249,7 +248,7 @@ fprintf(f, "	kernel_dgemm_pp_nt_4x4_lib4(%d, &pA[%d], &pA[%d], &pC[%d], %d, 1);\
 
 /* computes the lower triangular Cholesky factor of pC, */
 /* and copies its transposed in pL                      */
-void dpotrf_p_dcopy_p_t_code_generator(FILE *f, int n, int nna)
+void dpotrf_p_code_generator(FILE *f, int n, int nna)
 	{
 
 	int i, j;
@@ -264,7 +263,7 @@ void dpotrf_p_dcopy_p_t_code_generator(FILE *f, int n, int nna)
 	j = 0;
 	if(j<nna-3)
 		{
-fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, &pC[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc);
+fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, 4, &pC[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 	            	j += 4;     
 	            	for(; j<nna-3; j+=4)
@@ -280,14 +279,14 @@ fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d],
 	            			{     
 fprintf(f, "	kernel_dgemm_pp_nt_4x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
 	            			}     
-fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, &pC[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc);
+fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, 4, &pC[%d], %d, info);\n", n-j-4, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 	            		}     
 		}
 	int j0 = j;
 	if(j==0) // assume that n>0
 		{
-fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_4x4_lib4(%d, %d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", n-j-4, kinv, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, %d, &pC[%d], %d, info);\n", n-j-4, kinv, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 		kinv = 0;
 		j += 4;
@@ -305,7 +304,7 @@ fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d],
 			{
 fprintf(f, "	kernel_dgemm_pp_nt_4x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
 			}
-fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_4x4_lib4(%d, %d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", n-j-4, kinv, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, %d, &pC[%d], %d, info);\n", n-j-4, kinv, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 		kinv = 0;
 		}
@@ -315,21 +314,21 @@ fprintf(f, "	if(*info!=0) return;\n");
 			{
 			i = j;
 fprintf(f, "	kernel_dgemm_pp_nt_4x1_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-fprintf(f, "	corner_dpotrf_dtrsv_dcopy_1x1_lib4(&pC[%d], %d, %d, &pL[%d], %d, info);\n", j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	corner_dpotrf_dtrsv_1x1_lib4(&pC[%d], %d, info);\n", j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 			}
 		else if(n-j==2)
 			{
 			i = j;
 fprintf(f, "	kernel_dgemm_pp_nt_4x2_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-fprintf(f, "	corner_dpotrf_dtrsv_dcopy_2x2_lib4(%d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", kinv, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	corner_dpotrf_dtrsv_2x2_lib4(%d, &pC[%d], %d, info);\n", kinv, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 			}
 		else if(n-j==3)
 			{
 			i = j;
 fprintf(f, "	kernel_dgemm_pp_nt_4x3_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-fprintf(f, "	corner_dpotrf_dtrsv_dcopy_3x3_lib4(%d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", kinv, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	corner_dpotrf_dtrsv_3x3_lib4(%d, &pC[%d], %d, info);\n", kinv, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 			}
 		}
@@ -339,7 +338,7 @@ fprintf(f, "	if(*info!=0) return;\n");
 
 
 /* computes an mxn band of the lower triangular Cholesky factor of pC, supposed to be aligned */
-void dpotrf_p_code_generator(FILE *f, int m, int n)
+void dpotrf_rec_p_code_generator(FILE *f, int m, int n)
 	{
 
 	int i, j;
@@ -362,7 +361,7 @@ fprintf(f, "	kernel_dgemm_pp_nt_8x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], &pC[%d],
 			{
 fprintf(f, "	kernel_dgemm_pp_nt_4x4_lib4(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
 			}
-fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, &pC[%d], %d, info);\n", m-j-4, j*bs+j*sdc, sdc);
+fprintf(f, "	kernel_dpotrf_dtrsv_4x4_lib4(%d, 4, &pC[%d], %d, info);\n", m-j-4, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 		}
 	if(j<n)
@@ -555,6 +554,7 @@ void dtrmv_p_n_code_generator(FILE *f, int m, int offset, int alg)
 
 	int j;
 	
+	j = 0;
 	if(alg==0 || alg==1)
 		{
 		if(mna>m) // it is always mna < bs , thus m<bs !!!!!
@@ -566,7 +566,7 @@ fprintf(f, "	kernel_dgemv_n_1_lib4(%d, &pA[%d], x, &y[%d], %d);\n", j+1, idxA, i
 				idxy  += 1;
 				m  -= 1;
 				}
-			j = 0;
+/*			j = 0;*/
 			for(; j<m-1; j+=2)
 				{
 fprintf(f, "	kernel_dgemv_n_2_lib4(%d, &pA[%d], x, &y[%d], %d);\n", j+1, idxA, idxy, alg);
@@ -582,7 +582,7 @@ fprintf(f, "	kernel_dgemv_n_1_lib4(%d, &pA[%d], x, &y[%d], %d);\n", j+1, idxA, i
 				}
 			return;
 			}
-		j=0;
+/*		j=0;*/
 		if(mna>0)
 			{
 			for(; j<mna%2; j++)
@@ -651,7 +651,7 @@ fprintf(f, "	kernel_dgemv_n_1_lib4(%d, &pA[%d], x, &y[%d], -1);\n", j+1, idxA, i
 				idxy  += 1;
 				m  -= 1;
 				}
-			j = 0;
+/*			j = 0;*/
 			for(; j<m-1; j+=2)
 				{
 fprintf(f, "	kernel_dgemv_n_2_lib4(%d, &pA[%d], x, &y[%d], -1);\n", j+1, idxA, idxy);
@@ -667,7 +667,7 @@ fprintf(f, "	kernel_dgemv_n_1_lib4(%d, &pA[%d], x, &y[%d], -1);\n", j+1, idxA, i
 				}
 			return;
 			}
-		j=0;
+/*		j=0;*/
 		if(mna>0)
 			{
 			for(; j<mna%2; j++)
@@ -1349,7 +1349,7 @@ void dtrsv_p_t_code_generator(FILE *f, int n)
 	
 	int rn = n%bs;
 	int qn = n/bs;
-	int ri, qi;
+/*	int ri, qi;*/
 	
 	int idxA = 0;
 	int idxx = 0;

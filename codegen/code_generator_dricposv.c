@@ -102,8 +102,10 @@ int main()
 	fprintf(f, "	/* dpotrf */\n");
 	fprintf(f, "	pC = hpQ[%d];\n", N);
 
-	dpotrf_p_dcopy_p_t_code_generator(f, nz, nu);
+	dpotrf_p_code_generator(f, nz, nu);
 
+	fprintf(f, "	\n");
+	fprintf(f, "	d_transpose_pmat_lo(%d, %d, hpQ[%d]+%d, %d, pL, %d);\n", nx, nu, N, (nu/bs)*bs*sda+nu%bs+nu*bs, sda, sda);
 	fprintf(f, "	\n");
 	fprintf(f, "	/* middle stages */\n");
 	fprintf(f, "	for(ii=0; ii<N-1; ii++)\n");
@@ -117,6 +119,19 @@ int main()
 	dtrmm_ppp_code_generator(f, nz, nx, nu);
 
 	fprintf(f, "		\n");
+	fprintf(f, "		/* */\n");
+	fprintf(f, "		for(jj=0; jj<%d; jj+=4)\n", nx-3);
+	fprintf(f, "			{\n");
+	fprintf(f, "			pBAbtL[%d+%d*(jj+0)] += hpQ[%d-ii][%d+%d*(jj+%d)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, N, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+0);
+	fprintf(f, "			pBAbtL[%d+%d*(jj+1)] += hpQ[%d-ii][%d+%d*(jj+%d)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, N, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+1);
+	fprintf(f, "			pBAbtL[%d+%d*(jj+2)] += hpQ[%d-ii][%d+%d*(jj+%d)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, N, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+2);
+	fprintf(f, "			pBAbtL[%d+%d*(jj+3)] += hpQ[%d-ii][%d+%d*(jj+%d)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, N, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+3);
+	fprintf(f, "			}\n");
+	for(jj=0; jj<nx%4; jj++)
+		{
+	fprintf(f, "		pBAbtL[%d] += hpQ[%d-ii][%d];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*((nx/4)*4+jj), N, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*((nx/4)*4+nu+jj));
+		}
+	fprintf(f, "		\n");
 	fprintf(f, "		/* dsyrk */\n");
 	fprintf(f, "		pA = pBAbtL;\n");
 	fprintf(f, "		pC = hpQ[%d-ii];\n", N-1);
@@ -127,8 +142,10 @@ int main()
 	fprintf(f, "		/* dpotrf */\n");
 	fprintf(f, "		pC = hpQ[%d-ii];\n", N-1);
 
-	dpotrf_p_dcopy_p_t_code_generator(f, nz, nu);
+	dpotrf_p_code_generator(f, nz, nu);
 
+	fprintf(f, "		\n");
+	fprintf(f, "		d_transpose_pmat_lo(%d, %d, hpQ[%d-ii]+%d, %d, pL, %d);\n", nx, nu, N-1, (nu/bs)*bs*sda+nu%bs+nu*bs, sda, sda);
 	fprintf(f, "		\n");
 	fprintf(f, "		}\n");
 	fprintf(f, "	\n");
@@ -152,7 +169,7 @@ int main()
 	fprintf(f, "		/* dpotrf */\n");
 	fprintf(f, "		pC = hpQ[%d-ii];\n", N-1);
 
-	dpotrf_p_code_generator(f, nz, nu);
+	dpotrf_rec_p_code_generator(f, nz, nu);
 
 	fprintf(f, "	\n");
 	fprintf(f, "	\n");
@@ -302,27 +319,27 @@ int main()
 	fprintf(f, "		/* copy p */\n");
 	fprintf(f, "		for(jj=0; jj<%d; jj+=4)\n", nx-3);
 	fprintf(f, "			{\n");
-	fprintf(f, "			pBAbtL[jj+%d] = hq[N-ii][jj+%d];\n", 0, 0);
-	fprintf(f, "			pBAbtL[jj+%d] = hq[N-ii][jj+%d];\n", 1, 1);
-	fprintf(f, "			pBAbtL[jj+%d] = hq[N-ii][jj+%d];\n", 2, 2);
-	fprintf(f, "			pBAbtL[jj+%d] = hq[N-ii][jj+%d];\n", 3, 3);
+	fprintf(f, "			pBAbtL[jj+%d] = hq[N-ii][jj+%d];\n", nu+0, nu+0);
+	fprintf(f, "			pBAbtL[jj+%d] = hq[N-ii][jj+%d];\n", nu+1, nu+1);
+	fprintf(f, "			pBAbtL[jj+%d] = hq[N-ii][jj+%d];\n", nu+2, nu+2);
+	fprintf(f, "			pBAbtL[jj+%d] = hq[N-ii][jj+%d];\n", nu+3, nu+3);
 	fprintf(f, "			}\n");
 	for(jj=0; jj<nx%4; jj++)
 		{
-	fprintf(f, "		pBAbtL[%d] = hq[N-ii][%d];\n", (nx/4)*4+jj, (nx/4)*4+jj );
+	fprintf(f, "		pBAbtL[%d] = hq[N-ii][%d];\n", nu+(nx/4)*4+jj, nu+(nx/4)*4+jj );
 		}
 	fprintf(f, "		\n");
 	fprintf(f, "		/* dtrmv_n */\n");
 	fprintf(f, "		pA = hpQ[N-ii]+%d;\n", (nu/bs)*bs*sda+nu%bs+nu*bs);
 	fprintf(f, "		x = pBAbtL+%d;\n", sda+nu);
-	fprintf(f, "		y = pBAbtL;\n");
+	fprintf(f, "		y = pBAbtL+%d;\n", nu);
 
 	dtrmv_p_n_code_generator(f, nx, nu, 1);
 
 	fprintf(f, "		\n");
 	fprintf(f, "		/* dgemv_n */\n");
 	fprintf(f, "		pA = hpBAbt[%d-ii];\n", N-1);
-	fprintf(f, "		x = pBAbtL;\n");
+	fprintf(f, "		x = pBAbtL+%d;\n", nu);
 	fprintf(f, "		y = hq[%d-ii];\n", N-1);
 
 	dgemv_p_n_code_generator(f, nx+nu, nx, 0, 1);
@@ -340,7 +357,7 @@ int main()
 	fprintf(f, "		x = hq[%d-ii];\n", N-1);
 	fprintf(f, "		y = hq[%d-ii]+%d;\n", N-1, nu);
 
-	dgemv_p_n_code_generator(f, nx, nu, nu, 1);
+	dgemv_p_n_code_generator(f, nx, nu, nu, -1);
 	fprintf(f, "		\n");
 	fprintf(f, "		}\n");
 	fprintf(f, "	\n");
@@ -353,14 +370,14 @@ int main()
 	fprintf(f, "		/* */\n");
 	fprintf(f, "		for(jj=0; jj<%d; jj+=4)\n", nu-3);
 	fprintf(f, "			{\n");
-	fprintf(f, "			hux[ii][jj+0] = - hpQ[ii][%d+%d*(jj+0)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs);
-	fprintf(f, "			hux[ii][jj+1] = - hpQ[ii][%d+%d*(jj+1)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs);
-	fprintf(f, "			hux[ii][jj+2] = - hpQ[ii][%d+%d*(jj+2)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs);
-	fprintf(f, "			hux[ii][jj+3] = - hpQ[ii][%d+%d*(jj+3)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs);
+	fprintf(f, "			hux[ii][jj+0] = - hq[ii][jj+0];\n");
+	fprintf(f, "			hux[ii][jj+1] = - hq[ii][jj+1];\n");
+	fprintf(f, "			hux[ii][jj+2] = - hq[ii][jj+2];\n");
+	fprintf(f, "			hux[ii][jj+3] = - hq[ii][jj+3];\n");
 	fprintf(f, "			}\n");
 	for(jj=0; jj<nu%4; jj++)
 		{
-	fprintf(f, "		hux[ii][%d] = - hpQ[ii][%d];\n", (nu/4)*4+jj, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*((nu/4)*4+jj));
+	fprintf(f, "		hux[ii][%d] = - hq[ii][%d];\n", (nu/4)*4+jj, (nu/4)*4+jj );
 		}
 	fprintf(f, "		\n");
 	fprintf(f, "		/* dgemv_t */\n");
@@ -405,25 +422,12 @@ int main()
 	fprintf(f, "		if(compute_pi)\n");
 	fprintf(f, "			{\n");
 	fprintf(f, "		\n");
-	fprintf(f, "			/* */\n");
-	fprintf(f, "			for(jj=0; jj<%d; jj+=4)\n", nx-3);
-	fprintf(f, "				{\n");
-	fprintf(f, "				pBAbtL[jj+%d] = hpQ[ii+1][%d+%d*(jj+%d)];\n", nu+0, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+0);
-	fprintf(f, "				pBAbtL[jj+%d] = hpQ[ii+1][%d+%d*(jj+%d)];\n", nu+1, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+1);
-	fprintf(f, "				pBAbtL[jj+%d] = hpQ[ii+1][%d+%d*(jj+%d)];\n", nu+2, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+2);
-	fprintf(f, "				pBAbtL[jj+%d] = hpQ[ii+1][%d+%d*(jj+%d)];\n", nu+3, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+3);
-	fprintf(f, "				}\n");
-	for(jj=0; jj<nx%4; jj++)
-		{
-	fprintf(f, "			pBAbtL[%d] = hpQ[ii+1][%d];\n", nu+(nx/4)*4+jj, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*(nu+(nx/4)*4+jj) );
-		}
-	fprintf(f, "		\n");
 	fprintf(f, "		/* dtrmv_t */\n");
 	fprintf(f, "		pA = hpQ[ii+1]+%d;\n", (nu/bs)*bs*sda+nu%bs+nu*bs);
 	fprintf(f, "		x = &hux[ii+1][%d];\n", nu);
 	fprintf(f, "		y = &pBAbtL[%d];\n", nu);
 
-	dtrmv_p_t_code_generator(f, nx, nu, 1);
+	dtrmv_p_t_code_generator(f, nx, nu, 0);
 
 	fprintf(f, "		\n");
 	fprintf(f, "		/* dtrmv_n */\n");
@@ -433,6 +437,19 @@ int main()
 
 	dtrmv_p_n_code_generator(f, nx, nu, 0);
 
+	fprintf(f, "		\n");
+	fprintf(f, "			/* */\n");
+	fprintf(f, "			for(jj=0; jj<%d; jj+=4)\n", nx-3);
+	fprintf(f, "				{\n");
+	fprintf(f, "				hpi[ii+1][jj+%d] += hq[ii+1][jj+%d];\n", 0, nu+0);
+	fprintf(f, "				hpi[ii+1][jj+%d] += hq[ii+1][jj+%d];\n", 1, nu+1);
+	fprintf(f, "				hpi[ii+1][jj+%d] += hq[ii+1][jj+%d];\n", 2, nu+2);
+	fprintf(f, "				hpi[ii+1][jj+%d] += hq[ii+1][jj+%d];\n", 3, nu+3);
+	fprintf(f, "				}\n");
+	for(jj=0; jj<nx%4; jj++)
+		{
+	fprintf(f, "			hpi[ii+1][%d] += hq[ii+1][%d];\n", (nx/4)*4+jj, nu+(nx/4)*4+jj );
+		}
 	fprintf(f, "		\n");
 	fprintf(f, "			}\n");
 	fprintf(f, "		\n");

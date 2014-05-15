@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/time.h>
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
 #include <xmmintrin.h> // needed to flush to zero sub-normals with _MM_SET_FLUSH_ZERO_MODE (_MM_FLUSH_ZERO_ON); in the main()
 #endif
 
@@ -60,15 +60,15 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 
 	int nx2 = nx*nx;
 
-	double d0 = 0;
-	double d1 = 1;
-	double dm1 = -1;
-	int i1 = 1;
+/*	double d0 = 0;*/
+/*	double d1 = 1;*/
+/*	double dm1 = -1;*/
+/*	int i1 = 1;*/
 	int info = 0;
-	char cn = 'n';
+/*	char cn = 'n';*/
 
 	int pp = nx/2; // number of masses
-	int mm = nu;   // number of forces
+/*	int mm = nu;   // number of forces*/
 	
 /************************************************
 * build the continuous time system 
@@ -154,10 +154,25 @@ int main()
 	
 	// maximum frequency of the processor
 	const float GHz_max = 2.9; //3.6; //2.9;
-	// maximum flops per cycle, double precision
-	const float d_flops_max = 8; //4; //2;
 
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM)
+	// maximum flops per cycle, double precision
+#if defined(TARGET_X64_AVX)
+	const float d_flops_max = 8;
+#elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
+	const float d_flops_max = 4;
+#elif defined(TARGET_CORTEXA9)
+	const float d_flops_max = 1;
+#elif defined(TARGET_X86_ATOM)
+	const float d_flops_max = 1;
+#elif defined(TARGET_POWERPC_G2)
+	const float d_flops_max = 1;
+#elif defined(TARGET_C99_4X4)
+	const float d_flops_max = 2;
+#elif defined(TARGET_C99_2X2)
+	const float d_flops_max = 2;
+#endif
+
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
 	printf("\nflush to zero on\n");
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); // flush to zero subnormals !!! works only with one thread !!!
 #endif
@@ -167,34 +182,38 @@ int main()
 
 	printf("\nnx\tnu\tN\tkernel\n\n");
 
-	int err;
+/*	int err;*/
 	
-	int i, j, ii, jj, idx;
+	int ii, jj;
 	
 	const int bsd = D_MR; //d_get_mr();
 	
 	int info = 0;
 
-	int nn[] = {8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300};
-	int nnrep[] = {1000, 1000, 1000, 1000, 1000, 1000, 1000, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+	int nn[] = {4, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300};
+	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 4000, 4000, 2000, 2000, 1000, 1000, 400, 400, 400, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
 	
 	int vnx[] = {8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 512, 1024};
 	int vnrep[] = {100, 100, 100, 100, 100, 100, 50, 50, 50, 20, 10, 10};
 	int vN[] = {4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256};
 
 	int ll;
-/*	for(ll=0; ll<74; ll++)*/
+/*	for(ll=0; ll<77; ll++)*/
 /*	for(ll=0; ll<12; ll++)*/
 	for(ll=0; ll<1; ll++)
 
 		{
 
+/*		int nx = nn[ll];//NX;//16;//nn[ll]; // number of states (it has to be even for the mass-spring system test problem)*/
+/*		int nu = 2;//NU;//5; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)*/
+/*		int N  = 10;//NN;//10; // horizon lenght*/
 		int nx = NX;//16;//nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
 		int nu = NU;//5; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 		int N  = NN;//10; // horizon lenght
 
 		int rep;
-		int nrep = 1000;//nnrep[ll];// nnrep[ll];
+/*		int nrep = 1000;//nnrep[ll];// nnrep[ll];*/
+		int nrep = NREP; //nnrep[ll];// nnrep[ll];
 	
 		int nz = nx+nu+1;
 		int pnz = bsd*((nz+bsd-nu%bsd+bsd-1)/bsd);
@@ -262,7 +281,7 @@ int main()
 		for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
 		for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
 		for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 1.0;
-		Q[(nx+nu)*(pnz+1)] = 100.0;
+		Q[(nx+nu)*(pnz+1)] = 1e35;
 
 		/* packed into contiguous memory */
 		double *pQ; d_zeros_align(&pQ, pnz, pnz);
@@ -318,7 +337,7 @@ int main()
 		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 		// call the solver
-		dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, LAGR_MULT, hpi, &info);
+		dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, COMPUTE_MULT, hpi, &info);
 
 		if(PRINTRES==1)
 			{
@@ -327,7 +346,7 @@ int main()
 			for(ii=0; ii<N; ii++)
 				d_print_mat(1, nu, hux[ii], 1);
 			}
-		if(PRINTRES==1 && LAGR_MULT==1)
+		if(PRINTRES==1 && COMPUTE_MULT==1)
 			{
 			// print result 
 			printf("\n\npi\n\n");
@@ -352,7 +371,7 @@ int main()
 		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 		// call the solver 
-		dricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, LAGR_MULT, hpi);
+		dricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, COMPUTE_MULT, hpi);
 
 		if(PRINTRES==1)
 			{
@@ -365,7 +384,7 @@ int main()
 			for(ii=0; ii<=N; ii++)
 				d_print_mat(1, nx, hux[ii]+nu, 1);
 			}
-		if(PRINTRES==1 && LAGR_MULT==1)
+		if(PRINTRES==1 && COMPUTE_MULT==1)
 			{
 			// print result 
 			printf("\n\npi\n\n");
@@ -390,7 +409,7 @@ int main()
 		// residuals computation
 		dres(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 
-		if(PRINTRES==1 && LAGR_MULT==1)
+		if(PRINTRES==1 && COMPUTE_MULT==1)
 			{
 			// print result 
 			printf("\n\nres\n\n");
@@ -400,10 +419,8 @@ int main()
 				d_print_mat(1, nx, hrb[ii], 1);
 			}
 
+
 		return 0;
-
-
-
 
 		// timing 
 		struct timeval tv0, tv1, tv2;
@@ -421,7 +438,7 @@ int main()
 			for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 			// call the solver 
-			dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, LAGR_MULT, hpi, &info);
+			dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, COMPUTE_MULT, hpi, &info);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
@@ -443,7 +460,7 @@ int main()
 			for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 			// call the solver 
-			dricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, LAGR_MULT, hpi);
+			dricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, COMPUTE_MULT, hpi);
 			}
 		
 		gettimeofday(&tv2, NULL); // start
@@ -452,6 +469,7 @@ int main()
 
 		float time_d = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		float flop_d = (1.0/3.0*nx*nx*nx+3.0/2.0*nx*nx) + N*(7.0/3.0*nx*nx*nx+4.0*nx*nx*nu+2.0*nx*nu*nu+1.0/3.0*nu*nu*nu+13.0/2.0*nx*nx+9.0*nx*nu+5.0/2.0*nu*nu);
+/*		float flop_d = N*(7.0/3.0*nx*nx*nx+4.0*nx*nx*nu+2.0*nx*nu*nu+1.0/3.0*nu*nu*nu+13.0/2.0*nx*nx+9.0*nx*nu+5.0/2.0*nu*nu);*/
 		float Gflops_d = 1e-9*flop_d/time_d;
 		float Gflops_max_d = d_flops_max * GHz_max;
 	

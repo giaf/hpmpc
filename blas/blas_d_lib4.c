@@ -92,8 +92,8 @@ void dtrmm_ppp_lib(int m, int n, int offset, double *pA, int sda, double *pB, in
 	
 	int i, j;
 	
-	if(offset%bs!=0)
-		pB = pB+bs*sdb+bs*bs; // shift to the next block
+/*	if(offset%bs!=0)*/
+/*		pB = pB+bs*sdb+bs*bs; // shift to the next block*/
 	
 	i = 0;
 #if defined(TARGET_X64_AVX)
@@ -140,10 +140,10 @@ void dtrmm_ppp_lib(int m, int n, int offset, double *pA, int sda, double *pB, in
 		}
 
 	// add to the last row
-	for(j=0; j<n; j++)
-		{
-		pC[(m-1)%bs+j*bs+((m-1)/bs)*bs*sdc] += pB[j%bs+n*bs+(j/bs)*bs*sdb];
-		}
+/*	for(j=0; j<n; j++)*/
+/*		{*/
+/*		pC[(m-1)%bs+j*bs+((m-1)/bs)*bs*sdc] += pB[j%bs+n*bs+(j/bs)*bs*sdb];*/
+/*		}*/
 
 	}
 
@@ -284,20 +284,20 @@ void dsyrk_ppp_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc
 
 /* computes the lower triangular Cholesky factor of pC, */
 /* and copies its transposed in pL                      */
-void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int sdl, int *info)
+void dpotrf_p_lib(int n, int nna, double *pC, int sdc, int *info)
 	{
 
 	const int bs = 4;
 	
 	int
-		i, j, jj;
+		i, j;
 
 	int kinv = nna%bs;
 
 	j = 0;
 	if(j<nna-3)
 		{
-		kernel_dpotrf_dtrsv_4x4_lib4(n-j-4, &pC[0+j*bs+j*sdc], sdc, info);
+		kernel_dpotrf_dtrsv_4x4_lib4(n-j-4, 4, &pC[0+j*bs+j*sdc], sdc, info);
 		if(*info!=0) return;
 		j += 4;
 		for(; j<nna-3; j+=4)
@@ -313,14 +313,14 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 				{
 				kernel_dgemm_pp_nt_4x4_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 				}
-			kernel_dpotrf_dtrsv_4x4_lib4(n-j-4, &pC[0+j*bs+j*sdc], sdc, info);
+			kernel_dpotrf_dtrsv_4x4_lib4(n-j-4, 4, &pC[0+j*bs+j*sdc], sdc, info);
 			if(*info!=0) return;
 			}
 		}
 	int j0 = j;
 	if(j==0) // assume that n>0
 		{
-		kernel_dpotrf_dtrsv_dcopy_4x4_lib4(n-j-4, kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+		kernel_dpotrf_dtrsv_4x4_lib4(n-j-4, kinv, &pC[0+j*bs+j*sdc], sdc, info);
 		if(*info!=0) return;
 		kinv = 0;
 		j += 4;
@@ -338,7 +338,7 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 			{
 			kernel_dgemm_pp_nt_4x4_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
-		kernel_dpotrf_dtrsv_dcopy_4x4_lib4(n-j-4, kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+		kernel_dpotrf_dtrsv_4x4_lib4(n-j-4, kinv, &pC[0+j*bs+j*sdc], sdc, info);
 		if(*info!=0) return;
 		kinv = 0;
 		}
@@ -348,21 +348,21 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 			{
 			i = j;
 			kernel_dgemm_pp_nt_4x1_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
-			corner_dpotrf_dtrsv_dcopy_1x1_lib4(&pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+			corner_dpotrf_dtrsv_1x1_lib4(&pC[0+j*bs+j*sdc], sdc, info);
 			if(*info!=0) return;
 			}
 		else if(n-j==2)
 			{
 			i = j;
 			kernel_dgemm_pp_nt_4x2_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
-			corner_dpotrf_dtrsv_dcopy_2x2_lib4(kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+			corner_dpotrf_dtrsv_2x2_lib4(kinv, &pC[0+j*bs+j*sdc], sdc, info);
 			if(*info!=0) return;
 			}
 		else if(n-j==3)
 			{
 			i = j;
 			kernel_dgemm_pp_nt_4x3_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
-			corner_dpotrf_dtrsv_dcopy_3x3_lib4(kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+			corner_dpotrf_dtrsv_3x3_lib4(kinv, &pC[0+j*bs+j*sdc], sdc, info);
 			if(*info!=0) return;
 			}
 		}
@@ -372,7 +372,7 @@ void dpotrf_p_dcopy_p_t_lib(int n, int nna, double *pC, int sdc, double *pL, int
 
 
 /* computes an mxn band of the lower triangular Cholesky factor of pC, supposed to be aligned */
-void dpotrf_p_lib(int m, int n, double *pC, int sdc, int *info)
+void dpotrf_rec_p_lib(int m, int n, double *pC, int sdc, int *info)
 	{
 
 	const int bs = 4;
@@ -393,7 +393,7 @@ void dpotrf_p_lib(int m, int n, double *pC, int sdc, int *info)
 			{
 			kernel_dgemm_pp_nt_4x4_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
-		kernel_dpotrf_dtrsv_4x4_lib4(m-j-4, &pC[0+j*bs+j*sdc], sdc, info);
+		kernel_dpotrf_dtrsv_4x4_lib4(m-j-4, 4, &pC[0+j*bs+j*sdc], sdc, info);
 		if(*info!=0) return;
 		}
 	if(j<n)
@@ -1476,7 +1476,6 @@ void dtrsv_p_t_lib(int n, double *pA, int sda, double *x)
 	
 	int rn = n%bs;
 	int qn = n/bs;
-	int ri, qi;
 	
 	double *ptrA, *ptrx;
 	

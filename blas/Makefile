@@ -33,6 +33,10 @@ ifeq ($(TARGET), X64_SSE3)
 OBJS = blas_d_lib4.o blas_s_lib4.o
 CFLAGS = $(OPT) -std=c99 -msse3 -DTARGET_X64_SSE3 -fPIC $(DEBUG)
 endif
+ifeq ($(TARGET), AMD_SSE3)
+OBJS = blas_d_lib4.o blas_s_lib4.o
+CFLAGS = $(OPT) -std=c99 -msse3 -DTARGET_AMD_SSE3 -fPIC $(DEBUG)
+endif
 ifeq ($(TARGET), NEON)
 OBJS = blas_d_lib4.o blas_s_lib4.o
 CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)

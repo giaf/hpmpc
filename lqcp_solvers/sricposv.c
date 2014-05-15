@@ -26,6 +26,7 @@
 #include <stdlib.h>
 
 #include "../include/blas_s.h"
+#include "../include/aux_s.h"
 #include "../include/block_size.h"
 
 
@@ -40,43 +41,30 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 	
 	int nz = nx+nu+1;
 
-/*size_t align = 32;*/
-/*printf("\nalign %d\n", ((size_t) &hpQ[0])%align);*/
-
 	/* factorization and backward substitution */
 
 	/* final stage */
-/*	dpotrf_p_dcopy_p_t_lib(nz, nu, hpQ[N], sda, pL, sda);*/
 	int nu4 = (nu/bs)*bs;
-	spotrf_p_scopy_p_t_lib(nz-nu4, nu%bs, hpQ[N]+nu4*(sda+bs), sda, pL, sda, info);
+	spotrf_p_lib(nz-nu4, nu%bs, hpQ[N]+nu4*(sda+bs), sda, info);
 	if(*info!=0) return;
-
-/*s_print_pmat(nz, nz, bs, hpQ[N], sda);*/
+	s_transpose_pmat_lo(nx, nu, hpQ[N]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, pL, sda);
 
 	/* middle stages */
 	for(ii=0; ii<N-1; ii++)
 		{	
-/*d_print_pmat(nz, nz, bs, hpBAbt[N-ii-1], sda);*/
 		strmm_ppp_lib(nz, nx, nu, hpBAbt[N-ii-1], sda, pL, sda, pBAbtL, sda);
-/*d_print_pmat(nz, nz, bs, pBAbtL, sda);*/
+		for(jj=0; jj<nx; jj++) pBAbtL[((nx+nu)/bs)*bs*sda+(nx+nu)%bs+jj*bs] += hpQ[N-ii][((nx+nu)/bs)*bs*sda+(nx+nu)%bs+(nu+jj)*bs];
 		ssyrk_ppp_lib(nz, nz, nx, pBAbtL, sda, hpQ[N-ii-1], sda);
-/*d_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
-		spotrf_p_scopy_p_t_lib(nz, nu, hpQ[N-ii-1], sda, pL, sda, info);
+		spotrf_p_lib(nz, nu, hpQ[N-ii-1], sda, info);
 		if(*info!=0) return;
-/*s_print_pmat(nz, nz, bs, hpQ[N-ii-1], sda);*/
-/*exit(3);*/
+		s_transpose_pmat_lo(nx, nu, hpQ[N-ii-1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, pL, sda);
 		}
 
 	/* initial stage */
 	strmm_ppp_lib(nz, nx, nu, hpBAbt[0], sda, pL, sda, pBAbtL, sda);
-/*d_print_pmat(nz, nx, bs, pBAbtL, sda);*/
 	ssyrk_ppp_lib(nz, nu, nx, pBAbtL, sda, hpQ[0], sda);
-/*d_print_pmat(nz, nu, bs, hpQ[0], sda);*/
-	spotrf_p_lib(nz, nu, hpQ[0], sda, info);
+	spotrf_rec_p_lib(nz, nu, hpQ[0], sda, info);
 	if(*info!=0) return;
-/*s_print_pmat(nz, nu, bs, hpQ[0], sda);*/
-
-/*exit(3);*/
 
 	/* forward substitution */
 	for(ii=0; ii<N; ii++)
@@ -94,8 +82,6 @@ void sricposv_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, f
 			}
 		}
 	
-/*exit(3);*/
-
 	}
 
 
@@ -107,33 +93,32 @@ void sricpotrs_mpc(int nx, int nu, int N, int sda, float **hpBAbt, float **hpQ, 
 
 	int ii, jj;
 	
-	int nz = nx+nu+1;
-
 	/* backward substitution */
 	for(ii=0; ii<N; ii++)
 		{
 		for(jj=0; jj<nx; jj++) pBAbtL[nu+jj] = hpBAbt[N-ii-1][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj]; // copy b
 		strmv_p_t_lib(nx, nu, hpQ[N-ii]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, pBAbtL+nu, pBAbtL+sda+nu, 0); // L'*b
-		for(jj=0; jj<nx; jj++) pBAbtL[jj] = hq[N-ii][jj]; // copy p
-		strmv_p_n_lib(nx, nu, hpQ[N-ii]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, pBAbtL+sda+nu, pBAbtL, 1); // L*(L'*b) + p
-		sgemv_p_n_lib(nx+nu, nx, 0, hpBAbt[N-ii-1], sda, pBAbtL, hq[N-ii-1], 1);
+		for(jj=0; jj<nx; jj++) pBAbtL[nu+jj] = hq[N-ii][nu+jj]; // copy p
+		strmv_p_n_lib(nx, nu, hpQ[N-ii]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, pBAbtL+sda+nu, pBAbtL+nu, 1); // L*(L'*b) + p
+		sgemv_p_n_lib(nx+nu, nx, 0, hpBAbt[N-ii-1], sda, pBAbtL+nu, hq[N-ii-1], 1);
 		strsv_p_n_lib(nu, hpQ[N-ii-1], sda, hq[N-ii-1]);
 		sgemv_p_n_lib(nx, nu, nu, hpQ[N-ii-1]+(nu/bs)*bs*sda+nu%bs, sda, hq[N-ii-1], hq[N-ii-1]+nu, -1);
 		}
 
+
 	/* forward substitution */
 	for(ii=0; ii<N; ii++)
 		{
-		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hpQ[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
+		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hq[ii][jj];
 		sgemv_p_t_lib(nx, nu, nu, &hpQ[ii][(nu/bs)*bs*sda+nu%bs], sda, &hux[ii][nu], &hux[ii][0], -1);
 		strsv_p_t_lib(nu, hpQ[ii], sda, &hux[ii][0]);
 		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
 		sgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], sda, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
-			for(jj=0; jj<nx; jj++) pBAbtL[nu+jj] = hpQ[ii+1][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*(nu+jj)];
-			strmv_p_t_lib(nx, nu, hpQ[ii+1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, &hux[ii+1][nu], &pBAbtL[nu], 1); // L'*pi
+			strmv_p_t_lib(nx, nu, hpQ[ii+1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, &hux[ii+1][nu], &pBAbtL[nu], 0); // L'*pi
 			strmv_p_n_lib(nx, nu, hpQ[ii+1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, &pBAbtL[nu], &hpi[ii+1][0], 0); // L*(L'*b) + p
+			for(jj=0; jj<nx; jj++) hpi[ii+1][jj] += hq[ii+1][nu+jj];
 			}
 		}
 	

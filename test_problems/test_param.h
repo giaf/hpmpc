@@ -30,19 +30,25 @@
 
 // number of inequality constraints
 #define NL 0
-#define NB 2*NU+2*NX
+#define NB NU+NX
 
 // number of repetition for timing
-#define NREP 1000
+#define NREP 10000
 
 // print results
-#define PRINTRES 0
+#define PRINTRES 1
 
 // print statistics
 #define PRINTSTAT 1
 
+// ip method: 1 primal-dual, 2 predictor-corrector primal-dual
+#define IP 1
+
 // compute lagrangian multipliers
-#define LAGR_MULT 1
+#define COMPUTE_MULT 1
+
+// warm-start with user-provided solution (otherwise initialize x and u with 0 or something feasible)
+#define WARM_START 1
 
 // double/single/mixed ('d'/'s'/'m') precision
 #define PREC 'd'
@@ -51,7 +57,7 @@
 #define K_MAX 10
 
 // tolerance in the duality measure
-#define TOL 1e-20
+#define TOL 1e-3
 
 // threshold in the duality measure to switch from single to double precision
 #define SP_THR 1e5
@@ -62,9 +68,6 @@
 
 //// solver for LQ control problem: 1 kernel_single, 2 kernel_multiple, 3 BLAS
 //#define LQS 1
-
-//// ip method: 1 primal-dual, 2 predictor-corrector primal-dual
-//#define IP 2
 
 //// compute lagrangian multiplier pi TODO not implemented, set to 0 for now
 //#define PI 0

@@ -35,7 +35,7 @@
 
 /* computes the lower triangular Cholesky factor of pC, */
 /* and copies its transposed in pL                      */
-void dpotrf_p_dcopy_p_t_code_generator(FILE *f, int n, int nna)
+void dpotrf_p_code_generator(FILE *f, int n, int nna)
 	{
 
 	int i, j;
@@ -65,7 +65,7 @@ fprintf(f, "	if(*info!=0) return;\n");
 	int j0 = j;
 	if(j==0) // assume that n>0
 		{
-fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_2x2_lib2(%d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", n-j-2, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	kernel_dpotrf_dtrsv_2x2_lib2(%d, &pC[%d], %d, info);\n", n-j-2, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 		j += 2;
 		}
@@ -76,14 +76,14 @@ fprintf(f, "	if(*info!=0) return;\n");
 			{
 fprintf(f, "	kernel_dgemm_pp_nt_2x2_lib2(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
 			}
-fprintf(f, "	kernel_dpotrf_dtrsv_dcopy_2x2_lib2(%d, &pC[%d], %d, %d, &pL[%d], %d, info);\n", n-j-2, j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	kernel_dpotrf_dtrsv_2x2_lib2(%d, &pC[%d], %d, info);\n", n-j-2, j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 		}
 	if(n-j==1)
 		{
 		i = j;
 fprintf(f, "	kernel_dgemm_pp_nt_2x1_lib2(%d, &pC[%d], &pC[%d], &pC[%d], %d, -1);\n", j, i*sdc, j*sdc, j*bs+i*sdc, bs);
-fprintf(f, "	corner_dpotrf_dtrsv_dcopy_1x1_lib2(&pC[%d], %d, %d, &pL[%d], %d, info);\n", j*bs+j*sdc, sdc, (bs-nna%bs)%bs, (j-j0)*bs+((j-j0)/bs)*bs*sdc, sdl);
+fprintf(f, "	corner_dpotrf_dtrsv_1x1_lib2(&pC[%d], %d, info);\n", j*bs+j*sdc, sdc);
 fprintf(f, "	if(*info!=0) return;\n");
 		}
 
@@ -92,7 +92,7 @@ fprintf(f, "	if(*info!=0) return;\n");
 
 
 /* computes an mxn band of the lower triangular Cholesky factor of pC, supposed to be aligned */
-void dpotrf_p_code_generator(FILE *f, int m, int n)
+void dpotrf_rec_p_code_generator(FILE *f, int m, int n)
 	{
 
 	int i, j;
@@ -142,8 +142,8 @@ void dtrmm_ppp_code_generator(FILE *f, int m, int n, int offset)
 	const int sdb = PNZ;
 	const int sdc = PNZ;
 
-	if(offset%bs!=0)
-fprintf(f, "	pB = pB+%d;\n", bs*sdb+bs*bs);
+/*	if(offset%bs!=0)*/
+/*fprintf(f, "	pB = pB+%d;\n", bs*sdb+bs*bs);*/
 	
 	i = 0;
 	for(; i<m; i+=2)
@@ -160,11 +160,10 @@ fprintf(f, "	corner_dtrmm_pp_nt_2x1_lib2(&pA[%d], &pB[%d], &pC[%d], %d);\n", j*b
 		}
 
 	// add to the last row
-	for(j=0; j<n; j++)
-		{
-fprintf(f, "	pC[%d] += pB[%d];\n", (m-1)%bs+j*bs+((m-1)/bs)*bs*sdc, j%bs+n*bs+(j/bs)*bs*sdb);
-		
-		}
+/*	for(j=0; j<n; j++)*/
+/*		{*/
+/*fprintf(f, "	pC[%d] += pB[%d];\n", (m-1)%bs+j*bs+((m-1)/bs)*bs*sdc, j%bs+n*bs+(j/bs)*bs*sdb);*/
+/*		}*/
 
 /*	fprintf(f, "	\n");*/
 

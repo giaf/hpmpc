@@ -23,8 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void dpotrf_p_dcopy_p_t_code_generator(FILE *f, int n, int nna);
-void dpotrf_p_code_generator(FILE *f, int m, int n);
+void dpotrf_p_code_generator(FILE *f, int n, int nna);
+void dpotrf_rec_p_code_generator(FILE *f, int m, int n);
 void dtrmm_ppp_code_generator(FILE *f, int m, int n, int offset);
 void dsyrk_ppp_code_generator(FILE *f, int m, int n, int k);
 void dgemv_p_n_code_generator(FILE *f, int n, int m, int offset, int alg);

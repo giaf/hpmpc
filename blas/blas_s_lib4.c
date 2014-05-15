@@ -40,7 +40,7 @@ void sgemm_ppp_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sd
 	int i, j, jj;
 	
 	i = 0;
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
@@ -112,11 +112,11 @@ void strmm_ppp_lib(int m, int n, int offset, float *pA, int sda, float *pB, int 
 	
 	int i, j;
 	
-	if(offset%bs!=0)
-		pB = pB+bs*sdb+bs*bs; // shift to the next block
+/*	if(offset%bs!=0)*/
+/*		pB = pB+bs*sdb+bs*bs; // shift to the next block*/
 	
 	i = 0;
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
@@ -183,11 +183,11 @@ void strmm_ppp_lib(int m, int n, int offset, float *pA, int sda, float *pB, int 
 			}
 		}
 
-	// add to the last row
-	for(j=0; j<n; j++)
-		{
-		pC[(m-1)%bs+j*bs+((m-1)/bs)*bs*sdc] += pB[j%bs+n*bs+(j/bs)*bs*sdb];
-		}
+/*	// add to the last row*/
+/*	for(j=0; j<n; j++)*/
+/*		{*/
+/*		pC[(m-1)%bs+j*bs+((m-1)/bs)*bs*sdc] += pB[j%bs+n*bs+(j/bs)*bs*sdb];*/
+/*		}*/
 
 	}
 
@@ -204,7 +204,7 @@ void ssyrk_ppp_lib(int m, int n, int k, float *pA, int sda, float *pC, int sdc)
 	int i, j, j_end;
 	
 	i = 0;
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	if(m==n)
 		{
 		for(; i<m-4; i+=8)
@@ -418,26 +418,26 @@ void ssyrk_ppp_lib(int m, int n, int k, float *pA, int sda, float *pC, int sdc)
 
 /* computes the lower triangular Cholesky factor of pC, */
 /* and copies its transposed in pL                      */
-void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int sdl, int *info)
+void spotrf_p_lib(int n, int nna, float *pC, int sdc, int *info)
 	{
 
 	const int bs = 4;
 	
 	int
-		i, j, jj;
+		i, j;
 
 	int kinv = nna%bs;
 
 	j = 0;
 	if(j<nna-3)
 		{
-		kernel_spotrf_strsv_4x4_lib4(n-j-4, &pC[0+j*bs+j*sdc], sdc, info);
+		kernel_spotrf_strsv_4x4_lib4(n-j-4, 4, &pC[0+j*bs+j*sdc], sdc, info);
 		if(*info!=0) return;
 		j += 4;
 		for(; j<nna-3; j+=4)
 			{
 			i = j;
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON) || defined(TARGET_AMD_SSE3)
 			for(; i<n-4; i+=8)
 				{
 				kernel_sgemm_pp_nt_8x4_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -447,14 +447,14 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 				{
 				kernel_sgemm_pp_nt_4x4_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 				}
-			kernel_spotrf_strsv_4x4_lib4(n-j-4, &pC[0+j*bs+j*sdc], sdc, info);
+			kernel_spotrf_strsv_4x4_lib4(n-j-4, 4, &pC[0+j*bs+j*sdc], sdc, info);
 			if(*info!=0) return;
 			}
 		}
 	int j0 = j;
 	if(j==0) // assume that n>0
 		{
-		kernel_spotrf_strsv_scopy_4x4_lib4(n-j-4, kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+		kernel_spotrf_strsv_4x4_lib4(n-j-4, kinv, &pC[0+j*bs+j*sdc], sdc, info);
 		if(*info!=0) return;
 		kinv = 0;
 		j += 4;
@@ -462,7 +462,7 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 	for(; j<n-3; j+=4)
 		{
 		i = j;
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON) || defined(TARGET_AMD_SSE3)
 		for(; i<n-4; i+=8)
 			{
 			kernel_sgemm_pp_nt_8x4_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -472,7 +472,7 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 			{
 			kernel_sgemm_pp_nt_4x4_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
-		kernel_spotrf_strsv_scopy_4x4_lib4(n-j-4, kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+		kernel_spotrf_strsv_4x4_lib4(n-j-4, kinv, &pC[0+j*bs+j*sdc], sdc, info);
 		if(*info!=0) return;
 		kinv = 0;
 		}
@@ -482,14 +482,14 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 			{
 			i = j;
 			kernel_sgemm_pp_nt_4x1_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
-			corner_spotrf_strsv_scopy_1x1_lib4(&pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+			corner_spotrf_strsv_1x1_lib4(&pC[0+j*bs+j*sdc], sdc, info);
 			if(*info!=0) return;
 			}
 		else if(n-j==2)
 			{
 			i = j;
 			kernel_sgemm_pp_nt_4x2_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
-			corner_spotrf_strsv_scopy_2x2_lib4(kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+			corner_spotrf_strsv_2x2_lib4(kinv, &pC[0+j*bs+j*sdc], sdc, info);
 			if(*info!=0) return;
 /*			kinv = 0;*/
 			}
@@ -497,7 +497,7 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 			{
 			i = j;
 			kernel_sgemm_pp_nt_4x3_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
-			corner_spotrf_strsv_scopy_3x3_lib4(kinv, &pC[0+j*bs+j*sdc], sdc, (bs-nna%bs)%bs, &pL[0+(j-j0)*bs+((j-j0)/bs)*bs*sdc], sdl, info);
+			corner_spotrf_strsv_3x3_lib4(kinv, &pC[0+j*bs+j*sdc], sdc, info);
 			if(*info!=0) return;
 /*			kinv = 0;*/
 			}
@@ -508,7 +508,7 @@ void spotrf_p_scopy_p_t_lib(int n, int nna, float *pC, int sdc, float *pL, int s
 
 
 /* computes an mxn band of the lower triangular Cholesky factor of pC, supposed to be aligned */
-void spotrf_p_lib(int m, int n, float *pC, int sdc, int *info)
+void spotrf_rec_p_lib(int m, int n, float *pC, int sdc, int *info)
 	{
 
 	const int bs = 4;
@@ -519,7 +519,7 @@ void spotrf_p_lib(int m, int n, float *pC, int sdc, int *info)
 	for(; j<n-3; j+=4)
 		{
 		i = j;
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON) || defined(TARGET_AMD_SSE3)
 		for(; i<m-4; i+=8)
 			{
 			kernel_sgemm_pp_nt_8x4_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -529,7 +529,7 @@ void spotrf_p_lib(int m, int n, float *pC, int sdc, int *info)
 			{
 			kernel_sgemm_pp_nt_4x4_lib4(j, &pC[0+i*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], bs, -1);
 			}
-		kernel_spotrf_strsv_4x4_lib4(m-j-4, &pC[0+j*bs+j*sdc], sdc, info);
+		kernel_spotrf_strsv_4x4_lib4(m-j-4, 4, &pC[0+j*bs+j*sdc], sdc, info);
 		if(*info!=0) return;
 		}
 	if(j<n)
@@ -537,7 +537,7 @@ void spotrf_p_lib(int m, int n, float *pC, int sdc, int *info)
 		if(n-j==1)
 			{
 			i = j;
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 			for(; i<m-4; i+=8)
 				{
 				kernel_sgemm_pp_nt_8x1_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -559,7 +559,7 @@ void spotrf_p_lib(int m, int n, float *pC, int sdc, int *info)
 		else if(n-j==2)
 			{
 			i = j;
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 			for(; i<m-4; i+=8)
 				{
 				kernel_sgemm_pp_nt_8x2_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);
@@ -581,7 +581,7 @@ void spotrf_p_lib(int m, int n, float *pC, int sdc, int *info)
 		else if(n-j==3)
 			{
 			i = j;
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON) || defined(TARGET_AMD_SSE3)
 			for(; i<m-4; i+=8)
 				{
 /*				kernel_sgemm_pp_nt_8x3_lib4(j, &pC[0+i*sdc], &pC[0+(i+4)*sdc], &pC[0+j*sdc], &pC[0+j*bs+i*sdc], &pC[0+j*bs+(i+4)*sdc], bs, -1);*/
@@ -1639,7 +1639,6 @@ void strsv_p_t_lib(int n, float *pA, int sda, float *x)
 	
 	int rn = n%bs;
 	int qn = n/bs;
-	int ri, qi;
 	
 	float *ptrA, *ptrx;
 	

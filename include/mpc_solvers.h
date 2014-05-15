@@ -23,4 +23,9 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void ip_d_box(char prec, double sp_thr, int *kk, int k_max, double tol, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, double *work, int *info);
+void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **lb, double **ub, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work, int *info);
+void d_ip_box2(int *kk, int k_max, double tol, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **lb, double **ub, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work, int *info);
+void dres_ip_box(int nx, int nu, int N, int nb, int sda, double **hpBAbt, double **hpQ, double **hq, double **hux, double **lb, double **ub, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double *mu);
+void s_ip_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, float *stat, int nx, int nu, int N, int nb, float **pBAbt, float **pQ, float **lb, float **ub, float **ux, int compute_mult, float **pi, float **lam, float **t, float *work, int *info);
+void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, float *stat, int nx, int nu, int N, int nb, float **pBAbt, float **pQ, float **lb, float **ub, float **ux, int compute_mult, float **pi, float **lam, float **t, float *work, int *info);
+void sres_ip_box(int nx, int nu, int N, int nb, int sda, float **hpBAbt, float **hpQ, float **hq, float **hux, float **hlb, float **hub, float **hpi, float **hlam, float **ht, float **hrq, float **hrb, float **hrd, float *mu);

@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/time.h>
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
 #include <xmmintrin.h> // needed to flush to zero sub-normals with _MM_SET_FLUSH_ZERO_MODE (_MM_FLUSH_ZERO_ON); in the main()
 #endif
 
@@ -43,11 +43,11 @@
 
 /*void openblas_set_num_threads(int num_threads);*/
 
-void dgesv_(int *n, int *nrhs, double *A, int *lda, int *ipiv, double *B, int *ldb, int *info);
-void dgemm_(char *transa, char *transb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc);
-void dcopy_(int *n, double *dx, int *incx, double *dy, int *incy);
-void daxpy_(int *n, double *da, double *dx, int *incx, double *dy, int *incy);
-void dscal_(int *n, double *da, double *dx, int *incx);
+/*void dgesv_(int *n, int *nrhs, double *A, int *lda, int *ipiv, double *B, int *ldb, int *info);*/
+/*void dgemm_(char *transa, char *transb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc);*/
+/*void dcopy_(int *n, double *dx, int *incx, double *dy, int *incy);*/
+/*void daxpy_(int *n, double *da, double *dx, int *incx, double *dy, int *incy);*/
+/*void dscal_(int *n, double *da, double *dx, int *incx);*/
 
 
 
@@ -68,7 +68,7 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 //	char cn = 'n';
 
 	int pp = nx/2; // number of masses
-	int mm = nu;   // number of forces
+/*	int mm = nu;   // number of forces*/
 	
 /************************************************
 * build the continuous time system 
@@ -152,17 +152,13 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 int main()
 	{
 	
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
 /*	printf("\nflush subnormals to zero\n");*/
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); // flush to zero subnormals !!! works only with one thread !!!
 #endif
 
-	int err;
+	int ii, jj, idx;
 	
-	int i, j, ii, jj, idx;
-	
-	double d1=1.0, d0=0.0, dm1=-1.0;
-
 	int rep, nrep=NREP;
 
 	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
@@ -173,11 +169,9 @@ int main()
 	int info = 0;
 		
 	const int dbs = D_MR; //d_get_mr();
-	const int sbs = S_MR; //s_get_mr();
 	
 	int nz = nx+nu+1;
 	int pnz = dbs*((nz+dbs-nu%dbs+dbs-1)/dbs);
-	int spnz = sbs*((nz+sbs-nu%sbs+sbs-1)/sbs);
 	
 /*	printf("\n\n%d %d %d %d\n\n", dbs, pnz, sbs, spnz);*/
 
@@ -231,9 +225,6 @@ int main()
 	double *pBAbt; d_zeros_align(&pBAbt, pnz, pnz);
 	d_cvt_mat2pmat(nz, nx, 0, dbs, BAbt, pnz, pBAbt, pnz);
 
-	float *psBAbt; s_zeros_align(&psBAbt, spnz, spnz);
-	s_cvt_d2s_pmat(nz, nx, dbs, pBAbt, pnz, sbs, psBAbt, spnz);
-
 /*	d_print_pmat(nz, nx, dbs, pBAbt, pnz);*/
 /*	s_print_pmat(nz, nx, sbs, psBAbt, spnz);*/
 /*	return 0;*/
@@ -242,11 +233,17 @@ int main()
 * box constraints
 ************************************************/	
 
-	double *db; d_zeros(&db, nb, 1);
-	for(jj=0; jj<2*nu; jj++)
-		db[jj] = -0.5;   // umin & -umax
+	double *lb; d_zeros(&lb, nb, 1);
+	for(jj=0; jj<nu; jj++)
+		lb[jj] = - 0.5;   // umin
 	for(; jj<nb; jj++)
-		db[jj] = -4.0;   // xmin & -xmax
+		lb[jj] = - 4.0;   // xmin
+
+	double *ub; d_zeros(&ub, nb, 1);
+	for(jj=0; jj<nu; jj++)
+		ub[jj] = 0.5;   // umax
+	for(; jj<nb; jj++)
+		ub[jj] = 4.0;   // xmax
 
 /************************************************
 * cost function
@@ -256,38 +253,54 @@ int main()
 	for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
 	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
 	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 0.1;
-	Q[(nx+nu)*(pnz+1)] = 1e15;
+	Q[(nx+nu)*(pnz+1)] = 1e35;
 	
 	/* packed into contiguous memory */
 	double *pQ; d_zeros_align(&pQ, pnz, pnz);
 	d_cvt_mat2pmat(nz, nz, 0, dbs, Q, pnz, pQ, pnz);
 
-	float *psQ; s_zeros_align(&psQ, spnz, spnz);
-	s_cvt_d2s_pmat(nz, nz, dbs, pQ, pnz, sbs, psQ, spnz);
 /*	d_cvt_mat2pmat(nz, nz, 0, dbs, Q, pnz, pQ, pnz);*/
 
 /************************************************
 * matrices series
 ************************************************/	
 	double *(hpQ[N+1]);
-	float *(hpsQ[N+1]);
+	double *(hq[N+1]);
 	double *(hux[N+1]);
+	double *(hpi[N+1]);
+	double *(hlam[N+1]);
+	double *(ht[N+1]);
 	double *(hpBAbt[N]);
-	float *(hpsBAbt[N]);
-	double *(hdb[N+1]);
+	double *(hlb[N+1]);
+	double *(hub[N+1]);
+	double *(hrb[N]);
+	double *(hrq[N+1]);
+	double *(hrd[N+1]);
 	for(jj=0; jj<N; jj++)
 		{
 		d_zeros_align(&hpQ[jj], pnz, pnz);
-		s_zeros_align(&hpsQ[jj], spnz, spnz);
+		d_zeros_align(&hq[jj], pnz, 1);
 		d_zeros_align(&hux[jj], nz, 1);
+		d_zeros(&hpi[jj], nx, 1);
+		d_zeros(&hlam[jj],2*nb, 1);
+		d_zeros(&ht[jj], 2*nb, 1);
 		hpBAbt[jj] = pBAbt;
-		hpsBAbt[jj] = psBAbt;
-		hdb[jj] = db;
+		hlb[jj] = lb;
+		hub[jj] = ub;
+		d_zeros_align(&hrb[jj], nx, 1);
+		d_zeros_align(&hrq[jj], nx+nu, 1);
+		d_zeros_align(&hrd[jj], 2*nb, 1);
 		}
 	d_zeros_align(&hpQ[N], pnz, pnz);
-	s_zeros_align(&hpsQ[N], spnz, spnz);
+	d_zeros_align(&hq[N], pnz, 1);
 	d_zeros_align(&hux[N], nz, 1);
-	hdb[jj] = db;
+	d_zeros(&hpi[N], nx, 1);
+	d_zeros(&hlam[N], 2*nb, 1);
+	d_zeros(&ht[N], 2*nb, 1);
+	hlb[N] = lb;
+	hub[N] = ub;
+	d_zeros_align(&hrq[N], nx+nu, 1);
+	d_zeros_align(&hrd[N], 2*nb, 1);
 	
 	// starting guess
 	for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
@@ -300,16 +313,18 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-	int kk=0; // acutal number of iterations
-	char prec = PREC; // double/single precision
-	double sp_thr = SP_THR; // threshold to switch between double and single precision
+	double *work; d_zeros_align(&work, 2*((N+1)*(pnz*pnz+2*pnz+2*4*nb)+2*pnz*pnz), 1); // work space
+	int kk = 0; // acutal number of iterations
+/*	char prec = PREC; // double/single precision*/
+/*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
 	int k_max = K_MAX; // maximum number of iterations in the IP method
 	double tol = TOL; // tolerance in the duality measure
 	double sigma[] = {0.4, 0.3, 0.01}; // control primal-dual IP behaviour
 	double *stat; d_zeros(&stat, 5, k_max); // stats from the IP routine
+	int compute_mult = COMPUTE_MULT;
+	int warm_start = WARM_START;
+	double mu = -1.0;
 	
-	double *work; d_zeros_align(&work, 2*((N+1)*(pnz*pnz+pnz+5*nb)+2*pnz*pnz), 1); // work space
-
 
 
 	/* initizile the cost function */
@@ -318,12 +333,6 @@ int main()
 		for(jj=0; jj<pnz*pnz; jj++) hpQ[ii][jj]=pQ[jj];
 		}
 	for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
-
-	for(ii=0; ii<N; ii++)
-		{
-		for(jj=0; jj<spnz*spnz; jj++) hpsQ[ii][jj]=psQ[jj];
-		}
-	for(jj=0; jj<spnz*spnz; jj++) hpsQ[N][jj]=psQ[jj];
 
 
 
@@ -339,11 +348,14 @@ int main()
 		for(jj=0; jj<nx+nu; jj++)
 			hux[ii][jj] = 0;
 
-	hux[0][nu+0] = xx0[2*idx];
-	hux[0][nu+1] = xx0[2*idx+1];
+	hux[0][nu+0] = xx0[0];
+	hux[0][nu+1] = xx0[1];
 
 	// call the IP solver
-	ip_d_box(prec, sp_thr, &kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, work, &info);
+	if(IP==1)
+		d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
+	else
+		d_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
 
 
 
@@ -367,7 +379,10 @@ int main()
 		hux[0][nu+1] = xx0[2*idx+1];
 
 		// call the IP solver
-		ip_d_box(prec, sp_thr, &kk, k_max, tol, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, work, &info);
+		if(IP==1)
+			d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
+		else
+			d_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
 
 		}
 	
@@ -380,6 +395,20 @@ int main()
 	printf("\nnx\tnu\tN\tkernel\n\n");
 	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);
 	
+
+
+	// restore linear part of cost function 
+	for(ii=0; ii<N; ii++)
+		{
+		for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+pnz*jj];
+		}
+	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
+
+	// residuals computation
+	dres_ip_box(nx, nu, N, nb, pnz, hpBAbt, hpQ, hq, hux, hlb, hub, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+
+
+
 	if(PRINTSTAT==1)
 		{
 
@@ -398,6 +427,26 @@ int main()
 		
 		}
 
+	if(PRINTRES==1 && COMPUTE_MULT==1)
+		{
+		// print result 
+		printf("\n\nresiduals\n\n");
+		printf("\n\nrq = \n\n");
+		for(ii=0; ii<=N; ii++)
+/*			d_print_mat_e(1, nx+nu, hrq[ii], 1);*/
+			d_print_mat(1, nx+nu, hrq[ii], 1);
+		printf("\n\nrb = \n\n");
+		for(ii=0; ii<N; ii++)
+/*			d_print_mat_e(1, nx, hrb[ii], 1);*/
+			d_print_mat(1, nx, hrb[ii], 1);
+		printf("\n\nrd = \n\n");
+		for(ii=0; ii<=N; ii++)
+/*			d_print_mat_e(1, 2*nb, hrd[ii], 1);*/
+			d_print_mat(1, 2*nb, hrd[ii], 1);
+		printf("\n\nmu = %e\n\n", mu);
+		
+		}
+
 /************************************************
 * free memory and return
 ************************************************/
@@ -409,21 +458,32 @@ int main()
 	free(BAb);
 	free(BAbt);
 	free(pBAbt);
-	free(psBAbt);
-	free(db);
+	free(lb);
+	free(ub);
 	free(Q);
 	free(pQ);
-/*	free(pL);*/
-/*	free(pBAbtL);*/
 	free(work);
 	free(stat);
 	for(jj=0; jj<N; jj++)
 		{
 		free(hpQ[jj]);
+		free(hq[jj]);
 		free(hux[jj]);
+		free(hpi[jj]);
+		free(hlam[jj]);
+		free(ht[jj]);
+		free(hrb[jj]);
+		free(hrq[jj]);
+		free(hrd[jj]);
 		}
 	free(hpQ[N]);
+	free(hq[N]);
 	free(hux[N]);
+	free(hpi[N]);
+	free(hlam[N]);
+	free(ht[N]);
+	free(hrq[N]);
+	free(hrd[N]);
 
 
 

@@ -1872,7 +1872,7 @@ void kernel_sgemm_pp_nt_4x3_lib4(int kmax, float *A, float *B, float *C, int ldc
 	__m128
 		c_03_0, c_03_1, c_03_2,
 		a_03,
-		b_0, b_1, b_2; 
+		b_0, b_1; 
 	
 	c_03_0 = _mm_setzero_ps();
 	c_03_1 = _mm_setzero_ps();
@@ -2052,7 +2052,7 @@ void kernel_sgemm_pp_nt_4x2_lib4(int kmax, float *A, float *B, float *C, int ldc
 	__m128
 		c_03_0, c_03_1,
 		a_03,
-		b_0, b_1, b_2; 
+		b_0, b_1; 
 	
 	c_03_0 = _mm_setzero_ps();
 	c_03_1 = _mm_setzero_ps();
@@ -2199,7 +2199,7 @@ void kernel_sgemm_pp_nt_4x1_lib4(int kmax, float *A, float *B, float *C, int ldc
 	__m128
 		c_03_0,
 		a_03,
-		b_0, b_1, b_2; 
+		b_0, b_1; 
 	
 	c_03_0 = _mm_setzero_ps();
 

@@ -29,17 +29,21 @@ LIBS = -lm #-lopenblas
 
 #OBJS_TEST = test_dgemm_orig.o
 #OBJS_TEST = test_sgemm_orig.o
-#OBJS_TEST = test_blas_d.o
+OBJS_TEST = test_blas_d.o
 #OBJS_TEST = test_blas_s.o
 #OBJS_TEST = tools.o test_dricposv.o
 #OBJS_TEST = tools.o test_sricposv.o
-OBJS_TEST = tools.o test_ip_box_lib.o
+#OBJS_TEST = tools.o test_d_ip_box.o
+#OBJS_TEST = tools.o test_s_ip_box.o
 
 ifeq ($(TARGET), X64_AVX)
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_X64_AVX $(DEBUG)
 endif
 ifeq ($(TARGET), X64_SSE3)
 CFLAGS = $(OPT) -std=c99 -msse3 -DTARGET_X64_SSE3 $(DEBUG)
+endif
+ifeq ($(TARGET), AMD_SSE3)
+CFLAGS = $(OPT) -std=c99 -msse3 -DTARGET_AMD_SSE3 $(DEBUG)
 endif
 ifeq ($(TARGET), NEON)
 CFLAGS = $(OPT) -std=c99 -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
@@ -58,13 +62,14 @@ CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -DTARGET_X86_ATOM $(DEB
 endif
 
 obj: $(OBJS_TEST)
-	$(CC) -o test.out $(OBJS_TEST) -L. HPMPC.a $(LIBS) #-pg
+	$(CC) -o test.out $(OBJS_TEST) -L. libhpmpc.a $(LIBS) #-pg
 
 clean:
 	rm -f *.o
 	rm -f test.out
-	rm -f HPMPC.a
+	rm -f libhpmpc.a
 
 test_dricposv.o: test_dricposv.c test_param.h ../problem_size.h
 test_sricposv.o: test_sricposv.c test_param.h ../problem_size.h
-test_ip_box_lib.o: test_ip_box_lib.c test_param.h ../problem_size.h
+test_d_ip_box.o: test_d_ip_box.c test_param.h ../problem_size.h
+test_s_ip_box.o: test_s_ip_box.c test_param.h ../problem_size.h
