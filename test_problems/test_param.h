@@ -33,7 +33,7 @@
 #define NB NU+NX
 
 // number of repetition for timing
-#define NREP 10000
+#define NREP 100
 
 // print results
 #define PRINTRES 1
@@ -42,10 +42,10 @@
 #define PRINTSTAT 1
 
 // ip method: 1 primal-dual, 2 predictor-corrector primal-dual
-#define IP 1
+#define IP 2
 
 // compute lagrangian multipliers
-#define COMPUTE_MULT 1
+#define COMPUTE_MULT 0
 
 // warm-start with user-provided solution (otherwise initialize x and u with 0 or something feasible)
 #define WARM_START 1
@@ -57,7 +57,7 @@
 #define K_MAX 10
 
 // tolerance in the duality measure
-#define TOL 1e-3
+#define TOL 1e-6
 
 // threshold in the duality measure to switch from single to double precision
 #define SP_THR 1e5
