@@ -1,5 +1,5 @@
 
-SET( SRCS ip_d_box.c )
+SET( SRCS d_ip_box.c d_ip2_box.c dres_ip_box.c s_ip_box.c s_ip2_box.c sres_ip_box.c )
 
 FOREACH( SRC ${SRCS} )
     GET_FILENAME_COMPONENT(ABS_SRC ${SRC} REALPATH)
