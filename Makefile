@@ -144,7 +144,7 @@ clean:
 	make -C mpc_solvers clean
 	make -C codegen clean
 	make -C test_problems clean
-#	make -C matlab clean
+	make -C interfaces/octave clean
 #	rm -f $(OBJS)
 	rm -f test.out
 	rm -f *.s

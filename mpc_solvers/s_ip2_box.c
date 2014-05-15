@@ -320,7 +320,7 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 	// initialize pi
 	for(jj=0; jj<=N; jj++)
 		for(ll=0; ll<nx; ll++)
-			dpi[0][ll] = 0.0;
+			dpi[jj][ll] = 0.0;
 
 
 

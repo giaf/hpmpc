@@ -38,7 +38,7 @@
 /* primal-dual interior-point method, box constraints, time invariant matrices */
 void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **lb, double **ub, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work, int *info)
 	{
-	
+
 /*printf("\ncazzo\n");*/
 
 /*	int nbx = nb - nu;*/
@@ -353,7 +353,7 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 	// initialize pi
 	for(jj=0; jj<=N; jj++)
 		for(ll=0; ll<nx; ll++)
-			dpi[0][ll] = 0.0;
+			dpi[jj][ll] = 0.0;
 
 
 

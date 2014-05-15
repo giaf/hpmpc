@@ -281,9 +281,9 @@ int main()
 		d_zeros_align(&hpQ[jj], pnz, pnz);
 		d_zeros_align(&hq[jj], pnz, 1);
 		d_zeros_align(&hux[jj], nz, 1);
-		d_zeros(&hpi[jj], nx, 1);
-		d_zeros(&hlam[jj],2*nb, 1);
-		d_zeros(&ht[jj], 2*nb, 1);
+		d_zeros_align(&hpi[jj], nx, 1);
+		d_zeros_align(&hlam[jj],2*nb, 1);
+		d_zeros_align(&ht[jj], 2*nb, 1);
 		hpBAbt[jj] = pBAbt;
 		hlb[jj] = lb;
 		hub[jj] = ub;
@@ -294,9 +294,9 @@ int main()
 	d_zeros_align(&hpQ[N], pnz, pnz);
 	d_zeros_align(&hq[N], pnz, 1);
 	d_zeros_align(&hux[N], nz, 1);
-	d_zeros(&hpi[N], nx, 1);
-	d_zeros(&hlam[N], 2*nb, 1);
-	d_zeros(&ht[N], 2*nb, 1);
+	d_zeros_align(&hpi[N], nx, 1);
+	d_zeros_align(&hlam[N], 2*nb, 1);
+	d_zeros_align(&ht[N], 2*nb, 1);
 	hlb[N] = lb;
 	hub[N] = ub;
 	d_zeros_align(&hrq[N], nx+nu, 1);
