@@ -42,7 +42,7 @@ int main()
 	const float GHz_max = 2.9; //3.6; //2.9;
 
 	// maximum flops per cycle, single precision
-#if defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX_LIB8)
 	const float d_flops_max = 16;
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	const float d_flops_max = 8;
@@ -61,7 +61,7 @@ int main()
 	FILE *f;
 	f = fopen("./test_problems/results/test_blas.m", "w"); // a
 
-#if defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX_LIB8)
 	fprintf(f, "C = 's_x64_avx';\n", GHz_max, d_flops_max);
 	fprintf(f, "\n");
 #elif defined(TARGET_X64_SSE3)
@@ -178,7 +178,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			ssyrk_ppp_lib(n, n, n, pA, pns, pC, pns);
+/*			ssyrk_ppp_lib(n, n, n, pA, pns, pC, pns);*/
 
 			}
 	
@@ -187,7 +187,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			strmm_ppp_lib(n, n, 0, pA, pns, pB, pns, pC, pns);
+/*			strmm_ppp_lib(n, n, 0, pA, pns, pB, pns, pC, pns);*/
 
 			}
 	
@@ -196,7 +196,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			spotrf_p_lib(n, 0, pD, pns, &info);
+/*			spotrf_p_lib(n, 0, pD, pns, &info);*/
 
 			}
 	
@@ -205,7 +205,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			sgemv_p_n_lib(n, n, 0, pA, pns, x, y, 0);
+/*			sgemv_p_n_lib(n, n, 0, pA, pns, x, y, 0);*/
 
 			}
 	
@@ -214,7 +214,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			sgemv_p_t_lib(n, n, 0, pA, pns, x, y, 0);
+/*			sgemv_p_t_lib(n, n, 0, pA, pns, x, y, 0);*/
 
 			}
 	
@@ -223,7 +223,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			strmv_p_n_lib(n, 0, pA, pns, x, y, 0);
+/*			strmv_p_n_lib(n, 0, pA, pns, x, y, 0);*/
 
 			}
 	
@@ -233,7 +233,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			strmv_p_t_lib(n, 0, pA, pns, x, y, 0);
+/*			strmv_p_t_lib(n, 0, pA, pns, x, y, 0);*/
 
 			}
 	
@@ -243,7 +243,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			strsv_p_n_lib(n, pB, pns, x);
+/*			strsv_p_n_lib(n, pB, pns, x);*/
 
 			}
 	
@@ -252,7 +252,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			strsv_p_t_lib(n, pB, pns, x);
+/*			strsv_p_t_lib(n, pB, pns, x);*/
 
 			}
 	
@@ -261,7 +261,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			ssymv_p_lib(n, 0, pA, pns, x, y, 0);
+/*			ssymv_p_lib(n, 0, pA, pns, x, y, 0);*/
 
 			}
 	
@@ -270,7 +270,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			smvmv_p_lib(n, n, 0, pA, pns, x, y, x2, y2, 0);
+/*			smvmv_p_lib(n, n, 0, pA, pns, x, y, x2, y2, 0);*/
 
 			}
 	
