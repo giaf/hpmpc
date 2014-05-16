@@ -80,6 +80,7 @@ void main()
 	fprintf(f, "#include <stdlib.h>\n");
 	fprintf(f, "#include <stdio.h>\n");
 	fprintf(f, "\n");
+	fprintf(f, "#include \"../include/aux_s.h\"\n");
 	fprintf(f, "#include \"../include/kernel_s_lib2.h\"\n");
 	fprintf(f, "#include \"../include/kernel_s_lib4.h\"\n");
 	fprintf(f, "\n");
@@ -152,22 +153,35 @@ void main()
 	fprintf(f, "	/* initial stage */\n");
 	fprintf(f, "	\n");
 	fprintf(f, "		/* strmm */\n");
-	fprintf(f, "		pA = hpBAbt[%d-ii];\n", N-1);
+	fprintf(f, "		pA = hpBAbt[0];\n");
 	fprintf(f, "		pB = pL;\n");
 	fprintf(f, "		pC = pBAbtL;\n");
 
 	strmm_ppp_code_generator(f, nz, nx, nu);
 
 	fprintf(f, "		\n");
+	fprintf(f, "		/* */\n");
+	fprintf(f, "		for(jj=0; jj<%d; jj+=4)\n", nx-3);
+	fprintf(f, "			{\n");
+	fprintf(f, "			pBAbtL[%d+%d*(jj+0)] += hpQ[1][%d+%d*(jj+%d)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+0);
+	fprintf(f, "			pBAbtL[%d+%d*(jj+1)] += hpQ[1][%d+%d*(jj+%d)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+1);
+	fprintf(f, "			pBAbtL[%d+%d*(jj+2)] += hpQ[1][%d+%d*(jj+%d)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+2);
+	fprintf(f, "			pBAbtL[%d+%d*(jj+3)] += hpQ[1][%d+%d*(jj+%d)];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, ((nu+nx)/bs)*bs*sda+(nu+nx)%bs, bs, nu+3);
+	fprintf(f, "			}\n");
+	for(jj=0; jj<nx%4; jj++)
+		{
+	fprintf(f, "		pBAbtL[%d] += hpQ[1][%d];\n", ((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*((nx/4)*4+jj), ((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*((nx/4)*4+nu+jj));
+		}
+	fprintf(f, "		\n");
 	fprintf(f, "		/* ssyrk */\n");
 	fprintf(f, "		pA = pBAbtL;\n");
-	fprintf(f, "		pC = hpQ[%d-ii];\n", N-1);
+	fprintf(f, "		pC = hpQ[0];\n");
 
 	ssyrk_ppp_code_generator(f, nz, nu, nx);
 
 	fprintf(f, "		\n");
 	fprintf(f, "		/* spotrf */\n");
-	fprintf(f, "		pC = hpQ[%d-ii];\n", N-1);
+	fprintf(f, "		pC = hpQ[0];\n");
 
 	spotrf_rec_p_code_generator(f, nz, nu);
 

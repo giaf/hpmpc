@@ -324,7 +324,7 @@ int main()
 	int k_max = K_MAX; // maximum number of iterations in the IP method
 	float tol = TOL; // tolerance in the duality measure
 	float sigma[] = {0.4, 0.3, 0.01}; // control primal-dual IP behaviour
-	float *stat; d_zeros(&stat, 5, k_max); // stats from the IP routine
+	float *stat; s_zeros(&stat, 5, k_max); // stats from the IP routine
 	int compute_mult = COMPUTE_MULT;
 	int warm_start = WARM_START;
 	float mu = -1.0;
