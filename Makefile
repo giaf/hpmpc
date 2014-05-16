@@ -129,8 +129,8 @@ run:
 
 #install: library
 install:
-	cp -f libhpmpc.a /lib/libhpmpc.a
-	cp -rf ./include /include/hpmpc
+	cp -f libhpmpc.a /usr/local/lib/libhpmpc.a
+	cp -rf ./include /usr/local/include/hpmpc
 	
 uninstall:
 	rm /lib/libhpmpc.a
