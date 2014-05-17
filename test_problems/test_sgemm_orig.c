@@ -85,6 +85,8 @@ int main()
 	for(i=0; i<n-1; i++)
 		C[1+i*(n+1)] = 1;
 
+/*sB[1*(n+1)] = 2;*/
+
 	d_print_mat(n, n, C, n);
 
 	int pn = ((n+bs-1)/bs)*bs;//+4;	
@@ -132,8 +134,8 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-/*		sgemm_ppp_nt_lib(n, n, n, spA, pns, spB, pns, spC, pns, 0);*/
-		sgemm_ppp_nt_lib(n, n, n, spB, pns, spA, pns, spC, pns, 0);
+		sgemm_ppp_nt_lib(n, n, n, spA, pns, spB, pns, spC, pns, 0);
+/*		sgemm_ppp_nt_lib(n, n, n, spB, pns, spA, pns, spC, pns, 0);*/
 /*		dgemm_ppp_nt_lib(n, n, n, pA, pn, pB, pn, pC, pn, 0);*/
 /*		dgemm_ppp_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
 /*		dtrmm_pup_nn_lib(n, n, pA, pn, B, n, pC, pn);*/
