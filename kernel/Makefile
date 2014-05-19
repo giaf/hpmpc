@@ -25,50 +25,10 @@
 
 include ../Makefile.rule
 
-ifeq ($(TARGET), X64_AVX_LIB8)
-OBJS_DOUBLE = kernel_dgemm_avx_lib4.o kernel_dpotrf_sse3_lib4.o kernel_dgemv_avx_lib4.o corner_dtrmm_avx_lib4.o corner_dpotrf_sse2_lib4.o kernel_dsymv_avx_lib4.o
-OBJS_SINGLE = kernel_sgemm_avx_lib8.o
-CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_X64_AVX_LIB8 $(DEBUG)
-endif
 ifeq ($(TARGET), X64_AVX)
-OBJS_DOUBLE = kernel_dgemm_avx_lib4.o kernel_dpotrf_sse3_lib4.o kernel_dgemv_avx_lib4.o corner_dtrmm_avx_lib4.o corner_dpotrf_sse2_lib4.o kernel_dsymv_avx_lib4.o
-OBJS_SINGLE = kernel_sgemm_avx_lib4.o kernel_spotrf_sse_lib4.o kernel_sgemv_sse_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_sse_lib4.o
+OBJS_DOUBLE = kernel_dgemm_avx_lib4.o kernel_dtrmm_avx_lib4.o kernel_dtrsm_avx_lib4.o kernel_dpotrf_avx_lib4.o kernel_dgemv_avx_lib4.o corner_dtrmm_avx_lib4.o kernel_dsymv_avx_lib4.o
+OBJS_SINGLE = #kernel_sgemm_avx_lib4.o kernel_spotrf_sse_lib4.o kernel_sgemv_sse_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_sse_lib4.o
 CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_X64_AVX $(DEBUG)
-endif
-ifeq ($(TARGET), X64_SSE3)
-OBJS_DOUBLE = kernel_dgemm_sse3_lib4.o kernel_dpotrf_sse3_lib4.o kernel_dgemv_sse3_lib4.o corner_dtrmm_sse3_lib4.o corner_dpotrf_sse2_lib4.o kernel_dsymv_c99_lib4.o
-OBJS_SINGLE = kernel_sgemm_sse_lib4.o kernel_spotrf_sse_lib4.o kernel_sgemv_sse_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_sse_lib4.o
-CFLAGS = $(OPT) -std=c99 -msse3 -fPIC -DTARGET_X64_SSE3 $(DEBUG)
-endif
-ifeq ($(TARGET), AMD_SSE3)
-OBJS_DOUBLE = kernel_dgemm_amd_sse3_lib4.o kernel_dpotrf_sse3_lib4.o kernel_dgemv_sse3_lib4.o corner_dtrmm_sse3_lib4.o corner_dpotrf_sse2_lib4.o kernel_dsymv_c99_lib4.o
-OBJS_SINGLE = kernel_sgemm_sse_lib4.o kernel_spotrf_sse_lib4.o kernel_sgemv_sse_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_sse_lib4.o
-CFLAGS = $(OPT) -std=c99 -msse3 -fPIC -DTARGET_AMD_SSE3 $(DEBUG)
-endif
-ifeq ($(TARGET), NEON)
-OBJS_DOUBLE = kernel_dgemm_neon_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o corner_dtrmm_c99_lib4.o corner_dpotrf_c99_lib4.o kernel_dsymv_c99_lib4.o
-OBJS_SINGLE = kernel_sgemm_neon_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_c99_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_c99_lib4.o
-CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG) # -funsafe-math # TODO test
-endif
-ifeq ($(TARGET), POWERPC_G2)
-OBJS_DOUBLE = kernel_dgemm_ppc_g2_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o corner_dtrmm_c99_lib4.o corner_dpotrf_c99_lib4.o kernel_dsymv_c99_lib4.o
-OBJS_SINGLE = kernel_sgemm_ppc_g2_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_c99_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_c99_lib4.o
-CFLAGS = $(OPT) -std=c99 -fPIC -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
-endif
-ifeq ($(TARGET), C99_4X4)
-OBJS_DOUBLE = kernel_dgemm_c99_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o corner_dtrmm_c99_lib4.o corner_dpotrf_c99_lib4.o kernel_dsymv_c99_lib4.o  
-OBJS_SINGLE = kernel_sgemm_c99_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o corner_strmm_c99_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_c99_lib4.o
-CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
-endif
-ifeq ($(TARGET), C99_2X2)
-OBJS_DOUBLE = kernel_dgemm_c99_lib2.o kernel_dpotrf_c99_lib2.o kernel_dgemv_c99_lib2.o corner_dtrmm_c99_lib2.o corner_dpotrf_c99_lib2.o kernel_dsymv_c99_lib2.o 
-OBJS_SINGLE = kernel_sgemm_c99_lib2.o kernel_spotrf_c99_lib2.o kernel_sgemv_c99_lib2.o corner_strmm_c99_lib2.o corner_spotrf_c99_lib2.o kernel_ssymv_c99_lib2.o 
-CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_2X2 $(DEBUG)
-endif
-ifeq ($(TARGET), X86_ATOM)
-OBJS_DOUBLE = kernel_dgemm_x86_atom_lib2.o kernel_dpotrf_c99_lib2.o kernel_dgemv_c99_lib2.o corner_dtrmm_c99_lib2.o corner_dpotrf_c99_lib2.o kernel_dsymv_c99_lib2.o 
-OBJS_SINGLE = kernel_sgemm_x86_atom_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_x86_atom_lib4.o corner_strmm_c99_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_c99_lib4.o
-CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -fPIC -DTARGET_X86_ATOM $(DEBUG)
 endif
 
 obj: $(OBJS_DOUBLE) $(OBJS_SINGLE)

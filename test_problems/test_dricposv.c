@@ -154,23 +154,8 @@ int main()
 	
 	// maximum frequency of the processor
 	const float GHz_max = 2.9; //3.6; //2.9;
-
 	// maximum flops per cycle, double precision
-#if defined(TARGET_X64_AVX)
-	const float d_flops_max = 8;
-#elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
-	const float d_flops_max = 4;
-#elif defined(TARGET_CORTEXA9)
-	const float d_flops_max = 1;
-#elif defined(TARGET_X86_ATOM)
-	const float d_flops_max = 1;
-#elif defined(TARGET_POWERPC_G2)
-	const float d_flops_max = 1;
-#elif defined(TARGET_C99_4X4)
-	const float d_flops_max = 2;
-#elif defined(TARGET_C99_2X2)
-	const float d_flops_max = 2;
-#endif
+	const float d_flops_max = 8; //4; //2;
 
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
 	printf("\nflush to zero on\n");
@@ -213,7 +198,7 @@ int main()
 
 		int rep;
 /*		int nrep = 1000;//nnrep[ll];// nnrep[ll];*/
-		int nrep = NREP; //nnrep[ll];// nnrep[ll];
+		int nrep = NREP;//nnrep[ll];// nnrep[ll];
 	
 		int nz = nx+nu+1;
 		int pnz = bsd*((nz+bsd-nu%bsd+bsd-1)/bsd);
@@ -292,6 +277,7 @@ int main()
 
 	/* matrices series */
 		double *(hpQ[N+1]);
+		double *(hpL[N+1]);
 		double *(hq[N+1]);
 		double *(hux[N+1]);
 		double *(hpi[N+1]);
@@ -302,6 +288,7 @@ int main()
 		for(jj=0; jj<N; jj++)
 			{
 			d_zeros_align(&hpQ[jj], pnz, pnz);
+			d_zeros_align(&hpL[jj], pnz, 2*pnz);
 			d_zeros_align(&hq[jj], pnz, 1);
 			d_zeros_align(&hux[jj], pnz, 1);
 			d_zeros_align(&hpi[jj], nx, 1);
@@ -311,6 +298,7 @@ int main()
 //			hBAb[jj] = BAb;
 			}
 		d_zeros_align(&hpQ[N], pnz, pnz);
+		d_zeros_align(&hpL[N], pnz, 2*pnz);
 		d_zeros_align(&hq[N], pnz, 1);
 		d_zeros_align(&hux[N], pnz, 1);
 		d_zeros_align(&hpi[N], nx, 1);
@@ -319,9 +307,13 @@ int main()
 		// starting guess
 		for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
 	
-		double *pL; d_zeros_align(&pL, pnz, pnz);
+		double *pLt; d_zeros_align(&pLt, pnz, pnz);
 	
-		double *pBAbtL; d_zeros_align(&pBAbtL, pnz, pnz);
+/*		double *pBAbtL; d_zeros_align(&pBAbtL, pnz, pnz);*/
+
+		double *diag; d_zeros(&diag, nz, 1);
+		
+		double *work; d_zeros(&work, 2*pnz, 1);
 
 /************************************************
 * riccati-like iteration
@@ -337,7 +329,8 @@ int main()
 		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 		// call the solver
-		dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, COMPUTE_MULT, hpi, &info);
+		dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, hpL, pLt, diag, COMPUTE_MULT, hpi, &info);
+/*		dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *pLt, double *diag, int compute_pi, double **hpi, int *info);*/
 
 		if(PRINTRES==1)
 			{
@@ -354,50 +347,74 @@ int main()
 				d_print_mat(1, nx, hpi[ii+1], 1);
 			}
 
-		// corrector
-	
-		// clear solution 
-		for(ii=0; ii<N; ii++)
-			{
-			for(jj=0; jj<nu; jj++) hux[ii][jj] = 0;
-			for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = 0;
-			}
 
-		// restore linear part of cost function 
-		for(ii=0; ii<N; ii++)
-			{
-			for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+pnz*jj];
-			}
-		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
+/*printf("\nciao\n");*/
+/*double *AA; d_zeros_align(&AA, 4, 4);*/
+/*double *BB; d_zeros_align(&BB, 4, 4);*/
+/*double *CC; d_zeros_align(&CC, 4, 4);*/
+/*double *DD; d_zeros_align(&DD, 4, 4);*/
+/*double *FF; d_zeros_align(&FF, 10, 1);*/
+/*for(ii=0; ii<16; ii++)*/
+/*	AA[ii] = ii;*/
+/*BB[0] = 1.0;*/
+/*BB[5] = 1.0;*/
+/*BB[10] = 1.0;*/
+/*BB[15] = 1.0;*/
+/*FF[0] = 1.0;*/
+/*FF[2] = 1.0;*/
+/*FF[5] = 1.0;*/
+/*FF[9] = 1.0;*/
+/*d_print_pmat(4, 4, 2, AA, 4);*/
+/*d_print_pmat(4, 4, 4, BB, 4);*/
+/*kernel_dtrsm_pp_nt_2x4_lib4(4, 0, AA, BB, CC, DD, 2, FF);*/
+/*kernel_dtrsm_pp_nt_2x4_lib4(0, 4, AA+8, BB, CC+8, DD+8, 2, FF);*/
+/*d_print_pmat(4, 4, 2, DD, 4);*/
 
-		// call the solver 
-		dricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, COMPUTE_MULT, hpi);
 
-		if(PRINTRES==1)
-			{
-			// print result 
-			printf("\n\ntrs\n\n");
-			printf("\n\nu\n\n");
-			for(ii=0; ii<=N; ii++)
-				d_print_mat(1, nu, hux[ii], 1);
-			printf("\n\nx\n\n");
-			for(ii=0; ii<=N; ii++)
-				d_print_mat(1, nx, hux[ii]+nu, 1);
-			}
-		if(PRINTRES==1 && COMPUTE_MULT==1)
-			{
-			// print result 
-			printf("\n\npi\n\n");
-			for(ii=0; ii<N; ii++)
-				d_print_mat(1, nx, hpi[ii+1], 1);
-			}
+/*		// corrector*/
+/*	*/
+/*		// clear solution */
+/*		for(ii=0; ii<N; ii++)*/
+/*			{*/
+/*			for(jj=0; jj<nu; jj++) hux[ii][jj] = 0;*/
+/*			for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = 0;*/
+/*			}*/
 
-		// restore cost function 
-		for(ii=0; ii<N; ii++)
-			{
-			for(jj=0; jj<pnz*pnz; jj++) hpQ[ii][jj]=pQ[jj];
-			}
-		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
+/*		// restore linear part of cost function */
+/*		for(ii=0; ii<N; ii++)*/
+/*			{*/
+/*			for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+pnz*jj];*/
+/*			}*/
+/*		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];*/
+
+/*		// call the solver */
+/*		dricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, COMPUTE_MULT, hpi);*/
+
+/*		if(PRINTRES==1)*/
+/*			{*/
+/*			// print result */
+/*			printf("\n\ntrs\n\n");*/
+/*			printf("\n\nu\n\n");*/
+/*			for(ii=0; ii<=N; ii++)*/
+/*				d_print_mat(1, nu, hux[ii], 1);*/
+/*			printf("\n\nx\n\n");*/
+/*			for(ii=0; ii<=N; ii++)*/
+/*				d_print_mat(1, nx, hux[ii]+nu, 1);*/
+/*			}*/
+/*		if(PRINTRES==1 && COMPUTE_MULT==1)*/
+/*			{*/
+/*			// print result */
+/*			printf("\n\npi\n\n");*/
+/*			for(ii=0; ii<N; ii++)*/
+/*				d_print_mat(1, nx, hpi[ii+1], 1);*/
+/*			}*/
+
+/*		// restore cost function */
+/*		for(ii=0; ii<N; ii++)*/
+/*			{*/
+/*			for(jj=0; jj<pnz*pnz; jj++) hpQ[ii][jj]=pQ[jj];*/
+/*			}*/
+/*		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];*/
 
 		// restore linear part of cost function 
 		for(ii=0; ii<N; ii++)
@@ -433,14 +450,14 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 			// restore cost function 
-			for(ii=0; ii<N; ii++)
-				{
-				for(jj=0; jj<pnz*pnz; jj++) hpQ[ii][jj]=pQ[jj];
-				}
-			for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
+/*			for(ii=0; ii<N; ii++)*/
+/*				{*/
+/*				for(jj=0; jj<pnz*pnz; jj++) hpQ[ii][jj]=pQ[jj];*/
+/*				}*/
+/*			for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];*/
 
 			// call the solver 
-			dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL, COMPUTE_MULT, hpi, &info);
+			dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, hpL, pLt, diag, COMPUTE_MULT, hpi, &info);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
@@ -462,7 +479,7 @@ int main()
 			for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 			// call the solver 
-			dricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, COMPUTE_MULT, hpi);
+/*			dricpotrs_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL, COMPUTE_MULT, hpi);*/
 			}
 		
 		gettimeofday(&tv2, NULL); // start
@@ -592,16 +609,19 @@ int main()
 		free(pBAbt);
 		free(Q);
 		free(pQ);
-		free(pL);
-		free(pBAbtL);
+		free(pLt);
+		free(diag);
+		free(work);
 		for(jj=0; jj<N; jj++)
 			{
 			free(hpQ[jj]);
+			free(hpL[jj]);
 			free(hq[jj]);
 			free(hux[jj]);
 	//		free(hpi[jj]);
 			}
 		free(hpQ[N]);
+		free(hpL[N]);
 		free(hq[N]);
 		free(hux[N]);
 	//	free(hpi[N]);
