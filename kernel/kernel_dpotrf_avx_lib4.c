@@ -434,8 +434,153 @@ void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, do
 
 	__m256d
 		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33;
-		
-	zeros_ones = _mm_setzero_pd( );
+	
+	if(1) // TODO avoid correction if a_jj==0
+	{	
+
+	// first row
+	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
+	sa_00 = _mm_move_sd( sa_00, _mm256_castpd256_pd128(d_00_10_20_30) );
+	if( _mm_comigt_sd ( sa_00, zeros_ones ) )
+		{
+		sa_00 = _mm_sqrt_sd( sa_00, sa_00 );
+		sa_10 = _mm_shuffle_pd( _mm256_castpd256_pd128(d_00_10_20_30), zeros_ones, 0x1 );
+		sa_20 = _mm256_extractf128_pd( d_00_10_20_30, 0x1 ); // a_20 & a_30
+		zeros_ones = _mm_set_sd( 1.0 );
+		sa_00 = _mm_div_sd( zeros_ones, sa_00 );
+		sa_00 = _mm_movedup_pd( sa_00 );
+		sa_10 = _mm_mul_sd( sa_10, sa_00 );
+		sa_10 = _mm_movedup_pd( sa_10 );
+		sa_20 = _mm_mul_pd( sa_20, sa_00 ); // a_20 & a_30
+		}
+	else // comile
+		{
+/*		*info = 1; return;*/
+		sa_00 = _mm_setzero_pd();
+		sa_10 = sa_00;
+		sa_20 = sa_00; // a_20 & a_30
+		}
+
+	// second row
+	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
+	sa_11 = _mm_shuffle_pd( _mm256_castpd256_pd128(d_01_11_21_31), zeros_ones, 0x1 );
+	sab_temp = _mm_mul_sd( sa_10, sa_10 );
+	sa_11 = _mm_sub_sd( sa_11, sab_temp );
+	if( _mm_comigt_sd ( sa_11, zeros_ones ) )
+		{
+		sa_11 = _mm_sqrt_sd( sa_11, sa_11 );
+		sa_21 = _mm256_extractf128_pd( d_01_11_21_31, 0x1 ); // a_21 & a_31
+		zeros_ones = _mm_set_sd( 1.0 );
+		sa_11 = _mm_div_sd( zeros_ones, sa_11 );
+		sa_11 = _mm_movedup_pd( sa_11 );
+		sab_temp = _mm_mul_pd( sa_20, sa_10 ); // a_21 & a_31
+		sa_21 = _mm_sub_pd( sa_21, sab_temp ); // a_21 & a_31
+		sa_21 = _mm_mul_pd( sa_21, sa_11 ); // a_21 & a_31
+		}
+	else // comile
+		{
+/*		*info = 1; return;*/
+		sa_11 = _mm_setzero_pd();
+		sa_21 = sa_11; // a_21 & a_31
+		}
+	
+	// third row
+	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
+	sa_22 = _mm256_extractf128_pd( d_02_12_22_32, 0x1 ); // a_22 & a_32
+	sab_temp = _mm_movedup_pd( sa_20 );
+	sab_temp = _mm_mul_pd( sa_20, sab_temp );
+	sa_22 = _mm_sub_pd( sa_22, sab_temp );
+	sab_temp = _mm_movedup_pd( sa_21 );
+	sab_temp = _mm_mul_pd( sa_21, sab_temp );
+	sa_22 = _mm_sub_pd( sa_22, sab_temp );
+	if( _mm_comigt_sd ( sa_22, zeros_ones ) )
+		{
+		sa_32 = _mm_shuffle_pd( sa_22, zeros_ones, 0x1 ); // a_31
+		sa_22 = _mm_sqrt_sd( sa_22, sa_22 );
+		zeros_ones = _mm_set_sd( 1.0 );
+		sa_22 = _mm_div_sd( zeros_ones, sa_22 );
+		sa_32 = _mm_mul_sd( sa_32, sa_22 );
+		}
+	else // comile
+		{
+/*		*info = 1; return;*/
+		sa_22 = _mm_setzero_pd();
+		sa_32 = sa_22; // a_21 & a_31
+		}
+
+	sa_30 = _mm_shuffle_pd( sa_20, zeros_ones, 0x1 ); // a_30
+	sa_31 = _mm_shuffle_pd( sa_21, zeros_ones, 0x1 ); // a_31
+
+	// fourth row
+	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
+	sa_33 = _mm_shuffle_pd( _mm256_extractf128_pd( d_03_13_23_33, 0x1 ), zeros_ones, 0x1 );
+	sab_temp = _mm_mul_sd( sa_30, sa_30 );
+	sa_33 = _mm_sub_sd( sa_33, sab_temp );
+	sab_temp = _mm_mul_sd( sa_31, sa_31 );
+	sa_33 = _mm_sub_sd( sa_33, sab_temp );
+	sab_temp = _mm_mul_sd( sa_32, sa_32 );
+	sa_33 = _mm_sub_sd( sa_33, sab_temp );
+	if( _mm_comigt_sd ( sa_33, zeros_ones ) )
+		{
+		sa_33 = _mm_sqrt_sd( sa_33, sa_33 );
+		zeros_ones = _mm_set_sd( 1.0 );
+		sa_33 = _mm_div_sd( zeros_ones, sa_33 );
+		}
+	else // comile
+		{
+/*		*info = 1; return;*/
+		sa_22 = _mm_setzero_pd();
+		sa_32 = sa_22; // a_21 & a_31
+		}
+
+	// duplicate & store
+	_mm_store_sd( &D0[0+ldc*0], sa_00 ); // a_00
+	_mm_store_sd( &D0[1+ldc*0], sa_10 ); // a_10
+	_mm_store_pd( &D0[2+ldc*0], sa_20 ); // a_20 & a_30
+	_mm_store_sd( &D0[1+ldc*1], sa_11 ); // a_11
+	_mm_store_pd( &D0[2+ldc*1], sa_21 ); // a_21 & a_31
+	_mm_store_sd( &D0[2+ldc*2], sa_22 ); // a_22
+	_mm_store_sd( &D0[3+ldc*2], sa_32 ); // a_32
+	_mm_store_sd( &D0[3+ldc*3], sa_33 ); // a_33
+
+	_mm_store_sd( &fact[0], sa_00 );
+	_mm_store_sd( &fact[1], sa_10 );
+	_mm_store_sd( &fact[3], sa_20 );
+	_mm_store_sd( &fact[6], sa_30 );
+	_mm_store_sd( &fact[2], sa_11 );
+	_mm_store_sd( &fact[4], sa_21 );
+	_mm_store_sd( &fact[7], sa_31 );
+	_mm_store_sd( &fact[5], sa_22 );
+	_mm_store_sd( &fact[8], sa_32 );
+	_mm_store_sd( &fact[9], sa_33 );
+
+/*	sa_00 = _mm_movedup_pd( sa_00 );*/
+/*	sa_10 = _mm_movedup_pd( sa_10 );*/
+	sa_20 = _mm_movedup_pd( sa_20 );
+	sa_30 = _mm_movedup_pd( sa_30 );
+/*	sa_11 = _mm_movedup_pd( sa_11 );*/
+	sa_21 = _mm_movedup_pd( sa_21 );
+	sa_31 = _mm_movedup_pd( sa_31 );
+	sa_22 = _mm_movedup_pd( sa_22 );
+	sa_32 = _mm_movedup_pd( sa_32 );
+	sa_33 = _mm_movedup_pd( sa_33 );
+
+	a_00 = _mm256_permute2f128_pd( a_00, a_00, 0x0 );
+	a_10 = _mm256_permute2f128_pd( a_10, a_10, 0x0 );
+	a_20 = _mm256_permute2f128_pd( a_20, a_20, 0x0 );
+	a_30 = _mm256_permute2f128_pd( a_30, a_30, 0x0 );
+	a_11 = _mm256_permute2f128_pd( a_11, a_11, 0x0 );
+	a_21 = _mm256_permute2f128_pd( a_21, a_21, 0x0 );
+	a_31 = _mm256_permute2f128_pd( a_31, a_31, 0x0 );
+	a_22 = _mm256_permute2f128_pd( a_22, a_22, 0x0 );
+	a_32 = _mm256_permute2f128_pd( a_32, a_32, 0x0 );
+	a_33 = _mm256_permute2f128_pd( a_33, a_33, 0x0 );
+
+	} // end of comment out
+	else
+	{
+
+	zeros_ones = _mm_setzero_pd();
 	sa_00 = _mm_move_sd( sa_00, _mm256_castpd256_pd128(d_00_10_20_30) );
 	if( _mm_comile_sd ( sa_00, zeros_ones ) ) { *info = 1; return; }
 sa_00 = _mm_sqrt_sd( sa_00, sa_00 );
@@ -453,7 +598,7 @@ sa_00 = _mm_div_sd( zeros_ones, sa_00 );
 	sa_20 = _mm_mul_sd( sa_20, sa_00 );
 	sa_30 = _mm_mul_sd( sa_30, sa_00 );
 	sab_temp = _mm_mul_sd( sa_10, sa_10 );
-	zeros_ones = _mm_setzero_pd( );
+	zeros_ones = _mm_setzero_pd();
 	sa_11 = _mm_sub_sd( sa_11, sab_temp );
 	if( _mm_comile_sd ( sa_11, zeros_ones ) ) { *info = 1; return; }
 sa_11 = _mm_sqrt_sd( sa_11, sa_11 );
@@ -485,7 +630,7 @@ sa_11 = _mm_div_sd( zeros_ones, sa_11 );
 	sa_31 = _mm_mul_sd( sa_31, sa_11 );
 	sab_temp = _mm_mul_sd( sa_21, sa_21 );
 	sa_22 = _mm_sub_sd( sa_22, sab_temp );
-	zeros_ones = _mm_setzero_pd( );
+	zeros_ones = _mm_setzero_pd();
 	if( _mm_comile_sd ( sa_22, zeros_ones ) ) { *info = 1; return; }
 sa_22 = _mm_sqrt_sd( sa_22, sa_22 );
 	sa_11 = _mm_movedup_pd( sa_11 );
@@ -504,7 +649,7 @@ sa_22 = _mm_sqrt_sd( sa_22, sa_22 );
 	zeros_ones = _mm_set_sd( 1.0 );
 sa_22 = _mm_div_sd( zeros_ones, sa_22 );
 	sa_21 = _mm_movedup_pd( sa_21 );
-	zeros_ones = _mm_setzero_pd( );
+	zeros_ones = _mm_setzero_pd();
 	a_11 = _mm256_castpd128_pd256( sa_11 );
 	a_11 = _mm256_permute2f128_pd( a_11, a_11, 0x0 );
 	sa_31 = _mm_movedup_pd( sa_31 );
@@ -541,7 +686,7 @@ sa_33 = _mm_div_sd( zeros_ones, sa_33 );
 	sa_33 = _mm_movedup_pd( sa_33 );
 	a_33 = _mm256_castpd128_pd256( sa_33 );
 	a_33 = _mm256_permute2f128_pd( a_33, a_33, 0x0 );
-
+	}
 
 
 	// solve the lower 4x4 matrix
