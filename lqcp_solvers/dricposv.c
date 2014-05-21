@@ -30,7 +30,7 @@
 
 
 /* version tailored for mpc (x0 fixed) */
-void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *pLt, double *diag, int compute_pi, double **hpi, int *info)
+void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *diag, int compute_pi, double **hpi, int *info)
 	{
 	
 	const int bs = D_MR; //d_get_mr();
@@ -48,24 +48,24 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 	dsyrk_dpotrf_pp_lib(nz, 0, nz, hpL[N]+(nx+pnx)*bs, 2*sda, hpQ[N], sda, diag, info);
 	if(*info!=0) return;
 
-	d_transpose_pmat_lo(nx, nu, hpL[N]+(nx+pnx)*bs+(nu/bs)*bs*sda+nu%bs+nu*bs, 2*sda, hpL[N]+(nx+pnx+d_ncl)*bs, 2*sda);
+	d_transpose_pmat_lo(nx, nu, hpL[N]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, hpL[N]+(nx+pnx+d_ncl)*bs, 2*sda);
 
 	// middle stages 
 	for(ii=0; ii<N-1; ii++)
 		{	
 		dtrmm_ppp_lib(nz, nx, hpBAbt[N-ii-1], sda, hpL[N-ii]+(nx+pnx+d_ncl)*bs, 2*sda, hpL[N-ii-1], 2*sda);
-		for(jj=0; jj<nx; jj++) hpL[N-ii-1][((nx+nu)/bs)*bs*2*sda+(nx+nu)%bs+jj*bs] += hpL[N-ii][((nx+nu)/bs)*bs*2*sda+(nx+nu)%bs+(nx+pnx+nu+jj)*bs];
+		for(jj=0; jj<nx; jj++) hpL[N-ii-1][((nx+nu)/bs)*bs*(2*sda)+(nx+nu)%bs+jj*bs] += hpL[N-ii][((nx+nu)/bs)*bs*2*sda+(nx+nu)%bs+(nx+pnx+nu+jj)*bs];
 		dsyrk_dpotrf_pp_lib(nz, nx, nz, hpL[N-ii-1], 2*sda, hpQ[N-ii-1], sda, diag, info);
 		if(*info!=0) return;
-		for(jj=0; jj<nu; jj++) hpL[N-ii-1][(nx+pnx)*bs+(jj/bs)*bs*2*sda+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
-		d_transpose_pmat_lo(nx, nu, hpL[N-ii-1]+(nx+pnx)*bs+(nu/bs)*bs*sda+nu%bs+nu*bs, 2*sda, hpL[N-ii-1]+(nx+pnx+d_ncl)*bs, 2*sda);
+		for(jj=0; jj<nu; jj++) hpL[N-ii-1][(nx+pnx)*bs+(jj/bs)*bs*(2*sda)+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
+		d_transpose_pmat_lo(nx, nu, hpL[N-ii-1]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, hpL[N-ii-1]+(nx+pnx+d_ncl)*bs, 2*sda);
 		}
 
 	// first stage 
 	dtrmm_ppp_lib(nz, nx, hpBAbt[0], sda, hpL[1]+(nx+pnx+d_ncl)*bs, 2*sda, hpL[0], 2*sda);
-	for(jj=0; jj<nx; jj++) hpL[0][((nx+nu)/bs)*bs*2*sda+(nx+nu)%bs+jj*bs] += hpL[1][((nx+nu)/bs)*bs*2*sda+(nx+nu)%bs+(nx+pnx+nu+jj)*bs];
+	for(jj=0; jj<nx; jj++) hpL[0][((nx+nu)/bs)*bs*(2*sda)+(nx+nu)%bs+jj*bs] += hpL[1][((nx+nu)/bs)*bs*2*sda+(nx+nu)%bs+(nx+pnx+nu+jj)*bs];
 	dsyrk_dpotrf_pp_lib(nz, nx, ((nu+bs-1)/bs)*bs, hpL[0], 2*sda, hpQ[0], sda, diag, info);
-	for(jj=0; jj<nu; jj++) hpL[0][(nx+pnx)*bs+(jj/bs)*bs*2*sda+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
+	for(jj=0; jj<nu; jj++) hpL[0][(nx+pnx)*bs+(jj/bs)*bs*(2*sda)+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 
 /*return;*/
 
@@ -80,9 +80,9 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 	for(ii=0; ii<N; ii++)
 		{
 /*		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hpQ[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];*/
-		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hpL[ii][(nx+pnx)*bs+((nu+nx)/bs)*bs*2*sda+(nu+nx)%bs+bs*jj];
+		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hpL[ii][(nx+pnx)*bs+((nu+nx)/bs)*bs*(2*sda)+(nu+nx)%bs+bs*jj];
 /*		dgemv_p_t_lib(nx, nu, nu, &hpQ[ii][(nu/bs)*bs*sda+nu%bs], sda, &hux[ii][nu], &hux[ii][0], -1);*/
-		dgemv_p_t_lib(nx, nu, nu, &hpL[ii][(nx+pnx)*bs+(nu/bs)*bs*2*sda+nu%bs], 2*sda, &hux[ii][nu], &hux[ii][0], -1);
+		dgemv_p_t_lib(nx, nu, nu, &hpL[ii][(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs], 2*sda, &hux[ii][nu], &hux[ii][0], -1);
 /*		dtrsv_p_t_lib(nu, hpQ[ii], sda, &hux[ii][0]);*/
 		dtrsv_p_t_lib(nu, &hpL[ii][(nx+pnx)*bs], 2*sda, &hux[ii][0]);
 		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
@@ -90,11 +90,11 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 		if(compute_pi)
 			{
 //			for(jj=0; jj<nx; jj++) pBAbtL[nu+jj] = hpQ[ii+1][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*(nu+jj)];
-			for(jj=0; jj<nx; jj++) pLt[nu+jj] = hpL[ii+1][(nx+pnx)*bs+((nu+nx)/bs)*bs*2*sda+(nu+nx)%bs+bs*(nu+jj)];
+			for(jj=0; jj<nx; jj++) hpL[N][nu+jj] = hpL[ii+1][(nx+pnx)*bs+((nu+nx)/bs)*bs*(2*sda)+(nu+nx)%bs+bs*(nu+jj)];
 //			dtrmv_p_t_lib(nx, nu, hpQ[ii+1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, &hux[ii+1][nu], &pBAbtL[nu], 1); // L'*pi
-			dtrmv_p_t_lib(nx, nu, hpL[ii+1]+(nx+pnx)*bs+(nu/bs)*bs*2*sda+nu%bs+nu*bs, 2*sda, &hux[ii+1][nu], &pLt[nu], 1); // L'*pi
+			dtrmv_p_t_lib(nx, nu, hpL[ii+1]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, &hux[ii+1][nu], &hpL[N][nu], 1); // L'*pi
 //			dtrmv_p_n_lib(nx, nu, hpQ[ii+1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, &pBAbtL[nu], &hpi[ii+1][0], 0); // L*(L'*b) + p
-			dtrmv_p_n_lib(nx, nu, hpL[ii+1]+(nx+pnx)*bs+(nu/bs)*bs*2*sda+nu%bs+nu*bs, 2*sda, &pLt[nu], &hpi[ii+1][0], 0); // L*(L'*b) + p
+			dtrmv_p_n_lib(nx, nu, hpL[ii+1]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, &hpL[N][nu], &hpi[ii+1][0], 0); // L*(L'*b) + p
 			}
 		}
 	

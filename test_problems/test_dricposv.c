@@ -307,13 +307,11 @@ int main()
 		// starting guess
 		for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
 	
-		double *pLt; d_zeros_align(&pLt, pnz, pnz);
-	
 /*		double *pBAbtL; d_zeros_align(&pBAbtL, pnz, pnz);*/
 
-		double *diag; d_zeros(&diag, nz, 1);
+		double *diag; d_zeros_align(&diag, nz+1, 1);
 		
-		double *work; d_zeros(&work, 2*pnz, 1);
+/*		double *work; d_zeros(&work, 2*pnz, 1);*/
 
 /************************************************
 * riccati-like iteration
@@ -329,7 +327,7 @@ int main()
 		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 		// call the solver
-		dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, hpL, pLt, diag, COMPUTE_MULT, hpi, &info);
+		dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, hpL, diag, COMPUTE_MULT, hpi, &info);
 /*		dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *pLt, double *diag, int compute_pi, double **hpi, int *info);*/
 
 		if(PRINTRES==1)
@@ -457,7 +455,7 @@ int main()
 /*			for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];*/
 
 			// call the solver 
-			dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, hpL, pLt, diag, COMPUTE_MULT, hpi, &info);
+			dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, hpL, diag, COMPUTE_MULT, hpi, &info);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
@@ -609,22 +607,24 @@ int main()
 		free(pBAbt);
 		free(Q);
 		free(pQ);
-		free(pLt);
 		free(diag);
-		free(work);
+/*		free(work);*/
 		for(jj=0; jj<N; jj++)
 			{
 			free(hpQ[jj]);
 			free(hpL[jj]);
 			free(hq[jj]);
 			free(hux[jj]);
-	//		free(hpi[jj]);
+			free(hpi[jj]);
+			free(hrq[jj]);
+			free(hrb[jj]);
 			}
 		free(hpQ[N]);
 		free(hpL[N]);
 		free(hq[N]);
 		free(hux[N]);
-	//	free(hpi[N]);
+		free(hpi[N]);
+		free(hrq[N]);
 	
 
 
