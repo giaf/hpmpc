@@ -36,6 +36,7 @@
 void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, int ldc, double *fact, int *info)
 	{
 	
+	const int bs = 4;
 	const int d_ncl = 2;
 	
 	int k;
@@ -260,9 +261,9 @@ void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, do
 		{
 		if(kadd>0)
 			{
-			A0 += 4*((d_ncl-kadd%d_ncl)%d_ncl);
-			A1 += 4*((d_ncl-kadd%d_ncl)%d_ncl);
-			B  += 4*((d_ncl-kadd%d_ncl)%d_ncl);
+			A0 += bs*((d_ncl-kadd%d_ncl)%d_ncl);
+			A1 += bs*((d_ncl-kadd%d_ncl)%d_ncl);
+			B  += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			}
 		// prefetch
 		a_0123        = _mm256_load_pd( &A0[0] );
@@ -616,6 +617,7 @@ void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, do
 void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact, int *info)
 	{
 	
+	const int bs = 4;
 	const int d_ncl = 2;
 	
 	int k;
@@ -773,8 +775,8 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 		{
 		if(kadd>0)
 			{
-			A += 4*((d_ncl-kadd%d_ncl)%d_ncl);
-			B += 4*((d_ncl-kadd%d_ncl)%d_ncl);
+			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
+			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			}
 		// prefetch
 		a_0123        = _mm256_load_pd( &A[0] );
@@ -1003,4 +1005,498 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 
 	}
 
+
+
+// normal-transposed, 4x2 with data packed in 4
+void kernel_dpotrf_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact, int *info)
+	{
+	
+	const int bs = 4;
+	const int d_ncl = 2;
+	
+	int k;
+	
+	__m256d
+		a_0123,
+		b_0101, b_1010,
+		ab_temp, // temporary results
+		c_00_11_20_31, c_01_10_21_30, C_00_11_20_31, C_01_10_21_30;
+	
+	// prefetch
+	a_0123 = _mm256_load_pd( &A[0] );
+	b_0101 = _mm256_broadcast_pd( (__m128d *) &B[0] );
+
+	// zero registers
+	c_00_11_20_31 = _mm256_setzero_pd();
+	c_01_10_21_30 = _mm256_setzero_pd();
+	C_00_11_20_31 = _mm256_setzero_pd();
+	C_01_10_21_30 = _mm256_setzero_pd();
+
+	for(k=0; k<kadd-3; k+=4)
+		{
+		
+/*	__builtin_prefetch( A+32 );*/
+		ab_temp       = _mm256_mul_pd( a_0123, b_0101 );
+		c_00_11_20_31 = _mm256_add_pd( c_00_11_20_31, ab_temp );
+		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
+		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[4] ); // prefetch
+		ab_temp       = _mm256_mul_pd( a_0123, b_1010 );
+		a_0123        = _mm256_load_pd( &A[4] ); // prefetch
+		c_01_10_21_30 = _mm256_add_pd( c_01_10_21_30, ab_temp );
+		
+		
+/*	__builtin_prefetch( A+40 );*/
+		ab_temp       = _mm256_mul_pd( a_0123, b_0101 );
+		C_00_11_20_31 = _mm256_add_pd( C_00_11_20_31, ab_temp );
+		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
+		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[8] ); // prefetch
+		ab_temp       = _mm256_mul_pd( a_0123, b_1010 );
+		a_0123        = _mm256_load_pd( &A[8] ); // prefetch
+		C_01_10_21_30 = _mm256_add_pd( C_01_10_21_30, ab_temp );
+
+
+/*	__builtin_prefetch( A+48 );*/
+		ab_temp       = _mm256_mul_pd( a_0123, b_0101 );
+		c_00_11_20_31 = _mm256_add_pd( c_00_11_20_31, ab_temp );
+		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
+		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[12] ); // prefetch
+		ab_temp       = _mm256_mul_pd( a_0123, b_1010 );
+		a_0123        = _mm256_load_pd( &A[12] ); // prefetch
+		c_01_10_21_30 = _mm256_add_pd( c_01_10_21_30, ab_temp );
+
+
+/*	__builtin_prefetch( A+56 );*/
+		ab_temp       = _mm256_mul_pd( a_0123, b_0101 );
+		C_00_11_20_31 = _mm256_add_pd( C_00_11_20_31, ab_temp );
+		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
+		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[16] ); // prefetch
+		ab_temp       = _mm256_mul_pd( a_0123, b_1010 );
+		a_0123        = _mm256_load_pd( &A[16] ); // prefetch
+		C_01_10_21_30 = _mm256_add_pd( C_01_10_21_30, ab_temp );
+		
+		A += 16;
+		B += 16;
+
+		}
+	
+	if(kadd%4>=2)
+		{
+		
+		ab_temp       = _mm256_mul_pd( a_0123, b_0101 );
+		c_00_11_20_31 = _mm256_add_pd( c_00_11_20_31, ab_temp );
+		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
+		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[4] ); // prefetch
+		ab_temp       = _mm256_mul_pd( a_0123, b_1010 );
+		a_0123        = _mm256_load_pd( &A[4] ); // prefetch
+		c_01_10_21_30 = _mm256_add_pd( c_01_10_21_30, ab_temp );
+		
+		
+		ab_temp       = _mm256_mul_pd( a_0123, b_0101 );
+		C_00_11_20_31 = _mm256_add_pd( C_00_11_20_31, ab_temp );
+		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
+		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[8] ); // prefetch
+		ab_temp       = _mm256_mul_pd( a_0123, b_1010 );
+		a_0123        = _mm256_load_pd( &A[8] ); // prefetch
+		C_01_10_21_30 = _mm256_add_pd( C_01_10_21_30, ab_temp );
+		
+		
+		A += 8;
+		B += 8;
+
+		}
+
+	if(kadd%2==1)
+		{
+		
+		ab_temp       = _mm256_mul_pd( a_0123, b_0101 );
+		c_00_11_20_31 = _mm256_add_pd( c_00_11_20_31, ab_temp );
+		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
+/*		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[4] ); // prefetch*/
+		ab_temp       = _mm256_mul_pd( a_0123, b_1010 );
+/*		a_0123        = _mm256_load_pd( &A[4] ); // prefetch*/
+		c_01_10_21_30 = _mm256_add_pd( c_01_10_21_30, ab_temp );
+		
+		}
+		
+	if(ksub>0)
+		{
+		if(kadd>0)
+			{
+			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
+			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
+			}
+		// prefetch
+		a_0123 = _mm256_load_pd( &A[0] );
+		b_0101 = _mm256_broadcast_pd( (__m128d *) &B[0] );
+		}
+
+	for(k=0; k<ksub-3; k+=4) // correction in cholesky is multiple of block size 4
+		{
+		
+/*	__builtin_prefetch( A+32 );*/
+		ab_temp       = _mm256_mul_pd( a_0123, b_0101 );
+		c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_temp );
+		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
+		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[4] ); // prefetch
+		ab_temp       = _mm256_mul_pd( a_0123, b_1010 );
+		a_0123        = _mm256_load_pd( &A[4] ); // prefetch
+		c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_temp );
+		
+		
+/*	__builtin_prefetch( A+40 );*/
+		ab_temp       = _mm256_mul_pd( a_0123, b_0101 );
+		C_00_11_20_31 = _mm256_sub_pd( C_00_11_20_31, ab_temp );
+		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
+		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[8] ); // prefetch
+		ab_temp       = _mm256_mul_pd( a_0123, b_1010 );
+		a_0123        = _mm256_load_pd( &A[8] ); // prefetch
+		C_01_10_21_30 = _mm256_sub_pd( C_01_10_21_30, ab_temp );
+
+
+/*	__builtin_prefetch( A+48 );*/
+		ab_temp       = _mm256_mul_pd( a_0123, b_0101 );
+		c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_temp );
+		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
+		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[12] ); // prefetch
+		ab_temp       = _mm256_mul_pd( a_0123, b_1010 );
+		a_0123        = _mm256_load_pd( &A[12] ); // prefetch
+		c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_temp );
+
+
+/*	__builtin_prefetch( A+56 );*/
+		ab_temp       = _mm256_mul_pd( a_0123, b_0101 );
+		C_00_11_20_31 = _mm256_sub_pd( C_00_11_20_31, ab_temp );
+		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
+		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[16] ); // prefetch
+		ab_temp       = _mm256_mul_pd( a_0123, b_1010 );
+		a_0123        = _mm256_load_pd( &A[16] ); // prefetch
+		C_01_10_21_30 = _mm256_sub_pd( C_01_10_21_30, ab_temp );
+		
+		A += 16;
+		B += 16;
+
+		}
+
+	c_00_11_20_31 = _mm256_add_pd( c_00_11_20_31, C_00_11_20_31 );
+	c_01_10_21_30 = _mm256_add_pd( c_01_10_21_30, C_01_10_21_30 );
+
+	__m256d
+		c_00_10_20_30, c_01_11_21_31,
+		d_00_10_20_30, d_01_11_21_31;
+
+	c_00_10_20_30 = _mm256_blend_pd( c_00_11_20_31, c_01_10_21_30, 0xa );
+	d_00_10_20_30 = _mm256_load_pd( &C[0+ldc*0] );
+	d_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
+	c_01_11_21_31 = _mm256_blend_pd( c_00_11_20_31, c_01_10_21_30, 0x5 );
+	d_01_11_21_31 = _mm256_load_pd( &C[0+ldc*1] );
+	d_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
+		
+	// factorize the upper 4x4 matrix
+	__m128d
+		zeros_ones, sab_temp,
+		sa_00, sa_10, sa_20, sa_30, sa_11, sa_21, sa_31;
+
+
+	// first row
+	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
+	sa_00 = _mm_move_sd( sa_00, _mm256_castpd256_pd128(d_00_10_20_30) );
+	if( _mm_comigt_sd ( sa_00, zeros_ones ) )
+		{
+		sa_00 = _mm_sqrt_sd( sa_00, sa_00 );
+		sa_10 = _mm_shuffle_pd( _mm256_castpd256_pd128(d_00_10_20_30), zeros_ones, 0x1 );
+		sa_20 = _mm256_extractf128_pd( d_00_10_20_30, 0x1 ); // a_20 & a_30
+		zeros_ones = _mm_set_sd( 1.0 );
+		_mm_store_sd( &D[0+ldc*0], sa_00 ); // a_00
+		sa_00 = _mm_div_sd( zeros_ones, sa_00 );
+		sa_00 = _mm_movedup_pd( sa_00 );
+		sa_10 = _mm_mul_sd( sa_10, sa_00 );
+		sa_10 = _mm_movedup_pd( sa_10 );
+		sa_20 = _mm_mul_pd( sa_20, sa_00 ); // a_20 & a_30
+		}
+	else // comile
+		{
+/*		*info = 1; return;*/
+		sa_00 = _mm_setzero_pd();
+		_mm_store_sd( &D[0+ldc*0], sa_00 ); // a_00
+		sa_10 = sa_00;
+		sa_20 = sa_00; // a_20 & a_30
+		}
+	_mm_store_sd( &D[1+ldc*0], sa_10 ); // a_10
+	_mm_store_pd( &D[2+ldc*0], sa_20 ); // a_20 & a_30
+
+	// second row
+	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
+	sa_11 = _mm_shuffle_pd( _mm256_castpd256_pd128(d_01_11_21_31), zeros_ones, 0x1 );
+	sab_temp = _mm_mul_sd( sa_10, sa_10 );
+	sa_11 = _mm_sub_sd( sa_11, sab_temp );
+	if( _mm_comigt_sd ( sa_11, zeros_ones ) )
+		{
+		sa_11 = _mm_sqrt_sd( sa_11, sa_11 );
+		sa_21 = _mm256_extractf128_pd( d_01_11_21_31, 0x1 ); // a_21 & a_31
+		zeros_ones = _mm_set_sd( 1.0 );
+		_mm_store_sd( &D[1+ldc*1], sa_11 ); // a_11
+		sa_11 = _mm_div_sd( zeros_ones, sa_11 );
+		sa_11 = _mm_movedup_pd( sa_11 );
+		sab_temp = _mm_mul_pd( sa_20, sa_10 ); // a_21 & a_31
+		sa_21 = _mm_sub_pd( sa_21, sab_temp ); // a_21 & a_31
+		sa_21 = _mm_mul_pd( sa_21, sa_11 ); // a_21 & a_31
+		}
+	else // comile
+		{
+/*		*info = 1; return;*/
+		sa_11 = _mm_setzero_pd();
+		_mm_store_sd( &D[1+ldc*1], sa_11 ); // a_11
+		sa_21 = sa_11; // a_21 & a_31
+		}
+	_mm_store_pd( &D[2+ldc*1], sa_21 ); // a_21 & a_31
+	
+	// duplicate & store
+
+	_mm_store_sd( &fact[0], sa_00 );
+	_mm_store_sd( &fact[1], sa_10 );
+	_mm_store_sd( &fact[2], sa_11 );
+
+
+	}
+
+
+
+// normal-transposed, 2x2 with data packed in 4
+void kernel_dpotrf_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact, int *info)
+	{
+	
+	const int bs = 4;
+	const int d_ncl = 2;
+	
+	int k;
+	
+	__m128d
+		a_01,
+		b_01, b_10,
+		ab_temp, // temporary results
+		c_00_11, c_01_10, C_00_11, C_01_10;
+	
+	// prefetch
+	a_01 = _mm_load_pd( &A[0] );
+	b_01 = _mm_load_pd( &B[0] );
+
+	// zero registers
+	c_00_11 = _mm_setzero_pd();
+	c_01_10 = _mm_setzero_pd();
+	C_00_11 = _mm_setzero_pd();
+	C_01_10 = _mm_setzero_pd();
+
+	for(k=0; k<kadd-3; k+=4)
+		{
+		
+/*	__builtin_prefetch( A+32 );*/
+		ab_temp = _mm_mul_pd( a_01, b_01 );
+		c_00_11 = _mm_add_pd( c_00_11, ab_temp );
+		b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
+		b_01    = _mm_load_pd( &B[4] ); // prefetch
+		ab_temp = _mm_mul_pd( a_01, b_10 );
+		a_01    = _mm_load_pd( &A[4] ); // prefetch
+		c_01_10 = _mm_add_pd( c_01_10, ab_temp );
+		
+		
+/*	__builtin_prefetch( A+40 );*/
+		ab_temp = _mm_mul_pd( a_01, b_01 );
+		C_00_11 = _mm_add_pd( C_00_11, ab_temp );
+		b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
+		b_01    = _mm_load_pd( &B[8] ); // prefetch
+		ab_temp = _mm_mul_pd( a_01, b_10 );
+		a_01    = _mm_load_pd( &A[8] ); // prefetch
+		C_01_10 = _mm_add_pd( C_01_10, ab_temp );
+
+
+/*	__builtin_prefetch( A+48 );*/
+		ab_temp = _mm_mul_pd( a_01, b_01 );
+		c_00_11 = _mm_add_pd( c_00_11, ab_temp );
+		b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
+		b_01    = _mm_load_pd( &B[12] ); // prefetch
+		ab_temp = _mm_mul_pd( a_01, b_10 );
+		a_01    = _mm_load_pd( &A[12] ); // prefetch
+		c_01_10 = _mm_add_pd( c_01_10, ab_temp );
+
+
+/*	__builtin_prefetch( A+56 );*/
+		ab_temp = _mm_mul_pd( a_01, b_01 );
+		C_00_11 = _mm_add_pd( C_00_11, ab_temp );
+		b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
+		b_01    = _mm_load_pd( &B[16] ); // prefetch
+		ab_temp = _mm_mul_pd( a_01, b_10 );
+		a_01    = _mm_load_pd( &A[16] ); // prefetch
+		C_01_10 = _mm_add_pd( C_01_10, ab_temp );
+		
+		A += 16;
+		B += 16;
+
+		}
+	
+	if(kadd%4>=2)
+		{
+		
+		ab_temp = _mm_mul_pd( a_01, b_01 );
+		c_00_11 = _mm_add_pd( c_00_11, ab_temp );
+		b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
+		b_01    = _mm_load_pd( &B[4] ); // prefetch
+		ab_temp = _mm_mul_pd( a_01, b_10 );
+		a_01    = _mm_load_pd( &A[4] ); // prefetch
+		c_01_10 = _mm_add_pd( c_01_10, ab_temp );
+		
+		
+		ab_temp = _mm_mul_pd( a_01, b_01 );
+		C_00_11 = _mm_add_pd( C_00_11, ab_temp );
+		b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
+		b_01    = _mm_load_pd( &B[8] ); // prefetch
+		ab_temp = _mm_mul_pd( a_01, b_10 );
+		a_01    = _mm_load_pd( &A[8] ); // prefetch
+		C_01_10 = _mm_add_pd( C_01_10, ab_temp );
+		
+		
+		A += 8;
+		B += 8;
+
+		}
+
+	if(kadd%2==1)
+		{
+		
+		ab_temp = _mm_mul_pd( a_01, b_01 );
+		c_00_11 = _mm_add_pd( c_00_11, ab_temp );
+		b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
+/*		b_01    = _mm_load_pd( &B[4] ); // prefetch*/
+		ab_temp = _mm_mul_pd( a_01, b_10 );
+/*		a_01    = _mm_load_pd( &A[4] ); // prefetch*/
+		c_01_10 = _mm_add_pd( c_01_10, ab_temp );
+		
+		}
+		
+	if(ksub>0)
+		{
+		if(kadd>0)
+			{
+			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
+			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
+			}
+		// prefetch
+		a_01 = _mm_load_pd( &A[0] );
+		b_01 = _mm_load_pd( &B[0] );
+		}
+
+	for(k=0; k<ksub-3; k+=4) // correction in cholesky is multiple of block size 4
+		{
+		
+/*	__builtin_prefetch( A+32 );*/
+		ab_temp = _mm_mul_pd( a_01, b_01 );
+		c_00_11 = _mm_sub_pd( c_00_11, ab_temp );
+		b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
+		b_01    = _mm_load_pd( &B[4] ); // prefetch
+		ab_temp = _mm_mul_pd( a_01, b_10 );
+		a_01    = _mm_load_pd( &A[4] ); // prefetch
+		c_01_10 = _mm_sub_pd( c_01_10, ab_temp );
+		
+		
+/*	__builtin_prefetch( A+40 );*/
+		ab_temp = _mm_mul_pd( a_01, b_01 );
+		C_00_11 = _mm_sub_pd( C_00_11, ab_temp );
+		b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
+		b_01    = _mm_load_pd( &B[8] ); // prefetch
+		ab_temp = _mm_mul_pd( a_01, b_10 );
+		a_01    = _mm_load_pd( &A[8] ); // prefetch
+		C_01_10 = _mm_sub_pd( C_01_10, ab_temp );
+
+
+/*	__builtin_prefetch( A+48 );*/
+		ab_temp = _mm_mul_pd( a_01, b_01 );
+		c_00_11 = _mm_sub_pd( c_00_11, ab_temp );
+		b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
+		b_01    = _mm_load_pd( &B[12] ); // prefetch
+		ab_temp = _mm_mul_pd( a_01, b_10 );
+		a_01    = _mm_load_pd( &A[12] ); // prefetch
+		c_01_10 = _mm_sub_pd( c_01_10, ab_temp );
+
+
+/*	__builtin_prefetch( A+56 );*/
+		ab_temp = _mm_mul_pd( a_01, b_01 );
+		C_00_11 = _mm_sub_pd( C_00_11, ab_temp );
+		b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
+		b_01    = _mm_load_pd( &B[16] ); // prefetch
+		ab_temp = _mm_mul_pd( a_01, b_10 );
+		a_01    = _mm_load_pd( &A[16] ); // prefetch
+		C_01_10 = _mm_sub_pd( C_01_10, ab_temp );
+		
+		A += 16;
+		B += 16;
+
+		}
+
+	c_00_11 = _mm_add_pd( c_00_11, C_00_11 );
+	c_01_10 = _mm_add_pd( c_01_10, C_01_10 );
+
+	__m128d
+		c_00_10, c_01_11,
+		d_00_10, d_01_11;
+
+	c_00_10 = _mm_blend_pd( c_00_11, c_01_10, 0x2 );
+	d_00_10 = _mm_load_pd( &C[0+ldc*0] );
+	d_00_10 = _mm_add_pd( d_00_10, c_00_10 );
+	c_01_11 = _mm_blend_pd( c_00_11, c_01_10, 0x1 );
+	d_01_11 = _mm_load_pd( &C[0+ldc*1] );
+	d_01_11 = _mm_add_pd( d_01_11, c_01_11 );
+		
+	// factorize the upper 4x4 matrix
+	__m128d
+		zeros_ones, sab_temp,
+		sa_00, sa_10, sa_11;
+
+
+	// first row
+	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
+	sa_00 = _mm_move_sd( sa_00, d_00_10 );
+	if( _mm_comigt_sd ( sa_00, zeros_ones ) )
+		{
+		sa_00 = _mm_sqrt_sd( sa_00, sa_00 );
+		sa_10 = _mm_shuffle_pd( d_00_10, zeros_ones, 0x1 );
+		zeros_ones = _mm_set_sd( 1.0 );
+		_mm_store_sd( &D[0+ldc*0], sa_00 ); // a_00
+		sa_00 = _mm_div_sd( zeros_ones, sa_00 );
+		sa_10 = _mm_mul_sd( sa_10, sa_00 );
+		}
+	else // comile
+		{
+/*		*info = 1; return;*/
+		sa_00 = _mm_setzero_pd();
+		_mm_store_sd( &D[0+ldc*0], sa_00 ); // a_00
+		sa_10 = sa_00;
+		}
+	_mm_store_sd( &D[1+ldc*0], sa_10 ); // a_10
+
+	// second row
+	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
+	sa_11 = _mm_shuffle_pd( d_01_11, zeros_ones, 0x1 );
+	sab_temp = _mm_mul_sd( sa_10, sa_10 );
+	sa_11 = _mm_sub_sd( sa_11, sab_temp );
+	if( _mm_comigt_sd ( sa_11, zeros_ones ) )
+		{
+		sa_11 = _mm_sqrt_sd( sa_11, sa_11 );
+		zeros_ones = _mm_set_sd( 1.0 );
+		_mm_store_sd( &D[1+ldc*1], sa_11 ); // a_11
+		sa_11 = _mm_div_sd( zeros_ones, sa_11 );
+		}
+	else // comile
+		{
+/*		*info = 1; return;*/
+		sa_11 = _mm_setzero_pd();
+		_mm_store_sd( &D[1+ldc*1], sa_11 ); // a_11
+		}
+	
+	// duplicate & store
+
+	_mm_store_sd( &fact[0], sa_00 );
+	_mm_store_sd( &fact[1], sa_10 );
+	_mm_store_sd( &fact[2], sa_11 );
+
+
+	}
 

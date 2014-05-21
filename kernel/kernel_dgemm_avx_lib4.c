@@ -49,9 +49,9 @@ void kernel_dgemm_pp_nt_8x4_lib4(int kmax, double *A0, double *A1, double *B, do
 		c_40_51_62_73, c_41_50_63_72, c_43_52_61_70, c_42_53_60_71;
 	
 	// prefetch
-	a_0123        = _mm256_load_pd( &A0[0] );
-	a_4567        = _mm256_load_pd( &A1[0] );
-	b_0123        = _mm256_load_pd( &B[0] );
+	a_0123 = _mm256_load_pd( &A0[0] );
+	a_4567 = _mm256_load_pd( &A1[0] );
+	b_0123 = _mm256_load_pd( &B[0] );
 
 	// zero registers
 	c_00_11_22_33 = _mm256_setzero_pd();
@@ -359,9 +359,9 @@ void kernel_dgemm_pp_nt_8x2_lib4(int kmax, double *A0, double *A1, double *B, do
 		c_40_51_60_71, c_41_50_61_70;
 	
 	// prefetch
-	a_0123        = _mm256_load_pd( &A0[0] );
-	a_4567        = _mm256_load_pd( &A1[0] );
-	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[0] );
+	a_0123 = _mm256_load_pd( &A0[0] );
+	a_4567 = _mm256_load_pd( &A1[0] );
+	b_0101 = _mm256_broadcast_pd( (__m128d *) &B[0] );
 
 	// zero registers
 	c_00_11_20_31 = _mm256_setzero_pd();
@@ -559,8 +559,8 @@ void kernel_dgemm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, doub
 		c_00_11_22_33, c_01_10_23_32, c_03_12_21_30, c_02_13_20_31;
 	
 	// prefetch
-	a_0123        = _mm256_load_pd( &A[0] );
-	b_0123        = _mm256_load_pd( &B[0] );
+	a_0123 = _mm256_load_pd( &A[0] );
+	b_0123 = _mm256_load_pd( &B[0] );
 
 	// zero registers
 	c_00_11_22_33 = _mm256_setzero_pd();
@@ -767,8 +767,8 @@ void kernel_dgemm_pp_nt_4x2_lib4(int kmax, double *A, double *B, double *C, doub
 		c_00_11_20_31, c_01_10_21_30, C_00_11_20_31, C_01_10_21_30;
 	
 	// prefetch
-	a_0123        = _mm256_load_pd( &A[0] );
-	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[0] );
+	a_0123 = _mm256_load_pd( &A[0] );
+	b_0101 = _mm256_broadcast_pd( (__m128d *) &B[0] );
 
 	// zero registers
 	c_00_11_20_31 = _mm256_setzero_pd();
@@ -918,8 +918,8 @@ void kernel_dgemm_pp_nt_2x4_lib4(int kmax, double *A, double *B, double *C, doub
 		c_00_11_02_13, c_01_10_03_12, C_00_11_02_13, C_01_10_03_12;
 	
 	// prefetch
-	a_0101        = _mm256_broadcast_pd( (__m128d *) &A[0] );
-	b_0123        = _mm256_load_pd( &B[0] );
+	a_0101 = _mm256_broadcast_pd( (__m128d *) &A[0] );
+	b_0123 = _mm256_load_pd( &B[0] );
 
 	// zero registers
 	c_00_11_02_13 = _mm256_setzero_pd();
@@ -1010,9 +1010,9 @@ void kernel_dgemm_pp_nt_2x4_lib4(int kmax, double *A, double *B, double *C, doub
 		ab_temp       = _mm256_mul_pd( a_0101, b_0123 );
 		c_00_11_02_13 = _mm256_add_pd( c_00_11_02_13, ab_temp );
 		b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-		b_0123        = _mm256_load_pd( &B[4] ); // prefetch
+/*		b_0123        = _mm256_load_pd( &B[4] ); // prefetch*/
 		ab_temp       = _mm256_mul_pd( a_0101, b_1032 );
-		a_0101        = _mm256_broadcast_pd( (__m128d *) &A[4] ); // prefetch
+/*		a_0101        = _mm256_broadcast_pd( (__m128d *) &A[4] ); // prefetch*/
 		c_01_10_03_12 = _mm256_add_pd( c_01_10_03_12, ab_temp );
 		
 		}
@@ -1179,9 +1179,9 @@ void kernel_dgemm_pp_nt_2x2_lib4(int kmax, double *A, double *B, double *C, doub
 		ab_temp = _mm_mul_pd( a_01, b_01 );
 		c_00_11 = _mm_add_pd( c_00_11, ab_temp );
 		b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
-		b_01    = _mm_load_pd( &B[4] ); // prefetch
+/*		b_01    = _mm_load_pd( &B[4] ); // prefetch*/
 		ab_temp = _mm_mul_pd( a_01, b_10 );
-		a_01    = _mm_load_pd( &A[4] ); // prefetch
+/*		a_01    = _mm_load_pd( &A[4] ); // prefetch*/
 		c_01_10 = _mm_add_pd( c_01_10, ab_temp );
 		
 		}
