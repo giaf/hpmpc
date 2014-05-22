@@ -25,7 +25,7 @@
 
 void dgemm_ppp_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, int alg);
 void dtrmm_ppp_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
-void dsyrk_dpotrf_pp_lib(int m, int k, int n, double *pA, int sda, double *pC, int sdc, double *diag, int *info);
+void dsyrk_dpotrf_pp_lib(int m, int k, int n, double *pA, int sda, double *pC, int sdc, double *diag);
 void dgemv_p_n_lib(int n, int m, int offset, double *pA, int sda, double *x, double *y, int alg);
 void dgemv_p_t_lib(int m, int n, int offset, double *pA, int sda, double *x, double *y, int alg);
 void dtrmv_p_n_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg);

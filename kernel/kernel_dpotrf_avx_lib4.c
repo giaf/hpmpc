@@ -33,7 +33,7 @@
 
 
 // normal-transposed, 8x4 with data packed in 4
-void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, int ldc, double *fact, int *info)
+void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, int ldc, double *fact)
 	{
 	
 	const int bs = 4;
@@ -449,7 +449,6 @@ void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, do
 		}
 	else // comile
 		{
-/*		*info = 1; return;*/
 		sa_00 = _mm_setzero_pd();
 		_mm_store_sd( &D0[0+ldc*0], sa_00 ); // a_00
 		sa_10 = sa_00;
@@ -477,7 +476,6 @@ void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, do
 		}
 	else // comile
 		{
-/*		*info = 1; return;*/
 		sa_11 = _mm_setzero_pd();
 		_mm_store_sd( &D0[1+ldc*1], sa_11 ); // a_11
 		sa_21 = sa_11; // a_21 & a_31
@@ -504,7 +502,6 @@ void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, do
 		}
 	else // comile
 		{
-/*		*info = 1; return;*/
 		sa_22 = _mm_setzero_pd();
 		_mm_store_sd( &D0[2+ldc*2], sa_22 ); // a_22
 		sa_32 = sa_22; // a_21 & a_31
@@ -532,7 +529,6 @@ void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, do
 		}
 	else // comile
 		{
-/*		*info = 1; return;*/
 		sa_33 = _mm_setzero_pd();
 		_mm_store_sd( &D0[3+ldc*3], sa_33 ); // a_33
 		}
@@ -614,7 +610,7 @@ void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, do
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact, int *info)
+void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
 	{
 	
 	const int bs = 4;
@@ -901,7 +897,6 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 		}
 	else // comile
 		{
-/*		*info = 1; return;*/
 		sa_00 = _mm_setzero_pd();
 		_mm_store_sd( &D[0+ldc*0], sa_00 ); // a_00
 		sa_10 = sa_00;
@@ -929,7 +924,6 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 		}
 	else // comile
 		{
-/*		*info = 1; return;*/
 		sa_11 = _mm_setzero_pd();
 		_mm_store_sd( &D[1+ldc*1], sa_11 ); // a_11
 		sa_21 = sa_11; // a_21 & a_31
@@ -956,7 +950,6 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 		}
 	else // comile
 		{
-/*		*info = 1; return;*/
 		sa_22 = _mm_setzero_pd();
 		_mm_store_sd( &D[2+ldc*2], sa_22 ); // a_22
 		sa_32 = sa_22; // a_21 & a_31
@@ -984,7 +977,6 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 		}
 	else // comile
 		{
-/*		*info = 1; return;*/
 		sa_33 = _mm_setzero_pd();
 		_mm_store_sd( &D[3+ldc*3], sa_33 ); // a_33
 		}
@@ -1008,7 +1000,7 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 
 
 // normal-transposed, 4x2 with data packed in 4
-void kernel_dpotrf_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact, int *info)
+void kernel_dpotrf_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
 	{
 	
 	const int bs = 4;
@@ -1215,7 +1207,6 @@ void kernel_dpotrf_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doub
 		}
 	else // comile
 		{
-/*		*info = 1; return;*/
 		sa_00 = _mm_setzero_pd();
 		_mm_store_sd( &D[0+ldc*0], sa_00 ); // a_00
 		sa_10 = sa_00;
@@ -1243,7 +1234,6 @@ void kernel_dpotrf_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doub
 		}
 	else // comile
 		{
-/*		*info = 1; return;*/
 		sa_11 = _mm_setzero_pd();
 		_mm_store_sd( &D[1+ldc*1], sa_11 ); // a_11
 		sa_21 = sa_11; // a_21 & a_31
@@ -1262,7 +1252,7 @@ void kernel_dpotrf_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doub
 
 
 // normal-transposed, 2x2 with data packed in 4
-void kernel_dpotrf_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact, int *info)
+void kernel_dpotrf_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
 	{
 	
 	const int bs = 4;
@@ -1465,7 +1455,6 @@ void kernel_dpotrf_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doub
 		}
 	else // comile
 		{
-/*		*info = 1; return;*/
 		sa_00 = _mm_setzero_pd();
 		_mm_store_sd( &D[0+ldc*0], sa_00 ); // a_00
 		sa_10 = sa_00;
@@ -1486,7 +1475,6 @@ void kernel_dpotrf_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doub
 		}
 	else // comile
 		{
-/*		*info = 1; return;*/
 		sa_11 = _mm_setzero_pd();
 		_mm_store_sd( &D[1+ldc*1], sa_11 ); // a_11
 		}

@@ -436,7 +436,7 @@ void kernel_dsymv_2_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 /*		y_n[1] = y_n_0;*/
 
 		
-		A += 2 + (sda-1)*bs;
+		A += 2;
 		y_n += 2;
 		x_t += 2;
 
