@@ -45,8 +45,12 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 	/* factorization and backward substitution */
 
 	// final stage 
-	dsyrk_dpotrf_pp_lib(nz, 0, nz, hpL[N]+(nx+pnx)*bs, 2*sda, hpQ[N], sda, diag, info);
+/*	dsyrk_dpotrf_pp_lib(nz, 0, nz, hpL[N]+(nx+pnx)*bs, 2*sda, hpQ[N], sda, diag, info);*/
+	dsyrk_dpotrf_pp_lib(nx+nu%bs+1, 0, nx+nu%bs, hpL[N]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+(nu/bs)*bs*bs, 2*sda, hpQ[N]+(nu/bs)*bs*sda+(nu/bs)*bs*bs, sda, diag, info);
 	if(*info!=0) return;
+
+/*d_print_pmat(nz, nz, bs, hpL[N]+(nx+pnx)*bs, 2*sda);*/
+/*exit(2);*/
 
 	d_transpose_pmat_lo(nx, nu, hpL[N]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, hpL[N]+(nx+pnx+d_ncl)*bs, 2*sda);
 
@@ -55,7 +59,7 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 		{	
 		dtrmm_ppp_lib(nz, nx, hpBAbt[N-ii-1], sda, hpL[N-ii]+(nx+pnx+d_ncl)*bs, 2*sda, hpL[N-ii-1], 2*sda);
 		for(jj=0; jj<nx; jj++) hpL[N-ii-1][((nx+nu)/bs)*bs*(2*sda)+(nx+nu)%bs+jj*bs] += hpL[N-ii][((nx+nu)/bs)*bs*2*sda+(nx+nu)%bs+(nx+pnx+nu+jj)*bs];
-		dsyrk_dpotrf_pp_lib(nz, nx, nz, hpL[N-ii-1], 2*sda, hpQ[N-ii-1], sda, diag, info);
+		dsyrk_dpotrf_pp_lib(nz, nx, nz-1, hpL[N-ii-1], 2*sda, hpQ[N-ii-1], sda, diag, info);
 		if(*info!=0) return;
 		for(jj=0; jj<nu; jj++) hpL[N-ii-1][(nx+pnx)*bs+(jj/bs)*bs*(2*sda)+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 		d_transpose_pmat_lo(nx, nu, hpL[N-ii-1]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, hpL[N-ii-1]+(nx+pnx+d_ncl)*bs, 2*sda);
@@ -64,7 +68,7 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 	// first stage 
 	dtrmm_ppp_lib(nz, nx, hpBAbt[0], sda, hpL[1]+(nx+pnx+d_ncl)*bs, 2*sda, hpL[0], 2*sda);
 	for(jj=0; jj<nx; jj++) hpL[0][((nx+nu)/bs)*bs*(2*sda)+(nx+nu)%bs+jj*bs] += hpL[1][((nx+nu)/bs)*bs*2*sda+(nx+nu)%bs+(nx+pnx+nu+jj)*bs];
-	dsyrk_dpotrf_pp_lib(nz, nx, ((nu+bs-1)/bs)*bs, hpL[0], 2*sda, hpQ[0], sda, diag, info);
+	dsyrk_dpotrf_pp_lib(nz, nx, ((nu+2-1)/2)*2, hpL[0], 2*sda, hpQ[0], sda, diag, info);
 	for(jj=0; jj<nu; jj++) hpL[0][(nx+pnx)*bs+(jj/bs)*bs*(2*sda)+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 
 /*return;*/

@@ -192,13 +192,13 @@ int main()
 /*		int nx = nn[ll];//NX;//16;//nn[ll]; // number of states (it has to be even for the mass-spring system test problem)*/
 /*		int nu = 2;//NU;//5; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)*/
 /*		int N  = 10;//NN;//10; // horizon lenght*/
+/*		int nrep = nnrep[ll];// nnrep[ll];*/
 		int nx = NX;//16;//nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
 		int nu = NU;//5; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 		int N  = NN;//10; // horizon lenght
+		int nrep = NREP;//nnrep[ll];// nnrep[ll];
 
 		int rep;
-/*		int nrep = 1000;//nnrep[ll];// nnrep[ll];*/
-		int nrep = NREP;//nnrep[ll];// nnrep[ll];
 	
 		int nz = nx+nu+1;
 		int pnz = bsd*((nz+bsd-nu%bsd+bsd-1)/bsd);
