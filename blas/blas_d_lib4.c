@@ -782,47 +782,50 @@ void dtrsv_p_n_lib(int n, double *pA, int sda, double *x)
 	ptrx  = x;
 
 	j = 0;
-	for(; j<n-7; j+=8)
-		{
-		// correct
-		kernel_dgemv_n_8_lib4(j, ptrA, ptrA+bs*sda, x, ptrx, -1);
+/*	for(; j<n-7; j+=8)*/
+/*		{*/
+/*		// correct*/
+/*		kernel_dgemv_n_8_lib4(j, ptrA, ptrA+bs*sda, x, ptrx, -1);*/
 
-		// solve
-		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];
-		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) * ptrAd[1+bs*1];
-		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) * ptrAd[2+bs*2];
-		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) * ptrAd[3+bs*3];
+/*		// solve*/
+/*		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];*/
+/*		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) * ptrAd[1+bs*1];*/
+/*		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) * ptrAd[2+bs*2];*/
+/*		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) * ptrAd[3+bs*3];*/
 
-		// correct
-		kernel_dgemv_n_4_lib4(4, ptrAd+bs*sda, ptrx, ptrx+4, -1);
+/*		// correct*/
+/*		kernel_dgemv_n_4_lib4(4, ptrAd+bs*sda, ptrx, ptrx+4, -1);*/
 
-		ptrA  += bs*sda;
-		ptrAd += bs*(sda+bs);
-		ptrx  += bs;
+/*		ptrA  += bs*sda;*/
+/*		ptrAd += bs*(sda+bs);*/
+/*		ptrx  += bs;*/
 
-		// solve
-		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];
-		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) * ptrAd[1+bs*1];
-		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) * ptrAd[2+bs*2];
-		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) * ptrAd[3+bs*3];
+/*		// solve*/
+/*		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];*/
+/*		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) * ptrAd[1+bs*1];*/
+/*		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) * ptrAd[2+bs*2];*/
+/*		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) * ptrAd[3+bs*3];*/
 
-		ptrA  += bs*sda;
-		ptrAd += bs*(sda+bs);
-		ptrx  += bs;
+/*		ptrA  += bs*sda;*/
+/*		ptrAd += bs*(sda+bs);*/
+/*		ptrx  += bs;*/
 
-		}
+/*		}*/
 
 	// clean up stuff at the end
 	for(; j<n-3; j+=4)
 		{
-		// correct
-		kernel_dgemv_n_4_lib4(j, ptrA, x, ptrx, -1);
 
-		// solve
-		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];
-		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) * ptrAd[1+bs*1];
-		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) * ptrAd[2+bs*2];
-		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) * ptrAd[3+bs*3];
+		kernel_dtrsv_n_4_lib4(j+4, ptrA, x, ptrx); // j+4 !!!
+
+/*		// correct*/
+/*		kernel_dgemv_n_4_lib4(j, ptrA, x, ptrx, -1);*/
+
+/*		// solve*/
+/*		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];*/
+/*		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) * ptrAd[1+bs*1];*/
+/*		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) * ptrAd[2+bs*2];*/
+/*		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) * ptrAd[3+bs*3];*/
 
 		ptrA  += bs*sda;
 		ptrAd += bs*(sda+bs);
