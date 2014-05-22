@@ -30,13 +30,14 @@
 
 
 /* version tailored for mpc (x0 fixed) */
-void dricposv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *diag, int compute_pi, double **hpi)
+void dricposv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *work, double *diag, int compute_pi, double **hpi)
 	{
 	
 	const int bs = D_MR; //d_get_mr();
 	const int d_ncl = D_NCL;
 	
-	const int sda = bs*((nx+nu+1+bs-1)/bs); // TODO remove
+	const int pnz = bs*((nx+nu+1+bs-1)/bs);
+	const int sda = pnz; // TODO remove
 
 	int pnx = (d_ncl-nx%d_ncl)%d_ncl; // packing between BAbtL & P
 
@@ -83,9 +84,9 @@ void dricposv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 		dgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], sda, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
-			for(jj=0; jj<nx; jj++) hpL[N][nu+jj] = hpL[ii+1][(nx+pnx)*bs+((nu+nx)/bs)*bs*(2*sda)+(nu+nx)%bs+bs*(nu+jj)];
-			dtrmv_p_t_lib(nx, nu, hpL[ii+1]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, &hux[ii+1][nu], &hpL[N][nu], 1); // L'*pi
-			dtrmv_p_n_lib(nx, nu, hpL[ii+1]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, &hpL[N][nu], &hpi[ii+1][0], 0); // L*(L'*b) + p
+			for(jj=0; jj<nx; jj++) work[nu+jj] = hpL[ii+1][(nx+pnx)*bs+((nu+nx)/bs)*bs*(2*sda)+(nu+nx)%bs+bs*(nu+jj)]; // work space
+			dtrmv_p_t_lib(nx, nu, hpL[ii+1]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, &hux[ii+1][nu], &work[nu], 1); // L'*pi
+			dtrmv_p_n_lib(nx, nu, hpL[ii+1]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, &work[nu], &hpi[ii+1][0], 0); // L*(L'*b) + p
 			}
 		}
 	
@@ -95,23 +96,29 @@ void dricposv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 
 
 
-void dricpotrs_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hq, double **hux, double *pBAbtL, int compute_pi, double **hpi)
+void dricpotrs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double **hq, double **hux, double *work, int compute_pi, double **hpi)
 	{
 	
 	const int bs = D_MR; //d_get_mr();
+	const int d_ncl = D_NCL;
+
+	const int pnz = bs*((nx+nu+1+bs-1)/bs);
+	const int sda = pnz; // TODO remove
+
+	int pnx = (d_ncl-nx%d_ncl)%d_ncl; // packing between BAbtL & P
 
 	int ii, jj;
 	
 	/* backward substitution */
 	for(ii=0; ii<N; ii++)
 		{
-		for(jj=0; jj<nx; jj++) pBAbtL[nu+jj] = hpBAbt[N-ii-1][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj]; // copy b
-		dtrmv_p_t_lib(nx, nu, hpQ[N-ii]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, pBAbtL+nu, pBAbtL+sda+nu, 0); // L'*b
-		for(jj=0; jj<nx; jj++) pBAbtL[nu+jj] = hq[N-ii][nu+jj]; // copy p
-		dtrmv_p_n_lib(nx, nu, hpQ[N-ii]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, pBAbtL+sda+nu, pBAbtL+nu, 1); // L*(L'*b) + p
-		dgemv_p_n_lib(nx+nu, nx, 0, hpBAbt[N-ii-1], sda, pBAbtL+nu, hq[N-ii-1], 1);
-		dtrsv_p_n_lib(nu, hpQ[N-ii-1], sda, hq[N-ii-1]);
-		dgemv_p_n_lib(nx, nu, nu, hpQ[N-ii-1]+(nu/bs)*bs*sda+nu%bs, sda, hq[N-ii-1], hq[N-ii-1]+nu, -1);
+		for(jj=0; jj<nx; jj++) work[nu+jj] = hpBAbt[N-ii-1][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj]; // copy b
+		dtrmv_p_t_lib(nx, nu, hpL[N-ii]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, work+nu, work+pnz+nu, 0); // L'*b
+		for(jj=0; jj<nx; jj++) work[nu+jj] = hq[N-ii][nu+jj]; // copy p
+		dtrmv_p_n_lib(nx, nu, hpL[N-ii]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, work+pnz+nu, work+nu, 1); // L*(L'*b) + p
+		dgemv_p_n_lib(nx+nu, nx, 0, hpBAbt[N-ii-1], sda, work+nu, hq[N-ii-1], 1);
+		dtrsv_p_n_lib(nu, hpL[N-ii-1]+(nx+pnx)*bs, 2*sda, hq[N-ii-1]);
+		dgemv_p_n_lib(nx, nu, nu, hpL[N-ii-1]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs, 2*sda, hq[N-ii-1], hq[N-ii-1]+nu, -1);
 		}
 
 
@@ -119,17 +126,17 @@ void dricpotrs_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ
 	for(ii=0; ii<N; ii++)
 		{
 		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hq[ii][jj];
-		dgemv_p_t_lib(nx, nu, nu, &hpQ[ii][(nu/bs)*bs*sda+nu%bs], sda, &hux[ii][nu], &hux[ii][0], -1);
-		dtrsv_p_t_lib(nu, hpQ[ii], sda, &hux[ii][0]);
+		dgemv_p_t_lib(nx, nu, nu, &hpL[ii][(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs], 2*sda, &hux[ii][nu], &hux[ii][0], -1);
+		dtrsv_p_t_lib(nu, &hpL[ii][(nx+pnx)*bs], 2*sda, &hux[ii][0]);
 		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
 		dgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], sda, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
-			dtrmv_p_t_lib(nx, nu, hpQ[ii+1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, &hux[ii+1][nu], &pBAbtL[nu], 0); // L'*pi
-			dtrmv_p_n_lib(nx, nu, hpQ[ii+1]+(nu/bs)*bs*sda+nu%bs+nu*bs, sda, &pBAbtL[nu], &hpi[ii+1][0], 0); // L*(L'*b) + p
+			dtrmv_p_t_lib(nx, nu, hpL[ii+1]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, &hux[ii+1][nu], &work[nu], 0); // L'*pi
+			dtrmv_p_n_lib(nx, nu, hpL[ii+1]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, &work[nu], &hpi[ii+1][0], 0); // L*(L'*b) + p
 			for(jj=0; jj<nx; jj++) hpi[ii+1][jj] += hq[ii+1][nu+jj];
 			}
 		}
-	
+
 	}
 
