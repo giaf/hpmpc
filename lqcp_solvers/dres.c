@@ -29,10 +29,12 @@
 
 
 
-void dres(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb)
+void dres(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb)
 	{
 
 	const int bs = D_MR; //d_get_mr();
+
+	const int sda = bs*((nx+nu+1+bs-1)/bs); // TODO remove
 
 	int ii, jj;
 	

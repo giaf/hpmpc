@@ -30,15 +30,15 @@
 
 
 /* version tailored for mpc (x0 fixed) */
-void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *diag, int compute_pi, double **hpi)
+void dricposv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *diag, int compute_pi, double **hpi)
 	{
-	
-/*	int sda = */
 	
 	const int bs = D_MR; //d_get_mr();
 	const int d_ncl = D_NCL;
 	
-	int pnx = (d_ncl-nx%d_ncl)%d_ncl;
+	const int sda = bs*((nx+nu+1+bs-1)/bs); // TODO remove
+
+	int pnx = (d_ncl-nx%d_ncl)%d_ncl; // packing between BAbtL & P
 
 	int ii, jj;
 	
@@ -58,9 +58,9 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 	// middle stages 
 	for(ii=0; ii<N-1; ii++)
 		{	
-		dtrmm_ppp_lib(nz, nx, hpBAbt[N-ii-1], sda, hpL[N-ii]+(nx+pnx+d_ncl)*bs, 2*sda, hpL[N-ii-1], 2*sda);
+		dtrmm_ppp_lib(nz, nx, hpBAbt[N-ii-1], sda, hpL[N-ii]+(nx+pnx+d_ncl)*bs, 2*sda, hpL[N-ii-1], 2*sda); // TODO allow 'rectanguar' B
 		for(jj=0; jj<nx; jj++) hpL[N-ii-1][((nx+nu)/bs)*bs*(2*sda)+(nx+nu)%bs+jj*bs] += hpL[N-ii][((nx+nu)/bs)*bs*2*sda+(nx+nu)%bs+(nx+pnx+nu+jj)*bs];
-		dsyrk_dpotrf_pp_lib(nz, nx, nz-1, hpL[N-ii-1], 2*sda, hpQ[N-ii-1], sda, diag);
+		dsyrk_dpotrf_pp_lib(nz, nx, nu+nx, hpL[N-ii-1], 2*sda, hpQ[N-ii-1], sda, diag);
 		for(jj=0; jj<nu; jj++) hpL[N-ii-1][(nx+pnx)*bs+(jj/bs)*bs*(2*sda)+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 		d_transpose_pmat_lo(nx, nu, hpL[N-ii-1]+(nx+pnx)*bs+(nu/bs)*bs*(2*sda)+nu%bs+nu*bs, 2*sda, hpL[N-ii-1]+(nx+pnx+d_ncl)*bs, 2*sda);
 		}

@@ -261,11 +261,14 @@ int main()
 * cost function
 ************************************************/	
 
+		const int ncx = nx;
+
 		double *Q; d_zeros_align(&Q, pnz, pnz);
 		for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
-		for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
-		for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 1.0;
-		Q[(nx+nu)*(pnz+1)] = 1e35;
+		for(; ii<nu+ncx; ii++) Q[ii*(pnz+1)] = 1.0;
+/*		for(; ii<nu+nx; ii++) Q[ii*(pnz+1)] = 1e-12;*/
+		for(ii=0; ii<nu+ncx; ii++) Q[nx+nu+ii*pnz] = 1.0;
+/*		Q[(nx+nu)*(pnz+1)] = 1e35;*/
 
 		/* packed into contiguous memory */
 		double *pQ; d_zeros_align(&pQ, pnz, pnz);
@@ -326,7 +329,7 @@ int main()
 		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
 
 		// call the solver
-		dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, hpL, diag, COMPUTE_MULT, hpi);
+		dricposv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, diag, COMPUTE_MULT, hpi);
 
 		if(PRINTRES==1)
 			{
@@ -420,7 +423,7 @@ int main()
 		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 		// residuals computation
-		dres(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+		dres(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 
 		if(PRINTRES==1 && COMPUTE_MULT==1)
 			{
@@ -453,7 +456,7 @@ int main()
 /*			for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];*/
 
 			// call the solver 
-			dricposv_mpc(nx, nu, N, pnz, hpBAbt, hpQ, hux, hpL, diag, COMPUTE_MULT, hpi);
+			dricposv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, diag, COMPUTE_MULT, hpi);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
