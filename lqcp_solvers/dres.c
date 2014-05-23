@@ -45,7 +45,8 @@ void dres(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hq, dou
 	for(jj=0; jj<nu; jj++) hrq[0][jj] = - hq[0][jj];
 	dgemv_p_t_lib(nx, nu, nu, hpQ[0]+(nu/bs)*bs*sda+nu%bs, sda, hux[0]+nu, hrq[0], -1);
 	dsymv_p_lib(nu, 0, hpQ[0], sda, hux[0], hrq[0], -1);
-	dgemv_p_n_lib(nu, nx, 0, hpBAbt[0], sda, hpi[1], hrq[0], -1);
+/*	dgemv_p_n_lib(nu, nx, 0, hpBAbt[0], sda, hpi[1], hrq[0], -1);*/
+	dgemv_p_n_lib(nu, nx, hpBAbt[0], sda, hpi[1], hrq[0], -1);
 	for(jj=0; jj<nx; jj++) hrb[0][jj] = hux[1][nu+jj] - hpBAbt[0][(nxu/bs)*bs*sda+nxu%bs+bs*jj];
 	dgemv_p_t_lib(nxu, nx, 0, hpBAbt[0], sda, hux[0], hrb[0], -1);
 

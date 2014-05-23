@@ -200,6 +200,7 @@ int main()
 	
 		int nz = nx+nu+1;
 		int pnz = bsd*((nz+bsd-1)/bsd);
+		int pnx = bsd*((nx+bsd-1)/bsd);
 /*		int pnz = bsd*((nz+bsd-nu%bsd+bsd-1)/bsd);*/
 	
 /************************************************
@@ -291,20 +292,20 @@ int main()
 			{
 			d_zeros_align(&hpQ[jj], pnz, pnz);
 			d_zeros_align(&hpL[jj], pnz, 2*pnz);
-			d_zeros_align(&hq[jj], pnz, 1);
-			d_zeros_align(&hux[jj], pnz, 1);
+			d_zeros_align(&hq[jj], pnz, 1); // it has to be pnz !!!
+			d_zeros_align(&hux[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hpi[jj], nx, 1);
 			hpBAbt[jj] = pBAbt;
 			d_zeros_align(&hrb[jj], nx, 1);
-			d_zeros_align(&hrq[jj], nx+nu, 1);
+			d_zeros_align(&hrq[jj], pnz, 1);
 //			hBAb[jj] = BAb;
 			}
 		d_zeros_align(&hpQ[N], pnz, pnz);
 		d_zeros_align(&hpL[N], pnz, 2*pnz);
-		d_zeros_align(&hq[N], pnz, 1);
-		d_zeros_align(&hux[N], pnz, 1);
+		d_zeros_align(&hq[N], pnz, 1); // it has to be pnz !!!
+		d_zeros_align(&hux[N], pnz, 1); // it has to be pnz !!!
 		d_zeros_align(&hpi[N], nx, 1);
-		d_zeros_align(&hrq[N], nx+nu, 1);
+		d_zeros_align(&hrq[N], pnz, 1);
 	
 		// starting guess
 		for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];

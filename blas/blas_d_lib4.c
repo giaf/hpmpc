@@ -242,59 +242,59 @@ void dsyrk_dpotrf_pp_lib(int m, int k, int n, double *pA, int sda, double *pC, i
 
 
 
-void dgemv_p_n_lib(int n, int m, int offset, double *pA, int sda, double *x, double *y, int alg)
+/*void dgemv_p_n_lib(int n, int m, int offset, double *pA, int sda, double *x, double *y, int alg)*/
+void dgemv_p_n_lib(int n, int m, double *pA, int sda, double *x, double *y, int alg)
 	{
 	
 	const int bs = 4;
 	
 	int j;
 
-	int nna = (bs-offset%bs)%bs;
+/*	int nna = (bs-offset%bs)%bs;*/
 
-	if(nna>n) // it is always nna < bs , thus n<bs !!!!!
-		{
-		j = 0;
-		if(nna%2==1)
-			{
-			kernel_dgemv_n_1_lib4(m, pA, x, y, alg);
-			pA += 1;
-			y  += 1;
-			j  += 1;
-			}
-		for(; j<n-1; j+=2)
-			{
-			kernel_dgemv_n_2_lib4(m, pA, x, y, alg);
-			pA += 2;
-			y  += 2;
-			}
-		for(; j<n; j++)
-			{
-			kernel_dgemv_n_1_lib4(m, pA, x, y, alg);
-			pA += 1;
-			y  += 1;
-			}
-		return;
-		}
+/*	if(nna>n) // it is always nna < bs , thus n<bs !!!!!*/
+/*		{*/
+/*		j = 0;*/
+/*		if(nna%2==1)*/
+/*			{*/
+/*			kernel_dgemv_n_1_lib4(m, pA, x, y, alg);*/
+/*			pA += 1;*/
+/*			y  += 1;*/
+/*			j  += 1;*/
+/*			}*/
+/*		for(; j<n-1; j+=2)*/
+/*			{*/
+/*			kernel_dgemv_n_2_lib4(m, pA, x, y, alg);*/
+/*			pA += 2;*/
+/*			y  += 2;*/
+/*			}*/
+/*		for(; j<n; j++)*/
+/*			{*/
+/*			kernel_dgemv_n_1_lib4(m, pA, x, y, alg);*/
+/*			pA += 1;*/
+/*			y  += 1;*/
+/*			}*/
+/*		return;*/
+/*		}*/
 	j=0;
-	if(nna>0) // it can be nna = {1, 2, 3}
-		{
-		if(nna%2==1)
-			{
-			kernel_dgemv_n_1_lib4(m, pA, x, y, alg);
-			pA += 1;
-			y  += 1;
-			j++;
-			}
-		if(nna%4>=2)
-			{
-			kernel_dgemv_n_2_lib4(m, pA, x, y, alg);
-			pA += 2;
-			y  += 2;
-			j+=2;
-			}
-		pA += (sda-1)*bs;
-		}
-/*	for(; j<n-(bs-1); j+=bs)*/
+/*	if(nna>0) // it can be nna = {1, 2, 3}*/
+/*		{*/
+/*		if(nna%2==1)*/
+/*			{*/
+/*			kernel_dgemv_n_1_lib4(m, pA, x, y, alg);*/
+/*			pA += 1;*/
+/*			y  += 1;*/
+/*			j++;*/
+/*			}*/
+/*		if(nna%4>=2)*/
+/*			{*/
+/*			kernel_dgemv_n_2_lib4(m, pA, x, y, alg);*/
+/*			pA += 2;*/
+/*			y  += 2;*/
+/*			j+=2;*/
+/*			}*/
+/*		pA += (sda-1)*bs;*/
+/*		}*/
 	for(; j<n-7; j+=8)
 		{
 		kernel_dgemv_n_8_lib4(m, pA, pA+sda*bs, x, y, alg);
@@ -782,50 +782,22 @@ void dtrsv_p_n_lib(int n, double *pA, int sda, double *x)
 	ptrx  = x;
 
 	j = 0;
-/*	for(; j<n-7; j+=8)*/
-/*		{*/
-/*		// correct*/
-/*		kernel_dgemv_n_8_lib4(j, ptrA, ptrA+bs*sda, x, ptrx, -1);*/
+	for(; j<n-7; j+=8)
+		{
 
-/*		// solve*/
-/*		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];*/
-/*		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) * ptrAd[1+bs*1];*/
-/*		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) * ptrAd[2+bs*2];*/
-/*		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) * ptrAd[3+bs*3];*/
+		kernel_dtrsv_n_8_lib4(j, ptrA, ptrA+bs*sda, x, ptrx); // j+8 !!!
 
-/*		// correct*/
-/*		kernel_dgemv_n_4_lib4(4, ptrAd+bs*sda, ptrx, ptrx+4, -1);*/
+		ptrA  += 2*bs*sda;
+		ptrAd += 2*bs*(sda+bs);
+		ptrx  += 2*bs;
 
-/*		ptrA  += bs*sda;*/
-/*		ptrAd += bs*(sda+bs);*/
-/*		ptrx  += bs;*/
-
-/*		// solve*/
-/*		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];*/
-/*		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) * ptrAd[1+bs*1];*/
-/*		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) * ptrAd[2+bs*2];*/
-/*		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) * ptrAd[3+bs*3];*/
-
-/*		ptrA  += bs*sda;*/
-/*		ptrAd += bs*(sda+bs);*/
-/*		ptrx  += bs;*/
-
-/*		}*/
+		}
 
 	// clean up stuff at the end
 	for(; j<n-3; j+=4)
 		{
 
-		kernel_dtrsv_n_4_lib4(j+4, ptrA, x, ptrx); // j+4 !!!
-
-/*		// correct*/
-/*		kernel_dgemv_n_4_lib4(j, ptrA, x, ptrx, -1);*/
-
-/*		// solve*/
-/*		ptrx[0] = (ptrx[0]) * ptrAd[0+bs*0];*/
-/*		ptrx[1] = (ptrx[1] - ptrx[0] * ptrAd[1+bs*0]) * ptrAd[1+bs*1];*/
-/*		ptrx[2] = (ptrx[2] - ptrx[0] * ptrAd[2+bs*0] - ptrx[1] * ptrAd[2+bs*1]) * ptrAd[2+bs*2];*/
-/*		ptrx[3] = (ptrx[3] - ptrx[0] * ptrAd[3+bs*0] - ptrx[1] * ptrAd[3+bs*1] - ptrx[2] * ptrAd[3+bs*2]) * ptrAd[3+bs*3];*/
+		kernel_dtrsv_n_4_lib4(j, 4, ptrA, x, ptrx); // j+4 !!!
 
 		ptrA  += bs*sda;
 		ptrAd += bs*(sda+bs);
@@ -856,6 +828,90 @@ void dtrsv_p_n_lib(int n, double *pA, int sda, double *x)
 		ptrA  += 1;
 		ptrAd += bs+1;
 		ptrx  += 1;
+		}
+
+	}
+
+
+
+// the diagonal is inverted !!!
+void dtrsv_dgemv_p_n_lib(int n, int m, double *pA, int sda, double *x)
+	{
+	
+	const int bs = 4;
+	
+	int j;
+	
+	double *y;
+
+	// blocks of 4 (pA is supposed to be properly aligned)
+	y  = x;
+
+	j = 0;
+	for(; j<n-7; j+=8)
+		{
+
+		kernel_dtrsv_n_8_lib4(j, pA, pA+bs*sda, x, y); // j+8 !!!
+
+		pA += 2*bs*sda;
+		y  += 2*bs;
+
+		}
+	if(j<n-3)
+		{
+
+		kernel_dtrsv_n_4_lib4(j, 4, pA, x, y); // j+4 !!!
+
+		pA += bs*sda;
+		y  += bs;
+		j+=4;
+
+		}
+	if(j<n) // !!! suppose that there are enough nx after !!! => x padded with enough zeros at the end !!!
+		{
+
+		kernel_dtrsv_n_4_lib4(j, n-j, pA, x, y); // j+4 !!!
+
+		pA += bs*sda;
+		y  += bs;
+		j+=4;
+
+		}
+	for(; j<m-7; j+=8)
+		{
+
+		kernel_dgemv_n_8_lib4(n, pA, pA+sda*bs, x, y, -1);
+
+		pA += 2*sda*bs;
+		y  += 2*bs;
+
+		}
+	for(; j<m-3; j+=4)
+		{
+
+		kernel_dgemv_n_4_lib4(n, pA, x, y, -1);
+
+		pA += sda*bs;
+		y  += bs;
+
+		}
+	for(; j<m-1; j+=2)
+		{
+
+		kernel_dgemv_n_2_lib4(n, pA, x, y, -1);
+
+		pA += 2;
+		y  += 2;
+
+		}
+	for(; j<m; j++)
+		{
+
+		kernel_dgemv_n_1_lib4(n, pA, x, y, -1);
+
+		pA += 1;
+		y  += 1;
+
 		}
 
 	}
