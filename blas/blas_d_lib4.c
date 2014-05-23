@@ -878,6 +878,7 @@ void dtrsv_dgemv_p_n_lib(int n, int m, double *pA, int sda, double *x)
 
 		}
 	for(; j<m-7; j+=8)
+/*	for(; j<m-4; j+=8)*/
 		{
 
 		kernel_dgemv_n_8_lib4(n, pA, pA+sda*bs, x, y, -1);
@@ -887,6 +888,7 @@ void dtrsv_dgemv_p_n_lib(int n, int m, double *pA, int sda, double *x)
 
 		}
 	for(; j<m-3; j+=4)
+/*	for(; j<m; j+=4)*/
 		{
 
 		kernel_dgemv_n_4_lib4(n, pA, x, y, -1);

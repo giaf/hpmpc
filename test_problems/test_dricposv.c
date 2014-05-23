@@ -294,9 +294,9 @@ int main()
 			d_zeros_align(&hpL[jj], pnz, 2*pnz);
 			d_zeros_align(&hq[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hux[jj], pnz, 1); // it has to be pnz !!!
-			d_zeros_align(&hpi[jj], nx, 1);
+			d_zeros_align(&hpi[jj], pnx, 1);
 			hpBAbt[jj] = pBAbt;
-			d_zeros_align(&hrb[jj], nx, 1);
+			d_zeros_align(&hrb[jj], pnx, 1);
 			d_zeros_align(&hrq[jj], pnz, 1);
 //			hBAb[jj] = BAb;
 			}
@@ -304,7 +304,7 @@ int main()
 		d_zeros_align(&hpL[N], pnz, 2*pnz);
 		d_zeros_align(&hq[N], pnz, 1); // it has to be pnz !!!
 		d_zeros_align(&hux[N], pnz, 1); // it has to be pnz !!!
-		d_zeros_align(&hpi[N], nx, 1);
+		d_zeros_align(&hpi[N], pnx, 1);
 		d_zeros_align(&hrq[N], pnz, 1);
 	
 		// starting guess
@@ -314,7 +314,7 @@ int main()
 
 		double *diag; d_zeros_align(&diag, nz+1, 1);
 		
-		double *work; d_zeros(&work, 2*pnz, 1);
+		double *work; d_zeros_align(&work, 2*pnz, 1);
 
 /************************************************
 * riccati-like iteration
