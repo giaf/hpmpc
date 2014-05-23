@@ -163,6 +163,8 @@ void dsyrk_dpotrf_pp_lib(int m, int k, int n, double *pA, int sda, double *pC, i
 	const int d_ncl = D_NCL;
 	const int k0 = (d_ncl-k%d_ncl)%d_ncl;
 	
+/*printf("\nk0 = %d\n", k0);*/
+
 	int i, j;
 	
 /*	int n = m;*/
@@ -541,6 +543,70 @@ void dtrmv_p_n_lib(int m, int offset, double *pA, int sda, double *x, double *y,
 
 
 
+void dtrmv_p_u_n_lib(int m, double *pA, int sda, double *x, double *y, int alg)
+	{
+
+	const int bs = 4;
+	
+	int j;
+	
+	double *ptrA;
+	
+	j=0;
+	for(; j<m-7; j+=8)
+		{
+/*		y[0] += pA[0+bs*0]*x[0] + pA[0+bs*1]*x[1] + pA[0+bs*2]*x[2] + pA[0+bs*3]*x[3];*/
+/*		y[1] +=                   pA[1+bs*1]*x[1] + pA[1+bs*2]*x[2] + pA[1+bs*3]*x[3];*/
+/*		y[2] +=                                     pA[2+bs*2]*x[2] + pA[2+bs*3]*x[3];*/
+/*		y[3] +=                                                       pA[3+bs*3]*x[3];*/
+/*		kernel_dgemv_n_4_lib4(4, pA+4*bs, x+4, y, 1);*/
+/*		ptrA = pA + sda*bs + 4*bs;*/
+/*		y[4] += ptrA[0+bs*0]*x[4] + ptrA[0+bs*1]*x[5] + ptrA[0+bs*2]*x[6] + ptrA[0+bs*3]*x[7];*/
+/*		y[5] +=                     ptrA[1+bs*1]*x[5] + ptrA[1+bs*2]*x[6] + ptrA[1+bs*3]*x[7];*/
+/*		y[6] +=                                         ptrA[2+bs*2]*x[6] + ptrA[2+bs*3]*x[7];*/
+/*		y[7] +=                                                             ptrA[3+bs*3]*x[7];*/
+/*		kernel_dgemv_n_8_lib4(m-j-8, pA+8*bs, pA+8*bs+sda*bs, x+8, y, 1);*/
+		kernel_dtrmv_u_n_8_lib4(m-j, pA, pA+sda*bs, x, y, alg);
+		pA += 2*sda*bs + 2*4*bs;
+		x  += 2*bs;
+		y  += 2*bs;
+		}
+	for(; j<m-3; j+=4)
+		{
+/*		y[0] += pA[0+bs*0]*x[0] + pA[0+bs*1]*x[1] + pA[0+bs*2]*x[2] + pA[0+bs*3]*x[3];*/
+/*		y[1] +=                   pA[1+bs*1]*x[1] + pA[1+bs*2]*x[2] + pA[1+bs*3]*x[3];*/
+/*		y[2] +=                                     pA[2+bs*2]*x[2] + pA[2+bs*3]*x[3];*/
+/*		y[3] +=                                                       pA[3+bs*3]*x[3];*/
+/*		kernel_dgemv_n_4_lib4(m-j-4, pA+4*bs, x+4, y, 1);*/
+		kernel_dtrmv_u_n_4_lib4(m-j, pA, x, y, alg);
+		pA += sda*bs + 4*bs;
+		x  += bs;
+		y  += bs;
+		}
+	for(; j<m-1; j+=2)
+		{
+		kernel_dtrmv_u_n_2_lib4(m-j, pA, x, y, alg);
+/*		kernel_dgemv_n_2_lib4(m-j-2, pA+2*bs, x+2, y, alg);*/
+/*		y[0] += pA[0+bs*0]*x[0] + pA[0+bs*1]*x[1];*/
+/*		y[1] +=                   pA[1+bs*1]*x[1];*/
+		pA += 2 + 2*bs;
+		x  += 2;
+		y  += 2;
+		}
+	if(j<m)
+		{
+		if(alg==0)
+			y[0] = pA[0+bs*0]*x[0];
+		else if(alg==1)
+			y[0] += pA[0+bs*0]*x[0];
+		else
+			y[0] -= pA[0+bs*0]*x[0];
+		}
+
+	}
+
+
+
 // !!! x and y can not be the same vector !!!
 void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg)
 	{
@@ -879,6 +945,7 @@ void dtrsv_dgemv_p_n_lib(int n, int m, double *pA, int sda, double *x)
 		j+=4;
 
 		}
+/*	for(; j<m-7; j+=8)*/
 	for(; j<m-4; j+=8)
 		{
 
@@ -888,6 +955,7 @@ void dtrsv_dgemv_p_n_lib(int n, int m, double *pA, int sda, double *x)
 		y  += 2*bs;
 
 		}
+/*	for(; j<m-3; j+=4)*/
 	for(; j<m; j+=4)
 		{
 
@@ -897,6 +965,24 @@ void dtrsv_dgemv_p_n_lib(int n, int m, double *pA, int sda, double *x)
 		y  += bs;
 
 		}
+/*	for(; j<m-1; j+=2)*/
+/*		{*/
+
+/*		kernel_dgemv_n_2_lib4(n, pA, x, y, -1);*/
+
+/*		pA += 2;*/
+/*		y  += 2;*/
+
+/*		}*/
+/*	for(; j<m; j+=1)*/
+/*		{*/
+
+/*		kernel_dgemv_n_1_lib4(n, pA, x, y, -1);*/
+
+/*		pA += 1;*/
+/*		y  += 1;*/
+
+/*		}*/
 
 	}
 

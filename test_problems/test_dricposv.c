@@ -347,6 +347,29 @@ int main()
 				d_print_mat(1, nx, hpi[ii+1], 1);
 			}
 
+		// restore linear part of cost function 
+		for(ii=0; ii<N; ii++)
+			{
+			for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+pnz*jj];
+			}
+		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
+
+		// residuals computation
+		dres(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+
+		if(PRINTRES==1 && COMPUTE_MULT==1)
+			{
+			// print result 
+			printf("\n\nres\n\n");
+			d_print_mat(1, nu, hrq[0], 1);
+			for(ii=1; ii<=N; ii++)
+				d_print_mat(1, nx+nu, hrq[ii], 1);
+			for(ii=0; ii<N; ii++)
+				d_print_mat(1, nx, hrb[ii], 1);
+			}
+
+
+
 
 		// corrector
 	

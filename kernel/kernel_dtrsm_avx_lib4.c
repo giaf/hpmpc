@@ -255,8 +255,12 @@ void kernel_dtrsm_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, dou
 		c_02_13_20_31 = _mm256_add_pd( c_02_13_20_31, ab_tmp0 );
 		c_42_53_60_71 = _mm256_add_pd( c_42_53_60_71, ab_tmp1 );
 		
+		A0 += 4; // keep it !!!
+		A1 += 4; // keep it !!!
+		B  += 4; // keep it !!!
+
 		}
-		
+
 	if(ksub>0)
 		{
 		if(kadd>0)
@@ -631,6 +635,10 @@ void kernel_dtrsm_pp_nt_8x2_lib4(int kadd, int ksub, double *A0, double *A1, dou
 		c_01_10_21_30 = _mm256_add_pd( c_01_10_21_30, ab_tmp0 );
 		c_41_50_61_70 = _mm256_add_pd( c_41_50_61_70, ab_tmp1 );
 		
+		A0 += 4; // keep it !!!
+		A1 += 4; // keep it !!!
+		B  += 4; // keep it !!!
+
 		}
 		
 	if(ksub>0)
@@ -910,6 +918,9 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 /*		a_0123        = _mm256_load_pd( &A[4] ); // prefetch*/
 		c_02_13_20_31 = _mm256_add_pd( c_02_13_20_31, ab_temp );
 		
+		A += 4; // keep it !!!
+		B += 4; // keep it !!!
+
 		}
 
 	if(ksub>0)
@@ -1169,6 +1180,9 @@ void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 /*		a_0123        = _mm256_load_pd( &A[4] ); // prefetch*/
 		c_01_10_21_30 = _mm256_add_pd( c_01_10_21_30, ab_temp );
 		
+		A += 4; // keep it !!!
+		B += 4; // keep it !!!
+
 		}
 
 	if(ksub>0)
@@ -1371,6 +1385,9 @@ void kernel_dtrsm_pp_nt_2x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 /*		a_0101        = _mm256_broadcast_pd( (__m128d *) &A[4] ); // prefetch*/
 		c_01_10_03_12 = _mm256_add_pd( c_01_10_03_12, ab_temp );
 		
+		A += 4; // keep it !!!
+		B += 4; // keep it !!!
+
 		}
 
 	if(ksub>0)
@@ -1609,6 +1626,9 @@ void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 /*		a_01    = _mm_load_pd( &A[4] ); // prefetch*/
 		c_01_10 = _mm_add_pd( c_01_10, ab_temp );
 		
+		A += 4; // keep it !!!
+		B += 4; // keep it !!!
+
 		}
 
 	if(ksub>0)

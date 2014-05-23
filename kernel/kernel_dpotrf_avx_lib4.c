@@ -232,6 +232,8 @@ void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, do
 	if(kadd%2==1)
 		{
 		
+/*printf("\nk0 = ciao %d\n", (d_ncl-kadd%d_ncl)%d_ncl);*/
+
 		ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
 		b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 		ab_tmp1       = _mm256_mul_pd( a_4567, b_0123 );
@@ -255,8 +257,12 @@ void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, do
 		c_02_13_20_31 = _mm256_add_pd( c_02_13_20_31, ab_tmp0 );
 		c_42_53_60_71 = _mm256_add_pd( c_42_53_60_71, ab_tmp1 );
 		
+		A0 += 4; // keep it !!!
+		A1 += 4; // keep it !!!
+		B  += 4; // keep it !!!
+
 		}
-		
+
 	if(ksub>0)
 		{
 		if(kadd>0)
@@ -264,6 +270,7 @@ void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, do
 			A0 += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			A1 += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			B  += bs*((d_ncl-kadd%d_ncl)%d_ncl);
+/*printf("\nk0 = %d\n", (d_ncl-kadd%d_ncl)%d_ncl);*/
 			}
 		// prefetch
 		a_0123        = _mm256_load_pd( &A0[0] );
@@ -761,9 +768,8 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 /*		a_0123        = _mm256_load_pd( &A[4] ); // prefetch */
 		c_02_13_20_31 = _mm256_add_pd( c_02_13_20_31, ab_temp );
 		
-/*		A0 += 4;*/
-/*		A1 += 4;*/
-/*		B  += 4;*/
+		A += 4; // keep it !!!
+		B += 4; // keep it !!!
 		
 		}
 		
@@ -1108,6 +1114,9 @@ void kernel_dpotrf_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doub
 /*		a_0123        = _mm256_load_pd( &A[4] ); // prefetch*/
 		c_01_10_21_30 = _mm256_add_pd( c_01_10_21_30, ab_temp );
 		
+		A += 4; // keep it !!!
+		B += 4; // keep it !!!
+
 		}
 		
 	if(ksub>0)
@@ -1360,6 +1369,9 @@ void kernel_dpotrf_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doub
 /*		a_01    = _mm_load_pd( &A[4] ); // prefetch*/
 		c_01_10 = _mm_add_pd( c_01_10, ab_temp );
 		
+		A += 4; // keep it !!!
+		B += 4; // keep it !!!
+
 		}
 		
 	if(ksub>0)
