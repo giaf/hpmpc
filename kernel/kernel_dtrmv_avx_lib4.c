@@ -32,6 +32,384 @@
 
 
 
+// it moves vertically across blocks
+void kernel_dtrmv_u_t_4_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
+	{
+
+/*	if(kmax<=0) */
+/*		return;*/
+	
+	const int lda = 4;
+	
+/*	__builtin_prefetch( A + 0*lda );*/
+/*	__builtin_prefetch( A + 2*lda );*/
+
+	double *tA, *tx;
+
+	int k;
+	
+	__m256d
+		zeros,
+		tmp0, tmp1,
+		a_00_10_20_30, a_01_11_21_31, a_02_12_22_32, a_03_13_23_33,
+		x_0_1_2_3,
+		y_00, y_11, y_22, y_33;
+
+	y_00 = _mm256_setzero_pd();
+	y_11 = _mm256_setzero_pd();
+	y_22 = _mm256_setzero_pd();
+	y_33 = _mm256_setzero_pd();
+
+	k=0;
+	for(; k<kmax-7; k+=8)
+		{
+		
+/*		__builtin_prefetch( A + sda*lda + 0*lda );*/
+/*		__builtin_prefetch( A + sda*lda + 2*lda );*/
+
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
+		
+		tmp0 = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		tmp1 = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, tmp0 );
+		y_11 = _mm256_add_pd( y_11, tmp1 );
+		tmp0 = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+		tmp1 = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+		y_22 = _mm256_add_pd( y_22, tmp0 );
+		y_33 = _mm256_add_pd( y_33, tmp1 );
+		
+		A += 4 + (sda-1)*lda;
+		x += 4;
+
+
+/*		__builtin_prefetch( A + sda*lda + 0*lda );*/
+/*		__builtin_prefetch( A + sda*lda + 2*lda );*/
+
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
+		
+		tmp0 = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		tmp1 = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, tmp0 );
+		y_11 = _mm256_add_pd( y_11, tmp1 );
+		tmp0 = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+		tmp1 = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+		y_22 = _mm256_add_pd( y_22, tmp0 );
+		y_33 = _mm256_add_pd( y_33, tmp1 );
+		
+		A += 4 + (sda-1)*lda;
+		x += 4;
+
+		}
+	for(; k<kmax-3; k+=4)
+		{
+		
+/*		__builtin_prefetch( A + sda*lda + 0*lda );*/
+/*		__builtin_prefetch( A + sda*lda + 2*lda );*/
+
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
+		
+		tmp0 = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		tmp1 = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, tmp0 );
+		y_11 = _mm256_add_pd( y_11, tmp1 );
+		tmp0 = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+		tmp1 = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+		y_22 = _mm256_add_pd( y_22, tmp0 );
+		y_33 = _mm256_add_pd( y_33, tmp1 );
+		
+		A += 4 + (sda-1)*lda;
+		x += 4;
+
+		}
+
+	zeros = _mm256_setzero_pd();
+
+	x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+
+	a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+	a_00_10_20_30 = _mm256_blend_pd( a_00_10_20_30, zeros, 0xe );
+	a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+	a_01_11_21_31 = _mm256_blend_pd( a_01_11_21_31, zeros, 0xc );
+	a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+	a_02_12_22_32 = _mm256_blend_pd( a_02_12_22_32, zeros, 0x8 );
+	a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
+	
+	tmp0 = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+	tmp1 = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+	y_00 = _mm256_add_pd( y_00, tmp0 );
+	y_11 = _mm256_add_pd( y_11, tmp1 );
+	tmp0 = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+	tmp1 = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+	y_22 = _mm256_add_pd( y_22, tmp0 );
+	y_33 = _mm256_add_pd( y_33, tmp1 );
+
+	__m256d
+		y_0_1_2_3;
+
+	y_00 = _mm256_hadd_pd(y_00, y_11);
+	y_22 = _mm256_hadd_pd(y_22, y_33);
+
+	y_11 = _mm256_permute2f128_pd(y_22, y_00, 2 );	
+	y_00 = _mm256_permute2f128_pd(y_22, y_00, 19);	
+
+	y_00 = _mm256_add_pd( y_00, y_11 );
+
+	if(alg==0)
+		{
+		_mm256_storeu_pd(&y[0], y_00);
+		}
+	else if(alg==1)
+		{
+		y_0_1_2_3 = _mm256_loadu_pd( &y[0] );
+
+		y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, y_00 );
+
+		_mm256_storeu_pd(&y[0], y_0_1_2_3);
+		}
+	else // alg==-1
+		{
+		y_0_1_2_3 = _mm256_loadu_pd( &y[0] );
+	
+		y_0_1_2_3 = _mm256_sub_pd( y_0_1_2_3, y_00 );
+	
+		_mm256_storeu_pd(&y[0], y_0_1_2_3);
+		}
+
+	}
+
+
+
+// it moves vertically across blocks
+void kernel_dtrmv_u_t_2_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
+	{
+
+/*	if(kmax<=0) */
+/*		return;*/
+	
+	const int lda = 4;
+	
+	double *tA, *tx;
+
+	int k;
+	
+	__m256d
+		tmp0, tmp1,
+		a_00_10_20_30, a_01_11_21_31,
+		x_0_1_2_3,
+		y_00, y_11;
+	
+	y_00 = _mm256_setzero_pd();
+	y_11 = _mm256_setzero_pd();
+
+	k=0;
+	for(; k<kmax-7; k+=8)
+		{
+		
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		
+		tmp0 = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		tmp1 = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, tmp0 );
+		y_11 = _mm256_add_pd( y_11, tmp1 );
+
+		A += 4 + (sda-1)*lda;
+		x += 4;
+
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		
+		tmp0 = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		tmp1 = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, tmp0 );
+		y_11 = _mm256_add_pd( y_11, tmp1 );
+
+		A += 4 + (sda-1)*lda;
+		x += 4;
+
+		}
+	for(; k<kmax-3; k+=4)
+		{
+		
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		
+		tmp0 = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		tmp1 = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, tmp0 );
+		y_11 = _mm256_add_pd( y_11, tmp1 );
+
+		A += 4 + (sda-1)*lda;
+		x += 4;
+
+		}
+
+	__m128d
+		tm0, tm1,
+		a_00_10, a_01_11,
+		x_0_1,
+		y_0, y_1, y_0_1;
+	
+	tm0 = _mm256_extractf128_pd( y_00, 0x1 );
+	tm1 = _mm256_extractf128_pd( y_11, 0x1 );
+	y_0 = _mm256_castpd256_pd128( y_00 );
+	y_1 = _mm256_castpd256_pd128( y_11 );
+	y_0 = _mm_add_pd( y_0, tm0 );
+	y_1 = _mm_add_pd( y_1, tm1 );
+	
+	x_0_1 = _mm_loadu_pd( &x[0] );
+	a_00_10 = _mm_load_sd( &A[0+lda*0] );
+	a_01_11 = _mm_load_pd( &A[0+lda*1] );
+	tm0 = _mm_mul_sd( a_00_10, x_0_1 );
+	tm1 = _mm_mul_pd( a_01_11, x_0_1 );
+	y_0 = _mm_add_sd( y_0, tm0 );
+	y_1 = _mm_add_pd( y_1, tm1 );
+
+	y_0 = _mm_hadd_pd( y_0, y_1 );
+
+
+	if(alg==0)
+		{
+		_mm_storeu_pd(&y[0], y_0);
+		}
+	else if(alg==1)
+		{
+		y_0_1 = _mm_loadu_pd( &y[0] );
+
+		y_0_1 = _mm_add_pd( y_0_1, y_0 );
+
+		_mm_storeu_pd(&y[0], y_0_1);
+		}
+	else // alg==-1
+		{
+		y_0_1 = _mm_loadu_pd( &y[0] );
+	
+		y_0_1 = _mm_sub_pd( y_0_1, y_0 );
+	
+		_mm_storeu_pd(&y[0], y_0_1);
+		}
+
+	}
+
+
+
+// it moves vertically across blocks
+void kernel_dtrmv_u_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
+	{
+
+/*	if(kmax<=0) */
+/*		return;*/
+	
+	const int lda = 4;
+	
+	double *tA, *tx;
+
+	int k;
+	
+	__m256d
+		tmp0,
+		a_00_10_20_30,
+		x_0_1_2_3,
+		y_00;
+	
+	
+	y_00 = _mm256_setzero_pd();
+
+	k=0;
+	for(; k<kmax-3; k+=4)
+		{
+		
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		
+		tmp0 = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, tmp0 );
+		
+		A += 4 + (sda-1)*lda;
+		x += 4;
+
+		}
+
+	__m128d
+		tm0,
+		a_00_10, a_01_11,
+		x_0_1,
+		y_0, y_1, y_0_1;
+	
+	tm0 = _mm256_extractf128_pd( y_00, 0x1 );
+	y_0 = _mm256_castpd256_pd128( y_00 );
+	y_0 = _mm_add_pd( y_0, tm0 );
+
+	if(k<kmax-1)
+		{
+		
+		x_0_1 = _mm_loadu_pd( &x[0] );
+
+		a_00_10 = _mm_load_pd( &A[0+lda*0] );
+		
+		tm0 = _mm_mul_pd( a_00_10, x_0_1 );
+		y_0 = _mm_add_pd( y_0, tm0 );
+		
+		A += 2;
+		x += 2;
+
+		}
+	
+	x_0_1 = _mm_load_sd( &x[0] );
+	a_00_10 = _mm_load_sd( &A[0+lda*0] );
+	tm0 = _mm_mul_sd( a_00_10, x_0_1 );
+	y_0 = _mm_add_sd( y_0, tm0 );
+
+	y_0 = _mm_hadd_pd( y_0, y_0 );
+
+
+	if(alg==0)
+		{
+		_mm_store_sd(&y[0], y_0);
+		}
+	else if(alg==1)
+		{
+		y_0_1 = _mm_load_sd( &y[0] );
+
+		y_0_1 = _mm_add_sd( y_0_1, y_0 );
+
+		_mm_store_sd(&y[0], y_0_1);
+		}
+	else // alg==-1
+		{
+		y_0_1 = _mm_load_sd( &y[0] );
+	
+		y_0_1 = _mm_sub_sd( y_0_1, y_0 );
+	
+		_mm_store_sd(&y[0], y_0_1);
+		}
+
+	}
+
+
+
 // it moves horizontally inside a block
 void kernel_dtrmv_u_n_8_lib4(int kmax, double *A0, double *A1, double *x, double *y, int alg)
 	{

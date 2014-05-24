@@ -607,6 +607,44 @@ void dtrmv_p_u_n_lib(int m, double *pA, int sda, double *x, double *y, int alg)
 
 
 
+void dtrmv_p_u_t_lib(int m, double *pA, int sda, double *x, double *y, int alg)
+	{
+
+	const int bs = 4;
+	
+	int j;
+	
+	double *ptrA;
+	
+	j=0;
+/*	for(; j<m-7; j+=8)*/ // TODO kernel 8 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/*		{*/
+/*		kernel_dtrmv_u_n_8_lib4(m-j, pA, pA+sda*bs, x, y, alg);*/
+/*		pA += 2*sda*bs + 2*4*bs;*/
+/*		x  += 2*bs;*/
+/*		y  += 2*bs;*/
+/*		}*/
+	for(; j<m-3; j+=4)
+		{
+		kernel_dtrmv_u_t_4_lib4(j, pA, sda, x, y, alg);
+		pA += 4*bs;
+		y  += bs;
+		}
+	for(; j<m-1; j+=2) // keep for !!!
+		{
+		kernel_dtrmv_u_t_2_lib4(j, pA, sda, x, y, alg);
+		pA += 2*bs;
+		y  += 2;
+		}
+	if(j<m)
+		{
+		kernel_dtrmv_u_t_1_lib4(j, pA, sda, x, y, alg);
+		}
+
+	}
+
+
+
 // !!! x and y can not be the same vector !!!
 void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg)
 	{
