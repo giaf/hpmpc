@@ -67,6 +67,7 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 
 	/* initial stage */
 	dtrmm_ppp_lib(nz, nx, nu, hpBAbt[0], sda, pL, sda, pBAbtL, sda);
+	for(jj=0; jj<nx; jj++) pBAbtL[((nx+nu)/bs)*bs*sda+(nx+nu)%bs+jj*bs] += hpQ[1][((nx+nu)/bs)*bs*sda+(nx+nu)%bs+(nu+jj)*bs];
 	dsyrk_ppp_lib(nz, nu, nx, pBAbtL, sda, hpQ[0], sda);
 	dpotrf_rec_p_lib(nz, nu, hpQ[0], sda, info);
 	if(*info!=0) return;

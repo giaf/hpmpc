@@ -129,8 +129,8 @@ run:
 
 #install: library
 install:
-	cp -f libhpmpc.a /lib/libhpmpc.a
-	cp -rf ./include /include/hpmpc
+	cp -f libhpmpc.a /usr/local/lib/libhpmpc.a
+	cp -rf ./include /usr/local/include/hpmpc
 	
 uninstall:
 	rm /lib/libhpmpc.a
@@ -144,7 +144,7 @@ clean:
 	make -C mpc_solvers clean
 	make -C codegen clean
 	make -C test_problems clean
-#	make -C matlab clean
+	make -C interfaces/octave clean
 #	rm -f $(OBJS)
 	rm -f test.out
 	rm -f *.s

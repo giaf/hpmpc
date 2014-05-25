@@ -222,8 +222,10 @@ int main()
 //	d_print_mat(nz, nx+1, BAbt, pnz);
 	
 	/* packed into contiguous memory */
-	double *pBAbt; d_zeros_align(&pBAbt, pnz, pnz);
-	d_cvt_mat2pmat(nz, nx, 0, dbs, BAbt, pnz, pBAbt, pnz);
+/*	double *pBAbt; d_zeros_align(&pBAbt, pnz, pnz);*/
+/*	d_cvt_mat2pmat(nz, nx, 0, dbs, BAbt, pnz, pBAbt, pnz);*/
+	float *pBAbt; s_zeros_align(&pBAbt, pnz, pnz);
+	cvt_d2s_mat2pmat(nz, nx, 0, dbs, BAbt, pnz, pBAbt, pnz);
 
 /*	d_print_pmat(nz, nx, dbs, pBAbt, pnz);*/
 /*	s_print_pmat(nz, nx, sbs, psBAbt, spnz);*/
@@ -233,13 +235,13 @@ int main()
 * box constraints
 ************************************************/	
 
-	double *lb; d_zeros(&lb, nb, 1);
+	float *lb; s_zeros(&lb, nb, 1);
 	for(jj=0; jj<nu; jj++)
 		lb[jj] = - 0.5;   // umin
 	for(; jj<nb; jj++)
 		lb[jj] = - 4.0;   // xmin
 
-	double *ub; d_zeros(&ub, nb, 1);
+	float *ub; s_zeros(&ub, nb, 1);
 	for(jj=0; jj<nu; jj++)
 		ub[jj] = 0.5;   // umax
 	for(; jj<nb; jj++)
@@ -256,54 +258,56 @@ int main()
 	Q[(nx+nu)*(pnz+1)] = 1e35;
 	
 	/* packed into contiguous memory */
-	double *pQ; d_zeros_align(&pQ, pnz, pnz);
-	d_cvt_mat2pmat(nz, nz, 0, dbs, Q, pnz, pQ, pnz);
+/*	double *pQ; d_zeros_align(&pQ, pnz, pnz);*/
+/*	d_cvt_mat2pmat(nz, nz, 0, dbs, Q, pnz, pQ, pnz);*/
+	float *pQ; s_zeros_align(&pQ, pnz, pnz);
+	cvt_d2s_mat2pmat(nz, nz, 0, dbs, Q, pnz, pQ, pnz);
 
 /*	d_cvt_mat2pmat(nz, nz, 0, dbs, Q, pnz, pQ, pnz);*/
 
 /************************************************
 * matrices series
 ************************************************/	
-	double *(hpQ[N+1]);
-	double *(hq[N+1]);
-	double *(hux[N+1]);
-	double *(hpi[N+1]);
-	double *(hlam[N+1]);
-	double *(ht[N+1]);
-	double *(hpBAbt[N]);
-	double *(hlb[N+1]);
-	double *(hub[N+1]);
-	double *(hrb[N]);
-	double *(hrq[N+1]);
-	double *(hrd[N+1]);
+	float *(hpQ[N+1]);
+	float *(hq[N+1]);
+	float *(hux[N+1]);
+	float *(hpi[N+1]);
+	float *(hlam[N+1]);
+	float *(ht[N+1]);
+	float *(hpBAbt[N]);
+	float *(hlb[N+1]);
+	float *(hub[N+1]);
+	float *(hrb[N]);
+	float *(hrq[N+1]);
+	float *(hrd[N+1]);
 	for(jj=0; jj<N; jj++)
 		{
-		d_zeros_align(&hpQ[jj], pnz, pnz);
-		d_zeros_align(&hq[jj], pnz, 1);
-		d_zeros_align(&hux[jj], nz, 1);
-		d_zeros_align(&hpi[jj], nx, 1);
-		d_zeros_align(&hlam[jj],2*nb, 1);
-		d_zeros_align(&ht[jj], 2*nb, 1);
+		s_zeros_align(&hpQ[jj], pnz, pnz);
+		s_zeros_align(&hq[jj], pnz, 1);
+		s_zeros_align(&hux[jj], nz, 1);
+		s_zeros(&hpi[jj], nx, 1);
+		s_zeros(&hlam[jj],2*nb, 1);
+		s_zeros(&ht[jj], 2*nb, 1);
 		hpBAbt[jj] = pBAbt;
 		hlb[jj] = lb;
 		hub[jj] = ub;
-		d_zeros_align(&hrb[jj], nx, 1);
-		d_zeros_align(&hrq[jj], nx+nu, 1);
-		d_zeros_align(&hrd[jj], 2*nb, 1);
+		s_zeros_align(&hrb[jj], nx, 1);
+		s_zeros_align(&hrq[jj], nx+nu, 1);
+		s_zeros_align(&hrd[jj], 2*nb, 1);
 		}
-	d_zeros_align(&hpQ[N], pnz, pnz);
-	d_zeros_align(&hq[N], pnz, 1);
-	d_zeros_align(&hux[N], nz, 1);
-	d_zeros_align(&hpi[N], nx, 1);
-	d_zeros_align(&hlam[N], 2*nb, 1);
-	d_zeros_align(&ht[N], 2*nb, 1);
+	s_zeros_align(&hpQ[N], pnz, pnz);
+	s_zeros_align(&hq[N], pnz, 1);
+	s_zeros_align(&hux[N], nz, 1);
+	s_zeros(&hpi[N], nx, 1);
+	s_zeros(&hlam[N], 2*nb, 1);
+	s_zeros(&ht[N], 2*nb, 1);
 	hlb[N] = lb;
 	hub[N] = ub;
-	d_zeros_align(&hrq[N], nx+nu, 1);
-	d_zeros_align(&hrd[N], 2*nb, 1);
+	s_zeros_align(&hrq[N], nx+nu, 1);
+	s_zeros_align(&hrd[N], 2*nb, 1);
 	
 	// starting guess
-	for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
+	for(jj=0; jj<nx; jj++) hux[0][nu+jj] = (float) x0[jj];
 	
 /*	double *pL; d_zeros_align(&pL, pnz, pnz);*/
 /*	*/
@@ -313,17 +317,17 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-	double *work; d_zeros_align(&work, 2*((N+1)*(pnz*pnz+2*pnz+2*4*nb)+2*pnz*pnz), 1); // work space
+	float *work; s_zeros_align(&work, 2*((N+1)*(pnz*pnz+2*pnz+2*4*nb)+2*pnz*pnz), 1); // work space
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
 	int k_max = K_MAX; // maximum number of iterations in the IP method
-	double tol = TOL; // tolerance in the duality measure
-	double sigma[] = {0.4, 0.3, 0.01}; // control primal-dual IP behaviour
-	double *stat; d_zeros(&stat, 5, k_max); // stats from the IP routine
+	float tol = TOL; // tolerance in the duality measure
+	float sigma[] = {0.4, 0.3, 0.01}; // control primal-dual IP behaviour
+	float *stat; s_zeros(&stat, 5, k_max); // stats from the IP routine
 	int compute_mult = COMPUTE_MULT;
 	int warm_start = WARM_START;
-	double mu = -1.0;
+	float mu = -1.0;
 	
 
 
@@ -337,7 +341,7 @@ int main()
 
 
 	// initial states
-	double xx0[] = {3.5, 3.5, 3.66465, 2.15833, 1.81327, -0.94207, 1.86531, -2.35760, 2.91534, 1.79890, -1.49600, -0.76600, -2.60268, 1.92456, 1.66630, -2.28522, 3.12038, 1.83830, 1.93519, -1.87113};
+	float xx0[] = {3.5, 3.5, 3.66465, 2.15833, 1.81327, -0.94207, 1.86531, -2.35760, 2.91534, 1.79890, -1.49600, -0.76600, -2.60268, 1.92456, 1.66630, -2.28522, 3.12038, 1.83830, 1.93519, -1.87113};
 
 
 
@@ -352,11 +356,14 @@ int main()
 	hux[0][nu+1] = xx0[1];
 
 	// call the IP solver
-	if(IP==1)
-		d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
-	else
-		d_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
+/*printf("\ntol = %f\n", tol);*/
 
+	if(IP==1)
+		s_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
+	else
+		s_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
+
+/*printf("\ntol = %f\n", tol);*/
 
 
 	/* timing */
@@ -380,9 +387,9 @@ int main()
 
 		// call the IP solver
 		if(IP==1)
-			d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
+			s_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
 		else
-			d_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
+			s_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);
 
 		}
 	
@@ -405,7 +412,7 @@ int main()
 	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 	// residuals computation
-	dres_ip_box(nx, nu, N, nb, pnz, hpBAbt, hpQ, hq, hux, hlb, hub, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+	sres_ip_box(nx, nu, N, nb, pnz, hpBAbt, hpQ, hq, hux, hlb, hub, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 
 
@@ -423,7 +430,7 @@ int main()
 
 		printf("\nu = \n\n");
 		for(ii=0; ii<N; ii++)
-			d_print_mat(1, nu, hux[ii], 1);
+			s_print_mat(1, nu, hux[ii], 1);
 		
 		}
 
@@ -434,15 +441,15 @@ int main()
 		printf("\n\nrq = \n\n");
 		for(ii=0; ii<=N; ii++)
 /*			d_print_mat_e(1, nx+nu, hrq[ii], 1);*/
-			d_print_mat(1, nx+nu, hrq[ii], 1);
+			s_print_mat(1, nx+nu, hrq[ii], 1);
 		printf("\n\nrb = \n\n");
 		for(ii=0; ii<N; ii++)
 /*			d_print_mat_e(1, nx, hrb[ii], 1);*/
-			d_print_mat(1, nx, hrb[ii], 1);
+			s_print_mat(1, nx, hrb[ii], 1);
 		printf("\n\nrd = \n\n");
 		for(ii=0; ii<=N; ii++)
 /*			d_print_mat_e(1, 2*nb, hrd[ii], 1);*/
-			d_print_mat(1, 2*nb, hrd[ii], 1);
+			s_print_mat(1, 2*nb, hrd[ii], 1);
 		printf("\n\nmu = %e\n\n", mu);
 		
 		}
