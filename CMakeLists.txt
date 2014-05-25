@@ -93,6 +93,12 @@ ELSE( )
     MESSAGE( ERROR "You chose unsupported target ${HPMPC_TARGET}")	  
 ENDIF( )
 
+# Link math library against all targets
+LINK_LIBRARIES( m )
+
+# This will add the "make test" target
+ENABLE_TESTING()
+
 ################################################################################
 #
 # Configure the target header file

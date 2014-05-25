@@ -178,7 +178,9 @@ int main()
 #endif
 
 	// to throw floating-point exception
+#ifndef __APPLE__
     feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+#endif
 
 	printf("\nnx\tnu\tN\tkernel\n\n");
 
