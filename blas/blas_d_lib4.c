@@ -617,13 +617,12 @@ void dtrmv_p_u_t_lib(int m, double *pA, int sda, double *x, double *y, int alg)
 	double *ptrA;
 	
 	j=0;
-/*	for(; j<m-7; j+=8)*/ // TODO kernel 8 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-/*		{*/
-/*		kernel_dtrmv_u_n_8_lib4(m-j, pA, pA+sda*bs, x, y, alg);*/
-/*		pA += 2*sda*bs + 2*4*bs;*/
-/*		x  += 2*bs;*/
-/*		y  += 2*bs;*/
-/*		}*/
+	for(; j<m-7; j+=8)
+		{
+		kernel_dtrmv_u_t_8_lib4(j, pA, sda, x, y, alg);
+		pA += 2*4*bs;
+		y  += 2*bs;
+		}
 	for(; j<m-3; j+=4)
 		{
 		kernel_dtrmv_u_t_4_lib4(j, pA, sda, x, y, alg);
@@ -1109,6 +1108,39 @@ void dtrsv_p_t_lib(int n, double *pA, int sda, double *x)
 		ptrx[1] = (ptrx[1] - ptrA[3+bs*1]*ptrx[3] - ptrA[2+bs*1]*ptrx[2]) * ptrA[1+bs*1];
 		ptrx[0] = (ptrx[0] - ptrA[3+bs*0]*ptrx[3] - ptrA[2+bs*0]*ptrx[2] - ptrA[1+bs*0]*ptrx[1]) * ptrA[0+bs*0];
 
+		}
+
+	}
+
+
+void dtrsv_dgemv_p_t_lib(int n, int m, double *pA, int sda, double *x)
+	{
+	
+	const int bs = 4;
+	
+	int j;
+	
+	double *y;
+	
+	j=0;
+	if(m%4==1)
+		{
+		kernel_dtrsv_t_1_lib4(n-m+j+1, pA+(m/bs)*bs*sda+(m-1)*bs, sda, x+m-j-1);
+		j++;
+		}
+	else if(m%4==2)
+		{
+		kernel_dtrsv_t_2_lib4(n-m+j+2, pA+(m/bs)*bs*sda+(m-j-2)*bs, sda, x+m-j-2);
+		j+=2;
+		}
+	else if(m%4==3)
+		{
+		kernel_dtrsv_t_3_lib4(n-m+j+3, pA+(m/bs)*bs*sda+(m-j-3)*bs, sda, x+m-j-3);
+		j+=3;
+		}
+	for(; j<m-3; j+=4)
+		{
+		kernel_dtrsv_t_4_lib4(n-m+j+4, pA+((m-j-4)/bs)*bs*sda+(m-j-4)*bs, sda, x+m-j-4);
 		}
 
 	}

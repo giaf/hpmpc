@@ -81,8 +81,9 @@ void dricposv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 	for(ii=0; ii<N; ii++)
 		{
 		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hpL[ii][(nx+pad)*bs+((nu+nx)/bs)*bs*(2*sda)+(nu+nx)%bs+bs*jj];
-		dgemv_p_t_lib(nx, nu, nu, &hpL[ii][(nx+pad)*bs+(nu/bs)*bs*(2*sda)+nu%bs], 2*sda, &hux[ii][nu], &hux[ii][0], -1);
-		dtrsv_p_t_lib(nu, &hpL[ii][(nx+pad)*bs], 2*sda, &hux[ii][0]);
+/*		dgemv_p_t_lib(nx, nu, nu, &hpL[ii][(nx+pad)*bs+(nu/bs)*bs*(2*sda)+nu%bs], 2*sda, &hux[ii][nu], &hux[ii][0], -1);*/
+/*		dtrsv_p_t_lib(nu, &hpL[ii][(nx+pad)*bs], 2*sda, &hux[ii][0]);*/
+		dtrsv_dgemv_p_t_lib(nx+nu, nu, &hpL[ii][(nx+pad)*bs], 2*sda, &hux[ii][0]);
 		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
 		dgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], sda, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
@@ -137,8 +138,13 @@ void dricpotrs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 	for(ii=0; ii<N; ii++)
 		{
 		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hq[ii][jj];
-		dgemv_p_t_lib(nx, nu, nu, &hpL[ii][(nx+pad)*bs+(nu/bs)*bs*(2*sda)+nu%bs], 2*sda, &hux[ii][nu], &hux[ii][0], -1);
-		dtrsv_p_t_lib(nu, &hpL[ii][(nx+pad)*bs], 2*sda, &hux[ii][0]);
+/*		dgemv_p_t_lib(nx, nu, nu, &hpL[ii][(nx+pad)*bs+(nu/bs)*bs*(2*sda)+nu%bs], 2*sda, &hux[ii][nu], &hux[ii][0], -1);*/
+/*		dtrsv_p_t_lib(nu, &hpL[ii][(nx+pad)*bs], 2*sda, &hux[ii][0]);*/
+/*d_print_pmat(nu, nu, bs, &hpL[ii][(nx+pad)*bs], 2*sda);*/
+		dtrsv_dgemv_p_t_lib(nx+nu, nu, &hpL[ii][(nx+pad)*bs], 2*sda, &hux[ii][0]);
+/*d_print_mat(1, nu, &hux[ii][0], 1);*/
+/*if(ii==1)*/
+/*exit(3);*/
 		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*sda+(nu+nx)%bs+bs*jj];
 		dgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], sda, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)

@@ -438,6 +438,7 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 
 void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg)
 	{
+
 	if(kmax<=0) 
 		return;
 	
