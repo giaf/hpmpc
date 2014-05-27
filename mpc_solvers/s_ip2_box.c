@@ -63,6 +63,15 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 	float *pBAbtL;
 	float *pLt;
 
+	// work space
+	pBAbtL = ptr;
+	ptr += sda*sda;
+
+	pLt = ptr;
+	ptr += sda*sda;
+	for(jj=0; jj<sda*sda; jj++)
+		pLt[jj] = 0.0;
+		
 	// inputs and states
 	for(jj=0; jj<=N; jj++)
 		{
@@ -90,15 +99,6 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 		}
 	ptr += (N+1)*sda;
 
-	// work space
-	pBAbtL = ptr;
-	ptr += sda*sda;
-
-	pLt = ptr;
-	ptr += sda*sda;
-	for(jj=0; jj<sda*sda; jj++)
-		pLt[jj] = 0.0;
-		
 
 
 	float *(dlam[N+1]);
