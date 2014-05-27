@@ -26,13 +26,12 @@
 void dgemm_ppp_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, int alg);
 void dtrmm_ppp_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
 void dsyrk_dpotrf_pp_lib(int m, int k, int n, double *pA, int sda, double *pC, int sdc, double *diag);
-//void dgemv_p_n_lib(int n, int m, int offset, double *pA, int sda, double *x, double *y, int alg);
 void dgemv_p_n_lib(int n, int m, double *pA, int sda, double *x, double *y, int alg);
 void dgemv_p_t_lib(int m, int n, int offset, double *pA, int sda, double *x, double *y, int alg);
-void dtrmv_p_n_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg);
-void dtrmv_p_t_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg);
+void dtrmv_p_u_n_lib(int m, double *pA, int sda, double *x, double *y, int alg);
+void dtrmv_p_u_t_lib(int m, double *pA, int sda, double *x, double *y, int alg);
 void dsymv_p_lib(int m, int offset, double *pA, int sda, double *x, double *y, int alg);
 void dmvmv_p_lib(int m, int n, int offset, double *pA, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int alg);
-void dtrsv_p_n_lib(int n, double *pA, int sda, double *x);
-void dtrsv_p_t_lib(int n, double *pA, int sda, double *x);
+void dtrsv_dgemv_p_n_lib(int n, int m, double *pA, int sda, double *x);
+void dtrsv_dgemv_p_t_lib(int n, int m, double *pA, int sda, double *x);
 
