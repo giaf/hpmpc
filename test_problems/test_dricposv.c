@@ -171,7 +171,8 @@ int main()
 	
 	int ii, jj;
 	
-	const int bsd = D_MR; //d_get_mr();
+	const int bs = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
 	
 	int nn[] = {4, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300};
 	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 4000, 4000, 2000, 2000, 1000, 1000, 400, 400, 400, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
@@ -198,10 +199,15 @@ int main()
 
 		int rep;
 	
-		int nz = nx+nu+1;
-		int pnz = bsd*((nz+bsd-1)/bsd);
-		int pnx = bsd*((nx+bsd-1)/bsd);
-/*		int pnz = bsd*((nz+bsd-nu%bsd+bsd-1)/bsd);*/
+		const int nz = nx+nu+1;
+		const int pnz = bs*((nz+bs-1)/bs);
+		const int pnx = bs*((nx+bs-1)/bs);
+/*		int pnz = bs*((nz+bs-nu%bs+bs-1)/bs);*/
+		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
+		const int cnx = ncl*((nx+ncl-1)/ncl);
+
+		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
+		const int cnl = nx+pad+cnz;
 	
 /************************************************
 * dynamical system
@@ -252,10 +258,10 @@ int main()
 //	return 0;
 	
 	/* packed into contiguous memory */
-		double *pBAbt; d_zeros_align(&pBAbt, pnz, pnz);
-		d_cvt_mat2pmat(nz, nx, 0, bsd, BAbt, pnz, pBAbt, pnz);
+		double *pBAbt; d_zeros_align(&pBAbt, pnz, cnx);
+		d_cvt_mat2pmat(nz, nx, 0, bs, BAbt, pnz, pBAbt, cnx);
 
-//	d_print_pmat(nz, nx, bsd, pBAbt, pnz);
+//	d_print_pmat(nz, nx, bs, pBAbt, cnx);
 //	s_print_pmat(nz, nx, bss, spBAbt, pnz);
 
 /************************************************
@@ -272,11 +278,11 @@ int main()
 /*		Q[(nx+nu)*(pnz+1)] = 1e35;*/
 
 		/* packed into contiguous memory */
-		double *pQ; d_zeros_align(&pQ, pnz, pnz);
-		d_cvt_mat2pmat(nz, nz, 0, bsd, Q, pnz, pQ, pnz);
+		double *pQ; d_zeros_align(&pQ, pnz, cnz);
+		d_cvt_mat2pmat(nz, nz, 0, bs, Q, pnz, pQ, cnz);
 
-//	d_print_pmat(nz, nz, bsd, pQ, pnz);
-//	s_print_pmat(nz, nz, bss, spQ, pnz);
+//	d_print_pmat(nz, nz, bs, pQ, cnz);
+//	s_print_pmat(nz, nz, bss, spQ, cnz);
 
 	/* matrices series */
 		double *(hpQ[N+1]);
@@ -290,8 +296,8 @@ int main()
 //		double *(hBAb[N]);
 		for(jj=0; jj<N; jj++)
 			{
-			d_zeros_align(&hpQ[jj], pnz, pnz);
-			d_zeros_align(&hpL[jj], pnz, 2*pnz);
+			d_zeros_align(&hpQ[jj], pnz, cnz);
+			d_zeros_align(&hpL[jj], pnz, cnl);
 			d_zeros_align(&hq[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hux[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hpi[jj], pnx, 1);
@@ -300,8 +306,8 @@ int main()
 			d_zeros_align(&hrq[jj], pnz, 1);
 //			hBAb[jj] = BAb;
 			}
-		d_zeros_align(&hpQ[N], pnz, pnz);
-		d_zeros_align(&hpL[N], pnz, 2*pnz);
+		d_zeros_align(&hpQ[N], pnz, cnz);
+		d_zeros_align(&hpL[N], pnz, cnl);
 		d_zeros_align(&hq[N], pnz, 1); // it has to be pnz !!!
 		d_zeros_align(&hux[N], pnz, 1); // it has to be pnz !!!
 		d_zeros_align(&hpi[N], pnx, 1);
@@ -325,9 +331,9 @@ int main()
 		// restore cost function 
 		for(ii=0; ii<N; ii++)
 			{
-			for(jj=0; jj<pnz*pnz; jj++) hpQ[ii][jj]=pQ[jj];
+			for(jj=0; jj<pnz*cnz; jj++) hpQ[ii][jj]=pQ[jj];
 			}
-		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];
+		for(jj=0; jj<pnz*cnz; jj++) hpQ[N][jj]=pQ[jj];
 
 		// call the solver
 		dricposv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
@@ -412,9 +418,9 @@ int main()
 /*		// restore cost function */
 /*		for(ii=0; ii<N; ii++)*/
 /*			{*/
-/*			for(jj=0; jj<pnz*pnz; jj++) hpQ[ii][jj]=pQ[jj];*/
+/*			for(jj=0; jj<pnz*cnz; jj++) hpQ[ii][jj]=pQ[jj];*/
 /*			}*/
-/*		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];*/
+/*		for(jj=0; jj<pnz*cnz; jj++) hpQ[N][jj]=pQ[jj];*/
 
 		// restore linear part of cost function 
 		for(ii=0; ii<N; ii++)
@@ -453,9 +459,9 @@ int main()
 			// restore cost function 
 /*			for(ii=0; ii<N; ii++)*/
 /*				{*/
-/*				for(jj=0; jj<pnz*pnz; jj++) hpQ[ii][jj]=pQ[jj];*/
+/*				for(jj=0; jj<pnz*cnz; jj++) hpQ[ii][jj]=pQ[jj];*/
 /*				}*/
-/*			for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj]=pQ[jj];*/
+/*			for(jj=0; jj<pnz*cnz; jj++) hpQ[N][jj]=pQ[jj];*/
 
 			// call the solver 
 			dricposv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
@@ -497,105 +503,6 @@ int main()
 
 		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\n", nx, nu, N, time_d, Gflops_d, 100.0*Gflops_d/Gflops_max_d, time_d_c);
 	
-/************************************************
-* test trs
-************************************************/
-
-/*	if(DP==1) // double precision*/
-/*		{*/
-
-/*		/* restore cost function */
-/*		for(ii=0; ii<N; ii++)*/
-/*			{*/
-/*			for(jj=0; jj<pnz*pnz; jj++) hpQ[ii][jj] = pQ[jj];*/
-/*			}*/
-/*		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj] = pQ[jj];*/
-
-/*		/* call the solver */
-/*		d_ric_po_sv(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL);*/
-
-/*		if(PRINTRES==1)*/
-/*			{*/
-/*			/* print result */
-/*			printf("\n\nsv\n\n");*/
-/*			for(ii=0; ii<N; ii++)*/
-/*				d_print_mat(1, nu, hux[ii], 1);*/
-/*			}*/
-/*	*/
-/*		/* clear solution */
-/*		for(ii=0; ii<N; ii++)*/
-/*			{*/
-/*			for(jj=0; jj<nu; jj++) hux[ii][jj] = 0;*/
-/*			for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = 0;*/
-/*			}*/
-
-/*		/* restore linear part of cost function */
-/*		for(ii=0; ii<N; ii++)*/
-/*			{*/
-/*			for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+pnz*jj];*/
-/*			}*/
-/*		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];*/
-
-/*		/* call the solver */
-/*		d_ric_po_trs(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL);*/
-
-/*		if(PRINTRES==1)*/
-/*			{*/
-/*			/* print result */
-/*			printf("\n\ntrs\n\n");*/
-/*			for(ii=0; ii<N; ii++)*/
-/*				d_print_mat(1, nu, hux[ii], 1);*/
-/*			}*/
-
-
-/*		}*/
-/*	else // single precision*/
-/*		{*/
-
-/*		/* restore cost function */
-/*		for(ii=0; ii<N; ii++)*/
-/*			{*/
-/*			for(jj=0; jj<pnz*pnz; jj++) hspQ[ii][jj] = spQ[jj];*/
-/*			}*/
-/*		for(jj=0; jj<pnz*pnz; jj++) hspQ[N][jj] = spQ[jj];*/
-
-/*		/* call the solver */
-/*		s_ric_po_sv(nx, nu, N, pnz, hspBAbt, hspQ, hsux, spL, spBAbtL);*/
-
-/*		if(PRINTRES==1)*/
-/*			{*/
-/*			/* print result */
-/*			printf("\n\nsv\n\n");*/
-/*			for(ii=0; ii<N; ii++)*/
-/*				s_print_mat(1, nu, hsux[ii], 1);*/
-/*			}*/
-/*	*/
-/*		/* clear solution */
-/*		for(ii=0; ii<N; ii++)*/
-/*			{*/
-/*			for(jj=0; jj<nu; jj++) hsux[ii][jj] = 0;*/
-/*			for(jj=0; jj<nx; jj++) hsux[ii+1][nu+jj] = 0;*/
-/*			}*/
-
-/*		/* restore linear part of cost function */
-/*		for(ii=0; ii<N; ii++)*/
-/*			{*/
-/*			for(jj=0; jj<nx+nu; jj++) hsq[ii][jj] = sQ[nx+nu+pnz*jj];*/
-/*			}*/
-/*		for(jj=0; jj<nx+nu; jj++) hsq[N][jj] = sQ[nx+nu+pnz*jj];*/
-
-/*		/* call the solver */
-/*		s_ric_po_trs(nx, nu, N, pnz, hspBAbt, hspQ, hsq, hsux, spBAbtL);*/
-
-/*		if(PRINTRES==1)*/
-/*			{*/
-/*			/* print result */
-/*			printf("\n\ntrs\n\n");*/
-/*			for(ii=0; ii<N; ii++)*/
-/*				s_print_mat(1, nu, hsux[ii], 1);*/
-/*			}*/
-
-/*		}*/
 
 /************************************************
 * return

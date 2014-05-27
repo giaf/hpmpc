@@ -636,11 +636,14 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 
 	a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
 	a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+	a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
 	
 	tmp0 = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
 	tmp1 = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
 	y_00 = _mm256_add_pd( y_00, tmp0 );
 	y_11 = _mm256_add_pd( y_11, tmp1 );
+	tmp0 = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+	y_22 = _mm256_add_pd( y_22, tmp0 );
 
 	A += 4 + (sda-1)*lda;
 	x += 4;
