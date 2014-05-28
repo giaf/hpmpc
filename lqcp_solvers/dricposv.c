@@ -36,18 +36,16 @@ void dricposv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
 	
-	const int pnz = bs*((nx+nu+1+bs-1)/bs);
-/*	const int sda = pnz; // TODO remove*/
+	const int nz = nx+nu+1;
+	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
-	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
+	const int cnz = ncl*((nz+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 
 	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 	const int cnl = nx+pad+cnz;
 
 	int ii, jj;
-	
-	int nz = nx+nu+1;
 
 	/* factorization and backward substitution */
 
@@ -101,7 +99,6 @@ void dricpotrs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 
 	const int nz = nx+nu+1;
 	const int pnz = bs*((nz+bs-1)/bs);
-/*	const int sda = pnz; // TODO remove*/
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nz+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);

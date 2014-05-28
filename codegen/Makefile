@@ -25,10 +25,10 @@
 
 include ../Makefile.rule
 
-OBJS = dricposv_codegen.o sricposv_codegen.o dres_codegen.o sres_codegen.o
+OBJS = dricposv_codegen.o dres_codegen.o #sricposv_codegen.o sres_codegen.o
 
 ifeq ($(TARGET), X64_AVX)
-CODEGEN_OBJS_DOUBLE = #code_generator_blas_d_lib4.o code_generator_dricposv.o
+CODEGEN_OBJS_DOUBLE = code_generator_blas_d_lib4.o code_generator_dricposv.o
 CODEGEN_OBJS_SINGLE = #code_generator_blas_s_lib4.o code_generator_sricposv.o
 CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_X64_AVX $(DEBUG)
 endif
@@ -36,8 +36,8 @@ endif
 codegen: $(CODEGEN_OBJS_DOUBLE) $(CODEGEN_OBJS_SINGLE)
 	gcc -o code_generator.out $(CODEGEN_OBJS_DOUBLE) -O2
 	./code_generator.out
-	gcc -o code_generator.out $(CODEGEN_OBJS_SINGLE) -O2
-	./code_generator.out
+#	gcc -o code_generator.out $(CODEGEN_OBJS_SINGLE) -O2
+#	./code_generator.out
 #	sleep 5
 
 obj: codegen $(OBJS)

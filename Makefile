@@ -34,7 +34,7 @@ BLAS_OBJS = ./blas/blas_d_lib4.o #./blas/blas_s_lib8.o
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_X64_AVX $(DEBUG)
 endif
 LQCP_OBJS = ./lqcp_solvers/dricposv.o ./lqcp_solvers/dres.o #./lqcp_solvers/sricposv.o ./lqcp_solvers/sres.o
-LQCP_CODEGEN_OBJS = #./codegen/dricposv_codegen.o ./codegen/sricposv_codegen.o  ./codegen/dres_codegen.o ./codegen/sres_codegen.o 
+LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/dres_codegen.o #./codegen/sricposv_codegen.o  ./codegen/sres_codegen.o 
 MPC_OBJS = #./mpc_solvers/d_ip_box.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/dres_ip_box.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/sres_ip_box.o
 
 all: clean library test_problem run
@@ -57,12 +57,12 @@ codegenerator:
 	make -C kernel obj
 	make -C blas obj
 	touch ./codegen/dricposv_codegen.c 
-	touch ./codegen/sricposv_codegen.c
+#	touch ./codegen/sricposv_codegen.c
 	touch ./codegen/dres_codegen.c 
-	touch ./codegen/sres_codegen.c 
+#	touch ./codegen/sres_codegen.c 
 	make -C codegen obj
 	make -C mpc_solvers obj
-	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(LQCP_CODEGEN_OBJS) $(BLAS_OBJS) $(MPC_OBJS)
+	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS)
 	@echo
 	@echo " libhpmpc.a code generator build complete."
 	@echo
