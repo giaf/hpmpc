@@ -590,3 +590,42 @@ void dtrsv_dgemv_p_t_lib(int m, int n, double *pA, int sda, double *x)
 		}
 
 	}
+
+
+
+// transpose & align lower triangular matrix
+void dtrtr_l_p_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
+	{
+	
+	const int bs = 4;
+	
+	int mna = (bs-offset%bs)%bs;
+	
+	int j;
+	
+	j=0;
+	for(; j<m-3; j+=4)
+		{
+		kernel_dtran_pp_4_lib4(m-j, mna, pA, sda, pC);
+		pA += bs*(sda+bs);
+		pC += bs*(sdc+bs);
+		}
+	if(j==m)
+		{
+		return;
+		}
+	else if(m-j==1)
+		{
+		pC[0] = pA[0];
+		}
+	else if(m-j==2)
+		{
+		corner_dtran_pp_2_lib4(mna, pA, sda, pC);
+		}
+	else // if(m-j==3)
+		{
+		corner_dtran_pp_3_lib4(mna, pA, sda, pC);
+		}
+	
+	}
+

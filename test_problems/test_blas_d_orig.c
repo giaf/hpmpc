@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bs);
 	
-	int n = 10;
+	int n = 16;
 	int nrep = 1;
 	
 	double *A; d_zeros(&A, n, n);
@@ -121,7 +121,7 @@ int main()
 //	double *y; d_zeros_align(&y, pn, 1);
 //	x[3] = 1.0;
 
-	d_cvt_mat2pmat(n, n, 0, bs, C, n, pC, pn);
+/*	d_cvt_mat2pmat(n, n, 0, bs, C, n, pC, pn);*/
 /*	d_cvt_mat2pmat(n, n, bs-n%bs, bs, C, n, pC+((bs-n%bs))%bs*(bs+1), pn);*/
 	d_print_pmat(pn, pn, bs, pC, pn);
 
@@ -136,7 +136,8 @@ int main()
 
 /*		dgemm_ppp_nt_lib(n, n, n, pA, pn, pB, pn, pC, pn, 0);*/
 /*		dgemm_ppp_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
-		dtrmm_ppp_lib(n, n, pA, pn, pB, pn, pC, pn);
+/*		dtrmm_ppp_lib(n, n, pA, pn, pB, pn, pC, pn);*/
+		dtrtr_l_p_lib(10, 5, pA+1, pn, pC, pn);
 
 /*		dsyrk_ppp_lib(n, n, pA, pn, pC, pn);*/
 /*		dgemm_ppp_nt_lib(n, n, n, pA, pn, pA, pn, pB, pn, 0);*/

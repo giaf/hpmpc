@@ -23,5 +23,14 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void dtrmm_ppp_code_generator(FILE *f, int m, int n);
+void dtrmm_code_generator(FILE *f, int m, int n);
+void dsyrk_dpotrf_code_generator(FILE *f, int m, int k, int n);
+void dgemv_n_code_generator(FILE *f, int m, int n, int alg);
+void dgemv_t_code_generator(FILE *f, int m, int n, int offset, int sda, int alg);
+void dtrmv_u_n_code_generator(FILE *f, int m, int alg);
+void dtrmv_u_t_code_generator(FILE *f, int m, int alg);
+void dsymv_code_generator(FILE *f, int m, int offset, int alg);
+void dmvmv_code_generator(FILE *f, int m, int n, int offset, int alg);
+void dtrsv_dgemv_n_code_generator(FILE *f, int m, int n);
+void dtrsv_dgemv_t_code_generator(FILE *f, int m, int n);
 
