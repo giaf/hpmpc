@@ -34,4 +34,5 @@ void dsymv_p_lib(int m, int offset, double *pA, int sda, double *x, double *y, i
 void dmvmv_p_lib(int m, int n, int offset, double *pA, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int alg);
 void dtrsv_dgemv_p_n_lib(int n, int m, double *pA, int sda, double *x);
 void dtrsv_dgemv_p_t_lib(int n, int m, double *pA, int sda, double *x);
+void dtrtr_l_p_lib(int m, int offset, double *pA, int sda, double *pC, int sdc);
 

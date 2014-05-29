@@ -592,3 +592,47 @@ fprintf(f, "	kernel_dtrsv_t_4_lib4(%d, &pA[%d], %d, &x[%d]);", m-n+j+4, ((n-j-4)
 		}
 
 	}
+
+
+// transpose & align lower triangular matrix
+void dtrtr_l_code_generator(FILE *f, int m, int offset)
+	{
+	
+	const int bs = 4;
+	
+	int mna = (bs-offset%bs)%bs;
+	
+	const int sda = CNL;
+	const int sdc = CNL;
+	
+	int idxA = 0;
+	int idxC = 0;
+
+	int j;
+	
+	j=0;
+	for(; j<m-3; j+=4)
+		{
+fprintf(f, "	kernel_dtran_pp_4_lib4(%d, %d, &pA[%d], %d, &pC[%d]);\n", m-j, mna, idxA, sda, idxC);
+		idxA += bs*(sda+bs);
+		idxC += bs*(sdc+bs);
+		}
+	if(j==m)
+		{
+		return;
+		}
+	else if(m-j==1)
+		{
+fprintf(f, "	pC[0] = pA[0];\n");
+		}
+	else if(m-j==2)
+		{
+fprintf(f, "	corner_dtran_pp_2_lib4(%d, &pA[%d], %d, &pC[%d]);\n", mna, idxA, sda, idxC);
+		}
+	else // if(m-j==3)
+		{
+fprintf(f, "	corner_dtran_pp_3_lib4(%d, &pA[%d], %d, &pC[%d]);\n", mna, idxA, sda, idxC);
+		}
+	
+	}
+

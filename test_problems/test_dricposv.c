@@ -183,7 +183,6 @@ int main()
 
 	int ll;
 /*	for(ll=0; ll<77; ll++)*/
-/*	for(ll=0; ll<12; ll++)*/
 	for(ll=0; ll<1; ll++)
 
 		{

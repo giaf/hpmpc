@@ -124,7 +124,12 @@ int main()
 	dsyrk_dpotrf_code_generator(f, nx+nu%bs+1, 0, nx+nu%bs);
 
 	fprintf(f, "	\n");
-	fprintf(f, "	d_transpose_pmat_lo(nx, nu, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%%bs+nu*bs, cnl, hpL[N]+(nx+pad+ncl)*bs, cnl);\n");
+	fprintf(f, "	//d_transpose_pmat_lo(nx, nu, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%%bs+nu*bs, cnl, hpL[N]+(nx+pad+ncl)*bs, cnl);\n");
+	fprintf(f, "		pA = hpL[%d]+%d;\n", N, (nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs);
+	fprintf(f, "		pC = hpL[%d]+%d;\n", N, (nx+pad+ncl)*bs);
+	
+	dtrtr_l_code_generator(f, nx, nu);
+	
 	fprintf(f, "\n");
 	fprintf(f, "	// middle stages\n");
 	fprintf(f, "	for(ii=0; ii<N-1; ii++)\n");
@@ -146,7 +151,13 @@ int main()
 
 	fprintf(f, "	\n");
 	fprintf(f, "		for(jj=0; jj<nu; jj++) hpL[N-ii-1][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal\n");
-	fprintf(f, "		d_transpose_pmat_lo(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);\n");
+	fprintf(f, "		//d_transpose_pmat_lo(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);\n");
+	fprintf(f, "		pA = hpL[%d-ii]+%d;\n", N-1, (nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs);
+	fprintf(f, "		pC = hpL[%d-ii]+%d;\n", N-1, (nx+pad+ncl)*bs);
+	
+	dtrtr_l_code_generator(f, nx, nu);
+	
+	fprintf(f, "\n");
 	fprintf(f, "		}\n");
 	fprintf(f, "\n");
 	fprintf(f, "	// first stage\n");

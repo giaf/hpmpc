@@ -33,4 +33,5 @@ void dsymv_code_generator(FILE *f, int m, int offset, int alg);
 void dmvmv_code_generator(FILE *f, int m, int n, int offset, int alg);
 void dtrsv_dgemv_n_code_generator(FILE *f, int m, int n);
 void dtrsv_dgemv_t_code_generator(FILE *f, int m, int n);
+void dtrtr_l_code_generator(FILE *f, int m, int offset);
 
