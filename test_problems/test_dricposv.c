@@ -201,7 +201,6 @@ int main()
 		const int nz = nx+nu+1;
 		const int pnz = bs*((nz+bs-1)/bs);
 		const int pnx = bs*((nx+bs-1)/bs);
-/*		int pnz = bs*((nz+bs-nu%bs+bs-1)/bs);*/
 		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 		const int cnx = ncl*((nx+ncl-1)/ncl);
 
@@ -317,7 +316,8 @@ int main()
 	
 /*		double *pBAbtL; d_zeros_align(&pBAbtL, pnz, pnz);*/
 
-		double *diag; d_zeros_align(&diag, nz+1, 1);
+//		double *diag; d_zeros_align(&diag, nz+1, 1);
+		double *diag; d_zeros_align(&diag, pnz, 1);
 		
 		double *work; d_zeros_align(&work, 2*pnz, 1);
 

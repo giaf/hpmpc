@@ -108,7 +108,7 @@ int main()
 	fprintf(f, "	\n");
 	fprintf(f, "	double *pA, *pB, *pC, *x, *y;\n");
 	fprintf(f, "	\n");
-	fprintf(f, "	int i, j, k, ii, jj, kk;\n");
+	fprintf(f, "	int ii, jj;\n");
 	fprintf(f, "	\n");
 	fprintf(f, "	double fact[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};\n");
 	fprintf(f, "	\n");
@@ -244,7 +244,7 @@ int main()
 	fprintf(f, "\n");
 	fprintf(f, "	double *pA, *pB, *pC, *x, *y;\n");
 	fprintf(f, "	\n");
-	fprintf(f, "	int i, j, k, ii, jj, kk;\n");
+	fprintf(f, "	int ii, jj;\n");
 	fprintf(f, "	\n");
 	fprintf(f, "	// backward substitution \n");
 	fprintf(f, "	for(ii=0; ii<%d; ii++)\n", N);
@@ -387,7 +387,7 @@ int main()
 	fprintf(f, "\n");
 	fprintf(f, "	double *pA, *pB, *pC, *x, *y, *x_n, *y_n, *x_t, *y_t;\n");
 	fprintf(f, "	\n");
-	fprintf(f, "	int i, j, k, ii, jj, kk;\n");
+	fprintf(f, "	int ii, jj;\n");
 	fprintf(f, "	\n");
 	fprintf(f, "	// first block\n");
 	fprintf(f, "	for(jj=0; jj<%d; jj++) hrq[0][jj] = - hq[0][jj];\n", nu);
