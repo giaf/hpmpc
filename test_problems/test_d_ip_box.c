@@ -240,17 +240,23 @@ int main()
 * box constraints
 ************************************************/	
 
-	double *lb; d_zeros(&lb, nb, 1);
-	for(jj=0; jj<nu; jj++)
-		lb[jj] = - 0.5;   // umin
-	for(; jj<nb; jj++)
-		lb[jj] = - 4.0;   // xmin
+/*	double *lb; d_zeros(&lb, nb, 1);*/
+/*	for(jj=0; jj<nu; jj++)*/
+/*		lb[jj] = - 0.5;   // umin*/
+/*	for(; jj<nb; jj++)*/
+/*		lb[jj] = - 4.0;   // xmin*/
 
-	double *ub; d_zeros(&ub, nb, 1);
-	for(jj=0; jj<nu; jj++)
-		ub[jj] = 0.5;   // umax
-	for(; jj<nb; jj++)
-		ub[jj] = 4.0;   // xmax
+/*	double *ub; d_zeros(&ub, nb, 1);*/
+/*	for(jj=0; jj<nu; jj++)*/
+/*		ub[jj] = - 0.5;   // umax*/
+/*	for(; jj<nb; jj++)*/
+/*		ub[jj] = - 4.0;   // xmax*/
+
+	double *db; d_zeros(&db, 2*nb, 1);
+	for(jj=0; jj<2*nu; jj++)
+		db[jj] = - 0.5;   // umin
+	for(; jj<2*nb; jj++)
+		db[jj] = - 4.0;   // xmin
 
 /************************************************
 * cost function
@@ -278,8 +284,9 @@ int main()
 	double *(hlam[N+1]);
 	double *(ht[N+1]);
 	double *(hpBAbt[N]);
-	double *(hlb[N+1]);
-	double *(hub[N+1]);
+/*	double *(hlb[N+1]);*/
+/*	double *(hub[N+1]);*/
+	double *(hdb[N+1]);
 	double *(hrb[N]);
 	double *(hrq[N+1]);
 	double *(hrd[N+1]);
@@ -298,8 +305,9 @@ int main()
 		d_zeros_align(&hlam[jj],2*pnz, 1);
 		d_zeros_align(&ht[jj], 2*pnz, 1);
 		hpBAbt[jj] = pBAbt;
-		hlb[jj] = lb;
-		hub[jj] = ub;
+/*		hlb[jj] = lb;*/
+/*		hub[jj] = ub;*/
+		hdb[jj] = db;
 		d_zeros_align(&hrb[jj], pnx, 1);
 		d_zeros_align(&hrq[jj], pnz, 1);
 		d_zeros_align(&hrd[jj], 2*pnz, 1);
@@ -309,8 +317,9 @@ int main()
 	d_zeros_align(&hpi[N], pnx, 1);
 	d_zeros_align(&hlam[N], 2*pnz, 1);
 	d_zeros_align(&ht[N], 2*pnz, 1);
-	hlb[N] = lb;
-	hub[N] = ub;
+/*	hlb[N] = lb;*/
+/*	hub[N] = ub;*/
+	hdb[N] = db;
 	d_zeros_align(&hrq[N], pnz, 1);
 	d_zeros_align(&hrd[N], 2*pnz, 1);
 	
@@ -365,7 +374,8 @@ int main()
 
 	// call the IP solver
 	if(IP==1)
-		d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work);
+/*		d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work);*/
+		d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 /*	else*/
 /*		d_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);*/
 
@@ -392,7 +402,8 @@ int main()
 
 		// call the IP solver
 		if(IP==1)
-			d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work);
+/*			d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work);*/
+			d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 /*		else*/
 /*			d_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);*/
 
@@ -417,7 +428,8 @@ int main()
 	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 	// residuals computation
-	dres_ip_box(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hlb, hub, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+/*	dres_ip_box(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hlb, hub, hpi, hlam, ht, hrq, hrb, hrd, &mu);*/
+	dres_ip_box(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 
 
@@ -474,8 +486,9 @@ int main()
 	free(BAb);
 	free(BAbt);
 	free(pBAbt);
-	free(lb);
-	free(ub);
+/*	free(lb);*/
+/*	free(ub);*/
+	free(db);
 	free(Q);
 	free(pQ);
 	free(work);

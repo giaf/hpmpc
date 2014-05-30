@@ -36,7 +36,7 @@
 
 
 /* primal-dual interior-point method, box constraints, time invariant matrices */
-void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **lb, double **ub, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
+void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
 	{
 
 /*printf("\ncazzo\n");*/
@@ -164,26 +164,26 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		double thr0 = 1e-3;
 		for(ll=0; ll<2*nbu; ll+=2)
 			{
-			t[0][ll+0] = ux[0][ll/2] - lb[0][ll/2];
-			t[0][ll+1] = ub[0][ll/2] - ux[0][ll/2];
+			t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
+			t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
 			if(t[0][ll+0] < thr0)
 				{
 				if(t[0][ll+1] < thr0)
 					{
-					ux[0][ll/2] = (ub[0][ll/2] + ub[0][ll/2])*0.5;
-					t[0][ll+0] = ux[0][ll/2] - lb[0][ll/2];
-					t[0][ll+1] = ub[0][ll/2] - ux[0][ll/2];
+					ux[0][ll/2] = ( - db[0][ll+1] + db[0][ll+0])*0.5;
+					t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
+					t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
 					}
 				else
 					{
 					t[0][ll+0] = thr0;
-					ux[0][ll/2] = lb[0][ll/2] + thr0;
+					ux[0][ll/2] = db[0][ll+0] + thr0;
 					}
 				}
 			else if(t[0][ll+1] < thr0)
 				{
 				t[0][ll+1] = thr0;
-				ux[0][ll/2] = ub[0][ll/2] - thr0;
+				ux[0][ll/2] = - db[0][ll+1] - thr0;
 				}
 			}
 		for(; ll<2*nb; ll++)
@@ -192,26 +192,26 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 			{
 			for(ll=0; ll<2*nb; ll+=2)
 				{
-				t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
-				t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
+				t[jj][ll+0] = ux[jj][ll/2] - db[jj][ll+0];
+				t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
 				if(t[jj][ll+0] < thr0)
 					{
 					if(t[jj][ll+1] < thr0)
 						{
-						ux[jj][ll/2] = (ub[jj][ll/2] + ub[jj][ll/2])*0.5;
-						t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
-						t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
+						ux[jj][ll/2] = ( - db[jj][ll+1] + db[jj][ll+0])*0.5;
+						t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
+						t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
 						}
 					else
 						{
 						t[jj][ll+0] = thr0;
-						ux[jj][ll/2] = lb[jj][ll/2] + thr0;
+						ux[jj][ll/2] = db[jj][ll+0] + thr0;
 						}
 					}
 				else if(t[jj][ll+1] < thr0)
 					{
 					t[jj][ll+1] = thr0;
-					ux[jj][ll/2] = ub[jj][ll/2] - thr0;
+					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
 					}
 				}
 			}
@@ -219,26 +219,26 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 			t[N][ll] = 1;
 		for(ll=2*nu; ll<2*nb; ll+=2)
 			{
-			t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
-			t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
+			t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+			t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
 			if(t[N][ll+0] < thr0)
 				{
 				if(t[N][ll+1] < thr0)
 					{
-					ux[N][ll/2] = (ub[N][ll/2] + ub[N][ll/2])*0.5;
-					t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
-					t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
+					ux[N][ll/2] = ( - db[N][ll+1] + db[N][ll+0])*0.5;
+					t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+					t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
 					}
 				else
 					{
 					t[N][ll+0] = thr0;
-					ux[N][ll/2] = lb[N][ll/2] + thr0;
+					ux[N][ll/2] = db[N][ll+0] + thr0;
 					}
 				}
 			else if(t[N][ll+1] < thr0)
 				{
 				t[N][ll+1] = thr0;
-				ux[N][ll/2] = ub[N][ll/2] - thr0;
+				ux[N][ll/2] = - db[N][ll+1] - thr0;
 				}
 			}
 
@@ -255,26 +255,26 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 			ux[0][ll/2] = 0.0;
 /*			t[0][ll+0] = 1.0;*/
 /*			t[0][ll+1] = 1.0;*/
-			t[0][ll+0] = ux[0][ll/2] - lb[0][ll/2];
-			t[0][ll+1] = ub[0][ll/2] - ux[0][ll/2];
+			t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
+			t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
 			if(t[0][ll+0] < thr0)
 				{
 				if(t[0][ll+1] < thr0)
 					{
-					ux[0][ll/2] = (ub[0][ll/2] + ub[0][ll/2])*0.5;
-					t[0][ll+0] = ux[0][ll/2] - lb[0][ll/2];
-					t[0][ll+1] = ub[0][ll/2] - ux[0][ll/2];
+					ux[0][ll/2] = ( - db[0][ll+1] + db[0][ll+0])*0.5;
+					t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
+					t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
 					}
 				else
 					{
 					t[0][ll+0] = thr0;
-					ux[0][ll/2] = lb[0][ll/2] + thr0;
+					ux[0][ll/2] = db[0][ll+0] + thr0;
 					}
 				}
 			else if(t[0][ll+1] < thr0)
 				{
 				t[0][ll+1] = thr0;
-				ux[0][ll/2] = ub[0][ll/2] - thr0;
+				ux[0][ll/2] = - db[0][ll+1] - thr0;
 				}
 			}
 		for(; ll<2*nb; ll++)
@@ -286,26 +286,26 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 				ux[jj][ll/2] = 0.0;
 /*				t[jj][ll+0] = 1.0;*/
 /*				t[jj][ll+1] = 1.0;*/
-				t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
-				t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
+				t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
+				t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
 				if(t[jj][ll+0] < thr0)
 					{
 					if(t[jj][ll+1] < thr0)
 						{
-						ux[jj][ll/2] = (ub[jj][ll/2] + ub[jj][ll/2])*0.5;
-						t[jj][ll+0] = ux[jj][ll/2] - lb[jj][ll/2];
-						t[jj][ll+1] = ub[jj][ll/2] - ux[jj][ll/2];
+						ux[jj][ll/2] = ( - db[jj][ll+1] + db[jj][ll+0])*0.5;
+						t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
+						t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
 						}
 					else
 						{
 						t[jj][ll+0] = thr0;
-						ux[jj][ll/2] = lb[jj][ll/2] + thr0;
+						ux[jj][ll/2] = db[jj][ll+0] + thr0;
 						}
 					}
 				else if(t[jj][ll+1] < thr0)
 					{
 					t[jj][ll+1] = thr0;
-					ux[jj][ll/2] = ub[jj][ll/2] - thr0;
+					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
 					}
 				}
 			}
@@ -316,26 +316,26 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 			ux[N][ll/2] = 0.0;
 /*			t[N][ll+0] = 1.0;*/
 /*			t[N][ll+1] = 1.0;*/
-			t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
-			t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
+			t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+			t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
 			if(t[N][ll+0] < thr0)
 				{
 				if(t[N][ll+1] < thr0)
 					{
-					ux[N][ll/2] = (ub[N][ll/2] + ub[N][ll/2])*0.5;
-					t[N][ll+0] = ux[N][ll/2] - lb[N][ll/2];
-					t[N][ll+1] = ub[N][ll/2] - ux[N][ll/2];
+					ux[N][ll/2] = ( - db[N][ll+1] + db[N][ll+0])*0.5;
+					t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+					t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
 					}
 				else
 					{
 					t[N][ll+0] = thr0;
-					ux[N][ll/2] = lb[N][ll/2] + thr0;
+					ux[N][ll/2] = db[N][ll+0] + thr0;
 					}
 				}
 			else if(t[N][ll+1] < thr0)
 				{
 				t[N][ll+1] = thr0;
-				ux[N][ll/2] = ub[N][ll/2] - thr0;
+				ux[N][ll/2] = - db[N][ll+1] - thr0;
 				}
 			}
 
@@ -417,7 +417,7 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		// first stage
 	
 		// box constraints
-		d_update_hessian_box(0, nbu, nb, cnz, sigma*mu, t[0], lam[0], lamt[0], dlam[0], bd[0], bl[0], pd[0], pl[0], lb[0], ub[0]);
+		d_update_hessian_box(0, nbu, nb, cnz, sigma*mu, t[0], lam[0], lamt[0], dlam[0], bd[0], bl[0], pd[0], pl[0], db[0]);
 
 /*		for(ii=0; ii<2*nbu; ii+=2*bs)*/
 /*			{*/
@@ -442,7 +442,7 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		for(jj=1; jj<N; jj++)
 			{
 
-			d_update_hessian_box(0, nb, nb, cnz, sigma*mu, t[jj], lam[jj], lamt[jj], dlam[jj], bd[jj], bl[jj], pd[jj], pl[jj], lb[jj], ub[jj]);
+			d_update_hessian_box(0, nb, nb, cnz, sigma*mu, t[jj], lam[jj], lamt[jj], dlam[jj], bd[jj], bl[jj], pd[jj], pl[jj], db[jj]);
 
 			// box constraints
 /*			for(ii=0; ii<2*nb; ii+=2*bs)*/
@@ -467,7 +467,7 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		// last stage
 
 		// box constraints
-		d_update_hessian_box((nu/bs)*bs, nb, nb, cnz, sigma*mu, t[N], lam[N], lamt[N], dlam[N], bd[N], bl[N], pd[N], pl[N], lb[N], ub[N]);
+		d_update_hessian_box((nu/bs)*bs, nb, nb, cnz, sigma*mu, t[N], lam[N], lamt[N], dlam[N], bd[N], bl[N], pd[N], pl[N], db[N]);
 
 /*		for(ii=(nu/bs)*2*bs; ii<2*nb; ii+=2*bs)*/
 /*			{*/
@@ -501,8 +501,8 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		alpha = 1;
 		for(ll=0; ll<2*nbu; ll+=2)
 			{
-			dt[0][ll+0] =   dux[0][ll/2] - lb[0][ll/2];
-			dt[0][ll+1] = - dux[0][ll/2] + ub[0][ll/2];
+			dt[0][ll+0] =   dux[0][ll/2] - db[0][ll+0];
+			dt[0][ll+1] = - dux[0][ll/2] - db[0][ll+1];
 			dlam[0][ll+0] -= lamt[0][ll+0] * dt[0][ll+0];
 			dlam[0][ll+1] -= lamt[0][ll+1] * dt[0][ll+1];
 			if( dlam[0][ll+0]<0 && -alpha*dlam[0][ll+0]>lam[0][ll+0] )
@@ -528,8 +528,8 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 			{
 			for(ll=0; ll<2*nb; ll+=2)
 				{
-				dt[jj][ll+0] =   dux[jj][ll/2] - lb[jj][ll/2];
-				dt[jj][ll+1] = - dux[jj][ll/2] + ub[jj][ll/2];
+				dt[jj][ll+0] =   dux[jj][ll/2] - db[jj][ll+0];
+				dt[jj][ll+1] = - dux[jj][ll/2] - db[jj][ll+1];
 				dlam[jj][ll+0] -= lamt[jj][ll+0] * dt[jj][ll+0];
 				dlam[jj][ll+1] -= lamt[jj][ll+1] * dt[jj][ll+1];
 				if( dlam[jj][ll+0]<0 && -alpha*dlam[jj][ll+0]>lam[jj][ll+0] )
@@ -554,8 +554,8 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 			}
 		for(ll=2*nu; ll<2*nb; ll+=2)
 			{
-			dt[N][ll+0] =   dux[N][ll/2] - lb[N][ll/2];
-			dt[N][ll+1] = - dux[N][ll/2] + ub[N][ll/2];
+			dt[N][ll+0] =   dux[N][ll/2] - db[N][ll+0];
+			dt[N][ll+1] = - dux[N][ll/2] - db[N][ll+1];
 			dlam[N][ll+0] -= lamt[N][ll+0] * dt[N][ll+0];
 			dlam[N][ll+1] -= lamt[N][ll+1] * dt[N][ll+1];
 			if( dlam[N][ll+0]<0 && -alpha*dlam[N][ll+0]>lam[N][ll+0] )
