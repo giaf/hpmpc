@@ -33,10 +33,10 @@
 #define NB NU+NX
 
 // number of repetition for timing
-#define NREP 1000
+#define NREP 10000
 
 // print results
-#define PRINTRES 0
+#define PRINTRES 1
 
 // print statistics
 #define PRINTSTAT 1
@@ -45,7 +45,7 @@
 #define IP 1
 
 // compute lagrangian multipliers
-#define COMPUTE_MULT 0
+#define COMPUTE_MULT 1
 
 // warm-start with user-provided solution (otherwise initialize x and u with 0 or something feasible)
 #define WARM_START 1

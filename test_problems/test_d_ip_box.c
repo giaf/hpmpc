@@ -404,8 +404,8 @@ int main()
 
 	float time = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 	
-	printf("\nnx\tnu\tN\tkernel\n\n");
-	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);
+/*	printf("\nnx\tnu\tN\tkernel\n\n");*/
+/*	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);*/
 	
 
 
@@ -417,7 +417,7 @@ int main()
 	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 	// residuals computation
-//	dres_ip_box(nx, nu, N, nb, pnz, hpBAbt, hpQ, hq, hux, hlb, hub, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+	dres_ip_box(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hlb, hub, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 
 
@@ -444,7 +444,8 @@ int main()
 		// print result 
 		printf("\n\nresiduals\n\n");
 		printf("\n\nrq = \n\n");
-		for(ii=0; ii<=N; ii++)
+		d_print_mat(1, nu, hrq[0], 1);
+		for(ii=1; ii<=N; ii++)
 /*			d_print_mat_e(1, nx+nu, hrq[ii], 1);*/
 			d_print_mat(1, nx+nu, hrq[ii], 1);
 		printf("\n\nrb = \n\n");
@@ -458,6 +459,9 @@ int main()
 		printf("\n\nmu = %e\n\n", mu);
 		
 		}
+
+	printf("\nnx\tnu\tN\tkernel\n\n");
+	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);
 
 /************************************************
 * free memory and return
