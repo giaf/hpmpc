@@ -487,8 +487,9 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 /*				}*/
 /*			}*/
 
-/*d_print_pmat(nz, nz, bs, pQ[N], cnz);*/
-
+/*d_print_pmat(nz, nz, bs, pQ[1], cnz);*/
+/*if(*kk==1)*/
+/*exit(3);*/
 
 		// compute the search direction: factorize and solve the KKT system
 		dricposv_mpc(nx, nu, N, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi);
