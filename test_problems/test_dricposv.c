@@ -414,13 +414,6 @@ int main()
 				d_print_mat(1, nx, hpi[ii+1], 1);
 			}
 
-/*		// restore cost function */
-/*		for(ii=0; ii<N; ii++)*/
-/*			{*/
-/*			for(jj=0; jj<pnz*cnz; jj++) hpQ[ii][jj]=pQ[jj];*/
-/*			}*/
-/*		for(jj=0; jj<pnz*cnz; jj++) hpQ[N][jj]=pQ[jj];*/
-
 		// restore linear part of cost function 
 		for(ii=0; ii<N; ii++)
 			{
@@ -448,26 +441,20 @@ int main()
 
 
 		// timing 
-		struct timeval tv0, tv1, tv2;
-
-		gettimeofday(&tv0, NULL); // start
+		struct timeval tv0, tv1, tv2, tv3;
 
 		// double precision
+		gettimeofday(&tv0, NULL); // start
+
+		// factorize & solve
 		for(rep=0; rep<nrep; rep++)
 			{
-			// restore cost function 
-/*			for(ii=0; ii<N; ii++)*/
-/*				{*/
-/*				for(jj=0; jj<pnz*cnz; jj++) hpQ[ii][jj]=pQ[jj];*/
-/*				}*/
-/*			for(jj=0; jj<pnz*cnz; jj++) hpQ[N][jj]=pQ[jj];*/
-
-			// call the solver 
 			dricposv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
 
+		// solve
 		for(rep=0; rep<nrep; rep++)
 			{
 			// clear solution 
@@ -490,6 +477,13 @@ int main()
 		
 		gettimeofday(&tv2, NULL); // start
 
+		// residuals
+		for(rep=0; rep<nrep; rep++)
+			{
+			dres(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+			}
+
+		gettimeofday(&tv3, NULL); // start
 
 
 		float time_d = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
@@ -499,8 +493,9 @@ int main()
 		float Gflops_max_d = d_flops_max * GHz_max;
 	
 		float time_d_c = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
+		float time_d_r = (float) (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
 
-		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\n", nx, nu, N, time_d, Gflops_d, 100.0*Gflops_d/Gflops_max_d, time_d_c);
+		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%e\n", nx, nu, N, time_d, Gflops_d, 100.0*Gflops_d/Gflops_max_d, time_d_c, time_d_r);
 	
 
 /************************************************
