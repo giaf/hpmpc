@@ -417,79 +417,85 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		// first stage
 	
 		// box constraints
-		for(ii=0; ii<2*nbu; ii+=2*bs)
-			{
-			bs0 = 2*nb-ii;
-			if(2*bs<bs0) bs0 = 2*bs;
-			for(ll=0; ll<bs0; ll+=2)
-				{
-				temp0 = 1.0/t[0][ii+ll+0];
-				temp1 = 1.0/t[0][ii+ll+1];
-				lamt[0][ii+ll+0] = lam[0][ii+ll+0]*temp0;
-				lamt[0][ii+ll+1] = lam[0][ii+ll+1]*temp1;
-				dlam[0][ii+ll+0] = temp0*(sigma*mu); // !!!!!
-				dlam[0][ii+ll+1] = temp1*(sigma*mu); // !!!!!
-				pd[0][ll/2+(ii+ll)/2*bs+ii/2*cnz] = bd[0][(ii+ll)/2] + lamt[0][ii+ll+0] + lamt[0][ii+ll+1];
-				pl[0][(ii+ll)/2*bs] = bl[0][(ii+ll)/2] + lam[0][ii+ll+1] - lamt[0][ii+ll+1]*ub[0][ii/2+ll/2] + dlam[0][ii+ll+1] 
-				                                       - lam[0][ii+ll+0] - lamt[0][ii+ll+0]*lb[0][ii/2+ll/2] - dlam[0][ii+ll+0];
-				}
-			}
+		d_update_hessian_box(0, nbu, nb, cnz, sigma*mu, t[0], lam[0], lamt[0], dlam[0], bd[0], bl[0], pd[0], pl[0], lb[0], ub[0]);
+
+/*		for(ii=0; ii<2*nbu; ii+=2*bs)*/
+/*			{*/
+/*			bs0 = 2*nb-ii;*/
+/*			if(2*bs<bs0) bs0 = 2*bs;*/
+/*			for(ll=0; ll<bs0; ll+=2)*/
+/*				{*/
+/*				temp0 = 1.0/t[0][ii+ll+0];*/
+/*				temp1 = 1.0/t[0][ii+ll+1];*/
+/*				lamt[0][ii+ll+0] = lam[0][ii+ll+0]*temp0;*/
+/*				lamt[0][ii+ll+1] = lam[0][ii+ll+1]*temp1;*/
+/*				dlam[0][ii+ll+0] = temp0*(sigma*mu); // !!!!!*/
+/*				dlam[0][ii+ll+1] = temp1*(sigma*mu); // !!!!!*/
+/*				pd[0][ll/2+(ii+ll)/2*bs+ii/2*cnz] = bd[0][(ii+ll)/2] + lamt[0][ii+ll+0] + lamt[0][ii+ll+1];*/
+/*				pl[0][(ii+ll)/2*bs] = bl[0][(ii+ll)/2] + lam[0][ii+ll+1] - lamt[0][ii+ll+1]*ub[0][ii/2+ll/2] + dlam[0][ii+ll+1] */
+/*				                                       - lam[0][ii+ll+0] - lamt[0][ii+ll+0]*lb[0][ii/2+ll/2] - dlam[0][ii+ll+0];*/
+/*				}*/
+/*			}*/
 
 
 		// middle stages
 		for(jj=1; jj<N; jj++)
 			{
 
+			d_update_hessian_box(0, nb, nb, cnz, sigma*mu, t[jj], lam[jj], lamt[jj], dlam[jj], bd[jj], bl[jj], pd[jj], pl[jj], lb[jj], ub[jj]);
+
 			// box constraints
-			for(ii=0; ii<2*nb; ii+=2*bs)
-				{
-				bs0 = 2*nb-ii;
-				if(2*bs<bs0) bs0 = 2*bs;
-				for(ll=0; ll<bs0; ll+=2)
-					{
-					temp0 = 1.0/t[jj][ii+ll+0];
-					temp1 = 1.0/t[jj][ii+ll+1];
-					lamt[jj][ii+ll+0] = lam[jj][ii+ll+0]*temp0;
-					lamt[jj][ii+ll+1] = lam[jj][ii+ll+1]*temp1;
-					dlam[jj][ii+ll+0] = temp0*(sigma*mu); // !!!!!
-					dlam[jj][ii+ll+1] = temp1*(sigma*mu); // !!!!!
-					pd[jj][ll/2+(ii+ll)/2*bs+ii/2*cnz] = bd[jj][(ii+ll)/2] + lamt[jj][ii+ll+0] + lamt[jj][ii+ll+1];
-					pl[jj][(ii+ll)/2*bs] = bl[jj][(ii+ll)/2] + lam[jj][ii+ll+1] - lamt[jj][ii+ll+1]*ub[jj][ii/2+ll/2] + dlam[jj][ii+ll+1] 
-					                                         - lam[jj][ii+ll+0] - lamt[jj][ii+ll+0]*lb[jj][ii/2+ll/2] - dlam[jj][ii+ll+0];
-					}
-				}
+/*			for(ii=0; ii<2*nb; ii+=2*bs)*/
+/*				{*/
+/*				bs0 = 2*nb-ii;*/
+/*				if(2*bs<bs0) bs0 = 2*bs;*/
+/*				for(ll=0; ll<bs0; ll+=2)*/
+/*					{*/
+/*					temp0 = 1.0/t[jj][ii+ll+0];*/
+/*					temp1 = 1.0/t[jj][ii+ll+1];*/
+/*					lamt[jj][ii+ll+0] = lam[jj][ii+ll+0]*temp0;*/
+/*					lamt[jj][ii+ll+1] = lam[jj][ii+ll+1]*temp1;*/
+/*					dlam[jj][ii+ll+0] = temp0*(sigma*mu); // !!!!!*/
+/*					dlam[jj][ii+ll+1] = temp1*(sigma*mu); // !!!!!*/
+/*					pd[jj][ll/2+(ii+ll)/2*bs+ii/2*cnz] = bd[jj][(ii+ll)/2] + lamt[jj][ii+ll+0] + lamt[jj][ii+ll+1];*/
+/*					pl[jj][(ii+ll)/2*bs] = bl[jj][(ii+ll)/2] + lam[jj][ii+ll+1] - lamt[jj][ii+ll+1]*ub[jj][ii/2+ll/2] + dlam[jj][ii+ll+1] */
+/*					                                         - lam[jj][ii+ll+0] - lamt[jj][ii+ll+0]*lb[jj][ii/2+ll/2] - dlam[jj][ii+ll+0];*/
+/*					}*/
+/*				}*/
 
 			}
 		// last stage
 
 		// box constraints
-		for(ii=0*nu; ii<2*nb; ii+=2*bs)
-			{
-			bs0 = 2*nb-ii;
-			if(2*bs<bs0) bs0 = 2*bs;
-			for(ll=0; ll<bs0; ll+=2)
-				{
-				temp0 = 1.0/t[N][ii+ll+0];
-				temp1 = 1.0/t[N][ii+ll+1];
-				lamt[N][ii+ll+0] = lam[N][ii+ll+0]*temp0;
-				lamt[N][ii+ll+1] = lam[N][ii+ll+1]*temp1;
-				dlam[N][ii+ll+0] = temp0*(sigma*mu); // !!!!!
-				dlam[N][ii+ll+1] = temp1*(sigma*mu); // !!!!!
-				pd[N][ll/2+(ii+ll)/2*bs+ii/2*cnz] = bd[N][(ii+ll)/2] + lamt[N][ii+ll+0] + lamt[N][ii+ll+1];
-				pl[N][(ii+ll)/2*bs] = bl[N][(ii+ll)/2] + lam[N][ii+ll+1] - lamt[N][ii+ll+1]*ub[N][ii/2+ll/2] + dlam[N][ii+ll+1] 
-				                                       - lam[N][ii+ll+0] - lamt[N][ii+ll+0]*lb[N][ii/2+ll/2] - dlam[N][ii+ll+0];
-				}
-			}
+		d_update_hessian_box((nu/bs)*bs, nb, nb, cnz, sigma*mu, t[N], lam[N], lamt[N], dlam[N], bd[N], bl[N], pd[N], pl[N], lb[N], ub[N]);
 
+/*		for(ii=(nu/bs)*2*bs; ii<2*nb; ii+=2*bs)*/
+/*			{*/
+/*			bs0 = 2*nb-ii;*/
+/*			if(2*bs<bs0) bs0 = 2*bs;*/
+/*			for(ll=0; ll<bs0; ll+=2)*/
+/*				{*/
+/*				temp0 = 1.0/t[N][ii+ll+0];*/
+/*				temp1 = 1.0/t[N][ii+ll+1];*/
+/*				lamt[N][ii+ll+0] = lam[N][ii+ll+0]*temp0;*/
+/*				lamt[N][ii+ll+1] = lam[N][ii+ll+1]*temp1;*/
+/*				dlam[N][ii+ll+0] = temp0*(sigma*mu); // !!!!!*/
+/*				dlam[N][ii+ll+1] = temp1*(sigma*mu); // !!!!!*/
+/*				pd[N][ll/2+(ii+ll)/2*bs+ii/2*cnz] = bd[N][(ii+ll)/2] + lamt[N][ii+ll+0] + lamt[N][ii+ll+1];*/
+/*				pl[N][(ii+ll)/2*bs] = bl[N][(ii+ll)/2] + lam[N][ii+ll+1] - lamt[N][ii+ll+1]*ub[N][ii/2+ll/2] + dlam[N][ii+ll+1] */
+/*				                                       - lam[N][ii+ll+0] - lamt[N][ii+ll+0]*lb[N][ii/2+ll/2] - dlam[N][ii+ll+0];*/
+/*				}*/
+/*			}*/
 
+/*d_print_pmat(nz, nz, bs, pQ[N], cnz);*/
 
 
 		// compute the search direction: factorize and solve the KKT system
 		dricposv_mpc(nx, nu, N, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi);
-	  //dricposv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 
 
-
+/*d_print_pmat(nz, nz, bs, pL[N]+pad+nx, cnl);*/
+/*exit(3);*/
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1;

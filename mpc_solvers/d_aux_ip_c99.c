@@ -23,47 +23,38 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-
-#include "../include/blas_d.h"
 #include "../include/block_size.h"
 
 
 
-void dres(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb)
+void d_update_hessian_box(int k0, int kmax, int nb, int cnz, double sigma_mu, double *t, double *lam, double *lamt, double *dlam, double *bd, double *bl, double *pd, double *pl, double *lb, double *ub)
 	{
-
-	const int bs = D_MR; //d_get_mr();
-	const int ncl = D_NCL;
-
-	const int pnz = bs*((nx+nu+1+bs-1)/bs);
-	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
-	const int cnx = ncl*((nx+ncl-1)/ncl);
-
-	int ii, jj;
 	
-	int nxu = nx+nu;
-
-	// first block
-	for(jj=0; jj<nu; jj++) hrq[0][jj] = - hq[0][jj];
-	dgemv_p_t_lib(nx, nu, nu, hpQ[0]+(nu/bs)*bs*cnz+nu%bs, cnz, hux[0]+nu, hrq[0], -1);
-	dsymv_p_lib(nu, 0, hpQ[0], cnz, hux[0], hrq[0], -1);
-	dgemv_p_n_lib(nu, nx, hpBAbt[0], cnx, hpi[1], hrq[0], -1);
-	for(jj=0; jj<nx; jj++) hrb[0][jj] = hux[1][nu+jj] - hpBAbt[0][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
-	dgemv_p_t_lib(nxu, nx, 0, hpBAbt[0], cnx, hux[0], hrb[0], -1);
-
-	// middle blocks
-	for(ii=1; ii<N; ii++)
+	const int bs = D_MR; //d_get_mr();
+	
+	double temp0, temp1;
+	
+	int ii, ll, bs0;
+	
+	k0   *= 2;
+	kmax *= 2;
+	
+	for(ii=k0; ii<kmax; ii+=2*bs)
 		{
-		for(jj=0; jj<nu; jj++) hrq[ii][jj] = - hq[ii][jj];
-		for(jj=0; jj<nx; jj++) hrq[ii][nu+jj] = hpi[ii][jj] - hq[ii][nu+jj];
-		dsymv_p_lib(nxu, 0, hpQ[ii], cnz, hux[ii], hrq[ii], -1);
-		for(jj=0; jj<nx; jj++) hrb[ii][jj] = hux[ii+1][nu+jj] - hpBAbt[ii][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
-		dmvmv_p_lib(nxu, nx, 0, hpBAbt[ii], cnx, hpi[ii+1], hrq[ii], hux[ii], hrb[ii], -1);
+		bs0 = 2*nb-ii;
+		if(2*bs<bs0) bs0 = 2*bs;
+		for(ll=0; ll<bs0; ll+=2)
+			{
+			temp0 = 1.0/t[ii+ll+0];
+			temp1 = 1.0/t[ii+ll+1];
+			lamt[ii+ll+0] = lam[ii+ll+0]*temp0;
+			lamt[ii+ll+1] = lam[ii+ll+1]*temp1;
+			dlam[ii+ll+0] = temp0*sigma_mu; // !!!!!
+			dlam[ii+ll+1] = temp1*sigma_mu; // !!!!!
+			pd[ll/2+(ii+ll)/2*bs+ii/2*cnz] = bd[(ii+ll)/2] + lamt[ii+ll+0] + lamt[ii+ll+1];
+			pl[(ii+ll)/2*bs] = bl[(ii+ll)/2] + lam[ii+ll+1] - lamt[ii+ll+1]*ub[ii/2+ll/2] + dlam[ii+ll+1] 
+			                                 - lam[ii+ll+0] - lamt[ii+ll+0]*lb[ii/2+ll/2] - dlam[ii+ll+0];
+			}
 		}
 
-	// last block
-	for(jj=0; jj<nx; jj++) hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj];
-	dsymv_p_lib(nx, nu, hpQ[N]+(nu/bs)*bs*cnz+nu%bs+nu*bs, cnz, hux[N]+nu, hrq[N]+nu, -1);
-	
 	}
-
