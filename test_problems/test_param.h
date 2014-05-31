@@ -36,16 +36,16 @@
 #define NREP 10000
 
 // print results
-#define PRINTRES 0
+#define PRINTRES 1
 
 // print statistics
-#define PRINTSTAT 0
+#define PRINTSTAT 1
 
 // ip method: 1 primal-dual, 2 predictor-corrector primal-dual
 #define IP 1
 
 // compute lagrangian multipliers
-#define COMPUTE_MULT 0
+#define COMPUTE_MULT 1
 
 // warm-start with user-provided solution (otherwise initialize x and u with 0 or something feasible)
 #define WARM_START 1
