@@ -416,17 +416,19 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 
 		// box constraints
 
+		d_update_hessian_box(N, nbu, (nu/bs)*bs, nb, cnz, sigma*mu, t, lam, lamt, dlam, bd, bl, pd, pl, db);
+
 		// first stage
-		d_update_hessian_box(0, nbu, nb, cnz, sigma*mu, t[0], lam[0], lamt[0], dlam[0], bd[0], bl[0], pd[0], pl[0], db[0]);
+/*		d_update_hessian_box(0, nbu, nb, cnz, sigma*mu, t[0], lam[0], lamt[0], dlam[0], bd[0], bl[0], pd[0], pl[0], db[0]);*/
 
-		// middle stages
-		for(jj=1; jj<N; jj++)
-			{
-			d_update_hessian_box(0, nb, nb, cnz, sigma*mu, t[jj], lam[jj], lamt[jj], dlam[jj], bd[jj], bl[jj], pd[jj], pl[jj], db[jj]);
+/*		// middle stages*/
+/*		for(jj=1; jj<N; jj++)*/
+/*			{*/
+/*			d_update_hessian_box(0, nb, nb, cnz, sigma*mu, t[jj], lam[jj], lamt[jj], dlam[jj], bd[jj], bl[jj], pd[jj], pl[jj], db[jj]);*/
 
-			}
-		// last stage
-		d_update_hessian_box((nu/bs)*bs, nb, nb, cnz, sigma*mu, t[N], lam[N], lamt[N], dlam[N], bd[N], bl[N], pd[N], pl[N], db[N]);
+/*			}*/
+/*		// last stage*/
+/*		d_update_hessian_box((nu/bs)*bs, nb, nb, cnz, sigma*mu, t[N], lam[N], lamt[N], dlam[N], bd[N], bl[N], pd[N], pl[N], db[N]);*/
 
 
 /*d_print_mat(nx+nu, 1, bl[N], 1);*/
