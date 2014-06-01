@@ -416,19 +416,7 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 
 		// box constraints
 
-		d_update_hessian_box(N, nbu, (nu/bs)*bs, nb, cnz, sigma*mu, t, lam, lamt, dlam, bd, bl, pd, pl, db);
-
-		// first stage
-/*		d_update_hessian_box(0, nbu, nb, cnz, sigma*mu, t[0], lam[0], lamt[0], dlam[0], bd[0], bl[0], pd[0], pl[0], db[0]);*/
-
-/*		// middle stages*/
-/*		for(jj=1; jj<N; jj++)*/
-/*			{*/
-/*			d_update_hessian_box(0, nb, nb, cnz, sigma*mu, t[jj], lam[jj], lamt[jj], dlam[jj], bd[jj], bl[jj], pd[jj], pl[jj], db[jj]);*/
-
-/*			}*/
-/*		// last stage*/
-/*		d_update_hessian_box((nu/bs)*bs, nb, nb, cnz, sigma*mu, t[N], lam[N], lamt[N], dlam[N], bd[N], bl[N], pd[N], pl[N], db[N]);*/
+		d_update_hessian_box_mpc(N, nbu, (nu/bs)*bs, nb, cnz, sigma*mu, t, lam, lamt, dlam, bd, bl, pd, pl, db);
 
 
 /*d_print_mat(nx+nu, 1, bl[N], 1);*/
@@ -445,7 +433,7 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1.0;
-		d_compute_alpha_box(N, 2*nbu, 2*nu, 2*nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
+		d_compute_alpha_box_mpc(N, 2*nbu, 2*nu, 2*nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
 
 /*		d_compute_alpha_box(0, 2*nbu, &alpha, t[0], dt[0], lam[0], dlam[0], lamt[0], dux[0], db[0]);*/
 /*		for(jj=1; jj<N; jj++)*/
@@ -464,57 +452,8 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 
 
 		// update x, u, lam, t & compute the duality gap mu
-		mu = 0;
-		// update inputs
-		for(ll=0; ll<nu; ll++)
-			ux[0][ll] += alpha*(dux[0][ll] - ux[0][ll]);
-		// box constraints
-		for(ll=0; ll<2*nbu; ll+=2)
-			{
-			lam[0][ll+0] += alpha*dlam[0][ll+0];
-			lam[0][ll+1] += alpha*dlam[0][ll+1];
-			t[0][ll+0] += alpha*dt[0][ll+0];
-			t[0][ll+1] += alpha*dt[0][ll+1];
-			mu += lam[0][ll+0] * t[0][ll+0] + lam[0][ll+1] * t[0][ll+1];
-			}
-		for(jj=1; jj<N; jj++)
-			{
-			// update inputs
-			for(ll=0; ll<nu; ll++)
-				ux[jj][ll] += alpha*(dux[jj][ll] - ux[jj][ll]);
-			// update states
-			for(ll=0; ll<nx; ll++)
-				ux[jj][nu+ll] += alpha*(dux[jj][nu+ll] - ux[jj][nu+ll]);
-			// update equality constrained multipliers
-			for(ll=0; ll<nx; ll++)
-				pi[jj][ll] += alpha*(dpi[jj][ll] - pi[jj][ll]);
-			// box constraints
-			for(ll=0; ll<2*nb; ll+=2)
-				{
-				lam[jj][ll+0] += alpha*dlam[jj][ll+0];
-				lam[jj][ll+1] += alpha*dlam[jj][ll+1];
-				t[jj][ll+0] += alpha*dt[jj][ll+0];
-				t[jj][ll+1] += alpha*dt[jj][ll+1];
-				mu += lam[jj][ll+0] * t[jj][ll+0] + lam[jj][ll+1] * t[jj][ll+1];
-				}
-			}
-		// update states
-		for(ll=0; ll<nx; ll++)
-			ux[N][nu+ll] += alpha*(dux[N][nu+ll] - ux[N][nu+ll]);
-		// update equality constrained multipliers
-		for(ll=0; ll<nx; ll++)
-			pi[N][ll] += alpha*(dpi[N][ll] - pi[N][ll]);
-		// box constraints
-		for(ll=2*nu; ll<2*nb; ll+=2)
-			{
-			lam[N][ll+0] += alpha*dlam[N][ll+0];
-			lam[N][ll+1] += alpha*dlam[N][ll+1];
-			t[N][ll+0] += alpha*dt[N][ll+0];
-			t[N][ll+1] += alpha*dt[N][ll+1];
-			mu += lam[N][ll+0] * t[N][ll+0] + lam[N][ll+1] * t[N][ll+1];
-			}
-		mu *= mu_scal;
-
+		d_update_var(nx, nu, N, nb, nbu, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
+		
 		stat[5*(*kk)+2] = mu;
 		
 
