@@ -23,6 +23,13 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#include <mmintrin.h>
+#include <xmmintrin.h>  // SSE
+#include <emmintrin.h>  // SSE2
+#include <pmmintrin.h>  // SSE3
+#include <smmintrin.h>  // SSE4
+#include <immintrin.h>  // AVX
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/time.h>
@@ -252,7 +259,7 @@ int main()
 /*	for(; jj<nb; jj++)*/
 /*		ub[jj] = - 4.0;   // xmax*/
 
-	double *db; d_zeros(&db, 2*nb, 1);
+	double *db; d_zeros_align(&db, 2*nb, 1);
 	for(jj=0; jj<2*nu; jj++)
 		db[jj] = - 0.5;   // umin
 	for(; jj<2*nb; jj++)
@@ -413,7 +420,7 @@ int main()
 	
 
 
-	float time = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+	double time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 	
 /*	printf("\nnx\tnu\tN\tkernel\n\n");*/
 /*	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);*/
@@ -474,6 +481,18 @@ int main()
 
 	printf("\nnx\tnu\tN\tkernel\n\n");
 	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);
+	
+/*	__m128d*/
+/*		u_time, u_mask;*/
+/*	*/
+/*	long long int_mask = 0x8000000000000000;*/
+/*	*/
+/*	u_time = _mm_set_sd( time );*/
+/*	u_mask = _mm_load_sd( (double *) &int_mask );*/
+/*	u_time = _mm_xor_pd( u_time, u_mask );*/
+/*	_mm_store_sd( &time, u_time );*/
+
+/*	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);*/
 
 /************************************************
 * free memory and return
