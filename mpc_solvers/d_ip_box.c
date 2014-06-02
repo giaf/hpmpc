@@ -29,6 +29,7 @@
 #include "../include/aux_s.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/block_size.h"
+#include "../include/mpc_aux.h"
 
 
 
@@ -360,6 +361,7 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 
 
 
+	// TODO approximate reciprocal
 	// initialize lambda>0 (multiplier of the inequality constr)
 /*	for(jj=0; jj<N; jj++)*/
 /*		{*/
@@ -404,18 +406,8 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 
 
 	// compute the duality gap
-	mu = 0;
-	for(ll=0 ; ll<2*nbu; ll+=2)
-		mu += lam[0][ll+0] * t[0][ll+0] + lam[0][ll+1] * t[0][ll+1];
-	for(jj=1; jj<N; jj++)
-		for(ll=0 ; ll<2*nb; ll+=2)
-			mu += lam[jj][ll+0] * t[jj][ll+0] + lam[jj][ll+1] * t[jj][ll+1];
-	for(ll=2*nu ; ll<2*nb; ll+=2)
-		mu += lam[N][ll+0] * t[N][ll+0] + lam[N][ll+1] * t[N][ll+1];
-	mu *= mu_scal;
+	d_compute_mu_mpc(N, nbu, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
 
-/*printf("\nmu = %f\n", mu);*/
-	
 	*kk = 0;	
 	
 
@@ -432,29 +424,15 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		d_update_hessian_box_mpc(N, nbu, (nu/bs)*bs, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db);
 
 
-/*d_print_mat(nx+nu, 1, bl[N], 1);*/
-/*if(*kk==1)*/
-/*d_print_pmat(nz, nz, bs, pQ[N], cnz);*/
-/*exit(3);*/
 
 		// compute the search direction: factorize and solve the KKT system
 		dricposv_mpc(nx, nu, N, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi);
 
 
-/*d_print_pmat(nz, nz, bs, pL[N]+pad+nx, cnl);*/
-/*exit(3);*/
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1.0;
 		d_compute_alpha_box_mpc(N, 2*nbu, 2*nu, 2*nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
-
-/*		d_compute_alpha_box(0, 2*nbu, &alpha, t[0], dt[0], lam[0], dlam[0], lamt[0], dux[0], db[0]);*/
-/*		for(jj=1; jj<N; jj++)*/
-/*			{*/
-/*			d_compute_alpha_box(0, 2*nb, &alpha, t[jj], dt[jj], lam[jj], dlam[jj], lamt[jj], dux[jj], db[jj]);*/
-/*			}*/
-/*		d_compute_alpha_box(2*nu, 2*nb, &alpha, t[N], dt[N], lam[N], dlam[N], lamt[N], dux[N], db[N]);*/
-
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+1] = alpha;
@@ -465,13 +443,10 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 
 
 		// update x, u, lam, t & compute the duality gap mu
-		d_update_var(nx, nu, N, nb, nbu, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
+		d_update_var_mpc(nx, nu, N, nb, nbu, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
 		
 		stat[5*(*kk)+2] = mu;
 		
-
-/*printf("\nmu = %f\n", mu);*/
-
 
 
 		// update sigma

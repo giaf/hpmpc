@@ -1000,7 +1000,7 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 	}
 
 
-void d_update_var(int nx, int nu, int N, int nb, int nbu, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
+void d_update_var_mpc(int nx, int nu, int N, int nb, int nbu, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
 	{
 	
 	int jj, ll;
@@ -1328,7 +1328,160 @@ void d_update_var(int nx, int nu, int N, int nb, int nbu, double *ptr_mu, double
 	}
 
 
+void d_compute_mu_mpc(int N, int nbu, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
+	{
+	
+	int jj, ll;
+	
+	__m128d
+		u_ux, u_dux, u_pi, u_dpi, u_t, u_dt, u_lam, u_dlam, u_mu, u_tmp;
 
+	__m256d
+		v_alpha, v_ux, v_dux, v_pi, v_dpi, v_t, v_dt, v_lam, v_dlam, v_mu;
+		
+	v_alpha = _mm256_set_pd( alpha, alpha, alpha, alpha );
+	
+	v_mu = _mm256_setzero_pd();
+	u_mu = _mm_setzero_pd();
+
+
+	// first stage
+	jj = 0;
+	
+	// box constraints
+	ll = 0;
+	for(; ll<2*nbu-3; ll+=4)
+		{
+		v_t    = _mm256_load_pd( &t[jj][ll] );
+		v_lam  = _mm256_load_pd( &lam[jj][ll] );
+		v_dt   = _mm256_load_pd( &dt[jj][ll] );
+		v_dlam = _mm256_load_pd( &dlam[jj][ll] );
+		v_dt   = _mm256_mul_pd( v_alpha, v_dt );
+		v_dlam = _mm256_mul_pd( v_alpha, v_dlam );
+		v_t    = _mm256_add_pd( v_t, v_dt );
+		v_lam  = _mm256_add_pd( v_lam, v_dlam );
+/*		_mm256_store_pd( &t[jj][ll], v_t );*/
+/*		_mm256_store_pd( &lam[jj][ll], v_lam );*/
+		v_lam  = _mm256_mul_pd( v_lam, v_t );
+		v_mu   = _mm256_add_pd( v_mu, v_lam );
+		}
+	if(ll<2*nbu-1)
+		{
+		u_t    = _mm_load_pd( &t[jj][ll] );
+		u_lam  = _mm_load_pd( &lam[jj][ll] );
+		u_dt   = _mm_load_pd( &dt[jj][ll] );
+		u_dlam = _mm_load_pd( &dlam[jj][ll] );
+		u_dt   = _mm_mul_pd( _mm256_castpd256_pd128( v_alpha ), u_dt );
+		u_dlam = _mm_mul_pd( _mm256_castpd256_pd128( v_alpha ), u_dlam );
+		u_t    = _mm_add_pd( u_t, u_dt );
+		u_lam  = _mm_add_pd( u_lam, u_dlam );
+/*		_mm_store_pd( &t[jj][ll], u_t );*/
+/*		_mm_store_pd( &lam[jj][ll], u_lam );*/
+		u_lam  = _mm_mul_pd( u_lam, u_t );
+		u_mu   = _mm_add_pd( u_mu, u_lam );
+		}
+		
+	// middle stage
+	for(jj=1; jj<N; jj++)
+		{
+		
+		ll = 0;
+		for(; ll<2*nb-3; ll+=4)
+			{
+			v_t    = _mm256_load_pd( &t[jj][ll] );
+			v_lam  = _mm256_load_pd( &lam[jj][ll] );
+			v_dt   = _mm256_load_pd( &dt[jj][ll] );
+			v_dlam = _mm256_load_pd( &dlam[jj][ll] );
+			v_dt   = _mm256_mul_pd( v_alpha, v_dt );
+			v_dlam = _mm256_mul_pd( v_alpha, v_dlam );
+			v_t    = _mm256_add_pd( v_t, v_dt );
+			v_lam  = _mm256_add_pd( v_lam, v_dlam );
+/*			_mm256_store_pd( &t[jj][ll], v_t );*/
+/*			_mm256_store_pd( &lam[jj][ll], v_lam );*/
+			v_lam  = _mm256_mul_pd( v_lam, v_t );
+			v_mu   = _mm256_add_pd( v_mu, v_lam );
+			}
+		if(ll<2*nb-1)
+			{
+			u_t    = _mm_load_pd( &t[jj][ll] );
+			u_lam  = _mm_load_pd( &lam[jj][ll] );
+			u_dt   = _mm_load_pd( &dt[jj][ll] );
+			u_dlam = _mm_load_pd( &dlam[jj][ll] );
+			u_dt   = _mm_mul_pd( _mm256_castpd256_pd128( v_alpha ), u_dt );
+			u_dlam = _mm_mul_pd( _mm256_castpd256_pd128( v_alpha ), u_dlam );
+			u_t    = _mm_add_pd( u_t, u_dt );
+			u_lam  = _mm_add_pd( u_lam, u_dlam );
+/*			_mm_store_pd( &t[jj][ll], u_t );*/
+/*			_mm_store_pd( &lam[jj][ll], u_lam );*/
+			u_lam  = _mm_mul_pd( u_lam, u_t );
+			u_mu   = _mm_add_pd( u_mu, u_lam );
+			}
+
+		}
+
+	// last stage
+	jj = N;
+	
+	ll = 2*nu;
+	if(nu%2==1)
+		{
+		u_t    = _mm_load_pd( &t[jj][ll] );
+		u_lam  = _mm_load_pd( &lam[jj][ll] );
+		u_dt   = _mm_load_pd( &dt[jj][ll] );
+		u_dlam = _mm_load_pd( &dlam[jj][ll] );
+		u_dt   = _mm_mul_pd( _mm256_castpd256_pd128( v_alpha ), u_dt );
+		u_dlam = _mm_mul_pd( _mm256_castpd256_pd128( v_alpha ), u_dlam );
+		u_t    = _mm_add_pd( u_t, u_dt );
+		u_lam  = _mm_add_pd( u_lam, u_dlam );
+/*		_mm_store_pd( &t[jj][ll], u_t );*/
+/*		_mm_store_pd( &lam[jj][ll], u_lam );*/
+		u_lam  = _mm_mul_pd( u_lam, u_t );
+		u_mu   = _mm_add_pd( u_mu, u_lam );
+		ll += 2;
+		}
+	for(; ll<2*nb-3; ll+=4)
+		{
+		v_t    = _mm256_load_pd( &t[jj][ll] );
+		v_lam  = _mm256_load_pd( &lam[jj][ll] );
+		v_dt   = _mm256_load_pd( &dt[jj][ll] );
+		v_dlam = _mm256_load_pd( &dlam[jj][ll] );
+		v_dt   = _mm256_mul_pd( v_alpha, v_dt );
+		v_dlam = _mm256_mul_pd( v_alpha, v_dlam );
+		v_t    = _mm256_add_pd( v_t, v_dt );
+		v_lam  = _mm256_add_pd( v_lam, v_dlam );
+/*		_mm256_store_pd( &t[jj][ll], v_t );*/
+/*		_mm256_store_pd( &lam[jj][ll], v_lam );*/
+		v_lam  = _mm256_mul_pd( v_lam, v_t );
+		v_mu   = _mm256_add_pd( v_mu, v_lam );
+		}
+	if(ll<2*nb-1)
+		{
+		u_t    = _mm_load_pd( &t[jj][ll] );
+		u_lam  = _mm_load_pd( &lam[jj][ll] );
+		u_dt   = _mm_load_pd( &dt[jj][ll] );
+		u_dlam = _mm_load_pd( &dlam[jj][ll] );
+		u_dt   = _mm_mul_pd( _mm256_castpd256_pd128( v_alpha ), u_dt );
+		u_dlam = _mm_mul_pd( _mm256_castpd256_pd128( v_alpha ), u_dlam );
+		u_t    = _mm_add_pd( u_t, u_dt );
+		u_lam  = _mm_add_pd( u_lam, u_dlam );
+/*		_mm_store_pd( &t[jj][ll], u_t );*/
+/*		_mm_store_pd( &lam[jj][ll], u_lam );*/
+		u_lam  = _mm_mul_pd( u_lam, u_t );
+		u_mu   = _mm_add_pd( u_mu, u_lam );
+		}
+		
+	u_tmp = _mm256_extractf128_pd( v_mu, 0x1 );
+	u_mu  = _mm_add_pd( u_mu, _mm256_castpd256_pd128( v_mu ) );
+	u_mu  = _mm_add_pd( u_mu, u_tmp );
+	u_mu  = _mm_hadd_pd( u_mu, u_mu );
+	u_tmp = _mm_load_sd( &mu_scal );
+	u_mu  = _mm_mul_sd( u_mu, u_tmp );
+	_mm_store_sd( ptr_mu, u_mu );
+		
+
+	return;
+
+	}
 
 
 
