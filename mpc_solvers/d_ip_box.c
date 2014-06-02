@@ -73,6 +73,7 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 	double *(pL[N+1]);
 	double *(pd[N+1]); // pointer to diagonal of Hessian
 	double *(pl[N+1]); // pointer to linear part of Hessian
+	double *(pl2[N+1]); // pointer to linear part of Hessian (backup)
 	double *(bd[N+1]); // backup diagonal of Hessian
 	double *(bl[N+1]); // backup linear part of Hessian
 	double *work;
@@ -80,6 +81,7 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 	double *(dlam[N+1]);
 	double *(dt[N+1]);
 	double *(lamt[N+1]);
+	double *(t_inv[N+1]);
 
 //	ptr += (N+1)*(pnz + pnx + pnz*cnl + 8*pnz) + 3*pnz;
 
@@ -120,6 +122,12 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		ptr += pnz*cnl;
 		}
 	
+	for(jj=0; jj<=N; jj++)
+		{
+		pl2[jj] = ptr;
+		ptr += pnz;
+		}
+
 	work = ptr;
 	ptr += 2*pnz;
 
@@ -136,6 +144,11 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 	for(jj=0; jj<=N; jj++)
 		{
 		lamt[jj] = ptr;
+		ptr += 2*pnz;
+		}
+	for(jj=0; jj<=N; jj++)
+		{
+		t_inv[jj] = ptr;
 		ptr += 2*pnz;
 		}
 	
@@ -416,7 +429,7 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 
 		// box constraints
 
-		d_update_hessian_box_mpc(N, nbu, (nu/bs)*bs, nb, cnz, sigma*mu, t, lam, lamt, dlam, bd, bl, pd, pl, db);
+		d_update_hessian_box_mpc(N, nbu, (nu/bs)*bs, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db);
 
 
 /*d_print_mat(nx+nu, 1, bl[N], 1);*/

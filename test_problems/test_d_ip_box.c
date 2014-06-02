@@ -341,7 +341,7 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-	double *work; d_zeros_align(&work, (N+1)*(pnz + pnx + pnz*cnl + 8*pnz) + 3*pnz, 1); // work space
+	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 12*pnz + pnx) + 3*pnz, 1); // work space
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
@@ -383,8 +383,8 @@ int main()
 	if(IP==1)
 /*		d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work);*/
 		d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
-/*	else*/
-/*		d_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);*/
+	else
+		d_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 
 
 
@@ -411,8 +411,8 @@ int main()
 		if(IP==1)
 /*			d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work);*/
 			d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
-/*		else*/
-/*			d_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work, &info);*/
+		else
+			d_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 
 		}
 	
