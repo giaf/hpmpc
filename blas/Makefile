@@ -26,7 +26,7 @@
 include ../Makefile.rule
 
 ifeq ($(TARGET), X64_AVX)
-OBJS = blas_d_lib4.o #blas_s_lib8.o
+OBJS = blas_d_lib4.o blas_s_lib8.o
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_X64_AVX -fPIC $(DEBUG)
 endif
 
