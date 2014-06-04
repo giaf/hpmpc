@@ -127,50 +127,50 @@ void d_copy_pmat(int row, int col, int bs_dummy, double *A, int sda, double *B, 
 
 
 /* copies a lower triangular packed matrix */
-void d_copy_pmat_lo(int row, int bs_dummy, double *A, int sda, double *B, int sdb)
-	{
-	
-	const int bs = 4;
+/*void d_copy_pmat_lo(int row, int bs_dummy, double *A, int sda, double *B, int sdb)*/
+/*	{*/
+/*	*/
+/*	const int bs = 4;*/
 
-	int i, ii, j, row2, row0;
-	
-	ii = 0;
-	for(; ii<row-3; ii+=bs)
-		{
-		j = 0;
-		for(; j<ii; j++)
-			{
-			B[0+j*bs+ii*sdb] = A[0+j*bs+ii*sda];
-			B[1+j*bs+ii*sdb] = A[1+j*bs+ii*sda];
-			B[2+j*bs+ii*sdb] = A[2+j*bs+ii*sda];
-			B[3+j*bs+ii*sdb] = A[3+j*bs+ii*sda];
-			}
-		for(; j<ii+bs; j++)
-			{
-			row0 = j-ii;
-			if(row0<0) row0=0;
-			for(i=row0; i<bs; i++)
-				{
-				B[i+j*bs+ii*sdb] = A[i+j*bs+ii*sda];
-				}
-			}
-		}
-	if(ii<row)
-		{
-		row2 = row-ii;
-		if(bs<row2) row2 = bs;
-		for(j=0; j<ii+row2; j++)
-			{
-			row0 = j-ii;
-			if(row0<0) row0=0;
-			for(i=row0; i<row2; i++)
-				{
-				B[i+j*bs+ii*sdb] = A[i+j*bs+ii*sda];
-				}
-			}
-		}
-	
-	}
+/*	int i, ii, j, row2, row0;*/
+/*	*/
+/*	ii = 0;*/
+/*	for(; ii<row-3; ii+=bs)*/
+/*		{*/
+/*		j = 0;*/
+/*		for(; j<ii; j++)*/
+/*			{*/
+/*			B[0+j*bs+ii*sdb] = A[0+j*bs+ii*sda];*/
+/*			B[1+j*bs+ii*sdb] = A[1+j*bs+ii*sda];*/
+/*			B[2+j*bs+ii*sdb] = A[2+j*bs+ii*sda];*/
+/*			B[3+j*bs+ii*sdb] = A[3+j*bs+ii*sda];*/
+/*			}*/
+/*		for(; j<ii+bs; j++)*/
+/*			{*/
+/*			row0 = j-ii;*/
+/*			if(row0<0) row0=0;*/
+/*			for(i=row0; i<bs; i++)*/
+/*				{*/
+/*				B[i+j*bs+ii*sdb] = A[i+j*bs+ii*sda];*/
+/*				}*/
+/*			}*/
+/*		}*/
+/*	if(ii<row)*/
+/*		{*/
+/*		row2 = row-ii;*/
+/*		if(bs<row2) row2 = bs;*/
+/*		for(j=0; j<ii+row2; j++)*/
+/*			{*/
+/*			row0 = j-ii;*/
+/*			if(row0<0) row0=0;*/
+/*			for(i=row0; i<row2; i++)*/
+/*				{*/
+/*				B[i+j*bs+ii*sdb] = A[i+j*bs+ii*sda];*/
+/*				}*/
+/*			}*/
+/*		}*/
+/*	*/
+/*	}*/
 
 
 
@@ -312,26 +312,26 @@ void d_copy_pmat_lo(int row, int bs_dummy, double *A, int sda, double *B, int sd
 
 
 /* copies a packed matrix into an aligned packed matrix ; A has to be aligned at the beginning of the current block : the offset takes care of the row to be copied */
-void d_align_pmat(int row, int col, int offset, int bs_dummy, double *A, int sda, double *B, int sdb)
-	{
-	
-	const int bs = 4;
+/*void d_align_pmat(int row, int col, int offset, int bs_dummy, double *A, int sda, double *B, int sdb)*/
+/*	{*/
+/*	*/
+/*	const int bs = 4;*/
 
-	int i, j;
-	
-	double *ptrA, *ptrB;
-	
-	for(i=0; i<row; i++)
-		{
-		ptrA = A + ((offset+i)/bs)*bs*sda + ((offset+i)%bs);
-		ptrB = B + (i/bs)*bs*sdb + (i%bs);
-		for(j=0; j<col; j++)
-			{
-			ptrB[j*bs] = ptrA[j*bs];
-			}
-		}
-	
-	}
+/*	int i, j;*/
+/*	*/
+/*	double *ptrA, *ptrB;*/
+/*	*/
+/*	for(i=0; i<row; i++)*/
+/*		{*/
+/*		ptrA = A + ((offset+i)/bs)*bs*sda + ((offset+i)%bs);*/
+/*		ptrB = B + (i/bs)*bs*sdb + (i%bs);*/
+/*		for(j=0; j<col; j++)*/
+/*			{*/
+/*			ptrB[j*bs] = ptrA[j*bs];*/
+/*			}*/
+/*		}*/
+/*	*/
+/*	}*/
 
 
 
