@@ -23,15 +23,16 @@
 #                                                                                                 #
 ###################################################################################################
 
-include ../Makefile.rule
+include ../../Makefile.rule
 
-obj:
 ifeq ($(TARGET), X64_AVX)
-	make -C avx obj
+OBJS_DOUBLE = kernel_dgemm_avx_lib4.o kernel_dtrmm_avx_lib4.o kernel_dtrsm_avx_lib4.o kernel_dpotrf_avx_lib4.o kernel_dgemv_avx_lib4.o kernel_dtrmv_avx_lib4.o kernel_dtrsv_avx_lib4.o kernel_dsymv_avx_lib4.o kernel_dtran_avx_lib4.o
+OBJS_SINGLE = kernel_sgemm_avx_lib8.o #kernel_spotrf_sse_lib4.o kernel_sgemv_sse_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_sse_lib4.o
+CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_X64_AVX $(DEBUG)
 endif
+
+obj: $(OBJS_DOUBLE) $(OBJS_SINGLE)
 
 clean:
-ifeq ($(TARGET), X64_AVX)
-	make -C avx clean
-endif
+	rm -f *.o
 

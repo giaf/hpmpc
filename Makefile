@@ -28,8 +28,8 @@ include ./Makefile.rule
 
 ifeq ($(TARGET), X64_AVX)
 AUX_OBJS = ./auxiliary/block_size_x64_avx.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99.o 
-KERNEL_OBJS_DOUBLE = ./kernel/kernel_dgemm_avx_lib4.o ./kernel/kernel_dtrmm_avx_lib4.o ./kernel/kernel_dtrsm_avx_lib4.o ./kernel/kernel_dpotrf_avx_lib4.o ./kernel/kernel_dgemv_avx_lib4.o ./kernel/kernel_dtrmv_avx_lib4.o ./kernel/kernel_dtrsv_avx_lib4.o ./kernel/kernel_dsymv_avx_lib4.o ./kernel/kernel_dtran_avx_lib4.o 
-KERNEL_OBJS_SINGLE = ./kernel/kernel_sgemm_avx_lib8.o
+KERNEL_OBJS_DOUBLE = ./kernel/avx/kernel_dgemm_avx_lib4.o ./kernel/avx/kernel_dtrmm_avx_lib4.o ./kernel/avx/kernel_dtrsm_avx_lib4.o ./kernel/avx/kernel_dpotrf_avx_lib4.o ./kernel/avx/kernel_dgemv_avx_lib4.o ./kernel/avx/kernel_dtrmv_avx_lib4.o ./kernel/avx/kernel_dtrsv_avx_lib4.o ./kernel/avx/kernel_dsymv_avx_lib4.o ./kernel/avx/kernel_dtran_avx_lib4.o 
+KERNEL_OBJS_SINGLE = ./kernel/avx/kernel_sgemm_avx_lib8.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib8.o
 MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/dres_ip_box.o ./mpc_solvers/d_aux_ip_avx.o ./mpc_solvers/d_ip2_box.o #./mpc_solvers/s_ip_box.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/sres_ip_box.o
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_X64_AVX $(DEBUG)
