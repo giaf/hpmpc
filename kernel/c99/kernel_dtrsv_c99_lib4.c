@@ -23,36 +23,42 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-#ifndef __HPMPC_BLOCK_SIZE__
-#define __HPMPC_BLOCK_SIZE__
-
-#if defined( TARGET_X64_AVX )
-
-#define D_MR 4
-#define S_MR 8
-#define D_NCL 2
-#define S_NCL 2
-
-#elif defined( TARGET_C99_4X4 )
-
-#define D_MR 4
-#define S_MR 4
-#define D_NCL 2
-#define S_NCL 2
-
-#elif defined( TARGET_CORTEX_A15 )
-
-#define D_MR 4
-#define S_MR 4
-#define D_NCL 2
-#define S_NCL 4
 
 
-#else
-#error "Unknown architecture"
-#endif /* __HPMPC_BLOCK_SIZE__ */
+void kernel_dtrsv_n_8_lib4(int kmax, double *A0, double *A1, double *x, double *y)
+	{
+	}
+	
+	
+	
+void kernel_dtrsv_n_4_lib4(int kmax, int ksv, double *A, double *x, double *y)
+	{
+	}
+	
+	
+	
+void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
+	{
+	}
+	
+	
+	
+void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
+	{
+	}
+	
+	
+	
+void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
+	{
+	}
+	
+	
+	
+void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
+	{
+	}
+	
+	
+	
 
-int d_get_mr();
-int s_get_mr();
-
-#endif /* __HPMPC_BLOCK_SIZE__ */

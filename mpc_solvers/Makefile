@@ -25,10 +25,17 @@
 
 include ../Makefile.rule
 
-OBJS = d_ip_box.o dres_ip_box.o d_aux_ip_avx.o d_ip2_box.o #s_ip_box.o s_ip2_box.o sres_ip_box.o 
-
 ifeq ($(TARGET), X64_AVX)
+OBJS = d_ip_box.o dres_ip_box.o d_aux_ip_avx.o d_ip2_box.o #s_ip_box.o s_ip2_box.o sres_ip_box.o 
 CFLAGS = $(OPT) -std=c99 -fPIC -mavx -DTARGET_X64_AVX $(DEBUG)
+endif
+ifeq ($(TARGET), C99_4X4)
+OBJS = #d_ip_box.o dres_ip_box.o d_aux_ip_avx.o d_ip2_box.o #s_ip_box.o s_ip2_box.o sres_ip_box.o 
+CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
+endif
+ifeq ($(TARGET), CORTEX_A15)
+OBJS = #d_ip_box.o dres_ip_box.o d_aux_ip_avx.o d_ip2_box.o #s_ip_box.o s_ip2_box.o sres_ip_box.o 
+CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_CORTEX_A15 -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a15 $(DEBUG)
 endif
 
 obj: $(OBJS)

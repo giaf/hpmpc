@@ -45,8 +45,8 @@ void sgemm_ppp_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sd
 		j = 0;
 		for(; j<n-7; j+=8)
 			{
-			kernel_sgemm_pp_nt_16x4_lib8(k, &pA[0+i*sda], &pA[0+(i+8)*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+8)*sdc], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+8)*sdc], bs, alg);
-			kernel_sgemm_pp_nt_16x4_lib8(k, &pA[0+i*sda], &pA[0+(i+8)*sda], &pB[4+j*sdb], &pC[0+(j+4)*bs+i*sdc], &pC[0+(j+4)*bs+(i+8)*sdc], &pC[0+(j+4)*bs+i*sdc], &pC[0+(j+4)*bs+(i+8)*sdc], bs, alg);
+			kernel_sgemm_pp_nt_12x4_lib8(k, &pA[0+i*sda], &pA[0+(i+8)*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+8)*sdc], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+8)*sdc], bs, alg);
+			kernel_sgemm_pp_nt_12x4_lib8(k, &pA[0+i*sda], &pA[0+(i+8)*sda], &pB[4+j*sdb], &pC[0+(j+4)*bs+i*sdc], &pC[0+(j+4)*bs+(i+8)*sdc], &pC[0+(j+4)*bs+i*sdc], &pC[0+(j+4)*bs+(i+8)*sdc], bs, alg);
 			}
 		jj = 0;
 		for(; jj<n-j-3; jj+=4)

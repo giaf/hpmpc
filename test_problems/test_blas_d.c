@@ -39,7 +39,7 @@ int main()
 	{
 		
 	// maximum frequency of the processor
-	const float GHz_max = 2.9; //3.6; //2.9;
+	const float GHz_max = 2.3; //3.6; //2.9;
 
 	// maximum flops per cycle, double precision
 #if defined(TARGET_X64_AVX)
@@ -48,6 +48,8 @@ int main()
 	const float d_flops_max = 4;
 #elif defined(TARGET_CORTEXA9)
 	const float d_flops_max = 1;
+#elif defined(TARGET_CORTEX_A15)
+	const float d_flops_max = 2;
 #elif defined(TARGET_X86_ATOM)
 	const float d_flops_max = 1;
 #elif defined(TARGET_POWERPC_G2)
@@ -62,25 +64,28 @@ int main()
 	f = fopen("./test_problems/results/test_blas.m", "w"); // a
 
 #if defined(TARGET_X64_AVX)
-	fprintf(f, "C = 'd_x64_avx';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 'd_x64_avx';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
-	fprintf(f, "C = 'd_x64_sse3';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 'd_x64_sse3';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEXA9)
-	fprintf(f, "C = 'd_ARM_cortex_A9';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 'd_ARM_cortex_A9';\n");
+	fprintf(f, "\n");
+#elif defined(TARGET_CORTEX_A15)
+	fprintf(f, "C = 'd_ARM_cortex_A15';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_X86_ATOM)
-	fprintf(f, "C = 'd_x86_atom';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 'd_x86_atom';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_POWERPC_G2)
-	fprintf(f, "C = 'd_PowerPC_G2';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 'd_PowerPC_G2';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_C99_4X4)
-	fprintf(f, "C = 'd_c99_2x2';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 'd_c99_2x2';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_C99_2X2)
-	fprintf(f, "C = 'd_c99_4x4';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 'd_c99_4x4';\n");
 	fprintf(f, "\n");
 #endif
 
@@ -107,8 +112,8 @@ int main()
 	int nn[] = {4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300, 304, 308, 312, 316, 320, 324, 328, 332, 336, 340, 344, 348, 352, 356, 360, 364, 368, 372, 376, 380, 384, 388, 392, 396, 400, 404, 408, 412, 416, 420, 424, 428, 432, 436, 440, 444, 448, 452, 456, 460};
 	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 400, 400, 400, 400, 400, 200, 200, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
 	
-	for(ll=0; ll<40; ll++)
-/*	for(ll=0; ll<75; ll++)*/
+//	for(ll=0; ll<40; ll++)
+	for(ll=0; ll<75; ll++)
 /*	for(ll=0; ll<115; ll++)*/
 
 		{
@@ -197,7 +202,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dgemv_p_n_lib(n, n, 0, pA, pnd, x, y, 0);
+//			dgemv_p_n_lib(n, n, 0, pA, pnd, x, y, 0);
 
 			}
 	
@@ -206,7 +211,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dgemv_p_t_lib(n, n, 0, pA, pnd, x, y, 0);
+//			dgemv_p_t_lib(n, n, 0, pA, pnd, x, y, 0);
 
 			}
 	
@@ -253,7 +258,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dsymv_p_lib(n, 0, pA, pnd, x, y, 0);
+//			dsymv_p_lib(n, 0, pA, pnd, x, y, 0);
 
 			}
 	
@@ -262,7 +267,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dmvmv_p_lib(n, n, 0, pA, pnd, x, y, x2, y2, 0);
+//			dmvmv_p_lib(n, n, 0, pA, pnd, x, y, x2, y2, 0);
 
 			}
 	

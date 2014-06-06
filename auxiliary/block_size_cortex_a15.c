@@ -23,36 +23,17 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-#ifndef __HPMPC_BLOCK_SIZE__
-#define __HPMPC_BLOCK_SIZE__
+/* return the number of rows of the C sub-matrix in the dgemm micro-kernel, double precision */
+int d_get_mr()
+	{
+	int bs = 4;
+	return bs;
+	}
 
-#if defined( TARGET_X64_AVX )
+/* return the number of rows of the C sub-matrix in the dgemm micro-kernel, single precision */
+int s_get_mr()
+	{
+	int bs = 8;
+	return bs;
+	}
 
-#define D_MR 4
-#define S_MR 8
-#define D_NCL 2
-#define S_NCL 2
-
-#elif defined( TARGET_C99_4X4 )
-
-#define D_MR 4
-#define S_MR 4
-#define D_NCL 2
-#define S_NCL 2
-
-#elif defined( TARGET_CORTEX_A15 )
-
-#define D_MR 4
-#define S_MR 4
-#define D_NCL 2
-#define S_NCL 4
-
-
-#else
-#error "Unknown architecture"
-#endif /* __HPMPC_BLOCK_SIZE__ */
-
-int d_get_mr();
-int s_get_mr();
-
-#endif /* __HPMPC_BLOCK_SIZE__ */
