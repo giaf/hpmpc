@@ -39,7 +39,7 @@ int main()
 	{
 		
 	// maximum frequency of the processor
-	const float GHz_max = 2.9; //3.6; //2.9;
+	const float GHz_max = 2.3; //3.6; //2.9;
 
 	// maximum flops per cycle, single precision
 #if defined(TARGET_X64_AVX)
@@ -48,6 +48,8 @@ int main()
 	const float d_flops_max = 8;
 #elif defined(TARGET_CORTEXA9)
 	const float d_flops_max = 4;
+#elif defined(TARGET_CORTEX_A15)
+	const float d_flops_max = 8;
 #elif defined(TARGET_X86_ATOM)
 	const float d_flops_max = 4;
 #elif defined(TARGET_POWERPC_G2)
@@ -62,25 +64,28 @@ int main()
 	f = fopen("./test_problems/results/test_blas.m", "w"); // a
 
 #if defined(TARGET_X64_AVX)
-	fprintf(f, "C = 's_x64_avx';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 's_x64_avx';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
-	fprintf(f, "C = 's_x64_sse3';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 's_x64_sse3';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEXA9)
-	fprintf(f, "C = 's_ARM_cortex_A9';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 's_ARM_cortex_A9';\n");
+	fprintf(f, "\n");
+#elif defined(TARGET_CORTEX_A15)
+	fprintf(f, "C = 's_ARM_cortex_A15';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_X86_ATOM)
-	fprintf(f, "C = 's_x86_atom';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 's_x86_atom';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_POWERPC_G2)
-	fprintf(f, "C = 's_PowerPC_G2';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 's_PowerPC_G2';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_C99_4X4)
-	fprintf(f, "C = 's_c99_2x2';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 's_c99_2x2';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_C99_2X2)
-	fprintf(f, "C = 's_c99_4x4';\n", GHz_max, d_flops_max);
+	fprintf(f, "C = 's_c99_4x4';\n");
 	fprintf(f, "\n");
 #endif
 

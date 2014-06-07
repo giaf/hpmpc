@@ -23,7 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-#include "../include/kernel_s_lib8.h"
+#include "../include/kernel_s_lib4.h"
+#include "../include/block_size.h"
 
 
 
@@ -35,79 +36,67 @@
 void sgemm_ppp_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sdb, float *pC, int sdc, int alg)
 	{
 
-	const int bs = 8;
+	const int bs = 4;
 
 	int i, j, jj;
 	
 	i = 0;
-	for(; i<m-8; i+=16)
-		{
-		j = 0;
-		for(; j<n-7; j+=8)
-			{
-			kernel_sgemm_pp_nt_16x4_lib8(k, &pA[0+i*sda], &pA[0+(i+8)*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+8)*sdc], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+8)*sdc], bs, alg);
-			kernel_sgemm_pp_nt_16x4_lib8(k, &pA[0+i*sda], &pA[0+(i+8)*sda], &pB[4+j*sdb], &pC[0+(j+4)*bs+i*sdc], &pC[0+(j+4)*bs+(i+8)*sdc], &pC[0+(j+4)*bs+i*sdc], &pC[0+(j+4)*bs+(i+8)*sdc], bs, alg);
-			}
-		jj = 0;
-		for(; jj<n-j-3; jj+=4)
-			{
-			kernel_sgemm_pp_nt_16x4_lib8(k, &pA[0+i*sda], &pA[0+(i+8)*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+(i+8)*sdc], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+(i+8)*sdc], bs, alg);
-			}
-/*		for(; jj<n-j-1; jj+=2)*/
-/*			{*/
-/*			kernel_sgemm_pp_nt_16x2_lib8(k, &pA[0+i*sda], &pA[0+(i+8)*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+(i+8)*sdc], bs, alg);*/
-/*			}*/
-/*		for(; jj<n-j; jj++)*/
-/*			{*/
-/*			kernel_sgemm_pp_nt_16x1_lib8(k, &pA[0+i*sda], &pA[0+(i+8)*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+(i+8)*sdc], bs, alg);*/
-/*			}*/
-		}
+#if defined(TARGET_CORTEX_A15)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
-		for(; j<n-7; j+=8)
+		for(; j<n-3; j+=4)
 			{
-			kernel_sgemm_pp_nt_8x8_lib8(k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], bs, alg);
-/*			kernel_sgemm_pp_nt_8x4_lib8(k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs, alg);*/
-/*			kernel_sgemm_pp_nt_8x4_lib8(k, &pA[0+i*sda], &pB[4+j*sdb], &pC[0+(j+4)*bs+i*sdc], bs, alg);*/
+			kernel_sgemm_pp_nt_8x4_lib4(k, &pA[0+i*sda], &pA[0+(i+4)*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs, alg);
 			}
 		jj = 0;
-		for(; jj<n-j-3; jj+=4)
-			{
-			kernel_sgemm_pp_nt_8x4_lib8(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+i*sdc], bs, alg);
-			}
 /*		for(; jj<n-j-1; jj+=2)*/
+/*		for(; jj<n-j; jj+=2)*/
 /*			{*/
-/*			kernel_sgemm_pp_nt_8x2_lib8(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], bs, alg);*/
+/*			kernel_dgemm_pp_nt_8x2_lib4(k, &pA[0+i*sda], &pA[0+(i+4)*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+(i+4)*sdc], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+(i+4)*sdc], bs, alg);*/
 /*			}*/
 /*		for(; jj<n-j; jj++)*/
 /*			{*/
-/*			kernel_sgemm_pp_nt_8x1_lib8(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], bs, alg);*/
+/*			kernel_dgemm_pp_nt_8x1_lib4(k, &pA[0+i*sda], &pA[0+(i+4)*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+(i+4)*sdc], bs, alg);*/
 /*			}*/
 		}
-	for(; i<m; i+=4)
+#endif
+	for(; i<m-2; i+=4)
 		{
 		j = 0;
-		for(; j<n-7; j+=8)
+		for(; j<n-3; j+=4)
 			{
-			kernel_sgemm_pp_nt_4x8_lib8(k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], bs, alg);
-/*			kernel_sgemm_pp_nt_4x4_lib8(k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], bs, alg);*/
-/*			kernel_sgemm_pp_nt_4x4_lib8(k, &pA[0+i*sda], &pB[4+j*sdb], &pC[0+(j+4)*bs+i*sdc], &pC[0+(j+4)*bs+i*sdc], bs, alg);*/
+			kernel_sgemm_pp_nt_4x4_lib4(k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], bs, alg);
 			}
 		jj = 0;
-		for(; jj<n-j-3; jj+=4)
-			{
-			kernel_sgemm_pp_nt_4x4_lib8(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+i*sdc], bs, alg);
-			}
 /*		for(; jj<n-j-1; jj+=2)*/
+/*		for(; jj<n-j; jj+=2)*/
 /*			{*/
-/*			kernel_sgemm_pp_nt_4x2_lib8(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], bs, alg);*/
+/*			kernel_dgemm_pp_nt_4x2_lib4(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], bs, alg);*/
 /*			}*/
 /*		for(; jj<n-j; jj++)*/
 /*			{*/
-/*			kernel_sgemm_pp_nt_4x1_lib8(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], bs, alg);*/
+/*			kernel_dgemm_pp_nt_4x1_lib4(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], bs, alg);*/
 /*			}*/
 		}
-	
+/*	for(; i<m; i+=2)*/
+/*		{*/
+/*		j = 0;*/
+/*		for(; j<n-3; j+=4)*/
+/*			{*/
+/*			kernel_dgemm_pp_nt_2x4_lib4(k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], bs, alg);*/
+/*			}*/
+/*		jj = 0;*/
+/*//		for(; jj<n-j-1; jj+=2)*/
+/*		for(; jj<n-j; jj+=2)*/
+/*			{*/
+/*			kernel_dgemm_pp_nt_2x2_lib4(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], bs, alg);*/
+/*			}*/
+/*		for(; jj<n-j; jj++)*/
+/*			{*/
+/*			kernel_dgemm_pp_nt_4x1_lib4(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], bs, alg);*/
+/*			}*/
+/*		}*/
+
 	}
 
