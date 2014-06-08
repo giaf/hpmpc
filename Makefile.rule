@@ -34,8 +34,8 @@
 # C99_4X4    : c99 reference code, performing better on a machine with at least 32 scalar registers.
 # C99_2X2    : c99 reference code, performing better on a machine with at least 8 scalar registers.
 #TARGET = X64_AVX
-#TARGET = C99_4X4
-TARGET = CORTEX_A15
+TARGET = C99_4X4
+#TARGET = CORTEX_A15
 
 # C Compiler
 #CC = gcc-4.6

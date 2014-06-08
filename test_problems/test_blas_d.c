@@ -39,7 +39,7 @@ int main()
 	{
 		
 	// maximum frequency of the processor
-	const float GHz_max = 2.3; //3.6; //2.9;
+	const float GHz_max = 2.9; //3.6; //2.9;
 
 	// maximum flops per cycle, double precision
 #if defined(TARGET_X64_AVX)
@@ -202,7 +202,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-//			dgemv_p_n_lib(n, n, 0, pA, pnd, x, y, 0);
+			dgemv_p_n_lib(n, n, pA, pnd, x, y, 0);
 
 			}
 	
@@ -211,7 +211,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-//			dgemv_p_t_lib(n, n, 0, pA, pnd, x, y, 0);
+			dgemv_p_t_lib(n, n, 0, pA, pnd, x, y, 0);
 
 			}
 	
