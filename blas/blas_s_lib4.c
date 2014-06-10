@@ -41,7 +41,7 @@ void sgemm_ppp_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sd
 	int i, j, jj;
 	
 	i = 0;
-#if defined(TARGET_CORTEX_A15)
+#if defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;

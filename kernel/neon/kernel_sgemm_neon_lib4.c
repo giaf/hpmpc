@@ -35,11 +35,11 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 	__builtin_prefetch( A0 );
 	__builtin_prefetch( A1 );
 	__builtin_prefetch( B  );
-/*#if defined(TARGET_CORTEX_A9)*/
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 	__builtin_prefetch( A1+8 );
 	__builtin_prefetch( B +8 );
-/*#endif*/
+#endif
 
 	int k_iter = kmax/4;
 	int k_left = kmax%4;
@@ -70,9 +70,16 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"mov    r0, %0                   \n\t" // k_iter
 		"                                \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
 		"vld1.64   {d12, d13, d14, d15}, [r3:128] \n\t" // load B to registers
 		"vld1.64   {d8, d9, d10, d11},   [r1:128] \n\t" // load A0 to registers
 		"vld1.64   {d24, d25}, [r2:128] \n\t" // load A1
+#endif
+#if defined(TARGET_CORTEX_A9)
+		"vld1.64   {d12, d13, d14, d15}, [r3:128]! \n\t" // load B to registers
+		"vld1.64   {d8, d9, d10, d11},   [r1:128]! \n\t" // load A0 to registers
+		"vld1.64   {d24, d25, d26, d27}, [r2:128]! \n\t" // load A1
+#endif
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t"
 		"                                \n\t"
@@ -100,6 +107,7 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"                                \n\t"
 		".DLOOPKITER4:                    \n\t" // main loop
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vldr   d26, [r2, #16]             \n\t"
@@ -137,11 +145,10 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"vmla.f32  q11, q13, d15[1]        \n\t"
 		"vldr   d15, [r3, #56]             \n\t"
 		"                                \n\t"
-		"                                \n\t"
 #if defined(TARGET_CORTEX_A9)
-		"pld    [r1, #160]                \n\t"
-		"pld    [r2, #160]                \n\t"
-		"pld    [r3, #160]                \n\t"
+		"pld    [r1, #160]                \n\t" // prefetch A0 to L1
+		"pld    [r2, #160]                \n\t" // prefetch A1 to L1
+		"pld    [r3, #160]                \n\t" // prefetch B to L1
 #endif
 		"                                \n\t"
 		"                                \n\t"
@@ -181,6 +188,71 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"vldr   d15, [r3, #88]             \n\t"
 		"add    r3, r3, #64              \n\t" // increase A
 		"                                \n\t"
+#endif
+#if defined(TARGET_CORTEX_A9)
+		"                                \n\t"
+		"pld    [r1, #96]                \n\t"
+		"pld    [r2, #96]                \n\t"
+		"pld    [r3, #96]                \n\t"
+		"                                \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"                                \n\t"
+		"vmla.f32  q0, q4, d12[0]        \n\t"
+		"vmla.f32  q1, q4, d12[1]        \n\t"
+		"vmla.f32  q2, q4, d13[0]        \n\t"
+		"vmla.f32  q3, q4, d13[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q12, d12[0]        \n\t"
+		"vmla.f32  q9, q12, d12[1]        \n\t"
+		"vmla.f32  q10, q12, d13[0]        \n\t"
+		"vmla.f32  q11, q12, d13[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q0, q5, d14[0]        \n\t"
+		"vmla.f32  q1, q5, d14[1]        \n\t"
+		"vmla.f32  q2, q5, d15[0]        \n\t"
+		"vmla.f32  q3, q5, d15[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q13, d14[0]        \n\t"
+		"vmla.f32  q9, q13, d14[1]        \n\t"
+		"vmla.f32  q10, q13, d15[0]        \n\t"
+		"vmla.f32  q11, q13, d15[1]        \n\t"
+		"                                \n\t"
+		"vld1.64   {d12, d13, d14, d15}, [r3:128]! \n\t" // load B
+		"vld1.64   {d8, d9, d10, d11},   [r1:128]! \n\t" // load A0
+		"vld1.64   {d24, d25, d26, d27}, [r2:128]! \n\t" // load A0
+		"                                \n\t"
+		"                                \n\t"
+		"pld    [r1, #96]                \n\t"
+		"pld    [r2, #96]                \n\t"
+		"pld    [r3, #96]                \n\t"
+		"                                \n\t"
+		"cmp    r0, #0                   \n\t" // next iter?
+		"                                \n\t"
+		"vmla.f32  q0, q4, d12[0]        \n\t"
+		"vmla.f32  q1, q4, d12[1]        \n\t"
+		"vmla.f32  q2, q4, d13[0]        \n\t"
+		"vmla.f32  q3, q4, d13[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q12, d12[0]        \n\t"
+		"vmla.f32  q9, q12, d12[1]        \n\t"
+		"vmla.f32  q10, q12, d13[0]        \n\t"
+		"vmla.f32  q11, q12, d13[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q0, q5, d14[0]        \n\t"
+		"vmla.f32  q1, q5, d14[1]        \n\t"
+		"vmla.f32  q2, q5, d15[0]        \n\t"
+		"vmla.f32  q3, q5, d15[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q13, d14[0]        \n\t"
+		"vmla.f32  q9, q13, d14[1]        \n\t"
+		"vmla.f32  q10, q13, d15[0]        \n\t"
+		"vmla.f32  q11, q13, d15[1]        \n\t"
+		"                                \n\t"
+		"vld1.64   {d12, d13, d14, d15}, [r3:128]! \n\t" // load B
+		"vld1.64   {d8, d9, d10, d11},   [r1:128]! \n\t" // load A0
+		"vld1.64   {d24, d25, d26, d27}, [r2:128]! \n\t" // load A0
+		"                                \n\t"
+#endif
 		"                                \n\t"
 		"bgt    .DLOOPKITER4              \n\t"
 		"                                \n\t"
@@ -371,8 +443,14 @@ void kernel_sgemm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, float *
 		"mov    r0, %0                   \n\t" // k_iter
 		"                                \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)
 		"vld1.64   {d12, d13, d14, d15}, [r2:128] \n\t" // load B to registers
 		"vld1.64   {d8, d9}, [r1:128]   \n\t" // load A to registers
+#endif
+#if defined(TARGET_CORTEX_A9)
+		"vld1.64   {d12, d13, d14, d15}, [r2:128]! \n\t" // load B to registers
+		"vld1.64   {d8, d9, d10, d11},   [r1:128]! \n\t" // load A0 to registers
+#endif
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t"
 		"                                \n\t"
@@ -390,6 +468,7 @@ void kernel_sgemm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, float *
 		"                                \n\t"
 		".DLOOPKITER2:                    \n\t" // main loop
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)
 		"                                \n\t"
 		"pld    [r1, #128]                \n\t"
 		"sub    r0, r0, #1               \n\t" // iter++
@@ -452,7 +531,47 @@ void kernel_sgemm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, float *
 		"                                \n\t"
 /*		"vld1.64   {d12, d13, d14, d15}, [r2:128]! \n\t" // load B*/
 /*		"vld1.64   {d8, d9, d10, d11}, [r1:128]!   \n\t" // load A*/
+#endif
+#if defined(TARGET_CORTEX_A9)
 		"                                \n\t"
+		"pld    [r1, #96]                \n\t"
+		"pld    [r2, #96]                \n\t"
+		"                                \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"                                \n\t"
+		"vmla.f32  q0, q4, d12[0]        \n\t"
+		"vmla.f32  q1, q4, d12[1]        \n\t"
+		"vmla.f32  q2, q4, d13[0]        \n\t"
+		"vmla.f32  q3, q4, d13[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q0, q5, d14[0]        \n\t"
+		"vmla.f32  q1, q5, d14[1]        \n\t"
+		"vmla.f32  q2, q5, d15[0]        \n\t"
+		"vmla.f32  q3, q5, d15[1]        \n\t"
+		"                                \n\t"
+		"vld1.64   {d12, d13, d14, d15}, [r2:128]! \n\t" // load B
+		"vld1.64   {d8, d9, d10, d11},   [r1:128]! \n\t" // load A0
+		"                                \n\t"
+		"                                \n\t"
+		"pld    [r1, #96]                \n\t"
+		"pld    [r2, #96]                \n\t"
+		"                                \n\t"
+		"cmp    r0, #0                   \n\t" // next iter?
+		"                                \n\t"
+		"vmla.f32  q0, q4, d12[0]        \n\t"
+		"vmla.f32  q1, q4, d12[1]        \n\t"
+		"vmla.f32  q2, q4, d13[0]        \n\t"
+		"vmla.f32  q3, q4, d13[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q0, q5, d14[0]        \n\t"
+		"vmla.f32  q1, q5, d14[1]        \n\t"
+		"vmla.f32  q2, q5, d15[0]        \n\t"
+		"vmla.f32  q3, q5, d15[1]        \n\t"
+		"                                \n\t"
+		"vld1.64   {d12, d13, d14, d15}, [r2:128]! \n\t" // load B
+		"vld1.64   {d8, d9, d10, d11},   [r1:128]! \n\t" // load A0
+		"                                \n\t"
+#endif
 		"                                \n\t"
 		"bgt    .DLOOPKITER2              \n\t"
 		"                                \n\t"

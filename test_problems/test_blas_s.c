@@ -46,7 +46,7 @@ int main()
 	const float d_flops_max = 16;
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	const float d_flops_max = 8;
-#elif defined(TARGET_CORTEXA9)
+#elif defined(TARGET_CORTEX_A9)
 	const float d_flops_max = 4;
 #elif defined(TARGET_CORTEX_A15)
 	const float d_flops_max = 8;
@@ -69,7 +69,7 @@ int main()
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	fprintf(f, "C = 's_x64_sse3';\n");
 	fprintf(f, "\n");
-#elif defined(TARGET_CORTEXA9)
+#elif defined(TARGET_CORTEX_A9)
 	fprintf(f, "C = 's_ARM_cortex_A9';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEX_A15)
