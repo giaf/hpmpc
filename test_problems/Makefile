@@ -45,6 +45,9 @@ endif
 ifeq ($(TARGET), CORTEX_A15)
 CFLAGS = $(OPT) -std=c99 -DTARGET_CORTEX_A15 -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a15 $(DEBUG)
 endif
+ifeq ($(TARGET), CORTEX_A9)
+CFLAGS = $(OPT) -std=c99 -DTARGET_CORTEX_A9 -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 $(DEBUG)
+endif
 
 obj: $(OBJS_TEST)
 	$(CC) -o test.out $(OBJS_TEST) -L. libhpmpc.a $(LIBS) #-pg

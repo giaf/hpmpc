@@ -37,6 +37,10 @@ ifeq ($(TARGET), CORTEX_A15)
 OBJS = #d_ip_box.o dres_ip_box.o d_aux_ip_avx.o d_ip2_box.o #s_ip_box.o s_ip2_box.o sres_ip_box.o 
 CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_CORTEX_A15 -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a15 $(DEBUG)
 endif
+ifeq ($(TARGET), CORTEX_A9)
+OBJS = #d_ip_box.o dres_ip_box.o d_aux_ip_avx.o d_ip2_box.o #s_ip_box.o s_ip2_box.o sres_ip_box.o 
+CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_CORTEX_A9 -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 $(DEBUG)
+endif
 
 obj: $(OBJS)
 

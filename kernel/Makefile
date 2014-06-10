@@ -35,6 +35,9 @@ endif
 ifeq ($(TARGET), CORTEX_A15)
 	make -C neon obj
 endif
+ifeq ($(TARGET), CORTEX_A9)
+	make -C neon obj
+endif
 
 clean:
 ifeq ($(TARGET), X64_AVX)
@@ -44,6 +47,9 @@ ifeq ($(TARGET), C99_4X4)
 	make -C c99 clean
 endif
 ifeq ($(TARGET), CORTEX_A15)
+	make -C neon clean
+endif
+ifeq ($(TARGET), CORTEX_A9)
 	make -C neon clean
 endif
 

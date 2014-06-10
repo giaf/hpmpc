@@ -68,7 +68,7 @@ void kernel_dgemm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, doub
 		"                                \n\t"
 //		"ldr    r2, %4                   \n\t" // load address of C
 		"mov    r2, %4                   \n\t" // load address of C
-		"mov    r6, %6                   \n\t" // load address of D
+/*		"mov    r6, %6                   \n\t" // load address of D*/
 		"                                \n\t"
 		"                                \n\t"
 		"fldd   d16, [r0, #0]            \n\t" // prefetch A_even
@@ -406,25 +406,25 @@ void kernel_dgemm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, doub
 		"                                \n\t"
 		".D0:                            \n\t" // alg==0
 		"                                \n\t"
-		"fstd   d0, [r6, #0]             \n\t" // store result
-		"fstd   d1, [r6, #8]             \n\t"
-		"fstd   d2, [r6, #16]            \n\t"
-		"fstd   d3, [r6, #24]            \n\t"
+		"fstd   d0, [%6, #0]             \n\t" // store result
+		"fstd   d1, [%6, #8]             \n\t"
+		"fstd   d2, [%6, #16]            \n\t"
+		"fstd   d3, [%6, #24]            \n\t"
 		"                                \n\t"
-		"fstd   d4, [r6, #32]            \n\t"
-		"fstd   d5, [r6, #40]            \n\t"
-		"fstd   d6, [r6, #48]            \n\t"
-		"fstd   d7, [r6, #56]            \n\t"
+		"fstd   d4, [%6, #32]            \n\t"
+		"fstd   d5, [%6, #40]            \n\t"
+		"fstd   d6, [%6, #48]            \n\t"
+		"fstd   d7, [%6, #56]            \n\t"
 		"                                \n\t"
-		"fstd   d8, [r6, #64]            \n\t"
-		"fstd   d9, [r6, #72]            \n\t"
-		"fstd   d10, [r6, #80]           \n\t"
-		"fstd   d11, [r6, #88]           \n\t"
+		"fstd   d8, [%6, #64]            \n\t"
+		"fstd   d9, [%6, #72]            \n\t"
+		"fstd   d10, [%6, #80]           \n\t"
+		"fstd   d11, [%6, #88]           \n\t"
 		"                                \n\t"
-		"fstd   d12, [r6, #96]           \n\t"
-		"fstd   d13, [r6, #104]          \n\t"
-		"fstd   d14, [r6, #112]          \n\t"
-		"fstd   d15, [r6, #120]          \n\t"
+		"fstd   d12, [%6, #96]           \n\t"
+		"fstd   d13, [%6, #104]          \n\t"
+		"fstd   d14, [%6, #112]          \n\t"
+		"fstd   d15, [%6, #120]          \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -445,7 +445,7 @@ void kernel_dgemm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, doub
 		  "r" (alg),		// %5
 		  "r" (D)			// %6
 		: // register clobber list
-		  "r0", "r1", "r2", "r3", "r4", "r5", "r6",
+		  "r0", "r1", "r2", "r3", "r4", "r5",
 		  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
 		  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
 		  "d16", "d17", "d18", "d19", "d20", "d21", "d22", "d23",

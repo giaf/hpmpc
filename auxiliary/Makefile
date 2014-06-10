@@ -37,6 +37,10 @@ ifeq ($(TARGET), CORTEX_A15)
 OBJS = aux_d_c99_lib4.o aux_s_c99.o block_size_cortex_a15.o
 CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a15 -DCORTEX_A15 $(DEBUG)
 endif
+ifeq ($(TARGET), CORTEX_A9)
+OBJS = aux_d_c99_lib4.o aux_s_c99.o block_size_cortex_a15.o
+CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DCORTEX_A9 $(DEBUG)
+endif
 
 obj: $(OBJS)
 
