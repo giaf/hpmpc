@@ -27,18 +27,312 @@
 
 void kernel_dtran_pp_4_lib4(int kmax, int kna, double *A, int sda, double *C)
 	{
+	
+	// kmax is at least 4 !!!
+	
+	int k;
+
+	const int bs = 4;
+	
+	k=0;
+
+	if(kna==0)
+		{
+
+		C[0+bs*0] = A[0+bs*0];
+
+		C[0+bs*1] = A[1+bs*0];
+		C[1+bs*1] = A[1+bs*1];
+		
+		C[0+bs*2] = A[2+bs*0];
+		C[1+bs*2] = A[2+bs*1];
+		C[2+bs*2] = A[2+bs*2];
+
+		C[0+bs*3] = A[3+bs*0];
+		C[1+bs*3] = A[3+bs*1];
+		C[2+bs*3] = A[3+bs*2];
+		C[3+bs*3] = A[3+bs*3];
+		
+		A += 4*sda;
+		C += 4*bs;
+		k += 4;
+		
+		}
+	else if(kna==1)
+		{
+		
+		// top 1x1 triangle
+		C[0+bs*0] = A[0+bs*0];
+		
+		A += 1 + bs*(sda-1);
+		C += bs;
+		k += 1;
+
+		// 4x4
+		C[0+bs*0] = A[0+bs*0];
+		C[1+bs*0] = A[0+bs*1];
+		
+		C[0+bs*1] = A[1+bs*0];
+		C[1+bs*1] = A[1+bs*1];
+		C[2+bs*1] = A[1+bs*2];
+		
+		C[0+bs*2] = A[2+bs*0];
+		C[1+bs*2] = A[2+bs*1];
+		C[2+bs*2] = A[2+bs*2];
+		C[3+bs*2] = A[2+bs*3];
+		
+		if(kmax==4)
+			return;
+
+		C[0+bs*3] = A[3+bs*0];
+		C[1+bs*3] = A[3+bs*1];
+		C[2+bs*3] = A[3+bs*2];
+		C[3+bs*3] = A[3+bs*3];
+
+		A += bs*sda;
+		C += 4*bs;
+		k += 4;
+
+		}
+	else if(kna==2)
+		{
+
+		// top 2x2 triangle
+		C[0+bs*0] = A[0+bs*0];
+
+		C[0+bs*1] = A[1+bs*0];
+		C[1+bs*1] = A[1+bs*1];
+
+		A += 2 + bs*(sda-1);
+		C += 2*bs;
+		k += 2;
+
+		C[0+bs*0] = A[0+bs*0];
+		C[1+bs*0] = A[0+bs*1];
+		C[2+bs*0] = A[0+bs*2];
+		
+		C[0+bs*1] = A[1+bs*0];
+		C[1+bs*1] = A[1+bs*1];
+		C[2+bs*1] = A[1+bs*2];
+		C[3+bs*1] = A[1+bs*3];
+		
+		if(kmax==4)
+			return;
+
+		C[0+bs*2] = A[2+bs*0];
+		C[1+bs*2] = A[2+bs*1];
+		C[2+bs*2] = A[2+bs*2];
+		C[3+bs*2] = A[2+bs*3];
+		
+		if(kmax==5)
+			return;
+
+		C[0+bs*3] = A[3+bs*0];
+		C[1+bs*3] = A[3+bs*1];
+		C[2+bs*3] = A[3+bs*2];
+		C[3+bs*3] = A[3+bs*3];
+
+		A += bs*sda;
+		C += 4*bs;
+		k += 4;
+
+		}
+	else // if(kna==3)
+		{
+
+		// top 1x1 triangle
+		C[0+bs*0] = A[0+bs*0];
+
+		// 2x2 square
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[1+bs*1] = A[1+bs*1];
+		C[1+bs*2] = A[2+bs*1];
+
+		// low 1x1 triangle
+		C[2+bs*2] = A[2+bs*2];
+
+		A += 3 + bs*(sda-1);
+		C += 3*bs;
+		k += 3;
+
+		}
+
+	for(; k<kmax-3; k+=4)
+		{
+		
+		C[0+bs*0] = A[0+bs*0];
+		C[1+bs*0] = A[0+bs*1];
+		C[2+bs*0] = A[0+bs*2];
+		C[3+bs*0] = A[0+bs*3];
+		
+		C[0+bs*1] = A[1+bs*0];
+		C[1+bs*1] = A[1+bs*1];
+		C[2+bs*1] = A[1+bs*2];
+		C[3+bs*1] = A[1+bs*3];
+		
+		C[0+bs*2] = A[2+bs*0];
+		C[1+bs*2] = A[2+bs*1];
+		C[2+bs*2] = A[2+bs*2];
+		C[3+bs*2] = A[2+bs*3];
+		
+		C[0+bs*3] = A[3+bs*0];
+		C[1+bs*3] = A[3+bs*1];
+		C[2+bs*3] = A[3+bs*2];
+		C[3+bs*3] = A[3+bs*3];
+	
+		A += bs*sda;
+		C += 4*bs;
+
+		}
+
+	if(k==kmax)
+		return;
+
+	if(kmax-k==1)
+		{
+		
+		C[0+bs*0] = A[0+bs*0];
+		C[1+bs*0] = A[0+bs*1];
+		C[2+bs*0] = A[0+bs*2];
+		C[3+bs*0] = A[0+bs*3];
+
+		}
+	else if(kmax==2)
+		{
+		
+		C[0+bs*0] = A[0+bs*0];
+		C[1+bs*0] = A[0+bs*1];
+		C[2+bs*0] = A[0+bs*2];
+		C[3+bs*0] = A[0+bs*3];
+		
+		C[0+bs*1] = A[1+bs*0];
+		C[1+bs*1] = A[1+bs*1];
+		C[2+bs*1] = A[1+bs*2];
+		C[3+bs*1] = A[1+bs*3];
+
+		}
+	else // if(kmax==3)
+		{
+
+		C[0+bs*0] = A[0+bs*0];
+		C[1+bs*0] = A[0+bs*1];
+		C[2+bs*0] = A[0+bs*2];
+		C[3+bs*0] = A[0+bs*3];
+		
+		C[0+bs*1] = A[1+bs*0];
+		C[1+bs*1] = A[1+bs*1];
+		C[2+bs*1] = A[1+bs*2];
+		C[3+bs*1] = A[1+bs*3];
+		
+		C[0+bs*2] = A[2+bs*0];
+		C[1+bs*2] = A[2+bs*1];
+		C[2+bs*2] = A[2+bs*2];
+		C[3+bs*2] = A[2+bs*3];
+
+		}
+
+	return;
+	
 	}
 
 
 
 void corner_dtran_pp_3_lib4(int kna, double *A, int sda, double *C)
 	{
+
+	const int bs = 4;
+	
+	if(kna==0)
+		{
+		
+		C[0+bs*0] = A[0+bs*0];
+		
+		C[0+bs*1] = A[1+bs*0];
+		C[1+bs*1] = A[1+bs*1];
+		
+		C[0+bs*2] = A[2+bs*0];
+		C[1+bs*2] = A[2+bs*1];
+		C[2+bs*2] = A[2+bs*2];
+
+		}
+	else if(kna==1)
+		{
+		
+		C[0+bs*0] = A[0+bs*0];
+		
+		A += 1 + bs*(sda-1);
+		C += bs;
+
+		C[0+bs*0] = A[0+bs*0];
+		C[1+bs*0] = A[0+bs*1];
+		
+		C[0+bs*1] = A[1+bs*0];
+		C[1+bs*1] = A[1+bs*1];
+		C[2+bs*1] = A[1+bs*2];
+
+		}
+	else if(kna==2)
+		{
+
+		C[0+bs*0] = A[0+bs*0];
+		
+		C[0+bs*1] = A[1+bs*0];
+		C[1+bs*1] = A[1+bs*1];
+
+		A += 2 + bs*(sda-1);
+		C += 2*bs;
+
+		C[0+bs*0] = A[0+bs*0];
+		C[1+bs*0] = A[0+bs*1];
+		C[2+bs*0] = A[0+bs*2];
+
+		}
+	else // if(kna==3)
+		{
+
+		C[0+bs*0] = A[0+bs*0];
+		
+		C[0+bs*1] = A[1+bs*0];
+		C[1+bs*1] = A[1+bs*1];
+		
+		C[0+bs*2] = A[2+bs*0];
+		C[1+bs*2] = A[2+bs*1];
+		C[2+bs*2] = A[2+bs*2];
+
+		}
+
 	}
 
 
 
 void corner_dtran_pp_2_lib4(int kna, double *A, int sda, double *C)
 	{
+
+	const int bs = 4;
+	
+	if(kna==1)
+		{
+
+		C[0+bs*0] = A[0+bs*0];
+		
+		A += 1 + bs*(sda-1);
+		C += bs;
+
+		C[0+bs*0] = A[0+bs*0];
+		C[1+bs*0] = A[0+bs*1];
+
+		}
+	else // if(kna==3)
+		{
+		
+		C[0+bs*0] = A[0+bs*0];
+		
+		C[0+bs*1] = A[1+bs*0];
+		C[1+bs*1] = A[1+bs*1];
+
+		}
+
 	}
 
 

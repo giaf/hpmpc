@@ -23,6 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#include <math.h>
+
 
 
 void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
@@ -367,8 +369,8 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 		c_22 = sqrt(c_22);
 		D[2+ldc*2] = c_22;
 		c_22 = 1.0/c_22;
-		c_32 -= c_30*c_30;
-		c_32 -= c_31*c_31;
+		c_32 -= c_30*c_20;
+		c_32 -= c_31*c_21;
 		c_32 *= c_22;
 		}
 	else
@@ -387,12 +389,25 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 		{
 		c_33 = sqrt(c_33);
 		D[3+ldc*3] = c_33;
+		c_33 = 1.0/c_33;
 		}
 	else
 		{
 		c_33 = 0.0;
 		D[3+ldc*3] = c_33;
 		}
+	
+	// save factorized matrix with reciprocal of diagonal
+	fact[0] = c_00;
+	fact[1] = c_10;
+	fact[3] = c_20;
+	fact[6] = c_30;
+	fact[2] = c_11;
+	fact[4] = c_21;
+	fact[7] = c_31;
+	fact[5] = c_22;
+	fact[8] = c_32;
+	fact[9] = c_33;
 
 	}
 
@@ -664,6 +679,18 @@ void kernel_dpotrf_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doub
 	D[2+ldc*1] = c_21;
 	D[3+ldc*1] = c_31;
 
+	// save factorized matrix with reciprocal of diagonal
+	fact[0] = c_00;
+	fact[1] = c_10;
+	fact[3] = c_20;
+	fact[6] = c_30;
+	fact[2] = c_11;
+	fact[4] = c_21;
+	fact[7] = c_31;
+/*	fact[5] = c_22;*/
+/*	fact[8] = c_32;*/
+/*	fact[9] = c_33;*/
+
 	}
 
 
@@ -858,6 +885,18 @@ void kernel_dpotrf_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doub
 		c_11 = 0.0;
 		D[1+ldc*1] = c_11;
 		}
+
+	// save factorized matrix with reciprocal of diagonal
+	fact[0] = c_00;
+	fact[1] = c_10;
+/*	fact[3] = c_20;*/
+/*	fact[6] = c_30;*/
+	fact[2] = c_11;
+/*	fact[4] = c_21;*/
+/*	fact[7] = c_31;*/
+/*	fact[5] = c_22;*/
+/*	fact[8] = c_32;*/
+/*	fact[9] = c_33;*/
 
 	}
 
