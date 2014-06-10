@@ -23,26 +23,15 @@
 #                                                                                                 #
 ###################################################################################################
 
-include ../Makefile.rule
+include ../../Makefile.rule
 
-ifeq ($(TARGET), X64_AVX)
-OBJS = blas_d_lib4.o blas_s_lib8.o
-CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_X64_AVX -fPIC $(DEBUG)
-endif
 ifeq ($(TARGET), C99_4X4)
-OBJS = blas_d_lib4.o blas_s_lib4.o
+OBJS_DOUBLE = kernel_dgemm_c99_lib4.o kernel_dtrmm_c99_lib4.o kernel_dtrsm_c99_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4.o kernel_dsymv_c99_lib4.o kernel_dtran_c99_lib4.o
+OBJS_SINGLE = kernel_sgemm_c99_lib4.o #kernel_spotrf_sse_lib4.o kernel_sgemv_sse_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_sse_lib4.o
 CFLAGS = $(OPT) -std=c99 -DTARGET_C99_4X4 -fPIC $(DEBUG)
 endif
-ifeq ($(TARGET), CORTEX_A15)
-OBJS = blas_d_lib4.o blas_s_lib4.o
-CFLAGS = $(OPT) -std=c99 -DTARGET_CORTEX_A15 -fPIC -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a15 $(DEBUG)
-endif
-ifeq ($(TARGET), CORTEX_A9)
-OBJS = blas_d_lib4.o blas_s_lib4.o
-CFLAGS = $(OPT) -std=c99 -DTARGET_CORTEX_A9 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 $(DEBUG)
-endif
 
-obj: $(OBJS)
+obj: $(OBJS_DOUBLE) $(OBJS_SINGLE)
 
 clean:
 	rm -f *.o

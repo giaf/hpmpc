@@ -33,6 +33,27 @@
 #define D_NCL 2
 #define S_NCL 2
 
+#elif defined( TARGET_C99_4X4 )
+
+#define D_MR 4
+#define S_MR 4
+#define D_NCL 2
+#define S_NCL 2
+
+#elif defined( TARGET_CORTEX_A15 )
+
+#define D_MR 4
+#define S_MR 4
+#define D_NCL 2
+#define S_NCL 4
+
+#elif defined( TARGET_CORTEX_A9 )
+
+#define D_MR 4
+#define S_MR 4
+#define D_NCL 1
+#define S_NCL 2
+
 
 #else
 #error "Unknown architecture"

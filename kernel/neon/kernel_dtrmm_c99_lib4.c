@@ -23,9 +23,30 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void kernel_sgemm_pp_nt_16x4_lib8(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, int alg);
-void kernel_sgemm_pp_nt_8x8_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg);
-void kernel_sgemm_pp_nt_8x4_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg);
-void kernel_sgemm_pp_nt_4x8_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg);
-void kernel_sgemm_pp_nt_4x4_lib8(int kmax, float *A, float *B, float *C, float *D, int ldc, int alg);
+
+
+void kernel_dtrmm_pp_nt_4x4_lib4(int kadd, double *A, double *B, double *D, int ldc)
+	{
+	}
+
+
+
+void corner_dtrmm_pp_nt_4x3_lib4(double *A, double *B, double *C, int ldc)
+	{
+	}
+
+
+
+void corner_dtrmm_pp_nt_4x2_lib4(double *A, double *B, double *C, int ldc)
+	{
+	}
+
+
+
+void corner_dtrmm_pp_nt_4x1_lib4(double *A, double *B, double *C, int ldc)
+	{
+	}
+
+
+
 

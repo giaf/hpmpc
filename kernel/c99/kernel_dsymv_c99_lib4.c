@@ -23,9 +23,24 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void kernel_sgemm_pp_nt_16x4_lib8(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, int alg);
-void kernel_sgemm_pp_nt_8x8_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg);
-void kernel_sgemm_pp_nt_8x4_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg);
-void kernel_sgemm_pp_nt_4x8_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg);
-void kernel_sgemm_pp_nt_4x4_lib8(int kmax, float *A, float *B, float *C, float *D, int ldc, int alg);
+
+
+void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+	{
+	}
+	
+	
+	
+void kernel_dsymv_2_lib4(int kmax, int kna, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+	{
+	}
+	
+	
+	
+void kernel_dsymv_1_lib4(int kmax, int kna, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+	{
+	}
+	
+	
+	
 

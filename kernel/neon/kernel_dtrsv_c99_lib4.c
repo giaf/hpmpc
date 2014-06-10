@@ -23,9 +23,42 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void kernel_sgemm_pp_nt_16x4_lib8(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, int alg);
-void kernel_sgemm_pp_nt_8x8_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg);
-void kernel_sgemm_pp_nt_8x4_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg);
-void kernel_sgemm_pp_nt_4x8_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg);
-void kernel_sgemm_pp_nt_4x4_lib8(int kmax, float *A, float *B, float *C, float *D, int ldc, int alg);
+
+
+void kernel_dtrsv_n_8_lib4(int kmax, double *A0, double *A1, double *x, double *y)
+	{
+	}
+	
+	
+	
+void kernel_dtrsv_n_4_lib4(int kmax, int ksv, double *A, double *x, double *y)
+	{
+	}
+	
+	
+	
+void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
+	{
+	}
+	
+	
+	
+void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
+	{
+	}
+	
+	
+	
+void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
+	{
+	}
+	
+	
+	
+void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
+	{
+	}
+	
+	
+	
 
