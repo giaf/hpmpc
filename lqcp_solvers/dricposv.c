@@ -74,8 +74,8 @@ void dricposv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 	dsyrk_dpotrf_pp_lib(nz, nx, ((nu+2-1)/2)*2, hpL[0], cnl, hpQ[0], cnz, diag);
 	for(jj=0; jj<nu; jj++) hpL[0][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 
-d_print_pmat(pnz, cnl, bs, hpL[0], cnl);
-exit(1);
+/*d_print_pmat(pnz, cnl, bs, hpL[0], cnl);*/
+/*exit(1);*/
 
 	// forward substitution 
 	for(ii=0; ii<N; ii++)
@@ -121,7 +121,10 @@ void dricpotrs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 		for(jj=0; jj<nx; jj++) work[jj] = hq[N-ii][nu+jj]; // copy p
 		dtrmv_p_u_t_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work+pnz, work, 1); // L*(L'*b) + p
 		dgemv_p_n_lib(nx+nu, nx, hpBAbt[N-ii-1], cnx, work, hq[N-ii-1], 1);
+/*d_print_mat(nx+nu, 1, hq[N-ii-1], 1);*/
 		dtrsv_dgemv_p_n_lib(nu, nu+nx, hpL[N-ii-1]+(nx+pad)*bs, cnl, hq[N-ii-1]);
+/*d_print_mat(nx+nu, 1, hq[N-ii-1], 1);*/
+/*exit(1);*/
 		}
 
 /*d_print_pmat(nz, nz, bs, hpL[0]+(nx+pad)*bs, cnl);*/
