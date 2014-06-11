@@ -361,6 +361,7 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 		
 		}
 
+	// last stage
 
 	ptr_t     = t[N]     + 2*k1;
 	ptr_lam   = lam[N]   + 2*k1;
@@ -368,9 +369,8 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 	ptr_dlam  = dlam[N]  + 2*k1;
 	ptr_t_inv = t_inv[N] + 2*k1;
 
-	ii=k1; // k0 supposed to be multiple of bs !!!!!!!!!!
+	ii=k1; // k1 supposed to be multiple of bs !!!!!!!!!!
 
-	// last stage
 	for(; ii<kmax-3; ii+=4)
 		{
 		
