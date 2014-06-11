@@ -50,6 +50,7 @@ void dtrmm_code_generator(FILE *f, int m, int n)
 	const int sdc = CNL;
 
 	i = 0;
+#if defined(TARGET_AVX)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
@@ -70,6 +71,7 @@ fprintf(f, "	corner_dtrmm_pp_nt_8x2_lib4(&pA[%d], &pA[%d], &pB[%d], &pC[%d], &pC
 fprintf(f, "	corner_dtrmm_pp_nt_8x3_lib4(&pA[%d], &pA[%d], &pB[%d], &pC[%d], &pC[%d], %d);\n", j*bs+i*sda, j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+i*sdc, j*bs+(i+4)*sdc, bs);
 			}
 		}
+#endif
 	for(; i<m; i+=4)
 		{
 		j = 0;
@@ -117,18 +119,26 @@ void dsyrk_dpotrf_code_generator(FILE *f, int m, int k, int n)
 		i = j;
 		if(i<m-4)
 			{
+#if defined(TARGET_AVX)
 fprintf(f, "	kernel_dpotrf_pp_nt_8x4_lib4(%d, %d, &pA[%d], &pA[%d], &pA[%d], &pC[%d], &pC[%d], &pA[%d], &pA[%d], %d, fact);\n", k, j, i*sda, (i+4)*sda, j*sda, j*bs+i*sdc, j*bs+(i+4)*sdc, (k0+k+j)*bs+i*sda, (k0+k+j)*bs+(i+4)*sda, bs);
 //			kernel_dpotrf_pp_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);
+			i += 8;
+#else
+fprintf(f, "	kernel_dpotrf_pp_nt_4x4_lib4(%d, %d, &pA[%d], &pA[%d], &pC[%d], &pA[%d], %d, fact);\n", k, j, i*sda, j*sda, j*bs+i*sdc, (k0+k+j)*bs+i*sda, bs);
+//			kernel_dpotrf_pp_nt_4x4_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], bs, fact);
+			i += 4;
+#endif
 fprintf(f, "	diag[%d] = fact[0];\n", j+0);
 fprintf(f, "	diag[%d] = fact[2];\n", j+1);
 fprintf(f, "	diag[%d] = fact[5];\n", j+2);
 fprintf(f, "	diag[%d] = fact[9];\n", j+3);
-			i += 8;
+#if defined(TARGET_AVX)
 			for(; i<m-4; i+=8)
 				{
 fprintf(f, "	kernel_dtrsm_pp_nt_8x4_lib4(%d, %d, &pA[%d], &pA[%d], &pA[%d], &pC[%d], &pC[%d], &pA[%d], &pA[%d], %d, fact);\n", k, j, i*sda, (i+4)*sda, j*sda, j*bs+i*sdc, j*bs+(i+4)*sdc, (k0+k+j)*bs+i*sda, (k0+k+j)*bs+(i+4)*sda, bs);
 				//kernel_dtrsm_pp_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);
 				}
+#endif
 			for(; i<m-2; i+=4)
 				{
 fprintf(f, "	kernel_dtrsm_pp_nt_4x4_lib4(%d, %d, &pA[%d], &pA[%d], &pC[%d], &pA[%d], %d, fact);\n", k, j, i*sda, j*sda, j*bs+i*sdc, (k0+k+j)*bs+i*sda, bs);
@@ -160,11 +170,13 @@ fprintf(f, "	kernel_dpotrf_pp_nt_4x2_lib4(%d, %d, &pA[%d], &pA[%d], &pC[%d], &pA
 fprintf(f, "	diag[%d] = fact[0];\n", j+0);
 fprintf(f, "	diag[%d] = fact[2];\n", j+1);
 			i += 4;
+#if defined(TARGET_AVX)
 			for(; i<m-4; i+=8)
 				{
 fprintf(f, "	kernel_dtrsm_pp_nt_8x2_lib4(%d, %d, &pA[%d], &pA[%d], &pA[%d], &pC[%d], &pC[%d], &pA[%d], &pA[%d], %d, fact);\n", k, j, i*sda, (i+4)*sda, j*sda, j*bs+i*sdc, j*bs+(i+4)*sdc, (k0+k+j)*bs+i*sda, (k0+k+j)*bs+(i+4)*sda, bs);
 				//kernel_dtrsm_pp_nt_8x2_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);
 				}
+#endif
 			for(; i<m-2; i+=4)
 				{
 fprintf(f, "	kernel_dtrsm_pp_nt_4x2_lib4(%d, %d, &pA[%d], &pA[%d], &pC[%d], &pA[%d], %d, fact);\n", k, j, i*sda, j*sda, j*bs+i*sdc, (k0+k+j)*bs+i*sda, bs);

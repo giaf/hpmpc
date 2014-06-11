@@ -25,22 +25,7 @@
 
 include ../Makefile.rule
 
-ifeq ($(TARGET), X64_AVX)
 OBJS = dricposv.o dres.o
-CFLAGS = $(OPT) -std=c99 -mavx -fPIC -DTARGET_X64_AVX $(DEBUG)
-endif
-ifeq ($(TARGET), C99_4X4)
-OBJS = dricposv.o dres.o
-CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
-endif
-ifeq ($(TARGET), CORTEX_A15)
-OBJS = dricposv.o dres.o
-CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_CORTEX_A15 -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a15 $(DEBUG)
-endif
-ifeq ($(TARGET), CORTEX_A9)
-OBJS = dricposv.o dres.o
-CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_CORTEX_A9 -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 $(DEBUG)
-endif
 
 obj: $(OBJS)
 
