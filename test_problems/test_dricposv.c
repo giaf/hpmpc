@@ -153,9 +153,9 @@ int main()
 	{
 	
 	// maximum frequency of the processor
-	const float GHz_max = 2.9; //3.6; //2.9;
+	const float GHz_max = 2.3; //3.6; //2.9;
 	// maximum flops per cycle, double precision
-	const float d_flops_max = 8; //4; //2;
+	const float d_flops_max = 2; //4; //2;
 
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
 	printf("\nflush to zero on\n");

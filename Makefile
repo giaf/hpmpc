@@ -35,7 +35,7 @@ MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/dres_ip_box.o ./mpc_solvers/d_
 CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_X64_AVX -fPIC $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4)
-AUX_OBJS = ./auxiliary/block_size_c99_4x4.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99.o 
+AUX_OBJS = ./auxiliary/block_size_c99_4x4.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99_lib4.o 
 KERNEL_OBJS_DOUBLE = ./kernel/c99/kernel_dgemm_c99_lib4.o ./kernel/c99/kernel_dtrmm_c99_lib4.o ./kernel/c99/kernel_dtrsm_c99_lib4.o ./kernel/c99/kernel_dpotrf_c99_lib4.o ./kernel/c99/kernel_dgemv_c99_lib4.o ./kernel/c99/kernel_dtrmv_c99_lib4.o ./kernel/c99/kernel_dtrsv_c99_lib4.o ./kernel/c99/kernel_dsymv_c99_lib4.o ./kernel/c99/kernel_dtran_c99_lib4.o 
 KERNEL_OBJS_SINGLE = ./kernel/c99/kernel_sgemm_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
@@ -43,15 +43,15 @@ MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/dres_ip_box.o ./mpc_solvers/d_
 CFLAGS = $(OPT) -std=c99 -DTARGET_C99_4X4 -fPIC $(DEBUG)
 endif
 ifeq ($(TARGET), CORTEX_A15)
-AUX_OBJS = ./auxiliary/block_size_cortex_a15.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99.o 
-KERNEL_OBJS_DOUBLE = ./kernel/neon/kernel_dgemm_vfpv3_lib4.o ./kernel/neon/kernel_dtrmm_c99_lib4.o ./kernel/neon/kernel_dtrsm_c99_lib4.o ./kernel/neon/kernel_dpotrf_c99_lib4.o ./kernel/neon/kernel_dgemv_c99_lib4.o ./kernel/neon/kernel_dtrmv_c99_lib4.o ./kernel/neon/kernel_dtrsv_c99_lib4.o ./kernel/neon/kernel_dsymv_c99_lib4.o ./kernel/neon/kernel_dtran_c99_lib4.o 
+AUX_OBJS = ./auxiliary/block_size_cortex_a15.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99_lib4.o 
+KERNEL_OBJS_DOUBLE = ./kernel/neon/kernel_dgemm_vfpv3_lib4.o ./kernel/neon/kernel_dtrmm_c99_lib4.o ./kernel/neon/kernel_dtrsm_vfpv3_lib4.o ./kernel/neon/kernel_dpotrf_c99_lib4.o ./kernel/neon/kernel_dgemv_c99_lib4.o ./kernel/neon/kernel_dtrmv_c99_lib4.o ./kernel/neon/kernel_dtrsv_c99_lib4.o ./kernel/neon/kernel_dsymv_c99_lib4.o ./kernel/neon/kernel_dtran_c99_lib4.o 
 KERNEL_OBJS_SINGLE = ./kernel/neon/kernel_sgemm_neon_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/dres_ip_box.o ./mpc_solvers/d_aux_ip_c99_lib4.o ./mpc_solvers/d_ip2_box.o #./mpc_solvers/s_ip_box.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/sres_ip_box.o
 CFLAGS = $(OPT) -std=c99 -DTARGET_CORTEX_A15 -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a15 -fPIC $(DEBUG)
 endif
 ifeq ($(TARGET), CORTEX_A9)
-AUX_OBJS = ./auxiliary/block_size_cortex_a15.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99.o 
+AUX_OBJS = ./auxiliary/block_size_cortex_a15.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99_lib4.o 
 KERNEL_OBJS_DOUBLE = ./kernel/neon/kernel_dgemm_vfpv3_lib4.o ./kernel/neon/kernel_dtrmm_c99_lib4.o ./kernel/neon/kernel_dtrsm_c99_lib4.o ./kernel/neon/kernel_dpotrf_c99_lib4.o ./kernel/neon/kernel_dgemv_c99_lib4.o ./kernel/neon/kernel_dtrmv_c99_lib4.o ./kernel/neon/kernel_dtrsv_c99_lib4.o ./kernel/neon/kernel_dsymv_c99_lib4.o ./kernel/neon/kernel_dtran_c99_lib4.o 
 KERNEL_OBJS_SINGLE = ./kernel/neon/kernel_sgemm_neon_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o

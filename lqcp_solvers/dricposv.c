@@ -66,6 +66,8 @@ void dricposv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 		for(jj=0; jj<nu; jj++) hpL[N-ii-1][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 /*		d_transpose_pmat_lo(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);*/
 		dtrtr_l_p_lib(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);	
+/*d_print_pmat(pnz, cnl, bs, hpL[N-ii-1], cnl);*/
+/*exit(1);*/
 		}
 
 	// first stage 
