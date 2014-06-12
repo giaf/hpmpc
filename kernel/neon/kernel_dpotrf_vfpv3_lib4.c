@@ -23,6 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#include <math.h>
+
 #include "../../include/block_size.h"
 
 
@@ -30,7 +32,7 @@
 // normal-transposed, 4x4 with data packed in 4
 // prefetch optimized for Cortex-A9 (cache line is 32 bytes, while A15 is 64 bytes)
 /*void kernel_dgemm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int ldc_dummy, int alg)*/
-void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc_dummy, double *fact)
+void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc_dummy, double *fact)
 	{
 	
 	__builtin_prefetch( A );
@@ -63,10 +65,6 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 	(
 		"                                \n\t"
 		"mov    r3, %0                   \n\t" // k_iter
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-//		"mov    r2, %5                   \n\t" // load address of C
 		"                                \n\t"
 		"                                \n\t"
 		"fldd   d16, [%3, #0]            \n\t" // prefetch A_even
@@ -123,6 +121,7 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 		".DENDZERO:                      \n\t"
 		"                                \n\t"
 		"                                \n\t"
+		"                                \n\t"
 		".DLOOPADD:                      \n\t" // main loop
 		"                                \n\t"
 		"                                \n\t"
@@ -131,29 +130,23 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 		"                                \n\t"
 		"                                \n\t"
 		"fmacd  d0, d16, d20             \n\t"
+		"fldd   d16, [%3, #64]           \n\t" // prefetch A_even
 		"fmacd  d1, d17, d20             \n\t"
 		"fmacd  d2, d18, d20             \n\t"
 		"fmacd  d3, d19, d20             \n\t"
 		"fldd   d20, [%4, #64]           \n\t" // prefetch B_even
 		"                                \n\t"
-		"fmacd  d4, d16, d21             \n\t"
 		"fmacd  d5, d17, d21             \n\t"
+		"fldd   d17, [%3, #72]           \n\t"
 		"fmacd  d6, d18, d21             \n\t"
 		"fmacd  d7, d19, d21             \n\t"
 		"fldd   d21, [%4, #72]           \n\t"
 		"                                \n\t"
-		"fmacd  d8, d16, d22             \n\t"
-		"fmacd  d9, d17, d22             \n\t"
 		"fmacd  d10, d18, d22            \n\t"
+		"fldd   d18, [%3, #80]           \n\t"
 		"fmacd  d11, d19, d22            \n\t"
 		"fldd   d22, [%4, #80]           \n\t"
 		"                                \n\t"
-		"fmacd  d12, d16, d23            \n\t"
-		"fldd   d16, [%3, #64]           \n\t" // prefetch A_even
-		"fmacd  d13, d17, d23            \n\t"
-		"fldd   d17, [%3, #72]           \n\t"
-		"fmacd  d14, d18, d23            \n\t"
-		"fldd   d18, [%3, #80]           \n\t"
 		"fmacd  d15, d19, d23            \n\t"
 		"fldd   d23, [%4, #88]           \n\t"
 		"                                \n\t"
@@ -169,27 +162,21 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 		"fmacd  d1, d25, d28             \n\t"
 		"sub    r3, r3, #1               \n\t" // iter++
 		"fmacd  d2, d26, d28             \n\t"
+		"fldd   d24, [%3, #96]           \n\t" // prefetch A_odd
 		"fmacd  d3, d27, d28             \n\t"
 		"fldd   d28, [%4, #96]           \n\t" // prefetch B_odd
 		"                                \n\t"
-		"fmacd  d4, d24, d29             \n\t"
 		"fmacd  d5, d25, d29             \n\t"
+		"fldd   d25, [%3, #104]          \n\t"
 		"fmacd  d6, d26, d29             \n\t"
 		"fmacd  d7, d27, d29             \n\t"
 		"fldd   d29, [%4, #104]          \n\t"
 		"                                \n\t"
-		"fmacd  d8, d24, d30             \n\t"
-		"fmacd  d9, d25, d30             \n\t"
 		"fmacd  d10, d26, d30            \n\t"
+		"fldd   d26, [%3, #112]          \n\t"
 		"fmacd  d11, d27, d30            \n\t"
 		"fldd   d30, [%4, #112]          \n\t"
 		"                                \n\t"
-		"fmacd  d12, d24, d31            \n\t"
-		"fldd   d24, [%3, #96]           \n\t" // prefetch A_odd
-		"fmacd  d13, d25, d31            \n\t"
-		"fldd   d25, [%3, #104]          \n\t"
-		"fmacd  d14, d26, d31            \n\t"
-		"fldd   d26, [%3, #112]          \n\t"
 		"fmacd  d15, d27, d31            \n\t"
 		"fldd   d31, [%4, #120]          \n\t"
 		"                                \n\t"
@@ -203,27 +190,21 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 		"fmacd  d1, d17, d20             \n\t"
 		"cmp    r3, #0                   \n\t" // next iter?
 		"fmacd  d2, d18, d20             \n\t"
+		"fldd   d16, [%3, #128]          \n\t" // prefetch A_even
 		"fmacd  d3, d19, d20             \n\t"
 		"fldd   d20, [%4, #128]          \n\t" // prefetch B_even
 		"                                \n\t"
-		"fmacd  d4, d16, d21             \n\t"
 		"fmacd  d5, d17, d21             \n\t"
+		"fldd   d17, [%3, #136]          \n\t"
 		"fmacd  d6, d18, d21             \n\t"
 		"fmacd  d7, d19, d21             \n\t"
 		"fldd   d21, [%4, #136]          \n\t"
 		"                                \n\t"
-		"fmacd  d8, d16, d22             \n\t"
-		"fmacd  d9, d17, d22             \n\t"
 		"fmacd  d10, d18, d22            \n\t"
+		"fldd   d18, [%3, #144]          \n\t"
 		"fmacd  d11, d19, d22            \n\t"
 		"fldd   d22, [%4, #144]          \n\t"
 		"                                \n\t"
-		"fmacd  d12, d16, d23            \n\t"
-		"fldd   d16, [%3, #128]          \n\t" // prefetch A_even
-		"fmacd  d13, d17, d23            \n\t"
-		"fldd   d17, [%3, #136]          \n\t"
-		"fmacd  d14, d18, d23            \n\t"
-		"fldd   d18, [%3, #144]          \n\t"
 		"fmacd  d15, d19, d23            \n\t"
 		"fldd   d19, [%3, #152]          \n\t"
 		"                                \n\t"
@@ -243,24 +224,18 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 		"fmacd  d3, d27, d28             \n\t"
 		"fldd   d28, [%4, #32]           \n\t" // prefetch B_odd
 		"                                \n\t"
-		"fmacd  d4, d24, d29             \n\t"
 		"fmacd  d5, d25, d29             \n\t"
+		"fldd   d24, [%3, #32]           \n\t" // prefetch A_odd
 		"fmacd  d6, d26, d29             \n\t"
+		"fldd   d25, [%3, #40]           \n\t"
 		"fmacd  d7, d27, d29             \n\t"
 		"fldd   d29, [%4, #40]           \n\t"
 		"                                \n\t"
-		"fmacd  d8, d24, d30             \n\t"
-		"fmacd  d9, d25, d30             \n\t"
 		"fmacd  d10, d26, d30            \n\t"
+		"fldd   d26, [%3, #48]           \n\t"
 		"fmacd  d11, d27, d30            \n\t"
 		"fldd   d30, [%4, #48]           \n\t"
 		"                                \n\t"
-		"fmacd  d12, d24, d31            \n\t"
-		"fldd   d24, [%3, #32]           \n\t" // prefetch A_odd
-		"fmacd  d13, d25, d31            \n\t"
-		"fldd   d25, [%3, #40]           \n\t"
-		"fmacd  d14, d26, d31            \n\t"
-		"fldd   d26, [%3, #48]           \n\t"
 		"fmacd  d15, d27, d31            \n\t"
 		"fldd   d31, [%4, #56]           \n\t"
 		"fldd   d27, [%3, #56]           \n\t"
@@ -286,31 +261,25 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 		"sub    r3, r3, #1               \n\t"
 		"                                \n\t"
 		"fmacd  d0, d16, d20             \n\t"
+		"fldd   d16, [%3, #32]           \n\t" // prefetch A_even
 		"fmacd  d1, d17, d20             \n\t"
 		"fmacd  d2, d18, d20             \n\t"
 		"fmacd  d3, d19, d20             \n\t"
 		"fldd   d20, [%4, #32]           \n\t" // prefetch B_even
 		"                                \n\t"
-		"fmacd  d4, d16, d21             \n\t"
 		"fmacd  d5, d17, d21             \n\t"
+		"fldd   d17, [%3, #40]           \n\t"
 		"fmacd  d6, d18, d21             \n\t"
 		"fmacd  d7, d19, d21             \n\t"
 		"fldd   d21, [%4, #40]           \n\t"
 		"                                \n\t"
-		"fmacd  d8, d16, d22             \n\t"
-		"fmacd  d9, d17, d22             \n\t"
 		"fmacd  d10, d18, d22            \n\t"
+		"fldd   d18, [%3, #48]           \n\t"
 		"fmacd  d11, d19, d22            \n\t"
 		"fldd   d22, [%4, #48]           \n\t"
 		"                                \n\t"
 		"cmp    r3, #0                   \n\t"
 		"                                \n\t"
-		"fmacd  d12, d16, d23            \n\t"
-		"fldd   d16, [%3, #32]           \n\t" // prefetch A_even
-		"fmacd  d13, d17, d23            \n\t"
-		"fldd   d17, [%3, #40]           \n\t"
-		"fmacd  d14, d18, d23            \n\t"
-		"fldd   d18, [%3, #48]           \n\t"
 		"fmacd  d15, d19, d23            \n\t"
 		"fldd   d19, [%3, #56]           \n\t"
 		"add    %3, %3, #32              \n\t"
@@ -369,29 +338,23 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 		"                                \n\t"
 		"                                \n\t"
 		"fnmacd  d0, d16, d20             \n\t"
+		"fldd   d16, [%3, #64]           \n\t" // prefetch A_even
 		"fnmacd  d1, d17, d20             \n\t"
 		"fnmacd  d2, d18, d20             \n\t"
 		"fnmacd  d3, d19, d20             \n\t"
 		"fldd   d20, [%4, #64]           \n\t" // prefetch B_even
 		"                                \n\t"
-		"fnmacd  d4, d16, d21             \n\t"
 		"fnmacd  d5, d17, d21             \n\t"
+		"fldd   d17, [%3, #72]           \n\t"
 		"fnmacd  d6, d18, d21             \n\t"
 		"fnmacd  d7, d19, d21             \n\t"
 		"fldd   d21, [%4, #72]           \n\t"
 		"                                \n\t"
-		"fnmacd  d8, d16, d22             \n\t"
-		"fnmacd  d9, d17, d22             \n\t"
 		"fnmacd  d10, d18, d22            \n\t"
+		"fldd   d18, [%3, #80]           \n\t"
 		"fnmacd  d11, d19, d22            \n\t"
 		"fldd   d22, [%4, #80]           \n\t"
 		"                                \n\t"
-		"fnmacd  d12, d16, d23            \n\t"
-		"fldd   d16, [%3, #64]           \n\t" // prefetch A_even
-		"fnmacd  d13, d17, d23            \n\t"
-		"fldd   d17, [%3, #72]           \n\t"
-		"fnmacd  d14, d18, d23            \n\t"
-		"fldd   d18, [%3, #80]           \n\t"
 		"fnmacd  d15, d19, d23            \n\t"
 		"fldd   d23, [%4, #88]           \n\t"
 		"                                \n\t"
@@ -407,27 +370,21 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 		"fnmacd  d1, d25, d28             \n\t"
 		"sub    r3, r3, #1               \n\t" // iter++
 		"fnmacd  d2, d26, d28             \n\t"
+		"fldd   d24, [%3, #96]           \n\t" // prefetch A_odd
 		"fnmacd  d3, d27, d28             \n\t"
 		"fldd   d28, [%4, #96]           \n\t" // prefetch B_odd
 		"                                \n\t"
-		"fnmacd  d4, d24, d29             \n\t"
 		"fnmacd  d5, d25, d29             \n\t"
+		"fldd   d25, [%3, #104]          \n\t"
 		"fnmacd  d6, d26, d29             \n\t"
 		"fnmacd  d7, d27, d29             \n\t"
 		"fldd   d29, [%4, #104]          \n\t"
 		"                                \n\t"
-		"fnmacd  d8, d24, d30             \n\t"
-		"fnmacd  d9, d25, d30             \n\t"
 		"fnmacd  d10, d26, d30            \n\t"
+		"fldd   d26, [%3, #112]          \n\t"
 		"fnmacd  d11, d27, d30            \n\t"
 		"fldd   d30, [%4, #112]          \n\t"
 		"                                \n\t"
-		"fnmacd  d12, d24, d31            \n\t"
-		"fldd   d24, [%3, #96]           \n\t" // prefetch A_odd
-		"fnmacd  d13, d25, d31            \n\t"
-		"fldd   d25, [%3, #104]          \n\t"
-		"fnmacd  d14, d26, d31            \n\t"
-		"fldd   d26, [%3, #112]          \n\t"
 		"fnmacd  d15, d27, d31            \n\t"
 		"fldd   d31, [%4, #120]          \n\t"
 		"                                \n\t"
@@ -441,27 +398,21 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 		"fnmacd  d1, d17, d20             \n\t"
 		"cmp    r3, #0                   \n\t" // next iter?
 		"fnmacd  d2, d18, d20             \n\t"
+		"fldd   d16, [%3, #128]          \n\t" // prefetch A_even
 		"fnmacd  d3, d19, d20             \n\t"
 		"fldd   d20, [%4, #128]          \n\t" // prefetch B_even
 		"                                \n\t"
-		"fnmacd  d4, d16, d21             \n\t"
 		"fnmacd  d5, d17, d21             \n\t"
+		"fldd   d17, [%3, #136]          \n\t"
 		"fnmacd  d6, d18, d21             \n\t"
 		"fnmacd  d7, d19, d21             \n\t"
 		"fldd   d21, [%4, #136]          \n\t"
 		"                                \n\t"
-		"fnmacd  d8, d16, d22             \n\t"
-		"fnmacd  d9, d17, d22             \n\t"
 		"fnmacd  d10, d18, d22            \n\t"
+		"fldd   d18, [%3, #144]          \n\t"
 		"fnmacd  d11, d19, d22            \n\t"
 		"fldd   d22, [%4, #144]          \n\t"
 		"                                \n\t"
-		"fnmacd  d12, d16, d23            \n\t"
-		"fldd   d16, [%3, #128]          \n\t" // prefetch A_even
-		"fnmacd  d13, d17, d23            \n\t"
-		"fldd   d17, [%3, #136]          \n\t"
-		"fnmacd  d14, d18, d23            \n\t"
-		"fldd   d18, [%3, #144]          \n\t"
 		"fnmacd  d15, d19, d23            \n\t"
 		"fldd   d19, [%3, #152]          \n\t"
 		"                                \n\t"
@@ -481,24 +432,18 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 		"fnmacd  d3, d27, d28             \n\t"
 		"fldd   d28, [%4, #32]           \n\t" // prefetch B_odd
 		"                                \n\t"
-		"fnmacd  d4, d24, d29             \n\t"
 		"fnmacd  d5, d25, d29             \n\t"
+		"fldd   d24, [%3, #32]           \n\t" // prefetch A_odd
 		"fnmacd  d6, d26, d29             \n\t"
+		"fldd   d25, [%3, #40]           \n\t"
 		"fnmacd  d7, d27, d29             \n\t"
 		"fldd   d29, [%4, #40]           \n\t"
 		"                                \n\t"
-		"fnmacd  d8, d24, d30             \n\t"
-		"fnmacd  d9, d25, d30             \n\t"
 		"fnmacd  d10, d26, d30            \n\t"
+		"fldd   d26, [%3, #48]           \n\t"
 		"fnmacd  d11, d27, d30            \n\t"
 		"fldd   d30, [%4, #48]           \n\t"
 		"                                \n\t"
-		"fnmacd  d12, d24, d31            \n\t"
-		"fldd   d24, [%3, #32]           \n\t" // prefetch A_odd
-		"fnmacd  d13, d25, d31            \n\t"
-		"fldd   d25, [%3, #40]           \n\t"
-		"fnmacd  d14, d26, d31            \n\t"
-		"fldd   d26, [%3, #48]           \n\t"
 		"fnmacd  d15, d27, d31            \n\t"
 		"fldd   d31, [%4, #56]           \n\t"
 		"fldd   d27, [%3, #56]           \n\t"
@@ -515,19 +460,13 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 		"fldd   d18, [%5, #16]           \n\t"
 		"fldd   d19, [%5, #24]           \n\t"
 		"                                \n\t"
-		"fldd   d20, [%5, #32]           \n\t"
 		"fldd   d21, [%5, #40]           \n\t"
 		"fldd   d22, [%5, #48]           \n\t"
 		"fldd   d23, [%5, #56]           \n\t"
 		"                                \n\t"
-		"fldd   d24, [%5, #64]           \n\t"
-		"fldd   d25, [%5, #72]           \n\t"
 		"fldd   d26, [%5, #80]           \n\t"
 		"fldd   d27, [%5, #88]           \n\t"
 		"                                \n\t"
-		"fldd   d28, [%5, #96]           \n\t"
-		"fldd   d29, [%5, #104]          \n\t"
-		"fldd   d30, [%5, #112]          \n\t"
 		"fldd   d31, [%5, #120]          \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -537,114 +476,152 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 		"faddd  d2, d2, d18              \n\t"
 		"faddd  d3, d3, d19              \n\t"
 		"                                \n\t"
-		"faddd  d4, d4, d20              \n\t"
 		"faddd  d5, d5, d21              \n\t"
 		"faddd  d6, d6, d22              \n\t"
 		"faddd  d7, d7, d23              \n\t"
 		"                                \n\t"
-		"faddd  d8, d8, d24              \n\t"
-		"faddd  d9, d9, d25              \n\t"
 		"faddd  d10, d10, d26            \n\t"
 		"faddd  d11, d11, d27            \n\t"
 		"                                \n\t"
-		"faddd  d12, d12, d28            \n\t"
-		"faddd  d13, d13, d29            \n\t"
-		"faddd  d14, d14, d30            \n\t"
 		"faddd  d15, d15, d31            \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"fldd   d16, [%7, #0]            \n\t" // load fact elements
-		"fldd   d17, [%7, #8]            \n\t"
-		"fldd   d18, [%7, #16]           \n\t"
-		"fldd   d19, [%7, #24]           \n\t"
-		"fldd   d20, [%7, #32]           \n\t"
-		"fldd   d21, [%7, #40]           \n\t"
-		"fldd   d22, [%7, #48]           \n\t"
-		"fldd   d23, [%7, #56]           \n\t"
-		"fldd   d24, [%7, #64]           \n\t"
-		"fldd   d25, [%7, #72]           \n\t"
+		"fconstd d8, #112                \n\t" // 1.0
+		"                                \n\t"
+		"fldd	d4, .DTHRESHOLD          \n\t" // 1e-15
 		"                                \n\t"
 		"                                \n\t"
+	// first column
+		"fcmped	d0, d4                   \n\t"
+		"fmstat                          \n\t"
+		"ble    .DELSE1                  \n\t"
 		"                                \n\t"
-		"fmuld  d0, d0, d16              \n\t"
-		"fmuld  d1, d1, d16              \n\t"
-		"fmuld  d2, d2, d16              \n\t"
-		"fmuld  d3, d3, d16              \n\t"
+		"fsqrtd d0, d0                   \n\t"
+		"fstd   d0, [%6, #0]             \n\t"
+		"fdivd	d0, d8, d0               \n\t"
+		"fmuld	d1, d1, d0               \n\t"
+		"fmuld	d2, d2, d0               \n\t"
+		"fmuld	d3, d3, d0               \n\t"
 		"                                \n\t"
-		"fstd   d0, [%6, #0]             \n\t" // store result
+		"b      .DELSE1END               \n\t"
+		"                                \n\t"
+		".DELSE1:                        \n\t"
+		"                                \n\t"
+		"fldd	d0, .DTHRESHOLD+8        \n\t"
+		"fstd   d0, [%6, #0]             \n\t"
+		"fcpyd	d1, d0                   \n\t"
+		"fcpyd	d2, d0                   \n\t"
+		"fcpyd	d3, d0                   \n\t"
+		"                                \n\t"
+		".DELSE1END:                     \n\t"
+		"                                \n\t"
 		"fstd   d1, [%6, #8]             \n\t"
 		"fstd   d2, [%6, #16]            \n\t"
 		"fstd   d3, [%6, #24]            \n\t"
 		"                                \n\t"
 		"                                \n\t"
+	// second column
+		"fnmacd d5, d1, d1               \n\t"
+		"fcmped	d5, d4                   \n\t"
+		"fmstat                          \n\t"
+		"ble    .DELSE2                  \n\t"
 		"                                \n\t"
-		"fnmacd d4, d0, d17              \n\t"
-		"fnmacd d5, d1, d17              \n\t"
-		"fnmacd d6, d2, d17              \n\t"
-		"fnmacd d7, d3, d17              \n\t"
-		"                                \n\t"
-		"fmuld  d4, d4, d18              \n\t"
-		"fmuld  d5, d5, d18              \n\t"
-		"fmuld  d6, d6, d18              \n\t"
-		"fmuld  d7, d7, d18              \n\t"
-		"                                \n\t"
-		"fstd   d4, [%6, #32]            \n\t"
+		"fsqrtd d5, d5                   \n\t"
+		"fnmacd d6, d1, d2               \n\t"
+		"fnmacd d7, d1, d3               \n\t"
 		"fstd   d5, [%6, #40]            \n\t"
+		"fdivd	d5, d8, d5               \n\t"
+		"fmuld	d6, d6, d5               \n\t"
+		"fmuld	d7, d7, d5               \n\t"
+		"                                \n\t"
+		"b      .DELSE2END               \n\t"
+		"                                \n\t"
+		".DELSE2:                        \n\t"
+		"                                \n\t"
+		"fldd	d5, .DTHRESHOLD+8        \n\t"
+		"fstd   d5, [%6, #40]            \n\t"
+		"fcpyd	d6, d5                   \n\t"
+		"fcpyd	d7, d5                   \n\t"
+		"                                \n\t"
+		".DELSE2END:                     \n\t"
+		"                                \n\t"
 		"fstd   d6, [%6, #48]            \n\t"
 		"fstd   d7, [%6, #56]            \n\t"
 		"                                \n\t"
 		"                                \n\t"
+	// third column
+		"fnmacd d10, d2, d2              \n\t"
+		"fnmacd d10, d6, d6              \n\t"
+		"fcmped	d10, d4                  \n\t"
+		"fmstat                          \n\t"
+		"ble    .DELSE3                  \n\t"
 		"                                \n\t"
-		"fnmacd d8, d0, d19              \n\t"
-		"fnmacd d9, d1, d19              \n\t"
-		"fnmacd d10, d2, d19             \n\t"
-		"fnmacd d11, d3, d19             \n\t"
-		"                                \n\t"
-		"fnmacd d8, d4, d20              \n\t"
-		"fnmacd d9, d5, d20              \n\t"
-		"fnmacd d10, d6, d20             \n\t"
-		"fnmacd d11, d7, d20             \n\t"
-		"                                \n\t"
-		"fmuld  d8, d8, d21              \n\t"
-		"fmuld  d9, d9, d21              \n\t"
-		"fmuld  d10, d10, d21            \n\t"
-		"fmuld  d11, d11, d21            \n\t"
-		"                                \n\t"
-		"fstd   d8, [%6, #64]            \n\t"
-		"fstd   d9, [%6, #72]            \n\t"
+		"fsqrtd d10, d10                 \n\t"
+		"fnmacd d11, d6, d7              \n\t"
+		"fnmacd d11, d2, d3              \n\t"
 		"fstd   d10, [%6, #80]           \n\t"
+		"fdivd	d10, d8, d10             \n\t"
+		"fmuld	d11, d11, d10            \n\t"
+		"                                \n\t"
+		"b      .DELSE3END               \n\t"
+		"                                \n\t"
+		".DELSE3:                        \n\t"
+		"                                \n\t"
+		"fldd	d10, .DTHRESHOLD+8       \n\t"
+		"fstd   d10, [%6, #80]           \n\t"
+		"fcpyd	d11, d10                 \n\t"
+		"                                \n\t"
+		".DELSE3END:                     \n\t"
+		"                                \n\t"
 		"fstd   d11, [%6, #88]           \n\t"
 		"                                \n\t"
 		"                                \n\t"
+	// fourth column
+		"fnmacd d15, d3, d3              \n\t"
+		"fnmacd d15, d7, d7              \n\t"
+		"fnmacd d15, d11, d11            \n\t"
+		"fcmped	d15, d4                  \n\t"
+		"fmstat                          \n\t"
+		"ble    .DELSE4                  \n\t"
 		"                                \n\t"
-		"fnmacd d12, d0, d22             \n\t"
-		"fnmacd d13, d1, d22             \n\t"
-		"fnmacd d14, d2, d22             \n\t"
-		"fnmacd d15, d3, d22             \n\t"
+		"fsqrtd d15, d15                 \n\t"
+		"fstd   d15, [%6, #120]          \n\t"
+		"fdivd	d15, d8, d15             \n\t"
 		"                                \n\t"
-		"fnmacd d12, d4, d23             \n\t"
-		"fnmacd d13, d5, d23             \n\t"
-		"fnmacd d14, d6, d23             \n\t"
-		"fnmacd d15, d7, d23             \n\t"
+		"b      .DELSE4END               \n\t"
 		"                                \n\t"
-		"fnmacd d12, d8, d24             \n\t"
-		"fnmacd d13, d9, d24             \n\t"
-		"fnmacd d14, d10, d24            \n\t"
-		"fnmacd d15, d11, d24            \n\t"
+		".DELSE4:                        \n\t"
 		"                                \n\t"
-		"fmuld  d12, d12, d25            \n\t"
-		"fmuld  d13, d13, d25            \n\t"
-		"fmuld  d14, d14, d25            \n\t"
-		"fmuld  d15, d15, d25            \n\t"
-		"                                \n\t"
-		"fstd   d12, [%6, #96]           \n\t"
-		"fstd   d13, [%6, #104]          \n\t"
-		"fstd   d14, [%6, #112]          \n\t"
+		"fldd	d15, .DTHRESHOLD+8       \n\t"
 		"fstd   d15, [%6, #120]          \n\t"
 		"                                \n\t"
+		".DELSE4END:                     \n\t"
 		"                                \n\t"
 		"                                \n\t"
+		"                                \n\t"
+		"fstd   d0, [%7, #0]             \n\t" // 0
+		"fstd   d1, [%7, #8]             \n\t" // 1
+		"fstd   d2, [%7, #24]            \n\t" // 3
+		"fstd   d3, [%7, #48]            \n\t" // 6
+		"fstd   d5, [%7, #16]            \n\t" // 2
+		"fstd   d6, [%7, #32]            \n\t" // 4
+		"fstd   d7, [%7, #56]            \n\t" // 7
+		"fstd   d10, [%7, #40]           \n\t" // 5
+		"fstd   d11, [%7, #64]           \n\t" // 8
+		"fstd   d15, [%7, #72]           \n\t" // 9
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"b      .DTHRESHOLDEND           \n\t"
+		".align 3                        \n\t"
+		".DTHRESHOLD:                    \n\t" // 1e-15 double word
+		".word  -1629006314              \n\t"
+		".word  1020396463               \n\t"
+		".word  0                        \n\t"
+		".word  0                        \n\t"
+		".DTHRESHOLDEND:                 \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -671,7 +648,7 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 
 
 
-void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
+void kernel_dpotrf_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
 	{
 
 	const int bs = 4;
@@ -683,9 +660,9 @@ void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 	double
 		a_0, a_1, a_2, a_3,
 		b_0, b_1,
-		c_00=0, c_01=0,
-		c_10=0, c_11=0,
-		c_20=0, c_21=0,
+		c_00=0, 
+		c_10=0, c_11=0, 
+		c_20=0, c_21=0,  
 		c_30=0, c_31=0;
 		
 	for(k=0; k<kadd-3; k+=4)
@@ -704,7 +681,6 @@ void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_20 += a_2 * b_0;
 		c_30 += a_3 * b_0;
 
-		c_01 += a_0 * b_1;
 		c_11 += a_1 * b_1;
 		c_21 += a_2 * b_1;
 		c_31 += a_3 * b_1;
@@ -723,7 +699,6 @@ void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_20 += a_2 * b_0;
 		c_30 += a_3 * b_0;
 
-		c_01 += a_0 * b_1;
 		c_11 += a_1 * b_1;
 		c_21 += a_2 * b_1;
 		c_31 += a_3 * b_1;
@@ -742,7 +717,6 @@ void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_20 += a_2 * b_0;
 		c_30 += a_3 * b_0;
 
-		c_01 += a_0 * b_1;
 		c_11 += a_1 * b_1;
 		c_21 += a_2 * b_1;
 		c_31 += a_3 * b_1;
@@ -761,7 +735,6 @@ void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_20 += a_2 * b_0;
 		c_30 += a_3 * b_0;
 
-		c_01 += a_0 * b_1;
 		c_11 += a_1 * b_1;
 		c_21 += a_2 * b_1;
 		c_31 += a_3 * b_1;
@@ -787,7 +760,6 @@ void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_20 += a_2 * b_0;
 		c_30 += a_3 * b_0;
 
-		c_01 += a_0 * b_1;
 		c_11 += a_1 * b_1;
 		c_21 += a_2 * b_1;
 		c_31 += a_3 * b_1;
@@ -823,7 +795,6 @@ void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_20 -= a_2 * b_0;
 		c_30 -= a_3 * b_0;
 
-		c_01 -= a_0 * b_1;
 		c_11 -= a_1 * b_1;
 		c_21 -= a_2 * b_1;
 		c_31 -= a_3 * b_1;
@@ -842,7 +813,6 @@ void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_20 -= a_2 * b_0;
 		c_30 -= a_3 * b_0;
 
-		c_01 -= a_0 * b_1;
 		c_11 -= a_1 * b_1;
 		c_21 -= a_2 * b_1;
 		c_31 -= a_3 * b_1;
@@ -861,7 +831,6 @@ void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_20 -= a_2 * b_0;
 		c_30 -= a_3 * b_0;
 
-		c_01 -= a_0 * b_1;
 		c_11 -= a_1 * b_1;
 		c_21 -= a_2 * b_1;
 		c_31 -= a_3 * b_1;
@@ -880,7 +849,6 @@ void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_20 -= a_2 * b_0;
 		c_30 -= a_3 * b_0;
 
-		c_01 -= a_0 * b_1;
 		c_11 -= a_1 * b_1;
 		c_21 -= a_2 * b_1;
 		c_31 -= a_3 * b_1;
@@ -896,343 +864,73 @@ void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 	c_20 += C[2+ldc*0];
 	c_30 += C[3+ldc*0];
 
-	c_01 += C[0+ldc*1];
 	c_11 += C[1+ldc*1];
 	c_21 += C[2+ldc*1];
 	c_31 += C[3+ldc*1];
 	
-	// dtrsm
-	double
-		a_00, a_10, a_11;
+	// dpotrf
 	
-	a_00 = fact[0];
-	c_00 *= a_00;
-	c_10 *= a_00;
-	c_20 *= a_00;
-	c_30 *= a_00;
-	D[0+ldc*0] = c_00;
+	// first column
+	if(c_00 > 1e-15)
+		{
+		c_00 = sqrt(c_00);
+		D[0+ldc*0] = c_00;
+		c_00 = 1.0/c_00;
+		c_10 *= c_00;
+		c_20 *= c_00;
+		c_30 *= c_00;
+		}
+	else
+		{
+		c_00 = 0.0;
+		D[0+ldc*0] = c_00;
+		c_10 = 0.0;
+		c_20 = 0.0;
+		c_30 = 0.0;
+		}
 	D[1+ldc*0] = c_10;
 	D[2+ldc*0] = c_20;
 	D[3+ldc*0] = c_30;
-
-	a_10 = fact[1];
-	a_11 = fact[2];
-	c_01 -= c_00*a_10;
-	c_11 -= c_10*a_10;
-	c_21 -= c_20*a_10;
-	c_31 -= c_30*a_10;
-	c_01 *= a_11;
-	c_11 *= a_11;
-	c_21 *= a_11;
-	c_31 *= a_11;
-	D[0+ldc*1] = c_01;
-	D[1+ldc*1] = c_11;
+	
+	// second column
+	c_11 -= c_10*c_10;
+	if(c_11 > 1e-15)
+		{
+		c_11 = sqrt(c_11);
+		D[1+ldc*1] = c_11;
+		c_11 = 1.0/c_11;
+		c_21 -= c_20*c_10;
+		c_31 -= c_30*c_10;
+		c_21 *= c_11;
+		c_31 *= c_11;
+		}
+	else
+		{
+		c_11 = 0.0;
+		D[1+ldc*1] = c_11;
+		c_21 = 0.0;
+		c_31 = 0.0;
+		}
 	D[2+ldc*1] = c_21;
 	D[3+ldc*1] = c_31;
 
-	}
-	
-	
-	
-void kernel_dtrsm_pp_nt_2x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
-	{
-
-	const int bs = 4;
-	const int d_ncl = 2;
-	const int lda = bs;
-
-	int k;
-
-	double
-		a_0, a_1,
-		b_0, b_1, b_2, b_3,
-		c_00=0, c_01=0, c_02=0, c_03=0,
-		c_10=0, c_11=0, c_12=0, c_13=0;
-		
-	for(k=0; k<kadd-3; k+=4)
-		{
-		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		b_2 = B[2+lda*0];
-		b_3 = B[3+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-
-
-		a_0 = A[0+lda*1];
-		a_1 = A[1+lda*1];
-		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
-		b_2 = B[2+lda*1];
-		b_3 = B[3+lda*1];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-
-
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
-		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
-		b_2 = B[2+lda*2];
-		b_3 = B[3+lda*2];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-
-
-		a_0 = A[0+lda*3];
-		a_1 = A[1+lda*3];
-		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
-		b_2 = B[2+lda*3];
-		b_3 = B[3+lda*3];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-		
-		
-		A += 16;
-		B += 16;
-
-		}
-	for(; k<kadd; k++)
-		{
-		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		b_2 = B[2+lda*0];
-		b_3 = B[3+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-
-
-		A += 4;
-		B += 4;
-
-		}
-
-	if(ksub>0)
-		{
-		if(kadd>0)
-			{
-			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			}
-		}
-
-	for(k=0; k<ksub-3; k+=4)
-		{
-		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		b_2 = B[2+lda*0];
-		b_3 = B[3+lda*0];
-		
-		c_00 -= a_0 * b_0;
-		c_10 -= a_1 * b_0;
-
-		c_01 -= a_0 * b_1;
-		c_11 -= a_1 * b_1;
-
-		c_02 -= a_0 * b_2;
-		c_12 -= a_1 * b_2;
-
-		c_03 -= a_0 * b_3;
-		c_13 -= a_1 * b_3;
-
-
-		a_0 = A[0+lda*1];
-		a_1 = A[1+lda*1];
-		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
-		b_2 = B[2+lda*1];
-		b_3 = B[3+lda*1];
-		
-		c_00 -= a_0 * b_0;
-		c_10 -= a_1 * b_0;
-
-		c_01 -= a_0 * b_1;
-		c_11 -= a_1 * b_1;
-
-		c_02 -= a_0 * b_2;
-		c_12 -= a_1 * b_2;
-
-		c_03 -= a_0 * b_3;
-		c_13 -= a_1 * b_3;
-
-
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
-		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
-		b_2 = B[2+lda*2];
-		b_3 = B[3+lda*2];
-		
-		c_00 -= a_0 * b_0;
-		c_10 -= a_1 * b_0;
-
-		c_01 -= a_0 * b_1;
-		c_11 -= a_1 * b_1;
-
-		c_02 -= a_0 * b_2;
-		c_12 -= a_1 * b_2;
-
-		c_03 -= a_0 * b_3;
-		c_13 -= a_1 * b_3;
-
-
-		a_0 = A[0+lda*3];
-		a_1 = A[1+lda*3];
-		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
-		b_2 = B[2+lda*3];
-		b_3 = B[3+lda*3];
-		
-		c_00 -= a_0 * b_0;
-		c_10 -= a_1 * b_0;
-
-		c_01 -= a_0 * b_1;
-		c_11 -= a_1 * b_1;
-
-		c_02 -= a_0 * b_2;
-		c_12 -= a_1 * b_2;
-
-		c_03 -= a_0 * b_3;
-		c_13 -= a_1 * b_3;
-		
-		
-		A += 16;
-		B += 16;
-
-		}
-
-	c_00 += C[0+ldc*0];
-	c_10 += C[1+ldc*0];
-
-	c_01 += C[0+ldc*1];
-	c_11 += C[1+ldc*1];
-
-	c_02 += C[0+ldc*2];
-	c_12 += C[1+ldc*2];
-
-	c_03 += C[0+ldc*3];
-	c_13 += C[1+ldc*3];
-	
-	// dtrsm
-	double
-		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33;
-	
-	a_00 = fact[0];
-	c_00 *= a_00;
-	c_10 *= a_00;
-	D[0+ldc*0] = c_00;
-	D[1+ldc*0] = c_10;
-
-	a_10 = fact[1];
-	a_11 = fact[2];
-	c_01 -= c_00*a_10;
-	c_11 -= c_10*a_10;
-	c_01 *= a_11;
-	c_11 *= a_11;
-	D[0+ldc*1] = c_01;
-	D[1+ldc*1] = c_11;
-
-	a_20 = fact[3];
-	a_21 = fact[4];
-	a_22 = fact[5];
-	c_02 -= c_00*a_20;
-	c_12 -= c_10*a_20;
-	c_02 -= c_01*a_21;
-	c_12 -= c_11*a_21;
-	c_02 *= a_22;
-	c_12 *= a_22;
-	D[0+ldc*2] = c_02;
-	D[1+ldc*2] = c_12;
-
-	a_30 = fact[6];
-	a_31 = fact[7];
-	a_32 = fact[8];
-	a_33 = fact[9];
-	c_03 -= c_00*a_30;
-	c_13 -= c_10*a_30;
-	c_03 -= c_01*a_31;
-	c_13 -= c_11*a_31;
-	c_03 -= c_02*a_32;
-	c_13 -= c_12*a_32;
-	c_03 *= a_33;
-	c_13 *= a_33;
-	D[0+ldc*3] = c_03;
-	D[1+ldc*3] = c_13;
+	// save factorized matrix with reciprocal of diagonal
+	fact[0] = c_00;
+	fact[1] = c_10;
+	fact[3] = c_20;
+	fact[6] = c_30;
+	fact[2] = c_11;
+	fact[4] = c_21;
+	fact[7] = c_31;
+/*	fact[5] = c_22;*/
+/*	fact[8] = c_32;*/
+/*	fact[9] = c_33;*/
 
 	}
-	
-	
-	
-void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
+
+
+
+void kernel_dpotrf_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
 	{
 
 	const int bs = 4;
@@ -1244,7 +942,7 @@ void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 	double
 		a_0, a_1,
 		b_0, b_1,
-		c_00=0, c_01=0,
+		c_00=0, 
 		c_10=0, c_11=0;
 		
 	for(k=0; k<kadd-3; k+=4)
@@ -1259,7 +957,6 @@ void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
 
-		c_01 += a_0 * b_1;
 		c_11 += a_1 * b_1;
 
 
@@ -1272,7 +969,6 @@ void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
 
-		c_01 += a_0 * b_1;
 		c_11 += a_1 * b_1;
 
 
@@ -1285,7 +981,6 @@ void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
 
-		c_01 += a_0 * b_1;
 		c_11 += a_1 * b_1;
 
 
@@ -1298,7 +993,6 @@ void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
 
-		c_01 += a_0 * b_1;
 		c_11 += a_1 * b_1;
 		
 		
@@ -1318,7 +1012,6 @@ void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
 
-		c_01 += a_0 * b_1;
 		c_11 += a_1 * b_1;
 
 
@@ -1348,7 +1041,6 @@ void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
 
-		c_01 -= a_0 * b_1;
 		c_11 -= a_1 * b_1;
 
 
@@ -1361,7 +1053,6 @@ void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
 
-		c_01 -= a_0 * b_1;
 		c_11 -= a_1 * b_1;
 
 
@@ -1374,7 +1065,6 @@ void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
 
-		c_01 -= a_0 * b_1;
 		c_11 -= a_1 * b_1;
 
 
@@ -1387,7 +1077,6 @@ void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
 
-		c_01 -= a_0 * b_1;
 		c_11 -= a_1 * b_1;
 		
 		
@@ -1399,30 +1088,53 @@ void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 	c_00 += C[0+ldc*0];
 	c_10 += C[1+ldc*0];
 
-	c_01 += C[0+ldc*1];
 	c_11 += C[1+ldc*1];
 	
-	// dtrsm
-	double
-		a_00, a_10, a_11;
+	// dpotrf
 	
-	a_00 = fact[0];
-	c_00 *= a_00;
-	c_10 *= a_00;
-	D[0+ldc*0] = c_00;
+	// first column
+	if(c_00 > 1e-15)
+		{
+		c_00 = sqrt(c_00);
+		D[0+ldc*0] = c_00;
+		c_00 = 1.0/c_00;
+		c_10 *= c_00;
+		}
+	else
+		{
+		c_00 = 0.0;
+		D[0+ldc*0] = c_00;
+		c_10 = 0.0;
+		}
 	D[1+ldc*0] = c_10;
+	
+	// second column
+	c_11 -= c_10*c_10;
+	if(c_11 > 1e-15)
+		{
+		c_11 = sqrt(c_11);
+		D[1+ldc*1] = c_11;
+		}
+	else
+		{
+		c_11 = 0.0;
+		D[1+ldc*1] = c_11;
+		}
 
-	a_10 = fact[1];
-	a_11 = fact[2];
-	c_01 -= c_00*a_10;
-	c_11 -= c_10*a_10;
-	c_01 *= a_11;
-	c_11 *= a_11;
-	D[0+ldc*1] = c_01;
-	D[1+ldc*1] = c_11;
+	// save factorized matrix with reciprocal of diagonal
+	fact[0] = c_00;
+	fact[1] = c_10;
+/*	fact[3] = c_20;*/
+/*	fact[6] = c_30;*/
+	fact[2] = c_11;
+/*	fact[4] = c_21;*/
+/*	fact[7] = c_31;*/
+/*	fact[5] = c_22;*/
+/*	fact[8] = c_32;*/
+/*	fact[9] = c_33;*/
 
 	}
-	
-	
-	
+
+
+
 

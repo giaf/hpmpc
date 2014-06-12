@@ -40,14 +40,14 @@ plot(B(:,1), B(:,16), 'k-d')%, 'LineWidth', 2)
 plot(B(:,1), B(:,18), 'g-^')%, 'LineWidth', 2)
 plot(B(:,1), B(:,20), 'm-*')%, 'LineWidth', 2)
 plot(B(:,1), B(:,22), 'b-o')%, 'LineWidth', 2)
-plot(B(:,1), B(:,24), 'r-x')%, 'LineWidth', 2)
+#plot(B(:,1), B(:,24), 'r-x')%, 'LineWidth', 2)
 hold off
 
 title(['test HPMPC BLAS'])
 xlabel('matrix size n')
 ylabel('Gflops')
 axis([0 B(end,1) 0 A(1)*A(2)])
-legend('gemm', 'syrk', 'trmm', 'potrf','gemv\_n', 'gemv\_t','trmv\_n', 'trmv\_t','trsv\_n', 'trsv\_t','symv', 'mvmv', 'Location', 'NorthEast')
+legend('gemm', 'syrk_dpotrf', 'trmm', 'gemv\_n', 'gemv\_t','trmv\_n', 'trmv\_t','trsv\_n', 'trsv\_t','symv', 'mvmv', 'Location', 'NorthEast')
 
 W = 6; H = 5;
 set(f1,'PaperUnits','inches')

@@ -26,11 +26,11 @@
 include ../../Makefile.rule
 
 ifeq ($(TARGET), CORTEX_A15)
-OBJS_DOUBLE = kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_c99_lib4.o kernel_dtrsm_vfpv3_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4.o kernel_dsymv_c99_lib4.o kernel_dtran_c99_lib4.o
+OBJS_DOUBLE = kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_c99_lib4.o kernel_dtrsm_vfpv3_lib4.o kernel_dpotrf_vfpv3_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4.o kernel_dsymv_c99_lib4.o kernel_dtran_c99_lib4.o
 OBJS_SINGLE = kernel_sgemm_neon_lib4.o #kernel_spotrf_sse_lib4.o kernel_sgemv_sse_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_sse_lib4.o
 endif
 ifeq ($(TARGET), CORTEX_A9)
-OBJS_DOUBLE = kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_c99_lib4.o kernel_dtrsm_c99_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4.o kernel_dsymv_c99_lib4.o kernel_dtran_c99_lib4.o
+OBJS_DOUBLE = kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_c99_lib4.o kernel_dtrsm_vfpv3_lib4.o kernel_dpotrf_vfpv3_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4.o kernel_dsymv_c99_lib4.o kernel_dtran_c99_lib4.o
 OBJS_SINGLE = kernel_sgemm_neon_lib4.o #kernel_spotrf_sse_lib4.o kernel_sgemv_sse_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_sse_lib4.o
 endif
 
