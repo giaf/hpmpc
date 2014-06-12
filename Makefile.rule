@@ -55,7 +55,7 @@ ifeq ($(TARGET), C99_4X4)
 CFLAGS = $(COMMON_FLAGS) -DTARGET_C99_4X4 $(DEBUG)
 endif
 ifeq ($(TARGET), CORTEX_A15)
-CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a15 -DTARGET_CORTEX_A15 $(DEBUG)
+CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon-vfpv4 -mcpu=cortex-a15 -DTARGET_CORTEX_A15 $(DEBUG)
 endif
 ifeq ($(TARGET), CORTEX_A9)
 CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_CORTEX_A9 $(DEBUG)

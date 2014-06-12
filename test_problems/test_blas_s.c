@@ -39,7 +39,7 @@ int main()
 	{
 		
 	// maximum frequency of the processor
-	const float GHz_max = 1.0; //3.6; //2.9;
+	const float GHz_max = 2.3; //3.6; //2.9;
 
 	// maximum flops per cycle, single precision
 #if defined(TARGET_X64_AVX)
