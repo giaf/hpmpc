@@ -266,7 +266,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-//			dsymv_p_lib(n, 0, pA, pnd, x, y, 0);
+			dsymv_p_lib(n, 0, pA, pnd, x, y, 0);
 
 			}
 	
@@ -275,7 +275,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-//			dmvmv_p_lib(n, n, 0, pA, pnd, x, y, x2, y2, 0);
+			dmvmv_p_lib(n, n, 0, pA, pnd, x, y, x2, y2, 0);
 
 			}
 	
