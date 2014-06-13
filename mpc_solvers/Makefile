@@ -25,6 +25,9 @@
 
 include ../Makefile.rule
 
+ifeq ($(TARGET), X64_AVX2)
+OBJS = d_ip_box.o dres_ip_box.o d_aux_ip_avx_lib4.o d_ip2_box.o #s_ip_box.o s_ip2_box.o sres_ip_box.o 
+endif
 ifeq ($(TARGET), X64_AVX)
 OBJS = d_ip_box.o dres_ip_box.o d_aux_ip_avx_lib4.o d_ip2_box.o #s_ip_box.o s_ip2_box.o sres_ip_box.o 
 endif

@@ -33,9 +33,10 @@
 # POWERPC_G2 : machine supporting 32-bit PowerPC Architecture, code optimized for G2 core (a variant of PowerPC 603e processor).
 # C99_4X4    : c99 reference code, performing better on a machine with at least 32 scalar registers.
 # C99_2X2    : c99 reference code, performing better on a machine with at least 8 scalar registers.
+TARGET = X64_AVX2
 #TARGET = X64_AVX
 #TARGET = C99_4X4
-TARGET = CORTEX_A15
+#TARGET = CORTEX_A15
 #TARGET = CORTEX_A9
 
 # C Compiler
@@ -48,6 +49,9 @@ DEBUG = #-Wall -pedantic -Wfloat-equal #-pg
 LDFLAGS =
 
 # architecture-specific optimization flags
+ifeq ($(TARGET), X64_AVX2)
+CFLAGS = $(COMMON_FLAGS) -mavx2 -mfma -DTARGET_X64_AVX2 $(DEBUG)
+endif
 ifeq ($(TARGET), X64_AVX)
 CFLAGS = $(COMMON_FLAGS) -mavx -DTARGET_X64_AVX $(DEBUG)
 endif

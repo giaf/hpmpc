@@ -39,10 +39,12 @@ int main()
 	{
 		
 	// maximum frequency of the processor
-	const float GHz_max = 2.3; //3.6; //2.9;
+	const float GHz_max = 3.3; //3.6; //2.9;
 
 	// maximum flops per cycle, double precision
-#if defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX2)
+	const float d_flops_max = 16;
+#elif defined(TARGET_X64_AVX)
 	const float d_flops_max = 8;
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	const float d_flops_max = 4;
@@ -63,7 +65,10 @@ int main()
 	FILE *f;
 	f = fopen("./test_problems/results/test_blas.m", "w"); // a
 
-#if defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX2)
+	fprintf(f, "C = 'd_x64_avx2';\n");
+	fprintf(f, "\n");
+#elif defined(TARGET_X64_AVX)
 	fprintf(f, "C = 'd_x64_avx';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)

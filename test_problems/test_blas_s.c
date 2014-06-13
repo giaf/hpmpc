@@ -39,10 +39,12 @@ int main()
 	{
 		
 	// maximum frequency of the processor
-	const float GHz_max = 2.3; //3.6; //2.9;
+	const float GHz_max = 3.3; //3.6; //2.9;
 
 	// maximum flops per cycle, single precision
-#if defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX2)
+	const float d_flops_max = 32;
+#elif defined(TARGET_X64_AVX)
 	const float d_flops_max = 16;
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	const float d_flops_max = 8;
@@ -63,7 +65,10 @@ int main()
 	FILE *f;
 	f = fopen("./test_problems/results/test_blas.m", "w"); // a
 
-#if defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX2)
+	fprintf(f, "C = 's_x64_avx2';\n");
+	fprintf(f, "\n");
+#elif defined(TARGET_X64_AVX)
 	fprintf(f, "C = 's_x64_avx';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
@@ -140,8 +145,9 @@ int main()
 			sB[i*(n+1)] = 1;
 	
 		int pns = ((n+bss-1)/bss)*bss;	
+		int cns = pns;
 /*		int cns = ((n+S_NCL-1)/S_NCL)*S_NCL;	*/
-		int cns = ((n+8-1)/8)*8;	
+/*		int cns = ((n+8-1)/8)*8;	*/
 
 		float *pA; s_zeros_align(&pA, pns, cns);
 		float *pB; s_zeros_align(&pB, pns, cns);

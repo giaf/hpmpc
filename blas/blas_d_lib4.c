@@ -41,7 +41,7 @@ void dgemm_ppp_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int 
 	int i, j, jj;
 	
 	i = 0;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
@@ -114,7 +114,7 @@ void dtrmm_ppp_lib(int m, int n, double *pA, int sda, double *pB, int sdb, doubl
 	int i, j;
 	
 	i = 0;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
@@ -179,7 +179,7 @@ void dsyrk_dpotrf_pp_lib(int m, int k, int n, double *pA, int sda, double *pC, i
 		i = j;
 		if(i<m-4)
 			{
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			kernel_dpotrf_pp_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);
 			i += 8;
 #else
@@ -190,7 +190,7 @@ void dsyrk_dpotrf_pp_lib(int m, int k, int n, double *pA, int sda, double *pC, i
 			diag[j+1] = fact[2];
 			diag[j+2] = fact[5];
 			diag[j+3] = fact[9];
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			for(; i<m-4; i+=8)
 				{
 				kernel_dtrsm_pp_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);
@@ -223,7 +223,7 @@ void dsyrk_dpotrf_pp_lib(int m, int k, int n, double *pA, int sda, double *pC, i
 			diag[j+0] = fact[0];
 			diag[j+1] = fact[2];
 			i += 4;
-#if defined(TARGET_AVX)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			for(; i<m-4; i+=8)
 				{
 				kernel_dtrsm_pp_nt_8x2_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);

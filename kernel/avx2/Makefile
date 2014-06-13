@@ -23,29 +23,15 @@
 #                                                                                                 #
 ###################################################################################################
 
-include ../Makefile.rule
+include ../../Makefile.rule
 
-LIBS = -lm #-lopenblas
+ifeq ($(TARGET), X64_AVX2)
+OBJS_DOUBLE = kernel_dgemm_avx2_lib4.o kernel_dtrmm_avx_lib4.o kernel_dtrsm_avx_lib4.o kernel_dpotrf_avx_lib4.o kernel_dgemv_avx_lib4.o kernel_dtrmv_avx_lib4.o kernel_dtrsv_avx_lib4.o kernel_dsymv_avx_lib4.o kernel_dtran_avx_lib4.o
+OBJS_SINGLE = kernel_sgemm_avx_lib8.o #kernel_spotrf_sse_lib4.o kernel_sgemv_sse_lib4.o corner_strmm_sse_lib4.o corner_spotrf_c99_lib4.o kernel_ssymv_sse_lib4.o
+endif
 
-#OBJS_TEST = test_blas_d_orig.o
-OBJS_TEST = test_blas_s_orig.o
-#OBJS_TEST = test_blas_d.o
-#OBJS_TEST = test_blas_s.o
-#OBJS_TEST = tools.o test_dricposv.o
-#OBJS_TEST = tools.o test_sricposv.o
-#OBJS_TEST = tools.o test_d_ip_box.o
-#OBJS_TEST = tools.o test_s_ip_box.o
-
-obj: $(OBJS_TEST)
-	$(CC) -o test.out $(OBJS_TEST) -L. libhpmpc.a $(LIBS) #-pg
+obj: $(OBJS_DOUBLE) $(OBJS_SINGLE)
 
 clean:
 	rm -f *.o
-	rm -f test.out
-	rm -f libhpmpc.a
 
-test_blas_d_origin.o: test_blas_d_origin.c test_param.h ../problem_size.h
-test_dricposv.o: test_dricposv.c test_param.h ../problem_size.h
-test_sricposv.o: test_sricposv.c test_param.h ../problem_size.h
-test_d_ip_box.o: test_d_ip_box.c test_param.h ../problem_size.h
-test_s_ip_box.o: test_s_ip_box.c test_param.h ../problem_size.h

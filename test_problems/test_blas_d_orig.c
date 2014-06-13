@@ -134,10 +134,10 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-/*		dgemm_ppp_nt_lib(n, n, n, pA, pn, pB, pn, pC, pn, 0);*/
+		dgemm_ppp_nt_lib(n, n, n, pA, pn, pB, pn, pC, pn, 0);
 /*		dgemm_ppp_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
 /*		dtrmm_ppp_lib(n, n, pA, pn, pB, pn, pC, pn);*/
-		dtrtr_l_p_lib(10, 5, pA+1, pn, pC, pn);
+/*		dtrtr_l_p_lib(10, 5, pA+1, pn, pC, pn);*/
 
 /*		dsyrk_ppp_lib(n, n, pA, pn, pC, pn);*/
 /*		dgemm_ppp_nt_lib(n, n, n, pA, pn, pA, pn, pB, pn, 0);*/
@@ -182,7 +182,7 @@ int main()
 //		d_print_pmat(n, n, bs, pB, pn);
 		d_print_pmat(n, n, bs, pA, pn);
 /*		d_print_mat(n, n, B, n);*/
-/*		d_print_pmat(n, n, bs, pB, pn);*/
+		d_print_pmat(n, n, bs, pB, pn);
 		d_print_pmat(n, n, bs, pC, pn);
 /*		d_print_pmat(n, n, bs, pL, pn);*/
 //		s_print_pmat(n, n, bss, spC, pns);

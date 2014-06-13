@@ -26,6 +26,9 @@
 include ../Makefile.rule
 
 obj:
+ifeq ($(TARGET), X64_AVX2)
+	make -C avx2 obj
+endif
 ifeq ($(TARGET), X64_AVX)
 	make -C avx obj
 endif
@@ -40,6 +43,7 @@ ifeq ($(TARGET), CORTEX_A9)
 endif
 
 clean:
+	make -C avx2 clean
 	make -C avx clean
 	make -C c99 clean
 	make -C neon clean
