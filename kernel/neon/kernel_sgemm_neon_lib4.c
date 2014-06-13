@@ -36,12 +36,6 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 	__builtin_prefetch( A1 );
 	__builtin_prefetch( A2 );
 	__builtin_prefetch( B  );
-#if defined(TARGET_CORTEX_A9)
-	__builtin_prefetch( A0+8 );
-	__builtin_prefetch( A1+8 );
-	__builtin_prefetch( A2+8 );
-	__builtin_prefetch( B +8 );
-#endif
 
 	int k_iter = kmax/4;
 	int k_left = kmax%4;
@@ -56,29 +50,15 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
 		"pld    [%4, #64]                \n\t" // prefetch A2 to L1
 		"pld    [%5, #64]                \n\t" // prefetch B to L1
-#if defined(TARGET_CORTEX_A9)
-		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
-		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
-		"pld    [%4, #96]                \n\t" // prefetch A2 to L1
-		"pld    [%5, #96]                \n\t" // prefetch B to L1
-#endif
 		"                                \n\t"
 		"                                \n\t"
 		"mov    r0, %0                   \n\t" // k_iter
 		"                                \n\t"
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
 		"vld1.64   {d0, d1}, [%5:128]! \n\t" // load B to registers
 		"vld1.64   {d2, d3}, [%2:128]! \n\t" // load A0 to registers
 		"vld1.64   {d4, d5}, [%3:128]! \n\t" // load A1
 /*		"vld1.64   {d6, d7}, [%4:128]! \n\t" // load A1*/
-#endif
-#if defined(TARGET_CORTEX_A9)
-		"vld1.64   {d0, d1}, [%5:128]! \n\t" // load B to registers
-		"vld1.64   {d2, d3}, [%2:128]! \n\t" // load A0 to registers
-		"vld1.64   {d4, d5}, [%3:128]! \n\t" // load A1
-		"vld1.64   {d6, d7}, [%4:128]! \n\t" // load A1
-#endif
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t"
 		"                                \n\t"
@@ -110,7 +90,6 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 		"                                \n\t"
 		".DLOOPKITER12:                    \n\t" // main loop
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
 		"                                \n\t"
 		"vmla.f32  q4, q1, d0[0]        \n\t"
 		"vldr   d6, [%4, #0]             \n\t"
@@ -140,6 +119,7 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 		"vldr   d1, [%3, #8]             \n\t"
 		"                                \n\t"
 		"                                \n\t"
+		"                                \n\t"
 		"vmla.f32  q4, q1, d4[0]        \n\t"
 		"vldr   d6, [%4, #16]             \n\t"
 		"vmla.f32  q5, q1, d4[1]        \n\t"
@@ -149,14 +129,12 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 		"vmla.f32  q7, q1, d5[1]        \n\t"
 		"vldr   d2, [%2, #16]             \n\t"
 		"                                \n\t"
-		"                                \n\t"
 		"vmla.f32  q8, q0, d4[0]        \n\t"
 		"vldr   d3, [%2, #24]             \n\t"
 		"vmla.f32  q9, q0, d4[1]        \n\t"
 		"vmla.f32  q10, q0, d5[0]        \n\t"
 		"vmla.f32  q11, q0, d5[1]        \n\t"
 		"vldr   d0, [%5, #16]             \n\t"
-		"                                \n\t"
 		"                                \n\t"
 		"vmla.f32  q12, q3, d4[0]        \n\t"
 		"vldr   d1, [%5, #24]             \n\t"
@@ -167,13 +145,6 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 		"vmla.f32  q15, q3, d5[1]        \n\t"
 		"vldr   d5, [%3, #24]             \n\t"
 		"                                \n\t"
-		"                                \n\t"
-#if defined(TARGET_CORTEX_A9)
-		"pld    [%2, #160]                \n\t" // prefetch A0 to L1
-		"pld    [%3, #160]                \n\t" // prefetch A1 to L1
-		"pld    [%4, #176]                \n\t" // prefetch A2 to L1
-		"pld    [%5, #160]                \n\t" // prefetch B to L1
-#endif
 		"                                \n\t"
 		"                                \n\t"
 		"vmla.f32  q4, q1, d0[0]        \n\t"
@@ -229,71 +200,6 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 		"add    %3, %3, #64              \n\t" // increase B
 		"                                \n\t"
 		"                                \n\t"
-#endif
-#if defined(TARGET_CORTEX_A9)
-		"                                \n\t"
-/*		"pld    [r1, #96]                \n\t"*/
-/*		"pld    [r2, #96]                \n\t"*/
-/*		"pld    [r3, #96]                \n\t"*/
-/*		"                                \n\t"*/
-/*		"sub    r0, r0, #1               \n\t" // iter++*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q0, q4, d12[0]        \n\t"*/
-/*		"vmla.f32  q1, q4, d12[1]        \n\t"*/
-/*		"vmla.f32  q2, q4, d13[0]        \n\t"*/
-/*		"vmla.f32  q3, q4, d13[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q8, q12, d12[0]        \n\t"*/
-/*		"vmla.f32  q9, q12, d12[1]        \n\t"*/
-/*		"vmla.f32  q10, q12, d13[0]        \n\t"*/
-/*		"vmla.f32  q11, q12, d13[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q0, q5, d14[0]        \n\t"*/
-/*		"vmla.f32  q1, q5, d14[1]        \n\t"*/
-/*		"vmla.f32  q2, q5, d15[0]        \n\t"*/
-/*		"vmla.f32  q3, q5, d15[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q8, q13, d14[0]        \n\t"*/
-/*		"vmla.f32  q9, q13, d14[1]        \n\t"*/
-/*		"vmla.f32  q10, q13, d15[0]        \n\t"*/
-/*		"vmla.f32  q11, q13, d15[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*		"vld1.64   {d12, d13, d14, d15}, [r3:128]! \n\t" // load B*/
-/*		"vld1.64   {d8, d9, d10, d11},   [r1:128]! \n\t" // load A0*/
-/*		"vld1.64   {d24, d25, d26, d27}, [r2:128]! \n\t" // load A0*/
-/*		"                                \n\t"*/
-/*		"                                \n\t"*/
-/*		"pld    [r1, #96]                \n\t"*/
-/*		"pld    [r2, #96]                \n\t"*/
-/*		"pld    [r3, #96]                \n\t"*/
-/*		"                                \n\t"*/
-/*		"cmp    r0, #0                   \n\t" // next iter?*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q0, q4, d12[0]        \n\t"*/
-/*		"vmla.f32  q1, q4, d12[1]        \n\t"*/
-/*		"vmla.f32  q2, q4, d13[0]        \n\t"*/
-/*		"vmla.f32  q3, q4, d13[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q8, q12, d12[0]        \n\t"*/
-/*		"vmla.f32  q9, q12, d12[1]        \n\t"*/
-/*		"vmla.f32  q10, q12, d13[0]        \n\t"*/
-/*		"vmla.f32  q11, q12, d13[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q0, q5, d14[0]        \n\t"*/
-/*		"vmla.f32  q1, q5, d14[1]        \n\t"*/
-/*		"vmla.f32  q2, q5, d15[0]        \n\t"*/
-/*		"vmla.f32  q3, q5, d15[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q8, q13, d14[0]        \n\t"*/
-/*		"vmla.f32  q9, q13, d14[1]        \n\t"*/
-/*		"vmla.f32  q10, q13, d15[0]        \n\t"*/
-/*		"vmla.f32  q11, q13, d15[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*		"vld1.64   {d12, d13, d14, d15}, [r3:128]! \n\t" // load B*/
-/*		"vld1.64   {d8, d9, d10, d11},   [r1:128]! \n\t" // load A0*/
-/*		"vld1.64   {d24, d25, d26, d27}, [r2:128]! \n\t" // load A0*/
-		"                                \n\t"
-#endif
 		"                                \n\t"
 		"bgt    .DLOOPKITER12              \n\t"
 		"                                \n\t"
@@ -302,115 +208,145 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 		"                                \n\t"
 		".DCONSIDERLEFT212:                 \n\t" // consider left k+=2
 		"                                \n\t"
-/*		"mov    r0, %1                   \n\t" // k_left*/
-/*		"cmp    r0, #1                   \n\t"*/
-/*		"ble    .DCONSIDERLEFT14          \n\t"*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q0, q4, d12[0]        \n\t"*/
-/*		"vmla.f32  q1, q4, d12[1]        \n\t"*/
-/*		"vmla.f32  q2, q4, d13[0]        \n\t"*/
-/*		"vmla.f32  q3, q4, d13[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q8, q12, d12[0]        \n\t"*/
-/*		"vmla.f32  q9, q12, d12[1]        \n\t"*/
-/*		"vmla.f32  q10, q12, d13[0]        \n\t"*/
-/*		"vmla.f32  q11, q12, d13[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q0, q5, d14[0]        \n\t"*/
-/*		"vmla.f32  q1, q5, d14[1]        \n\t"*/
-/*		"vmla.f32  q2, q5, d15[0]        \n\t"*/
-/*		"vmla.f32  q3, q5, d15[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q8, q13, d14[0]        \n\t"*/
-/*		"vmla.f32  q9, q13, d14[1]        \n\t"*/
-/*		"vmla.f32  q10, q13, d15[0]        \n\t"*/
-/*		"vmla.f32  q11, q13, d15[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*		"vld1.64   {d12, d13, d14, d15}, [r3:128]! \n\t" // load B*/
-/*		"vld1.64   {d8, d9, d10, d11},   [r1:128]! \n\t" // load A0*/
-/*		"vld1.64   {d24, d25, d26, d27}, [r2:128]! \n\t" // load A0*/
-/*		"                                \n\t"*/
-/*		"sub    r0, r0, #2               \n\t"*/
-/*		"                                \n\t"*/
-/*		"                                \n\t"*/
-/*		"                                \n\t"*/
-/*		".DCONSIDERLEFT14:                 \n\t" // consider left k++*/
-/*		"                                \n\t"*/
-/*		"cmp    r0, #0                   \n\t"*/
-/*		"ble    .DPOSTACCUM4              \n\t"*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q0, q4, d12[0]        \n\t"*/
-/*		"vmla.f32  q1, q4, d12[1]        \n\t"*/
-/*		"vmla.f32  q2, q4, d13[0]        \n\t"*/
-/*		"vmla.f32  q3, q4, d13[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*		"vmla.f32  q8, q12, d12[0]        \n\t"*/
-/*		"vmla.f32  q9, q12, d12[1]        \n\t"*/
-/*		"vmla.f32  q10, q12, d13[0]        \n\t"*/
-/*		"vmla.f32  q11, q12, d13[1]        \n\t"*/
-/*		"                                \n\t"*/
-/*//		"vld1.64   {d12, d13}, [r2:128]  \n\t" // no need to increment pointer*/
-/*//		"vld1.64   {d8, d9}, [r1:128]    \n\t" // no need to increment pointer*/
-/*		"                                \n\t"*/
-/*		"                                \n\t"*/
-/*		"                                \n\t"*/
-/*		".DPOSTACCUM4:                    \n\t"*/
-/*		"                                \n\t"*/
-/*//		"mov    r2, %4                   \n\t" // load address of C*/
-/*//		"                                \n\t"*/
-/*//		"mov    r5, %5                   \n\t" // alg*/
-/*		"cmp    r6, #0                   \n\t"*/
-/*		"beq    .D04                      \n\t" // if alg==0, jump*/
-/*		"                                \n\t"*/
-/*		"cmp    r6, #1                   \n\t"*/
-/*		"                                \n\t"*/
-/*		"vld1.64   {d8, d9, d10, d11},   [r4:128]! \n\t" // load C0*/
-/*		"vld1.64   {d12, d13, d14, d15}, [r4:128]  \n\t" // load C0*/
-/*		"vld1.64   {d24, d25, d26, d27}, [r5:128]! \n\t" // load C1*/
-/*		"vld1.64   {d28, d29, d30, d31}, [r5:128]  \n\t" // load C1*/
-/*		"                                \n\t"*/
-/*		"ldr    r4, %8                   \n\t" // load address of D*/
-/*		"ldr    r5, %9                   \n\t" // load address of D*/
-/*		"                                \n\t"*/
-/*//		"mov    r2, %4                   \n\t" // load address of C*/
-/*		"                                \n\t"*/
-/*		"beq    .D14                      \n\t" // if alg==1, jump*/
-/*		"                                \n\t"*/
-/*		"                                \n\t"// alg==-1*/
-/*		"vsub.f32  q0, q4, q0            \n\t"*/
-/*		"vsub.f32  q1, q5, q1            \n\t"*/
-/*		"vsub.f32  q2, q6, q2            \n\t"*/
-/*		"vsub.f32  q3, q7, q3            \n\t"*/
-/*		"                                \n\t"*/
-/*		"vsub.f32  q8,  q12, q8            \n\t"*/
-/*		"vsub.f32  q9,  q13, q9            \n\t"*/
-/*		"vsub.f32  q10, q14, q10           \n\t"*/
-/*		"vsub.f32  q11, q15, q11           \n\t"*/
-/*		"                                \n\t"*/
-/*		"b      .D04                      \n\t" // jump to end*/
-/*		"                                \n\t"*/
-/*		"                                \n\t"*/
-/*		".D14:                            \n\t" // alg==1*/
-/*		"                                \n\t"*/
-/*		"vadd.f32  q0, q0, q4            \n\t"*/
-/*		"vadd.f32  q1, q1, q5            \n\t"*/
-/*		"vadd.f32  q2, q2, q6            \n\t"*/
-/*		"vadd.f32  q3, q3, q7            \n\t"*/
-/*		"                                \n\t"*/
-/*		"vadd.f32  q8,  q8,  q12            \n\t"*/
-/*		"vadd.f32  q9,  q9,  q13           \n\t"*/
-/*		"vadd.f32  q10, q10, q14           \n\t"*/
-/*		"vadd.f32  q11, q11, q15           \n\t"*/
-/*		"                                \n\t"*/
-/*		".D04:                            \n\t" // alg==0*/
-/*		"                                \n\t"*/
-/*		"vst1.64   {d0, d1, d2, d3},     [r4:128]!  \n\t" // store C*/
-/*		"vst1.64   {d4, d5, d6, d7},     [r4:128]   \n\t" // store C*/
-/*		"vst1.64   {d16, d17, d18, d19}, [r5:128]!  \n\t" // store C*/
-/*		"vst1.64   {d20, d21, d22, d23}, [r5:128]   \n\t" // store C*/
-/*		"                                \n\t"*/
-/*		"                                \n\t"*/
-/*		"                                \n\t"*/
+		"mov    r0, %1                   \n\t" // k_left
+		"cmp    r0, #1                   \n\t"
+		"ble    .DCONSIDERLEFT112          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmla.f32  q4, q1, d0[0]        \n\t"
+		"vldr   d6, [%4, #0]             \n\t"
+		"vmla.f32  q5, q1, d0[1]        \n\t"
+		"vldr   d7, [%4, #8]             \n\t"
+		"vmla.f32  q6, q1, d1[0]        \n\t"
+		"vmla.f32  q7, q1, d1[1]        \n\t"
+		"vldr   d2, [%2, #0]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q2, d0[0]        \n\t"
+		"vldr   d3, [%2, #8]             \n\t"
+		"vmla.f32  q9, q2, d0[1]        \n\t"
+		"vmla.f32  q10, q2, d1[0]        \n\t"
+		"vmla.f32  q11, q2, d1[1]        \n\t"
+		"vldr   d4, [%5, #0]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q12, q3, d0[0]        \n\t"
+		"vldr   d5, [%5, #8]             \n\t"
+		"vmla.f32  q13, q3, d0[1]        \n\t"
+		"vldr   d0, [%3, #0]             \n\t"
+		"vmla.f32  q14, q3, d1[0]        \n\t"
+		"vmla.f32  q15, q3, d1[1]        \n\t"
+		"vldr   d1, [%3, #8]             \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmla.f32  q4, q1, d4[0]        \n\t"
+		"vldr   d6, [%4, #16]             \n\t"
+		"vmla.f32  q5, q1, d4[1]        \n\t"
+		"vldr   d7, [%4, #24]             \n\t"
+		"vmla.f32  q6, q1, d5[0]        \n\t"
+		"vmla.f32  q7, q1, d5[1]        \n\t"
+		"vldr   d2, [%2, #16]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q0, d4[0]        \n\t"
+		"vldr   d3, [%2, #24]             \n\t"
+		"vmla.f32  q9, q0, d4[1]        \n\t"
+		"vmla.f32  q10, q0, d5[0]        \n\t"
+		"vmla.f32  q11, q0, d5[1]        \n\t"
+		"vldr   d0, [%5, #16]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q12, q3, d4[0]        \n\t"
+		"vldr   d1, [%5, #24]             \n\t"
+		"vmla.f32  q13, q3, d4[1]        \n\t"
+		"vldr   d4, [%3, #16]             \n\t"
+		"vmla.f32  q14, q3, d5[0]        \n\t"
+		"vmla.f32  q15, q3, d5[1]        \n\t"
+		"vldr   d5, [%3, #24]             \n\t"
+		"                                \n\t"
+		"sub    r0, r0, #2               \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DCONSIDERLEFT112:                 \n\t" // consider left k++
+		"                                \n\t"
+		"cmp    r0, #0                   \n\t"
+		"ble    .DPOSTACCUM12              \n\t"
+		"                                \n\t"
+		"vmla.f32  q4, q1, d0[0]        \n\t"
+		"vldr   d6, [%4, #0]             \n\t"
+		"vmla.f32  q5, q1, d0[1]        \n\t"
+		"vldr   d7, [%4, #8]             \n\t"
+		"vmla.f32  q6, q1, d1[0]        \n\t"
+		"vmla.f32  q7, q1, d1[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q2, d0[0]        \n\t"
+		"vmla.f32  q9, q2, d0[1]        \n\t"
+		"vmla.f32  q10, q2, d1[0]        \n\t"
+		"vmla.f32  q11, q2, d1[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q12, q3, d0[0]        \n\t"
+		"vmla.f32  q13, q3, d0[1]        \n\t"
+		"vmla.f32  q14, q3, d1[0]        \n\t"
+		"vmla.f32  q15, q3, d1[1]        \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DPOSTACCUM12:                    \n\t"
+		"                                \n\t"
+		"cmp    %12, #0                   \n\t"
+		"beq    .D012                      \n\t" // if alg==0, jump
+		"                                \n\t"
+		"pld    [%6, #0]                \n\t" // C0
+		"pld    [%7, #0]                \n\t" // C1
+		"pld    [%8, #0]                \n\t" // C2
+		"                                \n\t"
+		"cmp    %12, #1                   \n\t"
+		"beq    .D112                      \n\t" // if alg==1, jump
+		"                                \n\t"
+		"                                \n\t"// alg==-1
+		"vld1.64   {d0, d1, d2, d3},   [%6:128]! \n\t" // load C0
+		"vld1.64   {d4, d5, d6, d7},   [%6:128]  \n\t" // load C0
+		"vsub.f32  q4, q0, q4            \n\t"
+		"vsub.f32  q5, q1, q5            \n\t"
+		"vld1.64   {d0, d1, d2, d3},   [%7:128]! \n\t" // load C0
+		"vsub.f32  q6, q2, q6            \n\t"
+		"vsub.f32  q7, q3, q7            \n\t"
+		"vld1.64   {d4, d5, d6, d7},   [%7:128]  \n\t" // load C0
+		"vsub.f32  q8, q0, q8            \n\t"
+		"vsub.f32  q9, q1, q9            \n\t"
+		"vld1.64   {d0, d1, d2, d3},   [%8:128]! \n\t" // load C0
+		"vsub.f32  q10, q2, q10            \n\t"
+		"vsub.f32  q11, q3, q11            \n\t"
+		"vld1.64   {d4, d5, d6, d7},   [%8:128]  \n\t" // load C0
+		"vsub.f32  q12, q0, q12            \n\t"
+		"vsub.f32  q13, q1, q13            \n\t"
+		"vsub.f32  q14, q2, q14            \n\t"
+		"vsub.f32  q15, q3, q15            \n\t"
+
+		"b      .D012                      \n\t" // jump to end
+		"                                \n\t"
+		"                                \n\t"
+		".D112:                            \n\t" // alg==1
+		"                                \n\t"
+		"vld1.64   {d0, d1, d2, d3},   [%6:128]! \n\t" // load C0
+		"vld1.64   {d4, d5, d6, d7},   [%6:128]  \n\t" // load C0
+		"vadd.f32  q4, q0, q4            \n\t"
+		"vadd.f32  q5, q1, q5            \n\t"
+		"vld1.64   {d0, d1, d2, d3},   [%7:128]! \n\t" // load C0
+		"vadd.f32  q6, q2, q6            \n\t"
+		"vadd.f32  q7, q3, q7            \n\t"
+		"vld1.64   {d4, d5, d6, d7},   [%7:128]  \n\t" // load C0
+		"vadd.f32  q8, q0, q8            \n\t"
+		"vadd.f32  q9, q1, q9            \n\t"
+		"vld1.64   {d0, d1, d2, d3},   [%8:128]! \n\t" // load C0
+		"vadd.f32  q10, q2, q10            \n\t"
+		"vadd.f32  q11, q3, q11            \n\t"
+		"vld1.64   {d4, d5, d6, d7},   [%8:128]  \n\t" // load C0
+		"vadd.f32  q12, q0, q12            \n\t"
+		"vadd.f32  q13, q1, q13            \n\t"
+		"vadd.f32  q14, q2, q14            \n\t"
+		"vadd.f32  q15, q3, q15            \n\t"
+		"                                \n\t"
+		".D012:                            \n\t" // alg==0
+		"                                \n\t"
 		"vst1.64   {d8, d9, d10, d11},     [%9:128]!  \n\t" // store D0
 		"vst1.64   {d12, d13, d14, d15},   [%9:128]  \n\t" // store D0
 		"vst1.64   {d16, d17, d18, d19},   [%10:128]!  \n\t" // store D0
@@ -475,50 +411,39 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 	int k_iter = kmax/4;
 	int k_left = kmax%4;
 	
-//	printf("\n%d %d %d\n", kmax, k_iter, k_left);
 
 	__asm__ volatile
 	(
 		"                                \n\t"
-		"mov    r1, %2                   \n\t" // load address of A0
-		"mov    r2, %3                   \n\t" // load address of A1
-		"mov    r3, %4                   \n\t" // load address of B
 		"                                \n\t"
 		"                                \n\t"
-		"pld    [r1, #64]                \n\t" // prefetch A0 to L1
-		"pld    [r2, #64]                \n\t" // prefetch A1 to L1
-		"pld    [r3, #64]                \n\t" // prefetch B to L1
+		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
+		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
+		"pld    [%4, #64]                \n\t" // prefetch B to L1
 #if defined(TARGET_CORTEX_A9)
-		"pld    [r1, #96]                \n\t" // prefetch A0 to L1
-		"pld    [r2, #96]                \n\t" // prefetch A1 to L1
-		"pld    [r3, #96]                \n\t" // prefetch B to L1
+		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
+		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
+		"pld    [%4, #96]                \n\t" // prefetch B to L1
 #endif
-//		"pld    [r1, #128]                \n\t"
-//		"pld    [r2, #128]                \n\t"
 		"                                \n\t"
 		"                                \n\t"
-//		"ldr    r0, %0                   \n\t" // k_iter
 		"mov    r0, %0                   \n\t" // k_iter
 		"                                \n\t"
 		"                                \n\t"
 #if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
-		"vld1.64   {d12, d13, d14, d15}, [r3:128]! \n\t" // load B to registers
-		"vld1.64   {d4, d5, d6, d7}, [r3:128] \n\t" // load B to registers
-		"vld1.64   {d8, d9, d10, d11},   [r1:128] \n\t" // load A0 to registers
-		"vld1.64   {d24, d25}, [r2:128] \n\t" // load A1
+		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B to registers
+		"vld1.64   {d4, d5, d6, d7},     [%4:128] \n\t" // load B to registers
+		"vld1.64   {d8, d9, d10, d11},   [%2:128] \n\t" // load A0 to registers
+		"vld1.64   {d24, d25},           [%3:128] \n\t" // load A1
 #endif
 #if defined(TARGET_CORTEX_A9)
-		"vld1.64   {d12, d13, d14, d15}, [r3:128]! \n\t" // load B to registers
-		"vld1.64   {d8, d9, d10, d11},   [r1:128]! \n\t" // load A0 to registers
-		"vld1.64   {d24, d25, d26, d27}, [r2:128]! \n\t" // load A1
+		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B to registers
+		"vld1.64   {d8, d9, d10, d11},   [%2:128]! \n\t" // load A0 to registers
+		"vld1.64   {d24, d25, d26, d27}, [%3:128]! \n\t" // load A1
 #endif
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t"
 		"                                \n\t"
-		"                                \n\t"
-		"ldr    r4, %5                   \n\t" // load address of C
-		"ldr    r5, %6                   \n\t" // load address of C
-		"ldr    r6, %7                   \n\t" // alg
 		"                                \n\t"
 		"                                \n\t"
 		"vldr   d0, .DZERO4               \n\t" // load zero double
@@ -544,90 +469,90 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 #if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
-		"vldr   d26, [r2, #16]             \n\t"
+		"vldr   d26, [%3, #16]             \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
-		"vldr   d27, [r2, #24]             \n\t"
+		"vldr   d27, [%3, #24]             \n\t"
 		"vmla.f32  q14, q4, d13[0]        \n\t"
-		"pld    [r1, #128]                \n\t"
+		"pld    [%2, #128]                \n\t"
 		"vmla.f32  q15, q4, d13[1]        \n\t"
-		"vldr   d8, [r1, #32]             \n\t"
+		"vldr   d8, [%2, #32]             \n\t"
 		"                                \n\t"
 		"vmla.f32  q8, q12, d12[0]        \n\t"
-		"vldr   d9, [r1, #40]             \n\t"
+		"vldr   d9, [%2, #40]             \n\t"
 		"vmla.f32  q9, q12, d12[1]        \n\t"
-		"pld    [r2, #128]                \n\t"
+		"pld    [%3, #128]                \n\t"
 		"vmla.f32  q10, q12, d13[0]        \n\t"
-		"pld    [r3, #128]                \n\t"
+		"pld    [%4, #128]                \n\t"
 		"vmla.f32  q11, q12, d13[1]        \n\t"
-		"vldr   d24, [r2, #32]             \n\t"
+		"vldr   d24, [%3, #32]             \n\t"
 		"                                \n\t"
 		"vmla.f32  q0, q5, d14[0]        \n\t"
-		"vldr   d25, [r2, #40]             \n\t"
+		"vldr   d25, [%3, #40]             \n\t"
 		"vmla.f32  q1, q5, d14[1]        \n\t"
-		"vldr   d12, [r3, #32]             \n\t"
+		"vldr   d12, [%4, #32]             \n\t"
 		"vmla.f32  q14, q5, d15[0]        \n\t"
-		"vldr   d13, [r3, #40]             \n\t"
+		"vldr   d13, [%4, #40]             \n\t"
 		"vmla.f32  q15, q5, d15[1]        \n\t"
-		"vldr   d10, [r1, #48]             \n\t"
+		"vldr   d10, [%2, #48]             \n\t"
 		"                                \n\t"
 		"vmla.f32  q8, q13, d14[0]        \n\t"
-		"vldr   d11, [r1, #56]             \n\t"
+		"vldr   d11, [%2, #56]             \n\t"
 		"vmla.f32  q9, q13, d14[1]        \n\t"
 		"sub    r0, r0, #1               \n\t" // iter++
 		"vmla.f32  q10, q13, d15[0]        \n\t"
-		"vldr   d14, [r3, #48]             \n\t"
+		"vldr   d14, [%4, #48]             \n\t"
 		"vmla.f32  q11, q13, d15[1]        \n\t"
-		"vldr   d26, [r2, #48]             \n\t"
+		"vldr   d26, [%3, #48]             \n\t"
 		"                                \n\t"
 #if defined(TARGET_CORTEX_A9)
-		"pld    [r1, #160]                \n\t" // prefetch A0 to L1
-		"pld    [r2, #160]                \n\t" // prefetch A1 to L1
-		"pld    [r3, #160]                \n\t" // prefetch B to L1
+		"pld    [%2, #160]                \n\t" // prefetch A0 to L1
+		"pld    [%3, #160]                \n\t" // prefetch A1 to L1
+		"pld    [%4, #160]                \n\t" // prefetch B to L1
 #endif
 		"                                \n\t"
 		"                                \n\t"
 		"vmla.f32  q0, q4, d4[0]        \n\t"
-		"vldr   d27, [r2, #56]             \n\t"
+		"vldr   d27, [%3, #56]             \n\t"
 		"vmla.f32  q1, q4, d4[1]        \n\t"
-		"vldr   d15, [r3, #56]             \n\t"
+		"vldr   d15, [%4, #56]             \n\t"
 		"vmla.f32  q14, q4, d5[0]        \n\t"
 		"cmp    r0, #0                   \n\t" // next iter?
 		"vmla.f32  q15, q4, d5[1]        \n\t"
-		"vldr   d8, [r1, #64]             \n\t"
+		"vldr   d8, [%2, #64]             \n\t"
 		"                                \n\t"
 		"vmla.f32  q8, q12, d4[0]        \n\t"
-		"vldr   d9, [r1, #72]             \n\t"
+		"vldr   d9, [%2, #72]             \n\t"
 		"vmla.f32  q9, q12, d4[1]        \n\t"
 		"vmla.f32  q10, q12, d5[0]        \n\t"
-		"vldr   d4, [r3, #64]             \n\t"
+		"vldr   d4, [%4, #64]             \n\t"
 		"vmla.f32  q11, q12, d5[1]        \n\t"
-		"vldr   d24, [r2, #72]             \n\t"
+		"vldr   d24, [%3, #64]             \n\t"
 		"                                \n\t"
 		"vmla.f32  q0, q5, d6[0]        \n\t"
-		"vldr   d25, [r2, #72]             \n\t"
+		"vldr   d25, [%3, #72]             \n\t"
 		"vmla.f32  q1, q5, d6[1]        \n\t"
-		"vldr   d5, [r3, #72]             \n\t"
+		"vldr   d5, [%4, #72]             \n\t"
 		"vmla.f32  q14, q5, d7[0]        \n\t"
-		"add    r2, r2, #64              \n\t" // increase A
+		"add    %3, %3, #64              \n\t" // increase A
 		"vmla.f32  q15, q5, d7[1]        \n\t"
-		"vldr   d10, [r1, #80]             \n\t"
+		"vldr   d10, [%2, #80]             \n\t"
 		"                                \n\t"
 		"vmla.f32  q8, q13, d6[0]        \n\t"
-		"vldr   d11, [r1, #88]             \n\t"
+		"vldr   d11, [%2, #88]             \n\t"
 		"vmla.f32  q9, q13, d6[1]        \n\t"
-		"add    r1, r1, #64              \n\t" // increase A
+		"add    %2, %2, #64              \n\t" // increase A
 		"vmla.f32  q10, q13, d7[0]        \n\t"
-		"vldr   d6, [r3, #80]             \n\t"
+		"vldr   d6, [%4, #80]             \n\t"
 		"vmla.f32  q11, q13, d7[1]        \n\t"
-		"vldr   d7, [r3, #88]             \n\t"
-		"add    r3, r3, #64              \n\t" // increase A
+		"vldr   d7, [%4, #88]             \n\t"
+		"add    %4, %4, #64              \n\t" // increase A
 		"                                \n\t"
 #endif
 #if defined(TARGET_CORTEX_A9)
 		"                                \n\t"
-		"pld    [r1, #96]                \n\t"
-		"pld    [r2, #96]                \n\t"
-		"pld    [r3, #96]                \n\t"
+		"pld    [%2, #96]                \n\t"
+		"pld    [%3, #96]                \n\t"
+		"pld    [%4, #96]                \n\t"
 		"                                \n\t"
 		"sub    r0, r0, #1               \n\t" // iter++
 		"                                \n\t"
@@ -651,14 +576,14 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"vmla.f32  q10, q13, d15[0]        \n\t"
 		"vmla.f32  q11, q13, d15[1]        \n\t"
 		"                                \n\t"
-		"vld1.64   {d12, d13, d14, d15}, [r3:128]! \n\t" // load B
-		"vld1.64   {d8, d9, d10, d11},   [r1:128]! \n\t" // load A0
-		"vld1.64   {d24, d25, d26, d27}, [r2:128]! \n\t" // load A0
+		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B
+		"vld1.64   {d8, d9, d10, d11},   [%2:128]! \n\t" // load A0
+		"vld1.64   {d24, d25, d26, d27}, [%3:128]! \n\t" // load A0
 		"                                \n\t"
 		"                                \n\t"
-		"pld    [r1, #96]                \n\t"
-		"pld    [r2, #96]                \n\t"
-		"pld    [r3, #96]                \n\t"
+		"pld    [%2, #96]                \n\t"
+		"pld    [%3, #96]                \n\t"
+		"pld    [%4, #96]                \n\t"
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t" // next iter?
 		"                                \n\t"
@@ -682,9 +607,9 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"vmla.f32  q10, q13, d15[0]        \n\t"
 		"vmla.f32  q11, q13, d15[1]        \n\t"
 		"                                \n\t"
-		"vld1.64   {d12, d13, d14, d15}, [r3:128]! \n\t" // load B
-		"vld1.64   {d8, d9, d10, d11},   [r1:128]! \n\t" // load A0
-		"vld1.64   {d24, d25, d26, d27}, [r2:128]! \n\t" // load A0
+		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B
+		"vld1.64   {d8, d9, d10, d11},   [%2:128]! \n\t" // load A0
+		"vld1.64   {d24, d25, d26, d27}, [%3:128]! \n\t" // load A0
 		"                                \n\t"
 #endif
 		"                                \n\t"
@@ -699,6 +624,39 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"cmp    r0, #1                   \n\t"
 		"ble    .DCONSIDERLEFT14          \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
+		"                                \n\t"
+		"vmla.f32  q0, q4, d12[0]        \n\t"
+		"vldr   d26, [%3, #16]             \n\t"
+		"vmla.f32  q1, q4, d12[1]        \n\t"
+		"vldr   d27, [%3, #24]             \n\t"
+		"vmla.f32  q14, q4, d13[0]        \n\t"
+		"vmla.f32  q15, q4, d13[1]        \n\t"
+		"vldr   d8, [%2, #32]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q12, d12[0]        \n\t"
+		"vldr   d9, [%2, #40]             \n\t"
+		"vmla.f32  q9, q12, d12[1]        \n\t"
+		"vmla.f32  q10, q12, d13[0]        \n\t"
+		"vmla.f32  q11, q12, d13[1]        \n\t"
+		"vldr   d24, [%3, #32]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q0, q5, d14[0]        \n\t"
+		"vldr   d25, [%3, #40]             \n\t"
+		"vmla.f32  q1, q5, d14[1]        \n\t"
+		"vldr   d12, [%4, #32]             \n\t"
+		"vmla.f32  q14, q5, d15[0]        \n\t"
+		"vldr   d13, [%4, #40]             \n\t"
+		"vmla.f32  q15, q5, d15[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q13, d14[0]        \n\t"
+		"vmla.f32  q9, q13, d14[1]        \n\t"
+		"vmla.f32  q10, q13, d15[0]        \n\t"
+		"vmla.f32  q11, q13, d15[1]        \n\t"
+		"                                \n\t"
+#endif
+#if defined(TARGET_CORTEX_A9)
+		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
 		"vmla.f32  q14, q4, d13[0]        \n\t"
@@ -719,9 +677,11 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"vmla.f32  q10, q13, d15[0]        \n\t"
 		"vmla.f32  q11, q13, d15[1]        \n\t"
 		"                                \n\t"
-		"vld1.64   {d12, d13, d14, d15}, [r3:128]! \n\t" // load B
-		"vld1.64   {d8, d9, d10, d11},   [r1:128]! \n\t" // load A0
-		"vld1.64   {d24, d25, d26, d27}, [r2:128]! \n\t" // load A0
+		"vld1.64   {d12, d13}, [%4:128] \n\t" // load B
+		"vld1.64   {d8, d9},   [%2:128] \n\t" // load A0
+		"vld1.64   {d24, d25}, [%3:128] \n\t" // load A1
+		"                                \n\t"
+#endif
 		"                                \n\t"
 		"sub    r0, r0, #2               \n\t"
 		"                                \n\t"
@@ -742,8 +702,6 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"vmla.f32  q10, q12, d13[0]        \n\t"
 		"vmla.f32  q11, q12, d13[1]        \n\t"
 		"                                \n\t"
-/*		"vld1.64   {d12, d13}, [r2:128]  \n\t" // no need to increment pointer*/
-/*		"vld1.64   {d8, d9}, [r1:128]    \n\t" // no need to increment pointer*/
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -756,23 +714,16 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
-/*		"mov    r2, %4                   \n\t" // load address of C*/
-/*		"                                \n\t"*/
-/*		"mov    r5, %5                   \n\t" // alg*/
-		"cmp    r6, #0                   \n\t"
+		"cmp    %7, #0                   \n\t"
 		"beq    .D04                      \n\t" // if alg==0, jump
 		"                                \n\t"
-		"cmp    r6, #1                   \n\t"
+		"cmp    %7, #1                   \n\t"
 		"                                \n\t"
-		"vld1.64   {d8, d9, d10, d11},   [r4:128]! \n\t" // load C0
-		"vld1.64   {d12, d13, d14, d15}, [r4:128]  \n\t" // load C0
-		"vld1.64   {d24, d25, d26, d27}, [r5:128]! \n\t" // load C1
-		"vld1.64   {d28, d29, d30, d31}, [r5:128]  \n\t" // load C1
+		"vld1.64   {d8, d9, d10, d11},   [%5:128]! \n\t" // load C0
+		"vld1.64   {d12, d13, d14, d15}, [%5:128]  \n\t" // load C0
+		"vld1.64   {d24, d25, d26, d27}, [%6:128]! \n\t" // load C1
+		"vld1.64   {d28, d29, d30, d31}, [%6:128]  \n\t" // load C1
 		"                                \n\t"
-		"ldr    r4, %8                   \n\t" // load address of D
-		"ldr    r5, %9                   \n\t" // load address of D
-		"                                \n\t"
-/*		"mov    r2, %4                   \n\t" // load address of C*/
 		"                                \n\t"
 		"beq    .D14                      \n\t" // if alg==1, jump
 		"                                \n\t"
@@ -804,10 +755,10 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"                                \n\t"
 		".D04:                            \n\t" // alg==0
 		"                                \n\t"
-		"vst1.64   {d0, d1, d2, d3},     [r4:128]!  \n\t" // store C
-		"vst1.64   {d4, d5, d6, d7},     [r4:128]   \n\t" // store C
-		"vst1.64   {d16, d17, d18, d19}, [r5:128]!  \n\t" // store C
-		"vst1.64   {d20, d21, d22, d23}, [r5:128]   \n\t" // store C
+		"vst1.64   {d0, d1, d2, d3},     [%8:128]!  \n\t" // store C
+		"vst1.64   {d4, d5, d6, d7},     [%8:128]   \n\t" // store C
+		"vst1.64   {d16, d17, d18, d19}, [%9:128]!  \n\t" // store C
+		"vst1.64   {d20, d21, d22, d23}, [%9:128]   \n\t" // store C
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -827,13 +778,13 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		  "r" (A0),			// %2
 		  "r" (A1),			// %3
 		  "r" (B),			// %4
-		  "m" (C0),			// %5
-		  "m" (C1),			// %6
-		  "m" (alg),		// %7
-		  "m" (D0),			// %8
-		  "m" (D1)			// %9
+		  "r" (C0),			// %5
+		  "r" (C1),			// %6
+		  "r" (alg),		// %7
+		  "r" (D0),			// %8
+		  "r" (D1)			// %9
 		: // register clobber list
-		  "r0", "r1", "r2", "r3", "r4", "r5", "r6",
+		  "r0",
 		  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
 		  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
 		  "d16", "d17", "d18", "d19", "d20", "d21", "d22", "d23",

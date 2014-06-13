@@ -140,20 +140,22 @@ int main()
 			sB[i*(n+1)] = 1;
 	
 		int pns = ((n+bss-1)/bss)*bss;	
+/*		int cns = ((n+S_NCL-1)/S_NCL)*S_NCL;	*/
+		int cns = ((n+8-1)/8)*8;	
 
-		float *pA; s_zeros_align(&pA, pns, pns);
-		float *pB; s_zeros_align(&pB, pns, pns);
-		float *pC; s_zeros_align(&pC, pns, pns);
-		float *pD; s_zeros_align(&pD, pns, pns);
-		float *pL; s_zeros_align(&pL, pns, pns);
+		float *pA; s_zeros_align(&pA, pns, cns);
+		float *pB; s_zeros_align(&pB, pns, cns);
+		float *pC; s_zeros_align(&pC, pns, cns);
+		float *pD; s_zeros_align(&pD, pns, cns);
+		float *pL; s_zeros_align(&pL, pns, cns);
 		float *x; s_zeros_align(&x, pns, 1);
 		float *y; s_zeros_align(&y, pns, 1);
 		float *x2; s_zeros_align(&x2, pns, 1);
 		float *y2; s_zeros_align(&y2, pns, 1);
 	
-		s_cvt_mat2pmat(n, n, 0, bss, sA, n, pA, pns);
-		s_cvt_mat2pmat(n, n, 0, bss, sB, n, pB, pns);
-		s_cvt_mat2pmat(n, n, 0, bss, sB, n, pD, pns);
+		s_cvt_mat2pmat(n, n, 0, bss, sA, n, pA, cns);
+		s_cvt_mat2pmat(n, n, 0, bss, sB, n, pB, cns);
+		s_cvt_mat2pmat(n, n, 0, bss, sB, n, pD, cns);
 	
 		for(i=0; i<pns*pns; i++) pC[i] = -1;
 		
@@ -166,7 +168,7 @@ int main()
 		/* warm up */
 		for(rep=0; rep<nrep; rep++)
 			{
-			sgemm_ppp_nt_lib(n, n, n, pA, pns, pB, pns, pC, pns, 0);
+			sgemm_ppp_nt_lib(n, n, n, pA, cns, pB, cns, pC, cns, 0);
 			}
 
 		gettimeofday(&tv0, NULL); // start
@@ -174,7 +176,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			sgemm_ppp_nt_lib(n, n, n, pA, pns, pB, pns, pC, pns, 0);
+			sgemm_ppp_nt_lib(n, n, n, pA, cns, pB, cns, pC, cns, 0);
 
 			}
 	

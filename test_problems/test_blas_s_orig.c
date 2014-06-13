@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bss);
 	
-	int n = 16;
+	int n = 12;
 	int nrep = 1;
 	
 	double *A; d_zeros(&A, n, n);
@@ -91,19 +91,21 @@ int main()
 
 	int pn = ((n+bs-1)/bs)*bs;//+4;	
 	int pns = ((n+bss-1)/bss)*bss;//+4;	
+	int cns = ((n+S_NCL-1)/S_NCL)*S_NCL;//+4;	
 
 	double *pA; d_zeros_align(&pA, pn, pn);
 	double *pB; d_zeros_align(&pB, pn, pn);
 	double *pC; d_zeros_align(&pC, pn, pn);
 	double *pL; d_zeros_align(&pL, pn, pn);
-	float *spA; s_zeros_align(&spA, pns, pns);
-	float *spB; s_zeros_align(&spB, pns, pns);
-	float *spC; s_zeros_align(&spC, pns, pns);
+	float *spA; s_zeros_align(&spA, pns, cns);
+	float *spB; s_zeros_align(&spB, pns, cns);
+	float *spC; s_zeros_align(&spC, pns, cns);
 	
 	d_cvt_mat2pmat(n, n, 0, bs, A, n, pA, pn);
 	d_cvt_mat2pmat(n, n, 0, bs, B, n, pB, pn);
-	s_cvt_mat2pmat(n, n, 0, bss, sA, n, spA, pns);
-	s_cvt_mat2pmat(n, n, 0, bss, sB, n, spB, pns);
+	s_cvt_mat2pmat(n, n, 0, bss, sA, n, spA, cns);
+	s_cvt_mat2pmat(n, n, 0, bss, sB, n, spB, cns);
+/*	s_cvt_mat2pmat(n, n, 0, bss, sB, n, spC, cns);*/
 	
 	double *x; d_zeros_align(&x, n, 1);
 	double *y; d_zeros_align(&y, n, 1);
@@ -134,7 +136,7 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		sgemm_ppp_nt_lib(n, n, n, spA, pns, spB, pns, spC, pns, 0);
+		sgemm_ppp_nt_lib(n, n, n, spA, cns, spB, cns, spC, cns, 1);
 /*		sgemm_ppp_nt_lib(n, n, n, spB, pns, spA, pns, spC, pns, 0);*/
 /*		dgemm_ppp_nt_lib(n, n, n, pA, pn, pB, pn, pC, pn, 0);*/
 /*		dgemm_ppp_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
@@ -185,9 +187,9 @@ int main()
 /*		d_print_pmat(n, n, bs, pB, pn);*/
 /*		d_print_pmat(n, n, bs, pC, pn);*/
 /*		d_print_pmat(n, n, bs, pL, pn);*/
-		s_print_pmat(n, n, bss, spA, pns);
-		s_print_pmat(n, n, bss, spB, pns);
-		s_print_pmat(n, n, bss, spC, pns);
+		s_print_pmat(n, n, bss, spA, cns);
+		s_print_pmat(n, n, bss, spB, cns);
+		s_print_pmat(n, n, bss, spC, cns);
 /*		d_print_mat(n, 1, y, pn);*/
 		}
 
