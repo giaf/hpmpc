@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bss);
 	
-	int n = 16;
+	int n = 24;
 	int nrep = 1;
 	
 	double *A; d_zeros(&A, n, n);
@@ -178,7 +178,7 @@ int main()
 	
 	printf("\nn\tGflops\t\t%%\n%d\t%f\t%f\n\n", n, Gflops, 100.0*Gflops/Gflops_max);
 
-	if(n<=20)
+	if(n<=24)
 		{
 //		d_print_pmat(pn, pn, bs, pC, pn);
 //		d_print_pmat(n, n, bs, pB, pn);
