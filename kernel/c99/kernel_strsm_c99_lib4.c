@@ -23,13 +23,15 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#include "../../include/block_size.h"
+
 
 
 void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
 	{
 
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = S_NCL;
 	const int lda = bs;
 
 	int k;
@@ -455,7 +457,7 @@ void kernel_strsm_pp_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, float *
 	{
 
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = S_NCL;
 	const int lda = bs;
 
 	int k;
@@ -718,7 +720,7 @@ void kernel_strsm_pp_nt_2x4_lib4(int kadd, int ksub, float *A, float *B, float *
 	{
 
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = S_NCL;
 	const int lda = bs;
 
 	int k;
@@ -1016,7 +1018,7 @@ void kernel_strsm_pp_nt_2x2_lib4(int kadd, int ksub, float *A, float *B, float *
 	{
 
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = S_NCL;
 	const int lda = bs;
 
 	int k;

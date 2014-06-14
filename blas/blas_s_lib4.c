@@ -188,8 +188,39 @@ void strmm_ppp_lib(int m, int n, float *pA, int sda, float *pB, int sdb, float *
 	int i, j;
 	
 	i = 0;
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
-	for(; i<m-4; i+=8)
+#if defined(TARGET_CORTEX_A15)
+	for(; i<m-16; i+=12)
+/*	for(; i<m-8; i+=12)*/
+		{
+		j = 0;
+		for(; j<n-3; j+=4)
+			{
+/*printf("\ncazzo %d %d %d\n", m, n, n-j);*/
+			kernel_strmm_pp_nt_12x4_lib4(n-j-0, &pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
+			}
+		if(n-j==1)
+			{
+/*			corner_strmm_pp_nt_8x1_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
+			}
+		else if(n-j==2)
+			{
+/*			corner_strmm_pp_nt_8x2_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
+			}
+		else if(n-j==3)
+			{
+/*			corner_strmm_pp_nt_8x3_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
+			}
+		}
+	if(m-i>12)
 		{
 		j = 0;
 		for(; j<n-3; j+=4)
@@ -198,15 +229,107 @@ void strmm_ppp_lib(int m, int n, float *pA, int sda, float *pB, int sdb, float *
 			}
 		if(n-j==1)
 			{
-			corner_strmm_pp_nt_8x1_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+/*			corner_strmm_pp_nt_8x1_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
 			}
 		else if(n-j==2)
 			{
-			corner_strmm_pp_nt_8x2_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+/*			corner_strmm_pp_nt_8x2_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
 			}
 		else if(n-j==3)
 			{
-			corner_strmm_pp_nt_8x3_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+/*			corner_strmm_pp_nt_8x3_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+			}
+		i+=8;
+		j = 0;
+		for(; j<n-3; j+=4)
+			{
+			kernel_strmm_pp_nt_8x4_lib4(n-j-0, &pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+			}
+		if(n-j==1)
+			{
+/*			corner_strmm_pp_nt_8x1_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+			}
+		else if(n-j==2)
+			{
+/*			corner_strmm_pp_nt_8x2_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+			}
+		else if(n-j==3)
+			{
+/*			corner_strmm_pp_nt_8x3_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+			}
+		i+=8;
+		}
+	if(i<m-8)
+		{
+		j = 0;
+		for(; j<n-3; j+=4)
+			{
+			kernel_strmm_pp_nt_12x4_lib4(n-j-0, &pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
+			}
+		if(n-j==1)
+			{
+/*			corner_strmm_pp_nt_8x1_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
+			}
+		else if(n-j==2)
+			{
+/*			corner_strmm_pp_nt_8x2_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
+			}
+		else if(n-j==3)
+			{
+/*			corner_strmm_pp_nt_8x3_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
+			}
+		i+=12;
+		}
+#endif
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A15)
+	for(; i<m-4; i+=8)
+		{
+		j = 0;
+		for(; j<n-3; j+=4)
+			{
+/*printf("\ncazzo %d %d %d\n", m, n, n-j);*/
+			kernel_strmm_pp_nt_8x4_lib4(n-j-0, &pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+/*			kernel_strmm_pp_nt_4x4_lib4(n-j-0, &pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);*/
+/*			kernel_strmm_pp_nt_4x4_lib4(n-j-0, &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			}
+		if(n-j==1)
+			{
+/*			corner_strmm_pp_nt_8x1_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+			}
+		else if(n-j==2)
+			{
+/*			corner_strmm_pp_nt_8x2_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
+			}
+		else if(n-j==3)
+			{
+/*			corner_strmm_pp_nt_8x3_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
+			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
+			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
 			}
 		}
 #endif
@@ -215,6 +338,7 @@ void strmm_ppp_lib(int m, int n, float *pA, int sda, float *pB, int sdb, float *
 		j = 0;
 		for(; j<n-3; j+=4)
 			{
+/*printf("\ncazzo %d %d %d\n", m, n, n-j);*/
 			kernel_strmm_pp_nt_4x4_lib4(n-j-0, &pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
 			}
 		if(n-j==1)
@@ -238,7 +362,7 @@ void strmm_ppp_lib(int m, int n, float *pA, int sda, float *pB, int sdb, float *
 void ssyrk_spotrf_pp_lib(int m, int k, int n, float *pA, int sda, float *pC, int sdc, float *diag)
 	{
 	const int bs = 4;
-	const int d_ncl = D_NCL;
+	const int d_ncl = S_NCL;
 	const int k0 = (d_ncl-k%d_ncl)%d_ncl;
 	
 	int i, j;

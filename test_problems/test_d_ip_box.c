@@ -185,7 +185,7 @@ int main()
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 
 	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-	const int cnl = nx+pad+cnz;
+	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 	
 /*	printf("\n\n%d %d %d %d\n\n", bs, pnz, sbs, spnz);*/
 

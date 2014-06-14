@@ -43,7 +43,7 @@ void sricposv_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 
 	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-	const int cnl = nx+pad+cnz;
+	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 
 	int ii, jj;
 
@@ -55,18 +55,21 @@ void sricposv_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 /*	d_transpose_pmat_lo(nx, nu, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N]+(nx+pad+ncl)*bs, cnl);*/
 	strtr_l_p_lib(nx, nu, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N]+(nx+pad+ncl)*bs, cnl);	
 
-/*d_print_pmat(pnz, cnl, bs, hpL[N], cnl);*/
+/*s_print_pmat(pnz, cnl, bs, hpL[N], cnl);*/
+/*exit(1);*/
 
 	// middle stages 
 	for(ii=0; ii<N-1; ii++)
 		{	
 		strmm_ppp_lib(nz, nx, hpBAbt[N-ii-1], cnx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, hpL[N-ii-1], cnl); // TODO allow 'rectanguar' B
+/*s_print_pmat(pnz, cnl, bs, hpL[N-ii-1], cnl);*/
 		for(jj=0; jj<nx; jj++) hpL[N-ii-1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+jj*bs] += hpL[N-ii][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nx+pad+nu+jj)*bs];
 		ssyrk_spotrf_pp_lib(nz, nx, nu+nx, hpL[N-ii-1], cnl, hpQ[N-ii-1], cnz, diag);
 		for(jj=0; jj<nu; jj++) hpL[N-ii-1][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 /*		d_transpose_pmat_lo(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);*/
 		strtr_l_p_lib(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);	
-/*d_print_pmat(pnz, cnl, bs, hpL[N-ii-1], cnl);*/
+/*s_print_pmat(pnz, cnl, bs, hpL[N-ii-1], cnl);*/
+/*if(ii==1)*/
 /*exit(1);*/
 		}
 
@@ -111,7 +114,7 @@ void sricpotrs_mpc(int nx, int nu, int N, float **hpBAbt, float **hpL, float **h
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 
 	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-	const int cnl = nx+pad+cnz;
+	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 
 	int ii, jj;
 	

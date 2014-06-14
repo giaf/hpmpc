@@ -25,13 +25,15 @@
 
 #include <math.h>
 
+#include "../../include/block_size.h"
+
 
 
 void kernel_spotrf_pp_nt_4x4_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
 	{
 
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = S_NCL;
 	const int lda = bs;
 
 	int k;
@@ -190,6 +192,7 @@ void kernel_spotrf_pp_nt_4x4_lib4(int kadd, int ksub, float *A, float *B, float 
 			{
 			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
+/*printf("\n%d\n", bs*((d_ncl-kadd%d_ncl)%d_ncl));*/
 			}
 		}
 
@@ -417,7 +420,7 @@ void kernel_spotrf_pp_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, float 
 	{
 
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = S_NCL;
 	const int lda = bs;
 
 	int k;
@@ -699,7 +702,7 @@ void kernel_spotrf_pp_nt_2x2_lib4(int kadd, int ksub, float *A, float *B, float 
 	{
 
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = S_NCL;
 	const int lda = bs;
 
 	int k;

@@ -57,7 +57,7 @@ void d_ip2_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 
 	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-	const int cnl = nx+pad+cnz;
+	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 	
 	
 
