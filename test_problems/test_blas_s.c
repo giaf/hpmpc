@@ -39,7 +39,7 @@ int main()
 	{
 		
 	// maximum frequency of the processor
-	const float GHz_max = 3.3; //3.6; //2.9;
+	const float GHz_max = 2.3; //3.6; //2.9;
 
 	// maximum flops per cycle, single precision
 #if defined(TARGET_X64_AVX2)
@@ -145,23 +145,29 @@ int main()
 			sB[i*(n+1)] = 1;
 	
 		int pns = ((n+bss-1)/bss)*bss;	
-		int cns = pns;
-/*		int cns = ((n+S_NCL-1)/S_NCL)*S_NCL;	*/
+/*		int cns = pns;*/
+/*		int cns2 = 2*pns;*/
+		int cns = ((n+S_NCL-1)/S_NCL)*S_NCL;	
+		int cns2 = ((2*n+S_NCL-1)/S_NCL)*S_NCL;	
 /*		int cns = ((n+8-1)/8)*8;	*/
+/*		int cns = ((2*n+8-1)/8)*8;	*/
 
 		float *pA; s_zeros_align(&pA, pns, cns);
 		float *pB; s_zeros_align(&pB, pns, cns);
 		float *pC; s_zeros_align(&pC, pns, cns);
 		float *pD; s_zeros_align(&pD, pns, cns);
+		float *pE; s_zeros_align(&pE, pns, cns2);
 		float *pL; s_zeros_align(&pL, pns, cns);
 		float *x; s_zeros_align(&x, pns, 1);
 		float *y; s_zeros_align(&y, pns, 1);
 		float *x2; s_zeros_align(&x2, pns, 1);
 		float *y2; s_zeros_align(&y2, pns, 1);
+		float *diag; s_zeros_align(&diag, pns, 1);
 	
 		s_cvt_mat2pmat(n, n, 0, bss, sA, n, pA, cns);
 		s_cvt_mat2pmat(n, n, 0, bss, sB, n, pB, cns);
 		s_cvt_mat2pmat(n, n, 0, bss, sB, n, pD, cns);
+		s_cvt_mat2pmat(n, n, 0, bss, sA, n, pE, cns2);
 	
 		for(i=0; i<pns*pns; i++) pC[i] = -1;
 		
@@ -192,6 +198,7 @@ int main()
 			{
 
 /*			ssyrk_ppp_lib(n, n, n, pA, pns, pC, pns);*/
+			ssyrk_spotrf_pp_lib(n, n, n, pE, cns2, pD, cns, diag);
 
 			}
 	
@@ -200,7 +207,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			strmm_ppp_lib(n, n, 0, pA, pns, pB, pns, pC, pns);*/
+			strmm_ppp_lib(n, n, pA, pns, pB, pns, pC, cns);
 
 			}
 	

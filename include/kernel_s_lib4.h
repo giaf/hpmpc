@@ -24,5 +24,55 @@
 **************************************************************************************************/
 
 void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, int alg);
+void kernel_sgemm_pp_nt_8x2_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, int alg);
 void kernel_sgemm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, float *D, int ldc, int alg);
+void kernel_sgemm_pp_nt_4x2_lib4(int kmax, float *A, float *B, float *C, float *D, int ldc, int alg);
+void kernel_sgemm_pp_nt_2x4_lib4(int kmax, float *A, float *B, float *C, float *D, int ldc, int alg);
+void kernel_sgemm_pp_nt_2x2_lib4(int kmax, float *A, float *B, float *C, float *D, int ldc, int alg);
+void kernel_strmm_pp_nt_8x4_lib4(int kadd, float *A0, float *A1, float *B, float *D0, float *D1, int ldc);
+void kernel_strmm_pp_nt_4x4_lib4(int kadd, float *A, float *B, float *D, int ldc);
+void kernel_spotrf_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, float *fact);
+void kernel_spotrf_pp_nt_4x4_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact);
+void kernel_spotrf_pp_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact);
+void kernel_spotrf_pp_nt_2x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact);
+void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, float *fact);
+void kernel_strsm_pp_nt_8x2_lib4(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, float *fact);
+void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact);
+void kernel_strsm_pp_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact);
+void kernel_strsm_pp_nt_2x4_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact);
+void kernel_strsm_pp_nt_2x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact);
+void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
+void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
+void kernel_sgemv_t_2_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
+void kernel_sgemv_t_1_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
+void kernel_sgemv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, int alg);
+void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg);
+void kernel_sgemv_n_2_lib4(int kmax, float *A, float *x, float *y, int alg);
+void kernel_sgemv_n_1_lib4(int kmax, float *A, float *x, float *y, int alg);
+void kernel_strmv_u_t_8_lib4(int kmax, float *A, int sda, float *x, float *y, int alg);
+void kernel_strmv_u_t_4_lib4(int kmax, float *A, int sda, float *x, float *y, int alg);
+void kernel_strmv_u_t_2_lib4(int kmax, float *A, int sda, float *x, float *y, int alg);
+void kernel_strmv_u_t_1_lib4(int kmax, float *A, int sda, float *x, float *y, int alg);
+void kernel_strmv_u_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, int alg);
+void kernel_strmv_u_n_4_lib4(int kmax, float *A, float *x, float *y, int alg);
+void kernel_strmv_u_n_2_lib4(int kmax, float *A, float *x, float *y, int alg);
+void kernel_strsv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y);
+void kernel_strsv_n_4_lib4(int kmax, int ksv, float *A, float *x, float *y);
+void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x);
+void kernel_strsv_t_3_lib4(int kmax, float *A, int sda, float *x);
+void kernel_strsv_t_2_lib4(int kmax, float *A, int sda, float *x);
+void kernel_strsv_t_1_lib4(int kmax, float *A, int sda, float *x);
+void kernel_ssymv_4_lib4(int kmax, int kna, float *A, int sda, float *x_n, float *y_n, float *x_t, float *y_t, int tri, int alg);
+void kernel_ssymv_2_lib4(int kmax, int kna, float *A, int sda, float *x_n, float *y_n, float *x_t, float *y_t, int tri, int alg);
+void kernel_ssymv_1_lib4(int kmax, int kna, float *A, int sda, float *x_n, float *y_n, float *x_t, float *y_t, int tri, int alg);
+void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C);
+// corner
+void corner_strmm_pp_nt_8x3_lib4(float *A0, float *A1, float *B, float *C0, float *C1, int ldc);
+void corner_strmm_pp_nt_8x2_lib4(float *A0, float *A1, float *B, float *C0, float *C1, int ldc);
+void corner_strmm_pp_nt_8x1_lib4(float *A0, float *A1, float *B, float *C0, float *C1, int ldc);
+void corner_strmm_pp_nt_4x3_lib4(float *A, float *B, float *C, int ldc);
+void corner_strmm_pp_nt_4x2_lib4(float *A, float *B, float *C, int ldc);
+void corner_strmm_pp_nt_4x1_lib4(float *A, float *B, float *C, int ldc);
+void corner_stran_pp_3_lib4(int kna, float *A, int sda, float *C);
+void corner_stran_pp_2_lib4(int kna, float *A, int sda, float *C);
 

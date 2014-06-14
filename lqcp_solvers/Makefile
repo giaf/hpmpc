@@ -25,7 +25,7 @@
 
 include ../Makefile.rule
 
-OBJS = dricposv.o dres.o
+OBJS = dricposv.o dres.o sricposv.o sres.o
 
 obj: $(OBJS)
 
