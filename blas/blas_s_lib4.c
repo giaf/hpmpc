@@ -388,10 +388,12 @@ void ssyrk_spotrf_pp_lib(int m, int k, int n, float *pA, int sda, float *pC, int
 			diag[j+1] = fact[2];
 			diag[j+2] = fact[5];
 			diag[j+3] = fact[9];
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_X64_AVX2)
 			for(; i<m-4; i+=8)
 				{
 				kernel_strsm_pp_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);
+/*				kernel_strsm_pp_nt_4x4_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], bs, fact);*/
+/*				kernel_strsm_pp_nt_4x4_lib4(k, j, &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);*/
 				}
 #endif
 			for(; i<m-2; i+=4)
