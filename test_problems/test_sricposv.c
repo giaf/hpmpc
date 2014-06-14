@@ -159,9 +159,9 @@ int main()
 	// maximum flops per cycle, single precision
 #if defined(TARGET_X64_AVX)
 	const float d_flops_max = 16;
-#elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
+#elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3) || defined(TARGET_CORTEX_A15)
 	const float d_flops_max = 8;
-#elif defined(TARGET_CORTEXA9)
+#elif defined(TARGET_CORTEX_A9)
 	const float d_flops_max = 4;
 #elif defined(TARGET_X86_ATOM)
 	const float d_flops_max = 4;
