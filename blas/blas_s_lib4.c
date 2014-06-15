@@ -377,7 +377,7 @@ void ssyrk_spotrf_pp_lib(int m, int k, int n, float *pA, int sda, float *pC, int
 		i = j;
 		if(i<m-4)
 			{
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A15)
 			kernel_spotrf_pp_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);
 			i += 8;
 #else
