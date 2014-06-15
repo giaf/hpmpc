@@ -51,37 +51,29 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 
 	int dA = bs*((d_ncl-kadd%d_ncl)%d_ncl)*sizeof(float);
 	
-/*	printf("\n%d %d %d\n", kmax, ksub, k_left);*/
+/*	printf("\n%d %d %d\n", kadd, ksub, dA);*/
 
 	__asm__ volatile
 	(
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)
 		"pld    [%3, #64]                \n\t" // prefetch A0 to L1
 		"pld    [%4, #64]                \n\t" // prefetch A1 to L1
 		"pld    [%5, #64]                \n\t" // prefetch B to L1
-#if defined(TARGET_CORTEX_A9)
-		"pld    [%3, #96]                \n\t" // prefetch A0 to L1
-		"pld    [%4, #96]                \n\t" // prefetch A1 to L1
-		"pld    [%5, #96]                \n\t" // prefetch B to L1
 #endif
 		"                                \n\t"
 		"                                \n\t"
 		"mov    r0, %0                   \n\t" // k_iter
 		"                                \n\t"
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A15)
 		"vld1.64   {d12, d13, d14, d15}, [%5:128]! \n\t" // load B to registers
 		"vld1.64   {d4, d5, d6, d7},     [%5:128] \n\t" // load B to registers
 		"vld1.64   {d8, d9, d10, d11},   [%3:128] \n\t" // load A0 to registers
 		"vld1.64   {d24, d25},           [%4:128] \n\t" // load A1
 #endif
-/*#if defined(TARGET_CORTEX_A9)*/
-/*		"vld1.64   {d12, d13, d14, d15}, [%5:128]! \n\t" // load B to registers*/
-/*		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0 to registers*/
-/*		"vld1.64   {d24, d25, d26, d27}, [%4:128]! \n\t" // load A1*/
-/*#endif*/
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t"
 		"                                \n\t"
@@ -132,7 +124,7 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vmla.f32  q9, q12, d12[1]        \n\t"
 		"pld    [%4, #128]                \n\t"
 		"vmla.f32  q10, q12, d13[0]        \n\t"
-		"pld    [%5, #128]                \n\t"
+		"pld    [%5, #96]                \n\t"
 		"vmla.f32  q11, q12, d13[1]        \n\t"
 		"vldr   d24, [%4, #32]             \n\t"
 		"                                \n\t"
@@ -200,11 +192,11 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vld1.64   {d24, d25, d26, d27}, [%4:128]! \n\t" // load A0
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
-		"pld    [%3, #64]                \n\t"
+		"pld    [%3, #32]                \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
-		"pld    [%4, #64]                \n\t"
+		"pld    [%4, #32]                \n\t"
 		"vmla.f32  q14, q4, d13[0]        \n\t"
-		"pld    [%5, #64]                \n\t"
+		"pld    [%5, #32]                \n\t"
 		"vmla.f32  q15, q4, d13[1]        \n\t"
 		"                                \n\t"
 		"sub    r0, r0, #1               \n\t" // iter++
@@ -231,11 +223,11 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vld1.64   {d24, d25, d26, d27}, [%4:128]! \n\t" // load A0
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
-		"pld    [%3, #64]                \n\t"
+		"pld    [%3, #32]                \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
-		"pld    [%4, #64]                \n\t"
+		"pld    [%4, #32]                \n\t"
 		"vmla.f32  q14, q4, d13[0]        \n\t"
-		"pld    [%5, #64]                \n\t"
+		"pld    [%5, #32]                \n\t"
 		"vmla.f32  q15, q4, d13[1]        \n\t"
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t" // next iter?
@@ -296,8 +288,11 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vmla.f32  q15, q5, d15[1]        \n\t"
 		"                                \n\t"
 		"vmla.f32  q8, q13, d14[0]        \n\t"
+		"add    %3, %3, #32              \n\t" // increase A
 		"vmla.f32  q9, q13, d14[1]        \n\t"
+		"add    %4, %4, #32              \n\t" // increase A
 		"vmla.f32  q10, q13, d15[0]        \n\t"
+		"add    %5, %5, #32              \n\t" // increase A
 		"vmla.f32  q11, q13, d15[1]        \n\t"
 		"                                \n\t"
 #endif
@@ -339,10 +334,10 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"ble    .DCONSIDERSUB_8x4              \n\t"
 		"                                \n\t"
 #if defined(TARGET_CORTEX_A9)
+		"                                \n\t"
 		"vld1.64   {d12, d13}, [%5:128]! \n\t" // load B
 		"vld1.64   {d8, d9},   [%3:128]! \n\t" // load A0
 		"vld1.64   {d24, d25}, [%4:128]! \n\t" // load A0
-#endif
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
@@ -354,7 +349,22 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vmla.f32  q10, q12, d13[0]        \n\t"
 		"vmla.f32  q11, q12, d13[1]        \n\t"
 		"                                \n\t"
+#endif
 #if defined(TARGET_CORTEX_A15)
+		"                                \n\t"
+		"vmla.f32  q0, q4, d12[0]        \n\t"
+		"vmla.f32  q1, q4, d12[1]        \n\t"
+		"vmla.f32  q14, q4, d13[0]        \n\t"
+		"vmla.f32  q15, q4, d13[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q12, d12[0]        \n\t"
+		"add    %3, %3, #16              \n\t" // increase A
+		"vmla.f32  q9, q12, d12[1]        \n\t"
+		"add    %4, %4, #16              \n\t" // increase A
+		"vmla.f32  q10, q12, d13[0]        \n\t"
+		"add    %5, %5, #16              \n\t" // increase A
+		"vmla.f32  q11, q12, d13[1]        \n\t"
+		"                                \n\t"
 #endif
 		"                                \n\t"
 		"                                \n\t"
@@ -375,39 +385,40 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"cmp    r0, #0                   \n\t"
 		"ble    .DPRELOOPSUB_8x4             \n\t"
 		"                                \n\t"
-/*		"sub    %3, %3, #32              \n\t" // */
-/*		"sub    %4, %4, #32              \n\t" // */
-/*		"sub    %5, %5, #32              \n\t" // */
 		"add    %3, %3, %11               \n\t"
 		"add    %4, %4, %11               \n\t"
 		"add    %5, %5, %11               \n\t"
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15)
-#endif
-#if defined(TARGET_CORTEX_A9)
+		"                                \n\t"
+		"                                \n\t"
+		".DPRELOOPSUB_8x4:                   \n\t" // 
+		"                                \n\t"
 		"pld    [%3, #0]                \n\t"
 		"pld    [%4, #0]                \n\t"
 		"pld    [%5, #0]                \n\t"
+		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)
+		"sub    %5, %5, #32              \n\t" // 
+		"vld1.64   {d12, d13, d14, d15}, [%5:128]! \n\t" // load B to registers
+		"vld1.64   {d4, d5, d6, d7},     [%5:128] \n\t" // load B to registers
+		"vld1.64   {d8, d9, d10, d11},   [%3:128] \n\t" // load A0 to registers
+		"vld1.64   {d24, d25},           [%4:128] \n\t" // load A1
+		"pld    [%3, #64]                \n\t" // prefetch A0 to L1
+		"pld    [%4, #64]                \n\t" // prefetch A1 to L1
+		"pld    [%5, #32]                \n\t" // prefetch B to L1
+#endif
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, #32]                \n\t"
 		"pld    [%4, #32]                \n\t"
 		"pld    [%5, #32]                \n\t"
 #endif
 		"                                \n\t"
-		".DPRELOOPSUB_8x4:                   \n\t" // 
 		"                                \n\t"
 		"mov    r0, %2                   \n\t" // k_iter
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15)
-#endif
-#if defined(TARGET_CORTEX_A9)
-// nothing to do
-#endif
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
 		".DLOOPSUB_8x4:                      \n\t" // main loop 2
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A15)
 		"                                \n\t"
 		"vmls.f32  q0, q4, d12[0]        \n\t"
 		"vldr   d26, [%4, #16]             \n\t"
@@ -423,7 +434,7 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vmls.f32  q9, q12, d12[1]        \n\t"
 		"pld    [%4, #128]                \n\t"
 		"vmls.f32  q10, q12, d13[0]        \n\t"
-		"pld    [%5, #128]                \n\t"
+		"pld    [%5, #96]                \n\t"
 		"vmls.f32  q11, q12, d13[1]        \n\t"
 		"vldr   d24, [%4, #32]             \n\t"
 		"                                \n\t"
@@ -491,11 +502,11 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vld1.64   {d24, d25, d26, d27}, [%4:128]! \n\t" // load A0
 		"                                \n\t"
 		"vmls.f32  q0, q4, d12[0]        \n\t"
-		"pld    [%3, #64]                \n\t"
+		"pld    [%3, #32]                \n\t"
 		"vmls.f32  q1, q4, d12[1]        \n\t"
-		"pld    [%4, #64]                \n\t"
+		"pld    [%4, #32]                \n\t"
 		"vmls.f32  q14, q4, d13[0]        \n\t"
-		"pld    [%5, #64]                \n\t"
+		"pld    [%5, #32]                \n\t"
 		"vmls.f32  q15, q4, d13[1]        \n\t"
 		"                                \n\t"
 		"sub    r0, r0, #1               \n\t" // iter++
@@ -522,11 +533,11 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vld1.64   {d24, d25, d26, d27}, [%4:128]! \n\t" // load A0
 		"                                \n\t"
 		"vmls.f32  q0, q4, d12[0]        \n\t"
-		"pld    [%3, #64]                \n\t"
+		"pld    [%3, #32]                \n\t"
 		"vmls.f32  q1, q4, d12[1]        \n\t"
-		"pld    [%4, #64]                \n\t"
+		"pld    [%4, #32]                \n\t"
 		"vmls.f32  q14, q4, d13[0]        \n\t"
-		"pld    [%5, #64]                \n\t"
+		"pld    [%5, #32]                \n\t"
 		"vmls.f32  q15, q4, d13[1]        \n\t"
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t" // next iter?
@@ -577,35 +588,9 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vadd.f32  q11, q11, q15         \n\t"
 		"                                \n\t"
 		"                                \n\t"
-/*		"vst1.64   {d8, d9},   [%8:128]! \n\t" // store D0*/
-/*		"vst1.64   {d16, d17}, [%9:128]! \n\t" // store D1*/
-/*		"vst1.64   {d10, d11}, [%8:128]! \n\t" // store D0*/
-/*		"vst1.64   {d18, d19}, [%9:128]! \n\t" // store D1*/
-/*		"vst1.64   {d12, d13}, [%8:128]! \n\t" // store D0*/
-/*		"vst1.64   {d20, d21}, [%9:128]! \n\t" // store D1*/
-/*		"vst1.64   {d14, d15}, [%8:128]! \n\t" // store D0*/
-/*		"vst1.64   {d22, d23}, [%9:128]! \n\t" // store D1*/
-/*		"                                \n\t"*/
-/*		"b  .DEND_8x4                    \n\t"*/
 		"                                \n\t"
-		"                                \n\t"
-/*		"fldd   d0, [%10, #0]            \n\t" // load fact elements*/
-/*		"fldd   d1, [%10, #16]           \n\t"*/
-/*		"fldd   d2, [%10, #32]           \n\t"*/
-/*		"fldd   d3, [%10, #48]           \n\t"*/
-/*		"fldd   d4, [%10, #64]           \n\t"*/
 		"vld1.64   {d0, d1, d2, d3},   [%10]! \n\t" // fact
 		"vld1.64   {d4},   [%10]! \n\t" // fact
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-/*		"vst1.64   {d0, d1},   [%8:128]! \n\t" // store D0*/
-/*		"vst1.64   {d2, d3},   [%9:128]! \n\t" // store D1*/
-/*		"vst1.64   {d4, d5},   [%8:128]! \n\t" // store D0*/
-/*		"vst1.64   {d6, d7},   [%9:128]! \n\t" // store D1*/
-/*		"vst1.64   {d8, d9},   [%8:128]! \n\t" // store D0*/
-/*		"                                \n\t"*/
-/*		"b  .DEND_8x4                    \n\t"*/
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"

@@ -39,7 +39,7 @@ int main()
 	{
 		
 	// maximum frequency of the processor
-	const float GHz_max = 3.4; //3.6; //2.9;
+	const float GHz_max = 2.3; //3.6; //2.9;
 
 	// maximum flops per cycle, single precision
 #if defined(TARGET_X64_AVX2)
@@ -198,7 +198,7 @@ int main()
 			{
 
 /*			ssyrk_ppp_lib(n, n, n, pA, pns, pC, pns);*/
-/*			ssyrk_spotrf_pp_lib(n, n, n, pE, cns2, pD, cns, diag);*/
+			ssyrk_spotrf_pp_lib(n, n, n, pE, cns2, pD, cns, diag);
 
 			}
 	
@@ -207,7 +207,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			strmm_ppp_lib(n, n, pA, pns, pB, pns, pC, cns);*/
+			strmm_ppp_lib(n, n, pA, pns, pB, pns, pC, cns);
 
 			}
 	
