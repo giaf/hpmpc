@@ -27,6 +27,592 @@
 
 
 
+void kernel_strsm_pp_nt_12x4_lib4(int kadd, int ksub, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, int ldc_dummy, float *fact)
+	{
+	
+/*	if(kmax<=0)*/
+/*		return;*/
+		
+	__builtin_prefetch( A0 );
+	__builtin_prefetch( A1 );
+	__builtin_prefetch( A2 );
+	__builtin_prefetch( B  );
+
+	int ki_add = kadd/4;
+	int kl_add = kadd%4;
+	int ki_sub = ksub/4;
+
+	const int bs = S_MR;//4;
+	const int d_ncl = S_NCL;//2;
+
+	int dA = bs*((d_ncl-kadd%d_ncl)%d_ncl)*sizeof(float);
+	
+/*	printf("\n%d %d %d %d\n", kadd, ki_add, kl_add, ki_sub);*/
+
+	__asm__ volatile
+	(
+		"                                \n\t"
+		"                                \n\t"
+		"pld    [%3, #64]                \n\t" // prefetch A0 to L1
+		"pld    [%4, #64]                \n\t" // prefetch A1 to L1
+		"pld    [%5, #64]                \n\t" // prefetch A2 to L1
+		"pld    [%6, #64]                \n\t" // prefetch B to L1
+		"                                \n\t"
+		"                                \n\t"
+		"mov    r0, %0                   \n\t" // k_iter
+		"                                \n\t"
+		"                                \n\t"
+		"vld1.64   {d0, d1}, [%6:128]! \n\t" // load B to registers
+		"vld1.64   {d2, d3}, [%3:128]! \n\t" // load A0 to registers
+		"vld1.64   {d4, d5}, [%4:128]! \n\t" // load A1
+/*		"vld1.64   {d6, d7}, [%5:128]! \n\t" // load A2*/
+		"                                \n\t"
+		"cmp    r0, #0                   \n\t"
+		"                                \n\t"
+		"                                \n\t"
+/*		"ldr    r4, %6                   \n\t" // load address of C*/
+/*		"ldr    r5, %6                   \n\t" // load address of C*/
+/*		"ldr    r6, %7                   \n\t" // alg*/
+		"                                \n\t"
+		"                                \n\t"
+		"vldr   d8, .DZERO_12x4               \n\t" // load zero double
+		"vldr   d9, .DZERO_12x4+8             \n\t" // load zero double
+		"vmov   q5, q4                   \n\t"
+		"vmov   q6, q4                   \n\t"
+		"vmov   q7, q4                   \n\t"
+		"vmov   q8, q4                   \n\t"
+		"vmov   q9, q4                   \n\t"
+		"vmov   q10, q4                  \n\t"
+		"vmov   q11, q4                  \n\t"
+		"vmov   q12, q4                  \n\t"
+		"vmov   q13, q4                  \n\t"
+		"vmov   q14, q4                  \n\t"
+		"vmov   q15, q4                  \n\t"
+		"                                \n\t"
+		"ble    .DCONSIDERADD2_12x4      \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"b      .DENDZERO_12x4           \n\t"
+		".align 3                        \n\t"
+		".DZERO_12x4:                    \n\t" // zero quad word
+		".word  0                        \n\t"
+		".word  0                        \n\t"
+		".word  0                        \n\t"
+		".word  0                        \n\t"
+		".DENDZERO_12x4:                 \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DLOOPADD_12x4:                \n\t" // main loop
+		"                                \n\t"
+		"                                \n\t"
+		"vmla.f32  q4, q1, d0[0]        \n\t"
+		"vldr   d6, [%5, #0]             \n\t"
+		"vmla.f32  q5, q1, d0[1]        \n\t"
+		"vldr   d7, [%5, #8]             \n\t"
+		"vmla.f32  q6, q1, d1[0]        \n\t"
+		"pld    [%3, #128]                \n\t" // A0
+		"vmla.f32  q7, q1, d1[1]        \n\t"
+		"vldr   d2, [%3, #0]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q2, d0[0]        \n\t"
+		"vldr   d3, [%3, #8]             \n\t"
+		"vmla.f32  q9, q2, d0[1]        \n\t"
+		"pld    [%4, #128]                \n\t" // A1
+		"vmla.f32  q10, q2, d1[0]        \n\t"
+		"pld    [%5, #144]                \n\t" // A2
+		"vmla.f32  q11, q2, d1[1]        \n\t"
+		"vldr   d4, [%6, #0]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q12, q3, d0[0]        \n\t"
+		"vldr   d5, [%6, #8]             \n\t"
+		"vmla.f32  q13, q3, d0[1]        \n\t"
+		"vldr   d0, [%4, #0]             \n\t"
+		"vmla.f32  q14, q3, d1[0]        \n\t"
+		"pld    [%6, #128]                \n\t" // B
+		"vmla.f32  q15, q3, d1[1]        \n\t"
+		"vldr   d1, [%4, #8]             \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmla.f32  q4, q1, d4[0]        \n\t"
+		"vldr   d6, [%5, #16]             \n\t"
+		"vmla.f32  q5, q1, d4[1]        \n\t"
+		"vldr   d7, [%5, #24]             \n\t"
+		"vmla.f32  q6, q1, d5[0]        \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"vmla.f32  q7, q1, d5[1]        \n\t"
+		"vldr   d2, [%3, #16]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q0, d4[0]        \n\t"
+		"vldr   d3, [%3, #24]             \n\t"
+		"vmla.f32  q9, q0, d4[1]        \n\t"
+		"vmla.f32  q10, q0, d5[0]        \n\t"
+		"vmla.f32  q11, q0, d5[1]        \n\t"
+		"vldr   d0, [%6, #16]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q12, q3, d4[0]        \n\t"
+		"vldr   d1, [%6, #24]             \n\t"
+		"vmla.f32  q13, q3, d4[1]        \n\t"
+		"vldr   d4, [%4, #16]             \n\t"
+		"vmla.f32  q14, q3, d5[0]        \n\t"
+		"cmp    r0, #0                   \n\t" // next iter?
+		"vmla.f32  q15, q3, d5[1]        \n\t"
+		"vldr   d5, [%4, #24]             \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmla.f32  q4, q1, d0[0]        \n\t"
+		"vldr   d6, [%5, #32]             \n\t"
+		"vmla.f32  q5, q1, d0[1]        \n\t"
+		"vldr   d7, [%5, #40]             \n\t"
+		"vmla.f32  q6, q1, d1[0]        \n\t"
+		"vmla.f32  q7, q1, d1[1]        \n\t"
+		"vldr   d2, [%3, #32]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q2, d0[0]        \n\t"
+		"vldr   d3, [%3, #40]             \n\t"
+		"vmla.f32  q9, q2, d0[1]        \n\t"
+		"vmla.f32  q10, q2, d1[0]        \n\t"
+		"vmla.f32  q11, q2, d1[1]        \n\t"
+		"vldr   d4, [%6, #32]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q12, q3, d0[0]        \n\t"
+		"vldr   d5, [%6, #40]             \n\t"
+		"vmla.f32  q13, q3, d0[1]        \n\t"
+		"vldr   d0, [%4, #32]             \n\t"
+		"vmla.f32  q14, q3, d1[0]        \n\t"
+		"vmla.f32  q15, q3, d1[1]        \n\t"
+		"vldr   d1, [%4, #40]             \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmla.f32  q4, q1, d4[0]        \n\t"
+		"vldr   d6, [%5, #48]             \n\t"
+		"vmla.f32  q5, q1, d4[1]        \n\t"
+		"vldr   d7, [%5, #56]             \n\t"
+		"vmla.f32  q6, q1, d5[0]        \n\t"
+		"add    %5, %5, #64              \n\t" // increase B
+		"vmla.f32  q7, q1, d5[1]        \n\t"
+		"vldr   d2, [%3, #48]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q0, d4[0]        \n\t"
+		"vldr   d3, [%3, #56]             \n\t"
+		"vmla.f32  q9, q0, d4[1]        \n\t"
+		"add    %3, %3, #64              \n\t" // increase B
+		"vmla.f32  q10, q0, d5[0]        \n\t"
+		"vmla.f32  q11, q0, d5[1]        \n\t"
+		"vldr   d0, [%6, #48]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q12, q3, d4[0]        \n\t"
+		"vldr   d1, [%6, #56]             \n\t"
+		"vmla.f32  q13, q3, d4[1]        \n\t"
+		"vldr   d4, [%4, #48]             \n\t"
+		"vmla.f32  q14, q3, d5[0]        \n\t"
+		"add    %6, %6, #64              \n\t" // increase B
+		"vmla.f32  q15, q3, d5[1]        \n\t"
+		"vldr   d5, [%4, #56]             \n\t"
+		"add    %4, %4, #64              \n\t" // increase B
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"bgt    .DLOOPADD_12x4              \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DCONSIDERADD2_12x4:                 \n\t" // consider left k+=2
+		"                                \n\t"
+		"mov    r0, %1                   \n\t" // k_left
+		"cmp    r0, #1                   \n\t"
+		"ble    .DCONSIDERADD1_12x4          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmla.f32  q4, q1, d0[0]        \n\t"
+		"vldr   d6, [%5, #0]             \n\t"
+		"vmla.f32  q5, q1, d0[1]        \n\t"
+		"vldr   d7, [%5, #8]             \n\t"
+		"vmla.f32  q6, q1, d1[0]        \n\t"
+		"vmla.f32  q7, q1, d1[1]        \n\t"
+		"vldr   d2, [%3, #0]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q2, d0[0]        \n\t"
+		"vldr   d3, [%3, #8]             \n\t"
+		"vmla.f32  q9, q2, d0[1]        \n\t"
+		"vmla.f32  q10, q2, d1[0]        \n\t"
+		"vmla.f32  q11, q2, d1[1]        \n\t"
+		"vldr   d4, [%6, #0]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q12, q3, d0[0]        \n\t"
+		"vldr   d5, [%6, #8]             \n\t"
+		"vmla.f32  q13, q3, d0[1]        \n\t"
+		"vldr   d0, [%4, #0]             \n\t"
+		"vmla.f32  q14, q3, d1[0]        \n\t"
+		"vmla.f32  q15, q3, d1[1]        \n\t"
+		"vldr   d1, [%4, #8]             \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmla.f32  q4, q1, d4[0]        \n\t"
+		"vldr   d6, [%5, #16]             \n\t"
+		"vmla.f32  q5, q1, d4[1]        \n\t"
+		"vldr   d7, [%5, #24]             \n\t"
+		"vmla.f32  q6, q1, d5[0]        \n\t"
+		"add    %5, %5, #32              \n\t" // increase B
+		"vmla.f32  q7, q1, d5[1]        \n\t"
+		"vldr   d2, [%3, #16]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q0, d4[0]        \n\t"
+		"vldr   d3, [%3, #24]             \n\t"
+		"vmla.f32  q9, q0, d4[1]        \n\t"
+		"add    %3, %3, #32              \n\t" // increase B
+		"vmla.f32  q10, q0, d5[0]        \n\t"
+		"vmla.f32  q11, q0, d5[1]        \n\t"
+		"vldr   d0, [%6, #16]             \n\t"
+		"                                \n\t"
+		"vmla.f32  q12, q3, d4[0]        \n\t"
+		"vldr   d1, [%6, #24]             \n\t"
+		"vmla.f32  q13, q3, d4[1]        \n\t"
+		"vldr   d4, [%4, #16]             \n\t"
+		"vmla.f32  q14, q3, d5[0]        \n\t"
+		"add    %6, %6, #32              \n\t" // increase B
+		"vmla.f32  q15, q3, d5[1]        \n\t"
+		"vldr   d5, [%4, #24]             \n\t"
+		"add    %4, %4, #32              \n\t" // increase B
+		"                                \n\t"
+		"sub    r0, r0, #2               \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DCONSIDERADD1_12x4:                 \n\t" // consider left k++
+		"                                \n\t"
+		"cmp    r0, #0                   \n\t"
+		"ble    .DCONSIDERSUB_12x4              \n\t"
+		"                                \n\t"
+		"vmla.f32  q4, q1, d0[0]        \n\t"
+		"vldr   d6, [%5, #0]             \n\t"
+		"vmla.f32  q5, q1, d0[1]        \n\t"
+		"vldr   d7, [%5, #8]             \n\t"
+		"vmla.f32  q6, q1, d1[0]        \n\t"
+		"add    %3, %3, #16              \n\t" // increase B
+		"vmla.f32  q7, q1, d1[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q2, d0[0]        \n\t"
+		"add    %4, %4, #16              \n\t" // increase B
+		"vmla.f32  q9, q2, d0[1]        \n\t"
+		"add    %5, %5, #16              \n\t" // increase B
+		"vmla.f32  q10, q2, d1[0]        \n\t"
+		"add    %6, %6, #16              \n\t" // increase B
+		"vmla.f32  q11, q2, d1[1]        \n\t"
+		"                                \n\t"
+		"vmla.f32  q12, q3, d0[0]        \n\t"
+		"vmla.f32  q13, q3, d0[1]        \n\t"
+		"vmla.f32  q14, q3, d1[0]        \n\t"
+		"vmla.f32  q15, q3, d1[1]        \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DCONSIDERSUB_12x4:                    \n\t"
+		"                                \n\t"
+		"add    r0, %0, %1               \n\t"
+		"                                \n\t"
+		"cmp    %2, #0                   \n\t"
+		"ble    .DPOSTACC_12x4                \n\t"
+		"                                \n\t"
+		"cmp    %14, #0                   \n\t"
+		"ble    .DPRELOOPSUB_12x4             \n\t"
+		"                                \n\t"
+		"cmp    r0, #0                   \n\t"
+		"ble    .DPRELOOPSUB_12x4             \n\t"
+		"                                \n\t"
+		"add    %3, %3, %14               \n\t"
+		"add    %4, %4, %14               \n\t"
+		"add    %5, %5, %14               \n\t"
+		"add    %6, %6, %14               \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DPRELOOPSUB_12x4:                   \n\t" // 
+		"                                \n\t"
+		"sub    %3, %3, #16              \n\t" // 
+		"sub    %4, %4, #16              \n\t" // 
+		"sub    %6, %6, #16              \n\t" // 
+		"                                \n\t"
+// TODO load in clean-up loops and not load again if not increased ???
+// TODO load already increased in clean-up loops ???
+		"                                \n\t"
+		"pld    [%3, #0]                \n\t"
+		"pld    [%4, #0]                \n\t"
+		"pld    [%5, #0]                \n\t"
+		"pld    [%5, #0]                \n\t"
+		"                                \n\t"
+		"vld1.64   {d0, d1}, [%6:128]! \n\t" // load B to registers
+		"vld1.64   {d2, d3}, [%3:128]! \n\t" // load A0 to registers
+		"vld1.64   {d4, d5}, [%4:128]! \n\t" // load A1
+/*		"vld1.64   {d6, d7}, [%5:128]! \n\t" // load A2*/
+		"                                \n\t"
+		"pld    [%3, #48]                \n\t" // prefetch A0 to L1
+		"pld    [%4, #48]                \n\t" // prefetch A1 to L1
+		"pld    [%5, #64]                \n\t" // prefetch B to L1
+		"pld    [%5, #48]                \n\t" // prefetch B to L1
+		"                                \n\t"
+		"                                \n\t"
+		"mov    r0, %2                   \n\t" // k_iter
+		"                                \n\t"
+		"                                \n\t"
+		".DLOOPSUB_12x4:                      \n\t" // main loop 2
+		"                                \n\t"
+		"vmls.f32  q4, q1, d0[0]        \n\t"
+		"vldr   d6, [%5, #0]             \n\t"
+		"vmls.f32  q5, q1, d0[1]        \n\t"
+		"vldr   d7, [%5, #8]             \n\t"
+		"vmls.f32  q6, q1, d1[0]        \n\t"
+		"pld    [%3, #128]                \n\t" // A0
+		"vmls.f32  q7, q1, d1[1]        \n\t"
+		"vldr   d2, [%3, #0]             \n\t"
+		"                                \n\t"
+		"vmls.f32  q8, q2, d0[0]        \n\t"
+		"vldr   d3, [%3, #8]             \n\t"
+		"vmls.f32  q9, q2, d0[1]        \n\t"
+		"pld    [%4, #128]                \n\t" // A1
+		"vmls.f32  q10, q2, d1[0]        \n\t"
+		"pld    [%5, #144]                \n\t" // A2
+		"vmls.f32  q11, q2, d1[1]        \n\t"
+		"vldr   d4, [%6, #0]             \n\t"
+		"                                \n\t"
+		"vmls.f32  q12, q3, d0[0]        \n\t"
+		"vldr   d5, [%6, #8]             \n\t"
+		"vmls.f32  q13, q3, d0[1]        \n\t"
+		"vldr   d0, [%4, #0]             \n\t"
+		"vmls.f32  q14, q3, d1[0]        \n\t"
+		"pld    [%6, #128]                \n\t" // B
+		"vmls.f32  q15, q3, d1[1]        \n\t"
+		"vldr   d1, [%4, #8]             \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmls.f32  q4, q1, d4[0]        \n\t"
+		"vldr   d6, [%5, #16]             \n\t"
+		"vmls.f32  q5, q1, d4[1]        \n\t"
+		"vldr   d7, [%5, #24]             \n\t"
+		"vmls.f32  q6, q1, d5[0]        \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"vmls.f32  q7, q1, d5[1]        \n\t"
+		"vldr   d2, [%3, #16]             \n\t"
+		"                                \n\t"
+		"vmls.f32  q8, q0, d4[0]        \n\t"
+		"vldr   d3, [%3, #24]             \n\t"
+		"vmls.f32  q9, q0, d4[1]        \n\t"
+		"vmls.f32  q10, q0, d5[0]        \n\t"
+		"vmls.f32  q11, q0, d5[1]        \n\t"
+		"vldr   d0, [%6, #16]             \n\t"
+		"                                \n\t"
+		"vmls.f32  q12, q3, d4[0]        \n\t"
+		"vldr   d1, [%6, #24]             \n\t"
+		"vmls.f32  q13, q3, d4[1]        \n\t"
+		"vldr   d4, [%4, #16]             \n\t"
+		"vmls.f32  q14, q3, d5[0]        \n\t"
+		"cmp    r0, #0                   \n\t" // next iter?
+		"vmls.f32  q15, q3, d5[1]        \n\t"
+		"vldr   d5, [%4, #24]             \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmls.f32  q4, q1, d0[0]        \n\t"
+		"vldr   d6, [%5, #32]             \n\t"
+		"vmls.f32  q5, q1, d0[1]        \n\t"
+		"vldr   d7, [%5, #40]             \n\t"
+		"vmls.f32  q6, q1, d1[0]        \n\t"
+		"vmls.f32  q7, q1, d1[1]        \n\t"
+		"vldr   d2, [%3, #32]             \n\t"
+		"                                \n\t"
+		"vmls.f32  q8, q2, d0[0]        \n\t"
+		"vldr   d3, [%3, #40]             \n\t"
+		"vmls.f32  q9, q2, d0[1]        \n\t"
+		"vmls.f32  q10, q2, d1[0]        \n\t"
+		"vmls.f32  q11, q2, d1[1]        \n\t"
+		"vldr   d4, [%6, #32]             \n\t"
+		"                                \n\t"
+		"vmls.f32  q12, q3, d0[0]        \n\t"
+		"vldr   d5, [%6, #40]             \n\t"
+		"vmls.f32  q13, q3, d0[1]        \n\t"
+		"vldr   d0, [%4, #32]             \n\t"
+		"vmls.f32  q14, q3, d1[0]        \n\t"
+		"vmls.f32  q15, q3, d1[1]        \n\t"
+		"vldr   d1, [%4, #40]             \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmls.f32  q4, q1, d4[0]        \n\t"
+		"vldr   d6, [%5, #48]             \n\t"
+		"vmls.f32  q5, q1, d4[1]        \n\t"
+		"vldr   d7, [%5, #56]             \n\t"
+		"vmls.f32  q6, q1, d5[0]        \n\t"
+		"add    %5, %5, #64              \n\t" // increase B
+		"vmls.f32  q7, q1, d5[1]        \n\t"
+		"vldr   d2, [%3, #48]             \n\t"
+		"                                \n\t"
+		"vmls.f32  q8, q0, d4[0]        \n\t"
+		"vldr   d3, [%3, #56]             \n\t"
+		"vmls.f32  q9, q0, d4[1]        \n\t"
+		"add    %3, %3, #64              \n\t" // increase B
+		"vmls.f32  q10, q0, d5[0]        \n\t"
+		"vmls.f32  q11, q0, d5[1]        \n\t"
+		"vldr   d0, [%6, #48]             \n\t"
+		"                                \n\t"
+		"vmls.f32  q12, q3, d4[0]        \n\t"
+		"vldr   d1, [%6, #56]             \n\t"
+		"vmls.f32  q13, q3, d4[1]        \n\t"
+		"vldr   d4, [%4, #48]             \n\t"
+		"vmls.f32  q14, q3, d5[0]        \n\t"
+		"add    %6, %6, #64              \n\t" // increase B
+		"vmls.f32  q15, q3, d5[1]        \n\t"
+		"vldr   d5, [%4, #56]             \n\t"
+		"add    %4, %4, #64              \n\t" // increase B
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"bgt    .DLOOPSUB_12x4              \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DPOSTACC_12x4:                  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"ldr    r1, %7                   \n\t"
+		"ldr    r2, %8                   \n\t"
+		"ldr    r3, %9                   \n\t"
+		"                                \n\t"
+		"pld    [r1, #0]                \n\t" // C0
+		"pld    [r2, #0]                \n\t" // C1
+		"pld    [r3, #0]                \n\t" // C2
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"// alg==-1
+		"vld1.64   {d0, d1, d2, d3},   [r1:128]! \n\t" // load C0
+		"vld1.64   {d4, d5, d6, d7},   [r1:128]  \n\t" // load C0
+		"vadd.f32  q4, q0, q4            \n\t"
+		"vadd.f32  q5, q1, q5            \n\t"
+		"vld1.64   {d0, d1, d2, d3},   [r2:128]! \n\t" // load C0
+		"vadd.f32  q6, q2, q6            \n\t"
+		"vadd.f32  q7, q3, q7            \n\t"
+		"vld1.64   {d4, d5, d6, d7},   [r2:128]  \n\t" // load C0
+		"vadd.f32  q8, q0, q8            \n\t"
+		"vadd.f32  q9, q1, q9            \n\t"
+		"vld1.64   {d0, d1, d2, d3},   [r3:128]! \n\t" // load C0
+		"vadd.f32  q10, q2, q10            \n\t"
+		"vadd.f32  q11, q3, q11            \n\t"
+		"vld1.64   {d4, d5, d6, d7},   [r3:128]  \n\t" // load C0
+		"vadd.f32  q12, q0, q12            \n\t"
+		"vadd.f32  q13, q1, q13            \n\t"
+		"vadd.f32  q14, q2, q14            \n\t"
+		"vadd.f32  q15, q3, q15            \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vld1.64   {d0, d1, d2, d3},   [%13]! \n\t" // fact
+		"vld1.64   {d4},   [%13]! \n\t" // fact
+		"                                \n\t"
+		"                                \n\t"
+		"ldr    r1, %10                   \n\t"
+		"ldr    r2, %11                   \n\t"
+		"ldr    r3, %12                   \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmul.f32  q4, q4, d0[0]         \n\t"
+		"vmul.f32  q8, q8, d0[0]         \n\t"
+		"vmul.f32  q12, q12, d0[0]         \n\t"
+		"                                \n\t"
+		"vst1.64   {d8, d9},   [r1:128]! \n\t" // store D0
+		"vst1.64   {d16, d17}, [r2:128]! \n\t" // store D1
+		"vst1.64   {d24, d25}, [r3:128]! \n\t" // store D1
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmls.f32  q5, q4, d0[1]         \n\t"
+		"vmls.f32  q9, q8, d0[1]         \n\t"
+		"vmls.f32  q13, q12, d0[1]         \n\t"
+		"                                \n\t"
+		"vmul.f32  q5, q5, d1[0]         \n\t"
+		"vmul.f32  q9, q9, d1[0]         \n\t"
+		"vmul.f32  q13, q13, d1[0]         \n\t"
+		"                                \n\t"
+		"vst1.64   {d10, d11}, [r1:128]! \n\t" // store D0
+		"vst1.64   {d18, d19}, [r2:128]! \n\t" // store D1
+		"vst1.64   {d26, d27}, [r3:128]! \n\t" // store D1
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmls.f32  q6, q4, d1[1]         \n\t"
+		"vmls.f32  q10, q8, d1[1]         \n\t"
+		"vmls.f32  q14, q12, d1[1]         \n\t"
+		"                                \n\t"
+		"vmls.f32  q6, q5, d2[0]         \n\t"
+		"vmls.f32  q10, q9, d2[0]         \n\t"
+		"vmls.f32  q14, q13, d2[0]         \n\t"
+		"                                \n\t"
+		"vmul.f32  q6, q6, d2[1]         \n\t"
+		"vmul.f32  q10, q10, d2[1]       \n\t"
+		"vmul.f32  q14, q14, d2[1]       \n\t"
+		"                                \n\t"
+		"vst1.64   {d12, d13}, [r1:128]! \n\t" // store D0
+		"vst1.64   {d20, d21}, [r2:128]! \n\t" // store D1
+		"vst1.64   {d28, d29}, [r3:128]! \n\t" // store D1
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmls.f32  q7, q4, d3[0]         \n\t"
+		"vmls.f32  q11, q8, d3[0]         \n\t"
+		"vmls.f32  q15, q12, d3[0]         \n\t"
+		"                                \n\t"
+		"vmls.f32  q7, q5, d3[1]         \n\t"
+		"vmls.f32  q11, q9, d3[1]         \n\t"
+		"vmls.f32  q15, q13, d3[1]         \n\t"
+		"                                \n\t"
+		"vmls.f32  q7, q6, d4[0]         \n\t"
+		"vmls.f32  q11, q10, d4[0]         \n\t"
+		"vmls.f32  q15, q14, d4[0]         \n\t"
+		"                                \n\t"
+		"vmul.f32  q7, q7, d4[1]         \n\t"
+		"vmul.f32  q11, q11, d4[1]         \n\t"
+		"vmul.f32  q15, q15, d4[1]         \n\t"
+		"                                \n\t"
+		"vst1.64   {d14, d15}, [r1:128]! \n\t" // store D0
+		"vst1.64   {d22, d23}, [r2:128]! \n\t" // store D1
+		"vst1.64   {d30, d31}, [r3:128]! \n\t" // store D1
+		"                                \n\t"
+		"                                \n\t"
+		".DEND_12x4:                      \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		: // output operands (none)
+		: // input operands
+		  "r" (ki_add),		// %0
+		  "r" (kl_add),		// %1
+		  "r" (ki_sub),		// %2
+		  "r" (A0),			// %3
+		  "r" (A1),			// %4
+		  "r" (A2),			// %5
+		  "r" (B),			// %6
+		  "m" (C0),			// %7
+		  "m" (C1),			// %8
+		  "m" (C2),			// %9
+		  "m" (D0),			// %10
+		  "m" (D1),			// %11
+		  "m" (D2),			// %12
+		  "r" (fact),		// %13
+		  "r" (dA)			// %14
+		: // register clobber list
+		  "r0", "r1", "r2", "r3", 
+		  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
+		  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
+		  "d16", "d17", "d18", "d19", "d20", "d21", "d22", "d23",
+		  "d24", "d25", "d26", "d27", "d28", "d29", "d30", "d31",
+		  "memory"
+	);
+}
+
+
+
 void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc_dummy, double *fact)
 	{
 	

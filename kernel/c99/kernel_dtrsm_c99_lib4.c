@@ -23,6 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#include "../../include/block_size.h"
+
 
 
 void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)

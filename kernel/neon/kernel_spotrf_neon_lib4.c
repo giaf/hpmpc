@@ -607,9 +607,12 @@ void kernel_spotrf_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, floa
 		"fsts   s0, [%8, #0]             \n\t"
 		"fdivs	s0, s4, s0               \n\t"
 		"fmuls	s1, s1, s0               \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"fmuls	s2, s2, s0               \n\t"
 		"fmuls	s3, s3, s0               \n\t"
+#endif
 #if defined(TARGET_CORTEX_A15)
+		"vmul.f32  d1, d1, d0[0]         \n\t"
 		"vmul.f32  q8, q8, d0[0]         \n\t"
 #endif
 		"                                \n\t"
@@ -629,10 +632,9 @@ void kernel_spotrf_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, floa
 		".DELSE1END:                     \n\t"
 		"                                \n\t"
 		"fsts   s1, [%8, #4]             \n\t"
-		"fsts   s2, [%8, #8]            \n\t"
-		"fsts   s3, [%8, #12]            \n\t"
+		"vstr   d1, [%8, #8]            \n\t" // 
 #if defined(TARGET_CORTEX_A15)
-		"vst1.64   {d16, d17}, [%9:128]! \n\t" // store D1
+		"vst1.64   {d16, d17}, [%9:128]! \n\t" // 
 #endif
 		"                                \n\t"
 		"                                \n\t"
@@ -645,14 +647,22 @@ void kernel_spotrf_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, floa
 		"ble    .DELSE2                  \n\t"
 		"                                \n\t"
 		"fsqrts s5, s5                   \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"fnmacs s6, s1, s2               \n\t"
 		"fnmacs s7, s1, s3               \n\t"
+#endif
+#if defined(TARGET_CORTEX_A15)
+		"vmls.f32  d3, d1, d0[1]         \n\t"
+#endif
 		"fsts   s5, [%8, #20]            \n\t"
 		"fdivs	s5, s4, s5               \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"fmuls	s6, s6, s5               \n\t"
 		"fmuls	s7, s7, s5               \n\t"
+#endif
 #if defined(TARGET_CORTEX_A15)
 		"vmls.f32  q9, q8, d0[1]         \n\t"
+		"vmul.f32  d3, d3, d2[1]         \n\t"
 		"vmul.f32  q9, q9, d2[1]         \n\t"
 #endif
 		"                                \n\t"
@@ -671,16 +681,21 @@ void kernel_spotrf_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, floa
 		"                                \n\t"
 		".DELSE2END:                     \n\t"
 		"                                \n\t"
-		"fsts   s6, [%8, #24]            \n\t"
-		"fsts   s7, [%8, #28]            \n\t"
+		"vstr   d3, [%8, #24]            \n\t" // 
 #if defined(TARGET_CORTEX_A15)
 		"vst1.64   {d18, d19}, [%9:128]! \n\t" // store D1
 #endif
 		"                                \n\t"
 		"                                \n\t"
 	// third column
+#if defined(TARGET_CORTEX_A9)
 		"fnmacs s10, s2, s2              \n\t"
 		"fnmacs s10, s6, s6              \n\t"
+#endif
+#if defined(TARGET_CORTEX_A15)
+		"vmls.f32  d5, d1, d1[0]         \n\t"
+		"vmls.f32  d5, d3, d3[0]         \n\t"
+#endif
 /*		"fcvtds	d6, s10                   \n\t"*/
 /*		"fcmped	d6, d4                   \n\t"*/
 		"fcmpes	s10, s12                   \n\t"
@@ -688,8 +703,10 @@ void kernel_spotrf_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, floa
 		"ble    .DELSE3                  \n\t"
 		"                                \n\t"
 		"fsqrts s10, s10                 \n\t"
-		"fnmacs s11, s6, s7              \n\t"
-		"fnmacs s11, s2, s3              \n\t"
+#if defined(TARGET_CORTEX_A9)
+		"fnmacs s11, s7, s6              \n\t"
+		"fnmacs s11, s3, s2              \n\t"
+#endif
 		"fsts   s10, [%8, #40]           \n\t"
 		"fdivs	s10, s4, s10             \n\t"
 		"fmuls	s11, s11, s10            \n\t"

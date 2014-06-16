@@ -243,6 +243,7 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 		"vmla.f32  q5, q1, d4[1]        \n\t"
 		"vldr   d7, [%4, #24]             \n\t"
 		"vmla.f32  q6, q1, d5[0]        \n\t"
+		"add    %4, %4, #32              \n\t" // increase B
 		"vmla.f32  q7, q1, d5[1]        \n\t"
 		"vldr   d2, [%2, #16]             \n\t"
 		"                                \n\t"
