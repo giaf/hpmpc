@@ -32,7 +32,7 @@ ifeq ($(TARGET), X64_AVX)
 OBJS = d_ip_box.o dres_ip_box.o d_aux_ip_avx_lib4.o d_ip2_box.o #s_ip_box.o s_ip2_box.o sres_ip_box.o 
 endif
 ifeq ($(TARGET), C99_4X4)
-OBJS = d_ip_box.o dres_ip_box.o d_aux_ip_c99_lib4.o d_ip2_box.o #s_ip_box.o s_ip2_box.o sres_ip_box.o 
+OBJS = d_ip_box.o dres_ip_box.o d_aux_ip_c99_lib4.o d_ip2_box.o s_ip_box.o sres_ip_box.o s_aux_ip_c99_lib4.o s_ip2_box.o
 endif
 ifeq ($(TARGET), CORTEX_A15)
 OBJS = d_ip_box.o dres_ip_box.o d_aux_ip_c99_lib4.o d_ip2_box.o #s_ip_box.o s_ip2_box.o sres_ip_box.o 
