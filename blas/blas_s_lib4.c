@@ -33,7 +33,7 @@
 /* C += A * B' (alg== 1)                             */
 /* C -= A * B' (alg==-1)                             */
 /* where A, B and C are packed with block size 4     */
-void sgemm_ppp_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sdb, float *pC, int sdc, int alg)
+void sgemm_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sdb, float *pC, int sdc, int alg)
 	{
 
 	const int bs = 4;
@@ -180,7 +180,7 @@ void sgemm_ppp_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sd
 /* C  = A * B'                                       */
 /* where A, B and C are packed with block size 4,    */
 /* and B is upper triangular                         */
-void strmm_ppp_lib(int m, int n, float *pA, int sda, float *pB, int sdb, float *pC, int sdc)
+void strmm_lib(int m, int n, float *pA, int sda, float *pB, int sdb, float *pC, int sdc)
 	{
 	
 	const int bs = 4;
@@ -359,7 +359,7 @@ void strmm_ppp_lib(int m, int n, float *pA, int sda, float *pB, int sdb, float *
 
 
 
-void ssyrk_spotrf_pp_lib(int m, int k, int n, float *pA, int sda, float *pC, int sdc, float *diag)
+void ssyrk_spotrf_lib(int m, int k, int n, float *pA, int sda, float *pC, int sdc, float *diag)
 	{
 	const int bs = 4;
 	const int d_ncl = S_NCL;
@@ -459,7 +459,7 @@ void ssyrk_spotrf_pp_lib(int m, int k, int n, float *pA, int sda, float *pC, int
 
 
 
-void sgemv_p_n_lib(int m, int n, float *pA, int sda, float *x, float *y, int alg) // pA has to be aligned !!!
+void sgemv_n_lib(int m, int n, float *pA, int sda, float *x, float *y, int alg) // pA has to be aligned !!!
 	{
 	
 	const int bs = 4;
@@ -498,7 +498,7 @@ void sgemv_p_n_lib(int m, int n, float *pA, int sda, float *x, float *y, int alg
 
 
 
-void sgemv_p_t_lib(int m, int n, int offset, float *pA, int sda, float *x, float *y, int alg)
+void sgemv_t_lib(int m, int n, int offset, float *pA, int sda, float *x, float *y, int alg)
 	{
 	
 	const int bs = 4;
@@ -529,7 +529,7 @@ void sgemv_p_t_lib(int m, int n, int offset, float *pA, int sda, float *x, float
 
 
 
-void strmv_p_u_n_lib(int m, float *pA, int sda, float *x, float *y, int alg)
+void strmv_u_n_lib(int m, float *pA, int sda, float *x, float *y, int alg)
 	{
 
 	const int bs = 4;
@@ -572,7 +572,7 @@ void strmv_p_u_n_lib(int m, float *pA, int sda, float *x, float *y, int alg)
 
 
 
-void strmv_p_u_t_lib(int m, float *pA, int sda, float *x, float *y, int alg)
+void strmv_u_t_lib(int m, float *pA, int sda, float *x, float *y, int alg)
 	{
 
 	const int bs = 4;
@@ -610,7 +610,7 @@ void strmv_p_u_t_lib(int m, float *pA, int sda, float *x, float *y, int alg)
 
 
 // it moves vertically across block
-void ssymv_p_lib(int m, int offset, float *pA, int sda, float *x, float *y, int alg)
+void ssymv_lib(int m, int offset, float *pA, int sda, float *x, float *y, int alg)
 	{
 	
 	const int bs = 4;
@@ -658,7 +658,7 @@ void ssymv_p_lib(int m, int offset, float *pA, int sda, float *x, float *y, int 
 
 
 // it moves vertically across block
-void smvmv_p_lib(int m, int n, int offset, float *pA, int sda, float *x_n, float *y_n, float *x_t, float *y_t, int alg)
+void smvmv_lib(int m, int n, int offset, float *pA, int sda, float *x_n, float *y_n, float *x_t, float *y_t, int alg)
 	{
 	
 	const int bs = 4;
@@ -695,7 +695,7 @@ void smvmv_p_lib(int m, int n, int offset, float *pA, int sda, float *x_n, float
 
 
 // the diagonal is inverted !!!
-void strsv_sgemv_p_n_lib(int m, int n, float *pA, int sda, float *x)
+void strsv_sgemv_n_lib(int m, int n, float *pA, int sda, float *x)
 	{
 	
 	const int bs = 4;
@@ -781,7 +781,7 @@ void strsv_sgemv_p_n_lib(int m, int n, float *pA, int sda, float *x)
 
 
 // the diagonal is inverted !!!
-void strsv_sgemv_p_t_lib(int m, int n, float *pA, int sda, float *x)
+void strsv_sgemv_t_lib(int m, int n, float *pA, int sda, float *x)
 	{
 	
 	const int bs = 4;
@@ -816,7 +816,7 @@ void strsv_sgemv_p_t_lib(int m, int n, float *pA, int sda, float *x)
 
 
 // transpose & align lower triangular matrix
-void strtr_l_p_lib(int m, int offset, float *pA, int sda, float *pC, int sdc)
+void strtr_l_lib(int m, int offset, float *pA, int sda, float *pC, int sdc)
 	{
 	
 	const int bs = 4;

@@ -33,9 +33,11 @@
 
 
 // normal-transposed, 8x4 with data packed in 4
-void kernel_dtrmm_pp_nt_8x4_lib4(int kadd, double *A0, double *A1, double *B, double *D0, double *D1, int ldc)
+void kernel_dtrmm_nt_8x4_lib4(int kadd, double *A0, double *A1, double *B, double *D0, double *D1)
 	{
 	
+	const int ldc = 4;
+
 	int k;
 	
 	__m256d
@@ -374,9 +376,11 @@ void kernel_dtrmm_pp_nt_8x4_lib4(int kadd, double *A0, double *A1, double *B, do
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dtrmm_pp_nt_4x4_lib4(int kadd, double *A, double *B, double *D, int ldc)
+void kernel_dtrmm_nt_4x4_lib4(int kadd, double *A, double *B, double *D)
 	{
 	
+	const int ldc = 4;
+
 	int k;
 	
 	__m256d
@@ -600,14 +604,14 @@ void kernel_dtrmm_pp_nt_4x4_lib4(int kadd, double *A, double *B, double *D, int 
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dtrmm_pp_nt_4x4_lib4_old(int kadd, double *A, double *B, double *D, int ldc)
+void kernel_dtrmm_nt_4x4_lib4_old(int kadd, double *A, double *B, double *D)
 	{
 	
 /*	if(kmax<=0)*/
 /*		return;*/
 	
-	const int d_ncl = 2;
-	
+	const int ldc = 4;
+
 	int k;
 	
 	__m256d
@@ -802,9 +806,11 @@ void kernel_dtrmm_pp_nt_4x4_lib4_old(int kadd, double *A, double *B, double *D, 
 
 
 /*inline void corner_dtrmm_pp_nt_8x3_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
-void corner_dtrmm_pp_nt_8x3_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)
+void corner_dtrmm_nt_8x3_lib4(double *A0, double *A1, double *B, double *C0, double *C1)
 	{
 	
+	const int ldc = 4;
+
 	__m256d
 		ab_temp,
 		a_00_10_20_30, a_01_11_21_31, a_02_12_22_32, a_40_50_60_70, a_41_51_61_71, a_42_52_62_72,
@@ -868,9 +874,11 @@ void corner_dtrmm_pp_nt_8x3_lib4(double *A0, double *A1, double *B, double *C0, 
 
 
 /*inline void corner_dtrmm_pp_nt_8x2_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
-void corner_dtrmm_pp_nt_8x2_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)
+void corner_dtrmm_nt_8x2_lib4(double *A0, double *A1, double *B, double *C0, double *C1)
 	{
 	
+	const int ldc = 4;
+
 	__m256d
 		ab_temp,
 		a_00_10_20_30, a_01_11_21_31, a_40_50_60_70, a_41_51_61_71,
@@ -911,9 +919,11 @@ void corner_dtrmm_pp_nt_8x2_lib4(double *A0, double *A1, double *B, double *C0, 
 
 
 /*inline void corner_dtrmm_pp_nt_8x1_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
-void corner_dtrmm_pp_nt_8x1_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)
+void corner_dtrmm_nt_8x1_lib4(double *A0, double *A1, double *B, double *C0, double *C1)
 	{
 	
+	const int ldc = 4;
+
 	__m256d
 		a_00_10_20_30, a_40_50_60_70,
 		b_00,
@@ -935,9 +945,11 @@ void corner_dtrmm_pp_nt_8x1_lib4(double *A0, double *A1, double *B, double *C0, 
 
 
 /*inline void corner_dtrmm_pp_nt_4x3_lib4(double *A, double *B, double *C, int ldc)*/
-void corner_dtrmm_pp_nt_4x3_lib4(double *A, double *B, double *C, int ldc)
+void corner_dtrmm_nt_4x3_lib4(double *A, double *B, double *C)
 	{
 	
+	const int ldc = 4;
+
 	__m256d
 		ab_temp,
 		a_00_10_20_30, a_01_11_21_31, a_02_12_22_32,
@@ -986,9 +998,11 @@ void corner_dtrmm_pp_nt_4x3_lib4(double *A, double *B, double *C, int ldc)
 
 
 /*inline void corner_dtrmm_pp_nt_4x2_lib4(double *A, double *B, double *C, int ldc)*/
-void corner_dtrmm_pp_nt_4x2_lib4(double *A, double *B, double *C, int ldc)
+void corner_dtrmm_nt_4x2_lib4(double *A, double *B, double *C)
 	{
 	
+	const int ldc = 4;
+
 	__m256d
 		ab_temp,
 		a_00_10_20_30, a_01_11_21_31,
@@ -1021,9 +1035,11 @@ void corner_dtrmm_pp_nt_4x2_lib4(double *A, double *B, double *C, int ldc)
 
 
 /*inline void corner_dtrmm_pp_nt_4x1_lib4(double *A, double *B, double *C, int ldc)*/
-void corner_dtrmm_pp_nt_4x1_lib4(double *A, double *B, double *C, int ldc)
+void corner_dtrmm_nt_4x1_lib4(double *A, double *B, double *C)
 	{
 	
+	const int ldc = 4;
+
 	__m256d
 		a_00_10_20_30,
 		b_00,

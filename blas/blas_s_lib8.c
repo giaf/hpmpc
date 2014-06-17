@@ -32,7 +32,7 @@
 /* C += A * B' (alg== 1)                             */
 /* C -= A * B' (alg==-1)                             */
 /* where A, B and C are packed with block size 4     */
-void sgemm_ppp_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sdb, float *pC, int sdc, int alg)
+void sgemm_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sdb, float *pC, int sdc, int alg)
 	{
 
 	const int bs = 8;

@@ -170,7 +170,7 @@ int main()
 		/* warm up */
 		for(rep=0; rep<nrep; rep++)
 			{
-			dgemm_ppp_nt_lib(n, n, n, pA, pnd, pB, pnd, pC, pnd, 0);
+			dgemm_nt_lib(n, n, n, pA, pnd, pB, pnd, pC, pnd, 0);
 			}
 
 		gettimeofday(&tv0, NULL); // start
@@ -178,7 +178,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dgemm_ppp_nt_lib(n, n, n, pA, pnd, pB, pnd, pC, pnd, 0);
+			dgemm_nt_lib(n, n, n, pA, pnd, pB, pnd, pC, pnd, 0);
 
 			}
 	
@@ -187,8 +187,8 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			dsyrk_ppp_lib(n, n, n, pA, pnd, pC, pnd);*/
-			dsyrk_dpotrf_pp_lib(n, n, n, pE, 2*pnd, pD, pnd, diag);
+/*			dsyrk_lib(n, n, n, pA, pnd, pC, pnd);*/
+			dsyrk_dpotrf_lib(n, n, n, pE, 2*pnd, pD, pnd, diag);
 
 			}
 	
@@ -197,7 +197,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dtrmm_ppp_lib(n, n, pA, pnd, pB, pnd, pC, pnd);
+			dtrmm_lib(n, n, pA, pnd, pB, pnd, pC, pnd);
 
 			}
 	
@@ -206,7 +206,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			dpotrf_p_lib(n, 0, pD, pnd, &info);*/
+/*			dpotrf_lib(n, 0, pD, pnd, &info);*/
 
 			}
 	
@@ -215,7 +215,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dgemv_p_n_lib(n, n, pA, pnd, x, y, 0);
+			dgemv_n_lib(n, n, pA, pnd, x, y, 0);
 
 			}
 	
@@ -224,7 +224,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dgemv_p_t_lib(n, n, 0, pA, pnd, x, y, 0);
+			dgemv_t_lib(n, n, 0, pA, pnd, x, y, 0);
 
 			}
 	
@@ -233,7 +233,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			dtrmv_p_n_lib(n, 0, pA, pnd, x, y, 0);*/
+/*			dtrmv_n_lib(n, 0, pA, pnd, x, y, 0);*/
 
 			}
 	
@@ -243,7 +243,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			dtrmv_p_t_lib(n, 0, pA, pnd, x, y, 0);*/
+/*			dtrmv_t_lib(n, 0, pA, pnd, x, y, 0);*/
 
 			}
 	
@@ -253,7 +253,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			dtrsv_p_n_lib(n, pB, pnd, x);*/
+/*			dtrsv_n_lib(n, pB, pnd, x);*/
 
 			}
 	
@@ -262,7 +262,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			dtrsv_p_t_lib(n, pB, pnd, x);*/
+/*			dtrsv_t_lib(n, pB, pnd, x);*/
 
 			}
 	
@@ -271,7 +271,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dsymv_p_lib(n, 0, pA, pnd, x, y, 0);
+			dsymv_lib(n, 0, pA, pnd, x, y, 0);
 
 			}
 	
@@ -280,7 +280,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dmvmv_p_lib(n, n, 0, pA, pnd, x, y, x2, y2, 0);
+			dmvmv_lib(n, n, 0, pA, pnd, x, y, x2, y2, 0);
 
 			}
 	

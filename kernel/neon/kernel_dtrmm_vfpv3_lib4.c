@@ -25,7 +25,7 @@
 
 
 
-void kernel_dtrmm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, int ldc_dummy)
+void kernel_dtrmm_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 	{
 
 	__builtin_prefetch( A );
@@ -437,11 +437,12 @@ void kernel_dtrmm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, int 
 
 
 
-void corner_dtrmm_pp_nt_4x3_lib4(double *A, double *B, double *C, int ldc)
+void corner_dtrmm_nt_4x3_lib4(double *A, double *B, double *C)
 	{
 
 	const int bs = 4;
 	const int lda = bs;
+	const int ldc = 4;
 
 	double
 		a_0, a_1, a_2, a_3,
@@ -529,11 +530,12 @@ void corner_dtrmm_pp_nt_4x3_lib4(double *A, double *B, double *C, int ldc)
 
 
 
-void corner_dtrmm_pp_nt_4x2_lib4(double *A, double *B, double *C, int ldc)
+void corner_dtrmm_nt_4x2_lib4(double *A, double *B, double *C)
 	{
 
 	const int bs = 4;
 	const int lda = bs;
+	const int ldc = 4;
 
 	double
 		a_0, a_1, a_2, a_3,
@@ -591,11 +593,12 @@ void corner_dtrmm_pp_nt_4x2_lib4(double *A, double *B, double *C, int ldc)
 
 
 
-void corner_dtrmm_pp_nt_4x1_lib4(double *A, double *B, double *C, int ldc)
+void corner_dtrmm_nt_4x1_lib4(double *A, double *B, double *C)
 	{
 
 	const int bs = 4;
 	const int lda = bs;
+	const int ldc = 4;
 
 	double
 		a_0, a_1, a_2, a_3,

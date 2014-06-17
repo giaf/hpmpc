@@ -45,25 +45,25 @@ void s_res(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hq, float
 
 	// first block
 	for(jj=0; jj<nu; jj++) hrq[0][jj] = - hq[0][jj];
-	sgemv_p_t_lib(nx, nu, nu, hpQ[0]+(nu/bs)*bs*cnz+nu%bs, cnz, hux[0]+nu, hrq[0], -1);
-	ssymv_p_lib(nu, 0, hpQ[0], cnz, hux[0], hrq[0], -1);
-	sgemv_p_n_lib(nu, nx, hpBAbt[0], cnx, hpi[1], hrq[0], -1);
+	sgemv_t_lib(nx, nu, nu, hpQ[0]+(nu/bs)*bs*cnz+nu%bs, cnz, hux[0]+nu, hrq[0], -1);
+	ssymv_lib(nu, 0, hpQ[0], cnz, hux[0], hrq[0], -1);
+	sgemv_n_lib(nu, nx, hpBAbt[0], cnx, hpi[1], hrq[0], -1);
 	for(jj=0; jj<nx; jj++) hrb[0][jj] = hux[1][nu+jj] - hpBAbt[0][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
-	sgemv_p_t_lib(nxu, nx, 0, hpBAbt[0], cnx, hux[0], hrb[0], -1);
+	sgemv_t_lib(nxu, nx, 0, hpBAbt[0], cnx, hux[0], hrb[0], -1);
 
 	// middle blocks
 	for(ii=1; ii<N; ii++)
 		{
 		for(jj=0; jj<nu; jj++) hrq[ii][jj] = - hq[ii][jj];
 		for(jj=0; jj<nx; jj++) hrq[ii][nu+jj] = hpi[ii][jj] - hq[ii][nu+jj];
-		ssymv_p_lib(nxu, 0, hpQ[ii], cnz, hux[ii], hrq[ii], -1);
+		ssymv_lib(nxu, 0, hpQ[ii], cnz, hux[ii], hrq[ii], -1);
 		for(jj=0; jj<nx; jj++) hrb[ii][jj] = hux[ii+1][nu+jj] - hpBAbt[ii][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
-		smvmv_p_lib(nxu, nx, 0, hpBAbt[ii], cnx, hpi[ii+1], hrq[ii], hux[ii], hrb[ii], -1);
+		smvmv_lib(nxu, nx, 0, hpBAbt[ii], cnx, hpi[ii+1], hrq[ii], hux[ii], hrb[ii], -1);
 		}
 
 	// last block
 	for(jj=0; jj<nx; jj++) hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj];
-	ssymv_p_lib(nx, nu, hpQ[N]+(nu/bs)*bs*cnz+nu%bs+nu*bs, cnz, hux[N]+nu, hrq[N]+nu, -1);
+	ssymv_lib(nx, nu, hpQ[N]+(nu/bs)*bs*cnz+nu%bs+nu*bs, cnz, hux[N]+nu, hrq[N]+nu, -1);
 	
 	}
 
