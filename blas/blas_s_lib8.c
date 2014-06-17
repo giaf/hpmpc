@@ -40,6 +40,7 @@ void sgemm_ppp_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sd
 	int i, j, jj;
 	
 	i = 0;
+#if defined(TARGET_X64_AVX2)
 	for(; i<m-16; i+=24)
 		{
 		j = 0;
@@ -62,6 +63,7 @@ void sgemm_ppp_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sd
 /*			kernel_sgemm_pp_nt_16x1_lib8(k, &pA[0+i*sda], &pA[0+(i+8)*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+(i+8)*sdc], bs, alg);*/
 /*			}*/
 		}
+#endif
 	for(; i<m-8; i+=16)
 		{
 		j = 0;
