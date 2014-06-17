@@ -395,7 +395,7 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 
 
 		// compute the search direction: factorize and solve the KKT system
-		sricposv_mpc(nx, nu, N, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi);
+		s_ric_sv_mpc(nx, nu, N, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi);
 
 
 
@@ -460,7 +460,7 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 
 
 		// solve the system
-		sricpotrs_mpc(nx, nu, N, pBAbt, pL, pl2, dux, work, compute_mult, dpi);
+		s_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl2, dux, work, compute_mult, dpi);
 
 
 

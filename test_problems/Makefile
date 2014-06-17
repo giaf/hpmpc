@@ -30,10 +30,10 @@ LIBS = -lm #-lopenblas
 #OBJS_TEST = test_blas_d_orig.o
 #OBJS_TEST = test_blas_s_orig.o
 #OBJS_TEST = test_blas_d.o
-#OBJS_TEST = test_blas_s.o
-#OBJS_TEST = tools.o test_dricposv.o
-#OBJS_TEST = tools.o test_sricposv.o
-OBJS_TEST = tools.o test_d_ip_box.o
+OBJS_TEST = test_blas_s.o
+#OBJS_TEST = tools.o test_d_ric_sv.o
+#OBJS_TEST = tools.o test_s_ric_sv.o
+#OBJS_TEST = tools.o test_d_ip_box.o
 #OBJS_TEST = tools.o test_s_ip_box.o
 
 obj: $(OBJS_TEST)
@@ -45,7 +45,7 @@ clean:
 	rm -f libhpmpc.a
 
 test_blas_d_origin.o: test_blas_d_origin.c test_param.h ../problem_size.h
-test_dricposv.o: test_dricposv.c test_param.h ../problem_size.h
-test_sricposv.o: test_sricposv.c test_param.h ../problem_size.h
+test_d_ric_sv.o: test_d_ric_sv.c test_param.h ../problem_size.h
+test_s_ric_sv.o: test_s_ric_sv.c test_param.h ../problem_size.h
 test_d_ip_box.o: test_d_ip_box.c test_param.h ../problem_size.h
 test_s_ip_box.o: test_s_ip_box.c test_param.h ../problem_size.h

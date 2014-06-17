@@ -436,7 +436,7 @@ int main()
 
 	// residuals computation
 /*	dres_ip_box(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hlb, hub, hpi, hlam, ht, hrq, hrb, hrd, &mu);*/
-	dres_ip_box(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+	d_res_ip_box(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 
 

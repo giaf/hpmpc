@@ -352,7 +352,7 @@ int main()
 		for(jj=0; jj<pnz*cnz; jj++) hpQ[N][jj]=pQ[jj];
 
 		// call the solver
-		sricposv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+		s_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 
 		if(PRINTRES==1)
 			{
@@ -377,7 +377,7 @@ int main()
 		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 		// residuals computation
-		sres(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+		s_res(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 
 		if(PRINTRES==1 && COMPUTE_MULT==1)
 			{
@@ -410,7 +410,7 @@ int main()
 		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 		// call the solver 
-		sricpotrs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, COMPUTE_MULT, hpi);
+		s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, COMPUTE_MULT, hpi);
 
 		if(PRINTRES==1)
 			{
@@ -439,7 +439,7 @@ int main()
 		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 		// residuals computation
-		sres(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+		s_res(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 
 		if(PRINTRES==1 && COMPUTE_MULT==1)
 			{
@@ -466,7 +466,7 @@ int main()
 		// factorize & solve
 		for(rep=0; rep<nrep; rep++)
 			{
-			sricposv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+			s_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
@@ -489,7 +489,7 @@ int main()
 			for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 			// call the solver 
-			sricpotrs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, COMPUTE_MULT, hpi);
+			s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, COMPUTE_MULT, hpi);
 			}
 		
 		gettimeofday(&tv2, NULL); // start
@@ -497,7 +497,7 @@ int main()
 		// residuals
 		for(rep=0; rep<nrep; rep++)
 			{
-			sres(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+			s_res(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 			}
 
 		gettimeofday(&tv3, NULL); // start
