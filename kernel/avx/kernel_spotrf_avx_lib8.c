@@ -465,15 +465,13 @@ void kernel_spotrf_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float 
 	__m256i
 		mask;
 	
-
-
 	// first row
 	sa_00 = _mm_move_ss( sa_00, _mm256_castps256_ps128(d_00) );
 	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
 	if( _mm_comigt_ss ( sa_00, zeros_ones ) )
 		{
-		sa_00 = _mm_sqrt_ss( sa_00 );
 /*		sa_00 = _mm_rsqrt_ss( sa_00 );*/
+		sa_00 = _mm_sqrt_ss( sa_00 );
 		zeros_ones = _mm_set_ss( 1.0 );
 		sa_00 = _mm_div_ss( zeros_ones, sa_00 );
 		sa_00 = _mm_permute_ps( sa_00, 0x00 );

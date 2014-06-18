@@ -305,7 +305,7 @@ int main()
 		float Gflops_dgemm = 1e-9*flop_dgemm/time_dgemm;
 
 		float time_dsyrk = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
-		float flop_dsyrk = 1.0*n*n*n;
+		float flop_dsyrk = 1.0*n*n*n + 1.0/3.0*n*n*n;
 		float Gflops_dsyrk = 1e-9*flop_dsyrk/time_dsyrk;
 
 		float time_dtrmm = (float) (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
