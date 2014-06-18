@@ -30,6 +30,8 @@
 #include <smmintrin.h>  // SSE4
 #include <immintrin.h>  // AVX
 
+#include "../../include/block_size.h"
+
 
 
 // normal-transposed, 8x4 with data packed in 4
@@ -37,7 +39,7 @@ void kernel_dpotrf_pp_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, do
 	{
 	
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = D_NCL;
 	
 	int k;
 	
@@ -621,7 +623,7 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 	{
 	
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = D_NCL;
 	
 	int k;
 	
@@ -1010,7 +1012,7 @@ void kernel_dpotrf_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doub
 	{
 	
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = D_NCL;
 	
 	int k;
 	
@@ -1265,7 +1267,7 @@ void kernel_dpotrf_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, doub
 	{
 	
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = D_NCL;
 	
 	int k;
 	
