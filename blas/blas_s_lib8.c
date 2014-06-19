@@ -353,3 +353,50 @@ void ssyrk_spotrf_lib(int m, int k, int n, float *pA, int sda, float *pC, int sd
 /*		}*/
 
 	}
+
+
+
+// transpose & align lower triangular matrix
+void strtr_l_lib(int m, int offset, float *pA, int sda, float *pC, int sdc)
+	{
+	
+	const int bs = 8;
+	
+	int mna = (bs-offset%bs)%bs;
+	
+	int j;
+	
+	j=0;
+	for(; j<m; j+=8)
+		{
+		kernel_stran_8_lib8(m, mna, pA, sda, pC);
+		pA += bs*bs;
+		pC += bs*sdc;
+		}
+
+/*	j=0;*/
+/*	for(; j<m-3; j+=4)*/
+/*		{*/
+/*		kernel_dtran_pp_4_lib4(m-j, mna, pA, sda, pC);*/
+/*		pA += bs*(sda+bs);*/
+/*		pC += bs*(sdc+bs);*/
+/*		}*/
+/*	if(j==m)*/
+/*		{*/
+/*		return;*/
+/*		}*/
+/*	else if(m-j==1)*/
+/*		{*/
+/*		pC[0] = pA[0];*/
+/*		}*/
+/*	else if(m-j==2)*/
+/*		{*/
+/*		corner_dtran_pp_2_lib4(mna, pA, sda, pC);*/
+/*		}*/
+/*	else // if(m-j==3)*/
+/*		{*/
+/*		corner_dtran_pp_3_lib4(mna, pA, sda, pC);*/
+/*		}*/
+	
+	}
+

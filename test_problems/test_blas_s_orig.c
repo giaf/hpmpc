@@ -46,8 +46,8 @@ int main()
 	
 	printf("\nbs = %d\n\n", bss);
 	
-	int n = 24;
-	int nrep = 1;
+	int n = 64;
+	int nrep = 1000000;
 	
 	double *A; d_zeros(&A, n, n);
 	double *B; d_zeros(&B, n, n);
@@ -87,7 +87,7 @@ int main()
 
 /*sB[1*(n+1)] = 2;*/
 
-	d_print_mat(n, n, C, n);
+/*	d_print_mat(n, n, C, n);*/
 
 	int pn = ((n+bs-1)/bs)*bs;//+4;	
 	int pns = ((n+bss-1)/bss)*bss;//+4;	
@@ -133,8 +133,8 @@ int main()
 /*	d_cvt_mat2pmat(n, n, bs-n%bs, bs, C, n, pC+((bs-n%bs))%bs*(bs+1), pn);*/
 /*	d_print_pmat(pn, pn, bs, pC, pn);*/
 
-	s_print_pmat(n, n, bss, spD, cns);
-	s_print_pmat(n, n+4, bss, spE, cns2);
+/*	s_print_pmat(n, n, bss, spD, cns);*/
+/*	s_print_pmat(n, n+4, bss, spE, cns2);*/
 
 	/* timing */
 	struct timeval tv0, tv1;
@@ -145,8 +145,9 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		sgemm_nt_lib(n, n, n, spA, cns, spB, cns, spC, cns, 0);
+/*		sgemm_nt_lib(n, n, n, spA, cns, spB, cns, spC, cns, 0);*/
 /*		ssyrk_spotrf_lib(n, n, n, spE, cns2, spD, cns, diag);*/
+		strtr_l_lib(n, 0, spA, cns, spC, cns);
 		
 /*		sgemm_nt_lib(n, n, n, spB, pns, spA, pns, spC, pns, 0);*/
 /*		dgemm_nt_lib(n, n, n, pA, pn, pB, pn, pC, pn, 0);*/
@@ -182,7 +183,7 @@ int main()
 	gettimeofday(&tv1, NULL); // stop
 
 	float time = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
-	float flop = 2.0*n*n*n;
+	float flop = 1.0*n*n;
 //	float flop = 1.0/3.0*n*n*n;
 	float Gflops = 1e-9*flop/time;
 	float Gflops_max = 1*1;
