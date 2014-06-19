@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bss);
 	
-	int n = 20;
+	int n = 24;
 	int nrep = 1;
 	
 	double *A; d_zeros(&A, n, n);
@@ -145,8 +145,8 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-/*		sgemm_nt_lib(n, n, n, spA, cns, spA, cns, spC, cns, 1);*/
-		ssyrk_spotrf_lib(n, n, n, spE, cns2, spD, cns, diag);
+		sgemm_nt_lib(n, n, n, spA, cns, spB, cns, spC, cns, 0);
+/*		ssyrk_spotrf_lib(n, n, n, spE, cns2, spD, cns, diag);*/
 		
 /*		sgemm_nt_lib(n, n, n, spB, pns, spA, pns, spC, pns, 0);*/
 /*		dgemm_nt_lib(n, n, n, pA, pn, pB, pn, pC, pn, 0);*/
@@ -198,10 +198,10 @@ int main()
 /*		d_print_pmat(n, n, bs, pB, pn);*/
 /*		d_print_pmat(n, n, bs, pC, pn);*/
 /*		d_print_pmat(n, n, bs, pL, pn);*/
-/*		s_print_pmat(n, n, bss, spA, cns);*/
-/*		s_print_pmat(n, n, bss, spB, cns);*/
-/*		s_print_pmat(n, n, bss, spC, cns);*/
-		s_print_pmat(n, n, bss, spE+n*bss, cns2);
+		s_print_pmat(n, n, bss, spA, cns);
+		s_print_pmat(n, n, bss, spB, cns);
+		s_print_pmat(n, n, bss, spC, cns);
+/*		s_print_pmat(n, n, bss, spE+n*bss, cns2);*/
 /*		d_print_mat(n, 1, y, pn);*/
 		}
 

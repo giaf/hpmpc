@@ -276,6 +276,13 @@ void ssyrk_spotrf_lib(int m, int k, int n, float *pA, int sda, float *pC, int sd
 			diag[j+6] = fact1[5];
 			diag[j+7] = fact1[9];
 			i += 16;
+#if defined(TARGET_X64_AVX2)
+			for(; i<m-16; i+=24)
+				{
+				kernel_strsm_nt_24x4_lib8(k, j, &pA[i*sda], &pA[(i+8)*sda], &pA[(i+16)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+8)*sdc], &pC[j*bs+(i+16)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+8)*sda], &pA[(k0+k+j)*bs+(i+16)*sda], bs, fact0);
+				kernel_strsm_nt_24x4_lib8(k, j+4, &pA[i*sda], &pA[(i+8)*sda], &pA[(i+16)*sda], &pA[4+j*sda], &pC[(j+4)*bs+i*sdc], &pC[(j+4)*bs+(i+8)*sdc], &pC[(j+4)*bs+(i+16)*sdc], &pA[(k0+k+j+4)*bs+i*sda], &pA[(k0+k+j+4)*bs+(i+8)*sda], &pA[(k0+k+j+4)*bs+(i+16)*sda], bs, fact1);
+				}
+#endif
 			for(; i<m-8; i+=16)
 				{
 				kernel_strsm_nt_16x4_lib8(k, j, &pA[i*sda], &pA[(i+8)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+8)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+8)*sda], bs, fact0);
