@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bss);
 	
-	int n = 64;
+	int n = 16;
 	int nrep = 1000000;
 	
 	double *A; d_zeros(&A, n, n);
@@ -147,7 +147,7 @@ int main()
 
 /*		sgemm_nt_lib(n, n, n, spA, cns, spB, cns, spC, cns, 0);*/
 /*		ssyrk_spotrf_lib(n, n, n, spE, cns2, spD, cns, diag);*/
-		strtr_l_lib(n, 0, spA, cns, spC, cns);
+		strtr_l_lib(11, 3, spA+3, cns, spC, cns);
 		
 /*		sgemm_nt_lib(n, n, n, spB, pns, spA, pns, spC, pns, 0);*/
 /*		dgemm_nt_lib(n, n, n, pA, pn, pB, pn, pC, pn, 0);*/

@@ -369,9 +369,9 @@ void strtr_l_lib(int m, int offset, float *pA, int sda, float *pC, int sdc)
 	j=0;
 	for(; j<m; j+=8)
 		{
-		kernel_stran_8_lib8(m, mna, pA, sda, pC);
-		pA += bs*bs;
-		pC += bs*sdc;
+		kernel_stran_8_lib8(m-j, mna, pA, sda, pC);
+		pA += bs*(sda+bs);
+		pC += bs*(sdc+bs);
 		}
 
 /*	j=0;*/

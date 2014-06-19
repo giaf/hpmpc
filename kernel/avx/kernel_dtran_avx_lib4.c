@@ -280,7 +280,7 @@ void kernel_dtran_pp_4_lib4(int kmax, int kna, double *A, int sda, double *C) //
 		_mm_store_pd( &C[2+bs*0], u0 );
 
 		}
-	else if(kmax==2)
+	else if(kmax-k==2)
 		{
 		
 		u0 = _mm_load_pd( &A[0+bs*0] ); //      
@@ -300,7 +300,7 @@ void kernel_dtran_pp_4_lib4(int kmax, int kna, double *A, int sda, double *C) //
 		_mm256_store_pd( &C[0+bs*1], v1 );
 
 		}
-	else // if(kmax==3)
+	else // if(kmax-k==3)
 		{
 
 		v0 = _mm256_load_pd( &A[0+bs*0] ); // 00 10 20 30
