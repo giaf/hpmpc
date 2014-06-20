@@ -69,19 +69,24 @@ endif
 LQCP_OBJS = ./lqcp_solvers/d_ric_sv.o ./lqcp_solvers/d_res.o ./lqcp_solvers/s_ric_sv.o ./lqcp_solvers/s_res.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/dres_codegen.o #./codegen/sricposv_codegen.o  ./codegen/sres_codegen.o 
 
+TARGET_OBJS = target_generator.o
+
 all: clean library test_problem run
 
 codegen: clean codegenerator test_problem run
 
-library:
+library: $(TARGET_OBJS)
+	touch ./include/target.h
+	gcc $(TARGET_OBJS) -o target_generator.out
+	./target_generator.out
 	make -C auxiliary obj
 	make -C kernel obj
 	make -C blas obj
 	make -C lqcp_solvers obj
 	make -C mpc_solvers obj
-	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS)
+	ar rcs libhpmpc_pro.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS)
 	@echo
-	@echo " libhpmpc.a library build complete."
+	@echo " libhpmpc_pro.a library build complete."
 	@echo
 
 codegenerator:
@@ -94,13 +99,13 @@ codegenerator:
 #	touch ./codegen/sres_codegen.c 
 	make -C codegen obj
 	make -C mpc_solvers obj
-	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS)
+	ar rcs libhpmpc_pro.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS)
 	@echo
-	@echo " libhpmpc.a code generator build complete."
+	@echo " libhpmpc_pro.a code generator build complete."
 	@echo
 
 test_problem:
-	cp libhpmpc.a ./test_problems/libhpmpc.a
+	cp libhpmpc_pro.a ./test_problems/libhpmpc_pro.a
 #	cp HPMPC.a ./matlab/HPMPC.a
 	make -C test_problems obj
 	@echo
@@ -112,12 +117,12 @@ run:
 
 #install: library
 install:
-	cp -f libhpmpc.a /usr/local/lib/libhpmpc.a
-	cp -rf ./include /usr/local/include/hpmpc
+	cp -f libhpmpc_pro.a /usr/lib/libhpmpc_pro.a
+	cp -rf ./include/* /usr/include/hpmpc_pro
 	
 uninstall:
-	rm /lib/libhpmpc.a
-	rm -r /include/hpmpc
+	rm /usr/lib/libhpmpc.a
+	rm -r /usr/include/hpmpc
 	
 clean:
 	make -C auxiliary clean
@@ -129,9 +134,10 @@ clean:
 	make -C test_problems clean
 	make -C interfaces/octave clean
 #	rm -f $(OBJS)
-	rm -f test.out
-	rm -f *.s
+#	rm -f test.out
+#	rm -f *.s
+	rm -f target_generator.out
 	rm -f *.o
-	rm -f libhpmpc.a
+	rm -f libhpmpc_pro.a
 #	rm -f ./matlab/HPMPC.a
 
