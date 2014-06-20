@@ -114,6 +114,9 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 			ptr_tinv[1] = 1.0/ptr_t[1];
 			ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
 			ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
+/*ptr_dlam[0] = 1;*/
+/*printf("\n%d\n", k0);*/
+/*return;*/
 			ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
 			ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
 			ptr_pd[ll+(ii+ll)*bs+ii*cnz] = ptr_bd[ii+ll] + ptr_lamt[0] + ptr_lamt[1];

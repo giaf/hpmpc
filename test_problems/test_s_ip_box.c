@@ -273,7 +273,7 @@ int main()
 	for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
 	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
 	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 0.1;
-	Q[(nx+nu)*(pnz+1)] = 1e35;
+/*	Q[(nx+nu)*(pnz+1)] = 1e35;*/
 	
 	/* packed into contiguous memory */
 	float *pQ; s_zeros_align(&pQ, pnz, cnz);
@@ -386,7 +386,11 @@ int main()
 	else
 		s_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 
+	printf("\nu = \n\n");
+	for(ii=0; ii<N; ii++)
+		s_print_mat(1, nu, hux[ii], 1);
 
+printf("\n%d\n", nrep);
 
 	/* timing */
 	struct timeval tv0, tv1;
@@ -395,9 +399,11 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
+printf("\n%d\n", rep);
+
 		idx = rep%10;
-		x0[0] = xx0[2*idx];
-		x0[1] = xx0[2*idx+1];
+/*		x0[0] = xx0[2*idx];*/
+/*		x0[1] = xx0[2*idx+1];*/
 
 		// initialize states and inputs
 		for(ii=0; ii<=N; ii++)
@@ -413,6 +419,10 @@ int main()
 			s_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 		else
 			s_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+
+		printf("\nu = \n\n");
+		for(ii=0; ii<N; ii++)
+			s_print_mat(1, nu, hux[ii], 1);
 
 		}
 	

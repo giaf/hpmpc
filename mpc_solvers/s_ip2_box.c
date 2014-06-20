@@ -397,6 +397,10 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 		// compute the search direction: factorize and solve the KKT system
 		s_ric_sv_mpc(nx, nu, N, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi);
 
+/*s_print_mat(1, nx+nu, dux[0], 1);*/
+/*s_print_mat(1, nx+nu, dux[1], 1);*/
+/*s_print_mat(1, nx+nu, dux[N-1], 1);*/
+/*s_print_mat(1, nx+nu, dux[N], 1);*/
 
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
@@ -462,7 +466,11 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 		// solve the system
 		s_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl2, dux, work, compute_mult, dpi);
 
-
+/*s_print_mat(1, nx+nu, dux[0], 1);*/
+/*s_print_mat(1, nx+nu, dux[1], 1);*/
+/*s_print_mat(1, nx+nu, dux[N-1], 1);*/
+/*s_print_mat(1, nx+nu, dux[N], 1);*/
+/*exit(3);*/
 
 		// compute t & dlam & dt & alpha
 		alpha = 1.0;
@@ -488,6 +496,7 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 /*		if(alpha<0.3)*/
 /*			sigma = sigma_par[0];*/
 
+/*s_print_mat(1, nx+nu, ux[0], 1);*/
 
 
 		// increment loop index

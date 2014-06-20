@@ -171,7 +171,7 @@ int main()
 	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
-	int nb = NB; // number of box constraints (it has to be even, and the first 2*nu constraints are for the inputs, the following for the states)
+	int nb = NB; // number of box constrained inputs and states
 
 	int info = 0;
 		
@@ -183,6 +183,7 @@ int main()
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
+	const int pnb = bs*((2*nb+bs-1)/bs); // packed number of box constraints
 
 	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
@@ -273,7 +274,7 @@ int main()
 	for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
 	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
 	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 0.1;
-	Q[(nx+nu)*(pnz+1)] = 1e35;
+/*	Q[(nx+nu)*(pnz+1)] = 1e35;*/
 	
 	/* packed into contiguous memory */
 	double *pQ; d_zeros_align(&pQ, pnz, cnz);
@@ -309,26 +310,26 @@ int main()
 		d_zeros_align(&hq[jj], pnz, 1);
 		d_zeros_align(&hux[jj], pnz, 1);
 		d_zeros_align(&hpi[jj], pnx, 1);
-		d_zeros_align(&hlam[jj],2*pnz, 1);
-		d_zeros_align(&ht[jj], 2*pnz, 1);
+		d_zeros_align(&hlam[jj],2*pnz, 1); // TODO pnb
+		d_zeros_align(&ht[jj], 2*pnz, 1); // TODO pnb
 		hpBAbt[jj] = pBAbt;
 /*		hlb[jj] = lb;*/
 /*		hub[jj] = ub;*/
 		hdb[jj] = db;
 		d_zeros_align(&hrb[jj], pnx, 1);
 		d_zeros_align(&hrq[jj], pnz, 1);
-		d_zeros_align(&hrd[jj], 2*pnz, 1);
+		d_zeros_align(&hrd[jj], 2*pnz, 1); // TODO pnb
 		}
 	d_zeros_align(&hq[N], pnz, 1);
 	d_zeros_align(&hux[N], pnz, 1);
 	d_zeros_align(&hpi[N], pnx, 1);
-	d_zeros_align(&hlam[N], 2*pnz, 1);
-	d_zeros_align(&ht[N], 2*pnz, 1);
+	d_zeros_align(&hlam[N], 2*pnz, 1); // TODO pnb
+	d_zeros_align(&ht[N], 2*pnz, 1); // TODO pnb
 /*	hlb[N] = lb;*/
 /*	hub[N] = ub;*/
 	hdb[N] = db;
 	d_zeros_align(&hrq[N], pnz, 1);
-	d_zeros_align(&hrd[N], 2*pnz, 1);
+	d_zeros_align(&hrd[N], 2*pnz, 1); // TODO pnb
 	
 	// starting guess
 	for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];

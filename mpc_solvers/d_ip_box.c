@@ -133,6 +133,7 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 	ptr += 2*pnz;
 
 	diag = ptr;
+/*	ptr += 2*pnz; // why ???*/
 	ptr += pnz;
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space (assume # box constraints <= 2*(nx+nu) < 2*pnz)
@@ -152,7 +153,10 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		t_inv[jj] = ptr;
 		ptr += 2*pnz;
 		}
-	
+
+/*dlam[0][0] = 1;*/
+/*printf("\ncazzo %f\n", dlam[0][0]);*/
+
 	double temp0, temp1;
 	double alpha, mu;
 	double mu_scal = 1.0/(N*2*nb);
@@ -404,7 +408,6 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		dux[0][nu+ll] = ux[0][nu+ll];
 
 
-
 	// compute the duality gap
 	d_compute_mu_mpc(N, nbu, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
 
@@ -416,13 +419,14 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 	while( *kk<k_max && mu>tol )
 		{
 						
-
+/*printf("\niteration %d, mu %f\n", *kk, mu);*/
 		//update cost function matrices and vectors (box constraints)
 
 		// box constraints
 
 		d_update_hessian_box_mpc(N, nbu, (nu/bs)*bs, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db);
 
+return;
 
 
 		// compute the search direction: factorize and solve the KKT system
@@ -476,6 +480,8 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 			pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll];
 			}
 		}
+
+/*printf("\nfinal iteration %d, mu %f\n", *kk, mu);*/
 
 	return;
 
