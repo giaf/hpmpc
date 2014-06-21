@@ -48,6 +48,7 @@ void d_ip2_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 	// constants
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
 
 	const int nz = nx+nu+1;
 	const int nxu = nx+nu;
@@ -55,6 +56,9 @@ void d_ip2_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nz+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
+	const int anz = nal*((nz+nal-1)/nal);
+	const int anx = nal*((nx+nal-1)/nal);
+	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box constraints
 
 	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
@@ -86,14 +90,14 @@ void d_ip2_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 	for(jj=0; jj<=N; jj++)
 		{
 		dux[jj] = ptr;
-		ptr += pnz;
+		ptr += anz;
 		}
 
 	// equality constr multipliers
 	for(jj=0; jj<=N; jj++)
 		{
 		dpi[jj] = ptr;
-		ptr += pnx;
+		ptr += anx;
 		}
 	
 	// Hessian
@@ -102,8 +106,8 @@ void d_ip2_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 		pd[jj] = pQ[jj];
 		pl[jj] = pQ[jj] + ((nu+nx)/bs)*bs*cnz + (nu+nx)%bs;
 		bd[jj] = ptr;
-		bl[jj] = ptr + pnz;
-		ptr += 2*pnz;
+		bl[jj] = ptr + anz;
+		ptr += 2*anz;
 		// backup
 		for(ll=0; ll<nx+nu; ll++)
 			{
@@ -122,31 +126,31 @@ void d_ip2_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 	for(jj=0; jj<=N; jj++)
 		{
 		pl2[jj] = ptr;
-		ptr += pnz;
+		ptr += anz;
 		}
 
 	work = ptr;
-	ptr += 2*pnz;
+	ptr += 2*anz;
 
 	diag = ptr;
-	ptr += pnz;
+	ptr += anz;
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space (assume # box constraints <= 2*(nx+nu) < 2*pnz)
 	for(jj=0; jj<=N; jj++)
 		{
 		dlam[jj] = ptr;
-		dt[jj]   = ptr + 2*pnz;;
-		ptr += 4*pnz;
+		dt[jj]   = ptr + anb;;
+		ptr += 2*anb;
 		}
 	for(jj=0; jj<=N; jj++)
 		{
 		lamt[jj] = ptr;
-		ptr += 2*pnz;
+		ptr += anb;
 		}
 	for(jj=0; jj<=N; jj++)
 		{
 		t_inv[jj] = ptr;
-		ptr += 2*pnz;
+		ptr += anb;
 		}
 
 
@@ -374,6 +378,7 @@ void d_ip2_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 
 
 	// compute the duality gap
+	alpha = 0.0;
 	d_compute_mu_mpc(N, nbu, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
 
 

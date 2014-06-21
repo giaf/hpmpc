@@ -177,12 +177,16 @@ int main()
 		
 	const int bs = S_MR; //d_get_mr();
 	const int ncl = S_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
 	
 	const int nz = nx+nu+1;
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
+	const int anz = nal*((nz+nal-1)/nal);
+	const int anx = nal*((nx+nal-1)/nal);
+	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box constraints
 
 	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
@@ -306,29 +310,29 @@ int main()
 
 	for(jj=0; jj<N; jj++)
 		{
-		s_zeros_align(&hq[jj], pnz, 1);
-		s_zeros_align(&hux[jj], pnz, 1);
-		s_zeros_align(&hpi[jj], pnx, 1);
-		s_zeros_align(&hlam[jj],2*pnz, 1);
-		s_zeros_align(&ht[jj], 2*pnz, 1);
+		s_zeros_align(&hq[jj], anz, 1);
+		s_zeros_align(&hux[jj], anz, 1);
+		s_zeros_align(&hpi[jj], anx, 1);
+		s_zeros_align(&hlam[jj],anb, 1);
+		s_zeros_align(&ht[jj], anb, 1);
 		hpBAbt[jj] = pBAbt;
 /*		hlb[jj] = lb;*/
 /*		hub[jj] = ub;*/
 		hdb[jj] = db;
-		s_zeros_align(&hrb[jj], pnx, 1);
-		s_zeros_align(&hrq[jj], pnz, 1);
-		s_zeros_align(&hrd[jj], 2*pnz, 1);
+		s_zeros_align(&hrb[jj], anx, 1);
+		s_zeros_align(&hrq[jj], anz, 1);
+		s_zeros_align(&hrd[jj], anb, 1);
 		}
-	s_zeros_align(&hq[N], pnz, 1);
-	s_zeros_align(&hux[N], pnz, 1);
-	s_zeros_align(&hpi[N], pnx, 1);
-	s_zeros_align(&hlam[N], 2*pnz, 1);
-	s_zeros_align(&ht[N], 2*pnz, 1);
+	s_zeros_align(&hq[N], anz, 1);
+	s_zeros_align(&hux[N], anz, 1);
+	s_zeros_align(&hpi[N], anx, 1);
+	s_zeros_align(&hlam[N], anb, 1);
+	s_zeros_align(&ht[N], anb, 1);
 /*	hlb[N] = lb;*/
 /*	hub[N] = ub;*/
 	hdb[N] = db;
-	s_zeros_align(&hrq[N], pnz, 1);
-	s_zeros_align(&hrd[N], 2*pnz, 1);
+	s_zeros_align(&hrq[N], anz, 1);
+	s_zeros_align(&hrd[N], anb, 1);
 	
 	// starting guess
 	for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
@@ -341,7 +345,7 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-	float *work; s_zeros_align(&work, (N+1)*(pnz*cnl + 12*pnz + pnx) + 3*pnz, 1); // work space
+	float *work; s_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 4*anb + anx) + 3*anz, 1); // work space
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
@@ -386,11 +390,11 @@ int main()
 	else
 		s_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 
-	printf("\nu = \n\n");
-	for(ii=0; ii<N; ii++)
-		s_print_mat(1, nu, hux[ii], 1);
+/*	printf("\nu = \n\n");*/
+/*	for(ii=0; ii<N; ii++)*/
+/*		s_print_mat(1, nu, hux[ii], 1);*/
 
-printf("\n%d\n", nrep);
+/*printf("\n%d\n", nrep);*/
 
 	/* timing */
 	struct timeval tv0, tv1;
@@ -399,7 +403,7 @@ printf("\n%d\n", nrep);
 	for(rep=0; rep<nrep; rep++)
 		{
 
-printf("\n%d\n", rep);
+/*printf("\n%d\n", rep);*/
 
 		idx = rep%10;
 /*		x0[0] = xx0[2*idx];*/
@@ -420,9 +424,9 @@ printf("\n%d\n", rep);
 		else
 			s_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 
-		printf("\nu = \n\n");
-		for(ii=0; ii<N; ii++)
-			s_print_mat(1, nu, hux[ii], 1);
+/*		printf("\nu = \n\n");*/
+/*		for(ii=0; ii<N; ii++)*/
+/*			s_print_mat(1, nu, hux[ii], 1);*/
 
 		}
 	

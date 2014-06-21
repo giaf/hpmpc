@@ -507,7 +507,10 @@ void d_compute_mu_mpc(int N, int nbu, int nu, int nb, double *ptr_mu, double mu_
 	double mu = 0;
 	
 	for(ll=0 ; ll<2*nbu; ll+=2)
+		{
 		mu += (lam[0][ll+0] + alpha*dlam[0][ll+0]) * (t[0][ll+0] + alpha*dt[0][ll+0]) + (lam[0][ll+1] + alpha*dlam[0][ll+1]) * (t[0][ll+1] + alpha*dt[0][ll+1]);
+		}
+
 
 	for(jj=1; jj<N; jj++)
 		for(ll=0 ; ll<2*nb; ll+=2)

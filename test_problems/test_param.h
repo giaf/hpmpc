@@ -42,7 +42,7 @@
 #define PRINTSTAT 1
 
 // ip method: 1 primal-dual, 2 predictor-corrector primal-dual
-#define IP 2
+#define IP 1000
 
 // compute lagrangian multipliers
 #define COMPUTE_MULT 1
