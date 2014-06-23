@@ -471,6 +471,14 @@ void d_ip_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par,
 		if(*info!=0) return;
 
 
+/*d_print_mat(1, nx+nu, dux[0], 1);*/
+/*d_print_mat(1, nx+nu, dux[1], 1);*/
+/*d_print_mat(1, nx+nu, dux[N-1], 1);*/
+/*d_print_mat(1, nx+nu, dux[N], 1);*/
+/*if(*kk==1)*/
+/*exit(3);*/
+
+
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1;
 		for(ll=0; ll<2*nbu; ll+=2)

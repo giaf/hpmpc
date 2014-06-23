@@ -467,6 +467,7 @@ void kernel_dgemv_t_1_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 // it moves horizontally inside a block
 void kernel_dgemv_n_8_lib4(int kmax, double *A0, double *A1, double *x, double *y, int alg)
 	{
+
 	if(kmax<=0) 
 		return;
 	
@@ -589,6 +590,7 @@ void kernel_dgemv_n_8_lib4(int kmax, double *A0, double *A1, double *x, double *
 // it moves horizontally inside a block
 void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, int alg)
 	{
+
 	if(kmax<=0) 
 		return;
 	
@@ -678,6 +680,7 @@ void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, int alg)
 // it moves horizontally inside a block
 void kernel_dgemv_n_2_lib4(int kmax, double *A, double *x, double *y, int alg)
 	{
+
 	if(kmax<=0) 
 		return;
 	
@@ -751,6 +754,7 @@ void kernel_dgemv_n_2_lib4(int kmax, double *A, double *x, double *y, int alg)
 // it moves horizontally inside a block
 void kernel_dgemv_n_1_lib4(int kmax, double *A, double *x, double *y, int alg)
 	{
+
 	if(kmax<=0) 
 		return;
 	

@@ -432,6 +432,12 @@ void d_ip2_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 		if(*info!=0) return;
 
 
+/*d_print_mat(1, nx+nu, dux[0], 1);*/
+/*d_print_mat(1, nx+nu, dux[1], 1);*/
+/*d_print_mat(1, nx+nu, dux[N-1], 1);*/
+/*d_print_mat(1, nx+nu, dux[N], 1);*/
+/*if(*kk==1)*/
+/*exit(3);*/
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1;
@@ -514,6 +520,13 @@ void d_ip2_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 				}
 			}
 
+/*d_print_mat(1, 2*(nx+nu), dt[0], 1);*/
+/*d_print_mat(1, 2*(nx+nu), dt[1], 1);*/
+/*d_print_mat(1, 2*(nx+nu), dt[N-1], 1);*/
+/*d_print_mat(1, 2*(nx+nu), dt[N], 1);*/
+/*if(*kk==1)*/
+/*exit(3);*/
+
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+1] = alpha;
 			
@@ -534,6 +547,7 @@ void d_ip2_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 
 		stat[5*(*kk)+2] = mu_aff;
 
+/*printf("\nmu %f %f %f %f\n", mu, mu_aff);*/
 
 
 		// compute sigma
@@ -544,7 +558,13 @@ void d_ip2_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 
 
 
-		//update the rhs
+/*d_print_mat(1, 2*(nx+nu), dlam[0], 1);*/
+/*d_print_mat(1, 2*(nx+nu), dlam[1], 1);*/
+/*d_print_mat(1, 2*(nx+nu), dlam[N-1], 1);*/
+/*d_print_mat(1, 2*(nx+nu), dlam[N], 1);*/
+/*		//update the rhs*/
+
+/*printf("\nsigma %f %f %f %f\n", sigma*mu, sigma, mu, alpha);*/
 
 		// first stage
 		for(ii=0; ii<2*nbu; ii+=2)
@@ -575,9 +595,16 @@ void d_ip2_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 
 
 
+
 		// solve the system
 		dricpotrs_mpc(nx, nu, N, sda, pBAbt, pL, pl2, dux, pBAbtL, compute_mult, dpi);
 
+/*d_print_mat(1, nx+nu, dux[0], 1);*/
+/*d_print_mat(1, nx+nu, dux[1], 1);*/
+/*d_print_mat(1, nx+nu, dux[N-1], 1);*/
+/*d_print_mat(1, nx+nu, dux[N], 1);*/
+/*if(*kk==1)*/
+/*exit(3);*/
 
 
 /*		// compute t & dlam & dt & alpha*/
@@ -721,7 +748,15 @@ void d_ip2_box(int *kk, int k_max, double tol, int warm_start, double *sigma_par
 		mu *= mu_scal;
 
 		stat[5*(*kk)+4] = mu;
+
+/*printf("\nmu %f\n", mu);*/
 		
+/*d_print_mat(1, nx+nu, ux[0], 1);*/
+/*d_print_mat(1, nx+nu, ux[1], 1);*/
+/*d_print_mat(1, nx+nu, ux[N-1], 1);*/
+/*d_print_mat(1, nx+nu, ux[N], 1);*/
+/*if(*kk==1)*/
+/*exit(3);*/
 
 
 		// update sigma

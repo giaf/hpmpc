@@ -72,6 +72,11 @@ void dricposv_mpc(int nx, int nu, int N, int sda, double **hpBAbt, double **hpQ,
 	dpotrf_rec_p_lib(nz, nu, hpQ[0], sda, info);
 	if(*info!=0) return;
 
+/*d_print_pmat(nz, nz, bs, hpQ[0], sda);*/
+/*d_print_pmat(nz, nz, bs, hpQ[1], sda);*/
+/*d_print_pmat(nz, nz, bs, hpQ[N], sda);*/
+/*exit(3);*/
+
 	/* forward substitution */
 	for(ii=0; ii<N; ii++)
 		{
