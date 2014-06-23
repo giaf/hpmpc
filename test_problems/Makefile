@@ -33,33 +33,8 @@ LIBS = -lm #-lopenblas
 #OBJS_TEST = test_blas_s.o
 #OBJS_TEST = tools.o test_dricposv.o
 #OBJS_TEST = tools.o test_sricposv.o
-#OBJS_TEST = tools.o test_d_ip_box.o
-OBJS_TEST = tools.o test_s_ip_box.o
-
-ifeq ($(TARGET), X64_AVX)
-CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_X64_AVX $(DEBUG)
-endif
-ifeq ($(TARGET), X64_SSE3)
-CFLAGS = $(OPT) -std=c99 -msse3 -DTARGET_X64_SSE3 $(DEBUG)
-endif
-ifeq ($(TARGET), AMD_SSE3)
-CFLAGS = $(OPT) -std=c99 -msse3 -DTARGET_AMD_SSE3 $(DEBUG)
-endif
-ifeq ($(TARGET), NEON)
-CFLAGS = $(OPT) -std=c99 -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
-endif
-ifeq ($(TARGET), POWERPC_G2)
-CFLAGS = $(OPT) -std=c99 -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
-endif
-ifeq ($(TARGET), C99_4X4)
-CFLAGS = $(OPT) -std=c99 -DTARGET_C99_4X4 $(DEBUG)
-endif
-ifeq ($(TARGET), C99_2X2)
-CFLAGS = $(OPT) -std=c99 -DTARGET_C99_2X2 $(DEBUG)
-endif
-ifeq ($(TARGET), X86_ATOM)
-CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -DTARGET_X86_ATOM $(DEBUG)
-endif
+OBJS_TEST = tools.o test_d_ip_box.o
+#OBJS_TEST = tools.o test_s_ip_box.o
 
 obj: $(OBJS_TEST)
 	$(CC) -o test.out $(OBJS_TEST) -L. libhpmpc.a $(LIBS) #-pg

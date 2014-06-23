@@ -26,11 +26,12 @@
 
 
 # Target architecture, currently supported:
-# X64_AVX    : machine with AVX instruction set (recent Intel and AMD processors), 64 bit operating system.
-# X64_SSE3   : machine with SSE3 instruction set (older Intel and AMD processors), 64 bit operating system.
-# X86_ATOM   : machine with SSE3 instruction set, 32 bit operating system, code optimized for Intel Atom (Bonnell microarchitecture).
-# NEON       : machine with ARMv7a processor with VPFv3 or VPFv4 (both D32 versions) and NEON, code optimized for ARM Cortex A9.
-# POWERPC_G2 : machine supporting 32-bit PowerPC Architecture, code optimized for G2 core (a variant of PowerPC 603e processor).
+# X64_AVX    : machine with AVX instruction set, 64 bit operating system (optimized on Intel processors).
+# X64_SSE3   : machine with SSE3 instruction set, 64 bit operating system (optimized for Intel processors).
+# AMD_SSE3   : machine with SSE3 instruction set, 64 bit operating system (optimized for AMD processors).
+# X86_ATOM   : machine with SSE3 instruction set, 32 bit operating system (optimized for Intel Atom (Bonnell microarchitecture) processors).
+# NEON       : machine with ARMv7a instruction set with VPFv3 or VPFv4 (both D32 versions) and NEON, (optimized for ARM Cortex A9).
+# POWERPC_G2 : machine with 32-bit PowerPC instruction set (optimized for G2 core (a variant of PowerPC 603e processor)).
 # C99_4X4    : c99 reference code, performing better on a machine with at least 32 scalar registers.
 # C99_2X2    : c99 reference code, performing better on a machine with at least 8 scalar registers.
 TARGET = X64_AVX
@@ -43,11 +44,36 @@ TARGET = X64_AVX
 #TARGET = C99_2X2
 
 # C Compiler
-#CC = gcc-4.6
 CC = gcc
 
-# Common ptimization/debugging flags
-OPT = -O2 
+# Common optimization/debugging flags
+COMMON_FLAGS = -O2 -std=c99 -fPIC
 DEBUG = #-Wall -pedantic -Wfloat-equal #-pg
 LDFLAGS =
+
+# architecture-specific optimization flags
+ifeq ($(TARGET), X64_AVX)
+CFLAGS = $(COMMON_FLAGS) -mavx -DTARGET_X64_AVX $(DEBUG)
+endif
+ifeq ($(TARGET), X64_SSE3)
+CFLAGS = $(COMMON_FLAGS) -msse3 -DTARGET_X64_SSE3 $(DEBUG)
+endif
+ifeq ($(TARGET), AMD_SSE3)
+CFLAGS = $(COMMON_FLAGS) -msse3 -DTARGET_AMD_SSE3 $(DEBUG)
+endif
+ifeq ($(TARGET), X86_ATOM)
+CFLAGS = $(COMMON_FLAGS) -msse3 -mfpmath=sse -march=atom -DTARGET_X86_ATOM $(DEBUG)
+endif
+ifeq ($(TARGET), NEON)
+CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
+endif
+ifeq ($(TARGET), POWERPC_G2)
+CFLAGS = $(COMMON_FLAGS) -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
+endif
+ifeq ($(TARGET), C99_4X4)
+CFLAGS = $(COMMON_FLAGS) -DTARGET_C99_4X4 $(DEBUG)
+endif
+ifeq ($(TARGET), C99_2X2)
+CFLAGS = $(COMMON_FLAGS) -DTARGET_C99_2X2 $(DEBUG)
+endif
 

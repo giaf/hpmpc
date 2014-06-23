@@ -27,31 +27,6 @@ include ../Makefile.rule
 
 OBJS = d_ip_box.o d_ip2_box.o dres_ip_box.o s_ip_box.o s_ip2_box.o sres_ip_box.o 
 
-ifeq ($(TARGET), X64_AVX)
-CFLAGS = $(OPT) -std=c99 -fPIC -mavx -DTARGET_X64_AVX $(DEBUG)
-endif
-ifeq ($(TARGET), X64_SSE3)
-CFLAGS = $(OPT) -std=c99 -fPIC -msse3 -DTARGET_X64_SSE3 $(DEBUG)
-endif
-ifeq ($(TARGET), AMD_SSE3)
-CFLAGS = $(OPT) -std=c99 -fPIC -msse3 -DTARGET_AMD_SSE3 $(DEBUG)
-endif
-ifeq ($(TARGET), NEON)
-CFLAGS = $(OPT) -std=c99 -fPIC -marm -mfloat-abi=softfp -mfpu=neon -mcpu=cortex-a9 -DTARGET_NEON $(DEBUG)
-endif
-ifeq ($(TARGET), POWERPC_G2)
-CFLAGS = $(OPT) -std=c99 -fPIC -mcpu=603e -DTARGET_POWERPC_G2 $(DEBUG)
-endif
-ifeq ($(TARGET), C99_4X4)
-CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_4X4 $(DEBUG)
-endif
-ifeq ($(TARGET), C99_2X2)
-CFLAGS = $(OPT) -std=c99 -fPIC -DTARGET_C99_2X2 $(DEBUG)
-endif
-ifeq ($(TARGET), X86_ATOM)
-CFLAGS = $(OPT) -std=c99 -msse3 -mfpmath=sse -march=atom -fPIC -DTARGET_X86_ATOM $(DEBUG)
-endif
-
 obj: $(OBJS)
 
 clean:
