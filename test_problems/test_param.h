@@ -39,13 +39,13 @@
 #define PRINTRES 0
 
 // print statistics
-#define PRINTSTAT 0
+#define PRINTSTAT 1
 
 // ip method: 1 primal-dual, 2 predictor-corrector primal-dual
 #define IP 2
 
-// compute lagrangian multipliers
-#define COMPUTE_MULT 1
+// compute lagrangian multipliers (needed for residual computation)
+#define COMPUTE_MULT 0
 
 // warm-start with user-provided solution (otherwise initialize x and u with 0 or something feasible)
 #define WARM_START 1

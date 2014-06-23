@@ -11,9 +11,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "/include/hpmpc/aux_d.h"
-/*#include "/include/hpmpc/block_size.h"*/
-#include "/include/hpmpc/mpc_solvers.h"
+#include "hpmpc/aux_d.h"
+/*#include "hpmpc/block_size.h"*/
+#include "hpmpc/mpc_solvers.h"
 
 
 
@@ -215,7 +215,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	free(pQf);
 	free(ptr_Q);
 	free(ptr_ux);
-printf("\nciao\n");
+/*printf("\nciao\n");*/
 	free(ptr_pi);
 	free(ptr_t);
 	free(ptr_lam);

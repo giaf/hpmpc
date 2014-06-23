@@ -163,9 +163,9 @@ int main()
 	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints.\n", nx, nu, N, nb);
 	printf("\n");
 #if IP == 1
-	printf(" IP method parameters: primal-dual IP, double precision, %d maximum iterations, %e exit tolerance in duality measure.\n", K_MAX, TOL);
+	printf(" IP method parameters: primal-dual IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_d_ip_box.c to change them).\n", K_MAX, TOL);
 #elif IP == 2
-	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %e exit tolerance in duality measure.\n", K_MAX, TOL);
+	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_d_ip_box.c to change them).\n", K_MAX, TOL);
 #else
 	printf(" Wrong value for IP solver choice: %d\n", IP);
 #endif
@@ -385,9 +385,9 @@ int main()
 /*	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);*/
 	
 	printf("\n");
-	printf(" Average number of iterations over %d runs: %f\n", nrep, kk_avg / (double) nrep);
+	printf(" Average number of iterations over %d runs: %5.1f\n", nrep, kk_avg / (double) nrep);
 	printf("\n");
-	printf(" Average solution time over %d runs: %e seconds\n", nrep, time);
+	printf(" Average solution time over %d runs: %5.2e seconds\n", nrep, time);
 	printf("\n");
 
 

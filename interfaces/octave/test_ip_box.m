@@ -18,7 +18,7 @@ Bc = [zeros(nx/2,nu); eye(nu); zeros(nx/2-nu, nu)];
 
 M = expm([Ts*Ac, Ts*Bc; zeros(nu, 2*nx/2+nu)]);
 
-% dynamica system
+% dynamic system
 A = M(1:nx,1:nx);
 B = M(1:nx,nx+1:end);
 b = 0.0*ones(nx,1);
