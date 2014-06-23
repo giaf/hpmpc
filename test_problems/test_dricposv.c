@@ -31,8 +31,8 @@
 #endif
 
 // to throw floating-point exception
-#define _GNU_SOURCE
-#include <fenv.h>
+/*#define _GNU_SOURCE*/
+/*#include <fenv.h>*/
 
 #include "test_param.h"
 #include "../problem_size.h"
@@ -43,32 +43,17 @@
 
 
 
-//void dgesv_(int *n, int *nrhs, double *A, int *lda, int *ipiv, double *B, int *ldb, int *info);
-//void dgemm_(char *transa, char *transb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc);
-//void dcopy_(int *n, double *dx, int *incx, double *dy, int *incy);
-//void daxpy_(int *n, double *da, double *dx, int *incx, double *dy, int *incy);
-//void dscal_(int *n, double *da, double *dx, int *incx);
-
-
-
 /************************************************ 
-Mass-spring system: nx/2 masses connected each other with springs (in a row), and the first and the last one to walls. nu (<=nx) controls act on the first nu masses. The system is sampled with sampling time Ts=1. 
-The system seem to give problems for a large number of states: the riccati procedure with OpenBLAS becomes MUCH slower for approximately nx>=1024 (double) and nx>=64 (float). ? under-flow ?
+Mass-spring system: nx/2 masses connected each other with springs (in a row), and the first and the last one to walls. nu (<=nx) controls act on the first nu masses. The system is sampled with sampling time Ts. 
 ************************************************/
 void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, double *b, double *x0)
 	{
 
 	int nx2 = nx*nx;
 
-/*	double d0 = 0;*/
-/*	double d1 = 1;*/
-/*	double dm1 = -1;*/
-/*	int i1 = 1;*/
 	int info = 0;
-/*	char cn = 'n';*/
 
 	int pp = nx/2; // number of masses
-/*	int mm = nu;   // number of forces*/
 	
 /************************************************
 * build the continuous time system 
@@ -104,21 +89,16 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	dmcopy(nx, 1, bb, nx, b, nx);
 		
 	dmcopy(nx, nx, Ac, nx, A, nx);
-//	dscal_(&nx2, &Ts, A, &i1);
 	dscal_3l(nx2, Ts, A);
 	expm(nx, A);
 	
 	d_zeros(&T, nx, nx);
 	d_zeros(&I, nx, nx); for(ii=0; ii<nx; ii++) I[ii*(nx+1)]=1.0; //I = eye(nx);
-//	dcopy_(&nx2, A, &i1, T, &i1);
 	dmcopy(nx, nx, A, nx, T, nx);
-//	daxpy_(&nx2, &dm1, I, &i1, T, &i1);
 	daxpy_3l(nx2, -1.0, I, T);
-//	dgemm_(&cn, &cn, &nx, &nu, &nx, &d1, T, &nx, Bc, &nx, &d0, B, &nx);
 	dgemm_nn_3l(nx, nu, nx, T, nx, Bc, nx, B, nx);
 	
 	int *ipiv = (int *) malloc(nx*sizeof(int));
-//	dgesv_(&nx, &nu, Ac, &nx, ipiv, B, &nx, &info);
 	dgesv_3l(nx, nu, Ac, nx, ipiv, B, nx, &info);
 	free(ipiv);
 
@@ -152,40 +132,69 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 int main()
 	{
 	
+	printf("\n");
+	printf("\n");
+	printf("\n");
+	printf(" HPMPC -- Library for High-Performance implementation of solvers for MPC.\n");
+	printf(" Copyright (C) 2014 by Technical University of Denmark. All rights reserved.\n");
+	printf("\n");
+	printf(" HPMPC is distributed in the hope that it will be useful,\n");
+	printf(" but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
+	printf(" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n");
+	printf(" See the GNU Lesser General Public License for more details.\n");
+	printf("\n");
+	printf("\n");
+	printf("\n");
+
+	printf("Riccati solver performance test - double precision\n");
+	printf("\n");
+
 	// maximum frequency of the processor
 	const float GHz_max = 2.9; //3.6; //2.9;
+	printf("Frequency used to compute theoretical peak: %5.1f GHz (edit test_dricposv.c to modify this value).\n", GHz_max);
+	printf("\n");
 
 	// maximum flops per cycle, double precision
 #if defined(TARGET_X64_AVX)
-	const float d_flops_max = 8;
+	const float flops_max = 8;
+	printf("Testing solvers for AVX instruction set, 64 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
-	const float d_flops_max = 4;
+	const float flops_max = 4;
+	printf("Testing solvers for SSE3 instruction set, 64 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_CORTEXA9)
-	const float d_flops_max = 1;
+	const float flops_max = 1;
+	printf("Testing solvers for ARMv7a NEON instruction set: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_X86_ATOM)
-	const float d_flops_max = 1;
+	const float flops_max = 1;
+	printf("Testing solvers for SSE3 instruction set, 32 bit, optimized for Intel Atom: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_POWERPC_G2)
-	const float d_flops_max = 1;
+	const float flops_max = 1;
+	printf("Testing solvers for POWERPC instruction set, 32 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_C99_4X4)
-	const float d_flops_max = 2;
+	const float flops_max = 2;
+	printf("Testing reference solvers, 4x4 kernel: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_C99_2X2)
-	const float d_flops_max = 2;
+	const float flops_max = 2;
+	printf("Testing reference solvers, 2x2 kernel: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #endif
 
+	printf("\n");
+	printf("Tested solvers:\n");
+	printf("-sv : Riccati factorization and system solution (prediction step in IP methods)\n");
+	printf("-trs: system solution after a previous call to Riccati factorization (correction step in IP methods)\n");
+	printf("\n");
+	printf("\n");
+	
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
-	printf("\nflush to zero on\n");
+/*	printf("\nflush to zero on\n");*/
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); // flush to zero subnormals !!! works only with one thread !!!
 #endif
 
 	// to throw floating-point exception
-#ifndef __APPLE__
-    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
-#endif
+/*#ifndef __APPLE__*/
+/*    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);*/
+/*#endif*/
 
-	printf("\nnx\tnu\tN\tkernel\n\n");
-
-/*	int err;*/
-	
 	int ii, jj;
 	
 	const int bsd = D_MR; //d_get_mr();
@@ -200,22 +209,21 @@ int main()
 	int vN[] = {4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256};
 
 	int ll;
-/*	for(ll=0; ll<77; ll++)*/
-/*	for(ll=0; ll<12; ll++)*/
-	for(ll=0; ll<1; ll++)
+	for(ll=0; ll<77; ll++)
+/*	for(ll=0; ll<1; ll++)*/
 
 		{
 
-/*		int nx = nn[ll];//NX;//16;//nn[ll]; // number of states (it has to be even for the mass-spring system test problem)*/
-/*		int nu = 2;//NU;//5; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)*/
-/*		int N  = 10;//NN;//10; // horizon lenght*/
-		int nx = NX;//16;//nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
-		int nu = NU;//5; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-		int N  = NN;//10; // horizon lenght
+		int nx = nn[ll];//NX;//16;//nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
+		int nu = 2;//NU;//5; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+		int N  = 10;//NN;//10; // horizon lenght
+		int nrep = nnrep[ll];
+/*		int nx = NX;//16;//nn[ll]; // number of states (it has to be even for the mass-spring system test problem)*/
+/*		int nu = NU;//5; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)*/
+/*		int N  = NN;//10; // horizon lenght*/
+/*		int nrep = NREP;*/
 
 		int rep;
-/*		int nrep = 1000;//nnrep[ll];// nnrep[ll];*/
-		int nrep = NREP; //nnrep[ll];// nnrep[ll];
 	
 		int nz = nx+nu+1;
 		int pnz = bsd*((nz+bsd-nu%bsd+bsd-1)/bsd);
@@ -253,8 +261,6 @@ int main()
 		dmcopy(nx, nu, B, nx, BAb, nx);
 		dmcopy(nx, nx, A, nx, BAb+nu*nx, nx);
 		dmcopy(nx, 1 , b, nx, BAb+(nu+nx)*nx, nx);
-	
-//	d_print_mat(nx, nx+nu+1, BAb, nx);
 
 	/* transposed */
 		double *BAbt; d_zeros_align(&BAbt, pnz, pnz);
@@ -264,16 +270,9 @@ int main()
 				BAbt[jj+pnz*ii] = BAb[ii+nx*jj];
 				}
 
-//	d_print_mat(nz, nx+1, BAbt, pnz);
-//	s_print_mat(nz, nx+1, sBAbt, pnz);
-//	return 0;
-	
 	/* packed into contiguous memory */
 		double *pBAbt; d_zeros_align(&pBAbt, pnz, pnz);
 		d_cvt_mat2pmat(nz, nx, 0, bsd, BAbt, pnz, pBAbt, pnz);
-
-//	d_print_pmat(nz, nx, bsd, pBAbt, pnz);
-//	s_print_pmat(nz, nx, bss, spBAbt, pnz);
 
 /************************************************
 * cost function
@@ -289,9 +288,6 @@ int main()
 		double *pQ; d_zeros_align(&pQ, pnz, pnz);
 		d_cvt_mat2pmat(nz, nz, 0, bsd, Q, pnz, pQ, pnz);
 
-//	d_print_pmat(nz, nz, bsd, pQ, pnz);
-//	s_print_pmat(nz, nz, bss, spQ, pnz);
-
 	/* matrices series */
 		double *(hpQ[N+1]);
 		double *(hq[N+1]);
@@ -300,7 +296,6 @@ int main()
 		double *(hpBAbt[N]);
 		double *(hrb[N]);
 		double *(hrq[N+1]);
-//		double *(hBAb[N]);
 		for(jj=0; jj<N; jj++)
 			{
 			d_zeros_align(&hpQ[jj], pnz, pnz);
@@ -310,7 +305,6 @@ int main()
 			hpBAbt[jj] = pBAbt;
 			d_zeros_align(&hrb[jj], nx, 1);
 			d_zeros_align(&hrq[jj], nx+nu, 1);
-//			hBAb[jj] = BAb;
 			}
 		d_zeros_align(&hpQ[N], pnz, pnz);
 		d_zeros_align(&hq[N], pnz, 1);
@@ -422,8 +416,6 @@ int main()
 			}
 
 
-		return 0;
-
 		// timing 
 		struct timeval tv0, tv1, tv2;
 
@@ -469,115 +461,24 @@ int main()
 
 
 
-		float time_d = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
-		float flop_d = (1.0/3.0*nx*nx*nx+3.0/2.0*nx*nx) + N*(7.0/3.0*nx*nx*nx+4.0*nx*nx*nu+2.0*nx*nu*nu+1.0/3.0*nu*nu*nu+13.0/2.0*nx*nx+9.0*nx*nu+5.0/2.0*nu*nu);
-/*		float flop_d = N*(7.0/3.0*nx*nx*nx+4.0*nx*nx*nu+2.0*nx*nu*nu+1.0/3.0*nu*nu*nu+13.0/2.0*nx*nx+9.0*nx*nu+5.0/2.0*nu*nu);*/
-		float Gflops_d = 1e-9*flop_d/time_d;
-		float Gflops_max_d = d_flops_max * GHz_max;
+		float time_sv = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+		float flop_sv = (1.0/3.0*nx*nx*nx+3.0/2.0*nx*nx) + N*(7.0/3.0*nx*nx*nx+4.0*nx*nx*nu+2.0*nx*nu*nu+1.0/3.0*nu*nu*nu+13.0/2.0*nx*nx+9.0*nx*nu+5.0/2.0*nu*nu);
+		if(COMPUTE_MULT==1)
+			flop_sv += N*2*nx*nx;
+		float Gflops_sv = 1e-9*flop_sv/time_sv;
 	
-		float time_d_c = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
+		float time_trs = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
+		float flop_trs = N*(8.0*nx*nx+8.0*nx*nu+2.0*nu*nu);
+		if(COMPUTE_MULT==1)
+			flop_trs += N*2*nx*nx;
+		float Gflops_trs = 1e-9*flop_trs/time_trs;
+		
+		float Gflops_max = flops_max * GHz_max;
 
-		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\n", nx, nu, N, time_d, Gflops_d, 100.0*Gflops_d/Gflops_max_d, time_d_c);
+		if(ll==0)
+			printf("\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv \%\t\ttrs time\ttrs Gflops\ttrs \%\n\n");
+		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max);
 	
-/************************************************
-* test trs
-************************************************/
-
-/*	if(DP==1) // double precision*/
-/*		{*/
-
-/*		/* restore cost function */
-/*		for(ii=0; ii<N; ii++)*/
-/*			{*/
-/*			for(jj=0; jj<pnz*pnz; jj++) hpQ[ii][jj] = pQ[jj];*/
-/*			}*/
-/*		for(jj=0; jj<pnz*pnz; jj++) hpQ[N][jj] = pQ[jj];*/
-
-/*		/* call the solver */
-/*		d_ric_po_sv(nx, nu, N, pnz, hpBAbt, hpQ, hux, pL, pBAbtL);*/
-
-/*		if(PRINTRES==1)*/
-/*			{*/
-/*			/* print result */
-/*			printf("\n\nsv\n\n");*/
-/*			for(ii=0; ii<N; ii++)*/
-/*				d_print_mat(1, nu, hux[ii], 1);*/
-/*			}*/
-/*	*/
-/*		/* clear solution */
-/*		for(ii=0; ii<N; ii++)*/
-/*			{*/
-/*			for(jj=0; jj<nu; jj++) hux[ii][jj] = 0;*/
-/*			for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = 0;*/
-/*			}*/
-
-/*		/* restore linear part of cost function */
-/*		for(ii=0; ii<N; ii++)*/
-/*			{*/
-/*			for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+pnz*jj];*/
-/*			}*/
-/*		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];*/
-
-/*		/* call the solver */
-/*		d_ric_po_trs(nx, nu, N, pnz, hpBAbt, hpQ, hq, hux, pBAbtL);*/
-
-/*		if(PRINTRES==1)*/
-/*			{*/
-/*			/* print result */
-/*			printf("\n\ntrs\n\n");*/
-/*			for(ii=0; ii<N; ii++)*/
-/*				d_print_mat(1, nu, hux[ii], 1);*/
-/*			}*/
-
-
-/*		}*/
-/*	else // single precision*/
-/*		{*/
-
-/*		/* restore cost function */
-/*		for(ii=0; ii<N; ii++)*/
-/*			{*/
-/*			for(jj=0; jj<pnz*pnz; jj++) hspQ[ii][jj] = spQ[jj];*/
-/*			}*/
-/*		for(jj=0; jj<pnz*pnz; jj++) hspQ[N][jj] = spQ[jj];*/
-
-/*		/* call the solver */
-/*		s_ric_po_sv(nx, nu, N, pnz, hspBAbt, hspQ, hsux, spL, spBAbtL);*/
-
-/*		if(PRINTRES==1)*/
-/*			{*/
-/*			/* print result */
-/*			printf("\n\nsv\n\n");*/
-/*			for(ii=0; ii<N; ii++)*/
-/*				s_print_mat(1, nu, hsux[ii], 1);*/
-/*			}*/
-/*	*/
-/*		/* clear solution */
-/*		for(ii=0; ii<N; ii++)*/
-/*			{*/
-/*			for(jj=0; jj<nu; jj++) hsux[ii][jj] = 0;*/
-/*			for(jj=0; jj<nx; jj++) hsux[ii+1][nu+jj] = 0;*/
-/*			}*/
-
-/*		/* restore linear part of cost function */
-/*		for(ii=0; ii<N; ii++)*/
-/*			{*/
-/*			for(jj=0; jj<nx+nu; jj++) hsq[ii][jj] = sQ[nx+nu+pnz*jj];*/
-/*			}*/
-/*		for(jj=0; jj<nx+nu; jj++) hsq[N][jj] = sQ[nx+nu+pnz*jj];*/
-
-/*		/* call the solver */
-/*		s_ric_po_trs(nx, nu, N, pnz, hspBAbt, hspQ, hsq, hsux, spBAbtL);*/
-
-/*		if(PRINTRES==1)*/
-/*			{*/
-/*			/* print result */
-/*			printf("\n\ntrs\n\n");*/
-/*			for(ii=0; ii<N; ii++)*/
-/*				s_print_mat(1, nu, hsux[ii], 1);*/
-/*			}*/
-
-/*		}*/
 
 /************************************************
 * return
@@ -599,18 +500,20 @@ int main()
 			free(hpQ[jj]);
 			free(hq[jj]);
 			free(hux[jj]);
-	//		free(hpi[jj]);
+			free(hpi[jj]);
 			}
 		free(hpQ[N]);
 		free(hq[N]);
 		free(hux[N]);
-	//	free(hpi[N]);
+		free(hpi[N]);
 	
 
 
 		} // increase size
 
-
+	printf("\n");
+	printf("\n");
+	printf("\n");
 
 	return 0;
 

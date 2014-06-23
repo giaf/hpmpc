@@ -1,16 +1,16 @@
-HPMPC -- Library for High-Performance implementation of solvers for MPC.
+HPMPC -- Library for High-Performance implementation of solvers for Model Predictive Control (MPC).
 
-The library contains an interior-point (IP) solver for the linear MPC (LMPC) problem with box constraints, and a solver for the the linear-quadratic control problem (LQCP), that is a used as a routine in the IP method. The library is self-contained and also contains the code for the linear-algebra routines.
+The library contains an interior-point (IP) solver for the linear MPC problem with box constraints, and a solver for the the linear-quadratic control problem (LQCP), that is a used as a routine in the IP method. The library is self-contained and also contains the code for the linear-algebra routines.
 
 The code is highly-optimized for a number of common architectures, plus a reference version in plain C code. The architecture can be set in the Makefile.rule file. The code is intended to be used in a Linux machine and using gcc as compiler. Some optimized routine may not work with other compilers.
 
-The folder test_problems contains some test problem for the linear-algebra, for the LQCP solver and for the LMPC solver. The test problem can be chosen by editing the file 
+The folder 'test_problems' contains some test problem for the linear-algebra, for the LQCP solver and for the linear MPC solver. The test problem can be chosen by editing the file 
 
 /test_problems/Makefile
 
 The code comes in two version: generic and code-generation.
 
-The the generic version is a proper library, that can solver problems of every size. It is generated typing in a terminal the command
+The the generic version is a proper library, that can solver problems of any size. It is generated typing in a terminal the command
 
 $ make
 

@@ -36,10 +36,10 @@
 #define NREP 100
 
 // print results
-#define PRINTRES 1
+#define PRINTRES 0
 
 // print statistics
-#define PRINTSTAT 1
+#define PRINTSTAT 0
 
 // ip method: 1 primal-dual, 2 predictor-corrector primal-dual
 #define IP 2
