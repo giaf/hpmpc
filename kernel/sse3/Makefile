@@ -1,4 +1,4 @@
-####################################################################################################
+###################################################################################################
 #                                                                                                 #
 # This file is part of HPMPC.                                                                     #
 #                                                                                                 #
@@ -23,50 +23,15 @@
 #                                                                                                 #
 ###################################################################################################
 
+include ../../Makefile.rule
 
-
-# Target architecture, currently supported:
-# X64_AVX    : machine with AVX instruction set (recent Intel and AMD processors), 64 bit operating system.
-# X64_SSE3   : machine with SSE3 instruction set (older Intel and AMD processors), 64 bit operating system.
-# X86_ATOM   : machine with SSE3 instruction set, 32 bit operating system, code optimized for Intel Atom (Bonnell microarchitecture).
-# NEON       : machine with ARMv7a processor with VPFv3 or VPFv4 (both D32 versions) and NEON, code optimized for ARM Cortex A9.
-# POWERPC_G2 : machine supporting 32-bit PowerPC Architecture, code optimized for G2 core (a variant of PowerPC 603e processor).
-# C99_4X4    : c99 reference code, performing better on a machine with at least 32 scalar registers.
-# C99_2X2    : c99 reference code, performing better on a machine with at least 8 scalar registers.
-#TARGET = X64_AVX2
-#TARGET = X64_AVX
-TARGET = X64_SSE3
-#TARGET = C99_4X4
-#TARGET = CORTEX_A15
-#TARGET = CORTEX_A9
-
-# C Compiler
-#CC = gcc-4.6
-CC = gcc
-
-# Common optimization/debugging flags
-COMMON_FLAGS = -O2 -std=c99 -fPIC
-DEBUG = #-Wall -pedantic -Wfloat-equal #-pg
-LDFLAGS =
-
-# architecture-specific optimization flags
-ifeq ($(TARGET), X64_AVX2)
-CFLAGS = $(COMMON_FLAGS) -mavx2 -mfma -DTARGET_X64_AVX2 $(DEBUG)
-endif
-ifeq ($(TARGET), X64_AVX)
-CFLAGS = $(COMMON_FLAGS) -mavx -DTARGET_X64_AVX $(DEBUG)
-endif
 ifeq ($(TARGET), X64_SSE3)
-CFLAGS = $(COMMON_FLAGS) -msse3 -DTARGET_X64_SSE3 $(DEBUG)
-endif
-ifeq ($(TARGET), C99_4X4)
-CFLAGS = $(COMMON_FLAGS) -DTARGET_C99_4X4 $(DEBUG)
-endif
-ifeq ($(TARGET), CORTEX_A15)
-CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon-vfpv4 -mcpu=cortex-a15 -DTARGET_CORTEX_A15 $(DEBUG)
-endif
-ifeq ($(TARGET), CORTEX_A9)
-CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a9 -DTARGET_CORTEX_A9 $(DEBUG)
+OBJS_DOUBLE = kernel_dgemm_c99_lib4.o kernel_dtrmm_c99_lib4.o kernel_dtrsm_c99_lib4.o kernel_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4.o kernel_dsymv_c99_lib4.o kernel_dtran_c99_lib4.o
+OBJS_SINGLE = kernel_sgemm_c99_lib4.o kernel_strmm_c99_lib4.o kernel_strsm_c99_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o kernel_strmv_c99_lib4.o kernel_strsv_c99_lib4.o kernel_ssymv_c99_lib4.o kernel_stran_c99_lib4.o
 endif
 
+obj: $(OBJS_DOUBLE) $(OBJS_SINGLE)
+
+clean:
+	rm -f *.o
 

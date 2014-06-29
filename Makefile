@@ -42,6 +42,14 @@ BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib8.o
 MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/d_aux_ip_avx_lib4.o ./mpc_solvers/d_ip2_box.o #./mpc_solvers/s_ip_box.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/sres_ip_box.o
 #CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_X64_AVX -fPIC $(DEBUG)
 endif
+ifeq ($(TARGET), X64_SSE3)
+AUX_OBJS = ./auxiliary/block_size_x64_sse.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99_lib4.o 
+KERNEL_OBJS_DOUBLE = ./kernel/sse3/kernel_dgemm_c99_lib4.o ./kernel/sse3/kernel_dtrmm_c99_lib4.o ./kernel/sse3/kernel_dtrsm_c99_lib4.o ./kernel/sse3/kernel_dpotrf_c99_lib4.o ./kernel/sse3/kernel_dgemv_c99_lib4.o ./kernel/sse3/kernel_dtrmv_c99_lib4.o ./kernel/sse3/kernel_dtrsv_c99_lib4.o ./kernel/sse3/kernel_dsymv_c99_lib4.o ./kernel/sse3/kernel_dtran_c99_lib4.o 
+KERNEL_OBJS_SINGLE = ./kernel/sse3/kernel_sgemm_c99_lib4.o ./kernel/sse3/kernel_strmm_c99_lib4.o ./kernel/sse3/kernel_strsm_c99_lib4.o ./kernel/sse3/kernel_spotrf_c99_lib4.o ./kernel/sse3/kernel_sgemv_c99_lib4.o ./kernel/sse3/kernel_strmv_c99_lib4.o ./kernel/sse3/kernel_strsv_c99_lib4.o ./kernel/sse3/kernel_ssymv_c99_lib4.o ./kernel/sse3/kernel_stran_c99_lib4.o 
+BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
+MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/d_aux_ip_c99_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/s_aux_ip_c99_lib4.o ./mpc_solvers/s_ip2_box.o
+#CFLAGS = $(OPT) -std=c99 -DTARGET_C99_4X4 -fPIC $(DEBUG)
+endif
 ifeq ($(TARGET), C99_4X4)
 AUX_OBJS = ./auxiliary/block_size_c99_4x4.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99_lib4.o 
 KERNEL_OBJS_DOUBLE = ./kernel/c99/kernel_dgemm_c99_lib4.o ./kernel/c99/kernel_dtrmm_c99_lib4.o ./kernel/c99/kernel_dtrsm_c99_lib4.o ./kernel/c99/kernel_dpotrf_c99_lib4.o ./kernel/c99/kernel_dgemv_c99_lib4.o ./kernel/c99/kernel_dtrmv_c99_lib4.o ./kernel/c99/kernel_dtrsv_c99_lib4.o ./kernel/c99/kernel_dsymv_c99_lib4.o ./kernel/c99/kernel_dtran_c99_lib4.o 

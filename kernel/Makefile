@@ -32,6 +32,9 @@ endif
 ifeq ($(TARGET), X64_AVX)
 	make -C avx obj
 endif
+ifeq ($(TARGET), X64_SSE3)
+	make -C sse3 obj
+endif
 ifeq ($(TARGET), C99_4X4)
 	make -C c99 obj
 endif
@@ -45,6 +48,7 @@ endif
 clean:
 	make -C avx2 clean
 	make -C avx clean
+	make -C sse3 clean
 	make -C c99 clean
 	make -C neon clean
 

@@ -31,6 +31,9 @@ endif
 ifeq ($(TARGET), X64_AVX)
 OBJS = blas_d_lib4.o blas_s_lib8.o
 endif
+ifeq ($(TARGET), X64_SSE3)
+OBJS = blas_d_lib4.o blas_s_lib4.o
+endif
 ifeq ($(TARGET), C99_4X4)
 OBJS = blas_d_lib4.o blas_s_lib4.o
 endif
