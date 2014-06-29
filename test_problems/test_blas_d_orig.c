@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bs);
 	
-	int n = 16;
+	int n = 18;
 	int nrep = 1;
 	
 	double *A; d_zeros(&A, n, n);
@@ -89,6 +89,8 @@ int main()
 
 	int pn = ((n+bs-1)/bs)*bs;//+4;	
 /*	int pns = ((n+bss-1)/bss)*bss;//+4;	*/
+	int cn = ((n+D_NCL-1)/D_NCL)*D_NCL;//+4;	
+	int cn2 = ((2*n+D_NCL-1)/D_NCL)*D_NCL;	
 
 	double *pA; d_zeros_align(&pA, pn, pn);
 	double *pB; d_zeros_align(&pB, pn, pn);
@@ -97,11 +99,16 @@ int main()
 /*	float *spA; s_zeros_align(&spA, pns, pns);*/
 /*	float *spB; s_zeros_align(&spB, pns, pns);*/
 /*	float *spC; s_zeros_align(&spC, pns, pns);*/
+	double *pD; d_zeros_align(&pD, pn, cn);
+	double *pE; d_zeros_align(&pE, pn, cn2);
+	double *diag; d_zeros_align(&diag, pn, 1);
 	
 	d_cvt_mat2pmat(n, n, 0, bs, A, n, pA, pn);
 	d_cvt_mat2pmat(n, n, 0, bs, B, n, pB, pn);
 /*	s_cvt_mat2pmat(n, n, 0, bss, sA, n, spA, pns);*/
 /*	s_cvt_mat2pmat(n, n, 0, bss, sB, n, spB, pns);*/
+	s_cvt_mat2pmat(n, n, 0, bs, B, n, pD, cn);
+	d_cvt_mat2pmat(n, n, 0, bs, A, n, pE, cn2);
 	
 	double *x; d_zeros_align(&x, n, 1);
 	double *y; d_zeros_align(&y, n, 1);
@@ -134,10 +141,11 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		dgemm_nt_lib(n, n, n, pA, pn, pB, pn, pC, pn, 0);
+/*		dgemm_nt_lib(n, n, n, pA, pn, pB, pn, pC, pn, 0);*/
 /*		dgemm_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
 /*		dtrmm_lib(n, n, pA, pn, pB, pn, pC, pn);*/
 /*		dtrtr_l_lib(10, 5, pA+1, pn, pC, pn);*/
+		dsyrk_dpotrf_lib(n, n, n, pE, cn2, pD, cn, diag);
 
 /*		dsyrk_lib(n, n, pA, pn, pC, pn);*/
 /*		dgemm_nt_lib(n, n, n, pA, pn, pA, pn, pB, pn, 0);*/
@@ -180,13 +188,14 @@ int main()
 		{
 //		d_print_pmat(pn, pn, bs, pC, pn);
 //		d_print_pmat(n, n, bs, pB, pn);
-		d_print_pmat(n, n, bs, pA, pn);
+/*		d_print_pmat(n, n, bs, pA, pn);*/
 /*		d_print_mat(n, n, B, n);*/
-		d_print_pmat(n, n, bs, pB, pn);
-		d_print_pmat(n, n, bs, pC, pn);
+/*		d_print_pmat(n, n, bs, pB, pn);*/
+/*		d_print_pmat(n, n, bs, pC, pn);*/
 /*		d_print_pmat(n, n, bs, pL, pn);*/
 //		s_print_pmat(n, n, bss, spC, pns);
 /*		d_print_mat(n, 1, y, pn);*/
+		d_print_pmat(n, n, bs, pE+n*bs, cn2);
 		}
 
 
