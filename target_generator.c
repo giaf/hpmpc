@@ -66,6 +66,10 @@ int main()
 	fprintf(f, "#ifndef TARGET_X64_AVX\n");
 	fprintf(f, "#define TARGET_X64_AVX\n");
 	fprintf(f, "#endif\n");
+#elif defined(TARGET_X64_SSE3)
+	fprintf(f, "#ifndef TARGET_X64_SSE3\n");
+	fprintf(f, "#define TARGET_X64_SSE3\n");
+	fprintf(f, "#endif\n");
 #elif defined(TARGET_C99_4X4)
 	fprintf(f, "#ifndef TARGET_C99_4X4\n");
 	fprintf(f, "#define TARGET_C99_4X4\n");
