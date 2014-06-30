@@ -27,6 +27,8 @@
 
 test_blas
 
+graphics_toolkit('gnuplot')
+
 f1 = figure()
 plot(B(:,1), B(:,2), 'b-x', 'LineWidth', 2)
 hold on
@@ -47,7 +49,7 @@ title(['test HPMPC BLAS'])
 xlabel('matrix size n')
 ylabel('Gflops')
 axis([0 B(end,1) 0 A(1)*A(2)])
-legend('gemm', 'syrk_dpotrf', 'trmm', 'gemv\_n', 'gemv\_t','trmv\_n', 'trmv\_t','trsv\_n', 'trsv\_t','symv', 'mvmv', 'Location', 'NorthEast')
+legend('gemm', 'syrk_dpotrf', 'trmm', 'gemv\_n', 'gemv\_t','trmv\_n', 'trmv\_t','trsv\_n', 'trsv\_t','symv', 'mvmv', 'Location', 'SouthEast')
 
 W = 6; H = 5;
 set(f1,'PaperUnits','inches')

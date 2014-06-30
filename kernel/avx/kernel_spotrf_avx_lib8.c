@@ -487,6 +487,7 @@ void kernel_spotrf_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float 
 		a_00  = _mm256_setzero_ps();
 		_mm256_store_ps( &D0[0+ldc*0], a_00 ); // a_00
 		_mm256_store_ps( &D1[0+ldc*0], a_00 ); // a_00
+		_mm_store_ss( &fact[0], _mm256_castps256_ps128(a_00) );
 		}
 		
 	// second row
@@ -519,6 +520,7 @@ void kernel_spotrf_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float 
 		a_11  = _mm256_setzero_ps();
 		_mm256_maskstore_ps( &D0[0+ldc*1], mask, a_11 ); // a_00
 		_mm256_store_ps( &D1[0+ldc*1], a_11 ); // a_00
+		_mm_store_ss( &fact[2], _mm256_castps256_ps128(a_11) );
 		}
 
 	// third row
@@ -558,6 +560,7 @@ void kernel_spotrf_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float 
 		a_22  = _mm256_setzero_ps();
 		_mm256_maskstore_ps( &D0[0+ldc*2], mask, a_22 ); // a_00
 		_mm256_store_ps( &D1[0+ldc*2], a_22 ); // a_00
+		_mm_store_ss( &fact[5], _mm256_castps256_ps128(a_22) );
 		}
 
 	// fourth row
@@ -604,6 +607,7 @@ void kernel_spotrf_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float 
 		a_33  = _mm256_setzero_ps();
 		_mm256_maskstore_ps( &D0[0+ldc*3], mask, a_33 ); // a_00
 		_mm256_store_ps( &D1[0+ldc*3], a_33 ); // a_00
+		_mm_store_ss( &fact[9], _mm256_castps256_ps128(a_33) );
 		}
 
 	}
