@@ -145,9 +145,9 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-/*		sgemm_nt_lib(n, n, n, spA, cns, spB, cns, spC, cns, 0);*/
+		sgemm_nt_lib(n, n, n, spA, cns, spB, cns, spC, cns, 0);
 /*		ssyrk_spotrf_lib(n, n, n, spE, cns2, spD, cns, diag);*/
-		strtr_l_lib(11, 3, spA+3, cns, spC, cns);
+/*		strtr_l_lib(11, 3, spA+3, cns, spC, cns);*/
 		
 /*		sgemm_nt_lib(n, n, n, spB, pns, spA, pns, spC, pns, 0);*/
 /*		dgemm_nt_lib(n, n, n, pA, pn, pB, pn, pC, pn, 0);*/
@@ -183,7 +183,8 @@ int main()
 	gettimeofday(&tv1, NULL); // stop
 
 	float time = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
-	float flop = 1.0*n*n;
+	float flop = 2.0*n*n*n;
+/*	float flop = 1.0*n*n;*/
 //	float flop = 1.0/3.0*n*n*n;
 	float Gflops = 1e-9*flop/time;
 	float Gflops_max = 1*1;
