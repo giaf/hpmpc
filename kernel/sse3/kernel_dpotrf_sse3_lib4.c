@@ -504,18 +504,6 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 		"addpd  %%xmm7, %%xmm14          \n\t"
 		"                                \n\t"
 		"                                \n\t" //  9  8 11 10
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-/*		"movaps	%%xmm9,  (%%rbx)          \n\t"*/
-/*		"movaps	%%xmm13, 16(%%rbx)        \n\t"*/
-/*		"                                \n\t"*/
-/*		"jmp .DEND                       \n\t"*/
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
 		"                                \n\t" // 13 12 15 14
 		"                                \n\t"
 		"movq   %7, %%rax                \n\t" // load address of fact

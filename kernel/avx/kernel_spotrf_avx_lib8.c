@@ -467,7 +467,7 @@ void kernel_spotrf_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float 
 	
 	// first row
 	sa_00 = _mm_move_ss( sa_00, _mm256_castps256_ps128(d_00) );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	if( _mm_comigt_ss ( sa_00, zeros_ones ) )
 		{
 /*		sa_00 = _mm_rsqrt_ss( sa_00 );*/
@@ -499,7 +499,7 @@ void kernel_spotrf_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float 
 	temp  = _mm256_mul_ps( d_80, a_10 );
 	d_81  = _mm256_sub_ps( d_81, temp );
 	sa_11 = _mm_permute_ps( _mm256_castps256_ps128(d_01), 0x55 );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	mask = _mm256_set_epi32( -1, -1, -1, -1, -1, -1, -1, 1 );
 	if( _mm_comigt_ss ( sa_11, zeros_ones ) )
 		{
@@ -539,7 +539,7 @@ void kernel_spotrf_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float 
 	temp  = _mm256_mul_ps( d_81, a_21 );
 	d_82  = _mm256_sub_ps( d_82, temp );
 	sa_22 = _mm_permute_ps( _mm256_castps256_ps128(d_02), 0xaa );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	mask = _mm256_set_epi32( -1, -1, -1, -1, -1, -1, 1, 1 );
 	if( _mm_comigt_ss ( sa_22, zeros_ones ) )
 		{
@@ -586,7 +586,7 @@ void kernel_spotrf_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float 
 	temp  = _mm256_mul_ps( d_82, a_32 );
 	d_83  = _mm256_sub_ps( d_83, temp );
 	sa_33 = _mm_permute_ps( _mm256_castps256_ps128(d_03), 0xff );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	mask = _mm256_set_epi32( -1, -1, -1, -1, -1, 1, 1, 1 );
 	if( _mm_comigt_ss ( sa_33, zeros_ones ) )
 		{
@@ -1059,7 +1059,7 @@ void kernel_spotrf_nt_12x4_lib8(int kadd, int ksub, float *A0, float *A1, float 
 
 	// first row
 	sa_00 = _mm_move_ss( sa_00, d_40 );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	if( _mm_comigt_ss ( sa_00, zeros_ones ) )
 		{
 		sa_00 = _mm_sqrt_ss( sa_00 );
@@ -1090,7 +1090,7 @@ void kernel_spotrf_nt_12x4_lib8(int kadd, int ksub, float *A0, float *A1, float 
 	temp  = _mm256_mul_ps( d_80, a_10 );
 	d_81  = _mm256_sub_ps( d_81, temp );
 	sa_11 = _mm_permute_ps( d_41, 0x55 );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	mask = _mm_set_epi32( -1, -1, -1, 1 );
 	if( _mm_comigt_ss ( sa_11, zeros_ones ) )
 		{
@@ -1129,7 +1129,7 @@ void kernel_spotrf_nt_12x4_lib8(int kadd, int ksub, float *A0, float *A1, float 
 	temp  = _mm256_mul_ps( d_81, a_21 );
 	d_82  = _mm256_sub_ps( d_82, temp );
 	sa_22 = _mm_permute_ps( d_42, 0xaa );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	mask = _mm_set_epi32( -1, -1, 1, 1 );
 	if( _mm_comigt_ss ( sa_22, zeros_ones ) )
 		{
@@ -1175,7 +1175,7 @@ void kernel_spotrf_nt_12x4_lib8(int kadd, int ksub, float *A0, float *A1, float 
 	temp  = _mm256_mul_ps( d_82, a_32 );
 	d_83  = _mm256_sub_ps( d_83, temp );
 	sa_33 = _mm_permute_ps( d_43, 0xff );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	mask = _mm_set_epi32( -1, 1, 1, 1 );
 	if( _mm_comigt_ss ( sa_33, zeros_ones ) )
 		{
@@ -1517,7 +1517,7 @@ void kernel_spotrf_nt_8x4_lib8(int kadd, int ksub, float *A0, float *B, float *C
 
 	// first row
 	sa_00 = _mm_move_ss( sa_00, _mm256_castps256_ps128(d_00) );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	if( _mm_comigt_ss ( sa_00, zeros_ones ) )
 		{
 		sa_00 = _mm_sqrt_ss( sa_00 );
@@ -1543,7 +1543,7 @@ void kernel_spotrf_nt_8x4_lib8(int kadd, int ksub, float *A0, float *B, float *C
 	temp  = _mm256_mul_ps( d_00, a_10 );
 	d_01  = _mm256_sub_ps( d_01, temp );
 	sa_11 = _mm_permute_ps( _mm256_castps256_ps128(d_01), 0x55 );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	mask = _mm256_set_epi32( -1, -1, -1, -1, -1, -1, -1, 1 );
 	if( _mm_comigt_ss ( sa_11, zeros_ones ) )
 		{
@@ -1575,7 +1575,7 @@ void kernel_spotrf_nt_8x4_lib8(int kadd, int ksub, float *A0, float *B, float *C
 	temp  = _mm256_mul_ps( d_01, a_21 );
 	d_02  = _mm256_sub_ps( d_02, temp );
 	sa_22 = _mm_permute_ps( _mm256_castps256_ps128(d_02), 0xaa );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	mask = _mm256_set_epi32( -1, -1, -1, -1, -1, -1, 1, 1 );
 	if( _mm_comigt_ss ( sa_22, zeros_ones ) )
 		{
@@ -1612,7 +1612,7 @@ void kernel_spotrf_nt_8x4_lib8(int kadd, int ksub, float *A0, float *B, float *C
 	temp  = _mm256_mul_ps( d_02, a_32 );
 	d_03  = _mm256_sub_ps( d_03, temp );
 	sa_33 = _mm_permute_ps( _mm256_castps256_ps128(d_03), 0xff );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	mask = _mm256_set_epi32( -1, -1, -1, -1, -1, 1, 1, 1 );
 	if( _mm_comigt_ss ( sa_33, zeros_ones ) )
 		{
@@ -1949,7 +1949,7 @@ void kernel_spotrf_nt_4x4_lib8(int kadd, int ksub, float *A0, float *B, float *C
 
 	// first row
 	sa_00 = _mm_move_ss( sa_00, d_00 );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	if( _mm_comigt_ss ( sa_00, zeros_ones ) )
 		{
 		sa_00 = _mm_sqrt_ss( sa_00 );
@@ -1975,7 +1975,7 @@ void kernel_spotrf_nt_4x4_lib8(int kadd, int ksub, float *A0, float *B, float *C
 	tem   = _mm_mul_ps( d_00, sa_10 );
 	d_01  = _mm_sub_ps( d_01, tem );
 	sa_11 = _mm_permute_ps( d_01, 0x55 );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	mask = _mm_set_epi32( -1, -1, -1, 1 );
 	if( _mm_comigt_ss ( sa_11, zeros_ones ) )
 		{
@@ -2007,7 +2007,7 @@ void kernel_spotrf_nt_4x4_lib8(int kadd, int ksub, float *A0, float *B, float *C
 	tem   = _mm_mul_ps( d_01, sa_21 );
 	d_02  = _mm_sub_ps( d_02, tem );
 	sa_22 = _mm_permute_ps( d_02, 0xaa );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	mask = _mm_set_epi32( -1, -1, 1, 1 );
 	if( _mm_comigt_ss ( sa_22, zeros_ones ) )
 		{
@@ -2044,7 +2044,7 @@ void kernel_spotrf_nt_4x4_lib8(int kadd, int ksub, float *A0, float *B, float *C
 	tem   = _mm_mul_ps( d_02, sa_32 );
 	d_03  = _mm_sub_ps( d_03, tem );
 	sa_33 = _mm_permute_ps( d_03, 0xff );
-	zeros_ones = _mm_set_ss( 1e-15 ); // 0.0 ???
+	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
 	mask = _mm_set_epi32( -1, 1, 1, 1 );
 	if( _mm_comigt_ss ( sa_33, zeros_ones ) )
 		{
