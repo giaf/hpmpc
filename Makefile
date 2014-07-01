@@ -75,16 +75,11 @@ endif
 LQCP_OBJS = ./lqcp_solvers/d_ric_sv.o ./lqcp_solvers/d_res.o ./lqcp_solvers/s_ric_sv.o ./lqcp_solvers/s_res.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/dres_codegen.o #./codegen/sricposv_codegen.o  ./codegen/sres_codegen.o 
 
-TARGET_OBJS = target_generator.o
-
 all: clean library test_problem run
 
 codegen: clean codegenerator test_problem run
 
-library: $(TARGET_OBJS)
-	touch ./include/target.h
-	gcc $(TARGET_OBJS) -o target_generator.out
-	./target_generator.out
+library: target 
 	make -C auxiliary obj
 	make -C kernel obj
 	make -C blas obj
@@ -95,7 +90,7 @@ library: $(TARGET_OBJS)
 	@echo " libhpmpc_pro.a library build complete."
 	@echo
 
-codegenerator:
+codegenerator: target
 	make -C auxiliary obj
 	make -C kernel obj
 	make -C blas obj
@@ -110,9 +105,30 @@ codegenerator:
 	@echo " libhpmpc_pro.a code generator build complete."
 	@echo
 
+target:
+	touch ./include/target.h
+ifeq ($(TARGET), X64_AVX2)
+	echo "#ifndef TARGET_X64_AVX2\n#define TARGET_X64_AVX2\n#endif" > ./include/target.h
+endif
+ifeq ($(TARGET), X64_AVX)
+	echo "#ifndef TARGET_X64_AVX\n#define TARGET_X64_AVX\n#endif" > ./include/target.h
+endif
+ifeq ($(TARGET), X64_SSE3)
+	echo "#ifndef TARGET_X64_SSE3\n#define TARGET_X64_SSE3\n#endif" > ./include/target.h
+endif
+ifeq ($(TARGET), C99_4X4)
+	echo "#ifndef TARGET_C99_4X4\n#define TARGET_C99_4X4\n#endif" > ./include/target.h
+endif
+ifeq ($(TARGET), CORTEX_A15)
+	echo "#ifndef TARGET_CORTEX_A15\n#define TARGET_CORTEX_A15\n#endif" > ./include/target.h
+endif
+ifeq ($(TARGET), CORTEX_A9)
+	echo "#ifndef TARGET_CORTEX_A9\n#define TARGET_CORTEX_A15\n#endif" > ./include/target.h
+endif
+
 test_problem:
 	cp libhpmpc_pro.a ./test_problems/libhpmpc_pro.a
-#	cp HPMPC.a ./matlab/HPMPC.a
+	cp libhpmpc_pro.a ./interfaces/octave/libhpmpc_pro.a
 	make -C test_problems obj
 	@echo
 	@echo " Test problem build complete."
