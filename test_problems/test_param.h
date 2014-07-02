@@ -33,7 +33,7 @@
 #define NB NU+NX
 
 // number of repetition for timing
-#define NREP 2
+#define NREP 100
 
 // print results
 #define PRINTRES 1
@@ -42,7 +42,7 @@
 #define PRINTSTAT 1
 
 // ip method: 1 primal-dual, 2 predictor-corrector primal-dual
-#define IP 1000
+#define IP 2
 
 // compute lagrangian multipliers
 #define COMPUTE_MULT 1

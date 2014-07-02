@@ -156,7 +156,7 @@ void strmm_lib(int m, int n, float *pA, int sda, float *pB, int sdb, float *pC, 
 		for(; j<n-7; j+=8)
 			{
 			kernel_strmm_nt_16x4_lib8(n-j-0, &pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
-			kernel_strmm_nt_16x4_lib8(n-j-4, &pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+8)*sda], &pB[4+(j+4)*bs+j*sdb], &pC[0+(j+4)*bs+i*sdc], &pC[0+(j+4)*bs+(i+8)*sdc], bs);
+			kernel_strmm_nt_16x4_lib8(n-j-4, &pA[0+(j+4)*bs+i*sda], &pA[0+(j+4)*bs+(i+8)*sda], &pB[4+(j+4)*bs+j*sdb], &pC[0+(j+4)*bs+i*sdc], &pC[0+(j+4)*bs+(i+8)*sdc], bs);
 			}
 		if(n-j>3)
 			{
@@ -311,11 +311,55 @@ void ssyrk_spotrf_lib(int m, int k, int n, float *pA, int sda, float *pC, int sd
 	if(j<n)
 		{
 		i = j;
-		kernel_spotrf_nt_4x4_lib8(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], bs, fact0);
-		diag[j+0] = fact0[0];
-		diag[j+1] = fact0[2];
-		diag[j+2] = fact0[5];
-		diag[j+3] = fact0[9];
+/*		kernel_spotrf_nt_4x4_lib8(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], bs, fact0);*/
+/*		diag[j+0] = fact0[0];*/
+/*		diag[j+1] = fact0[2];*/
+/*		diag[j+2] = fact0[5];*/
+/*		diag[j+3] = fact0[9];*/
+		if(i<m-8)
+			{
+			kernel_spotrf_nt_16x4_lib8(k, j, &pA[i*sda], &pA[(i+8)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+8)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+8)*sda], bs, fact0);
+			diag[j+0] = fact0[0];
+			diag[j+1] = fact0[2];
+			diag[j+2] = fact0[5];
+			diag[j+3] = fact0[9];
+/*			kernel_spotrf_nt_12x4_lib8(k, j+4, &pA[i*sda], &pA[(i+8)*sda], &pA[4+j*sda], &pC[(j+4)*bs+i*sdc], &pC[(j+4)*bs+(i+8)*sdc], &pA[(k0+k+j+4)*bs+i*sda], &pA[(k0+k+j+4)*bs+(i+8)*sda], bs, fact1);*/
+/*			diag[j+4] = fact1[0];*/
+/*			diag[j+5] = fact1[2];*/
+/*			diag[j+6] = fact1[5];*/
+/*			diag[j+7] = fact1[9];*/
+			i += 16;
+#if defined(TARGET_X64_AVX2)
+			for(; i<m-16; i+=24)
+				{
+				kernel_strsm_nt_24x4_lib8(k, j, &pA[i*sda], &pA[(i+8)*sda], &pA[(i+16)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+8)*sdc], &pC[j*bs+(i+16)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+8)*sda], &pA[(k0+k+j)*bs+(i+16)*sda], bs, fact0);
+/*				kernel_strsm_nt_24x4_lib8(k, j+4, &pA[i*sda], &pA[(i+8)*sda], &pA[(i+16)*sda], &pA[4+j*sda], &pC[(j+4)*bs+i*sdc], &pC[(j+4)*bs+(i+8)*sdc], &pC[(j+4)*bs+(i+16)*sdc], &pA[(k0+k+j+4)*bs+i*sda], &pA[(k0+k+j+4)*bs+(i+8)*sda], &pA[(k0+k+j+4)*bs+(i+16)*sda], bs, fact1);*/
+				}
+#endif
+			for(; i<m-8; i+=16)
+				{
+				kernel_strsm_nt_16x4_lib8(k, j, &pA[i*sda], &pA[(i+8)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+8)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+8)*sda], bs, fact0);
+/*				kernel_strsm_nt_16x4_lib8(k, j+4, &pA[i*sda], &pA[(i+8)*sda], &pA[4+j*sda], &pC[(j+4)*bs+i*sdc], &pC[(j+4)*bs+(i+8)*sdc], &pA[(k0+k+j+4)*bs+i*sda], &pA[(k0+k+j+4)*bs+(i+8)*sda], bs, fact1);*/
+				}
+			for(; i<m; i+=8)
+				{
+				kernel_strsm_nt_8x4_lib8(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda],bs, fact0);
+/*				kernel_strsm_nt_8x4_lib8(k, j+4, &pA[i*sda], &pA[4+j*sda], &pC[(j+4)*bs+i*sdc], &pA[(k0+k+j+4)*bs+i*sda], bs, fact1);*/
+				}
+			}
+		else //if(i<m-2)
+			{
+			kernel_spotrf_nt_8x4_lib8(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], bs, fact0);
+			diag[j+0] = fact0[0];
+			diag[j+1] = fact0[2];
+			diag[j+2] = fact0[5];
+			diag[j+3] = fact0[9];
+/*			kernel_spotrf_nt_4x4_lib8(k, j+4, &pA[i*sda], &pA[4+j*sda], &pC[4+(j+4)*bs+i*sdc], &pA[4+(k0+k+j+4)*bs+i*sda], bs, fact0);*/
+/*			diag[j+0] = fact0[0];*/
+/*			diag[j+1] = fact0[2];*/
+/*			diag[j+2] = fact0[5];*/
+/*			diag[j+3] = fact0[9];*/
+			}
 		}
 
 
@@ -399,4 +443,378 @@ void strtr_l_lib(int m, int offset, float *pA, int sda, float *pC, int sdc)
 /*		}*/
 	
 	}
+
+
+
+void sgemv_n_lib(int m, int n, float *pA, int sda, float *x, float *y, int alg) // pA has to be aligned !!!
+	{
+	
+	const int bs = 8;
+	
+	int j;
+
+	j=0;
+/*	for(; j<n-7; j+=8)*/
+	for(; j<m-4; j+=8)
+		{
+		kernel_sgemv_n_8_lib8(n, pA, pA+sda*bs, x, y, alg);
+		pA += sda*bs;
+		y  += bs;
+		}
+/*	for(; j<n-3; j+=4)*/
+/*for(; j<m; j+=4)*/
+/*	{*/
+/*	kernel_sgemv_n_4_lib4(n, pA, x, y, alg);*/
+/*	pA += sda*bs;*/
+/*	y  += bs;*/
+/*	}*/
+/*	for(; j<m-1; j+=2)*/
+/*		{*/
+/*		kernel_sgemv_n_2_lib4(n, pA, x, y, alg);*/
+/*		pA += 2;*/
+/*		y  += 2;*/
+/*		}*/
+/*	for(; j<m; j++)*/
+/*		{*/
+/*		kernel_sgemv_n_1_lib4(n, pA, x, y, alg);*/
+/*		pA += 1;*/
+/*		y  += 1;*/
+/*		}*/
+
+	}
+
+
+
+void sgemv_t_lib(int m, int n, int offset, float *pA, int sda, float *x, float *y, int alg)
+	{
+	
+	const int bs = 8;
+	
+	int mna = (bs-offset%bs)%bs;
+	
+	int j;
+	
+	j=0;
+	for(; j<n-7; j+=8)
+		{
+		kernel_sgemv_t_8_lib8(m, mna, pA+j*bs, sda, x, y+j, alg);
+		}
+	for(; j<n-3; j+=4)
+		{
+		kernel_sgemv_t_4_lib8(m, mna, pA+j*bs, sda, x, y+j, alg);
+		}
+	for(; j<n-1; j+=2)
+		{
+		kernel_sgemv_t_2_lib8(m, mna, pA+j*bs, sda, x, y+j, alg);
+		}
+	for(; j<n; j++)
+		{
+		kernel_sgemv_t_1_lib8(m, mna, pA+j*bs, sda, x, y+j, alg);
+		}
+
+	}
+
+
+
+void strmv_u_n_lib(int m, float *pA, int sda, float *x, float *y, int alg)
+	{
+
+	const int bs = 8;
+	
+	int j;
+	
+	j=0;
+	for(; j<m-7; j+=8)
+		{
+		kernel_strmv_u_n_8_lib8(m-j, pA, pA+sda*bs, x, y, alg);
+		pA += sda*bs + 8*bs;
+		x  += bs;
+		y  += bs;
+		}
+	for(; j<m-3; j+=4)
+		{
+		kernel_strmv_u_n_4_lib8(m-j, pA, x, y, alg);
+		pA += 4 + 4*bs;
+		x  += 4;
+		y  += 4;
+		}
+	for(; j<m-1; j+=2)
+		{
+		kernel_strmv_u_n_2_lib8(m-j, pA, x, y, alg);
+		pA += 2 + 2*bs;
+		x  += 2;
+		y  += 2;
+		}
+	if(j<m)
+		{
+		if(alg==0)
+			y[0] = pA[0+bs*0]*x[0];
+		else if(alg==1)
+			y[0] += pA[0+bs*0]*x[0];
+		else
+			y[0] -= pA[0+bs*0]*x[0];
+		}
+
+	}
+
+
+
+void strmv_u_t_lib(int m, float *pA, int sda, float *x, float *y, int alg)
+	{
+
+	const int bs = 8;
+	
+	int j;
+	
+	float *ptrA;
+	
+	j=0;
+	for(; j<m-7; j+=8)
+		{
+		kernel_strmv_u_t_8_lib8(j, pA, sda, x, y, alg);
+		pA += 8*bs;
+		y  += 8;
+		}
+	for(; j<m-3; j+=4)
+		{
+		kernel_strmv_u_t_4_lib8(j, pA, sda, x, y, alg);
+		pA += 4*bs;
+		y  += 4;
+		}
+	for(; j<m-1; j+=2) // keep for !!!
+		{
+		kernel_strmv_u_t_2_lib8(j, pA, sda, x, y, alg);
+		pA += 2*bs;
+		y  += 2;
+		}
+	if(j<m)
+		{
+		kernel_strmv_u_t_1_lib8(j, pA, sda, x, y, alg);
+		}
+
+	}
+
+
+
+// it moves vertically across block
+void ssymv_lib(int m, int offset, float *pA, int sda, float *x, float *y, int alg)
+	{
+	
+	const int bs = 8;
+	
+	int mna = (bs-offset%bs)%bs;
+	int ma = m - mna;
+
+	int j, j0;
+	
+	if(alg==0)
+		{
+		for(j=0; j<m; j++)
+			y[j] = 0.0;
+		alg = 1;
+		}
+	
+	if(mna>0)
+		{
+		j=0;
+		for(; j<mna; j++)
+			{
+			kernel_ssymv_1_lib8(m-j, mna-j, pA+j+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+			}
+		pA += j + (sda-1)*bs + j*bs;
+		x += j;
+		y += j;
+		}
+	j=0;
+	for(; j<ma-3; j+=4)
+		{
+		kernel_ssymv_4_lib8(ma-j, 0, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+		}
+	j0 = j;
+	for(; j<ma-1; j+=2)
+		{
+		kernel_ssymv_2_lib8(ma-j, ma-j, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+		}
+	for(; j<ma; j++)
+		{
+		kernel_ssymv_1_lib8(ma-j, ma-j, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+		}
+
+	}
+
+
+
+// it moves vertically across block
+void smvmv_lib(int m, int n, int offset, float *pA, int sda, float *x_n, float *y_n, float *x_t, float *y_t, int alg)
+	{
+	
+	const int bs = 8;
+
+	int mna = (bs-offset%bs)%bs;
+
+	int j;
+	
+	if(alg==0)
+		{
+		for(j=0; j<m; j++)
+			y_n[j] = 0.0;
+		for(j=0; j<n; j++)
+			y_t[j] = 0.0;
+		alg = 1;
+		}
+	
+	j=0;
+	for(; j<n-3; j+=4)
+		{
+		kernel_ssymv_4_lib8(m, mna, pA+j*bs, sda, x_n+j, y_n, x_t, y_t+j, 0, alg);
+		}
+	for(; j<n-1; j+=2)
+		{
+		kernel_ssymv_2_lib8(m, mna, pA+j*bs, sda, x_n+j, y_n, x_t, y_t+j, 0, alg);
+		}
+	for(; j<n; j++)
+		{
+		kernel_ssymv_1_lib8(m, mna, pA+j*bs, sda, x_n+j, y_n, x_t, y_t+j, 0, alg);
+		}
+
+	}
+
+
+
+// the diagonal is inverted !!!
+void strsv_sgemv_n_lib(int m, int n, float *pA, int sda, float *x)
+	{
+	
+	const int bs = 8;
+	
+	int j;
+	
+	float *y;
+
+	// blocks of 4 (pA is supposed to be properly aligned)
+	y  = x;
+
+	j = 0;
+	for(; j<m-7; j+=8)
+		{
+
+		kernel_strsv_n_8_lib8(j, 8, pA, pA+bs*sda, x, y); // j+8 !!!
+
+		pA += bs*sda;
+		y  += bs;
+
+		}
+	if(j<m) // !!! suppose that there are enough nx after !!! => x padded with enough zeros at the end !!!
+		{
+
+		kernel_strsv_n_8_lib8(j, m-j, pA, pA+bs*sda, x, y); // j+4 !!!
+
+		pA += bs*sda;
+		y  += bs;
+		j+=8;
+
+		}
+/*	for(; j<n-7; j+=8)*/
+	for(; j<n; j+=8)
+		{
+
+		kernel_sgemv_n_8_lib8(m, pA, pA+sda*bs, x, y, -1);
+
+		pA += sda*bs;
+		y  += bs;
+
+		}
+/*	for(; j<n-3; j+=4)*/
+/*	for(; j<n; j+=4)*/
+/*		{*/
+
+/*		kernel_sgemv_n_4_lib4(m, pA, x, y, -1);*/
+
+/*		pA += sda*bs;*/
+/*		y  += bs;*/
+
+/*		}*/
+/*	for(; j<n-1; j+=2)*/
+/*		{*/
+
+/*		kernel_sgemv_n_2_lib4(m, pA, x, y, -1);*/
+
+/*		pA += 2;*/
+/*		y  += 2;*/
+
+/*		}*/
+/*	for(; j<n; j+=1)*/
+/*		{*/
+
+/*		kernel_sgemv_n_1_lib4(m, pA, x, y, -1);*/
+
+/*		pA += 1;*/
+/*		y  += 1;*/
+
+/*		}*/
+
+	}
+
+
+
+// the diagonal is inverted !!!
+void strsv_sgemv_t_lib(int m, int n, float *pA, int sda, float *x)
+	{
+
+	const int bs = 8;
+	
+	int j;
+	
+/*	float *y;*/
+	
+	j=0;
+	if(n%8==1)
+		{
+		kernel_strsv_t_1_lib8(m-n+j+1, 4, pA+0+(n/bs)*bs*sda+(n-j-1)*bs, sda, x+n-j-1);
+		j++;
+		}
+	else if(n%8==2)
+		{
+		kernel_strsv_t_2_lib8(m-n+j+2, 4, pA+0+(n/bs)*bs*sda+(n-j-2)*bs, sda, x+n-j-2);
+		j+=2;
+		}
+	else if(n%8==3)
+		{
+		kernel_strsv_t_3_lib8(m-n+j+3, 4, pA+0+(n/bs)*bs*sda+(n-j-3)*bs, sda, x+n-j-3);
+		j+=3;
+		}
+	else if(n%8==4)
+		{
+		kernel_strsv_t_4_lib8(m-n+j+4, 4, pA+0+(n/bs)*bs*sda+(n-j-4)*bs, sda, x+n-j-4);
+		j+=4;
+		}
+	else if(n%8==5)
+		{
+		kernel_strsv_t_1_lib8(m-n+j+1, 4, pA+4+(n/bs)*bs*sda+(n-j-1)*bs, sda, x+n-j-1);
+		j++;
+		kernel_strsv_t_4_lib8(m-n+j+4, 0, pA+0+(n/bs)*bs*sda+(n-j-4)*bs, sda, x+n-j-4);
+		j+=4;
+		}
+	else if(n%8==6)
+		{
+		kernel_strsv_t_2_lib8(m-n+j+2, 4, pA+4+(n/bs)*bs*sda+(n-j-2)*bs, sda, x+n-j-2);
+		j+=2;
+		kernel_strsv_t_4_lib8(m-n+j+4, 0, pA+0+(n/bs)*bs*sda+(n-j-4)*bs, sda, x+n-j-4);
+		j+=4;
+		}
+	else if(n%8==7)
+		{
+		kernel_strsv_t_3_lib8(m-n+j+3, 4, pA+4+(n/bs)*bs*sda+(n-j-3)*bs, sda, x+n-j-3);
+		j+=3;
+		kernel_strsv_t_4_lib8(m-n+j+4, 0, pA+0+(n/bs)*bs*sda+(n-j-4)*bs, sda, x+n-j-4);
+		j+=4;
+		}
+	for(; j<n-7; j+=8)
+		{
+		kernel_strsv_t_4_lib8(m-n+j+4, 4, pA+4+((n-j-8)/bs)*bs*sda+(n-j-4)*bs, sda, x+n-j-4);
+		kernel_strsv_t_4_lib8(m-n+j+8, 0, pA+0+((n-j-8)/bs)*bs*sda+(n-j-8)*bs, sda, x+n-j-8);
+		}
+
+	}
+
 
