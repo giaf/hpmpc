@@ -66,6 +66,7 @@ void s_ric_sv_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 		for(jj=0; jj<nx; jj++) hpL[N-ii-1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+jj*bs] += hpL[N-ii][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nx+pad+nu+jj)*bs];
 		ssyrk_spotrf_lib(nz, nx, nu+nx, hpL[N-ii-1], cnl, hpQ[N-ii-1], cnz, diag);
 		for(jj=0; jj<nu; jj++) hpL[N-ii-1][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
+/*s_print_mat(1, nu, diag, 1);*/
 /*		d_transpose_pmat_lo(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);*/
 		strtr_l_lib(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);	
 /*s_print_pmat(pnz, cnl, bs, hpL[N-ii-1], cnl);*/
@@ -80,25 +81,31 @@ void s_ric_sv_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 	for(jj=0; jj<nu; jj++) hpL[0][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 
 /*s_print_pmat(pnz, cnl, bs, hpL[0], cnl);*/
+/*s_print_pmat(pnz, cnl, bs, hpL[1], cnl);*/
 /*exit(1);*/
 
 	// forward substitution 
 	for(ii=0; ii<N; ii++)
 		{
+/*printf("\n%d\n", ii);*/
 		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hpL[ii][(nx+pad)*bs+((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*jj];
 /*s_print_mat(1, pnz, hux[ii], 1);*/
 		strsv_sgemv_t_lib(nx+nu, nu, &hpL[ii][(nx+pad)*bs], cnl, &hux[ii][0]);
 /*s_print_mat(1, pnz, hux[ii], 1);*/
 		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
-/*s_print_mat(1, pnz, hux[ii], 1);*/
+/*s_print_mat(1, pnz, hux[ii+1], 1);*/
 		sgemv_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
-/*s_print_mat(1, pnz, hux[ii], 1);*/
+/*s_print_mat(1, pnz, hux[ii+1], 1);*/
 		if(compute_pi)
 			{
 			for(jj=0; jj<nx; jj++) work[jj] = hpL[ii+1][(nx+pad)*bs+((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*(nu+jj)]; // work space
+/*s_print_mat(1, nx, work, 1);*/
 			strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 1); // TODO remove nu
+/*s_print_mat(1, nx, work, 1);*/
 			strmv_u_t_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[ii+1][0], 0); // L*(L'*b) + p
+/*s_print_mat(1, nx, work, 1);*/
 			}
+/*s_print_mat(1, pnz, hux[ii+1], 1);*/
 /*if(ii==1)*/
 /*exit(1);*/
 		}
@@ -127,14 +134,20 @@ void s_ric_trs_mpc(int nx, int nu, int N, float **hpBAbt, float **hpL, float **h
 	/* backward substitution */
 	for(ii=0; ii<N; ii++)
 		{
+/*printf("\n%d\n", ii);*/
 		for(jj=0; jj<nx; jj++) work[jj] = hpBAbt[N-ii-1][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj]; // copy b
+/*s_print_mat(1, nx, work, 1);*/
 		strmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work, work+pnz, 0);
+/*s_print_mat(1, nx, work+pnz, 1);*/
 		for(jj=0; jj<nx; jj++) work[jj] = hq[N-ii][nu+jj]; // copy p
+/*s_print_mat(1, nx, work, 1);*/
 		strmv_u_t_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work+pnz, work, 1); // L*(L'*b) + p
+/*s_print_mat(1, nx, work, 1);*/
 		sgemv_n_lib(nx+nu, nx, hpBAbt[N-ii-1], cnx, work, hq[N-ii-1], 1);
-/*d_print_mat(nx+nu, 1, hq[N-ii-1], 1);*/
+/*s_print_mat(1, nx+nu, hq[N-ii-1], 1);*/
 		strsv_sgemv_n_lib(nu, nu+nx, hpL[N-ii-1]+(nx+pad)*bs, cnl, hq[N-ii-1]);
-/*d_print_mat(nx+nu, 1, hq[N-ii-1], 1);*/
+/*s_print_mat(1, nx+nu, hq[N-ii-1], 1);*/
+/*if(ii==1)*/
 /*exit(1);*/
 		}
 

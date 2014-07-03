@@ -871,7 +871,7 @@ void corner_strmm_nt_8x3_lib8(float *A0, float *B, float *C0)
 
 
 
-void corner_strmm_nt_8x2_lib8(float *A0, float *A1, float *B, float *C0, float *C1)
+void corner_strmm_nt_8x2_lib8(float *A0, float *B, float *C0)
 	{
 	
 	const int ldc = 8;
@@ -906,13 +906,12 @@ void corner_strmm_nt_8x2_lib8(float *A0, float *A1, float *B, float *C0, float *
 	}
 
 
-void corner_strmm_nt_8x1_lib8(float *A0, float *A1, float *B, float *C0, float *C1)
+void corner_strmm_nt_8x1_lib8(float *A0, float *B, float *C0)
 	{
 	
 	const int ldc = 8;
 
 	__m256
-		temp,
 		a_00,
 		b_00,
 		c_00;

@@ -221,8 +221,8 @@ void kernel_sgemv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x, float
 	if(kmax<=0) 
 		return;
 	
-	const int lda = 4;
-	const int bs  = 4;
+	const int lda = 8;
+	const int bs  = 8;
 	
 	int
 		k, ka=kmax-kna;

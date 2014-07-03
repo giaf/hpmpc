@@ -390,7 +390,7 @@ void kernel_ssymv_2_lib8(int kmax, int kna, float *A, int sda, float *x_n, float
 	if(kmax<=0) 
 		return;
 	
-	const int bs = 4;
+	const int bs = 8;
 	
 	int k;
 	
@@ -642,7 +642,7 @@ void kernel_ssymv_1_lib8(int kmax, int kna, float *A, int sda, float *x_n, float
 	if(kmax<=0) 
 		return;
 	
-	const int bs = 4;
+	const int bs = 8;
 	
 	int k;
 	

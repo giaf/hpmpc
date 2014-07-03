@@ -262,9 +262,9 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"mulps   %%xmm1, %%xmm5          \n\t"
 		"movaps       16(%%rcx), %%xmm1  \n\t"
 		"                                \n\t"
-		"addq          $32, %%rax        \n\t" // A0 += 4
-		"addq          $32, %%rbx        \n\t" // B  += 4
-		"addq          $32, %%rcx        \n\t" // A1 += 4
+		"addq          $16, %%rax        \n\t" // A0 += 4
+		"addq          $16, %%rbx        \n\t" // B  += 4
+		"addq          $16, %%rcx        \n\t" // A1 += 4
 		"                                \n\t"
 		"                                \n\t"
 		"decl    %%esi                   \n\t" // i -= 1;
@@ -838,13 +838,13 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		"addq   %%rdx, %%rax             \n\t" 
 		"addq   %%rdx, %%rbx             \n\t" 
 		"                                \n\t"
-		"movaps        0(%%rax), %%xmm0  \n\t" // initialize loop by pre-loading elements
-		"movaps       16(%%rax), %%xmm1  \n\t"
-		"movaps        0(%%rbx), %%xmm2  \n\t"
-		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".PRELOOPSUB_4X4:               \n\t" // 
+		"                                \n\t"
+		"movaps        0(%%rax), %%xmm0  \n\t" // initialize loop by pre-loading elements
+		"movaps       16(%%rax), %%xmm1  \n\t"
+		"movaps        0(%%rbx), %%xmm2  \n\t"
 		"                                \n\t"
 		"movl   %2, %%esi                \n\t"
 		"                                \n\t"

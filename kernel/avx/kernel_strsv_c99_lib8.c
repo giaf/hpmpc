@@ -829,7 +829,7 @@ void kernel_strsv_t_2_lib8(int kmax, int kna, float *A, int sda, float *x)
 		y_0 += A[3+lda*0] * x_3;
 		y_1 += A[3+lda*1] * x_3;
 		
-		A += sda*bs;
+		A += 4;
 		x += 4;
 
 		}
