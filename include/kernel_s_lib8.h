@@ -41,7 +41,9 @@ void kernel_strsm_nt_8x4_lib8(int kadd, int ksub, float *A0, float *B, float *C0
 void kernel_spotrf_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc_dummy, float *fact);
 void kernel_spotrf_nt_12x4_lib8(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc_dummy, float *fact);
 void kernel_spotrf_nt_8x4_lib8(int kadd, int ksub, float *A0, float *B, float *C0, float *D0, int ldc_dummy, float *fact);
+void kernel_spotrf_nt_8x2_lib8(int kadd, int ksub, float *A0, float *B, float *C0, float *D0, int ldc_dummy, float *fact);
 void kernel_spotrf_nt_4x4_lib8(int kadd, int ksub, float *A0, float *B, float *C0, float *D0, int ldc_dummy, float *fact);
+void kernel_spotrf_nt_4x2_lib8(int kadd, int ksub, float *A0, float *B, float *C0, float *D0, int ldc_dummy, float *fact);
 void kernel_sgemv_t_8_lib8(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
 void kernel_sgemv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
 void kernel_sgemv_t_2_lib8(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);

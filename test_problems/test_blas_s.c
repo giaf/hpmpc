@@ -281,7 +281,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			ssymv_lib(n, 0, pA, pns, x, y, 0);*/
+			ssymv_lib(n, 0, pA, pns, x, y, 0);
 
 			}
 	
@@ -290,7 +290,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			smvmv_lib(n, n, 0, pA, pns, x, y, x2, y2, 0);*/
+			smvmv_lib(n, n, 0, pA, pns, x, y, x2, y2, 0);
 
 			}
 	

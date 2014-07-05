@@ -345,7 +345,8 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-	float *work; s_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 4*anb + anx) + 3*anz, 1); // work space
+	float *work; s_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 4*anb + anx) + 3*anz, 1); // work space ok 
+/*	float *work; s_zeros_align(&work, (N+1)*(2*pnz*cnl + 4*anz + 4*anb + anx) + 3*anz, 1); // work space temp TODO use smaller spotrf kernels*/
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
@@ -524,6 +525,7 @@ int main()
 	free(db);
 	free(Q);
 	free(pQ);
+/*return;*/
 	free(work);
 	free(stat);
 	for(jj=0; jj<N; jj++)

@@ -123,6 +123,8 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 		ptr += pnz*cnl;
 		}
 	
+/*	ptr += pnz*cnl; // TODO remove when not needed any more*/
+
 	for(jj=0; jj<=N; jj++)
 		{
 		pl2[jj] = ptr;
@@ -397,11 +399,14 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 
 		s_update_hessian_box_mpc(N, nbu, (nu/bs)*bs, nb, cnz, 0.0, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db);
 
+/*s_print_pmat(nz, nz, bs, pQ[0], cnz);*/
+/*s_print_mat(1, nx+nu, pl2[0], 1);*/
 
 
 		// compute the search direction: factorize and solve the KKT system
 		s_ric_sv_mpc(nx, nu, N, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi);
 
+/*s_print_mat(1, nx+nu, pl2[0], 1);*/
 /*s_print_mat(1, nx+nu, dux[0], 1);*/
 /*s_print_mat(1, nx+nu, dux[1], 1);*/
 /*s_print_mat(1, nx+nu, dux[N-1], 1);*/
@@ -415,7 +420,8 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 
 		alpha = 1.0;
 		s_compute_alpha_box_mpc(N, 2*nbu, 2*nu, 2*nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
-		
+
+/*printf("\n%f\n", alpha);		*/
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+1] = alpha;
@@ -429,6 +435,7 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 		
 		stat[5*(*kk)+2] = mu_aff;
 
+/*printf("\n%f\n", mu_aff);		*/
 
 
 		// compute sigma
@@ -438,6 +445,7 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 			sigma = sigma_min;
 
 
+/*s_print_mat(1, nx+nu, pl2[0], 1);*/
 
 		// first stage
 		for(ii=0; ii<2*nbu; ii+=2)
@@ -446,6 +454,8 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 			dlam[0][ii+1] = t_inv[0][ii+1]*(sigma*mu - dlam[0][ii+1]*dt[0][ii+1]); // !!!!!
 			pl2[0][ii/2] += dlam[0][ii+1] - dlam[0][ii+0];
 			}
+
+/*s_print_mat(1, 2*nbu, dlam[0], 1);*/
 
 		// middle stages
 		for(jj=1; jj<N; jj++)
@@ -466,6 +476,10 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 			pl2[jj][ii/2] += dlam[jj][ii+1] - dlam[jj][ii+0];
 			}
 
+/*s_print_mat(1, nx+nu, pl2[0], 1);*/
+/*s_print_mat(1, nx+nu, pl2[1], 1);*/
+/*s_print_mat(1, nx+nu, pl2[N-1], 1);*/
+/*s_print_mat(1, nx+nu, pl2[N], 1);*/
 
 
 		// solve the system
@@ -502,7 +516,7 @@ void s_ip2_box(int *kk, int k_max, float tol, int warm_start, float *sigma_par, 
 /*			sigma = sigma_par[0];*/
 
 /*s_print_mat(1, nx+nu, ux[0], 1);*/
-
+/*exit(1);*/
 
 		// increment loop index
 		(*kk)++;

@@ -312,7 +312,7 @@ int main()
 		for(jj=0; jj<N; jj++)
 			{
 			s_zeros_align(&hpQ[jj], pnz, cnz);
-			s_zeros_align(&hpL[jj], 2*pnz, cnl); // TODO remove 2* once not needed any more (agreement of S_NR and S_NCL)
+			s_zeros_align(&hpL[jj], pnz, cnl); // TODO remove 2* once not needed any more (agreement of S_NR and S_NCL)
 			s_zeros_align(&hq[jj], pnz, 1); // it has to be pnz !!!
 			s_zeros_align(&hux[jj], pnz, 1); // it has to be pnz !!!
 			s_zeros_align(&hpi[jj], pnx, 1);
@@ -322,7 +322,7 @@ int main()
 //			hBAb[jj] = BAb;
 			}
 		s_zeros_align(&hpQ[N], pnz, cnz);
-		s_zeros_align(&hpL[N], 2*pnz, cnl); // TODO remove 2* once not needed any more (agreement of S_NR and S_NCL)
+		s_zeros_align(&hpL[N], pnz, cnl); // TODO remove 2* once not needed any more (agreement of S_NR and S_NCL)
 		s_zeros_align(&hq[N], pnz, 1); // it has to be pnz !!!
 		s_zeros_align(&hux[N], pnz, 1); // it has to be pnz !!!
 		s_zeros_align(&hpi[N], pnx, 1);

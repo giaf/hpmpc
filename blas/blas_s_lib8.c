@@ -301,11 +301,22 @@ void ssyrk_spotrf_lib(int m, int k, int n, float *pA, int sda, float *pC, int sd
 			diag[j+1] = fact0[2];
 			diag[j+2] = fact0[5];
 			diag[j+3] = fact0[9];
-			kernel_spotrf_nt_4x4_lib8(k, j+4, &pA[4+i*sda], &pA[4+j*sda], &pC[4+(j+4)*bs+i*sdc], &pA[4+(k0+k+j+4)*bs+i*sda], bs, fact1);
-			diag[j+4] = fact1[0];
-			diag[j+5] = fact1[2];
-			diag[j+6] = fact1[5];
-			diag[j+7] = fact1[9];
+			if(j<n-6)
+				{
+				kernel_spotrf_nt_4x4_lib8(k, j+4, &pA[4+i*sda], &pA[4+j*sda], &pC[4+(j+4)*bs+i*sdc], &pA[4+(k0+k+j+4)*bs+i*sda], bs, fact1);
+				diag[j+4] = fact1[0];
+				diag[j+5] = fact1[2];
+				diag[j+6] = fact1[5];
+				diag[j+7] = fact1[9];
+				}
+			else
+				{
+				kernel_spotrf_nt_4x2_lib8(k, j+4, &pA[4+i*sda], &pA[4+j*sda], &pC[4+(j+4)*bs+i*sdc], &pA[4+(k0+k+j+4)*bs+i*sda], bs, fact1);
+				diag[j+4] = fact1[0];
+				diag[j+5] = fact1[2];
+				diag[j+6] = fact1[5];
+				diag[j+7] = fact1[9];
+				}
 			}
 		}
 	if(j<n)
@@ -349,17 +360,29 @@ void ssyrk_spotrf_lib(int m, int k, int n, float *pA, int sda, float *pC, int sd
 			}
 		else //if(i<m-2)
 			{
-			kernel_spotrf_nt_8x4_lib8(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], bs, fact0);
-			diag[j+0] = fact0[0];
-			diag[j+1] = fact0[2];
-			diag[j+2] = fact0[5];
-			diag[j+3] = fact0[9];
+			if(j<n-2)
+				{
+				kernel_spotrf_nt_8x4_lib8(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], bs, fact0);
+				diag[j+0] = fact0[0];
+				diag[j+1] = fact0[2];
+				diag[j+2] = fact0[5];
+				diag[j+3] = fact0[9];
+				}
+			else
+				{
+				kernel_spotrf_nt_8x2_lib8(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], bs, fact0);
+				diag[j+0] = fact0[0];
+				diag[j+1] = fact0[2];
+				diag[j+2] = fact0[5];
+				diag[j+3] = fact0[9];
+				}
 /*			kernel_spotrf_nt_4x4_lib8(k, j+4, &pA[i*sda], &pA[4+j*sda], &pC[4+(j+4)*bs+i*sdc], &pA[4+(k0+k+j+4)*bs+i*sda], bs, fact1);*/
 /*			diag[j+4] = fact1[0];*/
 /*			diag[j+5] = fact1[2];*/
 /*			diag[j+6] = fact1[5];*/
 /*			diag[j+7] = fact1[9];*/
 			}
+		j+=4;
 		}
 
 
