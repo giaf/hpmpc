@@ -38,6 +38,8 @@ void kernel_stran_8_lib8(int kmax, int kna, float *A, int sda, float *C) // TODO
 	
 	// kmax is at least 4 !!!
 	
+/*	printf("\n%d %d\n", kmax, kna);*/
+	
 	int k;
 
 	const int bs = 8;
@@ -345,8 +347,7 @@ void kernel_stran_8_lib8(int kmax, int kna, float *A, int sda, float *C) // TODO
 		_mm_maskstore_ps( &C[4+bs*3], mask3, _mm256_castps256_ps128( v7 ) );
 		if(kmax==7)
 			return;
-		_mm_store_ps( &C[0+bs*4], _mm256_extractf128_ps( v0, 0x1 ) );
-		_mm_maskstore_ps( &C[4+bs*4], mask3, _mm256_extractf128_ps( v4, 0x1 ) );
+		_mm256_store_ps( &C[0+bs*4], _mm256_permute2f128_ps( v0, v4, 0x31 ) );
 		if(kmax==8)
 			return;
 		_mm256_store_ps( &C[0+bs*5], _mm256_permute2f128_ps( v1, v5, 0x31 ) );
