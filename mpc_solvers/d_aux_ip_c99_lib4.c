@@ -27,6 +27,218 @@
 
 
 
+void d_init_ux_t_box_mpc(int N, int nu, int nbu, int nb, double **ux, double **db, double **t, int warm_start)
+	{
+	
+	int jj, ll;
+	
+	double thr0 = 1e-3; // minimum distance from a constraint
+
+	if(warm_start==1)
+		{
+		for(ll=0; ll<2*nbu; ll+=2)
+			{
+			t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
+			t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
+			if(t[0][ll+0] < thr0)
+				{
+				if(t[0][ll+1] < thr0)
+					{
+					ux[0][ll/2] = ( - db[0][ll+1] + db[0][ll+0])*0.5;
+					t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
+					t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
+					}
+				else
+					{
+					t[0][ll+0] = thr0;
+					ux[0][ll/2] = db[0][ll+0] + thr0;
+					}
+				}
+			else if(t[0][ll+1] < thr0)
+				{
+				t[0][ll+1] = thr0;
+				ux[0][ll/2] = - db[0][ll+1] - thr0;
+				}
+			}
+		for(; ll<2*nb; ll++)
+			t[0][ll] = 1.0; // this has to be strictly positive !!!
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<2*nb; ll+=2)
+				{
+				t[jj][ll+0] = ux[jj][ll/2] - db[jj][ll+0];
+				t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
+				if(t[jj][ll+0] < thr0)
+					{
+					if(t[jj][ll+1] < thr0)
+						{
+						ux[jj][ll/2] = ( - db[jj][ll+1] + db[jj][ll+0])*0.5;
+						t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
+						t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
+						}
+					else
+						{
+						t[jj][ll+0] = thr0;
+						ux[jj][ll/2] = db[jj][ll+0] + thr0;
+						}
+					}
+				else if(t[jj][ll+1] < thr0)
+					{
+					t[jj][ll+1] = thr0;
+					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
+					}
+				}
+			}
+		for(ll=0; ll<2*nbu; ll++) // this has to be strictly positive !!!
+			t[N][ll] = 1;
+		for(ll=2*nu; ll<2*nb; ll+=2)
+			{
+			t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+			t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
+			if(t[N][ll+0] < thr0)
+				{
+				if(t[N][ll+1] < thr0)
+					{
+					ux[N][ll/2] = ( - db[N][ll+1] + db[N][ll+0])*0.5;
+					t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+					t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
+					}
+				else
+					{
+					t[N][ll+0] = thr0;
+					ux[N][ll/2] = db[N][ll+0] + thr0;
+					}
+				}
+			else if(t[N][ll+1] < thr0)
+				{
+				t[N][ll+1] = thr0;
+				ux[N][ll/2] = - db[N][ll+1] - thr0;
+				}
+			}
+
+		}
+	else // cold start
+		{
+		for(ll=0; ll<2*nbu; ll+=2)
+			{
+			ux[0][ll/2] = 0.0;
+/*			t[0][ll+0] = 1.0;*/
+/*			t[0][ll+1] = 1.0;*/
+			t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
+			t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
+			if(t[0][ll+0] < thr0)
+				{
+				if(t[0][ll+1] < thr0)
+					{
+					ux[0][ll/2] = ( - db[0][ll+1] + db[0][ll+0])*0.5;
+					t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
+					t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
+					}
+				else
+					{
+					t[0][ll+0] = thr0;
+					ux[0][ll/2] = db[0][ll+0] + thr0;
+					}
+				}
+			else if(t[0][ll+1] < thr0)
+				{
+				t[0][ll+1] = thr0;
+				ux[0][ll/2] = - db[0][ll+1] - thr0;
+				}
+			}
+		for(; ll<2*nb; ll++)
+			t[0][ll] = 1.0; // this has to be strictly positive !!!
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<2*nb; ll+=2)
+				{
+				ux[jj][ll/2] = 0.0;
+/*				t[jj][ll+0] = 1.0;*/
+/*				t[jj][ll+1] = 1.0;*/
+				t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
+				t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
+				if(t[jj][ll+0] < thr0)
+					{
+					if(t[jj][ll+1] < thr0)
+						{
+						ux[jj][ll/2] = ( - db[jj][ll+1] + db[jj][ll+0])*0.5;
+						t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
+						t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
+						}
+					else
+						{
+						t[jj][ll+0] = thr0;
+						ux[jj][ll/2] = db[jj][ll+0] + thr0;
+						}
+					}
+				else if(t[jj][ll+1] < thr0)
+					{
+					t[jj][ll+1] = thr0;
+					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
+					}
+				}
+			}
+		for(ll=0; ll<2*nbu; ll++)
+			t[N][ll] = 1.0; // this has to be strictly positive !!!
+		for(ll=2*nu; ll<2*nb; ll+=2)
+			{
+			ux[N][ll/2] = 0.0;
+/*			t[N][ll+0] = 1.0;*/
+/*			t[N][ll+1] = 1.0;*/
+			t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+			t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
+			if(t[N][ll+0] < thr0)
+				{
+				if(t[N][ll+1] < thr0)
+					{
+					ux[N][ll/2] = ( - db[N][ll+1] + db[N][ll+0])*0.5;
+					t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+					t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
+					}
+				else
+					{
+					t[N][ll+0] = thr0;
+					ux[N][ll/2] = db[N][ll+0] + thr0;
+					}
+				}
+			else if(t[N][ll+1] < thr0)
+				{
+				t[N][ll+1] = thr0;
+				ux[N][ll/2] = - db[N][ll+1] - thr0;
+				}
+			}
+
+		}
+	
+	}
+
+
+
+void d_init_lam_mpc(int N, int nu, int nbu, int nb, double **t, double **lam)	// TODO approximate reciprocal
+	{
+	
+	int jj, ll;
+	
+	for(ll=0; ll<2*nbu; ll++)
+		lam[0][ll] = 1/t[0][ll];
+	for(; ll<2*nb; ll++)
+		lam[0][ll] = 1.0; // this has to be strictly positive !!!
+	for(jj=1; jj<N; jj++)
+		{
+		for(ll=0; ll<2*nb; ll++)
+			lam[jj][ll] = 1/t[jj][ll];
+/*			lam[jj][ll] = thr0/t[jj][ll];*/
+		}
+	for(ll=0; ll<2*nu; ll++)
+		lam[N][ll] = 1.0; // this has to be strictly positive !!!
+	for(ll=2*nu; ll<2*nb; ll++)
+		lam[N][ll] = 1/t[jj][ll];
+/*		lam[N][ll] = thr0/t[jj][ll];*/
+	
+	}
+
+
+
 void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **pl2, double **db)
 
 /*void d_update_hessian_box(int k0, int kmax, int nb, int cnz, double sigma_mu, double *t, double *lam, double *lamt, double *dlam, double *bd, double *bl, double *pd, double *pl, double *lb, double *ub)*/
@@ -319,11 +531,11 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db)
 	{
 	
-	const int bs = 4; //d_get_mr();
+/*	const int bs = 4; //d_get_mr();*/
 	
 	double alpha = ptr_alpha[0];
 	
-	int kna = ((k1+bs-1)/bs)*bs;
+/*	int kna = ((k1+bs-1)/bs)*bs;*/
 
 	int jj, ll;
 
@@ -513,6 +725,518 @@ void d_compute_mu_mpc(int N, int nbu, int nu, int nb, double *ptr_mu, double mu_
 
 
 	for(jj=1; jj<N; jj++)
+		for(ll=0 ; ll<2*nb; ll+=2)
+			mu += (lam[jj][ll+0] + alpha*dlam[jj][ll+0]) * (t[jj][ll+0] + alpha*dt[jj][ll+0]) + (lam[jj][ll+1] + alpha*dlam[jj][ll+1]) * (t[jj][ll+1] + alpha*dt[jj][ll+1]);
+
+	for(ll=2*nu ; ll<2*nb; ll+=2)
+		mu += (lam[N][ll+0] + alpha*dlam[N][ll+0]) * (t[N][ll+0] + alpha*dt[N][ll+0]) + (lam[N][ll+1] + alpha*dlam[N][ll+1]) * (t[N][ll+1] + alpha*dt[N][ll+1]);
+
+	mu *= mu_scal;
+		
+	ptr_mu[0] = mu;
+
+	return;
+
+	}
+
+
+
+void d_init_ux_t_box_mhe(int N, int nu, int nbu, int nb, double **ux, double **db, double **t, int warm_start)
+	{
+	
+	int jj, ll;
+	
+	double thr0 = 1e-3; // minimum distance from a constraint
+
+	if(warm_start==1)
+		{
+		for(jj=0; jj<N; jj++)
+			{
+			for(ll=0; ll<2*nb; ll+=2)
+				{
+				t[jj][ll+0] = ux[jj][ll/2] - db[jj][ll+0];
+				t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
+				if(t[jj][ll+0] < thr0)
+					{
+					if(t[jj][ll+1] < thr0)
+						{
+						ux[jj][ll/2] = ( - db[jj][ll+1] + db[jj][ll+0])*0.5;
+						t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
+						t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
+						}
+					else
+						{
+						t[jj][ll+0] = thr0;
+						ux[jj][ll/2] = db[jj][ll+0] + thr0;
+						}
+					}
+				else if(t[jj][ll+1] < thr0)
+					{
+					t[jj][ll+1] = thr0;
+					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
+					}
+				}
+			}
+		for(ll=0; ll<2*nbu; ll++) // this has to be strictly positive !!!
+			t[N][ll] = 1;
+		for(ll=2*nu; ll<2*nb; ll+=2)
+			{
+			t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+			t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
+			if(t[N][ll+0] < thr0)
+				{
+				if(t[N][ll+1] < thr0)
+					{
+					ux[N][ll/2] = ( - db[N][ll+1] + db[N][ll+0])*0.5;
+					t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+					t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
+					}
+				else
+					{
+					t[N][ll+0] = thr0;
+					ux[N][ll/2] = db[N][ll+0] + thr0;
+					}
+				}
+			else if(t[N][ll+1] < thr0)
+				{
+				t[N][ll+1] = thr0;
+				ux[N][ll/2] = - db[N][ll+1] - thr0;
+				}
+			}
+
+		}
+	else // cold start
+		{
+		for(jj=0; jj<N; jj++)
+			{
+			for(ll=0; ll<2*nb; ll+=2)
+				{
+				ux[jj][ll/2] = 0.0;
+/*				t[jj][ll+0] = 1.0;*/
+/*				t[jj][ll+1] = 1.0;*/
+				t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
+				t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
+				if(t[jj][ll+0] < thr0)
+					{
+					if(t[jj][ll+1] < thr0)
+						{
+						ux[jj][ll/2] = ( - db[jj][ll+1] + db[jj][ll+0])*0.5;
+						t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
+						t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
+						}
+					else
+						{
+						t[jj][ll+0] = thr0;
+						ux[jj][ll/2] = db[jj][ll+0] + thr0;
+						}
+					}
+				else if(t[jj][ll+1] < thr0)
+					{
+					t[jj][ll+1] = thr0;
+					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
+					}
+				}
+			}
+		for(ll=0; ll<2*nbu; ll++)
+			t[N][ll] = 1.0; // this has to be strictly positive !!!
+		for(ll=2*nu; ll<2*nb; ll+=2)
+			{
+			ux[N][ll/2] = 0.0;
+/*			t[N][ll+0] = 1.0;*/
+/*			t[N][ll+1] = 1.0;*/
+			t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+			t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
+			if(t[N][ll+0] < thr0)
+				{
+				if(t[N][ll+1] < thr0)
+					{
+					ux[N][ll/2] = ( - db[N][ll+1] + db[N][ll+0])*0.5;
+					t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+					t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
+					}
+				else
+					{
+					t[N][ll+0] = thr0;
+					ux[N][ll/2] = db[N][ll+0] + thr0;
+					}
+				}
+			else if(t[N][ll+1] < thr0)
+				{
+				t[N][ll+1] = thr0;
+				ux[N][ll/2] = - db[N][ll+1] - thr0;
+				}
+			}
+
+		}
+	
+	}
+
+
+
+void d_init_lam_mhe(int N, int nu, int nbu, int nb, double **t, double **lam)	// TODO approximate reciprocal
+	{
+	
+	int jj, ll;
+	
+	for(jj=0; jj<N; jj++)
+		{
+		for(ll=0; ll<2*nb; ll++)
+			lam[jj][ll] = 1/t[jj][ll];
+/*			lam[jj][ll] = thr0/t[jj][ll];*/
+		}
+	for(ll=0; ll<2*nu; ll++)
+		lam[N][ll] = 1.0; // this has to be strictly positive !!!
+	for(ll=2*nu; ll<2*nb; ll++)
+		lam[N][ll] = 1/t[jj][ll];
+/*		lam[N][ll] = thr0/t[jj][ll];*/
+	
+	}
+
+
+
+void d_update_hessian_box_mhe(int N, int k0_dummy, int k1, int kmax, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **pl2, double **db)
+	{
+	
+	const int bs = 4; //d_get_mr();
+	
+	double temp0, temp1;
+	
+	double *ptr_t, *ptr_lam, *ptr_lamt, *ptr_dlam, *ptr_tinv, *ptr_pd, *ptr_pl, *ptr_pl2, *ptr_bd, *ptr_bl, *ptr_db;
+	
+	int ii, jj, ll, bs0;
+	
+	// first & middle stages
+
+	for(jj=0; jj<N; jj++)
+		{
+		
+		ptr_t     = t[jj];
+		ptr_lam   = lam[jj];
+		ptr_lamt  = lamt[jj];
+		ptr_dlam  = dlam[jj];
+		ptr_tinv  = t_inv[jj];
+		ptr_pd    = pd[jj];
+		ptr_pl    = pl[jj];
+		ptr_pl2   = pl2[jj];
+		ptr_bd    = bd[jj];
+		ptr_bl    = bl[jj];
+		ptr_db    = db[jj];
+
+		ii = 0;
+		for(; ii<kmax-3; ii+=4)
+			{
+			ptr_tinv[0] = 1.0/ptr_t[0];
+			ptr_tinv[1] = 1.0/ptr_t[1];
+			ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
+			ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
+			ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
+			ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
+			ptr_pd[0+(ii+0)*bs+ii*cnz] = ptr_bd[ii+0] + ptr_lamt[0] + ptr_lamt[1];
+			ptr_pl[(ii+0)*bs] = ptr_bl[ii+0] + ptr_lam[1] + ptr_lamt[1]*ptr_db[2*ii+1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[2*ii+0] - ptr_dlam[0];
+			ptr_pl2[ii+0] = ptr_pl[(ii+0)*bs];
+
+			ptr_tinv[2] = 1.0/ptr_t[2];
+			ptr_tinv[3] = 1.0/ptr_t[3];
+			ptr_lamt[2] = ptr_lam[2]*ptr_tinv[2];
+			ptr_lamt[3] = ptr_lam[3]*ptr_tinv[3];
+			ptr_dlam[2] = ptr_tinv[2]*sigma_mu; // !!!!!
+			ptr_dlam[3] = ptr_tinv[3]*sigma_mu; // !!!!!
+			ptr_pd[1+(ii+1)*bs+ii*cnz] = ptr_bd[ii+1] + ptr_lamt[2] + ptr_lamt[3];
+			ptr_pl[(ii+1)*bs] = ptr_bl[ii+1] + ptr_lam[3] + ptr_lamt[3]*ptr_db[2*ii+3] + ptr_dlam[3] - ptr_lam[2] - ptr_lamt[2]*ptr_db[2*ii+2] - ptr_dlam[2];
+			ptr_pl2[ii+1] = ptr_pl[(ii+1)*bs];
+
+			ptr_tinv[4] = 1.0/ptr_t[4];
+			ptr_tinv[5] = 1.0/ptr_t[5];
+			ptr_lamt[4] = ptr_lam[4]*ptr_tinv[4];
+			ptr_lamt[5] = ptr_lam[5]*ptr_tinv[5];
+			ptr_dlam[4] = ptr_tinv[4]*sigma_mu; // !!!!!
+			ptr_dlam[5] = ptr_tinv[5]*sigma_mu; // !!!!!
+			ptr_pd[2+(ii+2)*bs+ii*cnz] = ptr_bd[ii+2] + ptr_lamt[4] + ptr_lamt[5];
+			ptr_pl[(ii+2)*bs] = ptr_bl[ii+2] + ptr_lam[5] + ptr_lamt[5]*ptr_db[2*ii+5] + ptr_dlam[5] - ptr_lam[4] - ptr_lamt[4]*ptr_db[2*ii+4] - ptr_dlam[4];
+			ptr_pl2[ii+2] = ptr_pl[(ii+2)*bs];
+
+			ptr_tinv[6] = 1.0/ptr_t[6];
+			ptr_tinv[7] = 1.0/ptr_t[7];
+			ptr_lamt[6] = ptr_lam[6]*ptr_tinv[6];
+			ptr_lamt[7] = ptr_lam[7]*ptr_tinv[7];
+			ptr_dlam[6] = ptr_tinv[6]*sigma_mu; // !!!!!
+			ptr_dlam[7] = ptr_tinv[7]*sigma_mu; // !!!!!
+			ptr_pd[3+(ii+3)*bs+ii*cnz] = ptr_bd[ii+3] + ptr_lamt[6] + ptr_lamt[7];
+			ptr_pl[(ii+3)*bs] = ptr_bl[ii+3] + ptr_lam[7] + ptr_lamt[7]*ptr_db[2*ii+7] + ptr_dlam[7] - ptr_lam[6] - ptr_lamt[6]*ptr_db[2*ii+6] - ptr_dlam[6];
+			ptr_pl2[ii+3] = ptr_pl[(ii+3)*bs];
+
+			ptr_t     += 8;
+			ptr_lam   += 8;
+			ptr_lamt  += 8;
+			ptr_dlam  += 8;
+			ptr_tinv  += 8;
+
+			}
+		if(ii<kmax)
+			{
+			bs0 = kmax-ii;
+			for(ll=0; ll<bs0; ll++)
+				{
+				ptr_tinv[0] = 1.0/ptr_t[0];
+				ptr_tinv[1] = 1.0/ptr_t[1];
+				ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
+				ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
+				ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
+				ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
+				ptr_pd[ll+(ii+ll)*bs+ii*cnz] = ptr_bd[ii+ll] + ptr_lamt[0] + ptr_lamt[1];
+				ptr_pl[(ii+ll)*bs] = ptr_bl[ii+ll] + ptr_lam[1] + ptr_lamt[1]*ptr_db[2*ii+2*ll+1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[2*ii+2*ll+0] - ptr_dlam[0];
+				ptr_pl2[ii+ll+0] = ptr_pl[(ii+ll)*bs];
+
+				ptr_t     += 2;
+				ptr_lam   += 2;
+				ptr_lamt  += 2;
+				ptr_dlam  += 2;
+				ptr_tinv  += 2;
+				}
+			}
+	
+		}
+
+	// last stage
+
+	ptr_t     = t[N]     + 2*k1;
+	ptr_lam   = lam[N]   + 2*k1;
+	ptr_lamt  = lamt[N]  + 2*k1;
+	ptr_dlam  = dlam[N]  + 2*k1;
+	ptr_tinv  = t_inv[N] + 2*k1;
+	ptr_pd    = pd[N];
+	ptr_pl    = pl[N];
+	ptr_pl2   = pl2[N];
+	ptr_bd    = bd[N];
+	ptr_bl    = bl[N];
+	ptr_db    = db[N];
+
+	ii=k1; // k1 supposed to be multiple of bs !!!!!!!!!!
+
+	for(; ii<kmax-3; ii+=4)
+		{
+		ptr_tinv[0] = 1.0/ptr_t[0];
+		ptr_tinv[1] = 1.0/ptr_t[1];
+		ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
+		ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
+		ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
+		ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
+		ptr_pd[0+(ii+0)*bs+ii*cnz] = ptr_bd[ii+0] + ptr_lamt[0] + ptr_lamt[1];
+		ptr_pl[(ii+0)*bs] = ptr_bl[ii+0] + ptr_lam[1] + ptr_lamt[1]*ptr_db[2*ii+1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[2*ii+0] - ptr_dlam[0];
+		ptr_pl2[ii+0] = ptr_pl[(ii+0)*bs];
+
+		ptr_tinv[2] = 1.0/ptr_t[2];
+		ptr_tinv[3] = 1.0/ptr_t[3];
+		ptr_lamt[2] = ptr_lam[2]*ptr_tinv[2];
+		ptr_lamt[3] = ptr_lam[3]*ptr_tinv[3];
+		ptr_dlam[2] = ptr_tinv[2]*sigma_mu; // !!!!!
+		ptr_dlam[3] = ptr_tinv[3]*sigma_mu; // !!!!!
+		ptr_pd[1+(ii+1)*bs+ii*cnz] = ptr_bd[ii+1] + ptr_lamt[2] + ptr_lamt[3];
+		ptr_pl[(ii+1)*bs] = ptr_bl[ii+1] + ptr_lam[3] + ptr_lamt[3]*ptr_db[2*ii+3] + ptr_dlam[3] - ptr_lam[2] - ptr_lamt[2]*ptr_db[2*ii+2] - ptr_dlam[2];
+		ptr_pl2[ii+1] = ptr_pl[(ii+1)*bs];
+
+		ptr_tinv[4] = 1.0/ptr_t[4];
+		ptr_tinv[5] = 1.0/ptr_t[5];
+		ptr_lamt[4] = ptr_lam[4]*ptr_tinv[4];
+		ptr_lamt[5] = ptr_lam[5]*ptr_tinv[5];
+		ptr_dlam[4] = ptr_tinv[4]*sigma_mu; // !!!!!
+		ptr_dlam[5] = ptr_tinv[5]*sigma_mu; // !!!!!
+		ptr_pd[2+(ii+2)*bs+ii*cnz] = ptr_bd[ii+2] + ptr_lamt[4] + ptr_lamt[5];
+		ptr_pl[(ii+2)*bs] = ptr_bl[ii+2] + ptr_lam[5] + ptr_lamt[5]*ptr_db[2*ii+5] + ptr_dlam[5] - ptr_lam[4] - ptr_lamt[4]*ptr_db[2*ii+4] - ptr_dlam[4];
+		ptr_pl2[ii+2] = ptr_pl[(ii+2)*bs];
+
+		ptr_tinv[6] = 1.0/ptr_t[6];
+		ptr_tinv[7] = 1.0/ptr_t[7];
+		ptr_lamt[6] = ptr_lam[6]*ptr_tinv[6];
+		ptr_lamt[7] = ptr_lam[7]*ptr_tinv[7];
+		ptr_dlam[6] = ptr_tinv[6]*sigma_mu; // !!!!!
+		ptr_dlam[7] = ptr_tinv[7]*sigma_mu; // !!!!!
+		ptr_pd[3+(ii+3)*bs+ii*cnz] = ptr_bd[ii+3] + ptr_lamt[6] + ptr_lamt[7];
+		ptr_pl[(ii+3)*bs] = ptr_bl[ii+3] + ptr_lam[7] + ptr_lamt[7]*ptr_db[2*ii+7] + ptr_dlam[7] - ptr_lam[6] - ptr_lamt[6]*ptr_db[2*ii+6] - ptr_dlam[6];
+		ptr_pl2[ii+3] = ptr_pl[(ii+3)*bs];
+
+		ptr_t     += 8;
+		ptr_lam   += 8;
+		ptr_lamt  += 8;
+		ptr_dlam  += 8;
+		ptr_tinv  += 8;
+
+		}
+	if(ii<kmax)
+		{
+		bs0 = kmax-ii;
+		for(ll=0; ll<bs0; ll++)
+			{
+			ptr_tinv[0] = 1.0/ptr_t[0];
+			ptr_tinv[1] = 1.0/ptr_t[1];
+			ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
+			ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
+			ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
+			ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
+			ptr_pd[ll+(ii+ll)*bs+ii*cnz] = ptr_bd[ii+ll] + ptr_lamt[0] + ptr_lamt[1];
+			ptr_pl[(ii+ll)*bs] = ptr_bl[ii+ll] + ptr_lam[1] + ptr_lamt[1]*ptr_db[2*ii+2*ll+1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[2*ii+2*ll+0] - ptr_dlam[0];
+			ptr_pl2[ii+ll+0] = ptr_pl[(ii+ll)*bs];
+
+			ptr_t     += 2;
+			ptr_lam   += 2;
+			ptr_lamt  += 2;
+			ptr_dlam  += 2;
+			ptr_tinv  += 2;
+			}
+		}
+
+
+	}
+
+
+
+void d_compute_alpha_box_mhe(int N, int k0_dummy, int k1, int kmax, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db)
+	{
+	
+/*	const int bs = 4; //d_get_mr();*/
+	
+	double alpha = ptr_alpha[0];
+	
+/*	int kna = ((k1+bs-1)/bs)*bs;*/
+
+	int jj, ll;
+
+
+	// first & middle stages
+	for(jj=0; jj<N; jj++)
+		{
+
+		ll = 0;
+		for(; ll<kmax; ll+=2)
+			{
+
+			dt[jj][ll+0] =   dux[jj][ll/2] - db[jj][ll+0];
+			dt[jj][ll+1] = - dux[jj][ll/2] - db[jj][ll+1];
+			dlam[jj][ll+0] -= lamt[jj][ll+0] * dt[jj][ll+0];
+			dlam[jj][ll+1] -= lamt[jj][ll+1] * dt[jj][ll+1];
+			if( -alpha*dlam[jj][ll+0]>lam[jj][ll+0] )
+				{
+				alpha = - lam[jj][ll+0] / dlam[jj][ll+0];
+				}
+			if( -alpha*dlam[jj][ll+1]>lam[jj][ll+1] )
+				{
+				alpha = - lam[jj][ll+1] / dlam[jj][ll+1];
+				}
+			dt[jj][ll+0] -= t[jj][ll+0];
+			dt[jj][ll+1] -= t[jj][ll+1];
+			if( -alpha*dt[jj][ll+0]>t[jj][ll+0] )
+				{
+				alpha = - t[jj][ll+0] / dt[jj][ll+0];
+				}
+			if( -alpha*dt[jj][ll+1]>t[jj][ll+1] )
+				{
+				alpha = - t[jj][ll+1] / dt[jj][ll+1];
+				}
+
+			}
+
+		}		
+
+	// last stage
+	ll = k1;
+	for(; ll<kmax; ll+=2)
+		{
+
+		dt[N][ll+0] =   dux[N][ll/2] - db[N][ll+0];
+		dt[N][ll+1] = - dux[N][ll/2] - db[N][ll+1];
+		dlam[N][ll+0] -= lamt[N][ll+0] * dt[N][ll+0];
+		dlam[N][ll+1] -= lamt[N][ll+1] * dt[N][ll+1];
+		if( -alpha*dlam[N][ll+0]>lam[N][ll+0] )
+			{
+			alpha = - lam[N][ll+0] / dlam[N][ll+0];
+			}
+		if( -alpha*dlam[N][ll+1]>lam[N][ll+1] )
+			{
+			alpha = - lam[N][ll+1] / dlam[N][ll+1];
+			}
+		dt[N][ll+0] -= t[N][ll+0];
+		dt[N][ll+1] -= t[N][ll+1];
+		if( -alpha*dt[N][ll+0]>t[N][ll+0] )
+			{
+			alpha = - t[N][ll+0] / dt[N][ll+0];
+			}
+		if( -alpha*dt[N][ll+1]>t[N][ll+1] )
+			{
+			alpha = - t[N][ll+1] / dt[N][ll+1];
+			}
+
+		}
+	
+	ptr_alpha[0] = alpha;
+
+	return;
+	
+	}
+
+
+
+void d_update_var_mhe(int nx, int nu, int N, int nb, int nbu, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
+	{
+	
+	int jj, ll;
+	
+	double mu = 0;
+
+	for(jj=0; jj<N; jj++)
+		{
+		// update inputs
+		for(ll=0; ll<nu; ll++)
+			ux[jj][ll] += alpha*(dux[jj][ll] - ux[jj][ll]);
+		// update states
+		for(ll=0; ll<nx; ll++)
+			ux[jj][nu+ll] += alpha*(dux[jj][nu+ll] - ux[jj][nu+ll]);
+		// update equality constrained multipliers
+		for(ll=0; ll<nx; ll++)
+			pi[jj][ll] += alpha*(dpi[jj][ll] - pi[jj][ll]);
+		// box constraints
+		for(ll=0; ll<2*nb; ll+=2)
+			{
+			lam[jj][ll+0] += alpha*dlam[jj][ll+0];
+			lam[jj][ll+1] += alpha*dlam[jj][ll+1];
+			t[jj][ll+0] += alpha*dt[jj][ll+0];
+			t[jj][ll+1] += alpha*dt[jj][ll+1];
+			mu += lam[jj][ll+0] * t[jj][ll+0] + lam[jj][ll+1] * t[jj][ll+1];
+			}
+		}
+
+	// update states
+	for(ll=0; ll<nx; ll++)
+		ux[N][nu+ll] += alpha*(dux[N][nu+ll] - ux[N][nu+ll]);
+	// update equality constrained multipliers
+	for(ll=0; ll<nx; ll++)
+		pi[N][ll] += alpha*(dpi[N][ll] - pi[N][ll]);
+	// box constraints
+	for(ll=2*nu; ll<2*nb; ll+=2)
+		{
+		lam[N][ll+0] += alpha*dlam[N][ll+0];
+		lam[N][ll+1] += alpha*dlam[N][ll+1];
+		t[N][ll+0] += alpha*dt[N][ll+0];
+		t[N][ll+1] += alpha*dt[N][ll+1];
+		mu += lam[N][ll+0] * t[N][ll+0] + lam[N][ll+1] * t[N][ll+1];
+		}
+	mu *= mu_scal;
+
+	ptr_mu[0] = mu;
+
+	return;
+	
+	}
+
+
+
+void d_compute_mu_mhe(int N, int nbu, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
+	{
+	
+	int jj, ll;
+	
+	double mu = 0;
+	
+	for(jj=0; jj<N; jj++)
 		for(ll=0 ; ll<2*nb; ll+=2)
 			mu += (lam[jj][ll+0] + alpha*dlam[jj][ll+0]) * (t[jj][ll+0] + alpha*dt[jj][ll+0]) + (lam[jj][ll+1] + alpha*dlam[jj][ll+1]) * (t[jj][ll+1] + alpha*dt[jj][ll+1]);
 

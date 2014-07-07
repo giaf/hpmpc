@@ -385,11 +385,21 @@ int main()
 	hux[0][nu+1] = xx0[1];
 
 	// call the IP solver
-	if(IP==1)
-/*		d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work);*/
-		s_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+	
+	if(FREE_X0==0)
+		{
+		if(IP==1)
+			s_ip_box_mpc(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+		else
+			s_ip2_box_mpc(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+		}
 	else
-		s_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+		{
+		if(IP==1)
+			s_ip_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+		else
+			s_ip2_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+		}
 
 /*	printf("\nu = \n\n");*/
 /*	for(ii=0; ii<N; ii++)*/
@@ -419,11 +429,20 @@ int main()
 		hux[0][nu+1] = xx0[2*idx+1];
 
 		// call the IP solver
-		if(IP==1)
-/*			d_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hlb, hub, hux, compute_mult, hpi, hlam, ht, work);*/
-			s_ip_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+		if(FREE_X0==0)
+			{
+			if(IP==1)
+				s_ip_box_mpc(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			else
+				s_ip2_box_mpc(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			}
 		else
-			s_ip2_box(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			{
+			if(IP==1)
+				s_ip_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			else
+				s_ip2_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			}
 
 /*		printf("\nu = \n\n");*/
 /*		for(ii=0; ii<N; ii++)*/
@@ -450,8 +469,10 @@ int main()
 	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 	// residuals computation
-/*	dres_ip_box(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hlb, hub, hpi, hlam, ht, hrq, hrb, hrd, &mu);*/
-	s_res_ip_box(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+	if(FREE_X0==0)
+		s_res_ip_box_mpc(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+	else
+		s_res_ip_box_mhe(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 
 
@@ -478,17 +499,26 @@ int main()
 		// print result 
 		printf("\n\nresiduals\n\n");
 		printf("\n\nrq = \n\n");
-		s_print_mat(1, nu, hrq[0], 1);
-		for(ii=1; ii<=N; ii++)
-/*			d_print_mat_e(1, nx+nu, hrq[ii], 1);*/
-			s_print_mat(1, nx+nu, hrq[ii], 1);
+		if(FREE_X0==0)
+			{
+			s_print_mat(1, nu, hrq[0], 1);
+			for(ii=1; ii<=N; ii++)
+/*				s_print_mat_e(1, nx+nu, hrq[ii], 1);*/
+				s_print_mat(1, nx+nu, hrq[ii], 1);
+			}
+		else
+			{
+			for(ii=0; ii<=N; ii++)
+/*				s_print_mat_e(1, nx+nu, hrq[ii], 1);*/
+				s_print_mat(1, nx+nu, hrq[ii], 1);
+			}
 		printf("\n\nrb = \n\n");
 		for(ii=0; ii<N; ii++)
-/*			d_print_mat_e(1, nx, hrb[ii], 1);*/
+/*			s_print_mat_e(1, nx, hrb[ii], 1);*/
 			s_print_mat(1, nx, hrb[ii], 1);
 		printf("\n\nrd = \n\n");
 		for(ii=0; ii<=N; ii++)
-/*			d_print_mat_e(1, 2*nb, hrd[ii], 1);*/
+/*			s_print_mat_e(1, 2*nb, hrd[ii], 1);*/
 			s_print_mat(1, 2*nb, hrd[ii], 1);
 		printf("\n\nmu = %e\n\n", mu);
 		

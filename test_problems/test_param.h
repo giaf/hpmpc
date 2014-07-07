@@ -42,7 +42,7 @@
 #define PRINTSTAT 1
 
 // free initial state: 0 mpc, 1 mhe
-#define FREE_X0 1
+#define FREE_X0 0
 
 // ip method: 1 primal-dual, 2 predictor-corrector primal-dual
 #define IP 2
