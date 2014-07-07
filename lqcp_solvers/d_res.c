@@ -84,8 +84,7 @@ void d_res_mhe(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hq
 	int nxu = nx+nu;
 
 	// first block
-	for(jj=0; jj<nu; jj++) hrq[0][jj] = - hq[0][jj];
-	for(jj=0; jj<nx; jj++) hrq[0][nu+jj] = - hq[0][nu+jj];
+	for(jj=0; jj<nu+nx; jj++) hrq[0][jj] = - hq[0][jj];
 	dsymv_lib(nxu, 0, hpQ[0], cnz, hux[0], hrq[0], -1);
 	for(jj=0; jj<nx; jj++) hrb[0][jj] = hux[1][nu+jj] - hpBAbt[0][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
 	dmvmv_lib(nxu, nx, 0, hpBAbt[0], cnx, hpi[1], hrq[0], hux[0], hrb[0], -1);
