@@ -79,6 +79,17 @@ all: clean library test_problem run
 
 codegen: clean codegenerator test_problem run
 
+shared: target
+	make -C auxiliary obj
+	make -C kernel obj
+	make -C blas obj
+	make -C lqcp_solvers obj
+	make -C mpc_solvers obj
+	gcc -shared -o libhpmpc_pro.so $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS)
+	@echo
+	@echo " libhpmpc_pro.so shared library build complete."
+	@echo
+
 library: target 
 	make -C auxiliary obj
 	make -C kernel obj
@@ -143,8 +154,17 @@ install:
 	mkdir -p /usr/include/hpmpc_pro
 	cp -rf ./include/* /usr/include/hpmpc_pro
 	
+install_shared:
+	cp -f libhpmpc_pro.so /usr/lib/libhpmpc_pro.so
+	mkdir -p /usr/include/hpmpc_pro
+	cp -rf ./include/* /usr/include/hpmpc_pro
+	
 uninstall:
 	rm /usr/lib/libhpmpc.a
+	rm -r /usr/include/hpmpc
+	
+uninstall_shared:
+	rm /usr/lib/libhpmpc.so
 	rm -r /usr/include/hpmpc
 	
 clean:
