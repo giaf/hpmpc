@@ -74,21 +74,11 @@ MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/d
 endif
 LQCP_OBJS = ./lqcp_solvers/d_ric_sv.o ./lqcp_solvers/d_res.o ./lqcp_solvers/s_ric_sv.o ./lqcp_solvers/s_res.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/dres_codegen.o #./codegen/sricposv_codegen.o  ./codegen/sres_codegen.o 
+C_OBJS = ./interfaces/c/c_order_dynamic_mem_interface.o ./interfaces/c/c_order_static_mem_interface.o
 
 all: clean library test_problem run
 
 codegen: clean codegenerator test_problem run
-
-shared: target
-	make -C auxiliary obj
-	make -C kernel obj
-	make -C blas obj
-	make -C lqcp_solvers obj
-	make -C mpc_solvers obj
-	gcc -shared -o libhpmpc_pro.so $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS)
-	@echo
-	@echo " libhpmpc_pro.so shared library build complete."
-	@echo
 
 library: target 
 	make -C auxiliary obj
@@ -96,9 +86,22 @@ library: target
 	make -C blas obj
 	make -C lqcp_solvers obj
 	make -C mpc_solvers obj
-	ar rcs libhpmpc_pro.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS)
+	make -C interfaces/c obj
+	ar rcs libhpmpc_pro.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(C_OBJS)
 	@echo
-	@echo " libhpmpc_pro.a library build complete."
+	@echo " libhpmpc_pro.a static library build complete."
+	@echo
+
+shared: target
+	make -C auxiliary obj
+	make -C kernel obj
+	make -C blas obj
+	make -C lqcp_solvers obj
+	make -C mpc_solvers obj
+	make -C interfaces/c obj
+	gcc -shared -o libhpmpc_pro.so $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(C_OBJS)
+	@echo
+	@echo " libhpmpc_pro.so shared library build complete."
 	@echo
 
 codegenerator: target
@@ -111,7 +114,8 @@ codegenerator: target
 #	touch ./codegen/sres_codegen.c 
 	make -C codegen obj
 	make -C mpc_solvers obj
-	ar rcs libhpmpc_pro.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS)
+	make -C interfaces/c obj
+	ar rcs libhpmpc_pro.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS) $(C_OBJS)
 	@echo
 	@echo " libhpmpc_pro.a code generator build complete."
 	@echo
@@ -176,6 +180,7 @@ clean:
 	make -C codegen clean
 	make -C test_problems clean
 	make -C interfaces/octave clean
+	make -C interfaces/c clean
 #	rm -f $(OBJS)
 #	rm -f test.out
 #	rm -f *.s
