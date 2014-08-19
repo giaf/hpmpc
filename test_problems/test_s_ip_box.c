@@ -23,13 +23,6 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-/*#include <mmintrin.h>*/
-/*#include <xmmintrin.h>  // SSE*/
-/*#include <emmintrin.h>  // SSE2*/
-/*#include <pmmintrin.h>  // SSE3*/
-/*#include <smmintrin.h>  // SSE4*/
-/*#include <immintrin.h>  // AVX*/
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/time.h>
@@ -48,34 +41,17 @@
 
 
 
-/*void openblas_set_num_threads(int num_threads);*/
-
-/*void dgesv_(int *n, int *nrhs, double *A, int *lda, int *ipiv, double *B, int *ldb, int *info);*/
-/*void dgemm_(char *transa, char *transb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc);*/
-/*void dcopy_(int *n, double *dx, int *incx, double *dy, int *incy);*/
-/*void daxpy_(int *n, double *da, double *dx, int *incx, double *dy, int *incy);*/
-/*void dscal_(int *n, double *da, double *dx, int *incx);*/
-
-
-
 /************************************************ 
-Mass-spring system: nx/2 masses connected each other with springs (in a row), and the first and the last one to walls. nu (<=nx) controls act on the first nu masses. The system is sampled with sampling time Ts=1. 
-The system seem to give problems for a large number of states: the riccati procedure with OpenBLAS becomes MUCH slower for approximately nx>=1024 (double) and nx>=64 (float). ? under-flow ?
+Mass-spring system: nx/2 masses connected each other with springs (in a row), and the first and the last one to walls. nu (<=nx) controls act on the first nu masses. The system is sampled with sampling time Ts. 
 ************************************************/
 void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, double *b, double *x0)
 	{
 
 	int nx2 = nx*nx;
 
-//	double d0 = 0;
-//	double d1 = 1;
-//	double dm1 = -1;
-//	int i1 = 1;
 	int info = 0;
-//	char cn = 'n';
 
 	int pp = nx/2; // number of masses
-/*	int mm = nu;   // number of forces*/
 	
 /************************************************
 * build the continuous time system 
@@ -111,21 +87,16 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	dmcopy(nx, 1, bb, nx, b, nx);
 		
 	dmcopy(nx, nx, Ac, nx, A, nx);
-//	dscal_(&nx2, &Ts, A, &i1);
 	dscal_3l(nx2, Ts, A);
 	expm(nx, A);
 	
 	d_zeros(&T, nx, nx);
 	d_zeros(&I, nx, nx); for(ii=0; ii<nx; ii++) I[ii*(nx+1)]=1.0; //I = eye(nx);
-//	dcopy_(&nx2, A, &i1, T, &i1);
 	dmcopy(nx, nx, A, nx, T, nx);
-//	daxpy_(&nx2, &dm1, I, &i1, T, &i1);
 	daxpy_3l(nx2, -1.0, I, T);
-//	dgemm_(&cn, &cn, &nx, &nu, &nx, &d1, T, &nx, Bc, &nx, &d0, B, &nx);
 	dgemm_nn_3l(nx, nu, nx, T, nx, Bc, nx, B, nx);
 	
 	int *ipiv = (int *) malloc(nx*sizeof(int));
-//	dgesv_(&nx, &nu, Ac, &nx, ipiv, B, &nx, &info);
 	dgesv_3l(nx, nu, Ac, nx, ipiv, B, nx, &info);
 	free(ipiv);
 
@@ -159,6 +130,20 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 int main()
 	{
 	
+	printf("\n");
+	printf("\n");
+	printf("\n");
+	printf(" HPMPC -- Library for High-Performance implementation of solvers for MPC.\n");
+	printf(" Copyright (C) 2014 by Technical University of Denmark. All rights reserved.\n");
+	printf("\n");
+	printf(" HPMPC is distributed in the hope that it will be useful,\n");
+	printf(" but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
+	printf(" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n");
+	printf(" See the GNU Lesser General Public License for more details.\n");
+	printf("\n");
+	printf("\n");
+	printf("\n");
+
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
 /*	printf("\nflush subnormals to zero\n");*/
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); // flush to zero subnormals !!! works only with one thread !!!
@@ -172,6 +157,18 @@ int main()
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
 	int nb = NB; // number of box constraints (it has to be even, and the first 2*nu constraints are for the inputs, the following for the states)
+
+	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx/2, nu);
+	printf("\n");
+	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints.\n", nx, nu, N, nb);
+	printf("\n");
+#if IP == 1
+	printf(" IP method parameters: primal-dual IP, single precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_d_ip_box.c to change them).\n", K_MAX, TOL);
+#elif IP == 2
+	printf(" IP method parameters: predictor-corrector IP, single precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_d_ip_box.c to change them).\n", K_MAX, TOL);
+#else
+	printf(" Wrong value for IP solver choice: %d\n", IP);
+#endif
 
 	int info = 0;
 		
@@ -191,8 +188,6 @@ int main()
 	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 	
-/*	printf("\n\n%d %d %d %d\n\n", bs, pnz, sbs, spnz);*/
-
 /************************************************
 * dynamical system
 ************************************************/	
@@ -227,8 +222,6 @@ int main()
 	dmcopy(nx, nx, A, nx, BAb+nu*nx, nx);
 	dmcopy(nx, 1 , b, nx, BAb+(nu+nx)*nx, nx);
 	
-//	d_print_mat(nx, nx+nu+1, BAb, nx);
-
 	/* transposed */
 	double *BAbt; d_zeros_align(&BAbt, pnz, pnz);
 	for(ii=0; ii<nx; ii++)
@@ -237,31 +230,13 @@ int main()
 			BAbt[jj+pnz*ii] = BAb[ii+nx*jj];
 			}
 
-//	d_print_mat(nz, nx+1, BAbt, pnz);
-	
 	/* packed into contiguous memory */
 	float *pBAbt; s_zeros_align(&pBAbt, pnz, cnx);
 	cvt_d2s_mat2pmat(nz, nx, 0, bs, BAbt, pnz, pBAbt, cnx);
 
-/*	d_print_pmat(nz, nx, bs, pBAbt, pnz);*/
-/*	s_print_pmat(nz, nx, sbs, psBAbt, spnz);*/
-/*	return 0;*/
-
 /************************************************
 * box constraints
 ************************************************/	
-
-/*	double *lb; d_zeros(&lb, nb, 1);*/
-/*	for(jj=0; jj<nu; jj++)*/
-/*		lb[jj] = - 0.5;   // umin*/
-/*	for(; jj<nb; jj++)*/
-/*		lb[jj] = - 4.0;   // xmin*/
-
-/*	double *ub; d_zeros(&ub, nb, 1);*/
-/*	for(jj=0; jj<nu; jj++)*/
-/*		ub[jj] = - 0.5;   // umax*/
-/*	for(; jj<nb; jj++)*/
-/*		ub[jj] = - 4.0;   // xmax*/
 
 	float *db; s_zeros_align(&db, 2*nb, 1);
 	for(jj=0; jj<2*nu; jj++)
@@ -277,13 +252,11 @@ int main()
 	for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
 	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
 	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 0.1;
-/*	Q[(nx+nu)*(pnz+1)] = 1e35;*/
+/*	Q[(nx+nu)*(pnz+1)] = 1e35; // large enough */
 	
 	/* packed into contiguous memory */
 	float *pQ; s_zeros_align(&pQ, pnz, cnz);
 	cvt_d2s_mat2pmat(nz, nz, 0, bs, Q, pnz, pQ, cnz);
-
-/*	d_cvt_mat2pmat(nz, nz, 0, bs, Q, pnz, pQ, pnz);*/
 
 /************************************************
 * matrices series
@@ -295,8 +268,6 @@ int main()
 	float *(hlam[N+1]);
 	float *(ht[N+1]);
 	float *(hpBAbt[N]);
-/*	float *(hlb[N+1]);*/
-/*	float *(hub[N+1]);*/
 	float *(hdb[N+1]);
 	float *(hrb[N]);
 	float *(hrq[N+1]);
@@ -316,8 +287,6 @@ int main()
 		s_zeros_align(&hlam[jj],anb, 1);
 		s_zeros_align(&ht[jj], anb, 1);
 		hpBAbt[jj] = pBAbt;
-/*		hlb[jj] = lb;*/
-/*		hub[jj] = ub;*/
 		hdb[jj] = db;
 		s_zeros_align(&hrb[jj], anx, 1);
 		s_zeros_align(&hrq[jj], anz, 1);
@@ -328,25 +297,18 @@ int main()
 	s_zeros_align(&hpi[N], anx, 1);
 	s_zeros_align(&hlam[N], anb, 1);
 	s_zeros_align(&ht[N], anb, 1);
-/*	hlb[N] = lb;*/
-/*	hub[N] = ub;*/
 	hdb[N] = db;
 	s_zeros_align(&hrq[N], anz, 1);
 	s_zeros_align(&hrd[N], anb, 1);
 	
 	// starting guess
 	for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
-	
-/*	float *pL; d_zeros_align(&pL, pnz, pnz);*/
-/*	*/
-/*	float *pBAbtL; d_zeros_align(&pBAbtL, pnz, pnz);*/
 
 /************************************************
 * riccati-like iteration
 ************************************************/
 
-	float *work; s_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 4*anb + anx) + 3*anz, 1); // work space ok 
-/*	float *work; s_zeros_align(&work, (N+1)*(2*pnz*cnl + 4*anz + 4*anb + anx) + 3*anz, 1); // work space temp TODO use smaller spotrf kernels*/
+	float *work; s_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 4*anb + anx) + 3*anz, 1); // work space
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
@@ -401,11 +363,7 @@ int main()
 			s_ip2_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 		}
 
-/*	printf("\nu = \n\n");*/
-/*	for(ii=0; ii<N; ii++)*/
-/*		s_print_mat(1, nu, hux[ii], 1);*/
-
-/*printf("\n%d\n", nrep);*/
+	int kk_avg = 0;
 
 	/* timing */
 	struct timeval tv0, tv1;
@@ -414,11 +372,9 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-/*printf("\n%d\n", rep);*/
-
 		idx = rep%10;
-/*		x0[0] = xx0[2*idx];*/
-/*		x0[1] = xx0[2*idx+1];*/
+		x0[0] = xx0[2*idx];
+		x0[1] = xx0[2*idx+1];
 
 		// initialize states and inputs
 		for(ii=0; ii<=N; ii++)
@@ -444,9 +400,7 @@ int main()
 				s_ip2_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 			}
 
-/*		printf("\nu = \n\n");*/
-/*		for(ii=0; ii<N; ii++)*/
-/*			s_print_mat(1, nu, hux[ii], 1);*/
+		kk_avg += kk;
 
 		}
 	
@@ -459,6 +413,12 @@ int main()
 /*	printf("\nnx\tnu\tN\tkernel\n\n");*/
 /*	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);*/
 	
+	printf("\n");
+	printf(" Average number of iterations over %d runs: %5.1f\n", nrep, kk_avg / (double) nrep);
+	printf("\n");
+	printf(" Average solution time over %d runs: %5.2e seconds\n", nrep, time);
+	printf("\n");
+
 
 
 	// restore linear part of cost function 
@@ -479,6 +439,11 @@ int main()
 	if(PRINTSTAT==1)
 		{
 
+		printf("\n");
+		printf("\n");
+		printf(" Print IP statistics of the last run\n");
+		printf("\n");
+
 		for(jj=0; jj<kk; jj++)
 			printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, stat[5*jj], stat[5*jj+1], stat[5*jj+2], stat[5*jj+2], stat[5*jj+3], stat[5*jj+4], stat[5*jj+4]);
 		printf("\n");
@@ -488,7 +453,13 @@ int main()
 	if(PRINTRES==1)
 		{
 
-		printf("\nu = \n\n");
+		printf("\n");
+		printf("\n");
+		printf(" Print solution\n");
+		printf("\n");
+
+		printf("\n");
+		printf("u = \n\n");
 		for(ii=0; ii<N; ii++)
 			s_print_mat(1, nu, hux[ii], 1);
 		
@@ -497,8 +468,12 @@ int main()
 	if(PRINTRES==1 && COMPUTE_MULT==1)
 		{
 		// print result 
-		printf("\n\nresiduals\n\n");
-		printf("\n\nrq = \n\n");
+		printf("\n");
+		printf("\n");
+		printf(" Print residuals\n\n");
+		printf("\n");
+		printf("\n");
+		printf("rq = \n\n");
 		if(FREE_X0==0)
 			{
 			s_print_mat(1, nu, hrq[0], 1);
@@ -512,32 +487,24 @@ int main()
 /*				s_print_mat_e(1, nx+nu, hrq[ii], 1);*/
 				s_print_mat(1, nx+nu, hrq[ii], 1);
 			}
-		printf("\n\nrb = \n\n");
+		printf("\n");
+		printf("\n");
+		printf("rb = \n\n");
 		for(ii=0; ii<N; ii++)
 /*			s_print_mat_e(1, nx, hrb[ii], 1);*/
 			s_print_mat(1, nx, hrb[ii], 1);
-		printf("\n\nrd = \n\n");
+		printf("\n");
+		printf("\n");
+		printf("rd = \n\n");
 		for(ii=0; ii<=N; ii++)
 /*			s_print_mat_e(1, 2*nb, hrd[ii], 1);*/
 			s_print_mat(1, 2*nb, hrd[ii], 1);
-		printf("\n\nmu = %e\n\n", mu);
+		printf("\n");
+		printf("\n");
+		printf("mu = %e\n\n", mu);
 		
 		}
 
-	printf("\nnx\tnu\tN\tkernel\n\n");
-	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);
-	
-/*	__m128d*/
-/*		u_time, u_mask;*/
-/*	*/
-/*	long long int_mask = 0x8000000000000000;*/
-/*	*/
-/*	u_time = _mm_set_sd( time );*/
-/*	u_mask = _mm_load_sd( (double *) &int_mask );*/
-/*	u_time = _mm_xor_pd( u_time, u_mask );*/
-/*	_mm_store_sd( &time, u_time );*/
-
-/*	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);*/
 
 /************************************************
 * free memory and return
@@ -550,12 +517,9 @@ int main()
 	free(BAb);
 	free(BAbt);
 	free(pBAbt);
-/*	free(lb);*/
-/*	free(ub);*/
 	free(db);
 	free(Q);
 	free(pQ);
-/*return;*/
 	free(work);
 	free(stat);
 	for(jj=0; jj<N; jj++)

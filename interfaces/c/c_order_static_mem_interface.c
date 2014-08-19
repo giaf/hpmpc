@@ -36,12 +36,18 @@
 /* ACADO auto-generated header */
 /*#include "acado_common.h"*/
 /* HPMPC configuration */
+/*#include "hpmpc_pro/target.h"*/
+/*#include "hpmpc_pro/block_size.h"*/
+/*#include "hpmpc_pro/aux_d.h"*/
+/*#include "hpmpc_pro/aux_s.h"*/
+/*#include "hpmpc_pro/mpc_solvers.h"*/
+
 #include "../../problem_size.h"
-#include "hpmpc_pro/target.h"
-#include "hpmpc_pro/block_size.h"
-#include "hpmpc_pro/aux_d.h"
-#include "hpmpc_pro/aux_s.h"
-#include "hpmpc_pro/mpc_solvers.h"
+#include "../../include/target.h"
+#include "../../include/block_size.h"
+#include "../../include/aux_d.h"
+#include "../../include/aux_s.h"
+#include "../../include/mpc_solvers.h"
 
 // problem size (states, inputs, horizon)
 /*#define NX ACADO_NX*/

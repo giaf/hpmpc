@@ -157,7 +157,9 @@ int main()
 	const float GHz_max = 2.3; //3.6; //2.9;
 
 	// maximum flops per cycle, single precision
-#if defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX2)
+	const float d_flops_max = 32;
+#elif defined(TARGET_X64_AVX)
 	const float d_flops_max = 16;
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3) || defined(TARGET_CORTEX_A15)
 	const float d_flops_max = 8;
