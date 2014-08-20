@@ -38,63 +38,94 @@
 int main()
 	{
 		
+	printf("\n");
+	printf("\n");
+	printf("\n");
+	printf(" HPMPC -- Library for High-Performance implementation of solvers for MPC.\n");
+	printf(" Copyright (C) 2014 by Technical University of Denmark. All rights reserved.\n");
+	printf("\n");
+	printf(" HPMPC is distributed in the hope that it will be useful,\n");
+	printf(" but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
+	printf(" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n");
+	printf(" See the GNU Lesser General Public License for more details.\n");
+	printf("\n");
+	printf("\n");
+	printf("\n");
+
+	printf("BLAS performance test - single precision\n");
+	printf("\n");
+
 	// maximum frequency of the processor
 	const float GHz_max = 3.4; //3.6; //2.9;
+	printf("Frequency used to compute theoretical peak: %5.1f GHz (edit test_blas_s.c to modify this value).\n", GHz_max);
+	printf("\n");
 
 	// maximum flops per cycle, single precision
 #if defined(TARGET_X64_AVX2)
-	const float d_flops_max = 32;
+	const float flops_max = 32;
+	printf("Testing BLAS version for AVX2 & FMA3 instruction sets, 64 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_X64_AVX)
-	const float d_flops_max = 16;
+	const float flops_max = 16;
+	printf("Testing BLAS version for AVX instruction set, 64 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
-	const float d_flops_max = 8;
-#elif defined(TARGET_CORTEX_A9)
-	const float d_flops_max = 4;
+	const float flops_max = 8;
+	printf("Testing BLAS version for SSE3 instruction set, 64 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_CORTEX_A15)
-	const float d_flops_max = 8;
+	const float flops_max = 8;
+	printf("Testing solvers for ARMv7a NEON instruction set, oprimized for Cortex A15: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
+#elif defined(TARGET_CORTEX_A9)
+	const float flops_max = 4;
+	printf("Testing solvers for ARMv7a NEON instruction set, oprimized for Cortex A9: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_X86_ATOM)
-	const float d_flops_max = 4;
+	const float flops_max = 4;
+	printf("Testing BLAS version for SSE3 instruction set, 32 bit, optimized for Intel Atom: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_POWERPC_G2)
-	const float d_flops_max = 2;
+	const float flops_max = 2;
+	printf("Testing BLAS version for POWERPC instruction set, 32 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_C99_4X4)
-	const float d_flops_max = 2;
+	const float flops_max = 2;
+	printf("Testing reference BLAS version, 4x4 kernel: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_C99_2X2)
-	const float d_flops_max = 2;
+	const float flops_max = 2;
+	printf("Testing reference BLAS version, 2x2 kernel: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #endif
+	printf("\n");
+	printf("\n");
+	printf("\n");
 	
 	FILE *f;
 	f = fopen("./test_problems/results/test_blas.m", "w"); // a
 
 #if defined(TARGET_X64_AVX2)
-	fprintf(f, "C = 's_x64_avx2';\n");
+	fprintf(f, "C = 's_x64_avx2';\n", GHz_max, flops_max);
 	fprintf(f, "\n");
 #elif defined(TARGET_X64_AVX)
-	fprintf(f, "C = 's_x64_avx';\n");
+	fprintf(f, "C = 's_x64_avx';\n", GHz_max, flops_max);
 	fprintf(f, "\n");
-#elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
-	fprintf(f, "C = 's_x64_sse3';\n");
-	fprintf(f, "\n");
-#elif defined(TARGET_CORTEX_A9)
-	fprintf(f, "C = 's_ARM_cortex_A9';\n");
+#elif defined(TARGET_X64_SSE3)
+	fprintf(f, "C = 's_x64_sse3';\n", GHz_max, flops_max);
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEX_A15)
-	fprintf(f, "C = 's_ARM_cortex_A15';\n");
+	fprintf(f, "C = 's_ARM_cortex_A15';\n", GHz_max, flops_max);
+	fprintf(f, "\n");
+#elif defined(TARGET_CORTEX_A9)
+	fprintf(f, "C = 's_ARM_cortex_A9';\n", GHz_max, flops_max);
 	fprintf(f, "\n");
 #elif defined(TARGET_X86_ATOM)
-	fprintf(f, "C = 's_x86_atom';\n");
+	fprintf(f, "C = 's_x86_atom';\n", GHz_max, flops_max);
 	fprintf(f, "\n");
 #elif defined(TARGET_POWERPC_G2)
-	fprintf(f, "C = 's_PowerPC_G2';\n");
+	fprintf(f, "C = 's_PowerPC_G2';\n", GHz_max, flops_max);
 	fprintf(f, "\n");
 #elif defined(TARGET_C99_4X4)
-	fprintf(f, "C = 's_c99_2x2';\n");
+	fprintf(f, "C = 's_c99_2x2';\n", GHz_max, flops_max);
 	fprintf(f, "\n");
 #elif defined(TARGET_C99_2X2)
-	fprintf(f, "C = 's_c99_4x4';\n");
+	fprintf(f, "C = 's_c99_4x4';\n", GHz_max, flops_max);
 	fprintf(f, "\n");
 #endif
 
-	fprintf(f, "A = [%f %f];\n", GHz_max, d_flops_max);
+	fprintf(f, "A = [%f %f];\n", GHz_max, flops_max);
 	fprintf(f, "\n");
 
 	fprintf(f, "B = [\n");
@@ -106,14 +137,9 @@ int main()
 	const int bsd = D_MR; //d_get_mr();
 	const int bss = S_MR; //s_get_mr();
 	
-	int info = 0;
+/*	int info = 0;*/
 	
 	printf("\nn\tGflops dgemm %%\tGflops dsyrk %%\tGflops dtrmm %%\tGflops dpotrf %%\tGflops dgemv_n%%\tGflops dgemv_t%%\tGflops dsymv %%\tGflops dtrmv_n%%\tGflops dtrmv_t%%\tGflops dmvmv%%\n\n");
-	
-/*	int nn[] = {4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 96, 128, 144, 160, 192, 256};*/
-/*	int nnrep[] = {10000, 10000, 10000, 10000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 100, 100, 100, 100};*/
-/*	*/
-/*	for(ll=0; ll<17; ll++)*/
 	
 	int nn[] = {4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300, 304, 308, 312, 316, 320, 324, 328, 332};
 	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 400, 400, 400, 400, 400, 200, 200, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
@@ -300,7 +326,7 @@ int main()
 
 
 
-		float Gflops_max = d_flops_max * GHz_max;
+		float Gflops_max = flops_max * GHz_max;
 
 		float time_dgemm = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		float flop_dgemm = 2.0*n*n*n;

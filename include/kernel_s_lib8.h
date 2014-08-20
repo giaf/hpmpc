@@ -23,6 +23,7 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+void kernel_sgemm_pp_nt_24x4_lib8(int kmax, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, int ldc, int alg);
 void kernel_sgemm_pp_nt_16x4_lib8(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, int alg);
 void kernel_sgemm_pp_nt_8x8_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg);
 void kernel_sgemm_pp_nt_8x4_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg);
@@ -36,6 +37,7 @@ void corner_strmm_nt_16x1_lib8(float *A0, float *A1, float *B, float *C0, float 
 void corner_strmm_nt_8x3_lib8(float *A0, float *B, float *C0);
 void corner_strmm_nt_8x2_lib8(float *A0, float *B, float *C0);
 void corner_strmm_nt_8x1_lib8(float *A0, float *B, float *C0);
+void kernel_strsm_nt_24x4_lib8(int kadd, int ksub, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, int ldc_dummy, float *fact);
 void kernel_strsm_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc_dummy, float *fact);
 void kernel_strsm_nt_8x4_lib8(int kadd, int ksub, float *A0, float *B, float *C0, float *D0, int ldc_dummy, float *fact);
 void kernel_spotrf_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc_dummy, float *fact);

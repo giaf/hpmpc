@@ -24,6 +24,7 @@
 **************************************************************************************************/
 
 // kernel
+void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, double *A1, double *A2, double *B, double *C0, double *C1, double *C2, double *D0, double *D1, double *D2, int alg);
 void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, int alg);
 void kernel_dgemm_nt_8x2_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, int alg);
 void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg);

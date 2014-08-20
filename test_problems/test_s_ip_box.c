@@ -252,7 +252,7 @@ int main()
 	for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
 	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
 	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 0.1;
-/*	Q[(nx+nu)*(pnz+1)] = 1e35; // large enough */
+/*	Q[(nx+nu)*(pnz+1)] = 1e35; // large enough (not needed any longer) */
 	
 	/* packed into contiguous memory */
 	float *pQ; s_zeros_align(&pQ, pnz, cnz);
