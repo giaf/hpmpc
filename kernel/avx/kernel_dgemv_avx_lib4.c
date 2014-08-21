@@ -1014,8 +1014,10 @@ void kernel_dgemv_n_8_lib4(int kmax, double *A0, double *A1, double *x, double *
 			ax_temp = _mm256_mul_pd( a_41_51_61_71, x_1 );
 			y_4_5_6_7_b = _mm256_add_pd( y_4_5_6_7_b, ax_temp );
 
-			__builtin_prefetch( A0 + 5*lda );
-			__builtin_prefetch( A1 + 5*lda );
+/*			__builtin_prefetch( A0 + 5*lda );*/
+/*			__builtin_prefetch( A1 + 5*lda );*/
+			__builtin_prefetch( A0 + 6*lda );
+			__builtin_prefetch( A1 + 6*lda );
 
 			x_0 = _mm256_broadcast_sd( &x[2] );
 			x_1 = _mm256_broadcast_sd( &x[3] );

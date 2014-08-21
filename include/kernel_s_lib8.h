@@ -50,7 +50,8 @@ void kernel_sgemv_t_8_lib8(int kmax, int kna, float *A, int sda, float *x, float
 void kernel_sgemv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
 void kernel_sgemv_t_2_lib8(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
 void kernel_sgemv_t_1_lib8(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
-void kernel_sgemv_n_8_lib8(int kmax, float *A0, float *x, float *y, int alg);
+void kernel_sgemv_n_16_lib8(int kmax, float *A0, float *A1, float *x, float *y, int alg);
+void kernel_sgemv_n_8_lib8(int kmax, float *A, float *x, float *y, int alg);
 void kernel_sgemv_n_4_lib8(int kmax, float *A, float *x, float *y, int alg);
 void kernel_sgemv_n_2_lib8(int kmax, float *A, float *x, float *y, int alg);
 void kernel_sgemv_n_1_lib8(int kmax, float *A, float *x, float *y, int alg);

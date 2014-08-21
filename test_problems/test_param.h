@@ -63,7 +63,7 @@
 #define K_MAX 10
 
 // tolerance in the duality measure
-#define TOL 1e-20
+#define TOL 1e-6
 
 // threshold in the duality measure to switch from single to double precision
 #define SP_THR 1e5

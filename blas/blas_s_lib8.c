@@ -479,6 +479,12 @@ void sgemv_n_lib(int m, int n, float *pA, int sda, float *x, float *y, int alg) 
 	j=0;
 /*	for(; j<n-7; j+=8)*/
 /*	for(; j<m-4; j+=8)*/
+	for(; j<m-8; j+=16)
+		{
+		kernel_sgemv_n_16_lib8(n, pA, pA+sda*bs, x, y, alg);
+		pA += 2*sda*bs;
+		y  += 2*bs;
+		}
 	for(; j<m; j+=8)
 		{
 		kernel_sgemv_n_8_lib8(n, pA, x, y, alg);
