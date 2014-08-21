@@ -32,6 +32,7 @@
 #include "../include/blas_d.h"
 #include "../include/blas_s.h"
 #include "../include/block_size.h"
+#include "test_param.h"
 
 
 
@@ -56,8 +57,8 @@ int main()
 	printf("\n");
 
 	// maximum frequency of the processor
-	const float GHz_max = 3.4; //3.6; //2.9;
-	printf("Frequency used to compute theoretical peak: %5.1f GHz (edit test_blas_s.c to modify this value).\n", GHz_max);
+	const float GHz_max = GHZ_MAX;
+	printf("Frequency used to compute theoretical peak: %5.1f GHz (edit test_param.h to modify this value).\n", GHz_max);
 	printf("\n");
 
 	// maximum flops per cycle, single precision

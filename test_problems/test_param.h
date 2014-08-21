@@ -23,6 +23,9 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+// processor maximum frequency (for result printing purposes only)
+#define GHZ_MAX 3.6 // 2.3 2.9 3.4 3.6
+
 // problem size (states, inputs, horizon)
 //#define NX 30
 //#define NU 14
