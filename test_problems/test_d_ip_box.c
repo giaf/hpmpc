@@ -217,11 +217,11 @@ int main()
 //	d_print_mat(nx, 1, x0, nx);
 	
 	/* packed */
-	double *BAb; d_zeros(&BAb, nx, nz);
+/*	double *BAb; d_zeros(&BAb, nx, nz);*/
 
-	dmcopy(nx, nu, B, nx, BAb, nx);
-	dmcopy(nx, nx, A, nx, BAb+nu*nx, nx);
-	dmcopy(nx, 1 , b, nx, BAb+(nu+nx)*nx, nx);
+/*	dmcopy(nx, nu, B, nx, BAb, nx);*/
+/*	dmcopy(nx, nx, A, nx, BAb+nu*nx, nx);*/
+/*	dmcopy(nx, 1 , b, nx, BAb+(nu+nx)*nx, nx);*/
 	
 	/* transposed */
 /*	double *BAbt; d_zeros_align(&BAbt, pnz, pnz);*/
@@ -234,7 +234,12 @@ int main()
 	/* packed into contiguous memory */
 	double *pBAbt; d_zeros_align(&pBAbt, pnz, cnx);
 /*	d_cvt_mat2pmat(nz, nx, 0, bs, BAbt, pnz, pBAbt, cnx);*/
-	d_cvt_tran_mat2pmat(nx, nz, 0, bs, BAb, nx, pBAbt, cnx);
+/*	d_cvt_tran_mat2pmat(nx, nz, 0, bs, BAb, nx, pBAbt, cnx);*/
+
+	d_cvt_tran_mat2pmat(nx, nu, 0, bs, B, nx, pBAbt, cnx);
+	d_cvt_tran_mat2pmat(nx, nx, nu, bs, A, nx, pBAbt+nu/bs*cnx*bs+nu%bs, cnx);
+	for (jj = 0; jj<nx; jj++)
+		pBAbt[(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[jj];
 
 /*	d_print_pmat (nz, nx, bs, pBAbt, cnx);*/
 /*	exit(1);*/
@@ -521,7 +526,7 @@ int main()
 	free(B);
 	free(b);
 	free(x0);
-	free(BAb);
+/*	free(BAb);*/
 /*	free(BAbt);*/
 	free(pBAbt);
 	free(db);

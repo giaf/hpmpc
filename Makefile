@@ -74,7 +74,7 @@ MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/d
 endif
 LQCP_OBJS = ./lqcp_solvers/d_ric_sv.o ./lqcp_solvers/d_res.o ./lqcp_solvers/s_ric_sv.o ./lqcp_solvers/s_res.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/dres_codegen.o #./codegen/sricposv_codegen.o  ./codegen/sres_codegen.o 
-C_OBJS = ./interfaces/c/c_order_dynamic_mem_interface.o ./interfaces/c/c_order_static_mem_interface.o
+INTERFACE_OBJS = ./interfaces/c/c_order_dynamic_mem_interface.o ./interfaces/c/c_order_static_mem_interface.o ./interfaces/c/fortran_order_dynamic_mem_interface.o ./interfaces/c/fortran_order_static_mem_interface.o
 
 all: clean library test_problem run
 
@@ -86,8 +86,8 @@ library: target
 	make -C blas obj
 	make -C lqcp_solvers obj
 	make -C mpc_solvers obj
-	make -C interfaces/c obj
-	ar rcs libhpmpc_pro.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(C_OBJS)
+	make -C interfaces obj
+	ar rcs libhpmpc_pro.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
 	@echo
 	@echo " libhpmpc_pro.a static library build complete."
 	@echo
@@ -98,8 +98,8 @@ shared: target
 	make -C blas obj
 	make -C lqcp_solvers obj
 	make -C mpc_solvers obj
-	make -C interfaces/c obj
-	gcc -shared -o libhpmpc_pro.so $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(C_OBJS)
+	make -C interfaces obj
+	gcc -shared -o libhpmpc_pro.so $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
 	@echo
 	@echo " libhpmpc_pro.so shared library build complete."
 	@echo
@@ -114,8 +114,8 @@ codegenerator: target
 #	touch ./codegen/sres_codegen.c 
 	make -C codegen obj
 	make -C mpc_solvers obj
-	make -C interfaces/c obj
-	ar rcs libhpmpc_pro.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS) $(C_OBJS)
+	make -C interfaces obj
+	ar rcs libhpmpc_pro.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
 	@echo
 	@echo " libhpmpc_pro.a code generator build complete."
 	@echo
