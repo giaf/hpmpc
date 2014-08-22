@@ -223,16 +223,20 @@ int main()
 	dmcopy(nx, 1 , b, nx, BAb+(nu+nx)*nx, nx);
 	
 	/* transposed */
-	double *BAbt; d_zeros_align(&BAbt, pnz, pnz);
-	for(ii=0; ii<nx; ii++)
-		for(jj=0; jj<nz; jj++)
-			{
-			BAbt[jj+pnz*ii] = BAb[ii+nx*jj];
-			}
+/*	double *BAbt; d_zeros_align(&BAbt, pnz, pnz);*/
+/*	for(ii=0; ii<nx; ii++)*/
+/*		for(jj=0; jj<nz; jj++)*/
+/*			{*/
+/*			BAbt[jj+pnz*ii] = BAb[ii+nx*jj];*/
+/*			}*/
 
 	/* packed into contiguous memory */
 	float *pBAbt; s_zeros_align(&pBAbt, pnz, cnx);
-	cvt_d2s_mat2pmat(nz, nx, 0, bs, BAbt, pnz, pBAbt, cnx);
+/*	cvt_d2s_mat2pmat(nz, nx, 0, bs, BAbt, pnz, pBAbt, cnx);// TODO*/
+	cvt_tran_d2s_mat2pmat(nx, nz, 0, bs, BAb, nx, pBAbt, cnx);
+
+/*	s_print_pmat (nz, nx, bs, pBAbt, cnx);*/
+/*	exit(1);*/
 
 /************************************************
 * box constraints
@@ -515,7 +519,7 @@ int main()
 	free(b);
 	free(x0);
 	free(BAb);
-	free(BAbt);
+/*	free(BAbt);// TODO*/
 	free(pBAbt);
 	free(db);
 	free(Q);

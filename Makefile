@@ -27,7 +27,7 @@
 include ./Makefile.rule
 
 ifeq ($(TARGET), X64_AVX2)
-AUX_OBJS = ./auxiliary/block_size_x64_avx.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99.o 
+AUX_OBJS = ./auxiliary/block_size_x64_avx.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99_lib8.o 
 KERNEL_OBJS_DOUBLE = ./kernel/avx2/kernel_dgemm_avx2_lib4.o ./kernel/avx2/kernel_dtrmm_avx_lib4.o ./kernel/avx2/kernel_dtrsm_avx_lib4.o ./kernel/avx2/kernel_dpotrf_avx_lib4.o ./kernel/avx2/kernel_dgemv_avx_lib4.o ./kernel/avx2/kernel_dtrmv_avx_lib4.o ./kernel/avx2/kernel_dtrsv_avx_lib4.o ./kernel/avx2/kernel_dsymv_avx_lib4.o ./kernel/avx2/kernel_dtran_avx_lib4.o 
 KERNEL_OBJS_SINGLE = ./kernel/avx2/kernel_sgemm_avx2_lib8.o ./kernel/avx2/kernel_strmm_avx2_lib8.o ./kernel/avx2/kernel_strsm_avx2_lib8.o ./kernel/avx2/kernel_spotrf_avx2_lib8.o ./kernel/avx2/kernel_sgemv_c99_lib8.o ./kernel/avx2/kernel_strmv_c99_lib8.o ./kernel/avx2/kernel_strsv_c99_lib8.o ./kernel/avx2/kernel_ssymv_c99_lib8.o ./kernel/avx2/kernel_stran_avx2_lib8.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib8.o
@@ -35,7 +35,7 @@ MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/d
 #CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_X64_AVX -fPIC $(DEBUG)
 endif
 ifeq ($(TARGET), X64_AVX)
-AUX_OBJS = ./auxiliary/block_size_x64_avx.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99.o 
+AUX_OBJS = ./auxiliary/block_size_x64_avx.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99_lib8.o 
 KERNEL_OBJS_DOUBLE = ./kernel/avx/kernel_dgemm_avx_lib4.o ./kernel/avx/kernel_dtrmm_avx_lib4.o ./kernel/avx/kernel_dtrsm_avx_lib4.o ./kernel/avx/kernel_dpotrf_avx_lib4.o ./kernel/avx/kernel_dgemv_avx_lib4.o ./kernel/avx/kernel_dtrmv_avx_lib4.o ./kernel/avx/kernel_dtrsv_avx_lib4.o ./kernel/avx/kernel_dsymv_avx_lib4.o ./kernel/avx/kernel_dtran_avx_lib4.o 
 KERNEL_OBJS_SINGLE = ./kernel/avx/kernel_sgemm_avx_lib8.o ./kernel/avx/kernel_strmm_avx_lib8.o ./kernel/avx/kernel_strsm_avx_lib8.o ./kernel/avx/kernel_spotrf_avx_lib8.o ./kernel/avx/kernel_sgemv_avx_lib8.o ./kernel/avx/kernel_strmv_c99_lib8.o ./kernel/avx/kernel_strsv_c99_lib8.o ./kernel/avx/kernel_ssymv_c99_lib8.o ./kernel/avx/kernel_stran_avx_lib8.o  
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib8.o

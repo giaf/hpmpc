@@ -412,16 +412,103 @@ void cvt_d2s_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, int
 	ii = 0;
 	for(; ii<row1-7; ii+=bs)
 		{
-		for(j=0; j<col; j++)
+/*		for(j=0; j<col; j++)*/
+/*			{*/
+/*			pA[0+j*bs+ii*sda] = (float) A[0+ii+j*lda];*/
+/*			pA[1+j*bs+ii*sda] = (float) A[1+ii+j*lda];*/
+/*			pA[2+j*bs+ii*sda] = (float) A[2+ii+j*lda];*/
+/*			pA[3+j*bs+ii*sda] = (float) A[3+ii+j*lda];*/
+/*			pA[4+j*bs+ii*sda] = (float) A[4+ii+j*lda];*/
+/*			pA[5+j*bs+ii*sda] = (float) A[5+ii+j*lda];*/
+/*			pA[6+j*bs+ii*sda] = (float) A[6+ii+j*lda];*/
+/*			pA[7+j*bs+ii*sda] = (float) A[7+ii+j*lda];*/
+/*			}*/
+		j=0;
+		for(; j<col-7; j+=8)
 			{
-			pA[0+j*bs+ii*sda] = (float) A[0+ii+j*lda];
-			pA[1+j*bs+ii*sda] = (float) A[1+ii+j*lda];
-			pA[2+j*bs+ii*sda] = (float) A[2+ii+j*lda];
-			pA[3+j*bs+ii*sda] = (float) A[3+ii+j*lda];
-			pA[4+j*bs+ii*sda] = (float) A[4+ii+j*lda];
-			pA[5+j*bs+ii*sda] = (float) A[5+ii+j*lda];
-			pA[6+j*bs+ii*sda] = (float) A[6+ii+j*lda];
-			pA[7+j*bs+ii*sda] = (float) A[7+ii+j*lda];
+			// unroll 0
+			pA[0+(j+0)*bs+ii*sda] = (float) A[ii+0+(j+0)*lda];
+			pA[1+(j+0)*bs+ii*sda] = (float) A[ii+1+(j+0)*lda];
+			pA[2+(j+0)*bs+ii*sda] = (float) A[ii+2+(j+0)*lda];
+			pA[3+(j+0)*bs+ii*sda] = (float) A[ii+3+(j+0)*lda];
+			pA[4+(j+0)*bs+ii*sda] = (float) A[ii+4+(j+0)*lda];
+			pA[5+(j+0)*bs+ii*sda] = (float) A[ii+5+(j+0)*lda];
+			pA[6+(j+0)*bs+ii*sda] = (float) A[ii+6+(j+0)*lda];
+			pA[7+(j+0)*bs+ii*sda] = (float) A[ii+7+(j+0)*lda];
+			// unroll 1
+			pA[0+(j+1)*bs+ii*sda] = (float) A[ii+0+(j+1)*lda];
+			pA[1+(j+1)*bs+ii*sda] = (float) A[ii+1+(j+1)*lda];
+			pA[2+(j+1)*bs+ii*sda] = (float) A[ii+2+(j+1)*lda];
+			pA[3+(j+1)*bs+ii*sda] = (float) A[ii+3+(j+1)*lda];
+			pA[4+(j+1)*bs+ii*sda] = (float) A[ii+4+(j+1)*lda];
+			pA[5+(j+1)*bs+ii*sda] = (float) A[ii+5+(j+1)*lda];
+			pA[6+(j+1)*bs+ii*sda] = (float) A[ii+6+(j+1)*lda];
+			pA[7+(j+1)*bs+ii*sda] = (float) A[ii+7+(j+1)*lda];
+			// unroll 2
+			pA[0+(j+2)*bs+ii*sda] = (float) A[ii+0+(j+2)*lda];
+			pA[1+(j+2)*bs+ii*sda] = (float) A[ii+1+(j+2)*lda];
+			pA[2+(j+2)*bs+ii*sda] = (float) A[ii+2+(j+2)*lda];
+			pA[3+(j+2)*bs+ii*sda] = (float) A[ii+3+(j+2)*lda];
+			pA[4+(j+2)*bs+ii*sda] = (float) A[ii+4+(j+2)*lda];
+			pA[5+(j+2)*bs+ii*sda] = (float) A[ii+5+(j+2)*lda];
+			pA[6+(j+2)*bs+ii*sda] = (float) A[ii+6+(j+2)*lda];
+			pA[7+(j+2)*bs+ii*sda] = (float) A[ii+7+(j+2)*lda];
+			// unroll 3
+			pA[0+(j+3)*bs+ii*sda] = (float) A[ii+0+(j+3)*lda];
+			pA[1+(j+3)*bs+ii*sda] = (float) A[ii+1+(j+3)*lda];
+			pA[2+(j+3)*bs+ii*sda] = (float) A[ii+2+(j+3)*lda];
+			pA[3+(j+3)*bs+ii*sda] = (float) A[ii+3+(j+3)*lda];
+			pA[4+(j+3)*bs+ii*sda] = (float) A[ii+4+(j+3)*lda];
+			pA[5+(j+3)*bs+ii*sda] = (float) A[ii+5+(j+3)*lda];
+			pA[6+(j+3)*bs+ii*sda] = (float) A[ii+6+(j+3)*lda];
+			pA[7+(j+3)*bs+ii*sda] = (float) A[ii+7+(j+3)*lda];
+			// unroll 4
+			pA[0+(j+4)*bs+ii*sda] = (float) A[ii+0+(j+4)*lda];
+			pA[1+(j+4)*bs+ii*sda] = (float) A[ii+1+(j+4)*lda];
+			pA[2+(j+4)*bs+ii*sda] = (float) A[ii+2+(j+4)*lda];
+			pA[3+(j+4)*bs+ii*sda] = (float) A[ii+3+(j+4)*lda];
+			pA[4+(j+4)*bs+ii*sda] = (float) A[ii+4+(j+4)*lda];
+			pA[5+(j+4)*bs+ii*sda] = (float) A[ii+5+(j+4)*lda];
+			pA[6+(j+4)*bs+ii*sda] = (float) A[ii+6+(j+4)*lda];
+			pA[7+(j+4)*bs+ii*sda] = (float) A[ii+7+(j+4)*lda];
+			// unroll 5
+			pA[0+(j+5)*bs+ii*sda] = (float) A[ii+0+(j+5)*lda];
+			pA[1+(j+5)*bs+ii*sda] = (float) A[ii+1+(j+5)*lda];
+			pA[2+(j+5)*bs+ii*sda] = (float) A[ii+2+(j+5)*lda];
+			pA[3+(j+5)*bs+ii*sda] = (float) A[ii+3+(j+5)*lda];
+			pA[4+(j+5)*bs+ii*sda] = (float) A[ii+4+(j+5)*lda];
+			pA[5+(j+5)*bs+ii*sda] = (float) A[ii+5+(j+5)*lda];
+			pA[6+(j+5)*bs+ii*sda] = (float) A[ii+6+(j+5)*lda];
+			pA[7+(j+5)*bs+ii*sda] = (float) A[ii+7+(j+5)*lda];
+			// unroll 6
+			pA[0+(j+6)*bs+ii*sda] = (float) A[ii+0+(j+6)*lda];
+			pA[1+(j+6)*bs+ii*sda] = (float) A[ii+1+(j+6)*lda];
+			pA[2+(j+6)*bs+ii*sda] = (float) A[ii+2+(j+6)*lda];
+			pA[3+(j+6)*bs+ii*sda] = (float) A[ii+3+(j+6)*lda];
+			pA[4+(j+6)*bs+ii*sda] = (float) A[ii+4+(j+6)*lda];
+			pA[5+(j+6)*bs+ii*sda] = (float) A[ii+5+(j+6)*lda];
+			pA[6+(j+6)*bs+ii*sda] = (float) A[ii+6+(j+6)*lda];
+			pA[7+(j+6)*bs+ii*sda] = (float) A[ii+7+(j+6)*lda];
+			// unroll 7
+			pA[0+(j+7)*bs+ii*sda] = (float) A[ii+0+(j+7)*lda];
+			pA[1+(j+7)*bs+ii*sda] = (float) A[ii+1+(j+7)*lda];
+			pA[2+(j+7)*bs+ii*sda] = (float) A[ii+2+(j+7)*lda];
+			pA[3+(j+7)*bs+ii*sda] = (float) A[ii+3+(j+7)*lda];
+			pA[4+(j+7)*bs+ii*sda] = (float) A[ii+4+(j+7)*lda];
+			pA[5+(j+7)*bs+ii*sda] = (float) A[ii+5+(j+7)*lda];
+			pA[6+(j+7)*bs+ii*sda] = (float) A[ii+6+(j+7)*lda];
+			pA[7+(j+7)*bs+ii*sda] = (float) A[ii+7+(j+7)*lda];
+			}
+		for(; j<col; j++)
+			{
+			pA[0+(j+0)*bs+ii*sda] = (float) A[ii+0+(j+0)*lda];
+			pA[1+(j+0)*bs+ii*sda] = (float) A[ii+1+(j+0)*lda];
+			pA[2+(j+0)*bs+ii*sda] = (float) A[ii+2+(j+0)*lda];
+			pA[3+(j+0)*bs+ii*sda] = (float) A[ii+3+(j+0)*lda];
+			pA[4+(j+0)*bs+ii*sda] = (float) A[ii+4+(j+0)*lda];
+			pA[5+(j+0)*bs+ii*sda] = (float) A[ii+5+(j+0)*lda];
+			pA[6+(j+0)*bs+ii*sda] = (float) A[ii+6+(j+0)*lda];
+			pA[7+(j+0)*bs+ii*sda] = (float) A[ii+7+(j+0)*lda];
 			}
 		}
 	if(ii<row1)
@@ -472,16 +559,103 @@ void s_cvt_mat2pmat(int row, int col, int offset, int bs_dummy, float *A, int ld
 	ii = 0;
 	for(; ii<row1-7; ii+=bs)
 		{
-		for(j=0; j<col; j++)
+/*		for(j=0; j<col; j++)*/
+/*			{*/
+/*			pA[0+j*bs+ii*sda] = A[0+ii+j*lda];*/
+/*			pA[1+j*bs+ii*sda] = A[1+ii+j*lda];*/
+/*			pA[2+j*bs+ii*sda] = A[2+ii+j*lda];*/
+/*			pA[3+j*bs+ii*sda] = A[3+ii+j*lda];*/
+/*			pA[4+j*bs+ii*sda] = A[4+ii+j*lda];*/
+/*			pA[5+j*bs+ii*sda] = A[5+ii+j*lda];*/
+/*			pA[6+j*bs+ii*sda] = A[6+ii+j*lda];*/
+/*			pA[7+j*bs+ii*sda] = A[7+ii+j*lda];*/
+/*			}*/
+		j=0;
+		for(; j<col-7; j+=8)
 			{
-			pA[0+j*bs+ii*sda] = A[0+ii+j*lda];
-			pA[1+j*bs+ii*sda] = A[1+ii+j*lda];
-			pA[2+j*bs+ii*sda] = A[2+ii+j*lda];
-			pA[3+j*bs+ii*sda] = A[3+ii+j*lda];
-			pA[4+j*bs+ii*sda] = A[4+ii+j*lda];
-			pA[5+j*bs+ii*sda] = A[5+ii+j*lda];
-			pA[6+j*bs+ii*sda] = A[6+ii+j*lda];
-			pA[7+j*bs+ii*sda] = A[7+ii+j*lda];
+			// unroll 0
+			pA[0+(j+0)*bs+ii*sda] = A[ii+0+(j+0)*lda];
+			pA[1+(j+0)*bs+ii*sda] = A[ii+1+(j+0)*lda];
+			pA[2+(j+0)*bs+ii*sda] = A[ii+2+(j+0)*lda];
+			pA[3+(j+0)*bs+ii*sda] = A[ii+3+(j+0)*lda];
+			pA[4+(j+0)*bs+ii*sda] = A[ii+4+(j+0)*lda];
+			pA[5+(j+0)*bs+ii*sda] = A[ii+5+(j+0)*lda];
+			pA[6+(j+0)*bs+ii*sda] = A[ii+6+(j+0)*lda];
+			pA[7+(j+0)*bs+ii*sda] = A[ii+7+(j+0)*lda];
+			// unroll 1
+			pA[0+(j+1)*bs+ii*sda] = A[ii+0+(j+1)*lda];
+			pA[1+(j+1)*bs+ii*sda] = A[ii+1+(j+1)*lda];
+			pA[2+(j+1)*bs+ii*sda] = A[ii+2+(j+1)*lda];
+			pA[3+(j+1)*bs+ii*sda] = A[ii+3+(j+1)*lda];
+			pA[4+(j+1)*bs+ii*sda] = A[ii+4+(j+1)*lda];
+			pA[5+(j+1)*bs+ii*sda] = A[ii+5+(j+1)*lda];
+			pA[6+(j+1)*bs+ii*sda] = A[ii+6+(j+1)*lda];
+			pA[7+(j+1)*bs+ii*sda] = A[ii+7+(j+1)*lda];
+			// unroll 2
+			pA[0+(j+2)*bs+ii*sda] = A[ii+0+(j+2)*lda];
+			pA[1+(j+2)*bs+ii*sda] = A[ii+1+(j+2)*lda];
+			pA[2+(j+2)*bs+ii*sda] = A[ii+2+(j+2)*lda];
+			pA[3+(j+2)*bs+ii*sda] = A[ii+3+(j+2)*lda];
+			pA[4+(j+2)*bs+ii*sda] = A[ii+4+(j+2)*lda];
+			pA[5+(j+2)*bs+ii*sda] = A[ii+5+(j+2)*lda];
+			pA[6+(j+2)*bs+ii*sda] = A[ii+6+(j+2)*lda];
+			pA[7+(j+2)*bs+ii*sda] = A[ii+7+(j+2)*lda];
+			// unroll 3
+			pA[0+(j+3)*bs+ii*sda] = A[ii+0+(j+3)*lda];
+			pA[1+(j+3)*bs+ii*sda] = A[ii+1+(j+3)*lda];
+			pA[2+(j+3)*bs+ii*sda] = A[ii+2+(j+3)*lda];
+			pA[3+(j+3)*bs+ii*sda] = A[ii+3+(j+3)*lda];
+			pA[4+(j+3)*bs+ii*sda] = A[ii+4+(j+3)*lda];
+			pA[5+(j+3)*bs+ii*sda] = A[ii+5+(j+3)*lda];
+			pA[6+(j+3)*bs+ii*sda] = A[ii+6+(j+3)*lda];
+			pA[7+(j+3)*bs+ii*sda] = A[ii+7+(j+3)*lda];
+			// unroll 4
+			pA[0+(j+4)*bs+ii*sda] = A[ii+0+(j+4)*lda];
+			pA[1+(j+4)*bs+ii*sda] = A[ii+1+(j+4)*lda];
+			pA[2+(j+4)*bs+ii*sda] = A[ii+2+(j+4)*lda];
+			pA[3+(j+4)*bs+ii*sda] = A[ii+3+(j+4)*lda];
+			pA[4+(j+4)*bs+ii*sda] = A[ii+4+(j+4)*lda];
+			pA[5+(j+4)*bs+ii*sda] = A[ii+5+(j+4)*lda];
+			pA[6+(j+4)*bs+ii*sda] = A[ii+6+(j+4)*lda];
+			pA[7+(j+4)*bs+ii*sda] = A[ii+7+(j+4)*lda];
+			// unroll 5
+			pA[0+(j+5)*bs+ii*sda] = A[ii+0+(j+5)*lda];
+			pA[1+(j+5)*bs+ii*sda] = A[ii+1+(j+5)*lda];
+			pA[2+(j+5)*bs+ii*sda] = A[ii+2+(j+5)*lda];
+			pA[3+(j+5)*bs+ii*sda] = A[ii+3+(j+5)*lda];
+			pA[4+(j+5)*bs+ii*sda] = A[ii+4+(j+5)*lda];
+			pA[5+(j+5)*bs+ii*sda] = A[ii+5+(j+5)*lda];
+			pA[6+(j+5)*bs+ii*sda] = A[ii+6+(j+5)*lda];
+			pA[7+(j+5)*bs+ii*sda] = A[ii+7+(j+5)*lda];
+			// unroll 6
+			pA[0+(j+6)*bs+ii*sda] = A[ii+0+(j+6)*lda];
+			pA[1+(j+6)*bs+ii*sda] = A[ii+1+(j+6)*lda];
+			pA[2+(j+6)*bs+ii*sda] = A[ii+2+(j+6)*lda];
+			pA[3+(j+6)*bs+ii*sda] = A[ii+3+(j+6)*lda];
+			pA[4+(j+6)*bs+ii*sda] = A[ii+4+(j+6)*lda];
+			pA[5+(j+6)*bs+ii*sda] = A[ii+5+(j+6)*lda];
+			pA[6+(j+6)*bs+ii*sda] = A[ii+6+(j+6)*lda];
+			pA[7+(j+6)*bs+ii*sda] = A[ii+7+(j+6)*lda];
+			// unroll 7
+			pA[0+(j+7)*bs+ii*sda] = A[ii+0+(j+7)*lda];
+			pA[1+(j+7)*bs+ii*sda] = A[ii+1+(j+7)*lda];
+			pA[2+(j+7)*bs+ii*sda] = A[ii+2+(j+7)*lda];
+			pA[3+(j+7)*bs+ii*sda] = A[ii+3+(j+7)*lda];
+			pA[4+(j+7)*bs+ii*sda] = A[ii+4+(j+7)*lda];
+			pA[5+(j+7)*bs+ii*sda] = A[ii+5+(j+7)*lda];
+			pA[6+(j+7)*bs+ii*sda] = A[ii+6+(j+7)*lda];
+			pA[7+(j+7)*bs+ii*sda] = A[ii+7+(j+7)*lda];
+			}
+		for(; j<col; j++)
+			{
+			pA[0+(j+0)*bs+ii*sda] = A[ii+0+(j+0)*lda];
+			pA[1+(j+0)*bs+ii*sda] = A[ii+1+(j+0)*lda];
+			pA[2+(j+0)*bs+ii*sda] = A[ii+2+(j+0)*lda];
+			pA[3+(j+0)*bs+ii*sda] = A[ii+3+(j+0)*lda];
+			pA[4+(j+0)*bs+ii*sda] = A[ii+4+(j+0)*lda];
+			pA[5+(j+0)*bs+ii*sda] = A[ii+5+(j+0)*lda];
+			pA[6+(j+0)*bs+ii*sda] = A[ii+6+(j+0)*lda];
+			pA[7+(j+0)*bs+ii*sda] = A[ii+7+(j+0)*lda];
 			}
 		}
 	if(ii<row1)
@@ -493,6 +667,280 @@ void s_cvt_mat2pmat(int row, int col, int offset, int bs_dummy, float *A, int ld
 			for(i=0; i<row2; i++)
 				{
 				pA[i+j*bs+ii*sda] = A[i+ii+j*lda];
+				}
+			}
+		}
+	
+	}
+
+
+
+/* converts a matrix into a packed matrix */
+// row and col of the source matrix, offsett in the destination matrix
+void s_cvt_tran_mat2pmat(int row, int col, int offset, int bs_dummy, float *A, int lda, float *pA, int sda)
+	{
+	
+	const int bs = 8;
+
+	int i, ii, j, row0, row1, row2;
+	
+	row0 = (bs-offset%bs)%bs;
+	if(row0>col)
+		row0 = col;
+	row1 = col - row0;
+	
+	ii = 0;
+	if(row0>0)
+		{
+		for(j=0; j<row; j++)
+			{
+			for(i=0; i<row0; i++)
+				{
+				pA[i+j*bs+ii*sda] = A[j+(i+ii)*lda];
+				}
+			}
+	
+		A  += row0*lda;
+		pA += row0 + bs*(sda-1);
+		}
+	
+	ii = 0;
+	for(; ii<row1-7; ii+=bs)
+		{
+		j=0;
+		for(; j<row-7; j+=8)
+			{
+			// unroll 0
+			pA[0+(j+0)*bs+ii*sda] = A[j+0+(ii+0)*lda];
+			pA[1+(j+0)*bs+ii*sda] = A[j+0+(ii+1)*lda];
+			pA[2+(j+0)*bs+ii*sda] = A[j+0+(ii+2)*lda];
+			pA[3+(j+0)*bs+ii*sda] = A[j+0+(ii+3)*lda];
+			pA[4+(j+0)*bs+ii*sda] = A[j+0+(ii+4)*lda];
+			pA[5+(j+0)*bs+ii*sda] = A[j+0+(ii+5)*lda];
+			pA[6+(j+0)*bs+ii*sda] = A[j+0+(ii+6)*lda];
+			pA[7+(j+0)*bs+ii*sda] = A[j+0+(ii+7)*lda];
+			// unroll 1
+			pA[0+(j+1)*bs+ii*sda] = A[j+1+(ii+0)*lda];
+			pA[1+(j+1)*bs+ii*sda] = A[j+1+(ii+1)*lda];
+			pA[2+(j+1)*bs+ii*sda] = A[j+1+(ii+2)*lda];
+			pA[3+(j+1)*bs+ii*sda] = A[j+1+(ii+3)*lda];
+			pA[4+(j+1)*bs+ii*sda] = A[j+1+(ii+4)*lda];
+			pA[5+(j+1)*bs+ii*sda] = A[j+1+(ii+5)*lda];
+			pA[6+(j+1)*bs+ii*sda] = A[j+1+(ii+6)*lda];
+			pA[7+(j+1)*bs+ii*sda] = A[j+1+(ii+7)*lda];
+			// unroll 2
+			pA[0+(j+2)*bs+ii*sda] = A[j+2+(ii+0)*lda];
+			pA[1+(j+2)*bs+ii*sda] = A[j+2+(ii+1)*lda];
+			pA[2+(j+2)*bs+ii*sda] = A[j+2+(ii+2)*lda];
+			pA[3+(j+2)*bs+ii*sda] = A[j+2+(ii+3)*lda];
+			pA[4+(j+2)*bs+ii*sda] = A[j+2+(ii+4)*lda];
+			pA[5+(j+2)*bs+ii*sda] = A[j+2+(ii+5)*lda];
+			pA[6+(j+2)*bs+ii*sda] = A[j+2+(ii+6)*lda];
+			pA[7+(j+2)*bs+ii*sda] = A[j+2+(ii+7)*lda];
+			// unroll 3
+			pA[0+(j+3)*bs+ii*sda] = A[j+3+(ii+0)*lda];
+			pA[1+(j+3)*bs+ii*sda] = A[j+3+(ii+1)*lda];
+			pA[2+(j+3)*bs+ii*sda] = A[j+3+(ii+2)*lda];
+			pA[3+(j+3)*bs+ii*sda] = A[j+3+(ii+3)*lda];
+			pA[4+(j+3)*bs+ii*sda] = A[j+3+(ii+4)*lda];
+			pA[5+(j+3)*bs+ii*sda] = A[j+3+(ii+5)*lda];
+			pA[6+(j+3)*bs+ii*sda] = A[j+3+(ii+6)*lda];
+			pA[7+(j+3)*bs+ii*sda] = A[j+3+(ii+7)*lda];
+			// unroll 4
+			pA[0+(j+4)*bs+ii*sda] = A[j+4+(ii+0)*lda];
+			pA[1+(j+4)*bs+ii*sda] = A[j+4+(ii+1)*lda];
+			pA[2+(j+4)*bs+ii*sda] = A[j+4+(ii+2)*lda];
+			pA[3+(j+4)*bs+ii*sda] = A[j+4+(ii+3)*lda];
+			pA[4+(j+4)*bs+ii*sda] = A[j+4+(ii+4)*lda];
+			pA[5+(j+4)*bs+ii*sda] = A[j+4+(ii+5)*lda];
+			pA[6+(j+4)*bs+ii*sda] = A[j+4+(ii+6)*lda];
+			pA[7+(j+4)*bs+ii*sda] = A[j+4+(ii+7)*lda];
+			// unroll 5
+			pA[0+(j+5)*bs+ii*sda] = A[j+5+(ii+0)*lda];
+			pA[1+(j+5)*bs+ii*sda] = A[j+5+(ii+1)*lda];
+			pA[2+(j+5)*bs+ii*sda] = A[j+5+(ii+2)*lda];
+			pA[3+(j+5)*bs+ii*sda] = A[j+5+(ii+3)*lda];
+			pA[4+(j+5)*bs+ii*sda] = A[j+5+(ii+4)*lda];
+			pA[5+(j+5)*bs+ii*sda] = A[j+5+(ii+5)*lda];
+			pA[6+(j+5)*bs+ii*sda] = A[j+5+(ii+6)*lda];
+			pA[7+(j+5)*bs+ii*sda] = A[j+5+(ii+7)*lda];
+			// unroll 6
+			pA[0+(j+6)*bs+ii*sda] = A[j+6+(ii+0)*lda];
+			pA[1+(j+6)*bs+ii*sda] = A[j+6+(ii+1)*lda];
+			pA[2+(j+6)*bs+ii*sda] = A[j+6+(ii+2)*lda];
+			pA[3+(j+6)*bs+ii*sda] = A[j+6+(ii+3)*lda];
+			pA[4+(j+6)*bs+ii*sda] = A[j+6+(ii+4)*lda];
+			pA[5+(j+6)*bs+ii*sda] = A[j+6+(ii+5)*lda];
+			pA[6+(j+6)*bs+ii*sda] = A[j+6+(ii+6)*lda];
+			pA[7+(j+6)*bs+ii*sda] = A[j+6+(ii+7)*lda];
+			// unroll 7
+			pA[0+(j+7)*bs+ii*sda] = A[j+7+(ii+0)*lda];
+			pA[1+(j+7)*bs+ii*sda] = A[j+7+(ii+1)*lda];
+			pA[2+(j+7)*bs+ii*sda] = A[j+7+(ii+2)*lda];
+			pA[3+(j+7)*bs+ii*sda] = A[j+7+(ii+3)*lda];
+			pA[4+(j+7)*bs+ii*sda] = A[j+7+(ii+4)*lda];
+			pA[5+(j+7)*bs+ii*sda] = A[j+7+(ii+5)*lda];
+			pA[6+(j+7)*bs+ii*sda] = A[j+7+(ii+6)*lda];
+			pA[7+(j+7)*bs+ii*sda] = A[j+7+(ii+7)*lda];
+			}
+		for(; j<row; j++)
+			{
+			pA[0+(j+0)*bs+ii*sda] = A[j+0+(ii+0)*lda];
+			pA[1+(j+0)*bs+ii*sda] = A[j+0+(ii+1)*lda];
+			pA[2+(j+0)*bs+ii*sda] = A[j+0+(ii+2)*lda];
+			pA[3+(j+0)*bs+ii*sda] = A[j+0+(ii+3)*lda];
+			pA[4+(j+0)*bs+ii*sda] = A[j+0+(ii+4)*lda];
+			pA[5+(j+0)*bs+ii*sda] = A[j+0+(ii+5)*lda];
+			pA[6+(j+0)*bs+ii*sda] = A[j+0+(ii+6)*lda];
+			pA[7+(j+0)*bs+ii*sda] = A[j+0+(ii+7)*lda];
+			}
+		}
+	if(ii<row1)
+		{
+		row2 = row1-ii;
+		if(bs<row2) row2 = bs;
+		for(j=0; j<row; j++)
+			{
+			for(i=0; i<row2; i++)
+				{
+				pA[i+j*bs+ii*sda] = A[j+(i+ii)*lda];
+				}
+			}
+		}
+	
+	}
+
+
+
+/* converts a matrix into a packed matrix */
+// row and col of the source matrix, offsett in the destination matrix
+void cvt_tran_d2s_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, int lda, float *pA, int sda)
+	{
+	
+	const int bs = 8;
+
+	int i, ii, j, row0, row1, row2;
+	
+	row0 = (bs-offset%bs)%bs;
+	if(row0>col)
+		row0 = col;
+	row1 = col - row0;
+	
+	ii = 0;
+	if(row0>0)
+		{
+		for(j=0; j<row; j++)
+			{
+			for(i=0; i<row0; i++)
+				{
+				pA[i+j*bs+ii*sda] = (float) A[j+(i+ii)*lda];
+				}
+			}
+	
+		A  += row0*lda;
+		pA += row0 + bs*(sda-1);
+		}
+	
+	ii = 0;
+	for(; ii<row1-7; ii+=bs)
+		{
+		j=0;
+		for(; j<row-7; j+=8)
+			{
+			// unroll 0
+			pA[0+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+0)*lda];
+			pA[1+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+1)*lda];
+			pA[2+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+2)*lda];
+			pA[3+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+3)*lda];
+			pA[4+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+4)*lda];
+			pA[5+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+5)*lda];
+			pA[6+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+6)*lda];
+			pA[7+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+7)*lda];
+			// unroll 1
+			pA[0+(j+1)*bs+ii*sda] = (float) A[j+1+(ii+0)*lda];
+			pA[1+(j+1)*bs+ii*sda] = (float) A[j+1+(ii+1)*lda];
+			pA[2+(j+1)*bs+ii*sda] = (float) A[j+1+(ii+2)*lda];
+			pA[3+(j+1)*bs+ii*sda] = (float) A[j+1+(ii+3)*lda];
+			pA[4+(j+1)*bs+ii*sda] = (float) A[j+1+(ii+4)*lda];
+			pA[5+(j+1)*bs+ii*sda] = (float) A[j+1+(ii+5)*lda];
+			pA[6+(j+1)*bs+ii*sda] = (float) A[j+1+(ii+6)*lda];
+			pA[7+(j+1)*bs+ii*sda] = (float) A[j+1+(ii+7)*lda];
+			// unroll 2
+			pA[0+(j+2)*bs+ii*sda] = (float) A[j+2+(ii+0)*lda];
+			pA[1+(j+2)*bs+ii*sda] = (float) A[j+2+(ii+1)*lda];
+			pA[2+(j+2)*bs+ii*sda] = (float) A[j+2+(ii+2)*lda];
+			pA[3+(j+2)*bs+ii*sda] = (float) A[j+2+(ii+3)*lda];
+			pA[4+(j+2)*bs+ii*sda] = (float) A[j+2+(ii+4)*lda];
+			pA[5+(j+2)*bs+ii*sda] = (float) A[j+2+(ii+5)*lda];
+			pA[6+(j+2)*bs+ii*sda] = (float) A[j+2+(ii+6)*lda];
+			pA[7+(j+2)*bs+ii*sda] = (float) A[j+2+(ii+7)*lda];
+			// unroll 3
+			pA[0+(j+3)*bs+ii*sda] = (float) A[j+3+(ii+0)*lda];
+			pA[1+(j+3)*bs+ii*sda] = (float) A[j+3+(ii+1)*lda];
+			pA[2+(j+3)*bs+ii*sda] = (float) A[j+3+(ii+2)*lda];
+			pA[3+(j+3)*bs+ii*sda] = (float) A[j+3+(ii+3)*lda];
+			pA[4+(j+3)*bs+ii*sda] = (float) A[j+3+(ii+4)*lda];
+			pA[5+(j+3)*bs+ii*sda] = (float) A[j+3+(ii+5)*lda];
+			pA[6+(j+3)*bs+ii*sda] = (float) A[j+3+(ii+6)*lda];
+			pA[7+(j+3)*bs+ii*sda] = (float) A[j+3+(ii+7)*lda];
+			// unroll 4
+			pA[0+(j+4)*bs+ii*sda] = (float) A[j+4+(ii+0)*lda];
+			pA[1+(j+4)*bs+ii*sda] = (float) A[j+4+(ii+1)*lda];
+			pA[2+(j+4)*bs+ii*sda] = (float) A[j+4+(ii+2)*lda];
+			pA[3+(j+4)*bs+ii*sda] = (float) A[j+4+(ii+3)*lda];
+			pA[4+(j+4)*bs+ii*sda] = (float) A[j+4+(ii+4)*lda];
+			pA[5+(j+4)*bs+ii*sda] = (float) A[j+4+(ii+5)*lda];
+			pA[6+(j+4)*bs+ii*sda] = (float) A[j+4+(ii+6)*lda];
+			pA[7+(j+4)*bs+ii*sda] = (float) A[j+4+(ii+7)*lda];
+			// unroll 5
+			pA[0+(j+5)*bs+ii*sda] = (float) A[j+5+(ii+0)*lda];
+			pA[1+(j+5)*bs+ii*sda] = (float) A[j+5+(ii+1)*lda];
+			pA[2+(j+5)*bs+ii*sda] = (float) A[j+5+(ii+2)*lda];
+			pA[3+(j+5)*bs+ii*sda] = (float) A[j+5+(ii+3)*lda];
+			pA[4+(j+5)*bs+ii*sda] = (float) A[j+5+(ii+4)*lda];
+			pA[5+(j+5)*bs+ii*sda] = (float) A[j+5+(ii+5)*lda];
+			pA[6+(j+5)*bs+ii*sda] = (float) A[j+5+(ii+6)*lda];
+			pA[7+(j+5)*bs+ii*sda] = (float) A[j+5+(ii+7)*lda];
+			// unroll 6
+			pA[0+(j+6)*bs+ii*sda] = (float) A[j+6+(ii+0)*lda];
+			pA[1+(j+6)*bs+ii*sda] = (float) A[j+6+(ii+1)*lda];
+			pA[2+(j+6)*bs+ii*sda] = (float) A[j+6+(ii+2)*lda];
+			pA[3+(j+6)*bs+ii*sda] = (float) A[j+6+(ii+3)*lda];
+			pA[4+(j+6)*bs+ii*sda] = (float) A[j+6+(ii+4)*lda];
+			pA[5+(j+6)*bs+ii*sda] = (float) A[j+6+(ii+5)*lda];
+			pA[6+(j+6)*bs+ii*sda] = (float) A[j+6+(ii+6)*lda];
+			pA[7+(j+6)*bs+ii*sda] = (float) A[j+6+(ii+7)*lda];
+			// unroll 7
+			pA[0+(j+7)*bs+ii*sda] = (float) A[j+7+(ii+0)*lda];
+			pA[1+(j+7)*bs+ii*sda] = (float) A[j+7+(ii+1)*lda];
+			pA[2+(j+7)*bs+ii*sda] = (float) A[j+7+(ii+2)*lda];
+			pA[3+(j+7)*bs+ii*sda] = (float) A[j+7+(ii+3)*lda];
+			pA[4+(j+7)*bs+ii*sda] = (float) A[j+7+(ii+4)*lda];
+			pA[5+(j+7)*bs+ii*sda] = (float) A[j+7+(ii+5)*lda];
+			pA[6+(j+7)*bs+ii*sda] = (float) A[j+7+(ii+6)*lda];
+			pA[7+(j+7)*bs+ii*sda] = (float) A[j+7+(ii+7)*lda];
+			}
+		for(; j<row; j++)
+			{
+			pA[0+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+0)*lda];
+			pA[1+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+1)*lda];
+			pA[2+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+2)*lda];
+			pA[3+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+3)*lda];
+			pA[4+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+4)*lda];
+			pA[5+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+5)*lda];
+			pA[6+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+6)*lda];
+			pA[7+(j+0)*bs+ii*sda] = (float) A[j+0+(ii+7)*lda];
+			}
+		}
+	if(ii<row1)
+		{
+		row2 = row1-ii;
+		if(bs<row2) row2 = bs;
+		for(j=0; j<row; j++)
+			{
+			for(i=0; i<row2; i++)
+				{
+				pA[i+j*bs+ii*sda] = (float) A[j+(i+ii)*lda];
 				}
 			}
 		}

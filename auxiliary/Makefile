@@ -26,10 +26,10 @@
 include ../Makefile.rule
 
 ifeq ($(TARGET), X64_AVX2)
-OBJS = aux_d_c99_lib4.o aux_s_c99.o block_size_x64_avx.o
+OBJS = aux_d_c99_lib4.o aux_s_c99_lib8.o block_size_x64_avx.o
 endif
 ifeq ($(TARGET), X64_AVX)
-OBJS = aux_d_c99_lib4.o aux_s_c99.o block_size_x64_avx.o
+OBJS = aux_d_c99_lib4.o aux_s_c99_lib8.o block_size_x64_avx.o
 endif
 ifeq ($(TARGET), X64_SSE3)
 OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o block_size_x64_sse.o
