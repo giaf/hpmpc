@@ -37,7 +37,7 @@ OBJS_TEST = tools.o test_d_ip_box.o
 #OBJS_TEST = tools.o test_s_ip_box.o
 
 obj: $(OBJS_TEST)
-	$(CC) -o test.out $(OBJS_TEST) -L. libhpmpc_pro.a $(LIBS) #-pg
+	$(CC) -o test.out $(OBJS_TEST) -L. libhpmpc.a $(LIBS) #-pg
 
 clean:
 	rm -f *.o

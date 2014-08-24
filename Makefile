@@ -87,9 +87,9 @@ library: target
 	make -C lqcp_solvers obj
 	make -C mpc_solvers obj
 	make -C interfaces obj
-	ar rcs libhpmpc_pro.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
+	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
 	@echo
-	@echo " libhpmpc_pro.a static library build complete."
+	@echo " libhpmpc.a static library build complete."
 	@echo
 
 shared: target
@@ -99,9 +99,9 @@ shared: target
 	make -C lqcp_solvers obj
 	make -C mpc_solvers obj
 	make -C interfaces obj
-	gcc -shared -o libhpmpc_pro.so $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
+	gcc -shared -o libhpmpc.so $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
 	@echo
-	@echo " libhpmpc_pro.so shared library build complete."
+	@echo " libhpmpc.so shared library build complete."
 	@echo
 
 codegenerator: target
@@ -115,9 +115,9 @@ codegenerator: target
 	make -C codegen obj
 	make -C mpc_solvers obj
 	make -C interfaces obj
-	ar rcs libhpmpc_pro.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
+	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
 	@echo
-	@echo " libhpmpc_pro.a code generator build complete."
+	@echo " libhpmpc.a code generator build complete."
 	@echo
 
 target:
@@ -142,8 +142,8 @@ ifeq ($(TARGET), CORTEX_A9)
 endif
 
 test_problem:
-	cp libhpmpc_pro.a ./test_problems/libhpmpc_pro.a
-	cp libhpmpc_pro.a ./interfaces/octave/libhpmpc_pro.a
+	cp libhpmpc.a ./test_problems/libhpmpc.a
+	cp libhpmpc.a ./interfaces/octave/libhpmpc.a
 	make -C test_problems obj
 	@echo
 	@echo " Test problem build complete."
@@ -154,14 +154,14 @@ run:
 
 #install: library
 install:
-	cp -f libhpmpc_pro.a /usr/lib/libhpmpc_pro.a
-	mkdir -p /usr/include/hpmpc_pro
-	cp -rf ./include/* /usr/include/hpmpc_pro
+	cp -f libhpmpc.a /usr/lib/libhpmpc.a
+	mkdir -p /usr/include/hpmpc
+	cp -rf ./include/* /usr/include/hpmpc
 	
 install_shared:
-	cp -f libhpmpc_pro.so /usr/lib/libhpmpc_pro.so
-	mkdir -p /usr/include/hpmpc_pro
-	cp -rf ./include/* /usr/include/hpmpc_pro
+	cp -f libhpmpc.so /usr/lib/libhpmpc.so
+	mkdir -p /usr/include/hpmpc
+	cp -rf ./include/* /usr/include/hpmpc
 	
 uninstall:
 	rm /usr/lib/libhpmpc.a
@@ -186,6 +186,6 @@ clean:
 #	rm -f *.s
 	rm -f target_generator.out
 	rm -f *.o
-	rm -f libhpmpc_pro.a
+	rm -f libhpmpc.a
 #	rm -f ./matlab/HPMPC.a
 
