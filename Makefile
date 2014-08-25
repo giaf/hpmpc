@@ -143,7 +143,7 @@ endif
 
 test_problem:
 	cp libhpmpc.a ./test_problems/libhpmpc.a
-	cp libhpmpc.a ./interfaces/octave/libhpmpc.a
+#	cp libhpmpc.a ./interfaces/octave/libhpmpc.a
 	make -C test_problems obj
 	@echo
 	@echo " Test problem build complete."

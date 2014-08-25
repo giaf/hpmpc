@@ -28,6 +28,9 @@ x0(2) = 3.5;
 if nx==4
 	x0 = [5 10 15 20]';
 end
+AA = repmat(A, 1, N);
+BB = repmat(B, 1, N);
+bb = repmat(b, 1, N);
 
 % cost function
 Q = eye(nx);
@@ -39,16 +42,25 @@ q = 1*Q*[ones(nx/2,1); zeros(nx/2,1)];
 qf = q;
 %r = zeros(nu,1);
 r = 1*R*ones(nu,1);
+QQ = repmat(Q, 1, N);
+SS = repmat(S, 1, N);
+RR = repmat(R, 1, N);
+qq = repmat(q, 1, N);
+rr = repmat(r, 1, N);
 
 % box constraints
-lb = -1e2*ones(nb,1);
-ub = 1e2*ones(nb,1);
+lb_u = -1e2*ones(nu,1);
+ub_u =  1e2*ones(nu,1);
 %db(1:2*nu) = -1.5;
 for ii=1:nu
-	lb(ii) = -2.5; % lower bound
-	ub(ii) = -0.1; % - upper bound
+	lb_u(ii) = -2.5; % lower bound
+	ub_u(ii) = -0.1; % - upper bound
 end
+lb_x = -1e2*ones(nx,1);
+ub_x =  1e2*ones(nx,1);
 #db(2*nu+1:end) = -4;
+llb = [repmat(lb_u, 1, N)(:) ; repmat(lb_x, 1, N)(:)];
+uub = [repmat(ub_u, 1, N)(:) ; repmat(ub_x, 1, N)(:)];
 
 % initial guess for states and inputs
 x = zeros(nx, N+1); %x(:,1) = x0; % initial condition
@@ -61,13 +73,16 @@ tol = 1e-4;		% tolerance in the duality measure
 infos = zeros(5, k_max);
 
 tic
-HPMPC_ip_box(k_max, tol, nx, nu, N, nb, A, B, b, Q, Qf, R, S, q, qf, r, x, u, lb, ub, infos, kk);
+HPMPC_ip_box(k_max, tol, nx, nu, N, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, x, u, kk, infos);
 toc
 
+kk
 infos(:,1:kk)'
 
-%u
-%x
+#u
+#x
+
+graphics_toolkit('gnuplot')
 
 figure()
 plot([0:N], x(:,:))

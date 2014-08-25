@@ -91,27 +91,28 @@
 #define PREC 'd'
 
 // number of iterations of IP method
-#define K_MAX 20
+/*#define K_MAX 20*/
 
 // tolerance in the duality measure
-#define TOL 1e-4
+/*#define TOL 1e-4*/
 
 /*// threshold in the duality measure to switch from single to double precision*/
 /*#define SP_THR 1e5*/
 
 // Debug flag
 #ifndef PC_DEBUG
-#define PC_DEBUG 1
+#define PC_DEBUG 0
 #endif /* PC_DEBUG */
 
 /* version dealing with equality constratins: is lb=ub, then fix the variable (corresponding column in A or B set to zero, and updated b) */
-int fortran_order_static_mem_ip_wrapper( const int nx2, const int nu2, const int N2,
+int fortran_order_static_mem_ip_wrapper( int k_max, double tol,
+                                         const int nx2, const int nu2, const int N2,
                                          double* A, double* B, double* b, 
                                          double* Q, double* Qf, double* S, double* R, 
                                          double* q, double* qf, double* r, 
                                          double* lb, double* ub, 
                                          double* x, double* u,
-                                         int* nIt )
+                                         int* nIt, double *stat )
 
 	{
 	
@@ -167,10 +168,10 @@ int fortran_order_static_mem_ip_wrapper( const int nx2, const int nu2, const int
 /*		const int anb = nal*((2*nb+nal-1)/nal);*/
 
         /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
-        int k_max = K_MAX; // maximum number of iterations in the IP method
-        double tol = TOL; // tolerance in the duality measure
+/*        int k_max = K_MAX; // maximum number of iterations in the IP method*/
+/*        double tol = TOL; // tolerance in the duality measure*/
         static double sigma_par[] = {0.4, 0.1, 0.001}; // control primal-dual IP behaviour
-        static double stat[5*K_MAX]; // statistics from the IP routine
+/*        static double stat[5*K_MAX]; // statistics from the IP routine*/
         static double work0[8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 5*D_ANZ + 2*D_ANX + 7*D_ANB) + 3*D_ANZ];
 /*        double *work0 = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 2*anx + 7*anb) + 3*anz)*sizeof(double));*/
         int warm_start = WARM_START;
@@ -277,9 +278,9 @@ int fortran_order_static_mem_ip_wrapper( const int nx2, const int nu2, const int
         for(jj=0; jj<nu; jj++)
             hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
 /*        d_cvt_mat2pmat(nx, nx, nu, bs, Q, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);*/
-        d_cvt_tran_mat2pmat(nx, nx, nu, bs, Q, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+        d_cvt_tran_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
         for(jj=0; jj<nx; jj++)
-            hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = q[jj];
+            hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
 /*        hpQ[N][(nx+nu)/bs*pnz*bs+(nx+nu)%bs+(nx+nu)*bs] = 1e35;*/
 
 		// input constraints
@@ -506,10 +507,10 @@ int fortran_order_static_mem_ip_wrapper( const int nx2, const int nu2, const int
 /*		const int anb = nal*((2*nb+nal-1)/nal);*/
 
         /*	float sp_thr = SP_THR; // threshold to switch between float and single precision*/
-        int k_max = K_MAX; // maximum number of iterations in the IP method
-        float tol = TOL; // tolerance in the duality measure
+/*        int k_max = K_MAX; // maximum number of iterations in the IP method*/
+/*        float tol = TOL; // tolerance in the duality measure*/
         static float sigma_par[] = {0.4, 0.1, 0.01}; // control primal-dual IP behaviour
-        static float stat[5*K_MAX]; // statistics from the IP routine
+/*        static float stat[5*K_MAX]; // statistics from the IP routine*/
         static float work0[16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 2*S_ANX + 7*S_ANB) + 3*S_ANZ];
 /*        float *work0 = (float *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 2*anx + 7*anb) + 3*anz)*sizeof(float));*/
         int warm_start = WARM_START;
@@ -615,9 +616,9 @@ int fortran_order_static_mem_ip_wrapper( const int nx2, const int nu2, const int
         for(jj=0; jj<nu; jj++)
             hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
 /*        cvt_d2s_mat2pmat(nx, nx, nu, bs, Q, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);*/
-        cvt_tran_d2s_mat2pmat(nx, nx, nu, bs, Q, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+        cvt_tran_d2s_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
         for(jj=0; jj<nx; jj++)
-            hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = (float) q[jj];
+            hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = (float) qf[jj];
 /*        hpQ[N][(nx+nu)/bs*pnz*bs+(nx+nu)%bs+(nx+nu)*bs] = 1e35;*/
 
 		// input constraints
@@ -697,17 +698,26 @@ int fortran_order_static_mem_ip_wrapper( const int nx2, const int nu2, const int
 		if(FREE_X0==0) // mpc
 			{
 		    if(IP==1)
-		        s_ip_box_mpc(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        s_ip_box_mpc(nIt, k_max, tol, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    else
-		        s_ip2_box_mpc(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        s_ip2_box_mpc(nIt, k_max, tol, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    }
 		else // mhe
 			{
 		    if(IP==1)
-		        s_ip_box_mhe(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        s_ip_box_mhe(nIt, k_max, tol, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    else
-		        s_ip2_box_mhe(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        s_ip2_box_mhe(nIt, k_max, tol, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    }
+
+
+
+/*		 convert stat into double */
+		float *ptr_stat = (float *) stat;
+		for(ii=5*k_max-1; ii>=0; ii--)
+			{
+			stat[ii] = (double) ptr_stat[ii];
+			}
 
 
 
