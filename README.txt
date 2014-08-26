@@ -8,19 +8,13 @@ The folder test_problems contains some test problem for the linear-algebra, for 
 
 /test_problems/Makefile
 
-The code comes in two version: generic and code-generation.
-
-The the generic version is a proper library, that can solver problems of every size. It is generated typing in a terminal the command
+The the code comes as a library, that can solver problems of every size. It is generated typing in a terminal the command
 
 $ make
 
 that also runs the test problem.
 
-The code-generation version can solver problem on only one size, to be specified in the file problem_size.h . It is generated typing in a terminal the command
-
-$ make codegen
-
-that also runs the test problem.
+A code-generated version is currently under development. More documentation will be available soon.
 
 Questions and comments can be send to the author Gianluca Frison, at the email address
 
