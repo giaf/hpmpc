@@ -375,16 +375,19 @@ void kernel_strsv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x)
 	int
 		k;
 	
-	float *tA, *tx;
+	float *tA, *tx, k_left_d;
 	tA = A;
 	tx = x;
 
 	__m256
+		mask,
 		zeros,
 		ax_temp,
 		a_00, a_01, a_02, a_03,
 		x_0,
 		y_0, y_1, y_2, y_3;
+
+	mask = _mm256_set_ps( 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5 ); 
 
 	zeros = _mm256_setzero_ps();
 
@@ -422,7 +425,8 @@ void kernel_strsv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x)
 
 	A += (sda-1)*lda;
 
-	for(; k<kmax-4; k+=8)
+/*	for(; k<kmax-4; k+=8)*/
+	for(; k<kmax-7; k+=8)
 		{
 		
 		x_0 = _mm256_loadu_ps( &x[0] );
@@ -447,11 +451,15 @@ void kernel_strsv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x)
 		x += lda;
 
 		}
-	for(; k<kmax; k+=4)
+/*	for(; k<kmax; k+=4)*/
+	if(k<kmax)
 		{
 		
+		k_left_d = (float) kmax-k;
+		
 		x_0 = _mm256_loadu_ps( &x[0] );
-		x_0 = _mm256_blend_ps( x_0, zeros, 0xf0 );
+/*		x_0 = _mm256_blend_ps( x_0, zeros, 0xf0 );*/
+		x_0 = _mm256_blendv_ps( x_0, zeros, _mm256_sub_ps( mask, _mm256_broadcast_ss( &k_left_d) ) );
 		
 		__builtin_prefetch( A + sda*lda + 0*lda );
 		__builtin_prefetch( A + sda*lda + 2*lda );

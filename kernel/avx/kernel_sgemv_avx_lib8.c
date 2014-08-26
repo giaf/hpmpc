@@ -50,12 +50,18 @@ void kernel_sgemv_t_8_lib8(int kmax, int kna, float *A, int sda, float *x, float
 	int
 		k, k_pre, ka=kmax-kna, k_left;
 	
+	float 
+		k_left_d, kna_d = (float) kna;
+	
 	__m256
+		mask,
 		zeros,
 		ax_temp,
 		a_00, a_01, a_02, a_03,
 		x_0,
 		y_0, y_1, y_2, y_3, y_4, y_5, y_6, y_7;
+
+	mask = _mm256_set_ps( 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5 ); 
 
 	zeros = _mm256_setzero_ps();
 
@@ -74,21 +80,7 @@ void kernel_sgemv_t_8_lib8(int kmax, int kna, float *A, int sda, float *x, float
 		k_pre = kna-lda; // < 0 !!!
 
 		x_0 = _mm256_loadu_ps( &x[k_pre] );
-
-		if(kna==1)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x7f );
-		else if(kna==2)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x3f );
-		else if(kna==3)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x1f );
-		else if(kna==4)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x0f );
-		else if(kna==5)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x07 );
-		else if(kna==6)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x03 );
-		else if(kna==7)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x01 );
+		x_0 = _mm256_blendv_ps( x_0, zeros, _mm256_sub_ps( _mm256_broadcast_ss( &kna_d), mask ) );
 		
 		__builtin_prefetch( A + sda*lda + 0*lda );
 		__builtin_prefetch( A + sda*lda + 2*lda );
@@ -131,16 +123,15 @@ void kernel_sgemv_t_8_lib8(int kmax, int kna, float *A, int sda, float *x, float
 		__builtin_prefetch( A + sda*lda + 2*lda );
 
 		a_00 = _mm256_load_ps( &A[0+lda*0] );
-		a_01 = _mm256_load_ps( &A[0+lda*1] );
-		a_02 = _mm256_load_ps( &A[0+lda*2] );
-		a_03 = _mm256_load_ps( &A[0+lda*3] );
-	
 		ax_temp = _mm256_mul_ps( a_00, x_0 );
 		y_0 = _mm256_add_ps( y_0, ax_temp );
+		a_01 = _mm256_load_ps( &A[0+lda*1] );
 		ax_temp = _mm256_mul_ps( a_01, x_0 );
 		y_1 = _mm256_add_ps( y_1, ax_temp );
+		a_02 = _mm256_load_ps( &A[0+lda*2] );
 		ax_temp = _mm256_mul_ps( a_02, x_0 );
 		y_2 = _mm256_add_ps( y_2, ax_temp );
+		a_03 = _mm256_load_ps( &A[0+lda*3] );
 		ax_temp = _mm256_mul_ps( a_03, x_0 );
 		y_3 = _mm256_add_ps( y_3, ax_temp );
 	
@@ -148,16 +139,15 @@ void kernel_sgemv_t_8_lib8(int kmax, int kna, float *A, int sda, float *x, float
 		__builtin_prefetch( A + sda*lda + 6*lda );
 
 		a_00 = _mm256_load_ps( &A[0+lda*4] );
-		a_01 = _mm256_load_ps( &A[0+lda*5] );
-		a_02 = _mm256_load_ps( &A[0+lda*6] );
-		a_03 = _mm256_load_ps( &A[0+lda*7] );
-	
 		ax_temp = _mm256_mul_ps( a_00, x_0 );
 		y_4 = _mm256_add_ps( y_4, ax_temp );
+		a_01 = _mm256_load_ps( &A[0+lda*5] );
 		ax_temp = _mm256_mul_ps( a_01, x_0 );
 		y_5 = _mm256_add_ps( y_5, ax_temp );
+		a_02 = _mm256_load_ps( &A[0+lda*6] );
 		ax_temp = _mm256_mul_ps( a_02, x_0 );
 		y_6 = _mm256_add_ps( y_6, ax_temp );
+		a_03 = _mm256_load_ps( &A[0+lda*7] );
 		ax_temp = _mm256_mul_ps( a_03, x_0 );
 		y_7 = _mm256_add_ps( y_7, ax_temp );
 
@@ -171,23 +161,11 @@ void kernel_sgemv_t_8_lib8(int kmax, int kna, float *A, int sda, float *x, float
 	if(k_left>0) // it can be only k_left = {1, 2, 3, 4, 5, 6, 7}
 		{
 		
-		x_0 = _mm256_loadu_ps( &x[0] );
-
-		if(k_left==1)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x01 );
-		else if(k_left==2)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x03 );
-		else if(k_left==3)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x07 );
-		else if(k_left==4)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x0f );
-		else if(k_left==5)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x1f );
-		else if(k_left==6)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x3f );
-		else if(k_left==7)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x7f );
+		k_left_d = (float) k_left;
 		
+		x_0 = _mm256_loadu_ps( &x[0] );
+		x_0 = _mm256_blendv_ps( x_0, zeros, _mm256_sub_ps( mask, _mm256_broadcast_ss( &k_left_d) ) );
+
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
 /*		__builtin_prefetch( A + sda*lda + 2*lda );*/
 
@@ -284,12 +262,18 @@ void kernel_sgemv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x, float
 	int
 		k, k_pre, ka=kmax-kna, k_left;
 	
+	float 
+		k_left_d, kna_d = (float) kna;
+
 	__m256
+		mask,
 		zeros,
 		ax_temp,
 		a_00, a_01, a_02, a_03,
 		x_0,
 		y_0, y_1, y_2, y_3;
+
+	mask = _mm256_set_ps( 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5 ); 
 
 	zeros = _mm256_setzero_ps();
 
@@ -304,22 +288,8 @@ void kernel_sgemv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x, float
 		k_pre = kna-lda; // < 0 !!!
 
 		x_0 = _mm256_loadu_ps( &x[k_pre] );
+		x_0 = _mm256_blendv_ps( x_0, zeros, _mm256_sub_ps( _mm256_broadcast_ss( &kna_d), mask ) );
 
-		if(kna==1)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x7f );
-		else if(kna==2)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x3f );
-		else if(kna==3)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x1f );
-		else if(kna==4)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x0f );
-		else if(kna==5)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x07 );
-		else if(kna==6)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x03 );
-		else if(kna==7)
-			x_0 = _mm256_blend_ps( x_0, zeros, 0x01 );
-		
 		__builtin_prefetch( A + sda*lda + 0*lda );
 		__builtin_prefetch( A + sda*lda + 2*lda );
 
@@ -371,22 +341,10 @@ void kernel_sgemv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x, float
 	if(k_left>0) // it can be only k_left = {1, 2, 3, 4, 5, 6, 7}
 		{
 		
-		x_0 = _mm256_loadu_ps( &x[0] );
+		k_left_d = (float) k_left;
 
-		if(k_left==1)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x01 );
-		else if(k_left==2)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x03 );
-		else if(k_left==3)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x07 );
-		else if(k_left==4)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x0f );
-		else if(k_left==5)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x1f );
-		else if(k_left==6)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x3f );
-		else if(k_left==7)
-			x_0 = _mm256_blend_ps( zeros, x_0, 0x7f );
+		x_0 = _mm256_loadu_ps( &x[0] );
+		x_0 = _mm256_blendv_ps( x_0, zeros, _mm256_sub_ps( mask, _mm256_broadcast_ss( &k_left_d) ) );
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
 /*		__builtin_prefetch( A + sda*lda + 2*lda );*/
