@@ -25,4 +25,4 @@
 
 #define NX 12
 #define NU 5
-#define NN 30
+#define NN 10

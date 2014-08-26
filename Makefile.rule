@@ -25,7 +25,7 @@
 
 
 
-# Target architecture, currently supported:
+# Target architecture, currently supported (more architectures are available with the older v0.1 release):
 # X64_AVX2   : machine with AVX2 and FMA3 instruction sets (recent Intel and AMD processors), 64 bit operating system.
 # X64_AVX    : machine with AVX instruction set (previous generation Intel and AMD processors), 64 bit operating system.
 # X64_SSE3   : machine with SSE3 instruction set (older Intel and AMD processors), 64 bit operating system.

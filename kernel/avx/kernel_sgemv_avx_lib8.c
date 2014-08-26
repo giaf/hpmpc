@@ -664,6 +664,11 @@ void kernel_sgemv_n_16_lib8(int kmax, float *A0, float *A1, float *x, float *y, 
 	
 	const int lda = 8;
 	
+	__builtin_prefetch( A0 + 0*lda );
+	__builtin_prefetch( A1 + 0*lda );
+	__builtin_prefetch( A0 + 1*lda );
+	__builtin_prefetch( A1 + 1*lda );
+
 	int k;
 
 	__m256
@@ -817,6 +822,9 @@ void kernel_sgemv_n_8_lib8(int kmax, float *A, float *x, float *y, int alg)
 	
 	const int lda = 8;
 	
+	__builtin_prefetch( A + 0*lda );
+	__builtin_prefetch( A + 2*lda );
+
 	int k;
 
 	__m256
