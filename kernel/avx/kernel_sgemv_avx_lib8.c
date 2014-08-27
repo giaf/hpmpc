@@ -53,6 +53,8 @@ void kernel_sgemv_t_8_lib8(int kmax, int kna, float *A, int sda, float *x, float
 	float 
 		k_left_d, kna_d = (float) kna;
 	
+	const float mask_f[] = {7.5, 6.5, 5.5, 4.5, 3.5, 2.5, 1.5, 0.5};
+	
 	__m256
 		mask,
 		zeros,
@@ -61,7 +63,8 @@ void kernel_sgemv_t_8_lib8(int kmax, int kna, float *A, int sda, float *x, float
 		x_0,
 		y_0, y_1, y_2, y_3, y_4, y_5, y_6, y_7;
 
-	mask = _mm256_set_ps( 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5 ); 
+/*	mask = _mm256_set_ps( 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5 ); */
+	mask = _mm256_loadu_ps( mask_f ); 
 
 	zeros = _mm256_setzero_ps();
 
@@ -265,6 +268,8 @@ void kernel_sgemv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x, float
 	float 
 		k_left_d, kna_d = (float) kna;
 
+	const float mask_f[] = {7.5, 6.5, 5.5, 4.5, 3.5, 2.5, 1.5, 0.5};
+
 	__m256
 		mask,
 		zeros,
@@ -273,7 +278,8 @@ void kernel_sgemv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x, float
 		x_0,
 		y_0, y_1, y_2, y_3;
 
-	mask = _mm256_set_ps( 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5 ); 
+/*	mask = _mm256_set_ps( 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5 ); */
+	mask = _mm256_loadu_ps( mask_f ); 
 
 	zeros = _mm256_setzero_ps();
 

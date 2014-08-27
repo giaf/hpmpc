@@ -379,6 +379,8 @@ void kernel_strsv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x)
 	tA = A;
 	tx = x;
 
+	const float mask_f[] = {7.5, 6.5, 5.5, 4.5, 3.5, 2.5, 1.5, 0.5};
+
 	__m256
 		mask,
 		zeros,
@@ -387,7 +389,8 @@ void kernel_strsv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x)
 		x_0,
 		y_0, y_1, y_2, y_3;
 
-	mask = _mm256_set_ps( 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5 ); 
+/*	mask = _mm256_set_ps( 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5 ); */
+	mask = _mm256_loadu_ps( mask_f ); 
 
 	zeros = _mm256_setzero_ps();
 
