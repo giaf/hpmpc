@@ -30,11 +30,11 @@ LIBS = -lm #-lopenblas
 ##OBJS_TEST = test_blas_d_debug.o
 ##OBJS_TEST = test_blas_s_debug.o
 #OBJS_TEST = test_blas_d.o
-#OBJS_TEST = test_blas_s.o
+OBJS_TEST = test_blas_s.o
 #OBJS_TEST = tools.o test_d_ric_sv.o
 #OBJS_TEST = tools.o test_s_ric_sv.o
 #OBJS_TEST = tools.o test_d_ip_box.o
-OBJS_TEST = tools.o test_s_ip_box.o
+#OBJS_TEST = tools.o test_s_ip_box.o
 
 obj: $(OBJS_TEST)
 	$(CC) -o test.out $(OBJS_TEST) -L. libhpmpc.a $(LIBS) #-pg

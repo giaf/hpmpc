@@ -69,7 +69,7 @@ void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 	x_n_2 = _mm256_broadcast_sd( &x_n[2] );
 	x_n_3 = _mm256_broadcast_sd( &x_n[3] );
 
-	if(alg==-1)
+	if(alg==-1) // TODO xor
 		{
 		x_n_0 = _mm256_sub_pd( zeros, x_n_0 );
 		x_n_1 = _mm256_sub_pd( zeros, x_n_1 );
