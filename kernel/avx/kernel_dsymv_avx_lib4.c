@@ -415,25 +415,28 @@ void kernel_dsymv_2_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 		x_t_0 = x_t[0];
 		
 		a_00 = A[0+bs*0];
-		a_01 = A[0+bs*1];
+/*		a_01 = A[0+bs*1];*/
 		
 /*		y_n_0 += a_00 * x_n_0;*/
 		y_t_0 += a_00 * x_t_0;
-		y_n_0 += a_01 * x_n_1;
-		y_t_1 += a_01 * x_t_0;
+/*		y_n_0 += a_01 * x_n_1;*/
+/*		y_t_1 += a_01 * x_t_0;*/
 		
 		y_n[0] = y_n_0;
 
 
-/*		y_n_0 = y_n[1];*/
+		y_n_0 = y_n[1];
 		x_t_0 = x_t[1];
-
+		
+		a_00 = A[1+bs*0];
 		a_01 = A[1+bs*1];
-
+		
+		y_n_0 += a_00 * x_n_0;
+		y_t_0 += a_00 * x_t_0;
 /*		y_n_0 += a_01 * x_n_1;*/
 		y_t_1 += a_01 * x_t_0;
 		
-/*		y_n[1] = y_n_0;*/
+		y_n[1] = y_n_0;
 
 		
 		A += 2;

@@ -27,7 +27,7 @@ include ../../Makefile.rule
 
 ifeq ($(TARGET), X64_AVX2)
 OBJS_DOUBLE = kernel_dgemm_avx2_lib4.o kernel_dtrmm_avx_lib4.o kernel_dtrsm_avx_lib4.o kernel_dpotrf_avx_lib4.o kernel_dgemv_avx_lib4.o kernel_dtrmv_avx_lib4.o kernel_dtrsv_avx_lib4.o kernel_dsymv_avx_lib4.o kernel_dtran_avx_lib4.o
-OBJS_SINGLE = kernel_sgemm_avx2_lib8.o kernel_strmm_avx2_lib8.o kernel_strsm_avx2_lib8.o kernel_spotrf_avx2_lib8.o kernel_sgemv_c99_lib8.o kernel_strmv_c99_lib8.o kernel_strsv_c99_lib8.o kernel_ssymv_c99_lib8.o kernel_stran_avx2_lib8.o 
+OBJS_SINGLE = kernel_sgemm_avx2_lib8.o kernel_strmm_avx2_lib8.o kernel_strsm_avx2_lib8.o kernel_spotrf_avx2_lib8.o kernel_sgemv_avx_lib8.o kernel_strmv_avx_lib8.o kernel_strsv_avx_lib8.o kernel_ssymv_avx_lib8.o kernel_stran_avx2_lib8.o 
 endif
 
 obj: $(OBJS_DOUBLE) $(OBJS_SINGLE)
