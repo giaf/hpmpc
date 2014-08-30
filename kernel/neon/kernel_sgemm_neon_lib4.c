@@ -294,29 +294,32 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 		"                                \n\t"
 		"cmp    %12, #0                   \n\t"
 		"beq    .D0_12x4                      \n\t" // if alg==0, jump
+		"                                \n\t"// alg==-1
+		"ldr    r0, %6                   \n\t" // load address of C0
+		"ldr    r1, %7                   \n\t" // load address of C1
+		"ldr    r2, %8                   \n\t" // load address of C2
 		"                                \n\t"
-		"pld    [%6, #0]                \n\t" // C0
-		"pld    [%7, #0]                \n\t" // C1
-		"pld    [%8, #0]                \n\t" // C2
+		"pld    [r0, #0]                \n\t" // C0
+		"pld    [r1, #0]                \n\t" // C1
+		"pld    [r2, #0]                \n\t" // C2
 		"                                \n\t"
 		"cmp    %12, #1                   \n\t"
 		"beq    .D1_12x4                      \n\t" // if alg==1, jump
 		"                                \n\t"
-		"                                \n\t"// alg==-1
-		"vld1.64   {d0, d1, d2, d3},   [%6:128]! \n\t" // load C0
-		"vld1.64   {d4, d5, d6, d7},   [%6:128]  \n\t" // load C0
+		"vld1.64   {d0, d1, d2, d3},   [r0:128]! \n\t" // load C0
+		"vld1.64   {d4, d5, d6, d7},   [r0:128]  \n\t" // load C0
 		"vsub.f32  q4, q0, q4            \n\t"
 		"vsub.f32  q5, q1, q5            \n\t"
-		"vld1.64   {d0, d1, d2, d3},   [%7:128]! \n\t" // load C0
+		"vld1.64   {d0, d1, d2, d3},   [r1:128]! \n\t" // load C0
 		"vsub.f32  q6, q2, q6            \n\t"
 		"vsub.f32  q7, q3, q7            \n\t"
-		"vld1.64   {d4, d5, d6, d7},   [%7:128]  \n\t" // load C0
+		"vld1.64   {d4, d5, d6, d7},   [r1:128]  \n\t" // load C0
 		"vsub.f32  q8, q0, q8            \n\t"
 		"vsub.f32  q9, q1, q9            \n\t"
-		"vld1.64   {d0, d1, d2, d3},   [%8:128]! \n\t" // load C0
+		"vld1.64   {d0, d1, d2, d3},   [r2:128]! \n\t" // load C0
 		"vsub.f32  q10, q2, q10            \n\t"
 		"vsub.f32  q11, q3, q11            \n\t"
-		"vld1.64   {d4, d5, d6, d7},   [%8:128]  \n\t" // load C0
+		"vld1.64   {d4, d5, d6, d7},   [r2:128]  \n\t" // load C0
 		"vsub.f32  q12, q0, q12            \n\t"
 		"vsub.f32  q13, q1, q13            \n\t"
 		"vsub.f32  q14, q2, q14            \n\t"
@@ -327,20 +330,20 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 		"                                \n\t"
 		".D1_12x4:                            \n\t" // alg==1
 		"                                \n\t"
-		"vld1.64   {d0, d1, d2, d3},   [%6:128]! \n\t" // load C0
-		"vld1.64   {d4, d5, d6, d7},   [%6:128]  \n\t" // load C0
+		"vld1.64   {d0, d1, d2, d3},   [r0:128]! \n\t" // load C0
+		"vld1.64   {d4, d5, d6, d7},   [r0:128]  \n\t" // load C0
 		"vadd.f32  q4, q0, q4            \n\t"
 		"vadd.f32  q5, q1, q5            \n\t"
-		"vld1.64   {d0, d1, d2, d3},   [%7:128]! \n\t" // load C0
+		"vld1.64   {d0, d1, d2, d3},   [r1:128]! \n\t" // load C0
 		"vadd.f32  q6, q2, q6            \n\t"
 		"vadd.f32  q7, q3, q7            \n\t"
-		"vld1.64   {d4, d5, d6, d7},   [%7:128]  \n\t" // load C0
+		"vld1.64   {d4, d5, d6, d7},   [r1:128]  \n\t" // load C0
 		"vadd.f32  q8, q0, q8            \n\t"
 		"vadd.f32  q9, q1, q9            \n\t"
-		"vld1.64   {d0, d1, d2, d3},   [%8:128]! \n\t" // load C0
+		"vld1.64   {d0, d1, d2, d3},   [r2:128]! \n\t" // load C0
 		"vadd.f32  q10, q2, q10            \n\t"
 		"vadd.f32  q11, q3, q11            \n\t"
-		"vld1.64   {d4, d5, d6, d7},   [%8:128]  \n\t" // load C0
+		"vld1.64   {d4, d5, d6, d7},   [r2:128]  \n\t" // load C0
 		"vadd.f32  q12, q0, q12            \n\t"
 		"vadd.f32  q13, q1, q13            \n\t"
 		"vadd.f32  q14, q2, q14            \n\t"
@@ -348,12 +351,16 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 		"                                \n\t"
 		".D0_12x4:                            \n\t" // alg==0
 		"                                \n\t"
-		"vst1.64   {d8, d9, d10, d11},     [%9:128]!  \n\t" // store D0
-		"vst1.64   {d12, d13, d14, d15},   [%9:128]  \n\t" // store D0
-		"vst1.64   {d16, d17, d18, d19},   [%10:128]!  \n\t" // store D0
-		"vst1.64   {d20, d21, d22, d23},   [%10:128]  \n\t" // store D0
-		"vst1.64   {d24, d25, d26, d27},   [%11:128]!  \n\t" // store D0
-		"vst1.64   {d28, d29, d30, d31},   [%11:128]  \n\t" // store D0
+		"ldr    r0, %9                   \n\t" // load address of C0
+		"ldr    r1, %10                  \n\t" // load address of C1
+		"ldr    r2, %11                  \n\t" // load address of C2
+		"                                \n\t"
+		"vst1.64   {d8, d9, d10, d11},     [r0:128]!  \n\t" // store D0
+		"vst1.64   {d12, d13, d14, d15},   [r0:128]  \n\t" // store D0
+		"vst1.64   {d16, d17, d18, d19},   [r1:128]!  \n\t" // store D0
+		"vst1.64   {d20, d21, d22, d23},   [r1:128]  \n\t" // store D0
+		"vst1.64   {d24, d25, d26, d27},   [r2:128]!  \n\t" // store D0
+		"vst1.64   {d28, d29, d30, d31},   [r2:128]  \n\t" // store D0
 /*		"                                \n\t"*/
 /*		"                                \n\t"*/
 		"                                \n\t"
@@ -374,15 +381,15 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 		  "r" (A1),			// %3
 		  "r" (A2),			// %4
 		  "r" (B),			// %5
-		  "r" (C0),			// %6
-		  "r" (C1),			// %7
-		  "r" (C2),			// %8
-		  "r" (D0),			// %9
-		  "r" (D1),			// %10
-		  "r" (D2),			// %11
+		  "m" (C0),			// %6
+		  "m" (C1),			// %7
+		  "m" (C2),			// %8
+		  "m" (D0),			// %9
+		  "m" (D1),			// %10
+		  "m" (D2),			// %11
 		  "r" (alg)			// %12
 		: // register clobber list
-		  "r0",
+		  "r0", "r1", "r2",
 		  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
 		  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
 		  "d16", "d17", "d18", "d19", "d20", "d21", "d22", "d23",
