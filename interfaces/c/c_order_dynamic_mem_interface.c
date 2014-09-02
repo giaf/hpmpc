@@ -838,7 +838,93 @@ int c_order_dynamic_mem_riccati_wrapper_init( const int nx, const int nu, const 
 
 
 		}
+    else if(prec=='s')
+	    {
+	    
+		const int bs = S_MR; //d_get_mr();
+		const int ncl = S_NCL;
+		const int nal = S_MR*S_NCL;
 	
+		const int nz = nx+nu+1;
+		const int pnz = bs*((nz+bs-1)/bs);
+		const int pnx = bs*((nx+bs-1)/bs);
+		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
+		const int cnx = ncl*((nx+ncl-1)/ncl);
+		const int anz = nal*((nz+nal-1)/nal);
+		const int anx = nal*((nx+nal-1)/nal);
+
+		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
+		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+
+		double *work = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + anz + anx) + 3*anz)*sizeof(float));
+		*ptr_work = work;
+        
+		int compute_mult = 1; // compute multipliers
+
+		int i, ii, jj, ll;
+
+
+		/* align work space */
+		size_t align = 64; // max cache line size for all supported architectures
+		size_t addr = (size_t) work;
+		size_t offset = addr % 64;
+		float *ptr = (float *) (work + offset / 8);
+
+		/* array or pointers */
+		float *(hpBAbt[N]);
+		float *(hpQ[N + 1]);
+
+		for(ii=0; ii<N; ii++)
+			{
+			hpBAbt[ii] = ptr;
+			ptr += pnz*cnx;
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hpQ[ii] = ptr;
+			ptr += pnz*cnz;
+			}
+
+
+		/* pack matrices 	*/
+
+		// dynamic system
+		for(ii=0; ii<N; ii++)
+			{
+			cvt_d2s_mat2pmat(nu, nx, 0, bs, B+ii*nu*nx, nu, hpBAbt[ii], cnx);
+			cvt_d2s_mat2pmat(nx, nx, nu, bs, A+ii*nx*nx, nx, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
+			for (jj = 0; jj<nx; jj++)
+				hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
+			}
+
+		// cost function
+		for(jj=0; jj<N; jj++)
+			{
+			cvt_d2s_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
+			cvt_d2s_mat2pmat(nx, nu, nu, bs, S+jj*nx*nu, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
+			cvt_d2s_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+			for(ii=0; ii<nu; ii++)
+				hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
+			for(ii=0; ii<nx; ii++)
+				hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+ii)*bs] = q[ii+nx*jj];
+/*            hpQ[jj][(nx+nu)/bs*pnz*bs+(nx+nu)%bs+(nx+nu)*bs] = 1e35;*/
+			}
+
+		for(jj=0; jj<nu; jj++)
+			for(ii=0; ii<nz; ii+=bs)
+				for(i=0; i<bs; i++)
+					hpQ[N][ii*cnz+i+jj*bs] = 0.0;
+		for(jj=0; jj<nu; jj++)
+			hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
+		cvt_d2s_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+		for(jj=0; jj<nx; jj++)
+			hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
+/*        hpQ[N][(nx+nu)/bs*pnz*bs+(nx+nu)%bs+(nx+nu)*bs] = 1e35;*/
+
+
+		}
+
 	return 0;
 
 	}
@@ -880,9 +966,6 @@ int c_order_dynamic_mem_riccati_wrapper_fact_solve( const int nx, const int nu, 
 
 		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
-
-/*		double *work = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 2*anx + 7*anb) + 3*anz)*sizeof(double)); // TODO right amount of memory*/
-/*		*ptr_work = work;*/
         
 		int compute_mult = 1; // compute multipliers
 
@@ -961,6 +1044,119 @@ int c_order_dynamic_mem_riccati_wrapper_fact_solve( const int nx, const int nu, 
 
 		// call Riccati solver
 		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work1, diag, compute_mult, hpi);
+
+
+
+		// copy back inputs
+		for(jj=0; jj<N; jj++)
+			for(ii=0; ii<nu; ii++)
+				u[ii+nu*jj] = hux[jj][ii];
+
+		// copy back states
+		for(jj=0; jj<N; jj++)
+			for(ii=0; ii<nx; ii++)
+				x[ii+nx*(jj+1)] = hux[jj+1][nu+ii];
+
+		// copy back lagrangian multipliers
+		for(jj=0; jj<N; jj++)
+			for(ii=0; ii<nx; ii++)
+				pi[ii+nx*jj] = hpi[jj+1][ii];
+
+		}
+    else if(prec=='s')
+	    {
+	    
+		const int bs = S_MR; //d_get_mr();
+		const int ncl = S_NCL;
+		const int nal = S_MR*S_NCL;
+	
+		const int nz = nx+nu+1;
+		const int pnz = bs*((nz+bs-1)/bs);
+		const int pnx = bs*((nx+bs-1)/bs);
+		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
+		const int cnx = ncl*((nx+ncl-1)/ncl);
+		const int anz = nal*((nz+nal-1)/nal);
+		const int anx = nal*((nx+nal-1)/nal);
+
+		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
+		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+		int compute_mult = 1; // compute multipliers
+
+		int i, ii, jj, ll;
+
+
+		/* align work space */
+		size_t align = 64; // max cache line size for all supported architectures
+		size_t addr = (size_t) work;
+		size_t offset = addr % 64;
+		float *ptr = (float *) (work + offset / 8);
+
+		/* array or pointers */
+		float *(hpBAbt[N]);
+		float *(hpQ[N + 1]);
+		float *(hpL[N + 1]);
+		float *(hux[N + 1]);
+		float *(hpi[N + 1]);
+		float *work1;
+		float *diag;
+
+		// dynamic system
+		for(ii=0; ii<N; ii++)
+			{
+			hpBAbt[ii] = ptr;
+			ptr += pnz*cnx;
+			}
+
+		// cost function
+		for(ii=0; ii<=N; ii++)
+			{
+			hpQ[ii] = ptr;
+			ptr += pnz*cnz;
+			}
+
+		// work space
+		for(jj=0; jj<=N; jj++)
+			{
+			hpL[jj] = ptr;
+			ptr += pnz*cnl;
+			}
+
+		// states and inputs
+		for(ii=0; ii<=N; ii++)
+			{
+			hux[ii] = ptr;
+			ptr += anz;
+			}
+		
+		// eq. constr. multipliers
+        for(ii=0; ii<=N; ii++) 
+			{
+			hpi[ii] = ptr;
+			ptr += anx;
+			}
+
+		// work space
+		work1 = ptr;
+		ptr += 2*anz;
+
+		diag = ptr;
+		ptr += anz;
+
+
+
+		// initial state
+		for(jj=0; jj<N; jj++)
+			for(ii=0; ii<nu; ii++)
+				hux[jj][ii] = u[ii+nu*jj];
+
+		for(jj=0; jj<=N; jj++)
+			for(ii=0; ii<nx; ii++)
+                hux[jj][nu+ii] = x[ii+nx*jj];
+        
+
+
+		// call Riccati solver
+		s_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work1, diag, compute_mult, hpi);
 
 
 
