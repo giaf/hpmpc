@@ -715,8 +715,8 @@ void kernel_ssymv_2_lib8(int kmax, int kna, float *A, int sda, float *x_n, float
 		y_n_0 = y_n[0];
 		x_t_0 = x_t[0];
 		
-		a_00 = A[0+bs*0];
-/*		a_01 = A[0+bs*1];*/
+		a_00 = A[0+lda*0];
+/*		a_01 = A[0+lda*1];*/
 		
 /*		y_n_0 += a_00 * x_n_0;*/
 		y_t_0 += a_00 * x_t_0;
@@ -729,8 +729,8 @@ void kernel_ssymv_2_lib8(int kmax, int kna, float *A, int sda, float *x_n, float
 		y_n_0 = y_n[1];
 		x_t_0 = x_t[1];
 		
-		a_00 = A[1+bs*0];
-		a_01 = A[1+bs*1];
+		a_00 = A[1+lda*0];
+		a_01 = A[1+lda*1];
 		
 		y_n_0 += a_00 * x_n_0;
 		y_t_0 += a_00 * x_t_0;

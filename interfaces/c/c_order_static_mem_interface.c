@@ -376,7 +376,7 @@ int c_order_static_mem_ip_wrapper(	int k_max, double tol,
 
         for(jj=0; jj<=N; jj++)
             for(ii=0; ii<nx; ii++)
-                hux[0][nu+ii] = x[ii];
+                hux[jj][nu+ii] = x[ii+nx*jj];
 
 
 
@@ -678,7 +678,7 @@ int c_order_static_mem_ip_wrapper(	int k_max, double tol,
 
         for(jj=0; jj<=N; jj++)
             for(ii=0; ii<nx; ii++)
-                hux[0][nu+ii] = (float) x[ii];
+                hux[jj][nu+ii] = (float) x[ii+nx*jj];
 
 
 
