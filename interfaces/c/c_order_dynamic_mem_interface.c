@@ -1206,10 +1206,10 @@ int c_order_dynamic_mem_riccati_wrapper_fact_solve( const int nx, const int nu, 
 
 
 
-int c_order_dynamic_mem_riccati_wrapper_fact( const int nx, const int nu, const int N,
-                                              double *q, double *qf, double *r,
-                                              double *x, double *u, double *pi,
-                                              double *work )
+int c_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const int N,
+                                               double *q, double *qf, double *r,
+                                               double *x, double *u, double *pi,
+                                               double *work )
 	{
 
 	char prec = PREC;

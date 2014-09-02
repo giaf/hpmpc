@@ -61,8 +61,8 @@ tic
 HPMPC_riccati(nx, nu, N, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, x, u, pI);
 toc
 
-#u
-#x
+u
+x
 
 graphics_toolkit('gnuplot')
 
