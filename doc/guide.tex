@@ -157,13 +157,14 @@ Input arguments are, in the order
 \item[const int nx] number of states
 \item[const int nu] number of inputs
 \item[const int N] control horizon lenght
+\item[double *b] pointer to an array of doubles containing the $N$ vectors $b_n$ (each of size $n_x$) stored one after the other.
 \item[double *q] pointer to an array of doubles containing the $N$ vectors $q_n$ (each of size $n_x$) stored one after the other.
 \item[double *qf] pointer to an array of doubles containing the vector $q_f$ (of size $n_x$).
 \item[double *r] pointer to an array of doubles containing the $N$ vectors $r_n$ (each of size $n_u$) stored one after the other.
 \item[double *x] pointer to an array of doubles containing the $N+1$ states vectors $x_n$ (each of size $n_x$) stored one after the other. On input, $x_0$ must contain the initial state. On output, it contains the optimal states sequence.
 \item[double *u] pointer to an array of doubles containing the $N$ inputs vectors $u_n$ (each of size $n_u$) stored one after the other. On output, it contains the optimal inputs sequence.
 \item[double *pi] pointer to an array of doubles containing the $N+1$ equality constraints Lagrangian multipliers vectors $\pi_n$ (each of size $n_x$) stored one after the other. On output, it contains the optimal multipliers sequence.
-\item[double *work] pointer to an array of doubles, as previously allocated and initialized by the init routine. On output, it contains information about the factorized KKT matrix.
+\item[double *work] pointer to an array of doubles, as previously allocated and initialized by the init routine. On input, it must contain information about the factorized KKT matrix as given by the fact routine.
 \end{description}
 
 

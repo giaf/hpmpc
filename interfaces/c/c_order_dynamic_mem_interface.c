@@ -693,7 +693,7 @@ int c_order_dynamic_mem_ip_wrapper(	int k_max, double tol,
 		    }
 		
 
-/*		 convert stat into double */
+		// convert stat into double (start fom end !!!)
 		float *ptr_stat = (float *) stat;
 		for(ii=5*k_max-1; ii>=0; ii--)
 			{
@@ -896,7 +896,7 @@ int c_order_dynamic_mem_riccati_wrapper_init( const int nx, const int nu, const 
 			cvt_d2s_mat2pmat(nu, nx, 0, bs, B+ii*nu*nx, nu, hpBAbt[ii], cnx);
 			cvt_d2s_mat2pmat(nx, nx, nu, bs, A+ii*nx*nx, nx, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
 			for (jj = 0; jj<nx; jj++)
-				hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
+				hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = (float) b[ii*nx+jj];
 			}
 
 		// cost function
@@ -906,9 +906,9 @@ int c_order_dynamic_mem_riccati_wrapper_init( const int nx, const int nu, const 
 			cvt_d2s_mat2pmat(nx, nu, nu, bs, S+jj*nx*nu, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
 			cvt_d2s_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
 			for(ii=0; ii<nu; ii++)
-				hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
+				hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = (float) r[ii+jj*nu];
 			for(ii=0; ii<nx; ii++)
-				hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+ii)*bs] = q[ii+nx*jj];
+				hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+ii)*bs] = (float) q[ii+nx*jj];
 /*            hpQ[jj][(nx+nu)/bs*pnz*bs+(nx+nu)%bs+(nx+nu)*bs] = 1e35;*/
 			}
 
@@ -920,7 +920,7 @@ int c_order_dynamic_mem_riccati_wrapper_init( const int nx, const int nu, const 
 			hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
 		cvt_d2s_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
 		for(jj=0; jj<nx; jj++)
-			hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
+			hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = (float) qf[jj];
 /*        hpQ[N][(nx+nu)/bs*pnz*bs+(nx+nu)%bs+(nx+nu)*bs] = 1e35;*/
 
 
@@ -1174,7 +1174,7 @@ int c_order_dynamic_mem_riccati_wrapper_fact_solve( const int nx, const int nu, 
 /*                hux[jj][nu+ii] = x[ii+nx*jj];*/
 
 		for(ii=0; ii<nx; ii++)
-            hux[0][nu+ii] = x[ii];
+            hux[0][nu+ii] = (float) x[ii];
         
 
 
@@ -1186,17 +1186,17 @@ int c_order_dynamic_mem_riccati_wrapper_fact_solve( const int nx, const int nu, 
 		// copy back inputs
 		for(jj=0; jj<N; jj++)
 			for(ii=0; ii<nu; ii++)
-				u[ii+nu*jj] = hux[jj][ii];
+				u[ii+nu*jj] = (double) hux[jj][ii];
 
 		// copy back states
 		for(jj=0; jj<N; jj++)
 			for(ii=0; ii<nx; ii++)
-				x[ii+nx*(jj+1)] = hux[jj+1][nu+ii];
+				x[ii+nx*(jj+1)] = (double) hux[jj+1][nu+ii];
 
 		// copy back lagrangian multipliers
 		for(jj=0; jj<N; jj++)
 			for(ii=0; ii<nx; ii++)
-				pi[ii+nx*jj] = hpi[jj+1][ii];
+				pi[ii+nx*jj] = (double) hpi[jj+1][ii];
 
 		}
 
@@ -1207,6 +1207,7 @@ int c_order_dynamic_mem_riccati_wrapper_fact_solve( const int nx, const int nu, 
 
 
 int c_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const int N,
+                                               double *b,
                                                double *q, double *qf, double *r,
                                                double *x, double *u, double *pi,
                                                double *work )
@@ -1326,9 +1327,14 @@ int c_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const
 /*			for(ii=0; ii<nx; ii++)*/
 /*                hux[jj][nu+ii] = x[ii+nx*jj];*/
 
+		// initialize x0
 		for(ii=0; ii<nx; ii++)
             hux[0][nu+ii] = x[ii];
         
+		// copy b into x
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nx; jj++) 
+				hux[ii+1][nu+jj] = b[jj+nx*ii]; // copy b
 
 
 		// call Riccati solver
@@ -1445,14 +1451,14 @@ int c_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const
 		// linear part of cost function
 		for(jj=0; jj<N; jj++)
 			for(ii=0; ii<nu; ii++)
-				hpl[jj][ii] = r[ii+nu*jj];
+				hpl[jj][ii] = (float) r[ii+nu*jj];
 
 		for(jj=0; jj<N; jj++)
 			for(ii=0; ii<nx; ii++)
-                hpl[jj][nu+ii] = q[ii+nx*jj];
+                hpl[jj][nu+ii] = (float) q[ii+nx*jj];
         
 		for(ii=0; ii<nx; ii++)
-            hpl[N][nu+ii] = qf[ii];
+            hpl[N][nu+ii] = (float) qf[ii];
 
 
 
@@ -1465,8 +1471,14 @@ int c_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const
 /*			for(ii=0; ii<nx; ii++)*/
 /*                hux[jj][nu+ii] = x[ii+nx*jj];*/
         
+		// initialize x0
 		for(ii=0; ii<nx; ii++)
-            hux[0][nu+ii] = x[ii];
+            hux[0][nu+ii] = (float) x[ii];
+        
+		// copy b into x
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nx; jj++) 
+				hux[ii+1][nu+jj] = (float) b[jj+nx*ii]; // copy b
 
 
 
@@ -1478,17 +1490,17 @@ int c_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const
 		// copy back inputs
 		for(jj=0; jj<N; jj++)
 			for(ii=0; ii<nu; ii++)
-				u[ii+nu*jj] = hux[jj][ii];
+				u[ii+nu*jj] = (double) hux[jj][ii];
 
 		// copy back states
 		for(jj=0; jj<N; jj++)
 			for(ii=0; ii<nx; ii++)
-				x[ii+nx*(jj+1)] = hux[jj+1][nu+ii];
+				x[ii+nx*(jj+1)] = (double) hux[jj+1][nu+ii];
 
 		// copy back lagrangian multipliers
 		for(jj=0; jj<N; jj++)
 			for(ii=0; ii<nx; ii++)
-				pi[ii+nx*jj] = hpi[jj+1][ii];
+				pi[ii+nx*jj] = (double) hpi[jj+1][ii];
 
 		}
 

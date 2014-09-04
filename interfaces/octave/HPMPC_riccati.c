@@ -18,7 +18,7 @@
 int fortran_order_dynamic_mem_riccati_wrapper_init( const int nx, const int nu, const int N, double *A, double *B, double *b, double *Q, double *Qf, double *S, double *R, double *q, double *qf, double *r, double **ptr_work );
 int fortran_order_dynamic_mem_riccati_wrapper_free( double *work );
 int fortran_order_dynamic_mem_riccati_wrapper_fact_solve( const int nx, const int nu, const int N, double *x, double *u, double *pi, double *work );
-
+int fortran_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const int N, double *b, double *q, double *qf, double *r, double *x, double *u, double *pi, double *work );
 
 
 
@@ -55,7 +55,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	fortran_order_dynamic_mem_riccati_wrapper_fact_solve( nx, nu, N, x, u, pi, work );
 /*	printf("\nfact and solve\n\n");*/
 	
-/*	fortran_order_dynamic_mem_riccati_wrapper_solve( nx, nu, N, q, qf, r, x, u, pi, work );*/
+/*	fortran_order_dynamic_mem_riccati_wrapper_solve( nx, nu, N, b, q, qf, r, x, u, pi, work );*/
 /*	printf("\ntri solve\n\n");*/
 
 	fortran_order_dynamic_mem_riccati_wrapper_free( work );

@@ -292,6 +292,13 @@ void s_ip2_box_mpc(int *kk, int k_max, float tol, int warm_start, float *sigma_p
 /*s_print_mat(1, nx+nu, pl2[N], 1);*/
 
 
+		// copy b into x
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nx; jj++) 
+				dux[ii+1][nu+jj] = pBAbt[ii][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj]; // copy b
+
+
+
 		// solve the system
 		s_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl2, dux, work, compute_mult, dpi);
 
