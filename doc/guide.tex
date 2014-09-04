@@ -85,6 +85,8 @@ As a consequence, the each wrapper comes in 4 variants, for all combinations of 
 
 \section{Solvers for problem (\ref{lqcp})}
 
+The linear-quadratic control problem (\ref{lqcp}) is solved using a modified version of Riccati recursion, improving small-scale performance with respect to the classical version.
+
 \subsection{xxx\_order\_dynamic\_mem\_riccati\_wrapper\_init() } 
 where 'xxx' can be either 'c' (i.e. row-major) or 'fortran' (i.e. column-major) order.
 
@@ -109,6 +111,7 @@ Input arguments are, in the order
 \item[double **ptr\_work] address of the pointer to an array of doubles, used to return the memory dynamically allocated by the routine, and containing the packed matrices.
 \end{description}
 
+
 \subsection{xxx\_order\_dynamic\_mem\_riccati\_wrapper\_free() } 
 where 'xxx' can be either 'c' (i.e. row-major) or 'fortran' (i.e. column-major) order.
 
@@ -119,5 +122,60 @@ Input arguments are, in the order
 \begin{description}
 \item[double *work] pointer to the memory to be deallocated.
 \end{description}
+
+
+\subsection{xxx\_order\_dynamic\_mem\_riccati\_wrapper\_fact\_solve() } 
+where 'xxx' can be either 'c' (i.e. row-major) or 'fortran' (i.e. column-major) order.
+
+This routine factorizes the KKT matrix and solves the KKT system using a modified Riccati recursion.
+The data in packed matrix format has to be initialized beforehand by the init routine, and it is passed in the work space.
+After execution, the data in the factorized KKT matrix is passed in the work space.
+It returns 0 if execution went fine.
+
+Input arguments are, in the order
+\begin{description}
+\item[const int nx] number of states
+\item[const int nu] number of inputs
+\item[const int N] control horizon lenght
+\item[double *x] pointer to an array of doubles containing the $N+1$ states vectors $x_n$ (each of size $n_x$) stored one after the other. On input, $x_0$ must contain the initial state. On output, it contains the optimal states sequence.
+\item[double *u] pointer to an array of doubles containing the $N$ inputs vectors $u_n$ (each of size $n_u$) stored one after the other. On output, it contains the optimal inputs sequence.
+\item[double *pi] pointer to an array of doubles containing the $N+1$ equality constraints Lagrangian multipliers vectors $\pi_n$ (each of size $n_x$) stored one after the other. On output, it contains the optimal multipliers sequence.
+\item[double *work] pointer to an array of doubles, as previously allocated and initialized by the init routine. On output, it contains information about the factorized KKT matrix.
+\end{description}
+
+
+\subsection{xxx\_order\_dynamic\_mem\_riccati\_wrapper\_solve() } 
+where 'xxx' can be either 'c' (i.e. row-major) or 'fortran' (i.e. column-major) order.
+
+This routine solves the KKT system using a modified Riccati recursion, reusing a previous factorization of the KKT system.
+It is used to solve several KKT systems with the same LHS matrix, but different RHS vector, without factorizing the KKT matrix again, as e.g. in predictor corrector interior-point methods, or in mixed precision algorithms.
+The data in packed matrix format has to be initialized beforehand by the init routine, and the KKT matrix factorized by the fact routine, and both are passed in the work space.
+It returns 0 if execution went fine.
+
+Input arguments are, in the order
+\begin{description}
+\item[const int nx] number of states
+\item[const int nu] number of inputs
+\item[const int N] control horizon lenght
+\item[double *q] pointer to an array of doubles containing the $N$ vectors $q_n$ (each of size $n_x$) stored one after the other.
+\item[double *qf] pointer to an array of doubles containing the vector $q_f$ (of size $n_x$).
+\item[double *r] pointer to an array of doubles containing the $N$ vectors $r_n$ (each of size $n_u$) stored one after the other.
+\item[double *x] pointer to an array of doubles containing the $N+1$ states vectors $x_n$ (each of size $n_x$) stored one after the other. On input, $x_0$ must contain the initial state. On output, it contains the optimal states sequence.
+\item[double *u] pointer to an array of doubles containing the $N$ inputs vectors $u_n$ (each of size $n_u$) stored one after the other. On output, it contains the optimal inputs sequence.
+\item[double *pi] pointer to an array of doubles containing the $N+1$ equality constraints Lagrangian multipliers vectors $\pi_n$ (each of size $n_x$) stored one after the other. On output, it contains the optimal multipliers sequence.
+\item[double *work] pointer to an array of doubles, as previously allocated and initialized by the init routine. On output, it contains information about the factorized KKT matrix.
+\end{description}
+
+
+
+\chapter{References}
+
+The HPMPC library is the result of a long research path that led to a novel way to implement solvers for MPC, specially tailored to small-medium scale problems.
+The library has undergone several revisions before being published, and some of the steps along this research path are documented in the following papers.
+\begin{itemize}
+\item G. Frison, H.H.B. S{\o}rensen, B. Dammann, J.B. J{\o}rgensen, \emph{ High-Performance Small-Scale Solvers for Linear Model Predictive Control}, in proceedings of 13th European Control Conference, Strasbourg (France), 2014.
+\item G. Frison, L.E. Sokoler, J.B. J{\o}rgensen, \emph{A Family of High-Performance Solvers for Linear Model Predictive Control}, in proceedings of 19th IFAC World Congress, Cape Town (South Africa), 2014.
+\end{itemize}
+
 
 \end{document}
