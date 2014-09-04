@@ -22,10 +22,10 @@ A basic API is provided for these solvers, while lower level interfaces provide 
 The library is self-contained, not requiring any other library beside the standard C library.
 
 The code is highly-optimized for a number of common architectures, plus a reference version in plain C code.
-The code is intended to be used on a Linux machine (it has been developed on this OS) and using gcc as a compiler (the code for some architecture makes use of extended asm inlyne assembly).
+The code is intended to be used on a Linux machine (it has been developed on this OS) and using gcc as a compiler (the code for some architecture makes use of extended asm inline assembly).
 The time-critical routines have been carefully implemented in assembly exploiting architecture-specific features, so there would be no practical advantage in compiling the code with more performing (read commercial) compilers.
 
-The library is released under the LGPL version 3 licence, and it can be used as a basis for the development of higher-level solvers for MPC or other applications extremely fast solvers for small-medium scale problems.
+The library is released under the LGPL version 3 licence, and it can be used as a basis for the development of higher-level solvers for MPC or other applications requiring extremely fast solvers for small-medium scale problems.
 
 
 
@@ -66,6 +66,76 @@ s.t. &&& x_{n+1} = A_nx_n+B_nu_n+b_n \\
 \label{lmpc}
 \end{equation}
 where $n\in\{0,1,\dots,N-1\}$, $\varphi_n(x_n,u_n)$ and $\varphi_N(x_N)$ are defined as in (\ref{cflq}). Again, all matrices can in general be dense and time variant.
+
+
+
+\chapter{Compilation and installation of the library}
+
+The code has been developed and tested on Linux machines, using gcc as compiler.
+The library is mainly written in C code, with time-critical parts (kernels) written using intrinsics or extended asm inline assembly: from here the need for the gcc compiler (also clang should work, even if it has not been tested yet).
+The use of commercial compilers would not improve performance.
+
+Time-critical routines are carefully optimized by hand for a number of architectures, using assembly to explicitly exploit e.g. the number of registers and SIMD instruction sets specific to each architecture.
+
+%\section{Complilation}
+
+As already said, the code is expected to be compiled using {\tt gcc}, and is self-contained, depending only on the standard library.
+{\tt gcc} is usually part of all Linux distributions.
+
+Redarding utilities, {\tt make} is used to automate the compilation of the code, and {\tt ar} to build the static library: both of them are usually part of all Linux distributions.
+
+Once the code has been downloaded, the first step is the editing of the configuration file Makefile.rule.
+In general, the only part that needs to be edited is the TARGET, used to choose architeture-specific code and flags.
+
+Currently supported targets are
+\begin{description}
+\item[X64\_AVX2] this a recent x86\_64 processor supporting AVX2 and FMA3 instruction sets (e.g. Intel Haswell architecture). The 64-bit version of the OS is required. At the moment, this architecture is supported, but the code is not fully optimized yet, and thus code for AVX can perform better.
+\item[X64\_AVX] this is a x86\_64 processor supporting the AVX instruction set (e.g. Intel Sandy Bridge and Ivy Bridge, AMD Bulldozer or more recent architectures). The 64-bit version of the OS is required.
+\item[X64\_SSE3] this is a x86\_64 processor supporting the SSE3 instruction set (e.g. Intel Pentium 4 Prescott, AMD Athlon 64 revision E or more recent architectures). The 64-bit version of the OS is required. The code is not fully optimized yet.
+\item[CORTEX\_A15] this is a processor implementing the ARMv7A architecture with VFPv3 and NEON instruction sets, code optimized for ARM Cortex A15. The code is not fully optimized yet.
+\item[CORTEX\_A9] this is a processor implementing the ARMv7A architecture with VFPv3 and NEON instruction sets, code optimized for ARM Cortex A9. The code is not fully optimized yet.
+\item[C99\_4X4] this version is written entirely in C code and works with all machines, even if performing worse that machine-specific code. The code works better on a machine with at least 32 scalar FP registers.
+\end{description}
+More architectures are supported in the older version 0.1 of the library, that can still be downloaded from github.
+
+The supported instruction sets can be easily found by googling the processor name, or by typing
+\begin{verbatim}
+less \proc\cpuinfo
+\end{verbatim}
+on a terminal, and looking among the flags. 
+In any case, even if the code is compiled for the wrong architecutre, an {\tt Illegal instruction} error will be raised at run time, so this can be immediately discovered running a test problem.
+
+Once the architecture has been chosen, the static library can be build by typing
+\begin{verbatim}
+make library
+\end{verbatim}
+on a terminal. The dynamic library can be build by typing
+\begin{verbatim}
+make shared
+\end{verbatim}
+on a terminal.
+
+The static library and the headers can be installed by typing
+\begin{verbatim}
+sudo make install
+\end{verbatim}
+on a terminal. The dynamic library and the headers can be installed by typing
+\begin{verbatim}
+sudo make install_shared
+\end{verbatim}
+on a terminal. The installation forder can be changed by editing the Makefile file.
+
+A number of test problems is available in the folder test\_problems, and it is possible to chose between them by editing the file test\_problems/Makefile.
+Notice that test problems are not part of the library.
+The chosen test problem is compiled by typing
+\begin{verbatim}
+make test_problem
+\end{verbatim}
+on a terminal opened on the main HPMPC folder, and it is run by typing
+\begin{verbatim}
+make run 
+\end{verbatim}
+on a terminal opened on the main HPMPC folder.
 
 
 \chapter{Basic API}
