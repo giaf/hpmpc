@@ -39,6 +39,11 @@ void kernel_strmm_nt_16x4_lib8(int kadd, float *A0, float *A1, float *B, float *
 /*	if(kadd<=0)*/
 /*		return;*/
 
+/*s_print_mat(8, kadd, A0, 8);*/
+/*s_print_mat(8, kadd, A1, 8);*/
+/*s_print_mat(4, kadd, B, 8);*/
+/*exit(1);*/
+
 	const int ldc = 8;
 	
 	int k;
@@ -68,12 +73,14 @@ void kernel_strmm_nt_16x4_lib8(int kadd, float *A0, float *A1, float *B, float *
 
 
 	// k==0
-	temp = _mm256_mul_ps( a_07, b_0 );
+/*	temp = _mm256_mul_ps( a_07, b_0 );*/
+	c_00 = _mm256_mul_ps( a_07, b_0 );
 	B_03 = _mm256_broadcast_ps( (__m128 *) &B[8] );
-	c_00 = _mm256_add_ps( c_00, temp );
-	temp = _mm256_mul_ps( a_8f, b_0 );
+/*	c_00 = _mm256_add_ps( c_00, temp );*/
+/*	temp = _mm256_mul_ps( a_8f, b_0 );*/
+	c_80 = _mm256_mul_ps( a_8f, b_0 );
 /*	b_0 = _mm256_shuffle_ps( b_03, b_03, 85 );*/
-	c_80 = _mm256_add_ps( c_80, temp );
+/*	c_80 = _mm256_add_ps( c_80, temp );*/
 	
 /*	temp = _mm256_mul_ps( a_07, b_0 );*/
 	A_07 = _mm256_load_ps( &A0[8] );
@@ -105,12 +112,14 @@ void kernel_strmm_nt_16x4_lib8(int kadd, float *A0, float *A1, float *B, float *
 	b_0 = _mm256_shuffle_ps( B_03, B_03, 85 );
 	c_80 = _mm256_add_ps( c_80, temp );
 	
-	temp = _mm256_mul_ps( A_07, b_0 );
+/*	temp = _mm256_mul_ps( A_07, b_0 );*/
+	c_01 = _mm256_mul_ps( A_07, b_0 );
 	a_07 = _mm256_load_ps( &A0[16] );
-	c_01 = _mm256_add_ps( c_01, temp );
-	temp = _mm256_mul_ps( A_8f, b_0 );
+/*	c_01 = _mm256_add_ps( c_01, temp );*/
+/*	temp = _mm256_mul_ps( A_8f, b_0 );*/
+	c_81 = _mm256_mul_ps( A_8f, b_0 );
 /*	b_0 = _mm256_shuffle_ps( B_03, B_03, 170 );*/
-	c_81 = _mm256_add_ps( c_81, temp );
+/*	c_81 = _mm256_add_ps( c_81, temp );*/
 
 /*	temp = _mm256_mul_ps( A_07, b_0 );*/
 	a_8f = _mm256_load_ps( &A1[16] );
@@ -142,12 +151,14 @@ void kernel_strmm_nt_16x4_lib8(int kadd, float *A0, float *A1, float *B, float *
 	b_0 = _mm256_shuffle_ps( b_03, b_03, 170 );
 	c_81 = _mm256_add_ps( c_81, temp );
 
-	temp = _mm256_mul_ps( a_07, b_0 );
+/*	temp = _mm256_mul_ps( a_07, b_0 );*/
+	c_02 = _mm256_mul_ps( a_07, b_0 );
 	A_8f = _mm256_load_ps( &A1[24] );
-	c_02 = _mm256_add_ps( c_02, temp );
-	temp = _mm256_mul_ps( a_8f, b_0 );
+/*	c_02 = _mm256_add_ps( c_02, temp );*/
+/*	temp = _mm256_mul_ps( a_8f, b_0 );*/
+	c_82 = _mm256_mul_ps( a_8f, b_0 );
 /*	b_0 = _mm256_shuffle_ps( b_03, b_03, 255 );*/
-	c_82 = _mm256_add_ps( c_82, temp );
+/*	c_82 = _mm256_add_ps( c_82, temp );*/
 
 /*	temp = _mm256_mul_ps( a_07, b_0 );*/
 /*	c_03 = _mm256_add_ps( c_03, temp );*/
@@ -179,11 +190,13 @@ void kernel_strmm_nt_16x4_lib8(int kadd, float *A0, float *A1, float *B, float *
 	b_0 = _mm256_shuffle_ps( B_03, B_03, 255 );
 	c_82 = _mm256_add_ps( c_82, temp );
 
-	temp = _mm256_mul_ps( A_07, b_0 );
-	c_03 = _mm256_add_ps( c_03, temp );
-	temp = _mm256_mul_ps( A_8f, b_0 );
+/*	temp = _mm256_mul_ps( A_07, b_0 );*/
+	c_03 = _mm256_mul_ps( A_07, b_0 );
+/*	c_03 = _mm256_add_ps( c_03, temp );*/
+/*	temp = _mm256_mul_ps( A_8f, b_0 );*/
+	c_83 = _mm256_mul_ps( A_8f, b_0 );
 	b_0 = _mm256_shuffle_ps( b_03, b_03, 0 );
-	c_83 = _mm256_add_ps( c_83, temp );
+/*	c_83 = _mm256_add_ps( c_83, temp );*/
 
 
 	A0 += 32;
@@ -451,9 +464,10 @@ void kernel_strmm_nt_8x4_lib8(int kadd, float *A0, float *B, float *D0)
 
 
 	// k==0
-	temp = _mm256_mul_ps( a_07, b_0 );
+/*	temp = _mm256_mul_ps( a_07, b_0 );*/
+	c_00 = _mm256_mul_ps( a_07, b_0 );
 	B_03 = _mm256_broadcast_ps( (__m128 *) &B[8] );
-	c_00 = _mm256_add_ps( c_00, temp );
+/*	c_00 = _mm256_add_ps( c_00, temp );*/
 	A_07 = _mm256_load_ps( &A0[8] );
 	b_0 = _mm256_shuffle_ps( B_03, B_03, 0 );
 
@@ -465,9 +479,10 @@ void kernel_strmm_nt_8x4_lib8(int kadd, float *A0, float *B, float *D0)
 	c_00 = _mm256_add_ps( c_00, temp );
 	b_0 = _mm256_shuffle_ps( B_03, B_03, 85 );
 	
-	temp = _mm256_mul_ps( A_07, b_0 );
+/*	temp = _mm256_mul_ps( A_07, b_0 );*/
+	c_01 = _mm256_mul_ps( A_07, b_0 );
 	a_07 = _mm256_load_ps( &A0[16] );
-	c_01 = _mm256_add_ps( c_01, temp );
+/*	c_01 = _mm256_add_ps( c_01, temp );*/
 	b_0 = _mm256_shuffle_ps( b_03, b_03, 0 );
 
 	
@@ -483,8 +498,9 @@ void kernel_strmm_nt_8x4_lib8(int kadd, float *A0, float *B, float *D0)
 	c_01 = _mm256_add_ps( c_01, temp );
 	b_0 = _mm256_shuffle_ps( b_03, b_03, 170 );
 
-	temp = _mm256_mul_ps( a_07, b_0 );
-	c_02 = _mm256_add_ps( c_02, temp );
+/*	temp = _mm256_mul_ps( a_07, b_0 );*/
+	c_02 = _mm256_mul_ps( a_07, b_0 );
+/*	c_02 = _mm256_add_ps( c_02, temp );*/
 	b_0 = _mm256_shuffle_ps( B_03, B_03, 0 );
 
 	
@@ -504,8 +520,9 @@ void kernel_strmm_nt_8x4_lib8(int kadd, float *A0, float *B, float *D0)
 	c_02 = _mm256_add_ps( c_02, temp );
 	b_0 = _mm256_shuffle_ps( B_03, B_03, 255 );
 
-	temp = _mm256_mul_ps( A_07, b_0 );
-	c_03 = _mm256_add_ps( c_03, temp );
+/*	temp = _mm256_mul_ps( A_07, b_0 );*/
+	c_03 = _mm256_mul_ps( A_07, b_0 );
+/*	c_03 = _mm256_add_ps( c_03, temp );*/
 	b_0 = _mm256_shuffle_ps( b_03, b_03, 0 );
 
 
