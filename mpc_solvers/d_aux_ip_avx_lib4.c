@@ -327,7 +327,7 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 		u_bl   = _mm_sub_pd( u_bl, u_lam );
 		_mm_storel_pd( &pl[0][(ii+2)*bs], u_bl );
 		_mm_storeh_pd( &pl[0][(ii+3)*bs], u_bl );
-		_mm_store_pd( &pl2[jj][ii+2], u_bl );
+		_mm_store_pd( &pl2[0][ii+2], u_bl );
 
 
 		ptr_t     += 8;
