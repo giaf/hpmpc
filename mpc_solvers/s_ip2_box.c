@@ -338,7 +338,9 @@ void s_ip2_box_mpc(int *kk, int k_max, float tol, int warm_start, float *sigma_p
 		// increment loop index
 		(*kk)++;
 
-
+/*if(*kk==2)*/
+/*exit(1);*/
+/*printf("\n%d\n", *kk);*/
 
 		} // end of IP loop
 	

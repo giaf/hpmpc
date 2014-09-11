@@ -23,50 +23,13 @@
 #                                                                                                 #
 ###################################################################################################
 
-include ../Makefile.rule
+include ../../Makefile.rule
 
-ifeq ($(TARGET), X64_AVX2)
-OBJS = d_ip_box.o d_res_ip_box.o d_ip2_box.o s_ip_box.o s_res_ip_box.o s_ip2_box.o
-endif
-ifeq ($(TARGET), X64_AVX)
-OBJS = d_ip_box.o d_res_ip_box.o d_ip2_box.o s_ip_box.o s_res_ip_box.o s_ip2_box.o
-endif
-ifeq ($(TARGET), X64_SSE3)
-OBJS = d_ip_box.o d_res_ip_box.o d_ip2_box.o s_ip_box.o s_res_ip_box.o s_ip2_box.o
-endif
-ifeq ($(TARGET), C99_4X4)
-OBJS = d_ip_box.o d_res_ip_box.o d_ip2_box.o s_ip_box.o s_res_ip_box.o s_ip2_box.o
-endif
-ifeq ($(TARGET), CORTEX_A15)
-OBJS = d_ip_box.o d_res_ip_box.o d_ip2_box.o s_ip_box.o s_res_ip_box.o s_ip2_box.o
-endif
-ifeq ($(TARGET), CORTEX_A9)
-OBJS = d_ip_box.o d_res_ip_box.o d_ip2_box.o s_ip_box.o s_res_ip_box.o s_ip2_box.o
-endif
+OBJS = d_aux_ip_c99_lib4.o s_aux_ip_c99_lib4.o
 
 obj: $(OBJS)
-ifeq ($(TARGET), X64_AVX2)
-	make -C avx obj
-endif
-ifeq ($(TARGET), X64_AVX)
-	make -C avx obj
-endif
-ifeq ($(TARGET), X64_SSE3)
-	make -C c99 obj
-endif
-ifeq ($(TARGET), C99_4X4)
-	make -C c99 obj
-endif
-ifeq ($(TARGET), CORTEX_A15)
-	make -C c99 obj
-endif
-ifeq ($(TARGET), CORTEX_A9)
-	make -C c99 obj
-endif
 
 clean:
 	rm -f *.o
-	make -C avx clean
-	make -C c99 clean
 
 

@@ -23,7 +23,7 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-#include "../include/block_size.h"
+/*#include "../include/block_size.h"*/
 
 
 
@@ -244,7 +244,7 @@ void s_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, float si
 /*void d_update_hessian_box(int k0, int kmax, int nb, int cnz, float sigma_mu, float *t, float *lam, float *lamt, float *dlam, float *bd, float *bl, float *pd, float *pl, float *lb, float *ub)*/
 	{
 	
-	const int bs = 8; //d_get_mr();
+	const int bs = 4; //d_get_mr();
 	
 	float temp0, temp1;
 	
@@ -267,7 +267,7 @@ void s_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, float si
 	ptr_db    = db[0];
 	
 	ii = 0;
-	for(; ii<k0-7; ii+=8)
+	for(; ii<k0-3; ii+=4)
 		{
 
 		ptr_tinv[0] = 1.0/ptr_t[0];
@@ -310,51 +310,11 @@ void s_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, float si
 		ptr_pl[(ii+3)*bs] = ptr_bl[ii+3] + ptr_lam[7] + ptr_lamt[7]*ptr_db[2*ii+7] + ptr_dlam[7] - ptr_lam[6] - ptr_lamt[6]*ptr_db[2*ii+6] - ptr_dlam[6];
 		ptr_pl2[ii+3] = ptr_pl[(ii+3)*bs];
 
-		ptr_tinv[8] = 1.0/ptr_t[8];
-		ptr_tinv[9] = 1.0/ptr_t[9];
-		ptr_lamt[8] = ptr_lam[8]*ptr_tinv[8];
-		ptr_lamt[9] = ptr_lam[9]*ptr_tinv[9];
-		ptr_dlam[8] = ptr_tinv[8]*sigma_mu; // !!!!!
-		ptr_dlam[9] = ptr_tinv[9]*sigma_mu; // !!!!!
-		ptr_pd[4+(ii+4)*bs+ii*cnz] = ptr_bd[ii+4] + ptr_lamt[8] + ptr_lamt[9];
-		ptr_pl[(ii+4)*bs] = ptr_bl[ii+4] + ptr_lam[9] + ptr_lamt[9]*ptr_db[2*ii+9] + ptr_dlam[9] - ptr_lam[8] - ptr_lamt[8]*ptr_db[2*ii+8] - ptr_dlam[8];
-		ptr_pl2[ii+4] = ptr_pl[(ii+4)*bs];
-
-		ptr_tinv[10] = 1.0/ptr_t[10];
-		ptr_tinv[11] = 1.0/ptr_t[11];
-		ptr_lamt[10] = ptr_lam[10]*ptr_tinv[10];
-		ptr_lamt[11] = ptr_lam[11]*ptr_tinv[11];
-		ptr_dlam[10] = ptr_tinv[10]*sigma_mu; // !!!!!
-		ptr_dlam[11] = ptr_tinv[11]*sigma_mu; // !!!!!
-		ptr_pd[5+(ii+5)*bs+ii*cnz] = ptr_bd[ii+5] + ptr_lamt[10] + ptr_lamt[11];
-		ptr_pl[(ii+5)*bs] = ptr_bl[ii+5] + ptr_lam[11] + ptr_lamt[11]*ptr_db[2*ii+11] + ptr_dlam[11] - ptr_lam[10] - ptr_lamt[10]*ptr_db[2*ii+10] - ptr_dlam[10];
-		ptr_pl2[ii+5] = ptr_pl[(ii+5)*bs];
-
-		ptr_tinv[12] = 1.0/ptr_t[12];
-		ptr_tinv[13] = 1.0/ptr_t[13];
-		ptr_lamt[12] = ptr_lam[12]*ptr_tinv[12];
-		ptr_lamt[13] = ptr_lam[13]*ptr_tinv[13];
-		ptr_dlam[12] = ptr_tinv[12]*sigma_mu; // !!!!!
-		ptr_dlam[13] = ptr_tinv[13]*sigma_mu; // !!!!!
-		ptr_pd[6+(ii+6)*bs+ii*cnz] = ptr_bd[ii+6] + ptr_lamt[12] + ptr_lamt[13];
-		ptr_pl[(ii+6)*bs] = ptr_bl[ii+6] + ptr_lam[13] + ptr_lamt[13]*ptr_db[2*ii+13] + ptr_dlam[13] - ptr_lam[12] - ptr_lamt[12]*ptr_db[2*ii+12] - ptr_dlam[12];
-		ptr_pl2[ii+6] = ptr_pl[(ii+6)*bs];
-
-		ptr_tinv[14] = 1.0/ptr_t[14];
-		ptr_tinv[15] = 1.0/ptr_t[15];
-		ptr_lamt[14] = ptr_lam[14]*ptr_tinv[14];
-		ptr_lamt[15] = ptr_lam[15]*ptr_tinv[15];
-		ptr_dlam[14] = ptr_tinv[14]*sigma_mu; // !!!!!
-		ptr_dlam[15] = ptr_tinv[15]*sigma_mu; // !!!!!
-		ptr_pd[7+(ii+7)*bs+ii*cnz] = ptr_bd[ii+7] + ptr_lamt[14] + ptr_lamt[15];
-		ptr_pl[(ii+7)*bs] = ptr_bl[ii+7] + ptr_lam[15] + ptr_lamt[15]*ptr_db[2*ii+15] + ptr_dlam[15] - ptr_lam[14] - ptr_lamt[14]*ptr_db[2*ii+14] - ptr_dlam[14];
-		ptr_pl2[ii+7] = ptr_pl[(ii+7)*bs];
-
-		ptr_t     += 16;
-		ptr_lam   += 16;
-		ptr_lamt  += 16;
-		ptr_dlam  += 16;
-		ptr_tinv  += 16;
+		ptr_t     += 8;
+		ptr_lam   += 8;
+		ptr_lamt  += 8;
+		ptr_dlam  += 8;
+		ptr_tinv  += 8;
 
 		}
 	if(ii<k0)
@@ -398,7 +358,7 @@ void s_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, float si
 		ptr_db    = db[jj];
 
 		ii = 0;
-		for(; ii<kmax-7; ii+=8)
+		for(; ii<kmax-3; ii+=4)
 			{
 			ptr_tinv[0] = 1.0/ptr_t[0];
 			ptr_tinv[1] = 1.0/ptr_t[1];
@@ -440,51 +400,11 @@ void s_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, float si
 			ptr_pl[(ii+3)*bs] = ptr_bl[ii+3] + ptr_lam[7] + ptr_lamt[7]*ptr_db[2*ii+7] + ptr_dlam[7] - ptr_lam[6] - ptr_lamt[6]*ptr_db[2*ii+6] - ptr_dlam[6];
 			ptr_pl2[ii+3] = ptr_pl[(ii+3)*bs];
 
-			ptr_tinv[8] = 1.0/ptr_t[8];
-			ptr_tinv[9] = 1.0/ptr_t[9];
-			ptr_lamt[8] = ptr_lam[8]*ptr_tinv[8];
-			ptr_lamt[9] = ptr_lam[9]*ptr_tinv[9];
-			ptr_dlam[8] = ptr_tinv[8]*sigma_mu; // !!!!!
-			ptr_dlam[9] = ptr_tinv[9]*sigma_mu; // !!!!!
-			ptr_pd[4+(ii+4)*bs+ii*cnz] = ptr_bd[ii+4] + ptr_lamt[8] + ptr_lamt[9];
-			ptr_pl[(ii+4)*bs] = ptr_bl[ii+4] + ptr_lam[9] + ptr_lamt[9]*ptr_db[2*ii+9] + ptr_dlam[9] - ptr_lam[8] - ptr_lamt[8]*ptr_db[2*ii+8] - ptr_dlam[8];
-			ptr_pl2[ii+4] = ptr_pl[(ii+4)*bs];
-
-			ptr_tinv[10] = 1.0/ptr_t[10];
-			ptr_tinv[11] = 1.0/ptr_t[11];
-			ptr_lamt[10] = ptr_lam[10]*ptr_tinv[10];
-			ptr_lamt[11] = ptr_lam[11]*ptr_tinv[11];
-			ptr_dlam[10] = ptr_tinv[10]*sigma_mu; // !!!!!
-			ptr_dlam[11] = ptr_tinv[11]*sigma_mu; // !!!!!
-			ptr_pd[5+(ii+5)*bs+ii*cnz] = ptr_bd[ii+5] + ptr_lamt[10] + ptr_lamt[11];
-			ptr_pl[(ii+5)*bs] = ptr_bl[ii+5] + ptr_lam[11] + ptr_lamt[11]*ptr_db[2*ii+11] + ptr_dlam[11] - ptr_lam[10] - ptr_lamt[10]*ptr_db[2*ii+10] - ptr_dlam[10];
-			ptr_pl2[ii+5] = ptr_pl[(ii+5)*bs];
-
-			ptr_tinv[12] = 1.0/ptr_t[12];
-			ptr_tinv[13] = 1.0/ptr_t[13];
-			ptr_lamt[12] = ptr_lam[12]*ptr_tinv[12];
-			ptr_lamt[13] = ptr_lam[13]*ptr_tinv[13];
-			ptr_dlam[12] = ptr_tinv[12]*sigma_mu; // !!!!!
-			ptr_dlam[13] = ptr_tinv[13]*sigma_mu; // !!!!!
-			ptr_pd[6+(ii+6)*bs+ii*cnz] = ptr_bd[ii+6] + ptr_lamt[12] + ptr_lamt[13];
-			ptr_pl[(ii+6)*bs] = ptr_bl[ii+6] + ptr_lam[13] + ptr_lamt[13]*ptr_db[2*ii+13] + ptr_dlam[13] - ptr_lam[12] - ptr_lamt[12]*ptr_db[2*ii+12] - ptr_dlam[12];
-			ptr_pl2[ii+6] = ptr_pl[(ii+6)*bs];
-
-			ptr_tinv[14] = 1.0/ptr_t[14];
-			ptr_tinv[15] = 1.0/ptr_t[15];
-			ptr_lamt[14] = ptr_lam[14]*ptr_tinv[14];
-			ptr_lamt[15] = ptr_lam[15]*ptr_tinv[15];
-			ptr_dlam[14] = ptr_tinv[14]*sigma_mu; // !!!!!
-			ptr_dlam[15] = ptr_tinv[15]*sigma_mu; // !!!!!
-			ptr_pd[7+(ii+7)*bs+ii*cnz] = ptr_bd[ii+7] + ptr_lamt[14] + ptr_lamt[15];
-			ptr_pl[(ii+7)*bs] = ptr_bl[ii+7] + ptr_lam[15] + ptr_lamt[15]*ptr_db[2*ii+15] + ptr_dlam[15] - ptr_lam[14] - ptr_lamt[14]*ptr_db[2*ii+14] - ptr_dlam[14];
-			ptr_pl2[ii+7] = ptr_pl[(ii+7)*bs];
-
-			ptr_t     += 16;
-			ptr_lam   += 16;
-			ptr_lamt  += 16;
-			ptr_dlam  += 16;
-			ptr_tinv  += 16;
+			ptr_t     += 8;
+			ptr_lam   += 8;
+			ptr_lamt  += 8;
+			ptr_dlam  += 8;
+			ptr_tinv  += 8;
 
 			}
 		if(ii<kmax)
@@ -528,7 +448,7 @@ void s_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, float si
 
 	ii=k1; // k1 supposed to be multiple of bs !!!!!!!!!!
 
-	for(; ii<kmax-7; ii+=8)
+	for(; ii<kmax-3; ii+=4)
 		{
 		ptr_tinv[0] = 1.0/ptr_t[0];
 		ptr_tinv[1] = 1.0/ptr_t[1];
@@ -570,51 +490,11 @@ void s_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, float si
 		ptr_pl[(ii+3)*bs] = ptr_bl[ii+3] + ptr_lam[7] + ptr_lamt[7]*ptr_db[2*ii+7] + ptr_dlam[7] - ptr_lam[6] - ptr_lamt[6]*ptr_db[2*ii+6] - ptr_dlam[6];
 		ptr_pl2[ii+3] = ptr_pl[(ii+3)*bs];
 
-		ptr_tinv[8] = 1.0/ptr_t[8];
-		ptr_tinv[9] = 1.0/ptr_t[9];
-		ptr_lamt[8] = ptr_lam[8]*ptr_tinv[8];
-		ptr_lamt[9] = ptr_lam[9]*ptr_tinv[9];
-		ptr_dlam[8] = ptr_tinv[8]*sigma_mu; // !!!!!
-		ptr_dlam[9] = ptr_tinv[9]*sigma_mu; // !!!!!
-		ptr_pd[4+(ii+4)*bs+ii*cnz] = ptr_bd[ii+4] + ptr_lamt[8] + ptr_lamt[9];
-		ptr_pl[(ii+4)*bs] = ptr_bl[ii+4] + ptr_lam[9] + ptr_lamt[9]*ptr_db[2*ii+9] + ptr_dlam[9] - ptr_lam[8] - ptr_lamt[8]*ptr_db[2*ii+8] - ptr_dlam[8];
-		ptr_pl2[ii+4] = ptr_pl[(ii+4)*bs];
-
-		ptr_tinv[10] = 1.0/ptr_t[10];
-		ptr_tinv[11] = 1.0/ptr_t[11];
-		ptr_lamt[10] = ptr_lam[10]*ptr_tinv[10];
-		ptr_lamt[11] = ptr_lam[11]*ptr_tinv[11];
-		ptr_dlam[10] = ptr_tinv[10]*sigma_mu; // !!!!!
-		ptr_dlam[11] = ptr_tinv[11]*sigma_mu; // !!!!!
-		ptr_pd[5+(ii+5)*bs+ii*cnz] = ptr_bd[ii+5] + ptr_lamt[10] + ptr_lamt[11];
-		ptr_pl[(ii+5)*bs] = ptr_bl[ii+5] + ptr_lam[11] + ptr_lamt[11]*ptr_db[2*ii+11] + ptr_dlam[11] - ptr_lam[10] - ptr_lamt[10]*ptr_db[2*ii+10] - ptr_dlam[10];
-		ptr_pl2[ii+5] = ptr_pl[(ii+5)*bs];
-
-		ptr_tinv[12] = 1.0/ptr_t[12];
-		ptr_tinv[13] = 1.0/ptr_t[13];
-		ptr_lamt[12] = ptr_lam[12]*ptr_tinv[12];
-		ptr_lamt[13] = ptr_lam[13]*ptr_tinv[13];
-		ptr_dlam[12] = ptr_tinv[12]*sigma_mu; // !!!!!
-		ptr_dlam[13] = ptr_tinv[13]*sigma_mu; // !!!!!
-		ptr_pd[6+(ii+6)*bs+ii*cnz] = ptr_bd[ii+6] + ptr_lamt[12] + ptr_lamt[13];
-		ptr_pl[(ii+6)*bs] = ptr_bl[ii+6] + ptr_lam[13] + ptr_lamt[13]*ptr_db[2*ii+13] + ptr_dlam[13] - ptr_lam[12] - ptr_lamt[12]*ptr_db[2*ii+12] - ptr_dlam[12];
-		ptr_pl2[ii+6] = ptr_pl[(ii+6)*bs];
-
-		ptr_tinv[14] = 1.0/ptr_t[14];
-		ptr_tinv[15] = 1.0/ptr_t[15];
-		ptr_lamt[14] = ptr_lam[14]*ptr_tinv[14];
-		ptr_lamt[15] = ptr_lam[15]*ptr_tinv[15];
-		ptr_dlam[14] = ptr_tinv[14]*sigma_mu; // !!!!!
-		ptr_dlam[15] = ptr_tinv[15]*sigma_mu; // !!!!!
-		ptr_pd[7+(ii+7)*bs+ii*cnz] = ptr_bd[ii+7] + ptr_lamt[14] + ptr_lamt[15];
-		ptr_pl[(ii+7)*bs] = ptr_bl[ii+7] + ptr_lam[15] + ptr_lamt[15]*ptr_db[2*ii+15] + ptr_dlam[15] - ptr_lam[14] - ptr_lamt[14]*ptr_db[2*ii+14] - ptr_dlam[14];
-		ptr_pl2[ii+7] = ptr_pl[(ii+7)*bs];
-
-		ptr_t     += 16;
-		ptr_lam   += 16;
-		ptr_lamt  += 16;
-		ptr_dlam  += 16;
-		ptr_tinv  += 16;
+		ptr_t     += 8;
+		ptr_lam   += 8;
+		ptr_lamt  += 8;
+		ptr_dlam  += 8;
+		ptr_tinv  += 8;
 
 		}
 	if(ii<kmax)
@@ -648,7 +528,7 @@ void s_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, float si
 void s_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, float *ptr_alpha, float **t, float **dt, float **lam, float **dlam, float **lamt, float **dux, float **db)
 	{
 	
-	const int bs = 8; //d_get_mr();
+	const int bs = 4; //d_get_mr();
 	
 	float alpha = ptr_alpha[0];
 	
@@ -1008,12 +888,10 @@ void s_init_lam_mhe(int N, int nu, int nbu, int nb, float **t, float **lam)	// T
 
 
 
-void s_update_hessian_box_mhe(int N, int k0, int k1, int kmax, int cnz, float sigma_mu, float **t, float **t_inv, float **lam, float **lamt, float **dlam, float **bd, float **bl, float **pd, float **pl, float **pl2, float **db)
-
-/*void d_update_hessian_box(int k0, int kmax, int nb, int cnz, float sigma_mu, float *t, float *lam, float *lamt, float *dlam, float *bd, float *bl, float *pd, float *pl, float *lb, float *ub)*/
+void s_update_hessian_box_mhe(int N, int k0_dummy, int k1, int kmax, int cnz, float sigma_mu, float **t, float **t_inv, float **lam, float **lamt, float **dlam, float **bd, float **bl, float **pd, float **pl, float **pl2, float **db)
 	{
 	
-	const int bs = 8; //d_get_mr();
+	const int bs = 4; //d_get_mr();
 	
 	float temp0, temp1;
 	
@@ -1039,7 +917,7 @@ void s_update_hessian_box_mhe(int N, int k0, int k1, int kmax, int cnz, float si
 		ptr_db    = db[jj];
 
 		ii = 0;
-		for(; ii<kmax-7; ii+=8)
+		for(; ii<kmax-3; ii+=4)
 			{
 			ptr_tinv[0] = 1.0/ptr_t[0];
 			ptr_tinv[1] = 1.0/ptr_t[1];
@@ -1081,51 +959,11 @@ void s_update_hessian_box_mhe(int N, int k0, int k1, int kmax, int cnz, float si
 			ptr_pl[(ii+3)*bs] = ptr_bl[ii+3] + ptr_lam[7] + ptr_lamt[7]*ptr_db[2*ii+7] + ptr_dlam[7] - ptr_lam[6] - ptr_lamt[6]*ptr_db[2*ii+6] - ptr_dlam[6];
 			ptr_pl2[ii+3] = ptr_pl[(ii+3)*bs];
 
-			ptr_tinv[8] = 1.0/ptr_t[8];
-			ptr_tinv[9] = 1.0/ptr_t[9];
-			ptr_lamt[8] = ptr_lam[8]*ptr_tinv[8];
-			ptr_lamt[9] = ptr_lam[9]*ptr_tinv[9];
-			ptr_dlam[8] = ptr_tinv[8]*sigma_mu; // !!!!!
-			ptr_dlam[9] = ptr_tinv[9]*sigma_mu; // !!!!!
-			ptr_pd[4+(ii+4)*bs+ii*cnz] = ptr_bd[ii+4] + ptr_lamt[8] + ptr_lamt[9];
-			ptr_pl[(ii+4)*bs] = ptr_bl[ii+4] + ptr_lam[9] + ptr_lamt[9]*ptr_db[2*ii+9] + ptr_dlam[9] - ptr_lam[8] - ptr_lamt[8]*ptr_db[2*ii+8] - ptr_dlam[8];
-			ptr_pl2[ii+4] = ptr_pl[(ii+4)*bs];
-
-			ptr_tinv[10] = 1.0/ptr_t[10];
-			ptr_tinv[11] = 1.0/ptr_t[11];
-			ptr_lamt[10] = ptr_lam[10]*ptr_tinv[10];
-			ptr_lamt[11] = ptr_lam[11]*ptr_tinv[11];
-			ptr_dlam[10] = ptr_tinv[10]*sigma_mu; // !!!!!
-			ptr_dlam[11] = ptr_tinv[11]*sigma_mu; // !!!!!
-			ptr_pd[5+(ii+5)*bs+ii*cnz] = ptr_bd[ii+5] + ptr_lamt[10] + ptr_lamt[11];
-			ptr_pl[(ii+5)*bs] = ptr_bl[ii+5] + ptr_lam[11] + ptr_lamt[11]*ptr_db[2*ii+11] + ptr_dlam[11] - ptr_lam[10] - ptr_lamt[10]*ptr_db[2*ii+10] - ptr_dlam[10];
-			ptr_pl2[ii+5] = ptr_pl[(ii+5)*bs];
-
-			ptr_tinv[12] = 1.0/ptr_t[12];
-			ptr_tinv[13] = 1.0/ptr_t[13];
-			ptr_lamt[12] = ptr_lam[12]*ptr_tinv[12];
-			ptr_lamt[13] = ptr_lam[13]*ptr_tinv[13];
-			ptr_dlam[12] = ptr_tinv[12]*sigma_mu; // !!!!!
-			ptr_dlam[13] = ptr_tinv[13]*sigma_mu; // !!!!!
-			ptr_pd[6+(ii+6)*bs+ii*cnz] = ptr_bd[ii+6] + ptr_lamt[12] + ptr_lamt[13];
-			ptr_pl[(ii+6)*bs] = ptr_bl[ii+6] + ptr_lam[13] + ptr_lamt[13]*ptr_db[2*ii+13] + ptr_dlam[13] - ptr_lam[12] - ptr_lamt[12]*ptr_db[2*ii+12] - ptr_dlam[12];
-			ptr_pl2[ii+6] = ptr_pl[(ii+6)*bs];
-
-			ptr_tinv[14] = 1.0/ptr_t[14];
-			ptr_tinv[15] = 1.0/ptr_t[15];
-			ptr_lamt[14] = ptr_lam[14]*ptr_tinv[14];
-			ptr_lamt[15] = ptr_lam[15]*ptr_tinv[15];
-			ptr_dlam[14] = ptr_tinv[14]*sigma_mu; // !!!!!
-			ptr_dlam[15] = ptr_tinv[15]*sigma_mu; // !!!!!
-			ptr_pd[7+(ii+7)*bs+ii*cnz] = ptr_bd[ii+7] + ptr_lamt[14] + ptr_lamt[15];
-			ptr_pl[(ii+7)*bs] = ptr_bl[ii+7] + ptr_lam[15] + ptr_lamt[15]*ptr_db[2*ii+15] + ptr_dlam[15] - ptr_lam[14] - ptr_lamt[14]*ptr_db[2*ii+14] - ptr_dlam[14];
-			ptr_pl2[ii+7] = ptr_pl[(ii+7)*bs];
-
-			ptr_t     += 16;
-			ptr_lam   += 16;
-			ptr_lamt  += 16;
-			ptr_dlam  += 16;
-			ptr_tinv  += 16;
+			ptr_t     += 8;
+			ptr_lam   += 8;
+			ptr_lamt  += 8;
+			ptr_dlam  += 8;
+			ptr_tinv  += 8;
 
 			}
 		if(ii<kmax)
@@ -1169,7 +1007,7 @@ void s_update_hessian_box_mhe(int N, int k0, int k1, int kmax, int cnz, float si
 
 	ii=k1; // k1 supposed to be multiple of bs !!!!!!!!!!
 
-	for(; ii<kmax-7; ii+=8)
+	for(; ii<kmax-3; ii+=4)
 		{
 		ptr_tinv[0] = 1.0/ptr_t[0];
 		ptr_tinv[1] = 1.0/ptr_t[1];
@@ -1211,51 +1049,11 @@ void s_update_hessian_box_mhe(int N, int k0, int k1, int kmax, int cnz, float si
 		ptr_pl[(ii+3)*bs] = ptr_bl[ii+3] + ptr_lam[7] + ptr_lamt[7]*ptr_db[2*ii+7] + ptr_dlam[7] - ptr_lam[6] - ptr_lamt[6]*ptr_db[2*ii+6] - ptr_dlam[6];
 		ptr_pl2[ii+3] = ptr_pl[(ii+3)*bs];
 
-		ptr_tinv[8] = 1.0/ptr_t[8];
-		ptr_tinv[9] = 1.0/ptr_t[9];
-		ptr_lamt[8] = ptr_lam[8]*ptr_tinv[8];
-		ptr_lamt[9] = ptr_lam[9]*ptr_tinv[9];
-		ptr_dlam[8] = ptr_tinv[8]*sigma_mu; // !!!!!
-		ptr_dlam[9] = ptr_tinv[9]*sigma_mu; // !!!!!
-		ptr_pd[4+(ii+4)*bs+ii*cnz] = ptr_bd[ii+4] + ptr_lamt[8] + ptr_lamt[9];
-		ptr_pl[(ii+4)*bs] = ptr_bl[ii+4] + ptr_lam[9] + ptr_lamt[9]*ptr_db[2*ii+9] + ptr_dlam[9] - ptr_lam[8] - ptr_lamt[8]*ptr_db[2*ii+8] - ptr_dlam[8];
-		ptr_pl2[ii+4] = ptr_pl[(ii+4)*bs];
-
-		ptr_tinv[10] = 1.0/ptr_t[10];
-		ptr_tinv[11] = 1.0/ptr_t[11];
-		ptr_lamt[10] = ptr_lam[10]*ptr_tinv[10];
-		ptr_lamt[11] = ptr_lam[11]*ptr_tinv[11];
-		ptr_dlam[10] = ptr_tinv[10]*sigma_mu; // !!!!!
-		ptr_dlam[11] = ptr_tinv[11]*sigma_mu; // !!!!!
-		ptr_pd[5+(ii+5)*bs+ii*cnz] = ptr_bd[ii+5] + ptr_lamt[10] + ptr_lamt[11];
-		ptr_pl[(ii+5)*bs] = ptr_bl[ii+5] + ptr_lam[11] + ptr_lamt[11]*ptr_db[2*ii+11] + ptr_dlam[11] - ptr_lam[10] - ptr_lamt[10]*ptr_db[2*ii+10] - ptr_dlam[10];
-		ptr_pl2[ii+5] = ptr_pl[(ii+5)*bs];
-
-		ptr_tinv[12] = 1.0/ptr_t[12];
-		ptr_tinv[13] = 1.0/ptr_t[13];
-		ptr_lamt[12] = ptr_lam[12]*ptr_tinv[12];
-		ptr_lamt[13] = ptr_lam[13]*ptr_tinv[13];
-		ptr_dlam[12] = ptr_tinv[12]*sigma_mu; // !!!!!
-		ptr_dlam[13] = ptr_tinv[13]*sigma_mu; // !!!!!
-		ptr_pd[6+(ii+6)*bs+ii*cnz] = ptr_bd[ii+6] + ptr_lamt[12] + ptr_lamt[13];
-		ptr_pl[(ii+6)*bs] = ptr_bl[ii+6] + ptr_lam[13] + ptr_lamt[13]*ptr_db[2*ii+13] + ptr_dlam[13] - ptr_lam[12] - ptr_lamt[12]*ptr_db[2*ii+12] - ptr_dlam[12];
-		ptr_pl2[ii+6] = ptr_pl[(ii+6)*bs];
-
-		ptr_tinv[14] = 1.0/ptr_t[14];
-		ptr_tinv[15] = 1.0/ptr_t[15];
-		ptr_lamt[14] = ptr_lam[14]*ptr_tinv[14];
-		ptr_lamt[15] = ptr_lam[15]*ptr_tinv[15];
-		ptr_dlam[14] = ptr_tinv[14]*sigma_mu; // !!!!!
-		ptr_dlam[15] = ptr_tinv[15]*sigma_mu; // !!!!!
-		ptr_pd[7+(ii+7)*bs+ii*cnz] = ptr_bd[ii+7] + ptr_lamt[14] + ptr_lamt[15];
-		ptr_pl[(ii+7)*bs] = ptr_bl[ii+7] + ptr_lam[15] + ptr_lamt[15]*ptr_db[2*ii+15] + ptr_dlam[15] - ptr_lam[14] - ptr_lamt[14]*ptr_db[2*ii+14] - ptr_dlam[14];
-		ptr_pl2[ii+7] = ptr_pl[(ii+7)*bs];
-
-		ptr_t     += 16;
-		ptr_lam   += 16;
-		ptr_lamt  += 16;
-		ptr_dlam  += 16;
-		ptr_tinv  += 16;
+		ptr_t     += 8;
+		ptr_lam   += 8;
+		ptr_lamt  += 8;
+		ptr_dlam  += 8;
+		ptr_tinv  += 8;
 
 		}
 	if(ii<kmax)
@@ -1286,14 +1084,14 @@ void s_update_hessian_box_mhe(int N, int k0, int k1, int kmax, int cnz, float si
 
 
 
-void s_compute_alpha_box_mhe(int N, int k0, int k1, int kmax, float *ptr_alpha, float **t, float **dt, float **lam, float **dlam, float **lamt, float **dux, float **db)
+void s_compute_alpha_box_mhe(int N, int k0_dummy, int k1, int kmax, float *ptr_alpha, float **t, float **dt, float **lam, float **dlam, float **lamt, float **dux, float **db)
 	{
 	
-	const int bs = 8; //d_get_mr();
+/*	const int bs = 4; //d_get_mr();*/
 	
 	float alpha = ptr_alpha[0];
 	
-	int kna = ((k1+bs-1)/bs)*bs;
+/*	int kna = ((k1+bs-1)/bs)*bs;*/
 
 	int jj, ll;
 
