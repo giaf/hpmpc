@@ -36,7 +36,7 @@
 #define NB NU+NX
 
 // number of repetition for timing
-#define NREP 1000
+#define NREP 100
 
 // print results
 #define PRINTRES 1
@@ -53,6 +53,9 @@
 // compute lagrangian multipliers
 #define COMPUTE_MULT 1
 
+// compute lagrangian multipliers
+#define COMPUTE_MULT_ADMM 0
+
 // warm-start with user-provided solution (otherwise initialize x and u with 0 or something feasible)
 #define WARM_START 0
 
@@ -62,8 +65,11 @@
 // number of iterations of IP method
 #define K_MAX 10
 
+// number of iterations of ADMM method
+#define K_MAX_ADMM 1000
+
 // tolerance in the duality measure
-#define TOL 1e-6
+#define TOL 1e-3
 
 // threshold in the duality measure to switch from single to double precision
 #define SP_THR 1e5
