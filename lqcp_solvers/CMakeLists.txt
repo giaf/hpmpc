@@ -1,8 +1,2 @@
 
-SET( SRCS d_ric_sv.c d_res.c s_ric_sv.c s_res.c )
-
-FOREACH( SRC ${SRCS} )
-    GET_FILENAME_COMPONENT(ABS_SRC ${SRC} REALPATH)
-	SET( SRC_LQCP ${SRC_LQCP} ${ABS_SRC} )
-ENDFOREACH()
-SET ( SOURCES ${SOURCES} ${SRC_LQCP} PARENT_SCOPE )
+HPMPC_ADD_SOURCE_FILES( d_ric_sv.c d_res.c s_ric_sv.c s_res.c )

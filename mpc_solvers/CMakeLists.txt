@@ -21,11 +21,9 @@ ELSE( )
     MESSAGE( ERROR "Impossible happened!" )
 ENDIF( )
 
-SET( SRCS d_ip_box.c d_res_ip_box.c d_ip2_box.c d_admm_box.c s_ip_box.c s_res_ip_box.c s_ip2_box.c s_admm_box.c )
-
-FOREACH( SRC ${SRCS} )
-    GET_FILENAME_COMPONENT(ABS_SRC ${SRC} REALPATH)
-	SET( SRC_MPC ${SRC_MPC} ${ABS_SRC} )
-ENDFOREACH()
-
-SET ( SOURCES ${SOURCES} ${SRC_MPC_AUX} ${SRC_MPC} PARENT_SCOPE )
+HPMPC_ADD_SOURCE_FILES(
+	# Double
+	d_ip_box.c d_res_ip_box.c d_ip2_box.c d_admm_box.c
+	# Single
+	s_ip_box.c s_res_ip_box.c s_ip2_box.c s_admm_box.c
+)

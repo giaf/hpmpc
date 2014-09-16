@@ -126,6 +126,22 @@ INCLUDE_DIRECTORIES( include )
 
 MESSAGE( STATUS "Compiling the library for ${HPMPC_TARGET} target")
 
+#
+# Macro for adding source files
+#
+MACRO( HPMPC_ADD_SOURCE_FILES )
+#	MESSAGE( STATUS "${ARGV}" )
+	UNSET( _SRC )
+    FOREACH( SRC ${ARGV} )
+        GET_FILENAME_COMPONENT(ABS_SRC ${SRC} REALPATH)		
+		SET( _SRC ${_SRC} ${ABS_SRC} )
+	ENDFOREACH()
+	SET ( SOURCES ${SOURCES} ${_SRC} PARENT_SCOPE )
+ENDMACRO( HPMPC_ADD_SOURCE_FILES )
+
+#
+# Add source folders
+#
 UNSET( SOURCES )
 ADD_SUBDIRECTORY( kernel )
 ADD_SUBDIRECTORY( blas )
@@ -135,6 +151,9 @@ ADD_SUBDIRECTORY( mpc_solvers )
 ADD_SUBDIRECTORY( interfaces )
 #ADD_SUBDIRECTORY( codegen )
 
+#
+# Add library
+#
 ADD_LIBRARY( hpmpc STATIC ${SOURCES} )
 
 ################################################################################
@@ -155,14 +174,14 @@ INSTALL(
     DIRECTORY
 		${PROJECT_BINARY_DIR}/include/
     DESTINATION
-        /usr/include/hpmpc
+        include/hpmpc
 )
 
 INSTALL(
 	TARGETS
 	    hpmpc
     DESTINATION
-        /usr/lib
+        lib
 )
 
 ################################################################################
@@ -171,4 +190,4 @@ INSTALL(
 #
 ################################################################################
 
-#ADD_SUBDIRECTORY( test_problems )
+ADD_SUBDIRECTORY( test_problems )
