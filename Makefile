@@ -156,12 +156,12 @@ run:
 install:
 	cp -f libhpmpc.a /usr/lib/libhpmpc.a
 	mkdir -p /usr/include/hpmpc
-	cp -rf ./include/* /usr/include/hpmpc
+	cp -rf ./include/*.h /usr/include/hpmpc
 	
 install_shared:
 	cp -f libhpmpc.so /usr/lib/libhpmpc.so
 	mkdir -p /usr/include/hpmpc
-	cp -rf ./include/* /usr/include/hpmpc
+	cp -rf ./include/*.h /usr/include/hpmpc
 	
 uninstall:
 	rm /usr/lib/libhpmpc.a
