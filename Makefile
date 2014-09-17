@@ -31,7 +31,7 @@ AUX_OBJS = ./auxiliary/block_size_x64_avx.o ./auxiliary/aux_d_c99_lib4.o ./auxil
 KERNEL_OBJS_DOUBLE = ./kernel/avx2/kernel_dgemm_avx2_lib4.o ./kernel/avx2/kernel_dtrmm_avx_lib4.o ./kernel/avx2/kernel_dtrsm_avx_lib4.o ./kernel/avx2/kernel_dpotrf_avx_lib4.o ./kernel/avx2/kernel_dgemv_avx_lib4.o ./kernel/avx2/kernel_dtrmv_avx_lib4.o ./kernel/avx2/kernel_dtrsv_avx_lib4.o ./kernel/avx2/kernel_dsymv_avx_lib4.o ./kernel/avx2/kernel_dtran_avx_lib4.o 
 KERNEL_OBJS_SINGLE = ./kernel/avx2/kernel_sgemm_avx2_lib8.o ./kernel/avx2/kernel_strmm_avx2_lib8.o ./kernel/avx2/kernel_strsm_avx2_lib8.o ./kernel/avx2/kernel_spotrf_avx2_lib8.o ./kernel/avx2/kernel_sgemv_avx_lib8.o ./kernel/avx2/kernel_strmv_avx_lib8.o ./kernel/avx2/kernel_strsv_avx_lib8.o ./kernel/avx2/kernel_ssymv_avx_lib8.o ./kernel/avx2/kernel_stran_avx2_lib8.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib8.o
-MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/avx/d_aux_ip_avx_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_admm_box.o  ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/avx/s_aux_ip_avx_lib8.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o
+MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/avx/d_aux_ip_avx_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/d_admm_soft.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/avx/s_aux_ip_avx_lib8.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o ./mpc_solvers/s_admm_soft.o
 #CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_X64_AVX -fPIC $(DEBUG)
 endif
 ifeq ($(TARGET), X64_AVX)
@@ -39,7 +39,7 @@ AUX_OBJS = ./auxiliary/block_size_x64_avx.o ./auxiliary/aux_d_c99_lib4.o ./auxil
 KERNEL_OBJS_DOUBLE = ./kernel/avx/kernel_dgemm_avx_lib4.o ./kernel/avx/kernel_dtrmm_avx_lib4.o ./kernel/avx/kernel_dtrsm_avx_lib4.o ./kernel/avx/kernel_dpotrf_avx_lib4.o ./kernel/avx/kernel_dgemv_avx_lib4.o ./kernel/avx/kernel_dtrmv_avx_lib4.o ./kernel/avx/kernel_dtrsv_avx_lib4.o ./kernel/avx/kernel_dsymv_avx_lib4.o ./kernel/avx/kernel_dtran_avx_lib4.o 
 KERNEL_OBJS_SINGLE = ./kernel/avx/kernel_sgemm_avx_lib8.o ./kernel/avx/kernel_strmm_avx_lib8.o ./kernel/avx/kernel_strsm_avx_lib8.o ./kernel/avx/kernel_spotrf_avx_lib8.o ./kernel/avx/kernel_sgemv_avx_lib8.o ./kernel/avx/kernel_strmv_avx_lib8.o ./kernel/avx/kernel_strsv_avx_lib8.o ./kernel/avx/kernel_ssymv_avx_lib8.o ./kernel/avx/kernel_stran_avx_lib8.o  
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib8.o
-MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/avx/d_aux_ip_avx_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/avx/s_aux_ip_avx_lib8.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o
+MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/avx/d_aux_ip_avx_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/d_admm_soft.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/avx/s_aux_ip_avx_lib8.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o ./mpc_solvers/s_admm_soft.o
 #CFLAGS = $(OPT) -std=c99 -mavx -DTARGET_X64_AVX -fPIC $(DEBUG)
 endif
 ifeq ($(TARGET), X64_SSE3)
@@ -47,7 +47,7 @@ AUX_OBJS = ./auxiliary/block_size_x64_sse.o ./auxiliary/aux_d_c99_lib4.o ./auxil
 KERNEL_OBJS_DOUBLE = ./kernel/sse3/kernel_dgemm_sse3_lib4.o ./kernel/sse3/kernel_dtrmm_sse3_lib4.o ./kernel/sse3/kernel_dtrsm_sse3_lib4.o ./kernel/sse3/kernel_dpotrf_sse3_lib4.o ./kernel/sse3/kernel_dgemv_c99_lib4.o ./kernel/sse3/kernel_dtrmv_c99_lib4.o ./kernel/sse3/kernel_dtrsv_c99_lib4.o ./kernel/sse3/kernel_dsymv_c99_lib4.o ./kernel/sse3/kernel_dtran_c99_lib4.o 
 KERNEL_OBJS_SINGLE = ./kernel/sse3/kernel_sgemm_sse_lib4.o ./kernel/sse3/kernel_strmm_sse_lib4.o ./kernel/sse3/kernel_strsm_sse_lib4.o ./kernel/sse3/kernel_spotrf_sse_lib4.o ./kernel/sse3/kernel_sgemv_c99_lib4.o ./kernel/sse3/kernel_strmv_c99_lib4.o ./kernel/sse3/kernel_strsv_c99_lib4.o ./kernel/sse3/kernel_ssymv_c99_lib4.o ./kernel/sse3/kernel_stran_c99_lib4.o 
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
-MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o
+MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/d_admm_soft.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o ./mpc_solvers/s_admm_soft.o
 #CFLAGS = $(OPT) -std=c99 -DTARGET_C99_4X4 -fPIC $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4)
@@ -55,7 +55,7 @@ AUX_OBJS = ./auxiliary/block_size_c99_4x4.o ./auxiliary/aux_d_c99_lib4.o ./auxil
 KERNEL_OBJS_DOUBLE = ./kernel/c99/kernel_dgemm_c99_lib4.o ./kernel/c99/kernel_dtrmm_c99_lib4.o ./kernel/c99/kernel_dtrsm_c99_lib4.o ./kernel/c99/kernel_dpotrf_c99_lib4.o ./kernel/c99/kernel_dgemv_c99_lib4.o ./kernel/c99/kernel_dtrmv_c99_lib4.o ./kernel/c99/kernel_dtrsv_c99_lib4.o ./kernel/c99/kernel_dsymv_c99_lib4.o ./kernel/c99/kernel_dtran_c99_lib4.o 
 KERNEL_OBJS_SINGLE = ./kernel/c99/kernel_sgemm_c99_lib4.o ./kernel/c99/kernel_strmm_c99_lib4.o ./kernel/c99/kernel_strsm_c99_lib4.o ./kernel/c99/kernel_spotrf_c99_lib4.o ./kernel/c99/kernel_sgemv_c99_lib4.o ./kernel/c99/kernel_strmv_c99_lib4.o ./kernel/c99/kernel_strsv_c99_lib4.o ./kernel/c99/kernel_ssymv_c99_lib4.o ./kernel/c99/kernel_stran_c99_lib4.o 
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
-MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o
+MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/d_admm_soft.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o ./mpc_solvers/s_admm_soft.o
 #CFLAGS = $(OPT) -std=c99 -DTARGET_C99_4X4 -fPIC $(DEBUG)
 endif
 ifeq ($(TARGET), CORTEX_A15)
@@ -63,14 +63,14 @@ AUX_OBJS = ./auxiliary/block_size_cortex_a15.o ./auxiliary/aux_d_c99_lib4.o ./au
 KERNEL_OBJS_DOUBLE = ./kernel/neon/kernel_dgemm_vfpv3_lib4.o ./kernel/neon/kernel_dtrmm_vfpv3_lib4.o ./kernel/neon/kernel_dtrsm_vfpv3_lib4.o ./kernel/neon/kernel_dpotrf_vfpv3_lib4.o ./kernel/neon/kernel_dgemv_c99_lib4.o ./kernel/neon/kernel_dtrmv_c99_lib4.o ./kernel/neon/kernel_dtrsv_c99_lib4.o ./kernel/neon/kernel_dsymv_c99_lib4.o ./kernel/neon/kernel_dtran_c99_lib4.o 
 KERNEL_OBJS_SINGLE = ./kernel/neon/kernel_sgemm_neon_lib4.o ./kernel/neon/kernel_strmm_neon_lib4.o ./kernel/neon/kernel_strsm_neon_lib4.o ./kernel/neon/kernel_spotrf_neon_lib4.o ./kernel/neon/kernel_sgemv_c99_lib4.o ./kernel/neon/kernel_strmv_c99_lib4.o ./kernel/neon/kernel_strsv_c99_lib4.o ./kernel/neon/kernel_ssymv_c99_lib4.o ./kernel/neon/kernel_stran_c99_lib4.o 
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
-MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o
+MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/d_admm_soft.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o ./mpc_solvers/s_admm_soft.o
 endif
 ifeq ($(TARGET), CORTEX_A9)
 AUX_OBJS = ./auxiliary/block_size_cortex_a15.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99_lib4.o 
 KERNEL_OBJS_DOUBLE = ./kernel/neon/kernel_dgemm_vfpv3_lib4.o ./kernel/neon/kernel_dtrmm_vfpv3_lib4.o ./kernel/neon/kernel_dtrsm_vfpv3_lib4.o ./kernel/neon/kernel_dpotrf_vfpv3_lib4.o ./kernel/neon/kernel_dgemv_c99_lib4.o ./kernel/neon/kernel_dtrmv_c99_lib4.o ./kernel/neon/kernel_dtrsv_c99_lib4.o ./kernel/neon/kernel_dsymv_c99_lib4.o ./kernel/neon/kernel_dtran_c99_lib4.o 
 KERNEL_OBJS_SINGLE = ./kernel/neon/kernel_sgemm_neon_lib4.o  ./kernel/neon/kernel_strmm_neon_lib4.o ./kernel/neon/kernel_strsm_neon_lib4.o ./kernel/neon/kernel_spotrf_neon_lib4.o ./kernel/neon/kernel_sgemv_c99_lib4.o ./kernel/neon/kernel_strmv_c99_lib4.o ./kernel/neon/kernel_strsv_c99_lib4.o ./kernel/neon/kernel_ssymv_c99_lib4.o ./kernel/neon/kernel_stran_c99_lib4.o 
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
-MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o
+MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/d_admm_soft.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o ./mpc_solvers/s_admm_soft.o
 endif
 LQCP_OBJS = ./lqcp_solvers/d_ric_sv.o ./lqcp_solvers/d_res.o ./lqcp_solvers/s_ric_sv.o ./lqcp_solvers/s_res.o
 LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/dres_codegen.o #./codegen/sricposv_codegen.o  ./codegen/sres_codegen.o 
@@ -187,5 +187,6 @@ clean:
 	rm -f target_generator.out
 	rm -f *.o
 	rm -f libhpmpc.a
+	rm -f libhpmpc.so
 #	rm -f ./matlab/HPMPC.a
 

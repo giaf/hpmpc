@@ -69,7 +69,7 @@ void s_ric_sv_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 /*s_print_mat(1, nu, diag, 1);*/
 /*		d_transpose_pmat_lo(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);*/
 		strtr_l_lib(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);	
-/*s_print_pmat(pnz, cnl, bs, hpL[N-ii-1], cnl);*/
+/*s_print_pmat(nz, cnl, bs, hpL[N-ii-1], cnl);*/
 /*if(ii==1)*/
 /*exit(1);*/
 		}

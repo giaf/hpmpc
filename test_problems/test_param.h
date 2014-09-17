@@ -66,7 +66,7 @@
 #define K_MAX 10
 
 // number of iterations of ADMM method
-#define K_MAX_ADMM 1000
+#define K_MAX_ADMM 2000
 
 // tolerance in the duality measure
 #define TOL 1e-3

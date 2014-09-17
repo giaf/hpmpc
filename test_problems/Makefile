@@ -33,10 +33,12 @@ LIBS = -lm #-lopenblas
 #OBJS_TEST = test_blas_s.o
 #OBJS_TEST = tools.o test_d_ric_sv.o
 #OBJS_TEST = tools.o test_s_ric_sv.o
-OBJS_TEST = tools.o test_d_ip_box.o
+#OBJS_TEST = tools.o test_d_ip_box.o
 #OBJS_TEST = tools.o test_s_ip_box.o
 #OBJS_TEST = tools.o test_d_admm_box.o
 #OBJS_TEST = tools.o test_s_admm_box.o
+#OBJS_TEST = tools.o test_d_admm_soft.o
+OBJS_TEST = tools.o test_s_admm_soft.o
 
 obj: $(OBJS_TEST)
 	$(CC) -o test.out $(OBJS_TEST) -L. libhpmpc.a $(LIBS) #-pg
@@ -53,4 +55,6 @@ test_d_ip_box.o: test_d_ip_box.c test_param.h ../problem_size.h
 test_s_ip_box.o: test_s_ip_box.c test_param.h ../problem_size.h
 test_d_admm_box.o: test_d_admm_box.c test_param.h ../problem_size.h
 test_s_admm_box.o: test_s_admm_box.c test_param.h ../problem_size.h
+test_d_admm_soft.o: test_d_admm_soft.c test_param.h ../problem_size.h
+test_s_admm_soft.o: test_s_admm_soft.c test_param.h ../problem_size.h
 
