@@ -68,8 +68,8 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 /*		"ldr    r6, %7                   \n\t" // alg*/
 		"                                \n\t"
 		"                                \n\t"
-		"vldr   d8, .DZERO_12x4               \n\t" // load zero double
-		"vldr   d9, .DZERO_12x4+8             \n\t" // load zero double
+		"vldr   d8, .DZERO_12x4          \n\t" // load zero double
+		"vldr   d9, .DZERO_12x4+8        \n\t" // load zero double
 		"vmov   q5, q4                   \n\t"
 		"vmov   q6, q4                   \n\t"
 		"vmov   q7, q4                   \n\t"
@@ -365,7 +365,7 @@ void kernel_sgemm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 /*		"                                \n\t"*/
 		"                                \n\t"
 		".align 3                        \n\t"
-		".DZERO_12x4:                         \n\t" // zero quad word
+		".DZERO_12x4:                    \n\t" // zero quad word
 		".word  0                        \n\t"
 		".word  0                        \n\t"
 		".word  0                        \n\t"
