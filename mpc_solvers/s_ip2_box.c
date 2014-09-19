@@ -83,6 +83,7 @@ void s_ip2_box_mpc(int *kk, int k_max, float tol, int warm_start, float *sigma_p
 	float *(dt[N+1]);
 	float *(lamt[N+1]);
 	float *(t_inv[N+1]);
+	float *(Pb[N]);
 
 //	ptr += (N+1)*(pnx + pnz*cnl + 12*pnz) + 3*pnz;
 
@@ -151,6 +152,13 @@ void s_ip2_box_mpc(int *kk, int k_max, float tol, int warm_start, float *sigma_p
 		{
 		t_inv[jj] = ptr;
 		ptr += anb;
+		}
+
+	// backup of P*b
+	for(jj=0; jj<N; jj++)
+		{
+		Pb[jj] = ptr;
+		ptr += anx;
 		}
 
 
@@ -300,7 +308,7 @@ void s_ip2_box_mpc(int *kk, int k_max, float tol, int warm_start, float *sigma_p
 
 
 		// solve the system
-		s_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl2, dux, work, compute_mult, dpi);
+		s_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl2, dux, work, 1, Pb, compute_mult, dpi);
 
 /*s_print_mat(1, nx+nu, dux[0], 1);*/
 /*s_print_mat(1, nx+nu, dux[1], 1);*/
@@ -407,6 +415,7 @@ void s_ip2_box_mhe(int *kk, int k_max, float tol, int warm_start, float *sigma_p
 	float *(dt[N+1]);
 	float *(lamt[N+1]);
 	float *(t_inv[N+1]);
+	float *(Pb[N]);
 
 //	ptr += (N+1)*(pnx + pnz*cnl + 12*pnz) + 3*pnz;
 
@@ -475,6 +484,13 @@ void s_ip2_box_mhe(int *kk, int k_max, float tol, int warm_start, float *sigma_p
 		{
 		t_inv[jj] = ptr;
 		ptr += anb;
+		}
+
+	// backup of P*b
+	for(jj=0; jj<N; jj++)
+		{
+		Pb[jj] = ptr;
+		ptr += anx;
 		}
 
 
@@ -591,7 +607,7 @@ void s_ip2_box_mhe(int *kk, int k_max, float tol, int warm_start, float *sigma_p
 
 
 		// solve the system
-		s_ric_trs_mhe(nx, nu, N, pBAbt, pL, pl2, dux, work, compute_mult, dpi);
+		s_ric_trs_mhe(nx, nu, N, pBAbt, pL, pl2, dux, work, 1, Pb, compute_mult, dpi);
 
 		// compute t & dlam & dt & alpha
 		alpha = 1.0;

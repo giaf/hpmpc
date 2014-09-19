@@ -172,7 +172,7 @@ int c_order_static_mem_ip_wrapper(	int k_max, double tol,
 /*        double tol = TOL; // tolerance in the duality measure*/
         static double sigma_par[] = {0.4, 0.1, 0.001}; // control primal-dual IP behaviour
 /*        static double stat[5*K_MAX]; // statistics from the IP routine*/
-        static double work0[8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 5*D_ANZ + 2*D_ANX + 7*D_ANB) + 3*D_ANZ];
+        static double work0[8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 5*D_ANZ + 3*D_ANX + 7*D_ANB) + 3*D_ANZ];
 /*        double *work0 = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 2*anx + 7*anb) + 3*anz)*sizeof(double));*/
         int warm_start = WARM_START;
         int compute_mult = 1; // compute multipliers
@@ -505,7 +505,7 @@ int c_order_static_mem_ip_wrapper(	int k_max, double tol,
 /*        float tol = TOL; // tolerance in the duality measure*/
         static float sigma_par[] = {0.4, 0.1, 0.01}; // control primal-dual IP behaviour
 /*        static float stat[5*K_MAX]; // statistics from the IP routine*/
-        static float work0[16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 2*S_ANX + 7*S_ANB) + 3*S_ANZ];
+        static float work0[16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 3*S_ANX + 7*S_ANB) + 3*S_ANZ];
 /*        float *work0 = (float *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 2*anx + 7*anb) + 3*anz)*sizeof(float));*/
         int warm_start = WARM_START;
         int compute_mult = 1; // compute multipliers

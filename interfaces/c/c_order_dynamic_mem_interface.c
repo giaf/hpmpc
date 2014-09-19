@@ -167,7 +167,7 @@ int c_order_dynamic_mem_ip_wrapper(	int k_max, double tol,
         static double sigma_par[] = {0.4, 0.1, 0.001}; // control primal-dual IP behaviour
 /*        static double stat[5*K_MAX]; // statistics from the IP routine*/
 /*        static double work[8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 5*D_ANZ + 2*D_ANX + 7*D_ANB) + 3*D_ANZ];*/
-        double *work = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 2*anx + 7*anb) + 3*anz)*sizeof(double));
+        double *work = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 3*anx + 7*anb) + 3*anz)*sizeof(double));
         int warm_start = WARM_START;
         int compute_mult = 1; // compute multipliers
         
@@ -500,7 +500,7 @@ int c_order_dynamic_mem_ip_wrapper(	int k_max, double tol,
         static float sigma_par[] = {0.4, 0.1, 0.01}; // control primal-dual IP behaviour
 /*        static float stat[5*K_MAX]; // statistics from the IP routine*/
 /*        static float work[16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 2*S_ANX + 7*S_ANB) + 3*S_ANZ];*/
-        float *work = (float *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 2*anx + 7*anb) + 3*anz)*sizeof(float));
+        float *work = (float *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 3*anx + 7*anb) + 3*anz)*sizeof(float));
         int warm_start = WARM_START;
         int compute_mult = 1; // compute multipliers
         
@@ -771,7 +771,7 @@ int c_order_dynamic_mem_riccati_wrapper_init( const int nx, const int nu, const 
 		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 
-		double *work = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 2*anz + anx) + 3*anz)*sizeof(double));
+		double *work = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 2*anz + 2*anx) + 3*anz)*sizeof(double));
 		*ptr_work = work;
         
 		int compute_mult = 1; // compute multipliers
@@ -857,7 +857,7 @@ int c_order_dynamic_mem_riccati_wrapper_init( const int nx, const int nu, const 
 		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 
-		double *work = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 2*anz + anx) + 3*anz)*sizeof(float));
+		double *work = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 2*anz + 2*anx) + 3*anz)*sizeof(float));
 		*ptr_work = work;
         
 		int compute_mult = 1; // compute multipliers
@@ -1253,6 +1253,7 @@ int c_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const
 		double *(hpi[N + 1]);
 		double *work1;
 		double *diag;
+		double *(hPb[N]);
 
 		// dynamic system
 		for(ii=0; ii<N; ii++)
@@ -1303,6 +1304,13 @@ int c_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const
 		diag = ptr;
 		ptr += anz;
 
+		// backup of P*b
+		for(jj=0; jj<N; jj++)
+			{
+			hPb[jj] = ptr;
+			ptr += anx;
+			}
+
 
 
 		// linear part of cost function
@@ -1339,7 +1347,7 @@ int c_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const
 
 		// call Riccati solver
 //		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work1, diag, compute_mult, hpi);
-		d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hpl, hux, work1, compute_mult, hpi);
+		d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hpl, hux, work1, 1, hPb, compute_mult, hpi);
 
 
 
@@ -1396,6 +1404,7 @@ int c_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const
 		float *(hpi[N + 1]);
 		float *work1;
 		float *diag;
+		float *(hPb[N]);
 
 		// dynamic system
 		for(ii=0; ii<N; ii++)
@@ -1446,6 +1455,13 @@ int c_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const
 		diag = ptr;
 		ptr += anz;
 
+		// backup of P*b
+		for(jj=0; jj<N; jj++)
+			{
+			hPb[jj] = ptr;
+			ptr += anx;
+			}
+
 
 
 		// linear part of cost function
@@ -1483,7 +1499,7 @@ int c_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const
 
 
 		// call Riccati solver
-		s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hpl, hux, work1, compute_mult, hpi);
+		s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hpl, hux, work1, 1, hPb, compute_mult, hpi);
 
 
 

@@ -118,7 +118,7 @@ void s_ric_sv_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 
 
 
-void s_ric_trs_mpc(int nx, int nu, int N, float **hpBAbt, float **hpL, float **hq, float **hux, float *work, int compute_pi, float **hpi)
+void s_ric_trs_mpc(int nx, int nu, int N, float **hpBAbt, float **hpL, float **hq, float **hux, float *work, int compute_Pb, float ** hPb, int compute_pi, float **hpi)
 	{
 	
 	const int bs = S_MR; //d_get_mr();
@@ -140,18 +140,17 @@ void s_ric_trs_mpc(int nx, int nu, int N, float **hpBAbt, float **hpL, float **h
 	/* backward substitution */
 	for(ii=0; ii<N; ii++)
 		{
-/*printf("\n%d\n", ii);*/
-/*		for(jj=0; jj<nx; jj++) work[jj] = hpBAbt[N-ii-1][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj]; // copy b*/
-/*s_print_mat(1, nx, work, 1);*/
-/*		strmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work, work+pnz, 0);*/
-		strmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, hux[N-ii]+nu, work+pnz, 0);
-/*s_print_mat(1, nx, work+pnz, 1);*/
-		for(jj=0; jj<nx; jj++) work[jj] = hq[N-ii][nu+jj]; // copy p
-/*s_print_mat(1, nx, work, 1);*/
-		strmv_u_t_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work+pnz, work, 1); // L*(L'*b) + p
-/*s_print_mat(1, nx, work, 1);*/
+/*		strmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, hux[N-ii]+nu, work+pnz, 0);*/
+/*		for(jj=0; jj<nx; jj++) work[jj] = hq[N-ii][nu+jj]; // copy p*/
+/*		strmv_u_t_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work+pnz, work, 1); // L*(L'*b) + p*/
+		if(compute_Pb)
+			{
+			for(jj=0; jj<nx; jj++) work[jj] = hux[N-ii][nu+jj]; // copy b in aligned memory
+			strmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work, work+anz, 0);
+			strmv_u_t_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work+anz, hPb[N-ii-1], 0); // L*(L'*b)
+			}
+		for(jj=0; jj<nx; jj++) work[jj] = hPb[N-ii-1][jj] + hq[N-ii][nu+jj]; // add p
 		sgemv_n_lib(nx+nu, nx, hpBAbt[N-ii-1], cnx, work, hq[N-ii-1], 1);
-/*s_print_mat(1, nx+nu, hq[N-ii-1], 1);*/
 		strsv_sgemv_n_lib(nu, nu+nx, hpL[N-ii-1]+(nx+pad)*bs, cnl, hq[N-ii-1]);
 /*s_print_mat(1, nx+nu, hq[N-ii-1], 1);*/
 /*if(ii==1)*/
@@ -264,7 +263,7 @@ void s_ric_sv_mhe(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 
 
 
-void s_ric_trs_mhe(int nx, int nu, int N, float **hpBAbt, float **hpL, float **hq, float **hux, float *work, int compute_pi, float **hpi)
+void s_ric_trs_mhe(int nx, int nu, int N, float **hpBAbt, float **hpL, float **hq, float **hux, float *work, int compute_Pb, float ** hPb, int compute_pi, float **hpi)
 	{
 	
 	const int bs = S_MR; //d_get_mr();
@@ -288,21 +287,35 @@ void s_ric_trs_mhe(int nx, int nu, int N, float **hpBAbt, float **hpL, float **h
 	// later stages
 	for(ii=0; ii<N-1; ii++)
 		{
-/*		for(jj=0; jj<nx; jj++) work[jj] = hpBAbt[N-ii-1][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj]; // copy b*/
-/*		strmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work, work+pnz, 0);*/
-		strmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, hux[N-ii]+nu, work+pnz, 0);
-		for(jj=0; jj<nx; jj++) work[jj] = hq[N-ii][nu+jj]; // copy p
-		strmv_u_t_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work+pnz, work, 1); // L*(L'*b) + p
+/*		//for(jj=0; jj<nx; jj++) work[jj] = hpBAbt[N-ii-1][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj]; // copy b*/
+/*		//strmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work, work+pnz, 0);*/
+/*		strmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, hux[N-ii]+nu, work+pnz, 0);*/
+/*		for(jj=0; jj<nx; jj++) work[jj] = hq[N-ii][nu+jj]; // copy p*/
+/*		strmv_u_t_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work+pnz, work, 1); // L*(L'*b) + p*/
+		if(compute_Pb)
+			{
+			for(jj=0; jj<nx; jj++) work[jj] = hux[N-ii][nu+jj]; // copy b in aligned memory
+			strmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work, work+anz, 0);
+			strmv_u_t_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work+anz, hPb[N-ii-1], 0); // L*(L'*b)
+			}
+		for(jj=0; jj<nx; jj++) work[jj] = hPb[N-ii-1][jj] + hq[N-ii][nu+jj]; // add p
 		sgemv_n_lib(nx+nu, nx, hpBAbt[N-ii-1], cnx, work, hq[N-ii-1], 1);
 		strsv_sgemv_n_lib(nu, nu+nx, hpL[N-ii-1]+(nx+pad)*bs, cnl, hq[N-ii-1]);
 		}
 
 	// first stage 
-/*	for(jj=0; jj<nx; jj++) work[jj] = hpBAbt[0][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj]; // copy b*/
-/*	strmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, work, work+pnz, 0);*/
-	strmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, hux[1]+nu, work+pnz, 0);
-	for(jj=0; jj<nx; jj++) work[jj] = hq[1][nu+jj]; // copy p
-	strmv_u_t_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, work+pnz, work, 1); // L*(L'*b) + p
+/*	//for(jj=0; jj<nx; jj++) work[jj] = hpBAbt[0][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj]; // copy b*/
+/*	//strmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, work, work+pnz, 0);*/
+/*	strmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, hux[1]+nu, work+pnz, 0);*/
+/*	for(jj=0; jj<nx; jj++) work[jj] = hq[1][nu+jj]; // copy p*/
+/*	strmv_u_t_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, work+pnz, work, 1); // L*(L'*b) + p*/
+	if(compute_Pb)
+		{
+		for(jj=0; jj<nx; jj++) work[jj] = hux[1][nu+jj]; // copy b in aligned memory
+		strmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, work, work+anz, 0);
+		strmv_u_t_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, work+anz, hPb[0], 0); // L*(L'*b)
+		}
+	for(jj=0; jj<nx; jj++) work[jj] = hPb[0][jj] + hq[N-ii][nu+jj]; // add p
 	sgemv_n_lib(nx+nu, nx, hpBAbt[0], cnx, work, hq[0], 1);
 	strsv_sgemv_n_lib(nu+nx, nu+nx, hpL[0]+(nx+pad)*bs, cnl, hq[0]);
 

@@ -336,7 +336,7 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-	float *work; s_zeros_align(&work, (N+1)*(pnz*cnl + 6*anz + 11*anx) + 3*anz, 1); // work space
+	float *work; s_zeros_align(&work, (N+1)*(pnz*cnl + 6*anz + 12*anx) + 3*anz, 1); // work space
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	float sp_thr = SP_THR; // threshold to switch between double and single precision*/

@@ -81,6 +81,7 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 	double *(bb[N]);
 	double *work1;
 	double *diag;
+	double *(Pb[N]);
 	
 	double *ptr = work_memory;
 
@@ -141,6 +142,13 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 			{
 			bb[jj][ll] = pBAbt[jj][((nx+nu)/bs)*bs*cnx+(nx+nu)%bs+ll*bs];
 			}
+		}
+
+	// backup of P*b
+	for(jj=0; jj<N; jj++)
+		{
+		Pb[jj] = ptr;
+		ptr += anx;
 		}
 
 	double temp, v_temp, norm_p=1e3, norm_d=1e3;
@@ -263,6 +271,7 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 
 
 	// ADMM loop		
+	int compute_Pb = 1;
 	while( *kk<k_max && (norm_p>tol_p || norm_d>tol_d) )
 		{
 
@@ -286,7 +295,8 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 			}
 
 		// Riccati solver		
-		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, ux_u, work1, compute_mult, pi);
+		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, ux_u, work1, compute_Pb, Pb, compute_mult, pi);
+		compute_Pb = 0;
 
 		// constraints
 		norm_p = 0;

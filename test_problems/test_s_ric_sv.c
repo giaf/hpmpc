@@ -206,6 +206,7 @@ int main()
 	
 	const int bs = S_MR; //d_get_mr();
 	const int ncl = S_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
 	
 	int nn[] = {4, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300};
 	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 4000, 4000, 2000, 2000, 1000, 1000, 400, 400, 400, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
@@ -242,6 +243,8 @@ int main()
 		int rep;
 	
 		const int nz = nx+nu+1;
+		const int anz = nal*((nz+nal-1)/nal);
+		const int anx = nal*((nx+nal-1)/nal);
 		const int pnz = bs*((nz+bs-1)/bs);
 		const int pnx = bs*((nx+bs-1)/bs);
 		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
@@ -329,6 +332,7 @@ int main()
 		float *(hpBAbt[N]);
 		float *(hrb[N]);
 		float *(hrq[N+1]);
+		float *(hPb[N]);
 		for(jj=0; jj<N; jj++)
 			{
 			s_zeros_align(&hpQ[jj], pnz, cnz);
@@ -339,6 +343,7 @@ int main()
 			hpBAbt[jj] = pBAbt;
 			s_zeros_align(&hrb[jj], pnx, 1);
 			s_zeros_align(&hrq[jj], pnz, 1);
+			s_zeros_align(&hPb[jj], anx, 1);
 			}
 		s_zeros_align(&hpQ[N], pnz, cnz);
 		s_zeros_align(&hpL[N], pnz, cnl); // TODO remove 2* once not needed any more (agreement of S_NR and S_NCL)
@@ -352,7 +357,7 @@ int main()
 	
 		float *diag; s_zeros_align(&diag, pnz, 1);
 		
-		float *work; s_zeros_align(&work, 2*pnz, 1);
+		float *work; s_zeros_align(&work, 2*anz, 1);
 
 /************************************************
 * riccati-like iteration
@@ -441,9 +446,9 @@ int main()
 
 		// call the solver 
 		if(FREE_X0==0)
-			s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, COMPUTE_MULT, hpi);
+			s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
 		else
-			s_ric_trs_mhe(nx, nu, N, hpBAbt, hpL, hq, hux, work, COMPUTE_MULT, hpi);
+			s_ric_trs_mhe(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
 
 		if(PRINTRES==1 && ll_max==1)
 			{
@@ -537,9 +542,9 @@ int main()
 
 			// call the solver 
 			if(FREE_X0==0)
-				s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, COMPUTE_MULT, hpi);
+				s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
 			else
-				s_ric_trs_mhe(nx, nu, N, hpBAbt, hpL, hq, hux, work, COMPUTE_MULT, hpi);
+				s_ric_trs_mhe(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
 			}
 		
 		gettimeofday(&tv2, NULL); // start
@@ -599,6 +604,7 @@ int main()
 			free(hpi[jj]);
 			free(hrq[jj]);
 			free(hrb[jj]);
+			free(hPb[jj]);
 			}
 		free(hpQ[N]);
 		free(hpL[N]);

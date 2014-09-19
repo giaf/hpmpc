@@ -88,6 +88,7 @@ void s_admm_soft_mpc(int *kk, int k_max, float tol_p, float tol_d, int warm_star
 	float *(s_v[N+1]); // soft constraints slack variable
 	float *(s_w[N+1]); // soft constraints slack variable
 	float *(s_r[N+1]); // soft constraints slack variable
+	float *(Pb[N]);
 	
 	float *ptr = work_memory; // TODO + 10*anx
 
@@ -184,6 +185,15 @@ void s_admm_soft_mpc(int *kk, int k_max, float tol_p, float tol_d, int warm_star
 		s_r[jj] = ptr;
 		ptr += 2*anx;
 		}
+
+	// backup of P*b
+	for(jj=0; jj<N; jj++)
+		{
+		Pb[jj] = ptr;
+		ptr += anx;
+		}
+
+
 
 	float temp, v_temp, norm_p=1e3, norm_d=1e3, x_temp;
 
@@ -381,6 +391,7 @@ void s_admm_soft_mpc(int *kk, int k_max, float tol_p, float tol_d, int warm_star
 
 
 	// ADMM loop		
+	int compute_Pb = 1;
 	while( *kk<k_max && (norm_p>tol_p || norm_d>tol_d) )
 		{
 
@@ -418,7 +429,8 @@ void s_admm_soft_mpc(int *kk, int k_max, float tol_p, float tol_d, int warm_star
 			}
 
 		// Riccati solver		
-		s_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, ux_u, work1, compute_mult, pi);
+		s_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, ux_u, work1, compute_Pb, Pb, compute_mult, pi);
+		compute_Pb = 0;
 
 /*for(jj=0; jj<=N; jj++)*/
 /*	d_print_mat(1, nu+nx, ux_u[jj], 1);*/
