@@ -35,8 +35,10 @@ void s_ric_sv_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 	
 	const int bs = S_MR; //d_get_mr();
 	const int ncl = S_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
 	
 	const int nz = nx+nu+1;
+	const int anz = nal*((nz+nal-1)/nal);
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nz+ncl-1)/ncl);
@@ -98,9 +100,11 @@ void s_ric_sv_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 /*s_print_mat(1, pnz, hux[ii+1], 1);*/
 		if(compute_pi)
 			{
+			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
 			for(jj=0; jj<nx; jj++) work[jj] = hpL[ii+1][(nx+pad)*bs+((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*(nu+jj)]; // work space
 /*s_print_mat(1, nx, work, 1);*/
-			strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 1); // TODO remove nu
+/*			strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 1); // TODO remove nu*/
+			strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[anz], &work[0], 1);
 /*s_print_mat(1, nx, work, 1);*/
 			strmv_u_t_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[ii+1][0], 0); // L*(L'*b) + p
 /*s_print_mat(1, nx, work, 1);*/
@@ -119,8 +123,10 @@ void s_ric_trs_mpc(int nx, int nu, int N, float **hpBAbt, float **hpL, float **h
 	
 	const int bs = S_MR; //d_get_mr();
 	const int ncl = S_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
 
 	const int nz = nx+nu+1;
+	const int anz = nal*((nz+nal-1)/nal);
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nz+ncl-1)/ncl);
@@ -164,7 +170,9 @@ void s_ric_trs_mpc(int nx, int nu, int N, float **hpBAbt, float **hpL, float **h
 		sgemv_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
-			strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 0);
+			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
+			strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[anz], &work[0], 0);
+/*			strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 0);*/
 			strmv_u_t_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[ii+1][0], 0); // L*(L'*b) + p
 			for(jj=0; jj<nx; jj++) hpi[ii+1][jj] += hq[ii+1][nu+jj];
 			}
@@ -180,8 +188,10 @@ void s_ric_sv_mhe(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 	
 	const int bs = S_MR; //d_get_mr();
 	const int ncl = S_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
 	
 	const int nz = nx+nu+1;
+	const int anz = nal*((nz+nal-1)/nal);
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nz+ncl-1)/ncl);
@@ -226,8 +236,10 @@ void s_ric_sv_mhe(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 	sgemv_t_lib(nx+nu, nx, 0, hpBAbt[0], cnx, &hux[0][0], &hux[1][nu], 1);
 	if(compute_pi)
 		{
+		for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
 		for(jj=0; jj<nx; jj++) work[jj] = hpL[1][(nx+pad)*bs+((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*(nu+jj)]; // work space
-		strmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, &hux[1][nu], &work[0], 1);
+/*		strmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, &hux[1][nu], &work[0], 1);*/
+		strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[anz], &work[0], 1);
 		strmv_u_t_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[1][0], 0); // L*(L'*b) + p
 		}
 
@@ -240,8 +252,10 @@ void s_ric_sv_mhe(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 		sgemv_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
+			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
 			for(jj=0; jj<nx; jj++) work[jj] = hpL[ii+1][(nx+pad)*bs+((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*(nu+jj)]; // work space
-			strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 1);
+/*			strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 1);*/
+			strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[anz], &work[0], 1);
 			strmv_u_t_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[ii+1][0], 0); // L*(L'*b) + p
 			}
 		}
@@ -255,8 +269,10 @@ void s_ric_trs_mhe(int nx, int nu, int N, float **hpBAbt, float **hpL, float **h
 	
 	const int bs = S_MR; //d_get_mr();
 	const int ncl = S_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
 
 	const int nz = nx+nu+1;
+	const int anz = nal*((nz+nal-1)/nal);
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nz+ncl-1)/ncl);
@@ -300,7 +316,9 @@ void s_ric_trs_mhe(int nx, int nu, int N, float **hpBAbt, float **hpL, float **h
 	sgemv_t_lib(nx+nu, nx, 0, hpBAbt[0], cnx, &hux[0][0], &hux[1][nu], 1);
 	if(compute_pi)
 		{
-		strmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, &hux[1][nu], &work[0], 0);
+		for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
+		strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[anz], &work[0], 0);
+/*		strmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, &hux[1][nu], &work[0], 0);*/
 		strmv_u_t_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[1][0], 0); // L*(L'*b) + p
 		for(jj=0; jj<nx; jj++) hpi[1][jj] += hq[1][nu+jj];
 		}
@@ -314,7 +332,9 @@ void s_ric_trs_mhe(int nx, int nu, int N, float **hpBAbt, float **hpL, float **h
 		sgemv_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
-			strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 0);
+			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
+			strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[anz], &work[0], 0);
+/*			strmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 0);*/
 			strmv_u_t_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[ii+1][0], 0); // L*(L'*b) + p
 			for(jj=0; jj<nx; jj++) hpi[ii+1][jj] += hq[ii+1][nu+jj];
 			}

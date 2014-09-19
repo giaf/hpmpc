@@ -69,7 +69,7 @@
 #define K_MAX_ADMM 2000
 
 // tolerance in the duality measure
-#define TOL 1e-3
+#define TOL 1e-5
 
 // threshold in the duality measure to switch from single to double precision
 #define SP_THR 1e5

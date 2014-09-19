@@ -35,8 +35,10 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 	
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
 	
 	const int nz = nx+nu+1;
+	const int anz = nal*((nz+nal-1)/nal);
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nz+ncl-1)/ncl);
@@ -88,8 +90,10 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 		dgemv_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
+			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
 			for(jj=0; jj<nx; jj++) work[jj] = hpL[ii+1][(nx+pad)*bs+((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*(nu+jj)]; // work space
-			dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 1); // TODO remove nu
+/*			dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 1); // TODO remove nu*/
+			dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[anz], &work[0], 1);
 			dtrmv_u_t_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[ii+1][0], 0); // L*(L'*b) + p
 			}
 		}
@@ -103,8 +107,10 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 	
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
 
 	const int nz = nx+nu+1;
+	const int anz = nal*((nz+nal-1)/nal);
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nz+ncl-1)/ncl);
@@ -120,9 +126,9 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 		{
 /*		for(jj=0; jj<nx; jj++) work[jj] = hpBAbt[N-ii-1][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj]; // copy b*/
 /*		dtrmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work, work+pnz, 0);*/
-		dtrmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, hux[N-ii]+nu, work+pnz, 0);
+		dtrmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, hux[N-ii]+nu, work+anz, 0);
 		for(jj=0; jj<nx; jj++) work[jj] = hq[N-ii][nu+jj]; // copy p
-		dtrmv_u_t_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work+pnz, work, 1); // L*(L'*b) + p
+		dtrmv_u_t_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work+anz, work, 1); // L*(L'*b) + p
 		dgemv_n_lib(nx+nu, nx, hpBAbt[N-ii-1], cnx, work, hq[N-ii-1], 1);
 /*d_print_mat(nx+nu, 1, hq[N-ii-1], 1);*/
 		dtrsv_dgemv_n_lib(nu, nu+nx, hpL[N-ii-1]+(nx+pad)*bs, cnl, hq[N-ii-1]);
@@ -142,7 +148,9 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 		dgemv_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
-			dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 0);
+			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
+			dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[anz], &work[0], 0);
+/*			dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 0);*/
 			dtrmv_u_t_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[ii+1][0], 0); // L*(L'*b) + p
 			for(jj=0; jj<nx; jj++) hpi[ii+1][jj] += hq[ii+1][nu+jj];
 			}
@@ -158,8 +166,10 @@ void d_ric_sv_mhe(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 	
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
 	
 	const int nz = nx+nu+1;
+	const int anz = nal*((nz+nal-1)/nal);
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nz+ncl-1)/ncl);
@@ -204,8 +214,10 @@ void d_ric_sv_mhe(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 	dgemv_t_lib(nx+nu, nx, 0, hpBAbt[0], cnx, &hux[0][0], &hux[1][nu], 1);
 	if(compute_pi)
 		{
+		for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
 		for(jj=0; jj<nx; jj++) work[jj] = hpL[1][(nx+pad)*bs+((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*(nu+jj)]; // work space
-		dtrmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, &hux[1][nu], &work[0], 1);
+/*		dtrmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, &hux[1][nu], &work[0], 1);*/
+		dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[anz], &work[0], 1);
 		dtrmv_u_t_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[1][0], 0); // L*(L'*b) + p
 		}
 
@@ -218,8 +230,10 @@ void d_ric_sv_mhe(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 		dgemv_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
+			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
 			for(jj=0; jj<nx; jj++) work[jj] = hpL[ii+1][(nx+pad)*bs+((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*(nu+jj)]; // work space
-			dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 1);
+/*			dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 1);*/
+			dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[anz], &work[0], 1);
 			dtrmv_u_t_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[ii+1][0], 0); // L*(L'*b) + p
 			}
 		}
@@ -233,8 +247,10 @@ void d_ric_trs_mhe(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 	
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
 
 	const int nz = nx+nu+1;
+	const int anz = nal*((nz+nal-1)/nal);
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nz+ncl-1)/ncl);
@@ -252,9 +268,9 @@ void d_ric_trs_mhe(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 		{
 /*		for(jj=0; jj<nx; jj++) work[jj] = hpBAbt[N-ii-1][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj]; // copy b*/
 /*		dtrmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work, work+pnz, 0);*/
-		dtrmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, hux[N-ii]+nu, work+pnz, 0);
+		dtrmv_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, hux[N-ii]+nu, work+anz, 0);
 		for(jj=0; jj<nx; jj++) work[jj] = hq[N-ii][nu+jj]; // copy p
-		dtrmv_u_t_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work+pnz, work, 1); // L*(L'*b) + p
+		dtrmv_u_t_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work+anz, work, 1); // L*(L'*b) + p
 		dgemv_n_lib(nx+nu, nx, hpBAbt[N-ii-1], cnx, work, hq[N-ii-1], 1);
 		dtrsv_dgemv_n_lib(nu, nu+nx, hpL[N-ii-1]+(nx+pad)*bs, cnl, hq[N-ii-1]);
 		}
@@ -262,9 +278,9 @@ void d_ric_trs_mhe(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 	// first stage 
 /*	for(jj=0; jj<nx; jj++) work[jj] = hpBAbt[0][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj]; // copy b*/
 /*	dtrmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, work, work+pnz, 0);*/
-	dtrmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, hux[1]+nu, work+pnz, 0);
+	dtrmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, hux[1]+nu, work+anz, 0);
 	for(jj=0; jj<nx; jj++) work[jj] = hq[1][nu+jj]; // copy p
-	dtrmv_u_t_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, work+pnz, work, 1); // L*(L'*b) + p
+	dtrmv_u_t_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, work+anz, work, 1); // L*(L'*b) + p
 	dgemv_n_lib(nx+nu, nx, hpBAbt[0], cnx, work, hq[0], 1);
 	dtrsv_dgemv_n_lib(nu+nx, nu+nx, hpL[0]+(nx+pad)*bs, cnl, hq[0]);
 
@@ -278,7 +294,9 @@ void d_ric_trs_mhe(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 	dgemv_t_lib(nx+nu, nx, 0, hpBAbt[0], cnx, &hux[0][0], &hux[1][nu], 1);
 	if(compute_pi)
 		{
-		dtrmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, &hux[1][nu], &work[0], 0);
+		for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
+		dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[anz], &work[0], 0);
+/*		dtrmv_u_n_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, &hux[1][nu], &work[0], 0);*/
 		dtrmv_u_t_lib(nx, hpL[1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[1][0], 0); // L*(L'*b) + p
 		for(jj=0; jj<nx; jj++) hpi[1][jj] += hq[1][nu+jj];
 		}
@@ -292,7 +310,9 @@ void d_ric_trs_mhe(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 		dgemv_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
-			dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 0);
+			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
+			dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[anz], &work[0], 0);
+/*			dtrmv_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 0);*/
 			dtrmv_u_t_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[ii+1][0], 0); // L*(L'*b) + p
 			for(jj=0; jj<nx; jj++) hpi[ii+1][jj] += hq[ii+1][nu+jj];
 			}
