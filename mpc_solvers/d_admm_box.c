@@ -37,7 +37,7 @@
 
 
 /* primal-dual interior-point method, box constraints, time invariant matrices (mpc version) */
-void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_start, int compute_fact, double rho, double alpha, double *stat, int nx, int nu, int N, double **pBAbt, double **pQ, double **lb, double **ub, double **ux_u, int compute_mult, double **pi, double *work_memory) // TODO return w ???
+void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_start, int compute_fact, double rho, double alpha, double *stat, int nx, int nu, int N, double **pBAbt, double **pQ, double **lb, double **ub, double **ux_u, double **ux_v, double **ux_w, int compute_mult, double **pi, double *work_memory)
 	{
 
 /*printf("\ncazzo\n");*/
@@ -72,8 +72,8 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 
 	/* array or pointers */
 	double *(ux_r[N+1]);
-	double *(ux_v[N+1]);
-	double *(ux_w[N+1]);
+/*	double *(ux_v[N+1]);*/
+/*	double *(ux_w[N+1]);*/
 	double *(pL[N+1]);
 	double *(pl[N+1]);
 	double *(bd[N+1]);
@@ -92,17 +92,17 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 		ptr += anz;
 		}
 
-	for(jj=0; jj<=N; jj++)
-		{
-		ux_v[jj] = ptr;
-		ptr += anz;
-		}
+/*	for(jj=0; jj<=N; jj++)*/
+/*		{*/
+/*		ux_v[jj] = ptr;*/
+/*		ptr += anz;*/
+/*		}*/
 
-	for(jj=0; jj<=N; jj++)
-		{
-		ux_w[jj] = ptr;
-		ptr += anz;
-		}
+/*	for(jj=0; jj<=N; jj++)*/
+/*		{*/
+/*		ux_w[jj] = ptr;*/
+/*		ptr += anz;*/
+/*		}*/
 
 	// work space (matrices)
 	for(jj=0; jj<=N; jj++)
@@ -271,8 +271,8 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 
 
 	// ADMM loop		
-	int compute_Pb = 1;
-	while( *kk<k_max && (norm_p>tol_p || norm_d>tol_d) )
+	int compute_Pb = compute_fact;
+	while( (*kk<k_max && (norm_p>tol_p || norm_d>tol_d) ) || compute_Pb )
 		{
 
 		// dynamic

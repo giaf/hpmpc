@@ -37,7 +37,7 @@
 
 
 /* primal-dual interior-point method, box constraints, time invariant matrices (mpc version) */
-void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_start, int compute_fact, double rho, double alpha, double *stat, int nx, int nu, int N, double **pBAbt, double **pQ, double **pS, double **lb, double **ub, double **ux_u, int compute_mult, double **pi, double *work_memory) // TODO return w ???
+void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_start, int compute_fact, double rho, double alpha, double *stat, int nx, int nu, int N, double **pBAbt, double **pQ, double **pS, double **lb, double **ub, double **ux_u, double **ux_v, double **ux_w, double **s_u, double **s_v, double **s_w, int compute_mult, double **pi, double *work_memory) // TODO return w ???
 	{
 
 //alpha = 1.0; // no relaxation for the moment TODO remove 
@@ -74,8 +74,8 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 
 	/* array or pointers */
 	double *(ux_r[N+1]);
-	double *(ux_v[N+1]);
-	double *(ux_w[N+1]);
+/*	double *(ux_v[N+1]);*/
+/*	double *(ux_w[N+1]);*/
 	double *(pL[N+1]);
 	double *(pl[N+1]);
 	double *(bd[N+1]);
@@ -84,9 +84,9 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 	double *work1;
 	double *diag;
 	double *(pSi[N+1]); // inverse of Hessian of soft constraints slack variables
-	double *(s_u[N+1]); // soft constraints slack variable
-	double *(s_v[N+1]); // soft constraints slack variable
-	double *(s_w[N+1]); // soft constraints slack variable
+/*	double *(s_u[N+1]); // soft constraints slack variable*/
+/*	double *(s_v[N+1]); // soft constraints slack variable*/
+/*	double *(s_w[N+1]); // soft constraints slack variable*/
 	double *(s_r[N+1]); // soft constraints slack variable
 	double *(Pb[N]);
 	
@@ -99,17 +99,17 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 		ptr += anz;
 		}
 
-	for(jj=0; jj<=N; jj++)
-		{
-		ux_v[jj] = ptr;
-		ptr += anz;
-		}
+/*	for(jj=0; jj<=N; jj++)*/
+/*		{*/
+/*		ux_v[jj] = ptr;*/
+/*		ptr += anz;*/
+/*		}*/
 
-	for(jj=0; jj<=N; jj++)
-		{
-		ux_w[jj] = ptr;
-		ptr += anz;
-		}
+/*	for(jj=0; jj<=N; jj++)*/
+/*		{*/
+/*		ux_w[jj] = ptr;*/
+/*		ptr += anz;*/
+/*		}*/
 
 	// work space (matrices)
 	for(jj=0; jj<=N; jj++)
@@ -158,26 +158,26 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 		ptr += 2*anx;
 		}
 
-	// soft constraints slack variables
-	for(jj=0; jj<=N; jj++)
-		{
-		s_u[jj] = ptr;
-		ptr += 2*anx;
-		}
+/*	// soft constraints slack variables*/
+/*	for(jj=0; jj<=N; jj++)*/
+/*		{*/
+/*		s_u[jj] = ptr;*/
+/*		ptr += 2*anx;*/
+/*		}*/
 
-	// soft constraints slack variables
-	for(jj=0; jj<=N; jj++)
-		{
-		s_v[jj] = ptr;
-		ptr += 2*anx;
-		}
+/*	// soft constraints slack variables*/
+/*	for(jj=0; jj<=N; jj++)*/
+/*		{*/
+/*		s_v[jj] = ptr;*/
+/*		ptr += 2*anx;*/
+/*		}*/
 
-	// soft constraints slack variables
-	for(jj=0; jj<=N; jj++)
-		{
-		s_w[jj] = ptr;
-		ptr += 2*anx;
-		}
+/*	// soft constraints slack variables*/
+/*	for(jj=0; jj<=N; jj++)*/
+/*		{*/
+/*		s_w[jj] = ptr;*/
+/*		ptr += 2*anx;*/
+/*		}*/
 
 	// soft constraints slack variables
 	for(jj=0; jj<=N; jj++)
@@ -391,8 +391,8 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 
 
 	// ADMM loop		
-	int compute_Pb = 1;
-	while( *kk<k_max && (norm_p>tol_p || norm_d>tol_d) )
+	int compute_Pb = compute_fact;
+	while( (*kk<k_max && (norm_p>tol_p || norm_d>tol_d) ) || compute_Pb )
 		{
 
 		// soft constraints cost function

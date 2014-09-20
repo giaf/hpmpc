@@ -300,6 +300,11 @@ int main()
 	float *(hrq[N+1]);
 	float *(hrd[N+1]);
 	float *(hpS[N+1]);
+	float *(hux_v[N+1]);
+	float *(hux_w[N+1]);
+	float *(hs_u[N+1]);
+	float *(hs_v[N+1]);
+	float *(hs_w[N+1]);
 
 	for(jj=0; jj<N; jj++)
 		{
@@ -316,6 +321,11 @@ int main()
 		s_zeros_align(&hrq[jj], anz, 1);
 		s_zeros_align(&hrd[jj], anb, 1); // TODO pnb
 		hpS[jj] = pS;
+		s_zeros_align(&hux_v[jj], anz, 1);
+		s_zeros_align(&hux_w[jj], anz, 1);
+		s_zeros_align(&hs_u[jj], 2*anx, 1);
+		s_zeros_align(&hs_v[jj], 2*anx, 1);
+		s_zeros_align(&hs_w[jj], 2*anx, 1);
 		}
 	s_zeros_align(&hpQ[N], pnz, pnz);
 	s_zeros_align(&hq[N], anz, 1);
@@ -328,6 +338,11 @@ int main()
 	s_zeros_align(&hrq[N], anz, 1);
 	s_zeros_align(&hrd[N], anb, 1); // TODO pnb
 	hpS[N] = pS;
+	s_zeros_align(&hux_v[N], anz, 1);
+	s_zeros_align(&hux_w[N], anz, 1);
+	s_zeros_align(&hs_u[N], 2*anx, 1);
+	s_zeros_align(&hs_v[N], 2*anx, 1);
+	s_zeros_align(&hs_w[N], 2*anx, 1);
 	
 	// starting guess
 //	for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
@@ -336,7 +351,7 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-	float *work; s_zeros_align(&work, (N+1)*(pnz*cnl + 6*anz + 12*anx) + 3*anz, 1); // work space
+	float *work; s_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 6*anx) + 3*anz, 1); // work space
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	float sp_thr = SP_THR; // threshold to switch between double and single precision*/
@@ -379,7 +394,7 @@ int main()
 	// call the ADMM solver
 	if(FREE_X0==0)
 		{
-		s_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, compute_mult, hpi, work);
+		s_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, work);
 		}
 	else
 		{
@@ -411,7 +426,7 @@ int main()
 		// call the ADMM solver
 		if(FREE_X0==0)
 			{
-			s_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 0, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, compute_mult, hpi, work);
+			s_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 0, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, work);
 			}
 		else
 			{
@@ -559,6 +574,11 @@ int main()
 		free(hrb[jj]);
 		free(hrq[jj]);
 		free(hrd[jj]);
+		free(hux_v[jj]);
+		free(hux_w[jj]);
+		free(hs_u[jj]);
+		free(hs_v[jj]);
+		free(hs_w[jj]);
 		}
 	free(hpQ[N]);
 	free(hq[N]);
@@ -568,6 +588,11 @@ int main()
 	free(ht[N]);
 	free(hrq[N]);
 	free(hrd[N]);
+	free(hux_v[N]);
+	free(hux_w[N]);
+	free(hs_u[N]);
+	free(hs_v[N]);
+	free(hs_w[N]);
 
 
 

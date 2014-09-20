@@ -300,6 +300,11 @@ int main()
 	double *(hrq[N+1]);
 	double *(hrd[N+1]);
 	double *(hpS[N+1]);
+	double *(hux_v[N+1]);
+	double *(hux_w[N+1]);
+	double *(hs_u[N+1]);
+	double *(hs_v[N+1]);
+	double *(hs_w[N+1]);
 
 	for(jj=0; jj<N; jj++)
 		{
@@ -321,6 +326,11 @@ int main()
 		d_zeros_align(&hrq[jj], anz, 1);
 		d_zeros_align(&hrd[jj], anb, 1); // TODO pnb
 		hpS[jj] = pS;
+		d_zeros_align(&hux_v[jj], anz, 1);
+		d_zeros_align(&hux_w[jj], anz, 1);
+		d_zeros_align(&hs_u[jj], 2*anx, 1);
+		d_zeros_align(&hs_v[jj], 2*anx, 1);
+		d_zeros_align(&hs_w[jj], 2*anx, 1);
 		}
 	d_zeros_align(&hq[N], anz, 1);
 	d_zeros_align(&hux[N], anz, 1);
@@ -332,6 +342,11 @@ int main()
 	d_zeros_align(&hrq[N], anz, 1);
 	d_zeros_align(&hrd[N], anb, 1); // TODO pnb
 	hpS[N] = pS;
+	d_zeros_align(&hux_v[N], anz, 1);
+	d_zeros_align(&hux_w[N], anz, 1);
+	d_zeros_align(&hs_u[N], 2*anx, 1);
+	d_zeros_align(&hs_v[N], 2*anx, 1);
+	d_zeros_align(&hs_w[N], 2*anx, 1);
 	
 	// starting guess
 	for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
@@ -340,7 +355,7 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 6*anz + 12*anx) + 3*anz, 1); // work space
+	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 6*anx) + 3*anz, 1); // work space
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
@@ -351,7 +366,7 @@ int main()
 	double alpha = 1.9; // relaxation parameter
 	double *stat; d_zeros(&stat, 5, k_max); // stats from the ADMM routine
 	int compute_mult = COMPUTE_MULT_ADMM;
-	int warm_start = WARM_START;
+	int warm_start = 0;//WARM_START;
 /*	double mu = -1.0;*/
 	
 
@@ -383,7 +398,7 @@ int main()
 	// call the ADMM solver
 	if(FREE_X0==0)
 		{
-		d_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, compute_mult, hpi, work);
+		d_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, work);
 		}
 	else
 		{
@@ -415,7 +430,7 @@ int main()
 		// call the ADMM solver
 		if(FREE_X0==0)
 			{
-			d_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 0, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, compute_mult, hpi, work);
+			d_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 0, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, work);
 			}
 		else
 			{
@@ -563,6 +578,11 @@ int main()
 		free(hrb[jj]);
 		free(hrq[jj]);
 		free(hrd[jj]);
+		free(hux_v[jj]);
+		free(hux_w[jj]);
+		free(hs_u[jj]);
+		free(hs_v[jj]);
+		free(hs_w[jj]);
 		}
 	free(hpQ[N]);
 	free(hq[N]);
@@ -572,6 +592,11 @@ int main()
 	free(ht[N]);
 	free(hrq[N]);
 	free(hrd[N]);
+	free(hux_v[N]);
+	free(hux_w[N]);
+	free(hs_u[N]);
+	free(hs_v[N]);
+	free(hs_w[N]);
 
 
 
