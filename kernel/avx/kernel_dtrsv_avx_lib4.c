@@ -453,7 +453,7 @@ void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
 	k=4;
 	A += 4 + (sda-1)*lda;
 	x += 4;
-	for(; k<kmax-4; k+=8)
+	for(; k<kmax-4; k+=8) // TODO correct end & mask !!!!!!!!!!!
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -502,7 +502,7 @@ void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
 		x += 4;
 
 		}
-	for(; k<kmax; k+=4)
+	for(; k<kmax; k+=4) // TODO correct end & mask !!!!!!!!!!!
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -649,7 +649,7 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 	x += 4;
 
 	k=4;
-	for(; k<kmax-4; k+=8)
+	for(; k<kmax-4; k+=8) // TODO correct end & mask !!!!!!!!!!!
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -692,7 +692,7 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 		x += 4;
 
 		}
-	for(; k<kmax; k+=4)
+	for(; k<kmax; k+=4) // TODO correct end & mask !!!!!!!!!!!
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -819,7 +819,7 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 	x += 4;
 
 	k=4;
-	for(; k<kmax-4; k+=8)
+	for(; k<kmax-4; k+=8) // TODO correct end & mask !!!!!!!!!!!
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -856,7 +856,7 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 		x += 4;
 
 		}
-	for(; k<kmax; k+=4)
+	for(; k<kmax; k+=4) // TODO correct end & mask !!!!!!!!!!!
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -959,7 +959,7 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 	x += 4;
 
 	k=4;
-	for(; k<kmax-4; k+=8)
+	for(; k<kmax-4; k+=8) // TODO correct end & mask !!!!!!!!!!!
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -990,7 +990,7 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 		x += 4;
 
 		}
-	for(; k<kmax; k+=4)
+	for(; k<kmax; k+=4) // TODO correct end & mask !!!!!!!!!!!
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/

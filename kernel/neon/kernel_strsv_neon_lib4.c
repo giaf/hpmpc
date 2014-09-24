@@ -762,7 +762,7 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 	k=4;
 	A += 4 + (sda-1)*lda;
 	x += 4;
-	for(; k<kmax-4; k+=8)
+	for(; k<kmax-7; k+=8)
 		{
 		
 		x_0 = x[0];
@@ -822,7 +822,7 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 		x += 4;
 
 		}
-	for(; k<kmax; k+=4)
+	for(; k<kmax-3; k+=4)
 		{
 		
 		x_0 = x[0];
@@ -852,6 +852,20 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 		
 		A += sda*bs;
 		x += 4;
+
+		}
+	for(; k<kmax; k++)
+		{
+		
+		x_0 = x[0];
+		
+		y_0 += A[0+lda*0] * x_0;
+		y_1 += A[0+lda*1] * x_0;
+		y_2 += A[0+lda*2] * x_0;
+		y_3 += A[0+lda*3] * x_0;
+		
+		A += 1;//sda*bs;
+		x += 1;
 
 		}
 	
@@ -914,7 +928,7 @@ void kernel_strsv_t_3_lib4(int kmax, float *A, int sda, float *x)
 	k=4;
 	A += 4 + (sda-1)*lda;
 	x += 4;
-	for(; k<kmax-4; k+=8)
+	for(; k<kmax-7; k+=8)
 		{
 		
 		x_0 = x[0];
@@ -966,7 +980,7 @@ void kernel_strsv_t_3_lib4(int kmax, float *A, int sda, float *x)
 		x += 4;
 
 		}
-	for(; k<kmax; k+=4)
+	for(; k<kmax-3; k+=4)
 		{
 		
 		x_0 = x[0];
@@ -992,6 +1006,19 @@ void kernel_strsv_t_3_lib4(int kmax, float *A, int sda, float *x)
 		
 		A += sda*bs;
 		x += 4;
+
+		}
+	for(; k<kmax; k++)
+		{
+		
+		x_0 = x[0];
+		
+		y_0 += A[0+lda*0] * x_0;
+		y_1 += A[0+lda*1] * x_0;
+		y_2 += A[0+lda*2] * x_0;
+		
+		A += 1;//sda*bs;
+		x += 1;
 
 		}
 
@@ -1053,7 +1080,7 @@ void kernel_strsv_t_2_lib4(int kmax, float *A, int sda, float *x)
 	k=4;
 	A += 4 + (sda-1)*lda;
 	x += 4;
-	for(; k<kmax-4; k+=8)
+	for(; k<kmax-7; k+=8)
 		{
 		
 		x_0 = x[0];
@@ -1097,7 +1124,7 @@ void kernel_strsv_t_2_lib4(int kmax, float *A, int sda, float *x)
 		x += 4;
 
 		}
-	for(; k<kmax; k+=4)
+	for(; k<kmax-3; k+=4)
 		{
 		
 		x_0 = x[0];
@@ -1119,6 +1146,18 @@ void kernel_strsv_t_2_lib4(int kmax, float *A, int sda, float *x)
 		
 		A += sda*bs;
 		x += 4;
+
+		}
+	for(; k<kmax; k++)
+		{
+		
+		x_0 = x[0];
+		
+		y_0 += A[0+lda*0] * x_0;
+		y_1 += A[0+lda*1] * x_0;
+		
+		A += 1;//sda*bs;
+		x += 1;
 
 		}
 
@@ -1170,7 +1209,7 @@ void kernel_strsv_t_1_lib4(int kmax, float *A, int sda, float *x)
 	k=4;
 	A += 4 + (sda-1)*lda;
 	x += 4;
-	for(; k<kmax-4; k+=8)
+	for(; k<kmax-7; k+=8)
 		{
 		
 		x_0 = x[0];
@@ -1200,7 +1239,7 @@ void kernel_strsv_t_1_lib4(int kmax, float *A, int sda, float *x)
 		x += 4;
 
 		}
-	for(; k<kmax; k+=4)
+	for(; k<kmax-3; k+=4)
 		{
 		
 		x_0 = x[0];
@@ -1215,6 +1254,17 @@ void kernel_strsv_t_1_lib4(int kmax, float *A, int sda, float *x)
 		
 		A += sda*bs;
 		x += 4;
+
+		}
+	for(; k<kmax; k++)
+		{
+		
+		x_0 = x[0];
+		
+		y_0 += A[0+lda*0] * x_0;
+		
+		A += 1;//sda*bs;
+		x += 1;
 
 		}
 

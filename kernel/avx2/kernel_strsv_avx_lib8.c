@@ -624,7 +624,7 @@ void kernel_strsv_t_3_lib8(int kmax, int kna, float *A, int sda, float *x)
 
 	A += (sda-1)*lda;
 
-	for(; k<kmax-4; k+=8)
+	for(; k<kmax-7; k+=8)
 		{
 		
 		x_0 = x[0];
@@ -676,32 +676,17 @@ void kernel_strsv_t_3_lib8(int kmax, int kna, float *A, int sda, float *x)
 		x += 8;
 
 		}
-	for(; k<kmax; k+=4)
+	for(; k<kmax; k++)
 		{
 		
 		x_0 = x[0];
-		x_1 = x[1];
-		x_2 = x[2];
-		x_3 = x[3];
 		
 		y_0 += A[0+lda*0] * x_0;
 		y_1 += A[0+lda*1] * x_0;
 		y_2 += A[0+lda*2] * x_0;
-
-		y_0 += A[1+lda*0] * x_1;
-		y_1 += A[1+lda*1] * x_1;
-		y_2 += A[1+lda*2] * x_1;
 		
-		y_0 += A[2+lda*0] * x_2;
-		y_1 += A[2+lda*1] * x_2;
-		y_2 += A[2+lda*2] * x_2;
-
-		y_0 += A[3+lda*0] * x_3;
-		y_1 += A[3+lda*1] * x_3;
-		y_2 += A[3+lda*2] * x_3;
-		
-		A += sda*bs;
-		x += 4;
+		A += 1;//sda*bs;
+		x += 1;
 
 		}
 
@@ -791,7 +776,7 @@ void kernel_strsv_t_2_lib8(int kmax, int kna, float *A, int sda, float *x)
 
 	A += (sda-1)*bs;
 
-	for(; k<kmax-4; k+=8)
+	for(; k<kmax-7; k+=8)
 		{
 		
 		x_0 = x[0];
@@ -835,28 +820,16 @@ void kernel_strsv_t_2_lib8(int kmax, int kna, float *A, int sda, float *x)
 		x += 8;
 
 		}
-	for(; k<kmax; k+=4)
+	for(; k<kmax; k++)
 		{
 		
 		x_0 = x[0];
-		x_1 = x[1];
-		x_2 = x[2];
-		x_3 = x[3];
 		
 		y_0 += A[0+lda*0] * x_0;
 		y_1 += A[0+lda*1] * x_0;
-
-		y_0 += A[1+lda*0] * x_1;
-		y_1 += A[1+lda*1] * x_1;
 		
-		y_0 += A[2+lda*0] * x_2;
-		y_1 += A[2+lda*1] * x_2;
-
-		y_0 += A[3+lda*0] * x_3;
-		y_1 += A[3+lda*1] * x_3;
-		
-/*		A += sda*bs;*/
-/*		x += 4;*/
+		A += 1;//sda*bs;
+		x += 1;
 
 		}
 
@@ -929,7 +902,7 @@ void kernel_strsv_t_1_lib8(int kmax, int kna, float *A, int sda, float *x)
 
 	A += (sda-1)*lda;
 
-	for(; k<kmax-4; k+=8)
+	for(; k<kmax-7; k+=8)
 		{
 		
 		x_0 = x[0];
@@ -959,21 +932,15 @@ void kernel_strsv_t_1_lib8(int kmax, int kna, float *A, int sda, float *x)
 		x += 8;
 
 		}
-	for(; k<kmax; k+=4)
+	for(; k<kmax; k++)
 		{
 		
 		x_0 = x[0];
-		x_1 = x[1];
-		x_2 = x[2];
-		x_3 = x[3];
 		
 		y_0 += A[0+lda*0] * x_0;
-		y_0 += A[1+lda*0] * x_1;
-		y_0 += A[2+lda*0] * x_2;
-		y_0 += A[3+lda*0] * x_3;
 		
-/*		A += sda*bs;*/
-/*		x += 4;*/
+		A += 1;//sda*bs;
+		x += 1;
 
 		}
 
