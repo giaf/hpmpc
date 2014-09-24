@@ -463,11 +463,10 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 	(
 		"                                \n\t"
 		"                                \n\t"
-		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
-		"                                \n\t"
-		"                                \n\t"
 		"mov    r1, %7                   \n\t" // prefetch offset
 		"add    r1, r1, #64              \n\t"
+		"                                \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"                                \n\t"
 		"                                \n\t"
 		"mov    r0, %0                   \n\t" // k_pre
