@@ -367,6 +367,8 @@ void kernel_strsv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x)
 	if(kmax<=0) 
 		return;
 	
+/*printf("\n%d %d\n", kmax, kna);*/
+
 	const int lda = 8;
 	
 	__builtin_prefetch( A + 0*lda );
@@ -428,6 +430,7 @@ void kernel_strsv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x)
 
 	A += (sda-1)*lda;
 
+/*printf("\n%d\n", k);*/
 /*	for(; k<kmax-4; k+=8)*/
 	for(; k<kmax-7; k+=8)
 		{
@@ -458,12 +461,16 @@ void kernel_strsv_t_4_lib8(int kmax, int kna, float *A, int sda, float *x)
 	if(k<kmax)
 		{
 		
-		k_left_d = (float) kmax-k;
+		k_left_d = 8.0 - (kmax - k);
 		
 		x_0 = _mm256_loadu_ps( &x[0] );
 /*		x_0 = _mm256_blend_ps( x_0, zeros, 0xf0 );*/
 		x_0 = _mm256_blendv_ps( x_0, zeros, _mm256_sub_ps( mask, _mm256_broadcast_ss( &k_left_d) ) );
 		
+/*float temp[8] = {};*/
+/*_mm256_storeu_ps( temp, x_0 );*/
+/*s_print_mat(1, 8, temp, 1);*/
+
 		__builtin_prefetch( A + sda*lda + 0*lda );
 		__builtin_prefetch( A + sda*lda + 2*lda );
 

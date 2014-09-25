@@ -164,7 +164,7 @@ void kernel_sgemv_t_8_lib8(int kmax, int kna, float *A, int sda, float *x, float
 	if(k_left>0) // it can be only k_left = {1, 2, 3, 4, 5, 6, 7}
 		{
 		
-		k_left_d = (float) k_left;
+		k_left_d = 8.0 - k_left;
 		
 		x_0 = _mm256_loadu_ps( &x[0] );
 		x_0 = _mm256_blendv_ps( x_0, zeros, _mm256_sub_ps( mask, _mm256_broadcast_ss( &k_left_d) ) );
