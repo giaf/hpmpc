@@ -432,19 +432,27 @@ void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
 /*	__builtin_prefetch( A + 0*lda );*/
 /*	__builtin_prefetch( A + 2*lda );*/
 
-	double *tA, *tx;
+	double *tA, *tx, k_left_d;
 	tA = A;
 	tx = x;
+
+	const double mask_f[] = {3.5, 2.5, 1.5, 0.5};
 
 	int k;
 /*	int ka = kmax-kna; // number from aligned positon*/
 	
 	__m256d
+		mask,
+		zeros,
 		tmp0, tmp1,
 		a_00_10_20_30, a_01_11_21_31, a_02_12_22_32, a_03_13_23_33,
 		x_0_1_2_3,
 		y_00, y_11, y_22, y_33;
 	
+	mask = _mm256_loadu_pd( mask_f ); 
+
+	zeros = _mm256_setzero_pd();
+
 	y_00 = _mm256_setzero_pd();
 	y_11 = _mm256_setzero_pd();
 	y_22 = _mm256_setzero_pd();
@@ -453,7 +461,8 @@ void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
 	k=4;
 	A += 4 + (sda-1)*lda;
 	x += 4;
-	for(; k<kmax-4; k+=8) // TODO correct end & mask !!!!!!!!!!!
+/*	for(; k<kmax-4; k+=8) // TODO correct end & mask !!!!!!!!!!!*/
+	for(; k<kmax-7; k+=8)
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -502,7 +511,8 @@ void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
 		x += 4;
 
 		}
-	for(; k<kmax; k+=4) // TODO correct end & mask !!!!!!!!!!!
+/*	for(; k<kmax; k+=4) // TODO correct end & mask !!!!!!!!!!!*/
+	for(; k<kmax-3; k+=4)
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -526,6 +536,35 @@ void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
 		
 		A += 4 + (sda-1)*lda;
 		x += 4;
+
+		}
+	if(k<kmax)
+		{
+		
+		k_left_d = 4.0 - (kmax - k);
+		
+/*		__builtin_prefetch( A + sda*lda + 0*lda );*/
+/*		__builtin_prefetch( A + sda*lda + 2*lda );*/
+
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+		x_0_1_2_3 = _mm256_blendv_pd( x_0_1_2_3, zeros, _mm256_sub_pd( mask, _mm256_broadcast_sd( &k_left_d) ) );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
+		
+		tmp0 = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		tmp1 = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, tmp0 );
+		y_11 = _mm256_add_pd( y_11, tmp1 );
+		tmp0 = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+		tmp1 = _mm256_mul_pd( a_03_13_23_33, x_0_1_2_3 );
+		y_22 = _mm256_add_pd( y_22, tmp0 );
+		y_33 = _mm256_add_pd( y_33, tmp1 );
+		
+/*		A += 4 + (sda-1)*lda;*/
+/*		x += 4;*/
 
 		}
 	
@@ -610,20 +649,25 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 /*	__builtin_prefetch( A + 0*lda );*/
 /*	__builtin_prefetch( A + 2*lda );*/
 
-	double *tA, *tx;
+	double *tA, *tx, k_left_d;
 	tA = A;
 	tx = x;
+
+	const double mask_f[] = {3.5, 2.5, 1.5, 0.5};
 
 	int k;
 /*	int ka = kmax-kna; // number from aligned positon*/
 	
 	__m256d
+		mask,
 		zeros,
 		tmp0, tmp1,
 		a_00_10_20_30, a_01_11_21_31, a_02_12_22_32,
 		x_0_1_2_3,
 		y_00, y_11, y_22;
 	
+	mask = _mm256_loadu_pd( mask_f ); 
+
 	zeros = _mm256_setzero_pd();
 
 	y_00 = _mm256_setzero_pd();
@@ -649,7 +693,8 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 	x += 4;
 
 	k=4;
-	for(; k<kmax-4; k+=8) // TODO correct end & mask !!!!!!!!!!!
+/*	for(; k<kmax-4; k+=8) // TODO correct end & mask !!!!!!!!!!!*/
+	for(; k<kmax-7; k+=8)
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -692,7 +737,8 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 		x += 4;
 
 		}
-	for(; k<kmax; k+=4) // TODO correct end & mask !!!!!!!!!!!
+/*	for(; k<kmax; k+=4) // TODO correct end & mask !!!!!!!!!!!*/
+	for(; k<kmax-3; k+=4)
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -713,6 +759,32 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 		
 		A += 4 + (sda-1)*lda;
 		x += 4;
+
+		}
+	if(k<kmax)
+		{
+		
+		k_left_d = 4.0 - (kmax - k);
+		
+/*		__builtin_prefetch( A + sda*lda + 0*lda );*/
+/*		__builtin_prefetch( A + sda*lda + 2*lda );*/
+
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+		x_0_1_2_3 = _mm256_blendv_pd( x_0_1_2_3, zeros, _mm256_sub_pd( mask, _mm256_broadcast_sd( &k_left_d) ) );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+		
+		tmp0 = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		tmp1 = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, tmp0 );
+		y_11 = _mm256_add_pd( y_11, tmp1 );
+		tmp0 = _mm256_mul_pd( a_02_12_22_32, x_0_1_2_3 );
+		y_22 = _mm256_add_pd( y_22, tmp0 );
+		
+/*		A += 4 + (sda-1)*lda;*/
+/*		x += 4;*/
 
 		}
 	
@@ -784,20 +856,25 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 /*	__builtin_prefetch( A + 0*lda );*/
 /*	__builtin_prefetch( A + 2*lda );*/
 
-	double *tA, *tx;
+	double *tA, *tx, k_left_d;
 	tA = A;
 	tx = x;
+
+	const double mask_f[] = {3.5, 2.5, 1.5, 0.5};
 
 	int k;
 /*	int ka = kmax-kna; // number from aligned positon*/
 	
 	__m256d
+		mask,
 		zeros,
 		tmp0, tmp1,
 		a_00_10_20_30, a_01_11_21_31,
 		x_0_1_2_3,
 		y_00, y_11;
 	
+	mask = _mm256_loadu_pd( mask_f ); 
+
 	zeros = _mm256_setzero_pd();
 
 	y_00 = _mm256_setzero_pd();
@@ -819,7 +896,8 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 	x += 4;
 
 	k=4;
-	for(; k<kmax-4; k+=8) // TODO correct end & mask !!!!!!!!!!!
+/*	for(; k<kmax-4; k+=8) // TODO correct end & mask !!!!!!!!!!!*/
+	for(; k<kmax-4; k+=8)
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -856,7 +934,8 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 		x += 4;
 
 		}
-	for(; k<kmax; k+=4) // TODO correct end & mask !!!!!!!!!!!
+/*	for(; k<kmax; k+=4) // TODO correct end & mask !!!!!!!!!!!*/
+	for(; k<kmax-3; k+=4)
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -874,6 +953,29 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 		
 		A += 4 + (sda-1)*lda;
 		x += 4;
+
+		}
+	if(k<kmax)
+		{
+		
+		k_left_d = 4.0 - (kmax - k);
+		
+/*		__builtin_prefetch( A + sda*lda + 0*lda );*/
+/*		__builtin_prefetch( A + sda*lda + 2*lda );*/
+
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+		x_0_1_2_3 = _mm256_blendv_pd( x_0_1_2_3, zeros, _mm256_sub_pd( mask, _mm256_broadcast_sd( &k_left_d) ) );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+		
+		tmp0 = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		tmp1 = _mm256_mul_pd( a_01_11_21_31, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, tmp0 );
+		y_11 = _mm256_add_pd( y_11, tmp1 );
+		
+/*		A += 4 + (sda-1)*lda;*/
+/*		x += 4;*/
 
 		}
 	
@@ -928,20 +1030,25 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 /*	__builtin_prefetch( A + 0*lda );*/
 /*	__builtin_prefetch( A + 2*lda );*/
 
-	double *tA, *tx;
+	double *tA, *tx, k_left_d;
 	tA = A;
 	tx = x;
+
+	const double mask_f[] = {3.5, 2.5, 1.5, 0.5};
 
 	int k;
 /*	int ka = kmax-kna; // number from aligned positon*/
 	
 	__m256d
+		mask,
 		zeros,
 		tmp0,
 		a_00_10_20_30,
 		x_0_1_2_3,
 		y_00;
 	
+	mask = _mm256_loadu_pd( mask_f ); 
+
 	zeros = _mm256_setzero_pd();
 
 	y_00 = _mm256_setzero_pd();
@@ -959,7 +1066,8 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 	x += 4;
 
 	k=4;
-	for(; k<kmax-4; k+=8) // TODO correct end & mask !!!!!!!!!!!
+/*	for(; k<kmax-4; k+=8) // TODO correct end & mask !!!!!!!!!!!*/
+	for(; k<kmax-4; k+=8)
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -990,7 +1098,8 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 		x += 4;
 
 		}
-	for(; k<kmax; k+=4) // TODO correct end & mask !!!!!!!!!!!
+/*	for(; k<kmax; k+=4) // TODO correct end & mask !!!!!!!!!!!*/
+	for(; k<kmax-3; k+=4)
 		{
 		
 /*		__builtin_prefetch( A + sda*lda + 0*lda );*/
@@ -1005,6 +1114,26 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 		
 		A += 4 + (sda-1)*lda;
 		x += 4;
+
+		}
+	if(k<kmax)
+		{
+		
+		k_left_d = 4.0 - (kmax - k);
+		
+/*		__builtin_prefetch( A + sda*lda + 0*lda );*/
+/*		__builtin_prefetch( A + sda*lda + 2*lda );*/
+
+		x_0_1_2_3 = _mm256_loadu_pd( &x[0] );
+		x_0_1_2_3 = _mm256_blendv_pd( x_0_1_2_3, zeros, _mm256_sub_pd( mask, _mm256_broadcast_sd( &k_left_d) ) );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		
+		tmp0 = _mm256_mul_pd( a_00_10_20_30, x_0_1_2_3 );
+		y_00 = _mm256_add_pd( y_00, tmp0 );
+		
+/*		A += 4 + (sda-1)*lda;*/
+/*		x += 4;*/
 
 		}
 	
