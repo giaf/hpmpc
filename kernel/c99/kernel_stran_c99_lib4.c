@@ -198,7 +198,7 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 		C[3+bs*0] = A[0+bs*3];
 
 		}
-	else if(kmax==2)
+	else if(kmax-k==2)
 		{
 		
 		C[0+bs*0] = A[0+bs*0];
@@ -212,7 +212,7 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 		C[3+bs*1] = A[1+bs*3];
 
 		}
-	else // if(kmax==3)
+	else // if(kmax-k==3)
 		{
 
 		C[0+bs*0] = A[0+bs*0];

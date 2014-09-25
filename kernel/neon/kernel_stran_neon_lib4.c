@@ -203,11 +203,11 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 		"                                \n\t"
 		"                                \n\t"
 		"add     r3, %1, #64             \n\t"
-		"add     r3, r3                  \n\t"
+//		"add     r3, r3                  \n\t"
 		"                                \n\t"
 		"                                \n\t"
-/*		"mov     r1, %2                  \n\t"*/
-/*		"mov     r2, %3                  \n\t"*/
+//		"mov     r1, %2                  \n\t"
+//		"mov     r2, %3                  \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"blt    .DCONS_LOOP1             \n\t"
@@ -218,14 +218,14 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 		"pld    [%2, r3]                 \n\t" // prefetch A1 to L1
 		"vld4.32 {d0, d2, d4, d6}, [%2:128]! \n\t" // load A to registers
 		"vld4.32 {d1, d3, d5, d7}, [%2:128]! \n\t" // load A to registers
-/*		"vld1.32 {d0, d1, d2, d3}, [%2:128]! \n\t" // load A to registers*/
-/*		"vld1.32 {d4, d5, d6, d7}, [%2:128]! \n\t" // load A to registers*/
-/*		"vtrn.32 q0, q1                  \n\t"*/
-/*		"vtrn.32 q2, q3                  \n\t"*/
-/*		"vswp    d1, d4                  \n\t"*/
-/*		"vswp    d3, d6                  \n\t"*/
+//		"vld1.32 {d0, d1, d2, d3}, [%2:128]! \n\t" // load A to registers
+//		"vld1.32 {d4, d5, d6, d7}, [%2:128]! \n\t" // load A to registers
+//		"vtrn.32 q0, q1                  \n\t"
+//		"vtrn.32 q2, q3                  \n\t"
+//		"vswp    d1, d4                  \n\t"
+//		"vswp    d3, d6                  \n\t"
 		"add     %2, %1                  \n\t"
-/*		"pldw   [%3, #128]                \n\t" // prefetch A1 to L1*/
+//		"pldw   [%3, #128]                \n\t" // prefetch A1 to L1
 		"vst1.32 {d0, d1, d2, d3}, [%3:128]! \n\t" // store C from registers
 		"sub    r0, r0, #2               \n\t" // iter++
 		"vst1.32 {d4, d5, d6, d7}, [%3:128]! \n\t" // store C from registers
@@ -235,16 +235,16 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 		"vld4.32 {d8, d10, d12, d14}, [%2:128]! \n\t" // load A to registers
 		"cmp    r0, #1                   \n\t" // next iter?
 		"vld4.32 {d9, d11, d13, d15}, [%2:128]! \n\t" // load A to registers
-/*		"vld1.32 {d0, d1, d2, d3}, [%2:128]! \n\t" // load A to registers*/
-/*		"vld1.32 {d4, d5, d6, d7}, [%2:128]! \n\t" // load A to registers*/
-/*		"vtrn.32 q0, q1                  \n\t"*/
-/*		"vtrn.32 q2, q3                  \n\t"*/
-/*		"vswp    d1, d4                  \n\t"*/
-/*		"vswp    d3, d6                  \n\t"*/
+//		"vld1.32 {d0, d1, d2, d3}, [%2:128]! \n\t" // load A to registers
+//		"vld1.32 {d4, d5, d6, d7}, [%2:128]! \n\t" // load A to registers
+//		"vtrn.32 q0, q1                  \n\t"
+//		"vtrn.32 q2, q3                  \n\t"
+//		"vswp    d1, d4                  \n\t"
+//		"vswp    d3, d6                  \n\t"
 		"add     %2, %1                  \n\t"
-/*		"vst1.32 {d0, d1, d2, d3}, [%3:128]! \n\t" // store C from registers*/
-/*		"vst1.32 {d4, d5, d6, d7}, [%3:128]! \n\t" // store C from registers*/
-/*		"pldw   [%3, #128]                \n\t" // prefetch A1 to L1*/
+//		"vst1.32 {d0, d1, d2, d3}, [%3:128]! \n\t" // store C from registers
+//		"vst1.32 {d4, d5, d6, d7}, [%3:128]! \n\t" // store C from registers
+//		"pldw   [%3, #128]                \n\t" // prefetch A1 to L1
 		"vst1.32 {d8, d9, d10, d11}, [%3:128]! \n\t" // store C from registers
 		"vst1.32 {d12, d13, d14, d15}, [%3:128]! \n\t" // store C from registers
 		"                                \n\t"
@@ -299,7 +299,7 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 		C[3+bs*0] = A[0+bs*3];
 
 		}
-	else if(kmax==2)
+	else if(kmax-k==2)
 		{
 		
 		C[0+bs*0] = A[0+bs*0];
@@ -313,7 +313,7 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 		C[3+bs*1] = A[1+bs*3];
 
 		}
-	else // if(kmax==3)
+	else // if(kmax-k==3)
 		{
 
 		C[0+bs*0] = A[0+bs*0];
