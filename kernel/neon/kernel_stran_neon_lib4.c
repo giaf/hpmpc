@@ -170,6 +170,9 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 	(
 		"                                \n\t"
 		"                                \n\t"
+		"pld    [%2, #0]                 \n\t" // prefetch A1 to L1
+		"                                \n\t"
+		"                                \n\t"
 		"add     r3, %1, #64             \n\t"
 //		"add     r3, r3                  \n\t"
 		"                                \n\t"
