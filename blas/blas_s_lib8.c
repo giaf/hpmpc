@@ -533,6 +533,10 @@ void sgemv_t_lib(int m, int n, int offset, float *pA, int sda, float *x, float *
 		{
 		kernel_sgemv_t_4_lib8(m, mna, pA+j*bs, sda, x, y+j, alg);
 		}
+	for(; j<n-2; j+=3)
+		{
+		kernel_sgemv_t_3_lib8(m, mna, pA+j*bs, sda, x, y+j, alg);
+		}
 	for(; j<n-1; j+=2)
 		{
 		kernel_sgemv_t_2_lib8(m, mna, pA+j*bs, sda, x, y+j, alg);
