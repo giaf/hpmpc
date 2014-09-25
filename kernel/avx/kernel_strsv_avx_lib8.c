@@ -659,6 +659,7 @@ void kernel_strsv_t_3_lib8(int kmax, int kna, float *A, int sda, float *x)
 
 		A += 4;
 		x += 4;
+		k += 4;
 
 		}
 
@@ -1047,6 +1048,7 @@ void kernel_strsv_t_2_lib8(int kmax, int kna, float *A, int sda, float *x)
 
 		A += 4;
 		x += 4;
+		k += 4;
 
 		}
 
@@ -1417,6 +1419,7 @@ void kernel_strsv_t_1_lib8(int kmax, int kna, float *A, int sda, float *x)
 
 		A += 4;
 		x += 4;
+		k += 4;
 
 		}
 
