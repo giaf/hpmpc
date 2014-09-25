@@ -158,59 +158,31 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 
 		}
 
-/*	for(; k<kmax-3; k+=4)*/
-/*		{*/
-
-/*		C[0+bs*0] = A[0+bs*0];*/
-/*		C[1+bs*0] = A[0+bs*1];*/
-/*		C[2+bs*0] = A[0+bs*2];*/
-/*		C[3+bs*0] = A[0+bs*3];*/
-/*		*/
-/*		C[0+bs*1] = A[1+bs*0];*/
-/*		C[1+bs*1] = A[1+bs*1];*/
-/*		C[2+bs*1] = A[1+bs*2];*/
-/*		C[3+bs*1] = A[1+bs*3];*/
-/*		*/
-/*		C[0+bs*2] = A[2+bs*0];*/
-/*		C[1+bs*2] = A[2+bs*1];*/
-/*		C[2+bs*2] = A[2+bs*2];*/
-/*		C[3+bs*2] = A[2+bs*3];*/
-/*		*/
-/*		C[0+bs*3] = A[3+bs*0];*/
-/*		C[1+bs*3] = A[3+bs*1];*/
-/*		C[2+bs*3] = A[3+bs*2];*/
-/*		C[3+bs*3] = A[3+bs*3];*/
-/*	*/
-/*		A += bs*sda;*/
-/*		C += 4*bs;*/
-
-/*		}*/
-		
-
 	int incA = bs*(sda-4)*sizeof(float);
 	int k_iter = (kmax-k)/4;
+	int k_left = (kmax-k)%4;
 
 //printf("\n%d %d %d\n", kmax, k, k_iter);
 
-	k += k_iter*4;
+//	k += k_iter*4;
 
 	__asm__ volatile
 	(
-		"                                \n\t"
-		"                                \n\t"
-		"mov     r0, %0                  \n\t"
-		"cmp     r0, #1                  \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"add     r3, %1, #64             \n\t"
 //		"add     r3, r3                  \n\t"
 		"                                \n\t"
 		"                                \n\t"
+		"mov     r0, %0                  \n\t"
+		"cmp     r0, #1                  \n\t"
+		"                                \n\t"
+		"                                \n\t"
 //		"mov     r1, %2                  \n\t"
 //		"mov     r2, %3                  \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"blt    .DCONS_LOOP1             \n\t"
+		"ble    .DCONS_LOOP1             \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DMAIN_LOOP2:                   \n\t"
@@ -232,9 +204,9 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 		"                                \n\t"
 		"                                \n\t"
 		"pld    [%2, r3]                 \n\t" // prefetch A1 to L1
-		"vld4.32 {d8, d10, d12, d14}, [%2:128]! \n\t" // load A to registers
+		"vld4.32 {d0, d2, d4, d6}, [%2:128]! \n\t" // load A to registers
 		"cmp    r0, #1                   \n\t" // next iter?
-		"vld4.32 {d9, d11, d13, d15}, [%2:128]! \n\t" // load A to registers
+		"vld4.32 {d1, d3, d5, d7}, [%2:128]! \n\t" // load A to registers
 //		"vld1.32 {d0, d1, d2, d3}, [%2:128]! \n\t" // load A to registers
 //		"vld1.32 {d4, d5, d6, d7}, [%2:128]! \n\t" // load A to registers
 //		"vtrn.32 q0, q1                  \n\t"
@@ -245,8 +217,8 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 //		"vst1.32 {d0, d1, d2, d3}, [%3:128]! \n\t" // store C from registers
 //		"vst1.32 {d4, d5, d6, d7}, [%3:128]! \n\t" // store C from registers
 //		"pldw   [%3, #128]                \n\t" // prefetch A1 to L1
-		"vst1.32 {d8, d9, d10, d11}, [%3:128]! \n\t" // store C from registers
-		"vst1.32 {d12, d13, d14, d15}, [%3:128]! \n\t" // store C from registers
+		"vst1.32 {d0, d1, d2, d3}, [%3:128]! \n\t" // store C from registers
+		"vst1.32 {d4, d5, d6, d7}, [%3:128]! \n\t" // store C from registers
 		"                                \n\t"
 		"bgt    .DMAIN_LOOP2             \n\t"
 		"                                \n\t"
@@ -255,13 +227,54 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 		".DCONS_LOOP1:                   \n\t"
 		"                                \n\t"
 //		"cmp     r0, #1                  \n\t"
-		"blt    .DEND                    \n\t"
+		"blt    .DCONS_LEFT1             \n\t"
 		"                                \n\t"
 		"vld4.32 {d0, d2, d4, d6}, [%2:128]! \n\t" // load A to registers
 		"vld4.32 {d1, d3, d5, d7}, [%2:128]! \n\t" // load A to registers
 		"add     %2, %1                  \n\t" // needed!!!
 		"vst1.32 {d0, d1, d2, d3}, [%3:128]! \n\t" // store C from registers
 		"vst1.32 {d4, d5, d6, d7}, [%3:128]! \n\t" // store C from registers
+		"                                \n\t"
+		"                                \n\t"
+		".DCONS_LEFT1:                   \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"cmp    %4, #1                   \n\t"
+		"                                \n\t"
+		"blt    .DEND                    \n\t"
+		"bgt    .DCONS_LEFT2             \n\t"
+		"                                \n\t"
+		// k_left == 1
+		"vldr   s0, [%2, #0]             \n\t"
+		"vldr   s1, [%2, #16]            \n\t"
+		"vldr   s2, [%2, #32]            \n\t"
+		"vldr   s3, [%2, #48]            \n\t"
+		"vst1.32 {d0, d1}, [%3:128]      \n\t" // store C from registers
+		"                                \n\t"
+		"b      .DEND                    \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DCONS_LEFT2:                   \n\t"
+		"                                \n\t"
+		"cmp    %4, #2                   \n\t"
+		"                                \n\t"
+		// k_left == 2
+		"vldr   d0, [%2, #0]             \n\t"
+		"vldr   d2, [%2, #16]            \n\t"
+		"vldr   d1, [%2, #32]            \n\t"
+		"vldr   d3, [%2, #48]            \n\t"
+		"vtrn.32 q0, q1                  \n\t"
+		"vst1.32 {d0, d1, d2, d3}, [%3:128]! \n\t" // store C from registers
+		"                                \n\t"
+		"beq    .DEND                    \n\t"
+		"                                \n\t"
+		// k_left == 3
+		"vldr   s0, [%2, #8]             \n\t"
+		"vldr   s1, [%2, #24]            \n\t"
+		"vldr   s2, [%2, #40]            \n\t"
+		"vldr   s3, [%2, #56]            \n\t"
+		"vst1.32 {d0, d1}, [%3:128]      \n\t" // store C from registers
+		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DEND:                          \n\t"
@@ -272,11 +285,12 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 		  "r" (k_iter),	// %0
 		  "r" (incA),	// %1
 		  "r" (A),		// %2
-		  "r" (C)		// %3
+		  "r" (C),		// %3
+		  "r" (k_left)	// %4
 		: // register clobber list
 		  "r0", "r1", "r2", "r3",
 		  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
-		  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
+//		  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
 //		  "d16", "d17", "d18", "d19", "d20", "d21", "d22", "d23",
 //		  "d24", "d25", "d26", "d27", "d28", "d29", "d30", "d31",
 		  "memory"
@@ -286,54 +300,6 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 /*s_print_pmat(4*k_iter, 4, 4, A, sda);*/
 /*s_print_mat(4, 4*k_iter, C, 4);*/
 /*exit(1);*/
-
-	if(k==kmax)
-		return;
-
-	if(kmax-k==1)
-		{
-		
-		C[0+bs*0] = A[0+bs*0];
-		C[1+bs*0] = A[0+bs*1];
-		C[2+bs*0] = A[0+bs*2];
-		C[3+bs*0] = A[0+bs*3];
-
-		}
-	else if(kmax-k==2)
-		{
-		
-		C[0+bs*0] = A[0+bs*0];
-		C[1+bs*0] = A[0+bs*1];
-		C[2+bs*0] = A[0+bs*2];
-		C[3+bs*0] = A[0+bs*3];
-		
-		C[0+bs*1] = A[1+bs*0];
-		C[1+bs*1] = A[1+bs*1];
-		C[2+bs*1] = A[1+bs*2];
-		C[3+bs*1] = A[1+bs*3];
-
-		}
-	else // if(kmax-k==3)
-		{
-
-		C[0+bs*0] = A[0+bs*0];
-		C[1+bs*0] = A[0+bs*1];
-		C[2+bs*0] = A[0+bs*2];
-		C[3+bs*0] = A[0+bs*3];
-		
-		C[0+bs*1] = A[1+bs*0];
-		C[1+bs*1] = A[1+bs*1];
-		C[2+bs*1] = A[1+bs*2];
-		C[3+bs*1] = A[1+bs*3];
-		
-		C[0+bs*2] = A[2+bs*0];
-		C[1+bs*2] = A[2+bs*1];
-		C[2+bs*2] = A[2+bs*2];
-		C[3+bs*2] = A[2+bs*3];
-
-		}
-
-	return;
 	
 	}
 
