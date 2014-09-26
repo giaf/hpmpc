@@ -42,6 +42,7 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 
 	int incA = bs*(sda-8)*sizeof(float);
 
+	// TODO kmax -= kna !!!!!!!!!!!!!!!!!!!
 	int k_iter = kmax/4;
 	int k_left = kmax%4;
 
@@ -456,6 +457,7 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 /*	int incA = bs*(sda-8)*sizeof(float);*/
 	int incA = bs*(sda-4)*sizeof(float);
 
+	// TODO kmax -= kna !!!!!!!!!!!!!!!!!!!
 	int k_iter = kmax/4;
 	int k_left = kmax%4;
 

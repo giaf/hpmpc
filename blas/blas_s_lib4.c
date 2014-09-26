@@ -481,6 +481,7 @@ void sgemv_n_lib(int m, int n, float *pA, int sda, float *x, float *y, int alg) 
 		pA += sda*bs;
 		y  += bs;
 		}
+	// TODO small cases using mask !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 /*	for(; j<m-1; j+=2)*/
 /*		{*/
 /*		kernel_sgemv_n_2_lib4(n, pA, x, y, alg);*/
@@ -551,21 +552,63 @@ void strmv_u_n_lib(int m, float *pA, int sda, float *x, float *y, int alg)
 		x  += bs;
 		y  += bs;
 		}
-	for(; j<m-1; j+=2)
-		{
-		kernel_strmv_u_n_2_lib4(m-j, pA, x, y, alg);
-		pA += 2 + 2*bs;
-		x  += 2;
-		y  += 2;
-		}
+/*	for(; j<m-1; j+=2)*/
+/*		{*/
+/*		kernel_strmv_u_n_2_lib4(m-j, pA, x, y, alg);*/
+/*		pA += 2 + 2*bs;*/
+/*		x  += 2;*/
+/*		y  += 2;*/
+/*		}*/
 	if(j<m)
 		{
-		if(alg==0)
-			y[0] = pA[0+bs*0]*x[0];
-		else if(alg==1)
-			y[0] += pA[0+bs*0]*x[0];
-		else
-			y[0] -= pA[0+bs*0]*x[0];
+		if(j==m-1)
+			{
+			if(alg==0)
+				y[0] = pA[0+bs*0]*x[0];
+			else if(alg==1)
+				y[0] += pA[0+bs*0]*x[0];
+			else
+				y[0] -= pA[0+bs*0]*x[0];
+			}
+		else if(j==m-2)
+			{
+			if(alg==0)
+				{
+				y[0] = pA[0+bs*0]*x[0] + pA[0+bs*1]*x[1];
+				y[1] = pA[1+bs*1]*x[1];
+				}
+			else if(alg==1)
+				{
+				y[0] += pA[0+bs*0]*x[0] + pA[0+bs*1]*x[1];
+				y[1] += pA[1+bs*1]*x[1];
+				}
+			else
+				{
+				y[0] -= pA[0+bs*0]*x[0] + pA[0+bs*1]*x[1];
+				y[1] -= pA[1+bs*1]*x[1];
+				}
+			}
+		else if(j==m-3)
+			{
+			if(alg==0)
+				{
+				y[0] = pA[0+bs*0]*x[0] + pA[0+bs*1]*x[1] + pA[0+bs*2]*x[2];
+				y[1] = pA[1+bs*1]*x[1] + pA[1+bs*2]*x[2];
+				y[2] = pA[2+bs*2]*x[2];
+				}
+			else if(alg==1)
+				{
+				y[0] += pA[0+bs*0]*x[0] + pA[0+bs*1]*x[1] + pA[0+bs*2]*x[2];
+				y[1] += pA[1+bs*1]*x[1] + pA[1+bs*2]*x[2];
+				y[2] += pA[2+bs*2]*x[2];
+				}
+			else
+				{
+				y[0] -= pA[0+bs*0]*x[0] + pA[0+bs*1]*x[1] + pA[0+bs*2]*x[2];
+				y[1] -= pA[1+bs*1]*x[1] + pA[1+bs*2]*x[2];
+				y[2] -= pA[2+bs*2]*x[2];
+				}
+			}
 		}
 
 	}
@@ -594,15 +637,26 @@ void strmv_u_t_lib(int m, float *pA, int sda, float *x, float *y, int alg)
 		pA += 4*bs;
 		y  += bs;
 		}
-	for(; j<m-1; j+=2) // keep for !!!
-		{
-		kernel_strmv_u_t_2_lib4(j, pA, sda, x, y, alg);
-		pA += 2*bs;
-		y  += 2;
-		}
+/*	for(; j<m-1; j+=2) // keep for !!!*/
+/*		{*/
+/*		kernel_strmv_u_t_2_lib4(j, pA, sda, x, y, alg);*/
+/*		pA += 2*bs;*/
+/*		y  += 2;*/
+/*		}*/
 	if(j<m)
 		{
-		kernel_strmv_u_t_1_lib4(j, pA, sda, x, y, alg);
+		if(j==m-1)
+			{
+			kernel_strmv_u_t_1_lib4(j, pA, sda, x, y, alg);
+			}
+		else if(j==m-2)
+			{
+			kernel_strmv_u_t_2_lib4(j, pA, sda, x, y, alg);
+			}
+		else if(j==m-3)
+			{
+			kernel_strmv_u_t_3_lib4(j, pA, sda, x, y, alg);
+			}
 		}
 
 	}

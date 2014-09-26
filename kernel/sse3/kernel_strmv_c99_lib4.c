@@ -423,6 +423,151 @@ void kernel_strmv_u_t_4_lib4(int kmax, float *A, int sda, float *x, float *y, in
 	
 	
 	
+void kernel_strmv_u_t_3_lib4(int kmax, float *A, int sda, float *x, float *y, int alg)
+	{
+
+/*	if(kmax<=0) */
+/*		return;*/
+	
+	const int lda = 4;
+	const int bs  = 4;
+	
+	int
+		k;
+	
+	float
+		x_0, x_1, x_2, x_3,
+		y_0=0, y_1=0, y_2=0;
+	
+	k=0;
+	for(; k<kmax-7; k+=8)
+		{
+		
+		x_0 = x[0];
+		x_1 = x[1];
+		x_2 = x[2];
+		x_3 = x[3];
+		
+		y_0 += A[0+lda*0] * x_0;
+		y_1 += A[0+lda*1] * x_0;
+		y_2 += A[0+lda*2] * x_0;
+
+		y_0 += A[1+lda*0] * x_1;
+		y_1 += A[1+lda*1] * x_1;
+		y_2 += A[1+lda*2] * x_1;
+		
+		y_0 += A[2+lda*0] * x_2;
+		y_1 += A[2+lda*1] * x_2;
+		y_2 += A[2+lda*2] * x_2;
+
+		y_0 += A[3+lda*0] * x_3;
+		y_1 += A[3+lda*1] * x_3;
+		y_2 += A[3+lda*2] * x_3;
+		
+		A += sda*bs;
+		x += 4;
+
+		x_0 = x[0];
+		x_1 = x[1];
+		x_2 = x[2];
+		x_3 = x[3];
+		
+		y_0 += A[0+lda*0] * x_0;
+		y_1 += A[0+lda*1] * x_0;
+		y_2 += A[0+lda*2] * x_0;
+
+		y_0 += A[1+lda*0] * x_1;
+		y_1 += A[1+lda*1] * x_1;
+		y_2 += A[1+lda*2] * x_1;
+		
+		y_0 += A[2+lda*0] * x_2;
+		y_1 += A[2+lda*1] * x_2;
+		y_2 += A[2+lda*2] * x_2;
+
+		y_0 += A[3+lda*0] * x_3;
+		y_1 += A[3+lda*1] * x_3;
+		y_2 += A[3+lda*2] * x_3;
+		
+		A += sda*bs;
+		x += 4;
+
+		}
+	for(; k<kmax-3; k+=4)
+		{
+		
+		x_0 = x[0];
+		x_1 = x[1];
+		x_2 = x[2];
+		x_3 = x[3];
+		
+		y_0 += A[0+lda*0] * x_0;
+		y_1 += A[0+lda*1] * x_0;
+		y_2 += A[0+lda*2] * x_0;
+
+		y_0 += A[1+lda*0] * x_1;
+		y_1 += A[1+lda*1] * x_1;
+		y_2 += A[1+lda*2] * x_1;
+		
+		y_0 += A[2+lda*0] * x_2;
+		y_1 += A[2+lda*1] * x_2;
+		y_2 += A[2+lda*2] * x_2;
+
+		y_0 += A[3+lda*0] * x_3;
+		y_1 += A[3+lda*1] * x_3;
+		y_2 += A[3+lda*2] * x_3;
+		
+		A += sda*bs;
+		x += 4;
+
+		}
+
+	x_0 = x[0];
+	x_1 = x[1];
+	x_2 = x[2];
+	x_3 = x[3];
+	
+	y_0 += A[0+lda*0] * x_0;
+	y_1 += A[0+lda*1] * x_0;
+	y_2 += A[0+lda*2] * x_0;
+
+/*	y_0 += A[1+lda*0] * x_1;*/
+	y_1 += A[1+lda*1] * x_1;
+	y_2 += A[1+lda*2] * x_1;
+	
+/*	y_0 += A[2+lda*0] * x_2;*/
+/*	y_1 += A[2+lda*1] * x_2;*/
+	y_2 += A[2+lda*2] * x_2;
+
+/*	y_0 += A[3+lda*0] * x_3;*/
+/*	y_1 += A[3+lda*1] * x_3;*/
+/*	y_2 += A[3+lda*2] * x_3;*/
+	
+	A += sda*bs;
+	x += 4;
+
+	if(alg==0)
+		{
+		y[0] = y_0;
+		y[1] = y_1;
+		y[2] = y_2;
+		}
+	else if(alg==1)
+		{
+		y[0] += y_0;
+		y[1] += y_1;
+		y[2] += y_2;
+		}
+	else // alg==-1
+		{
+		y[0] -= y_0;
+		y[1] -= y_1;
+		y[2] -= y_2;
+		}
+
+	}
+
+
+
 void kernel_strmv_u_t_2_lib4(int kmax, float *A, int sda, float *x, float *y, int alg)
 	{
 
