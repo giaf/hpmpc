@@ -517,13 +517,20 @@ void sgemv_t_lib(int m, int n, int offset, float *pA, int sda, float *x, float *
 		{
 		kernel_sgemv_t_4_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
 		}
-	for(; j<n-1; j+=2)
+	if(j<n)
 		{
-		kernel_sgemv_t_2_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
-		}
-	for(; j<n; j++)
-		{
-		kernel_sgemv_t_1_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
+		if(j==n-1)
+			{
+			kernel_sgemv_t_1_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
+			}
+		if(j==n-2)
+			{
+			kernel_sgemv_t_2_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
+			}
+		if(j==n-3)
+			{
+			kernel_sgemv_t_3_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
+			}
 		}
 
 	}

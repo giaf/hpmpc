@@ -42,7 +42,7 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 
 	int incA = bs*(sda-8)*sizeof(float);
 
-	// TODO kmax -= kna !!!!!!!!!!!!!!!!!!!
+	kmax -= kna; // !!!!!!!!!!!!!!!!!!!
 	int k_iter = kmax/4;
 	int k_left = kmax%4;
 
@@ -287,155 +287,6 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 	);
 
 	}
-
-
-
-/*void kernel_sgemv_t_8_lib4_old(int kmax, int kna, float *A, int sda, float *x, float *y, int alg)*/
-/*	{*/
-
-/*	if(kmax<=0) */
-/*		return;*/
-/*	*/
-/*	const int lda = 4;*/
-/*	const int bs  = 4;*/
-/*	*/
-/*	int*/
-/*		k, ka=kmax-kna;*/
-/*	*/
-/*	float*/
-/*		x_0, x_1, x_2, x_3,*/
-/*		y_0=0, y_1=0, y_2=0, y_3=0,*/
-/*		y_4=0, y_5=0, y_6=0, y_7=0;*/
-/*	*/
-/*	if(kna>0)*/
-/*		{*/
-/*		k=0;*/
-/*		for(; k<kna; k++)*/
-/*			{*/
-/*		*/
-/*			x_0 = x[0];*/
-/*		*/
-/*			y_0 += A[0+lda*0] * x_0;*/
-/*			y_1 += A[0+lda*1] * x_0;*/
-/*			y_2 += A[0+lda*2] * x_0;*/
-/*			y_3 += A[0+lda*3] * x_0;*/
-/*			y_4 += A[0+lda*4] * x_0;*/
-/*			y_5 += A[0+lda*5] * x_0;*/
-/*			y_6 += A[0+lda*6] * x_0;*/
-/*			y_7 += A[0+lda*7] * x_0;*/
-/*		*/
-/*			A += 1;*/
-/*			x += 1;*/
-/*		*/
-/*			}*/
-/*	*/
-/*		A += (sda-1)*lda;*/
-/*		}*/
-
-/*	k=0;*/
-/*	for(; k<ka-bs+1; k+=bs)*/
-/*		{*/
-/*		*/
-/*		x_0 = x[0];*/
-/*		x_1 = x[1];*/
-/*		x_2 = x[2];*/
-/*		x_3 = x[3];*/
-/*		*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_1 += A[0+lda*1] * x_0;*/
-/*		y_2 += A[0+lda*2] * x_0;*/
-/*		y_3 += A[0+lda*3] * x_0;*/
-/*		y_4 += A[0+lda*4] * x_0;*/
-/*		y_5 += A[0+lda*5] * x_0;*/
-/*		y_6 += A[0+lda*6] * x_0;*/
-/*		y_7 += A[0+lda*7] * x_0;*/
-
-/*		y_0 += A[1+lda*0] * x_1;*/
-/*		y_1 += A[1+lda*1] * x_1;*/
-/*		y_2 += A[1+lda*2] * x_1;*/
-/*		y_3 += A[1+lda*3] * x_1;*/
-/*		y_4 += A[1+lda*4] * x_1;*/
-/*		y_5 += A[1+lda*5] * x_1;*/
-/*		y_6 += A[1+lda*6] * x_1;*/
-/*		y_7 += A[1+lda*7] * x_1;*/
-/*		*/
-/*		y_0 += A[2+lda*0] * x_2;*/
-/*		y_1 += A[2+lda*1] * x_2;*/
-/*		y_2 += A[2+lda*2] * x_2;*/
-/*		y_3 += A[2+lda*3] * x_2;*/
-/*		y_4 += A[2+lda*4] * x_2;*/
-/*		y_5 += A[2+lda*5] * x_2;*/
-/*		y_6 += A[2+lda*6] * x_2;*/
-/*		y_7 += A[2+lda*7] * x_2;*/
-
-/*		y_0 += A[3+lda*0] * x_3;*/
-/*		y_1 += A[3+lda*1] * x_3;*/
-/*		y_2 += A[3+lda*2] * x_3;*/
-/*		y_3 += A[3+lda*3] * x_3;*/
-/*		y_4 += A[3+lda*4] * x_3;*/
-/*		y_5 += A[3+lda*5] * x_3;*/
-/*		y_6 += A[3+lda*6] * x_3;*/
-/*		y_7 += A[3+lda*7] * x_3;*/
-/*		*/
-/*		A += sda*bs;*/
-/*		x += 4;*/
-
-/*		}*/
-/*	*/
-/*	for(; k<ka; k++)*/
-/*		{*/
-/*		*/
-/*		x_0 = x[0];*/
-/*	*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_1 += A[0+lda*1] * x_0;*/
-/*		y_2 += A[0+lda*2] * x_0;*/
-/*		y_3 += A[0+lda*3] * x_0;*/
-/*		y_4 += A[0+lda*4] * x_0;*/
-/*		y_5 += A[0+lda*5] * x_0;*/
-/*		y_6 += A[0+lda*6] * x_0;*/
-/*		y_7 += A[0+lda*7] * x_0;*/
-/*	*/
-/*		A += 1;*/
-/*		x += 1;*/
-/*		*/
-/*		}*/
-
-/*	if(alg==0)*/
-/*		{*/
-/*		y[0] = y_0;*/
-/*		y[1] = y_1;*/
-/*		y[2] = y_2;*/
-/*		y[3] = y_3;*/
-/*		y[4] = y_4;*/
-/*		y[5] = y_5;*/
-/*		y[6] = y_6;*/
-/*		y[7] = y_7;*/
-/*		}*/
-/*	else if(alg==1)*/
-/*		{*/
-/*		y[0] += y_0;*/
-/*		y[1] += y_1;*/
-/*		y[2] += y_2;*/
-/*		y[3] += y_3;*/
-/*		y[4] += y_4;*/
-/*		y[5] += y_5;*/
-/*		y[6] += y_6;*/
-/*		y[7] += y_7;*/
-/*		}*/
-/*	else // alg==-1*/
-/*		{*/
-/*		y[0] -= y_0;*/
-/*		y[1] -= y_1;*/
-/*		y[2] -= y_2;*/
-/*		y[3] -= y_3;*/
-/*		y[4] -= y_4;*/
-/*		y[5] -= y_5;*/
-/*		y[6] -= y_6;*/
-/*		y[7] -= y_7;*/
-/*		}*/
-
-/*	}*/
 	
 	
 	
@@ -457,7 +308,7 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 /*	int incA = bs*(sda-8)*sizeof(float);*/
 	int incA = bs*(sda-4)*sizeof(float);
 
-	// TODO kmax -= kna !!!!!!!!!!!!!!!!!!!
+	kmax -= kna; //!!!!!!!!!!!!!!!!!!!
 	int k_iter = kmax/4;
 	int k_left = kmax%4;
 
@@ -656,213 +507,422 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 	);
 
 	}
-
-
-
-/*void kernel_sgemv_t_4_lib4_old(int kmax, int kna, float *A, int sda, float *x, float *y, int alg)*/
-/*	{*/
-
-/*	if(kmax<=0) */
-/*		return;*/
-/*	*/
-/*	const int lda = 4;*/
-/*	const int bs  = 4;*/
-/*	*/
-/*	int*/
-/*		k, ka=kmax-kna;*/
-/*	*/
-/*	float*/
-/*		x_0, x_1, x_2, x_3,*/
-/*		y_0=0, y_1=0, y_2=0, y_3=0;*/
-/*	*/
-/*	if(kna>0)*/
-/*		{*/
-/*		k=0;*/
-/*		for(; k<kna; k++)*/
-/*			{*/
-/*		*/
-/*			x_0 = x[0];*/
-/*		*/
-/*			y_0 += A[0+lda*0] * x_0;*/
-/*			y_1 += A[0+lda*1] * x_0;*/
-/*			y_2 += A[0+lda*2] * x_0;*/
-/*			y_3 += A[0+lda*3] * x_0;*/
-/*		*/
-/*			A += 1;*/
-/*			x += 1;*/
-/*		*/
-/*			}*/
-/*	*/
-/*		A += (sda-1)*lda;*/
-/*		}*/
-
-/*	k=0;*/
-/*	for(; k<ka-bs+1; k+=bs)*/
-/*		{*/
-/*		*/
-/*		x_0 = x[0];*/
-/*		x_1 = x[1];*/
-/*		x_2 = x[2];*/
-/*		x_3 = x[3];*/
-/*		*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_1 += A[0+lda*1] * x_0;*/
-/*		y_2 += A[0+lda*2] * x_0;*/
-/*		y_3 += A[0+lda*3] * x_0;*/
-
-/*		y_0 += A[1+lda*0] * x_1;*/
-/*		y_1 += A[1+lda*1] * x_1;*/
-/*		y_2 += A[1+lda*2] * x_1;*/
-/*		y_3 += A[1+lda*3] * x_1;*/
-/*		*/
-/*		y_0 += A[2+lda*0] * x_2;*/
-/*		y_1 += A[2+lda*1] * x_2;*/
-/*		y_2 += A[2+lda*2] * x_2;*/
-/*		y_3 += A[2+lda*3] * x_2;*/
-
-/*		y_0 += A[3+lda*0] * x_3;*/
-/*		y_1 += A[3+lda*1] * x_3;*/
-/*		y_2 += A[3+lda*2] * x_3;*/
-/*		y_3 += A[3+lda*3] * x_3;*/
-/*		*/
-/*		A += sda*bs;*/
-/*		x += 4;*/
-
-/*		}*/
-/*	*/
-/*	for(; k<ka; k++)*/
-/*		{*/
-/*		*/
-/*		x_0 = x[0];*/
-/*	*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_1 += A[0+lda*1] * x_0;*/
-/*		y_2 += A[0+lda*2] * x_0;*/
-/*		y_3 += A[0+lda*3] * x_0;*/
-/*	*/
-/*		A += 1;*/
-/*		x += 1;*/
-/*		*/
-/*		}*/
-
-/*	if(alg==0)*/
-/*		{*/
-/*		y[0] = y_0;*/
-/*		y[1] = y_1;*/
-/*		y[2] = y_2;*/
-/*		y[3] = y_3;*/
-/*		}*/
-/*	else if(alg==1)*/
-/*		{*/
-/*		y[0] += y_0;*/
-/*		y[1] += y_1;*/
-/*		y[2] += y_2;*/
-/*		y[3] += y_3;*/
-/*		}*/
-/*	else // alg==-1*/
-/*		{*/
-/*		y[0] -= y_0;*/
-/*		y[1] -= y_1;*/
-/*		y[2] -= y_2;*/
-/*		y[3] -= y_3;*/
-/*		}*/
-
-/*	}*/
 	
 	
 	
+void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg)
+	{
+
+	if(kmax<=0) 
+		return;
+	
+	const int bs = 4;
+
+	int k_pre = (bs - kna)%bs;
+	
+	float *A0 = A - k_pre;
+	float *x0 = x - k_pre;
+	
+	__builtin_prefetch( A0 );
+
+/*	int incA = bs*(sda-8)*sizeof(float);*/
+	int incA = bs*(sda-3)*sizeof(float);
+
+	kmax -= kna; //!!!!!!!!!!!!!!!!!!!
+	int k_iter = kmax/4;
+	int k_left = kmax%4;
+
+	__asm__ volatile
+	(
+		"                                \n\t"
+		"                                \n\t"
+		"mov    r1, %7                   \n\t" // prefetch offset
+		"add    r1, r1, #48              \n\t"
+		"                                \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"                                \n\t"
+		"                                \n\t"
+		"mov    r0, %0                   \n\t" // k_pre
+		"cmp    r0, #0                   \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vldr   d16, .DZERO_T_3          \n\t" // load zero double
+		"vldr   d17, .DZERO_T_3+8        \n\t" // load zero double
+		"vmov   q9, q8                   \n\t"
+		"vmov   q10, q8                  \n\t"
+		"vmov   q2, q8                   \n\t" // zero vector
+		"                                \n\t"
+		"                                \n\t"
+		"vld1.64   {d0, d1, d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13}, [%3:128]!   \n\t" // load A0 to registers
+		"                                \n\t"
+		"                                \n\t"
+		"ble    .DCONS_MAIN_LOOP_T_3     \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmov   s0, s8                   \n\t"
+		"cmp    r0, #2                   \n\t"
+		"vmovge s1, s8                   \n\t"
+		"vmovgt s2, s8                   \n\t"
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vld1.64   {d12, d13}, [%3:128]!   \n\t" // load A0 to registers
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"                                \n\t"
+		".DCONS_MAIN_LOOP_T_3:           \n\t" // main loop
+		"                                \n\t"
+		"mov    r0, %1                   \n\t" // k_loop
+		"cmp    r0, #1                   \n\t"
+		"                                \n\t"
+		"beq    .DMAIN_LOOP_T_3          \n\t"
+		"blt    .DCONS_CLEAN_LOOP_T_3    \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DMAIN_LOOP2_T_3:                \n\t" // main loop
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q8, q4, q0           \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vld1.64   {d12, d13}, [%3:128]!   \n\t" // load A0 to registers
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q8, q4, q0           \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vmla.f32  q10, q6, q0           \n\t"
+		"sub    r0, r0, #2               \n\t" // iter++
+		"vld1.64   {d12, d13}, [%3:128]!   \n\t" // load A0 to registers
+		"cmp    r0, #1                   \n\t" // next iter?
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"bgt    .DMAIN_LOOP2_T_3          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"blt    .DCONS_CLEAN_LOOP_T_3    \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DMAIN_LOOP_T_3:                \n\t" // main loop
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q8, q4, q0           \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vmla.f32  q10, q6, q0           \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"vld1.64   {d12, d13}, [%3:128]!   \n\t" // load A0 to registers
+		"cmp    r0, #0                   \n\t" // next iter?
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"bgt    .DMAIN_LOOP_T_3          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DCONS_CLEAN_LOOP_T_3:          \n\t" // main loop
+		"                                \n\t"
+		"mov    r0, %2                   \n\t" // k_left
+		"cmp    r0, #0                   \n\t"
+		"                                \n\t"
+		"ble    .DPOSTACCUM_T_3          \n\t"
+		"                                \n\t"
+		"vmov   s3, s8                   \n\t"
+		"cmp    r0, #2                   \n\t"
+		"vmoveq s2, s8                   \n\t"
+		"vmovlt s1, s8                   \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DPOSTACCUM_T_3:                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vpadd.f32 d4, d16, d17          \n\t"
+		"vpadd.f32 d5, d18, d19          \n\t"
+		"vpadd.f32 d6, d20, d21          \n\t"
+		"                                \n\t"
+		"vpadd.f32 d0, d4, d5            \n\t"
+		"vadd.f32  s2, s12, s13          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"cmp    %6, #0                   \n\t"
+		"beq    .D0_T_3                  \n\t" // if alg==0, jump
+		"                                \n\t"// alg==-1
+		"mov    r0, %5                   \n\t" // load address of y
+		"vld1.64   {d4, d5}, [r0]  \n\t" // load y
+		"                                \n\t"
+		"cmp    %6, #1                   \n\t"
+		"beq    .D1_T_3                  \n\t" // if alg==1, jump
+		"                                \n\t"
+		"vsub.f32  q0, q2, q0            \n\t"
+		"                                \n\t"
+		"b      .D0_T_3                  \n\t" // jump to end
+		"                                \n\t"
+		"                                \n\t"
+		".D1_T_3:                        \n\t" // alg==1
+		"                                \n\t"
+		"vadd.f32  q0, q2, q0            \n\t"
+		"                                \n\t"
+		".D0_T_3:                        \n\t" // alg==0
+		"                                \n\t"
+		"mov    r0, %5                   \n\t" // load address of y
+		"                                \n\t"
+		"vmov      s3, s11               \n\t" // restore y[3]
+		"vst1.64   {d0, d1}, [r0]  \n\t" // store y
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".align 3                        \n\t"
+		".DZERO_T_3:                     \n\t" // zero quad word
+		".word  0                        \n\t"
+		".word  0                        \n\t"
+		".word  0                        \n\t"
+		".word  0                        \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		: // output operands (none)
+		: // input operands
+		  "r" (k_pre),		// %0
+		  "r" (k_iter),		// %1
+		  "r" (k_left),		// %2
+		  "r" (A0),			// %3
+		  "r" (x0),			// %4
+		  "r" (y),			// %5
+		  "r" (alg),		// %6
+		  "r" (incA)		// %7
+		: // register clobber list
+		  "r0", "r1", "r2",
+		  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
+		  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
+		  "d16", "d17", "d18", "d19", "d20", "d21", "d22", "d23",
+		  "d24", "d25", "d26", "d27", "d28", "d29", "d30", "d31",
+		  "memory"
+	);
+
+	}
+
+
+
 void kernel_sgemv_t_2_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg)
 	{
 
 	if(kmax<=0) 
 		return;
 	
-	const int lda = 4;
-	const int bs  = 4;
-	
-	int
-		k, ka=kmax-kna;
-	
-	float
-		x_0, x_1, x_2, x_3,
-		y_0=0, y_1=0;
-	
-	if(kna>0)
-		{
-		k=0;
-		for(; k<kna; k++)
-			{
-		
-			x_0 = x[0];
-		
-			y_0 += A[0+lda*0] * x_0;
-			y_1 += A[0+lda*1] * x_0;
-		
-			A += 1;
-			x += 1;
-		
-			}
-	
-		A += (sda-1)*lda;
-		}
+	const int bs = 4;
 
-	k=0;
-	for(; k<ka-bs+1; k+=bs)
-		{
-		
-		x_0 = x[0];
-		x_1 = x[1];
-		x_2 = x[2];
-		x_3 = x[3];
-		
-		y_0 += A[0+lda*0] * x_0;
-		y_1 += A[0+lda*1] * x_0;
-
-		y_0 += A[1+lda*0] * x_1;
-		y_1 += A[1+lda*1] * x_1;
-		
-		y_0 += A[2+lda*0] * x_2;
-		y_1 += A[2+lda*1] * x_2;
-
-		y_0 += A[3+lda*0] * x_3;
-		y_1 += A[3+lda*1] * x_3;
-		
-		A += sda*bs;
-		x += 4;
-
-		}
+	int k_pre = (bs - kna)%bs;
 	
-	for(; k<ka; k++)
-		{
-		
-		x_0 = x[0];
+	float *A0 = A - k_pre;
+	float *x0 = x - k_pre;
 	
-		y_0 += A[0+lda*0] * x_0;
-		y_1 += A[0+lda*1] * x_0;
-	
-		A += 1;
-		x += 1;
-		
-		}
+	__builtin_prefetch( A0 );
 
-	if(alg==0)
-		{
-		y[0] = y_0;
-		y[1] = y_1;
-		}
-	else if(alg==1)
-		{
-		y[0] += y_0;
-		y[1] += y_1;
-		}
-	else // alg==-1
-		{
-		y[0] -= y_0;
-		y[1] -= y_1;
-		}
+/*	int incA = bs*(sda-8)*sizeof(float);*/
+	int incA = bs*(sda-2)*sizeof(float);
+
+	kmax -= kna; //!!!!!!!!!!!!!!!!!!!
+	int k_iter = kmax/4;
+	int k_left = kmax%4;
+
+	__asm__ volatile
+	(
+		"                                \n\t"
+		"                                \n\t"
+		"mov    r1, %7                   \n\t" // prefetch offset
+		"add    r1, r1, #32              \n\t"
+		"                                \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"                                \n\t"
+		"                                \n\t"
+		"mov    r0, %0                   \n\t" // k_pre
+		"cmp    r0, #0                   \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vldr   d16, .DZERO_T_2          \n\t" // load zero double
+		"vldr   d17, .DZERO_T_2+8        \n\t" // load zero double
+		"vmov   q9, q8                   \n\t"
+/*		"vmov   q10, q8                  \n\t"*/
+		"vmov   q2, q8                   \n\t" // zero vector
+		"                                \n\t"
+		"                                \n\t"
+		"vld1.64   {d0, d1, d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"                                \n\t"
+		"                                \n\t"
+		"ble    .DCONS_MAIN_LOOP_T_2     \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmov   s0, s8                   \n\t"
+		"cmp    r0, #2                   \n\t"
+		"vmovge s1, s8                   \n\t"
+		"vmovgt s2, s8                   \n\t"
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"                                \n\t"
+		".DCONS_MAIN_LOOP_T_2:           \n\t" // main loop
+		"                                \n\t"
+		"mov    r0, %1                   \n\t" // k_loop
+		"cmp    r0, #1                   \n\t"
+		"                                \n\t"
+		"beq    .DMAIN_LOOP_T_2          \n\t"
+		"blt    .DCONS_CLEAN_LOOP_T_2    \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DMAIN_LOOP2_T_2:                \n\t" // main loop
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q8, q4, q0           \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q8, q4, q0           \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"sub    r0, r0, #2               \n\t" // iter++
+		"cmp    r0, #1                   \n\t" // next iter?
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"bgt    .DMAIN_LOOP2_T_2          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"blt    .DCONS_CLEAN_LOOP_T_2    \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DMAIN_LOOP_T_2:                \n\t" // main loop
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q8, q4, q0           \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"sub    r0, r0, #1               \n\t" // iter++
+		"cmp    r0, #0                   \n\t" // next iter?
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"bgt    .DMAIN_LOOP_T_2          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DCONS_CLEAN_LOOP_T_2:          \n\t" // main loop
+		"                                \n\t"
+		"mov    r0, %2                   \n\t" // k_left
+		"cmp    r0, #0                   \n\t"
+		"                                \n\t"
+		"ble    .DPOSTACCUM_T_2          \n\t"
+		"                                \n\t"
+		"vmov   s3, s8                   \n\t"
+		"cmp    r0, #2                   \n\t"
+		"vmoveq s2, s8                   \n\t"
+		"vmovlt s1, s8                   \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DPOSTACCUM_T_2:                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vpadd.f32 d4, d16, d17          \n\t"
+		"vpadd.f32 d5, d18, d19          \n\t"
+		"                                \n\t"
+		"vpadd.f32 d0, d4, d5            \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"cmp    %6, #0                   \n\t"
+		"beq    .D0_T_2                  \n\t" // if alg==0, jump
+		"                                \n\t"// alg==-1
+		"mov    r0, %5                   \n\t" // load address of y
+		"vld1.64   {d4}, [r0]  \n\t" // load y
+		"                                \n\t"
+		"cmp    %6, #1                   \n\t"
+		"beq    .D1_T_2                  \n\t" // if alg==1, jump
+		"                                \n\t"
+		"vsub.f32  d0, d4, d0            \n\t"
+		"                                \n\t"
+		"b      .D0_T_2                  \n\t" // jump to end
+		"                                \n\t"
+		"                                \n\t"
+		".D1_T_2:                        \n\t" // alg==1
+		"                                \n\t"
+		"vadd.f32  d0, d4, d0            \n\t"
+		"                                \n\t"
+		".D0_T_2:                        \n\t" // alg==0
+		"                                \n\t"
+		"mov    r0, %5                   \n\t" // load address of y
+		"                                \n\t"
+		"vst1.64   {d0}, [r0]  \n\t" // store y
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".align 3                        \n\t"
+		".DZERO_T_2:                     \n\t" // zero quad word
+		".word  0                        \n\t"
+		".word  0                        \n\t"
+		".word  0                        \n\t"
+		".word  0                        \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		: // output operands (none)
+		: // input operands
+		  "r" (k_pre),		// %0
+		  "r" (k_iter),		// %1
+		  "r" (k_left),		// %2
+		  "r" (A0),			// %3
+		  "r" (x0),			// %4
+		  "r" (y),			// %5
+		  "r" (alg),		// %6
+		  "r" (incA)		// %7
+		: // register clobber list
+		  "r0", "r1", "r2",
+		  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
+		  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
+		  "d16", "d17", "d18", "d19", "d20", "d21", "d22", "d23",
+		  "d24", "d25", "d26", "d27", "d28", "d29", "d30", "d31",
+		  "memory"
+	);
 
 	}
-	
+
 	
 	
 void kernel_sgemv_t_1_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg)
@@ -871,77 +931,189 @@ void kernel_sgemv_t_1_lib4(int kmax, int kna, float *A, int sda, float *x, float
 	if(kmax<=0) 
 		return;
 	
-	const int lda = 4;
-	const int bs  = 4;
-	
-	int
-		k, ka=kmax-kna;
-	
-	float
-		x_0, x_1, x_2, x_3,
-		y_0=0;
-	
-	if(kna>0)
-		{
-		k=0;
-		for(; k<kna; k++)
-			{
-		
-			x_0 = x[0];
-		
-			y_0 += A[0+lda*0] * x_0;
-		
-			A += 1;
-			x += 1;
-		
-			}
-	
-		A += (sda-1)*lda;
-		}
+	const int bs = 4;
 
-	k=0;
-	for(; k<ka-bs+1; k+=bs)
-		{
-		
-		x_0 = x[0];
-		x_1 = x[1];
-		x_2 = x[2];
-		x_3 = x[3];
-		
-		y_0 += A[0+lda*0] * x_0;
-		y_0 += A[1+lda*0] * x_1;
-		y_0 += A[2+lda*0] * x_2;
-		y_0 += A[3+lda*0] * x_3;
-		
-		A += sda*bs;
-		x += 4;
+	int k_pre = (bs - kna)%bs;
+	
+	float *A0 = A - k_pre;
+	float *x0 = x - k_pre;
+	
+	__builtin_prefetch( A0 );
 
-		}
-	
-	for(; k<ka; k++)
-		{
-		
-		x_0 = x[0];
-	
-		y_0 += A[0+lda*0] * x_0;
-	
-		A += 1;
-		x += 1;
-		
-		}
+/*	int incA = bs*(sda-8)*sizeof(float);*/
+	int incA = bs*(sda-1)*sizeof(float);
 
-	if(alg==0)
-		{
-		y[0] = y_0;
-		}
-	else if(alg==1)
-		{
-		y[0] += y_0;
-		}
-	else // alg==-1
-		{
-		y[0] -= y_0;
-		}
+	kmax -= kna; //!!!!!!!!!!!!!!!!!!!
+	int k_iter = kmax/4;
+	int k_left = kmax%4;
+
+	__asm__ volatile
+	(
+		"                                \n\t"
+		"                                \n\t"
+		"mov    r1, %7                   \n\t" // prefetch offset
+		"add    r1, r1, #16              \n\t"
+		"                                \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"                                \n\t"
+		"                                \n\t"
+		"mov    r0, %0                   \n\t" // k_pre
+		"cmp    r0, #0                   \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vldr   d16, .DZERO_T_1          \n\t" // load zero double
+		"vldr   d17, .DZERO_T_1+8        \n\t" // load zero double
+/*		"vmov   q9, q8                   \n\t"*/
+		"vmov   q2, q8                   \n\t" // zero vector
+		"                                \n\t"
+		"                                \n\t"
+		"vld1.64   {d0, d1, d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"vld1.64   {d8, d9}, [%3:128]!   \n\t" // load A0 to registers
+		"                                \n\t"
+		"                                \n\t"
+		"ble    .DCONS_MAIN_LOOP_T_1     \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmov   s0, s8                   \n\t"
+		"cmp    r0, #2                   \n\t"
+		"vmovge s1, s8                   \n\t"
+		"vmovgt s2, s8                   \n\t"
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vld1.64   {d8, d9}, [%3:128]!   \n\t" // load A0 to registers
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"                                \n\t"
+		".DCONS_MAIN_LOOP_T_1:           \n\t" // main loop
+		"                                \n\t"
+		"mov    r0, %1                   \n\t" // k_loop
+		"cmp    r0, #1                   \n\t"
+		"                                \n\t"
+		"beq    .DMAIN_LOOP_T_1          \n\t"
+		"blt    .DCONS_CLEAN_LOOP_T_1    \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DMAIN_LOOP2_T_1:                \n\t" // main loop
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q8, q4, q0           \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vld1.64   {d8, d9}, [%3:128]!   \n\t" // load A0 to registers
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q8, q4, q0           \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vld1.64   {d8, d9}, [%3:128]!   \n\t" // load A0 to registers
+		"sub    r0, r0, #2               \n\t" // iter++
+		"cmp    r0, #1                   \n\t" // next iter?
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"bgt    .DMAIN_LOOP2_T_1          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"blt    .DCONS_CLEAN_LOOP_T_1    \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DMAIN_LOOP_T_1:                \n\t" // main loop
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q8, q4, q0           \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vld1.64   {d8, d9}, [%3:128]!   \n\t" // load A0 to registers
+		"sub    r0, r0, #1               \n\t" // iter++
+		"cmp    r0, #0                   \n\t" // next iter?
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"bgt    .DMAIN_LOOP_T_1          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DCONS_CLEAN_LOOP_T_1:          \n\t" // main loop
+		"                                \n\t"
+		"mov    r0, %2                   \n\t" // k_left
+		"cmp    r0, #0                   \n\t"
+		"                                \n\t"
+		"ble    .DPOSTACCUM_T_1          \n\t"
+		"                                \n\t"
+		"vmov   s3, s8                   \n\t"
+		"cmp    r0, #2                   \n\t"
+		"vmoveq s2, s8                   \n\t"
+		"vmovlt s1, s8                   \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vmla.f32  q8, q4, q0           \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DPOSTACCUM_T_1:                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"vpadd.f32 d4, d16, d17          \n\t"
+		"                                \n\t"
+		"vadd.f32  s0, s8, s9            \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"cmp    %6, #0                   \n\t"
+		"beq    .D0_T_1                  \n\t" // if alg==0, jump
+		"                                \n\t"// alg==-1
+		"mov    r0, %5                   \n\t" // load address of y
+		"vldr   s8, [r0, #0]  \n\t" // load y
+		"                                \n\t"
+		"cmp    %6, #1                   \n\t"
+		"beq    .D1_T_1                  \n\t" // if alg==1, jump
+		"                                \n\t"
+		"vsub.f32  s0, s8, s0            \n\t"
+		"                                \n\t"
+		"b      .D0_T_1                  \n\t" // jump to end
+		"                                \n\t"
+		"                                \n\t"
+		".D1_T_1:                        \n\t" // alg==1
+		"                                \n\t"
+		"vadd.f32  s0, s8, s0            \n\t"
+		"                                \n\t"
+		".D0_T_1:                        \n\t" // alg==0
+		"                                \n\t"
+		"mov    r0, %5                   \n\t" // load address of y
+		"                                \n\t"
+		"vstr   s0, [r0, #0]  \n\t" // store y
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".align 3                        \n\t"
+		".DZERO_T_1:                     \n\t" // zero quad word
+		".word  0                        \n\t"
+		".word  0                        \n\t"
+		".word  0                        \n\t"
+		".word  0                        \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		: // output operands (none)
+		: // input operands
+		  "r" (k_pre),		// %0
+		  "r" (k_iter),		// %1
+		  "r" (k_left),		// %2
+		  "r" (A0),			// %3
+		  "r" (x0),			// %4
+		  "r" (y),			// %5
+		  "r" (alg),		// %6
+		  "r" (incA)		// %7
+		: // register clobber list
+		  "r0", "r1", "r2",
+		  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
+		  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
+		  "d16", "d17", "d18", "d19", "d20", "d21", "d22", "d23",
+		  "d24", "d25", "d26", "d27", "d28", "d29", "d30", "d31",
+		  "memory"
+	);
 
 	}
 	

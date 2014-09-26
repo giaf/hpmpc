@@ -46,6 +46,7 @@ void kernel_strsm_pp_nt_2x4_lib4(int kadd, int ksub, float *A, float *B, float *
 void kernel_strsm_pp_nt_2x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact);
 void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
 void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
+void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
 void kernel_sgemv_t_2_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
 void kernel_sgemv_t_1_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg);
 void kernel_sgemv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, int alg);
