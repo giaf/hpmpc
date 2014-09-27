@@ -318,6 +318,7 @@ int main()
 ************************************************/
 
 	float *work; s_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 4*anb + 2*anx) + 3*anz, 1); // work space
+/*	for(jj=0; jj<( (N+1)*(pnz*cnl + 4*anz + 4*anb + 2*anx) + 3*anz ); jj++) work[jj] = -1.0;*/
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
