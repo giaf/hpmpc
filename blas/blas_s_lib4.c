@@ -375,7 +375,51 @@ void ssyrk_spotrf_lib(int m, int k, int n, float *pA, int sda, float *pC, int sd
 	for(; j<n-2; j+=4)
 		{
 		i = j;
+#if defined(TARGET_CORTEX_A15)
+		if(i<m-8)
+			{
+/*			exit(1);*/
+			kernel_spotrf_pp_nt_12x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[(i+8)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pC[j*bs+(i+8)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], &pA[(k0+k+j)*bs+(i+8)*sda], bs, fact);
+			i += 12;
+			diag[j+0] = fact[0];
+			diag[j+1] = fact[2];
+			diag[j+2] = fact[5];
+			diag[j+3] = fact[9];
+			for(; i<m-16; i+=12)
+				{
+/*printf("\n12 l %d %d\n", m, i);*/
+				kernel_strsm_pp_nt_12x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[(i+8)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pC[j*bs+(i+8)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], &pA[(k0+k+j)*bs+(i+8)*sda], bs, fact);
+				}
+			if(m-i>12)
+				{
+/*printf("\n8 8 %d %d\n", m, i);*/
+				kernel_strsm_pp_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);
+				i+=8;
+				kernel_strsm_pp_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);
+				i+=8;
+				}
+			if(i<m-8)
+				{
+/*printf("\n12 %d %d\n", m, i);*/
+				kernel_strsm_pp_nt_12x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[(i+8)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pC[j*bs+(i+8)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], &pA[(k0+k+j)*bs+(i+8)*sda], bs, fact);
+				i+=12;
+				}
+/*exit(1);*/
+			for(; i<m-4; i+=8)
+				{
+				kernel_strsm_pp_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);
+/*				kernel_strsm_pp_nt_4x4_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], bs, fact);*/
+/*				kernel_strsm_pp_nt_4x4_lib4(k, j, &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);*/
+				}
+			for(; i<m; i+=4)
+				{
+				kernel_strsm_pp_nt_4x4_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], bs, fact);
+				}
+			}
+		else if(i<m-4)
+#else
 		if(i<m-4)
+#endif
 			{
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A15) || defined(TARGET_X64_SSE3)
 			kernel_spotrf_pp_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);
@@ -450,6 +494,8 @@ void ssyrk_spotrf_lib(int m, int k, int n, float *pA, int sda, float *pC, int sd
 			diag[j+1] = fact[2];
 			diag[j+2] = fact[5];
 			diag[j+3] = fact[9];
+/*s_print_mat(4, 4, &pA[(k0+k+j)*bs+i*sda], 4);*/
+/*exit(1);*/
 			}
 		}
 	for(; j<n; j+=2)

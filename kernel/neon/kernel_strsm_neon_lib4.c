@@ -613,7 +613,7 @@ void kernel_strsm_pp_nt_12x4_lib4(int kadd, int ksub, float *A0, float *A1, floa
 
 
 
-void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc_dummy, double *fact)
+void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc_dummy, float *fact)
 	{
 	
 /*	if(kmax<=0)*/
@@ -1259,7 +1259,7 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 
 
 
-void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float *C0, float *D0, int ldc_dummy, double *fact)
+void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float *C0, float *D0, int ldc_dummy, float *fact)
 	{
 
 /*	if(kmax<=0)*/
@@ -1282,9 +1282,6 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 	int dA = bs*((d_ncl-kadd%d_ncl)%d_ncl)*sizeof(float);
 	
 /*	printf("\n%d %d %d\n", kadd, ksub, dA);*/
-
-float *C1;
-float *D1;
 
 	__asm__ volatile
 	(
@@ -1369,19 +1366,19 @@ float *D1;
 		"cmp    r0, #0                   \n\t" // next iter?
 		"vmla.f32  q15, q4, d5[1]        \n\t"
 		"vldr   d8, [%3, #64]             \n\t"
-		"vldr   d9, [%3, #72]             \n\t"
+		"add    %4, %4, #64              \n\t" // increase A
 		"                                \n\t"
 		"                                \n\t"
 		"vmla.f32  q0, q5, d6[0]        \n\t"
-		"vldr   d4, [%4, #64]             \n\t"
+		"vldr   d9, [%3, #72]             \n\t"
 		"vmla.f32  q1, q5, d6[1]        \n\t"
-		"vldr   d5, [%4, #72]             \n\t"
+		"vldr   d4, [%4, #0]             \n\t"
 		"vmla.f32  q14, q5, d7[0]        \n\t"
+		"vldr   d5, [%4, #8]             \n\t"
 		"add    %3, %3, #64              \n\t" // increase A
 		"vmla.f32  q15, q5, d7[1]        \n\t"
-		"vldr   d6, [%4, #80]             \n\t"
-		"vldr   d7, [%4, #88]             \n\t"
-		"add    %4, %4, #64              \n\t" // increase A
+		"vldr   d6, [%4, #16]             \n\t"
+		"vldr   d7, [%4, #24]             \n\t"
 		"                                \n\t"
 #endif
 #if defined(TARGET_CORTEX_A9)
@@ -1572,9 +1569,9 @@ float *D1;
 		"vmls.f32  q15, q4, d13[1]        \n\t"
 		"vldr   d8, [%3, #32]             \n\t"
 		"pld    [%4, #96]                \n\t"
-		"vldr   d9, [%3, #40]             \n\t"
 		"                                \n\t"
 		"vmls.f32  q0, q5, d14[0]        \n\t"
+		"vldr   d9, [%3, #40]             \n\t"
 		"vmls.f32  q1, q5, d14[1]        \n\t"
 		"vldr   d12, [%4, #32]             \n\t"
 		"vmls.f32  q14, q5, d15[0]        \n\t"
@@ -1582,29 +1579,30 @@ float *D1;
 		"vmls.f32  q15, q5, d15[1]        \n\t"
 		"vldr   d10, [%3, #48]             \n\t"
 		"sub    r0, r0, #1               \n\t" // iter++
+		"vldr   d11, [%3, #56]             \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"vmls.f32  q0, q4, d4[0]        \n\t"
-		"vldr   d11, [%3, #56]             \n\t"
+		"vldr   d14, [%4, #48]             \n\t"
 		"vmls.f32  q1, q4, d4[1]        \n\t"
 		"vldr   d15, [%4, #56]             \n\t"
 		"vmls.f32  q14, q4, d5[0]        \n\t"
 		"cmp    r0, #0                   \n\t" // next iter?
 		"vmls.f32  q15, q4, d5[1]        \n\t"
 		"vldr   d8, [%3, #64]             \n\t"
-		"vldr   d9, [%3, #72]             \n\t"
+		"add    %4, %4, #64              \n\t" // increase A
 		"                                \n\t"
 		"vmls.f32  q0, q5, d6[0]        \n\t"
-		"vldr   d4, [%4, #64]             \n\t"
+		"vldr   d9, [%3, #72]             \n\t"
 		"vmls.f32  q1, q5, d6[1]        \n\t"
-		"vldr   d5, [%4, #72]             \n\t"
+		"vldr   d4, [%4, #0]             \n\t"
 		"vmls.f32  q14, q5, d7[0]        \n\t"
+		"vldr   d5, [%4, #8]             \n\t"
 		"add    %3, %3, #64              \n\t" // increase A
 		"vmls.f32  q15, q5, d7[1]        \n\t"
-		"vldr   d6, [%4, #80]             \n\t"
-		"vldr   d7, [%4, #88]             \n\t"
-		"add    %4, %4, #64              \n\t" // increase A
+		"vldr   d6, [%4, #16]             \n\t"
+		"vldr   d7, [%4, #24]             \n\t"
 		"                                \n\t"
 #endif
 #if defined(TARGET_CORTEX_A9)

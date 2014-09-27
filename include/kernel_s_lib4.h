@@ -33,6 +33,7 @@ void kernel_sgemm_pp_nt_2x2_lib4(int kmax, float *A, float *B, float *C, float *
 void kernel_strmm_pp_nt_12x4_lib4(int kadd, float *A0, float *A1, float *A2, float *B, float *D0, float *D1, float *D2, int ldc);
 void kernel_strmm_pp_nt_8x4_lib4(int kadd, float *A0, float *A1, float *B, float *D0, float *D1, int ldc);
 void kernel_strmm_pp_nt_4x4_lib4(int kadd, float *A, float *B, float *D, int ldc);
+void kernel_spotrf_pp_nt_12x4_lib4(int kadd, int ksub, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, int ldc, float *fact);
 void kernel_spotrf_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, float *fact);
 void kernel_spotrf_pp_nt_4x4_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact);
 void kernel_spotrf_pp_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact);
