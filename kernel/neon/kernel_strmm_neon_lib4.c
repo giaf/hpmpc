@@ -451,7 +451,7 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 	__builtin_prefetch( A0 );
 	__builtin_prefetch( A1 );
 	__builtin_prefetch( B  );
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 	__builtin_prefetch( A0+8 );
 	__builtin_prefetch( A1+8 );
 	__builtin_prefetch( B +8 );
@@ -469,7 +469,7 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
 		"pld    [%4, #64]                \n\t" // prefetch B to L1
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
 		"pld    [%4, #96]                \n\t" // prefetch B to L1
@@ -479,13 +479,13 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"mov    r0, %0                   \n\t" // k_iter
 		"                                \n\t"
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A15)
 		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B to registers
 		"vld1.64   {d4, d5, d6, d7},     [%4:128] \n\t" // load B to registers
 		"vld1.64   {d8, d9, d10, d11},   [%2:128] \n\t" // load A0 to registers
 		"vld1.64   {d24, d25},           [%3:128] \n\t" // load A1
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B to registers
 		"vld1.64   {d8, d9, d10, d11},   [%2:128]! \n\t" // load A0 to registers
 		"vld1.64   {d24, d25, d26, d27}, [%3:128]! \n\t" // load A1
@@ -494,7 +494,7 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A15)
 		"                                \n\t"
 		"vmul.f32  q0, q4, d12[0]        \n\t"
 		"vldr   d26, [%3, #16]             \n\t"
@@ -569,7 +569,7 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"add    %4, %4, #64              \n\t" // increase A
 		"                                \n\t"
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"                                \n\t"
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
@@ -641,7 +641,7 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"                                \n\t"
 		".DLOOPKITER_8x4:                    \n\t" // main loop
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A15)
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vldr   d26, [%3, #16]             \n\t"
@@ -718,7 +718,7 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"add    %4, %4, #64              \n\t" // increase A
 		"                                \n\t"
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"                                \n\t"
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
@@ -794,7 +794,7 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"cmp    r0, #1                   \n\t"
 		"ble    .DCONSIDERLEFT1_8x4          \n\t"
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A15)
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vldr   d26, [%3, #16]             \n\t"
@@ -835,7 +835,7 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 /*		"vldr   d26, [%3, #48]             \n\t"*/
 		"                                \n\t"
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
@@ -938,7 +938,7 @@ void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 		
 	__builtin_prefetch( A );
 	__builtin_prefetch( B );
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 	__builtin_prefetch( A+8 );
 	__builtin_prefetch( B+8 );
 #endif
@@ -957,7 +957,7 @@ void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A to L1
 		"pld    [%3, #64]                \n\t" // prefetch B to L1
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"pld    [%2, #96]                \n\t" // prefetch A to L1
 		"pld    [%3, #96]                \n\t" // prefetch B to L1
 #endif
@@ -973,7 +973,7 @@ void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 		"vld1.64   {d12, d13, d14, d15}, [%3:128] \n\t" // load B to registers
 		"vld1.64   {d8, d9}, [%2:128]   \n\t" // load A to registers
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]! \n\t" // load B to registers
 		"vld1.64   {d8, d9, d10, d11},   [%2:128]! \n\t" // load A0 to registers
 #endif
@@ -1039,7 +1039,7 @@ void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 		"                                \n\t"
 		"                                \n\t"
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"                                \n\t"
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
@@ -1142,7 +1142,7 @@ void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 		"                                \n\t"
 		"                                \n\t"
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"                                \n\t"
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
@@ -1213,7 +1213,7 @@ void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 		"vmla.f32  q3, q5, d15[1]        \n\t"
 /*		"vldr   d15, [%3, #56]             \n\t"*/
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
 		"vmla.f32  q2, q4, d13[0]        \n\t"

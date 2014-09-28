@@ -43,6 +43,9 @@ endif
 ifeq ($(TARGET), CORTEX_A9)
 OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o block_size_cortex_a15.o
 endif
+ifeq ($(TARGET), CORTEX_A7)
+OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o block_size_cortex_a15.o
+endif
 
 obj: $(OBJS)
 

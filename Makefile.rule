@@ -31,12 +31,14 @@
 # X64_SSE3   : machine with SSE3 instruction set (older Intel and AMD processors), 64 bit operating system.
 # CORTEX_A15 : machine with ARMv7a processor with VPFv3 (D32 versions) and NEON, code optimized for ARM Cortex A15.
 # CORTEX_A9  : machine with ARMv7a processor with VPFv3 (D32 versions) and NEON, code optimized for ARM Cortex A9.
+# CORTEX_A7  : machine with ARMv7a processor with VPFv3 (D32 versions) and NEON, code optimized for ARM Cortex A7.
 # C99_4X4    : c99 reference code, performing better on a machine with at least 32 scalar registers.
 #TARGET = X64_AVX2
 TARGET = X64_AVX
 #TARGET = X64_SSE3
 #TARGET = CORTEX_A15
 #TARGET = CORTEX_A9
+#TARGET = CORTEX_A7
 #TARGET = C99_4X4
 
 # C Compiler
@@ -66,6 +68,9 @@ CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon-vfpv4 -mcpu=cortex-a1
 endif
 ifeq ($(TARGET), CORTEX_A9)
 CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a9 -DTARGET_CORTEX_A9 $(DEBUG)
+endif
+ifeq ($(TARGET), CORTEX_A7)
+CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a7 -DTARGET_CORTEX_A7 $(DEBUG)
 endif
 
 

@@ -166,10 +166,13 @@ int main()
 	printf("Testing solvers for SSE3 instruction set, 64 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_CORTEX_A15)
 	const float flops_max = 2;
-	printf("Testing solvers for ARMv7a VFPv3 instruction set: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
+	printf("Testing solvers for ARMv7a VFPv3 instruction set, oprimized for Cortex A15: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_CORTEX_A9)
 	const float flops_max = 1;
-	printf("Testing solvers for ARMv7a VFPv3 instruction set: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
+	printf("Testing solvers for ARMv7a VFPv3 instruction set, oprimized for Cortex A9: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
+#elif defined(TARGET_CORTEX_A7)
+	const float flops_max = 0.5;
+	printf("Testing solvers for ARMv7a VFPv3 instruction set, oprimized for Cortex A7: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_X86_ATOM)
 	const float flops_max = 1;
 	printf("Testing solvers for SSE3 instruction set, 32 bit, optimized for Intel Atom: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);

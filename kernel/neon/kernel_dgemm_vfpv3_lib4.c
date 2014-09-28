@@ -35,7 +35,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 	
 	__builtin_prefetch( A );
 	__builtin_prefetch( B );
-#if defined(CORTEX_A9)
+#if defined(CORTEX_A9) || defined(CORTEX_A7)
 	__builtin_prefetch( A+4 );
 	__builtin_prefetch( B+4 );
 #endif
@@ -58,7 +58,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t"
 		"pld    [%3, #64]                \n\t"
-#if defined(CORTEX_A9)
+#if defined(CORTEX_A9) || defined(CORTEX_A7)
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
 #endif
@@ -151,7 +151,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"                                \n\t"
 /*		"pld    [%2, #192]               \n\t"*/
 /*		"pld    [%3, #192]               \n\t"*/
-#if defined(CORTEX_A9)
+#if defined(CORTEX_A9) || defined(CORTEX_A7)
 		"pld    [%2, #160]               \n\t"
 		"pld    [%3, #160]               \n\t"
 #endif
@@ -225,7 +225,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"                                \n\t"
 /*		"pld    [%2, #384]               \n\t"*/
 /*		"pld    [%3, #384]               \n\t"*/
-#if defined(CORTEX_A9)
+#if defined(CORTEX_A9) || defined(CORTEX_A7)
 		"pld    [%2, #224]               \n\t"
 		"pld    [%3, #224]               \n\t"
 #endif

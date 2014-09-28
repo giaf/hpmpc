@@ -43,6 +43,9 @@ endif
 ifeq ($(TARGET), CORTEX_A9)
 OBJS = d_ip_box.o d_res_ip_box.o d_ip2_box.o d_admm_box.o d_admm_soft.o s_ip_box.o s_res_ip_box.o s_ip2_box.o s_admm_box.o s_admm_soft.o
 endif
+ifeq ($(TARGET), CORTEX_A7)
+OBJS = d_ip_box.o d_res_ip_box.o d_ip2_box.o d_admm_box.o d_admm_soft.o s_ip_box.o s_res_ip_box.o s_ip2_box.o s_admm_box.o s_admm_soft.o
+endif
 
 obj: $(OBJS)
 ifeq ($(TARGET), X64_AVX2)
@@ -61,6 +64,9 @@ ifeq ($(TARGET), CORTEX_A15)
 	make -C c99 obj
 endif
 ifeq ($(TARGET), CORTEX_A9)
+	make -C c99 obj
+endif
+ifeq ($(TARGET), CORTEX_A7)
 	make -C c99 obj
 endif
 

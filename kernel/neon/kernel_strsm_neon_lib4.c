@@ -622,7 +622,7 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 	__builtin_prefetch( A0 );
 	__builtin_prefetch( A1 );
 	__builtin_prefetch( B  );
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 	__builtin_prefetch( A0+8 );
 	__builtin_prefetch( A1+8 );
 	__builtin_prefetch( B +8 );
@@ -694,7 +694,7 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"                                \n\t"
 		".DLOOPADD_8x4:                    \n\t" // main loop
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A15)
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vldr   d26, [%4, #16]             \n\t"
@@ -771,7 +771,7 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"add    %5, %5, #64              \n\t" // increase A
 		"                                \n\t"
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"                                \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%5:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0
@@ -846,7 +846,7 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"cmp    r0, #1                   \n\t"
 		"ble    .DCONSIDERADD1_8x4          \n\t"
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A15)
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vldr   d26, [%4, #16]             \n\t"
@@ -882,7 +882,7 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vmla.f32  q11, q13, d15[1]        \n\t"
 		"                                \n\t"
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"                                \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%5:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0
@@ -919,7 +919,7 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"cmp    r0, #0                   \n\t"
 		"ble    .DCONSIDERSUB_8x4              \n\t"
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"                                \n\t"
 		"vld1.64   {d12, d13}, [%5:128]! \n\t" // load B
 		"vld1.64   {d8, d9},   [%3:128]! \n\t" // load A0
@@ -993,7 +993,7 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"pld    [%4, #64]                \n\t" // prefetch A1 to L1
 		"pld    [%5, #32]                \n\t" // prefetch B to L1
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"pld    [%3, #32]                \n\t"
 		"pld    [%4, #32]                \n\t"
 		"pld    [%5, #32]                \n\t"
@@ -1081,7 +1081,7 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"add    %5, %5, #64              \n\t" // increase A
 		"                                \n\t"
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"                                \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%5:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0
@@ -1267,7 +1267,7 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		
 	__builtin_prefetch( A0 );
 	__builtin_prefetch( B  );
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 	__builtin_prefetch( A0+8 );
 	__builtin_prefetch( B +8 );
 #endif
@@ -1333,7 +1333,7 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		"                                \n\t"
 		".DLOOPADD_4x4:                    \n\t" // main loop
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A15)
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vldr   d10, [%3, #16]             \n\t"
@@ -1381,7 +1381,7 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		"vldr   d7, [%4, #24]             \n\t"
 		"                                \n\t"
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"                                \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0
@@ -1434,7 +1434,7 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		"cmp    r0, #1                   \n\t"
 		"ble    .DCONSIDERADD1_4x4          \n\t"
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A15) //|| defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A15)
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vldr   d10, [%3, #16]             \n\t"
@@ -1459,7 +1459,7 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		"                                \n\t"
 		"                                \n\t"
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"                                \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0
@@ -1487,7 +1487,7 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		"cmp    r0, #0                   \n\t"
 		"ble    .DCONSIDERSUB_4x4              \n\t"
 		"                                \n\t"
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"                                \n\t"
 		"vld1.64   {d12, d13}, [%4:128]! \n\t" // load B
 		"vld1.64   {d8, d9},   [%3:128]! \n\t" // load A0
@@ -1548,7 +1548,7 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		"pld    [%3, #64]                \n\t" // prefetch A0 to L1
 		"pld    [%4, #32]                \n\t" // prefetch B to L1
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"pld    [%3, #32]                \n\t"
 		"pld    [%4, #32]                \n\t"
 #endif
@@ -1605,7 +1605,7 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		"vldr   d7, [%4, #24]             \n\t"
 		"                                \n\t"
 #endif
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"                                \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0

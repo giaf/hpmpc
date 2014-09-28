@@ -171,6 +171,9 @@ int main()
 #elif defined(TARGET_CORTEX_A9)
 	const float flops_max = 4;
 	printf("Testing solvers for ARMv7a NEON instruction set, oprimized for Cortex A9: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
+#elif defined(TARGET_CORTEX_A7)
+	const float flops_max = 2;
+	printf("Testing solvers for ARMv7a NEON instruction set, oprimized for Cortex A7: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_X86_ATOM)
 	const float flops_max = 4;
 	printf("Testing solvers for SSE3 instruction set, 32 bit, optimized for Intel Atom: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);

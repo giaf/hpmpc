@@ -77,6 +77,9 @@ int main()
 #elif defined(TARGET_CORTEX_A9)
 	const float flops_max = 4;
 	printf("Testing solvers for ARMv7a NEON instruction set, oprimized for Cortex A9: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
+#elif defined(TARGET_CORTEX_A7)
+	const float flops_max = 2;
+	printf("Testing solvers for ARMv7a NEON instruction set, oprimized for Cortex A7: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_X86_ATOM)
 	const float flops_max = 4;
 	printf("Testing BLAS version for SSE3 instruction set, 32 bit, optimized for Intel Atom: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
@@ -111,6 +114,9 @@ int main()
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEX_A9)
 	fprintf(f, "C = 's_ARM_cortex_A9';\n", GHz_max, flops_max);
+	fprintf(f, "\n");
+#elif defined(TARGET_CORTEX_A7)
+	fprintf(f, "C = 's_ARM_cortex_A7';\n", GHz_max, flops_max);
 	fprintf(f, "\n");
 #elif defined(TARGET_X86_ATOM)
 	fprintf(f, "C = 's_x86_atom';\n", GHz_max, flops_max);

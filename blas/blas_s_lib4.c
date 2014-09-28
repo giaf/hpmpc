@@ -115,7 +115,7 @@ void sgemm_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sdb, f
 		i+=12;
 		}
 #endif
-#if defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7) || defined(TARGET_X64_SSE3)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
@@ -302,7 +302,7 @@ void strmm_lib(int m, int n, float *pA, int sda, float *pB, int sdb, float *pC, 
 		i+=12;
 		}
 #endif
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A15) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7) || defined(TARGET_CORTEX_A15) || defined(TARGET_X64_SSE3)
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
@@ -421,7 +421,7 @@ void ssyrk_spotrf_lib(int m, int k, int n, float *pA, int sda, float *pC, int sd
 		if(i<m-4)
 #endif
 			{
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A15) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7) || defined(TARGET_CORTEX_A15) || defined(TARGET_X64_SSE3)
 			kernel_spotrf_pp_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);
 			i += 8;
 #else
@@ -463,7 +463,7 @@ void ssyrk_spotrf_lib(int m, int k, int n, float *pA, int sda, float *pC, int sd
 				}
 /*exit(1);*/
 #endif
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A15) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7) || defined(TARGET_CORTEX_A15) || defined(TARGET_X64_SSE3)
 			for(; i<m-4; i+=8)
 				{
 				kernel_strsm_pp_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);
@@ -471,7 +471,7 @@ void ssyrk_spotrf_lib(int m, int k, int n, float *pA, int sda, float *pC, int sd
 /*				kernel_strsm_pp_nt_4x4_lib4(k, j, &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+(i+4)*sda], bs, fact);*/
 				}
 #endif
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A15) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7) || defined(TARGET_CORTEX_A15) || defined(TARGET_X64_SSE3)
 			for(; i<m; i+=4)
 				{
 				kernel_strsm_pp_nt_4x4_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], bs, fact);

@@ -43,6 +43,9 @@ endif
 ifeq ($(TARGET), CORTEX_A9)
 OBJS = blas_d_lib4.o blas_s_lib4.o
 endif
+ifeq ($(TARGET), CORTEX_A7)
+OBJS = blas_d_lib4.o blas_s_lib4.o
+endif
 
 obj: $(OBJS)
 
