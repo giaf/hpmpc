@@ -171,9 +171,15 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 		"                                \n\t"
 		"                                \n\t"
 		"pld    [%2, #0]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"pld    [%2, #32]                 \n\t" // prefetch A1 to L1
+#endif		
 		"                                \n\t"
 		"                                \n\t"
 		"add     r3, %1, #64             \n\t"
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"add     r4, r3, #32             \n\t"
+#endif		
 //		"add     r3, r3                  \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -190,6 +196,7 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 		"                                \n\t"
 		".DMAIN_LOOP2:                   \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)		
 		"pld    [%2, r3]                 \n\t" // prefetch A1 to L1
 		"vld4.32 {d0, d2, d4, d6}, [%2:128]! \n\t" // load A to registers
 		"vld4.32 {d1, d3, d5, d7}, [%2:128]! \n\t" // load A to registers
@@ -222,6 +229,31 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 //		"pldw   [%3, #128]                \n\t" // prefetch A1 to L1
 		"vst1.32 {d0, d1, d2, d3}, [%3:128]! \n\t" // store C from registers
 		"vst1.32 {d4, d5, d6, d7}, [%3:128]! \n\t" // store C from registers
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"pld    [%2, r3]                 \n\t" // prefetch A1 to L1
+		"pld    [%2, r4]                 \n\t" // prefetch A1 to L1
+//		"pldw   [%3, #64]                \n\t" // prefetch A1 to L1
+//		"pldw   [%3, #96]                \n\t" // prefetch A1 to L1
+		"vld4.32 {d0, d2, d4, d6}, [%2:128]! \n\t" // load A to registers
+		"vld4.32 {d1, d3, d5, d7}, [%2:128]! \n\t" // load A to registers
+		"add     %2, %1                  \n\t"
+		"sub    r0, r0, #2               \n\t" // iter++
+		"vst1.32 {d0, d1, d2, d3}, [%3:128]! \n\t" // store C from registers
+		"vst1.32 {d4, d5, d6, d7}, [%3:128]! \n\t" // store C from registers
+		"                                \n\t"
+		"                                \n\t"
+		"pld    [%2, r3]                 \n\t" // prefetch A1 to L1
+		"pld    [%2, r4]                 \n\t" // prefetch A1 to L1
+//		"pldw   [%3, #64]                \n\t" // prefetch A1 to L1
+//		"pldw   [%3, #96]                \n\t" // prefetch A1 to L1
+		"vld4.32 {d0, d2, d4, d6}, [%2:128]! \n\t" // load A to registers
+		"vld4.32 {d1, d3, d5, d7}, [%2:128]! \n\t" // load A to registers
+		"add     %2, %1                  \n\t"
+		"cmp    r0, #1                   \n\t" // next iter?
+		"vst1.32 {d0, d1, d2, d3}, [%3:128]! \n\t" // store C from registers
+		"vst1.32 {d4, d5, d6, d7}, [%3:128]! \n\t" // store C from registers
+#endif		
 		"                                \n\t"
 		"bgt    .DMAIN_LOOP2             \n\t"
 		"                                \n\t"
@@ -291,7 +323,7 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 		  "r" (C),		// %3
 		  "r" (k_left)	// %4
 		: // register clobber list
-		  "r0", "r1", "r2", "r3",
+		  "r0", "r1", "r2", "r3", "r4",
 		  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
 //		  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
 //		  "d16", "d17", "d18", "d19", "d20", "d21", "d22", "d23",
