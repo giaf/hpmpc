@@ -203,12 +203,12 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
-		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q12, q4, q0           \n\t"
 		"vmla.f32  q13, q5, q0           \n\t"
 		"vmla.f32  q14, q6, q0           \n\t"
 		"vmla.f32  q15, q7, q0           \n\t"
 		"vmov   q0, q1                   \n\t"
+		"add    %3, %3, %7               \n\t" // next band
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
