@@ -557,8 +557,6 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"pld    [%3, #96]                \n\t"
 		"pld    [%4, #96]                \n\t"
 		"                                \n\t"
-		"sub    r0, r0, #1               \n\t" // iter++
-		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
 		"vmla.f32  q14, q4, d13[0]        \n\t"
@@ -578,6 +576,8 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"vmla.f32  q9, q13, d14[1]        \n\t"
 		"vmla.f32  q10, q13, d15[0]        \n\t"
 		"vmla.f32  q11, q13, d15[1]        \n\t"
+		"                                \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
 		"                                \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%2:128]! \n\t" // load A0
@@ -588,8 +588,6 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"pld    [%3, #96]                \n\t"
 		"pld    [%4, #96]                \n\t"
 		"                                \n\t"
-		"cmp    r0, #0                   \n\t" // next iter?
-		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
 		"vmla.f32  q14, q4, d13[0]        \n\t"
@@ -609,6 +607,8 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"vmla.f32  q9, q13, d14[1]        \n\t"
 		"vmla.f32  q10, q13, d15[0]        \n\t"
 		"vmla.f32  q11, q13, d15[1]        \n\t"
+		"                                \n\t"
+		"cmp    r0, #0                   \n\t" // next iter?
 		"                                \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%2:128]! \n\t" // load A0

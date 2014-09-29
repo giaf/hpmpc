@@ -28,7 +28,7 @@
 void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float *y, int alg)
 	{
 
-	if(kmax<=0) 
+		if(kmax<=0) 
 		return;
 	
 	const int bs = 4;
@@ -39,6 +39,9 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 	float *x0 = x - k_pre;
 	
 	__builtin_prefetch( A0 );
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+	__builtin_prefetch( A0+8 );
+#endif		
 
 	int incA = bs*(sda-8)*sizeof(float);
 
@@ -51,10 +54,15 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		"                                \n\t"
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
+#endif		
 		"                                \n\t"
 		"                                \n\t"
-		"mov    r1, %7                   \n\t" // prefetch offset
-		"add    r1, r1, #64              \n\t"
+		"add    r1, %7, #64              \n\t"
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"add    r2, r1, #32              \n\t" // prefetch offset
+#endif		
 		"                                \n\t"
 		"                                \n\t"
 		"mov    r0, %0                   \n\t" // k_pre
@@ -87,12 +95,15 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vmovge s1, s8                   \n\t"
 		"vmovgt s2, s8                   \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)		
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vmla.f32  q10, q6, q0           \n\t"
 		"vmla.f32  q11, q7, q0           \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q12, q4, q0           \n\t"
 		"vmla.f32  q13, q5, q0           \n\t"
@@ -102,6 +113,28 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vmla.f32  q11, q7, q0           \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q12, q4, q0           \n\t"
+		"vmla.f32  q13, q5, q0           \n\t"
+		"vmla.f32  q14, q6, q0           \n\t"
+		"vmla.f32  q15, q7, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
 		"                                \n\t"
 		"                                \n\t"
 		".DCONS_MAIN_LOOP_T_8:           \n\t" // main loop
@@ -114,6 +147,9 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		"                                \n\t"
 		".DMAIN_LOOP2_T_8:                \n\t" // main loop
+		"                                \n\t"
+		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)		
 		"                                \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vmla.f32  q8, q4, q0           \n\t"
@@ -153,6 +189,54 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
 		"                                \n\t"
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"                                \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vmla.f32  q11, q7, q0           \n\t"
+		"sub    r0, r0, #2               \n\t" // iter++
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q12, q4, q0           \n\t"
+		"vmla.f32  q13, q5, q0           \n\t"
+		"vmla.f32  q14, q6, q0           \n\t"
+		"vmla.f32  q15, q7, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vmla.f32  q11, q7, q0           \n\t"
+		"cmp    r0, #1                   \n\t" // next iter?
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q12, q4, q0           \n\t"
+		"vmla.f32  q13, q5, q0           \n\t"
+		"vmla.f32  q14, q6, q0           \n\t"
+		"vmla.f32  q15, q7, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+#endif		
+
+		"                                \n\t"
 		"bgt    .DMAIN_LOOP2_T_8          \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -162,6 +246,7 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		".DMAIN_LOOP_T_8:                \n\t" // main loop
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)		
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
@@ -176,13 +261,38 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vmla.f32  q13, q5, q0           \n\t"
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vmla.f32  q14, q6, q0           \n\t"
-		"cmp    r0, #0                   \n\t" // next iter?
+//		"cmp    r0, #0                   \n\t" // next iter?
 		"vmla.f32  q15, q7, q0           \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vmla.f32  q11, q7, q0           \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"add    %3, %3, %7               \n\t" // next band
+		"vmla.f32  q12, q4, q0           \n\t"
+		"vmla.f32  q13, q5, q0           \n\t"
+		"vmla.f32  q14, q6, q0           \n\t"
+		"vmla.f32  q15, q7, q0           \n\t"
+//		"cmp    r0, #0                   \n\t" // next iter?
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
+
 		"                                \n\t"
-		"bgt    .DMAIN_LOOP_T_8          \n\t"
+//		"bgt    .DMAIN_LOOP_T_8          \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DCONS_CLEAN_LOOP_T_8:          \n\t" // main loop
@@ -198,6 +308,7 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vmovlt s1, s8                   \n\t"
 		"                                \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)		
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
@@ -208,6 +319,19 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vmla.f32  q13, q5, q0           \n\t"
 		"vmla.f32  q14, q6, q0           \n\t"
 		"vmla.f32  q15, q7, q0           \n\t"
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vmla.f32  q11, q7, q0           \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"vmla.f32  q12, q4, q0           \n\t"
+		"vmla.f32  q13, q5, q0           \n\t"
+		"vmla.f32  q14, q6, q0           \n\t"
+		"vmla.f32  q15, q7, q0           \n\t"
+#endif		
 		"                                \n\t"
 		"                                \n\t"
 		".DPOSTACCUM_T_8:                \n\t"
@@ -304,6 +428,9 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 	float *x0 = x - k_pre;
 	
 	__builtin_prefetch( A0 );
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+	__builtin_prefetch( A0+8 );
+#endif	
 
 /*	int incA = bs*(sda-8)*sizeof(float);*/
 	int incA = bs*(sda-4)*sizeof(float);
@@ -316,10 +443,15 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 	(
 		"                                \n\t"
 		"                                \n\t"
-		"mov    r1, %7                   \n\t" // prefetch offset
-		"add    r1, r1, #64              \n\t"
+		"add    r1, %7, #64              \n\t"
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+		"add    r2, r1, #32              \n\t"
+#endif	
 		"                                \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif	
 		"                                \n\t"
 		"                                \n\t"
 		"mov    r0, %0                   \n\t" // k_pre
@@ -348,8 +480,10 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vmovge s1, s8                   \n\t"
 		"vmovgt s2, s8                   \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)		
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -357,6 +491,20 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vmla.f32  q11, q7, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
 		"                                \n\t"
 		"                                \n\t"
 		".DCONS_MAIN_LOOP_T_4:           \n\t" // main loop
@@ -370,6 +518,7 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		".DMAIN_LOOP2_T_4:                \n\t" // main loop
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)		
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
@@ -393,6 +542,34 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"cmp    r0, #1                   \n\t" // next iter?
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vmla.f32  q11, q7, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"sub    r0, r0, #2               \n\t" // iter++
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vmla.f32  q11, q7, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"cmp    r0, #1                   \n\t" // next iter?
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
 		"                                \n\t"
 		"bgt    .DMAIN_LOOP2_T_4          \n\t"
 		"                                \n\t"
@@ -403,6 +580,7 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		".DMAIN_LOOP_T_4:                \n\t" // main loop
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)		
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
@@ -412,11 +590,27 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"sub    r0, r0, #1               \n\t" // iter++
 		"vmla.f32  q11, q7, q0           \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
-		"cmp    r0, #0                   \n\t" // next iter?
+//		"cmp    r0, #0                   \n\t" // next iter?
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"sub    r0, r0, #1               \n\t" // iter++
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vmla.f32  q11, q7, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+//		"cmp    r0, #0                   \n\t" // next iter?
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
 		"                                \n\t"
-		"bgt    .DMAIN_LOOP_T_4          \n\t"
+//		"bgt    .DMAIN_LOOP_T_4          \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DCONS_CLEAN_LOOP_T_4:          \n\t" // main loop
@@ -524,6 +718,9 @@ void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float
 	float *x0 = x - k_pre;
 	
 	__builtin_prefetch( A0 );
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+	__builtin_prefetch( A0+8 );
+#endif	
 
 /*	int incA = bs*(sda-8)*sizeof(float);*/
 	int incA = bs*(sda-3)*sizeof(float);
@@ -536,10 +733,15 @@ void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float
 	(
 		"                                \n\t"
 		"                                \n\t"
-		"mov    r1, %7                   \n\t" // prefetch offset
-		"add    r1, r1, #48              \n\t"
+		"add    r1, %7, #48              \n\t"
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+		"add    r2, r1, #32              \n\t"
+#endif	
 		"                                \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif	
 		"                                \n\t"
 		"                                \n\t"
 		"mov    r0, %0                   \n\t" // k_pre
@@ -567,14 +769,29 @@ void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vmovge s1, s8                   \n\t"
 		"vmovgt s2, s8                   \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vmla.f32  q10, q6, q0           \n\t"
 		"vld1.64   {d12, d13}, [%3:128]!   \n\t" // load A0 to registers
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif	
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif	
 		"                                \n\t"
 		"                                \n\t"
 		".DCONS_MAIN_LOOP_T_3:           \n\t" // main loop
@@ -588,6 +805,7 @@ void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		".DMAIN_LOOP2_T_3:                \n\t" // main loop
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
@@ -609,6 +827,32 @@ void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"cmp    r0, #1                   \n\t" // next iter?
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif	
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"sub    r0, r0, #2               \n\t" // iter++
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"cmp    r0, #1                   \n\t" // next iter?
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif	
 		"                                \n\t"
 		"bgt    .DMAIN_LOOP2_T_3          \n\t"
 		"                                \n\t"
@@ -619,19 +863,35 @@ void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		".DMAIN_LOOP_T_3:                \n\t" // main loop
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vmla.f32  q9, q5, q0           \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vmla.f32  q10, q6, q0           \n\t"
-		"sub    r0, r0, #1               \n\t" // iter++
 		"vld1.64   {d12, d13}, [%3:128]!   \n\t" // load A0 to registers
-		"cmp    r0, #0                   \n\t" // next iter?
+//		"cmp    r0, #0                   \n\t" // next iter?
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif	
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmla.f32  q10, q6, q0           \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"vmov   q0, q1                   \n\t"
+//		"cmp    r0, #0                   \n\t" // next iter?
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif	
 		"                                \n\t"
-		"bgt    .DMAIN_LOOP_T_3          \n\t"
+//		"bgt    .DMAIN_LOOP_T_3          \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DCONS_CLEAN_LOOP_T_3:          \n\t" // main loop
@@ -780,12 +1040,24 @@ void kernel_sgemv_t_2_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vmovge s1, s8                   \n\t"
 		"vmovgt s2, s8                   \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
 		"                                \n\t"
 		"                                \n\t"
 		".DCONS_MAIN_LOOP_T_2:           \n\t" // main loop
@@ -799,10 +1071,12 @@ void kernel_sgemv_t_2_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		".DMAIN_LOOP2_T_2:                \n\t" // main loop
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vmla.f32  q9, q5, q0           \n\t"
+		"sub    r0, r0, #2               \n\t" // iter++
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
@@ -811,11 +1085,30 @@ void kernel_sgemv_t_2_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vmla.f32  q8, q4, q0           \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vmla.f32  q9, q5, q0           \n\t"
-		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
-		"sub    r0, r0, #2               \n\t" // iter++
 		"cmp    r0, #1                   \n\t" // next iter?
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"sub    r0, r0, #2               \n\t" // iter++
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"cmp    r0, #1                   \n\t" // next iter?
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
 		"                                \n\t"
 		"bgt    .DMAIN_LOOP2_T_2          \n\t"
 		"                                \n\t"
@@ -826,17 +1119,30 @@ void kernel_sgemv_t_2_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		".DMAIN_LOOP_T_2:                \n\t" // main loop
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"sub    r0, r0, #1               \n\t" // iter++
-		"cmp    r0, #0                   \n\t" // next iter?
+//		"cmp    r0, #0                   \n\t" // next iter?
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmla.f32  q9, q5, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+//		"cmp    r0, #0                   \n\t" // next iter?
+		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
 		"                                \n\t"
-		"bgt    .DMAIN_LOOP_T_2          \n\t"
+//		"bgt    .DMAIN_LOOP_T_2          \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DCONS_CLEAN_LOOP_T_2:          \n\t" // main loop
@@ -980,11 +1286,22 @@ void kernel_sgemv_t_1_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vmovge s1, s8                   \n\t"
 		"vmovgt s2, s8                   \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vld1.64   {d8, d9}, [%3:128]!   \n\t" // load A0 to registers
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"vld1.64   {d8, d9}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
 		"                                \n\t"
 		"                                \n\t"
 		".DCONS_MAIN_LOOP_T_1:           \n\t" // main loop
@@ -998,6 +1315,7 @@ void kernel_sgemv_t_1_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		".DMAIN_LOOP2_T_1:                \n\t" // main loop
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
@@ -1013,6 +1331,24 @@ void kernel_sgemv_t_1_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"cmp    r0, #1                   \n\t" // next iter?
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"sub    r0, r0, #2               \n\t" // iter++
+		"vld1.64   {d8, d9}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+		"                                \n\t"
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"cmp    r0, #1                   \n\t" // next iter?
+		"vld1.64   {d8, d9}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
 		"                                \n\t"
 		"bgt    .DMAIN_LOOP2_T_1          \n\t"
 		"                                \n\t"
@@ -1023,16 +1359,28 @@ void kernel_sgemv_t_1_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		".DMAIN_LOOP_T_1:                \n\t" // main loop
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vld1.64   {d8, d9}, [%3:128]!   \n\t" // load A0 to registers
 		"sub    r0, r0, #1               \n\t" // iter++
-		"cmp    r0, #0                   \n\t" // next iter?
+//		"cmp    r0, #0                   \n\t" // next iter?
 		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+		"add    %3, %3, %7               \n\t" // next band
+		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+		"vmla.f32  q8, q4, q0           \n\t"
+		"vmov   q0, q1                   \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+//		"cmp    r0, #0                   \n\t" // next iter?
+		"vld1.64   {d8, d9}, [%3:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
+#endif		
 		"                                \n\t"
-		"bgt    .DMAIN_LOOP_T_1          \n\t"
+//		"bgt    .DMAIN_LOOP_T_1          \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DCONS_CLEAN_LOOP_T_1:          \n\t" // main loop
@@ -1127,6 +1475,10 @@ void kernel_sgemv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, i
 	
 	__builtin_prefetch( A0 );
 	__builtin_prefetch( A1 );
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+	__builtin_prefetch( A0+8 );
+	__builtin_prefetch( A1+8 );
+#endif		
 
 	int k_iter = kmax/8;
 	int k_left = kmax%8;
@@ -1137,6 +1489,10 @@ void kernel_sgemv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, i
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
+		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
+#endif		
 		"                                \n\t"
 		"                                \n\t"
 		"mov    r0, %0                   \n\t" // k_iter
@@ -1163,6 +1519,7 @@ void kernel_sgemv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, i
 		"                                \n\t"
 		".DLOOPKITER_N_8:                \n\t" // main loop
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)		
 		"                                \n\t"
 /*		"vldmia   %4!, {d4, d5, d6, d7} \n\t"*/
 		"vld1.64   {d4, d5, d6, d7}, [%4:128]!   \n\t" // load x to registers
@@ -1208,6 +1565,50 @@ void kernel_sgemv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, i
 		"vld1.64   {d20, d21, d22, d23}, [%3:128]!   \n\t" // load A1 to registers
 		"vmov   q1, q3                   \n\t"
 		"                                \n\t"
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"                                \n\t"
+		"vld1.64   {d4, d5, d6, d7}, [%4:128]!   \n\t" // load x to registers
+		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
+		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
+		"pld    [%2, #96]                \n\t" // prefetch A1 to L1
+		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
+		"vmla.f32  q12, q4, d0[0]         \n\t"
+		"vmla.f32  q13, q5, d0[1]         \n\t"
+		"vmla.f32  q14, q8, d0[0]         \n\t"
+		"vmla.f32  q15, q9, d0[1]         \n\t"
+		"vmla.f32  q12, q6, d1[0]         \n\t"
+		"vmla.f32  q13, q7, d1[1]         \n\t"
+		"vmla.f32  q14, q10, d1[0]         \n\t"
+		"vmla.f32  q15, q11, d1[1]         \n\t"
+		"vmov   q0, q2                   \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"vld1.64   {d8, d9, d10, d11}, [%2:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d16, d17, d18, d19}, [%3:128]!   \n\t" // load A1 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%2:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d20, d21, d22, d23}, [%3:128]!   \n\t" // load A1 to registers
+		"                                \n\t"
+		"pld    [%2, #64]                \n\t" // prefetch A1 to L1
+		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
+		"pld    [%2, #96]                \n\t" // prefetch A1 to L1
+		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
+		"vmla.f32  q12, q4, d2[0]         \n\t"
+		"vmla.f32  q13, q5, d2[1]         \n\t"
+		"vmla.f32  q14, q8, d2[0]         \n\t"
+		"vmla.f32  q15, q9, d2[1]         \n\t"
+		"vmla.f32  q12, q6, d3[0]         \n\t"
+		"vmla.f32  q13, q7, d3[1]         \n\t"
+		"vmla.f32  q14, q10, d3[0]         \n\t"
+		"vmla.f32  q15, q11, d3[1]         \n\t"
+		"vmov   q1, q3                   \n\t"
+		"cmp    r0, #0                   \n\t" // next iter?
+		"vld1.64   {d8, d9, d10, d11}, [%2:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d16, d17, d18, d19}, [%3:128]!   \n\t" // load A1 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%2:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d20, d21, d22, d23}, [%3:128]!   \n\t" // load A1 to registers
+		"                                \n\t"
+#endif		
+	
 		"                                \n\t"
 		"bgt    .DLOOPKITER_N_8          \n\t"
 		"                                \n\t"
@@ -1219,21 +1620,39 @@ void kernel_sgemv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, i
 		"ble    .DCONSIDERLEFT2_N_8      \n\t"
 		"                                \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)		
 		"vmla.f32  q12, q4, d0[0]         \n\t"
 		"vmla.f32  q13, q5, d0[1]         \n\t"
 		"vld1.64   {d8, d9, d10, d11}, [%2:128]!   \n\t" // load A0 to registers
 		"vmla.f32  q14, q8, d0[0]         \n\t"
 		"vmla.f32  q15, q9, d0[1]         \n\t"
 		"vld1.64   {d16, d17, d18, d19}, [%3:128]!   \n\t" // load A1 to registers
-		"vmov   d0, d2                   \n\t"
 		"vmla.f32  q12, q6, d1[0]         \n\t"
+		"sub    r0, r0, #4               \n\t" // k_left -= 4
 		"vmla.f32  q13, q7, d1[1]         \n\t"
 		"vld1.64   {d12, d13}, [%2:128]!   \n\t" // load A0 to registers
-		"sub    r0, r0, #4               \n\t" // k_left -= 4
 		"vmla.f32  q14, q10, d1[0]         \n\t"
 		"vmla.f32  q15, q11, d1[1]         \n\t"
 		"vld1.64   {d20, d21}, [%3:128]!   \n\t" // load A1 to registers
-		"vmov   d1, d3                   \n\t"
+		"vmov   q0, q1                   \n\t"
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"vmla.f32  q12, q4, d0[0]         \n\t"
+		"vmla.f32  q13, q5, d0[1]         \n\t"
+		"vmla.f32  q14, q8, d0[0]         \n\t"
+		"vmla.f32  q15, q9, d0[1]         \n\t"
+		"vmla.f32  q12, q6, d1[0]         \n\t"
+		"vmla.f32  q13, q7, d1[1]         \n\t"
+		"vmla.f32  q14, q10, d1[0]         \n\t"
+		"vmla.f32  q15, q11, d1[1]         \n\t"
+		"vmov   q0, q1                   \n\t"
+		"sub    r0, r0, #4               \n\t" // k_left -= 4
+		"vld1.64   {d8, d9, d10, d11}, [%2:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d16, d17, d18, d19}, [%3:128]!   \n\t" // load A1 to registers
+		"vld1.64   {d12, d13}, [%2:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d20, d21}, [%3:128]!   \n\t" // load A1 to registers
+#endif		
+		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DCONSIDERLEFT2_N_8:            \n\t" // consider left k+=2
@@ -1334,7 +1753,10 @@ void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 		return;
 	
 	__builtin_prefetch( A );
-
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+	__builtin_prefetch( A+8 );
+#endif		
+	
 	int k_iter = kmax/8;
 	int k_left = kmax%8;
 
@@ -1343,6 +1765,11 @@ void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 		"                                \n\t"
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
+#endif		
+	
+		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"mov    r0, %0                   \n\t" // k_iter
@@ -1366,9 +1793,10 @@ void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 		".DLOOPKITER_N_4:                \n\t" // main loop
 		"                                \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)		
+		"vmla.f32  q12, q4, d0[0]         \n\t"
 		"vld1.64   {d4, d5, d6, d7}, [%3:128]!   \n\t" // load x to registers
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
-		"vmla.f32  q12, q4, d0[0]         \n\t"
 		"vmla.f32  q13, q5, d0[1]         \n\t"
 		"vld1.64   {d8, d9, d10, d11}, [%2:128]!   \n\t" // load A0 to registers
 		"vmla.f32  q12, q6, d1[0]         \n\t"
@@ -1386,6 +1814,33 @@ void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 		"vmla.f32  q13, q7, d3[1]         \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%2:128]!   \n\t" // load A0 to registers
 		"vmov   q1, q3                   \n\t"
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"vld1.64   {d4, d5, d6, d7}, [%3:128]!   \n\t" // load x to registers
+		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
+		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
+		"vmla.f32  q12, q4, d0[0]         \n\t"
+		"vmla.f32  q13, q5, d0[1]         \n\t"
+		"vmla.f32  q12, q6, d1[0]         \n\t"
+		"vmla.f32  q13, q7, d1[1]         \n\t"
+		"vmov   q0, q2                   \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"vld1.64   {d8, d9, d10, d11}, [%2:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%2:128]!   \n\t" // load A0 to registers
+		"                                \n\t"
+		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
+		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
+		"vmla.f32  q12, q4, d2[0]         \n\t"
+		"vmla.f32  q13, q5, d2[1]         \n\t"
+		"vmla.f32  q12, q6, d3[0]         \n\t"
+		"vmla.f32  q13, q7, d3[1]         \n\t"
+		"vmov   q1, q3                   \n\t"
+		"cmp    r0, #0                   \n\t" // next iter?
+		"vld1.64   {d8, d9, d10, d11}, [%2:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13, d14, d15}, [%2:128]!   \n\t" // load A0 to registers
+#endif		
+	
+		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"bgt    .DLOOPKITER_N_4          \n\t"
@@ -1398,15 +1853,29 @@ void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 		"ble    .DCONSIDERLEFT2_N_4      \n\t"
 		"                                \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A15)		
 		"vmla.f32  q12, q4, d0[0]         \n\t"
+		"sub    r0, r0, #4               \n\t" // k_left -= 4
 		"vmla.f32  q13, q5, d0[1]         \n\t"
 		"vld1.64   {d8, d9, d10, d11}, [%2:128]!   \n\t" // load A0 to registers
-		"vmov   d0, d2                   \n\t"
 		"vmla.f32  q12, q6, d1[0]         \n\t"
 		"vmla.f32  q13, q7, d1[1]         \n\t"
+		"vmov   q0, q1                   \n\t"
 		"vld1.64   {d12, d13}, [%2:128]!   \n\t" // load A0 to registers
+#endif		
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+		"vmla.f32  q12, q4, d0[0]         \n\t"
+		"vmla.f32  q13, q5, d0[1]         \n\t"
+		"vmla.f32  q12, q6, d1[0]         \n\t"
+		"vmla.f32  q13, q7, d1[1]         \n\t"
+		"vmov   q0, q1                   \n\t"
 		"sub    r0, r0, #4               \n\t" // k_left -= 4
-		"vmov   d1, d3                   \n\t"
+		"vld1.64   {d8, d9, d10, d11}, [%2:128]!   \n\t" // load A0 to registers
+		"vld1.64   {d12, d13}, [%2:128]!   \n\t" // load A0 to registers
+#endif		
+	
+		"                                \n\t"
+	
 		"                                \n\t"
 		"                                \n\t"
 		".DCONSIDERLEFT2_N_4:            \n\t" // consider left k+=2
@@ -1416,8 +1885,8 @@ void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 		"                                \n\t"
 		"                                \n\t"
 		"vmla.f32  q12, q4, d0[0]        \n\t"
-		"sub    r0, r0, #2               \n\t" // k_left -= 2
 		"vmla.f32  q13, q5, d0[1]        \n\t"
+		"sub    r0, r0, #2               \n\t" // k_left -= 2
 		"vmov   q4, q6                   \n\t"
 		"vmov   d0, d1                   \n\t"
 		"                                \n\t"
