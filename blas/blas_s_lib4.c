@@ -917,7 +917,7 @@ void strsv_sgemv_n_lib(int m, int n, float *pA, int sda, float *x)
 
 
 // the diagonal is inverted !!!
-void strsv_sgemv_t_lib(int m, int n, float *pA, int sda, float *x)
+void strsv_sgemv_t_lib(int n, int m, float *pA, int sda, float *x)
 	{
 	
 	const int bs = 4;

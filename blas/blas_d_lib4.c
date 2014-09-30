@@ -593,7 +593,7 @@ void dtrsv_dgemv_n_lib(int m, int n, double *pA, int sda, double *x)
 
 
 // the diagonal is inverted !!!
-void dtrsv_dgemv_t_lib(int m, int n, double *pA, int sda, double *x)
+void dtrsv_dgemv_t_lib(int n, int m, double *pA, int sda, double *x)
 	{
 	
 	const int bs = 4;

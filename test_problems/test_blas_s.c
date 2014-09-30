@@ -101,34 +101,34 @@ int main()
 	f = fopen("./test_problems/results/test_blas.m", "w"); // a
 
 #if defined(TARGET_X64_AVX2)
-	fprintf(f, "C = 's_x64_avx2';\n", GHz_max, flops_max);
+	fprintf(f, "C = 's_x64_avx2';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_X64_AVX)
-	fprintf(f, "C = 's_x64_avx';\n", GHz_max, flops_max);
+	fprintf(f, "C = 's_x64_avx';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_X64_SSE3)
-	fprintf(f, "C = 's_x64_sse3';\n", GHz_max, flops_max);
+	fprintf(f, "C = 's_x64_sse3';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEX_A15)
-	fprintf(f, "C = 's_ARM_cortex_A15';\n", GHz_max, flops_max);
+	fprintf(f, "C = 's_ARM_cortex_A15';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEX_A9)
-	fprintf(f, "C = 's_ARM_cortex_A9';\n", GHz_max, flops_max);
+	fprintf(f, "C = 's_ARM_cortex_A9';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEX_A7)
-	fprintf(f, "C = 's_ARM_cortex_A7';\n", GHz_max, flops_max);
+	fprintf(f, "C = 's_ARM_cortex_A7';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_X86_ATOM)
-	fprintf(f, "C = 's_x86_atom';\n", GHz_max, flops_max);
+	fprintf(f, "C = 's_x86_atom';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_POWERPC_G2)
-	fprintf(f, "C = 's_PowerPC_G2';\n", GHz_max, flops_max);
+	fprintf(f, "C = 's_PowerPC_G2';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_C99_4X4)
-	fprintf(f, "C = 's_c99_2x2';\n", GHz_max, flops_max);
+	fprintf(f, "C = 's_c99_2x2';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_C99_2X2)
-	fprintf(f, "C = 's_c99_4x4';\n", GHz_max, flops_max);
+	fprintf(f, "C = 's_c99_4x4';\n");
 	fprintf(f, "\n");
 #endif
 
@@ -178,18 +178,15 @@ int main()
 			sB[i*(n+1)] = 1;
 	
 		int pns = ((n+bss-1)/bss)*bss;	
-/*		int cns = pns;*/
-/*		int cns2 = 2*pns;*/
 		int cns = ((n+S_NCL-1)/S_NCL)*S_NCL;	
 		int cns2 = ((2*n+S_NCL-1)/S_NCL)*S_NCL;	
-/*		int cns = ((n+8-1)/8)*8;	*/
-/*		int cns = ((2*n+8-1)/8)*8;	*/
 
 		float *pA; s_zeros_align(&pA, pns, cns);
 		float *pB; s_zeros_align(&pB, pns, cns);
 		float *pC; s_zeros_align(&pC, pns, cns);
 		float *pD; s_zeros_align(&pD, pns, cns);
 		float *pE; s_zeros_align(&pE, pns, cns2);
+		float *pF; s_zeros_align(&pF, 2*pns, cns);
 		float *pL; s_zeros_align(&pL, pns, cns);
 		float *x; s_zeros_align(&x, pns, 1);
 		float *y; s_zeros_align(&y, pns, 1);
@@ -230,7 +227,6 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			ssyrk_lib(n, n, n, pA, pns, pC, pns);*/
 			ssyrk_spotrf_lib(n, n, n, pE, cns2, pD, cns, diag);
 
 			}
@@ -240,7 +236,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			strmm_lib(n, n, pA, pns, pB, pns, pC, cns);
+			strmm_lib(n, n, pA, cns, pB, cns, pC, cns);
 
 			}
 	
@@ -249,8 +245,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			spotrf_lib(n, 0, pD, pns, &info);*/
-			strtr_l_lib(n, 0, pA, pns, pC, pns); // triangualr matrix transpose
+			strtr_l_lib(n, 0, pA, cns, pC, cns); // triangualr matrix transpose
 			
 			}
 	
@@ -259,8 +254,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			sgemv_n_lib(n, n, 0, pA, pns, x, y, 0);*/
-			sgemv_n_lib(n, n, pA, pns, x, y, 0);
+			sgemv_n_lib(n, n, pA, cns, x, y, 0);
 
 			}
 	
@@ -269,8 +263,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			sgemv_t_lib(n, n, 0, pA, pns, x, y, 0);*/
-			sgemv_t_lib(n, n, 0, pA, pns, x, y, 0);
+			sgemv_t_lib(n, n, 0, pA, cns, x, y, 0);
 
 			}
 	
@@ -279,7 +272,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			strmv_n_lib(n, 0, pA, pns, x, y, 0);*/
+			strmv_u_n_lib(n, pA, cns, x, y, 0);
 
 			}
 	
@@ -289,7 +282,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			strmv_t_lib(n, 0, pA, pns, x, y, 0);*/
+			strmv_u_t_lib(n, pA, cns, x, y, 0);
 
 			}
 	
@@ -299,7 +292,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			strsv_n_lib(n, pB, pns, x);*/
+			strsv_sgemv_n_lib(n, 2*n, pF, cns, x);
 
 			}
 	
@@ -308,7 +301,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-/*			strsv_t_lib(n, pB, pns, x);*/
+			strsv_sgemv_t_lib(n, 2*n, pF, cns, x);
 
 			}
 	
@@ -317,7 +310,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			ssymv_lib(n, 0, pA, pns, x, y, 0);
+			ssymv_lib(n, 0, pA, cns, x, y, 0);
 
 			}
 	
@@ -326,7 +319,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			smvmv_lib(n, n, 0, pA, pns, x, y, x2, y2, 0);
+			smvmv_lib(n, n, 0, pA, cns, x, y, x2, y2, 0);
 
 			}
 	
@@ -369,11 +362,11 @@ int main()
 		float Gflops_dtrmv_t = 1e-9*flop_dtrmv_t/time_dtrmv_t;
 
 		float time_dtrsv_n = (float) (tv9.tv_sec-tv8.tv_sec)/(nrep+0.0)+(tv9.tv_usec-tv8.tv_usec)/(nrep*1e6);
-		float flop_dtrsv_n = 1.0*n*n;
+		float flop_dtrsv_n = 3.0*n*n;
 		float Gflops_dtrsv_n = 1e-9*flop_dtrsv_n/time_dtrsv_n;
 
 		float time_dtrsv_t = (float) (tv10.tv_sec-tv9.tv_sec)/(nrep+0.0)+(tv10.tv_usec-tv9.tv_usec)/(nrep*1e6);
-		float flop_dtrsv_t = 1.0*n*n;
+		float flop_dtrsv_t = 3.0*n*n;
 		float Gflops_dtrsv_t = 1e-9*flop_dtrsv_t/time_dtrsv_t;
 
 		float time_dsymv = (float) (tv11.tv_sec-tv10.tv_sec)/(nrep+0.0)+(tv11.tv_usec-tv10.tv_usec)/(nrep*1e6);
@@ -394,6 +387,8 @@ int main()
 		free(pB);
 		free(pC);
 		free(pD);
+		free(pE);
+		free(pF);
 		free(pL);
 		free(x);
 		free(y);
