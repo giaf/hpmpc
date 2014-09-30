@@ -35,7 +35,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 	
 	__builtin_prefetch( A );
 	__builtin_prefetch( B );
-#if defined(CORTEX_A9)
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A+4 );
 	__builtin_prefetch( B+4 );
 #endif
@@ -58,7 +58,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t"
 		"pld    [%3, #64]                \n\t"
-#if defined(CORTEX_A9)
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
 #endif
@@ -151,7 +151,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"                                \n\t"
 /*		"pld    [%2, #192]               \n\t"*/
 /*		"pld    [%3, #192]               \n\t"*/
-#if defined(CORTEX_A9)
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #160]               \n\t"
 		"pld    [%3, #160]               \n\t"
 #endif
@@ -225,7 +225,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"                                \n\t"
 /*		"pld    [%2, #384]               \n\t"*/
 /*		"pld    [%3, #384]               \n\t"*/
-#if defined(CORTEX_A9)
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #224]               \n\t"
 		"pld    [%3, #224]               \n\t"
 #endif
@@ -270,9 +270,13 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		".DCONSIDERLEFT:                 \n\t" // consider left
 		"                                \n\t"
 		"pld   [%4, #0]                 \n\t" // prefetch C
+#if defined(TARGET_CORTEX_A9)
 		"pld   [%4, #32]                \n\t"
+#endif
 		"pld   [%4, #64]                \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"pld   [%4, #96]                \n\t"
+#endif
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -328,13 +332,17 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"                                \n\t"
 		"                                \n\t"
 /*		"pldw   [%6, #0]                 \n\t" // prefetch C*/
+#if defined(TARGET_CORTEX_A9)
 /*		"pldw   [%6, #32]                \n\t"*/
+#endif
 /*		"pldw   [%6, #64]                \n\t"*/
+#endif
 /*		"pldw   [%6, #96]                \n\t"*/
-		"pld    [%6, #0]                 \n\t" // prefetch C
-		"pld    [%6, #32]                \n\t"
-		"pld    [%6, #64]                \n\t"
-		"pld    [%6, #96]                \n\t"
+#endif
+//		"pld    [%6, #0]                 \n\t" // prefetch C
+//		"pld    [%6, #32]                \n\t"
+//		"pld    [%6, #64]                \n\t"
+//		"pld    [%6, #96]                \n\t"
 
 //		"ldr    r5, %5                   \n\t" // alg
 		"mov    r5, %5                   \n\t" // alg
