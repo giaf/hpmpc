@@ -38,7 +38,7 @@ void kernel_strmv_u_t_8_lib4(int kmax, float *A, int sda, float *x, float *y, in
 	float *x0 = x;
 	
 	__builtin_prefetch( A0 );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 #endif		
 
@@ -52,13 +52,13 @@ void kernel_strmv_u_t_8_lib4(int kmax, float *A, int sda, float *x, float *y, in
 		"                                \n\t"
 		"                                \n\t"
 		"pld    [%1, #64]                \n\t" // prefetch A1 to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, #96]                \n\t" // prefetch A1 to L1
 #endif		
 		"                                \n\t"
 		"                                \n\t"
 		"add    r1, %5, #64              \n\t"
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"add    r2, r1, #32              \n\t"
 #endif		
 		"                                \n\t"
@@ -129,7 +129,9 @@ void kernel_strmv_u_t_8_lib4(int kmax, float *A, int sda, float *x, float *y, in
 #endif		
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -138,7 +140,9 @@ void kernel_strmv_u_t_8_lib4(int kmax, float *A, int sda, float *x, float *y, in
 		"vld1.64   {d8, d9, d10, d11}, [%1:128]!   \n\t" // load A0 to registers
 		"vld1.64   {d12, d13, d14, d15}, [%1:128]!   \n\t" // load A0 to registers
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q12, q4, q0           \n\t"
 		"vmla.f32  q13, q5, q0           \n\t"
 		"vmla.f32  q14, q6, q0           \n\t"
@@ -150,7 +154,9 @@ void kernel_strmv_u_t_8_lib4(int kmax, float *A, int sda, float *x, float *y, in
 		"vld1.64   {d2, d3}, [%2:128]!   \n\t" // load x to registers
 		"                                \n\t"
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -158,7 +164,9 @@ void kernel_strmv_u_t_8_lib4(int kmax, float *A, int sda, float *x, float *y, in
 		"vld1.64   {d8, d9, d10, d11}, [%1:128]!   \n\t" // load A0 to registers
 		"vld1.64   {d12, d13, d14, d15}, [%1:128]!   \n\t" // load A0 to registers
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q12, q4, q0           \n\t"
 		"vmla.f32  q13, q5, q0           \n\t"
 		"vmla.f32  q14, q6, q0           \n\t"
@@ -202,7 +210,9 @@ void kernel_strmv_u_t_8_lib4(int kmax, float *A, int sda, float *x, float *y, in
 #endif		
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmov   q3, q2                   \n\t" // zero vector
 		"vmov   s12, s0                  \n\t"
 		"vmla.f32  d16, d8, d6            \n\t"
@@ -214,7 +224,9 @@ void kernel_strmv_u_t_8_lib4(int kmax, float *A, int sda, float *x, float *y, in
 		"vld1.64   {d8, d9, d10, d11}, [%1:128]!   \n\t" // load A0 to registers
 		"vld1.64   {d12, d13, d14, d15}, [%1:128]!   \n\t" // load A0 to registers
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"add    %1, %1, %5               \n\t" // next band
 		"vmla.f32  q12, q4, q0           \n\t"
 		"vmla.f32  q13, q5, q0           \n\t"
@@ -312,212 +324,6 @@ void kernel_strmv_u_t_8_lib4(int kmax, float *A, int sda, float *x, float *y, in
 
 
 
-/*void kernel_strmv_u_t_8_lib4_old(int kmax, float *A, int sda, float *x, float *y, int alg)*/
-/*	{*/
-
-/*//	if(kmax<=0) */
-/*//		return;*/
-/*	*/
-/*	const int lda = 4;*/
-/*	const int bs  = 4;*/
-/*	*/
-/*	int*/
-/*		k;*/
-/*	*/
-/*	float*/
-/*		x_0, x_1, x_2, x_3,*/
-/*		y_0=0, y_1=0, y_2=0, y_3=0,*/
-/*		y_4=0, y_5=0, y_6=0, y_7=0;*/
-/*	*/
-/*	k=0;*/
-/*	for(; k<kmax-7; k+=8)*/
-/*		{*/
-/*		*/
-/*		x_0 = x[0];*/
-/*		x_1 = x[1];*/
-/*		x_2 = x[2];*/
-/*		x_3 = x[3];*/
-/*		*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_1 += A[0+lda*1] * x_0;*/
-/*		y_2 += A[0+lda*2] * x_0;*/
-/*		y_3 += A[0+lda*3] * x_0;*/
-/*		y_4 += A[0+lda*4] * x_0;*/
-/*		y_5 += A[0+lda*5] * x_0;*/
-/*		y_6 += A[0+lda*6] * x_0;*/
-/*		y_7 += A[0+lda*7] * x_0;*/
-
-/*		y_0 += A[1+lda*0] * x_1;*/
-/*		y_1 += A[1+lda*1] * x_1;*/
-/*		y_2 += A[1+lda*2] * x_1;*/
-/*		y_3 += A[1+lda*3] * x_1;*/
-/*		y_4 += A[1+lda*4] * x_1;*/
-/*		y_5 += A[1+lda*5] * x_1;*/
-/*		y_6 += A[1+lda*6] * x_1;*/
-/*		y_7 += A[1+lda*7] * x_1;*/
-/*		*/
-/*		y_0 += A[2+lda*0] * x_2;*/
-/*		y_1 += A[2+lda*1] * x_2;*/
-/*		y_2 += A[2+lda*2] * x_2;*/
-/*		y_3 += A[2+lda*3] * x_2;*/
-/*		y_4 += A[2+lda*4] * x_2;*/
-/*		y_5 += A[2+lda*5] * x_2;*/
-/*		y_6 += A[2+lda*6] * x_2;*/
-/*		y_7 += A[2+lda*7] * x_2;*/
-
-/*		y_0 += A[3+lda*0] * x_3;*/
-/*		y_1 += A[3+lda*1] * x_3;*/
-/*		y_2 += A[3+lda*2] * x_3;*/
-/*		y_3 += A[3+lda*3] * x_3;*/
-/*		y_4 += A[3+lda*4] * x_3;*/
-/*		y_5 += A[3+lda*5] * x_3;*/
-/*		y_6 += A[3+lda*6] * x_3;*/
-/*		y_7 += A[3+lda*7] * x_3;*/
-/*		*/
-/*		A += sda*bs;*/
-/*		x += 4;*/
-
-/*		x_0 = x[0];*/
-/*		x_1 = x[1];*/
-/*		x_2 = x[2];*/
-/*		x_3 = x[3];*/
-/*		*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_1 += A[0+lda*1] * x_0;*/
-/*		y_2 += A[0+lda*2] * x_0;*/
-/*		y_3 += A[0+lda*3] * x_0;*/
-/*		y_4 += A[0+lda*4] * x_0;*/
-/*		y_5 += A[0+lda*5] * x_0;*/
-/*		y_6 += A[0+lda*6] * x_0;*/
-/*		y_7 += A[0+lda*7] * x_0;*/
-
-/*		y_0 += A[1+lda*0] * x_1;*/
-/*		y_1 += A[1+lda*1] * x_1;*/
-/*		y_2 += A[1+lda*2] * x_1;*/
-/*		y_3 += A[1+lda*3] * x_1;*/
-/*		y_4 += A[1+lda*4] * x_1;*/
-/*		y_5 += A[1+lda*5] * x_1;*/
-/*		y_6 += A[1+lda*6] * x_1;*/
-/*		y_7 += A[1+lda*7] * x_1;*/
-/*		*/
-/*		y_0 += A[2+lda*0] * x_2;*/
-/*		y_1 += A[2+lda*1] * x_2;*/
-/*		y_2 += A[2+lda*2] * x_2;*/
-/*		y_3 += A[2+lda*3] * x_2;*/
-/*		y_4 += A[2+lda*4] * x_2;*/
-/*		y_5 += A[2+lda*5] * x_2;*/
-/*		y_6 += A[2+lda*6] * x_2;*/
-/*		y_7 += A[2+lda*7] * x_2;*/
-
-/*		y_0 += A[3+lda*0] * x_3;*/
-/*		y_1 += A[3+lda*1] * x_3;*/
-/*		y_2 += A[3+lda*2] * x_3;*/
-/*		y_3 += A[3+lda*3] * x_3;*/
-/*		y_4 += A[3+lda*4] * x_3;*/
-/*		y_5 += A[3+lda*5] * x_3;*/
-/*		y_6 += A[3+lda*6] * x_3;*/
-/*		y_7 += A[3+lda*7] * x_3;*/
-/*		*/
-/*		A += sda*bs;*/
-/*		x += 4;*/
-
-/*		}*/
-
-/*	x_0 = x[0];*/
-/*	x_1 = x[1];*/
-/*	x_2 = x[2];*/
-/*	x_3 = x[3];*/
-/*	*/
-/*	y_0 += A[0+lda*0] * x_0;*/
-/*	y_1 += A[0+lda*1] * x_0;*/
-/*	y_2 += A[0+lda*2] * x_0;*/
-/*	y_3 += A[0+lda*3] * x_0;*/
-/*	y_4 += A[0+lda*4] * x_0;*/
-/*	y_5 += A[0+lda*5] * x_0;*/
-/*	y_6 += A[0+lda*6] * x_0;*/
-/*	y_7 += A[0+lda*7] * x_0;*/
-
-/*	y_1 += A[1+lda*1] * x_1;*/
-/*	y_2 += A[1+lda*2] * x_1;*/
-/*	y_3 += A[1+lda*3] * x_1;*/
-/*	y_4 += A[1+lda*4] * x_1;*/
-/*	y_5 += A[1+lda*5] * x_1;*/
-/*	y_6 += A[1+lda*6] * x_1;*/
-/*	y_7 += A[1+lda*7] * x_1;*/
-/*	*/
-/*	y_2 += A[2+lda*2] * x_2;*/
-/*	y_3 += A[2+lda*3] * x_2;*/
-/*	y_4 += A[2+lda*4] * x_2;*/
-/*	y_5 += A[2+lda*5] * x_2;*/
-/*	y_6 += A[2+lda*6] * x_2;*/
-/*	y_7 += A[2+lda*7] * x_2;*/
-
-/*	y_3 += A[3+lda*3] * x_3;*/
-/*	y_4 += A[3+lda*4] * x_3;*/
-/*	y_5 += A[3+lda*5] * x_3;*/
-/*	y_6 += A[3+lda*6] * x_3;*/
-/*	y_7 += A[3+lda*7] * x_3;*/
-/*	*/
-/*	A += sda*bs;*/
-/*	x += 4;*/
-
-/*	x_0 = x[0];*/
-/*	x_1 = x[1];*/
-/*	x_2 = x[2];*/
-/*	x_3 = x[3];*/
-/*	*/
-/*	y_4 += A[0+lda*4] * x_0;*/
-/*	y_5 += A[0+lda*5] * x_0;*/
-/*	y_6 += A[0+lda*6] * x_0;*/
-/*	y_7 += A[0+lda*7] * x_0;*/
-
-/*	y_5 += A[1+lda*5] * x_1;*/
-/*	y_6 += A[1+lda*6] * x_1;*/
-/*	y_7 += A[1+lda*7] * x_1;*/
-/*	*/
-/*	y_6 += A[2+lda*6] * x_2;*/
-/*	y_7 += A[2+lda*7] * x_2;*/
-
-/*	y_7 += A[3+lda*7] * x_3;*/
-
-/*	if(alg==0)*/
-/*		{*/
-/*		y[0] = y_0;*/
-/*		y[1] = y_1;*/
-/*		y[2] = y_2;*/
-/*		y[3] = y_3;*/
-/*		y[4] = y_4;*/
-/*		y[5] = y_5;*/
-/*		y[6] = y_6;*/
-/*		y[7] = y_7;*/
-/*		}*/
-/*	else if(alg==1)*/
-/*		{*/
-/*		y[0] += y_0;*/
-/*		y[1] += y_1;*/
-/*		y[2] += y_2;*/
-/*		y[3] += y_3;*/
-/*		y[4] += y_4;*/
-/*		y[5] += y_5;*/
-/*		y[6] += y_6;*/
-/*		y[7] += y_7;*/
-/*		}*/
-/*	else // alg==-1*/
-/*		{*/
-/*		y[0] -= y_0;*/
-/*		y[1] -= y_1;*/
-/*		y[2] -= y_2;*/
-/*		y[3] -= y_3;*/
-/*		y[4] -= y_4;*/
-/*		y[5] -= y_5;*/
-/*		y[6] -= y_6;*/
-/*		y[7] -= y_7;*/
-/*		}*/
-
-/*	}*/
-	
-	
-	
 void kernel_strmv_u_t_4_lib4(int kmax, float *A, int sda, float *x, float *y, int alg)
 	{
 
@@ -530,7 +336,7 @@ void kernel_strmv_u_t_4_lib4(int kmax, float *A, int sda, float *x, float *y, in
 	float *x0 = x;
 	
 	__builtin_prefetch( A0 );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 #endif		
 
@@ -544,12 +350,14 @@ void kernel_strmv_u_t_4_lib4(int kmax, float *A, int sda, float *x, float *y, in
 		"                                \n\t"
 		"                                \n\t"
 		"add    r1, %5, #64              \n\t"
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"add    r2, %5, #32              \n\t"
 #endif		
 		"                                \n\t"
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"                                \n\t"
 		"                                \n\t"
 		"vldr   d16, .DZERO_T_4          \n\t" // load zero double
@@ -602,7 +410,9 @@ void kernel_strmv_u_t_4_lib4(int kmax, float *A, int sda, float *x, float *y, in
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"add    %1, %1, %5               \n\t" // next band
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -615,7 +425,9 @@ void kernel_strmv_u_t_4_lib4(int kmax, float *A, int sda, float *x, float *y, in
 		"                                \n\t"
 		"add    %1, %1, %5               \n\t" // next band
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -653,7 +465,9 @@ void kernel_strmv_u_t_4_lib4(int kmax, float *A, int sda, float *x, float *y, in
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"add    %1, %1, %5               \n\t" // next band
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -751,164 +565,6 @@ void kernel_strmv_u_t_4_lib4(int kmax, float *A, int sda, float *x, float *y, in
 
 
 
-/*void kernel_strmv_u_t_4_lib4_old(int kmax, float *A, int sda, float *x, float *y, int alg)*/
-/*	{*/
-
-/*//	if(kmax<=0) */
-/*//		return;*/
-/*	*/
-/*	const int lda = 4;*/
-/*	const int bs  = 4;*/
-/*	*/
-/*	int*/
-/*		k;*/
-/*	*/
-/*	float*/
-/*		x_0, x_1, x_2, x_3,*/
-/*		y_0=0, y_1=0, y_2=0, y_3=0;*/
-/*	*/
-/*	k=0;*/
-/*	for(; k<kmax-7; k+=8)*/
-/*		{*/
-/*		*/
-/*		x_0 = x[0];*/
-/*		x_1 = x[1];*/
-/*		x_2 = x[2];*/
-/*		x_3 = x[3];*/
-/*		*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_1 += A[0+lda*1] * x_0;*/
-/*		y_2 += A[0+lda*2] * x_0;*/
-/*		y_3 += A[0+lda*3] * x_0;*/
-
-/*		y_0 += A[1+lda*0] * x_1;*/
-/*		y_1 += A[1+lda*1] * x_1;*/
-/*		y_2 += A[1+lda*2] * x_1;*/
-/*		y_3 += A[1+lda*3] * x_1;*/
-/*		*/
-/*		y_0 += A[2+lda*0] * x_2;*/
-/*		y_1 += A[2+lda*1] * x_2;*/
-/*		y_2 += A[2+lda*2] * x_2;*/
-/*		y_3 += A[2+lda*3] * x_2;*/
-
-/*		y_0 += A[3+lda*0] * x_3;*/
-/*		y_1 += A[3+lda*1] * x_3;*/
-/*		y_2 += A[3+lda*2] * x_3;*/
-/*		y_3 += A[3+lda*3] * x_3;*/
-/*		*/
-/*		A += sda*bs;*/
-/*		x += 4;*/
-
-/*		x_0 = x[0];*/
-/*		x_1 = x[1];*/
-/*		x_2 = x[2];*/
-/*		x_3 = x[3];*/
-/*		*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_1 += A[0+lda*1] * x_0;*/
-/*		y_2 += A[0+lda*2] * x_0;*/
-/*		y_3 += A[0+lda*3] * x_0;*/
-
-/*		y_0 += A[1+lda*0] * x_1;*/
-/*		y_1 += A[1+lda*1] * x_1;*/
-/*		y_2 += A[1+lda*2] * x_1;*/
-/*		y_3 += A[1+lda*3] * x_1;*/
-/*		*/
-/*		y_0 += A[2+lda*0] * x_2;*/
-/*		y_1 += A[2+lda*1] * x_2;*/
-/*		y_2 += A[2+lda*2] * x_2;*/
-/*		y_3 += A[2+lda*3] * x_2;*/
-
-/*		y_0 += A[3+lda*0] * x_3;*/
-/*		y_1 += A[3+lda*1] * x_3;*/
-/*		y_2 += A[3+lda*2] * x_3;*/
-/*		y_3 += A[3+lda*3] * x_3;*/
-/*		*/
-/*		A += sda*bs;*/
-/*		x += 4;*/
-
-/*		}*/
-/*	for(; k<kmax-3; k+=4)*/
-/*		{*/
-/*		*/
-/*		x_0 = x[0];*/
-/*		x_1 = x[1];*/
-/*		x_2 = x[2];*/
-/*		x_3 = x[3];*/
-/*		*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_1 += A[0+lda*1] * x_0;*/
-/*		y_2 += A[0+lda*2] * x_0;*/
-/*		y_3 += A[0+lda*3] * x_0;*/
-
-/*		y_0 += A[1+lda*0] * x_1;*/
-/*		y_1 += A[1+lda*1] * x_1;*/
-/*		y_2 += A[1+lda*2] * x_1;*/
-/*		y_3 += A[1+lda*3] * x_1;*/
-/*		*/
-/*		y_0 += A[2+lda*0] * x_2;*/
-/*		y_1 += A[2+lda*1] * x_2;*/
-/*		y_2 += A[2+lda*2] * x_2;*/
-/*		y_3 += A[2+lda*3] * x_2;*/
-
-/*		y_0 += A[3+lda*0] * x_3;*/
-/*		y_1 += A[3+lda*1] * x_3;*/
-/*		y_2 += A[3+lda*2] * x_3;*/
-/*		y_3 += A[3+lda*3] * x_3;*/
-/*		*/
-/*		A += sda*bs;*/
-/*		x += 4;*/
-
-/*		}*/
-
-/*	x_0 = x[0];*/
-/*	x_1 = x[1];*/
-/*	x_2 = x[2];*/
-/*	x_3 = x[3];*/
-/*	*/
-/*	y_0 += A[0+lda*0] * x_0;*/
-/*	y_1 += A[0+lda*1] * x_0;*/
-/*	y_2 += A[0+lda*2] * x_0;*/
-/*	y_3 += A[0+lda*3] * x_0;*/
-
-/*	y_1 += A[1+lda*1] * x_1;*/
-/*	y_2 += A[1+lda*2] * x_1;*/
-/*	y_3 += A[1+lda*3] * x_1;*/
-/*	*/
-/*	y_2 += A[2+lda*2] * x_2;*/
-/*	y_3 += A[2+lda*3] * x_2;*/
-
-/*	y_3 += A[3+lda*3] * x_3;*/
-/*	*/
-/*	A += sda*bs;*/
-/*	x += 4;*/
-
-/*	if(alg==0)*/
-/*		{*/
-/*		y[0] = y_0;*/
-/*		y[1] = y_1;*/
-/*		y[2] = y_2;*/
-/*		y[3] = y_3;*/
-/*		}*/
-/*	else if(alg==1)*/
-/*		{*/
-/*		y[0] += y_0;*/
-/*		y[1] += y_1;*/
-/*		y[2] += y_2;*/
-/*		y[3] += y_3;*/
-/*		}*/
-/*	else // alg==-1*/
-/*		{*/
-/*		y[0] -= y_0;*/
-/*		y[1] -= y_1;*/
-/*		y[2] -= y_2;*/
-/*		y[3] -= y_3;*/
-/*		}*/
-
-/*	}*/
-	
-	
-	
 void kernel_strmv_u_t_3_lib4(int kmax, float *A, int sda, float *x, float *y, int alg)
 	{
 
@@ -921,7 +577,7 @@ void kernel_strmv_u_t_3_lib4(int kmax, float *A, int sda, float *x, float *y, in
 	float *x0 = x;
 	
 	__builtin_prefetch( A0 );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 #endif		
 
@@ -935,12 +591,12 @@ void kernel_strmv_u_t_3_lib4(int kmax, float *A, int sda, float *x, float *y, in
 		"                                \n\t"
 		"                                \n\t"
 		"add    r1, %5, #48              \n\t"
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"add    r2, r1, #32              \n\t"
 #endif		
 		"                                \n\t"
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
 #endif		
 		"                                \n\t"
@@ -992,7 +648,9 @@ void kernel_strmv_u_t_3_lib4(int kmax, float *A, int sda, float *x, float *y, in
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"add    %1, %1, %5               \n\t" // next band
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -1004,7 +662,9 @@ void kernel_strmv_u_t_3_lib4(int kmax, float *A, int sda, float *x, float *y, in
 		"                                \n\t"
 		"add    %1, %1, %5               \n\t" // next band
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -1040,7 +700,9 @@ void kernel_strmv_u_t_3_lib4(int kmax, float *A, int sda, float *x, float *y, in
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"add    %1, %1, %5               \n\t" // next band
 		"pld    [%1, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"sub    r0, r0, #1               \n\t" // iter++
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
@@ -1331,122 +993,6 @@ void kernel_strmv_u_t_2_lib4(int kmax, float *A, int sda, float *x, float *y, in
 
 
 
-/*void kernel_strmv_u_t_2_lib4_old(int kmax, float *A, int sda, float *x, float *y, int alg)*/
-/*	{*/
-
-/*//	if(kmax<=0) */
-/*//		return;*/
-/*	*/
-/*	const int lda = 4;*/
-/*	const int bs  = 4;*/
-/*	*/
-/*	int*/
-/*		k;*/
-/*	*/
-/*	float*/
-/*		x_0, x_1, x_2, x_3,*/
-/*		y_0=0, y_1=0;*/
-/*	*/
-/*	k=0;*/
-/*	for(; k<kmax-7; k+=8)*/
-/*		{*/
-/*		*/
-/*		x_0 = x[0];*/
-/*		x_1 = x[1];*/
-/*		x_2 = x[2];*/
-/*		x_3 = x[3];*/
-/*		*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_1 += A[0+lda*1] * x_0;*/
-
-/*		y_0 += A[1+lda*0] * x_1;*/
-/*		y_1 += A[1+lda*1] * x_1;*/
-/*		*/
-/*		y_0 += A[2+lda*0] * x_2;*/
-/*		y_1 += A[2+lda*1] * x_2;*/
-
-/*		y_0 += A[3+lda*0] * x_3;*/
-/*		y_1 += A[3+lda*1] * x_3;*/
-/*		*/
-/*		A += sda*bs;*/
-/*		x += 4;*/
-
-/*		x_0 = x[0];*/
-/*		x_1 = x[1];*/
-/*		x_2 = x[2];*/
-/*		x_3 = x[3];*/
-/*		*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_1 += A[0+lda*1] * x_0;*/
-
-/*		y_0 += A[1+lda*0] * x_1;*/
-/*		y_1 += A[1+lda*1] * x_1;*/
-/*		*/
-/*		y_0 += A[2+lda*0] * x_2;*/
-/*		y_1 += A[2+lda*1] * x_2;*/
-
-/*		y_0 += A[3+lda*0] * x_3;*/
-/*		y_1 += A[3+lda*1] * x_3;*/
-/*		*/
-/*		A += sda*bs;*/
-/*		x += 4;*/
-
-/*		}*/
-/*	for(; k<kmax-3; k+=4)*/
-/*		{*/
-/*		*/
-/*		x_0 = x[0];*/
-/*		x_1 = x[1];*/
-/*		x_2 = x[2];*/
-/*		x_3 = x[3];*/
-/*		*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_1 += A[0+lda*1] * x_0;*/
-
-/*		y_0 += A[1+lda*0] * x_1;*/
-/*		y_1 += A[1+lda*1] * x_1;*/
-/*		*/
-/*		y_0 += A[2+lda*0] * x_2;*/
-/*		y_1 += A[2+lda*1] * x_2;*/
-
-/*		y_0 += A[3+lda*0] * x_3;*/
-/*		y_1 += A[3+lda*1] * x_3;*/
-/*		*/
-/*		A += sda*bs;*/
-/*		x += 4;*/
-
-/*		}*/
-
-/*	x_0 = x[0];*/
-/*	x_1 = x[1];*/
-/*	x_2 = x[2];*/
-/*	x_3 = x[3];*/
-/*	*/
-/*	y_0 += A[0+lda*0] * x_0;*/
-/*	y_1 += A[0+lda*1] * x_0;*/
-
-/*	y_1 += A[1+lda*1] * x_1;*/
-/*	*/
-/*	if(alg==0)*/
-/*		{*/
-/*		y[0] = y_0;*/
-/*		y[1] = y_1;*/
-/*		}*/
-/*	else if(alg==1)*/
-/*		{*/
-/*		y[0] += y_0;*/
-/*		y[1] += y_1;*/
-/*		}*/
-/*	else // alg==-1*/
-/*		{*/
-/*		y[0] -= y_0;*/
-/*		y[1] -= y_1;*/
-/*		}*/
-
-/*	}*/
-	
-	
-	
 void kernel_strmv_u_t_1_lib4(int kmax, float *A, int sda, float *x, float *y, int alg)
 	{
 
@@ -1631,75 +1177,6 @@ void kernel_strmv_u_t_1_lib4(int kmax, float *A, int sda, float *x, float *y, in
 
 	}
 
-
-
-/*void kernel_strmv_u_t_1_lib4_old(int kmax, float *A, int sda, float *x, float *y, int alg)*/
-/*	{*/
-
-/*//	if(kmax<=0) */
-/*//		return;*/
-/*	*/
-/*	const int lda = 4;*/
-/*	const int bs  = 4;*/
-/*	*/
-/*	int*/
-/*		k;*/
-/*	*/
-/*	float*/
-/*		x_0, x_1, x_2, x_3,*/
-/*		y_0=0;*/
-/*	*/
-/*	k=0;*/
-/*	for(; k<kmax-3; k+=4)*/
-/*		{*/
-/*		*/
-/*		x_0 = x[0];*/
-/*		x_1 = x[1];*/
-/*		x_2 = x[2];*/
-/*		x_3 = x[3];*/
-/*		*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_0 += A[1+lda*0] * x_1;*/
-/*		y_0 += A[2+lda*0] * x_2;*/
-/*		y_0 += A[3+lda*0] * x_3;*/
-/*		*/
-/*		A += sda*bs;*/
-/*		x += 4;*/
-
-/*		}*/
-/*	if(k<kmax-1)*/
-/*		{*/
-/*		*/
-/*		x_0 = x[0];*/
-/*		x_1 = x[1];*/
-/*		*/
-/*		y_0 += A[0+lda*0] * x_0;*/
-/*		y_0 += A[1+lda*0] * x_1;*/
-/*		*/
-/*		A += 2;*/
-/*		x += 2;*/
-
-/*		}*/
-
-/*	x_0 = x[0];*/
-/*	*/
-/*	y_0 += A[0+lda*0] * x_0;*/
-
-/*	if(alg==0)*/
-/*		{*/
-/*		y[0] = y_0;*/
-/*		}*/
-/*	else if(alg==1)*/
-/*		{*/
-/*		y[0] += y_0;*/
-/*		}*/
-/*	else // alg==-1*/
-/*		{*/
-/*		y[0] -= y_0;*/
-/*		}*/
-
-/*	}*/
-	
 	
 	
 void kernel_strmv_u_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, int alg)
@@ -1710,7 +1187,7 @@ void kernel_strmv_u_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y,
 	
 	__builtin_prefetch( A0 );
 	__builtin_prefetch( A1 );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 	__builtin_prefetch( A1+8 );
 #endif		
@@ -1724,7 +1201,7 @@ void kernel_strmv_u_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y,
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
 #endif		
@@ -1794,12 +1271,14 @@ void kernel_strmv_u_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y,
 		"vld1.64   {d20, d21, d22, d23}, [%3:128]!   \n\t" // load A1 to registers
 		"vmov   q1, q3                   \n\t"
 #endif		
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"vld1.64   {d4, d5, d6, d7}, [%4:128]!   \n\t" // load x to registers
 		"pld    [%2, #0]                 \n\t" // prefetch A0 to L1
-		"pld    [%2, #32]                 \n\t" // prefetch A0 to L1
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
+		"pld    [%2, #32]                 \n\t" // prefetch A0 to L1
 		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q12, q4, d0[0]        \n\t"
 		"vldr      s16, [%3, #0]         \n\t"
 		"vmla.f32  q13, q5, d0[1]        \n\t"
@@ -1816,8 +1295,10 @@ void kernel_strmv_u_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y,
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A1 to L1
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A1 to L1
 		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q14, q4, d2[0]        \n\t"
 		"vmla.f32  q15, q5, d2[1]        \n\t"
 		"vmla.f32  q12, q8, d2[0]        \n\t"
@@ -1881,8 +1362,10 @@ void kernel_strmv_u_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y,
 		"vld1.64   {d4, d5, d6, d7}, [%4:128]!   \n\t" // load x to registers
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q12, q4, d0[0]         \n\t"
 		"vmla.f32  q13, q5, d0[1]         \n\t"
 		"vmla.f32  q14, q8, d0[0]         \n\t"
@@ -1900,8 +1383,10 @@ void kernel_strmv_u_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y,
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A1 to L1
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A1 to L1
 		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q12, q4, d2[0]         \n\t"
 		"vmla.f32  q13, q5, d2[1]         \n\t"
 		"vmla.f32  q14, q8, d2[0]         \n\t"
@@ -2055,192 +1540,6 @@ void kernel_strmv_u_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y,
 
 
 
-/*void kernel_strmv_u_n_8_lib4_old(int kmax, float *A0, float *A1, float *x, float *y, int alg)*/
-/*	{*/
-
-/*	if(kmax<=0) */
-/*		return;*/
-/*	*/
-/*	const int lda = 4;*/
-/*	*/
-/*	int k;*/
-
-/*	float*/
-/*		x_0, x_1, x_2, x_3,*/
-/*		y_0=0, y_1=0, y_2=0, y_3=0,*/
-/*		y_4=0, y_5=0, y_6=0, y_7=0;*/
-/*	*/
-/*	x_0 = x[0];*/
-/*	x_1 = x[1];*/
-/*	x_2 = x[2];*/
-/*	x_3 = x[3];*/
-
-/*	y_0 += A0[0+lda*0] * x_0;*/
-
-/*	y_0 += A0[0+lda*1] * x_1;*/
-/*	y_1 += A0[1+lda*1] * x_1;*/
-
-/*	y_0 += A0[0+lda*2] * x_2;*/
-/*	y_1 += A0[1+lda*2] * x_2;*/
-/*	y_2 += A0[2+lda*2] * x_2;*/
-
-/*	y_0 += A0[0+lda*3] * x_3;*/
-/*	y_1 += A0[1+lda*3] * x_3;*/
-/*	y_2 += A0[2+lda*3] * x_3;*/
-/*	y_3 += A0[3+lda*3] * x_3;*/
-/*	*/
-/*	A0 += 4*lda;*/
-/*	A1 += 4*lda;*/
-/*	x += 4;*/
-
-/*	x_0 = x[0];*/
-/*	x_1 = x[1];*/
-/*	x_2 = x[2];*/
-/*	x_3 = x[3];*/
-
-/*	y_0 += A0[0+lda*0] * x_0;*/
-/*	y_1 += A0[1+lda*0] * x_0;*/
-/*	y_2 += A0[2+lda*0] * x_0;*/
-/*	y_3 += A0[3+lda*0] * x_0;*/
-/*	y_4 += A1[0+lda*0] * x_0;*/
-
-/*	y_0 += A0[0+lda*1] * x_1;*/
-/*	y_1 += A0[1+lda*1] * x_1;*/
-/*	y_2 += A0[2+lda*1] * x_1;*/
-/*	y_3 += A0[3+lda*1] * x_1;*/
-/*	y_4 += A1[0+lda*1] * x_1;*/
-/*	y_5 += A1[1+lda*1] * x_1;*/
-
-/*	y_0 += A0[0+lda*2] * x_2;*/
-/*	y_1 += A0[1+lda*2] * x_2;*/
-/*	y_2 += A0[2+lda*2] * x_2;*/
-/*	y_3 += A0[3+lda*2] * x_2;*/
-/*	y_4 += A1[0+lda*2] * x_2;*/
-/*	y_5 += A1[1+lda*2] * x_2;*/
-/*	y_6 += A1[2+lda*2] * x_2;*/
-
-/*	y_0 += A0[0+lda*3] * x_3;*/
-/*	y_1 += A0[1+lda*3] * x_3;*/
-/*	y_2 += A0[2+lda*3] * x_3;*/
-/*	y_3 += A0[3+lda*3] * x_3;*/
-/*	y_4 += A1[0+lda*3] * x_3;*/
-/*	y_5 += A1[1+lda*3] * x_3;*/
-/*	y_6 += A1[2+lda*3] * x_3;*/
-/*	y_7 += A1[3+lda*3] * x_3;*/
-/*	*/
-/*	A0 += 4*lda;*/
-/*	A1 += 4*lda;*/
-/*	x += 4;*/
-
-/*	k=8;*/
-/*	for(; k<kmax-3; k+=4)*/
-/*		{*/
-
-/*		x_0 = x[0];*/
-/*		x_1 = x[1];*/
-/*		x_2 = x[2];*/
-/*		x_3 = x[3];*/
-
-/*		y_0 += A0[0+lda*0] * x_0;*/
-/*		y_1 += A0[1+lda*0] * x_0;*/
-/*		y_2 += A0[2+lda*0] * x_0;*/
-/*		y_3 += A0[3+lda*0] * x_0;*/
-/*		y_4 += A1[0+lda*0] * x_0;*/
-/*		y_5 += A1[1+lda*0] * x_0;*/
-/*		y_6 += A1[2+lda*0] * x_0;*/
-/*		y_7 += A1[3+lda*0] * x_0;*/
-
-/*		y_0 += A0[0+lda*1] * x_1;*/
-/*		y_1 += A0[1+lda*1] * x_1;*/
-/*		y_2 += A0[2+lda*1] * x_1;*/
-/*		y_3 += A0[3+lda*1] * x_1;*/
-/*		y_4 += A1[0+lda*1] * x_1;*/
-/*		y_5 += A1[1+lda*1] * x_1;*/
-/*		y_6 += A1[2+lda*1] * x_1;*/
-/*		y_7 += A1[3+lda*1] * x_1;*/
-
-/*		y_0 += A0[0+lda*2] * x_2;*/
-/*		y_1 += A0[1+lda*2] * x_2;*/
-/*		y_2 += A0[2+lda*2] * x_2;*/
-/*		y_3 += A0[3+lda*2] * x_2;*/
-/*		y_4 += A1[0+lda*2] * x_2;*/
-/*		y_5 += A1[1+lda*2] * x_2;*/
-/*		y_6 += A1[2+lda*2] * x_2;*/
-/*		y_7 += A1[3+lda*2] * x_2;*/
-
-/*		y_0 += A0[0+lda*3] * x_3;*/
-/*		y_1 += A0[1+lda*3] * x_3;*/
-/*		y_2 += A0[2+lda*3] * x_3;*/
-/*		y_3 += A0[3+lda*3] * x_3;*/
-/*		y_4 += A1[0+lda*3] * x_3;*/
-/*		y_5 += A1[1+lda*3] * x_3;*/
-/*		y_6 += A1[2+lda*3] * x_3;*/
-/*		y_7 += A1[3+lda*3] * x_3;*/
-/*		*/
-/*		A0 += 4*lda;*/
-/*		A1 += 4*lda;*/
-/*		x += 4;*/
-
-/*		}*/
-
-/*	for(; k<kmax; k++)*/
-/*		{*/
-
-/*		x_0 = x[0];*/
-
-/*		y_0 += A0[0+lda*0] * x_0;*/
-/*		y_1 += A0[1+lda*0] * x_0;*/
-/*		y_2 += A0[2+lda*0] * x_0;*/
-/*		y_3 += A0[3+lda*0] * x_0;*/
-/*		y_4 += A1[0+lda*0] * x_0;*/
-/*		y_5 += A1[1+lda*0] * x_0;*/
-/*		y_6 += A1[2+lda*0] * x_0;*/
-/*		y_7 += A1[3+lda*0] * x_0;*/
-/*		*/
-/*		A0 += 1*lda;*/
-/*		A1 += 1*lda;*/
-/*		x += 1;*/
-
-/*		}*/
-
-/*	if(alg==0)*/
-/*		{*/
-/*		y[0] = y_0;*/
-/*		y[1] = y_1;*/
-/*		y[2] = y_2;*/
-/*		y[3] = y_3;*/
-/*		y[4] = y_4;*/
-/*		y[5] = y_5;*/
-/*		y[6] = y_6;*/
-/*		y[7] = y_7;*/
-/*		}*/
-/*	else if(alg==1)*/
-/*		{*/
-/*		y[0] += y_0;*/
-/*		y[1] += y_1;*/
-/*		y[2] += y_2;*/
-/*		y[3] += y_3;*/
-/*		y[4] += y_4;*/
-/*		y[5] += y_5;*/
-/*		y[6] += y_6;*/
-/*		y[7] += y_7;*/
-/*		}*/
-/*	else // alg==-1*/
-/*		{*/
-/*		y[0] -= y_0;*/
-/*		y[1] -= y_1;*/
-/*		y[2] -= y_2;*/
-/*		y[3] -= y_3;*/
-/*		y[4] -= y_4;*/
-/*		y[5] -= y_5;*/
-/*		y[6] -= y_6;*/
-/*		y[7] -= y_7;*/
-/*		}*/
-
-/*	}*/
-	
-	
-	
 void kernel_strmv_u_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 	{
 
@@ -2248,7 +1547,7 @@ void kernel_strmv_u_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 		return;
 	
 	__builtin_prefetch( A );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A+8 );
 #endif		
 	
@@ -2261,7 +1560,7 @@ void kernel_strmv_u_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 		"                                \n\t"
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
 #endif		
 		"                                \n\t"
@@ -2299,6 +1598,9 @@ void kernel_strmv_u_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 #endif		
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
+#if defined(TARGET_CORTEX_A9)
+		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
+#endif
 		"vmla.f32  q12, q4, d0[0]        \n\t"
 		"vmla.f32  q13, q5, d0[1]        \n\t"
 		"vmla.f32  q12, q6, d1[0]        \n\t"
@@ -2345,7 +1647,9 @@ void kernel_strmv_u_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"vld1.64   {d4, d5, d6, d7}, [%3:128]!   \n\t" // load x to registers
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
+#endif
 		"vmla.f32  q12, q4, d0[0]         \n\t"
 		"vmla.f32  q13, q5, d0[1]         \n\t"
 		"vmla.f32  q12, q6, d1[0]         \n\t"
@@ -2356,7 +1660,9 @@ void kernel_strmv_u_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 		"vld1.64   {d12, d13, d14, d15}, [%2:128]!   \n\t" // load A0 to registers
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
+#endif
 		"vmla.f32  q12, q4, d2[0]         \n\t"
 		"vmla.f32  q13, q5, d2[1]         \n\t"
 		"vmla.f32  q12, q6, d3[0]         \n\t"

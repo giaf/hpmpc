@@ -45,7 +45,7 @@ void kernel_dtrmm_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t"
 		"pld    [%3, #64]                \n\t"
-#if defined(CORTEX_A9) || defined(CORTEX_A7)
+#if defined(CORTEX_A9)
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
 #endif
@@ -82,7 +82,7 @@ void kernel_dtrmm_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 		"fldd   d20, [%3, #64]           \n\t" // prefetch B_even
 		"                                \n\t"
 		"                                \n\t"
-#if defined(CORTEX_A9) || defined(CORTEX_A7)
+#if defined(CORTEX_A9)
 		"pld    [%2, #160]               \n\t"
 		"pld    [%3, #160]               \n\t"
 #endif
@@ -141,7 +141,7 @@ void kernel_dtrmm_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
-#if defined(CORTEX_A9) || defined(CORTEX_A7)
+#if defined(CORTEX_A9)
 		"pld    [%2, #224]               \n\t"
 		"pld    [%3, #224]               \n\t"
 #endif
@@ -222,7 +222,7 @@ void kernel_dtrmm_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 		"fldd   d23, [%3, #88]           \n\t"
 		"                                \n\t"
 		"                                \n\t"
-#if defined(CORTEX_A9) || defined(CORTEX_A7)
+#if defined(CORTEX_A9)
 		"pld    [%2, #160]               \n\t"
 		"pld    [%3, #160]               \n\t"
 #endif
@@ -292,7 +292,7 @@ void kernel_dtrmm_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 		"fldd   d19, [%2, #152]          \n\t"
 		"                                \n\t"
 		"                                \n\t"
-#if defined(CORTEX_A9) || defined(CORTEX_A7)
+#if defined(CORTEX_A9)
 		"pld    [%2, #224]               \n\t"
 		"pld    [%3, #224]               \n\t"
 #endif

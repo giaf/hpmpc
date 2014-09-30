@@ -185,9 +185,28 @@ void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 		{
 		A += (sda-1)*bs;
 		}
+
+	__builtin_prefetch( A );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A+4 );
+#endif		
+	__builtin_prefetch( A+8 );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A+12 );
+#endif		
+
 	for(; k<kmax-3; k+=bs)
 		{
 		
+		__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+4 );
+#endif		
+		__builtin_prefetch( A+sda*bs+8 );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+12 );
+#endif		
+
 		y_n_0 = y_n[0];
 		x_t_0 = x_t[0];
 		
@@ -418,9 +437,20 @@ void kernel_dsymv_2_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 		{
 		A += (sda-1)*bs;
 		}
+
+	__builtin_prefetch( A );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A+4 );
+#endif		
+
 	for(; k<kmax-3; k+=bs)
 		{
 		
+		__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+4 );
+#endif		
+
 		y_n_0 = y_n[0];
 		x_t_0 = x_t[0];
 		
@@ -593,9 +623,14 @@ void kernel_dsymv_1_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 		{
 		A += (sda-1)*bs;
 		}
+
+	__builtin_prefetch( A );
+
 	for(; k<kmax-3; k+=bs)
 		{
 		
+		__builtin_prefetch( A+sda*bs );
+
 		y_n_0 = y_n[0];
 		x_t_0 = x_t[0];
 		

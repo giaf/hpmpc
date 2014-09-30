@@ -31,6 +31,19 @@ void kernel_dtrsv_n_8_lib4(int kmax, double *A0, double *A1, double *x, double *
 /*	if(kmax<=0) */
 /*		return;*/
 	
+	__builtin_prefetch( A0 );
+	__builtin_prefetch( A1 );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A0+4 );
+	__builtin_prefetch( A1+4 );
+#endif		
+	__builtin_prefetch( A0+8 );
+	__builtin_prefetch( A1+8 );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A0+12 );
+	__builtin_prefetch( A1+12 );
+#endif		
+
 	const int lda = 4;
 	
 	int k;
@@ -43,6 +56,19 @@ void kernel_dtrsv_n_8_lib4(int kmax, double *A0, double *A1, double *x, double *
 	k=0;
 	for(; k<kmax-7; k+=8)
 		{
+
+		__builtin_prefetch( A0+4*lda );
+		__builtin_prefetch( A1+4*lda );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A0+4*lda+4 );
+		__builtin_prefetch( A1+4*lda+4 );
+#endif		
+		__builtin_prefetch( A0+4*lda+8 );
+		__builtin_prefetch( A1+4*lda+8 );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A0+4*lda+12 );
+		__builtin_prefetch( A1+4*lda+12 );
+#endif		
 
 		x_0 = x[0];
 		x_1 = x[1];
@@ -88,6 +114,19 @@ void kernel_dtrsv_n_8_lib4(int kmax, double *A0, double *A1, double *x, double *
 		A0 += 4*lda;
 		A1 += 4*lda;
 		x += 4;
+
+		__builtin_prefetch( A0+4*lda );
+		__builtin_prefetch( A1+4*lda );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A0+4*lda+4 );
+		__builtin_prefetch( A1+4*lda+4 );
+#endif		
+		__builtin_prefetch( A0+4*lda+8 );
+		__builtin_prefetch( A1+4*lda+8 );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A0+4*lda+12 );
+		__builtin_prefetch( A1+4*lda+12 );
+#endif		
 
 		x_0 = x[0];
 		x_1 = x[1];
@@ -251,6 +290,15 @@ void kernel_dtrsv_n_4_lib4(int kmax, int ksv, double *A, double *x, double *y)
 /*	if(kmax<=0) */
 /*		return;*/
 	
+	__builtin_prefetch( A );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A+4 );
+#endif		
+	__builtin_prefetch( A+8 );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A+12 );
+#endif		
+
 	const int lda = 4;
 	
 	int k;
@@ -262,6 +310,15 @@ void kernel_dtrsv_n_4_lib4(int kmax, int ksv, double *A, double *x, double *y)
 	k=0;
 	for(; k<kmax-3; k+=4)
 		{
+
+		__builtin_prefetch( A+4*lda );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+4*lda+4 );
+#endif		
+		__builtin_prefetch( A+4*lda+8 );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+4*lda+12 );
+#endif		
 
 		x_0 = x[0];
 		x_1 = x[1];
@@ -382,9 +439,28 @@ void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
 	k=4;
 	A += 4 + (sda-1)*lda;
 	x += 4;
+
+	__builtin_prefetch( A );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A+4 );
+#endif		
+	__builtin_prefetch( A+8 );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A+12 );
+#endif		
+
 	for(; k<kmax-7; k+=8)
 		{
 		
+		__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+4 );
+#endif		
+		__builtin_prefetch( A+sda*bs+8 );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+12 );
+#endif		
+
 		x_0 = x[0];
 		x_1 = x[1];
 		x_2 = x[2];
@@ -412,6 +488,15 @@ void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
 		
 		A += sda*bs;
 		x += 4;
+
+		__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+4 );
+#endif		
+		__builtin_prefetch( A+sda*bs+8 );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+12 );
+#endif		
 
 		x_0 = x[0];
 		x_1 = x[1];
@@ -445,6 +530,15 @@ void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
 	for(; k<kmax-3; k+=4)
 		{
 		
+		__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+4 );
+#endif		
+		__builtin_prefetch( A+sda*bs+8 );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+12 );
+#endif		
+
 		x_0 = x[0];
 		x_1 = x[1];
 		x_2 = x[2];
@@ -548,9 +642,28 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 	k=4;
 	A += 4 + (sda-1)*lda;
 	x += 4;
+
+	__builtin_prefetch( A );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A+4 );
+#endif		
+	__builtin_prefetch( A+8 );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A+12 );
+#endif		
+
 	for(; k<kmax-7; k+=8)
 		{
 		
+		__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+4 );
+#endif		
+		__builtin_prefetch( A+sda*bs+8 );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+12 );
+#endif		
+
 		x_0 = x[0];
 		x_1 = x[1];
 		x_2 = x[2];
@@ -574,6 +687,15 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 		
 		A += sda*bs;
 		x += 4;
+
+		__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+4 );
+#endif		
+		__builtin_prefetch( A+sda*bs+8 );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+12 );
+#endif		
 
 		x_0 = x[0];
 		x_1 = x[1];
@@ -603,6 +725,15 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 	for(; k<kmax-3; k+=4)
 		{
 		
+		__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+4 );
+#endif		
+		__builtin_prefetch( A+sda*bs+8 );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+12 );
+#endif		
+
 		x_0 = x[0];
 		x_1 = x[1];
 		x_2 = x[2];
@@ -700,9 +831,20 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 	k=4;
 	A += 4 + (sda-1)*lda;
 	x += 4;
+
+	__builtin_prefetch( A );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A+4 );
+#endif		
+
 	for(; k<kmax-7; k+=8)
 		{
 		
+		__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+4 );
+#endif		
+
 		x_0 = x[0];
 		x_1 = x[1];
 		x_2 = x[2];
@@ -722,6 +864,11 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 		
 		A += sda*bs;
 		x += 4;
+
+		__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+4 );
+#endif		
 
 		x_0 = x[0];
 		x_1 = x[1];
@@ -747,6 +894,11 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 	for(; k<kmax-3; k+=4)
 		{
 		
+		__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+sda*bs+4 );
+#endif		
+
 		x_0 = x[0];
 		x_1 = x[1];
 		x_2 = x[2];
@@ -803,6 +955,8 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 	if(kmax<=0) 
 		return;
 	
+	__builtin_prefetch( A );
+
 	const int lda = 4;
 	const int bs  = 4;
 	
@@ -832,6 +986,8 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 	for(; k<kmax-7; k+=8)
 		{
 		
+		__builtin_prefetch( A+sda*bs );
+
 		x_0 = x[0];
 		x_1 = x[1];
 		x_2 = x[2];
@@ -844,6 +1000,8 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 		
 		A += sda*bs;
 		x += 4;
+
+		__builtin_prefetch( A+sda*bs );
 
 		x_0 = x[0];
 		x_1 = x[1];
@@ -862,6 +1020,8 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 	for(; k<kmax-3; k+=4)
 		{
 		
+		__builtin_prefetch( A+sda*bs );
+
 		x_0 = x[0];
 		x_1 = x[1];
 		x_2 = x[2];

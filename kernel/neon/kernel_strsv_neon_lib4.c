@@ -33,7 +33,7 @@ void kernel_strsv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y)
 	
 	__builtin_prefetch( A0 );
 	__builtin_prefetch( A1 );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 	__builtin_prefetch( A1+8 );
 #endif		
@@ -50,7 +50,7 @@ void kernel_strsv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y)
 		"                                \n\t"
 		"pld    [%1, #64]                \n\t" // prefetch A0 to L1
 		"pld    [%2, #64]                \n\t" // prefetch A1 to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, #96]                \n\t" // prefetch A0 to L1
 		"pld    [%2, #96]                \n\t" // prefetch A1 to L1
 #endif		
@@ -122,8 +122,10 @@ void kernel_strsv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y)
 		"vld1.64   {d4, d5, d6, d7}, [%3:128]!   \n\t" // load x to registers
 		"pld    [%1, #64]                \n\t" // prefetch A0 to L1
 		"pld    [%2, #64]                \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, #96]                \n\t" // prefetch A1 to L1
 		"pld    [%2, #96]                \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q12, q4, d0[0]         \n\t"
 		"vmla.f32  q13, q5, d0[1]         \n\t"
 		"vmla.f32  q14, q8, d0[0]         \n\t"
@@ -141,8 +143,10 @@ void kernel_strsv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y)
 		"                                \n\t"
 		"pld    [%1, #64]                \n\t" // prefetch A1 to L1
 		"pld    [%2, #64]                \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%1, #96]                \n\t" // prefetch A1 to L1
 		"pld    [%2, #96]                \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q12, q4, d2[0]         \n\t"
 		"vmla.f32  q13, q5, d2[1]         \n\t"
 		"vmla.f32  q14, q8, d2[0]         \n\t"
@@ -285,7 +289,7 @@ void kernel_strsv_n_4_lib4(int kmax, int ksv, float *A, float *x, float *y)
 /*		return;*/
 	
 	__builtin_prefetch( A );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A+8 );
 #endif		
 
@@ -300,7 +304,7 @@ void kernel_strsv_n_4_lib4(int kmax, int ksv, float *A, float *x, float *y)
 		"                                \n\t"
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A1 to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
 #endif		
 		"                                \n\t"
@@ -344,7 +348,9 @@ void kernel_strsv_n_4_lib4(int kmax, int ksv, float *A, float *x, float *y)
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"vld1.64   {d2, d3}, [%3:128]!   \n\t" // load x to registers
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
+#endif
 		"sub    r0, r0, #1               \n\t" // iter++
 		"vmla.f32  q12, q4, d0[0]         \n\t"
 		"vmla.f32  q13, q5, d0[1]         \n\t"
@@ -478,7 +484,7 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 	const int bs = 4;
 
 	__builtin_prefetch( A );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A );
 #endif	
 
@@ -493,12 +499,12 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 		"                                \n\t"
 		"                                \n\t"
 		"add    r1, %0, #64              \n\t"
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+#if defined(TARGET_CORTEX_A9)
 		"add    r4, r1, #32              \n\t"
 #endif	
 		"                                \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r4]                 \n\t" // prefetch A1 to L1
 #endif	
 		"                                \n\t"
@@ -559,7 +565,9 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 #endif		
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r4]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -571,7 +579,9 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 		"vld1.64   {d0, d1}, [%4:128]!   \n\t" // load x to registers
 		"                                \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r4]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q1           \n\t"
 		"vmla.f32  q9, q5, q1           \n\t"
 		"vmla.f32  q10, q6, q1           \n\t"
@@ -609,7 +619,9 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 #endif		
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r4]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -738,7 +750,7 @@ void kernel_strsv_t_3_lib4(int kmax, float *A, int sda, float *x)
 	const int bs = 4;
 
 	__builtin_prefetch( A );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A+8 );
 #endif		
 
@@ -753,12 +765,12 @@ void kernel_strsv_t_3_lib4(int kmax, float *A, int sda, float *x)
 		"                                \n\t"
 		"                                \n\t"
 		"add    r1, %0, #48              \n\t"
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"add    r4, r1, #32              \n\t"
 #endif		
 		"                                \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r4]                 \n\t" // prefetch A1 to L1
 #endif		
 		"                                \n\t"
@@ -828,7 +840,9 @@ void kernel_strsv_t_3_lib4(int kmax, float *A, int sda, float *x)
 #endif		
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r4]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -839,7 +853,9 @@ void kernel_strsv_t_3_lib4(int kmax, float *A, int sda, float *x)
 		"vld1.64   {d0, d1}, [%4:128]!   \n\t" // load x to registers
 		"                                \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r4]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q1           \n\t"
 		"vmla.f32  q9, q5, q1           \n\t"
 		"vmla.f32  q10, q6, q1           \n\t"
@@ -874,7 +890,9 @@ void kernel_strsv_t_3_lib4(int kmax, float *A, int sda, float *x)
 #endif		
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r4]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"

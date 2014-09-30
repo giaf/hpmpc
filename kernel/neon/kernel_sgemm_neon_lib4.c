@@ -410,7 +410,7 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 	__builtin_prefetch( A0 );
 	__builtin_prefetch( A1 );
 	__builtin_prefetch( B  );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 	__builtin_prefetch( A1+8 );
 	__builtin_prefetch( B +8 );
@@ -428,7 +428,7 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
 		"pld    [%4, #64]                \n\t" // prefetch B to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
 		"pld    [%4, #96]                \n\t" // prefetch B to L1
@@ -584,9 +584,11 @@ void kernel_sgemm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"vld1.64   {d24, d25, d26, d27}, [%3:128]! \n\t" // load A0
 		"                                \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
 		"pld    [%4, #96]                \n\t"
+#endif
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
@@ -809,7 +811,7 @@ void kernel_sgemm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, float *
 		
 	__builtin_prefetch( A );
 	__builtin_prefetch( B );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A+8 );
 	__builtin_prefetch( B+8 );
 #endif
@@ -828,7 +830,7 @@ void kernel_sgemm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, float *
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A to L1
 		"pld    [%3, #64]                \n\t" // prefetch B to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A to L1
 		"pld    [%3, #96]                \n\t" // prefetch B to L1
 #endif
@@ -945,8 +947,10 @@ void kernel_sgemm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, float *
 		"vld1.64   {d8, d9, d10, d11},   [%2:128]! \n\t" // load A0
 		"                                \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
+#endif
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t" // next iter?
 		"                                \n\t"
@@ -1096,314 +1100,6 @@ void kernel_sgemm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, float *
 		  "memory"
 	);
 }
-
-
-
-void kernel_sgemm_pp_nt_4x4_lib4_old(int kmax, float *A, float *B, float *C, float *D, int ldc, int alg)
-	{
-	
-	if(kmax<=0)
-		return;
-	
-	const int lda = 4;
-
-	int k;
-
-	float
-		a_0, a_1, a_2, a_3,
-		b_0, b_1, b_2, b_3,
-		c_00=0, c_01=0, c_02=0, c_03=0,
-		c_10=0, c_11=0, c_12=0, c_13=0,
-		c_20=0, c_21=0, c_22=0, c_23=0,
-		c_30=0, c_31=0, c_32=0, c_33=0;
-		
-	for(k=0; k<kmax-3; k+=4)
-		{
-		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		a_2 = A[2+lda*0];
-		a_3 = A[3+lda*0];
-		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		b_2 = B[2+lda*0];
-		b_3 = B[3+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-		c_23 += a_2 * b_3;
-		c_33 += a_3 * b_3;
-
-
-		a_0 = A[0+lda*1];
-		a_1 = A[1+lda*1];
-		a_2 = A[2+lda*1];
-		a_3 = A[3+lda*1];
-		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
-		b_2 = B[2+lda*1];
-		b_3 = B[3+lda*1];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-		c_23 += a_2 * b_3;
-		c_33 += a_3 * b_3;
-
-
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
-		a_2 = A[2+lda*2];
-		a_3 = A[3+lda*2];
-		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
-		b_2 = B[2+lda*2];
-		b_3 = B[3+lda*2];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-		c_23 += a_2 * b_3;
-		c_33 += a_3 * b_3;
-
-
-		a_0 = A[0+lda*3];
-		a_1 = A[1+lda*3];
-		a_2 = A[2+lda*3];
-		a_3 = A[3+lda*3];
-		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
-		b_2 = B[2+lda*3];
-		b_3 = B[3+lda*3];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-		c_23 += a_2 * b_3;
-		c_33 += a_3 * b_3;
-		
-		
-		A += 16;
-		B += 16;
-
-		}
-	for(; k<kmax; k++)
-		{
-		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		a_2 = A[2+lda*0];
-		a_3 = A[3+lda*0];
-		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		b_2 = B[2+lda*0];
-		b_3 = B[3+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-		c_23 += a_2 * b_3;
-		c_33 += a_3 * b_3;
-
-
-		A += 4;
-		B += 4;
-
-		}
-		
-	float
-		d_00, d_01, d_02, d_03,
-		d_10, d_11, d_12, d_13,
-		d_20, d_21, d_22, d_23,
-		d_30, d_31, d_32, d_33;
-	
-	if(alg==0) // C = A * B'
-		{
-		C[0+ldc*0] = c_00;
-		C[1+ldc*0] = c_10;
-		C[2+ldc*0] = c_20;
-		C[3+ldc*0] = c_30;
-
-		C[0+ldc*1] = c_01;
-		C[1+ldc*1] = c_11;
-		C[2+ldc*1] = c_21;
-		C[3+ldc*1] = c_31;
-
-		C[0+ldc*2] = c_02;
-		C[1+ldc*2] = c_12;
-		C[2+ldc*2] = c_22;
-		C[3+ldc*2] = c_32;
-
-		C[0+ldc*3] = c_03;
-		C[1+ldc*3] = c_13;
-		C[2+ldc*3] = c_23;
-		C[3+ldc*3] = c_33;
-		}
-	else 
-		{
-		d_00 = D[0+ldc*0];
-		d_10 = D[1+ldc*0];
-		d_20 = D[2+ldc*0];
-		d_30 = D[3+ldc*0];
-		
-		d_01 = D[0+ldc*1];
-		d_11 = D[1+ldc*1];
-		d_21 = D[2+ldc*1];
-		d_31 = D[3+ldc*1];
-		
-		d_02 = D[0+ldc*2];
-		d_12 = D[1+ldc*2];
-		d_22 = D[2+ldc*2];
-		d_32 = D[3+ldc*2];
-		
-		d_03 = D[0+ldc*3];
-		d_13 = D[1+ldc*3];
-		d_23 = D[2+ldc*3];
-		d_33 = D[3+ldc*3];
-		
-		if(alg==1) // C += A * B'
-			{
-			d_00 += c_00;
-			d_10 += c_10;
-			d_20 += c_20;
-			d_30 += c_30;
-
-			d_01 += c_01;
-			d_11 += c_11;
-			d_21 += c_21;
-			d_31 += c_31;
-
-			d_02 += c_02;
-			d_12 += c_12;
-			d_22 += c_22;
-			d_32 += c_32;
-
-			d_03 += c_03;
-			d_13 += c_13;
-			d_23 += c_23;
-			d_33 += c_33;
-			}
-		else // C -= A * B'
-			{
-			d_00 -= c_00;
-			d_10 -= c_10;
-			d_20 -= c_20;
-			d_30 -= c_30;
-
-			d_01 -= c_01;
-			d_11 -= c_11;
-			d_21 -= c_21;
-			d_31 -= c_31;
-
-			d_02 -= c_02;
-			d_12 -= c_12;
-			d_22 -= c_22;
-			d_32 -= c_32;
-
-			d_03 -= c_03;
-			d_13 -= c_13;
-			d_23 -= c_23;
-			d_33 -= c_33;
-			}
-
-		C[0+ldc*0] = c_00;
-		C[1+ldc*0] = c_10;
-		C[2+ldc*0] = c_20;
-		C[3+ldc*0] = c_30;
-
-		C[0+ldc*1] = c_01;
-		C[1+ldc*1] = c_11;
-		C[2+ldc*1] = c_21;
-		C[3+ldc*1] = c_31;
-
-		C[0+ldc*2] = c_02;
-		C[1+ldc*2] = c_12;
-		C[2+ldc*2] = c_22;
-		C[3+ldc*2] = c_32;
-
-		C[0+ldc*3] = c_03;
-		C[1+ldc*3] = c_13;
-		C[2+ldc*3] = c_23;
-		C[3+ldc*3] = c_33;
-		}
-	
-	}
 
 
 

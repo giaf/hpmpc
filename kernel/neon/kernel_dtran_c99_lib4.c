@@ -158,9 +158,27 @@ void kernel_dtran_pp_4_lib4(int kmax, int kna, double *A, int sda, double *C)
 
 		}
 
+	__builtin_prefetch( A );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A+4 );
+#endif		
+	__builtin_prefetch( A+8 );
+#if defined(TARGET_CORTEX_A9)
+	__builtin_prefetch( A+12 );
+#endif		
+
 	for(; k<kmax-3; k+=4)
 		{
 		
+		__builtin_prefetch( A+bs*sda );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+bs*sda+4 );
+#endif		
+		__builtin_prefetch( A+bs*sda+8 );
+#if defined(TARGET_CORTEX_A9)
+		__builtin_prefetch( A+bs*sda+12 );
+#endif		
+
 		C[0+bs*0] = A[0+bs*0];
 		C[1+bs*0] = A[0+bs*1];
 		C[2+bs*0] = A[0+bs*2];

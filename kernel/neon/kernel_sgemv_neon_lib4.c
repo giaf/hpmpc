@@ -39,7 +39,7 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 	float *x0 = x - k_pre;
 	
 	__builtin_prefetch( A0 );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 #endif		
 
@@ -54,13 +54,13 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		"                                \n\t"
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
 #endif		
 		"                                \n\t"
 		"                                \n\t"
 		"add    r1, %7, #64              \n\t"
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"add    r2, r1, #32              \n\t" // prefetch offset
 #endif		
 		"                                \n\t"
@@ -116,7 +116,9 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 #endif		
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -124,7 +126,9 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q12, q4, q0           \n\t"
 		"vmla.f32  q13, q5, q0           \n\t"
@@ -193,7 +197,9 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"                                \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -202,7 +208,9 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q12, q4, q0           \n\t"
 		"vmla.f32  q13, q5, q0           \n\t"
 		"vmla.f32  q14, q6, q0           \n\t"
@@ -214,7 +222,9 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
 		"                                \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -223,7 +233,9 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q12, q4, q0           \n\t"
 		"vmla.f32  q13, q5, q0           \n\t"
@@ -269,7 +281,9 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 #endif		
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -278,7 +292,9 @@ void kernel_sgemv_t_8_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"add    %3, %3, %7               \n\t" // next band
 		"vmla.f32  q12, q4, q0           \n\t"
 		"vmla.f32  q13, q5, q0           \n\t"
@@ -428,7 +444,7 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 	float *x0 = x - k_pre;
 	
 	__builtin_prefetch( A0 );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 #endif	
 
@@ -444,12 +460,12 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		"                                \n\t"
 		"add    r1, %7, #64              \n\t"
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+#if defined(TARGET_CORTEX_A9)
 		"add    r2, r1, #32              \n\t"
 #endif	
 		"                                \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
 #endif	
 		"                                \n\t"
@@ -495,7 +511,9 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
 		"add    %3, %3, %7               \n\t" // next band
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -546,7 +564,9 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
 		"add    %3, %3, %7               \n\t" // next band
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -559,7 +579,9 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		"add    %3, %3, %7               \n\t" // next band
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -597,7 +619,9 @@ void kernel_sgemv_t_4_lib4(int kmax, int kna, float *A, int sda, float *x, float
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
 		"add    %3, %3, %7               \n\t" // next band
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"sub    r0, r0, #1               \n\t" // iter++
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
@@ -718,7 +742,7 @@ void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float
 	float *x0 = x - k_pre;
 	
 	__builtin_prefetch( A0 );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 #endif	
 
@@ -734,12 +758,12 @@ void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		"                                \n\t"
 		"add    r1, %7, #48              \n\t"
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+#if defined(TARGET_CORTEX_A9)
 		"add    r2, r1, #32              \n\t"
 #endif	
 		"                                \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
 #endif	
 		"                                \n\t"
@@ -783,7 +807,9 @@ void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
 		"add    %3, %3, %7               \n\t" // next band
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -831,7 +857,9 @@ void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
 		"add    %3, %3, %7               \n\t" // next band
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -843,7 +871,9 @@ void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float
 		"                                \n\t"
 		"add    %3, %3, %7               \n\t" // next band
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -879,7 +909,9 @@ void kernel_sgemv_t_3_lib4(int kmax, int kna, float *A, int sda, float *x, float
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)		
 		"add    %3, %3, %7               \n\t" // next band
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, r2]                 \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q8, q4, q0           \n\t"
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
@@ -1475,7 +1507,7 @@ void kernel_sgemv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, i
 	
 	__builtin_prefetch( A0 );
 	__builtin_prefetch( A1 );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 	__builtin_prefetch( A1+8 );
 #endif		
@@ -1489,7 +1521,7 @@ void kernel_sgemv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, i
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
 #endif		
@@ -1571,8 +1603,10 @@ void kernel_sgemv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, i
 		"vld1.64   {d4, d5, d6, d7}, [%4:128]!   \n\t" // load x to registers
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A1 to L1
 		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q12, q4, d0[0]         \n\t"
 		"vmla.f32  q13, q5, d0[1]         \n\t"
 		"vmla.f32  q14, q8, d0[0]         \n\t"
@@ -1590,8 +1624,10 @@ void kernel_sgemv_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y, i
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A1 to L1
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A1 to L1
 		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
+#endif
 		"vmla.f32  q12, q4, d2[0]         \n\t"
 		"vmla.f32  q13, q5, d2[1]         \n\t"
 		"vmla.f32  q14, q8, d2[0]         \n\t"
@@ -1753,7 +1789,7 @@ void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 		return;
 	
 	__builtin_prefetch( A );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A+8 );
 #endif		
 	
@@ -1765,7 +1801,7 @@ void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 		"                                \n\t"
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
 #endif		
 	
@@ -1818,7 +1854,9 @@ void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"vld1.64   {d4, d5, d6, d7}, [%3:128]!   \n\t" // load x to registers
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
+#endif
 		"vmla.f32  q12, q4, d0[0]         \n\t"
 		"vmla.f32  q13, q5, d0[1]         \n\t"
 		"vmla.f32  q12, q6, d1[0]         \n\t"
@@ -1829,7 +1867,9 @@ void kernel_sgemv_n_4_lib4(int kmax, float *A, float *x, float *y, int alg)
 		"vld1.64   {d12, d13, d14, d15}, [%2:128]!   \n\t" // load A0 to registers
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
+#endif
 		"vmla.f32  q12, q4, d2[0]         \n\t"
 		"vmla.f32  q13, q5, d2[1]         \n\t"
 		"vmla.f32  q12, q6, d3[0]         \n\t"

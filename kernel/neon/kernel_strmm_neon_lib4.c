@@ -451,7 +451,7 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 	__builtin_prefetch( A0 );
 	__builtin_prefetch( A1 );
 	__builtin_prefetch( B  );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 	__builtin_prefetch( A1+8 );
 	__builtin_prefetch( B +8 );
@@ -469,7 +469,7 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"pld    [%2, #64]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1
 		"pld    [%4, #64]                \n\t" // prefetch B to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A0 to L1
 		"pld    [%3, #96]                \n\t" // prefetch A1 to L1
 		"pld    [%4, #96]                \n\t" // prefetch B to L1
@@ -600,9 +600,11 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"vld1.64   {d24, d25, d26, d27}, [%3:128]! \n\t" // load A0
 		"                                \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
 		"pld    [%4, #96]                \n\t"
+#endif
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
@@ -724,8 +726,6 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"pld    [%3, #96]                \n\t"
 		"pld    [%4, #96]                \n\t"
 		"                                \n\t"
-		"sub    r0, r0, #1               \n\t" // iter++
-		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
 		"vmla.f32  q14, q4, d13[0]        \n\t"
@@ -746,14 +746,18 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 		"vmla.f32  q10, q13, d15[0]        \n\t"
 		"vmla.f32  q11, q13, d15[1]        \n\t"
 		"                                \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"                                \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%2:128]! \n\t" // load A0
 		"vld1.64   {d24, d25, d26, d27}, [%3:128]! \n\t" // load A0
 		"                                \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
 		"pld    [%4, #96]                \n\t"
+#endif
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t" // next iter?
 		"                                \n\t"
@@ -938,7 +942,7 @@ void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 		
 	__builtin_prefetch( A );
 	__builtin_prefetch( B );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A+8 );
 	__builtin_prefetch( B+8 );
 #endif
@@ -957,7 +961,7 @@ void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 		"                                \n\t"
 		"pld    [%2, #64]                \n\t" // prefetch A to L1
 		"pld    [%3, #64]                \n\t" // prefetch B to L1
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t" // prefetch A to L1
 		"pld    [%3, #96]                \n\t" // prefetch B to L1
 #endif
@@ -1059,8 +1063,10 @@ void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 		"vld1.64   {d8, d9, d10, d11},   [%2:128]! \n\t" // load A0
 		"                                \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
+#endif
 		"                                \n\t"
 		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
@@ -1147,8 +1153,6 @@ void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
 		"                                \n\t"
-		"sub    r0, r0, #1               \n\t" // iter++
-		"                                \n\t"
 		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
 		"vmla.f32  q2, q4, d13[0]        \n\t"
@@ -1159,12 +1163,16 @@ void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 		"vmla.f32  q2, q5, d15[0]        \n\t"
 		"vmla.f32  q3, q5, d15[1]        \n\t"
 		"                                \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"                                \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%2:128]! \n\t" // load A0
 		"                                \n\t"
 		"                                \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%2, #96]                \n\t"
 		"pld    [%3, #96]                \n\t"
+#endif
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t" // next iter?
 		"                                \n\t"
@@ -1280,309 +1288,6 @@ void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 		  "memory"
 	);
 }
-
-
-
-void kernel_strmm_pp_nt_4x4_lib4_old(int kadd, float *A, float *B, float *C, int ldc)
-	{
-
-	const int bs = 4;
-	const int lda = bs;
-
-	int k;
-
-	float
-		a_0, a_1, a_2, a_3,
-		b_0, b_1, b_2, b_3,
-		c_00=0, c_01=0, c_02=0, c_03=0,
-		c_10=0, c_11=0, c_12=0, c_13=0,
-		c_20=0, c_21=0, c_22=0, c_23=0,
-		c_30=0, c_31=0, c_32=0, c_33=0;
-
-	// initial triangle
-
-	a_0 = A[0+lda*0];
-	a_1 = A[1+lda*0];
-	a_2 = A[2+lda*0];
-	a_3 = A[3+lda*0];
-	
-	b_0 = B[0+lda*0];
-	
-	c_00 += a_0 * b_0;
-	c_10 += a_1 * b_0;
-	c_20 += a_2 * b_0;
-	c_30 += a_3 * b_0;
-
-
-	a_0 = A[0+lda*1];
-	a_1 = A[1+lda*1];
-	a_2 = A[2+lda*1];
-	a_3 = A[3+lda*1];
-	
-	b_0 = B[0+lda*1];
-	b_1 = B[1+lda*1];
-	
-	c_00 += a_0 * b_0;
-	c_10 += a_1 * b_0;
-	c_20 += a_2 * b_0;
-	c_30 += a_3 * b_0;
-
-	c_01 += a_0 * b_1;
-	c_11 += a_1 * b_1;
-	c_21 += a_2 * b_1;
-	c_31 += a_3 * b_1;
-
-
-	a_0 = A[0+lda*2];
-	a_1 = A[1+lda*2];
-	a_2 = A[2+lda*2];
-	a_3 = A[3+lda*2];
-	
-	b_0 = B[0+lda*2];
-	b_1 = B[1+lda*2];
-	b_2 = B[2+lda*2];
-	
-	c_00 += a_0 * b_0;
-	c_10 += a_1 * b_0;
-	c_20 += a_2 * b_0;
-	c_30 += a_3 * b_0;
-
-	c_01 += a_0 * b_1;
-	c_11 += a_1 * b_1;
-	c_21 += a_2 * b_1;
-	c_31 += a_3 * b_1;
-
-	c_02 += a_0 * b_2;
-	c_12 += a_1 * b_2;
-	c_22 += a_2 * b_2;
-	c_32 += a_3 * b_2;
-
-
-	a_0 = A[0+lda*3];
-	a_1 = A[1+lda*3];
-	a_2 = A[2+lda*3];
-	a_3 = A[3+lda*3];
-	
-	b_0 = B[0+lda*3];
-	b_1 = B[1+lda*3];
-	b_2 = B[2+lda*3];
-	b_3 = B[3+lda*3];
-	
-	c_00 += a_0 * b_0;
-	c_10 += a_1 * b_0;
-	c_20 += a_2 * b_0;
-	c_30 += a_3 * b_0;
-
-	c_01 += a_0 * b_1;
-	c_11 += a_1 * b_1;
-	c_21 += a_2 * b_1;
-	c_31 += a_3 * b_1;
-
-	c_02 += a_0 * b_2;
-	c_12 += a_1 * b_2;
-	c_22 += a_2 * b_2;
-	c_32 += a_3 * b_2;
-
-	c_03 += a_0 * b_3;
-	c_13 += a_1 * b_3;
-	c_23 += a_2 * b_3;
-	c_33 += a_3 * b_3;
-
-
-	A += 16;
-	B += 16;
-
-	for(k=4; k<kadd-3; k+=4)
-		{
-		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		a_2 = A[2+lda*0];
-		a_3 = A[3+lda*0];
-		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		b_2 = B[2+lda*0];
-		b_3 = B[3+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-		c_23 += a_2 * b_3;
-		c_33 += a_3 * b_3;
-
-
-		a_0 = A[0+lda*1];
-		a_1 = A[1+lda*1];
-		a_2 = A[2+lda*1];
-		a_3 = A[3+lda*1];
-		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
-		b_2 = B[2+lda*1];
-		b_3 = B[3+lda*1];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-		c_23 += a_2 * b_3;
-		c_33 += a_3 * b_3;
-
-
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
-		a_2 = A[2+lda*2];
-		a_3 = A[3+lda*2];
-		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
-		b_2 = B[2+lda*2];
-		b_3 = B[3+lda*2];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-		c_23 += a_2 * b_3;
-		c_33 += a_3 * b_3;
-
-
-		a_0 = A[0+lda*3];
-		a_1 = A[1+lda*3];
-		a_2 = A[2+lda*3];
-		a_3 = A[3+lda*3];
-		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
-		b_2 = B[2+lda*3];
-		b_3 = B[3+lda*3];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-		c_23 += a_2 * b_3;
-		c_33 += a_3 * b_3;
-		
-		
-		A += 16;
-		B += 16;
-
-		}
-	for(; k<kadd; k++)
-		{
-		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		a_2 = A[2+lda*0];
-		a_3 = A[3+lda*0];
-		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		b_2 = B[2+lda*0];
-		b_3 = B[3+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-		c_23 += a_2 * b_3;
-		c_33 += a_3 * b_3;
-
-
-		A += 4;
-		B += 4;
-
-		}
-
-	C[0+ldc*0] = c_00;
-	C[1+ldc*0] = c_10;
-	C[2+ldc*0] = c_20;
-	C[3+ldc*0] = c_30;
-
-	C[0+ldc*1] = c_01;
-	C[1+ldc*1] = c_11;
-	C[2+ldc*1] = c_21;
-	C[3+ldc*1] = c_31;
-
-	C[0+ldc*2] = c_02;
-	C[1+ldc*2] = c_12;
-	C[2+ldc*2] = c_22;
-	C[3+ldc*2] = c_32;
-
-	C[0+ldc*3] = c_03;
-	C[1+ldc*3] = c_13;
-	C[2+ldc*3] = c_23;
-	C[3+ldc*3] = c_33;
-
-	}
 
 
 

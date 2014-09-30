@@ -37,7 +37,7 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 	
 	__builtin_prefetch( A );
 	__builtin_prefetch( B );
-#if defined(CORTEX_A9) || defined(CORTEX_A7)
+#if defined(CORTEX_A9)
 	__builtin_prefetch( A+4 );
 	__builtin_prefetch( B+4 );
 #endif
@@ -54,7 +54,7 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 
 	__builtin_prefetch( A+8 );
 	__builtin_prefetch( B+8 );
-#if defined(CORTEX_A9) || defined(CORTEX_A7)
+#if defined(CORTEX_A9)
 	__builtin_prefetch( A+12 );
 	__builtin_prefetch( B+12 );
 #endif
@@ -151,7 +151,7 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 		"fldd   d23, [%4, #88]           \n\t"
 		"                                \n\t"
 		"                                \n\t"
-#if defined(CORTEX_A9) || defined(CORTEX_A7)
+#if defined(CORTEX_A9)
 		"pld    [%3, #160]               \n\t"
 		"pld    [%4, #160]               \n\t"
 #endif
@@ -209,7 +209,7 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 		"fldd   d19, [%3, #152]          \n\t"
 		"                                \n\t"
 		"                                \n\t"
-#if defined(CORTEX_A9) || defined(CORTEX_A7)
+#if defined(CORTEX_A9)
 		"pld    [%3, #224]               \n\t"
 		"pld    [%4, #224]               \n\t"
 #endif
@@ -359,7 +359,7 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 		"fldd   d23, [%4, #88]           \n\t"
 		"                                \n\t"
 		"                                \n\t"
-#if defined(CORTEX_A9) || defined(CORTEX_A7)
+#if defined(CORTEX_A9)
 		"pld    [%3, #160]               \n\t"
 		"pld    [%4, #160]               \n\t"
 #endif
@@ -417,7 +417,7 @@ void kernel_dpotrf_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doub
 		"fldd   d19, [%3, #152]          \n\t"
 		"                                \n\t"
 		"                                \n\t"
-#if defined(CORTEX_A9) || defined(CORTEX_A7)
+#if defined(CORTEX_A9)
 		"pld    [%3, #224]               \n\t"
 		"pld    [%4, #224]               \n\t"
 #endif

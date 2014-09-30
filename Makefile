@@ -145,7 +145,10 @@ ifeq ($(TARGET), CORTEX_A15)
 	echo "#ifndef TARGET_CORTEX_A15\n#define TARGET_CORTEX_A15\n#endif" > ./include/target.h
 endif
 ifeq ($(TARGET), CORTEX_A9)
-	echo "#ifndef TARGET_CORTEX_A9\n#define TARGET_CORTEX_A15\n#endif" > ./include/target.h
+	echo "#ifndef TARGET_CORTEX_A9\n#define TARGET_CORTEX_A9\n#endif" > ./include/target.h
+endif
+ifeq ($(TARGET), CORTEX_A7)
+	echo "#ifndef TARGET_CORTEX_A7\n#define TARGET_CORTEX_A7\n#endif" > ./include/target.h
 endif
 
 test_problem:

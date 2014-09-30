@@ -622,7 +622,7 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 	__builtin_prefetch( A0 );
 	__builtin_prefetch( A1 );
 	__builtin_prefetch( B  );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 	__builtin_prefetch( A1+8 );
 	__builtin_prefetch( B +8 );
@@ -777,15 +777,14 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0
 		"vld1.64   {d24, d25, d26, d27}, [%4:128]! \n\t" // load A0
 		"                                \n\t"
-		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"pld    [%3, #32]                \n\t"
-		"vmla.f32  q1, q4, d12[1]        \n\t"
 		"pld    [%4, #32]                \n\t"
-		"vmla.f32  q14, q4, d13[0]        \n\t"
 		"pld    [%5, #32]                \n\t"
-		"vmla.f32  q15, q4, d13[1]        \n\t"
 		"                                \n\t"
-		"sub    r0, r0, #1               \n\t" // iter++
+		"vmla.f32  q0, q4, d12[0]        \n\t"
+		"vmla.f32  q1, q4, d12[1]        \n\t"
+		"vmla.f32  q14, q4, d13[0]        \n\t"
+		"vmla.f32  q15, q4, d13[1]        \n\t"
 		"                                \n\t"
 		"vmla.f32  q8, q12, d12[0]        \n\t"
 		"vmla.f32  q9, q12, d12[1]        \n\t"
@@ -802,21 +801,26 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vmla.f32  q10, q13, d15[0]        \n\t"
 		"vmla.f32  q11, q13, d15[1]        \n\t"
 		"                                \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%5:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0
 		"vld1.64   {d24, d25, d26, d27}, [%4:128]! \n\t" // load A0
 		"                                \n\t"
-		"vmla.f32  q0, q4, d12[0]        \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, #32]                \n\t"
-		"vmla.f32  q1, q4, d12[1]        \n\t"
 		"pld    [%4, #32]                \n\t"
-		"vmla.f32  q14, q4, d13[0]        \n\t"
 		"pld    [%5, #32]                \n\t"
-		"vmla.f32  q15, q4, d13[1]        \n\t"
+#endif
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t" // next iter?
+		"                                \n\t"
+		"vmla.f32  q0, q4, d12[0]        \n\t"
+		"vmla.f32  q1, q4, d12[1]        \n\t"
+		"vmla.f32  q14, q4, d13[0]        \n\t"
+		"vmla.f32  q15, q4, d13[1]        \n\t"
 		"                                \n\t"
 		"vmla.f32  q8, q12, d12[0]        \n\t"
 		"vmla.f32  q9, q12, d12[1]        \n\t"
@@ -993,7 +997,7 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"pld    [%4, #64]                \n\t" // prefetch A1 to L1
 		"pld    [%5, #32]                \n\t" // prefetch B to L1
 #endif
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, #32]                \n\t"
 		"pld    [%4, #32]                \n\t"
 		"pld    [%5, #32]                \n\t"
@@ -1087,15 +1091,14 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0
 		"vld1.64   {d24, d25, d26, d27}, [%4:128]! \n\t" // load A0
 		"                                \n\t"
-		"vmls.f32  q0, q4, d12[0]        \n\t"
 		"pld    [%3, #32]                \n\t"
-		"vmls.f32  q1, q4, d12[1]        \n\t"
 		"pld    [%4, #32]                \n\t"
-		"vmls.f32  q14, q4, d13[0]        \n\t"
 		"pld    [%5, #32]                \n\t"
-		"vmls.f32  q15, q4, d13[1]        \n\t"
 		"                                \n\t"
-		"sub    r0, r0, #1               \n\t" // iter++
+		"vmls.f32  q0, q4, d12[0]        \n\t"
+		"vmls.f32  q1, q4, d12[1]        \n\t"
+		"vmls.f32  q14, q4, d13[0]        \n\t"
+		"vmls.f32  q15, q4, d13[1]        \n\t"
 		"                                \n\t"
 		"vmls.f32  q8, q12, d12[0]        \n\t"
 		"vmls.f32  q9, q12, d12[1]        \n\t"
@@ -1112,21 +1115,26 @@ void kernel_strsm_pp_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float
 		"vmls.f32  q10, q13, d15[0]        \n\t"
 		"vmls.f32  q11, q13, d15[1]        \n\t"
 		"                                \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%5:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0
 		"vld1.64   {d24, d25, d26, d27}, [%4:128]! \n\t" // load A0
 		"                                \n\t"
-		"vmls.f32  q0, q4, d12[0]        \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, #32]                \n\t"
-		"vmls.f32  q1, q4, d12[1]        \n\t"
 		"pld    [%4, #32]                \n\t"
-		"vmls.f32  q14, q4, d13[0]        \n\t"
 		"pld    [%5, #32]                \n\t"
-		"vmls.f32  q15, q4, d13[1]        \n\t"
+#endif
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t" // next iter?
+		"                                \n\t"
+		"vmls.f32  q0, q4, d12[0]        \n\t"
+		"vmls.f32  q1, q4, d12[1]        \n\t"
+		"vmls.f32  q14, q4, d13[0]        \n\t"
+		"vmls.f32  q15, q4, d13[1]        \n\t"
 		"                                \n\t"
 		"vmls.f32  q8, q12, d12[0]        \n\t"
 		"vmls.f32  q9, q12, d12[1]        \n\t"
@@ -1267,7 +1275,7 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		
 	__builtin_prefetch( A0 );
 	__builtin_prefetch( B  );
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_CORTEX_A9)
 	__builtin_prefetch( A0+8 );
 	__builtin_prefetch( B +8 );
 #endif
@@ -1386,19 +1394,20 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0
 		"                                \n\t"
-		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"pld    [%3, #32]                \n\t"
+		"pld    [%4, #32]                \n\t"
+		"                                \n\t"
+		"vmla.f32  q0, q4, d12[0]        \n\t"
 		"vmla.f32  q1, q4, d12[1]        \n\t"
 		"vmla.f32  q14, q4, d13[0]        \n\t"
-		"pld    [%4, #32]                \n\t"
 		"vmla.f32  q15, q4, d13[1]        \n\t"
-		"                                \n\t"
-		"sub    r0, r0, #1               \n\t" // iter++
 		"                                \n\t"
 		"vmla.f32  q0, q5, d14[0]        \n\t"
 		"vmla.f32  q1, q5, d14[1]        \n\t"
 		"vmla.f32  q14, q5, d15[0]        \n\t"
 		"vmla.f32  q15, q5, d15[1]        \n\t"
+		"                                \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -1406,14 +1415,17 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0
 		"                                \n\t"
-		"vmla.f32  q0, q4, d12[0]        \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, #32]                \n\t"
-		"vmla.f32  q1, q4, d12[1]        \n\t"
-		"vmla.f32  q14, q4, d13[0]        \n\t"
 		"pld    [%4, #32]                \n\t"
-		"vmla.f32  q15, q4, d13[1]        \n\t"
+#endif
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t" // next iter?
+		"                                \n\t"
+		"vmla.f32  q0, q4, d12[0]        \n\t"
+		"vmla.f32  q1, q4, d12[1]        \n\t"
+		"vmla.f32  q14, q4, d13[0]        \n\t"
+		"vmla.f32  q15, q4, d13[1]        \n\t"
 		"                                \n\t"
 		"vmla.f32  q0, q5, d14[0]        \n\t"
 		"vmla.f32  q1, q5, d14[1]        \n\t"
@@ -1548,7 +1560,7 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		"pld    [%3, #64]                \n\t" // prefetch A0 to L1
 		"pld    [%4, #32]                \n\t" // prefetch B to L1
 #endif
-#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, #32]                \n\t"
 		"pld    [%4, #32]                \n\t"
 #endif
@@ -1610,14 +1622,13 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0
 		"                                \n\t"
-		"vmls.f32  q0, q4, d12[0]        \n\t"
 		"pld    [%3, #32]                \n\t"
+		"pld    [%4, #32]                \n\t"
+		"                                \n\t"
+		"vmls.f32  q0, q4, d12[0]        \n\t"
 		"vmls.f32  q1, q4, d12[1]        \n\t"
 		"vmls.f32  q14, q4, d13[0]        \n\t"
-		"pld    [%4, #32]                \n\t"
 		"vmls.f32  q15, q4, d13[1]        \n\t"
-		"                                \n\t"
-		"sub    r0, r0, #1               \n\t" // iter++
 		"                                \n\t"
 		"                                \n\t"
 		"vmls.f32  q0, q5, d14[0]        \n\t"
@@ -1625,20 +1636,25 @@ void kernel_strsm_pp_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float 
 		"vmls.f32  q14, q5, d15[0]        \n\t"
 		"vmls.f32  q15, q5, d15[1]        \n\t"
 		"                                \n\t"
+		"sub    r0, r0, #1               \n\t" // iter++
+		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%4:128]! \n\t" // load B
 		"vld1.64   {d8, d9, d10, d11},   [%3:128]! \n\t" // load A0
 		"                                \n\t"
-		"vmls.f32  q0, q4, d12[0]        \n\t"
+#if defined(TARGET_CORTEX_A9)
 		"pld    [%3, #32]                \n\t"
-		"vmls.f32  q1, q4, d12[1]        \n\t"
-		"vmls.f32  q14, q4, d13[0]        \n\t"
 		"pld    [%4, #32]                \n\t"
-		"vmls.f32  q15, q4, d13[1]        \n\t"
+#endif
 		"                                \n\t"
 		"cmp    r0, #0                   \n\t" // next iter?
+		"                                \n\t"
+		"vmls.f32  q0, q4, d12[0]        \n\t"
+		"vmls.f32  q1, q4, d12[1]        \n\t"
+		"vmls.f32  q14, q4, d13[0]        \n\t"
+		"vmls.f32  q15, q4, d13[1]        \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"vmls.f32  q0, q5, d14[0]        \n\t"
