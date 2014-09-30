@@ -1523,3 +1523,539 @@ int c_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const
 	return 0;
 	
 	}
+
+
+
+int c_order_dynamic_mem_admm_soft_wrapper( int k_max, double tol,
+                                           double rho, double alpha,
+                                           const int nx, const int nu, const int N,
+                                           double* A, double* B, double* b, 
+                                           double* Q, double* Qf, double* S, double* R, 
+                                           double* q, double* qf, double* r, 
+                                           double* T,
+                                           double* lb, double* ub, 
+                                           double* x, double* u,
+                                           int* nIt, double *stat )
+
+	{
+
+/*printf("\nstart of wrapper\n");*/
+
+    char prec = PREC;
+
+    if(prec=='d')
+	    {
+	    
+		const int bs = D_MR; //d_get_mr();
+		const int ncl = D_NCL;
+		const int nal = D_MR*D_NCL;
+
+		const int nz = nx+nu+1;
+		const int pnz = bs*((nz+bs-1)/bs);
+		const int pnx = bs*((nx+bs-1)/bs);
+		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
+		const int cnx = ncl*((nx+ncl-1)/ncl);
+		const int anz = nal*((nz+nal-1)/nal);
+		const int anx = nal*((nx+nal-1)/nal);
+
+		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
+		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+
+		const int nb = nx+nu; // number of box constraints
+/*		const int pnb = bs*((2*nb+bs-1)/bs);*/
+		const int anb = nal*((2*nb+nal-1)/nal);
+
+		// work space
+        double *work0 = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 9*anz + 15*anx) + 3*anz)*sizeof(double));
+
+		// parameters
+/*		double rho = 10.0; // penalty parameter*/
+/*		double alpha = 1.9; // relaxation parameter*/
+        int warm_start = 0;//WARM_START;
+        int compute_mult = 0;//1; // compute multipliers
+        
+        int info = 0;
+
+        int i, ii, jj, ll;
+
+
+        /* align work space */
+        size_t align = 64;
+        size_t addr = (size_t) work0;
+        size_t offset = addr % 64;
+        double *ptr = work0 + offset / 8;
+
+        /* array or pointers */
+        double *(hpBAbt[N]);
+        double *(hpQ[N + 1]);
+		double *(hpS[N+1]);
+        double *(hux[N + 1]);
+		double *(hux_v[N+1]);
+		double *(hux_w[N+1]);
+		double *(hlb[N+1]);
+		double *(hub[N+1]);
+		double *(hs_u[N+1]);
+		double *(hs_v[N+1]);
+		double *(hs_w[N+1]);
+        double *(hpi[N + 1]);
+
+        for(ii=0; ii<N; ii++)
+	        {
+            hpBAbt[ii] = ptr;
+            ptr += pnz*cnx;
+	        }
+
+        for(ii=0; ii<=N; ii++) // time variant and copied again internally in the IP !!!
+	        {
+            hpQ[ii] = ptr;
+            ptr += pnz*cnz;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hpS[ii] = ptr;
+            ptr += 2*anx;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hux[ii] = ptr;
+            ptr += anz;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hux_v[ii] = ptr;
+            ptr += anz;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hux_w[ii] = ptr;
+            ptr += anz;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hlb[ii] = ptr;
+            ptr += anz;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hub[ii] = ptr;
+            ptr += anz;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hs_u[ii] = ptr;
+            ptr += 2*anx;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hs_v[ii] = ptr;
+            ptr += 2*anx;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hs_w[ii] = ptr;
+            ptr += 2*anx;
+	        }
+
+        for(ii=0; ii<=N; ii++) // time Variant box constraints
+	        {
+            hpi[ii] = ptr;
+            ptr += anx; // for alignment of ptr
+	        }
+
+        /* pack matrices 	*/
+
+        // dynamic system
+        for(ii=0; ii<N; ii++)
+	        {
+            d_cvt_mat2pmat(nx, nu, 0, bs, B+ii*nu*nx, nx, hpBAbt[ii], cnx);
+            d_cvt_mat2pmat(nx, nx, nu, bs, A+ii*nx*nx, nx, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
+            for (jj = 0; jj<nx; jj++)
+                hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
+	        }
+/*	    d_print_pmat(nx+nu+1, nx, bs, hpBAbt[0], cnx);*/
+/*	    d_print_pmat(nx+nu+1, nx, bs, hpBAbt[1], cnx);*/
+/*	    d_print_pmat(nx+nu+1, nx, bs, hpBAbt[N-1], cnx);*/
+
+/*return 1;*/
+        // cost function
+        for(jj=0; jj<N; jj++)
+	        {
+            d_cvt_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
+            d_cvt_mat2pmat(nu, nx, nu, bs, S+jj*nx*nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
+            d_cvt_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+            for(ii=0; ii<nu; ii++)
+                hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
+            for(ii=0; ii<nx; ii++)
+                hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+ii)*bs] = q[ii+nx*jj];
+	        }
+
+        for(jj=0; jj<nu; jj++)
+            for(ii=0; ii<nz; ii+=bs)
+                for(i=0; i<bs; i++)
+                    hpQ[N][ii*cnz+i+jj*bs] = 0.0;
+        for(jj=0; jj<nu; jj++)
+            hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
+        d_cvt_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+        for(jj=0; jj<nx; jj++)
+            hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
+
+		// soft constraints cost function
+        for(jj=0; jj<=N; jj++)
+	        {
+			for(ii=0; ii<nx; ii++) hpS[jj][ii]     = T[jj*2*nx+ii]; // upper
+			for(ii=0; ii<nx; ii++) hpS[jj][anx+ii] = T[jj*2*nx+nx+ii]; // lower
+			}
+
+		// input constraints
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nu; ii++)
+				{
+				hlb[jj][ii] = lb[ii+nu*jj];
+				hub[jj][ii] = ub[ii+nu*jj];
+				}
+			}
+		// state constraints 
+/*		if(FREE_X0==0) // mpc*/
+/*			{*/
+			for(jj=0; jj<N; jj++)
+				{
+				for(ii=0; ii<nx; ii++)
+					{
+					hlb[jj+1][nu+ii] = lb[N*nu+ii+nx*jj];
+					hub[jj+1][nu+ii] = ub[N*nu+ii+nx*jj];
+					}
+				}
+/*			}*/
+/*		else // mhe*/
+/*			{*/
+/*			for(jj=0; jj<=N; jj++)*/
+/*				{*/
+/*				for(ii=0; ii<nx; ii++)*/
+/*					{*/
+/*					hlb[jj][nu+ii] = lb[N*nu+ii+nx*jj];*/
+/*					hub[jj][nu+ii] = ub[N*nu+ii+nx*jj];*/
+/*					}*/
+/*				}*/
+/*			}*/
+
+
+
+        // initial guess
+        for(jj=0; jj<N; jj++)
+            for(ii=0; ii<nu; ii++)
+                hux[jj][ii] = u[ii+nu*jj];
+
+        for(jj=0; jj<=N; jj++)
+            for(ii=0; ii<nx; ii++)
+                hux[jj][nu+ii] = x[ii+nx*jj];
+
+
+
+/*printf("\nstart of ip solver\n");*/
+
+        // call the soft ADMM solver
+/*		if(FREE_X0==0) // mpc*/
+/*			{*/
+	        d_admm_soft_mpc(nIt, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, ptr);
+/*		    }*/
+/*		else // mhe*/
+/*			{*/
+/*	        d_ip_box_mhe(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);*/
+/*		    }*/
+
+/*printf("\nend of ip solver\n");*/
+
+
+        // copy back inputs and states
+        for(jj=0; jj<N; jj++)
+            for(ii=0; ii<nu; ii++)
+                u[ii+nu*jj] = hux[jj][ii];
+
+        for(jj=0; jj<=N; jj++)
+            for(ii=0; ii<nx; ii++)
+                x[ii+nx*jj] = hux[jj][nu+ii];
+
+#if PC_DEBUG == 1
+        for (jj = 0; jj < *nIt; jj++)
+            printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\n", jj,
+                   stat[5 * jj], stat[5 * jj + 1], stat[5 * jj + 2],
+                   stat[5 * jj + 2]);
+        printf("\n");
+#endif /* PC_DEBUG == 1 */
+
+		free(work0);
+
+	    }
+    else if(prec=='s')
+	    {
+
+		const int bs = S_MR; //d_get_mr();
+		const int ncl = S_NCL;
+		const int nal = S_MR*S_NCL;
+
+		const int nz = nx+nu+1;
+		const int pnz = bs*((nz+bs-1)/bs);
+		const int pnx = bs*((nx+bs-1)/bs);
+		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
+		const int cnx = ncl*((nx+ncl-1)/ncl);
+		const int anz = nal*((nz+nal-1)/nal);
+		const int anx = nal*((nx+nal-1)/nal);
+
+		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
+		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+
+		const int nb = nx+nu; // number of box constraints
+/*		const int pnb = bs*((2*nb+bs-1)/bs);*/
+		const int anb = nal*((2*nb+nal-1)/nal);
+
+		// work space
+        float *work0 = (float *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 9*anz + 15*anx) + 3*anz)*sizeof(float));
+
+		// parameters
+/*		float rho = 10.0; // penalty parameter*/
+/*		float alpha = 1.9; // relaxation parameter*/
+        int warm_start = 0;//WARM_START;
+        int compute_mult = 0;//1; // compute multipliers
+        
+        int info = 0;
+
+        int i, ii, jj, ll;
+
+
+        /* align work space */
+        size_t align = 64;
+        size_t addr = (size_t) work0;
+        size_t offset = addr % 64;
+        float *ptr = work0 + offset / 4;
+
+        /* array or pointers */
+        float *(hpBAbt[N]);
+        float *(hpQ[N + 1]);
+		float *(hpS[N+1]);
+        float *(hux[N + 1]);
+		float *(hux_v[N+1]);
+		float *(hux_w[N+1]);
+		float *(hlb[N+1]);
+		float *(hub[N+1]);
+		float *(hs_u[N+1]);
+		float *(hs_v[N+1]);
+		float *(hs_w[N+1]);
+        float *(hpi[N + 1]);
+
+        for(ii=0; ii<N; ii++)
+	        {
+            hpBAbt[ii] = ptr;
+            ptr += pnz*cnx;
+	        }
+
+        for(ii=0; ii<=N; ii++) // time variant and copied again internally in the IP !!!
+	        {
+            hpQ[ii] = ptr;
+            ptr += pnz*cnz;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hpS[ii] = ptr;
+            ptr += 2*anx;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hux[ii] = ptr;
+            ptr += anz;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hux_v[ii] = ptr;
+            ptr += anz;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hux_w[ii] = ptr;
+            ptr += anz;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hlb[ii] = ptr;
+            ptr += anz;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hub[ii] = ptr;
+            ptr += anz;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hs_u[ii] = ptr;
+            ptr += 2*anx;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hs_v[ii] = ptr;
+            ptr += 2*anx;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hs_w[ii] = ptr;
+            ptr += 2*anx;
+	        }
+
+        for(ii=0; ii<=N; ii++) // time Variant box constraints
+	        {
+            hpi[ii] = ptr;
+            ptr += anx; // for alignment of ptr
+	        }
+
+        /* pack matrices 	*/
+
+        // dynamic system
+        for(ii=0; ii<N; ii++)
+	        {
+            cvt_d2s_mat2pmat(nx, nu, 0, bs, B+ii*nu*nx, nx, hpBAbt[ii], cnx);
+            cvt_d2s_mat2pmat(nx, nx, nu, bs, A+ii*nx*nx, nx, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
+            for (jj = 0; jj<nx; jj++)
+                hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = (float) b[ii*nx+jj];
+	        }
+
+        // cost function
+        for(jj=0; jj<N; jj++)
+	        {
+            cvt_d2s_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
+            cvt_d2s_mat2pmat(nu, nx, nu, bs, S+jj*nx*nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
+            cvt_d2s_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+            for(ii=0; ii<nu; ii++)
+                hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = (float) r[ii+jj*nu];
+            for(ii=0; ii<nx; ii++)
+                hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+ii)*bs] = (float) q[ii+nx*jj];
+	        }
+
+        for(jj=0; jj<nu; jj++)
+            for(ii=0; ii<nz; ii+=bs)
+                for(i=0; i<bs; i++)
+                    hpQ[N][ii*cnz+i+jj*bs] = 0.0;
+        for(jj=0; jj<nu; jj++)
+            hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
+        cvt_d2s_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+        for(jj=0; jj<nx; jj++)
+            hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = (float) qf[jj];
+
+		// soft constraints cost function
+        for(jj=0; jj<=N; jj++)
+	        {
+			for(ii=0; ii<nx; ii++) hpS[jj][ii]     = (float) T[jj*2*nx+ii]; // upper
+			for(ii=0; ii<nx; ii++) hpS[jj][anx+ii] = (float) T[jj*2*nx+nx+ii]; // lower
+			}
+
+		// input constraints
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nu; ii++)
+				{
+				hlb[jj][ii] = (float) lb[ii+nu*jj];
+				hub[jj][ii] = (float) ub[ii+nu*jj];
+				}
+			}
+		// state constraints 
+/*		if(FREE_X0==0) // mpc*/
+/*			{*/
+			for(jj=0; jj<N; jj++)
+				{
+				for(ii=0; ii<nx; ii++)
+					{
+					hlb[jj+1][nu+ii] = (float) lb[N*nu+ii+nx*jj];
+					hub[jj+1][nu+ii] = (float) ub[N*nu+ii+nx*jj];
+					}
+				}
+/*			}*/
+/*		else // mhe*/
+/*			{*/
+/*			for(jj=0; jj<=N; jj++)*/
+/*				{*/
+/*				for(ii=0; ii<nx; ii++)*/
+/*					{*/
+/*					hlb[jj][nu+ii] = lb[N*nu+ii+nx*jj];*/
+/*					hub[jj][nu+ii] = ub[N*nu+ii+nx*jj];*/
+/*					}*/
+/*				}*/
+/*			}*/
+
+
+
+        // initial guess
+        for(jj=0; jj<N; jj++)
+            for(ii=0; ii<nu; ii++)
+                hux[jj][ii] = (float) u[ii+nu*jj];
+
+        for(jj=0; jj<=N; jj++)
+            for(ii=0; ii<nx; ii++)
+                hux[jj][nu+ii] = (float) x[ii+nx*jj];
+
+
+
+        // call the soft ADMM solver
+/*		if(FREE_X0==0) // mpc*/
+/*			{*/
+	        s_admm_soft_mpc(nIt, k_max, (float) tol, (float) tol, warm_start, 1, (float) rho, (float) alpha, (float *)stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, ptr);
+/*		    }*/
+/*		else // mhe*/
+/*			{*/
+/*	        d_ip_box_mhe(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);*/
+/*		    }*/
+
+
+
+		// convert stat into double (start fom end !!!)
+		float *ptr_stat = (float *) stat;
+		for(ii=5*k_max-1; ii>=0; ii--)
+			{
+			stat[ii] = (double) ptr_stat[ii];
+			}
+
+
+
+        // copy back inputs and states
+        for(jj=0; jj<N; jj++)
+            for(ii=0; ii<nu; ii++)
+                u[ii+nu*jj] = (double) hux[jj][ii];
+
+        for(jj=0; jj<=N; jj++)
+            for(ii=0; ii<nx; ii++)
+                x[ii+nx*jj] = (double) hux[jj][nu+ii];
+
+
+#if PC_DEBUG == 1
+        for (jj = 0; jj < *nIt; jj++)
+            printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\n", jj,
+                   stat[5 * jj], stat[5 * jj + 1], stat[5 * jj + 2],
+                   stat[5 * jj + 2]);
+        printf("\n");
+#endif /* PC_DEBUG == 1 */
+
+		free(work0);
+
+ 	   }
+
+/*printf("\nend of wrapper\n");*/
+
+    return 0;
+
+	}
+
