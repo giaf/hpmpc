@@ -68,6 +68,13 @@
 #define D_NCL 1
 #define S_NCL 2
 
+#elif defined( TARGET_CORTEX_A7 )
+
+#define D_MR 4
+#define S_MR 4
+#define D_NCL 1
+#define S_NCL 2
+
 
 #else
 #error "Unknown architecture"
