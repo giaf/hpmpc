@@ -540,6 +540,7 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 		"vld1.64   {d0, d1}, [%4:128]!   \n\t" // load x to registers
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"add    %3, %3, %0               \n\t" // next band
 		"                                \n\t"
 		"                                \n\t"
 		"cmp    r5, #2                   \n\t"
@@ -551,26 +552,26 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 		"                                \n\t"
 #if defined(TARGET_CORTEX_A15)		
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
-		"add    %3, %3, %0               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vmla.f32  q10, q6, q0           \n\t"
+		"sub    r5, r5, #2               \n\t" // iter++
 		"vmla.f32  q11, q7, q0           \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"add    %3, %3, %0               \n\t" // next band
 		"                                \n\t"
 		"vld1.64   {d0, d1}, [%4:128]!   \n\t" // load x to registers
-		"add    %3, %3, %0               \n\t" // next band
 		"vmla.f32  q8, q4, q1           \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vmla.f32  q9, q5, q1           \n\t"
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vmla.f32  q10, q6, q1           \n\t"
-		"sub    r5, r5, #2               \n\t" // iter++
+		"cmp    r5, #2                   \n\t" // next iter?
 		"vmla.f32  q11, q7, q1           \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
-		"cmp    r5, #2                   \n\t" // next iter?
+		"add    %3, %3, %0               \n\t" // next band
 #endif		
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
@@ -581,11 +582,11 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
 		"vmla.f32  q11, q7, q0           \n\t"
-		"add    %3, %3, %0               \n\t" // next band
 		"sub    r5, r5, #2               \n\t" // iter++
 		"vld1.64   {d0, d1}, [%4:128]!   \n\t" // load x to registers
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"add    %3, %3, %0               \n\t" // next band
 		"                                \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 #if defined(TARGET_CORTEX_A9)
@@ -595,11 +596,11 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 		"vmla.f32  q9, q5, q0           \n\t"
 		"vmla.f32  q10, q6, q0           \n\t"
 		"vmla.f32  q11, q7, q0           \n\t"
-		"add    %3, %3, %0               \n\t" // next band
 		"cmp    r5, #2                   \n\t" // next iter?
 		"vld1.64   {d0, d1}, [%4:128]!   \n\t" // load x to registers
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+		"add    %3, %3, %0               \n\t" // next band
 #endif		
 		"                                \n\t"
 		"bgt    .DMAIN_LOOP2_T_4          \n\t"
@@ -616,7 +617,6 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 		"                                \n\t"
 #if defined(TARGET_CORTEX_A15)		
 		"vld1.64   {d2, d3}, [%4:128]!   \n\t" // load x to registers
-		"add    %3, %3, %0               \n\t" // next band
 		"vmla.f32  q8, q4, q0           \n\t"
 		"pld    [%3, r1]                 \n\t" // prefetch A1 to L1
 		"vmla.f32  q9, q5, q0           \n\t"
@@ -624,6 +624,7 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 		"vmla.f32  q10, q6, q0           \n\t"
 		"vmla.f32  q11, q7, q0           \n\t"
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+//		"add    %3, %3, %0               \n\t" // next band
 		"vmov   q0, q1                   \n\t"
 #endif		
 #if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)	
@@ -636,10 +637,10 @@ void kernel_strsv_t_4_lib4(int kmax, float *A, int sda, float *x)
 		"vmla.f32  q10, q6, q0           \n\t"
 		"vmla.f32  q11, q7, q0           \n\t"
 		"vmov   q0, q1                   \n\t"
-		"add    %3, %3, %0               \n\t" // next band
 		"vld1.64   {d0, d1}, [%4:128]!   \n\t" // load x to registers
 		"vld1.64   {d8, d9, d10, d11}, [%3:128]!   \n\t" // load A0 to registers
 		"vld1.64   {d12, d13, d14, d15}, [%3:128]!   \n\t" // load A0 to registers
+//		"add    %3, %3, %0               \n\t" // next band
 #endif		
 		"                                \n\t"
 		"                                \n\t"

@@ -60,7 +60,8 @@ void kernel_dtrmv_u_t_8_lib4(int kmax, double *A, int sda, double *x, double *y,
 		y_4=0, y_5=0, y_6=0, y_7=0;
 	
 	k=0;
-	for(; k<kmax-7; k+=8)
+//	for(; k<kmax-7; k+=8)
+	for(; k<kmax-3; k+=4)
 		{
 		
 		__builtin_prefetch( A+sda*bs );
@@ -124,6 +125,7 @@ void kernel_dtrmv_u_t_8_lib4(int kmax, double *A, int sda, double *x, double *y,
 		A += sda*bs;
 		x += 4;
 
+/*
 		__builtin_prefetch( A+sda*bs );
 #if defined(TARGET_CORTEX_A9)
 		__builtin_prefetch( A+sda*bs+4 );
@@ -184,7 +186,7 @@ void kernel_dtrmv_u_t_8_lib4(int kmax, double *A, int sda, double *x, double *y,
 		
 		A += sda*bs;
 		x += 4;
-
+*/
 		}
 
 	__builtin_prefetch( A+sda*bs );
