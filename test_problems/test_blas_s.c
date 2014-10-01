@@ -190,8 +190,8 @@ int main()
 		float *pL; s_zeros_align(&pL, pns, cns);
 		float *x; s_zeros_align(&x, pns, 1);
 		float *y; s_zeros_align(&y, pns, 1);
-		float *x2; s_zeros_align(&x2, pns, 1);
-		float *y2; s_zeros_align(&y2, pns, 1);
+		float *x2; s_zeros_align(&x2, 2*pns, 1);
+		float *y2; s_zeros_align(&y2, 2*pns, 1);
 		float *diag; s_zeros_align(&diag, pns, 1);
 	
 		s_cvt_mat2pmat(n, n, 0, bss, sA, n, pA, cns);
@@ -292,7 +292,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			strsv_sgemv_n_lib(n, 2*n, pF, cns, x);
+			strsv_sgemv_n_lib(n, 2*n, pF, cns, x2);
 
 			}
 	
@@ -301,7 +301,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			strsv_sgemv_t_lib(n, 2*n, pF, cns, x);
+			strsv_sgemv_t_lib(n, 2*n, pF, cns, x2);
 
 			}
 	

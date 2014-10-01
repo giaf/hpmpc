@@ -72,8 +72,8 @@
 
 #define D_MR 4
 #define S_MR 4
-#define D_NCL 1
-#define S_NCL 2
+#define D_NCL 2
+#define S_NCL 4
 
 
 #else
