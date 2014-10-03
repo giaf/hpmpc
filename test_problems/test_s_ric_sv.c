@@ -192,34 +192,34 @@ int main()
 	f = fopen("./test_problems/results/test_blas.m", "w"); // a
 
 #if defined(TARGET_X64_AVX2)
-	fprintf(f, "C = 'd_x64_avx2';\n");
+	fprintf(f, "C = 's_x64_avx2';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_X64_AVX)
-	fprintf(f, "C = 'd_x64_avx';\n");
+	fprintf(f, "C = 's_x64_avx';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
-	fprintf(f, "C = 'd_x64_sse3';\n");
+	fprintf(f, "C = 's_x64_sse3';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEX_A9)
-	fprintf(f, "C = 'd_ARM_cortex_A9';\n");
+	fprintf(f, "C = 's_ARM_cortex_A9';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEX_A7)
-	fprintf(f, "C = 'd_ARM_cortex_A7';\n");
+	fprintf(f, "C = 's_ARM_cortex_A7';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEX_A15)
-	fprintf(f, "C = 'd_ARM_cortex_A15';\n");
+	fprintf(f, "C = 's_ARM_cortex_A15';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_X86_ATOM)
-	fprintf(f, "C = 'd_x86_atom';\n");
+	fprintf(f, "C = 's_x86_atom';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_POWERPC_G2)
-	fprintf(f, "C = 'd_PowerPC_G2';\n");
+	fprintf(f, "C = 's_PowerPC_G2';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_C99_4X4)
-	fprintf(f, "C = 'd_c99_2x2';\n");
+	fprintf(f, "C = 's_c99_2x2';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_C99_2X2)
-	fprintf(f, "C = 'd_c99_4x4';\n");
+	fprintf(f, "C = 's_c99_4x4';\n");
 	fprintf(f, "\n");
 #endif
 
@@ -651,7 +651,7 @@ int main()
 		if(ll==0)
 			{	
 			printf("\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
-			fprintf(f, "\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
+//			fprintf(f, "\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
 			}
 		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max);
 		fprintf(f, "%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max);
