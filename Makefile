@@ -80,7 +80,7 @@ BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 MPC_OBJS = ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/d_admm_soft.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o ./mpc_solvers/s_admm_soft.o
 endif
 LQCP_OBJS = ./lqcp_solvers/d_ric_sv.o ./lqcp_solvers/d_res.o ./lqcp_solvers/s_ric_sv.o ./lqcp_solvers/s_res.o
-LQCP_CODEGEN_OBJS = ./codegen/dricposv_codegen.o ./codegen/dres_codegen.o #./codegen/sricposv_codegen.o  ./codegen/sres_codegen.o 
+LQCP_CODEGEN_OBJS = ./codegen/d_ric_sv_codegen.o ./codegen/d_res_codegen.o ./codegen/s_ric_sv_codegen.o  ./codegen/s_res_codegen.o 
 INTERFACE_OBJS = ./interfaces/c/c_order_dynamic_mem_interface.o ./interfaces/c/c_order_static_mem_interface.o ./interfaces/c/fortran_order_dynamic_mem_interface.o ./interfaces/c/fortran_order_static_mem_interface.o
 
 all: clean library test_problem run
@@ -115,10 +115,10 @@ codegenerator: target
 	make -C auxiliary obj
 	make -C kernel obj
 	make -C blas obj
-	touch ./codegen/dricposv_codegen.c 
-#	touch ./codegen/sricposv_codegen.c
-	touch ./codegen/dres_codegen.c 
-#	touch ./codegen/sres_codegen.c 
+	touch ./codegen/d_ric_sv_codegen.c 
+	touch ./codegen/s_ric_sv_codegen.c
+	touch ./codegen/d_res_codegen.c 
+	touch ./codegen/s_res_codegen.c 
 	make -C codegen obj
 	make -C mpc_solvers obj
 	make -C interfaces obj

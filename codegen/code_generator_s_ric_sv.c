@@ -26,7 +26,7 @@
 #include <stdio.h>
 
 #include "../problem_size.h"
-#include "blas_d_codegen.h"
+#include "blas_s_codegen.h"
 #include "../include/block_size.h"
 
 
@@ -40,20 +40,22 @@ int main()
 	int nu = NU;
 	int N = NN;
 	
-	const int bs = D_MR; //d_get_mr();
-	const int ncl = D_NCL;
+	const int bs = S_MR; //s_get_mr();
+	const int ncl = S_NCL;
+	const int nal = bs*ncl;
 	
 	const int nz = nx+nu+1;
+	const int anz = nal*((nz+nal-1)/nal);
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nz+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 
 	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-	const int cnl = nx+pad+cnz;
+	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 	
 	FILE *f;
-    f = fopen("dricposv_codegen.c", "w"); // a
+    f = fopen("s_ric_sv_codegen.c", "w"); // a
 
 	fprintf(f, "/**************************************************************************************************\n");
 	fprintf(f, "*                                                                                                 *\n");
@@ -85,10 +87,10 @@ int main()
 	fprintf(f, "\n");
 	fprintf(f, "#include \"../include/block_size.h\"\n");
 	fprintf(f, "#include \"../include/aux_d.h\"\n");
-	fprintf(f, "#include \"../include/kernel_d_lib4.h\"\n");
+	fprintf(f, "#include \"../include/kernel_s_lib4.h\"\n");
 	fprintf(f, "\n");
 	fprintf(f, "// version tailored for mpc (x0 fixed) \n");
-	fprintf(f, "void dricposv_mpc(int nx_dummy, int nu_dummy, int N_dummy, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *work, double *diag, int compute_pi, double **hpi)\n");
+	fprintf(f, "void s_ric_sv_mpc(int nx_dummy, int nu_dummy, int N_dummy, float **hpBAbt, float **hpQ, float **hux, float **hpL, float *work, float *diag, int compute_pi, float **hpi)\n");
 	fprintf(f, "	{\n");
 	fprintf(f, "	if(!(nx_dummy==%d && nu_dummy==%d && N_dummy==%d))\n", nx, nu, N);
 	fprintf(f, "		{\n");
@@ -106,11 +108,11 @@ int main()
 	fprintf(f, "	//const int pad = (ncl-nx%%ncl)%%ncl; // packing between BAbtL & P\n");
 	fprintf(f, "	//const int cnl = nx+pad+cnz;\n");
 	fprintf(f, "	\n");
-	fprintf(f, "	double *pA, *pB, *pC, *x, *y;\n");
+	fprintf(f, "	float *pA, *pB, *pC, *x, *y;\n");
 	fprintf(f, "	\n");
 	fprintf(f, "	int ii, jj;\n");
 	fprintf(f, "	\n");
-	fprintf(f, "	double fact[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};\n");
+	fprintf(f, "	float fact[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};\n");
 	fprintf(f, "	\n");
 	fprintf(f, "	// factorization and backward substitution\n");
 	fprintf(f, "	\n");
@@ -121,14 +123,14 @@ int main()
 	fprintf(f, "	pA = hpL[%d]+%d;\n", N, (nx+pad)*bs+(nu/bs)*bs*cnl+(nu/bs)*bs*bs);
 	fprintf(f, "	pC = hpQ[%d]+%d;\n", N, (nu/bs)*bs*cnz+(nu/bs)*bs*bs);
 
-	dsyrk_dpotrf_code_generator(f, nx+nu%bs+1, 0, nx+nu%bs);
+	ssyrk_spotrf_code_generator(f, nx+nu%bs+1, 0, nx+nu%bs);
 
 	fprintf(f, "	\n");
 	fprintf(f, "	//d_transpose_pmat_lo(nx, nu, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%%bs+nu*bs, cnl, hpL[N]+(nx+pad+ncl)*bs, cnl);\n");
 	fprintf(f, "		pA = hpL[%d]+%d;\n", N, (nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs);
 	fprintf(f, "		pC = hpL[%d]+%d;\n", N, (nx+pad+ncl)*bs);
 	
-	dtrtr_l_code_generator(f, nx, nu);
+	strtr_l_code_generator(f, nx, nu);
 	
 	fprintf(f, "\n");
 	fprintf(f, "	// middle stages\n");
@@ -139,7 +141,7 @@ int main()
 	fprintf(f, "		pB = hpL[%d-ii]+%d;\n", N, (nx+pad+ncl)*bs);
 	fprintf(f, "		pC = hpL[%d-ii];\n", N-1);
 
-	dtrmm_code_generator(f, nz, nx);
+	strmm_code_generator(f, nz, nx);
 
 	fprintf(f, "		\n");
 	fprintf(f, "		for(jj=0; jj<%d; jj++) hpL[%d-ii][%d+jj*%d] += hpL[%d-ii][%d+(%d+jj)*%d];\n", nx, N-1, ((nx+nu)/bs)*bs*cnl+(nx+nu)%bs, bs, N, ((nx+nu)/bs)*bs*cnl+(nx+nu)%bs, nx+pad+nu, bs);
@@ -147,7 +149,7 @@ int main()
 	fprintf(f, "	pA = hpL[%d-ii];\n", N-1);
 	fprintf(f, "	pC = hpQ[%d-ii];\n", N-1);
 
-	dsyrk_dpotrf_code_generator(f, nz, nx, nu+nx);
+	ssyrk_spotrf_code_generator(f, nz, nx, nu+nx);
 
 	fprintf(f, "	\n");
 	fprintf(f, "		for(jj=0; jj<%d; jj++) hpL[%d-ii][%d+(jj/%d)*%d+jj%%%d+jj*%d] = diag[jj];\n", nu, N-1, (nx+pad)*bs, bs, bs*cnl, bs, bs);
@@ -155,7 +157,7 @@ int main()
 	fprintf(f, "		pA = hpL[%d-ii]+%d;\n", N-1, (nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs);
 	fprintf(f, "		pC = hpL[%d-ii]+%d;\n", N-1, (nx+pad+ncl)*bs);
 	
-	dtrtr_l_code_generator(f, nx, nu);
+	strtr_l_code_generator(f, nx, nu);
 	
 	fprintf(f, "\n");
 	fprintf(f, "		}\n");
@@ -166,7 +168,7 @@ int main()
 	fprintf(f, "		pB = hpL[1]+%d;\n", (nx+pad+ncl)*bs);
 	fprintf(f, "		pC = hpL[0];\n");
 
-	dtrmm_code_generator(f, nz, nx);
+	strmm_code_generator(f, nz, nx);
 
 	fprintf(f, "		\n");
 	fprintf(f, "	for(jj=0; jj<%d; jj++) hpL[0][%d+jj*%d] += hpL[1][%d+(%d+jj)*%d];\n", nx, ((nx+nu)/bs)*bs*cnl+(nx+nu)%bs, bs, ((nx+nu)/bs)*bs*cnl+(nx+nu)%bs, nx+pad+nu, bs);
@@ -174,40 +176,47 @@ int main()
 	fprintf(f, "	pA = hpL[0];\n");
 	fprintf(f, "	pC = hpQ[0];\n");
 
-	dsyrk_dpotrf_code_generator(f, nz, nx, ((nu+2-1)/2)*2);
+	ssyrk_spotrf_code_generator(f, nz, nx, ((nu+2-1)/2)*2);
 
 	fprintf(f, "	\n");
 	fprintf(f, "	for(jj=0; jj<%d; jj++) hpL[0][%d+(jj/%d)*%d+jj%%%d+jj*%d] = diag[jj];\n", nu, (nx+pad)*bs, bs, bs*cnl, bs, bs);
 	fprintf(f, "\n");
+//	fprintf(f, "		\n");
+//	fprintf(f, "		s_print_pmat(%d, %d, 4, hpL[0], %d);\n", pnz, cnl, cnl);
+//	fprintf(f, "		exit(1);\n");
 	fprintf(f, "	// forward substitution \n");
 	fprintf(f, "	for(ii=0; ii<%d; ii++)\n", N);
 	fprintf(f, "		{\n");
 	fprintf(f, "		for(jj=0; jj<%d; jj++) hux[ii][jj] = - hpL[ii][%d+%d*jj];\n", nu, (nx+pad)*bs+((nu+nx)/bs)*bs*cnl+(nu+nx)%bs, bs);
-	fprintf(f, "		//dtrsv_dgemv_p_t_lib(nx+nu, nu, &hpL[ii][(nx+pad)*bs], cnl, &hux[ii][0]);\n");
+//	fprintf(f, "		\n");
+//	fprintf(f, "		s_print_mat(1, %d, hux[ii], 1);\n", pnz);
+//	fprintf(f, "		exit(1);\n");
+	fprintf(f, "		//dtrsv_dgemv_t_lib(nx+nu, nu, &hpL[ii][(nx+pad)*bs], cnl, &hux[ii][0]);\n");
 	fprintf(f, "	pA = hpL[ii]+%d;\n", (nx+pad)*bs);
 	fprintf(f, "	x = hux[ii];\n");
 
-	dtrsv_dgemv_t_code_generator(f, nx+nu, nu);
+	strsv_sgemv_t_code_generator(f, nx+nu, nu);
 
 	fprintf(f, "		\n");
 	fprintf(f, "		for(jj=0; jj<%d; jj++) hux[ii+1][%d+jj] = hpBAbt[ii][%d+%d*jj];\n", nx, nu, ((nu+nx)/bs)*bs*cnx+(nu+nx)%bs, bs);
-	fprintf(f, "		//dgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);\n");
+	fprintf(f, "		//dgemv_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);\n");
 	fprintf(f, "	pA = hpBAbt[ii];\n");
 	fprintf(f, "	x = hux[ii];\n");
 	fprintf(f, "	y = hux[ii+1]+%d;\n", nu);
 
-	dgemv_t_code_generator(f, nx+nu, nx, 0, cnx, 1);
+	sgemv_t_code_generator(f, nx+nu, nx, 0, cnx, 1);
 
 	fprintf(f, "	\n");
 	fprintf(f, "		if(compute_pi)\n");
 	fprintf(f, "			{\n");
+	fprintf(f, "			for(jj=0; jj<%d; jj++) work[%d+jj] = hux[ii+1][%d+jj];\n", nx, anz, nu);
 	fprintf(f, "			for(jj=0; jj<%d; jj++) work[jj] = hpL[ii+1][%d+%d*(%d+jj)];\n", nx, (nx+pad)*bs+((nu+nx)/bs)*bs*cnl+(nu+nx)%bs, bs, nu);
 	fprintf(f, "			//dtrmv_p_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 1);\n");
 	fprintf(f, "	pA = hpL[ii+1]+%d;\n", (nx+pad+ncl)*bs);
-	fprintf(f, "	x = hux[ii+1]+%d;\n", nu);
+	fprintf(f, "	x = work+%d;\n", anz);
 	fprintf(f, "	y = work;\n");
 
-	dtrmv_u_n_code_generator(f, nx, 1);
+	strmv_u_n_code_generator(f, nx, 1);
 
 	fprintf(f, "	\n");
 	fprintf(f, "			//dtrmv_p_u_t_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[ii+1][0], 0); // L*(L'*b) + p\n");
@@ -215,7 +224,7 @@ int main()
 	fprintf(f, "	x = work;\n");
 	fprintf(f, "	y = hpi[ii+1];\n");
 
-	dtrmv_u_t_code_generator(f, nx, 0);
+	strmv_u_t_code_generator(f, nx, 0);
 
 	fprintf(f, "	\n");
 	fprintf(f, "			}\n");
@@ -224,7 +233,7 @@ int main()
 	fprintf(f, "\n");
 	fprintf(f, "\n");
 	fprintf(f, "\n");
-	fprintf(f, "void dricpotrs_mpc(int nx_dummy, int nu_dummy, int N_dummy, double **hpBAbt, double **hpL, double **hq, double **hux, double *work, int compute_pi, double **hpi)\n");
+	fprintf(f, "void s_ric_trs_mpc(int nx_dummy, int nu_dummy, int N_dummy, float **hpBAbt, float **hpL, float **hq, float **hux, float *work, int compute_Pb, float ** hPb, int compute_pi, float **hpi)\n");
 	fprintf(f, "	{\n");
 	fprintf(f, "	if(!(nx_dummy==%d && nu_dummy==%d && N_dummy==%d))\n", nx, nu, N);
 	fprintf(f, "		{\n");
@@ -242,44 +251,45 @@ int main()
 	fprintf(f, "	//const int pad = (ncl-nx%%ncl)%%ncl; // packing between BAbtL & P\n");
 	fprintf(f, "	//const int cnl = nx+pad+cnz;\n");
 	fprintf(f, "\n");
-	fprintf(f, "	double *pA, *pB, *pC, *x, *y;\n");
+	fprintf(f, "	float *pA, *pB, *pC, *x, *y;\n");
 	fprintf(f, "	\n");
 	fprintf(f, "	int ii, jj;\n");
 	fprintf(f, "	\n");
 	fprintf(f, "	// backward substitution \n");
 	fprintf(f, "	for(ii=0; ii<%d; ii++)\n", N);
 	fprintf(f, "		{\n");
-	fprintf(f, "		for(jj=0; jj<%d; jj++) work[jj] = hpBAbt[%d-ii][%d+%d*jj];\n", nx, N-1, ((nu+nx)/bs)*bs*cnx+(nu+nx)%bs, bs);
+	fprintf(f, "		for(jj=0; jj<%d; jj++) work[jj] = hux[%d-ii][%d+jj];\n", nx, N, nu);
 	fprintf(f, "		//dtrmv_p_u_n_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work, work+pnz, 0);\n");
 	fprintf(f, "	pA = hpL[%d-ii]+%d;\n", N, (nx+pad+ncl)*bs);
 	fprintf(f, "	x = work;\n");
-	fprintf(f, "	y = work+%d;\n", pnz);
+	fprintf(f, "	y = work+%d;\n", anz);
 
-	dtrmv_u_n_code_generator(f, nx, 0);
+	strmv_u_n_code_generator(f, nx, 0);
 
 	fprintf(f, "	\n");
 	fprintf(f, "		for(jj=0; jj<%d; jj++) work[jj] = hq[%d-ii][%d+jj];\n", nx, N, nu);
 	fprintf(f, "		//dtrmv_p_u_t_lib(nx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, work+pnz, work, 1); // L*(L'*b) + p\n");
 	fprintf(f, "	pA = hpL[%d-ii]+%d;\n", N, (nx+pad+ncl)*bs);
-	fprintf(f, "	x = work+%d;\n", pnz);
-	fprintf(f, "	y = work;\n");
+	fprintf(f, "	x = work+%d;\n", anz);
+	fprintf(f, "	y = hPb[%d-ii];\n", N-1);
 
-	dtrmv_u_t_code_generator(f, nx, 1);
+	strmv_u_t_code_generator(f, nx, 0);
 
 	fprintf(f, "	\n");
+	fprintf(f, "		for(jj=0; jj<%d; jj++) work[jj] = hPb[%d-ii][jj] + hq[%d-ii][%d+jj];\n", nx, N-1, N, nu);
 	fprintf(f, "		//dgemv_p_n_lib(nx+nu, nx, hpBAbt[N-ii-1], cnx, work, hq[N-ii-1], 1);\n");
 	fprintf(f, "	pA = hpBAbt[%d-ii];\n", N-1);
 	fprintf(f, "	x = work;\n");
 	fprintf(f, "	y = hq[%d-ii];\n", N-1);
 	
-	dgemv_n_code_generator(f, nx+nu, nx, 1);
+	sgemv_n_code_generator(f, nx+nu, nx, 1);
 	
 	fprintf(f, "		\n");
 	fprintf(f, "		//dtrsv_dgemv_p_n_lib(nu, nu+nx, hpL[N-ii-1]+(nx+pad)*bs, cnl, hq[N-ii-1]);\n");
 	fprintf(f, "	pA = hpL[%d-ii]+%d;\n", N-1, (nx+pad)*bs);
 	fprintf(f, "	x = hq[%d-ii];\n", N-1);
 
-	dtrsv_dgemv_n_code_generator(f, nu, nu+nx);
+	strsv_sgemv_n_code_generator(f, nu, nu+nx);
 
 	fprintf(f, "		\n");
 	fprintf(f, "		}\n");
@@ -292,26 +302,27 @@ int main()
 	fprintf(f, "	pA = hpL[ii]+%d;\n", (nx+pad)*bs);
 	fprintf(f, "	x = hux[ii];\n");
 
-	dtrsv_dgemv_t_code_generator(f, nx+nu, nu);
+	strsv_sgemv_t_code_generator(f, nx+nu, nu);
 
 	fprintf(f, "		\n");
-	fprintf(f, "		for(jj=0; jj<%d; jj++) hux[ii+1][%d+jj] = hpBAbt[ii][%d+%d*jj];\n", nx, nu, ((nu+nx)/bs)*bs*cnx+(nu+nx)%bs, bs);
+//	fprintf(f, "		for(jj=0; jj<%d; jj++) hux[ii+1][%d+jj] = hpBAbt[ii][%d+%d*jj];\n", nx, nu, ((nu+nx)/bs)*bs*cnx+(nu+nx)%bs, bs);
 	fprintf(f, "		//dgemv_p_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);\n");
 	fprintf(f, "	pA = hpBAbt[ii];\n");
 	fprintf(f, "	x = hux[ii];\n");
 	fprintf(f, "	y = hux[ii+1]+%d;\n", nu);
 
-	dgemv_t_code_generator(f, nx+nu, nx, 0, cnx, 1);
+	sgemv_t_code_generator(f, nx+nu, nx, 0, cnx, 1);
 
 	fprintf(f, "	\n");
 	fprintf(f, "		if(compute_pi)\n");
 	fprintf(f, "			{\n");
+	fprintf(f, "			for(jj=0; jj<%d; jj++) work[%d+jj] = hux[ii+1][%d+jj];\n", nx, anz, nu);
 	fprintf(f, "			//dtrmv_p_u_n_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &hux[ii+1][nu], &work[0], 0);\n");
 	fprintf(f, "	pA = hpL[ii+1]+%d;\n", (nx+pad+ncl)*bs);
-	fprintf(f, "	x = hux[ii+1]+%d;\n", nu);
+	fprintf(f, "	x = work+%d;\n", anz);
 	fprintf(f, "	y = work;\n");
 
-	dtrmv_u_n_code_generator(f, nx, 0);
+	strmv_u_n_code_generator(f, nx, 0);
 
 	fprintf(f, "	\n");
 	fprintf(f, "			//dtrmv_p_u_t_lib(nx, hpL[ii+1]+(nx+pad+ncl)*bs, cnl, &work[0], &hpi[ii+1][0], 0); // L*(L'*b) + p\n");
@@ -319,7 +330,7 @@ int main()
 	fprintf(f, "	x = work;\n");
 	fprintf(f, "	y = hpi[ii+1];\n");
 
-	dtrmv_u_t_code_generator(f, nx, 0);
+	strmv_u_t_code_generator(f, nx, 0);
 
 	fprintf(f, "	\n");
 	fprintf(f, "			for(jj=0; jj<%d; jj++) hpi[ii+1][jj] += hq[ii+1][%d+jj];\n", nx, nu);
@@ -328,12 +339,26 @@ int main()
 	fprintf(f, "	}\n");
 	fprintf(f, "\n");
 
+	fprintf(f, "void s_ric_sv_mhe(int nx_dummy, int nu_dummy, int N_dummy, float **hpBAbt, float **hpQ, float **hux, float **hpL, float *work, float *diag, int compute_pi, float **hpi)\n");
+	fprintf(f, "	{\n");
+	fprintf(f, "	printf(\"ERROR: not implemented yet!\");\n");
+	fprintf(f, "	exit(1);\n");
+	fprintf(f, "	}\n");
+	fprintf(f, "\n");
+	
+	fprintf(f, "void s_ric_trs_mhe(int nx_dummy, int nu_dummy, int N_dummy, float **hpBAbt, float **hpL, float **hq, float **hux, float *work, int compute_Pb, float ** hPb, int compute_pi, float **hpi)\n");
+	fprintf(f, "	{\n");
+	fprintf(f, "	printf(\"ERROR: not implemented yet!\");\n");
+	fprintf(f, "	exit(1);\n");
+	fprintf(f, "	}\n");
+	fprintf(f, "\n");
+
     fclose(f);
 	
 
 
 
-    f = fopen("dres_codegen.c", "w"); // a
+    f = fopen("s_res_codegen.c", "w"); // a
 
 	fprintf(f, "/**************************************************************************************************\n");
 	fprintf(f, "*                                                                                                 *\n");
@@ -364,9 +389,9 @@ int main()
 	fprintf(f, "#include <stdio.h>\n");
 	fprintf(f, "\n");
 	fprintf(f, "#include \"../include/block_size.h\"\n");
-	fprintf(f, "#include \"../include/kernel_d_lib4.h\"\n");
+	fprintf(f, "#include \"../include/kernel_s_lib4.h\"\n");
 	fprintf(f, "\n");
-	fprintf(f, "void dres(int nx_dummy, int nu_dummy, int N_dummy, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb)\n");
+	fprintf(f, "void s_res_mpc(int nx_dummy, int nu_dummy, int N_dummy, float **hpBAbt, float **hpQ, float **hq, float **hux, float **hpi, float **hrq, float **hrb)\n");
 	fprintf(f, "	{\n");
 	fprintf(f, "	if(!(nx_dummy==%d && nu_dummy==%d && N_dummy==%d))\n", nx, nu, N);
 	fprintf(f, "		{\n");
@@ -385,7 +410,7 @@ int main()
 	fprintf(f, "	//const int cnl = nx+pad+cnz;\n");
 	fprintf(f, "	//const int nxu = nx+nu;\n");
 	fprintf(f, "\n");
-	fprintf(f, "	double *pA, *pB, *pC, *x, *y, *x_n, *y_n, *x_t, *y_t;\n");
+	fprintf(f, "	float *pA, *pB, *pC, *x, *y, *x_n, *y_n, *x_t, *y_t;\n");
 	fprintf(f, "	\n");
 	fprintf(f, "	int ii, jj;\n");
 	fprintf(f, "	\n");
@@ -396,7 +421,7 @@ int main()
 	fprintf(f, "	x = hux[0]+%d;\n", nu);
 	fprintf(f, "	y = hrq[0];\n");
 
-	dgemv_t_code_generator(f, nx, nu, nu, cnz, -1);
+	sgemv_t_code_generator(f, nx, nu, nu, cnz, -1);
 
 	fprintf(f, "	\n");
 	fprintf(f, "	//dsymv_p_lib(nu, 0, hpQ[0], cnz, hux[0], hrq[0], -1);\n");
@@ -404,7 +429,7 @@ int main()
 	fprintf(f, "	x = hux[0];\n");
 	fprintf(f, "	y = hrq[0];\n");
 	
-	dsymv_code_generator(f, nu, 0, -1);
+	ssymv_code_generator(f, nu, 0, -1);
 
 	fprintf(f, "	\n");
 	fprintf(f, "	//dgemv_p_n_lib(nu, nx, hpBAbt[0], cnx, hpi[1], hrq[0], -1);\n");
@@ -412,7 +437,7 @@ int main()
 	fprintf(f, "	x = hpi[1];\n");
 	fprintf(f, "	y = hrq[0];\n");
 	
-	dgemv_n_code_generator(f, nu, nx, -1);
+	sgemv_n_code_generator(f, nu, nx, -1);
 	
 	fprintf(f, "		\n");
 	fprintf(f, "	for(jj=0; jj<%d; jj++) hrb[0][jj] = hux[1][%d+jj] - hpBAbt[0][%d+%d*jj];\n", nx, nu, ((nx+nu)/bs)*bs*cnx+(nx+nu)%bs, bs);
@@ -421,7 +446,7 @@ int main()
 	fprintf(f, "	x = hux[0];\n");
 	fprintf(f, "	y = hrb[0];\n");
 
-	dgemv_t_code_generator(f, nx+nu, nx, 0, cnx, -1);
+	sgemv_t_code_generator(f, nx+nu, nx, 0, cnx, -1);
 
 	fprintf(f, "	\n");
 	fprintf(f, "\n");
@@ -435,7 +460,7 @@ int main()
 	fprintf(f, "		x = hux[ii];\n");
 	fprintf(f, "		y = hrq[ii];\n");
 	
-	dsymv_code_generator(f, nx+nu, 0, -1);
+	ssymv_code_generator(f, nx+nu, 0, -1);
 
 	fprintf(f, "		\n");
 	fprintf(f, "		for(jj=0; jj<%d; jj++) hrb[ii][jj] = hux[ii+1][%d+jj] - hpBAbt[ii][%d+%d*jj];\n", nx, nu, ((nx+nu)/bs)*bs*cnx+(nx+nu)%bs, bs);
@@ -446,7 +471,7 @@ int main()
 	fprintf(f, "		x_t = &hux[ii][0];\n");
 	fprintf(f, "		y_t = &hrb[ii][0];\n");
 
-	dmvmv_code_generator(f, nx+nu, nx, 0, -1);
+	smvmv_code_generator(f, nx+nu, nx, 0, -1);
 
 	fprintf(f, "		\n");
 	fprintf(f, "		}\n");
@@ -458,12 +483,17 @@ int main()
 	fprintf(f, "	x = &hux[%d][%d];\n", N, nu);
 	fprintf(f, "	y = &hrq[%d][%d];\n", N, nu);
 	
-	dsymv_code_generator(f, nx, nu, -1);
+	ssymv_code_generator(f, nx, nu, -1);
 
 	fprintf(f, "	\n");
 	fprintf(f, "\n");
 	fprintf(f, "	}\n");
 	fprintf(f, "\n");
+	fprintf(f, "void s_res_mhe(int nx_dummy, int nu_dummy, int N_dummy, float **hpBAbt, float **hpQ, float **hq, float **hux, float **hpi, float **hrq, float **hrb)\n");
+	fprintf(f, "	{\n");
+	fprintf(f, "	printf(\"ERROR: not implemented yet!\");\n");
+	fprintf(f, "	exit(1);\n");
+	fprintf(f, "	}\n");
 	fprintf(f, "\n");
 	fprintf(f, "\n");
 	fprintf(f, "\n");
