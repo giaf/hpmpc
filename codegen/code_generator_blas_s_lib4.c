@@ -65,9 +65,9 @@ fprintf(f, "	kernel_strmm_pp_nt_12x4_lib4(%d, &pA[%d], &pA[%d], &pA[%d], &pB[%d]
 //			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
 //			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
 //			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
-fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+8)*sda, j*bs+j*sdb, j*bs+(i+8)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+8)*sda, j*bs+j*sdb, j*bs+(i+8)*sdc);
 			}
 		else if(n-j==2)
 			{
@@ -75,9 +75,9 @@ fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i
 //			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
 //			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
 //			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
-fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+8)*sda, j*bs+j*sdb, j*bs+(i+8)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+8)*sda, j*bs+j*sdb, j*bs+(i+8)*sdc);
 			}
 		else if(n-j==3)
 			{
@@ -85,9 +85,9 @@ fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i
 //			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
 //			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
 //			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
-fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+8)*sda, j*bs+j*sdb, j*bs+(i+8)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+8)*sda, j*bs+j*sdb, j*bs+(i+8)*sdc);
 			}
 		}
 	if(m-i>12)
@@ -103,24 +103,24 @@ fprintf(f, "	kernel_strmm_pp_nt_8x4_lib4(%d, &pA[%d], &pA[%d], &pB[%d], &pC[%d],
 /*			corner_strmm_pp_nt_8x1_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
 //			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
 //			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
-fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
 			}
 		else if(n-j==2)
 			{
 /*			corner_strmm_pp_nt_8x2_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
 //			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
 //			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
-fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
 			}
 		else if(n-j==3)
 			{
 /*			corner_strmm_pp_nt_8x3_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
 //			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
 //			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
-fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
 			}
 		i+=8;
 		j = 0;
@@ -134,24 +134,24 @@ fprintf(f, "	kernel_strmm_pp_nt_8x4_lib4(%d, &pA[%d], &pA[%d], &pB[%d], &pC[%d],
 /*			corner_strmm_pp_nt_8x1_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
 //			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
 //			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
-fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
 			}
 		else if(n-j==2)
 			{
 /*			corner_strmm_pp_nt_8x2_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
 //			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
 //			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
-fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
 			}
 		else if(n-j==3)
 			{
 /*			corner_strmm_pp_nt_8x3_lib4(&pA[0+(j+0)*bs+i*sda], &pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+(i+4)*sdc], bs);*/
 //			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
 //			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
-fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
 			}
 		i+=8;
 		}
@@ -169,9 +169,9 @@ fprintf(f, "	kernel_strmm_pp_nt_12x4_lib4(%d, &pA[%d], &pA[%d], &pA[%d], &pB[%d]
 //			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
 //			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
 //			corner_strmm_pp_nt_4x1_lib4(&pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
-fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+8)*sda, j*bs+j*sdb, j*bs+(i+8)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+8)*sda, j*bs+j*sdb, j*bs+(i+8)*sdc);
 			}
 		else if(n-j==2)
 			{
@@ -179,9 +179,9 @@ fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i
 //			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
 //			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
 //			corner_strmm_pp_nt_4x2_lib4(&pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
-fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+8)*sda, j*bs+j*sdb, j*bs+(i+8)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+8)*sda, j*bs+j*sdb, j*bs+(i+8)*sdc);
 			}
 		else if(n-j==3)
 			{
@@ -189,9 +189,9 @@ fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i
 //			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], bs);
 //			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+(i+4)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+4)*sdc], bs);
 //			corner_strmm_pp_nt_4x3_lib4(&pA[0+(j+0)*bs+(i+8)*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+(i+8)*sdc], bs);
-fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+8)*sda, j*bs+j*sdb, j*bs+(i+8)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+8)*sda, j*bs+j*sdb, j*bs+(i+8)*sdc);
 			}
 		i+=12;
 		}
@@ -207,20 +207,20 @@ fprintf(f, "	kernel_strmm_pp_nt_8x4_lib4(%d, &pA[%d], &pA[%d], &pB[%d], &pC[%d],
 		if(n-j==1)
 			{
 //fprintf(f, "	corner_strmm_pp_nt_8x1_lib4(&pA[%d], &pA[%d], &pB[%d], &pC[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+i*sdc, j*bs+(i+4)*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
 			}
 		else if(n-j==2)
 			{
 //fprintf(f, "	corner_strmm_pp_nt_8x2_lib4(&pA[%d], &pA[%d], &pB[%d], &pC[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+i*sdc, j*bs+(i+4)*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
 			}
 		else if(n-j==3)
 			{
 //fprintf(f, "	corner_strmm_pp_nt_8x3_lib4(&pA[%d], &pA[%d], &pB[%d], &pC[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+i*sdc, j*bs+(i+4)*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
-fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+(i+4)*sda, j*bs+j*sdb, j*bs+(i+4)*sdc);
 			}
 		}
 #endif
@@ -233,15 +233,15 @@ fprintf(f, "	kernel_strmm_pp_nt_4x4_lib4(%d, &pA[%d], &pB[%d], &pC[%d], 4);\n", 
 			}
 		if(n-j==1)
 			{
-fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x1_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
 			}
 		else if(n-j==2)
 			{
-fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x2_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
 			}
 		else if(n-j==3)
 			{
-fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d]);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
+fprintf(f, "	corner_strmm_pp_nt_4x3_lib4(&pA[%d], &pB[%d], &pC[%d], 4);\n", j*bs+i*sda, j*bs+j*sdb, j*bs+i*sdc);
 			}
 		}
 
