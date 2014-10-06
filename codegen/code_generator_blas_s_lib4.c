@@ -551,6 +551,9 @@ fprintf(f, "	kernel_strmv_u_n_4_lib4(%d, &pA[%d], &x[%d], &y[%d], %d);\n", m-j, 
 		}
 	if(j<m)
 		{
+fprintf(f, "	pA += %d;\n", idxA);
+fprintf(f, "	x += %d;\n", idxx);
+fprintf(f, "	y += %d;\n", idxy);
 		if(j==m-1)
 			{
 			if(alg==0)
