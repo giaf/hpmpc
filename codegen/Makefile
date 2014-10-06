@@ -25,30 +25,31 @@
 
 include ../Makefile.rule
 
-OBJS = dricposv_codegen.o dres_codegen.o #sricposv_codegen.o sres_codegen.o
+OBJS = d_ric_sv_codegen.o d_res_codegen.o s_ric_sv_codegen.o s_res_codegen.o
 
-CODEGEN_OBJS_DOUBLE = code_generator_blas_d_lib4.o code_generator_dricposv.o
-CODEGEN_OBJS_SINGLE = #code_generator_blas_s_lib4.o code_generator_sricposv.o
+CODEGEN_OBJS_DOUBLE = code_generator_blas_d_lib4.o code_generator_d_ric_sv.o
+CODEGEN_OBJS_SINGLE = code_generator_blas_s_lib4.o code_generator_s_ric_sv.o
 
 codegen: $(CODEGEN_OBJS_DOUBLE) $(CODEGEN_OBJS_SINGLE)
 	gcc -o code_generator.out $(CODEGEN_OBJS_DOUBLE) -O2
 	./code_generator.out
-#	gcc -o code_generator.out $(CODEGEN_OBJS_SINGLE) -O2
-#	./code_generator.out
+	gcc -o code_generator.out $(CODEGEN_OBJS_SINGLE) -O2
+	./code_generator.out
 #	sleep 5
 
 obj: codegen $(OBJS)
 
 clean:
-	rm -f dricposv_codegen.c 
-	rm -f sricposv_codegen.c
-	rm -f dres_codegen.c 
-	rm -f sres_codegen.c
+	rm -f d_ric_sv_codegen.c 
+	rm -f s_ric_sv_codegen.c
+	rm -f d_res_codegen.c 
+	rm -f s_res_codegen.c
 	rm -f *.o
 	rm -f code_generator.out
 
-code_generator_dricposv.o: code_generator_dricposv.c ../problem_size.h
-code_generator_sricposv.o: code_generator_dricposv.c ../problem_size.h
+code_generator_d_ric_sv.o: code_generator_d_ric_sv.c ../problem_size.h
+code_generator_s_ric_sv.o: code_generator_d_ric_sv.c ../problem_size.h
+code_generator_blas_s_lib8.o: code_generator_blas_s_lib8.c ../problem_size.h
 code_generator_blas_d_lib4.o: code_generator_blas_d_lib4.c ../problem_size.h
 code_generator_blas_s_lib4.o: code_generator_blas_s_lib4.c ../problem_size.h
 code_generator_blas_d_lib2.o: code_generator_blas_d_lib2.c ../problem_size.h
