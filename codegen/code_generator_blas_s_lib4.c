@@ -253,8 +253,8 @@ void ssyrk_spotrf_code_generator(FILE *f, int m, int k, int n)
 //void dsyrk_dpotrf_pp_lib(int m, int k, int n, double *pA, int sda, double *pC, int sdc, double *diag)
 	{
 	const int bs = 4;
-	const int d_ncl = D_NCL;
-	const int k0 = (d_ncl-k%d_ncl)%d_ncl;
+	const int s_ncl = S_NCL;
+	const int k0 = (s_ncl-k%s_ncl)%s_ncl;
 	
 	const int sda = CNL;
 	const int sdc = CNZ;
