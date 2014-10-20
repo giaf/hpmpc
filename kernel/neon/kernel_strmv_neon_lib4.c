@@ -1271,7 +1271,7 @@ void kernel_strmv_u_n_8_lib4(int kmax, float *A0, float *A1, float *x, float *y,
 		"vld1.64   {d20, d21, d22, d23}, [%3:128]!   \n\t" // load A1 to registers
 		"vmov   q1, q3                   \n\t"
 #endif		
-#if defined(TARGET_CORTEX_A9)
+#if defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 		"vld1.64   {d4, d5, d6, d7}, [%4:128]!   \n\t" // load x to registers
 		"pld    [%2, #0]                 \n\t" // prefetch A0 to L1
 		"pld    [%3, #64]                \n\t" // prefetch A1 to L1

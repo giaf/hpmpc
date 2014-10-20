@@ -24,7 +24,7 @@
 **************************************************************************************************/
 
 // processor maximum frequency (for result printing purposes only)
-#define GHZ_MAX 2.9 // 2.3 2.9 3.4 3.6
+#define GHZ_MAX 1.0 // 2.3 2.9 3.4 3.6
 
 // problem size (states, inputs, horizon)
 //#define NX 30
@@ -48,7 +48,7 @@
 #define FREE_X0 0
 
 // ip method: 1 primal-dual, 2 predictor-corrector primal-dual
-#define IP 2
+#define IP 1
 
 // compute lagrangian multipliers
 #define COMPUTE_MULT 1
