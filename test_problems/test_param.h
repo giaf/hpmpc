@@ -48,7 +48,7 @@
 #define FREE_X0 0
 
 // ip method: 1 primal-dual, 2 predictor-corrector primal-dual
-#define IP 1
+#define IP 2
 
 // compute lagrangian multipliers
 #define COMPUTE_MULT 1
