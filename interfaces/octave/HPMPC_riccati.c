@@ -51,18 +51,18 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	
 	double *work;
 	
-/*	fortran_order_dynamic_mem_riccati_wrapper_init( nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, &work );*/
+	fortran_order_dynamic_mem_riccati_wrapper_init( nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, &work );
 	
-/*	fortran_order_dynamic_mem_riccati_wrapper_fact_solve( nx, nu, N, x, u, pi, work );*/
+	fortran_order_dynamic_mem_riccati_wrapper_fact_solve( nx, nu, N, x, u, pi, work );
 /*	printf("\nfact and solve\n\n");*/
 /*	*/
 /*	fortran_order_dynamic_mem_riccati_wrapper_solve( nx, nu, N, b, q, qf, r, x, u, pi, work );*/
 /*	printf("\ntri solve\n\n");*/
 
-/*	fortran_order_dynamic_mem_riccati_wrapper_free( work );*/
+	fortran_order_dynamic_mem_riccati_wrapper_free( work );
 
 
-	fortran_order_dynamic_mem_riccati_wrapper( nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, x, u, pi );
+/*	fortran_order_dynamic_mem_riccati_wrapper( nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, x, u, pi );*/
 
 
 	return;
