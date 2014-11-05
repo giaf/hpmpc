@@ -27,10 +27,10 @@
 
 
 
-void d_init_ux_t_box_mpc(int N, int nu, int nbu, int nb, double **ux, double **db, double **t, int warm_start)
+void d_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, double **ux, double **pi, double **db, double **t, int warm_start)
 	{
 	
-	int jj, ll;
+	int jj, ll, ii;
 	
 	double thr0 = 1e-3; // minimum distance from a constraint
 
@@ -146,6 +146,8 @@ void d_init_ux_t_box_mpc(int N, int nu, int nbu, int nb, double **ux, double **d
 				ux[0][ll/2] = - db[0][ll+1] - thr0;
 				}
 			}
+		for(ii=ll/2; ii<nu; ii++)
+			ux[0][ii] = 0.0; // initialize remaining components of u to zero
 		for(; ll<2*nb; ll++)
 			t[0][ll] = 1.0; // this has to be strictly positive !!!
 		for(jj=1; jj<N; jj++)
@@ -177,6 +179,8 @@ void d_init_ux_t_box_mpc(int N, int nu, int nbu, int nb, double **ux, double **d
 					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
 					}
 				}
+			for(ii=ll/2; ii<nx+nu; ii++)
+				ux[jj][ii] = 0.0; // initialize remaining components of u and x to zero
 			}
 		for(ll=0; ll<2*nbu; ll++)
 			t[N][ll] = 1.0; // this has to be strictly positive !!!
@@ -207,6 +211,12 @@ void d_init_ux_t_box_mpc(int N, int nu, int nbu, int nb, double **ux, double **d
 				ux[N][ll/2] = - db[N][ll+1] - thr0;
 				}
 			}
+		for(ii=ll/2; ii<nx+nu; ii++)
+			ux[N][ii] = 0.0; // initialize remaining components of x to zero
+
+		for(jj=0; jj<=N; jj++)
+			for(ll=0; ll<nx; ll++)
+				pi[jj][ll] = 0.0; // initialize multipliers to zero
 
 		}
 	
@@ -546,10 +556,10 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 	for(; ll<k0; ll+=2)
 		{
 
-		dt[0][ll+0] =   dux[0][ll/2] - db[0][ll+0];
-		dt[0][ll+1] = - dux[0][ll/2] - db[0][ll+1];
-		dlam[0][ll+0] -= lamt[0][ll+0] * dt[0][ll+0];
-		dlam[0][ll+1] -= lamt[0][ll+1] * dt[0][ll+1];
+		dt[0][ll+0] =   dux[0][ll/2] - db[0][ll+0] - t[0][ll+0];
+		dt[0][ll+1] = - dux[0][ll/2] - db[0][ll+1] - t[0][ll+1];
+		dlam[0][ll+0] -= lamt[0][ll+0] * dt[0][ll+0] + lam[0][ll+0];
+		dlam[0][ll+1] -= lamt[0][ll+1] * dt[0][ll+1] + lam[0][ll+1];
 		if( -alpha*dlam[0][ll+0]>lam[0][ll+0] )
 			{
 			alpha = - lam[0][ll+0] / dlam[0][ll+0];
@@ -558,8 +568,6 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 			{
 			alpha = - lam[0][ll+1] / dlam[0][ll+1];
 			}
-		dt[0][ll+0] -= t[0][ll+0];
-		dt[0][ll+1] -= t[0][ll+1];
 		if( -alpha*dt[0][ll+0]>t[0][ll+0] )
 			{
 			alpha = - t[0][ll+0] / dt[0][ll+0];
@@ -579,10 +587,10 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 		for(; ll<kmax; ll+=2)
 			{
 
-			dt[jj][ll+0] =   dux[jj][ll/2] - db[jj][ll+0];
-			dt[jj][ll+1] = - dux[jj][ll/2] - db[jj][ll+1];
-			dlam[jj][ll+0] -= lamt[jj][ll+0] * dt[jj][ll+0];
-			dlam[jj][ll+1] -= lamt[jj][ll+1] * dt[jj][ll+1];
+			dt[jj][ll+0] =   dux[jj][ll/2] - db[jj][ll+0] - t[jj][ll+0];
+			dt[jj][ll+1] = - dux[jj][ll/2] - db[jj][ll+1] - t[jj][ll+1];
+			dlam[jj][ll+0] -= lamt[jj][ll+0] * dt[jj][ll+0] + lam[jj][ll+0];
+			dlam[jj][ll+1] -= lamt[jj][ll+1] * dt[jj][ll+1] + lam[jj][ll+1];
 			if( -alpha*dlam[jj][ll+0]>lam[jj][ll+0] )
 				{
 				alpha = - lam[jj][ll+0] / dlam[jj][ll+0];
@@ -591,8 +599,6 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 				{
 				alpha = - lam[jj][ll+1] / dlam[jj][ll+1];
 				}
-			dt[jj][ll+0] -= t[jj][ll+0];
-			dt[jj][ll+1] -= t[jj][ll+1];
 			if( -alpha*dt[jj][ll+0]>t[jj][ll+0] )
 				{
 				alpha = - t[jj][ll+0] / dt[jj][ll+0];
@@ -611,10 +617,10 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 	for(; ll<kmax; ll+=2)
 		{
 
-		dt[N][ll+0] =   dux[N][ll/2] - db[N][ll+0];
-		dt[N][ll+1] = - dux[N][ll/2] - db[N][ll+1];
-		dlam[N][ll+0] -= lamt[N][ll+0] * dt[N][ll+0];
-		dlam[N][ll+1] -= lamt[N][ll+1] * dt[N][ll+1];
+		dt[N][ll+0] =   dux[N][ll/2] - db[N][ll+0] - t[N][ll+0];
+		dt[N][ll+1] = - dux[N][ll/2] - db[N][ll+1] - t[N][ll+1];
+		dlam[N][ll+0] -= lamt[N][ll+0] * dt[N][ll+0] + lam[N][ll+0];
+		dlam[N][ll+1] -= lamt[N][ll+1] * dt[N][ll+1] + lam[N][ll+1];
 		if( -alpha*dlam[N][ll+0]>lam[N][ll+0] )
 			{
 			alpha = - lam[N][ll+0] / dlam[N][ll+0];
@@ -623,8 +629,6 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 			{
 			alpha = - lam[N][ll+1] / dlam[N][ll+1];
 			}
-		dt[N][ll+0] -= t[N][ll+0];
-		dt[N][ll+1] -= t[N][ll+1];
 		if( -alpha*dt[N][ll+0]>t[N][ll+0] )
 			{
 			alpha = - t[N][ll+0] / dt[N][ll+0];
@@ -741,10 +745,10 @@ void d_compute_mu_mpc(int N, int nbu, int nu, int nb, double *ptr_mu, double mu_
 
 
 
-void d_init_ux_t_box_mhe(int N, int nu, int nbu, int nb, double **ux, double **db, double **t, int warm_start)
+void d_init_ux_pi_t_box_mhe(int N, int nx, int nu, int nbu, int nb, double **ux, double **pi, double **db, double **t, int warm_start)
 	{
 	
-	int jj, ll;
+	int jj, ll, ii;
 	
 	double thr0 = 1e-3; // minimum distance from a constraint
 
@@ -836,6 +840,8 @@ void d_init_ux_t_box_mhe(int N, int nu, int nbu, int nb, double **ux, double **d
 					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
 					}
 				}
+			for(ii=ll/2; ii<nx+nu; ii++)
+				ux[jj][ii] = 0.0; // initialize remaining components of u and x to zero
 			}
 		for(ll=0; ll<2*nbu; ll++)
 			t[N][ll] = 1.0; // this has to be strictly positive !!!
@@ -866,6 +872,12 @@ void d_init_ux_t_box_mhe(int N, int nu, int nbu, int nb, double **ux, double **d
 				ux[N][ll/2] = - db[N][ll+1] - thr0;
 				}
 			}
+		for(ii=ll/2; ii<nx+nu; ii++)
+			ux[N][ii] = 0.0; // initialize remaining components of x to zero
+
+		for(jj=0; jj<=N; jj++)
+			for(ll=0; ll<nx; ll++)
+				pi[jj][ll] = 0.0; // initialize multipliers to zero
 
 		}
 	
@@ -1110,10 +1122,10 @@ void d_compute_alpha_box_mhe(int N, int k0_dummy, int k1, int kmax, double *ptr_
 		for(; ll<kmax; ll+=2)
 			{
 
-			dt[jj][ll+0] =   dux[jj][ll/2] - db[jj][ll+0];
-			dt[jj][ll+1] = - dux[jj][ll/2] - db[jj][ll+1];
-			dlam[jj][ll+0] -= lamt[jj][ll+0] * dt[jj][ll+0];
-			dlam[jj][ll+1] -= lamt[jj][ll+1] * dt[jj][ll+1];
+			dt[jj][ll+0] =   dux[jj][ll/2] - db[jj][ll+0] - t[jj][ll+0];
+			dt[jj][ll+1] = - dux[jj][ll/2] - db[jj][ll+1] - t[jj][ll+1];
+			dlam[jj][ll+0] -= lamt[jj][ll+0] * dt[jj][ll+0] + lam[jj][ll+0];
+			dlam[jj][ll+1] -= lamt[jj][ll+1] * dt[jj][ll+1] + lam[jj][ll+1];
 			if( -alpha*dlam[jj][ll+0]>lam[jj][ll+0] )
 				{
 				alpha = - lam[jj][ll+0] / dlam[jj][ll+0];
@@ -1122,8 +1134,6 @@ void d_compute_alpha_box_mhe(int N, int k0_dummy, int k1, int kmax, double *ptr_
 				{
 				alpha = - lam[jj][ll+1] / dlam[jj][ll+1];
 				}
-			dt[jj][ll+0] -= t[jj][ll+0];
-			dt[jj][ll+1] -= t[jj][ll+1];
 			if( -alpha*dt[jj][ll+0]>t[jj][ll+0] )
 				{
 				alpha = - t[jj][ll+0] / dt[jj][ll+0];
@@ -1142,10 +1152,10 @@ void d_compute_alpha_box_mhe(int N, int k0_dummy, int k1, int kmax, double *ptr_
 	for(; ll<kmax; ll+=2)
 		{
 
-		dt[N][ll+0] =   dux[N][ll/2] - db[N][ll+0];
-		dt[N][ll+1] = - dux[N][ll/2] - db[N][ll+1];
-		dlam[N][ll+0] -= lamt[N][ll+0] * dt[N][ll+0];
-		dlam[N][ll+1] -= lamt[N][ll+1] * dt[N][ll+1];
+		dt[N][ll+0] =   dux[N][ll/2] - db[N][ll+0] - t[N][ll+0];
+		dt[N][ll+1] = - dux[N][ll/2] - db[N][ll+1] - t[N][ll+1];
+		dlam[N][ll+0] -= lamt[N][ll+0] * dt[N][ll+0] + lam[N][ll+0];
+		dlam[N][ll+1] -= lamt[N][ll+1] * dt[N][ll+1] + lam[N][ll+1];
 		if( -alpha*dlam[N][ll+0]>lam[N][ll+0] )
 			{
 			alpha = - lam[N][ll+0] / dlam[N][ll+0];
@@ -1154,8 +1164,6 @@ void d_compute_alpha_box_mhe(int N, int k0_dummy, int k1, int kmax, double *ptr_
 			{
 			alpha = - lam[N][ll+1] / dlam[N][ll+1];
 			}
-		dt[N][ll+0] -= t[N][ll+0];
-		dt[N][ll+1] -= t[N][ll+1];
 		if( -alpha*dt[N][ll+0]>t[N][ll+0] )
 			{
 			alpha = - t[N][ll+0] / dt[N][ll+0];

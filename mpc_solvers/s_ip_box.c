@@ -168,8 +168,8 @@ void s_ip_box_mpc(int *kk, int k_max, float tol, int warm_start, float *sigma_pa
 	
 
 
-	// initialize ux & t>0 (slack variable)
-	s_init_ux_t_box_mpc(N, nu, nbu, nb, ux, db, t, warm_start);
+	// initialize ux & pi & t>0 (slack variable)
+	s_init_ux_pi_t_box_mpc(N, nx, nu, nbu, nb, ux, pi, db, t, warm_start);
 
 
 
@@ -204,6 +204,7 @@ void s_ip_box_mpc(int *kk, int k_max, float tol, int warm_start, float *sigma_pa
 	while( *kk<k_max && mu>tol )
 		{
 						
+//printf("\nk = %d\n", *kk);						
 
 		//update cost function matrices and vectors (box constraints)
 
@@ -236,6 +237,20 @@ void s_ip_box_mpc(int *kk, int k_max, float tol, int warm_start, float *sigma_pa
 		stat[5*(*kk)+2] = mu;
 		
 
+#if 0
+printf("\npi = \n");
+s_print_mat(1, nx, pi[0], 1);
+s_print_mat(1, nx, pi[1], 1);
+s_print_mat(1, nx, pi[2], 1);
+s_print_mat(1, nx, pi[3], 1);
+s_print_mat(1, nx, pi[4], 1);
+s_print_mat(1, nx, pi[5], 1);
+s_print_mat(1, nx, pi[6], 1);
+s_print_mat(1, nx, pi[7], 1);
+s_print_mat(1, nx, pi[8], 1);
+s_print_mat(1, nx, pi[9], 1);
+s_print_mat(1, nx, pi[N], 1);
+#endif
 
 		// update sigma
 		sigma *= sigma_decay;
@@ -404,7 +419,7 @@ void s_ip_box_mhe(int *kk, int k_max, float tol, int warm_start, float *sigma_pa
 
 
 	// initialize ux & t>0 (slack variable)
-	s_init_ux_t_box_mhe(N, nu, nbu, nb, ux, db, t, warm_start);
+	s_init_ux_pi_t_box_mhe(N, nx, nu, nbu, nb, ux, pi, db, t, warm_start);
 
 
 

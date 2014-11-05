@@ -174,8 +174,8 @@ void s_ip2_box_mpc(int *kk, int k_max, float tol, int warm_start, float *sigma_p
 	
 
 
-	// initialize ux & t>0 (slack variable)
-	s_init_ux_t_box_mpc(N, nu, nbu, nb, ux, db, t, warm_start);
+	// initialize ux & pi & t>0 (slack variable)
+	s_init_ux_pi_t_box_mpc(N, nx, nu, nbu, nb, ux, pi, db, t, warm_start);
 
 
 
@@ -507,7 +507,7 @@ void s_ip2_box_mhe(int *kk, int k_max, float tol, int warm_start, float *sigma_p
 
 
 	// initialize ux & t>0 (slack variable)
-	s_init_ux_t_box_mhe(N, nu, nbu, nb, ux, db, t, warm_start);
+	s_init_ux_pi_t_box_mhe(N, nx, nu, nbu, nb, ux, pi, db, t, warm_start);
 
 
 

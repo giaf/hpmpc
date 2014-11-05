@@ -23,8 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void d_init_ux_t_box_mpc(int N, int nu, int nbu, int nb, double **ux, double **db, double **t, int warm_start);
-void d_init_ux_t_box_mhe(int N, int nu, int nbu, int nb, double **ux, double **db, double **t, int warm_start);
+void d_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, double **ux, double **pi, double **db, double **t, int warm_start);
+void d_init_ux_pi_t_box_mhe(int N, int nx, int nu, int nbu, int nb, double **ux, double **pi, double **db, double **t, int warm_start);
 void d_init_lam_mpc(int N, int nu, int nbu, int nb, double **t, double **lam);
 void d_init_lam_mhe(int N, int nu, int nbu, int nb, double **t, double **lam);
 void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **pl2, double **db);
@@ -35,8 +35,8 @@ void d_update_var_mpc(int nx, int nu, int N, int nb, int nbu, double *ptr_mu, do
 void d_update_var_mhe(int nx, int nu, int N, int nb, int nbu, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi);
 void d_compute_mu_mpc(int N, int nbu, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt);
 void d_compute_mu_mhe(int N, int nbu, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt);
-void s_init_ux_t_box_mpc(int N, int nu, int nbu, int nb, float **ux, float **db, float **t, int warm_start);
-void s_init_ux_t_box_mhe(int N, int nu, int nbu, int nb, float **ux, float **db, float **t, int warm_start);
+void s_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, float **ux, float **pi, float **db, float **t, int warm_start);
+void s_init_ux_pi_t_box_mhe(int N, int nx, int nu, int nbu, int nb, float **ux, float **pi, float **db, float **t, int warm_start);
 void s_init_lam_mpc(int N, int nu, int nbu, int nb, float **t, float **lam);
 void s_init_lam_mhe(int N, int nu, int nbu, int nb, float **t, float **lam);
 void s_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, float sigma_mu, float **t, float **t_inv, float **lam, float **lamt, float **dlam, float **bd, float **bl, float **pd, float **pl, float **pl2, float **db);

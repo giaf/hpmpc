@@ -34,10 +34,10 @@
 
 
 
-void s_init_ux_t_box_mpc(int N, int nu, int nbu, int nb, float **ux, float **db, float **t, int warm_start)
+void s_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, float **ux, float **pi, float **db, float **t, int warm_start)
 	{
 	
-	int jj, ll;
+	int jj, ll, ii;
 	
 	float thr0 = 1e-3; // minimum distance from a constraint
 
@@ -153,6 +153,8 @@ void s_init_ux_t_box_mpc(int N, int nu, int nbu, int nb, float **ux, float **db,
 				ux[0][ll/2] = - db[0][ll+1] - thr0;
 				}
 			}
+		for(ii=ll/2; ii<nu; ii++)
+			ux[0][ii] = 0.0; // initialize remaining components of u to zero
 		for(; ll<2*nb; ll++)
 			t[0][ll] = 1.0; // this has to be strictly positive !!!
 		for(jj=1; jj<N; jj++)
@@ -184,6 +186,8 @@ void s_init_ux_t_box_mpc(int N, int nu, int nbu, int nb, float **ux, float **db,
 					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
 					}
 				}
+			for(ii=ll/2; ii<nx+nu; ii++)
+				ux[jj][ii] = 0.0; // initialize remaining components of u and x to zero
 			}
 		for(ll=0; ll<2*nbu; ll++)
 			t[N][ll] = 1.0; // this has to be strictly positive !!!
@@ -214,6 +218,12 @@ void s_init_ux_t_box_mpc(int N, int nu, int nbu, int nb, float **ux, float **db,
 				ux[N][ll/2] = - db[N][ll+1] - thr0;
 				}
 			}
+		for(ii=ll/2; ii<nx+nu; ii++)
+			ux[N][ii] = 0.0; // initialize remaining components of x to zero
+
+		for(jj=0; jj<=N; jj++)
+			for(ll=0; ll<nx; ll++)
+				pi[jj][ll] = 0.0; // initialize multipliers to zero
 
 		}
 	
@@ -1532,10 +1542,10 @@ void s_compute_mu_mpc(int N, int nbu, int nu, int nb, float *ptr_mu, float mu_sc
 
 
 
-void s_init_ux_t_box_mhe(int N, int nu, int nbu, int nb, float **ux, float **db, float **t, int warm_start)
+void s_init_ux_pi_t_box_mhe(int N, int nx, int nu, int nbu, int nb, float **ux, float **pi, float **db, float **t, int warm_start)
 	{
 	
-	int jj, ll;
+	int jj, ll, ii;
 	
 	float thr0 = 1e-3; // minimum distance from a constraint
 
@@ -1627,6 +1637,8 @@ void s_init_ux_t_box_mhe(int N, int nu, int nbu, int nb, float **ux, float **db,
 					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
 					}
 				}
+			for(ii=ll/2; ii<nx+nu; ii++)
+				ux[jj][ii] = 0.0; // initialize remaining components of u and x to zero
 			}
 		for(ll=0; ll<2*nbu; ll++)
 			t[N][ll] = 1.0; // this has to be strictly positive !!!
@@ -1657,6 +1669,12 @@ void s_init_ux_t_box_mhe(int N, int nu, int nbu, int nb, float **ux, float **db,
 				ux[N][ll/2] = - db[N][ll+1] - thr0;
 				}
 			}
+		for(ii=ll/2; ii<nx+nu; ii++)
+			ux[N][ii] = 0.0; // initialize remaining components of x to zero
+
+		for(jj=0; jj<=N; jj++)
+			for(ll=0; ll<nx; ll++)
+				pi[jj][ll] = 0.0; // initialize multipliers to zero
 
 		}
 	
