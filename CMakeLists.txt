@@ -110,7 +110,7 @@ SET( TARGET_DEF TARGET_${TARGET_DEF})
 
 CONFIGURE_FILE(
 	"${PROJECT_SOURCE_DIR}/include/target.h.in"
-	"${PROJECT_BINARY_DIR}/include/target.h"
+	"${PROJECT_SOURCE_DIR}/include/target.h"
 	@ONLY
 )
 
