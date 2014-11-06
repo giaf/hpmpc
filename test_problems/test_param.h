@@ -77,8 +77,8 @@
 // threshold in the duality measure to switch from single to double precision
 #define SP_THR 1e5
 
-
-
+// duality measure
+#define TOL 1e-6
 
 
 //// solver for LQ control problem: 1 kernel_single, 2 kernel_multiple, 3 BLAS
