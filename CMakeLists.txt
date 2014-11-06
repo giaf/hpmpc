@@ -175,13 +175,6 @@ INSTALL(
 )
 
 INSTALL(
-    DIRECTORY
-		${PROJECT_BINARY_DIR}/include/
-    DESTINATION
-        include/hpmpc
-)
-
-INSTALL(
 	TARGETS
 	    hpmpc
     DESTINATION
