@@ -37,7 +37,7 @@
 
 
 /* primal-dual interior-point method, box constraints, time variant matrices (mpc version) */
-void d_ip2_box_mpc(int *kk, int k_max, double tol, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
+int d_ip2_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
 	{
 	
 	int nbu = nu<nb ? nu : nb ;
@@ -198,17 +198,19 @@ void d_ip2_box_mpc(int *kk, int k_max, double tol, int warm_start, double *sigma
 
 
 	// compute the duality gap
-	alpha = 0.0;
+	alpha = 0.0; // needed to compute mu !!!!!
 	d_compute_mu_mpc(N, nbu, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
 
-
-
+	// set to zero iteration count
 	*kk = 0;	
-	
+
+	// larger than minimum accepted step size
+	alpha = 1.0;
+
 
 
 	// IP loop		
-	while( *kk<k_max && mu>tol )
+	while( *kk<k_max && mu>mu_tol && alpha>=alpha_min )
 		{
 						
 
@@ -339,14 +341,29 @@ void d_ip2_box_mpc(int *kk, int k_max, double tol, int warm_start, double *sigma
 			}
 		}
 
-	return;
+
+
+	// successful exit
+	if(mu<=mu_tol)
+		return 0;
+	
+	// max number of iterations reached
+	if(*kk>=k_max)
+		return 1;
+	
+	// no improvement
+	if(alpha<alpha_min)
+		return 2;
+	
+	// impossible
+	return -1;
 
 	} // end of ipsolver
 
 
 
 /* primal-dual interior-point method, box constraints, time variant matrices (mhe version) */
-void d_ip2_box_mhe(int *kk, int k_max, double tol, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
+int d_ip2_box_mhe(int *kk, int k_max, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
 	{
 	
 	int nbu = nu<nb ? nu : nb ;
@@ -507,17 +524,19 @@ void d_ip2_box_mhe(int *kk, int k_max, double tol, int warm_start, double *sigma
 
 
 	// compute the duality gap
-	alpha = 0.0;
+	alpha = 0.0; // needed to compute mu !!!!!
 	d_compute_mu_mhe(N, nbu, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
 
-
-
+	// set to zero iteration count
 	*kk = 0;	
-	
+
+	// larger than minimum accepted step size
+	alpha = 1.0;
+
 
 
 	// IP loop		
-	while( *kk<k_max && mu>tol )
+	while( *kk<k_max && mu>mu_tol && alpha>=alpha_min )
 		{
 						
 
@@ -641,7 +660,22 @@ void d_ip2_box_mhe(int *kk, int k_max, double tol, int warm_start, double *sigma
 			}
 		}
 
-	return;
+
+
+	// successful exit
+	if(mu<=mu_tol)
+		return 0;
+	
+	// max number of iterations reached
+	if(*kk>=k_max)
+		return 1;
+	
+	// no improvement
+	if(alpha<alpha_min)
+		return 2;
+	
+	// impossible
+	return -1;
 
 	} // end of ipsolver
 

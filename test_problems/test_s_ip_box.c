@@ -163,9 +163,9 @@ int main()
 	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints.\n", nx, nu, N, nb);
 	printf("\n");
 #if IP == 1
-	printf(" IP method parameters: primal-dual IP, single precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_d_ip_box.c to change them).\n", K_MAX, TOL);
+	printf(" IP method parameters: primal-dual IP, single precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_d_ip_box.c to change them).\n", K_MAX, MU_TOL);
 #elif IP == 2
-	printf(" IP method parameters: predictor-corrector IP, single precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_d_ip_box.c to change them).\n", K_MAX, TOL);
+	printf(" IP method parameters: predictor-corrector IP, single precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_d_ip_box.c to change them).\n", K_MAX, MU_TOL);
 #else
 	printf(" Wrong value for IP solver choice: %d\n", IP);
 #endif
@@ -323,12 +323,14 @@ int main()
 /*	char prec = PREC; // double/single precision*/
 /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
 	int k_max = K_MAX; // maximum number of iterations in the IP method
-	float tol = TOL; // tolerance in the duality measure
+	float mu_tol = MU_TOL; // tolerance in the duality measure
+	float alpha_min = ALPHA_MIN;
 	float sigma[] = {0.4, 0.3, 0.01}; // control primal-dual IP behaviour
 	float *stat; s_zeros(&stat, 5, k_max); // stats from the IP routine
 	int compute_mult = COMPUTE_MULT;
 	int warm_start = WARM_START;
 	float mu = -1.0;
+	int hpmpc_status;
 	
 
 
@@ -361,16 +363,16 @@ int main()
 	if(FREE_X0==0)
 		{
 		if(IP==1)
-			s_ip_box_mpc(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			hpmpc_status = s_ip_box_mpc(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 		else
-			s_ip2_box_mpc(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			hpmpc_status = s_ip2_box_mpc(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 		}
 	else
 		{
 		if(IP==1)
-			s_ip_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			hpmpc_status = s_ip_box_mhe(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 		else
-			s_ip2_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			hpmpc_status = s_ip2_box_mhe(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 		}
 
 	int kk_avg = 0;
@@ -398,16 +400,16 @@ int main()
 		if(FREE_X0==0)
 			{
 			if(IP==1)
-				s_ip_box_mpc(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+				hpmpc_status = s_ip_box_mpc(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 			else
-				s_ip2_box_mpc(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+				hpmpc_status = s_ip2_box_mpc(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 			}
 		else
 			{
 			if(IP==1)
-				s_ip_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+				hpmpc_status = s_ip_box_mhe(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 			else
-				s_ip2_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+				hpmpc_status = s_ip2_box_mhe(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 			}
 
 		kk_avg += kk;
@@ -469,10 +471,27 @@ int main()
 		printf("\n");
 
 		printf("\n");
-		printf("u = \n\n");
-		for(ii=0; ii<N; ii++)
-			s_print_mat(1, nu, hux[ii], 1);
+		printf("ux = \n\n");
+		for(ii=0; ii<=N; ii++)
+			s_print_mat(1, nu+nx, hux[ii], 1);
 		
+#if 0
+		printf("\n");
+		printf("pi = \n\n");
+		for(ii=0; ii<=N; ii++)
+			s_print_mat(1, nx, hpi[ii], 1);
+		
+		printf("\n");
+		printf("lam = \n\n");
+		for(ii=0; ii<=N; ii++)
+			s_print_mat(1, 2*nb, hlam[ii], 1);
+
+		printf("\n");
+		printf("t = \n\n");
+		for(ii=0; ii<=N; ii++)
+			s_print_mat(1, 2*nb, ht[ii], 1);
+#endif			
+
 		}
 
 	if(PRINTRES==1 && COMPUTE_MULT==1)

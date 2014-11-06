@@ -24,7 +24,7 @@
 **************************************************************************************************/
 
 // processor maximum frequency (for result printing purposes only)
-#define GHZ_MAX 1.0 // 2.3 2.9 3.4 3.6
+#define GHZ_MAX 2.9 // 2.3 2.9 3.4 3.6
 
 // problem size (states, inputs, horizon)
 //#define NX 30
@@ -69,7 +69,10 @@
 #define K_MAX_ADMM 2000
 
 // tolerance in the duality measure
-#define TOL 1e-5
+#define MU_TOL 1e-6
+
+// minimum accepted step length
+#define ALPHA_MIN 1e-8
 
 // threshold in the duality measure to switch from single to double precision
 #define SP_THR 1e5

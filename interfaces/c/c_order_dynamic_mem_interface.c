@@ -94,7 +94,10 @@
 /*#define K_MAX 20*/
 
 // tolerance in the duality measure
-/*#define TOL 1e-4*/
+/*#define MU_TOL 1e-4*/
+
+// minimum accepted step length
+#define ALPHA_MIN 1e-8
 
 /*// threshold in the duality measure to switch from single to double precision*/
 /*#define SP_THR 1e5*/
@@ -105,7 +108,7 @@
 #endif /* PC_DEBUG */
 
 /* version dealing with equality constratins: is lb=ub, then fix the variable (corresponding column in A or B set to zero, and updated b) */
-int c_order_dynamic_mem_ip_wrapper(	int k_max, double tol,
+int c_order_dynamic_mem_ip_wrapper(	int k_max, double mu_tol,
                                     const int nx, const int nu, const int N,
                                     double* A, double* B, double* b, 
                                     double* Q, double* Qf, double* S, double* R, 
@@ -117,6 +120,8 @@ int c_order_dynamic_mem_ip_wrapper(	int k_max, double tol,
 	{
 
 /*printf("\nstart of wrapper\n");*/
+
+	int hpmpc_status = -1;
 
     char prec = PREC;
 
@@ -163,7 +168,8 @@ int c_order_dynamic_mem_ip_wrapper(	int k_max, double tol,
 
         /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
 /*        int k_max = K_MAX; // maximum number of iterations in the IP method*/
-/*        double tol = TOL; // tolerance in the duality measure*/
+/*        double mu_tol = MU_TOL; // tolerance in the duality measure*/
+		double alpha_min = ALPHA_MIN; // minimum accepted step length
         static double sigma_par[] = {0.4, 0.1, 0.001}; // control primal-dual IP behaviour
 /*        static double stat[5*K_MAX]; // statistics from the IP routine*/
 /*        static double work[8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 5*D_ANZ + 2*D_ANX + 7*D_ANB) + 3*D_ANZ];*/
@@ -378,16 +384,16 @@ int c_order_dynamic_mem_ip_wrapper(	int k_max, double tol,
 		if(FREE_X0==0) // mpc
 			{
 		    if(IP==1)
-		        d_ip_box_mpc(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        hpmpc_status = d_ip_box_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    else
-		        d_ip2_box_mpc(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        hpmpc_status = d_ip2_box_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    }
 		else // mhe
 			{
 		    if(IP==1)
-		        d_ip_box_mhe(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        hpmpc_status = d_ip_box_mhe(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    else
-		        d_ip2_box_mhe(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        hpmpc_status = d_ip2_box_mhe(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    }
 
 /*printf("\nend of ip solver\n");*/
@@ -496,11 +502,12 @@ int c_order_dynamic_mem_ip_wrapper(	int k_max, double tol,
 
         /*	float sp_thr = SP_THR; // threshold to switch between float and single precision*/
 /*        int k_max = K_MAX; // maximum number of iterations in the IP method*/
-/*        float tol = TOL; // tolerance in the duality measure*/
+/*        float mu_tol = MU_TOL; // tolerance in the duality measure*/
+		float alpha_min = ALPHA_MIN; // minimum accepted step length
         static float sigma_par[] = {0.4, 0.1, 0.01}; // control primal-dual IP behaviour
 /*        static float stat[5*K_MAX]; // statistics from the IP routine*/
 /*        static float work[16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 2*S_ANX + 7*S_ANB) + 3*S_ANZ];*/
-        float *work = (float *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 3*anx + 7*anb) + 3*anz)*sizeof(float));
+        float *work = (float *) malloc((16 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 3*anx + 7*anb) + 3*anz)*sizeof(float));
         int warm_start = WARM_START;
         int compute_mult = 1; // compute multipliers
         
@@ -680,16 +687,16 @@ int c_order_dynamic_mem_ip_wrapper(	int k_max, double tol,
 		if(FREE_X0==0) // mpc
 			{
 		    if(IP==1)
-		        s_ip_box_mpc(nIt, k_max, tol, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        hpmpc_status = s_ip_box_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    else
-		        s_ip2_box_mpc(nIt, k_max, tol, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        hpmpc_status = s_ip2_box_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    }
 		else // mhe
 			{
 		    if(IP==1)
-		        s_ip_box_mhe(nIt, k_max, tol, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        hpmpc_status = s_ip_box_mhe(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    else
-		        s_ip2_box_mhe(nIt, k_max, tol, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        hpmpc_status = s_ip2_box_mhe(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    }
 		
 
@@ -738,7 +745,7 @@ int c_order_dynamic_mem_ip_wrapper(	int k_max, double tol,
 
 /*printf("\nend of wrapper\n");*/
 
-    return 0;
+    return hpmpc_status;
 
 }
 
@@ -1574,7 +1581,6 @@ int c_order_dynamic_mem_admm_soft_wrapper( int k_max, double tol,
         int warm_start = 0;//WARM_START;
         int compute_mult = 0;//1; // compute multipliers
         
-        int info = 0;
 
         int i, ii, jj, ll;
 
@@ -1827,7 +1833,6 @@ int c_order_dynamic_mem_admm_soft_wrapper( int k_max, double tol,
         int warm_start = 0;//WARM_START;
         int compute_mult = 0;//1; // compute multipliers
         
-        int info = 0;
 
         int i, ii, jj, ll;
 
