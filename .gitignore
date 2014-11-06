@@ -167,3 +167,5 @@ CMakeFiles
 cmake_install.cmake
 install_manifest.txt
 
+### Preconfigured target configuration file
+include/target.h
