@@ -29,7 +29,7 @@
 
 
 
-void kernel_spotrf_pp_nt_4x4_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
+void kernel_ssyrk_spotrf_nt_4x4_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
 	{
 
 	const int bs = 4;
@@ -415,7 +415,7 @@ void kernel_spotrf_pp_nt_4x4_lib4(int kadd, int ksub, float *A, float *B, float 
 
 
 
-void kernel_spotrf_pp_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
+void kernel_ssyrk_spotrf_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
 	{
 
 	const int bs = 4;
@@ -697,7 +697,7 @@ void kernel_spotrf_pp_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, float 
 
 
 
-void kernel_spotrf_pp_nt_2x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
+void kernel_ssyrk_spotrf_nt_2x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
 	{
 
 	const int bs = 4;

@@ -25,7 +25,7 @@
 
 
 
-void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
+void kernel_stran_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 	{
 	
 	// kmax is at least 4 !!!
@@ -342,7 +342,7 @@ void kernel_stran_pp_4_lib4(int kmax, int kna, float *A, int sda, float *C)
 
 
 
-void corner_stran_pp_3_lib4(int kna, float *A, int sda, float *C)
+void corner_stran_3_lib4(int kna, float *A, int sda, float *C)
 	{
 
 	const int bs = 4;
@@ -410,7 +410,7 @@ void corner_stran_pp_3_lib4(int kna, float *A, int sda, float *C)
 
 
 
-void corner_stran_pp_2_lib4(int kna, float *A, int sda, float *C)
+void corner_stran_2_lib4(int kna, float *A, int sda, float *C)
 	{
 
 	const int bs = 4;

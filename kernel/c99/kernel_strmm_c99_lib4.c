@@ -25,7 +25,7 @@
 
 
 
-void kernel_strmm_pp_nt_4x4_lib4(int kadd, float *A, float *B, float *C, int ldc)
+void kernel_strmm_nt_4x4_lib4(int kadd, float *A, float *B, float *C, int ldc)
 	{
 
 	const int bs = 4;
@@ -328,7 +328,7 @@ void kernel_strmm_pp_nt_4x4_lib4(int kadd, float *A, float *B, float *C, int ldc
 
 
 
-void corner_strmm_pp_nt_4x3_lib4(float *A, float *B, float *C, int ldc)
+void corner_strmm_nt_4x3_lib4(float *A, float *B, float *C, int ldc)
 	{
 
 	const int bs = 4;
@@ -420,7 +420,7 @@ void corner_strmm_pp_nt_4x3_lib4(float *A, float *B, float *C, int ldc)
 
 
 
-void corner_strmm_pp_nt_4x2_lib4(float *A, float *B, float *C, int ldc)
+void corner_strmm_nt_4x2_lib4(float *A, float *B, float *C, int ldc)
 	{
 
 	const int bs = 4;
@@ -482,7 +482,7 @@ void corner_strmm_pp_nt_4x2_lib4(float *A, float *B, float *C, int ldc)
 
 
 
-void corner_strmm_pp_nt_4x1_lib4(float *A, float *B, float *C, int ldc)
+void corner_strmm_nt_4x1_lib4(float *A, float *B, float *C, int ldc)
 	{
 
 	const int bs = 4;

@@ -25,7 +25,7 @@
 
 
 
-void kernel_strmm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, int ldc_dummy)
+void kernel_strmm_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, int ldc_dummy)
 	{
 	
 /*	if(kmax<=0)*/
@@ -442,7 +442,7 @@ void kernel_strmm_pp_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, flo
 
 
 // normal-transposed, 8x4 with data packed in 4
-void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, int ldc_dummy)
+void kernel_strmm_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, int ldc_dummy)
 	{
 	
 /*	if(kmax<=0)*/
@@ -934,7 +934,7 @@ void kernel_strmm_pp_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float
 
 
 
-void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc_dummy)
+void kernel_strmm_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc_dummy)
 	{
 	
 /*	if(kmax<=0)*/
@@ -1291,7 +1291,7 @@ void kernel_strmm_pp_nt_4x4_lib4(int kmax, float *A, float *B, float *C, int ldc
 
 
 
-void corner_strmm_pp_nt_4x3_lib4(float *A, float *B, float *C, int ldc)
+void corner_strmm_nt_4x3_lib4(float *A, float *B, float *C, int ldc)
 	{
 
 	const int bs = 4;
@@ -1383,7 +1383,7 @@ void corner_strmm_pp_nt_4x3_lib4(float *A, float *B, float *C, int ldc)
 
 
 
-void corner_strmm_pp_nt_4x2_lib4(float *A, float *B, float *C, int ldc)
+void corner_strmm_nt_4x2_lib4(float *A, float *B, float *C, int ldc)
 	{
 
 	const int bs = 4;
@@ -1445,7 +1445,7 @@ void corner_strmm_pp_nt_4x2_lib4(float *A, float *B, float *C, int ldc)
 
 
 
-void corner_strmm_pp_nt_4x1_lib4(float *A, float *B, float *C, int ldc)
+void corner_strmm_nt_4x1_lib4(float *A, float *B, float *C, int ldc)
 	{
 
 	const int bs = 4;
