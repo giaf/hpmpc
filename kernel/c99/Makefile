@@ -27,7 +27,7 @@ include ../../Makefile.rule
 
 ifeq ($(TARGET), C99_4X4)
 OBJS_DOUBLE = kernel_dgemm_c99_lib4.o kernel_dtrmm_c99_lib4.o kernel_dgemm_dtrsm_c99_lib4.o kernel_dsyrk_dpotrf_c99_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4.o kernel_dsymv_c99_lib4.o kernel_dtran_c99_lib4.o
-OBJS_SINGLE = kernel_sgemm_c99_lib4.o kernel_strmm_c99_lib4.o kernel_strsm_c99_lib4.o kernel_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o kernel_strmv_c99_lib4.o kernel_strsv_c99_lib4.o kernel_ssymv_c99_lib4.o kernel_stran_c99_lib4.o
+OBJS_SINGLE = kernel_sgemm_c99_lib4.o kernel_strmm_c99_lib4.o kernel_sgemm_strsm_c99_lib4.o kernel_ssyrk_spotrf_c99_lib4.o kernel_sgemv_c99_lib4.o kernel_strmv_c99_lib4.o kernel_strsv_c99_lib4.o kernel_ssymv_c99_lib4.o kernel_stran_c99_lib4.o
 endif
 
 obj: $(OBJS_DOUBLE) $(OBJS_SINGLE)
