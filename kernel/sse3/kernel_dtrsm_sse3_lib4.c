@@ -37,7 +37,7 @@
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc_dummy, double *fact)
+void kernel_dgemm_dtrsm_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc_dummy, double *fact)
 	{
 	
 	int ki_add = kadd/4;
@@ -610,7 +610,7 @@ void kernel_dtrsm_pp_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 
 
 
-void kernel_dtrsm_pp_nt_4x4_lib4_old(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
+void kernel_dgemm_dtrsm_nt_4x4_lib4_old(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
 	{
 
 	const int bs = 4;
@@ -1036,7 +1036,7 @@ void kernel_dtrsm_pp_nt_4x4_lib4_old(int kadd, int ksub, double *A, double *B, d
 	
 	
 	
-void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
+void kernel_dgemm_dtrsm_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
 	{
 
 	const int bs = 4;
@@ -1299,7 +1299,7 @@ void kernel_dtrsm_pp_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, doubl
 	
 	
 	
-void kernel_dtrsm_pp_nt_2x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
+void kernel_dgemm_dtrsm_nt_2x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
 	{
 
 	const int bs = 4;
@@ -1597,7 +1597,7 @@ void kernel_dtrsm_pp_nt_2x4_lib4(int kadd, int ksub, double *A, double *B, doubl
 	
 	
 	
-void kernel_dtrsm_pp_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
+void kernel_dgemm_dtrsm_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, int ldc, double *fact)
 	{
 
 	const int bs = 4;

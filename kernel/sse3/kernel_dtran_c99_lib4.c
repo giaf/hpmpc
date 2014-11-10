@@ -25,7 +25,7 @@
 
 
 
-void kernel_dtran_pp_4_lib4(int kmax, int kna, double *A, int sda, double *C)
+void kernel_dtran_4_lib4(int kmax, int kna, double *A, int sda, double *C)
 	{
 	
 	// kmax is at least 4 !!!
@@ -238,7 +238,7 @@ void kernel_dtran_pp_4_lib4(int kmax, int kna, double *A, int sda, double *C)
 
 
 
-void corner_dtran_pp_3_lib4(int kna, double *A, int sda, double *C)
+void corner_dtran_3_lib4(int kna, double *A, int sda, double *C)
 	{
 
 	const int bs = 4;
@@ -306,7 +306,7 @@ void corner_dtran_pp_3_lib4(int kna, double *A, int sda, double *C)
 
 
 
-void corner_dtran_pp_2_lib4(int kna, double *A, int sda, double *C)
+void corner_dtran_2_lib4(int kna, double *A, int sda, double *C)
 	{
 
 	const int bs = 4;
