@@ -32,12 +32,14 @@
 
 
 
-void kernel_sgemm_nt_24x4_lib8(int kmax, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, int ldc, int alg)
+void kernel_sgemm_nt_24x4_lib8(int kmax, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 	
+	const int ldc = 8;
+
 	int k;
 	
 	__m256
@@ -368,12 +370,14 @@ void kernel_sgemm_nt_24x4_lib8(int kmax, float *A0, float *A1, float *A2, float 
 
 
 
-void kernel_sgemm_nt_24x4_lib8_broadcast(int kmax, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, int ldc, int alg)
+void kernel_sgemm_nt_24x4_lib8_broadcast(int kmax, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 	
+	const int ldc = 8;
+
 	int k;
 	
 	__m256
@@ -681,12 +685,14 @@ void kernel_sgemm_nt_24x4_lib8_broadcast(int kmax, float *A0, float *A1, float *
 
 
 // normal-transposed, 16x4 with data packed in 8
-void kernel_sgemm_nt_16x4_lib8_new(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, int alg)
+void kernel_sgemm_nt_16x4_lib8_new(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 	
+	const int ldc = 8;
+
 	int k;
 	
 	__m256
@@ -971,12 +977,14 @@ void kernel_sgemm_nt_16x4_lib8_new(int kmax, float *A0, float *A1, float *B, flo
 
 
 
-void kernel_sgemm_nt_16x4_lib8(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, int alg)
+void kernel_sgemm_nt_16x4_lib8(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 	
+	const int ldc = 8;
+
 	int k;
 	
 	__m256
@@ -1249,12 +1257,14 @@ void kernel_sgemm_nt_16x4_lib8(int kmax, float *A0, float *A1, float *B, float *
 
 
 
-void kernel_sgemm_nt_12x4_lib8(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, int alg)
+void kernel_sgemm_nt_12x4_lib8(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 	
+	const int ldc = 8;
+
 	int k;
 	
 	__m128
@@ -1631,12 +1641,14 @@ void kernel_sgemm_nt_12x4_lib8(int kmax, float *A0, float *A1, float *B, float *
 
 
 // normal-transposed, 12x4 with data packed in 8
-void kernel_sgemm_nt_12x4_lib8_test(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc, int alg)
+void kernel_sgemm_nt_12x4_lib8_test(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 	
+	const int ldc = 8;
+
 	int k;
 	
 	__m128
@@ -1981,12 +1993,14 @@ void kernel_sgemm_nt_12x4_lib8_test(int kmax, float *A0, float *A1, float *B, fl
 
 
 // normal-transposed, 8x8 with data packed in 8
-void kernel_sgemm_nt_8x8_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg)
+void kernel_sgemm_nt_8x8_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 	
+	const int ldc = 8;
+
 	int k;
 	
 	__m256
@@ -2325,12 +2339,14 @@ void kernel_sgemm_nt_8x8_lib8(int kmax, float *A0, float *B, float *C0, float *D
 
 
 // normal-transposed, 8x4 with data packed in 8
-void kernel_sgemm_nt_8x4_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg)
+void kernel_sgemm_nt_8x4_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 	
+	const int ldc = 8;
+
 	int k;
 	
 	__m256
@@ -2735,12 +2751,14 @@ void kernel_sgemm_nt_8x4_lib8(int kmax, float *A0, float *B, float *C0, float *D
 
 
 // normal-transposed, 4x8 with data packed in 8
-void kernel_sgemm_nt_4x8_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int ldc, int alg)
+void kernel_sgemm_nt_4x8_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 	
+	const int ldc = 8;
+
 	int k;
 	
 	__m256
@@ -2978,13 +2996,13 @@ void kernel_sgemm_nt_4x8_lib8(int kmax, float *A0, float *B, float *C0, float *D
 
 
 // normal-transposed, 4x4 with data packed in 8
-void kernel_sgemm_nt_4x4_lib8(int kmax, float *A, float *B, float *C, float *D, int ldc, int alg)
+void kernel_sgemm_nt_4x4_lib8(int kmax, float *A, float *B, float *C, float *D, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
 	
-/*	const int ldc = 8;*/
+	const int ldc = 8;
 
 	int k;
 	

@@ -36,7 +36,7 @@
 
 
 // normal-transposed, 8x4 with data packed in 4
-void kernel_ssyrk_spotrf_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc_dummy, float *fact)
+void kernel_ssyrk_spotrf_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, float *fact)
 	{
 	
 	int ki_add = kadd/4;
@@ -722,7 +722,7 @@ void kernel_ssyrk_spotrf_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, f
 
 
 
-void kernel_ssyrk_spotrf_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float *C0, float *D0, int ldc_dummy, float *fact)
+void kernel_ssyrk_spotrf_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float *C0, float *D0, float *fact)
 	{
 	
 	int ki_add = kadd/4;
@@ -1213,12 +1213,13 @@ void kernel_ssyrk_spotrf_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, fl
 
 
 
-void kernel_ssyrk_spotrf_nt_4x4_lib4_old(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
+void kernel_ssyrk_spotrf_nt_4x4_lib4_old(int kadd, int ksub, float *A, float *B, float *C, float *D, float *fact)
 	{
 
 	const int bs = 4;
 	const int d_ncl = S_NCL;
 	const int lda = bs;
+	const int ldc = bs;
 
 	int k;
 
@@ -1620,12 +1621,13 @@ void kernel_ssyrk_spotrf_nt_4x4_lib4_old(int kadd, int ksub, float *A, float *B,
 
 
 
-void kernel_ssyrk_spotrf_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
+void kernel_ssyrk_spotrf_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, float *fact)
 	{
 
 	const int bs = 4;
 	const int d_ncl = S_NCL;
 	const int lda = bs;
+	const int ldc = bs;
 
 	int k;
 
@@ -1902,12 +1904,13 @@ void kernel_ssyrk_spotrf_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, flo
 
 
 
-void kernel_ssyrk_spotrf_nt_2x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
+void kernel_ssyrk_spotrf_nt_2x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, float *fact)
 	{
 
 	const int bs = 4;
 	const int d_ncl = S_NCL;
 	const int lda = bs;
+	const int ldc = bs;
 
 	int k;
 

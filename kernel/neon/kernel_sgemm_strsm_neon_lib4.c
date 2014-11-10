@@ -27,7 +27,7 @@
 
 
 
-void kernel_sgemm_strsm_nt_12x4_lib4(int kadd, int ksub, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, int ldc_dummy, float *fact)
+void kernel_sgemm_strsm_nt_12x4_lib4(int kadd, int ksub, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, float *fact)
 	{
 	
 /*	if(kmax<=0)*/
@@ -613,7 +613,7 @@ void kernel_sgemm_strsm_nt_12x4_lib4(int kadd, int ksub, float *A0, float *A1, f
 
 
 
-void kernel_sgemm_strsm_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int ldc_dummy, float *fact)
+void kernel_sgemm_strsm_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, float *fact)
 	{
 	
 /*	if(kmax<=0)*/
@@ -1267,7 +1267,7 @@ void kernel_sgemm_strsm_nt_8x4_lib4(int kadd, int ksub, float *A0, float *A1, fl
 
 
 
-void kernel_sgemm_strsm_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float *C0, float *D0, int ldc_dummy, float *fact)
+void kernel_sgemm_strsm_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, float *C0, float *D0, float *fact)
 	{
 
 /*	if(kmax<=0)*/
@@ -1756,12 +1756,13 @@ void kernel_sgemm_strsm_nt_4x4_lib4(int kadd, int ksub, float *A0, float *B, flo
 
 	
 	
-void kernel_sgemm_strsm_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
+void kernel_sgemm_strsm_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, float *fact)
 	{
 
 	const int bs = 4;
 	const int d_ncl = S_NCL;
 	const int lda = bs;
+	const int ldc = bs;
 
 	int k;
 
@@ -2019,12 +2020,13 @@ void kernel_sgemm_strsm_nt_4x2_lib4(int kadd, int ksub, float *A, float *B, floa
 	
 	
 	
-void kernel_sgemm_strsm_nt_2x4_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
+void kernel_sgemm_strsm_nt_2x4_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, float *fact)
 	{
 
 	const int bs = 4;
 	const int d_ncl = S_NCL;
 	const int lda = bs;
+	const int ldc = bs;
 
 	int k;
 
@@ -2317,12 +2319,13 @@ void kernel_sgemm_strsm_nt_2x4_lib4(int kadd, int ksub, float *A, float *B, floa
 	
 	
 	
-void kernel_sgemm_strsm_nt_2x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, int ldc, float *fact)
+void kernel_sgemm_strsm_nt_2x2_lib4(int kadd, int ksub, float *A, float *B, float *C, float *D, float *fact)
 	{
 
 	const int bs = 4;
 	const int d_ncl = S_NCL;
 	const int lda = bs;
+	const int ldc = bs;
 
 	int k;
 
