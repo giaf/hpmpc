@@ -34,7 +34,7 @@
 
 
 
-void kernel_strsm_nt_24x4_lib8(int kadd, int ksub, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, float *fact)
+void kernel_sgemm_strsm_nt_24x4_lib8(int kadd, int ksub, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, float *fact)
 	{
 	
 	const int bs = 8;
@@ -511,7 +511,7 @@ void kernel_strsm_nt_24x4_lib8(int kadd, int ksub, float *A0, float *A1, float *
 
 
 // normal-transposed, 16x4 with data packed in 4
-void kernel_strsm_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, float *fact)
+void kernel_sgemm_strsm_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, float *fact)
 	{
 	
 	const int bs = 8;
@@ -997,7 +997,7 @@ void kernel_strsm_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, float *
 
 
 // normal-transposed, 16x4 with data packed in 4
-void kernel_strsm_nt_8x4_lib8(int kadd, int ksub, float *A0, float *B, float *C0, float *D0, float *fact)
+void kernel_sgemm_strsm_nt_8x4_lib8(int kadd, int ksub, float *A0, float *B, float *C0, float *D0, float *fact)
 	{
 	
 	const int bs = 8;
