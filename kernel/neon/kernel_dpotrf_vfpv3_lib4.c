@@ -32,7 +32,7 @@
 // normal-transposed, 4x4 with data packed in 4
 // prefetch optimized for Cortex-A9 (cache line is 32 bytes, while A15 is 64 bytes)
 /*void kernel_dgemm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)*/
-void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact)
+void kernel_dpotrf_nt_4x4_lib4(int ksub, double *A, double *B, double *C, double *D, double *fact)
 	{
 	
 	__builtin_prefetch( A );
@@ -42,15 +42,9 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 	__builtin_prefetch( B+4 );
 #endif
 
-	int ki_add = kadd/4;
-	int kl_add = kadd%4;
 	int ki_sub = ksub/4;
 
 	const int bs = D_MR;//4;
-	const int d_ncl = D_NCL;//2;
-
-	int dA = bs*((d_ncl-kadd%d_ncl)%d_ncl)*sizeof(double);
-/*	int dA = bs*((d_ncl-kadd%d_ncl)%d_ncl);*/
 
 	__builtin_prefetch( A+8 );
 	__builtin_prefetch( B+8 );
@@ -67,27 +61,27 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		"mov    r3, %0                   \n\t" // k_iter
 		"                                \n\t"
 		"                                \n\t"
-		"fldd   d16, [%3, #0]            \n\t" // prefetch A_even
-		"fldd   d17, [%3, #8]            \n\t"
-		"fldd   d18, [%3, #16]           \n\t"
-		"fldd   d19, [%3, #24]           \n\t"
+		"fldd   d16, [%1, #0]            \n\t" // prefetch A_even
+		"fldd   d17, [%1, #8]            \n\t"
+		"fldd   d18, [%1, #16]           \n\t"
+		"fldd   d19, [%1, #24]           \n\t"
 		"                                \n\t"
-		"fldd   d20, [%4, #0]            \n\t" // prefetch B_even
-		"fldd   d21, [%4, #8]            \n\t"
-		"fldd   d22, [%4, #16]           \n\t"
-		"fldd   d23, [%4, #24]           \n\t"
+		"fldd   d20, [%2, #0]            \n\t" // prefetch B_even
+		"fldd   d21, [%2, #8]            \n\t"
+		"fldd   d22, [%2, #16]           \n\t"
+		"fldd   d23, [%2, #24]           \n\t"
 		"                                \n\t"
 		"cmp    r3, #0                   \n\t"
 		"                                \n\t"
-		"fldd   d24, [%3, #32]           \n\t" // prefetch A_odd
-		"fldd   d25, [%3, #40]           \n\t"
-		"fldd   d26, [%3, #48]           \n\t"
-		"fldd   d27, [%3, #56]           \n\t"
+		"fldd   d24, [%1, #32]           \n\t" // prefetch A_odd
+		"fldd   d25, [%1, #40]           \n\t"
+		"fldd   d26, [%1, #48]           \n\t"
+		"fldd   d27, [%1, #56]           \n\t"
 		"                                \n\t"
-		"fldd   d28, [%4, #32]           \n\t" // prefetch B_odd
-		"fldd   d29, [%4, #40]           \n\t"
-		"fldd   d30, [%4, #48]           \n\t"
-		"fldd   d31, [%4, #56]           \n\t"
+		"fldd   d28, [%2, #32]           \n\t" // prefetch B_odd
+		"fldd   d29, [%2, #40]           \n\t"
+		"fldd   d30, [%2, #48]           \n\t"
+		"fldd   d31, [%2, #56]           \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -109,7 +103,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		"fcpyd  d15, d0                  \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"ble    .DCONSIDERADD            \n\t"
+		"ble    .DPOSTACC                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -122,331 +116,123 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		".DLOOPADD:                      \n\t" // main loop
-		"                                \n\t"
-		"                                \n\t"
-		"pld    [%3, #128]               \n\t"
-		"pld    [%4, #128]               \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"fmacd  d0, d16, d20             \n\t"
-		"fldd   d16, [%3, #64]           \n\t" // prefetch A_even
-		"fmacd  d1, d17, d20             \n\t"
-		"fmacd  d2, d18, d20             \n\t"
-		"fmacd  d3, d19, d20             \n\t"
-		"fldd   d20, [%4, #64]           \n\t" // prefetch B_even
-		"                                \n\t"
-		"fmacd  d5, d17, d21             \n\t"
-		"fldd   d17, [%3, #72]           \n\t"
-		"fmacd  d6, d18, d21             \n\t"
-		"fmacd  d7, d19, d21             \n\t"
-		"fldd   d21, [%4, #72]           \n\t"
-		"                                \n\t"
-		"fmacd  d10, d18, d22            \n\t"
-		"fldd   d18, [%3, #80]           \n\t"
-		"fmacd  d11, d19, d22            \n\t"
-		"fldd   d22, [%4, #80]           \n\t"
-		"                                \n\t"
-		"fmacd  d15, d19, d23            \n\t"
-		"fldd   d23, [%4, #88]           \n\t"
-		"                                \n\t"
-		"                                \n\t"
-#if defined(TARGET_CORTEX_A9)
-		"pld    [%3, #160]               \n\t"
-		"pld    [%4, #160]               \n\t"
-#endif
-		"                                \n\t"
-		"                                \n\t"
-		"fmacd  d0, d24, d28             \n\t"
-		"fldd   d19, [%3, #88]           \n\t"
-		"fmacd  d1, d25, d28             \n\t"
-		"sub    r3, r3, #1               \n\t" // iter++
-		"fmacd  d2, d26, d28             \n\t"
-		"fldd   d24, [%3, #96]           \n\t" // prefetch A_odd
-		"fmacd  d3, d27, d28             \n\t"
-		"fldd   d28, [%4, #96]           \n\t" // prefetch B_odd
-		"                                \n\t"
-		"fmacd  d5, d25, d29             \n\t"
-		"fldd   d25, [%3, #104]          \n\t"
-		"fmacd  d6, d26, d29             \n\t"
-		"fmacd  d7, d27, d29             \n\t"
-		"fldd   d29, [%4, #104]          \n\t"
-		"                                \n\t"
-		"fmacd  d10, d26, d30            \n\t"
-		"fldd   d26, [%3, #112]          \n\t"
-		"fmacd  d11, d27, d30            \n\t"
-		"fldd   d30, [%4, #112]          \n\t"
-		"                                \n\t"
-		"fmacd  d15, d27, d31            \n\t"
-		"fldd   d31, [%4, #120]          \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"pld    [%3, #192]               \n\t"
-		"pld    [%4, #192]               \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"fmacd  d0, d16, d20             \n\t"
-		"fldd   d27, [%3, #120]          \n\t"
-		"fmacd  d1, d17, d20             \n\t"
-		"cmp    r3, #0                   \n\t" // next iter?
-		"fmacd  d2, d18, d20             \n\t"
-		"fldd   d16, [%3, #128]          \n\t" // prefetch A_even
-		"fmacd  d3, d19, d20             \n\t"
-		"fldd   d20, [%4, #128]          \n\t" // prefetch B_even
-		"                                \n\t"
-		"fmacd  d5, d17, d21             \n\t"
-		"fldd   d17, [%3, #136]          \n\t"
-		"fmacd  d6, d18, d21             \n\t"
-		"fmacd  d7, d19, d21             \n\t"
-		"fldd   d21, [%4, #136]          \n\t"
-		"                                \n\t"
-		"fmacd  d10, d18, d22            \n\t"
-		"fldd   d18, [%3, #144]          \n\t"
-		"fmacd  d11, d19, d22            \n\t"
-		"fldd   d22, [%4, #144]          \n\t"
-		"                                \n\t"
-		"fmacd  d15, d19, d23            \n\t"
-		"fldd   d19, [%3, #152]          \n\t"
-		"                                \n\t"
-		"                                \n\t"
-#if defined(TARGET_CORTEX_A9)
-		"pld    [%3, #224]               \n\t"
-		"pld    [%4, #224]               \n\t"
-#endif
-		"                                \n\t"
-		"                                \n\t"
-		"fmacd  d0, d24, d28             \n\t"
-		"add    %3, %3, #128             \n\t" // increase A
-		"fmacd  d1, d25, d28             \n\t"
-		"fldd   d23, [%4, #152]          \n\t"
-		"fmacd  d2, d26, d28             \n\t"
-		"add    %4, %4, #128             \n\t" // increase B
-		"fmacd  d3, d27, d28             \n\t"
-		"fldd   d28, [%4, #32]           \n\t" // prefetch B_odd
-		"                                \n\t"
-		"fmacd  d5, d25, d29             \n\t"
-		"fldd   d24, [%3, #32]           \n\t" // prefetch A_odd
-		"fmacd  d6, d26, d29             \n\t"
-		"fldd   d25, [%3, #40]           \n\t"
-		"fmacd  d7, d27, d29             \n\t"
-		"fldd   d29, [%4, #40]           \n\t"
-		"                                \n\t"
-		"fmacd  d10, d26, d30            \n\t"
-		"fldd   d26, [%3, #48]           \n\t"
-		"fmacd  d11, d27, d30            \n\t"
-		"fldd   d30, [%4, #48]           \n\t"
-		"                                \n\t"
-		"fmacd  d15, d27, d31            \n\t"
-		"fldd   d31, [%4, #56]           \n\t"
-		"fldd   d27, [%3, #56]           \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"bgt    .DLOOPADD                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		".DCONSIDERADD:                  \n\t" // consider left
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"mov    r3, %1                   \n\t" // k_left
-		"cmp    r3, #0                   \n\t"
-		"ble    .DCONSIDERSUB            \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		".DLOOPLEFT:                     \n\t" // clean up loop
-		"                                \n\t"
-		"sub    r3, r3, #1               \n\t"
-		"                                \n\t"
-		"fmacd  d0, d16, d20             \n\t"
-		"fldd   d16, [%3, #32]           \n\t" // prefetch A_even
-		"fmacd  d1, d17, d20             \n\t"
-		"fmacd  d2, d18, d20             \n\t"
-		"fmacd  d3, d19, d20             \n\t"
-		"fldd   d20, [%4, #32]           \n\t" // prefetch B_even
-		"                                \n\t"
-		"fmacd  d5, d17, d21             \n\t"
-		"fldd   d17, [%3, #40]           \n\t"
-		"fmacd  d6, d18, d21             \n\t"
-		"fmacd  d7, d19, d21             \n\t"
-		"fldd   d21, [%4, #40]           \n\t"
-		"                                \n\t"
-		"fmacd  d10, d18, d22            \n\t"
-		"fldd   d18, [%3, #48]           \n\t"
-		"fmacd  d11, d19, d22            \n\t"
-		"fldd   d22, [%4, #48]           \n\t"
-		"                                \n\t"
-		"cmp    r3, #0                   \n\t"
-		"                                \n\t"
-		"fmacd  d15, d19, d23            \n\t"
-		"fldd   d19, [%3, #56]           \n\t"
-		"add    %3, %3, #32              \n\t"
-		"fldd   d23, [%4, #56]           \n\t"
-		"add    %4, %4, #32              \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"bgt    .DLOOPLEFT               \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		".DCONSIDERSUB:                  \n\t" // padd
-		"                                \n\t"
-		"add    r3, %0, %1               \n\t"
-		"                                \n\t"
-		"cmp    %2, #0                   \n\t"
-		"ble    .DPOSTACC                \n\t"
-		"                                \n\t"
-		"cmp    %8, #0                   \n\t"
-		"ble    .DPRELOOPSUB             \n\t"
-		"                                \n\t"
-		"cmp    r3, #0                   \n\t"
-		"ble    .DPRELOOPSUB             \n\t"
-		"                                \n\t"
-		"add    %3, %3, %8               \n\t"
-		"add    %4, %4, %8               \n\t"
-		"                                \n\t"
-		"fldd   d16, [%3, #0]            \n\t" // prefetch A_even
-		"fldd   d17, [%3, #8]            \n\t"
-		"fldd   d18, [%3, #16]           \n\t"
-		"fldd   d19, [%3, #24]           \n\t"
-		"                                \n\t"
-		"fldd   d20, [%4, #0]            \n\t" // prefetch B_even
-		"fldd   d21, [%4, #8]            \n\t"
-		"fldd   d22, [%4, #16]           \n\t"
-		"fldd   d23, [%4, #24]           \n\t"
-		"                                \n\t"
-		".DPRELOOPSUB:                   \n\t" // 
-		"                                \n\t"
-		"mov    r3, %2                   \n\t" // k_iter
-		"                                \n\t"
-		"fldd   d24, [%3, #32]           \n\t" // prefetch A_odd
-		"fldd   d25, [%3, #40]           \n\t"
-		"fldd   d26, [%3, #48]           \n\t"
-		"fldd   d27, [%3, #56]           \n\t"
-		"                                \n\t"
-		"fldd   d28, [%4, #32]           \n\t" // prefetch B_odd
-		"fldd   d29, [%4, #40]           \n\t"
-		"fldd   d30, [%4, #48]           \n\t"
-		"fldd   d31, [%4, #56]           \n\t"
-		"                                \n\t"
 		".DLOOPSUB:                      \n\t" // main loop 2
 		"                                \n\t"
 		"                                \n\t"
-		"pld    [%3, #128]               \n\t"
-		"pld    [%4, #128]               \n\t"
+		"pld    [%1, #128]               \n\t"
+		"pld    [%2, #128]               \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"fnmacd  d0, d16, d20             \n\t"
-		"fldd   d16, [%3, #64]           \n\t" // prefetch A_even
+		"fldd   d16, [%1, #64]           \n\t" // prefetch A_even
 		"fnmacd  d1, d17, d20             \n\t"
 		"fnmacd  d2, d18, d20             \n\t"
 		"fnmacd  d3, d19, d20             \n\t"
-		"fldd   d20, [%4, #64]           \n\t" // prefetch B_even
+		"fldd   d20, [%2, #64]           \n\t" // prefetch B_even
 		"                                \n\t"
 		"fnmacd  d5, d17, d21             \n\t"
-		"fldd   d17, [%3, #72]           \n\t"
+		"fldd   d17, [%1, #72]           \n\t"
 		"fnmacd  d6, d18, d21             \n\t"
 		"fnmacd  d7, d19, d21             \n\t"
-		"fldd   d21, [%4, #72]           \n\t"
+		"fldd   d21, [%2, #72]           \n\t"
 		"                                \n\t"
 		"fnmacd  d10, d18, d22            \n\t"
-		"fldd   d18, [%3, #80]           \n\t"
+		"fldd   d18, [%1, #80]           \n\t"
 		"fnmacd  d11, d19, d22            \n\t"
-		"fldd   d22, [%4, #80]           \n\t"
+		"fldd   d22, [%2, #80]           \n\t"
 		"                                \n\t"
 		"fnmacd  d15, d19, d23            \n\t"
-		"fldd   d23, [%4, #88]           \n\t"
+		"fldd   d23, [%2, #88]           \n\t"
 		"                                \n\t"
 		"                                \n\t"
 #if defined(TARGET_CORTEX_A9)
-		"pld    [%3, #160]               \n\t"
-		"pld    [%4, #160]               \n\t"
+		"pld    [%1, #160]               \n\t"
+		"pld    [%2, #160]               \n\t"
 #endif
 		"                                \n\t"
 		"                                \n\t"
 		"fnmacd  d0, d24, d28             \n\t"
-		"fldd   d19, [%3, #88]           \n\t"
+		"fldd   d19, [%1, #88]           \n\t"
 		"fnmacd  d1, d25, d28             \n\t"
 		"sub    r3, r3, #1               \n\t" // iter++
 		"fnmacd  d2, d26, d28             \n\t"
-		"fldd   d24, [%3, #96]           \n\t" // prefetch A_odd
+		"fldd   d24, [%1, #96]           \n\t" // prefetch A_odd
 		"fnmacd  d3, d27, d28             \n\t"
-		"fldd   d28, [%4, #96]           \n\t" // prefetch B_odd
+		"fldd   d28, [%2, #96]           \n\t" // prefetch B_odd
 		"                                \n\t"
 		"fnmacd  d5, d25, d29             \n\t"
-		"fldd   d25, [%3, #104]          \n\t"
+		"fldd   d25, [%1, #104]          \n\t"
 		"fnmacd  d6, d26, d29             \n\t"
 		"fnmacd  d7, d27, d29             \n\t"
-		"fldd   d29, [%4, #104]          \n\t"
+		"fldd   d29, [%2, #104]          \n\t"
 		"                                \n\t"
 		"fnmacd  d10, d26, d30            \n\t"
-		"fldd   d26, [%3, #112]          \n\t"
+		"fldd   d26, [%1, #112]          \n\t"
 		"fnmacd  d11, d27, d30            \n\t"
-		"fldd   d30, [%4, #112]          \n\t"
+		"fldd   d30, [%2, #112]          \n\t"
 		"                                \n\t"
 		"fnmacd  d15, d27, d31            \n\t"
-		"fldd   d31, [%4, #120]          \n\t"
+		"fldd   d31, [%2, #120]          \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"pld    [%3, #192]               \n\t"
-		"pld    [%4, #192]               \n\t"
+		"pld    [%1, #192]               \n\t"
+		"pld    [%2, #192]               \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"fnmacd  d0, d16, d20             \n\t"
-		"fldd   d27, [%3, #120]          \n\t"
+		"fldd   d27, [%1, #120]          \n\t"
 		"fnmacd  d1, d17, d20             \n\t"
 		"cmp    r3, #0                   \n\t" // next iter?
 		"fnmacd  d2, d18, d20             \n\t"
-		"fldd   d16, [%3, #128]          \n\t" // prefetch A_even
+		"fldd   d16, [%1, #128]          \n\t" // prefetch A_even
 		"fnmacd  d3, d19, d20             \n\t"
-		"fldd   d20, [%4, #128]          \n\t" // prefetch B_even
+		"fldd   d20, [%2, #128]          \n\t" // prefetch B_even
 		"                                \n\t"
 		"fnmacd  d5, d17, d21             \n\t"
-		"fldd   d17, [%3, #136]          \n\t"
+		"fldd   d17, [%1, #136]          \n\t"
 		"fnmacd  d6, d18, d21             \n\t"
 		"fnmacd  d7, d19, d21             \n\t"
-		"fldd   d21, [%4, #136]          \n\t"
+		"fldd   d21, [%2, #136]          \n\t"
 		"                                \n\t"
 		"fnmacd  d10, d18, d22            \n\t"
-		"fldd   d18, [%3, #144]          \n\t"
+		"fldd   d18, [%1, #144]          \n\t"
 		"fnmacd  d11, d19, d22            \n\t"
-		"fldd   d22, [%4, #144]          \n\t"
+		"fldd   d22, [%2, #144]          \n\t"
 		"                                \n\t"
 		"fnmacd  d15, d19, d23            \n\t"
-		"fldd   d19, [%3, #152]          \n\t"
+		"fldd   d19, [%1, #152]          \n\t"
 		"                                \n\t"
 		"                                \n\t"
 #if defined(TARGET_CORTEX_A9)
-		"pld    [%3, #224]               \n\t"
-		"pld    [%4, #224]               \n\t"
+		"pld    [%1, #224]               \n\t"
+		"pld    [%2, #224]               \n\t"
 #endif
 		"                                \n\t"
 		"                                \n\t"
 		"fnmacd  d0, d24, d28             \n\t"
-		"add    %3, %3, #128             \n\t" // increase A
+		"add    %1, %1, #128             \n\t" // increase A
 		"fnmacd  d1, d25, d28             \n\t"
-		"fldd   d23, [%4, #152]          \n\t"
+		"fldd   d23, [%2, #152]          \n\t"
 		"fnmacd  d2, d26, d28             \n\t"
-		"add    %4, %4, #128             \n\t" // increase B
+		"add    %2, %2, #128             \n\t" // increase B
 		"fnmacd  d3, d27, d28             \n\t"
-		"fldd   d28, [%4, #32]           \n\t" // prefetch B_odd
+		"fldd   d28, [%2, #32]           \n\t" // prefetch B_odd
 		"                                \n\t"
 		"fnmacd  d5, d25, d29             \n\t"
-		"fldd   d24, [%3, #32]           \n\t" // prefetch A_odd
+		"fldd   d24, [%1, #32]           \n\t" // prefetch A_odd
 		"fnmacd  d6, d26, d29             \n\t"
-		"fldd   d25, [%3, #40]           \n\t"
+		"fldd   d25, [%1, #40]           \n\t"
 		"fnmacd  d7, d27, d29             \n\t"
-		"fldd   d29, [%4, #40]           \n\t"
+		"fldd   d29, [%2, #40]           \n\t"
 		"                                \n\t"
 		"fnmacd  d10, d26, d30            \n\t"
-		"fldd   d26, [%3, #48]           \n\t"
+		"fldd   d26, [%1, #48]           \n\t"
 		"fnmacd  d11, d27, d30            \n\t"
-		"fldd   d30, [%4, #48]           \n\t"
+		"fldd   d30, [%2, #48]           \n\t"
 		"                                \n\t"
 		"fnmacd  d15, d27, d31            \n\t"
-		"fldd   d31, [%4, #56]           \n\t"
-		"fldd   d27, [%3, #56]           \n\t"
+		"fldd   d31, [%2, #56]           \n\t"
+		"fldd   d27, [%1, #56]           \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"bgt    .DLOOPSUB                \n\t"
@@ -455,19 +241,19 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		".DPOSTACC:                      \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"fldd   d16, [%5, #0]            \n\t" // load C elements
-		"fldd   d17, [%5, #8]            \n\t"
-		"fldd   d18, [%5, #16]           \n\t"
-		"fldd   d19, [%5, #24]           \n\t"
+		"fldd   d16, [%3, #0]            \n\t" // load C elements
+		"fldd   d17, [%3, #8]            \n\t"
+		"fldd   d18, [%3, #16]           \n\t"
+		"fldd   d19, [%3, #24]           \n\t"
 		"                                \n\t"
-		"fldd   d21, [%5, #40]           \n\t"
-		"fldd   d22, [%5, #48]           \n\t"
-		"fldd   d23, [%5, #56]           \n\t"
+		"fldd   d21, [%3, #40]           \n\t"
+		"fldd   d22, [%3, #48]           \n\t"
+		"fldd   d23, [%3, #56]           \n\t"
 		"                                \n\t"
-		"fldd   d26, [%5, #80]           \n\t"
-		"fldd   d27, [%5, #88]           \n\t"
+		"fldd   d26, [%3, #80]           \n\t"
+		"fldd   d27, [%3, #88]           \n\t"
 		"                                \n\t"
-		"fldd   d31, [%5, #120]          \n\t"
+		"fldd   d31, [%3, #120]          \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -498,7 +284,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		"ble    .DELSE1                  \n\t"
 		"                                \n\t"
 		"fsqrtd d0, d0                   \n\t"
-		"fstd   d0, [%6, #0]             \n\t"
+		"fstd   d0, [%4, #0]             \n\t"
 		"fdivd	d0, d8, d0               \n\t"
 		"fmuld	d1, d1, d0               \n\t"
 		"fmuld	d2, d2, d0               \n\t"
@@ -509,16 +295,16 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		".DELSE1:                        \n\t"
 		"                                \n\t"
 		"fldd	d0, .DTHRESHOLD+8        \n\t"
-		"fstd   d0, [%6, #0]             \n\t"
+		"fstd   d0, [%4, #0]             \n\t"
 		"fcpyd	d1, d0                   \n\t"
 		"fcpyd	d2, d0                   \n\t"
 		"fcpyd	d3, d0                   \n\t"
 		"                                \n\t"
 		".DELSE1END:                     \n\t"
 		"                                \n\t"
-		"fstd   d1, [%6, #8]             \n\t"
-		"fstd   d2, [%6, #16]            \n\t"
-		"fstd   d3, [%6, #24]            \n\t"
+		"fstd   d1, [%4, #8]             \n\t"
+		"fstd   d2, [%4, #16]            \n\t"
+		"fstd   d3, [%4, #24]            \n\t"
 		"                                \n\t"
 		"                                \n\t"
 	// second column
@@ -530,7 +316,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		"fsqrtd d5, d5                   \n\t"
 		"fnmacd d6, d1, d2               \n\t"
 		"fnmacd d7, d1, d3               \n\t"
-		"fstd   d5, [%6, #40]            \n\t"
+		"fstd   d5, [%4, #40]            \n\t"
 		"fdivd	d5, d8, d5               \n\t"
 		"fmuld	d6, d6, d5               \n\t"
 		"fmuld	d7, d7, d5               \n\t"
@@ -540,14 +326,14 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		".DELSE2:                        \n\t"
 		"                                \n\t"
 		"fldd	d5, .DTHRESHOLD+8        \n\t"
-		"fstd   d5, [%6, #40]            \n\t"
+		"fstd   d5, [%4, #40]            \n\t"
 		"fcpyd	d6, d5                   \n\t"
 		"fcpyd	d7, d5                   \n\t"
 		"                                \n\t"
 		".DELSE2END:                     \n\t"
 		"                                \n\t"
-		"fstd   d6, [%6, #48]            \n\t"
-		"fstd   d7, [%6, #56]            \n\t"
+		"fstd   d6, [%4, #48]            \n\t"
+		"fstd   d7, [%4, #56]            \n\t"
 		"                                \n\t"
 		"                                \n\t"
 	// third column
@@ -560,7 +346,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		"fsqrtd d10, d10                 \n\t"
 		"fnmacd d11, d6, d7              \n\t"
 		"fnmacd d11, d2, d3              \n\t"
-		"fstd   d10, [%6, #80]           \n\t"
+		"fstd   d10, [%4, #80]           \n\t"
 		"fdivd	d10, d8, d10             \n\t"
 		"fmuld	d11, d11, d10            \n\t"
 		"                                \n\t"
@@ -569,12 +355,12 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		".DELSE3:                        \n\t"
 		"                                \n\t"
 		"fldd	d10, .DTHRESHOLD+8       \n\t"
-		"fstd   d10, [%6, #80]           \n\t"
+		"fstd   d10, [%4, #80]           \n\t"
 		"fcpyd	d11, d10                 \n\t"
 		"                                \n\t"
 		".DELSE3END:                     \n\t"
 		"                                \n\t"
-		"fstd   d11, [%6, #88]           \n\t"
+		"fstd   d11, [%4, #88]           \n\t"
 		"                                \n\t"
 		"                                \n\t"
 	// fourth column
@@ -586,7 +372,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		"ble    .DELSE4                  \n\t"
 		"                                \n\t"
 		"fsqrtd d15, d15                 \n\t"
-		"fstd   d15, [%6, #120]          \n\t"
+		"fstd   d15, [%4, #120]          \n\t"
 		"fdivd	d15, d8, d15             \n\t"
 		"                                \n\t"
 		"b      .DELSE4END               \n\t"
@@ -594,22 +380,22 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		".DELSE4:                        \n\t"
 		"                                \n\t"
 		"fldd	d15, .DTHRESHOLD+8       \n\t"
-		"fstd   d15, [%6, #120]          \n\t"
+		"fstd   d15, [%4, #120]          \n\t"
 		"                                \n\t"
 		".DELSE4END:                     \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"fstd   d0, [%7, #0]             \n\t" // 0
-		"fstd   d1, [%7, #8]             \n\t" // 1
-		"fstd   d2, [%7, #24]            \n\t" // 3
-		"fstd   d3, [%7, #48]            \n\t" // 6
-		"fstd   d5, [%7, #16]            \n\t" // 2
-		"fstd   d6, [%7, #32]            \n\t" // 4
-		"fstd   d7, [%7, #56]            \n\t" // 7
-		"fstd   d10, [%7, #40]           \n\t" // 5
-		"fstd   d11, [%7, #64]           \n\t" // 8
-		"fstd   d15, [%7, #72]           \n\t" // 9
+		"fstd   d0, [%5, #0]             \n\t" // 0
+		"fstd   d1, [%5, #8]             \n\t" // 1
+		"fstd   d2, [%5, #24]            \n\t" // 3
+		"fstd   d3, [%5, #48]            \n\t" // 6
+		"fstd   d5, [%5, #16]            \n\t" // 2
+		"fstd   d6, [%5, #32]            \n\t" // 4
+		"fstd   d7, [%5, #56]            \n\t" // 7
+		"fstd   d10, [%5, #40]           \n\t" // 5
+		"fstd   d11, [%5, #64]           \n\t" // 8
+		"fstd   d15, [%5, #72]           \n\t" // 9
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -627,15 +413,12 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		"                                \n\t"
 		: // output operands (none)
 		: // input operands
-		  "r" (ki_add),		// %0
-		  "r" (kl_add),		// %1
-		  "r" (ki_sub),		// %2
-		  "r" (A),			// %3
-		  "r" (B),			// %4
-		  "r" (C),			// %5
-		  "r" (D),			// %6
-		  "r" (fact),		// %7
-		  "r" (dA)			// %8
+		  "r" (ki_sub),		// %0
+		  "r" (A),			// %1
+		  "r" (B),			// %2
+		  "r" (C),			// %3
+		  "r" (D),			// %4
+		  "r" (fact) 		// %5
 		: // register clobber list
 		  "r3",
 		  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
@@ -648,11 +431,10 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact)
+void kernel_dpotrf_nt_4x2_lib4(int ksub, double *A, double *B, double *C, double *D, double *fact)
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;//2;
 	const int lda = bs;
 	const int ldc = bs;
 
@@ -666,120 +448,6 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 		c_20=0, c_21=0,  
 		c_30=0, c_31=0;
 		
-	for(k=0; k<kadd-3; k+=4)
-		{
-		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		a_2 = A[2+lda*0];
-		a_3 = A[3+lda*0];
-		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-
-		a_0 = A[0+lda*1];
-		a_1 = A[1+lda*1];
-		a_2 = A[2+lda*1];
-		a_3 = A[3+lda*1];
-		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
-		a_2 = A[2+lda*2];
-		a_3 = A[3+lda*2];
-		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-
-		a_0 = A[0+lda*3];
-		a_1 = A[1+lda*3];
-		a_2 = A[2+lda*3];
-		a_3 = A[3+lda*3];
-		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-		
-		
-		A += 16;
-		B += 16;
-
-		}
-	for(; k<kadd; k++)
-		{
-		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		a_2 = A[2+lda*0];
-		a_3 = A[3+lda*0];
-		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-
-		A += 4;
-		B += 4;
-
-		}
-
-	if(ksub>0)
-		{
-		if(kadd>0)
-			{
-			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			}
-		}
-
 	for(k=0; k<ksub-3; k+=4)
 		{
 		
@@ -931,11 +599,10 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 
 
 
-void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact)
+void kernel_dpotrf_nt_2x2_lib4(int ksub, double *A, double *B, double *C, double *D, double *fact)
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;//2;
 	const int lda = bs;
 	const int ldc = bs;
 
@@ -947,90 +614,6 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, d
 		c_00=0, 
 		c_10=0, c_11=0;
 		
-	for(k=0; k<kadd-3; k+=4)
-		{
-		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_11 += a_1 * b_1;
-
-
-		a_0 = A[0+lda*1];
-		a_1 = A[1+lda*1];
-		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_11 += a_1 * b_1;
-
-
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
-		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_11 += a_1 * b_1;
-
-
-		a_0 = A[0+lda*3];
-		a_1 = A[1+lda*3];
-		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_11 += a_1 * b_1;
-		
-		
-		A += 16;
-		B += 16;
-
-		}
-	for(; k<kadd; k++)
-		{
-		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_11 += a_1 * b_1;
-
-
-		A += 4;
-		B += 4;
-
-		}
-
-	if(ksub>0)
-		{
-		if(kadd>0)
-			{
-			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			}
-		}
-
 	for(k=0; k<ksub-3; k+=4)
 		{
 		
