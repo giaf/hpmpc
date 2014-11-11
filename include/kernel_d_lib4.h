@@ -29,6 +29,10 @@ void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, double *A1, double *B, doubl
 void kernel_dgemm_nt_8x2_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, int alg);
 void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg);
 void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg);
+void kernel_dgemm_nt_m8x4_lib4(int m, int kmax, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, int alg);
+void kernel_dgemm_nt_m8x2_lib4(int m, int kmax, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, int alg);
+void kernel_dgemm_nt_m4x4_lib4(int m, int kmax, double *A, double *B, double *C, double *D, int alg);
+void kernel_dgemm_nt_m4x2_lib4(int m, int kmax, double *A, double *B, double *C, double *D, int alg);
 void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg);
 void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg);
 void kernel_dtrmm_nt_8x4_lib4(int kadd, double *A0, double *A1, double *B, double *D0, double *D1);
