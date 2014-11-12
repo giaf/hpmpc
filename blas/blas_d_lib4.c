@@ -697,3 +697,54 @@ void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
 	
 	}
 
+
+
+#if defined(TARGET_C99_4X4)
+void dttmm_ll_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
+	{
+
+	const int bs = 4;
+
+	int ii, jj;
+	
+	ii = 0;
+	for( ; ii<m; ii+=4)
+		{
+		// off-diagonal
+		jj = 0;
+		for( ; jj<ii; jj+=4)
+			{
+			kernel_dttmm_ll_nt_4x4_lib4(4+ii-jj, pA+ii*sda+jj*bs, pB+jj*sdb+jj*bs, pC+ii*sdc+jj*bs);
+			}
+		// diagonal
+		corner_dttmm_ll_nt_4x4_lib4(pA+ii*sda+ii*bs, pB+ii*sdb+ii*bs, pC+ii*sdc+ii*bs);
+		}
+
+	}
+#endif
+
+
+
+#if defined(TARGET_C99_4X4)
+void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
+	{
+
+	const int bs = 4;
+
+	int ii, jj;
+	
+	ii = 0;
+	for( ; ii<m; ii+=4)
+		{
+		// diagonal
+		corner_dttmm_uu_nt_4x4_lib4(pA+ii*sda+ii*bs, pB+ii*sdb+ii*bs, pC+ii*sdc+ii*bs);
+		// off-diagonal
+		jj = ii+4;
+		for( ; jj<m; jj+=4)
+			{
+			kernel_dttmm_uu_nt_4x4_lib4(4+jj-ii, pA+ii*sda+ii*bs, pB+jj*sdb+ii*bs, pC+ii*sdc+jj*bs);
+			}
+		}
+
+	}
+#endif
