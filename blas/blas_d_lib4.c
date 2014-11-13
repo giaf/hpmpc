@@ -216,6 +216,80 @@ void dtrmm_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double *p
 
 
 
+void dsyrk_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pD, int sdd, double *pC, int sdc, int alg)
+	{
+	const int bs = 4;
+	
+	int i, j;
+	
+/*	int n = m;*/
+	
+	j = 0;
+	for(; j<n-2; j+=4)
+		{
+		i = j;
+		if(i<m-4)
+			{
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+			kernel_dsyrk_nt_8x4_lib4(k, &pA[i*sda], &pA[(i+4)*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pD[j*bs+(i+4)*sdd], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], alg);
+			i += 8;
+#else
+			kernel_dsyrk_nt_4x4_lib4(k, &pA[i*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], alg);
+			i += 4;
+#endif
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+			for(; i<m-4; i+=8)
+				{
+				kernel_dgemm_nt_8x4_lib4(k, &pA[i*sda], &pA[(i+4)*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pD[j*bs+(i+4)*sdd], &pC[j*bs+i*sdc], &pD[j*bs+(i+4)*sdc], alg);
+				}
+#endif
+			for(; i<m-2; i+=4)
+				{
+				kernel_dgemm_nt_4x4_lib4(k, &pA[i*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], alg);
+				}
+			for(; i<m; i+=2)
+				{
+				kernel_dgemm_nt_2x4_lib4(k, &pA[i*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], alg);
+				}
+			}
+		else //if(i<m-2)
+			{
+			kernel_dsyrk_nt_4x4_lib4(k, &pA[i*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], alg);
+			}
+		}
+	for(; j<n; j+=2)
+		{
+		i = j;
+		if(i<m-2)
+			{
+			kernel_dsyrk_nt_4x2_lib4(k, &pA[i*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], alg);
+			i += 4;
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+			for(; i<m-4; i+=8)
+				{
+				kernel_dgemm_nt_8x2_lib4(k, &pA[i*sda], &pA[(i+4)*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pD[j*bs+(i+4)*sdd], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], alg);
+				}
+#endif
+			for(; i<m-2; i+=4)
+				{
+				kernel_dgemm_nt_4x2_lib4(k, &pA[i*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], alg);
+				}
+			for(; i<m; i+=2)
+				{
+				kernel_dgemm_nt_2x2_lib4(k, &pA[i*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], alg);
+				}
+			}
+		else //if(i<m)
+			{
+			kernel_dsyrk_nt_2x2_lib4(k, &pA[i*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], alg);
+			}
+		}
+
+	}
+
+
+
+// TODO invert k and n !!!!!!!!!!!
 void dsyrk_dpotrf_lib(int m, int k, int n, double *pA, int sda, double *pC, int sdc, double *diag)
 	{
 	const int bs = 4;
