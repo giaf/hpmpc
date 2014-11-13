@@ -27,14 +27,15 @@ include ../Makefile.rule
 
 LIBS = -lm #-lopenblas
 
-##OBJS_TEST = test_blas_d_debug.o
-##OBJS_TEST = test_blas_s_debug.o
+#OBJS_TEST = test_blas_d_debug.o
+#OBJS_TEST = test_blas_s_debug.o
 #OBJS_TEST = test_blas_d.o
 #OBJS_TEST = test_blas_s.o
 #OBJS_TEST = tools.o test_d_ric_sv.o
 #OBJS_TEST = tools.o test_s_ric_sv.o
-#OBJS_TEST = tools.o test_d_ip_box.o
-OBJS_TEST = tools.o test_s_ip_box.o
+#OBJS_TEST = tools.o test_d_ric_mhe.o
+OBJS_TEST = tools.o test_d_ip_box.o
+#OBJS_TEST = tools.o test_s_ip_box.o
 #OBJS_TEST = tools.o test_d_admm_box.o
 #OBJS_TEST = tools.o test_s_admm_box.o
 #OBJS_TEST = tools.o test_d_admm_soft.o
@@ -54,6 +55,7 @@ test_blas_d.o: test_blas_d.c test_param.h ../problem_size.h
 test_blas_s.o: test_blas_s.c test_param.h ../problem_size.h
 test_d_ric_sv.o: test_d_ric_sv.c test_param.h ../problem_size.h
 test_s_ric_sv.o: test_s_ric_sv.c test_param.h ../problem_size.h
+test_d_ric_mhe.o: test_d_ric_mhe.c test_param.h ../problem_size.h
 test_d_ip_box.o: test_d_ip_box.c test_param.h ../problem_size.h
 test_s_ip_box.o: test_s_ip_box.c test_param.h ../problem_size.h
 test_d_admm_box.o: test_d_admm_box.c test_param.h ../problem_size.h

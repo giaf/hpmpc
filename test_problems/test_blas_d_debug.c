@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bs);
 	
-	int n = 18;
+	int n = 12;
 	int nrep = 1;
 	
 	double *A; d_zeros(&A, n, n);
@@ -85,7 +85,7 @@ int main()
 	for(i=0; i<n-1; i++)
 		C[1+i*(n+1)] = 1;
 
-	d_print_mat(n, n, C, n);
+//	d_print_mat(n, n, C, n);
 
 	int pn = ((n+bs-1)/bs)*bs;//+4;	
 /*	int pns = ((n+bss-1)/bss)*bss;//+4;	*/
@@ -130,6 +130,7 @@ int main()
 
 /*	d_cvt_mat2pmat(n, n, 0, bs, C, n, pC, pn);*/
 /*	d_cvt_mat2pmat(n, n, bs-n%bs, bs, C, n, pC+((bs-n%bs))%bs*(bs+1), pn);*/
+	d_print_pmat(pn, pn, bs, pA, pn);
 	d_print_pmat(pn, pn, bs, pC, pn);
 
 	/* timing */
@@ -141,11 +142,13 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		dgemm_nt_lib(13, n, n, pA, pn, pB, pn, pC, pn, 0);
+//		dgemm_nt_lib(13, n, n, pA, pn, pB, pn, pC, pn, 0);
 /*		dgemm_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
 /*		dtrmm_lib(n, n, pA, pn, pB, pn, pC, pn);*/
 /*		dtrtr_l_lib(10, 5, pA+1, pn, pC, pn);*/
 //		dsyrk_dpotrf_lib(n, n, n, pE, cn2, pD, cn, diag);
+//		dttmm_ll_lib(n, pA, pn, pA, pn, pC, pn);
+		dttmm_uu_lib(n, pA, pn, pA, pn, pC, pn);
 
 /*		dsyrk_lib(n, n, pA, pn, pC, pn);*/
 /*		dgemm_nt_lib(n, n, n, pA, pn, pA, pn, pB, pn, 0);*/

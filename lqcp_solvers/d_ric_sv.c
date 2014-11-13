@@ -159,6 +159,55 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 
 
 
+// version tailored for MHE
+void d_ric_trf_mhe(int nx, int nu, int ny, int N, double **hpA, double **hpG, double **hpC, double **hpL, double **hpQ, double **hpR)
+	{
+
+	const int bs = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+
+	const int nz = nx+ny;
+	const int pnx = bs*((nx+bs-1)/bs);
+	const int pny = bs*((ny+bs-1)/bs);
+	const int pnz = bs*((nz+bs-1)/bs);
+	const int cnx = ncl*((nx+ncl-1)/ncl);
+	const int cny = ncl*((ny+ncl-1)/ncl);
+	const int cnz = ncl*((nz+ncl-1)/ncl);
+
+
+
+	double *CL; d_zeros_align(&CL, pny, cnx); // TODO remove !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	double *Lam; d_zeros_align(&Lam, pnz, cnz); // TODO remove !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	
+
+
+	int ii;
+
+	ii = 0;
+	// transpose lower cholesky factor of /Pi
+//	d_print_pmat(nx, nx, bs, hpL[0], cnx);
+	dtrtr_l_lib(nx, 0, hpL[ii], cnx, hpL[ii], cnx);	
+//	d_print_pmat(nx, nx, bs, hpL[0], cnx);
+
+	dtrmm_lib(ny, nx, hpC[ii], cnx, hpL[ii], cnx, CL, cnx);
+	d_print_pmat(ny, nx, bs, CL, cnx);
+
+	dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[ii], cny, Lam, cnz, 1);
+	d_print_pmat(nz, nz, bs, Lam, cnz);
+
+	dgetr_lib(ny, 0, nx, ny, CL, cnx, Lam+(ny/bs)*bs*cnz+ny%bs, cnz);
+	d_print_pmat(nz, nz, bs, Lam, cnz);
+
+	free(CL); // TODO remove !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	free(Lam); // TODO remove !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	exit(1);
+
+	}
+
+
+
+
 /* version tailored for mhe (x0 free) */
 void d_ric_sv_mhe(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *work, double *diag, int compute_pi, double **hpi)
 	{
