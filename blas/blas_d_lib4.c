@@ -700,6 +700,42 @@ void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
 
 
 #if defined(TARGET_C99_4X4)
+// transpose & align general matrix; m and n are referred to the original matrix
+void dgetr_lib(int m, int mna, int n, int offset, double *pA, int sda, double *pC, int sdc)
+	{
+
+	const int bs = 4;
+
+	int nna = (bs-offset%bs)%bs;
+	
+	int ii;
+
+	ii = 0;
+
+	if(mna>0)
+		{
+		// TODO using smaller kernels
+		ii += mna;
+		pA += mna + bs*(sda-1);
+		pC += mna*bs;
+		}
+	
+//	for( ; ii<m-3; ii+=4)
+	for( ; ii<m; ii+=4)
+		{
+		kernel_dgetr_4_lib4(n, nna, pA, pC, sdc);
+		pA += bs*sda;
+		pC += bs*bs;
+		}
+
+	// TODO clean-up at the end using smaller kernels
+	
+	}	
+#endif
+
+
+
+#if defined(TARGET_C99_4X4)
 void dttmm_ll_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
 	{
 
