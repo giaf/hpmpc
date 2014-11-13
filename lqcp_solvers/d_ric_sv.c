@@ -174,14 +174,17 @@ void d_ric_trf_mhe(int nx, int nu, int ny, int N, double **hpA, double **hpG, do
 	const int cny = ncl*((ny+ncl-1)/ncl);
 	const int cnz = ncl*((nz+ncl-1)/ncl);
 
+	int ii, jj;
+	double *ptr;
+
 
 
 	double *CL; d_zeros_align(&CL, pny, cnx); // TODO remove !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	double *Lam; d_zeros_align(&Lam, pnz, cnz); // TODO remove !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	for(ii=0; ii<pnz*cnz; ii++)
+		Lam[ii] = -1.0;
 	
 
-
-	int ii;
 
 	ii = 0;
 	// transpose lower cholesky factor of /Pi
@@ -196,6 +199,19 @@ void d_ric_trf_mhe(int nx, int nu, int ny, int N, double **hpA, double **hpG, do
 	d_print_pmat(nz, nz, bs, Lam, cnz);
 
 	dgetr_lib(ny, 0, nx, ny, CL, cnx, Lam+(ny/bs)*bs*cnz+ny%bs, cnz);
+	d_print_pmat(nz, nz, bs, Lam, cnz);
+
+	for(jj=ny; jj<((ny+bs-1)/bs)*bs; jj+=1)
+		{
+		ptr = &Lam[(jj/bs)*bs*cnz+jj%bs+jj*bs];
+		*ptr = 1.0;
+		ptr += 1;
+		for(ii=jj+1; ii<((ny+bs-1)/bs)*bs; ii+=1)
+			{
+			*ptr = 0.0;
+			ptr += 1;
+			}
+		}
 	d_print_pmat(nz, nz, bs, Lam, cnz);
 
 	free(CL); // TODO remove !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

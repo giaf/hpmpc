@@ -236,7 +236,6 @@ void kernel_dgetr_1_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	for( ; k<kmax; k++)
 		{
 		C[0+bs*0] = A[0+bs*0];
-		C[0+bs*1] = A[1+bs*0];
 
 		C += 1;
 		A += bs;
