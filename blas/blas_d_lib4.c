@@ -789,20 +789,32 @@ void dgetr_lib(int m, int mna, int n, int offset, double *pA, int sda, double *p
 	if(mna>0)
 		{
 		// TODO using smaller kernels
+		kernel_dgetr_1_lib4(n, nna, pA, pC, sdc);
 		ii += mna;
 		pA += mna + bs*(sda-1);
 		pC += mna*bs;
 		}
 	
-//	for( ; ii<m-3; ii+=4)
-	for( ; ii<m; ii+=4)
+	for( ; ii<m-3; ii+=4)
+//	for( ; ii<m; ii+=4)
 		{
 		kernel_dgetr_4_lib4(n, nna, pA, pC, sdc);
 		pA += bs*sda;
 		pC += bs*bs;
 		}
 
-	// TODO clean-up at the end using smaller kernels
+	// clean-up at the end using smaller kernels
+	if(ii==m)
+		return;
+	
+	if(m-ii==1)
+		kernel_dgetr_1_lib4(n, nna, pA, pC, sdc);
+	else if(m-ii==2)
+		kernel_dgetr_2_lib4(n, nna, pA, pC, sdc);
+	else if(m-ii==3)
+		kernel_dgetr_3_lib4(n, nna, pA, pC, sdc);
+		
+	return;
 	
 	}	
 #endif
