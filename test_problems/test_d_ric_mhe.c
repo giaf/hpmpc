@@ -258,7 +258,7 @@ int main()
 	int vnrep[] = {100, 100, 100, 100, 100, 100, 50, 50, 50, 20, 10, 10};
 	int vN[] = {4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256};
 
-	int nx, nu, N, nrep;
+	int nx, nw, N, nrep;
 
 	int ll;
 //	int ll_max = 77;
@@ -270,14 +270,14 @@ int main()
 		if(ll_max==1)
 			{
 			nx = NX; // number of states (it has to be even for the mass-spring system test problem)
-			nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+			nw = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 			N  = NN; // horizon lenght
 			nrep = NREP;
 			}
 		else
 			{
 			nx = nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
-			nu = 2; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+			nw = 2; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 			N  = 10; // horizon lenght
 			nrep = nnrep[ll];
 			}
@@ -286,23 +286,23 @@ int main()
 		
 		const int ny = nx/2; // size of measurements vector
 	
-		const int nz = nx+nu+1; // TODO delete
+		const int nz = nx+nw+1; // TODO delete
 		const int anz = nal*((nz+nal-1)/nal);
 		const int anx = nal*((nx+nal-1)/nal);
-		const int anu = nal*((nu+nal-1)/nal);
+		const int anw = nal*((nw+nal-1)/nal);
 		const int any = nal*((ny+nal-1)/nal);
 		const int pnz = bs*((nz+bs-1)/bs);
 		const int pnx = bs*((nx+bs-1)/bs);
-		const int pnu = bs*((nu+bs-1)/bs);
+		const int pnw = bs*((nw+bs-1)/bs);
 		const int pny = bs*((ny+bs-1)/bs);
-		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
+		const int cnz = ncl*((nx+nw+1+ncl-1)/ncl);
 		const int cnx = ncl*((nx+ncl-1)/ncl);
-		const int cnu = ncl*((nu+ncl-1)/ncl);
+		const int cnw = ncl*((nw+ncl-1)/ncl);
 		const int cny = ncl*((ny+ncl-1)/ncl);
 		const int cnf = cnz<cnx+ncl ? cnx+ncl : cnz;
 
-		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+		const int pad = (ncl-(nx+nw)%ncl)%ncl; // packing between AGL & P
+		const int cnl = nx+nw+pad+cnx;
 	
 /************************************************
 * dynamical system
@@ -310,13 +310,13 @@ int main()
 
 		double *A; d_zeros(&A, nx, nx); // states update matrix
 
-		double *B; d_zeros(&B, nx, nu); // inputs matrix
+		double *B; d_zeros(&B, nx, nw); // inputs matrix
 
 		double *b; d_zeros(&b, nx, 1); // states offset
 		double *x0; d_zeros(&x0, nx, 1); // initial state
 
 		double Ts = 0.5; // sampling time
-		mass_spring_system(Ts, nx, nu, N, A, B, b, x0);
+		mass_spring_system(Ts, nx, nw, N, A, B, b, x0);
 	
 		for(jj=0; jj<nx; jj++)
 			b[jj] = 0.1;
@@ -331,7 +331,7 @@ int main()
 			C[jj*(ny+1)] = 1.0;
 
 //		d_print_mat(nx, nx, A, nx);
-//		d_print_mat(nx, nu, B, nx);
+//		d_print_mat(nx, nw, B, nx);
 //		d_print_mat(ny, nx, C, ny);
 //		d_print_mat(nx, 1, b, nx);
 //		d_print_mat(nx, 1, x0, nx);
@@ -340,23 +340,23 @@ int main()
 		double *pA; d_zeros_align(&pA, pnx, cnx);
 		d_cvt_mat2pmat(nx, nx, 0, bs, A, nx, pA, cnx);
 
-		double *pG; d_zeros_align(&pG, pnx, cnu);
-		d_cvt_mat2pmat(nx, nu, 0, bs, B, nx, pG, cnu);
+		double *pG; d_zeros_align(&pG, pnx, cnw);
+		d_cvt_mat2pmat(nx, nw, 0, bs, B, nx, pG, cnw);
 		
 		double *pC; d_zeros_align(&pC, pny, cnx);
 		d_cvt_mat2pmat(ny, nx, 0, bs, C, ny, pC, cnx);
 		
 //		d_print_pmat(nx, nx, bs, pA, cnx);
-//		d_print_pmat(nx, nu, bs, pG, cnu);
+//		d_print_pmat(nx, nw, bs, pG, cnw);
 //		d_print_pmat(ny, nx, bs, pC, cnx);
 
 /************************************************
 * cost function
 ************************************************/	
 
-		double *Q; d_zeros(&Q, nu, nu);
-		for(jj=0; jj<nu; jj++)
-			Q[jj*(nu+1)] = 1.0;
+		double *Q; d_zeros(&Q, nw, nw);
+		for(jj=0; jj<nw; jj++)
+			Q[jj*(nw+1)] = 1.0;
 
 		double *R; d_zeros(&R, ny, ny);
 		for(jj=0; jj<ny; jj++)
@@ -367,13 +367,13 @@ int main()
 			L0[jj*(nx+1)] = 2.0;
 
 		/* packed into contiguous memory */
-		double *pQ; d_zeros_align(&pQ, pnu, cnu);
-		d_cvt_mat2pmat(nu, nu, 0, bs, Q, nu, pQ, cnu);
+		double *pQ; d_zeros_align(&pQ, pnw, cnw);
+		d_cvt_mat2pmat(nw, nw, 0, bs, Q, nw, pQ, cnw);
 
 		double *pR; d_zeros_align(&pR, pny, cny);
 		d_cvt_mat2pmat(ny, ny, 0, bs, R, ny, pR, cny);
 
-//		d_print_pmat(nu, nu, bs, pQ, cnu);
+//		d_print_pmat(nw, nw, bs, pQ, cnw);
 //		d_print_pmat(ny, ny, bs, pR, cny);
 
 /************************************************
@@ -389,7 +389,8 @@ int main()
 		double *(hpLp[N+1]);
 
 		d_zeros_align(&hpL[0], pnx, cnl);
-		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpL[0]+(nx+pad)*bs, cnl);
+		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpL[0]+(nx+nw+pad)*bs, cnl);
+		d_print_pmat(nx, cnl, bs, hpL[0], cnl);
 		d_zeros_align(&hpLp[0], pnx, cnx);
 
 		for(jj=0; jj<N; jj++)
@@ -403,12 +404,14 @@ int main()
 			d_zeros_align(&hpLp[jj+1], pnx, cnx);
 			}
 
+		double *work; d_zeros_align(&work, pny*cnx+pnz*cnz+anz+pnz*cnf+pnw*cnw, 1);
+
 
 /************************************************
 * call the solver
 ************************************************/	
 
-		d_ric_trf_mhe(nx, nu, ny, N, hpA, hpG, hpC, hpL, hpQ, hpR, hpLp);
+		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpL, hpQ, hpR, hpLp, work);
 
 /************************************************
 * return
@@ -427,10 +430,13 @@ int main()
 		free(pC);
 		free(pQ);
 		free(pR);
+		free(work);
 		free(hpL[0]);
+		free(hpLp[0]);
 		for(jj=0; jj<N; jj++)
 			{
 			free(hpL[jj+1]);
+			free(hpLp[jj+1]);
 			}
 
 
