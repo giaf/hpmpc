@@ -27,7 +27,7 @@
 
 
 
-void kernel_dgemm_dtrsm_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact)
+void kernel_dgemm_dtrsm_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -356,25 +356,28 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, do
 
 		}
 
-	c_00 += C[0+ldc*0];
-	c_10 += C[1+ldc*0];
-	c_20 += C[2+ldc*0];
-	c_30 += C[3+ldc*0];
+	if(alg!=0)
+		{
+		c_00 += C[0+ldc*0];
+		c_10 += C[1+ldc*0];
+		c_20 += C[2+ldc*0];
+		c_30 += C[3+ldc*0];
 
-	c_01 += C[0+ldc*1];
-	c_11 += C[1+ldc*1];
-	c_21 += C[2+ldc*1];
-	c_31 += C[3+ldc*1];
+		c_01 += C[0+ldc*1];
+		c_11 += C[1+ldc*1];
+		c_21 += C[2+ldc*1];
+		c_31 += C[3+ldc*1];
 
-	c_02 += C[0+ldc*2];
-	c_12 += C[1+ldc*2];
-	c_22 += C[2+ldc*2];
-	c_32 += C[3+ldc*2];
+		c_02 += C[0+ldc*2];
+		c_12 += C[1+ldc*2];
+		c_22 += C[2+ldc*2];
+		c_32 += C[3+ldc*2];
 
-	c_03 += C[0+ldc*3];
-	c_13 += C[1+ldc*3];
-	c_23 += C[2+ldc*3];
-	c_33 += C[3+ldc*3];
+		c_03 += C[0+ldc*3];
+		c_13 += C[1+ldc*3];
+		c_23 += C[2+ldc*3];
+		c_33 += C[3+ldc*3];
+		}
 	
 	// dtrsm
 	double
@@ -454,7 +457,7 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, do
 	
 	
 	
-void kernel_dgemm_dtrsm_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact)
+void kernel_dgemm_dtrsm_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -675,15 +678,18 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, do
 
 		}
 
-	c_00 += C[0+ldc*0];
-	c_10 += C[1+ldc*0];
-	c_20 += C[2+ldc*0];
-	c_30 += C[3+ldc*0];
+	if(alg!=0)
+		{
+		c_00 += C[0+ldc*0];
+		c_10 += C[1+ldc*0];
+		c_20 += C[2+ldc*0];
+		c_30 += C[3+ldc*0];
 
-	c_01 += C[0+ldc*1];
-	c_11 += C[1+ldc*1];
-	c_21 += C[2+ldc*1];
-	c_31 += C[3+ldc*1];
+		c_01 += C[0+ldc*1];
+		c_11 += C[1+ldc*1];
+		c_21 += C[2+ldc*1];
+		c_31 += C[3+ldc*1];
+		}
 	
 	// dtrsm
 	double
@@ -718,7 +724,7 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, do
 	
 	
 	
-void kernel_dgemm_dtrsm_nt_2x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact)
+void kernel_dgemm_dtrsm_nt_2x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -955,17 +961,20 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int kadd, int ksub, double *A, double *B, do
 
 		}
 
-	c_00 += C[0+ldc*0];
-	c_10 += C[1+ldc*0];
+	if(alg!=0)
+		{
+		c_00 += C[0+ldc*0];
+		c_10 += C[1+ldc*0];
 
-	c_01 += C[0+ldc*1];
-	c_11 += C[1+ldc*1];
+		c_01 += C[0+ldc*1];
+		c_11 += C[1+ldc*1];
 
-	c_02 += C[0+ldc*2];
-	c_12 += C[1+ldc*2];
+		c_02 += C[0+ldc*2];
+		c_12 += C[1+ldc*2];
 
-	c_03 += C[0+ldc*3];
-	c_13 += C[1+ldc*3];
+		c_03 += C[0+ldc*3];
+		c_13 += C[1+ldc*3];
+		}
 	
 	// dtrsm
 	double
@@ -1017,7 +1026,7 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int kadd, int ksub, double *A, double *B, do
 	
 	
 	
-void kernel_dgemm_dtrsm_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact)
+void kernel_dgemm_dtrsm_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -1182,11 +1191,14 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, do
 
 		}
 
-	c_00 += C[0+ldc*0];
-	c_10 += C[1+ldc*0];
+	if(alg!=0)
+		{
+		c_00 += C[0+ldc*0];
+		c_10 += C[1+ldc*0];
 
-	c_01 += C[0+ldc*1];
-	c_11 += C[1+ldc*1];
+		c_01 += C[0+ldc*1];
+		c_11 += C[1+ldc*1];
+		}
 	
 	// dtrsm
 	double

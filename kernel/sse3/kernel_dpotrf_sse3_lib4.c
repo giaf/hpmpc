@@ -81,7 +81,7 @@ void kernel_dpotrf_nt_4x4_lib4(int ksub, double *A, double *B, double *C, double
 		"                                \n\t"
 		"movl      %0, %%esi             \n\t" // i = k_iter;
 		"testl  %%esi, %%esi             \n\t" // check i via logical AND.
-		"je     .DCONSIDERADD            \n\t" // if i == 0, jump to code that
+		"je     .DPOSTACC                \n\t" // if i == 0, jump to code that
 		"                                \n\t" // contains the k_left loop.
 		"                                \n\t"
 		"                                \n\t"

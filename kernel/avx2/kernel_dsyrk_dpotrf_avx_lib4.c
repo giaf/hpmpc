@@ -30,14 +30,16 @@
 #include <smmintrin.h>  // SSE4
 #include <immintrin.h>  // AVX
 
+#include "../../include/block_size.h"
+
 
 
 // normal-transposed, 8x4 with data packed in 4
-void kernel_dsyrk_dpotrf_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, double *fact)
+void kernel_dsyrk_dpotrf_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, double *fact, int alg)
 	{
 	
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = D_NCL;
 	const int ldc = bs;
 	
 	int k;
@@ -404,30 +406,44 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1,
 	c_42_52_60_70 = _mm256_blend_pd( c_42_53_60_71, c_43_52_61_70, 0xa );
 	c_43_53_61_71 = _mm256_blend_pd( c_42_53_60_71, c_43_52_61_70, 0x5 );
 	
-	c_00_10_20_30 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0xc );
-	c_02_12_22_32 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0x3 );
-	d_00_10_20_30 = _mm256_load_pd( &C0[0+ldc*0] );
-	d_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
-	d_02_12_22_32 = _mm256_load_pd( &C0[0+ldc*2] );
-	d_02_12_22_32 = _mm256_add_pd( d_02_12_22_32, c_02_12_22_32 );
-	c_01_11_21_31 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0xc );
-	c_03_13_23_33 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0x3 );
-	d_01_11_21_31 = _mm256_load_pd( &C0[0+ldc*1] );
-	d_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
-	d_03_13_23_33 = _mm256_load_pd( &C0[0+ldc*3] );
-	d_03_13_23_33 = _mm256_add_pd( d_03_13_23_33, c_03_13_23_33 );
-	c_40_50_60_70 = _mm256_blend_pd( c_40_50_62_72, c_42_52_60_70, 0xc );
-	c_42_52_62_72 = _mm256_blend_pd( c_40_50_62_72, c_42_52_60_70, 0x3 );
-	d_40_50_60_70 = _mm256_load_pd( &C1[0+ldc*0] );
-	d_40_50_60_70 = _mm256_add_pd( d_40_50_60_70, c_40_50_60_70 );
-	d_42_52_62_72 = _mm256_load_pd( &C1[0+ldc*2] );
-	d_42_52_62_72 = _mm256_add_pd( d_42_52_62_72, c_42_52_62_72 );
-	c_41_51_61_71 = _mm256_blend_pd( c_41_51_63_73, c_43_53_61_71, 0xc );
-	c_43_53_63_73 = _mm256_blend_pd( c_41_51_63_73, c_43_53_61_71, 0x3 );
-	d_41_51_61_71 = _mm256_load_pd( &C1[0+ldc*1] );
-	d_41_51_61_71 = _mm256_add_pd( d_41_51_61_71, c_41_51_61_71 );
-	d_43_53_63_73 = _mm256_load_pd( &C1[0+ldc*3] );
-	d_43_53_63_73 = _mm256_add_pd( d_43_53_63_73, c_43_53_63_73 );
+	if(alg==0)
+		{
+		d_00_10_20_30 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0xc );
+		d_02_12_22_32 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0x3 );
+		d_01_11_21_31 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0xc );
+		d_03_13_23_33 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0x3 );
+		d_40_50_60_70 = _mm256_blend_pd( c_40_50_62_72, c_42_52_60_70, 0xc );
+		d_42_52_62_72 = _mm256_blend_pd( c_40_50_62_72, c_42_52_60_70, 0x3 );
+		d_41_51_61_71 = _mm256_blend_pd( c_41_51_63_73, c_43_53_61_71, 0xc );
+		d_43_53_63_73 = _mm256_blend_pd( c_41_51_63_73, c_43_53_61_71, 0x3 );
+		}
+	else
+		{
+		c_00_10_20_30 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0xc );
+		c_02_12_22_32 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0x3 );
+		d_00_10_20_30 = _mm256_load_pd( &C0[0+ldc*0] );
+		d_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
+		d_02_12_22_32 = _mm256_load_pd( &C0[0+ldc*2] );
+		d_02_12_22_32 = _mm256_add_pd( d_02_12_22_32, c_02_12_22_32 );
+		c_01_11_21_31 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0xc );
+		c_03_13_23_33 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0x3 );
+		d_01_11_21_31 = _mm256_load_pd( &C0[0+ldc*1] );
+		d_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
+		d_03_13_23_33 = _mm256_load_pd( &C0[0+ldc*3] );
+		d_03_13_23_33 = _mm256_add_pd( d_03_13_23_33, c_03_13_23_33 );
+		c_40_50_60_70 = _mm256_blend_pd( c_40_50_62_72, c_42_52_60_70, 0xc );
+		c_42_52_62_72 = _mm256_blend_pd( c_40_50_62_72, c_42_52_60_70, 0x3 );
+		d_40_50_60_70 = _mm256_load_pd( &C1[0+ldc*0] );
+		d_40_50_60_70 = _mm256_add_pd( d_40_50_60_70, c_40_50_60_70 );
+		d_42_52_62_72 = _mm256_load_pd( &C1[0+ldc*2] );
+		d_42_52_62_72 = _mm256_add_pd( d_42_52_62_72, c_42_52_62_72 );
+		c_41_51_61_71 = _mm256_blend_pd( c_41_51_63_73, c_43_53_61_71, 0xc );
+		c_43_53_63_73 = _mm256_blend_pd( c_41_51_63_73, c_43_53_61_71, 0x3 );
+		d_41_51_61_71 = _mm256_load_pd( &C1[0+ldc*1] );
+		d_41_51_61_71 = _mm256_add_pd( d_41_51_61_71, c_41_51_61_71 );
+		d_43_53_63_73 = _mm256_load_pd( &C1[0+ldc*3] );
+		d_43_53_63_73 = _mm256_add_pd( d_43_53_63_73, c_43_53_63_73 );
+		}
 		
 	// factorize the upper 4x4 matrix
 	__m128d
@@ -618,11 +634,11 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1,
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact)
+void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
 	{
 	
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = D_NCL;
 	const int ldc = bs;
 	
 	int k;
@@ -868,18 +884,28 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 	c_02_12_20_30 = _mm256_blend_pd( c_02_13_20_31, c_03_12_21_30, 0xa );
 	c_03_13_21_31 = _mm256_blend_pd( c_02_13_20_31, c_03_12_21_30, 0x5 );
 	
-	c_00_10_20_30 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0xc );
-	c_02_12_22_32 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0x3 );
-	d_00_10_20_30 = _mm256_load_pd( &C[0+ldc*0] );
-	d_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
-	d_02_12_22_32 = _mm256_load_pd( &C[0+ldc*2] );
-	d_02_12_22_32 = _mm256_add_pd( d_02_12_22_32, c_02_12_22_32 );
-	c_01_11_21_31 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0xc );
-	c_03_13_23_33 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0x3 );
-	d_01_11_21_31 = _mm256_load_pd( &C[0+ldc*1] );
-	d_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
-	d_03_13_23_33 = _mm256_load_pd( &C[0+ldc*3] );
-	d_03_13_23_33 = _mm256_add_pd( d_03_13_23_33, c_03_13_23_33 );
+	if(alg==0)
+		{
+		d_00_10_20_30 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0xc );
+		d_02_12_22_32 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0x3 );
+		d_01_11_21_31 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0xc );
+		d_03_13_23_33 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0x3 );
+		}
+	else
+		{
+		c_00_10_20_30 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0xc );
+		c_02_12_22_32 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0x3 );
+		d_00_10_20_30 = _mm256_load_pd( &C[0+ldc*0] );
+		d_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
+		d_02_12_22_32 = _mm256_load_pd( &C[0+ldc*2] );
+		d_02_12_22_32 = _mm256_add_pd( d_02_12_22_32, c_02_12_22_32 );
+		c_01_11_21_31 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0xc );
+		c_03_13_23_33 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0x3 );
+		d_01_11_21_31 = _mm256_load_pd( &C[0+ldc*1] );
+		d_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
+		d_03_13_23_33 = _mm256_load_pd( &C[0+ldc*3] );
+		d_03_13_23_33 = _mm256_add_pd( d_03_13_23_33, c_03_13_23_33 );
+		}
 		
 	// factorize the upper 4x4 matrix
 	__m128d
@@ -1008,11 +1034,11 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 
 
 // normal-transposed, 4x2 with data packed in 4
-void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact)
+void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
 	{
 	
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = D_NCL;
 	const int ldc = bs;
 	
 	int k;
@@ -1188,12 +1214,20 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 		c_00_10_20_30, c_01_11_21_31,
 		d_00_10_20_30, d_01_11_21_31;
 
-	c_00_10_20_30 = _mm256_blend_pd( c_00_11_20_31, c_01_10_21_30, 0xa );
-	d_00_10_20_30 = _mm256_load_pd( &C[0+ldc*0] );
-	d_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
-	c_01_11_21_31 = _mm256_blend_pd( c_00_11_20_31, c_01_10_21_30, 0x5 );
-	d_01_11_21_31 = _mm256_load_pd( &C[0+ldc*1] );
-	d_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
+	if(alg==0)
+		{
+		d_00_10_20_30 = _mm256_blend_pd( c_00_11_20_31, c_01_10_21_30, 0xa );
+		d_01_11_21_31 = _mm256_blend_pd( c_00_11_20_31, c_01_10_21_30, 0x5 );
+		}
+	else
+		{
+		c_00_10_20_30 = _mm256_blend_pd( c_00_11_20_31, c_01_10_21_30, 0xa );
+		d_00_10_20_30 = _mm256_load_pd( &C[0+ldc*0] );
+		d_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
+		c_01_11_21_31 = _mm256_blend_pd( c_00_11_20_31, c_01_10_21_30, 0x5 );
+		d_01_11_21_31 = _mm256_load_pd( &C[0+ldc*1] );
+		d_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
+		}
 		
 	// factorize the upper 4x4 matrix
 	__m128d
@@ -1264,11 +1298,11 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 
 
 // normal-transposed, 2x2 with data packed in 4
-void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact)
+void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
 	{
 	
 	const int bs = 4;
-	const int d_ncl = 2;
+	const int d_ncl = D_NCL;
 	const int ldc = bs;
 	
 	int k;
@@ -1444,12 +1478,20 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, d
 		c_00_10, c_01_11,
 		d_00_10, d_01_11;
 
-	c_00_10 = _mm_blend_pd( c_00_11, c_01_10, 0x2 );
-	d_00_10 = _mm_load_pd( &C[0+ldc*0] );
-	d_00_10 = _mm_add_pd( d_00_10, c_00_10 );
-	c_01_11 = _mm_blend_pd( c_00_11, c_01_10, 0x1 );
-	d_01_11 = _mm_load_pd( &C[0+ldc*1] );
-	d_01_11 = _mm_add_pd( d_01_11, c_01_11 );
+	if(alg==0)
+		{
+		d_00_10 = _mm_blend_pd( c_00_11, c_01_10, 0x2 );
+		d_01_11 = _mm_blend_pd( c_00_11, c_01_10, 0x1 );
+		}
+	else
+		{
+		c_00_10 = _mm_blend_pd( c_00_11, c_01_10, 0x2 );
+		d_00_10 = _mm_load_pd( &C[0+ldc*0] );
+		d_00_10 = _mm_add_pd( d_00_10, c_00_10 );
+		c_01_11 = _mm_blend_pd( c_00_11, c_01_10, 0x1 );
+		d_01_11 = _mm_load_pd( &C[0+ldc*1] );
+		d_01_11 = _mm_add_pd( d_01_11, c_01_11 );
+		}
 		
 	// factorize the upper 4x4 matrix
 	__m128d

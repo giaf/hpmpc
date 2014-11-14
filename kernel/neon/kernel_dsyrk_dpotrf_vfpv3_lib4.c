@@ -32,7 +32,7 @@
 // normal-transposed, 4x4 with data packed in 4
 // prefetch optimized for Cortex-A9 (cache line is 32 bytes, while A15 is 64 bytes)
 /*void kernel_dgemm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)*/
-void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact)
+void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
 	{
 	
 	__builtin_prefetch( A );
@@ -455,6 +455,29 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		".DPOSTACC:                      \n\t"
 		"                                \n\t"
 		"                                \n\t"
+		"cmp    %9, #0                   \n\t" // alg
+		"bne    .DLOAD_D                 \n\t"
+		"                                \n\t"
+		"fcpyd  d0, d16                  \n\t"
+		"fcpyd  d1, d17                  \n\t"
+		"fcpyd  d2, d18                  \n\t"
+		"fcpyd  d3, d19                  \n\t"
+		"                                \n\t"
+		"fcpyd  d5, d21                  \n\t"
+		"fcpyd  d6, d22                  \n\t"
+		"fcpyd  d7, d23                  \n\t"
+		"                                \n\t"
+		"fcpyd  d10, d26                  \n\t"
+		"fcpyd  d11, d27                  \n\t"
+		"                                \n\t"
+		"fcpyd  d15, d31                  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"b      .DSOLVE                  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DLOAD_D:                       \n\t"
+		"                                \n\t"
 		"fldd   d16, [%5, #0]            \n\t" // load C elements
 		"fldd   d17, [%5, #8]            \n\t"
 		"fldd   d18, [%5, #16]           \n\t"
@@ -485,6 +508,8 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		"                                \n\t"
 		"faddd  d15, d15, d31            \n\t"
 		"                                \n\t"
+		"                                \n\t"
+		".DSOLVE:                        \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"fconstd d8, #112                \n\t" // 1.0
@@ -635,7 +660,8 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		  "r" (C),			// %5
 		  "r" (D),			// %6
 		  "r" (fact),		// %7
-		  "r" (dA)			// %8
+		  "r" (dA),			// %8
+		  "r" (alg)			// %9
 		: // register clobber list
 		  "r3",
 		  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
@@ -648,7 +674,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact)
+void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -860,14 +886,17 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 
 		}
 
-	c_00 += C[0+ldc*0];
-	c_10 += C[1+ldc*0];
-	c_20 += C[2+ldc*0];
-	c_30 += C[3+ldc*0];
+	if(alg!=0)
+		{
+		c_00 += C[0+ldc*0];
+		c_10 += C[1+ldc*0];
+		c_20 += C[2+ldc*0];
+		c_30 += C[3+ldc*0];
 
-	c_11 += C[1+ldc*1];
-	c_21 += C[2+ldc*1];
-	c_31 += C[3+ldc*1];
+		c_11 += C[1+ldc*1];
+		c_21 += C[2+ldc*1];
+		c_31 += C[3+ldc*1];
+		}
 	
 	// dpotrf
 	
@@ -931,7 +960,7 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 
 
 
-void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact)
+void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -1086,11 +1115,14 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, d
 		B += 16;
 
 		}
+	
+	if(alg!=0)
+		{
+		c_00 += C[0+ldc*0];
+		c_10 += C[1+ldc*0];
 
-	c_00 += C[0+ldc*0];
-	c_10 += C[1+ldc*0];
-
-	c_11 += C[1+ldc*1];
+		c_11 += C[1+ldc*1];
+		}
 	
 	// dpotrf
 	

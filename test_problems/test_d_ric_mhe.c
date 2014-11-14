@@ -299,6 +299,7 @@ int main()
 		const int cnx = ncl*((nx+ncl-1)/ncl);
 		const int cnu = ncl*((nu+ncl-1)/ncl);
 		const int cny = ncl*((ny+ncl-1)/ncl);
+		const int cnf = cnz<cnx+ncl ? cnx+ncl : cnz;
 
 		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
@@ -385,9 +386,11 @@ int main()
 		double *(hpQ[N]);
 		double *(hpR[N]);
 		double *(hpL[N+1]);
+		double *(hpLp[N+1]);
 
-		d_zeros_align(&hpL[0], pnx, cnx);
-		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpL[0], cnx);
+		d_zeros_align(&hpL[0], pnx, cnl);
+		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpL[0]+(nx+pad)*bs, cnl);
+		d_zeros_align(&hpLp[0], pnx, cnx);
 
 		for(jj=0; jj<N; jj++)
 			{
@@ -396,7 +399,8 @@ int main()
 			hpC[jj] = pC;
 			hpQ[jj] = pQ;
 			hpR[jj] = pR;
-			d_zeros_align(&hpL[jj+1], pnx, cnx);
+			d_zeros_align(&hpL[jj+1], pnx, cnl);
+			d_zeros_align(&hpLp[jj+1], pnx, cnx);
 			}
 
 
@@ -404,7 +408,7 @@ int main()
 * call the solver
 ************************************************/	
 
-		d_ric_trf_mhe(nx, nu, ny, N, hpA, hpG, hpC, hpL, hpQ, hpR);
+		d_ric_trf_mhe(nx, nu, ny, N, hpA, hpG, hpC, hpL, hpQ, hpR, hpLp);
 
 /************************************************
 * return
