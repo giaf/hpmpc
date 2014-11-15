@@ -860,7 +860,7 @@ void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
 
 
 
-#if defined(TARGET_C99_4X4)
+//#if defined(TARGET_C99_4X4)
 // transpose & align general matrix; m and n are referred to the original matrix
 void dgetr_lib(int m, int mna, int n, int offset, double *pA, int sda, double *pC, int sdc)
 	{
@@ -904,7 +904,7 @@ void dgetr_lib(int m, int mna, int n, int offset, double *pA, int sda, double *p
 	return;
 	
 	}	
-#endif
+//#endif
 
 
 
@@ -934,7 +934,7 @@ void dttmm_ll_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 
 
 
-#if defined(TARGET_C99_4X4)
+//#if defined(TARGET_C99_4X4)
 void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
 	{
 
@@ -965,4 +965,4 @@ void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 		}
 
 	}
-#endif
+//#endif

@@ -159,7 +159,7 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 
 
 
-#if defined(TARGET_C99_4X4)
+//#if defined(TARGET_C99_4X4)
 // version tailored for MHE
 void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, double **hpC, double **hpL, double **hpQ, double **hpR, double **hpLp, double *work)
 	{
@@ -216,15 +216,15 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 
 		// compute C*U', with U upper cholesky factor of /Pi
 		dtrmm_lib(ny, nx, hpC[ii], cnx, hpL[ii]+(nx+nw+pad)*bs, cnl, CL, cnx);
-		// d_print_pmat(ny, nx, bs, CL, cnx);
+		//d_print_pmat(ny, nx, bs, CL, cnx);
 
 		// compute R + (C*U')*(C*U')' on the top left of Lam
 		dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[ii], cny, Lam, cnz, 1);
-		// d_print_pmat(nz, nz, bs, Lam, cnz);
+		//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 		// copy C*U' on the bottom left of Lam
 		dgetr_lib(ny, 0, nx, ny, CL, cnx, Lam+(ny/bs)*bs*cnz+ny%bs, cnz);
-		// d_print_pmat(nz, nz, bs, Lam, cnz);
+		//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 		// recover overwritten part of I in bottom right part of Lam
 		for(jj=ny; jj<((ny+bs-1)/bs)*bs; jj+=1)
@@ -248,7 +248,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 
 		// transpose and align the bottom right part of Lam
 		dtrtr_l_lib(nx, ny, Fam+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, Fam+ncl*bs, cnf);	
-		// d_print_pmat(nz, nz, bs, Fam, cnf);
+		//d_print_pmat(nz, nz, bs, Fam, cnf);
 
 		// compute upper cholesky factor of /Pi+ using triangular-triangular matrix multiplication
 		// d_print_pmat(nx, nx+nw+pad+nx, bs, hpL[ii], cnl);
@@ -258,35 +258,36 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		// compute A*U', with U' upper cholesky factor of /Pi+
 		// d_print_pmat(nx, nx, bs, hpA[ii], cnx);
 		dtrmm_lib(nx, nx, hpA[ii], cnx, hpLp[ii], cnx, hpL[ii+1], cnl);
-		// d_print_pmat(nx, nx+nw+pad+nx, bs, hpL[ii+1], cnl);
+		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpL[ii+1], cnl);
 
 		// compute lower cholesky factor of Q
 		dpotrf_lib(nw, nw, hpQ[ii], cnw, Lam_w, cnw, diag);
-		// d_print_pmat(nw, nw, bs, Lam_w, cnw);
+		//d_print_pmat(nw, nw, bs, Lam_w, cnw);
 
 		// transpose in place the lower cholesky factor of Q
 		dtrtr_l_lib(nw, 0, Lam_w, cnw, Lam_w, cnw);	
-		// d_print_pmat(nw, nw, bs, Lam_w, cnw);
+		//d_print_pmat(nw, nw, bs, Lam_w, cnw);
 
 		// compute G*U', with U' upper cholesky factor of Q
 		// d_print_pmat(nx, nw, bs, hpG[ii], cnw);
 		dtrmm_lib(nx, nw, hpG[ii], cnw, Lam_w, cnw, hpL[ii+1]+nx*bs, cnl);
-		// d_print_pmat(nx, nx+nw+pad+nx, bs, hpL[ii+1], cnl);
+		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpL[ii+1], cnl);
 
 		// compute /Pi and factorize it
 		dsyrk_dpotrf_lib(nx, nx+nw, nx, hpL[ii+1], cnl, hpL[ii+1], cnl, diag, 0);
-		// d_print_pmat(nx, nx+nw+pad+nx, bs, hpL[ii+1], cnl);
+		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpL[ii+1], cnl);
 
 		// transpose in place the lower cholesky factor of /Pi
 		dtrtr_l_lib(nx, 0, hpL[ii+1]+(nx+nw+pad)*bs, cnl, hpL[ii+1]+(nx+nw+pad)*bs, cnl);	
 		//d_print_pmat(nx, cnl, bs, hpL[ii+1], cnl);
 
+		//exit(1);
 		}
 
-//	exit(1);
+	//exit(1);
 
 	}
-#endif
+//#endif
 
 
 
