@@ -286,7 +286,7 @@ int main()
 		
 		const int ny = nx/2; // size of measurements vector
 	
-		const int nz = nx+nw+1; // TODO delete
+		const int nz = nx+ny; // TODO delete
 		const int anz = nal*((nz+nal-1)/nal);
 		const int anx = nal*((nx+nal-1)/nal);
 		const int anw = nal*((nw+nal-1)/nal);
@@ -295,7 +295,7 @@ int main()
 		const int pnx = bs*((nx+bs-1)/bs);
 		const int pnw = bs*((nw+bs-1)/bs);
 		const int pny = bs*((ny+bs-1)/bs);
-		const int cnz = ncl*((nx+nw+1+ncl-1)/ncl);
+		const int cnz = ncl*((nz+ncl-1)/ncl);
 		const int cnx = ncl*((nx+ncl-1)/ncl);
 		const int cnw = ncl*((nw+ncl-1)/ncl);
 		const int cny = ncl*((ny+ncl-1)/ncl);
@@ -390,7 +390,7 @@ int main()
 
 		d_zeros_align(&hpL[0], pnx, cnl);
 		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpL[0]+(nx+nw+pad)*bs, cnl);
-		d_print_pmat(nx, cnl, bs, hpL[0], cnl);
+		//d_print_pmat(nx, cnl, bs, hpL[0], cnl);
 		d_zeros_align(&hpLp[0], pnx, cnx);
 
 		for(jj=0; jj<N; jj++)
@@ -412,6 +412,29 @@ int main()
 ************************************************/	
 
 		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpL, hpQ, hpR, hpLp, work);
+
+		// timing 
+		struct timeval tv0, tv1, tv2, tv3, tv4;
+
+		// double precision
+		gettimeofday(&tv0, NULL); // start
+
+		// factorize
+		for(rep=0; rep<nrep; rep++)
+			{
+			d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpL, hpQ, hpR, hpLp, work);
+			}
+
+		gettimeofday(&tv1, NULL); // start
+
+		float time_trf = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+		if(ll==0)
+			{
+			printf("\nnx\tnw\tny\tN\ttrf time\n\n");
+//			fprintf(f, "\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
+			}
+		printf("%d\t%d\t%d\t%d\t%e\n\n", nx, nw, ny, N, time_trf);
 
 /************************************************
 * return

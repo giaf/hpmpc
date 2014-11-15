@@ -943,16 +943,25 @@ void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 	int ii, jj;
 	
 	ii = 0;
-	for( ; ii<m; ii+=4)
+	for( ; ii<m-2; ii+=4)
 		{
 		// diagonal
 		corner_dttmm_uu_nt_4x4_lib4(pA+ii*sda+ii*bs, pB+ii*sdb+ii*bs, pC+ii*sdc+ii*bs);
 		// off-diagonal
 		jj = ii+4;
-		for( ; jj<m; jj+=4)
+		for( ; jj<m-2; jj+=4)
 			{
 			kernel_dttmm_uu_nt_4x4_lib4(4+jj-ii, pA+ii*sda+ii*bs, pB+jj*sdb+ii*bs, pC+ii*sdc+jj*bs);
 			}
+		if(jj<m)
+			{
+			kernel_dttmm_uu_nt_4x2_lib4(4+jj-ii, pA+ii*sda+ii*bs, pB+jj*sdb+ii*bs, pC+ii*sdc+jj*bs);
+			}
+		}
+	if(ii<m)
+		{
+		// diagonal
+		corner_dttmm_uu_nt_2x2_lib4(pA+ii*sda+ii*bs, pB+ii*sdb+ii*bs, pC+ii*sdc+ii*bs);
 		}
 
 	}

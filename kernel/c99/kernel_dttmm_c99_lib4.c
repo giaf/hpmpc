@@ -574,6 +574,47 @@ void corner_dttmm_uu_nt_4x4_lib4(double *A, double *B, double *C)
 
 
 // normal-transposed, 4x4 with data packed in 4
+void corner_dttmm_uu_nt_2x2_lib4(double *A, double *B, double *C)
+	{
+	
+	const int bs = 4;
+
+	double
+		a_0, a_1,
+		b_0, b_1,
+		c_00=0, c_01=0,
+		        c_11=0;
+	
+	// k=0
+	a_0 = A[0+bs*0];
+
+	b_0 = B[0+bs*0];
+	b_1 = B[1+bs*0];
+
+	c_00 += a_0 * b_0;
+
+	c_01 += a_0 * b_1;
+
+	// k=1
+	a_0 = A[0+bs*1];
+	a_1 = A[1+bs*1];
+
+	b_1 = B[1+bs*1];
+
+	c_01 += a_0 * b_1;
+	c_11 += a_1 * b_1;
+
+	// store result
+	C[0+bs*0] = c_00;
+
+	C[0+bs*1] = c_01;
+	C[1+bs*1] = c_11;
+	
+	}
+
+
+
+// normal-transposed, 4x4 with data packed in 4
 void kernel_dttmm_uu_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 	{
 	
@@ -926,6 +967,214 @@ void kernel_dttmm_uu_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 	C[1+bs*3] = c_13;
 	C[2+bs*3] = c_23;
 	C[3+bs*3] = c_33;
+	
+	}	
+
+
+
+// normal-transposed, 4x4 with data packed in 4
+void kernel_dttmm_uu_nt_4x2_lib4(int kmax, double *A, double *B, double *C)
+	{
+	
+	const int bs = 4;
+
+	int k = 0;
+
+	double
+		a_0, a_1, a_2, a_3,
+		b_0, b_1,
+		c_00=0, c_01=0,
+		c_10=0, c_11=0,
+		c_20=0, c_21=0,
+		c_30=0, c_31=0;
+	
+	// k=0
+	a_0 = A[0+bs*0];
+
+	b_0 = B[0+bs*0];
+	b_1 = B[1+bs*0];
+
+	c_00 += a_0 * b_0;
+	
+	c_01 += a_0 * b_1;
+	
+	// k=1
+	a_0 = A[0+bs*1];
+	a_1 = A[1+bs*1];
+
+	b_0 = B[0+bs*1];
+	b_1 = B[1+bs*1];
+
+	c_00 += a_0 * b_0;
+	c_10 += a_1 * b_0;
+
+	c_01 += a_0 * b_1;
+	c_11 += a_1 * b_1;
+
+	// k=2
+	a_0 = A[0+bs*2];
+	a_1 = A[1+bs*2];
+	a_2 = A[2+bs*2];
+
+	b_0 = B[0+bs*2];
+	b_1 = B[1+bs*2];
+
+	c_00 += a_0 * b_0;
+	c_10 += a_1 * b_0;
+	c_20 += a_2 * b_0;
+
+	c_01 += a_0 * b_1;
+	c_11 += a_1 * b_1;
+	c_21 += a_2 * b_1;
+
+	// k=3
+	a_0 = A[0+bs*3];
+	a_1 = A[1+bs*3];
+	a_2 = A[2+bs*3];
+	a_3 = A[3+bs*3];
+
+	b_0 = B[0+bs*3];
+	b_1 = B[1+bs*3];
+
+	c_00 += a_0 * b_0;
+	c_10 += a_1 * b_0;
+	c_20 += a_2 * b_0;
+	c_30 += a_3 * b_0;
+
+	c_01 += a_0 * b_1;
+	c_11 += a_1 * b_1;
+	c_21 += a_2 * b_1;
+	c_31 += a_3 * b_1;
+
+	A += 4*bs;
+	B += 4*bs;
+
+	k = 4;
+	for( ; k<kmax-4; k+=4)
+		{
+		
+		a_0 = A[0+bs*0];
+		a_1 = A[1+bs*0];
+		a_2 = A[2+bs*0];
+		a_3 = A[3+bs*0];
+		
+		b_0 = B[0+bs*0];
+		b_1 = B[1+bs*0];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+		c_20 += a_2 * b_0;
+		c_30 += a_3 * b_0;
+
+		c_01 += a_0 * b_1;
+		c_11 += a_1 * b_1;
+		c_21 += a_2 * b_1;
+		c_31 += a_3 * b_1;
+
+
+		a_0 = A[0+bs*1];
+		a_1 = A[1+bs*1];
+		a_2 = A[2+bs*1];
+		a_3 = A[3+bs*1];
+		
+		b_0 = B[0+bs*1];
+		b_1 = B[1+bs*1];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+		c_20 += a_2 * b_0;
+		c_30 += a_3 * b_0;
+
+		c_01 += a_0 * b_1;
+		c_11 += a_1 * b_1;
+		c_21 += a_2 * b_1;
+		c_31 += a_3 * b_1;
+
+
+		a_0 = A[0+bs*2];
+		a_1 = A[1+bs*2];
+		a_2 = A[2+bs*2];
+		a_3 = A[3+bs*2];
+		
+		b_0 = B[0+bs*2];
+		b_1 = B[1+bs*2];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+		c_20 += a_2 * b_0;
+		c_30 += a_3 * b_0;
+
+		c_01 += a_0 * b_1;
+		c_11 += a_1 * b_1;
+		c_21 += a_2 * b_1;
+		c_31 += a_3 * b_1;
+
+
+		a_0 = A[0+bs*3];
+		a_1 = A[1+bs*3];
+		a_2 = A[2+bs*3];
+		a_3 = A[3+bs*3];
+		
+		b_0 = B[0+bs*3];
+		b_1 = B[1+bs*3];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+		c_20 += a_2 * b_0;
+		c_30 += a_3 * b_0;
+
+		c_01 += a_0 * b_1;
+		c_11 += a_1 * b_1;
+		c_21 += a_2 * b_1;
+		c_31 += a_3 * b_1;
+		
+		A += 4*bs;
+		B += 4*bs;
+
+		}
+
+	// k = kmax-4
+	a_0 = A[0+bs*0];
+	a_1 = A[1+bs*0];
+	a_2 = A[2+bs*0];
+	a_3 = A[3+bs*0];
+		
+	b_0 = B[0+bs*0];
+	b_1 = B[1+bs*0];
+		
+	c_00 += a_0 * b_0;
+	c_10 += a_1 * b_0;
+	c_20 += a_2 * b_0;
+	c_30 += a_3 * b_0;
+
+	c_01 += a_0 * b_1;
+	c_11 += a_1 * b_1;
+	c_21 += a_2 * b_1;
+	c_31 += a_3 * b_1;
+		
+	// k = kmax-3
+	a_0 = A[0+bs*1];
+	a_1 = A[1+bs*1];
+	a_2 = A[2+bs*1];
+	a_3 = A[3+bs*1];
+		
+	b_1 = B[1+bs*1];
+		
+	c_01 += a_0 * b_1;
+	c_11 += a_1 * b_1;
+	c_21 += a_2 * b_1;
+	c_31 += a_3 * b_1;
+	
+	// store result
+	C[0+bs*0] = c_00;
+	C[1+bs*0] = c_10;
+	C[2+bs*0] = c_20;
+	C[3+bs*0] = c_30;
+
+	C[0+bs*1] = c_01;
+	C[1+bs*1] = c_11;
+	C[2+bs*1] = c_21;
+	C[3+bs*1] = c_31;
 	
 	}	
 

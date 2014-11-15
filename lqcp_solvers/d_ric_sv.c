@@ -169,7 +169,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	const int nal = bs*ncl;
 
 	const int nz = nx+ny;
-	const int anz = bs*((nz+nal-1)/nal);
+	const int anz = nal*((nz+nal-1)/nal);
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int pnw = bs*((nw+bs-1)/bs);
 	const int pny = bs*((ny+bs-1)/bs);
@@ -183,7 +183,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	const int pad = (ncl-(nx+nw)%ncl)%ncl; // packing between AGL & P
 	const int cnl = nx+nw+pad+cnx;
 
-	int ii, jj;
+	int ii, jj, ll;
 	double *ptr;
 
 	ptr = work;
@@ -232,7 +232,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 			ptr = &Lam[(jj/bs)*bs*cnz+jj%bs+jj*bs];
 			*ptr = 1.0;
 			ptr += 1;
-			for(ii=jj+1; ii<((ny+bs-1)/bs)*bs; ii+=1)
+			for(ll=jj+1; ll<((ny+bs-1)/bs)*bs; ll+=1)
 				{
 				*ptr = 0.0;
 				ptr += 1;
@@ -242,8 +242,9 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 
 		// cholesky factorization of Lam
 		dpotrf_lib(nz, nz, Lam, cnz, Fam, cnf, diag);
-		// d_print_pmat(nz, nz, bs, Fam, cnf);
+		//d_print_pmat(nz, nz, bs, Fam, cnf);
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
+		//d_print_mat(nz, 1, diag, 1);
 
 		// transpose and align the bottom right part of Lam
 		dtrtr_l_lib(nx, ny, Fam+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, Fam+ncl*bs, cnf);	
@@ -252,7 +253,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		// compute upper cholesky factor of /Pi+ using triangular-triangular matrix multiplication
 		// d_print_pmat(nx, nx+nw+pad+nx, bs, hpL[ii], cnl);
 		dttmm_uu_lib(nx, Fam+ncl*bs, cnf, hpL[ii]+(nx+nw+pad)*bs, cnl, hpLp[ii], cnx);
-		// d_print_pmat(nx, nx, bs, hpLp[ii], cnx);
+		//d_print_pmat(nx, nx, bs, hpLp[ii], cnx);
 
 		// compute A*U', with U' upper cholesky factor of /Pi+
 		// d_print_pmat(nx, nx, bs, hpA[ii], cnx);
@@ -278,11 +279,11 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 
 		// transpose in place the lower cholesky factor of /Pi
 		dtrtr_l_lib(nx, 0, hpL[ii+1]+(nx+nw+pad)*bs, cnl, hpL[ii+1]+(nx+nw+pad)*bs, cnl);	
-		d_print_pmat(nx, cnl, bs, hpL[ii+1], cnl);
+		//d_print_pmat(nx, cnl, bs, hpL[ii+1], cnl);
 
 		}
 
-	exit(1);
+//	exit(1);
 
 	}
 #endif
