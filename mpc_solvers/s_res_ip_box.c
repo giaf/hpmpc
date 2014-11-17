@@ -86,7 +86,7 @@ void s_res_ip_box_mpc(int nx, int nu, int N, int nb, float **hpBAbt, float **hpQ
 
 
 
-void s_res_ip_box_mhe(int nx, int nu, int N, int nb, float **hpBAbt, float **hpQ, float **hq, float **hux, float **hdb, float **hpi, float **hlam, float **ht, float **hrq, float **hrb, float **hrd, float *mu)
+void s_res_ip_box_mhe_old(int nx, int nu, int N, int nb, float **hpBAbt, float **hpQ, float **hq, float **hux, float **hdb, float **hpi, float **hlam, float **ht, float **hrq, float **hrb, float **hrd, float *mu)
 	{
 
 	const int bs = S_MR; //d_get_mr();

@@ -297,7 +297,7 @@ int d_ip_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_s
 
 
 /* primal-dual interior-point method, box constraints, time invariant matrices (mhe version) */
-int d_ip_box_mhe(int *kk, int k_max, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
+int d_ip_box_mhe_old(int *kk, int k_max, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
 	{
 
 /*printf("\ncazzo\n");*/
@@ -433,12 +433,12 @@ int d_ip_box_mhe(int *kk, int k_max, double mu_tol, double alpha_min, int warm_s
 
 
 	// initialize ux & t>0 (slack variable)
-	d_init_ux_pi_t_box_mhe(N, nx, nu, nbu, nb, ux, pi, db, t, warm_start);
+	d_init_ux_pi_t_box_mhe_old(N, nx, nu, nbu, nb, ux, pi, db, t, warm_start);
 
 
 
 	// initialize lambda>0 (multiplier of the inequality constraint)
-	d_init_lam_mhe(N, nu, nbu, nb, t, lam);
+	d_init_lam_mhe_old(N, nu, nbu, nb, t, lam);
 
 
 
@@ -457,7 +457,7 @@ int d_ip_box_mhe(int *kk, int k_max, double mu_tol, double alpha_min, int warm_s
 
 	// compute the duality gap
 	alpha = 0.0; // needed to compute mu !!!!!
-	d_compute_mu_mhe(N, nbu, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
+	d_compute_mu_mhe_old(N, nbu, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
 
 	// set to zero iteration count
 	*kk = 0;	
@@ -476,19 +476,19 @@ int d_ip_box_mhe(int *kk, int k_max, double mu_tol, double alpha_min, int warm_s
 
 		// box constraints
 
-		d_update_hessian_box_mhe(N, nbu, (nu/bs)*bs, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db);
+		d_update_hessian_box_mhe_old(N, nbu, (nu/bs)*bs, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db);
 
 /*return;*/
 
 
 		// compute the search direction: factorize and solve the KKT system
-		d_ric_sv_mhe(nx, nu, N, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi);
+		d_ric_sv_mhe_old(nx, nu, N, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi);
 
 
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1.0;
-		d_compute_alpha_box_mhe(N, 2*nbu, 2*nu, 2*nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
+		d_compute_alpha_box_mhe_old(N, 2*nbu, 2*nu, 2*nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+1] = alpha;
@@ -499,7 +499,7 @@ int d_ip_box_mhe(int *kk, int k_max, double mu_tol, double alpha_min, int warm_s
 
 
 		// update x, u, lam, t & compute the duality gap mu
-		d_update_var_mhe(nx, nu, N, nb, nbu, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
+		d_update_var_mhe_old(nx, nu, N, nb, nbu, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
 		
 		stat[5*(*kk)+2] = mu;
 		

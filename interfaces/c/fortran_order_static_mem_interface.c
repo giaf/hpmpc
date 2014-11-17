@@ -405,9 +405,9 @@ int fortran_order_static_mem_ip_wrapper( int k_max, double mu_tol,
 		else // mhe
 			{
 		    if(IP==1)
-		        hpmpc_status = d_ip_box_mhe(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        hpmpc_status = d_ip_box_mhe_old(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    else
-		        hpmpc_status = d_ip2_box_mhe(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        hpmpc_status = d_ip2_box_mhe_old(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    }
 
 /*printf("\nend of ip solver\n");*/
@@ -712,9 +712,9 @@ int fortran_order_static_mem_ip_wrapper( int k_max, double mu_tol,
 		else // mhe
 			{
 		    if(IP==1)
-		        hpmpc_status = s_ip_box_mhe(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        hpmpc_status = s_ip_box_mhe_old(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    else
-		        hpmpc_status = s_ip2_box_mhe(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
+		        hpmpc_status = s_ip2_box_mhe_old(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);
 		    }
 
 

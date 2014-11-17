@@ -1563,7 +1563,7 @@ void s_compute_mu_mpc(int N, int nbu, int nu, int nb, float *ptr_mu, float mu_sc
 
 
 
-void s_init_ux_pi_t_box_mhe(int N, int nx, int nu, int nbu, int nb, float **ux, float **pi, float **db, float **t, int warm_start)
+void s_init_ux_pi_t_box_mhe_old(int N, int nx, int nu, int nbu, int nb, float **ux, float **pi, float **db, float **t, int warm_start)
 	{
 	
 	int jj, ll, ii;
@@ -1703,7 +1703,7 @@ void s_init_ux_pi_t_box_mhe(int N, int nx, int nu, int nbu, int nb, float **ux, 
 
 
 
-void s_init_lam_mhe(int N, int nu, int nbu, int nb, float **t, float **lam)	// TODO approximate reciprocal
+void s_init_lam_mhe_old(int N, int nu, int nbu, int nb, float **t, float **lam)	// TODO approximate reciprocal
 	{
 	
 	int jj, ll;
@@ -1724,7 +1724,7 @@ void s_init_lam_mhe(int N, int nu, int nbu, int nb, float **t, float **lam)	// T
 
 
 
-void s_update_hessian_box_mhe(int N, int k0, int k1, int kmax, int cnz, float sigma_mu, float **t, float **t_inv, float **lam, float **lamt, float **dlam, float **bd, float **bl, float **pd, float **pl, float **pl2, float **db)
+void s_update_hessian_box_mhe_old(int N, int k0, int k1, int kmax, int cnz, float sigma_mu, float **t, float **t_inv, float **lam, float **lamt, float **dlam, float **bd, float **bl, float **pd, float **pl, float **pl2, float **db)
 
 /*void d_update_hessian_box(int k0, int kmax, int nb, int cnz, float sigma_mu, float *t, float *lam, float *lamt, float *dlam, float *bd, float *bl, float *pd, float *pl, float *lb, float *ub)*/
 	{
@@ -2002,7 +2002,7 @@ void s_update_hessian_box_mhe(int N, int k0, int k1, int kmax, int cnz, float si
 
 
 
-void s_compute_alpha_box_mhe(int N, int k0, int k1, int kmax, float *ptr_alpha, float **t, float **dt, float **lam, float **dlam, float **lamt, float **dux, float **db)
+void s_compute_alpha_box_mhe_old(int N, int k0, int k1, int kmax, float *ptr_alpha, float **t, float **dt, float **lam, float **dlam, float **lamt, float **dux, float **db)
 	{
 	
 	const int bs = 8; //d_get_mr();
@@ -2083,7 +2083,7 @@ void s_compute_alpha_box_mhe(int N, int k0, int k1, int kmax, float *ptr_alpha, 
 
 
 
-void s_update_var_mhe(int nx, int nu, int N, int nb, int nbu, float *ptr_mu, float mu_scal, float alpha, float **ux, float **dux, float **t, float **dt, float **lam, float **dlam, float **pi, float **dpi)
+void s_update_var_mhe_old(int nx, int nu, int N, int nb, int nbu, float *ptr_mu, float mu_scal, float alpha, float **ux, float **dux, float **t, float **dt, float **lam, float **dlam, float **pi, float **dpi)
 	{
 	
 	int jj, ll;
@@ -2137,7 +2137,7 @@ void s_update_var_mhe(int nx, int nu, int N, int nb, int nbu, float *ptr_mu, flo
 
 
 
-void s_compute_mu_mhe(int N, int nbu, int nu, int nb, float *ptr_mu, float mu_scal, float alpha, float **lam, float **dlam, float **t, float **dt)
+void s_compute_mu_mhe_old(int N, int nbu, int nu, int nb, float *ptr_mu, float mu_scal, float alpha, float **lam, float **dlam, float **t, float **dt)
 	{
 	
 	int jj, ll;

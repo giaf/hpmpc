@@ -419,7 +419,7 @@ int main()
 		if(FREE_X0==0)
 			s_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 		else
-			s_ric_sv_mhe(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+			s_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 
 		if(PRINTRES==1 && ll_max==1)
 			{
@@ -447,7 +447,7 @@ int main()
 		if(FREE_X0==0)
 			s_res_mpc(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 		else
-			s_res_mhe(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+			s_res_mhe_old(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 
 		if(PRINTRES==1 && COMPUTE_MULT==1 && ll_max==1)
 			{
@@ -491,7 +491,7 @@ int main()
 		if(FREE_X0==0)
 			s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
 		else
-			s_ric_trs_mhe(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
+			s_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
 
 		if(PRINTRES==1 && ll_max==1)
 			{
@@ -523,7 +523,7 @@ int main()
 		if(FREE_X0==0)
 			s_res_mpc(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 		else
-			s_res_mhe(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+			s_res_mhe_old(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 
 		if(PRINTRES==1 && COMPUTE_MULT==1 && ll_max==1)
 			{
@@ -561,7 +561,7 @@ int main()
 			if(FREE_X0==0)
 				s_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 			else
-				s_ric_sv_mhe(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+				s_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
@@ -587,7 +587,7 @@ int main()
 			if(FREE_X0==0)
 				s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
 			else
-				s_ric_trs_mhe(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
+				s_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
 			}
 		
 		gettimeofday(&tv2, NULL); // start
@@ -598,7 +598,7 @@ int main()
 			if(FREE_X0==0)
 				s_res_mpc(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 			else
-				s_res_mhe(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+				s_res_mhe_old(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 			}
 
 		gettimeofday(&tv3, NULL); // start
@@ -624,7 +624,7 @@ int main()
 			if(FREE_X0==0)
 				s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 0, hPb, 0, hpi);
 			else
-				s_ric_trs_mhe(nx, nu, N, hpBAbt, hpL, hq, hux, work, 0, hPb, 0, hpi);
+				s_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 0, hPb, 0, hpi);
 			}
 		
 		gettimeofday(&tv4, NULL); // start

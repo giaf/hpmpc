@@ -182,7 +182,7 @@ void s_ric_trs_mpc(int nx, int nu, int N, float **hpBAbt, float **hpL, float **h
 
 
 /* version tailored for mhe (x0 free) */
-void s_ric_sv_mhe(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hux, float **hpL, float *work, float *diag, int compute_pi, float **hpi)
+void s_ric_sv_mhe_old(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hux, float **hpL, float *work, float *diag, int compute_pi, float **hpi)
 	{
 	
 	const int bs = S_MR; //d_get_mr();
@@ -263,7 +263,7 @@ void s_ric_sv_mhe(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 
 
 
-void s_ric_trs_mhe(int nx, int nu, int N, float **hpBAbt, float **hpL, float **hq, float **hux, float *work, int compute_Pb, float ** hPb, int compute_pi, float **hpi)
+void s_ric_trs_mhe_old(int nx, int nu, int N, float **hpBAbt, float **hpL, float **hq, float **hux, float *work, int compute_Pb, float ** hPb, int compute_pi, float **hpi)
 	{
 	
 	const int bs = S_MR; //d_get_mr();

@@ -1529,7 +1529,7 @@ void d_compute_mu_mpc(int N, int nbu, int nu, int nb, double *ptr_mu, double mu_
 
 
 
-void d_init_ux_pi_t_box_mhe(int N, int nx, int nu, int nbu, int nb, double **ux, double **pi, double **db, double **t, int warm_start)
+void d_init_ux_pi_t_box_mhe_old(int N, int nx, int nu, int nbu, int nb, double **ux, double **pi, double **db, double **t, int warm_start)
 	{
 	
 	int jj, ll, ii;
@@ -1669,7 +1669,7 @@ void d_init_ux_pi_t_box_mhe(int N, int nx, int nu, int nbu, int nb, double **ux,
 
 
 
-void d_init_lam_mhe(int N, int nu, int nbu, int nb, double **t, double **lam) // TODO approximate reciprocal
+void d_init_lam_mhe_old(int N, int nu, int nbu, int nb, double **t, double **lam) // TODO approximate reciprocal
 	{
 	
 	int jj, ll;
@@ -1690,7 +1690,7 @@ void d_init_lam_mhe(int N, int nu, int nbu, int nb, double **t, double **lam) //
 
 
 
-void d_update_hessian_box_mhe(int N, int k0, int k1, int kmax, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **pl2, double **db)
+void d_update_hessian_box_mhe_old(int N, int k0, int k1, int kmax, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **pl2, double **db)
 	{
 
 	__m256d
@@ -2027,7 +2027,7 @@ void d_update_hessian_box_mhe(int N, int k0, int k1, int kmax, int cnz, double s
 
 
 
-void d_compute_alpha_box_mhe(int N, int k0, int k1, int kmax, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db)
+void d_compute_alpha_box_mhe_old(int N, int k0, int k1, int kmax, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db)
 	{
 	
 	__m128
@@ -2257,7 +2257,7 @@ void d_compute_alpha_box_mhe(int N, int k0, int k1, int kmax, double *ptr_alpha,
 	}
 
 
-void d_update_var_mhe(int nx, int nu, int N, int nb, int nbu, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
+void d_update_var_mhe_old(int nx, int nu, int N, int nb, int nbu, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
 	{
 	
 	int jj, ll;
@@ -2519,7 +2519,7 @@ void d_update_var_mhe(int nx, int nu, int N, int nb, int nbu, double *ptr_mu, do
 	}
 
 
-void d_compute_mu_mhe(int N, int nbu, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
+void d_compute_mu_mhe_old(int N, int nbu, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
 	{
 	
 	int jj, ll;

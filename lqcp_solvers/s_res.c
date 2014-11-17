@@ -69,7 +69,7 @@ void s_res_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hq, f
 
 
 
-void s_res_mhe(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hq, float **hux, float **hpi, float **hrq, float **hrb)
+void s_res_mhe_old(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hq, float **hux, float **hpi, float **hrq, float **hrb)
 	{
 
 	const int bs = S_MR; //d_get_mr();
