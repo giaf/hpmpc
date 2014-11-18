@@ -1009,3 +1009,42 @@ void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 
 	}
 //#endif
+
+
+
+//#if defined(TARGET_C99_4X4)
+void dtrma_lib(int m, int mna, double *pA, int sda, double *pC, int sdc)
+	{
+
+	const int bs = 4;
+
+	int i;
+
+	i=0;
+	for( ; i<m-3; i+=4)
+		{
+		kernel_dtrma_4_lib4(m-i, mna, &pA[i*sda+i*bs], sda, &pC[i*sdc+i*bs], sdc);
+		}
+	if(m-i==0)
+		{
+		return;
+		}
+	else if(m-i==1)
+		{
+		pC[i*sdc+i*bs] = pA[i*sda+i*bs];
+		return;
+		}
+	else if(m-i==2)
+		{
+		corner_dtrma_2_lib4(mna, &pA[i*sda+i*bs], &pC[i*sdc+i*bs], sdc);
+		return;
+		}
+	else //if(m-i==3)
+		{
+		corner_dtrma_3_lib4(mna, &pA[i*sda+i*bs], &pC[i*sdc+i*bs], sdc);
+		return;
+		}
+
+	
+	}
+//#endif
