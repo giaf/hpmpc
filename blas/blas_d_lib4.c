@@ -228,6 +228,20 @@ void dtrmm_u_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double 
 	int i, j;
 	
 	i=0;
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+	for( ; i<m; i+=4)
+		{
+		j=0;
+		for( ; j<n-2; j+=4)
+			{
+			kernel_dtrmm_u_nt_4x4_lib4(j+4, &pA[i*sda], &pB[j*sdb], &pC[i*sdc+j*bs]);
+			}
+		if(j<n)
+			{
+			kernel_dtrmm_u_nt_4x2_lib4(j+2, &pA[i*sda], &pB[j*sdb], &pC[i*sdc+j*bs]);
+			}
+		}
+#else
 	for( ; i<m-2; i+=4)
 		{
 		j=0;
@@ -240,7 +254,6 @@ void dtrmm_u_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double 
 			kernel_dtrmm_u_nt_4x2_lib4(j+2, &pA[i*sda], &pB[j*sdb], &pC[i*sdc+j*bs]);
 			}
 		}
-#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_NEON)
 	if(i<m)
 		{
 		j=0;
@@ -951,7 +964,7 @@ void dgetr_lib(int m, int mna, int n, int offset, double *pA, int sda, double *p
 
 
 
-#if defined(TARGET_C99_4X4)
+//#if defined(TARGET_C99_4X4)
 void dttmm_ll_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
 	{
 
@@ -973,7 +986,7 @@ void dttmm_ll_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 		}
 
 	}
-#endif
+//#endif
 
 
 
@@ -1013,10 +1026,12 @@ void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 
 
 //#if defined(TARGET_C99_4X4)
-void dtrma_lib(int m, int mna, double *pA, int sda, double *pC, int sdc)
+void dtrma_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
 	{
 
 	const int bs = 4;
+
+	int mna = (bs-offset%bs)%bs;
 
 	int i;
 

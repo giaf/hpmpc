@@ -385,13 +385,13 @@ int main()
 		double *(hpC[N]);
 		double *(hpQ[N]);
 		double *(hpR[N]);
-		double *(hpL[N+1]);
 		double *(hpLp[N+1]);
+		double *(hpLe[N+1]);
 
-		d_zeros_align(&hpL[0], pnx, cnl);
-		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpL[0]+(nx+nw+pad)*bs, cnl);
-		//d_print_pmat(nx, cnl, bs, hpL[0], cnl);
-		d_zeros_align(&hpLp[0], pnx, cnx);
+		d_zeros_align(&hpLp[0], pnx, cnl);
+		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLp[0]+(nx+nw+pad)*bs, cnl);
+		//d_print_pmat(nx, cnl, bs, hpLp[0], cnl);
+		d_zeros_align(&hpLe[0], pnz, cnf);
 
 		for(jj=0; jj<N; jj++)
 			{
@@ -400,18 +400,20 @@ int main()
 			hpC[jj] = pC;
 			hpQ[jj] = pQ;
 			hpR[jj] = pR;
-			d_zeros_align(&hpL[jj+1], pnx, cnl);
-			d_zeros_align(&hpLp[jj+1], pnx, cnx);
+			d_zeros_align(&hpLp[jj+1], pnx, cnl);
+			d_zeros_align(&hpLe[jj+1], pnz, cnf);
 			}
 
-		double *work; d_zeros_align(&work, pny*cnx+pnz*cnz+anz+pnz*cnf+pnw*cnw, 1);
+		//double *work; d_zeros_align(&work, pny*cnx+pnz*cnz+anz+pnz*cnf+pnw*cnw, 1);
+		double *work; d_zeros_align(&work, 2*pny*cnx+pnz*cnz+anz+pnw*cnw+pnx*cnx, 1);
 
 
 /************************************************
 * call the solver
 ************************************************/	
 
-		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpL, hpQ, hpR, hpLp, work);
+		//d_ric_trf_mhe_test(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
+		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
 
 		// timing 
 		struct timeval tv0, tv1, tv2, tv3, tv4;
@@ -422,7 +424,8 @@ int main()
 		// factorize
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpL, hpQ, hpR, hpLp, work);
+			//d_ric_trf_mhe_test(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
+			d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
 			}
 
 		gettimeofday(&tv1, NULL); // start
@@ -454,12 +457,12 @@ int main()
 		free(pQ);
 		free(pR);
 		free(work);
-		free(hpL[0]);
 		free(hpLp[0]);
+		free(hpLe[0]);
 		for(jj=0; jj<N; jj++)
 			{
-			free(hpL[jj+1]);
 			free(hpLp[jj+1]);
+			free(hpLe[jj+1]);
 			}
 
 
