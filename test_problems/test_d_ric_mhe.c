@@ -366,6 +366,18 @@ int main()
 		for(jj=0; jj<nx; jj++)
 			L0[jj*(nx+1)] = 2.0;
 
+		double *r; d_zeros_align(&r, any, 1);
+		for(jj=0; jj<ny; jj++)
+			r[jj] = 1.0;
+
+		double *q; d_zeros_align(&q, anw, 1);
+		for(jj=0; jj<nw; jj++)
+			q[jj] = 1.0;
+
+		double *f; d_zeros_align(&f, anx, 1);
+		for(jj=0; jj<nx; jj++)
+			f[jj] = b[jj]; //1.0;
+
 		/* packed into contiguous memory */
 		double *pQ; d_zeros_align(&pQ, pnw, cnw);
 		d_cvt_mat2pmat(nw, nw, 0, bs, Q, nw, pQ, cnw);
@@ -387,11 +399,20 @@ int main()
 		double *(hpR[N]);
 		double *(hpLp[N+1]);
 		double *(hpLe[N+1]);
+		double *(hq[N]);
+		double *(hr[N]);
+		double *(hf[N]);
+		double *(hxe[N+1]);
+		double *(hxp[N+1]);
+		double *(hy[N+1]);
 
 		d_zeros_align(&hpLp[0], pnx, cnl);
 		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLp[0]+(nx+nw+pad)*bs, cnl);
 		//d_print_pmat(nx, cnl, bs, hpLp[0], cnl);
 		d_zeros_align(&hpLe[0], pnz, cnf);
+		d_zeros_align(&hxe[0], anx, 1);
+		d_zeros_align(&hxp[0], anx, 1);
+		d_zeros_align(&hy[0], any, 1);
 
 		for(jj=0; jj<N; jj++)
 			{
@@ -402,10 +423,20 @@ int main()
 			hpR[jj] = pR;
 			d_zeros_align(&hpLp[jj+1], pnx, cnl);
 			d_zeros_align(&hpLe[jj+1], pnz, cnf);
+			hq[jj] = q;
+			hr[jj] = r;
+			hf[jj] = f;
+			d_zeros_align(&hxe[jj+1], anx, 1);
+			d_zeros_align(&hxp[jj+1], anx, 1);
+			d_zeros_align(&hy[jj+1], any, 1);
 			}
 
 		//double *work; d_zeros_align(&work, pny*cnx+pnz*cnz+anz+pnz*cnf+pnw*cnw, 1);
 		double *work; d_zeros_align(&work, 2*pny*cnx+pnz*cnz+anz+pnw*cnw+pnx*cnx, 1);
+
+		// initial guess
+		hxp[0][0] = 3.5;
+		hxp[0][1] = 3.5;
 
 
 /************************************************
@@ -414,6 +445,8 @@ int main()
 
 		//d_ric_trf_mhe_test(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
 		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
+
+		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hy, work);
 
 		// timing 
 		struct timeval tv0, tv1, tv2, tv3, tv4;
@@ -430,14 +463,23 @@ int main()
 
 		gettimeofday(&tv1, NULL); // start
 
+		// factorize
+		for(rep=0; rep<nrep; rep++)
+			{
+			d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hy, work);
+			}
+
+		gettimeofday(&tv2, NULL); // start
+
 		float time_trf = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+		float time_trs = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
 
 		if(ll==0)
 			{
-			printf("\nnx\tnw\tny\tN\ttrf time\n\n");
+			printf("\nnx\tnw\tny\tN\ttrf time\ttrs time\n\n");
 //			fprintf(f, "\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
 			}
-		printf("%d\t%d\t%d\t%d\t%e\n\n", nx, nw, ny, N, time_trf);
+		printf("%d\t%d\t%d\t%d\t%e\t%e\n\n", nx, nw, ny, N, time_trf, time_trs);
 
 /************************************************
 * return

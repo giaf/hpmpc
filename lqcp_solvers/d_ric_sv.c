@@ -160,29 +160,92 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 
 
 // xp is the vector of predictions, xe is the vector of estimates
-#if 0
-void d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, double **hpC, double **hpL, double **hpQ, double **hpr, double **hpLe, double **xp, double **xe)
+//#if 0
+void d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, double **hpC, double **hpLp, double **hpQ, double **hpR, double **hpLe, double **hq, double **hr, double **hf, double **hxp, double **hxe, double **hy, double *work)
 	{
+
+	//printf("\nhola\n");
 
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
 	const int nal = bs*ncl;
 
+	const int nz = nx+ny;
+	const int anw = nal*((nw+nal-1)/nal);
+	const int any = nal*((ny+nal-1)/nal);
+	const int anz = nal*((nz+nal-1)/nal);
+	const int cnx = ncl*((nx+ncl-1)/ncl);
+	const int cnw = ncl*((nw+ncl-1)/ncl);
+	const int cny = ncl*((ny+ncl-1)/ncl);
+	const int cnz = ncl*((nz+ncl-1)/ncl);
+
 	int ii, jj, ll;
 	double *ptr;
 
-	ii=0;
+	ptr = work;
 
-	// compute inv(/Pi_p)*x_p
-	for(jj=0; jj<nx; jj++) temp[jj] = xp[ii][jj];
-	dtrsv_dgemv_n_lib(nx, nx, hpLp[ii]+(nx+nw+pad)*bs, cnl, temp);
-	dtrsv_dgemv_t_lib(nx, nx, hpLp[ii]+(nx+nw+pad)*bs, cnl, temp);
+	double *y_temp = ptr; //; d_zeros_align(&y_temp, anz, 1);
+	ptr += anz;
+
+	double *w_temp = ptr; //; d_zeros_align(&w_temp, anw, 1);
+	ptr += anw;
+
+	// loop over horizon
+	for(ii=0; ii<N; ii++)
+		{
+
+		// copy y
+		for(jj=0; jj<ny; jj++) y_temp[jj] = - hy[ii][jj];
+		//d_print_mat(1, nz, y_temp, 1);
 	
-	// compute C'*inv(R)*y
+		// copy xp
+		for(jj=0; jj<nx; jj++) y_temp[ny+jj] = hxp[ii][jj];
+		//d_print_mat(1, nz, y_temp, 1);
+	
+		// compute y + R*r
+		dsymv_lib(ny, 0, hpR[ii], cny, hr[ii], y_temp, -1);
+		//d_print_mat(1, nz, y_temp, 1);
 
+		// compute y + R*r - C*xp
+		dgemv_n_lib(ny, nx, hpC[ii], cnx, hxp[ii], y_temp, 1);
+		//d_print_mat(1, nz, y_temp, 1);
+
+		//d_print_pmat(nz, ny, bs, hpLe[ii], cnz);
+
+		// compute xe
+		dtrsv_dgemv_n_lib(ny, ny+nx, hpLe[ii], cnz, y_temp);
+		//d_print_mat(1, nz, y_temp, 1);
+
+		// copy xe
+		for(jj=0; jj<nx; jj++) hxe[ii][jj] = y_temp[ny+jj];
+		//d_print_mat(1, nx, hxe[ii], 1);
+
+		// initialize w_temp with 0
+		for(jj=0; jj<nw; jj++) w_temp[jj] = 0.0;
+		//d_print_mat(1, nw, w_temp, 1);
+	
+		// compute Q*q
+		dsymv_lib(nw, 0, hpQ[ii], cnw, hq[ii], w_temp, -1);
+		//d_print_mat(1, nw, w_temp, 1);
+
+		// copy f in xp
+		for(jj=0; jj<nx; jj++) hxp[ii+1][jj] = hf[ii][jj];
+		//d_print_mat(1, nx, hxp[ii+1], 1);
+	
+		// xp += G*w_temp
+		dgemv_n_lib(nx, nw, hpG[ii], cnw, w_temp, hxp[ii+1], 1);
+		//d_print_mat(1, nx, hxp[ii+1], 1);
+	
+		// xp += A*xe
+		dgemv_n_lib(nx, nx, hpA[ii], cnx, hxe[ii], hxp[ii+1], 1);
+		//d_print_mat(1, nx, hxp[ii+1], 1);
+
+		}
+	
+	//exit(1);
 
 	}
-#endif
+//#endif
 
 
 
@@ -306,6 +369,9 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		//d_print_pmat(nz, nz, bs, hpLe[ii], cnf);
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
 		//d_print_mat(nz, 1, diag, 1);
+
+		// inverted diagonal of top-left part of hpLe
+		for(jj=0; jj<ny; jj++) hpLe[ii][(jj/bs)*bs*cnf+jj%bs+jj*bs] = diag[jj];
 
 		// transpose and align /Pi_e
 		dtrtr_l_lib(nx, ny, hpLe[ii]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, hpLe[ii]+ncl*bs, cnf);	
