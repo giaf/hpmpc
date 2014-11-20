@@ -394,25 +394,17 @@ int main()
 
 		double *(hpA[N]);
 		double *(hpG[N]);
-		double *(hpC[N]);
+		double *(hpC[N+1]);
 		double *(hpQ[N]);
-		double *(hpR[N]);
+		double *(hpR[N+1]);
 		double *(hpLp[N+1]);
 		double *(hpLe[N+1]);
 		double *(hq[N]);
-		double *(hr[N]);
+		double *(hr[N+1]);
 		double *(hf[N]);
 		double *(hxe[N+1]);
 		double *(hxp[N+1]);
 		double *(hy[N+1]);
-
-		d_zeros_align(&hpLp[0], pnx, cnl);
-		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLp[0]+(nx+nw+pad)*bs, cnl);
-		//d_print_pmat(nx, cnl, bs, hpLp[0], cnl);
-		d_zeros_align(&hpLe[0], pnz, cnf);
-		d_zeros_align(&hxe[0], anx, 1);
-		d_zeros_align(&hxp[0], anx, 1);
-		d_zeros_align(&hy[0], any, 1);
 
 		for(jj=0; jj<N; jj++)
 			{
@@ -421,15 +413,28 @@ int main()
 			hpC[jj] = pC;
 			hpQ[jj] = pQ;
 			hpR[jj] = pR;
-			d_zeros_align(&hpLp[jj+1], pnx, cnl);
-			d_zeros_align(&hpLe[jj+1], pnz, cnf);
+			d_zeros_align(&hpLp[jj], pnx, cnl);
+			d_zeros_align(&hpLe[jj], pnz, cnf);
 			hq[jj] = q;
 			hr[jj] = r;
 			hf[jj] = f;
-			d_zeros_align(&hxe[jj+1], anx, 1);
-			d_zeros_align(&hxp[jj+1], anx, 1);
-			d_zeros_align(&hy[jj+1], any, 1);
+			d_zeros_align(&hxe[jj], anx, 1);
+			d_zeros_align(&hxp[jj], anx, 1);
+			d_zeros_align(&hy[jj], any, 1);
 			}
+
+		hpC[N] = pC;
+		hpR[N] = pR;
+		d_zeros_align(&hpLp[N], pnx, cnl);
+		d_zeros_align(&hpLe[N], pnz, cnf);
+		hr[N] = r;
+		d_zeros_align(&hxe[N], anx, 1);
+		d_zeros_align(&hxp[N], anx, 1);
+		d_zeros_align(&hy[N], any, 1);
+
+		// initialize hpLp[0] with the cholesky factorization of /Pi_p
+		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLp[0]+(nx+nw+pad)*bs, cnl);
+		//d_print_pmat(nx, cnl, bs, hpLp[0], cnl);
 
 		//double *work; d_zeros_align(&work, pny*cnx+pnz*cnz+anz+pnz*cnf+pnw*cnw, 1);
 		double *work; d_zeros_align(&work, 2*pny*cnx+pnz*cnz+anz+pnw*cnw+pnx*cnx, 1);

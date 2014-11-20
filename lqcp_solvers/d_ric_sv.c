@@ -242,6 +242,34 @@ void d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 
 		}
 	
+	// stage N
+
+	// copy y
+	for(jj=0; jj<ny; jj++) y_temp[jj] = - hy[N][jj];
+	//d_print_mat(1, nz, y_temp, 1);
+	
+	// copy xp
+	for(jj=0; jj<nx; jj++) y_temp[ny+jj] = hxp[N][jj];
+	//d_print_mat(1, nz, y_temp, 1);
+	
+	// compute y + R*r
+	dsymv_lib(ny, 0, hpR[N], cny, hr[N], y_temp, -1);
+	//d_print_mat(1, nz, y_temp, 1);
+
+	// compute y + R*r - C*xp
+	dgemv_n_lib(ny, nx, hpC[N], cnx, hxp[N], y_temp, 1);
+	//d_print_mat(1, nz, y_temp, 1);
+
+	//d_print_pmat(nz, ny, bs, hpLe[N], cnz);
+
+	// compute xe
+	dtrsv_dgemv_n_lib(ny, ny+nx, hpLe[N], cnz, y_temp);
+	//d_print_mat(1, nz, y_temp, 1);
+
+	// copy xe
+	for(jj=0; jj<nx; jj++) hxe[N][jj] = y_temp[ny+jj];
+	//d_print_mat(1, nx, hxe[N], 1);
+
 	//exit(1);
 
 	}
@@ -413,6 +441,71 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 
 		//exit(1);
 		}
+
+	// stage N
+
+	// backup the top-left part of the bottom right block of Lam
+	ptr1 = buffer;
+	for(jj=ny; jj<((ny+bs-1)/bs)*bs; jj+=1)
+		{
+		ptr = &Lam[(jj/bs)*bs*cnz+jj%bs+jj*bs];
+		ptr1[0] = ptr[0];
+		ptr += 1;
+		ptr1 += 1;
+		for(ll=jj+1; ll<((ny+bs-1)/bs)*bs; ll+=1)
+			{
+			ptr1[0] = ptr[0];
+			ptr += 1;
+			ptr1 += 1;
+			}
+		}
+	//d_print_mat(6, 1, buffer, 1);
+
+	// compute C*U', with U upper cholesky factor of /Pi_p
+	dtrmm_l_lib(ny, nx, hpC[N], cnx, hpLp[N]+(nx+nw+pad)*bs, cnl, CL, cnx);
+	//d_print_pmat(ny, nx, bs, CL, cnx);
+
+	// compute R + (C*U')*(C*U')' on the top left of Lam
+	dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[N], cny, Lam, cnz, 1);
+	//d_print_pmat(nz, nz, bs, Lam, cnz);
+
+	// recover overwritten part of I in bottom right part of Lam
+	ptr1 = buffer;
+	for(jj=ny; jj<((ny+bs-1)/bs)*bs; jj+=1)
+		{
+		ptr = &Lam[(jj/bs)*bs*cnz+jj%bs+jj*bs];
+		ptr[0] = ptr1[0];
+		ptr += 1;
+		ptr1 += 1;
+		for(ll=jj+1; ll<((ny+bs-1)/bs)*bs; ll+=1)
+			{
+			ptr[0] = ptr1[0];
+			ptr += 1;
+			ptr1 += 1;
+			}
+		}
+	//d_print_pmat(nz, nz, bs, Lam, cnz);
+
+	// compute C*U'*L'
+	dtrmm_u_lib(ny, nx, CL, cnx, hpLp[N]+(nx+nw+pad)*bs, cnl, CLLt, cnx);
+	//d_print_pmat(ny, nx, bs, CLLt, cnx);
+
+	// copy C*U'*L' on the bottom left of Lam
+	dgetr_lib(ny, 0, nx, ny, CLLt, cnx, Lam+(ny/bs)*bs*cnz+ny%bs, cnz);
+	//d_print_pmat(nz, nz, bs, Lam, cnz);
+
+	// cholesky factorization of Lam
+	dpotrf_lib(nz, nz, Lam, cnz, hpLe[N], cnf, diag);
+	//d_print_pmat(nz, nz, bs, hpLe[N], cnf);
+	//d_print_pmat(nz, nz, bs, Lam, cnz);
+	//d_print_mat(nz, 1, diag, 1);
+
+	// inverted diagonal of top-left part of hpLe
+	for(jj=0; jj<ny; jj++) hpLe[N][(jj/bs)*bs*cnf+jj%bs+jj*bs] = diag[jj];
+
+	// transpose and align /Pi_e
+	dtrtr_l_lib(nx, ny, hpLe[N]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, hpLe[N]+ncl*bs, cnf);	
+	//d_print_pmat(nz, nz, bs, hpLe[N], cnf);
 
 	//exit(1);
 
