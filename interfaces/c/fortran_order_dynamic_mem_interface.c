@@ -880,7 +880,7 @@ int fortran_order_dynamic_mem_riccati_wrapper_init( const int nx, const int nu, 
 		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 
-		double *work = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 2*anz + 2*anx) + 3*anz)*sizeof(float));
+		double *work = (double *) malloc((16 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 2*anz + 2*anx) + 3*anz)*sizeof(float));
 		*ptr_work = work;
         
 		int compute_mult = 1; // compute multipliers
@@ -1746,7 +1746,7 @@ int fortran_order_dynamic_mem_riccati_wrapper( const int nx, const int nu, const
 		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 
-		float *work = (float *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 2*anz + 2*anx) + 3*anz)*sizeof(float));
+		float *work = (float *) malloc((16 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 2*anz + 2*anx) + 3*anz)*sizeof(float));
 
 		int compute_mult = 1; // compute multipliers
 
@@ -1895,6 +1895,210 @@ int fortran_order_dynamic_mem_riccati_wrapper( const int nx, const int nu, const
 		
 		// free work space
 		free(work);
+
+		}
+
+	return 0;
+	
+	}
+
+
+
+int fortran_order_dynamic_mem_riccati_wrapper_mhe( const int nx, const int nw, const int ny, const int N,
+                                                   double *A, double *G, double *C, double *f, 
+                                                   double *Q, double *R, double *q, double *r, 
+                                                   double *y, double *x0, double *L0, double *xe, double *Le )
+	{
+
+	char prec = 'd';
+
+	if(prec=='d')
+		{
+
+		const int bs = D_MR; //d_get_mr();
+		const int ncl = D_NCL;
+		const int nal = bs*ncl;
+
+		const int nz = nx+ny; 
+		const int anz = nal*((nz+nal-1)/nal);
+		const int anx = nal*((nx+nal-1)/nal);
+		const int anw = nal*((nw+nal-1)/nal);
+		const int any = nal*((ny+nal-1)/nal);
+		const int pnz = bs*((nz+bs-1)/bs);
+		const int pnx = bs*((nx+bs-1)/bs);
+		const int pnw = bs*((nw+bs-1)/bs);
+		const int pny = bs*((ny+bs-1)/bs);
+		const int cnz = ncl*((nz+ncl-1)/ncl);
+		const int cnx = ncl*((nx+ncl-1)/ncl);
+		const int cnw = ncl*((nw+ncl-1)/ncl);
+		const int cny = ncl*((ny+ncl-1)/ncl);
+		const int cnf = cnz<cnx+ncl ? cnx+ncl : cnz;
+
+		const int pad = (ncl-(nx+nw)%ncl)%ncl; // packing between AGL & P
+		const int cnl = nx+nw+pad+cnx;
+
+		double *work = (double *) malloc((8 + (N+1)*(pnx*cnx+pnx*cnw+pny*cnx+anx+pnw*cnw+pny*cny+anw+any+pnx*cnl+pnz*cnf+anx+anx+any) + 2*pny*cnx+pnz*cnz+anz+pnw*cnw+pnx*cnx)*sizeof(double));
+
+//		int compute_mult = 1; // compute multipliers
+
+		int i, ii, jj, ll;
+
+
+		/* align work space */
+		size_t align = 64;
+		size_t addr = (size_t) work;
+		size_t offset = addr % 64;
+		double *ptr = work + offset / 8;
+
+		/* array or pointers */
+		double *(hpA[N]);
+		double *(hpG[N]);
+		double *(hpC[N+1]);
+		double *(hf[N]);
+		double *(hpQ[N]);
+		double *(hpR[N+1]);
+		double *(hq[N]);
+		double *(hr[N+1]);
+		double *(hpLp[N+1]);
+		double *(hpLe[N+1]);
+		double *(hxe[N+1]);
+		double *(hxp[N+1]);
+		double *(hy[N+1]);
+
+		double *diag;
+		double *work1;
+
+
+		for(ii=0; ii<N; ii++)
+			{
+			// dynamic system
+			hpA[ii] = ptr;
+			ptr += pnx*cnx;
+			hpG[ii] = ptr;
+			ptr += pnx*cnw;
+			hpC[ii] = ptr;
+			ptr += pny*cnx;
+			hf[ii] = ptr;
+			ptr += anx;
+			// cost function
+			hpQ[ii] = ptr;
+			ptr += pnw*cnw;
+			hpR[ii] = ptr;
+			ptr += pny*cny;
+			hq[ii] = ptr;
+			ptr += anw;
+			hr[ii] = ptr;
+			ptr += any;
+			// covariances
+			hpLp[ii] = ptr;
+			ptr += pnx*cnl;
+			hpLe[ii] = ptr;
+			ptr += pnz*cnf;
+			// estimates and measurements
+			hxe[ii] = ptr;
+			ptr += anx;
+			hxp[ii] = ptr;
+			ptr += anx;
+			hy[ii] = ptr;
+			ptr += any;
+			}
+		// stage N
+		// dynamic system
+		hpC[N] = ptr;
+		ptr += pnx*cnx;
+		// cost function
+		hpR[N] = ptr;
+		ptr += pny*cny;
+		hr[N] = ptr;
+		ptr += any;
+		// covariances
+		hpLp[N] = ptr;
+		ptr += pnx*cnl;
+		hpLe[N] = ptr;
+		ptr += pnz*cnf;
+		// estimates and measurements
+		hxe[N] = ptr;
+		ptr += anx;
+		hxp[N] = ptr;
+		ptr += anx;
+		hy[N] = ptr;
+		ptr += any;
+
+		// diagonal backup
+		diag = ptr;
+		ptr += anz;
+
+		// work space
+		work1 = ptr;
+		ptr += 2*pny*cnx+pnz*cnz+anz+pnw*cnw+pnx*cnx;
+
+
+
+		// convert into panel matrix format
+
+		// stage 0
+		// covariances
+		//d_print_mat(nx, nx, L0, nx);
+		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLp[0]+(nx+nw+pad)*bs, cnl);
+		//d_print_pmat(nx+ny, nx+ny, bs, hpLp[0]+(nx+nw+pad)*bs, cnl);
+		// estimates 
+		for(jj=0; jj<nx; jj++) hxp[0][jj] = x0[jj];
+		// stages 0 to N-1
+		for(ii=0; ii<N; ii++)
+			{
+			//printf("\nii = %d\n", ii);
+			// dynamic system
+			//d_print_mat(nx, nx, A+ii*nx*nx, nx);
+			d_cvt_mat2pmat(nx, nx, 0, bs, A+ii*nx*nx, nx, hpA[ii], cnx);
+			d_cvt_mat2pmat(nx, nw, 0, bs, G+ii*nx*nw, nx, hpG[ii], cnw);
+			d_cvt_mat2pmat(ny, nx, 0, bs, C+ii*ny*nx, ny, hpC[ii], cnx);
+			for(jj=0; jj<nx; jj++) hf[ii][jj] = f[ii*nx+jj];
+			// cost function
+			d_cvt_mat2pmat(nw, nw, 0, bs, Q+ii*nw*nw, nw, hpQ[ii], cnw);
+			d_cvt_mat2pmat(ny, ny, 0, bs, R+ii*ny*ny, ny, hpR[ii], cny);
+			for(jj=0; jj<nw; jj++) hq[ii][jj] = q[ii*nw+jj];
+			for(jj=0; jj<nw; jj++) hq[ii][jj] = q[ii*nw+jj];
+			// measurements
+			for(jj=0; jj<ny; jj++) hy[ii][jj] = y[ii*ny+jj];
+			}
+		// stage N
+		// dynamic system
+		d_cvt_mat2pmat(ny, nx, 0, bs, C+N*ny*nx, ny, hpC[N], cnx);
+		// cost function
+		d_cvt_mat2pmat(ny, ny, 0, bs, R+N*ny*ny, ny, hpR[N], cny);
+		for(jj=0; jj<nw; jj++) hr[N][jj] = r[N*nw+jj];
+		// measurements
+		for(jj=0; jj<ny; jj++) hy[N][jj] = y[N*ny+jj];
+
+
+
+		// call Riccati solver
+		// factorization
+		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
+		// solution
+		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hy, work);
+
+
+
+		// copy back estimates
+		for(jj=0; jj<nx; jj++) x0[jj] = hxp[1][jj];
+		for(jj=0; jj<nx; jj++) xe[jj] = hxe[N][jj];
+
+		// copy back covariances
+		d_cvt_pmat2mat(nx, nx, 0, bs, hpLp[1]+(nx+nw+pad)*bs, cnl, L0, nx);
+		d_cvt_pmat2mat(nx, nx, ny, bs, hpLe[N]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, Le, nx);
+
+
+		
+		// free work space
+		free(work);
+
+		}
+    else if(prec=='s')
+	    {
+	    
+		const int bs = S_MR; //d_get_mr();
+		const int ncl = S_NCL;
 
 		}
 
