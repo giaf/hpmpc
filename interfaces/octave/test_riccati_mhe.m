@@ -81,6 +81,20 @@ xlabel('N')
 
 
 
+% print measurements to file
+fid = fopen('mhe_measurements.dat', 'w');
+fprintf(fid, '%d %d %d %d\n', nx, nw, ny, Ns+1);
+yy = y(:);
+for ii=1:size(yy)
+	fprintf(fid, '%e\n', yy(ii));
+end
+fclose(fid);
+
+
+
+%return;
+
+
 x0 = zeros(nx,1);
 L0 = zeros(nx,nx);
 for ii=1:nx
@@ -100,13 +114,18 @@ tic
 for ii=1:Ne
 	HPMPC_riccati_mhe(nx, nw, ny, N, AA, GG, CC, ff, QQ, RR, qq, rr, y(:,ii:ii+N), x0, L0, xe, Le);
 	hxe(:,ii) = xe;
+%	x0
+%	L0
+%	xe
+%	Le
 end
 toc
 
 figure()
-plot([1:10], hxe(1:nx/2,1:10))
-title('states')
+plot([1:Ne], hxe(1:nx/2,1:Ne))
+title('states 2')
 xlabel('N')
+axis([0 100])
 
 x0
 L0

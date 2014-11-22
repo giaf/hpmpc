@@ -1910,6 +1910,8 @@ int fortran_order_dynamic_mem_riccati_wrapper_mhe( const int nx, const int nw, c
                                                    double *y, double *x0, double *L0, double *xe, double *Le )
 	{
 
+//	printf("\nenter wrapper\n");
+
 	char prec = 'd';
 
 	if(prec=='d')
@@ -1938,6 +1940,7 @@ int fortran_order_dynamic_mem_riccati_wrapper_mhe( const int nx, const int nw, c
 		const int cnl = nx+nw+pad+cnx;
 
 		double *work = (double *) malloc((8 + (N+1)*(pnx*cnx+pnx*cnw+pny*cnx+anx+pnw*cnw+pny*cny+anw+any+pnx*cnl+pnz*cnf+anx+anx+any) + 2*pny*cnx+pnz*cnz+anz+pnw*cnw+pnx*cnx)*sizeof(double));
+//		printf("\nwork space allocated\n");
 
 //		int compute_mult = 1; // compute multipliers
 
@@ -2032,6 +2035,7 @@ int fortran_order_dynamic_mem_riccati_wrapper_mhe( const int nx, const int nw, c
 		work1 = ptr;
 		ptr += 2*pny*cnx+pnz*cnz+anz+pnw*cnw+pnx*cnx;
 
+//		printf("\nmatrix space allocated\n");
 
 
 		// convert into panel matrix format
@@ -2057,7 +2061,7 @@ int fortran_order_dynamic_mem_riccati_wrapper_mhe( const int nx, const int nw, c
 			d_cvt_mat2pmat(nw, nw, 0, bs, Q+ii*nw*nw, nw, hpQ[ii], cnw);
 			d_cvt_mat2pmat(ny, ny, 0, bs, R+ii*ny*ny, ny, hpR[ii], cny);
 			for(jj=0; jj<nw; jj++) hq[ii][jj] = q[ii*nw+jj];
-			for(jj=0; jj<nw; jj++) hq[ii][jj] = q[ii*nw+jj];
+			for(jj=0; jj<ny; jj++) hr[ii][jj] = r[ii*ny+jj];
 			// measurements
 			for(jj=0; jj<ny; jj++) hy[ii][jj] = y[ii*ny+jj];
 			}
@@ -2066,18 +2070,48 @@ int fortran_order_dynamic_mem_riccati_wrapper_mhe( const int nx, const int nw, c
 		d_cvt_mat2pmat(ny, nx, 0, bs, C+N*ny*nx, ny, hpC[N], cnx);
 		// cost function
 		d_cvt_mat2pmat(ny, ny, 0, bs, R+N*ny*ny, ny, hpR[N], cny);
-		for(jj=0; jj<nw; jj++) hr[N][jj] = r[N*nw+jj];
+		for(jj=0; jj<ny; jj++) hr[N][jj] = r[N*ny+jj];
 		// measurements
 		for(jj=0; jj<ny; jj++) hy[N][jj] = y[N*ny+jj];
 
+#if 0
+		printf("\nmatrices converted\n");
+		printf("\nn = 0\n");
+		d_print_pmat(nx, nx, bs, hpA[0], cnx);
+		d_print_pmat(nx, nw, bs, hpG[0], cnw);
+		d_print_pmat(ny, nx, bs, hpC[0], cnx);
+		d_print_pmat(nw, nw, bs, hpQ[0], cnw);
+		d_print_pmat(ny, ny, bs, hpR[0], cny);
+		d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[0], cnl);
+		d_print_pmat(nz, nz, bs, hpLe[0], cnf);
+		printf("\nn = 1\n");
+		d_print_pmat(nz, nz, bs, hpLe[1], cnf);
+		d_print_pmat(nx, nx, bs, hpA[1], cnx);
+		d_print_pmat(nx, nw, bs, hpG[1], cnw);
+		d_print_pmat(ny, nx, bs, hpC[1], cnx);
+		d_print_pmat(nw, nw, bs, hpQ[1], cnw);
+		d_print_pmat(ny, ny, bs, hpR[1], cny);
+		d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[1], cnl);
+		d_print_pmat(nz, nz, bs, hpLe[1], cnf);
+#endif
 
 
 		// call Riccati solver
 		// factorization
-		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
+		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work1);
 		// solution
-		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hy, work);
+		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hy, work1);
 
+#if 0
+		printf("\nsystem solved\n");
+		d_print_pmat(nx, nx, bs, hpLp[0]+(nx+nw+pad)*bs, cnl);
+		d_print_pmat(nx, nx, bs, hpLp[1]+(nx+nw+pad)*bs, cnl);
+		d_print_pmat(nx, nx, bs, hpLp[2]+(nx+nw+pad)*bs, cnl);
+		d_print_pmat(nz, nz, bs, hpLe[0], cnf);
+		d_print_pmat(nz, nz, bs, hpLe[1], cnf);
+		d_print_pmat(nz, nz, bs, hpLe[2], cnf);
+		return;
+#endif
 
 
 		// copy back estimates
