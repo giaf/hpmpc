@@ -965,6 +965,32 @@ void dgetr_lib(int m, int mna, int n, int offset, double *pA, int sda, double *p
 
 
 //#if defined(TARGET_C99_4X4)
+void dttmm_lu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
+	{
+
+	const int bs = 4;
+
+	int ii, jj;
+	
+	ii = 0;
+	for( ; ii<m; ii+=4)
+		{
+		// off-diagonal
+		jj = 0;
+		for( ; jj<ii; jj+=4)
+			{
+			kernel_dtrmm_u_nt_4x4_lib4(4+jj, pA+ii*sda, pB+jj*sdb, pC+ii*sdc+jj*bs);
+			}
+		// diagonal
+		kernel_dttmm_lu_nt_4x4_lib4(ii+4, pA+ii*sda, pB+ii*sdb, pC+ii*sdc+ii*bs);
+		}
+
+	}
+//#endif
+
+
+
+//#if defined(TARGET_C99_4X4)
 void dttmm_ll_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
 	{
 
