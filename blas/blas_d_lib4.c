@@ -973,7 +973,7 @@ void dttmm_lu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 	int ii, jj;
 	
 	ii = 0;
-	for( ; ii<m; ii+=4)
+	for( ; ii<m-2; ii+=4)
 		{
 		// off-diagonal
 		jj = 0;
@@ -983,6 +983,17 @@ void dttmm_lu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 			}
 		// diagonal
 		kernel_dttmm_lu_nt_4x4_lib4(ii+4, pA+ii*sda, pB+ii*sdb, pC+ii*sdc+ii*bs);
+		}
+	for( ; ii<m; ii+=2)
+		{
+		// off-diagonal
+		jj = 0;
+		for( ; jj<ii-2; jj+=4)
+			{
+			kernel_dtrmm_u_nt_2x4_lib4(4+jj, pA+ii*sda, pB+jj*sdb, pC+ii*sdc+jj*bs);
+			}
+		// diagonal
+		kernel_dttmm_lu_nt_2x2_lib4(ii+2, pA+ii*sda, pB+ii*sdb, pC+ii*sdc+ii*bs);
 		}
 
 	}

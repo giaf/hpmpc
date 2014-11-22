@@ -233,6 +233,140 @@ void kernel_dttmm_lu_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 
 
 
+// normal-transposed, 2x2 with data packed in 4
+void kernel_dttmm_lu_nt_2x2_lib4(int kmax, double *A, double *B, double *C)
+	{
+	
+	const int lda = 4;
+	const int ldc = 4;
+
+	int k;
+
+	double
+		a_0, a_1,
+		b_0, b_1,
+		c_00=0, 
+		c_10=0, c_11=0; 
+		
+	for(k=0; k<kmax-4; k+=4)
+		{
+		
+		a_0 = A[0+lda*0];
+		a_1 = A[1+lda*0];
+		
+		b_0 = B[0+lda*0];
+		b_1 = B[1+lda*0];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+
+		c_11 += a_1 * b_1;
+
+
+		a_0 = A[0+lda*1];
+		a_1 = A[1+lda*1];
+		
+		b_0 = B[0+lda*1];
+		b_1 = B[1+lda*1];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+
+		c_11 += a_1 * b_1;
+
+
+		a_0 = A[0+lda*2];
+		a_1 = A[1+lda*2];
+		
+		b_0 = B[0+lda*2];
+		b_1 = B[1+lda*2];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+
+		c_11 += a_1 * b_1;
+
+
+		a_0 = A[0+lda*3];
+		a_1 = A[1+lda*3];
+		
+		b_0 = B[0+lda*3];
+		b_1 = B[1+lda*3];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+
+		c_11 += a_1 * b_1;
+		
+		
+		A += 16;
+		B += 16;
+
+		}
+			
+	for(; k<kmax-2; k+=2)
+		{
+		
+		a_0 = A[0+lda*0];
+		a_1 = A[1+lda*0];
+		
+		b_0 = B[0+lda*0];
+		b_1 = B[1+lda*0];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+
+		c_11 += a_1 * b_1;
+
+
+		a_0 = A[0+lda*1];
+		a_1 = A[1+lda*1];
+		
+		b_0 = B[0+lda*1];
+		b_1 = B[1+lda*1];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+
+		c_11 += a_1 * b_1;
+
+
+		A += 8;
+		B += 8;
+
+		}
+			
+	// clean up at the end
+	a_0 = A[0+lda*0];
+	a_1 = A[1+lda*0];
+		
+	b_0 = B[0+lda*0];
+	b_1 = B[1+lda*0];
+		
+	c_00 += a_0 * b_0;
+	c_10 += a_1 * b_0;
+
+	c_11 += a_1 * b_1;
+
+
+	a_1 = A[1+lda*1];
+		
+	b_1 = B[1+lda*1];
+
+	c_11 += a_1 * b_1;
+
+		
+	// store
+
+	C[0+ldc*0] = c_00;
+	C[1+ldc*0] = c_10;
+
+	C[1+ldc*1] = c_11;
+	
+	}
+
+
+
 // normal-transposed, 4x4 with data packed in 4
 void corner_dttmm_ll_nt_4x4_lib4(double *A, double *B, double *C)
 	{

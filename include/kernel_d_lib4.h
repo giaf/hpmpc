@@ -95,6 +95,7 @@ void kernel_dgetr_2_lib4(int kmax, int kna, double *A, double *C, int sdc);
 void kernel_dgetr_1_lib4(int kmax, int kna, double *A, double *C, int sdc);
 void kernel_dtran_4_lib4(int kmax, int kna, double *A, int sda, double *C);
 void kernel_dttmm_lu_nt_4x4_lib4(int kmax, double *A, double *B, double *C);
+void kernel_dttmm_lu_nt_2x2_lib4(int kmax, double *A, double *B, double *C);
 void kernel_dttmm_ll_nt_4x4_lib4(int kmax, double *A, double *B, double *C);
 void kernel_dttmm_uu_nt_4x4_lib4(int kmax, double *A, double *B, double *C);
 void kernel_dttmm_uu_nt_4x2_lib4(int kmax, double *A, double *B, double *C);

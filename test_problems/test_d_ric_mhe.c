@@ -643,6 +643,9 @@ int main()
 		free(x0);
 		free(Q);
 		free(R);
+		free(q);
+		free(r);
+		free(f);
 		free(L0);
 		free(pA);
 		free(pG);
@@ -650,6 +653,11 @@ int main()
 		free(pQ);
 		free(pR);
 		free(work);
+		free(p_hxe);
+		free(p_hxp);
+		free(p_hy);
+		free(p_hhxe);
+		free(p_hhxp);
 		free(hpLp[0]);
 		free(hpLe[0]);
 		for(jj=0; jj<N; jj++)
