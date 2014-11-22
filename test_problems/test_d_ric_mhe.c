@@ -258,7 +258,7 @@ int main()
 	int vnrep[] = {100, 100, 100, 100, 100, 100, 50, 50, 50, 20, 10, 10};
 	int vN[] = {4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256};
 
-	int nx, nw, N, nrep;
+	int nx, nw, ny, N, nrep, Ns;
 
 	int ll;
 //	int ll_max = 77;
@@ -267,10 +267,36 @@ int main()
 		{
 		
 
-		if(ll_max==1)
+		FILE* fid;
+		double* yy;
+		float* yy_temp;
+
+		if(1)
+			{
+			fid = fopen("./test_problems/mhe_measure.dat", "r");
+			if(fid==NULL)
+				exit(-1);
+			//printf("\nhola\n");
+			int dummy_int = fscanf(fid, "%d %d %d %d", &nx, &nw, &ny, &Ns);
+			//printf("\n%d %d %d %d\n", nx, nw, ny, Ns);
+			yy_temp = (float*) malloc(ny*Ns*sizeof(float));
+			yy = (double*) malloc(ny*Ns*sizeof(double));
+			for(jj=0; jj<ny*Ns; jj++)
+				{
+				dummy_int = fscanf(fid, "%e", &yy_temp[jj]);
+				yy[jj] = (double) yy_temp[jj];
+				//printf("\n%f", yy[jj]);
+				}
+			//printf("\n");
+			fclose(fid);
+			N = Ns-1; // NN;
+			nrep = NREP;
+			}
+		else if(ll_max==1)
 			{
 			nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 			nw = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+			ny = nx/2; // size of measurements vector
 			N  = NN; // horizon lenght
 			nrep = NREP;
 			}
@@ -278,13 +304,13 @@ int main()
 			{
 			nx = nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
 			nw = 2; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+			ny = nx/2; // size of measurements vector
 			N  = 10; // horizon lenght
 			nrep = nnrep[ll];
 			}
 
 		int rep;
 		
-		const int ny = nx/2; // size of measurements vector
 	
 		const int nz = nx+ny; // TODO delete
 		const int anz = nal*((nz+nal-1)/nal);
@@ -319,7 +345,7 @@ int main()
 		mass_spring_system(Ts, nx, nw, N, A, B, b, x0);
 	
 		for(jj=0; jj<nx; jj++)
-			b[jj] = 0.1;
+			b[jj] = 0.0;
 	
 		for(jj=0; jj<nx; jj++)
 			x0[jj] = 0.0;
@@ -364,15 +390,15 @@ int main()
 
 		double *L0; d_zeros(&L0, nx, nx);
 		for(jj=0; jj<nx; jj++)
-			L0[jj*(nx+1)] = 2.0;
+			L0[jj*(nx+1)] = 1.0;
 
 		double *r; d_zeros_align(&r, any, 1);
 		for(jj=0; jj<ny; jj++)
-			r[jj] = 1.0;
+			r[jj] = 0.0;
 
 		double *q; d_zeros_align(&q, anw, 1);
 		for(jj=0; jj<nw; jj++)
-			q[jj] = 1.0;
+			q[jj] = 0.0;
 
 		double *f; d_zeros_align(&f, anx, 1);
 		for(jj=0; jj<nx; jj++)
@@ -406,6 +432,10 @@ int main()
 		double *(hxp[N+1]);
 		double *(hy[N+1]);
 
+		double *p_hxe; d_zeros_align(&p_hxe, anx, N+1);
+		double *p_hxp; d_zeros_align(&p_hxp, anx, N+1);
+		double *p_hy; d_zeros_align(&p_hy, any, N+1);
+
 		for(jj=0; jj<N; jj++)
 			{
 			hpA[jj] = pA;
@@ -418,9 +448,9 @@ int main()
 			hq[jj] = q;
 			hr[jj] = r;
 			hf[jj] = f;
-			d_zeros_align(&hxe[jj], anx, 1);
-			d_zeros_align(&hxp[jj], anx, 1);
-			d_zeros_align(&hy[jj], any, 1);
+			hxe[jj] = p_hxe+jj*anx; //d_zeros_align(&hxe[jj], anx, 1);
+			hxp[jj] = p_hxp+jj*anx; //d_zeros_align(&hxp[jj], anx, 1);
+			hy[jj] = p_hy+jj*any; //d_zeros_align(&hy[jj], any, 1);
 			}
 
 		hpC[N] = pC;
@@ -428,9 +458,9 @@ int main()
 		d_zeros_align(&hpLp[N], pnx, cnl);
 		d_zeros_align(&hpLe[N], pnz, cnf);
 		hr[N] = r;
-		d_zeros_align(&hxe[N], anx, 1);
-		d_zeros_align(&hxp[N], anx, 1);
-		d_zeros_align(&hy[N], any, 1);
+		hxe[N] = p_hxe+N*anx; //d_zeros_align(&hxe[N], anx, 1);
+		hxp[N] = p_hxp+N*anx; //d_zeros_align(&hxp[N], anx, 1);
+		hy[N] = p_hy+N*any; //d_zeros_align(&hy[N], any, 1);
 
 		// initialize hpLp[0] with the cholesky factorization of /Pi_p
 		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLp[0]+(nx+nw+pad)*bs, cnl);
@@ -439,10 +469,16 @@ int main()
 		//double *work; d_zeros_align(&work, pny*cnx+pnz*cnz+anz+pnz*cnf+pnw*cnw, 1);
 		double *work; d_zeros_align(&work, 2*pny*cnx+pnz*cnz+anz+pnw*cnw+pnx*cnx, 1);
 
-		// initial guess
-		hxp[0][0] = 3.5;
-		hxp[0][1] = 3.5;
+		// measurements
+		for(jj=0; jj<=N; jj++)
+			for(ii=0; ii<ny; ii++)
+				hy[jj][ii] = yy[jj*ny+ii];
 
+		//d_print_mat(ny, N+1, hy[0], any);
+
+		// initial guess
+		hxp[0][0] = 0.0;
+		hxp[0][1] = 0.0;
 
 /************************************************
 * call the solver
@@ -485,6 +521,116 @@ int main()
 //			fprintf(f, "\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
 			}
 		printf("%d\t%d\t%d\t%d\t%e\t%e\n\n", nx, nw, ny, N, time_trf, time_trs);
+
+		// print solution
+		printf("\nx_p\n");
+		d_print_mat(nx, N+1, hxp[0], anx);
+		printf("\nx_e\n");
+		d_print_mat(nx, N+1, hxe[0], anx);
+		printf("\nL_e\n");
+		d_print_pmat(nx, nx, bs, hpLp[N]+(nx+nw+pad)*bs, cnl);
+
+
+
+
+
+		// moving horizon test
+
+		// window size
+		N = 20;
+
+		double *(hhxe[N+1]);
+		double *(hhxp[N+1]);
+		double *(hhy[N+1]);
+
+		double *p_hhxe; d_zeros_align(&p_hhxe, anx, N+1);
+		double *p_hhxp; d_zeros_align(&p_hhxp, anx, N+1);
+
+		// shift measurements and initial prediction
+		for(ii=0; ii<=N; ii++)
+			{
+			hhxe[ii] = p_hhxe+ii*anx; //d_zeros_align(&hxe[jj], anx, 1);
+			hhxp[ii] = p_hhxp+ii*anx; //d_zeros_align(&hxp[jj], anx, 1);
+			hhy[ii] = hy[ii]; //d_zeros_align(&hy[jj], any, 1);
+			}
+
+		// shift initial prediction covariance
+		//for(ii=0; ii<pnx*cnl; ii++)
+		//	hpLp[0][ii] = hpLp[1][ii];
+
+		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
+		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, hq, hr, hf, hhxp, hhxe, hhy, work);
+
+		// zero data
+		for(ii=0; ii<Ns*anx; ii++)
+			hxe[0][ii] = 0.0;
+
+		for(ii=anx; ii<Ns*anx; ii++)
+			hxp[0][ii] = 0.0;
+
+		// save data
+		for(ii=0; ii<(N+1); ii++)
+			for(jj=0; jj<nx; jj++)
+				hxe[ii][jj] = hhxe[ii][jj];
+
+		for(ii=0; ii<(N+1); ii++)
+			for(jj=0; jj<nx; jj++)
+				hxp[ii][jj] = hhxp[ii][jj];
+
+
+
+		for(jj=1; jj<Ns-N; jj++)
+			{
+
+			//break;
+			
+			// shift measurements and initial prediction
+			for(ii=0; ii<=N; ii++)
+				{
+				hhy[ii] = hy[ii+jj];
+				}
+
+			// shift initial prediction and relative covariance
+			for(ii=0; ii<nx; ii++)
+				hhxp[0][ii] = hhxp[1][ii];
+			for(ii=0; ii<pnx*cnl; ii++)
+				hpLp[0][ii] = hpLp[1][ii];
+
+			//d_print_mat(nx, N+1, hhxp[0], anx);
+
+			//d_print_pmat(nx, nx, bs, hpLp[1]+(nx+nw+pad)*bs, cnl);
+			//d_print_pmat(nz, nz, bs, hpLe[1], cnf);
+			//d_print_pmat(nx, nx, bs, hpLp[2]+(nx+nw+pad)*bs, cnl);
+			//d_print_pmat(nz, nz, bs, hpLe[2], cnf);
+
+			d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
+			d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, hq, hr, hf, hhxp, hhxe, hhy, work);
+
+			//d_print_mat(nx, N+1, hhxp[0], anx);
+
+			//d_print_pmat(nx, nx, bs, hpLp[0]+(nx+nw+pad)*bs, cnl);
+			//d_print_pmat(nz, nz, bs, hpLe[0], cnf);
+			//d_print_pmat(nx, nx, bs, hpLp[1]+(nx+nw+pad)*bs, cnl);
+			//d_print_pmat(nz, nz, bs, hpLe[1], cnf);
+
+			// save data
+			for(ii=0; ii<nx; ii++)
+				hxe[N+jj][ii] = hhxe[N][ii];
+
+			for(ii=0; ii<nx; ii++)
+				hxp[N+jj][ii] = hhxp[N][ii];
+
+			//break;
+
+			}
+
+		// print solution
+		printf("\nx_p\n");
+		d_print_mat(nx, Ns, hxp[0], anx);
+		printf("\nx_e\n");
+		d_print_mat(nx, Ns, hxe[0], anx);
+		printf("\nL_e\n");
+		d_print_pmat(nx, nx, bs, hpLp[Ns-1]+(nx+nw+pad)*bs, cnl);
 
 /************************************************
 * return
