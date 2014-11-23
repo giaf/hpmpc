@@ -229,6 +229,18 @@ void dtrmm_u_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double 
 	
 	i=0;
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+	for( ; i<m-4; i+=8)
+		{
+		j=0;
+		for( ; j<n-2; j+=4)
+			{
+			kernel_dtrmm_u_nt_8x4_lib4(j+4, &pA[i*sda], &pA[(i+4)*sda], &pB[j*sdb], &pC[i*sdc+j*bs], &pC[(i+4)*sdc+j*bs]);
+			}
+		if(j<n)
+			{
+			kernel_dtrmm_u_nt_8x2_lib4(j+2, &pA[i*sda], &pA[(i+4)*sda], &pB[j*sdb], &pC[i*sdc+j*bs], &pC[(i+4)*sdc+j*bs]);
+			}
+		}
 	for( ; i<m; i+=4)
 		{
 		j=0;

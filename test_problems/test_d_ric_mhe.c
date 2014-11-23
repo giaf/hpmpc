@@ -291,6 +291,7 @@ int main()
 			fclose(fid);
 			N = Ns-1; // NN;
 			nrep = NREP;
+			//nx = 10;
 			}
 		else if(ll_max==1)
 			{
