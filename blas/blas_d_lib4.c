@@ -432,8 +432,8 @@ void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *
 
 
 
-// TODO invert k and n !!!!!!!!!!!
-void dsyrk_dpotrf_lib(int m, int k, int n, double *pA, int sda, double *pC, int sdc, double *diag, int alg)
+// TODO invert k and n !!!!!!!!!!! DONE
+void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *diag, int alg)
 	{
 	const int bs = 4;
 	const int d_ncl = D_NCL;

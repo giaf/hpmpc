@@ -52,7 +52,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 	// factorization and backward substitution 
 
 	// final stage 
-	dsyrk_dpotrf_lib(nx+nu%bs+1, 0, nx+nu%bs, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, diag, 1);
+	dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, 0, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, diag, 1); // TODO use dpotrf
 
 /*	d_transpose_pmat_lo(nx, nu, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N]+(nx+pad+ncl)*bs, cnl);*/
 	dtrtr_l_lib(nx, nu, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N]+(nx+pad+ncl)*bs, cnl);	
@@ -64,7 +64,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 		{	
 		dtrmm_l_lib(nz, nx, hpBAbt[N-ii-1], cnx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, hpL[N-ii-1], cnl); // TODO allow 'rectanguar' B
 		for(jj=0; jj<nx; jj++) hpL[N-ii-1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+jj*bs] += hpL[N-ii][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nx+pad+nu+jj)*bs];
-		dsyrk_dpotrf_lib(nz, nx, nu+nx, hpL[N-ii-1], cnl, hpQ[N-ii-1], cnz, diag, 1);
+		dsyrk_dpotrf_lib(nz, nu+nx, nx, hpL[N-ii-1], cnl, hpQ[N-ii-1], cnz, diag, 1);
 		for(jj=0; jj<nu; jj++) hpL[N-ii-1][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 /*		d_transpose_pmat_lo(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);*/
 		dtrtr_l_lib(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);	
@@ -75,7 +75,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 	// first stage 
 	dtrmm_l_lib(nz, nx, hpBAbt[0], cnx, hpL[1]+(nx+pad+ncl)*bs, cnl, hpL[0], cnl);
 	for(jj=0; jj<nx; jj++) hpL[0][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+jj*bs] += hpL[1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nx+pad+nu+jj)*bs];
-	dsyrk_dpotrf_lib(nz, nx, ((nu+2-1)/2)*2, hpL[0], cnl, hpQ[0], cnz, diag, 1);
+	dsyrk_dpotrf_lib(nz, ((nu+2-1)/2)*2, nx, hpL[0], cnl, hpQ[0], cnz, diag, 1);
 	for(jj=0; jj<nu; jj++) hpL[0][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 
 /*d_print_pmat(pnz, cnl, bs, hpL[0], cnl);*/
@@ -635,7 +635,7 @@ void d_ric_trf_mhe_test(int nx, int nw, int ny, int N, double **hpA, double **hp
 		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[ii+1], cnl);
 
 		// compute /Pi_p and factorize it
-		dsyrk_dpotrf_lib(nx, nx+nw, nx, hpLp[ii+1], cnl, hpLp[ii+1], cnl, diag, 0);
+		dsyrk_dpotrf_lib(nx, nx, nx+nw, hpLp[ii+1], cnl, hpLp[ii+1], cnl, diag, 0);
 		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[ii+1], cnl);
 
 		// transpose in place the lower cholesky factor of /Pi_p
@@ -677,7 +677,7 @@ void d_ric_sv_mhe_old(int nx, int nu, int N, double **hpBAbt, double **hpQ, doub
 	// factorization and backward substitution 
 
 	// final stage 
-	dsyrk_dpotrf_lib(nx+nu%bs+1, 0, nx+nu%bs, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, diag, 1);
+	dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, 0, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, diag, 1);
 	dtrtr_l_lib(nx, nu, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N]+(nx+pad+ncl)*bs, cnl);	
 
 
@@ -686,7 +686,7 @@ void d_ric_sv_mhe_old(int nx, int nu, int N, double **hpBAbt, double **hpQ, doub
 		{	
 		dtrmm_l_lib(nz, nx, hpBAbt[N-ii-1], cnx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, hpL[N-ii-1], cnl);
 		for(jj=0; jj<nx; jj++) hpL[N-ii-1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+jj*bs] += hpL[N-ii][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nx+pad+nu+jj)*bs];
-		dsyrk_dpotrf_lib(nz, nx, nu+nx, hpL[N-ii-1], cnl, hpQ[N-ii-1], cnz, diag, 1);
+		dsyrk_dpotrf_lib(nz, nu+nx, nx, hpL[N-ii-1], cnl, hpQ[N-ii-1], cnz, diag, 1);
 		for(jj=0; jj<nu; jj++) hpL[N-ii-1][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 		dtrtr_l_lib(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);	
 		}
@@ -694,7 +694,7 @@ void d_ric_sv_mhe_old(int nx, int nu, int N, double **hpBAbt, double **hpQ, doub
 	// first stage 
 	dtrmm_l_lib(nz, nx, hpBAbt[0], cnx, hpL[1]+(nx+pad+ncl)*bs, cnl, hpL[0], cnl);
 	for(jj=0; jj<nx; jj++) hpL[0][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+jj*bs] += hpL[1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nx+pad+nu+jj)*bs];
-	dsyrk_dpotrf_lib(nz, nx, nu+nx, hpL[0], cnl, hpQ[0], cnz, diag, 1);
+	dsyrk_dpotrf_lib(nz, nu+nx, nx, hpL[0], cnl, hpQ[0], cnz, diag, 1);
 	for(jj=0; jj<nu+nx; jj++) hpL[0][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 
 

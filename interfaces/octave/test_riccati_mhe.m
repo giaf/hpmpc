@@ -122,7 +122,7 @@ end
 toc
 
 figure()
-plot([1:Ne], hxe(1:nx/2,1:Ne))
+plot([N+1:N+Ne], hxe(1:nx/2,1:Ne))
 title('states 2')
 xlabel('N')
 axis([0 100])

@@ -52,7 +52,7 @@ void s_ric_sv_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 	/* factorization and backward substitution */
 
 	// final stage 
-	ssyrk_spotrf_lib(nx+nu%bs+1, 0, nx+nu%bs, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, diag);
+	ssyrk_spotrf_lib(nx+nu%bs+1, nx+nu%bs, 0, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, diag);
 
 /*	d_transpose_pmat_lo(nx, nu, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N]+(nx+pad+ncl)*bs, cnl);*/
 	strtr_l_lib(nx, nu, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N]+(nx+pad+ncl)*bs, cnl);	
@@ -66,7 +66,7 @@ void s_ric_sv_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 		strmm_lib(nz, nx, hpBAbt[N-ii-1], cnx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, hpL[N-ii-1], cnl); // TODO allow 'rectanguar' B
 /*s_print_pmat(pnz, cnl, bs, hpL[N-ii-1], cnl);*/
 		for(jj=0; jj<nx; jj++) hpL[N-ii-1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+jj*bs] += hpL[N-ii][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nx+pad+nu+jj)*bs];
-		ssyrk_spotrf_lib(nz, nx, nu+nx, hpL[N-ii-1], cnl, hpQ[N-ii-1], cnz, diag);
+		ssyrk_spotrf_lib(nz, nu+nx, nx, hpL[N-ii-1], cnl, hpQ[N-ii-1], cnz, diag);
 		for(jj=0; jj<nu; jj++) hpL[N-ii-1][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 /*s_print_mat(1, nu, diag, 1);*/
 /*		d_transpose_pmat_lo(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);*/
@@ -79,7 +79,7 @@ void s_ric_sv_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hu
 	// first stage 
 	strmm_lib(nz, nx, hpBAbt[0], cnx, hpL[1]+(nx+pad+ncl)*bs, cnl, hpL[0], cnl);
 	for(jj=0; jj<nx; jj++) hpL[0][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+jj*bs] += hpL[1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nx+pad+nu+jj)*bs];
-	ssyrk_spotrf_lib(nz, nx, ((nu+2-1)/2)*2, hpL[0], cnl, hpQ[0], cnz, diag);
+	ssyrk_spotrf_lib(nz, ((nu+2-1)/2)*2, nx, hpL[0], cnl, hpQ[0], cnz, diag);
 	for(jj=0; jj<nu; jj++) hpL[0][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 
 /*s_print_pmat(pnz, cnl, bs, hpL[0], cnl);*/
@@ -205,7 +205,7 @@ void s_ric_sv_mhe_old(int nx, int nu, int N, float **hpBAbt, float **hpQ, float 
 	// factorization and backward substitution 
 
 	// final stage 
-	ssyrk_spotrf_lib(nx+nu%bs+1, 0, nx+nu%bs, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, diag);
+	ssyrk_spotrf_lib(nx+nu%bs+1, nx+nu%bs, 0, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, diag);
 	strtr_l_lib(nx, nu, hpL[N]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N]+(nx+pad+ncl)*bs, cnl);	
 
 
@@ -214,7 +214,7 @@ void s_ric_sv_mhe_old(int nx, int nu, int N, float **hpBAbt, float **hpQ, float 
 		{	
 		strmm_lib(nz, nx, hpBAbt[N-ii-1], cnx, hpL[N-ii]+(nx+pad+ncl)*bs, cnl, hpL[N-ii-1], cnl);
 		for(jj=0; jj<nx; jj++) hpL[N-ii-1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+jj*bs] += hpL[N-ii][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nx+pad+nu+jj)*bs];
-		ssyrk_spotrf_lib(nz, nx, nu+nx, hpL[N-ii-1], cnl, hpQ[N-ii-1], cnz, diag);
+		ssyrk_spotrf_lib(nz, nu+nx, nx, hpL[N-ii-1], cnl, hpQ[N-ii-1], cnz, diag);
 		for(jj=0; jj<nu; jj++) hpL[N-ii-1][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 		strtr_l_lib(nx, nu, hpL[N-ii-1]+(nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(nx+pad+ncl)*bs, cnl);	
 		}
@@ -222,7 +222,7 @@ void s_ric_sv_mhe_old(int nx, int nu, int N, float **hpBAbt, float **hpQ, float 
 	// first stage 
 	strmm_lib(nz, nx, hpBAbt[0], cnx, hpL[1]+(nx+pad+ncl)*bs, cnl, hpL[0], cnl);
 	for(jj=0; jj<nx; jj++) hpL[0][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+jj*bs] += hpL[1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nx+pad+nu+jj)*bs];
-	ssyrk_spotrf_lib(nz, nx, nu+nx, hpL[0], cnl, hpQ[0], cnz, diag);
+	ssyrk_spotrf_lib(nz, nu+nx, nx, hpL[0], cnl, hpQ[0], cnz, diag);
 	for(jj=0; jj<nu+nx; jj++) hpL[0][(nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 
 

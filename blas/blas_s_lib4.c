@@ -359,7 +359,7 @@ void strmm_lib(int m, int n, float *pA, int sda, float *pB, int sdb, float *pC, 
 
 
 
-void ssyrk_spotrf_lib(int m, int k, int n, float *pA, int sda, float *pC, int sdc, float *diag)
+void ssyrk_spotrf_lib(int m, int n, int k, float *pA, int sda, float *pC, int sdc, float *diag)
 	{
 	const int bs = 4;
 	const int d_ncl = S_NCL;
