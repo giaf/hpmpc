@@ -97,7 +97,7 @@ fclose(fid);
 
 % prediction at first stage
 x0 = zeros(nx,1);
-% cholesky factor of inverse of prediction covariance matrix at first stage
+% cholesky factor of prediction covariance matrix at first stage
 L0 = zeros(nx,nx);
 for ii=1:nx
 	L0(ii,ii) = 1.0;
@@ -105,7 +105,7 @@ end
 
 % estimation at final stage
 xe = zeros(nx,1);
-% cholesky factor of inverse of estimation covariance matrix at last stage
+% cholesky factor of estimation covariance matrix at last stage
 Le = zeros(nx,nx);
 
 fprintf("\nRiccati factorization and solution\n\n");
