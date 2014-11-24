@@ -95,24 +95,31 @@ fclose(fid);
 %return;
 
 
+% prediction at first stage
 x0 = zeros(nx,1);
+% cholesky factor of inverse of prediction covariance matrix at first stage
 L0 = zeros(nx,nx);
 for ii=1:nx
 	L0(ii,ii) = 1.0;
 end
 
+% estimation at final stage
 xe = zeros(nx,1);
+% cholesky factor of inverse of estimation covariance matrix at last stage
 Le = zeros(nx,nx);
 
 fprintf("\nRiccati factorization and solution\n\n");
 
-% estimation horizon
+% number of steps in estimation test
 Ne = 50;
+% space to save at each step the estimation at the last stage
 hxe = zeros(nx,Ne);
 
 tic
 for ii=1:Ne
+	% x0 and L0 are input-output: on output they are the value needed at the next QP call (i.e. prediction x_{1|0} and relative covariance), obtained using (Extended) Kalman Filter
 	HPMPC_riccati_mhe(nx, nw, ny, N, AA, GG, CC, ff, QQ, RR, qq, rr, y(:,ii:ii+N), x0, L0, xe, Le);
+	% same estimation at last stage
 	hxe(:,ii) = xe;
 %	x0
 %	L0
