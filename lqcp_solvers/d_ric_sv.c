@@ -24,6 +24,7 @@
 **************************************************************************************************/
 
 /*#include "../include/aux_d.h"*/
+#include "../include/aux_d.h"
 #include "../include/blas_d.h"
 #include "../include/block_size.h"
 
@@ -178,6 +179,7 @@ void d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	const int cnw = ncl*((nw+ncl-1)/ncl);
 	const int cny = ncl*((ny+ncl-1)/ncl);
 	const int cnz = ncl*((nz+ncl-1)/ncl);
+	const int cnf = cnz<cnx+ncl ? cnx+ncl : cnz;
 
 	int ii, jj, ll;
 	double *ptr;
@@ -210,15 +212,23 @@ void d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		dgemv_n_lib(ny, nx, hpC[ii], cnx, hxp[ii], y_temp, 1);
 		//d_print_mat(1, nz, y_temp, 1);
 
-		//d_print_pmat(nz, ny, bs, hpLe[ii], cnz);
+		//d_print_pmat(nz, ny, bs, hpLe[ii], cnf);
 
 		// compute xe
-		dtrsv_dgemv_n_lib(ny, ny+nx, hpLe[ii], cnz, y_temp);
+		dtrsv_dgemv_n_lib(ny, ny+nx, hpLe[ii], cnf, y_temp);
 		//d_print_mat(1, nz, y_temp, 1);
 
 		// copy xe
 		for(jj=0; jj<nx; jj++) hxe[ii][jj] = y_temp[ny+jj];
 		//d_print_mat(1, nx, hxe[ii], 1);
+
+		// copy f in xp
+		for(jj=0; jj<nx; jj++) hxp[ii+1][jj] = hf[ii][jj];
+		//d_print_mat(1, nx, hxp[ii+1], 1);
+	
+		// xp += A*xe
+		dgemv_n_lib(nx, nx, hpA[ii], cnx, hxe[ii], hxp[ii+1], 1);
+		//d_print_mat(1, nx, hxp[ii+1], 1);
 
 		// initialize w_temp with 0
 		for(jj=0; jj<nw; jj++) w_temp[jj] = 0.0;
@@ -228,17 +238,12 @@ void d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		dsymv_lib(nw, 0, hpQ[ii], cnw, hq[ii], w_temp, -1);
 		//d_print_mat(1, nw, w_temp, 1);
 
-		// copy f in xp
-		for(jj=0; jj<nx; jj++) hxp[ii+1][jj] = hf[ii][jj];
-		//d_print_mat(1, nx, hxp[ii+1], 1);
-	
 		// xp += G*w_temp
 		dgemv_n_lib(nx, nw, hpG[ii], cnw, w_temp, hxp[ii+1], 1);
 		//d_print_mat(1, nx, hxp[ii+1], 1);
 	
-		// xp += A*xe
-		dgemv_n_lib(nx, nx, hpA[ii], cnx, hxe[ii], hxp[ii+1], 1);
-		//d_print_mat(1, nx, hxp[ii+1], 1);
+		//if(ii==1)
+		//exit(1);
 
 		}
 	
@@ -260,10 +265,139 @@ void d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	dgemv_n_lib(ny, nx, hpC[N], cnx, hxp[N], y_temp, 1);
 	//d_print_mat(1, nz, y_temp, 1);
 
-	//d_print_pmat(nz, ny, bs, hpLe[N], cnz);
+	//d_print_pmat(nz, ny, bs, hpLe[N], cnf);
 
 	// compute xe
-	dtrsv_dgemv_n_lib(ny, ny+nx, hpLe[N], cnz, y_temp);
+	dtrsv_dgemv_n_lib(ny, ny+nx, hpLe[N], cnf, y_temp);
+	//d_print_mat(1, nz, y_temp, 1);
+
+	// copy xe
+	for(jj=0; jj<nx; jj++) hxe[N][jj] = y_temp[ny+jj];
+	//d_print_mat(1, nx, hxe[N], 1);
+
+	//exit(1);
+
+	}
+//#endif
+
+
+
+// xp is the vector of predictions, xe is the vector of estimates; explicitly computes estimates only at the last stage
+//#if 0
+void d_ric_trs_mhe_end(int nx, int nw, int ny, int N, double **hpA, double **hpG, double **hpC, double **hpLp, double **hpQ, double **hpR, double **hpLe, double **hq, double **hr, double **hf, double **hxp, double **hxe, double **hy, double *work)
+	{
+
+	//printf("\nhola\n");
+
+	const int bs = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+	const int nal = bs*ncl;
+
+	const int nz = nx+ny;
+	const int anw = nal*((nw+nal-1)/nal);
+	const int any = nal*((ny+nal-1)/nal);
+	const int anz = nal*((nz+nal-1)/nal);
+	const int cnx = ncl*((nx+ncl-1)/ncl);
+	const int cnw = ncl*((nw+ncl-1)/ncl);
+	const int cny = ncl*((ny+ncl-1)/ncl);
+	const int cnz = ncl*((nz+ncl-1)/ncl);
+	const int cnf = cnz<cnx+ncl ? cnx+ncl : cnz;
+
+	const int pad = (ncl-(nx)%ncl)%ncl; // packing between AGL & P
+	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+
+	int ii, jj, ll;
+	double *ptr;
+
+	ptr = work;
+
+	double *y_temp = ptr; //; d_zeros_align(&y_temp, anz, 1);
+	ptr += anz;
+
+	double *w_temp = ptr; //; d_zeros_align(&w_temp, anw, 1);
+	ptr += anw;
+
+	// loop over horizon
+	for(ii=0; ii<N; ii++)
+		{
+
+		//printf("\nii = %d\n", ii);
+
+		// copy y
+		for(jj=0; jj<ny; jj++) y_temp[jj] = - hy[ii][jj];
+		//d_print_mat(1, nz, y_temp, 1);
+	
+		// copy A*xp
+		//for(jj=0; jj<nx; jj++) y_temp[ny+jj] = hxp[ii][jj];
+		dgemv_n_lib(nx, nx, hpA[ii], cnx, hxp[ii], y_temp+ny, 0);
+		//d_print_mat(1, nz, y_temp, 1);
+	
+		// compute y + R*r
+		dsymv_lib(ny, 0, hpR[ii], cny, hr[ii], y_temp, -1);
+		//d_print_mat(1, nz, y_temp, 1);
+
+		// compute y + R*r - C*xp
+		dgemv_n_lib(ny, nx, hpC[ii], cnx, hxp[ii], y_temp, 1);
+		//d_print_mat(1, nz, y_temp, 1);
+
+		//d_print_pmat(nz, ny, bs, hpLp[ii+1]+(nx+pad)*bs, cnl);
+		//d_print_pmat(nz, cnl, bs, hpLp[ii+1], cnl);
+
+		// compute A*xe
+		dtrsv_dgemv_n_lib(ny, ny+nx, hpLp[ii+1]+(nx+pad)*bs, cnl, y_temp);
+		//d_print_mat(1, nz, y_temp, 1);
+
+		// copy A*xe in xp
+		for(jj=0; jj<nx; jj++) hxp[ii+1][jj] = y_temp[ny+jj];
+		//d_print_mat(1, nx, hxp[ii+1], 1);
+
+		// add f to xp
+		for(jj=0; jj<nx; jj++) hxp[ii+1][jj] += hf[ii][jj];
+		//d_print_mat(1, nx, hxp[ii+1], 1);
+	
+		// initialize w_temp with 0
+		for(jj=0; jj<nw; jj++) w_temp[jj] = 0.0;
+		//d_print_mat(1, nw, w_temp, 1);
+	
+		// compute Q*q
+		dsymv_lib(nw, 0, hpQ[ii], cnw, hq[ii], w_temp, -1);
+		//d_print_mat(1, nw, w_temp, 1);
+
+		// xp += G*w_temp
+		dgemv_n_lib(nx, nw, hpG[ii], cnw, w_temp, hxp[ii+1], 1);
+		//d_print_mat(1, nx, hxp[ii+1], 1);
+	
+		// xp += A*xe
+		//dgemv_n_lib(nx, nx, hpA[ii], cnx, hxe[ii], hxp[ii+1], 1);
+		//d_print_mat(1, nx, hxp[ii+1], 1);
+
+		//if(ii==1)
+		//exit(1);
+
+		}
+	
+	// stage N
+
+	// copy y
+	for(jj=0; jj<ny; jj++) y_temp[jj] = - hy[N][jj];
+	//d_print_mat(1, nz, y_temp, 1);
+	
+	// copy xp
+	for(jj=0; jj<nx; jj++) y_temp[ny+jj] = hxp[N][jj];
+	//d_print_mat(1, nz, y_temp, 1);
+	
+	// compute y + R*r
+	dsymv_lib(ny, 0, hpR[N], cny, hr[N], y_temp, -1);
+	//d_print_mat(1, nz, y_temp, 1);
+
+	// compute y + R*r - C*xp
+	dgemv_n_lib(ny, nx, hpC[N], cnx, hxp[N], y_temp, 1);
+	//d_print_mat(1, nz, y_temp, 1);
+
+	//d_print_pmat(nz, ny, bs, hpLe[N], cnf);
+
+	// compute xe
+	dtrsv_dgemv_n_lib(ny, ny+nx, hpLe[N], cnf, y_temp);
 	//d_print_mat(1, nz, y_temp, 1);
 
 	// copy xe
@@ -312,9 +446,6 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	double *CLLt = ptr; //d_zeros_align(&CLLt, pny, cnx);
 	ptr += pny*cnx;
 
-	double *Lam = ptr; // d_zeros_align(&Lam, pnz, cnz);
-	ptr += pnz*cnz;
-
 	double *diag = ptr; // d_zeros_align(&diag, anz, 1);
 	ptr += anz;
 
@@ -335,7 +466,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	//d_print_pmat(nx, nx, bs, Pi_p, cnx);
 
 	// copy /Pi_p on the bottom right block of Lam
-	dtrma_lib(nx, ny, Pi_p, cnx, Lam+(ny/bs)*bs*cnz+ny%bs+ny*bs, cnz);
+	dtrma_lib(nx, ny, Pi_p, cnx, hpLe[0]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf);
 	//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 	// loop over horizon
@@ -346,7 +477,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		ptr1 = buffer;
 		for(jj=ny; jj<((ny+bs-1)/bs)*bs; jj+=1)
 			{
-			ptr = &Lam[(jj/bs)*bs*cnz+jj%bs+jj*bs];
+			ptr = &hpLe[ii][(jj/bs)*bs*cnf+jj%bs+jj*bs];
 			ptr1[0] = ptr[0];
 			ptr += 1;
 			ptr1 += 1;
@@ -364,14 +495,14 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		//d_print_pmat(ny, nx, bs, CL, cnx);
 
 		// compute R + (C*U')*(C*U')' on the top left of Lam
-		dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[ii], cny, Lam, cnz, 1);
+		dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[ii], cny, hpLe[ii], cnf, 1);
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 		// recover overwritten part of I in bottom right part of Lam
 		ptr1 = buffer;
 		for(jj=ny; jj<((ny+bs-1)/bs)*bs; jj+=1)
 			{
-			ptr = &Lam[(jj/bs)*bs*cnz+jj%bs+jj*bs];
+			ptr = &hpLe[ii][(jj/bs)*bs*cnf+jj%bs+jj*bs];
 			ptr[0] = ptr1[0];
 			ptr += 1;
 			ptr1 += 1;
@@ -389,11 +520,11 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		//d_print_pmat(ny, nx, bs, CLLt, cnx);
 
 		// copy C*U'*L' on the bottom left of Lam
-		dgetr_lib(ny, 0, nx, ny, CLLt, cnx, Lam+(ny/bs)*bs*cnz+ny%bs, cnz);
+		dgetr_lib(ny, 0, nx, ny, CLLt, cnx, hpLe[ii]+(ny/bs)*bs*cnf+ny%bs, cnf);
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 		// cholesky factorization of Lam
-		dpotrf_lib(nz, nz, Lam, cnz, hpLe[ii], cnf, diag);
+		dpotrf_lib(nz, nz, hpLe[ii], cnf, hpLe[ii], cnf, diag);
 		//d_print_pmat(nz, nz, bs, hpLe[ii], cnf);
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
 		//d_print_mat(nz, 1, diag, 1);
@@ -429,7 +560,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		//d_print_pmat(nx, nx, bs, hpLp[ii+1]+(nx+nw+pad)*bs, cnl);
 
 		// copy /Pi_p on the bottom right block of Lam
-		dtrma_lib(nx, ny, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, Lam+(ny/bs)*bs*cnz+ny%bs+ny*bs, cnz);
+		dtrma_lib(nx, ny, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, hpLe[ii+1]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf);
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 		// factorize Pi_p
@@ -453,7 +584,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	ptr1 = buffer;
 	for(jj=ny; jj<((ny+bs-1)/bs)*bs; jj+=1)
 		{
-		ptr = &Lam[(jj/bs)*bs*cnz+jj%bs+jj*bs];
+		ptr = &hpLe[N][(jj/bs)*bs*cnf+jj%bs+jj*bs];
 		ptr1[0] = ptr[0];
 		ptr += 1;
 		ptr1 += 1;
@@ -471,14 +602,14 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	//d_print_pmat(ny, nx, bs, CL, cnx);
 
 	// compute R + (C*U')*(C*U')' on the top left of Lam
-	dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[N], cny, Lam, cnz, 1);
+	dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[N], cny, hpLe[N], cnf, 1);
 	//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 	// recover overwritten part of I in bottom right part of Lam
 	ptr1 = buffer;
 	for(jj=ny; jj<((ny+bs-1)/bs)*bs; jj+=1)
 		{
-		ptr = &Lam[(jj/bs)*bs*cnz+jj%bs+jj*bs];
+		ptr = &hpLe[N][(jj/bs)*bs*cnf+jj%bs+jj*bs];
 		ptr[0] = ptr1[0];
 		ptr += 1;
 		ptr1 += 1;
@@ -496,11 +627,11 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	//d_print_pmat(ny, nx, bs, CLLt, cnx);
 
 	// copy C*U'*L' on the bottom left of Lam
-	dgetr_lib(ny, 0, nx, ny, CLLt, cnx, Lam+(ny/bs)*bs*cnz+ny%bs, cnz);
+	dgetr_lib(ny, 0, nx, ny, CLLt, cnx, hpLe[N]+(ny/bs)*bs*cnf+ny%bs, cnf);
 	//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 	// cholesky factorization of Lam
-	dpotrf_lib(nz, nz, Lam, cnz, hpLe[N], cnf, diag);
+	dpotrf_lib(nz, nz, hpLe[N], cnf, hpLe[N], cnf, diag);
 	//d_print_pmat(nz, nz, bs, hpLe[N], cnf);
 	//d_print_pmat(nz, nz, bs, Lam, cnz);
 	//d_print_mat(nz, 1, diag, 1);
@@ -511,6 +642,210 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	// transpose and align /Pi_e
 	dtrtr_l_lib(nx, ny, hpLe[N]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, hpLe[N]+ncl*bs, cnf);	
 	//d_print_pmat(nz, nz, bs, hpLe[N], cnf);
+
+	//exit(1);
+
+	}
+//#endif
+
+
+
+
+//#if defined(TARGET_C99_4X4)
+// version tailored for MHE; explicitly computes estimates only at the last stage
+void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hpG, double **hpC, double **hpLp, double **hpQ, double **hpR, double **hpLe, double *work)
+	{
+
+	const int bs = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+	const int nal = bs*ncl;
+
+	const int nz = nx+ny;
+	const int anz = nal*((nz+nal-1)/nal);
+	const int pnx = bs*((nx+bs-1)/bs);
+	const int pnw = bs*((nw+bs-1)/bs);
+	const int pny = bs*((ny+bs-1)/bs);
+	const int pnz = bs*((nz+bs-1)/bs);
+	const int cnx = ncl*((nx+ncl-1)/ncl);
+	const int cnw = ncl*((nw+ncl-1)/ncl);
+	const int cny = ncl*((ny+ncl-1)/ncl);
+	const int cnz = ncl*((nz+ncl-1)/ncl);
+	const int cnf = cnz<cnx+ncl ? cnx+ncl : cnz;
+
+	const int pad = (ncl-(nx)%ncl)%ncl; // packing between AGL & P
+	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+
+	int ii, jj, ll;
+	double *ptr;
+
+	ptr = work;
+
+	double *Lam_w = ptr; // d_zeros_align(&Lam_w, pnw, cnw);
+	ptr += pnw*cnw;
+	
+	double *GLam_w = ptr; // d_zeros_align(&Lam_w, pnw, cnw);
+	ptr += pnx*cnw;
+	
+	double *GQGt = ptr; //d_zeros_align(&GQGt, pnx, cnx);
+	ptr += pnx*cnx;
+
+	double *diag = ptr; // d_zeros_align(&diag, anz, 1);
+	ptr += anz;
+
+	double *Pi_p = ptr; //  d_zeros_align(&Pi_p, pnx, cnx);
+	ptr += pnx*cnx;
+
+	double *CL = ptr; //d_zeros_align(&CL, pny, cnx);
+	ptr += pny*cnx;
+
+	double *CLLt = ptr; //d_zeros_align(&CLLt, pny, cnx);
+	ptr += pny*cnx;
+
+	static double buffer[6] = {};
+
+	double *ptr1;
+
+	// loop over horizon
+	for(ii=0; ii<N; ii++)
+		{
+
+		// zero cross term in bottom left block
+		for(jj=(ny/bs)*bs; jj<pnz; jj+=4)
+			for(ll=0; ll<bs*ny; ll++)
+				hpLp[ii+1][jj*cnl+(nx+pad)*bs+ll] = 0.0;
+
+		// copy R in top left block
+		d_copy_pmat_l(ny, bs, hpR[ii], cny, hpLp[ii+1]+(nx+pad)*bs, cnl);
+		//d_print_pmat(nz, cnl, bs, hpLp[ii+1], cnl);
+		//exit(1);
+
+		// compute lower cholesky factor of Q
+		dpotrf_lib(nw, nw, hpQ[ii], cnw, Lam_w, cnw, diag);
+		//d_print_pmat(nw, nw, bs, Lam_w, cnw);
+
+		// transpose in place the lower cholesky factor of Q
+		dtrtr_l_lib(nw, 0, Lam_w, cnw, Lam_w, cnw);	
+		//d_print_pmat(nw, nw, bs, Lam_w, cnw);
+
+		// compute G*U', with U' upper cholesky factor of Q
+		// d_print_pmat(nx, nw, bs, hpG[ii], cnw);
+		dtrmm_l_lib(nx, nw, hpG[ii], cnw, Lam_w, cnw, GLam_w, cnw);
+		//d_print_pmat(nx, nw, bs, GLam_w, cnw);
+
+		// compute GQGt
+		dsyrk_lib(nx, nx, nw, GLam_w, cnw, GLam_w, cnw, GQGt, cnx, GQGt, cnx, 0);
+		//d_print_pmat(nx, nx, bs, GQGt, cnx);
+		//d_print_pmat(nx, nx, bs, hpLp[ii+1]+(nx+nw+pad)*bs, cnl);
+
+		// copy GQGt on the bottom right block of Lam
+		dtrma_lib(nx, ny, GQGt, cnx, hpLp[ii+1]+(ny/bs)*bs*cnz+ny%bs+(nx+pad+ny)*bs, cnl);
+		//d_print_pmat(nz, cnl-1, bs, hpLp[ii+1], cnl);
+	
+		// compute CA*U', with U upper cholesky factor of /Pi_p
+		//d_print_pmat(nz, cnl-1, bs, hpLp[ii], cnl);
+		//d_print_pmat(nz, nx, bs, hpCA[ii], cnx);
+		dtrmm_l_lib(nz, nx, hpCA[ii], cnx, hpLp[ii]+(nx+pad+ncl)*bs, cnl, hpLp[ii+1], cnl);
+		//d_print_pmat(nz, cnl-1, bs, hpLp[ii+1], cnl);
+
+		// compute Lp
+		dsyrk_dpotrf_lib(nz, nz, nx, hpLp[ii+1], cnl, hpLp[ii+1]+(nx+pad)*bs, cnl, diag, 1);
+
+		// inverted diagonal of top-left part of hpLe
+		for(jj=0; jj<ny; jj++) hpLp[ii+1][(jj/bs)*bs*cnl+jj%bs+(nx+pad+jj)*bs] = diag[jj];
+
+		// transpose and align Lp
+		dtrtr_l_lib(nx, ny, hpLp[ii+1]+(ny/bs)*bs*cnl+ny%bs+(nx+pad+ny)*bs, cnl, hpLp[ii+1]+(nx+pad+ncl)*bs, cnl);	
+		//d_print_pmat(nz, cnl-1, bs, hpLp[ii+1], cnl);
+
+		//exit(1);
+		}
+
+	//exit(1);
+
+	// stage N
+
+	//d_print_pmat(nx, nx, bs, hpLp[N]+(nx+pad+ncl)*bs, cnl);
+	dtrtr_u_lib(nx, hpLp[N]+(nx+pad+ncl)*bs, cnl, GQGt, cnx);
+	//d_print_pmat(nx, nx, bs, GQGt, cnx);
+
+	dttmm_lu_lib(nx, GQGt, cnx, GQGt, cnx, Pi_p, cnx);
+	//d_print_pmat(nx, nx, bs, Pi_p, cnx);
+
+	// copy /Pi_p on the bottom right block of Lam
+	//dtrma_lib(nx, ny, Pi_p, cnx, Lam+(ny/bs)*bs*cnz+ny%bs+ny*bs, cnz);
+	dtrma_lib(nx, ny, Pi_p, cnx, hpLe[N]+(ny/bs)*bs*cnz+ny%bs+ny*bs, cnf);
+	//d_print_pmat(nz, nz, bs, hpLe[N], cnf);
+
+	// backup the top-left part of the bottom right block of Lam
+	ptr1 = buffer;
+	for(jj=ny; jj<((ny+bs-1)/bs)*bs; jj+=1)
+		{
+		//ptr = &Lam[(jj/bs)*bs*cnz+jj%bs+jj*bs];
+		ptr = &hpLe[N][(jj/bs)*bs*cnf+jj%bs+jj*bs];
+		ptr1[0] = ptr[0];
+		ptr += 1;
+		ptr1 += 1;
+		for(ll=jj+1; ll<((ny+bs-1)/bs)*bs; ll+=1)
+			{
+			ptr1[0] = ptr[0];
+			ptr += 1;
+			ptr1 += 1;
+			}
+		}
+	//d_print_mat(6, 1, buffer, 1);
+
+	// compute C*U', with U upper cholesky factor of /Pi_p
+	dtrmm_l_lib(ny, nx, hpC[N], cnx, hpLp[N]+(nx+pad+ncl)*bs, cnl, CL, cnx);
+	//d_print_pmat(ny, nx, bs, CL, cnx);
+
+	// compute R + (C*U')*(C*U')' on the top left of hpLe
+	dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[N], cny, hpLe[N], cnf, 1);
+	//dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[N], cny, Lam, cnz, 1);
+	//d_print_pmat(nz, nz, bs, Lam, cnz);
+
+	// recover overwritten part of I in bottom right part of hpLe
+	ptr1 = buffer;
+	for(jj=ny; jj<((ny+bs-1)/bs)*bs; jj+=1)
+		{
+		//ptr = &Lam[(jj/bs)*bs*cnz+jj%bs+jj*bs];
+		ptr = &hpLe[N][(jj/bs)*bs*cnf+jj%bs+jj*bs];
+		ptr[0] = ptr1[0];
+		ptr += 1;
+		ptr1 += 1;
+		for(ll=jj+1; ll<((ny+bs-1)/bs)*bs; ll+=1)
+			{
+			ptr[0] = ptr1[0];
+			ptr += 1;
+			ptr1 += 1;
+			}
+		}
+	//d_print_pmat(nz, nz, bs, Lam, cnz);
+	//d_print_pmat(nz, nz, bs, hpLe[N], cnf);
+
+	// compute C*U'*L'
+	dtrmm_u_lib(ny, nx, CL, cnx, GQGt, cnx, CLLt, cnx);
+	//d_print_pmat(ny, nx, bs, CLLt, cnx);
+
+	// copy C*U'*L' on the bottom left of hpLe
+	dgetr_lib(ny, 0, nx, ny, CLLt, cnx, hpLe[N]+(ny/bs)*bs*cnf+ny%bs, cnf);
+	//d_print_pmat(nz, nz, bs, Lam, cnz);
+	//d_print_pmat(nz, nz, bs, hpLe[N], cnf);
+
+	// cholesky factorization of hpLe
+	dpotrf_lib(nz, nz, hpLe[N], cnf, hpLe[N], cnf, diag);
+	//d_print_pmat(nz, nz, bs, hpLe[N], cnf);
+	//d_print_pmat(nz, nz, bs, Lam, cnz);
+	//d_print_mat(nz, 1, diag, 1);
+
+	// inverted diagonal of top-left part of hpLe
+	for(jj=0; jj<ny; jj++) hpLe[N][(jj/bs)*bs*cnf+jj%bs+jj*bs] = diag[jj];
+
+	// transpose and align /Pi_e
+	dtrtr_l_lib(nx, ny, hpLe[N]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, hpLe[N]+ncl*bs, cnf);	
+	//d_print_pmat(nz, nz, bs, hpLe[N], cnf);
+
+	//dpotrf_lib(nz, nz, Lam, cnz, Lam, cnz, diag);
+	//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 	//exit(1);
 
