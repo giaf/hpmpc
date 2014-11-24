@@ -38,6 +38,7 @@ void dmvmv_lib(int m, int n, int offset, double *pA, int sda, double *x_n, doubl
 void dtrsv_dgemv_n_lib(int n, int m, double *pA, int sda, double *x);
 void dtrsv_dgemv_t_lib(int n, int m, double *pA, int sda, double *x);
 void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc);
+void dtrtr_u_lib(int m, double *pA, int sda, double *pC, int sdc);
 void dgetr_lib(int m, int mna, int n, int offset, double *pA, int sda, double *pC, int sdc);
 void dttmm_lu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
 void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);

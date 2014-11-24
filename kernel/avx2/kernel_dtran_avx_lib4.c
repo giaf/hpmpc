@@ -33,6 +33,73 @@
 
 
 
+// transpose an aligned upper triangular matrix in an aligned lower triangular matrix
+void kernel_dtrtr_u_4_lib4(int kmax, double *A, double *C, int sdc)
+	{
+
+	const int bs = 4;
+
+	int k;
+
+	C[0+bs*0] = A[0+bs*0];
+
+	C[1+bs*0] = A[0+bs*1];
+	C[1+bs*1] = A[1+bs*1];
+
+	C[2+bs*0] = A[0+bs*2];
+	C[2+bs*1] = A[1+bs*2];
+	C[2+bs*2] = A[2+bs*2];
+
+	C[3+bs*0] = A[0+bs*3];
+	C[3+bs*1] = A[1+bs*3];
+	C[3+bs*2] = A[2+bs*3];
+	C[3+bs*3] = A[3+bs*3];
+
+	C += bs*sdc;
+	A += bs*bs;
+
+	k = 4;
+	for( ; k<kmax-3; k+=4)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[0+bs*3] = A[3+bs*0];
+
+		C[1+bs*0] = A[0+bs*1];
+		C[1+bs*1] = A[1+bs*1];
+		C[1+bs*2] = A[2+bs*1];
+		C[1+bs*3] = A[3+bs*1];
+
+		C[2+bs*0] = A[0+bs*2];
+		C[2+bs*1] = A[1+bs*2];
+		C[2+bs*2] = A[2+bs*2];
+		C[2+bs*3] = A[3+bs*2];
+
+		C[3+bs*0] = A[0+bs*3];
+		C[3+bs*1] = A[1+bs*3];
+		C[3+bs*2] = A[2+bs*3];
+		C[3+bs*3] = A[3+bs*3];
+
+		C += bs*sdc;
+		A += bs*bs;
+		}
+	
+	for( ; k<kmax; k++)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[0+bs*3] = A[3+bs*0];
+
+		C += 1;
+		A += bs;
+		}
+
+	}
+
+
+
 // transposed of general matrices, read along panels, write across panels TODO test if it is the best way
 void kernel_dgetr_4_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	{

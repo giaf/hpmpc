@@ -976,6 +976,47 @@ void dgetr_lib(int m, int mna, int n, int offset, double *pA, int sda, double *p
 
 
 
+// transpose an aligned upper triangular matrix into an aligned lower triangular matrix
+void dtrtr_u_lib(int m, double *pA, int sda, double *pC, int sdc)
+	{
+
+	const int bs = 4;
+
+	int ii;
+
+	for(ii=0; ii<m-3; ii+=4)
+		{
+		kernel_dtrtr_u_4_lib4(m-ii, pA+ii*sda+ii*bs, pC+ii*sdc+ii*bs, sdc);
+		}
+	
+	if(ii<m)
+		{
+		if(m-ii==1)
+			{
+			pC[ii*sdc+ii*bs] = pA[ii*sda+ii*bs];
+			}
+		else if(m-ii==2)
+			{
+			pC[ii*sdc+(ii+0)*bs+0] = pA[ii*sda+(ii+0)*bs+0];
+			pC[ii*sdc+(ii+1)*bs+0] = pA[ii*sda+(ii+0)*bs+1];
+			pC[ii*sdc+(ii+1)*bs+1] = pA[ii*sda+(ii+1)*bs+1];
+			}
+		else // if(m-ii==3)
+			{
+			pC[ii*sdc+(ii+0)*bs+0] = pA[ii*sda+(ii+0)*bs+0];
+			pC[ii*sdc+(ii+1)*bs+0] = pA[ii*sda+(ii+0)*bs+1];
+			pC[ii*sdc+(ii+2)*bs+0] = pA[ii*sda+(ii+0)*bs+2];
+			pC[ii*sdc+(ii+1)*bs+1] = pA[ii*sda+(ii+1)*bs+1];
+			pC[ii*sdc+(ii+2)*bs+1] = pA[ii*sda+(ii+1)*bs+2];
+			pC[ii*sdc+(ii+2)*bs+2] = pA[ii*sda+(ii+2)*bs+2];
+			}
+
+		}
+
+	}
+
+
+
 //#if defined(TARGET_C99_4X4)
 void dttmm_lu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
 	{
