@@ -23,6 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#include <math.h>
+
 /*#include "../include/aux_d.h"*/
 #include "../include/aux_d.h"
 #include "../include/blas_d.h"
@@ -162,7 +164,7 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 
 // xp is the vector of predictions, xe is the vector of estimates
 //#if 0
-void d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, double **hpC, double **hpLp, double **hpQ, double **hpR, double **hpLe, double **hq, double **hr, double **hf, double **hxp, double **hxe, double **hy, double *work)
+int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, double **hpC, double **hpLp, double **hdLp, double **hpQ, double **hpR, double **hpLe, double **hq, double **hr, double **hf, double **hxp, double **hxe, double **hw, double **hy, int smooth, double **hlam, double *work)
 	{
 
 	//printf("\nhola\n");
@@ -172,6 +174,7 @@ void d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	const int nal = bs*ncl;
 
 	const int nz = nx+ny;
+	const int anx = nal*((nx+nal-1)/nal);
 	const int anw = nal*((nw+nal-1)/nal);
 	const int any = nal*((ny+nal-1)/nal);
 	const int anz = nal*((nz+nal-1)/nal);
@@ -181,8 +184,13 @@ void d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	const int cnz = ncl*((nz+ncl-1)/ncl);
 	const int cnf = cnz<cnx+ncl ? cnx+ncl : cnz;
 
+	const int pad = (ncl-(nx+nw)%ncl)%ncl; // packing between AGL & P
+	const int cnl = nx+nw+pad+cnx;
+
 	int ii, jj, ll;
+	int return_value = 0;
 	double *ptr;
+	double Lmin;
 
 	ptr = work;
 
@@ -191,6 +199,9 @@ void d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 
 	double *w_temp = ptr; //; d_zeros_align(&w_temp, anw, 1);
 	ptr += anw;
+
+	double *x_temp = ptr; //; d_zeros_align(&w_temp, anw, 1);
+	ptr += 2*anx;
 
 	// loop over horizon
 	for(ii=0; ii<N; ii++)
@@ -230,16 +241,16 @@ void d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		dgemv_n_lib(nx, nx, hpA[ii], cnx, hxe[ii], hxp[ii+1], 1);
 		//d_print_mat(1, nx, hxp[ii+1], 1);
 
-		// initialize w_temp with 0
-		for(jj=0; jj<nw; jj++) w_temp[jj] = 0.0;
+		// initialize w with 0
+		for(jj=0; jj<nw; jj++) hw[ii][jj] = 0.0;
 		//d_print_mat(1, nw, w_temp, 1);
 	
 		// compute Q*q
-		dsymv_lib(nw, 0, hpQ[ii], cnw, hq[ii], w_temp, -1);
+		dsymv_lib(nw, 0, hpQ[ii], cnw, hq[ii], hw[ii], -1);
 		//d_print_mat(1, nw, w_temp, 1);
 
-		// xp += G*w_temp
-		dgemv_n_lib(nx, nw, hpG[ii], cnw, w_temp, hxp[ii+1], 1);
+		// xp += G*w
+		dgemv_n_lib(nx, nw, hpG[ii], cnw, hw[ii], hxp[ii+1], 1);
 		//d_print_mat(1, nx, hxp[ii+1], 1);
 	
 		//if(ii==1)
@@ -276,6 +287,91 @@ void d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	//d_print_mat(1, nx, hxe[N], 1);
 
 	//exit(1);
+
+	if(smooth==0)
+		return return_value;
+	
+	// backward recursion to compute smoothed values
+
+	for(ii=0; ii<N; ii++)
+		{
+
+		//printf("\nii = %d\n", ii);
+
+		// check for singular covariance
+		Lmin = 1;
+		for(jj=0; jj<nx; jj++) Lmin = fmin(Lmin, hdLp[N-ii][jj]);
+		//printf("\nL_min = %f\n", Lmin);
+
+		// if singular, keep the current estimate as smooth value and go to the next iteration
+		if(Lmin==0.0)
+			{
+
+			// the N-ii th prediction covariance matrix is singular
+			return_value = N-ii;
+
+			}
+		// else compute smooth values
+		else
+			{
+
+			// backup diagonal and overwrite with inverted diagonal
+			//d_print_pmat(nx, nx, bs, hpLp[N-ii]+(nx+nw+pad)*bs, cnl);
+			for(jj=0; jj<nx; jj++)
+				{
+				x_temp[jj] = hpLp[N-ii][(jj/bs)*bs*cnl+jj%bs+(nx+nw+pad+jj)*bs];
+				hpLp[N-ii][(jj/bs)*bs*cnl+jj%bs+(nx+nw+pad+jj)*bs] = hdLp[N-ii][jj];
+				}
+			//d_print_pmat(nx, nx, bs, hpLp[N-ii]+(nx+nw+pad)*bs, cnl);
+
+			// lam = xp - xe
+			for(jj=0; jj<nx; jj++) hlam[N-ii-1][jj] = hxp[N-ii][jj] - hxe[N-ii][jj];
+			//d_print_mat(1, nx, hlam[N-ii-1], 1);
+
+			// lam = \Pi^{-1}*lam
+			dtrsv_dgemv_n_lib(nx, nx, hpLp[N-ii]+(nx+nw+pad)*bs, cnl, hlam[N-ii-1]);
+			//d_print_mat(1, nx, hlam[N-ii-1], 1);
+			dtrsv_dgemv_t_lib(nx, nx, hpLp[N-ii]+(nx+nw+pad)*bs, cnl, hlam[N-ii-1]);
+			//d_print_mat(1, nx, hlam[N-ii-1], 1);
+
+			// restore diagonal
+			for(jj=0; jj<nx; jj++)
+				hpLp[N-ii][(jj/bs)*bs*cnl+jj%bs+(nx+nw+pad+jj)*bs] = x_temp[jj];
+			//d_print_pmat(nx, nx, bs, hpLp[N-ii]+(nx+nw+pad)*bs, cnl);
+
+			// G'*lam
+			//d_print_pmat(nx, nw, bs, hpG[N-ii-1], cnw);
+			dgemv_t_lib(nx, nw, 0, hpG[N-ii-1], cnw, hlam[N-ii-1], w_temp, 0);
+			//d_print_mat(nw, 1, w_temp, 1);
+
+			// w = w - Q*G'*lam
+			//d_print_pmat(nw, nw, bs, hpQ[N-ii-1], cnw);
+			dsymv_lib(nw, 0, hpQ[N-ii-1], cnw, w_temp, hw[N-ii-1], -1);
+			//d_print_mat(nw, 1, hw[N-ii-1], 1);
+
+			// A'*lam
+			//d_print_pmat(nx, nx, bs, hpA[N-ii-1], cnx);
+			dgemv_t_lib(nx, nx, 0, hpA[N-ii-1], cnx, hlam[N-ii-1], x_temp, 0);
+			//d_print_mat(nx, 1, x_temp, 1);
+
+			// xe = xe - Pi_e*A'*lam
+			//d_print_pmat(nx, nx, bs, hpLe[N-ii-1]+ncl*bs, cnf);
+			dtrmv_u_n_lib(nx, hpLe[N-ii-1]+ncl*bs, cnf, x_temp, x_temp+anx, 0);
+			//d_print_mat(nx, 1, x_temp+anx, 1);
+			//d_print_mat(nx, 1, hxe[N-ii-1], 1);
+			dtrmv_u_t_lib(nx, hpLe[N-ii-1]+ncl*bs, cnf, x_temp+anx, hxe[N-ii-1], -1); // L*(L'*b) + p
+			//d_print_mat(nx, 1, hxe[N-ii-1], 1);
+
+			//exit(1);
+
+			}
+
+		//if(ii==40)
+		//	exit(1);
+
+		}
+
+	return return_value;
 
 	}
 //#endif
@@ -413,7 +509,7 @@ void d_ric_trs_mhe_end(int nx, int nw, int ny, int N, double **hpA, double **hpG
 
 //#if defined(TARGET_C99_4X4)
 // version tailored for MHE
-void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, double **hpC, double **hpLp, double **hpQ, double **hpR, double **hpLe, double *work)
+void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, double **hpC, double **hpLp, double **hdLp, double **hpQ, double **hpR, double **hpLe, double *work)
 	{
 
 	const int bs = D_MR; //d_get_mr();
@@ -498,7 +594,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[ii], cny, hpLe[ii], cnf, 1);
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
 
-		// recover overwritten part of I in bottom right part of Lam
+		// recover overwritten part of /Pi_p in bottom right part of Lam
 		ptr1 = buffer;
 		for(jj=ny; jj<((ny+bs-1)/bs)*bs; jj+=1)
 			{
@@ -564,7 +660,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 		// factorize Pi_p
-		dpotrf_lib(nx, nx, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, diag);
+		dpotrf_lib(nx, nx, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, hdLp[ii+1]); //diag);
 		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[ii+1], cnl);
 
 		// transpose in place the lower cholesky factor of /Pi_p

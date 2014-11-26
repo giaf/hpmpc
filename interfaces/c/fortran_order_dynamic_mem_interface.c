@@ -1939,7 +1939,7 @@ int fortran_order_dynamic_mem_riccati_wrapper_mhe( const int nx, const int nw, c
 		const int pad = (ncl-(nx+nw)%ncl)%ncl; // packing between AGL & P
 		const int cnl = nx+nw+pad+cnx;
 
-		double *work = (double *) malloc((8 + (N+1)*(pnx*cnx+pnx*cnw+pny*cnx+anx+pnw*cnw+pny*cny+anw+any+pnx*cnl+pnz*cnf+anx+anx+any) + 2*pny*cnx+pnz*cnz+anz+pnw*cnw+pnx*cnx)*sizeof(double));
+		double *work = (double *) malloc((8 + (N+1)*(pnx*cnx+pnx*cnw+pny*cnx+3*anx+pnw*cnw+pny*cny+2*anw+any+pnx*cnl+pnz*cnf+anx+anx+any) + 2*pny*cnx+pnz*cnz+anz+pnw*cnw+pnx*cnx)*sizeof(double));
 //		printf("\nwork space allocated\n");
 
 //		int compute_mult = 1; // compute multipliers
@@ -1963,10 +1963,13 @@ int fortran_order_dynamic_mem_riccati_wrapper_mhe( const int nx, const int nw, c
 		double *(hq[N]);
 		double *(hr[N+1]);
 		double *(hpLp[N+1]);
+		double *(hdLp[N+1]);
 		double *(hpLe[N+1]);
 		double *(hxe[N+1]);
 		double *(hxp[N+1]);
+		double *(hw[N]);
 		double *(hy[N+1]);
+		double *(hlam[N]);
 
 		double *diag;
 		double *work1;
@@ -1995,6 +1998,8 @@ int fortran_order_dynamic_mem_riccati_wrapper_mhe( const int nx, const int nw, c
 			// covariances
 			hpLp[ii] = ptr;
 			ptr += pnx*cnl;
+			hdLp[ii] = ptr;
+			ptr += anx;
 			hpLe[ii] = ptr;
 			ptr += pnz*cnf;
 			// estimates and measurements
@@ -2002,8 +2007,12 @@ int fortran_order_dynamic_mem_riccati_wrapper_mhe( const int nx, const int nw, c
 			ptr += anx;
 			hxp[ii] = ptr;
 			ptr += anx;
+			hw[ii] = ptr;
+			ptr += anw;
 			hy[ii] = ptr;
 			ptr += any;
+			hlam[ii] = ptr;
+			ptr += anx;
 			}
 		// stage N
 		// dynamic system
@@ -2017,6 +2026,8 @@ int fortran_order_dynamic_mem_riccati_wrapper_mhe( const int nx, const int nw, c
 		// covariances
 		hpLp[N] = ptr;
 		ptr += pnx*cnl;
+		hdLp[N] = ptr;
+		ptr += anx;
 		hpLe[N] = ptr;
 		ptr += pnz*cnf;
 		// estimates and measurements
@@ -2098,9 +2109,11 @@ int fortran_order_dynamic_mem_riccati_wrapper_mhe( const int nx, const int nw, c
 
 		// call Riccati solver
 		// factorization
-		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work1);
+		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, work1);
 		// solution
-		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hy, work1);
+		//d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 0, hlam, work1);
+		// smoothed solution
+		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 1, hlam, work1);
 
 #if 0
 		printf("\nsystem solved\n");
