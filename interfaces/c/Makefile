@@ -25,7 +25,7 @@
 
 include ../../Makefile.rule
 
-OBJS = c_order_dynamic_mem_interface.o c_order_static_mem_interface.o fortran_order_dynamic_mem_interface.o fortran_order_static_mem_interface.o
+OBJS = c_order_interface.o c_order_dynamic_mem_interface.o c_order_static_mem_interface.o fortran_order_interface.o fortran_order_dynamic_mem_interface.o fortran_order_static_mem_interface.o
 
 obj: $(OBJS)
 

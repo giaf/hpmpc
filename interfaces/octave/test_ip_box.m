@@ -30,6 +30,8 @@ if nx==4
 end
 AA = repmat(A, 1, N);
 BB = repmat(B, 1, N);
+%AA = repmat(A', 1, N);
+%BB = repmat(B', 1, N);
 bb = repmat(b, 1, N);
 
 % cost function

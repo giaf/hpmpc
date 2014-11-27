@@ -11,43 +11,45 @@
 #include <stdlib.h>
 /*#include <math.h>*/
 
-/*#include "hpmpc/aux_d.h"*/
-/*#include "/include/hpmpc/block_size.h"*/
-/*#include "hpmpc/mpc_solvers.h"*/
-
-int fortran_order_dynamic_mem_riccati_wrapper_mhe( const int nx, const int nw, const int ny, const int N, double *A, double *G, double *C, double *f, double *Q, double *R, double *q, double *r, double *y, double *x0, double *L0, double *xe, double *Le );
+#include <hpmpc/c_interface.h>
 
 
 
-/* the gateway function */
+// the gateway function 
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	{
 		
-	/* get data */
-	double *A, *G, *C, *f, *Q, *R, *q, *r, *y, *x0, *L0, *xe, *Le;
+	// get data 
+	double *A, *G, *C, *f, *Q, *R, *q, *r, *y, *x0, *L0, *xe, *Le, *w;
 	
-	const int nx = (int) mxGetScalar(prhs[0]);
-	const int nw = (int) mxGetScalar(prhs[1]);
-	const int ny = (int) mxGetScalar(prhs[2]);
-	const int N  = (int) mxGetScalar(prhs[3]);
+	const int smooth = (int) mxGetScalar(prhs[0]);
+	const int nx = (int) mxGetScalar(prhs[1]);
+	const int nw = (int) mxGetScalar(prhs[2]);
+	const int ny = (int) mxGetScalar(prhs[3]);
+	const int N  = (int) mxGetScalar(prhs[4]);
 
-	A = mxGetPr(prhs[4]);
-	G = mxGetPr(prhs[5]);
-	C = mxGetPr(prhs[6]);
-	f = mxGetPr(prhs[7]);
-	Q = mxGetPr(prhs[8]);
-	R = mxGetPr(prhs[9]);
-	q = mxGetPr(prhs[10]);
-	r = mxGetPr(prhs[11]);
-	y = mxGetPr(prhs[12]);
-	x0 = mxGetPr(prhs[13]);
-	L0 = mxGetPr(prhs[14]);
-	xe = mxGetPr(prhs[15]);
-	Le = mxGetPr(prhs[16]);
+	A = mxGetPr(prhs[5]);
+	G = mxGetPr(prhs[6]);
+	C = mxGetPr(prhs[7]);
+	f = mxGetPr(prhs[8]);
+	Q = mxGetPr(prhs[9]);
+	R = mxGetPr(prhs[10]);
+	q = mxGetPr(prhs[11]);
+	r = mxGetPr(prhs[12]);
+	y = mxGetPr(prhs[13]);
+	x0 = mxGetPr(prhs[14]);
+	L0 = mxGetPr(prhs[15]);
+	xe = mxGetPr(prhs[16]);
+	Le = mxGetPr(prhs[17]);
+	w = mxGetPr(prhs[18]);
 	
-	double *work;
+	int work_space_size = hpmpc_ric_mhe_dp_work_space(nx, nw, ny, N);
+
+	double *work = (double *) malloc( work_space_size * sizeof(double) );;
 	
-	fortran_order_dynamic_mem_riccati_wrapper_mhe( nx, nw, ny, N, A, G, C, f, Q, R, q, r, y, x0, L0, xe, Le );
+	// call the solver
+	fortran_order_riccati_mhe( 'd', smooth, nx, nw, ny, N, A, G, C, f, Q, R, q, r, y, x0, L0, xe, Le, w, work );
+	//c_order_riccati_mhe( 'd', smooth, nx, nw, ny, N, A, G, C, f, Q, R, q, r, y, x0, L0, xe, Le, w, work );
 
 	return;
 

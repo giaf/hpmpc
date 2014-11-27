@@ -68,11 +68,13 @@ figure()
 plot([0:Ns], x(1:nx/2,:))
 title('states')
 xlabel('N')
+axis([0 Ns -1 1])
 
 figure()
 plot([0:Ns], y(:,:))
 title('measurements')
 xlabel('N')
+axis([0 Ns -1 1])
 
 %figure()
 %plot([1:N], u(:,:))
@@ -103,10 +105,12 @@ for ii=1:nx
 	L0(ii,ii) = 1.0;
 end
 
-% estimation at final stage
-xe = zeros(nx,1);
+% estimation at all stages 0,1,...,N
+xe = zeros(nx,N+1);
 % cholesky factor of estimation covariance matrix at last stage
 Le = zeros(nx,nx);
+% process disturbance at all stages 0,1,...,N-1
+w = zeros(nw,N);
 
 fprintf("\nRiccati factorization and solution\n\n");
 
@@ -118,23 +122,86 @@ hxe = zeros(nx,Ne);
 tic
 for ii=1:Ne
 	% x0 and L0 are input-output: on output they are the value needed at the next QP call (i.e. prediction x_{1|0} and relative covariance), obtained using (Extended) Kalman Filter
-	HPMPC_riccati_mhe(nx, nw, ny, N, AA, GG, CC, ff, QQ, RR, qq, rr, y(:,ii:ii+N), x0, L0, xe, Le);
+	HPMPC_riccati_mhe(1, nx, nw, ny, N, AA, GG, CC, ff, QQ, RR, qq, rr, y(:,ii:ii+N), x0, L0, xe, Le, w);
 	% same estimation at last stage
-	hxe(:,ii) = xe;
+	hxe(:,ii) = xe(:,N+1);
 %	x0
 %	L0
 %	xe
 %	Le
 end
-toc
+toc/Ne
 
 figure()
 plot([N+1:N+Ne], hxe(1:nx/2,1:Ne))
 title('states 2')
 xlabel('N')
-axis([0 100])
+axis([0 Ns -1 1])
 
 x0
 L0
 xe
 Le
+
+
+
+% smoothed version, one run
+
+AA = repmat(A, 1, Ns);
+GG = repmat(G, 1, Ns);
+CC = repmat(C, 1, Ns+1);
+ff = repmat(f, 1, Ns);
+
+QQ = repmat(Q, 1, Ns);
+RR = repmat(R, 1, Ns+1);
+qq = repmat(q, 1, Ns);
+rr = repmat(r, 1, Ns+1);
+
+xxe = zeros(nx,Ns+1);
+ww = zeros(nw,Ns);
+
+% prediction at first stage
+x0 = zeros(nx,1);
+% cholesky factor of prediction covariance matrix at first stage
+L0 = zeros(nx,nx);
+for ii=1:nx
+	L0(ii,ii) = 1.0;
+end
+
+HPMPC_riccati_mhe(0, nx, nw, ny, Ns, AA, GG, CC, ff, QQ, RR, qq, rr, y, x0, L0, xxe, Le, ww);
+
+figure()
+plot([0:Ns], xxe(1:nx/2,:))
+title('estimation')
+xlabel('N')
+axis([0 Ns -1 1])
+
+figure()
+plot([0:Ns], xxe(1:nx/2,:)-x(1:nx/2,:))
+title('estimation error')
+xlabel('N')
+axis([0 Ns -1 1])
+
+% prediction at first stage
+x0 = zeros(nx,1);
+% cholesky factor of prediction covariance matrix at first stage
+L0 = zeros(nx,nx);
+for ii=1:nx
+	L0(ii,ii) = 1.0;
+end
+
+HPMPC_riccati_mhe(1, nx, nw, ny, Ns, AA, GG, CC, ff, QQ, RR, qq, rr, y, x0, L0, xxe, Le, ww);
+
+figure()
+plot([0:Ns], xxe(1:nx/2,:))
+title('smooth estimation')
+xlabel('N')
+axis([0 Ns -1 1])
+
+figure()
+plot([0:Ns], xxe(1:nx/2,:)-x(1:nx/2,:))
+title('smooth estimation error')
+xlabel('N')
+axis([0 Ns -1 1])
+
+

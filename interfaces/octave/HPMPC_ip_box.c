@@ -11,19 +11,15 @@
 #include <stdlib.h>
 /*#include <math.h>*/
 
-/*#include "hpmpc/aux_d.h"*/
-/*#include "/include/hpmpc/block_size.h"*/
-/*#include "hpmpc/mpc_solvers.h"*/
-
-void fortran_order_dynamic_mem_ip_wrapper( int k_max, double tol, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lb, double* ub, double* x, double* u, int* nIt, double *stat );
+#include <hpmpc/c_interface.h>
 
 
 
-/* the gateway function */
+// the gateway function 
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	{
 		
-	/* get data */
+	// get data 
 	int k_max;
 	double tol, *A, *B, *b, *Q, *Qf, *R, *S, *q, *qf, *r, *x, *u, *lb, *ub, *stat, *kkk;
 	
@@ -32,7 +28,6 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	const int nx = (int) mxGetScalar(prhs[2]);
 	const int nu = (int) mxGetScalar(prhs[3]);
 	const int N  = (int) mxGetScalar(prhs[4]);
-/*	nb  = (int) mxGetScalar(prhs[5]);*/
 
 	A = mxGetPr(prhs[5]);
 	B = mxGetPr(prhs[6]);
@@ -52,12 +47,18 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	stat = mxGetPr(prhs[20]);
 	
 	int kk = -1;
+
+	int work_space_size = hpmpc_ip_mpc_dp_work_space(nx, nu, N);
 	
-/*	 call solver */
-	fortran_order_dynamic_mem_ip_wrapper(k_max, tol, nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, x, u, &kk, stat);
-/*	fortran_order_static_mem_ip_wrapper(k_max, tol, nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, x, u, &kk, stat);*/
+	double *work = (double *) malloc( work_space_size * sizeof(double) );
+
+	// call solver 
+	fortran_order_ip_mpc(k_max, tol, 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, x, u, work, &kk, stat);
+	//c_order_ip_mpc(k_max, tol, 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, x, u, work, &kk, stat);
 	
 	*kkk = (double) kk;
+
+	free(work);
 
 	return;
 

@@ -34,6 +34,7 @@ void d_copy_pmat_l(int row, int bs, double *A, int sda, double *B, int sdb);
 void d_cvt_mat2pmat(int row, int col, int offset, int bs, double *A, int lda, double *pA, int sda);
 void d_cvt_tran_mat2pmat(int row, int col, int offset, int bs, double *A, int lda, double *pA, int sda);
 void d_cvt_pmat2mat(int row, int col, int offset, int bs, double *pA, int sda, double *A, int lda);
+void d_cvt_tran_pmat2mat(int row, int col, int offset, int bs, double *pA, int sda, double *A, int lda);
 void d_print_mat(int row, int col, double *A, int lda);
 void d_print_pmat(int row, int col, int bs, double *A, int sda);
 

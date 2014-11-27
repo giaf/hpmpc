@@ -554,6 +554,54 @@ void d_cvt_pmat2mat(int row, int col, int offset, int bs_dummy, double *pA, int 
 
 
 
+/* converts a packed matrix into a matrix */
+void d_cvt_tran_pmat2mat(int row, int col, int offset, int bs_dummy, double *pA, int sda, double *A, int lda)
+	{
+	
+	const int bs = 4;
+
+	int i, ii, jj;
+	
+	int row0 = (bs-offset%bs)%bs;
+	
+	double *ptr_pA;
+	
+
+	jj=0;
+	for(; jj<col; jj++)
+		{
+		ptr_pA = pA + jj*bs;
+		ii = 0;
+		if(row0>0)
+			{
+			for(; ii<row0; ii++)
+				{
+				A[jj+lda*ii] = ptr_pA[0];
+				ptr_pA++;
+				}
+			ptr_pA += (sda-1)*bs;
+			}
+		for(; ii<row-bs+1; ii+=bs)
+			{
+			i=0;
+			for(; i<bs; i++)
+				{
+				A[jj+lda*(i+ii)] = ptr_pA[0];
+				ptr_pA++;
+				}
+			ptr_pA += (sda-1)*bs;
+			}
+		for(; ii<row; ii++)
+			{
+			A[jj+lda*ii] = ptr_pA[0];
+			ptr_pA++;
+			}
+		}
+
+	}
+
+
+
 /* prints a matrix */
 void d_print_mat(int row, int col, double *A, int lda)
 	{

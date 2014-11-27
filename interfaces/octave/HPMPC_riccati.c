@@ -11,29 +11,20 @@
 #include <stdlib.h>
 /*#include <math.h>*/
 
-/*#include "hpmpc/aux_d.h"*/
-/*#include "/include/hpmpc/block_size.h"*/
-/*#include "hpmpc/mpc_solvers.h"*/
-
-int fortran_order_dynamic_mem_riccati_wrapper_init( const int nx, const int nu, const int N, double *A, double *B, double *b, double *Q, double *Qf, double *S, double *R, double *q, double *qf, double *r, double **ptr_work );
-int fortran_order_dynamic_mem_riccati_wrapper_free( double *work );
-int fortran_order_dynamic_mem_riccati_wrapper_fact_solve( const int nx, const int nu, const int N, double *x, double *u, double *pi, double *work );
-int fortran_order_dynamic_mem_riccati_wrapper_solve( const int nx, const int nu, const int N, double *b, double *q, double *qf, double *r, double *x, double *u, double *pi, double *work );
-int fortran_order_dynamic_mem_riccati_wrapper( const int nx, const int nu, const int N, double *A, double *B, double *b, double *Q, double *Qf, double *S, double *R, double *q, double *qf, double *r, double *x, double *u, double *pi );
+#include <hpmpc/c_interface.h>
 
 
 
-/* the gateway function */
+// the gateway function 
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	{
 		
-	/* get data */
+	// get data 
 	double *A, *B, *b, *Q, *Qf, *R, *S, *q, *qf, *r, *x, *u, *pi;
 	
 	const int nx = (int) mxGetScalar(prhs[0]);
 	const int nu = (int) mxGetScalar(prhs[1]);
 	const int N  = (int) mxGetScalar(prhs[2]);
-/*	nb  = (int) mxGetScalar(prhs[5]);*/
 
 	A = mxGetPr(prhs[3]);
 	B = mxGetPr(prhs[4]);
@@ -49,21 +40,15 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	u = mxGetPr(prhs[14]);
 	pi = mxGetPr(prhs[15]);
 	
-	double *work;
+	int work_space_size = hpmpc_ric_mpc_dp_work_space(nx, nu, N);
+
+	double *work = (double *) malloc( work_space_size * sizeof(double) );
+
+	// call the solver
+	fortran_order_riccati_mpc( 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, x, u, pi, work );
+	//c_order_riccati_mpc( 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, x, u, pi, work );
 	
-	fortran_order_dynamic_mem_riccati_wrapper_init( nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, &work );
-	
-	fortran_order_dynamic_mem_riccati_wrapper_fact_solve( nx, nu, N, x, u, pi, work );
-/*	printf("\nfact and solve\n\n");*/
-/*	*/
-/*	fortran_order_dynamic_mem_riccati_wrapper_solve( nx, nu, N, b, q, qf, r, x, u, pi, work );*/
-/*	printf("\ntri solve\n\n");*/
-
-	fortran_order_dynamic_mem_riccati_wrapper_free( work );
-
-
-/*	fortran_order_dynamic_mem_riccati_wrapper( nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, x, u, pi );*/
-
+	free(work);
 
 	return;
 
