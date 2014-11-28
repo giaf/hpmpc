@@ -45,11 +45,13 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	
 	int work_space_size = hpmpc_ric_mhe_dp_work_space(nx, nw, ny, N);
 
-	double *work = (double *) malloc( work_space_size * sizeof(double) );;
+	double *work = (double *) malloc( work_space_size * sizeof(double) );
 	
 	// call the solver
 	fortran_order_riccati_mhe( 'd', smooth, nx, nw, ny, N, A, G, C, f, Q, R, q, r, y, x0, L0, xe, Le, w, work );
 	//c_order_riccati_mhe( 'd', smooth, nx, nw, ny, N, A, G, C, f, Q, R, q, r, y, x0, L0, xe, Le, w, work );
+
+	free(work);
 
 	return;
 
