@@ -6,9 +6,9 @@ mex HPMPC_riccati_mhe.c -lhpmpc %-L. HPMPC.a
 
 % test problem
 
-nx = 12;			% number of states
-nw = 5;				% number of inputs (controls)
-ny  = 3;			% number of measurements
+nx = 8;			% number of states
+nw = 3;				% number of inputs (controls)
+ny  = 1;			% number of measurements
 N = 10;				% horizon length
 
 Ts = 0.5; % sampling time
@@ -30,7 +30,7 @@ CC = repmat(C, 1, N+1);
 ff = repmat(f, 1, N);
 
 % cost function
-Q = eye(nw);
+Q = 1*eye(nw);
 R = 1*eye(ny);
 q = zeros(nw,1);
 r = zeros(ny,1);
@@ -39,6 +39,12 @@ QQ = repmat(Q, 1, N);
 RR = repmat(R, 1, N+1);
 qq = repmat(q, 1, N);
 rr = repmat(r, 1, N+1);
+
+% initial guess for state and covariance
+hx0 = zeros(nx,1);
+hx0(1) = 0.0;
+hx0(2) = 0.0;
+hL0 = 1*eye(nx);
 
 
 % simulation horizon
@@ -99,10 +105,13 @@ fclose(fid);
 
 % prediction at first stage
 x0 = zeros(nx,1);
+for ii=1:nx
+	x0(ii) = hx0(ii);
+end
 % cholesky factor of prediction covariance matrix at first stage
 L0 = zeros(nx,nx);
-for ii=1:nx
-	L0(ii,ii) = 1.0;
+for ii=1:nx*nx
+	L0(ii) = hL0(ii);
 end
 
 % estimation at all stages 0,1,...,N
@@ -110,7 +119,7 @@ xe = zeros(nx,N+1);
 % cholesky factor of estimation covariance matrix at last stage
 Le = zeros(nx,nx);
 % process disturbance at all stages 0,1,...,N-1
-w = zeros(nw,N);
+we = zeros(nw,N);
 
 fprintf("\nRiccati factorization and solution\n\n");
 
@@ -122,7 +131,7 @@ hxe = zeros(nx,Ne);
 tic
 for ii=1:Ne
 	% x0 and L0 are input-output: on output they are the value needed at the next QP call (i.e. prediction x_{1|0} and relative covariance), obtained using (Extended) Kalman Filter
-	HPMPC_riccati_mhe(1, nx, nw, ny, N, AA, GG, CC, ff, QQ, RR, qq, rr, y(:,ii:ii+N), x0, L0, xe, Le, w);
+	HPMPC_riccati_mhe(1, nx, nw, ny, N, AA, GG, CC, ff, QQ, RR, qq, rr, y(:,ii:ii+N), x0, L0, xe, Le, we);
 	% same estimation at last stage
 	hxe(:,ii) = xe(:,N+1);
 %	x0
@@ -138,10 +147,10 @@ title('states 2')
 xlabel('N')
 axis([0 Ns -1 1])
 
-x0
-L0
-xe
-Le
+%x0
+%L0
+%xe
+%Le
 
 
 
@@ -161,11 +170,12 @@ xxe = zeros(nx,Ns+1);
 ww = zeros(nw,Ns);
 
 % prediction at first stage
-x0 = zeros(nx,1);
-% cholesky factor of prediction covariance matrix at first stage
-L0 = zeros(nx,nx);
 for ii=1:nx
-	L0(ii,ii) = 1.0;
+	x0(ii) = hx0(ii);
+end
+% cholesky factor of prediction covariance matrix at first stage
+for ii=1:nx*nx
+	L0(ii) = hL0(ii);
 end
 
 HPMPC_riccati_mhe(0, nx, nw, ny, Ns, AA, GG, CC, ff, QQ, RR, qq, rr, y, x0, L0, xxe, Le, ww);
@@ -183,11 +193,12 @@ xlabel('N')
 axis([0 Ns -1 1])
 
 % prediction at first stage
-x0 = zeros(nx,1);
-% cholesky factor of prediction covariance matrix at first stage
-L0 = zeros(nx,nx);
 for ii=1:nx
-	L0(ii,ii) = 1.0;
+	x0(ii) = hx0(ii);
+end
+% cholesky factor of prediction covariance matrix at first stage
+for ii=1:nx*nx
+	L0(ii) = hL0(ii);
 end
 
 HPMPC_riccati_mhe(1, nx, nw, ny, Ns, AA, GG, CC, ff, QQ, RR, qq, rr, y, x0, L0, xxe, Le, ww);
