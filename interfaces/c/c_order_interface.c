@@ -1010,7 +1010,7 @@ int c_order_riccati_mhe( const char prec, const int smooth,
 		// stage N
 		// dynamic system
 		hpC[N] = ptr;
-		ptr += pnx*cnx;
+		ptr += pny*cnx;
 		// cost function
 		hpR[N] = ptr;
 		ptr += pny*cny;

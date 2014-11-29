@@ -60,6 +60,24 @@ void d_zeros_align(double **pA, int row, int col)
 
 
 
+/* creates a zero matrix aligned to a cache line */
+void d_ones_align(double **pA, int row, int col)
+	{
+	void *temp;
+	int err = posix_memalign(&temp, 64, (row*col)*sizeof(double));
+	if(err!=0)
+		{
+		printf("Memory allocation error");
+		exit(1);
+		}
+	*pA = temp;
+	double *A = *pA;
+	int i;
+	for(i=0; i<row*col; i++) A[i] = 1.0;
+	}
+
+
+
 /* creates a zero matrix aligned */
 void d_eye(double **pA, int row)
 	{

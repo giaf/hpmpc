@@ -935,11 +935,15 @@ int fortran_order_riccati_mhe( const char prec, const int smooth,
 		int i, ii, jj, ll;
 
 
+
 		/* align work space */
 		size_t align = 64;
 		size_t addr = (size_t) work0;
 		size_t offset = addr % 64;
 		double *ptr = work0 + offset / 8;
+
+		//for(ii=0; ii<(N+1)*(pnx*cnx+pnx*cnw+pny*cnx+5*anx+pnw*cnw+pny*cny+2*anw+2*any+pnx*cnj+pnt*cnf) + 2*pny*cnx+pnt*cnt+ant+pnw*cnw+pnx*cnx; ii++)
+		//	ptr[ii] = 0.0;
 
 		/* array or pointers */
 		double *(hpA[N]);
@@ -1001,11 +1005,16 @@ int fortran_order_riccati_mhe( const char prec, const int smooth,
 			ptr += any;
 			hlam[ii] = ptr;
 			ptr += anx;
+
+		//if(ii==1)
+		//for(jj=0; jj<(N-ii)*(pnx*cnx+pnx*cnw+pny*cnx+5*anx+pnw*cnw+pny*cny+2*anw+2*any+pnx*cnj+pnt*cnf) + 2*pny*cnx+pnt*cnt+ant+pnw*cnw+pnx*cnx; jj++)
+		//	ptr[jj] = 0.0;
+
 			}
 		// stage N
 		// dynamic system
 		hpC[N] = ptr;
-		ptr += pnx*cnx;
+		ptr += pny*cnx;
 		// cost function
 		hpR[N] = ptr;
 		ptr += pny*cny;
@@ -1033,6 +1042,8 @@ int fortran_order_riccati_mhe( const char prec, const int smooth,
 		// work space
 		work = ptr;
 		ptr += 2*pny*cnx+pnt*cnt+ant+pnw*cnw+pnx*cnx;
+		//for(ii=0; ii<2*pny*cnx+pnt*cnt+ant+pnw*cnw+pnx*cnx; ii++)
+		//	work[ii] = 0.0;
 
 //		printf("\nmatrix space allocated\n");
 
@@ -1043,9 +1054,10 @@ int fortran_order_riccati_mhe( const char prec, const int smooth,
 		// covariances
 		//d_print_mat(nx, nx, L0, nx);
 		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLp[0]+(nx+nw+pad)*bs, cnj);
-		//d_print_pmat(nx+ny, nx+ny, bs, hpLp[0]+(nx+nw+pad)*bs, cnj);
+		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[0], cnj);
 		// estimates 
 		for(jj=0; jj<nx; jj++) hxp[0][jj] = x0[jj];
+		//d_print_mat(1, nx, hxp[0], 1);
 		// stages 0 to N-1
 		for(ii=0; ii<N; ii++)
 			{
@@ -1072,6 +1084,7 @@ int fortran_order_riccati_mhe( const char prec, const int smooth,
 		for(jj=0; jj<ny; jj++) hr[N][jj] = r[N*ny+jj];
 		// measurements
 		for(jj=0; jj<ny; jj++) hy[N][jj] = y[N*ny+jj];
+		//d_print_mat(1, ny, hy[0], 1);
 
 #if 0
 		printf("\nmatrices converted\n");
@@ -1104,6 +1117,16 @@ int fortran_order_riccati_mhe( const char prec, const int smooth,
 		hpmpc_status = d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, smooth, hlam, work);
 
 #if 0
+		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[N], cnj);
+		//d_print_pmat(nt, nt, bs, hpLe[N], cnf);
+		printf("\nxp = \n");
+		d_print_mat(1, nx, hxp[0], 1);
+		d_print_mat(1, nx, hxp[1], 1);
+		d_print_mat(1, nx, hxp[2], 1);
+		printf("\nxe = \n");
+		d_print_mat(1, nx, hxe[0], 1);
+		d_print_mat(1, nx, hxe[1], 1);
+		d_print_mat(1, nx, hxe[2], 1);
 		printf("\nsystem solved\n");
 		d_print_pmat(nx, nx, bs, hpLp[0]+(nx+nw+pad)*bs, cnj);
 		d_print_pmat(nx, nx, bs, hpLp[1]+(nx+nw+pad)*bs, cnj);

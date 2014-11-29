@@ -207,12 +207,10 @@ int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, dou
 	for(ii=0; ii<N; ii++)
 		{
 
+		//printf("\nii = %d\n", ii);
+
 		// copy y
 		for(jj=0; jj<ny; jj++) y_temp[jj] = - hy[ii][jj];
-		//d_print_mat(1, nz, y_temp, 1);
-	
-		// copy xp
-		for(jj=0; jj<nx; jj++) y_temp[ny+jj] = hxp[ii][jj];
 		//d_print_mat(1, nz, y_temp, 1);
 	
 		// compute y + R*r
@@ -220,18 +218,26 @@ int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, dou
 		//d_print_mat(1, nz, y_temp, 1);
 
 		// compute y + R*r - C*xp
+		//int pny = bs*((ny+bs-1)/bs);
+		//d_print_pmat(pny, cnx, bs, hpC[ii], cnx);
+		//d_print_mat(1, anx, hxp[ii], 1);
 		dgemv_n_lib(ny, nx, hpC[ii], cnx, hxp[ii], y_temp, 1);
 		//d_print_mat(1, nz, y_temp, 1);
 
 		//d_print_pmat(nz, ny, bs, hpLe[ii], cnf);
 
+		// copy xp
+		for(jj=0; jj<nx; jj++) y_temp[ny+jj] = hxp[ii][jj];
+		//d_print_mat(1, nz, y_temp, 1);
+	
 		// compute xe
 		dtrsv_dgemv_n_lib(ny, ny+nx, hpLe[ii], cnf, y_temp);
 		//d_print_mat(1, nz, y_temp, 1);
 
 		// copy xe
 		for(jj=0; jj<nx; jj++) hxe[ii][jj] = y_temp[ny+jj];
-		//d_print_mat(1, nx, hxe[ii], 1);
+		//dd_print_mat(1, nx, hxe[ii], 1);
+		//exit(1);
 
 		// copy f in xp
 		for(jj=0; jj<nx; jj++) hxp[ii+1][jj] = hf[ii][jj];
@@ -254,6 +260,7 @@ int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, dou
 		//d_print_mat(1, nx, hxp[ii+1], 1);
 	
 		//if(ii==1)
+		//return 0;
 		//exit(1);
 
 		}
