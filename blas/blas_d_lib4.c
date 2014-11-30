@@ -542,60 +542,62 @@ void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, int al
 	
 	int i, j;
 
-	static double y_temp[8] = {};
+//	static double y_temp[8] = {};
 
 	j=0;
 /*	for(; j<n-7; j+=8)*/
 	for(; j<m-4; j+=8)
 		{
-		y_temp[0] = y[0];
-		y_temp[1] = y[1];
-		y_temp[2] = y[2];
-		y_temp[3] = y[3];
-		y_temp[4] = y[4];
-		y_temp[5] = y[5];
-		y_temp[6] = y[6];
-		y_temp[7] = y[7];
-		kernel_dgemv_n_8_lib4(n, pA, pA+sda*bs, x, y_temp, alg);
-		y[0] = y_temp[0];
-		y[1] = y_temp[1];
-		y[2] = y_temp[2];
-		y[3] = y_temp[3];
-		if(m-j<8)
-			{
-			for(i=4; i<m-j-4; i++)
-				y[i] = y_temp[i];
-			}
-		else
-			{
-			y[4] = y_temp[4];
-			y[5] = y_temp[5];
-			y[6] = y_temp[6];
-			y[7] = y_temp[7];
-			}
+//		y_temp[0] = y[0];
+//		y_temp[1] = y[1];
+//		y_temp[2] = y[2];
+//		y_temp[3] = y[3];
+//		y_temp[4] = y[4];
+//		y_temp[5] = y[5];
+//		y_temp[6] = y[6];
+//		y_temp[7] = y[7];
+//		kernel_dgemv_n_8_lib4(n, pA, pA+sda*bs, x, y_temp, alg);
+		kernel_dgemv_n_8_lib4(n, pA, pA+sda*bs, x, y, alg);
+//		y[0] = y_temp[0];
+//		y[1] = y_temp[1];
+//		y[2] = y_temp[2];
+//		y[3] = y_temp[3];
+//		if(m-j<8)
+//			{
+//			for(i=4; i<m-j-4; i++)
+//				y[i] = y_temp[i];
+//			}
+//		else
+//			{
+//			y[4] = y_temp[4];
+//			y[5] = y_temp[5];
+//			y[6] = y_temp[6];
+//			y[7] = y_temp[7];
+//			}
 		pA += 2*sda*bs;
 		y  += 2*bs;
 		}
 /*	for(; j<n-3; j+=4)*/
 	for(; j<m; j+=4)
 		{
-		y_temp[0] = y[0];
-		y_temp[1] = y[1];
-		y_temp[2] = y[2];
-		y_temp[3] = y[3];
-		kernel_dgemv_n_4_lib4(n, pA, x, y_temp, alg);
-		if(m-j<4)
-			{
-			for(i=0; i<m-j; i++)
-				y[i] = y_temp[i];
-			}
-		else
-			{
-			y[0] = y_temp[0];
-			y[1] = y_temp[1];
-			y[2] = y_temp[2];
-			y[3] = y_temp[3];
-			}
+//		y_temp[0] = y[0];
+//		y_temp[1] = y[1];
+//		y_temp[2] = y[2];
+//		y_temp[3] = y[3];
+//		kernel_dgemv_n_4_lib4(n, pA, x, y_temp, alg);
+		kernel_dgemv_n_4_lib4(n, pA, x, y, alg);
+//		if(m-j<4)
+//			{
+//			for(i=0; i<m-j; i++)
+//				y[i] = y_temp[i];
+//			}
+//		else
+//			{
+//			y[0] = y_temp[0];
+//			y[1] = y_temp[1];
+//			y[2] = y_temp[2];
+//			y[3] = y_temp[3];
+//			}
 		pA += sda*bs;
 		y  += bs;
 		}
