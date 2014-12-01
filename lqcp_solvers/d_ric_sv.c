@@ -565,7 +565,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 
 	// compute /Pi_p from its cholesky factor
 	//d_print_pmat(nx, nx, bs, hpLp[0]+(nx+nw+pad)*bs, cnl);
-	dttmm_lu_lib(nx, hpLp[0]+(nx+nw+pad)*bs, cnl, hpLp[0]+(nx+nw+pad)*bs, cnl, Pi_p, cnx);
+	dsyttmm_lu_lib(nx, hpLp[0]+(nx+nw+pad)*bs, cnl, Pi_p, cnx);
 	//d_print_pmat(nx, nx, bs, Pi_p, cnx);
 
 	// copy /Pi_p on the bottom right block of Lam
@@ -676,7 +676,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		//d_print_pmat(nx, nx, bs, hpLp[ii+1]+(nx+nw+pad)*bs, cnl);
 
 
-		//dttmm_lu_lib(nx, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, Pi_p, cnx);
+		//dsyttmm_lu_lib(nx, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, Pi_p, cnx);
 		//d_print_pmat(nx, nx, bs, Pi_p, cnx);
 		//exit(1);
 		}
@@ -871,7 +871,7 @@ void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hp
 	dtrtr_u_lib(nx, hpLp[N]+(nx+pad+ncl)*bs, cnl, GQGt, cnx);
 	//d_print_pmat(nx, nx, bs, GQGt, cnx);
 
-	dttmm_lu_lib(nx, GQGt, cnx, GQGt, cnx, Pi_p, cnx);
+	dsyttmm_lu_lib(nx, GQGt, cnx, Pi_p, cnx);
 	//d_print_pmat(nx, nx, bs, Pi_p, cnx);
 
 	// copy /Pi_p on the bottom right block of Lam

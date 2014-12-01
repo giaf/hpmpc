@@ -25,8 +25,209 @@
 
 
 
-// normal-transposed, 4x4 with data packed in 4
-void kernel_dttmm_lu_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
+// computes the (lower triangular) diagonal blocks of the symmetric matrix U*U'
+void kernel_dsyttmm_ul_nt_4x4_lib4(int kmax, double *A, double *C)
+	{
+
+	const int lda = 4;
+	const int ldc = 4;
+
+	int k;
+
+	double
+		a_0, a_1, a_2, a_3,
+		c_00=0, 
+		c_10=0, c_11=0, 
+		c_20=0, c_21=0, c_22=0, 
+		c_30=0, c_31=0, c_32=0, c_33=0;
+
+	// initial triangles
+
+	// k = 0
+	a_0 = A[0+lda*0];
+		
+	c_00 += a_0 * a_0;
+	
+	// k = 1
+	a_0 = A[0+lda*1];
+	a_1 = A[1+lda*1];
+		
+	c_00 += a_0 * a_0;
+	c_10 += a_1 * a_0;
+
+	c_11 += a_1 * a_1;
+	
+	// k = 2
+	a_0 = A[0+lda*2];
+	a_1 = A[1+lda*2];
+	a_2 = A[2+lda*2];
+		
+	c_00 += a_0 * a_0;
+	c_10 += a_1 * a_0;
+	c_20 += a_2 * a_0;
+
+	c_11 += a_1 * a_1;
+	c_21 += a_2 * a_1;
+
+	c_22 += a_2 * a_2;
+	
+	// k = 3
+	a_0 = A[0+lda*3];
+	a_1 = A[1+lda*3];
+	a_2 = A[2+lda*3];
+	a_3 = A[3+lda*3];
+		
+	c_00 += a_0 * a_0;
+	c_10 += a_1 * a_0;
+	c_20 += a_2 * a_0;
+	c_30 += a_3 * a_0;
+
+	c_11 += a_1 * a_1;
+	c_21 += a_2 * a_1;
+	c_31 += a_3 * a_1;
+
+	c_22 += a_2 * a_2;
+	c_32 += a_3 * a_2;
+
+	c_33 += a_3 * a_3;
+
+	k = 4;
+	A += 16;
+
+	for(; k<kmax-3; k+=4)
+		{
+		
+		a_0 = A[0+lda*0];
+		a_1 = A[1+lda*0];
+		a_2 = A[2+lda*0];
+		a_3 = A[3+lda*0];
+		
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
+		c_20 += a_2 * a_0;
+		c_30 += a_3 * a_0;
+
+		c_11 += a_1 * a_1;
+		c_21 += a_2 * a_1;
+		c_31 += a_3 * a_1;
+
+		c_22 += a_2 * a_2;
+		c_32 += a_3 * a_2;
+
+		c_33 += a_3 * a_3;
+
+
+		a_0 = A[0+lda*1];
+		a_1 = A[1+lda*1];
+		a_2 = A[2+lda*1];
+		a_3 = A[3+lda*1];
+		
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
+		c_20 += a_2 * a_0;
+		c_30 += a_3 * a_0;
+
+		c_11 += a_1 * a_1;
+		c_21 += a_2 * a_1;
+		c_31 += a_3 * a_1;
+
+		c_22 += a_2 * a_2;
+		c_32 += a_3 * a_2;
+
+		c_33 += a_3 * a_3;
+
+
+		a_0 = A[0+lda*2];
+		a_1 = A[1+lda*2];
+		a_2 = A[2+lda*2];
+		a_3 = A[3+lda*2];
+		
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
+		c_20 += a_2 * a_0;
+		c_30 += a_3 * a_0;
+
+		c_11 += a_1 * a_1;
+		c_21 += a_2 * a_1;
+		c_31 += a_3 * a_1;
+
+		c_22 += a_2 * a_2;
+		c_32 += a_3 * a_2;
+
+		c_33 += a_3 * a_3;
+
+
+		a_0 = A[0+lda*3];
+		a_1 = A[1+lda*3];
+		a_2 = A[2+lda*3];
+		a_3 = A[3+lda*3];
+		
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
+		c_20 += a_2 * a_0;
+		c_30 += a_3 * a_0;
+
+		c_11 += a_1 * a_1;
+		c_21 += a_2 * a_1;
+		c_31 += a_3 * a_1;
+
+		c_22 += a_2 * a_2;
+		c_32 += a_3 * a_2;
+
+		c_33 += a_3 * a_3;
+		
+		
+		A += 16;
+
+		}
+	for(; k<kmax; k++)
+		{
+		
+		a_0 = A[0+lda*0];
+		a_1 = A[1+lda*0];
+		a_2 = A[2+lda*0];
+		a_3 = A[3+lda*0];
+		
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
+		c_20 += a_2 * a_0;
+		c_30 += a_3 * a_0;
+
+		c_11 += a_1 * a_1;
+		c_21 += a_2 * a_1;
+		c_31 += a_3 * a_1;
+
+		c_22 += a_2 * a_2;
+		c_32 += a_3 * a_2;
+
+		c_33 += a_3 * a_3;
+
+		A += 4;
+
+		}
+	
+	// store
+
+	C[0+ldc*0] = c_00;
+	C[1+ldc*0] = c_10;
+	C[2+ldc*0] = c_20;
+	C[3+ldc*0] = c_30;
+
+	C[1+ldc*1] = c_11;
+	C[2+ldc*1] = c_21;
+	C[3+ldc*1] = c_31;
+
+	C[2+ldc*2] = c_22;
+	C[3+ldc*2] = c_32;
+
+	C[3+ldc*3] = c_33;
+	
+	}
+
+
+
+// computes the (lower triangular) diagonal blocks of the symmetric matrix L*L'
+void kernel_dsyttmm_lu_nt_4x4_lib4(int kmax, double *A, double *C)
 	{
 	
 	const int lda = 4;
@@ -36,7 +237,6 @@ void kernel_dttmm_lu_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 
 	double
 		a_0, a_1, a_2, a_3,
-		b_0, b_1, b_2, b_3,
 		c_00=0, 
 		c_10=0, c_11=0, 
 		c_20=0, c_21=0, c_22=0, 
@@ -50,24 +250,19 @@ void kernel_dttmm_lu_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 		a_2 = A[2+lda*0];
 		a_3 = A[3+lda*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		b_2 = B[2+lda*0];
-		b_3 = B[3+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
+		c_20 += a_2 * a_0;
+		c_30 += a_3 * a_0;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
+		c_11 += a_1 * a_1;
+		c_21 += a_2 * a_1;
+		c_31 += a_3 * a_1;
 
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
+		c_22 += a_2 * a_2;
+		c_32 += a_3 * a_2;
 
-		c_33 += a_3 * b_3;
+		c_33 += a_3 * a_3;
 
 
 		a_0 = A[0+lda*1];
@@ -75,24 +270,19 @@ void kernel_dttmm_lu_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 		a_2 = A[2+lda*1];
 		a_3 = A[3+lda*1];
 		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
-		b_2 = B[2+lda*1];
-		b_3 = B[3+lda*1];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
+		c_20 += a_2 * a_0;
+		c_30 += a_3 * a_0;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
+		c_11 += a_1 * a_1;
+		c_21 += a_2 * a_1;
+		c_31 += a_3 * a_1;
 
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
+		c_22 += a_2 * a_2;
+		c_32 += a_3 * a_2;
 
-		c_33 += a_3 * b_3;
+		c_33 += a_3 * a_3;
 
 
 		a_0 = A[0+lda*2];
@@ -100,24 +290,19 @@ void kernel_dttmm_lu_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 		a_2 = A[2+lda*2];
 		a_3 = A[3+lda*2];
 		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
-		b_2 = B[2+lda*2];
-		b_3 = B[3+lda*2];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
+		c_20 += a_2 * a_0;
+		c_30 += a_3 * a_0;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
+		c_11 += a_1 * a_1;
+		c_21 += a_2 * a_1;
+		c_31 += a_3 * a_1;
 
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
+		c_22 += a_2 * a_2;
+		c_32 += a_3 * a_2;
 
-		c_33 += a_3 * b_3;
+		c_33 += a_3 * a_3;
 
 
 		a_0 = A[0+lda*3];
@@ -125,28 +310,22 @@ void kernel_dttmm_lu_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 		a_2 = A[2+lda*3];
 		a_3 = A[3+lda*3];
 		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
-		b_2 = B[2+lda*3];
-		b_3 = B[3+lda*3];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
+		c_20 += a_2 * a_0;
+		c_30 += a_3 * a_0;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
+		c_11 += a_1 * a_1;
+		c_21 += a_2 * a_1;
+		c_31 += a_3 * a_1;
 
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
+		c_22 += a_2 * a_2;
+		c_32 += a_3 * a_2;
 
-		c_33 += a_3 * b_3;
+		c_33 += a_3 * a_3;
 		
 		
 		A += 16;
-		B += 16;
 
 		}
 			
@@ -156,61 +335,47 @@ void kernel_dttmm_lu_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 	a_2 = A[2+lda*0];
 	a_3 = A[3+lda*0];
 		
-	b_0 = B[0+lda*0];
-	b_1 = B[1+lda*0];
-	b_2 = B[2+lda*0];
-	b_3 = B[3+lda*0];
-		
-	c_00 += a_0 * b_0;
-	c_10 += a_1 * b_0;
-	c_20 += a_2 * b_0;
-	c_30 += a_3 * b_0;
+	c_00 += a_0 * a_0;
+	c_10 += a_1 * a_0;
+	c_20 += a_2 * a_0;
+	c_30 += a_3 * a_0;
 
-	c_11 += a_1 * b_1;
-	c_21 += a_2 * b_1;
-	c_31 += a_3 * b_1;
+	c_11 += a_1 * a_1;
+	c_21 += a_2 * a_1;
+	c_31 += a_3 * a_1;
 
-	c_22 += a_2 * b_2;
-	c_32 += a_3 * b_2;
+	c_22 += a_2 * a_2;
+	c_32 += a_3 * a_2;
 
-	c_33 += a_3 * b_3;
+	c_33 += a_3 * a_3;
 
 
 	a_1 = A[1+lda*1];
 	a_2 = A[2+lda*1];
 	a_3 = A[3+lda*1];
-		
-	b_1 = B[1+lda*1];
-	b_2 = B[2+lda*1];
-	b_3 = B[3+lda*1];
 
-	c_11 += a_1 * b_1;
-	c_21 += a_2 * b_1;
-	c_31 += a_3 * b_1;
+	c_11 += a_1 * a_1;
+	c_21 += a_2 * a_1;
+	c_31 += a_3 * a_1;
 
-	c_22 += a_2 * b_2;
-	c_32 += a_3 * b_2;
+	c_22 += a_2 * a_2;
+	c_32 += a_3 * a_2;
 
-	c_33 += a_3 * b_3;
+	c_33 += a_3 * a_3;
 
 
 	a_2 = A[2+lda*2];
 	a_3 = A[3+lda*2];
-		
-	b_2 = B[2+lda*2];
-	b_3 = B[3+lda*2];
 
-	c_22 += a_2 * b_2;
-	c_32 += a_3 * b_2;
+	c_22 += a_2 * a_2;
+	c_32 += a_3 * a_2;
 
-	c_33 += a_3 * b_3;
+	c_33 += a_3 * a_3;
 
 
 	a_3 = A[3+lda*3];
-		
-	b_3 = B[3+lda*3];
 
-	c_33 += a_3 * b_3;
+	c_33 += a_3 * a_3;
 		
 		
 	// store
@@ -234,7 +399,7 @@ void kernel_dttmm_lu_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 
 
 // normal-transposed, 2x2 with data packed in 4
-void kernel_dttmm_lu_nt_2x2_lib4(int kmax, double *A, double *B, double *C)
+void kernel_dsyttmm_lu_nt_2x2_lib4(int kmax, double *A, double *C)
 	{
 	
 	const int lda = 4;
@@ -244,7 +409,6 @@ void kernel_dttmm_lu_nt_2x2_lib4(int kmax, double *A, double *B, double *C)
 
 	double
 		a_0, a_1,
-		b_0, b_1,
 		c_00=0, 
 		c_10=0, c_11=0; 
 		
@@ -254,53 +418,40 @@ void kernel_dttmm_lu_nt_2x2_lib4(int kmax, double *A, double *B, double *C)
 		a_0 = A[0+lda*0];
 		a_1 = A[1+lda*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
 
-		c_11 += a_1 * b_1;
+		c_11 += a_1 * a_1;
 
 
 		a_0 = A[0+lda*1];
 		a_1 = A[1+lda*1];
 		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
 
-		c_11 += a_1 * b_1;
+		c_11 += a_1 * a_1;
 
 
 		a_0 = A[0+lda*2];
 		a_1 = A[1+lda*2];
 		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
 
-		c_11 += a_1 * b_1;
+		c_11 += a_1 * a_1;
 
 
 		a_0 = A[0+lda*3];
 		a_1 = A[1+lda*3];
 		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
 
-		c_11 += a_1 * b_1;
+		c_11 += a_1 * a_1;
 		
 		
 		A += 16;
-		B += 16;
 
 		}
 			
@@ -310,29 +461,22 @@ void kernel_dttmm_lu_nt_2x2_lib4(int kmax, double *A, double *B, double *C)
 		a_0 = A[0+lda*0];
 		a_1 = A[1+lda*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
 
-		c_11 += a_1 * b_1;
+		c_11 += a_1 * a_1;
 
 
 		a_0 = A[0+lda*1];
 		a_1 = A[1+lda*1];
 		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
+		c_00 += a_0 * a_0;
+		c_10 += a_1 * a_0;
 
-		c_11 += a_1 * b_1;
+		c_11 += a_1 * a_1;
 
 
 		A += 8;
-		B += 8;
 
 		}
 			
@@ -340,20 +484,15 @@ void kernel_dttmm_lu_nt_2x2_lib4(int kmax, double *A, double *B, double *C)
 	a_0 = A[0+lda*0];
 	a_1 = A[1+lda*0];
 		
-	b_0 = B[0+lda*0];
-	b_1 = B[1+lda*0];
-		
-	c_00 += a_0 * b_0;
-	c_10 += a_1 * b_0;
+	c_00 += a_0 * a_0;
+	c_10 += a_1 * a_0;
 
-	c_11 += a_1 * b_1;
+	c_11 += a_1 * a_1;
 
 
 	a_1 = A[1+lda*1];
-		
-	b_1 = B[1+lda*1];
 
-	c_11 += a_1 * b_1;
+	c_11 += a_1 * a_1;
 
 		
 	// store

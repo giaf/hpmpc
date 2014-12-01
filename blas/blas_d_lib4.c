@@ -1063,7 +1063,7 @@ void dtrtr_u_lib(int m, double *pA, int sda, double *pC, int sdc)
 
 
 //#if defined(TARGET_C99_4X4)
-void dttmm_lu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
+void dsyttmm_lu_lib(int m, double *pA, int sda, double *pC, int sdc)
 	{
 
 	const int bs = 4;
@@ -1077,10 +1077,10 @@ void dttmm_lu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 		jj = 0;
 		for( ; jj<ii; jj+=4)
 			{
-			kernel_dtrmm_u_nt_4x4_lib4(4+jj, pA+ii*sda, pB+jj*sdb, pC+ii*sdc+jj*bs);
+			kernel_dtrmm_u_nt_4x4_lib4(4+jj, pA+ii*sda, pA+jj*sda, pC+ii*sdc+jj*bs);
 			}
 		// diagonal
-		kernel_dttmm_lu_nt_4x4_lib4(ii+4, pA+ii*sda, pB+ii*sdb, pC+ii*sdc+ii*bs);
+		kernel_dsyttmm_lu_nt_4x4_lib4(ii+4, pA+ii*sda, pC+ii*sdc+ii*bs);
 		}
 	for( ; ii<m; ii+=2)
 		{
@@ -1088,12 +1088,117 @@ void dttmm_lu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 		jj = 0;
 		for( ; jj<ii-2; jj+=4)
 			{
-			kernel_dtrmm_u_nt_2x4_lib4(4+jj, pA+ii*sda, pB+jj*sdb, pC+ii*sdc+jj*bs);
+			kernel_dtrmm_u_nt_2x4_lib4(4+jj, pA+ii*sda, pA+jj*sda, pC+ii*sdc+jj*bs);
 			}
 		// diagonal
-		kernel_dttmm_lu_nt_2x2_lib4(ii+2, pA+ii*sda, pB+ii*sdb, pC+ii*sdc+ii*bs);
+		kernel_dsyttmm_lu_nt_2x2_lib4(ii+2, pA+ii*sda, pC+ii*sdc+ii*bs);
 		}
 
+	}
+//#endif
+
+
+
+//#if defined(TARGET_C99_4X4)
+void dsyttmm_ul_lib(int m, double *pA, int sda, double *pC, int sdc)
+	{
+
+	const int bs = 4;
+
+	int ii, jj;
+	
+	ii = 0;
+//	for( ; ii<m-2; ii+=4)
+	for( ; ii<m-3; ii+=4)
+		{
+		// off-diagonal
+		jj = 0;
+		for( ; jj<ii; jj+=4)
+			{
+			kernel_dtrmm_l_u_nt_4x4_lib4(m-ii, pA+ii*sda+ii*bs, pA+jj*sda+ii*bs, pC+ii*sdc+jj*bs);
+			}
+		// diagonal
+		kernel_dsyttmm_ul_nt_4x4_lib4(m-ii, pA+ii*sda+ii*bs, pC+ii*sdc+ii*bs);
+		}
+	if(ii<m)
+		{
+		if(m-ii==1)
+			{
+			double
+				a_0,
+				c_00;
+
+			a_0 = pA[ii*sda+0+(ii+0)*bs];
+
+			c_00 = a_0*a_0;
+
+			pC[ii*sdc+0+(ii+0)*bs] = c_00;
+			}
+		else if(m-ii==2)
+			{
+			double
+				a_0, a_1,
+				c_00,
+				c_10, c_11;
+
+			a_0 = pA[ii*sda+0+(ii+0)*bs];
+
+			c_00 += a_0 * a_0;
+
+			a_0 = pA[ii*sda+0+(ii+1)*bs];
+			a_1 = pA[ii*sda+1+(ii+1)*bs];
+
+			c_00 += a_0 * a_0;
+			c_10 += a_1 * a_0;
+
+			c_11 += a_1 * a_1;
+
+			pC[ii*sdc+0+(ii+0)*bs] = c_00;
+			pC[ii*sdc+1+(ii+0)*bs] = c_10;
+			pC[ii*sdc+1+(ii+1)*bs] = c_11;
+			}
+		else //if(m-ii==3)
+			{
+			double
+				a_0, a_1, a_2,
+				c_00,
+				c_10, c_11,
+				c_20, c_21, c_22;
+
+			a_0 = pA[ii*sda+0+(ii+0)*bs];
+
+			c_00 += a_0 * a_0;
+
+			a_0 = pA[ii*sda+0+(ii+1)*bs];
+			a_1 = pA[ii*sda+1+(ii+1)*bs];
+
+			c_00 += a_0 * a_0;
+			c_10 += a_1 * a_0;
+
+			c_11 += a_1 * a_1;
+
+			a_0 = pA[ii*sda+0+(ii+2)*bs];
+			a_1 = pA[ii*sda+1+(ii+2)*bs];
+			a_2 = pA[ii*sda+2+(ii+2)*bs];
+
+			c_00 += a_0 * a_0;
+			c_10 += a_1 * a_0;
+			c_20 += a_2 * a_0;
+
+			c_11 += a_1 * a_1;
+			c_21 += a_2 * a_1;
+
+			c_22 += a_2 * a_2;
+	
+			pC[ii*sdc+0+(ii+0)*bs] = c_00;
+			pC[ii*sdc+1+(ii+0)*bs] = c_10;
+			pC[ii*sdc+2+(ii+0)*bs] = c_20;
+			pC[ii*sdc+1+(ii+1)*bs] = c_11;
+			pC[ii*sdc+2+(ii+1)*bs] = c_21;
+			pC[ii*sdc+2+(ii+2)*bs] = c_22;
+			}
+		}
+	
 	}
 //#endif
 
