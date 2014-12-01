@@ -686,3 +686,25 @@ void d_print_pmat(int row, int col, int bs, double *A, int sda)
 
 	}	
 
+void d_print_pmat_e(int row, int col, int bs, double *A, int sda)
+	{
+
+	int ii, i, j, row2;
+
+	for(ii=0; ii<row; ii+=bs)
+		{
+		row2 = row-ii; if(bs<row2) row2=bs;
+		for(i=0; i<row2; i++)
+			{
+			for(j=0; j<col; j++)
+				{
+				printf("%e ", *(A+i+j*bs+ii*sda));
+				}
+			printf("\n");
+			}
+//		printf("\n");
+		}
+	printf("\n");
+
+	}	
+

@@ -103,6 +103,7 @@ void kernel_dttmm_uu_nt_4x4_lib4(int kmax, double *A, double *B, double *C);
 void kernel_dttmm_uu_nt_4x2_lib4(int kmax, double *A, double *B, double *C);
 void kernel_dtrma_4_lib4(int kmax, int kna, double *A, int sda, double *C, int sdc);
 void kernel_dtrtr_u_4_lib4(int kmax, double *A, double *C, int sdc);
+void kernel_dtrinv_4x4_lib4(int kmax, double *A_00_inv, double *A_10, double *A_11_inv, double *C, int sdc);
 // corner
 void corner_dtrmm_l_nt_8x3_lib4(double *A0, double *A1, double *B, double *C0, double *C1);
 void corner_dtrmm_l_nt_8x2_lib4(double *A0, double *A1, double *B, double *C0, double *C1);
@@ -117,3 +118,4 @@ void corner_dttmm_uu_nt_4x4_lib4(double *A, double *B, double *C);
 void corner_dttmm_uu_nt_2x2_lib4(double *A, double *B, double *C);
 void corner_dtrma_3_lib4(int kna, double *A, double *C, int sdc);
 void corner_dtrma_2_lib4(int kna, double *A, double *C, int sdc);
+void corner_dtrinv_4x4_lib4(double *A, double *C);

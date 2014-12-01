@@ -1198,3 +1198,25 @@ void dtrma_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
 	
 	}
 //#endif
+
+
+
+void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
+	{
+
+	const int bs = 4;
+
+	int ii, jj;
+
+	for(ii=0; ii<m; ii+=4)
+		{
+		corner_dtrinv_4x4_lib4(pA+ii*sda+ii*bs, pC+ii*sdc+ii*bs);
+		for(jj=0; jj<ii; jj+=4)
+			{
+			kernel_dtrinv_4x4_lib4(ii-jj, pC+jj*sdc+jj*bs, pA+ii*sda+jj*bs, pC+ii*sdc+ii*bs, pC+jj*sdc+ii*bs, sdc);
+			}
+		}
+	
+	return;
+
+	}

@@ -44,4 +44,5 @@ void dttmm_lu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
 void dttmm_ll_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
 void dtrma_lib(int m, int mna, double *pA, int sda, double *pC, int sdc);
+void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc);
 
