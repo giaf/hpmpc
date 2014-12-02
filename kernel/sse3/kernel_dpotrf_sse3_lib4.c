@@ -939,6 +939,7 @@ void kernel_dpotrf_nt_2x2_lib4(int ksub, double *A, double *B, double *C, double
 		{
 		c_11 = sqrt(c_11);
 		D[1+ldc*1] = c_11;
+		c_11 = 1.0/c_11;
 		}
 	else
 		{
