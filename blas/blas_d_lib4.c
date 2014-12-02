@@ -1355,13 +1355,119 @@ void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
 		fact[7] = ptr[3+bs*1];
 		fact[8] = ptr[3+bs*2];
 		fact[9] = 1.0/ptr[3+bs*3];
-		corner_dtrinv_4x4_lib4(fact, pC+jj*sdc+jj*bs);
 		for(ii=0; ii<jj; ii+=4)
 			{
-			kernel_dtrinv_4x4_lib4(jj-ii, &pC[ii*sdc+bs*ii], &pA[jj*sda+ii*bs], &pC[jj*bs+ii*sdc], fact);
+			kernel_dtrinv_4x4_lib4(jj-ii, &pC[ii*sdc+bs*ii], &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], fact);
 			}
+		corner_dtrinv_4x4_lib4(fact, pC+jj*sdc+jj*bs);
 		}
 	
 	return;
 
 	}
+
+
+
+void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *pE, int sde, double *diag, int alg)
+	{
+	const int bs = 4;
+	const int d_ncl = D_NCL;
+	printf("\nd_ncl = %d\n", d_ncl);
+	const int k0 = (d_ncl-k%d_ncl)%d_ncl;
+	
+	int i, j;
+	
+/*	int n = m;*/
+	
+	double fact[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+	j = 0;
+	for(; j<n-2; j+=4)
+		{
+		i = j;
+		if(i<m-4)
+			{
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+			kernel_dsyrk_dpotrf_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], fact, alg);
+			i += 8;
+#else
+			kernel_dsyrk_dpotrf_nt_4x4_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
+			i += 4;
+#endif
+			diag[j+0] = fact[0];
+			diag[j+1] = fact[2];
+			diag[j+2] = fact[5];
+			diag[j+3] = fact[9];
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+			for(; i<m-4; i+=8)
+				{
+				kernel_dgemm_dtrsm_nt_8x4_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], fact, alg);
+				}
+#endif
+			for(; i<m-2; i+=4)
+				{
+				kernel_dgemm_dtrsm_nt_4x4_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
+				}
+			for(; i<m; i+=2)
+				{
+				kernel_dgemm_dtrsm_nt_2x4_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
+				}
+			}
+		else //if(i<m-2)
+			{
+			kernel_dsyrk_dpotrf_nt_4x4_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
+			diag[j+0] = fact[0];
+			diag[j+1] = fact[2];
+			diag[j+2] = fact[5];
+			diag[j+3] = fact[9];
+			}
+		// dtrinv
+		for(i=0; i<j; i+=4)
+			{
+			kernel_dtrinv_4x4_lib4(j-i, &pE[i*sde+bs*i], &pA[j*sda+(k0+k+i)*bs], &pE[i*sde+j*bs], fact);
+			}
+		corner_dtrinv_4x4_lib4(fact, pE+j*sde+j*bs);
+		}
+	for(; j<n; j+=2)
+		{
+		i = j;
+		if(i<m-2)
+			{
+			kernel_dsyrk_dpotrf_nt_4x2_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
+			diag[j+0] = fact[0];
+			diag[j+1] = fact[2];
+			i += 4;
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+			for(; i<m-4; i+=8)
+				{
+				kernel_dgemm_dtrsm_nt_8x2_lib4(k, j, &pA[i*sda], &pA[(i+4)*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], &pA[(k0+k+j)*bs+i*sda], &pA[(k0+k+j)*bs+(i+4)*sda], fact, alg);
+				}
+#endif
+			for(; i<m-2; i+=4)
+				{
+				kernel_dgemm_dtrsm_nt_4x2_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
+				}
+			for(; i<m; i+=2)
+				{
+				kernel_dgemm_dtrsm_nt_2x2_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
+				}
+			}
+		else //if(i<m)
+			{
+			kernel_dsyrk_dpotrf_nt_2x2_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
+			diag[j+0] = fact[0];
+			diag[j+1] = fact[2];
+			}
+		// dtrinv
+		for(i=0; i<j; i+=4)
+			{
+			kernel_dtrinv_4x2_lib4(j-i, &pE[i*sde+bs*i], &pA[j*sda+(k0+k+i)*bs], &pE[i*sde+j*bs], fact);
+			}
+		corner_dtrinv_2x2_lib4(fact, pE+j*sde+j*bs);
+		}
+
+	}
+
+
+
+

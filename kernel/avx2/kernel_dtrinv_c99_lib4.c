@@ -1,4 +1,3 @@
-
 /**************************************************************************************************
 *                                                                                                 *
 * This file is part of HPMPC.                                                                     *
@@ -98,6 +97,34 @@ void corner_dtrinv_4x4_lib4(double *fact, double *C)
 	C[0+bs*3] = - d_30;
 	C[1+bs*2] = - d_21;
 	C[1+bs*3] = - d_31;
+
+	return;
+
+	}
+
+
+
+// computes the inverse of a 2x2 lower trinagular matrix stored as *fact output from cholesky, and stores it at an upper triangular matrix
+void corner_dtrinv_2x2_lib4(double *fact, double *C)
+	{
+
+	const int bs = 4;
+
+	double
+		c_00=0.0,
+		c_10=0.0, c_11=0.0;
+
+	c_00 = fact[0];
+	c_11 = fact[2];
+
+	C[0+bs*0] = c_00;
+	C[1+bs*1] = c_11;
+
+	c_10 = fact[1];
+
+	c_10 = - c_11*c_10*c_00;
+
+	C[0+bs*1] = c_10;
 
 	return;
 
@@ -341,7 +368,12 @@ void kernel_dtrinv_4x4_lib4(int kmax, double *A, double *B, double *C, double *f
 
 		c_02 -= a_0 * b_2;
 		c_12 -= a_1 * b_2;
-		c_22 -= a_2 * b_2; c_32 -= a_3 * b_2; c_03 -= a_0 * b_3; c_13 -= a_1 * b_3; c_23 -= a_2 * b_3;
+		c_22 -= a_2 * b_2; 
+		c_32 -= a_3 * b_2; 
+		
+		c_03 -= a_0 * b_3; 
+		c_13 -= a_1 * b_3; 
+		c_23 -= a_2 * b_3;
 		c_33 -= a_3 * b_3;
 		
 		
@@ -443,6 +475,216 @@ void kernel_dtrinv_4x4_lib4(int kmax, double *A, double *B, double *C, double *f
 	C[1+bs*3] = c_13;
 	C[2+bs*3] = c_23;
 	C[3+bs*3] = c_33;
+
+	}
+	
+	
+	
+void kernel_dtrinv_4x2_lib4(int kmax, double *A, double *B, double *C, double *fact)
+	{
+
+	const int bs = 4;
+
+	int k;
+
+	double
+		a_0, a_1, a_2, a_3,
+		b_0, b_1,
+		c_00=0, c_01=0,
+		c_10=0, c_11=0,
+		c_20=0, c_21=0,
+		c_30=0, c_31=0;
+	
+	// triangle at the beginning
+
+	// k=0
+	a_0 = A[0+bs*0];
+		
+	b_0 = B[0+bs*0];
+	b_1 = B[1+bs*0];
+		
+	c_00 -= a_0 * b_0;
+
+	c_01 -= a_0 * b_1;
+
+
+	// k=1
+	a_0 = A[0+bs*1];
+	a_1 = A[1+bs*1];
+		
+	b_0 = B[0+bs*1];
+	b_1 = B[1+bs*1];
+		
+	c_00 -= a_0 * b_0;
+	c_10 -= a_1 * b_0;
+
+	c_01 -= a_0 * b_1;
+	c_11 -= a_1 * b_1;
+
+
+	// k=2
+	a_0 = A[0+bs*2];
+	a_1 = A[1+bs*2];
+	a_2 = A[2+bs*2];
+		
+	b_0 = B[0+bs*2];
+	b_1 = B[1+bs*2];
+		
+	c_00 -= a_0 * b_0;
+	c_10 -= a_1 * b_0;
+	c_20 -= a_2 * b_0;
+
+	c_01 -= a_0 * b_1;
+	c_11 -= a_1 * b_1;
+	c_21 -= a_2 * b_1;
+
+
+	// k=3
+	a_0 = A[0+bs*3];
+	a_1 = A[1+bs*3];
+	a_2 = A[2+bs*3];
+	a_3 = A[3+bs*3];
+		
+	b_0 = B[0+bs*3];
+	b_1 = B[1+bs*3];
+		
+	c_00 -= a_0 * b_0;
+	c_10 -= a_1 * b_0;
+	c_20 -= a_2 * b_0;
+	c_30 -= a_3 * b_0;
+
+	c_01 -= a_0 * b_1;
+	c_11 -= a_1 * b_1;
+	c_21 -= a_2 * b_1;
+	c_31 -= a_3 * b_1;
+
+
+	A += 16;
+	B += 16;
+	k = 4;
+		
+	for(; k<kmax-3; k+=4)
+		{
+		
+		a_0 = A[0+bs*0];
+		a_1 = A[1+bs*0];
+		a_2 = A[2+bs*0];
+		a_3 = A[3+bs*0];
+		
+		b_0 = B[0+bs*0];
+		b_1 = B[1+bs*0];
+		
+		c_00 -= a_0 * b_0;
+		c_10 -= a_1 * b_0;
+		c_20 -= a_2 * b_0;
+		c_30 -= a_3 * b_0;
+
+		c_01 -= a_0 * b_1;
+		c_11 -= a_1 * b_1;
+		c_21 -= a_2 * b_1;
+		c_31 -= a_3 * b_1;
+
+
+		a_0 = A[0+bs*1];
+		a_1 = A[1+bs*1];
+		a_2 = A[2+bs*1];
+		a_3 = A[3+bs*1];
+		
+		b_0 = B[0+bs*1];
+		b_1 = B[1+bs*1];
+		
+		c_00 -= a_0 * b_0;
+		c_10 -= a_1 * b_0;
+		c_20 -= a_2 * b_0;
+		c_30 -= a_3 * b_0;
+
+		c_01 -= a_0 * b_1;
+		c_11 -= a_1 * b_1;
+		c_21 -= a_2 * b_1;
+		c_31 -= a_3 * b_1;
+
+
+		a_0 = A[0+bs*2];
+		a_1 = A[1+bs*2];
+		a_2 = A[2+bs*2];
+		a_3 = A[3+bs*2];
+		
+		b_0 = B[0+bs*2];
+		b_1 = B[1+bs*2];
+		
+		c_00 -= a_0 * b_0;
+		c_10 -= a_1 * b_0;
+		c_20 -= a_2 * b_0;
+		c_30 -= a_3 * b_0;
+
+		c_01 -= a_0 * b_1;
+		c_11 -= a_1 * b_1;
+		c_21 -= a_2 * b_1;
+		c_31 -= a_3 * b_1;
+
+
+		a_0 = A[0+bs*3];
+		a_1 = A[1+bs*3];
+		a_2 = A[2+bs*3];
+		a_3 = A[3+bs*3];
+		
+		b_0 = B[0+bs*3];
+		b_1 = B[1+bs*3];
+		
+		c_00 -= a_0 * b_0;
+		c_10 -= a_1 * b_0;
+		c_20 -= a_2 * b_0;
+		c_30 -= a_3 * b_0;
+
+		c_01 -= a_0 * b_1;
+		c_11 -= a_1 * b_1;
+		c_21 -= a_2 * b_1;
+		c_31 -= a_3 * b_1;
+		
+		
+		A += 16;
+		B += 16;
+
+		}
+
+//	c_00 += D[0+bs*0];
+//	c_10 += D[1+bs*0];
+//	c_20 += D[2+bs*0];
+//	c_30 += D[3+bs*0];
+
+//	c_01 += D[0+bs*1];
+//	c_11 += D[1+bs*1];
+//	c_21 += D[2+bs*1];
+//	c_31 += D[3+bs*1];
+	
+	// dtrsm
+	double
+		a_00, a_10, a_11;
+	
+	a_00 = fact[0];
+	c_00 *= a_00;
+	c_10 *= a_00;
+	c_20 *= a_00;
+	c_30 *= a_00;
+	C[0+bs*0] = c_00;
+	C[1+bs*0] = c_10;
+	C[2+bs*0] = c_20;
+	C[3+bs*0] = c_30;
+
+	a_10 = fact[1];
+	a_11 = fact[2];
+	c_01 -= c_00*a_10;
+	c_11 -= c_10*a_10;
+	c_21 -= c_20*a_10;
+	c_31 -= c_30*a_10;
+	c_01 *= a_11;
+	c_11 *= a_11;
+	c_21 *= a_11;
+	c_31 *= a_11;
+	C[0+bs*1] = c_01;
+	C[1+bs*1] = c_11;
+	C[2+bs*1] = c_21;
+	C[3+bs*1] = c_31;
 
 	}
 	
@@ -878,6 +1120,7 @@ void kernel_dtrinv_4x4_lib4_old(int kmax, double *A_00_inv, double *A_10, double
 
 	}
 #endif
+
 
 
 
