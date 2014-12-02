@@ -1306,7 +1306,8 @@ void dtrma_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
 
 
 
-void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
+#if 0
+void dtrinv_lib_old(int m, double *pA, int sda, double *pC, int sdc)
 	{
 
 	const int bs = 4;
@@ -1315,10 +1316,49 @@ void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
 
 	for(ii=0; ii<m; ii+=4)
 		{
-		corner_dtrinv_4x4_lib4(pA+ii*sda+ii*bs, pC+ii*sdc+ii*bs);
+		corner_dtrinv_4x4_lib4_old(pA+ii*sda+ii*bs, pC+ii*sdc+ii*bs);
 		for(jj=0; jj<ii; jj+=4)
 			{
-			kernel_dtrinv_4x4_lib4(ii-jj, pC+jj*sdc+jj*bs, pA+ii*sda+jj*bs, pC+ii*sdc+ii*bs, pC+jj*sdc+ii*bs, sdc);
+			kernel_dtrinv_4x4_lib4_old(ii-jj, pC+jj*sdc+jj*bs, pA+ii*sda+jj*bs, pC+ii*sdc+ii*bs, pC+jj*sdc+ii*bs, sdc);
+			}
+		}
+	
+	return;
+
+	}
+#endif
+
+
+
+void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
+	{
+
+	const int bs = 4;
+
+	static double fact[10] = {};
+
+	double *ptr;
+
+	int ii, jj;
+
+	for(jj=0; jj<m; jj+=4)
+		{
+		// convert diagonal block
+		ptr = pA+jj*sda+jj*bs;
+		fact[0] = 1.0/ptr[0+bs*0];
+		fact[1] = ptr[1+bs*0];
+		fact[2] = 1.0/ptr[1+bs*1];
+		fact[3] = ptr[2+bs*0];
+		fact[4] = ptr[2+bs*1];
+		fact[5] = 1.0/ptr[2+bs*2];
+		fact[6] = ptr[3+bs*0];
+		fact[7] = ptr[3+bs*1];
+		fact[8] = ptr[3+bs*2];
+		fact[9] = 1.0/ptr[3+bs*3];
+		corner_dtrinv_4x4_lib4(fact, pC+jj*sdc+jj*bs);
+		for(ii=0; ii<jj; ii+=4)
+			{
+			kernel_dtrinv_4x4_lib4(jj-ii, &pC[ii*sdc+bs*ii], &pA[jj*sda+ii*bs], &pC[jj*bs+ii*sdc], fact);
 			}
 		}
 	

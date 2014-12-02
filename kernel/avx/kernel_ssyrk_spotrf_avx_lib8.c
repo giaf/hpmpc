@@ -500,7 +500,7 @@ void kernel_ssyrk_spotrf_nt_16x4_lib8(int kadd, int ksub, float *A0, float *A1, 
 	d_81  = _mm256_sub_ps( d_81, temp );
 	sa_11 = _mm_permute_ps( _mm256_castps256_ps128(d_01), 0x55 );
 	zeros_ones = _mm_set_ss( 1e-7 ); // 0.0 ???
-	mask = _mm256_set_epi32( -1, -1, -1, -1, -1, -1, -1, 1 );
+	mask = _mm256_set_epi32( -1, -1, -1, -1, -1, -1, -1, 1 ); // static memory and load instead ???
 	if( _mm_comigt_ss ( sa_11, zeros_ones ) )
 		{
 /*		sa_11 = _mm_rsqrt_ss( sa_11 );*/
