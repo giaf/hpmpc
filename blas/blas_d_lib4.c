@@ -1472,6 +1472,7 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 // TODO add m2 !!!
 void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *diag, int alg)
 	{
+		
 	const int bs = 4;
 	const int d_ncl = D_NCL;
 	const int k0 = (d_ncl-k%d_ncl)%d_ncl;

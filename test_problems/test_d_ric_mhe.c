@@ -469,6 +469,12 @@ int main()
 		double *(hpRA[N+1]);
 		double *(hpGLq[N]);
 		double *(hpALe[N+1]);
+		double *(hqq[N]);
+		double *(hrr[N+1]);
+		double *(hff[N]);
+		double *p_hqq; d_zeros_align(&p_hqq, anw, N);
+		double *p_hrr; d_zeros_align(&p_hrr, anx, N+1);
+		double *p_hff; d_zeros_align(&p_hff, anx, N);
 
 		double *p_hxe; d_zeros_align(&p_hxe, anx, N+1);
 		double *p_hxp; d_zeros_align(&p_hxp, anx, N+1);
@@ -496,6 +502,9 @@ int main()
 			hpRA[jj] = pRA;
 			d_zeros_align(&hpGLq[jj], pnwx, cnw);
 			d_zeros_align(&hpALe[jj], pnx2, cnx2);
+			hqq[jj] = p_hqq+jj*anw;
+			hrr[jj] = p_hrr+jj*anx;
+			hff[jj] = p_hff+jj*anx;
 
 			hxe[jj] = p_hxe+jj*anx; //d_zeros_align(&hxe[jj], anx, 1);
 			hxp[jj] = p_hxp+jj*anx; //d_zeros_align(&hxp[jj], anx, 1);
@@ -512,8 +521,11 @@ int main()
 		d_zeros_align(&hpLe[N], pnz, cnf);
 		hr[N] = r;
 
-		hpRA[jj] = pR; // there is not A_N
+		double *pCtRC; d_zeros_align(&pCtRC, pnx, cnx);
+		d_cvt_mat2pmat(ny, ny, 0, bs, R, ny, pCtRC, cnx);
+		hpRA[N] = pCtRC; // there is not A_N
 		d_zeros_align(&hpALe[N], pnx, cnx2); // there is not A_N: pnx not pnx2
+		hrr[N] = p_hrr+N*anx;
 
 		hxe[N] = p_hxe+N*anx; //d_zeros_align(&hxe[N], anx, 1);
 		hxp[N] = p_hxp+N*anx; //d_zeros_align(&hxp[N], anx, 1);
@@ -580,12 +592,47 @@ int main()
 		// smooth estimation
 		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 1, hlam, work);
 
-		//d_print_pmat(pnz, cnf, bs, hpLe[N], cnf);
+		//d_print_pmat(nx, nx, bs, hpLp[N-1]+(nx+nw+pad)*bs, cnl);
+		//d_print_pmat(nx, nx, bs, hpLp[N]+(nx+nw+pad)*bs, cnl);
+		//d_print_pmat(nx, nx, bs, hpLe[N-1]+ncl*bs, cnf);
+		//d_print_pmat(nx, nx, bs, hpLe[N]+ncl*bs, cnf);
 
-		// information filter
+		//d_print_mat(nx, N+1, hxp[0], anx);
+		//d_print_mat(nx, N+1, hxe[0], anx);
+		//d_print_mat(nx, N, hlam[0], anx);
+		d_print_mat(nw, N, hw[0], anw);
+
+		// information filter - factorization
 		d_ric_trf_mhe_if(nx, nw, N, hpRA, hpQG, hpALe, hpGLq, work3);
 
-		//d_print_pmat(nx, nx, bs, hpLp[N]+(nx+nw+pad)*bs, cnl);
+		// information filter - solution
+		double *y_temp; d_zeros_align(&y_temp, any, 1);
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) hqq[ii][jj] = -q[jj];
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nx; jj++) hff[ii][jj] = -f[jj];
+		for(ii=0; ii<=N; ii++) 
+			{
+			for(jj=0; jj<ny; jj++) y_temp[jj] = - r[jj];
+			//d_print_mat(1, ny, y_temp, 1);
+			dsymv_lib(ny, 0, hpR[ii], cny, hy[ii], y_temp, -1);
+			//d_print_mat(1, ny, y_temp, 1);
+			dgemv_t_lib(ny, nx, 0, hpC[ii], cnx, y_temp, hrr[ii], 0);
+			//d_print_mat(1, nx, hrr[ii], 1);
+			//if(ii==9)
+			//exit(1);
+			}
+		d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLq, hrr, hqq, hff, hxp, hxe, hw, hlam, work3);
+
+		//d_print_pmat(nx, nx, bs, hpALe[N-1], cnx2);
+		//d_print_pmat(nx, nx, bs, hpALe[N], cnx2);
+		//d_print_pmat(nx, nx, bs, hpALe[N-2]+cnx*bs, cnx2);
+		//d_print_pmat(nx, nx, bs, hpALe[N-1]+cnx*bs, cnx2);
+		//d_print_pmat(nx, nx, bs, hpALe[N]+cnx*bs, cnx2);
+		//d_print_pmat(nx, nx, bs, hpRA[N], cnx);
+
+		//d_print_mat(nx, N+1, hxp[0], anx);
+		//d_print_mat(nx, N+1, hxe[0], anx);
+		//d_print_mat(nx, N, hlam[0], anx);
+		d_print_mat(nw, N, hw[0], anw);
 		//exit(1);
 
 		if(PRINTRES)
@@ -619,7 +666,7 @@ int main()
 
 
 		// timing 
-		struct timeval tv0, tv1, tv2, tv3, tv4, tv5;
+		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6;
 
 		// double precision
 		gettimeofday(&tv0, NULL); // start
@@ -668,21 +715,29 @@ int main()
 
 		gettimeofday(&tv5, NULL); // start
 
+		// factorize information filter
+		for(rep=0; rep<nrep; rep++)
+			{
+			d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLq, hrr, hqq, hff, hxp, hxe, hw, hlam, work3);
+			}
 
-		d_ric_trf_mhe_if(nx, nw, N, hpRA, hpQG, hpALe, hpGLq, work3);
+		gettimeofday(&tv6, NULL); // start
+
+
 
 		float time_trf = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		float time_trs = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
 		float time_trf_end = (float) (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
 		float time_trs_end = (float) (tv4.tv_sec-tv3.tv_sec)/(nrep+0.0)+(tv4.tv_usec-tv3.tv_usec)/(nrep*1e6);
 		float time_trf_if = (float) (tv5.tv_sec-tv4.tv_sec)/(nrep+0.0)+(tv5.tv_usec-tv4.tv_usec)/(nrep*1e6);
+		float time_trs_if = (float) (tv6.tv_sec-tv5.tv_sec)/(nrep+0.0)+(tv6.tv_usec-tv5.tv_usec)/(nrep*1e6);
 
 		if(ll==0)
 			{
-			printf("\nnx\tnw\tny\tN\ttrf time\ttrs time\ttrf_e time\ttrs_e time\ttrf_if time\n\n");
+			printf("\nnx\tnw\tny\tN\ttrf time\ttrs time\ttrf_e time\ttrs_e time\ttrf_if time\ttrs_if time\n\n");
 //			fprintf(f, "\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
 			}
-		printf("%d\t%d\t%d\t%d\t%e\t%e\t%e\t%e\t%e\n\n", nx, nw, ny, N, time_trf, time_trs, time_trf_end, time_trs_end, time_trf_if);
+		printf("%d\t%d\t%d\t%d\t%e\t%e\t%e\t%e\t%e\t%e\n\n", nx, nw, ny, N, time_trf, time_trs, time_trf_end, time_trs_end, time_trf_if, time_trs_if);
 
 
 
