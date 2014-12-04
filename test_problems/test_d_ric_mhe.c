@@ -315,6 +315,7 @@ int main()
 		
 	
 		const int nz = nx+ny; // TODO delete
+		const int nwx = nw+nx;
 		const int anz = nal*((nz+nal-1)/nal);
 		const int anx = nal*((nx+nal-1)/nal);
 		const int anw = nal*((nw+nal-1)/nal);
@@ -323,10 +324,14 @@ int main()
 		const int pnx = bs*((nx+bs-1)/bs);
 		const int pnw = bs*((nw+bs-1)/bs);
 		const int pny = bs*((ny+bs-1)/bs);
+		const int pnx2 = bs*((2*nx+bs-1)/bs);
+		const int pnwx = bs*((nw+nx+bs-1)/bs);
 		const int cnz = ncl*((nz+ncl-1)/ncl);
 		const int cnx = ncl*((nx+ncl-1)/ncl);
 		const int cnw = ncl*((nw+ncl-1)/ncl);
 		const int cny = ncl*((ny+ncl-1)/ncl);
+		const int cnx2 = 2*(ncl*((nx+ncl-1)/ncl));
+		const int cnwx = ncl*((nw+nx+ncl-1)/ncl);
 		const int cnf = cnz<cnx+ncl ? cnx+ncl : cnz;
 
 		const int pad = (ncl-(nx+nw)%ncl)%ncl; // packing between AGL & P
@@ -423,6 +428,21 @@ int main()
 //		d_print_pmat(ny, ny, bs, pR, cny);
 
 /************************************************
+* compound quantities
+************************************************/	
+		
+		double *pQG; d_zeros_align(&pQG, pnwx, cnw);
+		d_cvt_mat2pmat(nw, nw, 0, bs, Q, nw, pQG, cnw);
+		d_cvt_mat2pmat(nx, nw, nw, bs, B, nx, pQG+(nw/bs)*bs*cnw+nw%bs, cnw);
+		//d_print_pmat(nw+nx, nw, bs, pQG, cnw);
+
+		double *pRA; d_zeros_align(&pRA, pnx2, cnx);
+		d_cvt_mat2pmat(ny, ny, 0, bs, R, ny, pRA, cnx);
+		d_cvt_mat2pmat(nx, nx, nx, bs, A, nx, pRA+(nx/bs)*bs*cnx+nx%bs, cnx);
+		//d_print_pmat(2*nx, cnx, bs, pRA, cnx);
+		//exit(1);
+
+/************************************************
 * series of matrices
 ************************************************/	
 
@@ -445,6 +465,11 @@ int main()
 		double *(hy[N+1]);
 		double *(hlam[N]);
 
+		double *(hpQG[N]);
+		double *(hpRA[N+1]);
+		double *(hpGLq[N]);
+		double *(hpALe[N+1]);
+
 		double *p_hxe; d_zeros_align(&p_hxe, anx, N+1);
 		double *p_hxp; d_zeros_align(&p_hxp, anx, N+1);
 		double *p_hw; d_zeros_align(&p_hw, anw, N);
@@ -466,6 +491,12 @@ int main()
 			hq[jj] = q;
 			hr[jj] = r;
 			hf[jj] = f;
+
+			hpQG[jj] = pQG;
+			hpRA[jj] = pRA;
+			d_zeros_align(&hpGLq[jj], pnwx, cnw);
+			d_zeros_align(&hpALe[jj], pnx2, cnx2);
+
 			hxe[jj] = p_hxe+jj*anx; //d_zeros_align(&hxe[jj], anx, 1);
 			hxp[jj] = p_hxp+jj*anx; //d_zeros_align(&hxp[jj], anx, 1);
 			hw[jj] = p_hw+jj*anw; //d_zeros_align(&hw[jj], anw, 1);
@@ -480,6 +511,10 @@ int main()
 		d_zeros_align(&hpLp2[N], pnz, cnl2);
 		d_zeros_align(&hpLe[N], pnz, cnf);
 		hr[N] = r;
+
+		hpRA[jj] = pR; // there is not A_N
+		d_zeros_align(&hpALe[N], pnx, cnx2); // there is not A_N: pnx not pnx2
+
 		hxe[N] = p_hxe+N*anx; //d_zeros_align(&hxe[N], anx, 1);
 		hxp[N] = p_hxp+N*anx; //d_zeros_align(&hxp[N], anx, 1);
 		hy[N] = p_hy+N*any; //d_zeros_align(&hy[N], any, 1);
@@ -492,9 +527,22 @@ int main()
 		//d_print_pmat(nx, cnl, bs, hpLp[0], cnl);
 		//d_print_pmat(nz, cnl2, bs, hpLp2[0], cnl2);
 
+		// buffer for L0
+		double *pL0; d_zeros_align(&pL0, pnx, cnx);
+		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, pL0, cnx);
+		// invert L0 in hpALe[0]
+		dtrinv_lib(nx, pL0, cnx, hpALe[0], cnx2);
+		//d_print_pmat(nx, nx, bs, pL0, cnx);
+		//d_print_pmat(pnx2, cnx2, bs, hpALe[0], cnx2);
+		//exit(1);
+
 		//double *work; d_zeros_align(&work, pny*cnx+pnz*cnz+anz+pnz*cnf+pnw*cnw, 1);
 		double *work; d_zeros_align(&work, 2*pny*cnx+anz+pnw*cnw+pnx*cnx, 1);
 		double *work2; d_zeros_align(&work2, 2*pny*cnx+pnw*cnw+pnx*cnw+2*pnx*cnx+anz, 1);
+
+		double *work3; d_zeros_align(&work3, pnx*cnl+anx, 1);
+//		for(jj=0; jj<2*pny*cnx+anz+pnw*cnw+pnx*cnx; jj++)
+//			work[jj] = -100.0;
 
 		// measurements
 		for(jj=0; jj<=N; jj++)
@@ -504,12 +552,17 @@ int main()
 		//d_print_mat(ny, N+1, hy[0], any);
 
 		// initial guess
+		for(ii=0; ii<nx; ii++)
+			hxp[0][ii] = 0.0;
 		hxp[0][0] = 0.0;
 		hxp[0][1] = 0.0;
 
 /************************************************
 * call the solver
 ************************************************/	
+
+		//d_print_mat(nx, nx, A, nx);
+		//d_print_mat(nx, nw, B, nx);
 
 		//d_ric_trf_mhe_test(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
 		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, work);
@@ -526,6 +579,14 @@ int main()
 	
 		// smooth estimation
 		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 1, hlam, work);
+
+		//d_print_pmat(pnz, cnf, bs, hpLe[N], cnf);
+
+		// information filter
+		d_ric_trf_mhe_if(nx, nw, N, hpRA, hpQG, hpALe, hpGLq, work3);
+
+		//d_print_pmat(nx, nx, bs, hpLp[N]+(nx+nw+pad)*bs, cnl);
+		//exit(1);
 
 		if(PRINTRES)
 			{
@@ -558,7 +619,7 @@ int main()
 
 
 		// timing 
-		struct timeval tv0, tv1, tv2, tv3, tv4;
+		struct timeval tv0, tv1, tv2, tv3, tv4, tv5;
 
 		// double precision
 		gettimeofday(&tv0, NULL); // start
@@ -599,19 +660,29 @@ int main()
 
 		gettimeofday(&tv4, NULL); // start
 
+		// factorize information filter
+		for(rep=0; rep<nrep; rep++)
+			{
+			d_ric_trf_mhe_if(nx, nw, N, hpRA, hpQG, hpALe, hpGLq, work3);
+			}
 
+		gettimeofday(&tv5, NULL); // start
+
+
+		d_ric_trf_mhe_if(nx, nw, N, hpRA, hpQG, hpALe, hpGLq, work3);
 
 		float time_trf = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		float time_trs = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
 		float time_trf_end = (float) (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
 		float time_trs_end = (float) (tv4.tv_sec-tv3.tv_sec)/(nrep+0.0)+(tv4.tv_usec-tv3.tv_usec)/(nrep*1e6);
+		float time_trf_if = (float) (tv5.tv_sec-tv4.tv_sec)/(nrep+0.0)+(tv5.tv_usec-tv4.tv_usec)/(nrep*1e6);
 
 		if(ll==0)
 			{
-			printf("\nnx\tnw\tny\tN\ttrf time\ttrs time\ttrf_e time\ttrs_e time\n\n");
+			printf("\nnx\tnw\tny\tN\ttrf time\ttrs time\ttrf_e time\ttrs_e time\ttrf_if time\n\n");
 //			fprintf(f, "\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
 			}
-		printf("%d\t%d\t%d\t%d\t%e\t%e\t%e\t%e\n\n", nx, nw, ny, N, time_trf, time_trs, time_trf_end, time_trs_end);
+		printf("%d\t%d\t%d\t%d\t%e\t%e\t%e\t%e\t%e\n\n", nx, nw, ny, N, time_trf, time_trs, time_trf_end, time_trs_end, time_trf_if);
 
 
 

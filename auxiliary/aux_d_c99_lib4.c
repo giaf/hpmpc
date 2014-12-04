@@ -329,27 +329,27 @@ void d_copy_pmat_l(int row, int bs_dummy, double *A, int sda, double *B, int sdb
 
 
 
-/* copies a packed matrix into an aligned packed matrix ; A has to be aligned at the beginning of the current block : the offset takes care of the row to be copied */
-/*void d_align_pmat(int row, int col, int offset, int bs_dummy, double *A, int sda, double *B, int sdb)*/
-/*	{*/
-/*	*/
-/*	const int bs = 4;*/
+// copies a packed matrix into an aligned packed matrix ; A has to be aligned at the beginning of the current block : the offset takes care of the row to be copied TODO IMPROVE IMPLEMENTATION !!!
+void d_align_pmat(int row, int col, int offset, int bs_dummy, double *A, int sda, double *B, int sdb)
+	{
+	
+	const int bs = 4;
 
-/*	int i, j;*/
-/*	*/
-/*	double *ptrA, *ptrB;*/
-/*	*/
-/*	for(i=0; i<row; i++)*/
-/*		{*/
-/*		ptrA = A + ((offset+i)/bs)*bs*sda + ((offset+i)%bs);*/
-/*		ptrB = B + (i/bs)*bs*sdb + (i%bs);*/
-/*		for(j=0; j<col; j++)*/
-/*			{*/
-/*			ptrB[j*bs] = ptrA[j*bs];*/
-/*			}*/
-/*		}*/
-/*	*/
-/*	}*/
+	int i, j;
+	
+	double *ptrA, *ptrB;
+	
+	for(i=0; i<row; i++)
+		{
+		ptrA = A + ((offset+i)/bs)*bs*sda + ((offset+i)%bs);
+		ptrB = B + (i/bs)*bs*sdb + (i%bs);
+		for(j=0; j<col; j++)
+			{
+			ptrB[j*bs] = ptrA[j*bs];
+			}
+		}
+	
+	}
 
 
 

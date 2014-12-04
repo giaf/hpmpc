@@ -162,6 +162,72 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 
 
 
+// information filter version
+void d_ric_trf_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double **hpALe, double **hpGLq, double *work)
+	{
+
+	const int bs = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+	const int nal = bs*ncl;
+
+	const int nwx = nw+nx;
+	const int anx = nal*((nx+nal-1)/nal);
+	const int pnx = bs*((nx+bs-1)/bs);
+	const int pnw = bs*((nw+bs-1)/bs);
+	const int pnx2 = bs*((2*nx+bs-1)/bs);
+	const int pnwx = bs*((nw+nx+bs-1)/bs);
+	const int cnx = ncl*((nx+ncl-1)/ncl);
+	const int cnw = ncl*((nw+ncl-1)/ncl);
+	const int cnx2 = 2*(ncl*((nx+ncl-1)/ncl));
+	//const int cnwx = ncl*((nw+nx+ncl-1)/ncl);
+
+	const int pad = (ncl-(nx+nw)%ncl)%ncl; // packing
+	const int cnl = nx+nw+pad+cnx;
+
+	double *ptr;
+	ptr = work;
+
+	double *GLqALeLp; GLqALeLp = ptr;
+	ptr += pnx*cnl;
+
+	double *diag; diag = ptr;
+	ptr += anx;
+
+	int ii;	
+
+	for(ii=0; ii<N; ii++)
+		{
+		//d_print_pmat(2*nx, cnx, bs, hpRA[ii], cnx);
+		dtsyrk_dpotrf_lib(2*nx, nx, nx, hpALe[ii], cnx2, hpRA[ii], cnx, diag, 1);
+		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
+
+		dpotrf_lib(nwx, nw, hpQG[ii], cnw, hpGLq[ii], cnw, diag);
+		//d_print_pmat(nwx, nw, bs, hpGLq[0], cnw);
+
+		d_align_pmat(nx, nw, nw, bs, hpGLq[ii], cnw, GLqALeLp, cnl);
+		d_align_pmat(nx, nx, nx, bs, hpALe[ii]+cnx*bs, cnx2, GLqALeLp+nw*bs, cnl);
+		//d_print_pmat(nx, cnl, bs, GLqALeLp, cnl);
+
+		dsyrk_dpotrf_dtrinv_lib(nx, nx, nwx, GLqALeLp, cnl, ptr, 0, hpALe[ii+1], cnx2, diag, 0);
+		//d_print_pmat(nx, cnl, bs, GLqALeLp, cnl);
+		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii+1], cnx2);
+
+		//if(ii==9)
+		//exit(1);
+		}
+
+	//d_print_pmat(nx, nx, bs, GLqALeLp+(nx+nw+pad)*bs, cnl);
+	dtsyrk_dpotrf_lib(nx, nx, nx, hpALe[ii], cnx2, hpRA[ii], cnx, diag, 1);
+	//d_print_pmat(nx, cnx2, bs, hpALe[ii], cnx2);
+
+	//exit(1);
+
+	return;
+
+	}
+
+
+
 // xp is the vector of predictions, xe is the vector of estimates
 //#if 0
 int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, double **hpC, double **hpLp, double **hdLp, double **hpQ, double **hpR, double **hpLe, double **hq, double **hr, double **hf, double **hxp, double **hxe, double **hw, double **hy, int smooth, double **hlam, double *work)
