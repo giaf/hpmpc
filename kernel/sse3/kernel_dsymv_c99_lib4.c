@@ -25,7 +25,7 @@
 
 
 
-void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
 	{
 	
 	if(kmax<=0) 
@@ -149,41 +149,10 @@ void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 		A += 4;
 		y_n += 4;
 		x_t += 4;
-
 		k += 4;
 
-		}
-	for(; k<kna; k++)
-		{
-		
-		y_n_0 = y_n[0];
-		x_t_0 = x_t[0];
-		
-		a_00 = A[0+bs*0];
-		a_01 = A[0+bs*1];
-		a_02 = A[0+bs*2];
-		a_03 = A[0+bs*3];
-		
-		y_n_0 += a_00 * x_n_0;
-		y_t_0 += a_00 * x_t_0;
-		y_n_0 += a_01 * x_n_1;
-		y_t_1 += a_01 * x_t_0;
-		y_n_0 += a_02 * x_n_2;
-		y_t_2 += a_02 * x_t_0;
-		y_n_0 += a_03 * x_n_3;
-		y_t_3 += a_03 * x_t_0;
-		
-		y_n[0] = y_n_0;
-
-	
-		A += 1;
-		y_n += 1;
-		x_t += 1;
-		
-		}
-	if(kna>0 || tri==1)
-		{
 		A += (sda-1)*bs;
+
 		}
 	for(; k<kmax-3; k+=bs)
 		{
@@ -322,7 +291,7 @@ void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 	
 	
 	
-void kernel_dsymv_2_lib4(int kmax, int kna, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
 	{
 	
 	if(kmax<=0) 
@@ -388,35 +357,10 @@ void kernel_dsymv_2_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 		A += 2;
 		y_n += 2;
 		x_t += 2;
-
 		k += 2;
 
-		}
-	for(; k<kna; k++)
-		{
-		
-		y_n_0 = y_n[0];
-		x_t_0 = x_t[0];
-		
-		a_00 = A[0+bs*0];
-		a_01 = A[0+bs*1];
-		
-		y_n_0 += a_00 * x_n_0;
-		y_t_0 += a_00 * x_t_0;
-		y_n_0 += a_01 * x_n_1;
-		y_t_1 += a_01 * x_t_0;
-		
-		y_n[0] = y_n_0;
-
-	
-		A += 1;
-		y_n += 1;
-		x_t += 1;
-		
-		}
-	if(kna>0 || tri==1)
-		{
 		A += (sda-1)*bs;
+
 		}
 	for(; k<kmax-3; k+=bs)
 		{
@@ -521,7 +465,7 @@ void kernel_dsymv_2_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 	
 	
 	
-void kernel_dsymv_1_lib4(int kmax, int kna, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
 	{
 	
 	if(kmax<=0) 
@@ -566,32 +510,10 @@ void kernel_dsymv_1_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 		A += 1;
 		y_n += 1;
 		x_t += 1;
-
 		k += 1;
 
-		}
-	for(; k<kna; k++)
-		{
-		
-		y_n_0 = y_n[0];
-		x_t_0 = x_t[0];
-		
-		a_00 = A[0+bs*0];
-		
-		y_n_0 += a_00 * x_n_0;
-		y_t_0 += a_00 * x_t_0;
-		
-		y_n[0] = y_n_0;
-
-	
-		A += 1;
-		y_n += 1;
-		x_t += 1;
-		
-		}
-	if(kna>0 || tri==1)
-		{
 		A += (sda-1)*bs;
+
 		}
 	for(; k<kmax-3; k+=bs)
 		{

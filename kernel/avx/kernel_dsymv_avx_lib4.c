@@ -33,7 +33,7 @@
 
 
 // it moves vertically across blocks
-void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
 	{
 	
 	if(kmax<=0) 
@@ -46,7 +46,7 @@ void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 	__builtin_prefetch( A + bs*2 );
 
 	int k, ka;
-	ka = kmax-kna; // number from aligned positon
+	ka = kmax; // number from aligned positon
 	
 	double *sA, *sy_n, *sx_t;
 
@@ -91,50 +91,6 @@ void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 	sy_t_1 = _mm256_castpd256_pd128( y_t_1 );
 	sy_t_2 = _mm256_castpd256_pd128( y_t_2 );
 	sy_t_3 = _mm256_castpd256_pd128( y_t_3 );
-
-	if(kna>0) // it can be only kna = {1, 2, 3}
-		{
-		k=0;
-
-		for(; k<ka; k++)
-			{
-		
-			sy_n_0 = _mm_load_sd( &y_n[0] );
-			sx_t_0 = _mm_load_sd( &x_t[0] );
-		
-			sa_00 = _mm_load_sd( &A[0+bs*0] );
-			sa_01 = _mm_load_sd( &A[0+bs*1] );
-			sa_02 = _mm_load_sd( &A[0+bs*2] );
-			sa_03 = _mm_load_sd( &A[0+bs*3] );
-		
-			stemp  = _mm_mul_sd( sa_00, sx_n_0 );
-			sy_n_0 = _mm_add_sd( sy_n_0, stemp );
-			stemp  = _mm_mul_sd( sa_00, sx_t_0 );
-			sy_t_0 = _mm_add_sd( sy_t_0, stemp );
-			stemp  = _mm_mul_sd( sa_01, sx_n_1 );
-			sy_n_0 = _mm_add_sd( sy_n_0, stemp );
-			stemp  = _mm_mul_sd( sa_01, sx_t_0 );
-			sy_t_1 = _mm_add_sd( sy_t_1, stemp );
-			stemp  = _mm_mul_sd( sa_02, sx_n_2 );
-			sy_n_0 = _mm_add_sd( sy_n_0, stemp );
-			stemp  = _mm_mul_sd( sa_02, sx_t_0 );
-			sy_t_2 = _mm_add_sd( sy_t_2, stemp );
-			stemp  = _mm_mul_sd( sa_03, sx_n_3 );
-			sy_n_0 = _mm_add_sd( sy_n_0, stemp );
-			stemp  = _mm_mul_sd( sa_03, sx_t_0 );
-			sy_t_3 = _mm_add_sd( sy_t_3, stemp );
-		
-			_mm_store_sd( &y_n[0], sy_n_0 );
-
-		
-			A += 1;
-			y_n += 1;
-			x_t += 1;
-
-			}
-
-		A += (sda-1)*bs;
-		}
 
 	k = bs*(ka/bs);
 	sA = A + (ka/bs)*sda*bs;
@@ -376,7 +332,7 @@ void kernel_dsymv_4_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 
 
 // it moves vertically across blocks
-void kernel_dsymv_2_lib4(int kmax, int kna, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
 	{
 	
 	if(kmax<=0) 
@@ -442,35 +398,10 @@ void kernel_dsymv_2_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 		A += 2;
 		y_n += 2;
 		x_t += 2;
-
 		k += 2;
 
-		}
-	for(; k<kna; k++)
-		{
-		
-		y_n_0 = y_n[0];
-		x_t_0 = x_t[0];
-		
-		a_00 = A[0+bs*0];
-		a_01 = A[0+bs*1];
-		
-		y_n_0 += a_00 * x_n_0;
-		y_t_0 += a_00 * x_t_0;
-		y_n_0 += a_01 * x_n_1;
-		y_t_1 += a_01 * x_t_0;
-		
-		y_n[0] = y_n_0;
-
-	
-		A += 1;
-		y_n += 1;
-		x_t += 1;
-		
-		}
-	if(kna>0 || tri==1)
-		{
 		A += (sda-1)*bs;
+
 		}
 	for(; k<kmax-3; k+=bs)
 		{
@@ -576,7 +507,7 @@ void kernel_dsymv_2_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 
 
 // it moves vertically across blocks
-void kernel_dsymv_1_lib4(int kmax, int kna, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
 	{
 	
 	if(kmax<=0) 
@@ -622,32 +553,10 @@ void kernel_dsymv_1_lib4(int kmax, int kna, double *A, int sda, double *x_n, dou
 		A += 1;
 		y_n += 1;
 		x_t += 1;
-
 		k += 1;
 
-		}
-	for(; k<kna; k++)
-		{
-		
-		y_n_0 = y_n[0];
-		x_t_0 = x_t[0];
-		
-		a_00 = A[0+bs*0];
-		
-		y_n_0 += a_00 * x_n_0;
-		y_t_0 += a_00 * x_t_0;
-		
-		y_n[0] = y_n_0;
-
-	
-		A += 1;
-		y_n += 1;
-		x_t += 1;
-		
-		}
-	if(kna>0 || tri==1)
-		{
 		A += (sda-1)*bs;
+
 		}
 	for(; k<kmax-3; k+=bs)
 		{
