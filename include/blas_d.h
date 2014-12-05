@@ -30,7 +30,7 @@ void dsyrk_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, do
 void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *diag);
 void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *diag, int alg);
 void dgemv_n_lib(int n, int m, double *pA, int sda, double *x, double *y, int alg);
-void dgemv_t_lib(int m, int n, int offset, double *pA, int sda, double *x, double *y, int alg);
+void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, double *y, int alg);
 void dtrmv_u_n_lib(int m, double *pA, int sda, double *x, double *y, int alg);
 void dtrmv_u_t_lib(int m, double *pA, int sda, double *x, double *y, int alg);
 void dsymv_lib(int m, double *pA, int sda, double *x, double *y, int alg);

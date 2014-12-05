@@ -90,7 +90,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double *
 		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hpL[ii][(nx+pad)*bs+((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*jj];
 		dtrsv_dgemv_t_lib(nu, nx+nu, &hpL[ii][(nx+pad)*bs], cnl, &hux[ii][0]);
 		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
-		dgemv_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
+		dgemv_t_lib(nx+nu, nx, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
 			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
@@ -147,7 +147,7 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hq[ii][jj];
 		dtrsv_dgemv_t_lib(nu, nx+nu, &hpL[ii][(nx+pad)*bs], cnl, &hux[ii][0]);
 /*		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];*/
-		dgemv_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
+		dgemv_t_lib(nx+nu, nx, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
 			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
@@ -543,7 +543,7 @@ int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, dou
 
 			// G'*lam
 			//d_print_pmat(nx, nw, bs, hpG[N-ii-1], cnw);
-			dgemv_t_lib(nx, nw, 0, hpG[N-ii-1], cnw, hlam[N-ii-1], w_temp, 0);
+			dgemv_t_lib(nx, nw, hpG[N-ii-1], cnw, hlam[N-ii-1], w_temp, 0);
 			//d_print_mat(nw, 1, w_temp, 1);
 
 			// w = w - Q*G'*lam
@@ -553,7 +553,7 @@ int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, dou
 
 			// A'*lam
 			//d_print_pmat(nx, nx, bs, hpA[N-ii-1], cnx);
-			dgemv_t_lib(nx, nx, 0, hpA[N-ii-1], cnx, hlam[N-ii-1], x_temp, 0);
+			dgemv_t_lib(nx, nx, hpA[N-ii-1], cnx, hlam[N-ii-1], x_temp, 0);
 			//d_print_mat(nx, 1, x_temp, 1);
 
 			// xe = xe - Pi_e*A'*lam
@@ -1337,7 +1337,7 @@ void d_ric_sv_mhe_old(int nx, int nu, int N, double **hpBAbt, double **hpQ, doub
 	for(jj=0; jj<nu+nx; jj++) hux[0][jj] = - hpL[0][(nx+pad)*bs+((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*jj];
 	dtrsv_dgemv_t_lib(nx+nu, nx+nu, &hpL[0][(nx+pad)*bs], cnl, &hux[0][0]);
 	for(jj=0; jj<nx; jj++) hux[1][nu+jj] = hpBAbt[0][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
-	dgemv_t_lib(nx+nu, nx, 0, hpBAbt[0], cnx, &hux[0][0], &hux[1][nu], 1);
+	dgemv_t_lib(nx+nu, nx, hpBAbt[0], cnx, &hux[0][0], &hux[1][nu], 1);
 	if(compute_pi)
 		{
 		for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
@@ -1353,7 +1353,7 @@ void d_ric_sv_mhe_old(int nx, int nu, int N, double **hpBAbt, double **hpQ, doub
 		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hpL[ii][(nx+pad)*bs+((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*jj];
 		dtrsv_dgemv_t_lib(nu, nx+nu, &hpL[ii][(nx+pad)*bs], cnl, &hux[ii][0]);
 		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
-		dgemv_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
+		dgemv_t_lib(nx+nu, nx, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
 			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
@@ -1431,7 +1431,7 @@ void d_ric_trs_mhe_old(int nx, int nu, int N, double **hpBAbt, double **hpL, dou
 	for(jj=0; jj<nu+nx; jj++) hux[0][jj] = - hq[0][jj];
 	dtrsv_dgemv_t_lib(nx+nu, nx+nu, &hpL[0][(nx+pad)*bs], cnl, &hux[0][0]);
 /*	for(jj=0; jj<nx; jj++) hux[1][nu+jj] = hpBAbt[0][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];*/
-	dgemv_t_lib(nx+nu, nx, 0, hpBAbt[0], cnx, &hux[0][0], &hux[1][nu], 1);
+	dgemv_t_lib(nx+nu, nx, hpBAbt[0], cnx, &hux[0][0], &hux[1][nu], 1);
 	if(compute_pi)
 		{
 		for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory
@@ -1447,7 +1447,7 @@ void d_ric_trs_mhe_old(int nx, int nu, int N, double **hpBAbt, double **hpL, dou
 		for(jj=0; jj<nu; jj++) hux[ii][jj] = - hq[ii][jj];
 		dtrsv_dgemv_t_lib(nu, nx+nu, &hpL[ii][(nx+pad)*bs], cnl, &hux[ii][0]);
 /*		for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = hpBAbt[ii][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];*/
-		dgemv_t_lib(nx+nu, nx, 0, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
+		dgemv_t_lib(nx+nu, nx, hpBAbt[ii], cnx, &hux[ii][0], &hux[ii+1][nu], 1);
 		if(compute_pi)
 			{
 			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[ii+1][nu+jj]; // copy x into aligned memory

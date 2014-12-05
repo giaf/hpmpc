@@ -25,7 +25,7 @@
 
 
 
-void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_8_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
 	{
 
 	if(kmax<=0) 
@@ -35,38 +35,13 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	const int bs  = 4;
 	
 	int
-		k, ka=kmax-kna;
+		k, ka=kmax;
 	
 	double
 		x_0, x_1, x_2, x_3,
 		y_0=0, y_1=0, y_2=0, y_3=0,
 		y_4=0, y_5=0, y_6=0, y_7=0;
 	
-	if(kna>0)
-		{
-		k=0;
-		for(; k<kna; k++)
-			{
-		
-			x_0 = x[0];
-		
-			y_0 += A[0+lda*0] * x_0;
-			y_1 += A[0+lda*1] * x_0;
-			y_2 += A[0+lda*2] * x_0;
-			y_3 += A[0+lda*3] * x_0;
-			y_4 += A[0+lda*4] * x_0;
-			y_5 += A[0+lda*5] * x_0;
-			y_6 += A[0+lda*6] * x_0;
-			y_7 += A[0+lda*7] * x_0;
-		
-			A += 1;
-			x += 1;
-		
-			}
-	
-		A += (sda-1)*lda;
-		}
-
 	k=0;
 	for(; k<ka-bs+1; k+=bs)
 		{
@@ -174,7 +149,7 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	
 	
 	
-void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_4_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
 	{
 
 	if(kmax<=0) 
@@ -184,33 +159,12 @@ void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	const int bs  = 4;
 	
 	int
-		k, ka=kmax-kna;
+		k, ka=kmax;
 	
 	double
 		x_0, x_1, x_2, x_3,
 		y_0=0, y_1=0, y_2=0, y_3=0;
 	
-	if(kna>0)
-		{
-		k=0;
-		for(; k<kna; k++)
-			{
-		
-			x_0 = x[0];
-		
-			y_0 += A[0+lda*0] * x_0;
-			y_1 += A[0+lda*1] * x_0;
-			y_2 += A[0+lda*2] * x_0;
-			y_3 += A[0+lda*3] * x_0;
-		
-			A += 1;
-			x += 1;
-		
-			}
-	
-		A += (sda-1)*lda;
-		}
-
 	k=0;
 	for(; k<ka-bs+1; k+=bs)
 		{
@@ -286,7 +240,7 @@ void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	
 	
 	
-void kernel_dgemv_t_2_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_2_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
 	{
 
 	if(kmax<=0) 
@@ -296,31 +250,12 @@ void kernel_dgemv_t_2_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	const int bs  = 4;
 	
 	int
-		k, ka=kmax-kna;
+		k, ka=kmax;
 	
 	double
 		x_0, x_1, x_2, x_3,
 		y_0=0, y_1=0;
 	
-	if(kna>0)
-		{
-		k=0;
-		for(; k<kna; k++)
-			{
-		
-			x_0 = x[0];
-		
-			y_0 += A[0+lda*0] * x_0;
-			y_1 += A[0+lda*1] * x_0;
-		
-			A += 1;
-			x += 1;
-		
-			}
-	
-		A += (sda-1)*lda;
-		}
-
 	k=0;
 	for(; k<ka-bs+1; k+=bs)
 		{
@@ -380,7 +315,7 @@ void kernel_dgemv_t_2_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	
 	
 	
-void kernel_dgemv_t_1_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
 	{
 
 	if(kmax<=0) 
@@ -390,30 +325,12 @@ void kernel_dgemv_t_1_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	const int bs  = 4;
 	
 	int
-		k, ka=kmax-kna;
+		k, ka=kmax;
 	
 	double
 		x_0, x_1, x_2, x_3,
 		y_0=0;
 	
-	if(kna>0)
-		{
-		k=0;
-		for(; k<kna; k++)
-			{
-		
-			x_0 = x[0];
-		
-			y_0 += A[0+lda*0] * x_0;
-		
-			A += 1;
-			x += 1;
-		
-			}
-	
-		A += (sda-1)*lda;
-		}
-
 	k=0;
 	for(; k<ka-bs+1; k+=bs)
 		{

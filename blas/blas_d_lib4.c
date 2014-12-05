@@ -618,31 +618,29 @@ void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, int al
 
 
 
-void dgemv_t_lib(int m, int n, int offset, double *pA, int sda, double *x, double *y, int alg)
+void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, double *y, int alg)
 	{
 	
 	const int bs = 4;
-	
-	int mna = (bs-offset%bs)%bs;
 	
 	int j;
 	
 	j=0;
 	for(; j<n-7; j+=8)
 		{
-		kernel_dgemv_t_8_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
+		kernel_dgemv_t_8_lib4(m, pA+j*bs, sda, x, y+j, alg);
 		}
 	for(; j<n-3; j+=4)
 		{
-		kernel_dgemv_t_4_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
+		kernel_dgemv_t_4_lib4(m, pA+j*bs, sda, x, y+j, alg);
 		}
 	for(; j<n-1; j+=2)
 		{
-		kernel_dgemv_t_2_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
+		kernel_dgemv_t_2_lib4(m, pA+j*bs, sda, x, y+j, alg);
 		}
 	for(; j<n; j++)
 		{
-		kernel_dgemv_t_1_lib4(m, mna, pA+j*bs, sda, x, y+j, alg);
+		kernel_dgemv_t_1_lib4(m, pA+j*bs, sda, x, y+j, alg);
 		}
 
 	}

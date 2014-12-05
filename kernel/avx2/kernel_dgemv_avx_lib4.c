@@ -34,7 +34,7 @@
 // TODO use cast & extract to process data in order !!!
 
 
-void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_8_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -49,7 +49,7 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	double *tA, *tx;
 
 	int k;
-	int ka = kmax-kna; // number from aligned positon
+	int ka = kmax; // number from aligned positon
 	
 	__m256d
 		aaxx_temp, 
@@ -80,90 +80,6 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	y_5 = _mm256_castpd256_pd128(y_55);
 	y_6 = _mm256_castpd256_pd128(y_66);
 	y_7 = _mm256_castpd256_pd128(y_77);
-
-	if(kna>0) // it can be only kna = {1, 2, 3}
-		{
-		k=0;
-		if(kna%2==1)
-			{
-		
-			x_0_1 = _mm_load_sd( &x[0] );
-
-			a_00_10 = _mm_load_sd( &A[0+lda*0] );
-			a_01_11 = _mm_load_sd( &A[0+lda*1] );
-			a_02_12 = _mm_load_sd( &A[0+lda*2] );
-			a_03_13 = _mm_load_sd( &A[0+lda*3] );
-
-			ax_temp = _mm_mul_sd( a_00_10, x_0_1 );	
-			y_0 = _mm_add_sd (y_0, ax_temp );
-			ax_temp = _mm_mul_sd( a_01_11, x_0_1 );	
-			y_1 = _mm_add_sd (y_1, ax_temp );
-			ax_temp = _mm_mul_sd( a_02_12, x_0_1 );	
-			y_2 = _mm_add_sd (y_2, ax_temp );
-			ax_temp = _mm_mul_sd( a_03_13, x_0_1 );	
-			y_3 = _mm_add_sd (y_3, ax_temp );
-		
-			a_00_10 = _mm_load_sd( &A[0+lda*4] );
-			a_01_11 = _mm_load_sd( &A[0+lda*5] );
-			a_02_12 = _mm_load_sd( &A[0+lda*6] );
-			a_03_13 = _mm_load_sd( &A[0+lda*7] );
-
-			ax_temp = _mm_mul_sd( a_00_10, x_0_1 );	
-			y_4 = _mm_add_sd (y_4, ax_temp );
-			ax_temp = _mm_mul_sd( a_01_11, x_0_1 );	
-			y_5 = _mm_add_sd (y_5, ax_temp );
-			ax_temp = _mm_mul_sd( a_02_12, x_0_1 );	
-			y_6 = _mm_add_sd (y_6, ax_temp );
-			ax_temp = _mm_mul_sd( a_03_13, x_0_1 );	
-			y_7 = _mm_add_sd (y_7, ax_temp );
-		
-			A += 1;
-			x += 1;
-			k++;
-		
-			}
-	
-		if(kna%4>=2)
-			{
-		
-			x_0_1 = _mm_load_pd( &x[0] );
-
-			a_00_10 = _mm_load_pd( &A[0+lda*0] );
-			a_01_11 = _mm_load_pd( &A[0+lda*1] );
-			a_02_12 = _mm_load_pd( &A[0+lda*2] );
-			a_03_13 = _mm_load_pd( &A[0+lda*3] );
-
-			ax_temp = _mm_mul_pd( a_00_10, x_0_1 );	
-			y_0 = _mm_add_pd (y_0, ax_temp );
-			ax_temp = _mm_mul_pd( a_01_11, x_0_1 );	
-			y_1 = _mm_add_pd (y_1, ax_temp );
-			ax_temp = _mm_mul_pd( a_02_12, x_0_1 );	
-			y_2 = _mm_add_pd (y_2, ax_temp );
-			ax_temp = _mm_mul_pd( a_03_13, x_0_1 );	
-			y_3 = _mm_add_pd (y_3, ax_temp );
-		
-			a_00_10 = _mm_load_pd( &A[0+lda*4] );
-			a_01_11 = _mm_load_pd( &A[0+lda*5] );
-			a_02_12 = _mm_load_pd( &A[0+lda*6] );
-			a_03_13 = _mm_load_pd( &A[0+lda*7] );
-
-			ax_temp = _mm_mul_pd( a_00_10, x_0_1 );	
-			y_4 = _mm_add_pd (y_4, ax_temp );
-			ax_temp = _mm_mul_pd( a_01_11, x_0_1 );	
-			y_5 = _mm_add_pd (y_5, ax_temp );
-			ax_temp = _mm_mul_pd( a_02_12, x_0_1 );	
-			y_6 = _mm_add_pd (y_6, ax_temp );
-			ax_temp = _mm_mul_pd( a_03_13, x_0_1 );	
-			y_7 = _mm_add_pd (y_7, ax_temp );
-		
-			A += 2;
-			x += 2;
-			k += 2;
-		
-			}
-
-		A += (sda-1)*lda;
-		}
 
 	k = lda*(ka/lda);
 	tA = A + (ka/lda)*sda*lda;
@@ -436,7 +352,7 @@ void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 
 
 
-void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_4_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
 	{
 
 	if(kmax<=0) 
@@ -450,7 +366,7 @@ void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	double *tA, *tx;
 
 	int k;
-	int ka = kmax-kna; // number from aligned positon
+	int ka = kmax; // number from aligned positon
 	
 	__m256d
 		aaxx_temp,
@@ -473,36 +389,6 @@ void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	y_1 = _mm256_castpd256_pd128(y_11);
 	y_2 = _mm256_castpd256_pd128(y_22);
 	y_3 = _mm256_castpd256_pd128(y_33);
-
-	if(kna>0)
-		{
-		k=0;
-		for(; k<kna; k++)
-			{
-		
-			x_0_1 = _mm_load_sd( &x[0] );
-
-			a_00_10 = _mm_load_sd( &A[0+lda*0] );
-			a_01_11 = _mm_load_sd( &A[0+lda*1] );
-			a_02_12 = _mm_load_sd( &A[0+lda*2] );
-			a_03_13 = _mm_load_sd( &A[0+lda*3] );
-
-			ax_temp = _mm_mul_sd( a_00_10, x_0_1 );	
-			y_0 = _mm_add_sd (y_0, ax_temp );
-			ax_temp = _mm_mul_sd( a_01_11, x_0_1 );	
-			y_1 = _mm_add_sd (y_1, ax_temp );
-			ax_temp = _mm_mul_sd( a_02_12, x_0_1 );	
-			y_2 = _mm_add_sd (y_2, ax_temp );
-			ax_temp = _mm_mul_sd( a_03_13, x_0_1 );	
-			y_3 = _mm_add_sd (y_3, ax_temp );
-		
-			A += 1;
-			x += 1;
-		
-			}
-	
-		A += (sda-1)*lda;
-		}
 
 	k = lda*(ka/lda);
 	tA = A + (ka/lda)*sda*lda;
@@ -649,7 +535,7 @@ void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 
 
 
-void kernel_dgemv_t_2_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_2_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -659,7 +545,7 @@ void kernel_dgemv_t_2_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	double *tA, *tx;
 
 	int k;
-	int ka = kmax-kna; // number from aligned positon
+	int ka = kmax; // number from aligned positon
 	
 	__m256d
 		aaxx_temp,
@@ -678,32 +564,6 @@ void kernel_dgemv_t_2_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	
 	y_0 = _mm256_castpd256_pd128(y_00);
 	y_1 = _mm256_castpd256_pd128(y_11);
-
-	if(kna>0)
-		{
-		k=0;
-		for(; k<kna; k++)
-			{
-		
-			x_0_1 = _mm_load_sd( &x[0] );
-
-			a_00_10 = _mm_load_sd( &A[0+lda*0] );
-			a_01_11 = _mm_load_sd( &A[0+lda*1] );
-		
-/*			y_0 += a_00_10 * x_0_1;*/
-			ax_temp = _mm_mul_sd( a_00_10, x_0_1 );	
-			y_0 = _mm_add_sd (y_0, ax_temp );
-/*			y_1 += a_01_11 * x_0_1;*/
-			ax_temp = _mm_mul_sd( a_01_11, x_0_1 );	
-			y_1 = _mm_add_sd (y_1, ax_temp );
-		
-			A += 1;
-			x += 1;
-		
-			}
-	
-		A += (sda-1)*lda;
-		}
 
 	k = lda*(ka/lda);
 	tA = A + (ka/lda)*sda*lda;
@@ -787,7 +647,7 @@ void kernel_dgemv_t_2_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 
 
 
-void kernel_dgemv_t_1_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -797,7 +657,7 @@ void kernel_dgemv_t_1_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	double *tA, *tx;
 
 	int k;
-	int ka = kmax-kna; // number from aligned positon
+	int ka = kmax; // number from aligned positon
 	
 	__m256d
 		aaxx_temp,
@@ -814,28 +674,6 @@ void kernel_dgemv_t_1_lib4(int kmax, int kna, double *A, int sda, double *x, dou
 	y_00 = _mm256_setzero_pd();
 	
 	y_0 = _mm256_castpd256_pd128(y_00);
-
-	if(kna>0)
-		{
-		k=0;
-		for(; k<kna; k++)
-			{
-		
-			x_0_1 = _mm_load_sd( &x[0] );
-
-			a_00_10 = _mm_load_sd( &A[0+lda*0] );
-		
-/*			y_0 += a_00_10 * x_0_1;*/
-			ax_temp = _mm_mul_sd( a_00_10, x_0_1 );	
-			y_0 = _mm_add_sd (y_0, ax_temp );
-		
-			A += 1;
-			x += 1;
-		
-			}
-	
-		A += (sda-1)*lda;
-		}
 
 	k = lda*(ka/lda);
 	tA = A + (ka/lda)*sda*lda;

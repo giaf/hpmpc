@@ -68,10 +68,10 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, do
 void kernel_dgemm_dtrsm_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg);
 void kernel_dgemm_dtrsm_nt_2x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg);
 void kernel_dgemm_dtrsm_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg);
-void kernel_dgemv_t_8_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg);
-void kernel_dgemv_t_4_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg);
-void kernel_dgemv_t_2_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg);
-void kernel_dgemv_t_1_lib4(int kmax, int kna, double *A, int sda, double *x, double *y, int alg);
+void kernel_dgemv_t_8_lib4(int kmax, double *A, int sda, double *x, double *y, int alg);
+void kernel_dgemv_t_4_lib4(int kmax, double *A, int sda, double *x, double *y, int alg);
+void kernel_dgemv_t_2_lib4(int kmax, double *A, int sda, double *x, double *y, int alg);
+void kernel_dgemv_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, int alg);
 void kernel_dgemv_n_8_lib4(int kmax, double *A0, double *A1, double *x, double *y, int alg);
 void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, int alg);
 void kernel_dgemv_n_2_lib4(int kmax, double *A, double *x, double *y, int alg);

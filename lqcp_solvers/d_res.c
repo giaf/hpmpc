@@ -39,17 +39,21 @@ void d_res_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hq
 	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 
+	static double temp[D_MR] = {};
+
 	int ii, jj;
 	
 	int nxu = nx+nu;
 
 	// first block
 	for(jj=0; jj<nu; jj++) hrq[0][jj] = - hq[0][jj];
-	dgemv_t_lib(nx, nu, nu, hpQ[0]+(nu/bs)*bs*cnz+nu%bs, cnz, hux[0]+nu, hrq[0], -1);
+	for(jj=0; jj<nu%bs; jj++) { temp[jj] = hux[0][(nu/bs)*bs+jj]; hux[0][(nu/bs)*bs+jj] = 0.0; }
+	dgemv_t_lib(nx, nu, hpQ[0]+(nu/bs)*bs*cnz+nu%bs, cnz, hux[0]+nu, hrq[0], -1);
+	for(jj=0; jj<nu%bs; jj++) hux[0][(nu/bs)*bs+jj] = temp[jj];
 	dsymv_lib(nu, hpQ[0], cnz, hux[0], hrq[0], -1);
 	dgemv_n_lib(nu, nx, hpBAbt[0], cnx, hpi[1], hrq[0], -1);
 	for(jj=0; jj<nx; jj++) hrb[0][jj] = hux[1][nu+jj] - hpBAbt[0][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
-	dgemv_t_lib(nxu, nx, 0, hpBAbt[0], cnx, hux[0], hrb[0], -1);
+	dgemv_t_lib(nxu, nx, hpBAbt[0], cnx, hux[0], hrb[0], -1);
 
 	// middle blocks
 	for(ii=1; ii<N; ii++)
