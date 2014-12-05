@@ -293,6 +293,7 @@ int main()
 			N = Ns-1; // NN;
 			nrep = NREP;
 			//nx = 10;
+			printf("\nnx = %d; nw =  %d; N = %d\n", nx, nw, N);
 			}
 		else if(ll_max==1)
 			{
@@ -482,6 +483,13 @@ int main()
 		double *p_hy; d_zeros_align(&p_hy, any, N+1);
 		double *p_hlam; d_zeros_align(&p_hlam, anx, N);
 
+		double *(hr_res[N+1]);
+		double *(hq_res[N]);
+		double *(hf_res[N]);
+		double *p_hr_res; d_zeros_align(&p_hr_res, anx, N+1);
+		double *p_hq_res; d_zeros_align(&p_hq_res, anw, N);
+		double *p_hf_res; d_zeros_align(&p_hf_res, anx, N);
+
 		for(jj=0; jj<N; jj++)
 			{
 			hpA[jj] = pA;
@@ -511,6 +519,10 @@ int main()
 			hw[jj] = p_hw+jj*anw; //d_zeros_align(&hw[jj], anw, 1);
 			hy[jj] = p_hy+jj*any; //d_zeros_align(&hy[jj], any, 1);
 			hlam[jj] = p_hlam+jj*anx; //d_zeros_align(&hlambda[jj], anx, 1);
+
+			hr_res[jj] = p_hr_res+jj*anx;
+			hq_res[jj] = p_hq_res+jj*anw;
+			hf_res[jj] = p_hf_res+jj*anx;
 			}
 
 		hpC[N] = pC;
@@ -531,6 +543,8 @@ int main()
 		hxp[N] = p_hxp+N*anx; //d_zeros_align(&hxp[N], anx, 1);
 		hy[N] = p_hy+N*any; //d_zeros_align(&hy[N], any, 1);
 
+		hr_res[N] = p_hr_res+N*anx;
+
 		// initialize hpLp[0] with the cholesky factorization of /Pi_p
 		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLp[0]+(nx+nw+pad)*bs, cnl);
 		for(ii=0; ii<nx; ii++) hdLp[0][ii] = 1.0/L0[ii*(nx+1)];
@@ -544,6 +558,8 @@ int main()
 		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, pL0, cnx);
 		// invert L0 in hpALe[0]
 		dtrinv_lib(nx, pL0, cnx, hpALe[0], cnx2);
+		double *pL0_inv; d_zeros_align(&pL0_inv, pnx, cnx);
+		dtrinv_lib(nx, pL0, cnx, pL0_inv, cnx);
 		//d_print_pmat(nx, nx, bs, pL0, cnx);
 		//d_print_pmat(pnx2, cnx2, bs, hpALe[0], cnx2);
 		//exit(1);
@@ -565,9 +581,9 @@ int main()
 
 		// initial guess
 		for(ii=0; ii<nx; ii++)
-			hxp[0][ii] = 0.0;
-		hxp[0][0] = 0.0;
-		hxp[0][1] = 0.0;
+			x0[ii] = 0.0;
+		for(ii=0; ii<nx; ii++)
+			hxp[0][ii] = x0[ii];
 
 /************************************************
 * call the solver
@@ -598,9 +614,9 @@ int main()
 		//d_print_pmat(nx, nx, bs, hpLe[N]+ncl*bs, cnf);
 
 		//d_print_mat(nx, N+1, hxp[0], anx);
-		//d_print_mat(nx, N+1, hxe[0], anx);
+		d_print_mat(nx, N+1, hxe[0], anx);
 		//d_print_mat(nx, N, hlam[0], anx);
-		d_print_mat(nw, N, hw[0], anw);
+		//d_print_mat(nw, N, hw[0], anw);
 
 		// information filter - factorization
 		d_ric_trf_mhe_if(nx, nw, N, hpRA, hpQG, hpALe, hpGLq, work3);
@@ -613,14 +629,15 @@ int main()
 			{
 			for(jj=0; jj<ny; jj++) y_temp[jj] = - r[jj];
 			//d_print_mat(1, ny, y_temp, 1);
-			dsymv_lib(ny, 0, hpR[ii], cny, hy[ii], y_temp, -1);
+			dsymv_lib(ny, ny, hpR[ii], cny, hy[ii], y_temp, -1);
 			//d_print_mat(1, ny, y_temp, 1);
-			dgemv_t_lib(ny, nx, 0, hpC[ii], cnx, y_temp, hrr[ii], 0);
+			dgemv_t_lib(ny, nx, hpC[ii], cnx, y_temp, hrr[ii], 0);
 			//d_print_mat(1, nx, hrr[ii], 1);
 			//if(ii==9)
 			//exit(1);
 			}
 		d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLq, hrr, hqq, hff, hxp, hxe, hw, hlam, work3);
+		//d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 1, hlam, work);
 
 		//d_print_pmat(nx, nx, bs, hpALe[N-1], cnx2);
 		//d_print_pmat(nx, nx, bs, hpALe[N], cnx2);
@@ -630,10 +647,17 @@ int main()
 		//d_print_pmat(nx, nx, bs, hpRA[N], cnx);
 
 		//d_print_mat(nx, N+1, hxp[0], anx);
-		//d_print_mat(nx, N+1, hxe[0], anx);
+		d_print_mat(nx, N+1, hxe[0], anx);
 		//d_print_mat(nx, N, hlam[0], anx);
-		d_print_mat(nw, N, hw[0], anw);
+		//d_print_mat(nw, N, hw[0], anw);
 		//exit(1);
+
+		// compute residuals
+		double *p0; d_zeros_align(&p0, anx, 1);
+		double *x_temp; d_zeros_align(&x_temp, anx, 1);
+		dtrmv_u_t_lib(nx, pL0_inv, cnx, x0, x_temp, 0);
+		dtrmv_u_n_lib(nx, pL0_inv, cnx, x_temp, p0, 0);
+		d_res_mhe_if(nx, nw, N, hpRA, hpQG, pL0_inv, hrr, hqq, hff, p0, hxe, hw, hlam, hr_res, hq_res, hf_res);
 
 		if(PRINTRES)
 			{
@@ -905,6 +929,13 @@ int main()
 		free(p_hhxp);
 		free(p_hhw);
 		free(p_hhlam);
+		free(x_temp);
+		free(y_temp);
+		free(p0);
+		free(p_hr_res);
+		free(p_hq_res);
+		free(p_hf_res);
+		free(pL0_inv);
 		free(hpLp[0]);
 		free(hdLp[0]);
 		free(hpLe[0]);
