@@ -750,14 +750,20 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, double *y, int alg)
 		{
 		kernel_dsymv_4_lib4(m-j, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
 		}
-	j0 = j;
-	for(; j<n-1; j+=2)
+	if(j<n)
 		{
-		kernel_dsymv_2_lib4(m-j, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
-		}
-	for(; j<n; j++)
-		{
-		kernel_dsymv_1_lib4(m-j, pA+(j-j0)+j0*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+		if(n-j==1)
+			{
+			kernel_dsymv_1_lib4(m-j, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+			}
+		else if(n-j==2)
+			{
+			kernel_dsymv_2_lib4(m-j, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+			}
+		else // if(n-j==3)
+			{
+			kernel_dsymv_3_lib4(m-j, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+			}
 		}
 
 	}

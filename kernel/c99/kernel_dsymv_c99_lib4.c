@@ -350,6 +350,236 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 	}
 	
 	
+void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+	{
+	
+	if(kmax<=0) 
+		return;
+	
+	const int bs = 4;
+	
+	int k;
+	
+	double
+		a_00, a_01, a_02,
+		x_n_0, x_n_1, x_n_2, y_n_0,
+		x_t_0, y_t_0, y_t_1, y_t_2;
+	
+	if(alg==1)
+		{
+		x_n_0 = x_n[0];
+		x_n_1 = x_n[1];
+		x_n_2 = x_n[2];
+		}
+	else // alg==-1
+		{
+		x_n_0 = - x_n[0];
+		x_n_1 = - x_n[1];
+		x_n_2 = - x_n[2];
+		}
+
+	y_t_0 = 0;
+	y_t_1 = 0;
+	y_t_2 = 0;
+	
+	k=0;
+
+	// corner
+	if(tri==1)
+		{
+		
+		y_n_0 = y_n[0];
+		x_t_0 = x_t[0];
+
+		a_00 = A[0+bs*0];
+		
+		y_t_0 += a_00 * x_t_0;
+		
+		y_n[0] = y_n_0;
+
+
+		y_n_0 = y_n[1];
+		x_t_0 = x_t[1];
+		
+		a_00 = A[1+bs*0];
+		a_01 = A[1+bs*1];
+		
+		y_n_0 += a_00 * x_n_0;
+		y_t_0 += a_00 * x_t_0;
+		y_t_1 += a_01 * x_t_0;
+		
+		y_n[1] = y_n_0;
+
+		
+		y_n_0 = y_n[2];
+		x_t_0 = x_t[2];
+		
+		a_00 = A[2+bs*0];
+		a_01 = A[2+bs*1];
+		a_02 = A[2+bs*2];
+		
+		y_n_0 += a_00 * x_n_0;
+		y_t_0 += a_00 * x_t_0;
+		y_n_0 += a_01 * x_n_1;
+		y_t_1 += a_01 * x_t_0;
+		y_t_2 += a_02 * x_t_0;
+		
+		y_n[2] = y_n_0;
+
+		if(kmax==3)
+			goto STORE_3;
+
+
+		y_n_0 = y_n[3];
+		x_t_0 = x_t[3];
+		
+		a_00 = A[3+bs*0];
+		a_01 = A[3+bs*1];
+		a_02 = A[3+bs*2];
+		
+		y_n_0 += a_00 * x_n_0;
+		y_t_0 += a_00 * x_t_0;
+		y_n_0 += a_01 * x_n_1;
+		y_t_1 += a_01 * x_t_0;
+		y_n_0 += a_02 * x_n_2;
+		y_t_2 += a_02 * x_t_0;
+		
+		y_n[3] = y_n_0;
+
+		if(kmax==4)
+			goto STORE_3;
+
+
+
+		A += 4;
+		y_n += 4;
+		x_t += 4;
+		k += 4;
+
+		A += (sda-1)*bs;
+
+		}
+	for(; k<kmax-3; k+=bs)
+		{
+		
+		y_n_0 = y_n[0];
+		x_t_0 = x_t[0];
+		
+		a_00 = A[0+bs*0];
+		a_01 = A[0+bs*1];
+		a_02 = A[0+bs*2];
+		
+		y_n_0 += a_00 * x_n_0;
+		y_t_0 += a_00 * x_t_0;
+		y_n_0 += a_01 * x_n_1;
+		y_t_1 += a_01 * x_t_0;
+		y_n_0 += a_02 * x_n_2;
+		y_t_2 += a_02 * x_t_0;
+		
+		y_n[0] = y_n_0;
+
+
+		y_n_0 = y_n[1];
+		x_t_0 = x_t[1];
+		
+		a_00 = A[1+bs*0];
+		a_01 = A[1+bs*1];
+		a_02 = A[1+bs*2];
+		
+		y_n_0 += a_00 * x_n_0;
+		y_t_0 += a_00 * x_t_0;
+		y_n_0 += a_01 * x_n_1;
+		y_t_1 += a_01 * x_t_0;
+		y_n_0 += a_02 * x_n_2;
+		y_t_2 += a_02 * x_t_0;
+		
+		y_n[1] = y_n_0;
+
+		
+		y_n_0 = y_n[2];
+		x_t_0 = x_t[2];
+		
+		a_00 = A[2+bs*0];
+		a_01 = A[2+bs*1];
+		a_02 = A[2+bs*2];
+		
+		y_n_0 += a_00 * x_n_0;
+		y_t_0 += a_00 * x_t_0;
+		y_n_0 += a_01 * x_n_1;
+		y_t_1 += a_01 * x_t_0;
+		y_n_0 += a_02 * x_n_2;
+		y_t_2 += a_02 * x_t_0;
+		
+		y_n[2] = y_n_0;
+
+
+		y_n_0 = y_n[3];
+		x_t_0 = x_t[3];
+		
+		a_00 = A[3+bs*0];
+		a_01 = A[3+bs*1];
+		a_02 = A[3+bs*2];
+		
+		y_n_0 += a_00 * x_n_0;
+		y_t_0 += a_00 * x_t_0;
+		y_n_0 += a_01 * x_n_1;
+		y_t_1 += a_01 * x_t_0;
+		y_n_0 += a_02 * x_n_2;
+		y_t_2 += a_02 * x_t_0;
+		
+		y_n[3] = y_n_0;
+
+		
+		A += sda*bs;
+		y_n += 4;
+		x_t += 4;
+
+		}
+	
+	for(; k<kmax; k++)
+		{
+		
+		y_n_0 = y_n[0];
+		x_t_0 = x_t[0];
+		
+		a_00 = A[0+bs*0];
+		a_01 = A[0+bs*1];
+		a_02 = A[0+bs*2];
+		
+		y_n_0 += a_00 * x_n_0;
+		y_t_0 += a_00 * x_t_0;
+		y_n_0 += a_01 * x_n_1;
+		y_t_1 += a_01 * x_t_0;
+		y_n_0 += a_02 * x_n_2;
+		y_t_2 += a_02 * x_t_0;
+		
+		y_n[0] = y_n_0;
+
+	
+		A += 1;
+		y_n += 1;
+		x_t += 1;
+		
+		}
+
+	STORE_3:
+
+	if(alg==1)
+		{
+		y_t[0] += y_t_0;
+		y_t[1] += y_t_1;
+		y_t[2] += y_t_2;
+		}
+	else // alg==-1
+		{
+		y_t[0] -= y_t_0;
+		y_t[1] -= y_t_1;
+		y_t[2] -= y_t_2;
+		}
+	
+	}
+	
+	
 	
 void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
 	{
@@ -390,12 +620,8 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		x_t_0 = x_t[0];
 		
 		a_00 = A[0+bs*0];
-/*		a_01 = A[0+bs*1];*/
 		
-/*		y_n_0 += a_00 * x_n_0;*/
 		y_t_0 += a_00 * x_t_0;
-/*		y_n_0 += a_01 * x_n_1;*/
-/*		y_t_1 += a_01 * x_t_0;*/
 		
 		y_n[0] = y_n_0;
 
@@ -408,16 +634,52 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		
 		y_n_0 += a_00 * x_n_0;
 		y_t_0 += a_00 * x_t_0;
-/*		y_n_0 += a_01 * x_n_1;*/
 		y_t_1 += a_01 * x_t_0;
 		
 		y_n[1] = y_n_0;
 
+		if(kmax==2)
+			goto STORE_2;
+
 		
-		A += 2;
-		y_n += 2;
-		x_t += 2;
-		k += 2;
+		y_n_0 = y_n[2];
+		x_t_0 = x_t[2];
+		
+		a_00 = A[2+bs*0];
+		a_01 = A[2+bs*1];
+		
+		y_n_0 += a_00 * x_n_0;
+		y_t_0 += a_00 * x_t_0;
+		y_n_0 += a_01 * x_n_1;
+		y_t_1 += a_01 * x_t_0;
+		
+		y_n[2] = y_n_0;
+
+		if(kmax==3)
+			goto STORE_2;
+
+
+		y_n_0 = y_n[3];
+		x_t_0 = x_t[3];
+		
+		a_00 = A[3+bs*0];
+		a_01 = A[3+bs*1];
+		
+		y_n_0 += a_00 * x_n_0;
+		y_t_0 += a_00 * x_t_0;
+		y_n_0 += a_01 * x_n_1;
+		y_t_1 += a_01 * x_t_0;
+		
+		y_n[3] = y_n_0;
+
+		if(kmax==4)
+			goto STORE_2;
+
+
+		A += 4;
+		y_n += 4;
+		x_t += 4;
+		k += 4;
 
 		A += (sda-1)*bs;
 
@@ -509,6 +771,8 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		x_t += 1;
 		
 		}
+	
+	STORE_2:
 
 	if(alg==1)
 		{
@@ -557,21 +821,63 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 	if(tri==1)
 		{
 		
-/*		y_n_0 = y_n[0];*/
 		x_t_0 = x_t[0];
 		
 		a_00 = A[0+bs*0];
 		
-/*		y_n_0 += a_00 * x_n_0;*/
+		y_t_0 += a_00 * x_t_0;
+
+		if(kmax==1)
+			goto STORE_1;
+		
+
+		y_n_0 = y_n[1];
+		x_t_0 = x_t[1];
+		
+		a_00 = A[1+bs*0];
+		
+		y_n_0 += a_00 * x_n_0;
 		y_t_0 += a_00 * x_t_0;
 		
-/*		y_n[0] = y_n_0;*/
+		y_n[1] = y_n_0;
 
-		A += 1;
-		y_n += 1;
-		x_t += 1;
+		if(kmax==2)
+			goto STORE_1;
 
-		k += 1;
+		
+		y_n_0 = y_n[2];
+		x_t_0 = x_t[2];
+		
+		a_00 = A[2+bs*0];
+		
+		y_n_0 += a_00 * x_n_0;
+		y_t_0 += a_00 * x_t_0;
+		
+		y_n[2] = y_n_0;
+
+		if(kmax==3)
+			goto STORE_1;
+
+
+		y_n_0 = y_n[3];
+		x_t_0 = x_t[3];
+		
+		a_00 = A[3+bs*0];
+		
+		y_n_0 += a_00 * x_n_0;
+		y_t_0 += a_00 * x_t_0;
+		
+		y_n[3] = y_n_0;
+
+		if(kmax==4)
+			goto STORE_1;
+
+
+		A += 4;
+		y_n += 4;
+		x_t += 4;
+		k += 4;
+
 		A += (sda-1)*bs;
 
 		}
@@ -647,6 +953,8 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		x_t += 1;
 		
 		}
+
+	STORE_1:
 
 	if(alg==1)
 		{

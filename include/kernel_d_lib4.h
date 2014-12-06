@@ -90,6 +90,7 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x);
 void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x);
 void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x);
 void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg);
+void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg);
 void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg);
 void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg);
 void kernel_dgetr_4_lib4(int kmax, int kna, double *A, double *C, int sdc);

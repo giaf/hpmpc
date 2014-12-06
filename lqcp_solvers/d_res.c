@@ -73,7 +73,7 @@ void d_res_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hq
 
 
 
-void d_res_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double *L0_inv, double **hr, double **hq, double **hf, double *p0, double **hx, double **hw, double **hlam, double **hrr, double **hrq, double **hrf)
+void d_res_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double *L0_inv, double **hr, double **hq, double **hf, double *p0, double **hx, double **hw, double **hlam, double **hrr, double **hrq, double **hrf, double *work)
 	{
 	
 	const int bs = D_MR; //d_get_mr();
@@ -87,19 +87,21 @@ void d_res_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double *L
 
 	int ii, jj;
 
-	//double *ptr = work;
+	double *ptr = work;
 
-	//double *x_temp; x_temp = ptr; //d_zeros_align(&x_temp, 2*anx, 1);
-	double *x_temp; d_zeros_align(&x_temp, 2*anx, 1);
-	//ptr += 2*anx;
-	double *x_temp2; d_zeros_align(&x_temp2, 2*anx, 1);
-	//ptr += 2*anx;
+	double *x_temp; x_temp = ptr; //d_zeros_align(&x_temp, 2*anx, 1);
+	//double *x_temp; d_zeros_align(&x_temp, 2*anx, 1);
+	ptr += 2*anx;
+	double *x_temp2; x_temp2 = ptr; //d_zeros_align(&x_temp, 2*anx, 1);
+	//double *x_temp2; d_zeros_align(&x_temp2, 2*anx, 1);
+	ptr += 2*anx;
 
-	//double *wx_temp; wx_temp = ptr; //d_zeros_align(&wx_temp, anw+anx, 1); // TODO too large 
-	double *wx_temp; d_zeros_align(&wx_temp, anw+anx, 1); // TODO too large 
-	//ptr += anw+anx;
-	double *wx_temp2; d_zeros_align(&wx_temp2, anw+anx, 1); // TODO too large 
-	//ptr += anw+anx;
+	double *wx_temp; wx_temp = ptr; //d_zeros_align(&wx_temp, anw+anx, 1); // TODO too large 
+	//double *wx_temp; d_zeros_align(&wx_temp, anw+anx, 1); // TODO too large 
+	ptr += anw+anx;
+	double *wx_temp2; wx_temp2 = ptr; //d_zeros_align(&wx_temp, anw+anx, 1); // TODO too large 
+	//double *wx_temp2; d_zeros_align(&wx_temp2, anw+anx, 1); // TODO too large 
+	ptr += anw+anx;
 
 	// first stage
 	for(jj=0; jj<nx; jj++) hrr[ii][jj] = hr[0][jj] + p0[jj];
@@ -116,14 +118,17 @@ void d_res_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double *L
 
 	for(jj=0; jj<nw; jj++) wx_temp[jj] = hw[0][jj];
 	for(jj=0; jj<nx; jj++) wx_temp[nw+jj] = hlam[0][jj];
+	//d_print_mat(nx+nw, 1, wx_temp, nx+nw);
+	//d_print_pmat(nx+nw, nw, bs, hpQG[0], cnw);
 	dsymv_lib(nw+nx, nw, hpQG[0], cnw, wx_temp, wx_temp2, 0);
+	//d_print_mat(nx+nw, 1, wx_temp2, nx+nw);
 	for(jj=0; jj<nw; jj++) hrq[0][jj] += wx_temp2[jj];
 	for(jj=0; jj<nx; jj++) hrf[0][jj] += wx_temp2[nw+jj];
 
-	d_print_mat(1, nx, hrr[0], 1);
-	d_print_mat(1, nw, hrq[0], 1);
-	d_print_mat(1, nx, hrf[0], 1);
-	exit(2);
+	//d_print_mat(1, nx, hrr[0], 1);
+	//d_print_mat(1, nw, hrq[0], 1);
+	//d_print_mat(1, nx, hrf[0], 1);
+	//exit(2);
 
 	// middle stages
 	for(ii=1; ii<N; ii++)
@@ -144,10 +149,10 @@ void d_res_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double *L
 		for(jj=0; jj<nw; jj++) hrq[ii][jj] += wx_temp2[jj];
 		for(jj=0; jj<nx; jj++) hrf[ii][jj] += wx_temp2[nw+jj];
 
-		d_print_mat(1, nx, hrr[ii], 1);
-		d_print_mat(1, nw, hrq[ii], 1);
-		d_print_mat(1, nx, hrf[ii], 1);
-		exit(1);
+		//d_print_mat(1, nx, hrr[ii], 1);
+		//d_print_mat(1, nw, hrq[ii], 1);
+		//d_print_mat(1, nx, hrf[ii], 1);
+		//exit(1);
 		}
 	
 	// last stage
@@ -155,12 +160,12 @@ void d_res_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double *L
 	dsymv_lib(nx, nx, hpRA[N], cnx, hx[N], hrr[N], 1);
 	//d_print_mat(1, nx, hrr[N], 1);
 
-	free(x_temp);
-	free(x_temp2);
-	free(wx_temp);
-	free(wx_temp2);
+	//free(x_temp);
+	//free(x_temp2);
+	//free(wx_temp);
+	//free(wx_temp2);
 
-	exit(1);
+	//exit(1);
 	
 
 

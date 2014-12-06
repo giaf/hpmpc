@@ -569,6 +569,7 @@ int main()
 		double *work2; d_zeros_align(&work2, 2*pny*cnx+pnw*cnw+pnx*cnw+2*pnx*cnx+anz, 1);
 
 		double *work3; d_zeros_align(&work3, pnx*cnl+anx, 1);
+		double *work4; d_zeros_align(&work4, 4*anx+2*(anx+anw), 1);
 //		for(jj=0; jj<2*pny*cnx+anz+pnw*cnw+pnx*cnx; jj++)
 //			work[jj] = -100.0;
 
@@ -636,8 +637,8 @@ int main()
 			//if(ii==9)
 			//exit(1);
 			}
-		d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLq, hrr, hqq, hff, hxp, hxe, hw, hlam, work3);
-		//d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 1, hlam, work);
+		//d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLq, hrr, hqq, hff, hxp, hxe, hw, hlam, work3);
+		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 1, hlam, work);
 
 		//d_print_pmat(nx, nx, bs, hpALe[N-1], cnx2);
 		//d_print_pmat(nx, nx, bs, hpALe[N], cnx2);
@@ -652,12 +653,25 @@ int main()
 		//d_print_mat(nw, N, hw[0], anw);
 		//exit(1);
 
+		//d_print_pmat(nw, nw, bs, hpQ[0], cnw);
+		//d_print_pmat(nx, nw, bs, hpG[0], cnw);
+		//d_print_mat(nw, 1, hq[0], nw);
+		//d_print_mat(nw, 1, hw[0], nw);
+		//d_print_mat(nx, 1, hlam[0], nx);
+		//exit(3);
+
 		// compute residuals
 		double *p0; d_zeros_align(&p0, anx, 1);
 		double *x_temp; d_zeros_align(&x_temp, anx, 1);
 		dtrmv_u_t_lib(nx, pL0_inv, cnx, x0, x_temp, 0);
 		dtrmv_u_n_lib(nx, pL0_inv, cnx, x_temp, p0, 0);
-		d_res_mhe_if(nx, nw, N, hpRA, hpQG, pL0_inv, hrr, hqq, hff, p0, hxe, hw, hlam, hr_res, hq_res, hf_res);
+		d_res_mhe_if(nx, nw, N, hpRA, hpQG, pL0_inv, hrr, hqq, hff, p0, hxe, hw, hlam, hr_res, hq_res, hf_res, work4);
+
+		printf("\nprint residuals\n\n");
+		d_print_mat(nx, N+1, hr_res[0], anx);
+		d_print_mat(nw, N, hq_res[0], anw);
+		d_print_mat(nx, N, hf_res[0], anx);
+		exit(1);
 
 		if(PRINTRES)
 			{
@@ -920,6 +934,9 @@ int main()
 		free(pQ);
 		free(pR);
 		free(work);
+		free(work2);
+		free(work3);
+		free(work4);
 		free(p_hxe);
 		free(p_hxp);
 		free(p_hy);
