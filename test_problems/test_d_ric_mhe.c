@@ -292,8 +292,10 @@ int main()
 			fclose(fid);
 			N = Ns-1; // NN;
 			nrep = NREP;
-			//nx = 10;
-			printf("\nnx = %d; nw =  %d; N = %d\n", nx, nw, N);
+			nx = 12;
+			nw = 5;
+			ny = 3;
+			printf("\nnx = %d; nw =  %d; ny =  %d; N = %d\n\n", nx, nw, ny, N);
 			}
 		else if(ll_max==1)
 			{
@@ -416,7 +418,7 @@ int main()
 
 		double *f; d_zeros_align(&f, anx, 1);
 		for(jj=0; jj<nx; jj++)
-			f[jj] = b[jj]; //1.0;
+			f[jj] = 1.0; //b[jj]; //1.0;
 
 		/* packed into contiguous memory */
 		double *pQ; d_zeros_align(&pQ, pnw, cnw);
@@ -561,11 +563,14 @@ int main()
 		double *pL0_inv; d_zeros_align(&pL0_inv, pnx, cnx);
 		dtrinv_lib(nx, pL0, cnx, pL0_inv, cnx);
 		//d_print_pmat(nx, nx, bs, pL0, cnx);
+		//d_print_pmat(nx, nx, bs, pL0_inv, cnx);
 		//d_print_pmat(pnx2, cnx2, bs, hpALe[0], cnx2);
 		//exit(1);
 
 		//double *work; d_zeros_align(&work, pny*cnx+pnz*cnz+anz+pnz*cnf+pnw*cnw, 1);
 		double *work; d_zeros_align(&work, 2*pny*cnx+anz+pnw*cnw+pnx*cnx, 1);
+		printf("\nciao %d %d %d %d %d %d\n", pny, cnx, anz, pnw, cnw, pnx);
+
 		double *work2; d_zeros_align(&work2, 2*pny*cnx+pnw*cnw+pnx*cnw+2*pnx*cnx+anz, 1);
 
 		double *work3; d_zeros_align(&work3, pnx*cnl+anx, 1);
@@ -624,8 +629,8 @@ int main()
 
 		// information filter - solution
 		double *y_temp; d_zeros_align(&y_temp, any, 1);
-		for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) hqq[ii][jj] = -q[jj];
-		for(ii=0; ii<N; ii++) for(jj=0; jj<nx; jj++) hff[ii][jj] = -f[jj];
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) hqq[ii][jj] = q[jj];
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nx; jj++) hff[ii][jj] = f[jj];
 		for(ii=0; ii<=N; ii++) 
 			{
 			for(jj=0; jj<ny; jj++) y_temp[jj] = - r[jj];

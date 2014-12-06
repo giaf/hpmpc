@@ -296,6 +296,7 @@ void d_ric_trs_mhe_if(int nx, int nw, int N, double **hpALe, double **hpGLq, dou
 		for(jj=0; jj<nw; jj++) hw[ii][jj] = wx_temp[jj];
 		for(jj=0; jj<nx; jj++) hxp[ii+1][jj] = wx_temp[nw+jj];
 		//d_print_mat(1, nx, hxp[ii+1], 1);
+		//d_print_mat(1, nw, hw[ii], 1);
 	
 		//if(ii==1)
 		//return 0;
@@ -333,9 +334,9 @@ void d_ric_trs_mhe_if(int nx, int nw, int N, double **hpALe, double **hpGLq, dou
 		for(jj=0; jj<nx; jj++) hx[N-ii-1][jj] = x_temp[jj];
 
 		// compute w
-		for(jj=0; jj<nw; jj++) wx_temp[jj] = hw[N-ii-1][jj];
+		for(jj=0; jj<nw; jj++) wx_temp[jj] = -hw[N-ii-1][jj];
 		for(jj=0; jj<nx; jj++) wx_temp[nw+jj] = hlam[N-ii-1][jj];
-		dtrsv_dgemv_t_lib(nx, nw+nx, hpGLq[N-ii-1], cnw, wx_temp);
+		dtrsv_dgemv_t_lib(nw, nw+nx, hpGLq[N-ii-1], cnw, wx_temp);
 		for(jj=0; jj<nw; jj++) hw[N-ii-1][jj] = wx_temp[jj];
 
 		}

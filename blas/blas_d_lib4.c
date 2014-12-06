@@ -1332,7 +1332,8 @@ void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
 
 	int ii, jj;
 
-	for(jj=0; jj<m; jj+=4)
+	jj=0;
+	for(; jj<m-2; jj+=4)
 		{
 		// convert diagonal block
 		ptr = pA+jj*sda+jj*bs;
@@ -1351,6 +1352,19 @@ void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
 			kernel_dtrinv_4x4_lib4(jj-ii, &pC[ii*sdc+bs*ii], &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], fact);
 			}
 		corner_dtrinv_4x4_lib4(fact, pC+jj*sdc+jj*bs);
+		}
+	for(; jj<m; jj+=2)
+		{
+		// convert diagonal block
+		ptr = pA+jj*sda+jj*bs;
+		fact[0] = 1.0/ptr[0+bs*0];
+		fact[1] = ptr[1+bs*0];
+		fact[2] = 1.0/ptr[1+bs*1];
+		for(ii=0; ii<jj; ii+=4)
+			{
+			kernel_dtrinv_4x2_lib4(jj-ii, &pC[ii*sdc+bs*ii], &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], fact);
+			}
+		corner_dtrinv_2x2_lib4(fact, pC+jj*sdc+jj*bs);
 		}
 	
 	return;
