@@ -642,8 +642,8 @@ int main()
 			//if(ii==9)
 			//exit(1);
 			}
-		//d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLq, hrr, hqq, hff, hxp, hxe, hw, hlam, work3);
-		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 1, hlam, work);
+		d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLq, hrr, hqq, hff, hxp, hxe, hw, hlam, work3);
+		//d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 1, hlam, work);
 
 		//d_print_pmat(nx, nx, bs, hpALe[N-1], cnx2);
 		//d_print_pmat(nx, nx, bs, hpALe[N], cnx2);
