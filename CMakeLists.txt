@@ -59,7 +59,7 @@ ENDIF( )
 #
 ################################################################################
 
-SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -fPIC" )
+SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pedantic -Wfloat-equal -Wshadow -std=c99 -fPIC" )
 
 IF ( ${HPMPC_TARGET} STREQUAL "X64_AVX2" )
     ADD_DEFINITIONS( -DTARGET_X64_AVX2 )
