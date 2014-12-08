@@ -676,7 +676,9 @@ int main()
 		d_print_mat(nx, N+1, hr_res[0], anx);
 		d_print_mat(nw, N, hq_res[0], anw);
 		d_print_mat(nx, N, hf_res[0], anx);
-		exit(1);
+
+		return 0;
+		//exit(1);
 
 		if(PRINTRES)
 			{
