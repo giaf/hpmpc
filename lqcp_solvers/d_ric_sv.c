@@ -305,7 +305,9 @@ void d_ric_trs_mhe_if(int nx, int nw, int N, double **hpALe, double **hpGLq, dou
 
 	// compute - sigma !!! - !!!
 	for(jj=0; jj<nx; jj++) hx[N][jj] = - hr[N][jj];
+	//d_print_pmat(nx, nx, bs, hpALe[N], cnx2); 
 	//d_print_mat(1, nx, hx[N], 1);
+	//d_print_mat(1, nx, hxp[N], 1);
 	dtrmv_u_t_lib(nx, hpALe[N], cnx2, hxp[N], x_temp, 0); // L*(L'*b) + p
 	//d_print_mat(1, nx, x_temp, 1);
 	dtrmv_u_n_lib(nx, hpALe[N], cnx2, x_temp, hx[N], 1);

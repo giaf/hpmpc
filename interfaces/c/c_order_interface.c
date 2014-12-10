@@ -898,7 +898,7 @@ int c_order_riccati_mhe( const char prec, const int smooth,
                          double *A, double *G, double *C, double *f, 
                          double *Q, double *R, double *q, double *r, 
                          double *y, double *x0, double *L0,
-                         double *xe, double *Le, double *w,
+                         double *xe, double *Le, double *w, double *lam,
                          double *work0 )
 	{
 
@@ -1136,6 +1136,11 @@ int c_order_riccati_mhe( const char prec, const int smooth,
 			for(jj=0; jj<nw; jj++)
 				w[ii*nw+jj] = hw[ii][jj];
 			
+		// copy back mulipliers at all stages 0,1,...,N-1
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nx; jj++)
+				lam[ii*nx+jj] = hlam[ii][jj];
+
 		// copy back covariance at last stage
 		d_cvt_tran_pmat2mat(nx, nx, ny, bs, hpLe[N]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, Le, nx);
 
@@ -1154,16 +1159,22 @@ int c_order_riccati_mhe( const char prec, const int smooth,
 
 
 
-int c_order_riccati_mhe_if( char prec, int c_eye,
+int c_order_riccati_mhe_if( char prec, int alg,
                                   int nx, int nw, int ny, int N,
                                   double *A, double *G, double *C, double *f, 
                                   double *Q, double *R, double *q, double *r, 
                                   double *y, double *x0, double *L0,
-                                  double *xe, double *Le, double *w, 
+                                  double *xe, double *Le, double *w, double *lam,
                                   double *work0 )
 	{
 
 //	printf("\nenter wrapper\n");
+
+	if(alg!=0 && alg!=1 && alg!=2)
+		{
+		printf("\nUnsopported algorithm type: %d\n\n", alg);
+		return -2;
+		}
 
 	int hpmpc_status = 0;
 
@@ -1237,7 +1248,8 @@ int c_order_riccati_mhe_if( char prec, int c_eye,
 
 
 
-		if(c_eye!=1)
+		//if(1 || alg==0)
+		if(alg==0)
 			{
 			R_temp = ptr;
 			ptr += pny*cny;
@@ -1252,7 +1264,7 @@ int c_order_riccati_mhe_if( char prec, int c_eye,
 			hpQG[ii] = ptr;
 			ptr += pnwx*cnw;
 			d_cvt_tran_mat2pmat(nw, nw, 0, bs, Q+ii*nw*nw, nw, hpQG[ii], cnw);
-			d_cvt_tran_mat2pmat(nx, nw, nw, bs, G+ii*nx*nw, nx, hpQG[ii]+(nw/bs)*bs*cnw+nw%bs, cnw);
+			d_cvt_tran_mat2pmat(nw, nx, nw, bs, G+ii*nx*nw, nw, hpQG[ii]+(nw/bs)*bs*cnw+nw%bs, cnw);
 			}
 		//d_print_pmat(nx+nw, nw, bs, hpQG[0], cnw);
 
@@ -1260,16 +1272,23 @@ int c_order_riccati_mhe_if( char prec, int c_eye,
 			{
 			hpRA[ii] = ptr;
 			ptr += pnx2*cnx;
-			for(jj=0; jj<pnx*cnx; jj++) hpRA[ii][jj] = 0.0;
-			d_cvt_tran_mat2pmat(ny, ny, 0, bs, R+ii*ny*ny, ny, hpRA[ii], cnx);
+			if(alg==2)
+				{
+				d_cvt_tran_mat2pmat(nx, nx, 0, bs, R+ii*nx*nx, nx, hpRA[ii], cnx);
+				}
+			else // if(alg==0 || alg==1)
+				{
+				for(jj=0; jj<pnx*cnx; jj++) hpRA[ii][jj] = 0.0;
+				d_cvt_tran_mat2pmat(ny, ny, 0, bs, R+ii*ny*ny, ny, hpRA[ii], cnx);
+				}
 			d_cvt_tran_mat2pmat(nx, nx, nx, bs, A+ii*nx*nx, nx, hpRA[ii]+(nx/bs)*bs*cnx+nx%bs, cnx);
-			if(c_eye!=1)
+			if(alg==0)
 				{
 				hpCt[ii] = ptr;
 				ptr += pnx*cny;
-				d_cvt_mat2pmat(ny, nx, 0, bs, C+ii*ny*nx, ny, hpCt[ii], cny);
+				d_cvt_mat2pmat(nx, ny, 0, bs, C+ii*ny*nx, nx, hpCt[ii], cny);
 				dpotrf_lib(ny, ny, hpRA[ii], cnx, R_temp, cny, diag);
-				dtrtr_l_lib(ny, ny, R_temp, cny, R_temp, cny);	
+				dtrtr_l_lib(ny, 0, R_temp, cny, R_temp, cny);	
 				dtrmm_l_lib(nx, ny, hpCt[ii], cny, R_temp, cny, Ct_temp, cny);
 				dsyrk_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpRA[ii], cnx, hpRA[ii], cnx, 0);
 				//d_print_pmat(nx, nx, bs, hpRA[ii], cnx);
@@ -1278,20 +1297,27 @@ int c_order_riccati_mhe_if( char prec, int c_eye,
 			}
 		hpRA[N] = ptr;
 		ptr += pnx*cnx;
-		for(jj=0; jj<pnx*cnx; jj++) hpRA[N][jj] = 0.0;
-		if(c_eye!=1)
+		if(alg==2)
+			{
+			d_cvt_tran_mat2pmat(nx, nx, 0, bs, R+N*nx*nx, nx, hpRA[N], cnx);
+			}
+		else // if(alg==0 || alg==1)
+			{
+			for(jj=0; jj<pnx*cnx; jj++) hpRA[N][jj] = 0.0;
+			d_cvt_tran_mat2pmat(ny, ny, 0, bs, R+N*ny*ny, ny, hpRA[N], cnx);
+			}
+		if(alg==0)
 			{
 			hpCt[N] = ptr;
 			ptr += pnx*cny;
 			d_cvt_mat2pmat(ny, nx, 0, bs, C+N*ny*nx, ny, hpCt[N], cny);
 			dpotrf_lib(ny, ny, hpRA[N], cnx, R_temp, cny, diag);
-			dtrtr_l_lib(ny, ny, R_temp, cny, R_temp, cny);	
+			dtrtr_l_lib(ny, 0, R_temp, cny, R_temp, cny);	
 			dtrmm_l_lib(nx, ny, hpCt[N], cny, R_temp, cny, Ct_temp, cny);
 			dsyrk_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpRA[N], cnx, hpRA[N], cnx, 0);
 			//d_print_pmat(nx, nx, bs, hpRA[ii], cnx);
 			//return 0;
 			}
-		d_cvt_tran_mat2pmat(ny, ny, 0, bs, R+N*ny*ny, ny, hpRA[N], cnx);
 		//d_print_pmat(nx+nx, nx, bs, hpRA[0], cnx);
 		//d_print_pmat(nx, nx, bs, hpRA[N], cnx);
 
@@ -1326,34 +1352,51 @@ int c_order_riccati_mhe_if( char prec, int c_eye,
 			for(jj=0; jj<nw; jj++) hq[ii][jj] = q[ii*nw+jj];
 			}
 
-		for(ii=0; ii<=N; ii++)
+		if(alg==0 || alg==1)
 			{
-			hy[ii] = ptr;
-			ptr += any;
-			for(jj=0; jj<ny; jj++) hy[ii][jj] = y[ii*ny+jj];
+			for(ii=0; ii<=N; ii++)
+				{
+				hy[ii] = ptr;
+				ptr += any;
+				for(jj=0; jj<ny; jj++) hy[ii][jj] = y[ii*ny+jj];
+				}
 			}
 
-		r_temp = ptr;
-		ptr += any;
-		for(ii=0; ii<=N; ii++)
+		//d_print_mat(nx, N+1, hr[0], anx);
+		if(alg==2)
 			{
-			hr[ii] = ptr;
-			ptr += anx;
-			for(jj=0; jj<ny; jj++) r_temp[jj] = -r[ii*ny+jj];
-			//d_print_pmat(nx, nx, bs, hpRA[ii], cnx);
-			//d_print_mat(1, nx, r_temp, 1);
-			dsymv_lib(ny, ny, hpRA[ii], cnx, hy[ii], r_temp, -1);
-			//d_print_mat(1, nx, r_temp, 1);
-			if(c_eye!=1)
+			for(ii=0; ii<=N; ii++)
 				{
-				dgemv_n_lib(nx, ny, hpCt[ii], cny, r_temp, hr[ii], 0);
-				}
-			else
-				{
-				for(jj=0; jj<ny; jj++) hr[ii][jj] = r_temp[jj];
-				for( ; jj<nx; jj++) hr[ii][jj] = 0;
+				hr[ii] = ptr;
+				ptr += anx;
+				for(jj=0; jj<nx; jj++) hr[ii][jj] = r[ii*nx+jj];
 				}
 			}
+		else // if(alg==0 || alg==1)
+			{
+			r_temp = ptr;
+			ptr += any;
+			for(ii=0; ii<=N; ii++)
+				{
+				hr[ii] = ptr;
+				ptr += anx;
+				for(jj=0; jj<ny; jj++) r_temp[jj] = -r[ii*ny+jj];
+				//d_print_pmat(nx, nx, bs, hpRA[ii], cnx);
+				//d_print_mat(1, nx, r_temp, 1);
+				dsymv_lib(ny, ny, hpRA[ii], cnx, hy[ii], r_temp, -1);
+				//d_print_mat(1, nx, r_temp, 1);
+				if(alg==0)
+					{
+					dgemv_n_lib(nx, ny, hpCt[ii], cny, r_temp, hr[ii], 0);
+					}
+				else
+					{
+					for(jj=0; jj<ny; jj++) hr[ii][jj] = r_temp[jj];
+					for( ; jj<nx; jj++) hr[ii][jj] = 0;
+					}
+				}
+			}
+		//d_print_pmat(nx, ny, bs, hpCt[0], cny);
 		//d_print_mat(nx, N+1, hr[0], anx);
 
 		for(ii=0; ii<=N; ii++)
@@ -1394,7 +1437,7 @@ int c_order_riccati_mhe_if( char prec, int c_eye,
 
 
 
-		// copy back estimate and covariance at first stage (Extended Kalma Filter update of initial condition)
+		// copy back estimate and covariance at first stage (Extended Kalman Filter update of initial condition)
 		for(jj=0; jj<nx; jj++) x0[jj] = hxp[1][jj];
 
 		// save L0 for next step
@@ -1415,6 +1458,11 @@ int c_order_riccati_mhe_if( char prec, int c_eye,
 			for(jj=0; jj<nw; jj++)
 				w[ii*nw+jj] = hw[ii][jj];
 			
+		// copy back multipliers at all stages 0,1,...,N-1
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nx; jj++)
+				lam[ii*nx+jj] = hlam[ii][jj];
+
 		// copy back cholesky factor of information matrix at last stage
 		//d_print_pmat(pnx2, cnx2, bs, hpALe[N], cnx2);
 		d_cvt_tran_pmat2mat(nx, nx, 0, bs, hpALe[N]+cnx*bs, cnx2, Le, nx);
