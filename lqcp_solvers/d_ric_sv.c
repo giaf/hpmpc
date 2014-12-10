@@ -163,7 +163,7 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 
 
 // information filter version
-void d_ric_trf_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double **hpALe, double **hpGLq, double *work)
+int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double **hpALe, double **hpGLq, double *work)
 	{
 
 	const int bs = D_MR; //d_get_mr();
@@ -184,6 +184,9 @@ void d_ric_trf_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, doubl
 	const int pad = (ncl-(nx+nw)%ncl)%ncl; // packing
 	const int cnl = nx+nw+pad+cnx;
 
+	float diag_min;
+	diag_min = 1.0;
+
 	double *ptr;
 	ptr = work;
 
@@ -202,12 +205,17 @@ void d_ric_trf_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, doubl
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
 		// copy reciprocal of diagonal
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
-		for(jj=0; jj<nx; jj++) hpALe[ii][cnx*bs+(jj/bs)*bs*cnx2+jj%bs+jj*bs] = diag[jj]; 
+		for(jj=0; jj<nx; jj++) 
+			{
+			diag_min = fmin(diag_min, diag[jj]);
+			hpALe[ii][cnx*bs+(jj/bs)*bs*cnx2+jj%bs+jj*bs] = diag[jj]; 
+			}
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
 
 		dpotrf_lib(nwx, nw, hpQG[ii], cnw, hpGLq[ii], cnw, diag);
 		//d_print_pmat(nwx, nw, bs, hpGLq[0], cnw);
 		// copy reciprocal of diagonal
+
 		for(jj=0; jj<nw; jj++) hpGLq[ii][(jj/bs)*bs*cnw+jj%bs+jj*bs] = diag[jj]; 
 		//d_print_pmat(nwx, nw, bs, hpGLq[0], cnw);
 		//exit(1);
@@ -219,6 +227,13 @@ void d_ric_trf_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, doubl
 		dsyrk_dpotrf_dtrinv_lib(nx, nx, nwx, GLqALeLp, cnl, ptr, 0, hpALe[ii+1], cnx2, diag, 0);
 		//d_print_pmat(nx, cnl, bs, GLqALeLp, cnl);
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii+1], cnx2);
+		for(jj=0; jj<nx; jj++) 
+			{
+			diag_min = fmin(diag_min, diag[jj]);
+			}
+
+		if(diag_min==0.0)
+			return ii+1;
 
 		//if(ii==2)
 		//exit(1);
@@ -228,11 +243,18 @@ void d_ric_trf_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, doubl
 	dtsyrk_dpotrf_lib(nx, nx, nx, hpALe[N], cnx2, hpRA[N], cnx, diag, 1);
 	//d_print_pmat(nx, cnx2, bs, hpALe[ii], cnx2);
 	// copy reciprocal of diagonal
-	for(jj=0; jj<nx; jj++) hpALe[N][cnx*bs+(jj/bs)*bs*cnx2+jj%bs+jj*bs] = diag[jj]; 
+	for(jj=0; jj<nx; jj++) 
+		{
+		diag_min = fmin(diag_min, diag[jj]);
+		hpALe[N][cnx*bs+(jj/bs)*bs*cnx2+jj%bs+jj*bs] = diag[jj]; 
+		}
+
+	if(diag_min==0.0)
+		return ii+1;
 
 	//exit(1);
 
-	return;
+	return 0;
 
 	}
 

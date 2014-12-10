@@ -1430,7 +1430,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 
 
 		// factorize KKT matrix
-		d_ric_trf_mhe_if(nx, nw, N, hpRA, hpQG, hpALe, hpGLq, work);
+		hpmpc_status = d_ric_trf_mhe_if(nx, nw, N, hpRA, hpQG, hpALe, hpGLq, work);
 
 		// solve KKT system
 		d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLq, hr, hq, hf, hxp, hxe, hw, hlam, work);
