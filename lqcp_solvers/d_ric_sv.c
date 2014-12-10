@@ -490,10 +490,6 @@ int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, dou
 	for(jj=0; jj<ny; jj++) y_temp[jj] = - hy[N][jj];
 	//d_print_mat(1, nz, y_temp, 1);
 	
-	// copy xp
-	for(jj=0; jj<nx; jj++) y_temp[ny+jj] = hxp[N][jj];
-	//d_print_mat(1, nz, y_temp, 1);
-	
 	// compute y + R*r
 	dsymv_lib(ny, ny, hpR[N], cny, hr[N], y_temp, -1);
 	//d_print_mat(1, nz, y_temp, 1);
@@ -504,6 +500,10 @@ int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, dou
 
 	//d_print_pmat(nz, ny, bs, hpLe[N], cnf);
 
+	// copy xp
+	for(jj=0; jj<nx; jj++) y_temp[ny+jj] = hxp[N][jj];
+	//d_print_mat(1, nz, y_temp, 1);
+	
 	// compute xe
 	dtrsv_dgemv_n_lib(ny, ny+nx, hpLe[N], cnf, y_temp);
 	//d_print_mat(1, nz, y_temp, 1);
