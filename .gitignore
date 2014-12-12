@@ -169,3 +169,10 @@ install_manifest.txt
 
 ### Preconfigured target configuration file
 include/target.h
+
+# Octave
+octave-workspace
+*.mex
+
+# eps figures
+*.eps
