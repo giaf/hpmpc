@@ -163,7 +163,7 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 
 
 // information filter version
-int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double **hpALe, double **hpGLq, double *work)
+int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double **hpALe, double **hpGLr, double *work)
 	{
 
 	const int bs = D_MR; //d_get_mr();
@@ -190,7 +190,7 @@ int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double
 	double *ptr;
 	ptr = work;
 
-	double *GLqALeLp; GLqALeLp = ptr;
+	double *GLrALeLp; GLrALeLp = ptr;
 	ptr += pnx*cnl;
 
 	double *diag; diag = ptr;
@@ -200,8 +200,8 @@ int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double
 
 	for(ii=0; ii<N; ii++)
 		{
-		//d_print_pmat(2*nx, cnx, bs, hpRA[ii], cnx);
-		dtsyrk_dpotrf_lib(2*nx, nx, nx, hpALe[ii], cnx2, hpRA[ii], cnx, diag, 1);
+		//d_print_pmat(2*nx, cnx, bs, hpQA[ii], cnx);
+		dtsyrk_dpotrf_lib(2*nx, nx, nx, hpALe[ii], cnx2, hpQA[ii], cnx, diag, 1);
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
 		// copy reciprocal of diagonal
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
@@ -212,20 +212,20 @@ int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double
 			}
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
 
-		dpotrf_lib(nwx, nw, hpQG[ii], cnw, hpGLq[ii], cnw, diag);
-		//d_print_pmat(nwx, nw, bs, hpGLq[0], cnw);
-		// copy reciprocal of diagonal
+		dpotrf_lib(nwx, nw, hpRG[ii], cnw, hpGLr[ii], cnw, diag);
+		//d_print_pmat(nwx, nw, bs, hpGLr[0], cnw);
 
-		for(jj=0; jj<nw; jj++) hpGLq[ii][(jj/bs)*bs*cnw+jj%bs+jj*bs] = diag[jj]; 
-		//d_print_pmat(nwx, nw, bs, hpGLq[0], cnw);
+		// copy reciprocal of diagonal
+		for(jj=0; jj<nw; jj++) hpGLr[ii][(jj/bs)*bs*cnw+jj%bs+jj*bs] = diag[jj]; 
+		//d_print_pmat(nwx, nw, bs, hpGLr[0], cnw);
 		//exit(1);
 
-		d_align_pmat(nx, nw, nw, bs, hpGLq[ii], cnw, GLqALeLp, cnl);
-		d_align_pmat(nx, nx, nx, bs, hpALe[ii]+cnx*bs, cnx2, GLqALeLp+nw*bs, cnl);
-		//d_print_pmat(nx, cnl, bs, GLqALeLp, cnl);
+		d_align_pmat(nx, nw, nw, bs, hpGLr[ii], cnw, GLrALeLp, cnl);
+		d_align_pmat(nx, nx, nx, bs, hpALe[ii]+cnx*bs, cnx2, GLrALeLp+nw*bs, cnl);
+		//d_print_pmat(nx, cnl, bs, GLrALeLp, cnl);
 
-		dsyrk_dpotrf_dtrinv_lib(nx, nx, nwx, GLqALeLp, cnl, ptr, 0, hpALe[ii+1], cnx2, diag, 0);
-		//d_print_pmat(nx, cnl, bs, GLqALeLp, cnl);
+		dsyrk_dpotrf_dtrinv_lib(nx, nx, nwx, GLrALeLp, cnl, ptr, 0, hpALe[ii+1], cnx2, diag, 0);
+		//d_print_pmat(nx, cnl, bs, GLrALeLp, cnl);
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii+1], cnx2);
 		for(jj=0; jj<nx; jj++) 
 			{
@@ -239,8 +239,8 @@ int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double
 		//exit(1);
 		}
 
-	//d_print_pmat(nx, nx, bs, GLqALeLp+(nx+nw+pad)*bs, cnl);
-	dtsyrk_dpotrf_lib(nx, nx, nx, hpALe[N], cnx2, hpRA[N], cnx, diag, 1);
+	//d_print_pmat(nx, nx, bs, GLrALeLp+(nx+nw+pad)*bs, cnl);
+	dtsyrk_dpotrf_lib(nx, nx, nx, hpALe[N], cnx2, hpQA[N], cnx, diag, 1);
 	//d_print_pmat(nx, cnx2, bs, hpALe[ii], cnx2);
 	// copy reciprocal of diagonal
 	for(jj=0; jj<nx; jj++) 
@@ -261,7 +261,7 @@ int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpRA, double **hpQG, double
 
 
 // information filter version
-void d_ric_trs_mhe_if(int nx, int nw, int N, double **hpALe, double **hpGLq, double **hr, double **hq, double **hf, double **hxp, double **hx, double **hw, double **hlam, double *work)
+void d_ric_trs_mhe_if(int nx, int nw, int N, double **hpALe, double **hpGLr, double **hq, double **hr, double **hf, double **hxp, double **hx, double **hw, double **hlam, double *work)
 	{
 
 	//printf("\nin solver\n");
@@ -295,7 +295,7 @@ void d_ric_trs_mhe_if(int nx, int nw, int N, double **hpALe, double **hpGLq, dou
 		//printf("\nii = %d\n", ii);
 
 		// compute sigma
-		for(jj=0; jj<nx; jj++) hx[ii][jj] = hr[ii][jj];
+		for(jj=0; jj<nx; jj++) hx[ii][jj] = hq[ii][jj];
 		//d_print_mat(1, nx, hx[ii], 1);
 		//d_print_mat(1, nx, hxp[ii], 1);
 		//d_print_pmat(nx, nx, bs, hpALe[ii], cnx2); 
@@ -311,9 +311,9 @@ void d_ric_trs_mhe_if(int nx, int nw, int N, double **hpALe, double **hpGLq, dou
 		dtrsv_dgemv_n_lib(nx, 2*nx, hpALe[ii]+cnx*bs, cnx2, x_temp);
 		for(jj=0; jj<nx; jj++) hx[ii][jj] = - x_temp[jj]; // restore sign
 		//d_print_mat(1, 2*nx, x_temp, 1);
-		for(jj=0; jj<nw; jj++) wx_temp[jj] = hq[ii][jj];
+		for(jj=0; jj<nw; jj++) wx_temp[jj] = hr[ii][jj];
 		for(jj=0; jj<nx; jj++) wx_temp[nw+jj] = x_temp[nx+jj];
-		dtrsv_dgemv_n_lib(nw, nw+nx, hpGLq[ii], cnw, wx_temp);
+		dtrsv_dgemv_n_lib(nw, nw+nx, hpGLr[ii], cnw, wx_temp);
 		//d_print_mat(1, nw+nx, wx_temp, 1);
 		for(jj=0; jj<nw; jj++) hw[ii][jj] = wx_temp[jj];
 		for(jj=0; jj<nx; jj++) hxp[ii+1][jj] = wx_temp[nw+jj];
@@ -326,7 +326,7 @@ void d_ric_trs_mhe_if(int nx, int nw, int N, double **hpALe, double **hpGLq, dou
 		}
 
 	// compute - sigma !!! - !!!
-	for(jj=0; jj<nx; jj++) hx[N][jj] = - hr[N][jj];
+	for(jj=0; jj<nx; jj++) hx[N][jj] = - hq[N][jj];
 	//d_print_pmat(nx, nx, bs, hpALe[N], cnx2); 
 	//d_print_mat(1, nx, hx[N], 1);
 	//d_print_mat(1, nx, hxp[N], 1);
@@ -360,7 +360,7 @@ void d_ric_trs_mhe_if(int nx, int nw, int N, double **hpALe, double **hpGLq, dou
 		// compute w
 		for(jj=0; jj<nw; jj++) wx_temp[jj] = -hw[N-ii-1][jj];
 		for(jj=0; jj<nx; jj++) wx_temp[nw+jj] = hlam[N-ii-1][jj];
-		dtrsv_dgemv_t_lib(nw, nw+nx, hpGLq[N-ii-1], cnw, wx_temp);
+		dtrsv_dgemv_t_lib(nw, nw+nx, hpGLr[N-ii-1], cnw, wx_temp);
 		for(jj=0; jj<nw; jj++) hw[N-ii-1][jj] = wx_temp[jj];
 
 		}

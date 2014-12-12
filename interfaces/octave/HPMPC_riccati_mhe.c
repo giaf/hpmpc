@@ -49,7 +49,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	double *work = (double *) malloc( work_space_size * sizeof(double) );
 	
 	// call the solver
-	fortran_order_riccati_mhe( 'd', smooth, nx, nw, ny, N, A, G, C, f, Q, R, q, r, y, x0, L0, xe, Le, w, lam, work );
+	int hpmpc_status = fortran_order_riccati_mhe( 'd', smooth, nx, nw, ny, N, A, G, C, f, Q, R, q, r, y, x0, L0, xe, Le, w, lam, work );
 	//c_order_riccati_mhe( 'd', smooth, nx, nw, ny, N, A, G, C, f, Q, R, q, r, y, x0, L0, xe, Le, w, work );
 
 	free(work);

@@ -1162,7 +1162,7 @@ int c_order_riccati_mhe( const char prec, const int smooth,
 int c_order_riccati_mhe_if( char prec, int alg,
                                   int nx, int nw, int ny, int N,
                                   double *A, double *G, double *C, double *f, 
-                                  double *Q, double *R, double *q, double *r, 
+                                  double *R, double *Q, double *r, double *q, 
                                   double *y, double *x0, double *L0,
                                   double *xe, double *Le, double *w, double *lam,
                                   double *work0 )
@@ -1222,15 +1222,15 @@ int c_order_riccati_mhe_if( char prec, int alg,
 		//	ptr[ii] = 0.0;
 
 		/* array or pointers */
-		double *(hpQG[N]);
-		double *(hpRA[N+1]);
+		double *(hpRG[N]);
+		double *(hpQA[N+1]);
 		double *(hpCt[N+1]);
-		double *(hpGLq[N]);
+		double *(hpGLr[N]);
 		double *(hpALe[N+1]);
 
 		double *(hf[N]);
-		double *(hq[N]);
-		double *(hr[N+1]);
+		double *(hr[N]);
+		double *(hq[N+1]);
 		double *(hy[N+1]);
 		double *(hxe[N+1]);
 		double *(hxp[N+1]);
@@ -1238,8 +1238,8 @@ int c_order_riccati_mhe_if( char prec, int alg,
 		double *(hlam[N]);
 
 		double *pL0; 
-		double *R_temp;
-		double *r_temp;
+		double *Q_temp;
+		double *q_temp;
 		double *Ct_temp;
 		double *pL0_inv; 
 
@@ -1251,7 +1251,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 		//if(1 || alg==0)
 		if(alg==0)
 			{
-			R_temp = ptr;
+			Q_temp = ptr;
 			ptr += pny*cny;
 			Ct_temp = ptr;
 			ptr += pnx*cny;
@@ -1261,69 +1261,69 @@ int c_order_riccati_mhe_if( char prec, int alg,
 
 		for(ii=0; ii<N; ii++)
 			{
-			hpQG[ii] = ptr;
+			hpRG[ii] = ptr;
 			ptr += pnwx*cnw;
-			d_cvt_tran_mat2pmat(nw, nw, 0, bs, Q+ii*nw*nw, nw, hpQG[ii], cnw);
-			d_cvt_tran_mat2pmat(nw, nx, nw, bs, G+ii*nx*nw, nw, hpQG[ii]+(nw/bs)*bs*cnw+nw%bs, cnw);
+			d_cvt_tran_mat2pmat(nw, nw, 0, bs, R+ii*nw*nw, nw, hpRG[ii], cnw);
+			d_cvt_tran_mat2pmat(nw, nx, nw, bs, G+ii*nx*nw, nw, hpRG[ii]+(nw/bs)*bs*cnw+nw%bs, cnw);
 			}
 		//d_print_pmat(nx+nw, nw, bs, hpQG[0], cnw);
 
 		for(ii=0; ii<N; ii++)
 			{
-			hpRA[ii] = ptr;
+			hpQA[ii] = ptr;
 			ptr += pnx2*cnx;
 			if(alg==2)
 				{
-				d_cvt_tran_mat2pmat(nx, nx, 0, bs, R+ii*nx*nx, nx, hpRA[ii], cnx);
+				d_cvt_tran_mat2pmat(nx, nx, 0, bs, Q+ii*nx*nx, nx, hpQA[ii], cnx);
 				}
 			else // if(alg==0 || alg==1)
 				{
-				for(jj=0; jj<pnx*cnx; jj++) hpRA[ii][jj] = 0.0;
-				d_cvt_tran_mat2pmat(ny, ny, 0, bs, R+ii*ny*ny, ny, hpRA[ii], cnx);
+				for(jj=0; jj<pnx*cnx; jj++) hpQA[ii][jj] = 0.0;
+				d_cvt_tran_mat2pmat(ny, ny, 0, bs, Q+ii*ny*ny, ny, hpQA[ii], cnx);
 				}
-			d_cvt_tran_mat2pmat(nx, nx, nx, bs, A+ii*nx*nx, nx, hpRA[ii]+(nx/bs)*bs*cnx+nx%bs, cnx);
+			d_cvt_tran_mat2pmat(nx, nx, nx, bs, A+ii*nx*nx, nx, hpQA[ii]+(nx/bs)*bs*cnx+nx%bs, cnx);
 			if(alg==0)
 				{
 				hpCt[ii] = ptr;
 				ptr += pnx*cny;
 				d_cvt_mat2pmat(nx, ny, 0, bs, C+ii*ny*nx, nx, hpCt[ii], cny);
-				dpotrf_lib(ny, ny, hpRA[ii], cnx, R_temp, cny, diag);
-				dtrtr_l_lib(ny, 0, R_temp, cny, R_temp, cny);	
-				dtrmm_l_lib(nx, ny, hpCt[ii], cny, R_temp, cny, Ct_temp, cny);
-				dsyrk_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpRA[ii], cnx, hpRA[ii], cnx, 0);
-				//d_print_pmat(nx, nx, bs, hpRA[ii], cnx);
+				dpotrf_lib(ny, ny, hpQA[ii], cnx, Q_temp, cny, diag);
+				dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
+				dtrmm_l_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
+				dsyrk_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQA[ii], cnx, hpQA[ii], cnx, 0);
+				//d_print_pmat(nx, nx, bs, hpQA[ii], cnx);
 				//return 0;
 				}
 			}
-		hpRA[N] = ptr;
+		hpQA[N] = ptr;
 		ptr += pnx*cnx;
 		if(alg==2)
 			{
-			d_cvt_tran_mat2pmat(nx, nx, 0, bs, R+N*nx*nx, nx, hpRA[N], cnx);
+			d_cvt_tran_mat2pmat(nx, nx, 0, bs, Q+N*nx*nx, nx, hpQA[N], cnx);
 			}
 		else // if(alg==0 || alg==1)
 			{
-			for(jj=0; jj<pnx*cnx; jj++) hpRA[N][jj] = 0.0;
-			d_cvt_tran_mat2pmat(ny, ny, 0, bs, R+N*ny*ny, ny, hpRA[N], cnx);
+			for(jj=0; jj<pnx*cnx; jj++) hpQA[N][jj] = 0.0;
+			d_cvt_tran_mat2pmat(ny, ny, 0, bs, Q+N*ny*ny, ny, hpQA[N], cnx);
 			}
 		if(alg==0)
 			{
 			hpCt[N] = ptr;
 			ptr += pnx*cny;
 			d_cvt_mat2pmat(ny, nx, 0, bs, C+N*ny*nx, ny, hpCt[N], cny);
-			dpotrf_lib(ny, ny, hpRA[N], cnx, R_temp, cny, diag);
-			dtrtr_l_lib(ny, 0, R_temp, cny, R_temp, cny);	
-			dtrmm_l_lib(nx, ny, hpCt[N], cny, R_temp, cny, Ct_temp, cny);
-			dsyrk_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpRA[N], cnx, hpRA[N], cnx, 0);
-			//d_print_pmat(nx, nx, bs, hpRA[ii], cnx);
+			dpotrf_lib(ny, ny, hpQA[N], cnx, Q_temp, cny, diag);
+			dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
+			dtrmm_l_lib(nx, ny, hpCt[N], cny, Q_temp, cny, Ct_temp, cny);
+			dsyrk_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQA[N], cnx, hpQA[N], cnx, 0);
+			//d_print_pmat(nx, nx, bs, hpQA[ii], cnx);
 			//return 0;
 			}
-		//d_print_pmat(nx+nx, nx, bs, hpRA[0], cnx);
-		//d_print_pmat(nx, nx, bs, hpRA[N], cnx);
+		//d_print_pmat(nx+nx, nx, bs, hpQA[0], cnx);
+		//d_print_pmat(nx, nx, bs, hpQA[N], cnx);
 
 		for(ii=0; ii<N; ii++)
 			{
-			hpGLq[ii] = ptr;
+			hpGLr[ii] = ptr;
 			ptr += pnwx*cnw;
 			}
 
@@ -1347,9 +1347,9 @@ int c_order_riccati_mhe_if( char prec, int alg,
 
 		for(ii=0; ii<N; ii++)
 			{
-			hq[ii] = ptr;
+			hr[ii] = ptr;
 			ptr += anw;
-			for(jj=0; jj<nw; jj++) hq[ii][jj] = q[ii*nw+jj];
+			for(jj=0; jj<nw; jj++) hr[ii][jj] = r[ii*nw+jj];
 			}
 
 		if(alg==0 || alg==1)
@@ -1367,37 +1367,37 @@ int c_order_riccati_mhe_if( char prec, int alg,
 			{
 			for(ii=0; ii<=N; ii++)
 				{
-				hr[ii] = ptr;
+				hq[ii] = ptr;
 				ptr += anx;
-				for(jj=0; jj<nx; jj++) hr[ii][jj] = r[ii*nx+jj];
+				for(jj=0; jj<nx; jj++) hq[ii][jj] = q[ii*nx+jj];
 				}
 			}
 		else // if(alg==0 || alg==1)
 			{
-			r_temp = ptr;
+			q_temp = ptr;
 			ptr += any;
 			for(ii=0; ii<=N; ii++)
 				{
-				hr[ii] = ptr;
+				hq[ii] = ptr;
 				ptr += anx;
-				for(jj=0; jj<ny; jj++) r_temp[jj] = -r[ii*ny+jj];
-				//d_print_pmat(nx, nx, bs, hpRA[ii], cnx);
-				//d_print_mat(1, nx, r_temp, 1);
-				dsymv_lib(ny, ny, hpRA[ii], cnx, hy[ii], r_temp, -1);
-				//d_print_mat(1, nx, r_temp, 1);
+				for(jj=0; jj<ny; jj++) q_temp[jj] = - q[ii*ny+jj];
+				//d_print_pmat(nx, nx, bs, hpQA[ii], cnx);
+				//d_print_mat(1, nx, q_temp, 1);
+				dsymv_lib(ny, ny, hpQA[ii], cnx, hy[ii], q_temp, -1);
+				//d_print_mat(1, nx, q_temp, 1);
 				if(alg==0)
 					{
-					dgemv_n_lib(nx, ny, hpCt[ii], cny, r_temp, hr[ii], 0);
+					dgemv_n_lib(nx, ny, hpCt[ii], cny, q_temp, hq[ii], 0);
 					}
 				else
 					{
-					for(jj=0; jj<ny; jj++) hr[ii][jj] = r_temp[jj];
-					for( ; jj<nx; jj++) hr[ii][jj] = 0;
+					for(jj=0; jj<ny; jj++) hq[ii][jj] = q_temp[jj];
+					for( ; jj<nx; jj++) hq[ii][jj] = 0;
 					}
 				}
 			}
 		//d_print_pmat(nx, ny, bs, hpCt[0], cny);
-		//d_print_mat(nx, N+1, hr[0], anx);
+		//d_print_mat(nx, N+1, hq[0], anx);
 
 		for(ii=0; ii<=N; ii++)
 			{
@@ -1430,10 +1430,10 @@ int c_order_riccati_mhe_if( char prec, int alg,
 
 
 		// factorize KKT matrix
-		hpmpc_status = d_ric_trf_mhe_if(nx, nw, N, hpRA, hpQG, hpALe, hpGLq, work);
+		hpmpc_status = d_ric_trf_mhe_if(nx, nw, N, hpQA, hpRG, hpALe, hpGLr, work);
 
 		// solve KKT system
-		d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLq, hr, hq, hf, hxp, hxe, hw, hlam, work);
+		d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLr, hq, hr, hf, hxp, hxe, hw, hlam, work);
 
 
 

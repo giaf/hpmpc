@@ -21,7 +21,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 		
 	// get data 
-	double *A, *G, *C, *f, *Q, *R, *q, *r, *y, *x0, *L0, *xe, *Le, *w, *lam;
+	double *A, *G, *C, *f, *R, *Q, *r, *q, *y, *x0, *L0, *xe, *Le, *w, *lam;
 	
 	const int alg = (int) mxGetScalar(prhs[0]);
 	const int nx = (int) mxGetScalar(prhs[1]);
@@ -33,10 +33,10 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	G = mxGetPr(prhs[6]);
 	C = mxGetPr(prhs[7]);
 	f = mxGetPr(prhs[8]);
-	Q = mxGetPr(prhs[9]);
-	R = mxGetPr(prhs[10]);
-	q = mxGetPr(prhs[11]);
-	r = mxGetPr(prhs[12]);
+	R = mxGetPr(prhs[9]);
+	Q = mxGetPr(prhs[10]);
+	r = mxGetPr(prhs[11]);
+	q = mxGetPr(prhs[12]);
 	y = mxGetPr(prhs[13]);
 	x0 = mxGetPr(prhs[14]);
 	L0 = mxGetPr(prhs[15]);
@@ -54,8 +54,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 //		work[ii] = 0;
 	
 	// call the solver
-	fortran_order_riccati_mhe_if( 'd', alg, nx, nw, ny, N, A, G, C, f, Q, R, q, r, y, x0, L0, xe, Le, w, lam, work);
-	//c_order_riccati_mhe( 'd', smooth, nx, nw, ny, N, A, G, C, f, Q, R, q, r, y, x0, L0, xe, Le, w, work );
+	int hpmpc_status = fortran_order_riccati_mhe_if( 'd', alg, nx, nw, ny, N, A, G, C, f, R, Q, r, q, y, x0, L0, xe, Le, w, lam, work);
+	//int hpmpc_status = c_order_riccati_mhe_if( 'd', alg, nx, nw, ny, N, A, G, C, f, R, Q, r, q, y, x0, L0, xe, Le, w, lam, work);
 
 	free(work);
 
