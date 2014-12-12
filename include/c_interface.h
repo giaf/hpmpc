@@ -90,6 +90,7 @@
 #define HPMPC_RIC_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 2*S_ANZ + 2*S_ANX) + 3*S_ANZ)
 // Riccati-based solver for unconstrained MHE, double precision
 #define HPMPC_RIC_MHE_DP_WORK_SPACE (8 + (NN+1)*(D_PNX*D_CNX+D_PNX*D_CNW+D_PNY*D_CNX+5*D_ANX+D_PNW*D_CNW+D_PNY*D_CNY+2*D_ANW+2*D_ANY+D_PNX*D_CNJ+D_PNT*D_CNF) + 2*D_PNY*D_CNX+D_PNT*D_CNT+D_ANT+D_PNW*D_CNW+D_PNX*D_CNX)
+// Riccati-based solver for unconstrained MHE, Information Filter version, double precision
 #define HPMPC_RIC_MHE_IF_DP_WORK_SPACE (8 + (NN+1)*(PNWX*CNW+PNX2*CNX+PNWX*CNW+PNX2*CNX2+PNX*CNY+2*ANW+ANY+5*ANX) + 2*PNX*CNX+PNX*CNJ+ANX+PNY*CNY+PNX*CNY+ANX)
 
 // work space: dynamic definition as function return value
