@@ -242,7 +242,7 @@ int c_order_riccati_mpc( const char prec, const int nx, const int nu, const int 
 
 int c_order_riccati_mhe( const char prec, const int smooth, const int nx, const int nw, const int ny, const int N, double *A, double *G, double *C, double *f, double *Q, double *R, double *q, double *r, double *y, double *x0, double *L0, double *xe, double *Le, double *w, double *lam, double *work0 );
 
-int c_order_riccati_mhe_if( char prec, int alg, int nx, int nw, int ny, int N, double *A, double *G, double *C, double *f, double *R, double *Q, double *r, double *q, double *y, double *x0, double *L0, double *xe, double *Le, double *w, double *lam, double *work0 );
+int c_order_riccati_mhe_if( char prec, int alg, int nx, int nw, int ny, int N, double *A, double *G, double *C, double *f, double *R, double *Q, double *Qf, double *r, double *q, double *qf, double *y, double *x0, double *L0, double *xe, double *Le, double *w, double *lam, double *work0 );
 
 
 
@@ -253,4 +253,4 @@ int fortran_order_riccati_mpc( const char prec, const int nx, const int nu, cons
 
 int fortran_order_riccati_mhe( const char prec, const int smooth, const int nx, const int nw, const int ny, const int N, double *A, double *G, double *C, double *f, double *Q, double *R, double *q, double *r, double *y, double *x0, double *L0, double *xe, double *Le, double *w, double *lam, double *work0 );
 
-int fortran_order_riccati_mhe_if( char prec, int alg, int nx, int nw, int ny, int N, double *A, double *G, double *C, double *f, double *R, double *Q, double *r, double *q, double *y, double *x0, double *L0, double *xe, double *Le, double *w, double *lam, double *work0 );
+int fortran_order_riccati_mhe_if( char prec, int alg, int nx, int nw, int ny, int N, double *A, double *G, double *C, double *f, double *R, double *Q, double *Qf, double *r, double *q, double *qf, double *y, double *x0, double *L0, double *xe, double *Le, double *w, double *lam, double *work0 );

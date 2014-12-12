@@ -1162,7 +1162,7 @@ int c_order_riccati_mhe( const char prec, const int smooth,
 int c_order_riccati_mhe_if( char prec, int alg,
                                   int nx, int nw, int ny, int N,
                                   double *A, double *G, double *C, double *f, 
-                                  double *R, double *Q, double *r, double *q, 
+                                  double *R, double *Q, double *Qf, double *r, double *q, double *qf,
                                   double *y, double *x0, double *L0,
                                   double *xe, double *Le, double *w, double *lam,
                                   double *work0 )
@@ -1299,12 +1299,14 @@ int c_order_riccati_mhe_if( char prec, int alg,
 		ptr += pnx*cnx;
 		if(alg==2)
 			{
-			d_cvt_tran_mat2pmat(nx, nx, 0, bs, Q+N*nx*nx, nx, hpQA[N], cnx);
+			//d_cvt_tran_mat2pmat(nx, nx, 0, bs, Q+N*nx*nx, nx, hpQA[N], cnx);
+			d_cvt_tran_mat2pmat(nx, nx, 0, bs, Qf, nx, hpQA[N], cnx);
 			}
 		else // if(alg==0 || alg==1)
 			{
 			for(jj=0; jj<pnx*cnx; jj++) hpQA[N][jj] = 0.0;
-			d_cvt_tran_mat2pmat(ny, ny, 0, bs, Q+N*ny*ny, ny, hpQA[N], cnx);
+			//d_cvt_tran_mat2pmat(ny, ny, 0, bs, Q+N*ny*ny, ny, hpQA[N], cnx);
+			d_cvt_tran_mat2pmat(ny, ny, 0, bs, Qf, ny, hpQA[N], cnx);
 			}
 		if(alg==0)
 			{
@@ -1365,17 +1367,22 @@ int c_order_riccati_mhe_if( char prec, int alg,
 		//d_print_mat(nx, N+1, hr[0], anx);
 		if(alg==2)
 			{
-			for(ii=0; ii<=N; ii++)
+			//for(ii=0; ii<=N; ii++)
+			for(ii=0; ii<N; ii++)
 				{
 				hq[ii] = ptr;
 				ptr += anx;
 				for(jj=0; jj<nx; jj++) hq[ii][jj] = q[ii*nx+jj];
 				}
+			hq[N] = ptr;
+			ptr += anx;
+			for(jj=0; jj<nx; jj++) hq[N][jj] = qf[jj];
 			}
 		else // if(alg==0 || alg==1)
 			{
 			q_temp = ptr;
 			ptr += any;
+			//for(ii=0; ii<=N; ii++)
 			for(ii=0; ii<=N; ii++)
 				{
 				hq[ii] = ptr;
@@ -1394,6 +1401,22 @@ int c_order_riccati_mhe_if( char prec, int alg,
 					for(jj=0; jj<ny; jj++) hq[ii][jj] = q_temp[jj];
 					for( ; jj<nx; jj++) hq[ii][jj] = 0;
 					}
+				}
+			hq[N] = ptr;
+			ptr += anx;
+			for(jj=0; jj<ny; jj++) q_temp[jj] = - qf[jj];
+			//d_print_pmat(nx, nx, bs, hpQA[ii], cnx);
+			//d_print_mat(1, nx, q_temp, 1);
+			dsymv_lib(ny, ny, hpQA[N], cnx, hy[N], q_temp, -1);
+			//d_print_mat(1, nx, q_temp, 1);
+			if(alg==0)
+				{
+				dgemv_n_lib(nx, ny, hpCt[N], cny, q_temp, hq[N], 0);
+				}
+			else
+				{
+				for(jj=0; jj<ny; jj++) hq[N][jj] = q_temp[jj];
+				for( ; jj<nx; jj++) hq[N][jj] = 0;
 				}
 			}
 		//d_print_pmat(nx, ny, bs, hpCt[0], cny);
