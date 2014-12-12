@@ -52,13 +52,17 @@
 #define D_CNT (D_NCL*((NT+D_NCL-1)/D_NCL))
 #define D_CNW (D_NCL*((NW+D_NCL-1)/D_NCL))
 #define D_CNX (D_NCL*((NX+D_NCL-1)/D_NCL))
+#define D_CNY (D_NCL*((NY+D_NCL-1)/D_NCL))
 #define D_CNZ (D_NCL*((NZ+D_NCL-1)/D_NCL))
+#define D_CNX2 (2*D_NCL*((NX+D_NCL-1)/D_NCL))
 #define D_PNB (D_MR*((2*NB+D_MR-1)/D_MR))
 #define D_PNT (D_MR*((NT+D_MR-1)/D_MR))
 #define D_PNW (D_MR*((NW+D_MR-1)/D_MR))
 #define D_PNX (D_MR*((NX+D_MR-1)/D_MR))
 #define D_PNY (D_MR*((NY+D_MR-1)/D_MR))
 #define D_PNZ (D_MR*((NZ+D_MR-1)/D_MR))
+#define D_PNX2 (D_MR*((NX+NX+D_MR-1)/D_MR))
+#define D_PNWX (D_MR*((NW+NX+D_MR-1)/D_MR))
 // single precision constants
 #define S_NAL (S_MR*S_NCL)
 #define S_PADX ((S_NCL-NX%S_NCL)%S_NCL) // padding between BAbtL & P
@@ -86,7 +90,7 @@
 #define HPMPC_RIC_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 2*S_ANZ + 2*S_ANX) + 3*S_ANZ)
 // Riccati-based solver for unconstrained MHE, double precision
 #define HPMPC_RIC_MHE_DP_WORK_SPACE (8 + (NN+1)*(D_PNX*D_CNX+D_PNX*D_CNW+D_PNY*D_CNX+5*D_ANX+D_PNW*D_CNW+D_PNY*D_CNY+2*D_ANW+2*D_ANY+D_PNX*D_CNJ+D_PNT*D_CNF) + 2*D_PNY*D_CNX+D_PNT*D_CNT+D_ANT+D_PNW*D_CNW+D_PNX*D_CNX)
-
+#define HPMPC_RIC_MHE_IF_DP_WORK_SPACE (8 + (NN+1)*(PNWX*CNW+PNX2*CNX+PNWX*CNW+PNX2*CNX2+PNX*CNY+2*ANW+ANY+5*ANX) + 2*PNX*CNX+PNX*CNJ+ANX+PNY*CNY+PNX*CNY+ANX)
 
 // work space: dynamic definition as function return value
 
