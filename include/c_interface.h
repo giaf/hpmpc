@@ -96,7 +96,8 @@
 // work space: dynamic definition as function return value
 
 // Riccati-based IP method for box-constrained MPC, double precision
-int hpmpc_ip_mpc_dp_work_space(int nx, int nu, int N)
+int hpmpc_ip_mpc_dp_work_space(int nx, int nu, int N);
+#if 0
 	{
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
@@ -116,9 +117,11 @@ int hpmpc_ip_mpc_dp_work_space(int nx, int nu, int N)
 
 	return work_space_size;
 	}
+#endif
 
 // Riccati-based IP method for box-constrained MPC, single precision
-int hpmpc_ip_mpc_sp_work_space(int nx, int nu, int N)
+int hpmpc_ip_mpc_sp_work_space(int nx, int nu, int N);
+#if 0
 	{
 	const int bs = S_MR; //d_get_mr();
 	const int ncl = S_NCL;
@@ -138,9 +141,11 @@ int hpmpc_ip_mpc_sp_work_space(int nx, int nu, int N)
 
 	return work_space_size;
 	}
+#endif
     
 // Riccati-based solver for unconstrained MPC, double precision
-int hpmpc_ric_mpc_dp_work_space(int nx, int nu, int N)
+int hpmpc_ric_mpc_dp_work_space(int nx, int nu, int N);
+#if 0
 	{
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
@@ -158,9 +163,11 @@ int hpmpc_ric_mpc_dp_work_space(int nx, int nu, int N)
 
 	return work_space_size;
 	}
+#endif
 
 // Riccati-based solver for unconstrained MPC, single precision
-int hpmpc_ric_mpc_sp_work_space(int nx, int nu, int N)
+int hpmpc_ric_mpc_sp_work_space(int nx, int nu, int N);
+#if 0
 	{
 	const int bs = S_MR; //d_get_mr();
 	const int ncl = S_NCL;
@@ -178,9 +185,11 @@ int hpmpc_ric_mpc_sp_work_space(int nx, int nu, int N)
 
 	return work_space_size;
 	}
+#endif
 
 // Riccati-based solver for unconstrained MHE, covariance filter version, double precision
-int hpmpc_ric_mhe_dp_work_space(int nx, int nw, int ny, int N)
+int hpmpc_ric_mhe_dp_work_space(int nx, int nw, int ny, int N);
+#if 0
 	{
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
@@ -206,9 +215,11 @@ int hpmpc_ric_mhe_dp_work_space(int nx, int nw, int ny, int N)
 
 	return work_space_size;
 	}
+#endif
 
 // Riccati-based solver for unconstrained MHE, information filter version, double precision
-int hpmpc_ric_mhe_if_dp_work_space(int nx, int nw, int ny, int N)
+int hpmpc_ric_mhe_if_dp_work_space(int nx, int nw, int ny, int N);
+#if 0
 	{
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
@@ -232,6 +243,7 @@ int hpmpc_ric_mhe_if_dp_work_space(int nx, int nw, int ny, int N)
 
 	return work_space_size;
 	}
+#endif
 
 
 
