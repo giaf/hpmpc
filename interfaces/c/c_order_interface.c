@@ -1238,10 +1238,10 @@ int c_order_riccati_mhe_if( char prec, int alg,
 		double *(hlam[N]);
 
 		double *pL0; 
+		double *pL0_inv;
 		double *Q_temp;
 		double *q_temp;
 		double *Ct_temp;
-		double *pL0_inv; 
 
 		double *diag;
 		double *work;
@@ -1457,6 +1457,49 @@ int c_order_riccati_mhe_if( char prec, int alg,
 
 		// solve KKT system
 		d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLr, hq, hr, hf, hxp, hxe, hw, hlam, work);
+
+
+
+		// residuals computation
+		#ifdef DEBUG_MODE
+		printf("\nstart of print residuals\n\n");
+		double *(hq_res[N+1]);
+		double *(hr_res[N]);
+		double *(hf_res[N]);
+		double *p_hq_res; d_zeros_align(&p_hq_res, anx, N+1);
+		double *p_hr_res; d_zeros_align(&p_hr_res, anw, N);
+		double *p_hf_res; d_zeros_align(&p_hf_res, anx, N);
+
+		for(jj=0; jj<N; jj++)
+			{
+			hq_res[jj] = p_hq_res+jj*anx;
+			hr_res[jj] = p_hr_res+jj*anw;
+			hf_res[jj] = p_hf_res+jj*anx;
+			}
+		hq_res[N] = p_hq_res+N*anx;
+
+		//double *pL0_inv; d_zeros_align(&pL0_inv, pnx, cnx);
+		dtrinv_lib(nx, pL0, cnx, pL0_inv, cnx);
+
+		double *p0; d_zeros_align(&p0, anx, 1);
+		double *x_temp; d_zeros_align(&x_temp, anx, 1);
+		dtrmv_u_t_lib(nx, pL0_inv, cnx, x0, x_temp, 0);
+		dtrmv_u_n_lib(nx, pL0_inv, cnx, x_temp, p0, 0);
+
+		d_res_mhe_if(nx, nw, N, hpQA, hpRG, pL0_inv, hq, hr, hf, p0, hxe, hw, hlam, hq_res, hr_res, hf_res, work);
+
+		d_print_mat(nx, N+1, hq_res[0], anx);
+		d_print_mat(nw, N, hr_res[0], anw);
+		d_print_mat(nx, N, hf_res[0], anx);
+
+		free(p_hq_res);
+		free(p_hr_res);
+		free(p_hf_res);
+		free(pL0_inv);
+		free(p0);
+		free(x_temp);
+		printf("\nend of print residuals\n\n");
+		#endif
 
 
 
