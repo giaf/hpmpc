@@ -1482,6 +1482,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 
 
 		// residuals computation
+		//#if 1
 		#ifdef DEBUG_MODE
 		printf("\nstart of print residuals\n\n");
 		double *(hq_res[N+1]);
@@ -1499,15 +1500,15 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 			}
 		hq_res[N] = p_hq_res+N*anx;
 
-		//double *pL0_inv; d_zeros_align(&pL0_inv, pnx, cnx);
-		dtrinv_lib(nx, pL0, cnx, pL0_inv, cnx);
+		double *pL0_inv2; d_zeros_align(&pL0_inv2, pnx, cnx);
+		dtrinv_lib(nx, pL0, cnx, pL0_inv2, cnx);
 
 		double *p0; d_zeros_align(&p0, anx, 1);
 		double *x_temp; d_zeros_align(&x_temp, anx, 1);
-		dtrmv_u_t_lib(nx, pL0_inv, cnx, x0, x_temp, 0);
-		dtrmv_u_n_lib(nx, pL0_inv, cnx, x_temp, p0, 0);
+		dtrmv_u_t_lib(nx, pL0_inv2, cnx, x0, x_temp, 0);
+		dtrmv_u_n_lib(nx, pL0_inv2, cnx, x_temp, p0, 0);
 
-		d_res_mhe_if(nx, nw, N, hpQA, hpRG, pL0_inv, hq, hr, hf, p0, hxe, hw, hlam, hq_res, hr_res, hf_res, work);
+		d_res_mhe_if(nx, nw, N, hpQA, hpRG, pL0_inv2, hq, hr, hf, p0, hxe, hw, hlam, hq_res, hr_res, hf_res, work);
 
 		d_print_mat(nx, N+1, hq_res[0], anx);
 		d_print_mat(nw, N, hr_res[0], anw);
@@ -1516,7 +1517,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 		free(p_hq_res);
 		free(p_hr_res);
 		free(p_hf_res);
-		free(pL0_inv);
+		free(pL0_inv2);
 		free(p0);
 		free(x_temp);
 		printf("\nend of print residuals\n\n");
