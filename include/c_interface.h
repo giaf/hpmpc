@@ -47,7 +47,7 @@
 #define D_ANY (D_NAL*((NY+D_NAL-1)/(D_NAL)))
 #define D_ANZ (D_NAL*((NZ+D_NAL-1)/(D_NAL)))
 #define D_CNF (D_CNT<D_CNX+D_NCL ? D_CNX+D_NCL : D_CNT)
-#define D_CNJ (NX+NW+D_PADNX+D_CNX)
+#define D_CNJ (NX+NW+D_PADXW+D_CNX)
 #define D_CNL (D_CNZ<D_CNX+D_NCL ? NX+D_PADX+D_CNX+D_NCL : NX+D_PADX+D_CNZ)
 #define D_CNT (D_NCL*((NT+D_NCL-1)/D_NCL))
 #define D_CNW (D_NCL*((NW+D_NCL-1)/D_NCL))
