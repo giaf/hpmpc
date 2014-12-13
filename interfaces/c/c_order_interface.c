@@ -1312,7 +1312,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 			{
 			hpCt[N] = ptr;
 			ptr += pnx*cny;
-			d_cvt_mat2pmat(ny, nx, 0, bs, C+N*ny*nx, ny, hpCt[N], cny);
+			d_cvt_mat2pmat(nx, ny, 0, bs, C+N*ny*nx, nx, hpCt[N], cny);
 			dpotrf_lib(ny, ny, hpQA[N], cnx, Q_temp, cny, diag);
 			dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
 			dtrmm_l_lib(nx, ny, hpCt[N], cny, Q_temp, cny, Ct_temp, cny);
