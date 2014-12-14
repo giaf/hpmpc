@@ -29,7 +29,7 @@
 
 
 // MPC problem: define NX (state dimension), NU (input dimension), NN (horizon length)
-// MHE problem: define NX (state dimension), NW (process disturbance dimension), NY (measurement dimension), NN (horizon length)
+// MHE problem: define NX (state dimension), NU (process disturbance dimension), NY (measurement dimension), NN (horizon length)
 
 
 // define common quantities
@@ -39,30 +39,30 @@
 // double precision constants
 #define D_NAL (D_MR*D_NCL)
 #define D_PADX ((D_NCL-NX%D_NCL)%D_NCL) // padding after nx
-#define D_PADXW ((D_NCL-(NX+NW)%D_NCL)%D_NCL) // padding after (nx+nw)
+#define D_PADXU ((D_NCL-(NX+NU)%D_NCL)%D_NCL) // padding after (nx+nw)
 #define D_ANB (D_NAL*((2*NB+D_NAL-1)/(D_NAL)))
 #define D_ANT (D_NAL*((NT+D_NAL-1)/(D_NAL)))
-#define D_ANW (D_NAL*((NW+D_NAL-1)/(D_NAL)))
+#define D_ANU (D_NAL*((NU+D_NAL-1)/(D_NAL)))
 #define D_ANX (D_NAL*((NX+D_NAL-1)/(D_NAL)))
 #define D_ANY (D_NAL*((NY+D_NAL-1)/(D_NAL)))
 #define D_ANZ (D_NAL*((NZ+D_NAL-1)/(D_NAL)))
 #define D_CNF (D_CNT<D_CNX+D_NCL ? D_CNX+D_NCL : D_CNT)
-#define D_CNJ (NX+NW+D_PADXW+D_CNX)
+#define D_CNJ (NX+NU+D_PADXU+D_CNX)
 #define D_CNL (D_CNZ<D_CNX+D_NCL ? NX+D_PADX+D_CNX+D_NCL : NX+D_PADX+D_CNZ)
 #define D_CNT (D_NCL*((NT+D_NCL-1)/D_NCL))
-#define D_CNW (D_NCL*((NW+D_NCL-1)/D_NCL))
+#define D_CNU (D_NCL*((NU+D_NCL-1)/D_NCL))
 #define D_CNX (D_NCL*((NX+D_NCL-1)/D_NCL))
 #define D_CNY (D_NCL*((NY+D_NCL-1)/D_NCL))
 #define D_CNZ (D_NCL*((NZ+D_NCL-1)/D_NCL))
 #define D_CNX2 (2*D_NCL*((NX+D_NCL-1)/D_NCL))
 #define D_PNB (D_MR*((2*NB+D_MR-1)/D_MR))
 #define D_PNT (D_MR*((NT+D_MR-1)/D_MR))
-#define D_PNW (D_MR*((NW+D_MR-1)/D_MR))
+#define D_PNU (D_MR*((NU+D_MR-1)/D_MR))
 #define D_PNX (D_MR*((NX+D_MR-1)/D_MR))
 #define D_PNY (D_MR*((NY+D_MR-1)/D_MR))
 #define D_PNZ (D_MR*((NZ+D_MR-1)/D_MR))
 #define D_PNX2 (D_MR*((NX+NX+D_MR-1)/D_MR))
-#define D_PNWX (D_MR*((NW+NX+D_MR-1)/D_MR))
+#define D_PNUX (D_MR*((NU+NX+D_MR-1)/D_MR))
 // single precision constants
 #define S_NAL (S_MR*S_NCL)
 #define S_PADX ((S_NCL-NX%S_NCL)%S_NCL) // padding between BAbtL & P
@@ -89,9 +89,9 @@
 // Riccati-based solver for unconstrained MPC, single precision
 #define HPMPC_RIC_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 2*S_ANZ + 2*S_ANX) + 3*S_ANZ)
 // Riccati-based solver for unconstrained MHE, double precision
-#define HPMPC_RIC_MHE_DP_WORK_SPACE (8 + (NN+1)*(D_PNX*D_CNX+D_PNX*D_CNW+D_PNY*D_CNX+5*D_ANX+D_PNW*D_CNW+D_PNY*D_CNY+2*D_ANW+2*D_ANY+D_PNX*D_CNJ+D_PNT*D_CNF) + 2*D_PNY*D_CNX+D_PNT*D_CNT+D_ANT+D_PNW*D_CNW+D_PNX*D_CNX)
+#define HPMPC_RIC_MHE_DP_WORK_SPACE (8 + (NN+1)*(D_PNX*D_CNX+D_PNX*D_CNU+D_PNY*D_CNX+5*D_ANX+D_PNU*D_CNU+D_PNY*D_CNY+2*D_ANU+2*D_ANY+D_PNX*D_CNJ+D_PNT*D_CNF) + 2*D_PNY*D_CNX+D_PNT*D_CNT+D_ANT+D_PNU*D_CNU+D_PNX*D_CNX)
 // Riccati-based solver for unconstrained MHE, Information Filter version, double precision
-#define HPMPC_RIC_MHE_IF_DP_WORK_SPACE (8 + (NN+1)*(D_PNWX*D_CNW+D_PNX2*D_CNX+D_PNWX*D_CNW+D_PNX2*D_CNX2+D_PNX*D_CNY+2*D_ANW+D_ANY+5*D_ANX) + 2*D_PNX*D_CNX+D_PNX*D_CNJ+D_ANX+D_PNY*D_CNY+D_PNX*D_CNY+D_ANX)
+#define HPMPC_RIC_MHE_IF_DP_WORK_SPACE (8 + (NN+1)*(D_PNUX*D_CNU+D_PNX2*D_CNX+D_PNUX*D_CNU+D_PNX2*D_CNX2+D_PNX*D_CNY+2*D_ANU+D_ANY+5*D_ANX) + 2*D_PNX*D_CNX+D_PNX*D_CNJ+D_ANX+D_PNY*D_CNY+D_PNX*D_CNY+D_ANX)
 
 // work space: dynamic definition as function return value
 
