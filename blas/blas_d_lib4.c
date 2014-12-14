@@ -384,6 +384,10 @@ void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *
 			diag[j+1] = fact[2];
 			diag[j+2] = fact[5];
 			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			for(; i<m-4; i+=8)
 				{
@@ -406,6 +410,10 @@ void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *
 			diag[j+1] = fact[2];
 			diag[j+2] = fact[5];
 			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
 			}
 		}
 	for(; j<n; j+=2)
@@ -416,6 +424,8 @@ void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *
 			kernel_dpotrf_nt_4x2_lib4(j, &pC[i*sdc], &pC[j*sdc], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], fact);
 			diag[j+0] = fact[0];
 			diag[j+1] = fact[2];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
 			i += 4;
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			for(; i<m-4; i+=8)
@@ -437,6 +447,8 @@ void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *
 			kernel_dpotrf_nt_2x2_lib4(j, &pC[i*sdc], &pC[j*sdc], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], fact);
 			diag[j+0] = fact[0];
 			diag[j+1] = fact[2];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
 			}
 		}
 
@@ -474,6 +486,10 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int 
 			diag[j+1] = fact[2];
 			diag[j+2] = fact[5];
 			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			for(; i<m-4; i+=8)
 				{
@@ -496,6 +512,10 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int 
 			diag[j+1] = fact[2];
 			diag[j+2] = fact[5];
 			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
 			}
 		}
 	for(; j<n; j+=2)
@@ -506,6 +526,8 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int 
 			kernel_dsyrk_dpotrf_nt_4x2_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
 			diag[j+0] = fact[0];
 			diag[j+1] = fact[2];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
 			i += 4;
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			for(; i<m-4; i+=8)
@@ -527,6 +549,8 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int 
 			kernel_dsyrk_dpotrf_nt_2x2_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
 			diag[j+0] = fact[0];
 			diag[j+1] = fact[2];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
 			}
 		}
 
@@ -1402,6 +1426,10 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 			diag[j+1] = fact[2];
 			diag[j+2] = fact[5];
 			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			for(; i<m-4; i+=8)
 				{
@@ -1424,6 +1452,10 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 			diag[j+1] = fact[2];
 			diag[j+2] = fact[5];
 			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
 			}
 		// dtrinv
 		for(i=0; i<j; i+=4)
@@ -1440,6 +1472,8 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 			kernel_dsyrk_dpotrf_nt_4x2_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
 			diag[j+0] = fact[0];
 			diag[j+1] = fact[2];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
 			i += 4;
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			for(; i<m-4; i+=8)
@@ -1461,6 +1495,8 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 			kernel_dsyrk_dpotrf_nt_2x2_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
 			diag[j+0] = fact[0];
 			diag[j+1] = fact[2];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
 			}
 		// dtrinv
 		for(i=0; i<j; i+=4)
@@ -1505,6 +1541,10 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 			diag[j+1] = fact[2];
 			diag[j+2] = fact[5];
 			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
 
 #if 0 && defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			km = ((k+8-1)/8)*8;
@@ -1543,6 +1583,10 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 			diag[j+1] = fact[2];
 			diag[j+2] = fact[5];
 			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
 			}
 		}
 	for(; j<n; j+=2)
@@ -1553,6 +1597,8 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 			kernel_dtsyrk_dpotrf_nt_4x2_lib4(k-i, j, &pA[i*sda+i*bs], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
 			diag[j+0] = fact[0];
 			diag[j+1] = fact[2];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
 			i += 4;
 
 #if 0 && defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
@@ -1590,6 +1636,8 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 			kernel_dtsyrk_dpotrf_nt_2x2_lib4(k-i, j, &pA[i*sda+i*bs], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact, alg);
 			diag[j+0] = fact[0];
 			diag[j+1] = fact[2];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
 			}
 		}
 
