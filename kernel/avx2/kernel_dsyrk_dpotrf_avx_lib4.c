@@ -486,10 +486,11 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1,
 		}
 	else // comile
 		{
-		a_00  = _mm256_setzero_pd();
-		_mm256_store_pd( &D0[0+ldc*0], a_00 ); // a_00
-		_mm256_store_pd( &D1[0+ldc*0], a_00 ); // a_00
-		_mm_store_sd( &fact[0], _mm256_castpd256_pd128(a_00) );
+		a_00 = _mm256_setzero_pd( ); // zero a_00 in d, continue factorizing with 1
+		_mm_store_sd( &fact[0], _mm256_castpd256_pd128( a_00 ) ); // store 0 in fact
+		d_00  = _mm256_blend_pd( d_00, a_00, 0x1 );
+		_mm256_store_pd( &D0[0+ldc*0], d_00 );
+		_mm256_store_pd( &D1[0+ldc*0], d_40 );
 		}
 
 	// second row
@@ -518,10 +519,11 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1,
 		}
 	else // comile
 		{
-		a_11  = _mm256_setzero_pd();
-		_mm256_maskstore_pd( &D0[0+ldc*1], mask, a_11 ); // a_00
-		_mm256_store_pd( &D1[0+ldc*1], a_11 ); // a_00
-		_mm_store_sd( &fact[2], _mm256_castpd256_pd128(a_11) );
+		a_11 = _mm256_setzero_pd( ); // zero a_00 in d, continue factorizing with 1
+		_mm_store_sd( &fact[2], _mm256_castpd256_pd128( a_11 ) ); // store 0 in fact
+		d_01  = _mm256_blend_pd( d_01, a_11, 0x3 );
+		_mm256_maskstore_pd( &D0[0+ldc*1], mask, d_01 );
+		_mm256_store_pd( &D1[0+ldc*1], d_41 );
 		}
 
 	// third row
@@ -559,10 +561,11 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1,
 		}
 	else // comile
 		{
-		a_22  = _mm256_setzero_pd();
-		_mm256_maskstore_pd( &D0[0+ldc*2], mask, a_22 ); // a_00
-		_mm256_store_pd( &D1[0+ldc*2], a_22 ); // a_00
-		_mm_store_sd( &fact[5], _mm256_castpd256_pd128(a_22) );
+		a_22 = _mm256_setzero_pd( ); // zero a_00 in d, continue factorizing with 1
+		_mm_store_sd( &fact[5], _mm256_castpd256_pd128( a_22 ) ); // store 0 in fact
+		d_02  = _mm256_blend_pd( d_02, a_22, 0x7 );
+		_mm256_maskstore_pd( &D0[0+ldc*2], mask, d_02 );
+		_mm256_store_pd( &D1[0+ldc*2], d_42 );
 		}
 
 	// fourth row
@@ -609,10 +612,12 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int kadd, int ksub, double *A0, double *A1,
 		}
 	else // comile
 		{
-		a_33  = _mm256_setzero_pd();
-		_mm256_maskstore_pd( &D0[0+ldc*3], mask, a_33 ); // a_00
-		_mm256_store_pd( &D1[0+ldc*3], a_33 ); // a_00
-		_mm_store_sd( &fact[9], _mm256_castpd256_pd128(a_33) );
+		a_33 = _mm256_setzero_pd( ); // zero a_00 in d, continue factorizing with 1
+		_mm_store_sd( &fact[9], _mm256_castpd256_pd128( a_33 ) ); // store 0 in fact
+		//d_03  = _mm256_blend_pd( d_03, a_33, 0xf );
+		//_mm256_maskstore_pd( &D0[0+ldc*3], mask, d_03 );
+		_mm256_maskstore_pd( &D0[0+ldc*3], mask, a_33 );
+		_mm256_store_pd( &D1[0+ldc*3], d_43 ); // a_00
 		}
 
 #else
@@ -1122,8 +1127,9 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 	else // comile
 		{
 		a_00  = _mm256_setzero_pd();
-		_mm256_store_pd( &D[0+ldc*0], a_00 ); // a_00
 		_mm_store_sd( &fact[0], _mm256_castpd256_pd128(a_00) );
+		d_00  = _mm256_blend_pd( d_00, a_00, 0x1 );
+		_mm256_store_pd( &D[0+ldc*0], d_00 );
 		}
 
 	// second row
@@ -1149,8 +1155,9 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 	else // comile
 		{
 		a_11  = _mm256_setzero_pd();
-		_mm256_maskstore_pd( &D[0+ldc*1], mask, a_11 ); // a_00
 		_mm_store_sd( &fact[2], _mm256_castpd256_pd128(a_11) );
+		d_01  = _mm256_blend_pd( d_01, a_11, 0x3 );
+		_mm256_maskstore_pd( &D[0+ldc*1], mask, d_01 );
 		}
 
 	// third row
@@ -1183,8 +1190,9 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 	else // comile
 		{
 		a_22  = _mm256_setzero_pd();
-		_mm256_maskstore_pd( &D[0+ldc*2], mask, a_22 ); // a_00
 		_mm_store_sd( &fact[5], _mm256_castpd256_pd128(a_22) );
+		d_02  = _mm256_blend_pd( d_02, a_22, 0x7 );
+		_mm256_maskstore_pd( &D[0+ldc*2], mask, d_02 );
 		}
 
 	// fourth row
@@ -1224,8 +1232,8 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 	else // comile
 		{
 		a_33  = _mm256_setzero_pd();
-		_mm256_maskstore_pd( &D[0+ldc*3], mask, a_33 ); // a_00
 		_mm_store_sd( &fact[9], _mm256_castpd256_pd128(a_33) );
+		_mm256_maskstore_pd( &D[0+ldc*3], mask, a_33 );
 		}
 
 #else
@@ -1592,8 +1600,9 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 	else // comile
 		{
 		a_00  = _mm256_setzero_pd();
-		_mm256_store_pd( &D[0+ldc*0], a_00 ); // a_00
 		_mm_store_sd( &fact[0], _mm256_castpd256_pd128(a_00) );
+		d_00  = _mm256_blend_pd( d_00, a_00, 0x1 );
+		_mm256_store_pd( &D[0+ldc*0], d_00 );
 		}
 
 	// second row
@@ -1619,8 +1628,9 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 	else // comile
 		{
 		a_11  = _mm256_setzero_pd();
-		_mm256_maskstore_pd( &D[0+ldc*1], mask, a_11 ); // a_00
 		_mm_store_sd( &fact[2], _mm256_castpd256_pd128(a_11) );
+		d_01  = _mm256_blend_pd( d_01, a_11, 0x3 );
+		_mm256_maskstore_pd( &D[0+ldc*1], mask, d_01 );
 		}
 
 
@@ -1924,7 +1934,7 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, d
 		{
 		sa_00 = _mm_setzero_pd();
 		_mm_store_sd( &D[0+ldc*0], sa_00 ); // a_00
-		sa_10 = sa_00;
+		//sa_10 = sa_00;
 		_mm_store_sd( &fact[0], sa_00 );
 		}
 	_mm_store_sd( &D[1+ldc*0], sa_10 ); // a_10
