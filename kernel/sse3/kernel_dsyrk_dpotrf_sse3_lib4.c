@@ -607,8 +607,8 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		"                                \n\t"
 		"                                \n\t"
 		".DZERO0:                        \n\t"
-		"xorpd  %%xmm9,  %%xmm9          \n\t"
-		"movaps %%xmm9,  %%xmm13         \n\t"
+		"xorpd  %%xmm0,  %%xmm0          \n\t"
+		"movsd  %%xmm0,  %%xmm9          \n\t"
 		"movaps %%xmm9,  (%%rbx)         \n\t"
 		"movaps %%xmm13, 16(%%rbx)       \n\t"
 		"movsd  %%xmm9,  (%%rax)         \n\t" // fact[0]
@@ -616,14 +616,15 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		"                                \n\t"
 		".DZERO1:                        \n\t"
 		"xorpd  %%xmm8,  %%xmm8          \n\t"
-		"movaps %%xmm8,  %%xmm12         \n\t"
+//		"movaps %%xmm8,  %%xmm12         \n\t"
 		"movsd  %%xmm8,  40(%%rbx)       \n\t"
 		"movaps %%xmm12, 48(%%rbx)       \n\t"
 		"movsd  %%xmm8,  16(%%rax)       \n\t" // fact[2]
 		"jmp    .DA22                    \n\t"
 		"                                \n\t"
 		".DZERO2:                        \n\t"
-		"xorpd  %%xmm15, %%xmm15         \n\t"
+		"xorpd  %%xmm0,  %%xmm0          \n\t"
+		"movsd  %%xmm0,  %%xmm15         \n\t"
 		"movaps %%xmm15, 80(%%rbx)       \n\t"
 		"movsd  %%xmm15, 40(%%rax)       \n\t" // fact[5]
 		"jmp    .DA33                    \n\t"
@@ -907,7 +908,7 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 	if(c_00 > 1e-15)
 		{
 		c_00 = sqrt(c_00);
-		D[0+ldc*0] = c_00;
+		D[0+bs*0] = c_00;
 		c_00 = 1.0/c_00;
 		c_10 *= c_00;
 		c_20 *= c_00;
@@ -916,48 +917,40 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 	else
 		{
 		c_00 = 0.0;
-		D[0+ldc*0] = c_00;
-		c_10 = 0.0;
-		c_20 = 0.0;
-		c_30 = 0.0;
+		D[0+bs*0] = c_00;
 		}
-	D[1+ldc*0] = c_10;
-	D[2+ldc*0] = c_20;
-	D[3+ldc*0] = c_30;
+	D[1+bs*0] = c_10;
+	D[2+bs*0] = c_20;
+	D[3+bs*0] = c_30;
 	
 	// second column
 	c_11 -= c_10*c_10;
+	c_21 -= c_20*c_10;
+	c_31 -= c_30*c_10;
 	if(c_11 > 1e-15)
 		{
 		c_11 = sqrt(c_11);
-		D[1+ldc*1] = c_11;
+		D[1+bs*1] = c_11;
 		c_11 = 1.0/c_11;
-		c_21 -= c_20*c_10;
-		c_31 -= c_30*c_10;
 		c_21 *= c_11;
 		c_31 *= c_11;
 		}
 	else
 		{
 		c_11 = 0.0;
-		D[1+ldc*1] = c_11;
-		c_21 = 0.0;
-		c_31 = 0.0;
+		D[1+bs*1] = c_11;
 		}
-	D[2+ldc*1] = c_21;
-	D[3+ldc*1] = c_31;
+	D[2+bs*1] = c_21;
+	D[3+bs*1] = c_31;
 
 	// save factorized matrix with reciprocal of diagonal
 	fact[0] = c_00;
 	fact[1] = c_10;
-	fact[3] = c_20;
-	fact[6] = c_30;
 	fact[2] = c_11;
+	fact[3] = c_20;
 	fact[4] = c_21;
+	fact[6] = c_30;
 	fact[7] = c_31;
-/*	fact[5] = c_22;*/
-/*	fact[8] = c_32;*/
-/*	fact[9] = c_33;*/
 
 	}
 
@@ -1133,43 +1126,35 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, d
 	if(c_00 > 1e-15)
 		{
 		c_00 = sqrt(c_00);
-		D[0+ldc*0] = c_00;
+		D[0+bs*0] = c_00;
 		c_00 = 1.0/c_00;
 		c_10 *= c_00;
 		}
 	else
 		{
 		c_00 = 0.0;
-		D[0+ldc*0] = c_00;
-		c_10 = 0.0;
+		D[0+bs*0] = c_00;
 		}
-	D[1+ldc*0] = c_10;
+	D[1+bs*0] = c_10;
 	
 	// second column
 	c_11 -= c_10*c_10;
 	if(c_11 > 1e-15)
 		{
 		c_11 = sqrt(c_11);
-		D[1+ldc*1] = c_11;
+		D[1+bs*1] = c_11;
 		c_11 = 1.0/c_11;
 		}
 	else
 		{
 		c_11 = 0.0;
-		D[1+ldc*1] = c_11;
+		D[1+bs*1] = c_11;
 		}
 
 	// save factorized matrix with reciprocal of diagonal
 	fact[0] = c_00;
 	fact[1] = c_10;
-/*	fact[3] = c_20;*/
-/*	fact[6] = c_30;*/
 	fact[2] = c_11;
-/*	fact[4] = c_21;*/
-/*	fact[7] = c_31;*/
-/*	fact[5] = c_22;*/
-/*	fact[8] = c_32;*/
-/*	fact[9] = c_33;*/
 
 	}
 

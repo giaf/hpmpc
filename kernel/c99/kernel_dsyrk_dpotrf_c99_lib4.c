@@ -325,24 +325,18 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		c_00 = sqrt(c_00);
 		D[0+bs*0] = c_00;
 		c_00 = 1.0/c_00;
-		fact[0] = c_00;
+		c_10 *= c_00;
+		c_20 *= c_00;
+		c_30 *= c_00;
 		}
 	else
 		{
 		c_00 = 0.0;
 		D[0+bs*0] = c_00;
-		fact[0] = c_00; // store 0.0
-		c_00 = 1.0; // continue factorization with 1.0
 		}
-	c_10 *= c_00;
-	c_20 *= c_00;
-	c_30 *= c_00;
 	D[1+bs*0] = c_10;
 	D[2+bs*0] = c_20;
 	D[3+bs*0] = c_30;
-	fact[1] = c_10;
-	fact[3] = c_20;
-	fact[6] = c_30;
 		
 	// second column
 	c_11 -= c_10*c_10;
@@ -353,21 +347,16 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		c_11 = sqrt(c_11);
 		D[1+bs*1] = c_11;
 		c_11 = 1.0/c_11;
-		fact[2] = c_11;
+		c_21 *= c_11;
+		c_31 *= c_11;
 		}
 	else
 		{
 		c_11 = 0.0;
 		D[1+bs*1] = c_11;
-		fact[2] = c_11;
-		c_11 = 1.0;
 		}
-	c_21 *= c_11;
-	c_31 *= c_11;
 	D[2+bs*1] = c_21;
 	D[3+bs*1] = c_31;
-	fact[4] = c_21;
-	fact[7] = c_31;
 
 	// third column
 	c_22 -= c_20*c_20;
@@ -379,18 +368,14 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		c_22 = sqrt(c_22);
 		D[2+bs*2] = c_22;
 		c_22 = 1.0/c_22;
-		fact[5] = c_22;
+		c_32 *= c_22;
 		}
 	else
 		{
 		c_22 = 0.0;
 		D[2+bs*2] = c_22;
-		fact[5] = c_22;
-		c_22 = 1.0;
 		}
-	c_32 *= c_22;
 	D[3+bs*2] = c_32;
-	fact[8] = c_32;
 
 	// fourth column
 	c_33 -= c_30*c_30;
@@ -401,15 +386,24 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		c_33 = sqrt(c_33);
 		D[3+bs*3] = c_33;
 		c_33 = 1.0/c_33;
-		fact[9] = c_33;
 		}
 	else
 		{
 		c_33 = 0.0;
 		D[3+bs*3] = c_33;
-		fact[9] = c_33;
-		c_33 = 1.0;
 		}
+
+	// save factorized matrix with reciprocal of diagonal
+	fact[0] = c_00;
+	fact[1] = c_10;
+	fact[2] = c_11;
+	fact[3] = c_20;
+	fact[4] = c_21;
+	fact[5] = c_22;
+	fact[6] = c_30;
+	fact[7] = c_31;
+	fact[8] = c_32;
+	fact[9] = c_33;
 
 	}
 
@@ -645,24 +639,18 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 		c_00 = sqrt(c_00);
 		D[0+bs*0] = c_00;
 		c_00 = 1.0/c_00;
-		fact[0] = c_00;
+		c_10 *= c_00;
+		c_20 *= c_00;
+		c_30 *= c_00;
 		}
 	else
 		{
 		c_00 = 0.0;
 		D[0+bs*0] = c_00;
-		fact[0] = c_00;
-		c_00 = 1.0;
 		}
-	c_10 *= c_00;
-	c_20 *= c_00;
-	c_30 *= c_00;
 	D[1+bs*0] = c_10;
 	D[2+bs*0] = c_20;
 	D[3+bs*0] = c_30;
-	fact[1] = c_10;
-	fact[3] = c_20;
-	fact[6] = c_30;
 	
 	// second column
 	c_11 -= c_10*c_10;
@@ -673,20 +661,24 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 		c_11 = sqrt(c_11);
 		D[1+bs*1] = c_11;
 		c_11 = 1.0/c_11;
-		fact[2] = c_11;
+		c_21 *= c_11;
+		c_31 *= c_11;
 		}
 	else
 		{
 		c_11 = 0.0;
 		D[1+bs*1] = c_11;
-		fact[2] = c_11;
-		c_11 = 1.0;
 		}
-	c_21 *= c_11;
-	c_31 *= c_11;
 	D[2+bs*1] = c_21;
 	D[3+bs*1] = c_31;
+
+	// save factorized matrix with reciprocal of diagonal
+	fact[0] = c_00;
+	fact[1] = c_10;
+	fact[2] = c_11;
+	fact[3] = c_20;
 	fact[4] = c_21;
+	fact[6] = c_30;
 	fact[7] = c_31;
 
 	}
@@ -863,18 +855,14 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, d
 		c_00 = sqrt(c_00);
 		D[0+bs*0] = c_00;
 		c_00 = 1.0/c_00;
-		fact[0] = c_00;
+		c_10 *= c_00;
 		}
 	else
 		{
 		c_00 = 0.0;
 		D[0+bs*0] = c_00;
-		fact[0] = c_00;
-		c_00 = 1.0;
 		}
-	c_10 *= c_00;
 	D[1+bs*0] = c_10;
-	fact[1] = c_10;
 	
 	// second column
 	c_11 -= c_10*c_10;
@@ -883,15 +871,17 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, d
 		c_11 = sqrt(c_11);
 		D[1+bs*1] = c_11;
 		c_11 = 1.0/c_11;
-		fact[2] = c_11;
 		}
 	else
 		{
 		c_11 = 0.0;
 		D[1+bs*1] = c_11;
-		fact[2] = c_11;
-		c_11 = 1.0;
 		}
+
+	// save factorized matrix with reciprocal of diagonal
+	fact[0] = c_00;
+	fact[1] = c_10;
+	fact[2] = c_11;
 
 	}
 
