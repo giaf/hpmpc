@@ -29,7 +29,7 @@
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
+void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -45,153 +45,301 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 		c_20=0, c_21=0, c_22=0, 
 		c_30=0, c_31=0, c_32=0, c_33=0;
 		
-	for(k=0; k<kadd-3; k+=4)
+	k = 0;
+
+	if(kadd>0)
 		{
-		
-		a_0 = A[0+bs*0];
-		a_1 = A[1+bs*0];
-		a_2 = A[2+bs*0];
-		a_3 = A[3+bs*0];
-		
-		b_0 = B[0+bs*0];
-		b_1 = B[1+bs*0];
-		b_2 = B[2+bs*0];
-		b_3 = B[3+bs*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
+		if(tri==1)
+			{
 
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
+			// initial triangle
 
-		c_33 += a_3 * b_3;
+			if(kadd>=4)
+				{
+
+				// k = 0
+				a_0 = A[0+bs*0];
+
+				b_0 = B[0+bs*0];
+				
+				c_00 += a_0 * b_0;
 
 
-		a_0 = A[0+bs*1];
-		a_1 = A[1+bs*1];
-		a_2 = A[2+bs*1];
-		a_3 = A[3+bs*1];
-		
-		b_0 = B[0+bs*1];
-		b_1 = B[1+bs*1];
-		b_2 = B[2+bs*1];
-		b_3 = B[3+bs*1];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
+				// k = 1
+				a_0 = A[0+bs*1];
+				a_1 = A[1+bs*1];
+				
+				b_0 = B[0+bs*1];
+				b_1 = B[1+bs*1];
+				
+				c_00 += a_0 * b_0;
+				c_10 += a_1 * b_0;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
-
-		c_33 += a_3 * b_3;
+				c_11 += a_1 * b_1;
 
 
-		a_0 = A[0+bs*2];
-		a_1 = A[1+bs*2];
-		a_2 = A[2+bs*2];
-		a_3 = A[3+bs*2];
-		
-		b_0 = B[0+bs*2];
-		b_1 = B[1+bs*2];
-		b_2 = B[2+bs*2];
-		b_3 = B[3+bs*2];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
+				// k = 2
+				a_0 = A[0+bs*2];
+				a_1 = A[1+bs*2];
+				a_2 = A[2+bs*2];
+				
+				b_0 = B[0+bs*2];
+				b_1 = B[1+bs*2];
+				b_2 = B[2+bs*2];
+				
+				c_00 += a_0 * b_0;
+				c_10 += a_1 * b_0;
+				c_20 += a_2 * b_0;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
+				c_11 += a_1 * b_1;
+				c_21 += a_2 * b_1;
 
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
-
-		c_33 += a_3 * b_3;
+				c_22 += a_2 * b_2;
 
 
-		a_0 = A[0+bs*3];
-		a_1 = A[1+bs*3];
-		a_2 = A[2+bs*3];
-		a_3 = A[3+bs*3];
-		
-		b_0 = B[0+bs*3];
-		b_1 = B[1+bs*3];
-		b_2 = B[2+bs*3];
-		b_3 = B[3+bs*3];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
+				// k = 3
+				a_0 = A[0+bs*3];
+				a_1 = A[1+bs*3];
+				a_2 = A[2+bs*3];
+				a_3 = A[3+bs*3];
+					
+				b_0 = B[0+bs*3];
+				b_1 = B[1+bs*3];
+				b_2 = B[2+bs*3];
+				b_3 = B[3+bs*3];
+					
+				c_00 += a_0 * b_0;
+				c_10 += a_1 * b_0;
+				c_20 += a_2 * b_0;
+				c_30 += a_3 * b_0;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
+				c_11 += a_1 * b_1;
+				c_21 += a_2 * b_1;
+				c_31 += a_3 * b_1;
 
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
+				c_22 += a_2 * b_2;
+				c_32 += a_3 * b_2;
 
-		c_33 += a_3 * b_3;
-		
-		
-		A += 16;
-		B += 16;
+				c_33 += a_3 * b_3;
 
-		}
-	for(; k<kadd; k++)
-		{
-		
-		a_0 = A[0+bs*0];
-		a_1 = A[1+bs*0];
-		a_2 = A[2+bs*0];
-		a_3 = A[3+bs*0];
-		
-		b_0 = B[0+bs*0];
-		b_1 = B[1+bs*0];
-		b_2 = B[2+bs*0];
-		b_3 = B[3+bs*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
+				A += 16;
+				B += 16;
+				k += 4;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
+				}
+			else
+				{
 
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
+				// k = 0
+				a_0 = A[0+bs*0];
 
-		c_33 += a_3 * b_3;
+				b_0 = B[0+bs*0];
+				
+				c_00 += a_0 * b_0;
+
+				if(kadd>1)
+					{
+
+					// k = 1
+					a_0 = A[0+bs*1];
+					a_1 = A[1+bs*1];
+					
+					b_0 = B[0+bs*1];
+					b_1 = B[1+bs*1];
+					
+					c_00 += a_0 * b_0;
+					c_10 += a_1 * b_0;
+
+					c_11 += a_1 * b_1;
+
+					if(kadd>2)
+						{
+
+						// k = 2
+						a_0 = A[0+bs*2];
+						a_1 = A[1+bs*2];
+						a_2 = A[2+bs*2];
+						
+						b_0 = B[0+bs*2];
+						b_1 = B[1+bs*2];
+						b_2 = B[2+bs*2];
+						
+						c_00 += a_0 * b_0;
+						c_10 += a_1 * b_0;
+						c_20 += a_2 * b_0;
+
+						c_11 += a_1 * b_1;
+						c_21 += a_2 * b_1;
+
+						c_22 += a_2 * b_2;
+
+						A += 4;
+						B += 4;
+						k += 1;
+
+						}
+
+					A += 4;
+					B += 4;
+					k += 1;
+
+					}
+
+				A += 4;
+				B += 4;
+				k += 1;
+
+				}
+
+			}
+
+		for(; k<kadd-3; k+=4)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			a_2 = A[2+bs*0];
+			a_3 = A[3+bs*0];
+			
+			b_0 = B[0+bs*0];
+			b_1 = B[1+bs*0];
+			b_2 = B[2+bs*0];
+			b_3 = B[3+bs*0];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+			c_20 += a_2 * b_0;
+			c_30 += a_3 * b_0;
+
+			c_11 += a_1 * b_1;
+			c_21 += a_2 * b_1;
+			c_31 += a_3 * b_1;
+
+			c_22 += a_2 * b_2;
+			c_32 += a_3 * b_2;
+
+			c_33 += a_3 * b_3;
 
 
-		A += 4;
-		B += 4;
+			a_0 = A[0+bs*1];
+			a_1 = A[1+bs*1];
+			a_2 = A[2+bs*1];
+			a_3 = A[3+bs*1];
+			
+			b_0 = B[0+bs*1];
+			b_1 = B[1+bs*1];
+			b_2 = B[2+bs*1];
+			b_3 = B[3+bs*1];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+			c_20 += a_2 * b_0;
+			c_30 += a_3 * b_0;
 
-		}
+			c_11 += a_1 * b_1;
+			c_21 += a_2 * b_1;
+			c_31 += a_3 * b_1;
 
-	if(ksub>0)
-		{
-		if(kadd>0)
+			c_22 += a_2 * b_2;
+			c_32 += a_3 * b_2;
+
+			c_33 += a_3 * b_3;
+
+
+			a_0 = A[0+bs*2];
+			a_1 = A[1+bs*2];
+			a_2 = A[2+bs*2];
+			a_3 = A[3+bs*2];
+			
+			b_0 = B[0+bs*2];
+			b_1 = B[1+bs*2];
+			b_2 = B[2+bs*2];
+			b_3 = B[3+bs*2];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+			c_20 += a_2 * b_0;
+			c_30 += a_3 * b_0;
+
+			c_11 += a_1 * b_1;
+			c_21 += a_2 * b_1;
+			c_31 += a_3 * b_1;
+
+			c_22 += a_2 * b_2;
+			c_32 += a_3 * b_2;
+
+			c_33 += a_3 * b_3;
+
+
+			a_0 = A[0+bs*3];
+			a_1 = A[1+bs*3];
+			a_2 = A[2+bs*3];
+			a_3 = A[3+bs*3];
+			
+			b_0 = B[0+bs*3];
+			b_1 = B[1+bs*3];
+			b_2 = B[2+bs*3];
+			b_3 = B[3+bs*3];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+			c_20 += a_2 * b_0;
+			c_30 += a_3 * b_0;
+
+			c_11 += a_1 * b_1;
+			c_21 += a_2 * b_1;
+			c_31 += a_3 * b_1;
+
+			c_22 += a_2 * b_2;
+			c_32 += a_3 * b_2;
+
+			c_33 += a_3 * b_3;
+			
+			
+			A += 16;
+			B += 16;
+
+			}
+		for(; k<kadd; k++)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			a_2 = A[2+bs*0];
+			a_3 = A[3+bs*0];
+			
+			b_0 = B[0+bs*0];
+			b_1 = B[1+bs*0];
+			b_2 = B[2+bs*0];
+			b_3 = B[3+bs*0];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+			c_20 += a_2 * b_0;
+			c_30 += a_3 * b_0;
+
+			c_11 += a_1 * b_1;
+			c_21 += a_2 * b_1;
+			c_31 += a_3 * b_1;
+
+			c_22 += a_2 * b_2;
+			c_32 += a_3 * b_2;
+
+			c_33 += a_3 * b_3;
+
+
+			A += 4;
+			B += 4;
+
+			}
+
+		if(ksub>0)
 			{
 			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			}
+
 		}
 
 	for(k=0; k<ksub-3; k+=4)
@@ -409,7 +557,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, d
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
+void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -424,119 +572,254 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 		c_10=0, c_11=0, 
 		c_20=0, c_21=0,  
 		c_30=0, c_31=0;
-		
-	for(k=0; k<kadd-3; k+=4)
+
+	k = 0;
+
+	if(kadd>0)
 		{
-		
-		a_0 = A[0+bs*0];
-		a_1 = A[1+bs*0];
-		a_2 = A[2+bs*0];
-		a_3 = A[3+bs*0];
-		
-		b_0 = B[0+bs*0];
-		b_1 = B[1+bs*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
+		if(tri==1)
+			{
+
+			// initial triangle
+
+			if(kadd>=4)
+				{
+			
+				// k = 0
+				a_0 = A[0+bs*0];
+				
+				b_0 = B[0+bs*0];
+					
+				c_00 += a_0 * b_0;
 
 
-		a_0 = A[0+bs*1];
-		a_1 = A[1+bs*1];
-		a_2 = A[2+bs*1];
-		a_3 = A[3+bs*1];
-		
-		b_0 = B[0+bs*1];
-		b_1 = B[1+bs*1];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
+				// k = 1
+				a_0 = A[0+bs*1];
+				a_1 = A[1+bs*1];
+					
+				b_0 = B[0+bs*1];
+				b_1 = B[1+bs*1];
+					
+				c_00 += a_0 * b_0;
+				c_10 += a_1 * b_0;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
+				c_11 += a_1 * b_1;
 
 
-		a_0 = A[0+bs*2];
-		a_1 = A[1+bs*2];
-		a_2 = A[2+bs*2];
-		a_3 = A[3+bs*2];
-		
-		b_0 = B[0+bs*2];
-		b_1 = B[1+bs*2];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
+				// k = 2
+				a_0 = A[0+bs*2];
+				a_1 = A[1+bs*2];
+				a_2 = A[2+bs*2];
+					
+				b_0 = B[0+bs*2];
+				b_1 = B[1+bs*2];
+					
+				c_00 += a_0 * b_0;
+				c_10 += a_1 * b_0;
+				c_20 += a_2 * b_0;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
+				c_11 += a_1 * b_1;
+				c_21 += a_2 * b_1;
 
 
-		a_0 = A[0+bs*3];
-		a_1 = A[1+bs*3];
-		a_2 = A[2+bs*3];
-		a_3 = A[3+bs*3];
-		
-		b_0 = B[0+bs*3];
-		b_1 = B[1+bs*3];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
+				// k = 3
+				a_0 = A[0+bs*3];
+				a_1 = A[1+bs*3];
+				a_2 = A[2+bs*3];
+				a_3 = A[3+bs*3];
+					
+				b_0 = B[0+bs*3];
+				b_1 = B[1+bs*3];
+					
+				c_00 += a_0 * b_0;
+				c_10 += a_1 * b_0;
+				c_20 += a_2 * b_0;
+				c_30 += a_3 * b_0;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-		
-		
-		A += 16;
-		B += 16;
+				c_11 += a_1 * b_1;
+				c_21 += a_2 * b_1;
+				c_31 += a_3 * b_1;
 
-		}
-	for(; k<kadd; k++)
-		{
-		
-		a_0 = A[0+bs*0];
-		a_1 = A[1+bs*0];
-		a_2 = A[2+bs*0];
-		a_3 = A[3+bs*0];
-		
-		b_0 = B[0+bs*0];
-		b_1 = B[1+bs*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
+				A += 16;
+				B += 16;
+				k += 4;
 
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
+				}
+			else
+				{
+
+				// k = 0
+				a_0 = A[0+bs*0];
+				
+				b_0 = B[0+bs*0];
+					
+				c_00 += a_0 * b_0;
+
+				if(kadd>1)
+					{
+
+					// k = 1
+					a_0 = A[0+bs*1];
+					a_1 = A[1+bs*1];
+						
+					b_0 = B[0+bs*1];
+					b_1 = B[1+bs*1];
+						
+					c_00 += a_0 * b_0;
+					c_10 += a_1 * b_0;
+
+					c_11 += a_1 * b_1;
+
+					if(kadd>2)
+						{
+
+						// k = 2
+						a_0 = A[0+bs*2];
+						a_1 = A[1+bs*2];
+						a_2 = A[2+bs*2];
+							
+						b_0 = B[0+bs*2];
+						b_1 = B[1+bs*2];
+							
+						c_00 += a_0 * b_0;
+						c_10 += a_1 * b_0;
+						c_20 += a_2 * b_0;
+
+						c_11 += a_1 * b_1;
+						c_21 += a_2 * b_1;
+
+						A += 4;
+						B += 4;
+						k += 1;
+
+						}
+
+					A += 4;
+					B += 4;
+					k += 1;
+
+					}
+
+				A += 4;
+				B += 4;
+				k += 1;
+
+				}
+
+			}
+
+		for(; k<kadd-3; k+=4)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			a_2 = A[2+bs*0];
+			a_3 = A[3+bs*0];
+			
+			b_0 = B[0+bs*0];
+			b_1 = B[1+bs*0];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+			c_20 += a_2 * b_0;
+			c_30 += a_3 * b_0;
+
+			c_11 += a_1 * b_1;
+			c_21 += a_2 * b_1;
+			c_31 += a_3 * b_1;
 
 
-		A += 4;
-		B += 4;
+			a_0 = A[0+bs*1];
+			a_1 = A[1+bs*1];
+			a_2 = A[2+bs*1];
+			a_3 = A[3+bs*1];
+			
+			b_0 = B[0+bs*1];
+			b_1 = B[1+bs*1];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+			c_20 += a_2 * b_0;
+			c_30 += a_3 * b_0;
 
-		}
+			c_11 += a_1 * b_1;
+			c_21 += a_2 * b_1;
+			c_31 += a_3 * b_1;
 
-	if(ksub>0)
-		{
-		if(kadd>0)
+
+			a_0 = A[0+bs*2];
+			a_1 = A[1+bs*2];
+			a_2 = A[2+bs*2];
+			a_3 = A[3+bs*2];
+			
+			b_0 = B[0+bs*2];
+			b_1 = B[1+bs*2];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+			c_20 += a_2 * b_0;
+			c_30 += a_3 * b_0;
+
+			c_11 += a_1 * b_1;
+			c_21 += a_2 * b_1;
+			c_31 += a_3 * b_1;
+
+
+			a_0 = A[0+bs*3];
+			a_1 = A[1+bs*3];
+			a_2 = A[2+bs*3];
+			a_3 = A[3+bs*3];
+			
+			b_0 = B[0+bs*3];
+			b_1 = B[1+bs*3];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+			c_20 += a_2 * b_0;
+			c_30 += a_3 * b_0;
+
+			c_11 += a_1 * b_1;
+			c_21 += a_2 * b_1;
+			c_31 += a_3 * b_1;
+			
+			
+			A += 16;
+			B += 16;
+
+			}
+		for(; k<kadd; k++)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			a_2 = A[2+bs*0];
+			a_3 = A[3+bs*0];
+			
+			b_0 = B[0+bs*0];
+			b_1 = B[1+bs*0];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+			c_20 += a_2 * b_0;
+			c_30 += a_3 * b_0;
+
+			c_11 += a_1 * b_1;
+			c_21 += a_2 * b_1;
+			c_31 += a_3 * b_1;
+
+
+			A += 4;
+			B += 4;
+
+			}
+
+		if(ksub>0)
 			{
 			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			}
+
 		}
 
 	for(k=0; k<ksub-3; k+=4)
@@ -685,7 +968,7 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, d
 
 
 
-void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
+void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -698,89 +981,144 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, d
 		b_0, b_1,
 		c_00=0, 
 		c_10=0, c_11=0;
-		
-	for(k=0; k<kadd-3; k+=4)
+
+	k = 0;
+
+	if(kadd>0)
 		{
 		
-		a_0 = A[0+bs*0];
-		a_1 = A[1+bs*0];
+		if(tri==1)
+			{
 		
-		b_0 = B[0+bs*0];
-		b_1 = B[1+bs*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
+			// initial triangle
 
-		c_11 += a_1 * b_1;
+			if(kadd>=2)
+				{
 
-
-		a_0 = A[0+bs*1];
-		a_1 = A[1+bs*1];
-		
-		b_0 = B[0+bs*1];
-		b_1 = B[1+bs*1];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_11 += a_1 * b_1;
+				// k = 0
+				a_0 = A[0+bs*0];
+					
+				b_0 = B[0+bs*0];
+					
+				c_00 += a_0 * b_0;
 
 
-		a_0 = A[0+bs*2];
-		a_1 = A[1+bs*2];
-		
-		b_0 = B[0+bs*2];
-		b_1 = B[1+bs*2];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
+				// k = 1
+				a_0 = A[0+bs*1];
+				a_1 = A[1+bs*1];
+					
+				b_0 = B[0+bs*1];
+				b_1 = B[1+bs*1];
+					
+				c_00 += a_0 * b_0;
+				c_10 += a_1 * b_0;
 
-		c_11 += a_1 * b_1;
-
-
-		a_0 = A[0+bs*3];
-		a_1 = A[1+bs*3];
-		
-		b_0 = B[0+bs*3];
-		b_1 = B[1+bs*3];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_11 += a_1 * b_1;
-		
-		
-		A += 16;
-		B += 16;
-
-		}
-	for(; k<kadd; k++)
-		{
-		
-		a_0 = A[0+bs*0];
-		a_1 = A[1+bs*0];
-		
-		b_0 = B[0+bs*0];
-		b_1 = B[1+bs*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_11 += a_1 * b_1;
+				c_11 += a_1 * b_1;
 
 
-		A += 4;
-		B += 4;
+				A += 8;
+				B += 8;
+				k += 2;
 
-		}
+				}
+			else
+				{
+				// k = 0
+				a_0 = A[0+bs*0];
+					
+				b_0 = B[0+bs*0];
+					
+				c_00 += a_0 * b_0;
 
-	if(ksub>0)
-		{
-		if(kadd>0)
+				A += 4;
+				B += 4;
+				k += 1;
+
+				}
+
+			}
+
+		for(; k<kadd-3; k+=4)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			
+			b_0 = B[0+bs*0];
+			b_1 = B[1+bs*0];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+
+			c_11 += a_1 * b_1;
+
+
+			a_0 = A[0+bs*1];
+			a_1 = A[1+bs*1];
+			
+			b_0 = B[0+bs*1];
+			b_1 = B[1+bs*1];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+
+			c_11 += a_1 * b_1;
+
+
+			a_0 = A[0+bs*2];
+			a_1 = A[1+bs*2];
+			
+			b_0 = B[0+bs*2];
+			b_1 = B[1+bs*2];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+
+			c_11 += a_1 * b_1;
+
+
+			a_0 = A[0+bs*3];
+			a_1 = A[1+bs*3];
+			
+			b_0 = B[0+bs*3];
+			b_1 = B[1+bs*3];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+
+			c_11 += a_1 * b_1;
+			
+			
+			A += 16;
+			B += 16;
+
+			}
+		for(; k<kadd; k++)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			
+			b_0 = B[0+bs*0];
+			b_1 = B[1+bs*0];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+
+			c_11 += a_1 * b_1;
+
+
+			A += 4;
+			B += 4;
+
+			}
+
+		if(ksub>0)
 			{
 			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			}
+	
 		}
 
 	for(k=0; k<ksub-3; k+=4)
@@ -888,6 +1226,7 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, d
 
 
 
+#if 0
 // A is upper triangular and it coincides with B
 void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, double *D, double *fact, int alg)
 	{
@@ -1907,7 +2246,7 @@ void kernel_dtsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *C, 
 		}
 
 	}
-
+#endif
 
 
 
