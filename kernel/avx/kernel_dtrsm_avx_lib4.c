@@ -658,8 +658,8 @@ void kernel_dgemm_dtrsm_nt_8x4_lib4(int tri, int kadd, int ksub, double *A0, dou
 	if(ksub>0)
 		{
 
-		d_print_mat(4, 4, A0, 4);
-		d_print_mat(4, 4, A1, 4);
+		//d_print_mat(4, 4, A0, 4);
+		//d_print_mat(4, 4, A1, 4);
 
 		// prefetch
 		a_0123 = _mm256_load_pd( &A0[0] );
