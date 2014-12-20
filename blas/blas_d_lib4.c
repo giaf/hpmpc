@@ -1370,7 +1370,10 @@ void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
 		fact[6] = ptr[3+bs*0];
 		fact[7] = ptr[3+bs*1];
 		fact[8] = ptr[3+bs*2];
-		fact[9] = 1.0/ptr[3+bs*3];
+		if(ptr[3+bs*3]!=0.0)
+			fact[9] = 1.0/ptr[3+bs*3];
+		else
+			fact[9] = 0.0;
 		for(ii=0; ii<jj; ii+=4)
 			{
 			kernel_dtrinv_4x4_lib4(jj-ii, &pC[ii*sdc+bs*ii], &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], fact);
@@ -1383,7 +1386,10 @@ void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
 		ptr = pA+jj*sda+jj*bs;
 		fact[0] = 1.0/ptr[0+bs*0];
 		fact[1] = ptr[1+bs*0];
-		fact[2] = 1.0/ptr[1+bs*1];
+		if(ptr[1+bs*1]!=0.0)
+			fact[2] = 1.0/ptr[1+bs*1];
+		else
+			fact[2] = 0.0;
 		for(ii=0; ii<jj; ii+=4)
 			{
 			kernel_dtrinv_4x2_lib4(jj-ii, &pC[ii*sdc+bs*ii], &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], fact);
@@ -1458,6 +1464,10 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 			if(fact[9]==0.0) fact[9]=1.0;
 			}
 		// dtrinv
+		if(diag[j+0]==0.0) fact[0]=0.0;
+		if(diag[j+1]==0.0) fact[2]=0.0;
+		if(diag[j+2]==0.0) fact[5]=0.0;
+		if(diag[j+3]==0.0) fact[9]=0.0;
 		for(i=0; i<j; i+=4)
 			{
 			kernel_dtrinv_4x4_lib4(j-i, &pE[i*sde+bs*i], &pA[j*sda+(k0+k+i)*bs], &pE[i*sde+j*bs], fact);
@@ -1499,6 +1509,8 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 			if(fact[2]==0.0) fact[2]=1.0;
 			}
 		// dtrinv
+		if(diag[j+0]==0.0) fact[0]=0.0;
+		if(diag[j+1]==0.0) fact[2]=0.0;
 		for(i=0; i<j; i+=4)
 			{
 			kernel_dtrinv_4x2_lib4(j-i, &pE[i*sde+bs*i], &pA[j*sda+(k0+k+i)*bs], &pE[i*sde+j*bs], fact);
