@@ -308,7 +308,7 @@ void dsyrk_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, do
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			for(; i<m-4; i+=8)
 				{
-				kernel_dgemm_nt_8x4_lib4(k, &pA[i*sda], &pA[(i+4)*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pD[j*bs+(i+4)*sdd], &pC[j*bs+i*sdc], &pD[j*bs+(i+4)*sdc], alg);
+				kernel_dgemm_nt_8x4_lib4(k, &pA[i*sda], &pA[(i+4)*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pD[j*bs+(i+4)*sdd], &pC[j*bs+i*sdc], &pC[j*bs+(i+4)*sdc], alg);
 				}
 #endif
 			for(; i<m-2; i+=4)
