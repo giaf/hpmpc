@@ -282,6 +282,8 @@ int main()
 			nrep = nnrep[ll];
 			}
 
+		const int LTI = 0;
+
 		int rep;
 	
 		const int nz = nx+nu+1;
@@ -358,6 +360,8 @@ int main()
 		for(; ii<nu+ncx; ii++) Q[ii*(pnz+1)] = 1.0;
 		for(ii=0; ii<nu+ncx; ii++) Q[nx+nu+ii*pnz] = 1.0;
 /*		Q[(nx+nu)*(pnz+1)] = 1e35; // large enough (not needed any longer) */
+		double *q; d_zeros_align(&q, pnz, 1);
+		for(ii=0; ii<nu+ncx; ii++) q[ii] = Q[nx+nu+ii*pnz];
 
 		/* packed into contiguous memory */
 		double *pQ; d_zeros_align(&pQ, pnz, cnz);
@@ -377,17 +381,37 @@ int main()
 		double *(hPb[N]);
 		for(jj=0; jj<N; jj++)
 			{
-			d_zeros_align(&hpQ[jj], pnz, cnz);
+			if(LTI==1)
+				{
+				hpBAbt[jj] = pBAbt; // LTI
+				hpQ[jj] = pQ;
+				hq[jj] = q;
+				}
+			else // LTV
+				{
+				d_zeros_align(&hpBAbt[jj], pnz, cnx);
+				for(ii=0; ii<pnz*cnx; ii++) hpBAbt[jj][ii] = pBAbt[ii];
+				d_zeros_align(&hpQ[jj], pnz, cnz);
+				for(ii=0; ii<pnz*cnz; ii++) hpQ[jj][ii] = pQ[ii];
+				d_zeros_align(&hq[jj], pnz, 1); // it has to be pnz !!!
+				for(ii=0; ii<pnz; ii++) hq[jj][ii] = q[ii];
+				}
 			d_zeros_align(&hpL[jj], pnz, cnl);
-			d_zeros_align(&hq[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hux[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hpi[jj], pnx, 1);
-			hpBAbt[jj] = pBAbt;
 			d_zeros_align(&hrb[jj], pnx, 1);
 			d_zeros_align(&hrq[jj], pnz, 1);
 			d_zeros_align(&hPb[jj], anx, 1);
 			}
-		d_zeros_align(&hpQ[N], pnz, cnz);
+		if(LTI==1)
+			{
+			hpQ[N] = pQ;
+			}
+		else
+			{
+			d_zeros_align(&hpQ[N], pnz, cnz);
+			for(ii=0; ii<pnz*cnz; ii++) hpQ[N][ii] = pQ[ii]; // LTV
+			}
 		d_zeros_align(&hpL[N], pnz, cnl);
 		d_zeros_align(&hq[N], pnz, 1); // it has to be pnz !!!
 		d_zeros_align(&hux[N], pnz, 1); // it has to be pnz !!!
@@ -669,22 +693,30 @@ int main()
 		free(pBAbt);
 		free(Q);
 		free(pQ);
+		free(q);
 		free(diag);
 		free(work);
 		for(jj=0; jj<N; jj++)
 			{
-			free(hpQ[jj]);
+			if(LTI!=1)
+				{
+				free(hpQ[jj]);
+				free(hq[jj]);
+				free(hpBAbt[jj]);
+				}
 			free(hpL[jj]);
-			free(hq[jj]);
 			free(hux[jj]);
 			free(hpi[jj]);
 			free(hrq[jj]);
 			free(hrb[jj]);
 			free(hPb[jj]);
 			}
-		free(hpQ[N]);
+		if(LTI!=1)
+			{
+			free(hpQ[N]);
+			free(hq[N]);
+			}
 		free(hpL[N]);
-		free(hq[N]);
 		free(hux[N]);
 		free(hpi[N]);
 		free(hrq[N]);
