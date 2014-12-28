@@ -197,9 +197,9 @@ int c_order_ip_mpc(	int k_max, double mu_tol, char prec,
         // cost function
         for(jj=0; jj<N; jj++)
 	        {
-            d_cvt_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
+            d_cvt_tran_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
             d_cvt_mat2pmat(nx, nu, nu, bs, S+jj*nx*nu, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
-            d_cvt_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+            d_cvt_tran_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
             for(ii=0; ii<nu; ii++)
                 hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
             for(ii=0; ii<nx; ii++)
@@ -212,7 +212,7 @@ int c_order_ip_mpc(	int k_max, double mu_tol, char prec,
                     hpQ[N][ii*cnz+i+jj*bs] = 0.0;
         for(jj=0; jj<nu; jj++)
             hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
-        d_cvt_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+        d_cvt_tran_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
         for(jj=0; jj<nx; jj++)
             hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
 
@@ -423,9 +423,9 @@ int c_order_ip_mpc(	int k_max, double mu_tol, char prec,
         // cost function
         for(jj=0; jj<N; jj++)
 	        {
-            cvt_d2s_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
+            cvt_tran_d2s_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
             cvt_d2s_mat2pmat(nx, nu, nu, bs, S+jj*nx*nu, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
-            cvt_d2s_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+            cvt_tran_d2s_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
             for(ii=0; ii<nu; ii++)
                 hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = (float) r[ii+jj*nu];
             for(ii=0; ii<nx; ii++)
@@ -438,7 +438,7 @@ int c_order_ip_mpc(	int k_max, double mu_tol, char prec,
                     hpQ[N][ii*cnz+i+jj*bs] = 0.0;
         for(jj=0; jj<nu; jj++)
             hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
-        cvt_d2s_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+        cvt_tran_d2s_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
         for(jj=0; jj<nx; jj++)
             hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = (float) qf[jj];
 
@@ -674,9 +674,9 @@ int c_order_riccati_mpc( const char prec,
 		// cost function
 		for(jj=0; jj<N; jj++)
 			{
-			d_cvt_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
+			d_cvt_tran_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
 			d_cvt_mat2pmat(nx, nu, nu, bs, S+jj*nx*nu, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
-			d_cvt_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+			d_cvt_tran_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
 			for(ii=0; ii<nu; ii++)
 				hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
 			for(ii=0; ii<nx; ii++)
@@ -689,7 +689,7 @@ int c_order_riccati_mpc( const char prec,
 					hpQ[N][ii*cnz+i+jj*bs] = 0.0;
 		for(jj=0; jj<nu; jj++)
 			hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
-		d_cvt_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+		d_cvt_tran_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
 		for(jj=0; jj<nx; jj++)
 			hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
 
@@ -831,9 +831,9 @@ int c_order_riccati_mpc( const char prec,
 		// cost function
 		for(jj=0; jj<N; jj++)
 			{
-			cvt_d2s_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
+			cvt_tran_d2s_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
 			cvt_d2s_mat2pmat(nx, nu, nu, bs, S+jj*nx*nu, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
-			cvt_d2s_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+			cvt_tran_d2s_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
 			for(ii=0; ii<nu; ii++)
 				hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
 			for(ii=0; ii<nx; ii++)
@@ -846,7 +846,7 @@ int c_order_riccati_mpc( const char prec,
 					hpQ[N][ii*cnz+i+jj*bs] = 0.0;
 		for(jj=0; jj<nu; jj++)
 			hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
-		cvt_d2s_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+		cvt_tran_d2s_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
 		for(jj=0; jj<nx; jj++)
 			hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
 
