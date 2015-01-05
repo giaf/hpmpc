@@ -39,6 +39,8 @@
 /* primal-dual interior-point method, box constraints, time invariant matrices (mpc version) */
 int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **Z, double **z, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
 	{
+	
+	// TODO Z and z are supposed to be aligned with the corresponding components of t and lam (i.e. have 2*nu dummy elements at the beginning)
 
 /*printf("\ncazzo\n");*/
 
@@ -89,6 +91,8 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 	double *(dt[N+1]);
 	double *(lamt[N+1]);
 	double *(t_inv[N+1]);
+	double *(Zl[N+1]); // inverse of the diagonal of the matrix of the cost funciton of the soft constraint slack variables as updated in the IP
+	double *(zl[N+1]); // linear part of the cost funciton of the soft constraint slack variables as updated in the IP
 
 //	ptr += (N+1)*(pnz + pnx + pnz*cnl + 8*pnz) + 3*pnz;
 
@@ -159,6 +163,13 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 		ptr += anb2;
 		}
 
+	for(jj=0; jj<=N; jj++)
+		{
+		Zl[jj] = ptr;
+		zl[jj] = ptr + anb;;
+		ptr += 2*anb;
+		}
+
 /*dlam[0][0] = 1;*/
 /*printf("\ncazzo %f\n", dlam[0][0]);*/
 
@@ -207,8 +218,6 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 	alpha = 1.0;
 	
 
-	// TODO
-	
 
 	// IP loop		
 	while( *kk<k_max && mu>mu_tol && alpha>=alpha_min )
@@ -219,8 +228,10 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 		// box constraints
 
-		d_update_hessian_box_mpc(N, nbu, (nu/bs)*bs, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db);
+		d_update_hessian_soft_mpc(N, nx, nu, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db, Z, z, Zl, zl);
 
+	// TODO
+	
 /*return;*/
 
 
