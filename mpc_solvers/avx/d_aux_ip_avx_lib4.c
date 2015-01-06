@@ -32,8 +32,10 @@
 
 
 
-void d_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, double **ux, double **pi, double **db, double **t, int warm_start)
+void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi, double **db, double **t, double **lam, int warm_start)
 	{
+
+	const int nbu = nu<nb ? nu : nb ;
 	
 	int jj, ll, ii;
 	
@@ -64,9 +66,14 @@ void d_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, double **ux,
 				t[0][ll+1] = thr0;
 				ux[0][ll/2] = - db[0][ll+1] - thr0;
 				}
+			lam[0][ll+0] = 1.0/t[0][ll+0];
+			lam[0][ll+1] = 1.0/t[0][ll+1];
 			}
 		for(; ll<2*nb; ll++)
+			{
 			t[0][ll] = 1.0; // this has to be strictly positive !!!
+			lam[0][ll] = 1.0; // this has to be strictly positive !!!
+			}
 		for(jj=1; jj<N; jj++)
 			{
 			for(ll=0; ll<2*nb; ll+=2)
@@ -92,10 +99,15 @@ void d_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, double **ux,
 					t[jj][ll+1] = thr0;
 					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
 					}
+				lam[jj][ll+0] = 1.0/t[jj][ll+0];
+				lam[jj][ll+1] = 1.0/t[jj][ll+1];
 				}
 			}
 		for(ll=0; ll<2*nbu; ll++) // this has to be strictly positive !!!
-			t[N][ll] = 1;
+			{
+			t[N][ll] = 1.0;
+			lam[N][ll] = 1.0;
+			}
 		for(ll=2*nu; ll<2*nb; ll+=2)
 			{
 			t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
@@ -119,8 +131,9 @@ void d_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, double **ux,
 				t[N][ll+1] = thr0;
 				ux[N][ll/2] = - db[N][ll+1] - thr0;
 				}
+			lam[N][ll+0] = 1.0/t[N][ll+0];
+			lam[N][ll+1] = 1.0/t[N][ll+1];
 			}
-
 		}
 	else // cold start
 		{
@@ -150,11 +163,16 @@ void d_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, double **ux,
 				t[0][ll+1] = thr0;
 				ux[0][ll/2] = - db[0][ll+1] - thr0;
 				}
+			lam[0][ll+0] = 1.0/t[0][ll+0];
+			lam[0][ll+1] = 1.0/t[0][ll+1];
 			}
 		for(ii=ll/2; ii<nu; ii++)
 			ux[0][ii] = 0.0; // initialize remaining components of u to zero
 		for(; ll<2*nb; ll++)
+			{
 			t[0][ll] = 1.0; // this has to be strictly positive !!!
+			lam[0][ll] = 1.0; // this has to be strictly positive !!!
+			}
 		for(jj=1; jj<N; jj++)
 			{
 			for(ll=0; ll<2*nb; ll+=2)
@@ -183,12 +201,17 @@ void d_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, double **ux,
 					t[jj][ll+1] = thr0;
 					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
 					}
+				lam[jj][ll+0] = 1.0/t[jj][ll+0];
+				lam[jj][ll+1] = 1.0/t[jj][ll+1];
 				}
 			for(ii=ll/2; ii<nx+nu; ii++)
 				ux[jj][ii] = 0.0; // initialize remaining components of u and x to zero
 			}
 		for(ll=0; ll<2*nbu; ll++)
+			{
 			t[N][ll] = 1.0; // this has to be strictly positive !!!
+			lam[N][ll] = 1.0; // this has to be strictly positive !!!
+			}
 		for(ll=2*nu; ll<2*nb; ll+=2)
 			{
 			ux[N][ll/2] = 0.0;
@@ -215,6 +238,8 @@ void d_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, double **ux,
 				t[N][ll+1] = thr0;
 				ux[N][ll/2] = - db[N][ll+1] - thr0;
 				}
+			lam[N][ll+0] = 1.0/t[N][ll+0];
+			lam[N][ll+1] = 1.0/t[N][ll+1];
 			}
 		for(ii=ll/2; ii<nx+nu; ii++)
 			ux[N][ii] = 0.0; // initialize remaining components of x to zero
@@ -229,34 +254,13 @@ void d_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, double **ux,
 
 
 
-void d_init_lam_mpc(int N, int nu, int nbu, int nb, double **t, double **lam)	// TODO approximate reciprocal
-	{
-	
-	int jj, ll;
-	
-	for(ll=0; ll<2*nbu; ll++)
-		lam[0][ll] = 1/t[0][ll];
-	for(; ll<2*nb; ll++)
-		lam[0][ll] = 1.0; // this has to be strictly positive !!!
-	for(jj=1; jj<N; jj++)
-		{
-		for(ll=0; ll<2*nb; ll++)
-			lam[jj][ll] = 1/t[jj][ll];
-/*			lam[jj][ll] = thr0/t[jj][ll];*/
-		}
-	for(ll=0; ll<2*nu; ll++)
-		lam[N][ll] = 1.0; // this has to be strictly positive !!!
-	for(ll=2*nu; ll<2*nb; ll++)
-		lam[N][ll] = 1/t[jj][ll];
-/*		lam[N][ll] = thr0/t[jj][ll];*/
-	
-	}
-
-
-
-void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **pl2, double **db)
+void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **pl2, double **db)
 	{
 
+	const int nbu = nu<nb ? nu : nb ;
+
+	const int bs = 4; //d_get_mr();
+	
 	__m256d
 		v_ones, v_sigma_mu,
 		v_tmp, v_lam, v_lamt, v_dlam, v_db;
@@ -266,8 +270,6 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 	
 	v_ones = _mm256_set_pd( 1.0, 1.0, 1.0, 1.0 );
 	v_sigma_mu = _mm256_set_pd( sigma_mu, sigma_mu, sigma_mu, sigma_mu );
-	
-	const int bs = 4; //d_get_mr();
 	
 	double temp0, temp1;
 	
@@ -284,7 +286,7 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 	ptr_t_inv = t_inv[0];
 	
 	ii = 0;
-	for(; ii<k0-3; ii+=4)
+	for(; ii<nbu-3; ii+=4)
 		{
 		
 		v_tmp  = _mm256_load_pd( &ptr_t[0] );
@@ -347,11 +349,11 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 		ptr_t_inv += 8;
 
 		}
-	if(ii<k0)
+	if(ii<nbu)
 		{
 
 /*		bs0 = nb-ii;*/
-		bs0 = k0-ii;
+		bs0 = nbu-ii;
 		ll = 0;
 		
 		if(bs0>=2)
@@ -438,7 +440,7 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 		ptr_t_inv = t_inv[jj];
 
 		ii = 0;
-		for(; ii<kmax-3; ii+=4)
+		for(; ii<nb-3; ii+=4)
 			{
 		
 			v_tmp  = _mm256_load_pd( &ptr_t[0] );
@@ -501,11 +503,10 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 			ptr_t_inv += 8;
 
 			}
-		if(ii<kmax)
+		if(ii<nb)
 			{
 
-/*			bs0 = nb-ii;*/
-			bs0 = kmax-ii;
+			bs0 = nb-ii;
 			ll = 0;
 		
 			if(bs0>=2)
@@ -571,7 +572,7 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 				u_bl   = _mm_load_sd( &bl[jj][ii+ll] );
 				u_bl   = _mm_sub_pd( u_bl, u_lam );
 				_mm_store_sd( &pl[jj][(ii+ll)*bs], u_bl );
-				_mm_store_pd( &pl2[jj][ii+ll], u_bl );
+				_mm_store_sd( &pl2[jj][ii+ll], u_bl );
 
 	/*			t    += 2;*/
 	/*			lam  += 2;*/
@@ -585,15 +586,102 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 
 	// last stage
 
-	ptr_t     = t[N]     + 2*k1;
-	ptr_lam   = lam[N]   + 2*k1;
-	ptr_lamt  = lamt[N]  + 2*k1;
-	ptr_dlam  = dlam[N]  + 2*k1;
-	ptr_t_inv = t_inv[N] + 2*k1;
+	//ptr_t     = t[N]     + 2*k1;
+	//ptr_lam   = lam[N]   + 2*k1;
+	//ptr_lamt  = lamt[N]  + 2*k1;
+	//ptr_dlam  = dlam[N]  + 2*k1;
+	//ptr_t_inv = t_inv[N] + 2*k1;
 
-	ii=k1; // k1 supposed to be multiple of bs !!!!!!!!!!
+	//ii=k1; // k1 supposed to be multiple of bs !!!!!!!!!!
 
-	for(; ii<kmax-3; ii+=4)
+	ptr_t     = t[N]     + 2*nu;
+	ptr_lam   = lam[N]   + 2*nu;
+	ptr_lamt  = lamt[N]  + 2*nu;
+	ptr_dlam  = dlam[N]  + 2*nu;
+	ptr_t_inv = t_inv[N] + 2*nu;
+
+	ii = (nu/4)*4;
+	ll = nu%4;
+	if(ll>0)
+		{
+		bs0 = 4 - ll;
+		if(bs0%2==1)
+			{
+			u_tmp  = _mm_load_pd( &ptr_t[0] );
+			u_tmp  = _mm_div_pd( _mm256_castpd256_pd128( v_ones ), u_tmp );
+			_mm_store_pd( &ptr_t_inv[0], u_tmp ); // store t_inv
+			u_lam  = _mm_load_pd( &ptr_lam[0] );
+			u_lamt = _mm_mul_pd( u_tmp, u_lam );
+			_mm_store_pd( &ptr_lamt[0], u_lamt );
+			u_dlam = _mm_mul_pd( u_tmp, _mm256_castpd256_pd128( v_sigma_mu ) );
+			_mm_store_pd( &ptr_dlam[0], u_dlam );
+			u_tmp  = _mm_hadd_pd( u_lamt, u_lamt ); // [ lamt[0]+lamt[1] , xxx ]
+			u_bd   = _mm_load_sd( &bd[N][ii+ll] );
+			u_bd   = _mm_add_sd( u_bd, u_tmp );
+			_mm_store_sd( &pd[N][ll+(ii+ll)*bs+ii*cnz], u_bd );
+			u_db   = _mm_load_pd( &db[N][2*ii+2*ll+0] );
+			u_db   = _mm_mul_pd( u_db, u_lamt );
+			u_lam  = _mm_add_pd( u_lam, u_dlam );
+			u_lam  = _mm_add_pd( u_lam, u_db );
+			u_lam  = _mm_hsub_pd( u_lam, u_lam ); // [ lam[1]-lam[0] , xxx ] + [ dlam[1]-dlam[0] , xxx ]
+			u_bl   = _mm_load_sd( &bl[N][ii+ll] );
+			u_bl   = _mm_sub_pd( u_bl, u_lam );
+			_mm_store_sd( &pl[N][(ii+ll)*bs], u_bl );
+			_mm_store_sd( &pl2[N][ii+ll], u_bl );
+
+			ptr_t     += 2;
+			ptr_lam   += 2;
+			ptr_lamt  += 2;
+			ptr_dlam  += 2;
+			ptr_t_inv += 2;
+
+			ll++;
+			bs0--;
+			}
+		if(bs0==2)
+			{
+			v_tmp  = _mm256_load_pd( &ptr_t[0] );
+			v_tmp  = _mm256_div_pd( v_ones, v_tmp );
+			_mm256_store_pd( &ptr_t_inv[0], v_tmp ); // store t_inv
+			v_lam  = _mm256_load_pd( &ptr_lam[0] );
+			v_lamt = _mm256_mul_pd( v_tmp, v_lam );
+			_mm256_store_pd( &ptr_lamt[0], v_lamt );
+			v_dlam = _mm256_mul_pd( v_tmp, v_sigma_mu );
+			_mm256_store_pd( &ptr_dlam[0], v_dlam );
+			u_lamt = _mm256_extractf128_pd( v_lamt, 0x1 );
+			u_lamt = _mm_hadd_pd( _mm256_castpd256_pd128( v_lamt ), u_lamt ); // [ lamt[0]+lamt[1] , lamt[2]+lamt[3] ]
+			u_bd   = _mm_load_pd( &bd[N][ii+ll] );
+			u_bd   = _mm_add_pd( u_bd, u_lamt );
+			_mm_storel_pd( &pd[N][ll+0+(ii+ll+0)*bs+ii*cnz], u_bd );
+			_mm_storeh_pd( &pd[N][ll+1+(ii+ll+1)*bs+ii*cnz], u_bd );
+			v_db   = _mm256_load_pd( &db[N][2*ii+2*ll+0] );
+			v_db   = _mm256_mul_pd( v_db, v_lamt );
+			v_lam  = _mm256_add_pd( v_lam, v_dlam );
+			v_lam  = _mm256_add_pd( v_lam, v_db );
+			u_lam  = _mm256_extractf128_pd( v_lam, 0x1 );
+			u_lam  = _mm_hsub_pd( _mm256_castpd256_pd128( v_lam ), u_lam ); // [ lam[1]-lam[0] , lam[3]-lam[2] ] + [ dlam[1]-dlam[0] , dlam[3]-dlam[2] ]
+			u_bl   = _mm_load_pd( &bl[N][ii+ll] );
+			u_bl   = _mm_sub_pd( u_bl, u_lam );
+			_mm_storel_pd( &pl[N][(ii+ll+0)*bs], u_bl );
+			_mm_storeh_pd( &pl[N][(ii+ll+1)*bs], u_bl );
+			_mm_store_pd( &pl2[N][ii+ll+0], u_bl );
+
+			ptr_t     += 4;
+			ptr_lam   += 4;
+			ptr_lamt  += 4;
+			ptr_dlam  += 4;
+			ptr_t_inv += 4;
+			
+			ll   += 2;
+			bs0  -= 2;
+
+
+			bs0-=2;
+			}
+		ii += 4;
+		}
+
+	for(; ii<nb-3; ii+=4)
 		{
 		
 		v_tmp  = _mm256_load_pd( &ptr_t[0] );
@@ -656,11 +744,11 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 		ptr_t_inv += 8;
 
 		}
-	if(ii<kmax)
+	if(ii<nb)
 		{
 
 /*		bs0 = nb-ii;*/
-		bs0 = kmax-ii;
+		bs0 = nb-ii;
 		ll = 0;
 		
 		if(bs0>=2)
@@ -726,7 +814,7 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 			u_bl   = _mm_load_sd( &bl[N][ii+ll] );
 			u_bl   = _mm_sub_pd( u_bl, u_lam );
 			_mm_store_sd( &pl[N][(ii+ll)*bs], u_bl );
-			_mm_store_pd( &pl2[N][ii+ll], u_bl );
+			_mm_store_sd( &pl2[N][ii+ll], u_bl );
 
 /*			t    += 2;*/
 /*			lam  += 2;*/
@@ -743,9 +831,11 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 
 
 
-void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db)
+void d_compute_alpha_box_mpc(int N, int nx, int nu, int nb, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db)
 	{
 	
+	const int nbu = nu<nb ? nu : nb ;
+
 	__m128
 		s_sign, s_ones, s_mask0, s_mask1, s_zeros,
 		s_lam, s_dlam, s_t, s_dt, s_tmp0, s_tmp1, s_alpha;
@@ -776,33 +866,31 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 	
 	double alpha = ptr_alpha[0];
 	
-	int kna = ((k1+bs-1)/bs)*bs;
-
 	int jj, ll;
 
 
 	// first stage
 	ll = 0;
-	for(; ll<k0-3; ll+=4) // TODO avx single prec
+	for(; ll<nbu-1; ll+=2) // TODO avx single prec
 		{
 
-		v_db    = _mm256_load_pd( &db[0][ll] );
-		v_dux   = _mm256_castpd128_pd256( _mm_loaddup_pd( &dux[0][ll/2+0] ) );
-		v_temp  = _mm256_castpd128_pd256( _mm_loaddup_pd( &dux[0][ll/2+1] ) );
+		v_db    = _mm256_load_pd( &db[0][2*ll] );
+		v_dux   = _mm256_castpd128_pd256( _mm_loaddup_pd( &dux[0][ll+0] ) );
+		v_temp  = _mm256_castpd128_pd256( _mm_loaddup_pd( &dux[0][ll+1] ) );
 		v_dux   = _mm256_permute2f128_pd( v_dux, v_temp, 0x20 );
 		v_dt    = _mm256_addsub_pd( v_db, v_dux );
 		v_dt    = _mm256_xor_pd( v_dt, v_sign );
-		v_t     = _mm256_load_pd( &t[0][ll] );
+		v_t     = _mm256_load_pd( &t[0][2*ll] );
 		v_dt    = _mm256_sub_pd( v_dt, v_t );
-		_mm256_store_pd( &dt[0][ll], v_dt );
+		_mm256_store_pd( &dt[0][2*ll], v_dt );
 
-		v_lamt  = _mm256_load_pd( &lamt[0][ll] );
+		v_lamt  = _mm256_load_pd( &lamt[0][2*ll] );
 		v_temp  = _mm256_mul_pd( v_lamt, v_dt );
-		v_dlam  = _mm256_load_pd( &dlam[0][ll] );
-		v_lam   = _mm256_load_pd( &lam[0][ll] );
+		v_dlam  = _mm256_load_pd( &dlam[0][2*ll] );
+		v_lam   = _mm256_load_pd( &lam[0][2*ll] );
 		v_dlam  = _mm256_sub_pd( v_dlam, v_lam );
 		v_dlam  = _mm256_sub_pd( v_dlam, v_temp );
-		_mm256_store_pd( &dlam[0][ll], v_dlam );
+		_mm256_store_pd( &dlam[0][2*ll], v_dlam );
 
 		s_dlam  = _mm256_cvtpd_ps( v_dlam );
 		s_dt    = _mm256_cvtpd_ps( v_dt );
@@ -821,24 +909,24 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 
 		}
 
-	for(; ll<k0; ll+=2)
+	for(; ll<nbu; ll++)
 		{
 
-		u_db    = _mm_load_pd( &db[0][ll] );
-		u_dux   = _mm_loaddup_pd( &dux[0][ll/2+0] );
+		u_db    = _mm_load_pd( &db[0][2*ll] );
+		u_dux   = _mm_loaddup_pd( &dux[0][ll+0] );
 		u_dt    = _mm_addsub_pd( u_db, u_dux );
 		u_dt    = _mm_xor_pd( u_dt, u_sign );
-		u_t     = _mm_load_pd( &t[0][ll] );
+		u_t     = _mm_load_pd( &t[0][2*ll] );
 		u_dt    = _mm_sub_pd( u_dt, u_t );
-		_mm_store_pd( &dt[0][ll], u_dt );
+		_mm_store_pd( &dt[0][2*ll], u_dt );
 
-		u_lamt  = _mm_load_pd( &lamt[0][ll] );
+		u_lamt  = _mm_load_pd( &lamt[0][2*ll] );
 		u_temp  = _mm_mul_pd( u_lamt, u_dt );
-		u_dlam  = _mm_load_pd( &dlam[0][ll] );
-		u_lam   = _mm_load_pd( &lam[0][ll] );
+		u_dlam  = _mm_load_pd( &dlam[0][2*ll] );
+		u_lam   = _mm_load_pd( &lam[0][2*ll] );
 		u_dlam  = _mm_sub_pd( u_dlam, u_lam );
 		u_dlam  = _mm_sub_pd( u_dlam, u_temp );
-		_mm_store_pd( &dlam[0][ll], u_dlam );
+		_mm_store_pd( &dlam[0][2*ll], u_dlam );
 
 		v_dlam  = _mm256_permute2f128_pd( _mm256_castpd128_pd256( u_dlam ), _mm256_castpd128_pd256( u_dt ), 0x20 );
 		s_dlam  = _mm256_cvtpd_ps( v_dlam );
@@ -857,26 +945,26 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 		{
 
 		ll = 0;
-		for(; ll<kmax-3; ll+=4)
+		for(; ll<nb-1; ll+=2)
 			{
 
-			v_db    = _mm256_load_pd( &db[jj][ll] );
-			v_dux   = _mm256_castpd128_pd256( _mm_loaddup_pd( &dux[jj][ll/2+0] ) );
-			v_temp  = _mm256_castpd128_pd256( _mm_loaddup_pd( &dux[jj][ll/2+1] ) );
+			v_db    = _mm256_load_pd( &db[jj][2*ll] );
+			v_dux   = _mm256_castpd128_pd256( _mm_loaddup_pd( &dux[jj][ll+0] ) );
+			v_temp  = _mm256_castpd128_pd256( _mm_loaddup_pd( &dux[jj][ll+1] ) );
 			v_dux   = _mm256_permute2f128_pd( v_dux, v_temp, 0x20 );
 			v_dt    = _mm256_addsub_pd( v_db, v_dux );
 			v_dt    = _mm256_xor_pd( v_dt, v_sign );
-			v_t     = _mm256_load_pd( &t[jj][ll] );
+			v_t     = _mm256_load_pd( &t[jj][2*ll] );
 			v_dt    = _mm256_sub_pd( v_dt, v_t );
-			_mm256_store_pd( &dt[jj][ll], v_dt );
+			_mm256_store_pd( &dt[jj][2*ll], v_dt );
 
-			v_lamt  = _mm256_load_pd( &lamt[jj][ll] );
+			v_lamt  = _mm256_load_pd( &lamt[jj][2*ll] );
 			v_temp  = _mm256_mul_pd( v_lamt, v_dt );
-			v_dlam  = _mm256_load_pd( &dlam[jj][ll] );
-			v_lam   = _mm256_load_pd( &lam[jj][ll] );
+			v_dlam  = _mm256_load_pd( &dlam[jj][2*ll] );
+			v_lam   = _mm256_load_pd( &lam[jj][2*ll] );
 			v_dlam  = _mm256_sub_pd( v_dlam, v_lam );
 			v_dlam  = _mm256_sub_pd( v_dlam, v_temp );
-			_mm256_store_pd( &dlam[jj][ll], v_dlam );
+			_mm256_store_pd( &dlam[jj][2*ll], v_dlam );
 
 			s_dlam  = _mm256_cvtpd_ps( v_dlam );
 			s_dt    = _mm256_cvtpd_ps( v_dt );
@@ -894,24 +982,24 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 			s_alpha = _mm_min_ps( s_alpha, s_tmp1 );
 			}
 
-		for(; ll<kmax; ll+=2)
+		for(; ll<nb; ll++)
 			{
 
-			u_db    = _mm_load_pd( &db[jj][ll] );
-			u_dux   = _mm_loaddup_pd( &dux[jj][ll/2+0] );
+			u_db    = _mm_load_pd( &db[jj][2*ll] );
+			u_dux   = _mm_loaddup_pd( &dux[jj][ll+0] );
 			u_dt    = _mm_addsub_pd( u_db, u_dux );
 			u_dt    = _mm_xor_pd( u_dt, u_sign );
-			u_t     = _mm_load_pd( &t[jj][ll] );
+			u_t     = _mm_load_pd( &t[jj][2*ll] );
 			u_dt    = _mm_sub_pd( u_dt, u_t );
-			_mm_store_pd( &dt[jj][ll], u_dt );
+			_mm_store_pd( &dt[jj][2*ll], u_dt );
 
-			u_lamt  = _mm_load_pd( &lamt[jj][ll] );
+			u_lamt  = _mm_load_pd( &lamt[jj][2*ll] );
 			u_temp  = _mm_mul_pd( u_lamt, u_dt );
-			u_dlam  = _mm_load_pd( &dlam[jj][ll] );
-			u_lam   = _mm_load_pd( &lam[jj][ll] );
+			u_dlam  = _mm_load_pd( &dlam[jj][2*ll] );
+			u_lam   = _mm_load_pd( &lam[jj][2*ll] );
 			u_dlam  = _mm_sub_pd( u_dlam, u_lam );
 			u_dlam  = _mm_sub_pd( u_dlam, u_temp );
-			_mm_store_pd( &dlam[jj][ll], u_dlam );
+			_mm_store_pd( &dlam[jj][2*ll], u_dlam );
 
 			v_dlam  = _mm256_permute2f128_pd( _mm256_castpd128_pd256( u_dlam ), _mm256_castpd128_pd256( u_dt ), 0x20 );
 			s_dlam  = _mm256_cvtpd_ps( v_dlam );
@@ -928,25 +1016,25 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 		}		
 
 	// last stage
-	ll = k1;
-	for(; ll<kna; ll+=2)
+	ll = nu;
+	for(; ll<((nu+bs-1)/bs)*bs; ll++)
 		{
 
-		u_db    = _mm_load_pd( &db[N][ll] );
-		u_dux   = _mm_loaddup_pd( &dux[N][ll/2+0] );
+		u_db    = _mm_load_pd( &db[N][2*ll] );
+		u_dux   = _mm_loaddup_pd( &dux[N][ll+0] );
 		u_dt    = _mm_addsub_pd( u_db, u_dux );
 		u_dt    = _mm_xor_pd( u_dt, u_sign );
-		u_t     = _mm_load_pd( &t[N][ll] );
+		u_t     = _mm_load_pd( &t[N][2*ll] );
 		u_dt    = _mm_sub_pd( u_dt, u_t );
-		_mm_store_pd( &dt[N][ll], u_dt );
+		_mm_store_pd( &dt[N][2*ll], u_dt );
 
-		u_lamt  = _mm_load_pd( &lamt[N][ll] );
+		u_lamt  = _mm_load_pd( &lamt[N][2*ll] );
 		u_temp  = _mm_mul_pd( u_lamt, u_dt );
-		u_dlam  = _mm_load_pd( &dlam[N][ll] );
-		u_lam   = _mm_load_pd( &lam[N][ll] );
+		u_dlam  = _mm_load_pd( &dlam[N][2*ll] );
+		u_lam   = _mm_load_pd( &lam[N][2*ll] );
 		u_dlam  = _mm_sub_pd( u_dlam, u_temp );
 		u_dlam  = _mm_sub_pd( u_dlam, u_lam );
-		_mm_store_pd( &dlam[N][ll], u_dlam );
+		_mm_store_pd( &dlam[N][2*ll], u_dlam );
 
 		v_dlam  = _mm256_permute2f128_pd( _mm256_castpd128_pd256( u_dlam ), _mm256_castpd128_pd256( u_dt ), 0x20 );
 		s_dlam  = _mm256_cvtpd_ps( v_dlam );
@@ -960,26 +1048,26 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 
 		}
 		
-	for(; ll<kmax-3; ll+=4)
+	for(; ll<nb-1; ll+=2)
 		{
 
-		v_db    = _mm256_load_pd( &db[N][ll] );
-		v_dux   = _mm256_castpd128_pd256( _mm_loaddup_pd( &dux[N][ll/2+0] ) );
-		v_temp  = _mm256_castpd128_pd256( _mm_loaddup_pd( &dux[N][ll/2+1] ) );
+		v_db    = _mm256_load_pd( &db[N][2*ll] );
+		v_dux   = _mm256_castpd128_pd256( _mm_loaddup_pd( &dux[N][ll+0] ) );
+		v_temp  = _mm256_castpd128_pd256( _mm_loaddup_pd( &dux[N][ll+1] ) );
 		v_dux   = _mm256_permute2f128_pd( v_dux, v_temp, 0x20 );
 		v_dt    = _mm256_addsub_pd( v_db, v_dux );
 		v_dt    = _mm256_xor_pd( v_dt, v_sign );
-		v_t     = _mm256_load_pd( &t[N][ll] );
+		v_t     = _mm256_load_pd( &t[N][2*ll] );
 		v_dt    = _mm256_sub_pd( v_dt, v_t );
-		_mm256_store_pd( &dt[N][ll], v_dt );
+		_mm256_store_pd( &dt[N][2*ll], v_dt );
 
-		v_lamt  = _mm256_load_pd( &lamt[N][ll] );
+		v_lamt  = _mm256_load_pd( &lamt[N][2*ll] );
 		v_temp  = _mm256_mul_pd( v_lamt, v_dt );
-		v_dlam  = _mm256_load_pd( &dlam[N][ll] );
-		v_lam   = _mm256_load_pd( &lam[N][ll] );
+		v_dlam  = _mm256_load_pd( &dlam[N][2*ll] );
+		v_lam   = _mm256_load_pd( &lam[N][2*ll] );
 		v_dlam  = _mm256_sub_pd( v_dlam, v_lam );
 		v_dlam  = _mm256_sub_pd( v_dlam, v_temp );
-		_mm256_store_pd( &dlam[N][ll], v_dlam );
+		_mm256_store_pd( &dlam[N][2*ll], v_dlam );
 
 		s_dlam  = _mm256_cvtpd_ps( v_dlam );
 		s_dt    = _mm256_cvtpd_ps( v_dt );
@@ -998,24 +1086,24 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 
 		}
 
-	for(; ll<kmax; ll+=2)
+	for(; ll<nb; ll++)
 		{
 
-		u_db    = _mm_load_pd( &db[N][ll] );
-		u_dux   = _mm_loaddup_pd( &dux[N][ll/2+0] );
+		u_db    = _mm_load_pd( &db[N][2*ll] );
+		u_dux   = _mm_loaddup_pd( &dux[N][ll+0] );
 		u_dt    = _mm_addsub_pd( u_db, u_dux );
 		u_dt    = _mm_xor_pd( u_dt, u_sign );
-		u_t     = _mm_load_pd( &t[N][ll] );
+		u_t     = _mm_load_pd( &t[N][2*ll] );
 		u_dt    = _mm_sub_pd( u_dt, u_t );
-		_mm_store_pd( &dt[N][ll], u_dt );
+		_mm_store_pd( &dt[N][2*ll], u_dt );
 
-		u_lamt  = _mm_load_pd( &lamt[N][ll] );
+		u_lamt  = _mm_load_pd( &lamt[N][2*ll] );
 		u_temp  = _mm_mul_pd( u_lamt, u_dt );
-		u_dlam  = _mm_load_pd( &dlam[N][ll] );
-		u_lam   = _mm_load_pd( &lam[N][ll] );
+		u_dlam  = _mm_load_pd( &dlam[N][2*ll] );
+		u_lam   = _mm_load_pd( &lam[N][2*ll] );
 		u_dlam  = _mm_sub_pd( u_dlam, u_lam );
 		u_dlam  = _mm_sub_pd( u_dlam, u_temp );
-		_mm_store_pd( &dlam[N][ll], u_dlam );
+		_mm_store_pd( &dlam[N][2*ll], u_dlam );
 
 		v_dlam  = _mm256_permute2f128_pd( _mm256_castpd128_pd256( u_dlam ), _mm256_castpd128_pd256( u_dt ), 0x20 );
 		s_dlam  = _mm256_cvtpd_ps( v_dlam );
@@ -1044,9 +1132,11 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 	}
 
 
-void d_update_var_mpc(int nx, int nu, int N, int nb, int nbu, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
+void d_update_var_box_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
 	{
 	
+	const int nbu = nu<nb ? nu : nb ;
+
 	int jj, ll;
 	
 	__m128d
@@ -1372,9 +1462,11 @@ void d_update_var_mpc(int nx, int nu, int N, int nb, int nbu, double *ptr_mu, do
 	}
 
 
-void d_compute_mu_mpc(int N, int nbu, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
+void d_compute_mu_box_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
 	{
 	
+	const int nbu = nu<nb ? nu : nb ;
+
 	int jj, ll;
 	
 	__m128d

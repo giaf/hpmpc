@@ -230,8 +230,6 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 		d_update_hessian_soft_mpc(N, nx, nu, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db, Z, z, Zl, zl);
 
-	// TODO
-	
 /*return;*/
 
 
@@ -242,7 +240,7 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1.0;
-		d_compute_alpha_box_mpc(N, 2*nbu, 2*nu, 2*nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
+		d_compute_alpha_soft_mpc(N, nx, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, db, Zl, zl);
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+1] = alpha;
@@ -253,7 +251,7 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 
 		// update x, u, lam, t & compute the duality gap mu
-		d_update_var_mpc(nx, nu, N, nb, nbu, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
+		d_update_var_soft_mpc(N, nx, nu, nb, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
 		
 		stat[5*(*kk)+2] = mu;
 		

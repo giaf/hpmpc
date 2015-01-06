@@ -224,6 +224,228 @@ void d_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, double **ux,
 
 
 
+void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi, double **db, double **t, double **lam, int warm_start)
+	{
+
+	const int nbu = nu<nb ? nu : nb ;
+	
+	int jj, ll, ii;
+	
+	double thr0 = 1e-3; // minimum distance from a constraint
+
+	if(warm_start==1)
+		{
+		for(ll=0; ll<2*nbu; ll+=2)
+			{
+			t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
+			t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
+			if(t[0][ll+0] < thr0)
+				{
+				if(t[0][ll+1] < thr0)
+					{
+					ux[0][ll/2] = ( - db[0][ll+1] + db[0][ll+0])*0.5;
+					t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
+					t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
+					}
+				else
+					{
+					t[0][ll+0] = thr0;
+					ux[0][ll/2] = db[0][ll+0] + thr0;
+					}
+				}
+			else if(t[0][ll+1] < thr0)
+				{
+				t[0][ll+1] = thr0;
+				ux[0][ll/2] = - db[0][ll+1] - thr0;
+				}
+			lam[0][ll+0] = 1.0/t[0][ll+0];
+			lam[0][ll+1] = 1.0/t[0][ll+1];
+			}
+		for(; ll<2*nb; ll++)
+			{
+			t[0][ll] = 1.0; // this has to be strictly positive !!!
+			lam[0][ll] = 1.0; // this has to be strictly positive !!!
+			}
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<2*nb; ll+=2)
+				{
+				t[jj][ll+0] = ux[jj][ll/2] - db[jj][ll+0];
+				t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
+				if(t[jj][ll+0] < thr0)
+					{
+					if(t[jj][ll+1] < thr0)
+						{
+						ux[jj][ll/2] = ( - db[jj][ll+1] + db[jj][ll+0])*0.5;
+						t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
+						t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
+						}
+					else
+						{
+						t[jj][ll+0] = thr0;
+						ux[jj][ll/2] = db[jj][ll+0] + thr0;
+						}
+					}
+				else if(t[jj][ll+1] < thr0)
+					{
+					t[jj][ll+1] = thr0;
+					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
+					}
+				lam[jj][ll+0] = 1.0/t[jj][ll+0];
+				lam[jj][ll+1] = 1.0/t[jj][ll+1];
+				}
+			}
+		for(ll=0; ll<2*nbu; ll++) // this has to be strictly positive !!!
+			{
+			t[N][ll] = 1.0;
+			lam[N][ll] = 1.0;
+			}
+		for(ll=2*nu; ll<2*nb; ll+=2)
+			{
+			t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+			t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
+			if(t[N][ll+0] < thr0)
+				{
+				if(t[N][ll+1] < thr0)
+					{
+					ux[N][ll/2] = ( - db[N][ll+1] + db[N][ll+0])*0.5;
+					t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+					t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
+					}
+				else
+					{
+					t[N][ll+0] = thr0;
+					ux[N][ll/2] = db[N][ll+0] + thr0;
+					}
+				}
+			else if(t[N][ll+1] < thr0)
+				{
+				t[N][ll+1] = thr0;
+				ux[N][ll/2] = - db[N][ll+1] - thr0;
+				}
+			lam[N][ll+0] = 1.0/t[N][ll+0];
+			lam[N][ll+1] = 1.0/t[N][ll+1];
+			}
+		}
+	else // cold start
+		{
+		for(ll=0; ll<2*nbu; ll+=2)
+			{
+			ux[0][ll/2] = 0.0;
+/*			t[0][ll+0] = 1.0;*/
+/*			t[0][ll+1] = 1.0;*/
+			t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
+			t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
+			if(t[0][ll+0] < thr0)
+				{
+				if(t[0][ll+1] < thr0)
+					{
+					ux[0][ll/2] = ( - db[0][ll+1] + db[0][ll+0])*0.5;
+					t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
+					t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
+					}
+				else
+					{
+					t[0][ll+0] = thr0;
+					ux[0][ll/2] = db[0][ll+0] + thr0;
+					}
+				}
+			else if(t[0][ll+1] < thr0)
+				{
+				t[0][ll+1] = thr0;
+				ux[0][ll/2] = - db[0][ll+1] - thr0;
+				}
+			lam[0][ll+0] = 1.0/t[0][ll+0];
+			lam[0][ll+1] = 1.0/t[0][ll+1];
+			}
+		for(ii=ll/2; ii<nu; ii++)
+			ux[0][ii] = 0.0; // initialize remaining components of u to zero
+		for(; ll<2*nb; ll++)
+			{
+			t[0][ll] = 1.0; // this has to be strictly positive !!!
+			lam[0][ll] = 1.0; // this has to be strictly positive !!!
+			}
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<2*nb; ll+=2)
+				{
+				ux[jj][ll/2] = 0.0;
+/*				t[jj][ll+0] = 1.0;*/
+/*				t[jj][ll+1] = 1.0;*/
+				t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
+				t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
+				if(t[jj][ll+0] < thr0)
+					{
+					if(t[jj][ll+1] < thr0)
+						{
+						ux[jj][ll/2] = ( - db[jj][ll+1] + db[jj][ll+0])*0.5;
+						t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
+						t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
+						}
+					else
+						{
+						t[jj][ll+0] = thr0;
+						ux[jj][ll/2] = db[jj][ll+0] + thr0;
+						}
+					}
+				else if(t[jj][ll+1] < thr0)
+					{
+					t[jj][ll+1] = thr0;
+					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
+					}
+				lam[jj][ll+0] = 1.0/t[jj][ll+0];
+				lam[jj][ll+1] = 1.0/t[jj][ll+1];
+				}
+			for(ii=ll/2; ii<nx+nu; ii++)
+				ux[jj][ii] = 0.0; // initialize remaining components of u and x to zero
+			}
+		for(ll=0; ll<2*nbu; ll++)
+			{
+			t[N][ll] = 1.0; // this has to be strictly positive !!!
+			lam[N][ll] = 1.0; // this has to be strictly positive !!!
+			}
+		for(ll=2*nu; ll<2*nb; ll+=2)
+			{
+			ux[N][ll/2] = 0.0;
+/*			t[N][ll+0] = 1.0;*/
+/*			t[N][ll+1] = 1.0;*/
+			t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+			t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
+			if(t[N][ll+0] < thr0)
+				{
+				if(t[N][ll+1] < thr0)
+					{
+					ux[N][ll/2] = ( - db[N][ll+1] + db[N][ll+0])*0.5;
+					t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
+					t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
+					}
+				else
+					{
+					t[N][ll+0] = thr0;
+					ux[N][ll/2] = db[N][ll+0] + thr0;
+					}
+				}
+			else if(t[N][ll+1] < thr0)
+				{
+				t[N][ll+1] = thr0;
+				ux[N][ll/2] = - db[N][ll+1] - thr0;
+				}
+			lam[N][ll+0] = 1.0/t[N][ll+0];
+			lam[N][ll+1] = 1.0/t[N][ll+1];
+			}
+		for(ii=ll/2; ii<nx+nu; ii++)
+			ux[N][ii] = 0.0; // initialize remaining components of x to zero
+
+		for(jj=0; jj<=N; jj++)
+			for(ll=0; ll<nx; ll++)
+				pi[jj][ll] = 0.0; // initialize multipliers to zero
+
+		}
+	
+	}
+
+
+
 void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi, double **db, double **t, double **lam, int warm_start)
 	{
 	
@@ -492,13 +714,19 @@ void d_init_lam_mpc(int N, int nu, int nbu, int nb, double **t, double **lam)	//
 
 
 
-void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **pl2, double **db)
+void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **pl2, double **db)
 
 /*void d_update_hessian_box(int k0, int kmax, int nb, int cnz, double sigma_mu, double *t, double *lam, double *lamt, double *dlam, double *bd, double *bl, double *pd, double *pl, double *lb, double *ub)*/
 	{
 	// TODO remove k1 !!! and use nx nu nb instead of k0 k1 kmax
 	
+	const int nbu = nu<nb ? nu : nb ;
+
 	const int bs = 4; //d_get_mr();
+
+	//const int k0 = nbu;
+	//const int k1 = (nu/bs)*bs;
+	//const int kmax = nb;
 	
 	double temp0, temp1;
 	
@@ -521,7 +749,7 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 	ptr_db    = db[0];
 	
 	ii = 0;
-	for(; ii<k0-3; ii+=4)
+	for(; ii<nbu-3; ii+=4)
 		{
 
 		ptr_tinv[0] = 1.0/ptr_t[0];
@@ -572,9 +800,9 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 		ptr_db    += 8;
 
 		}
-	if(ii<k0)
+	if(ii<nbu)
 		{
-		bs0 = k0-ii;
+		bs0 = nbu-ii;
 		for(ll=0; ll<bs0; ll++)
 			{
 			ptr_tinv[0] = 1.0/ptr_t[0];
@@ -617,7 +845,7 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 		ptr_db    = db[jj];
 
 		ii = 0;
-		for(; ii<kmax-3; ii+=4)
+		for(; ii<nb-3; ii+=4)
 			{
 			ptr_tinv[0] = 1.0/ptr_t[0];
 			ptr_tinv[1] = 1.0/ptr_t[1];
@@ -667,9 +895,9 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 			ptr_db    += 8;
 
 			}
-		if(ii<kmax)
+		if(ii<nb)
 			{
-			bs0 = kmax-ii;
+			bs0 = nb-ii;
 			for(ll=0; ll<bs0; ll++)
 				{
 				ptr_tinv[0] = 1.0/ptr_t[0];
@@ -695,11 +923,11 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 
 	// last stage
 
-	ptr_t     = t[N]     + 2*k0;
-	ptr_lam   = lam[N]   + 2*k0;
-	ptr_lamt  = lamt[N]  + 2*k0;
-	ptr_dlam  = dlam[N]  + 2*k0;
-	ptr_tinv  = t_inv[N] + 2*k0;
+	ptr_t     = t[N]     + 2*nu;
+	ptr_lam   = lam[N]   + 2*nu;
+	ptr_lamt  = lamt[N]  + 2*nu;
+	ptr_dlam  = dlam[N]  + 2*nu;
+	ptr_tinv  = t_inv[N] + 2*nu;
 	ptr_pd    = pd[N];
 	ptr_pl    = pl[N];
 	ptr_pl2   = pl2[N];
@@ -707,11 +935,11 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 	ptr_bl    = bl[N];
 	ptr_db    = db[N];
 
-	ii=4*(k0/4); // k1 supposed to be multiple of bs !!!!!!!!!! NO MORE !!!!!!!
-	if(ii<k0)
+	ii=4*(nu/4); // k1 supposed to be multiple of bs !!!!!!!!!! NO MORE !!!!!!!
+	if(ii<nu)
 		{
-		bs0 = kmax-ii<4 ? kmax-ii : 4 ;
-		ll = k0-ii; //k0%4;
+		bs0 = nb-ii<4 ? nb-ii : 4 ;
+		ll = nu-ii; //k0%4;
 		for(; ll<bs0; ll++)
 			{
 			ptr_tinv[0] = 1.0/ptr_t[0];
@@ -734,7 +962,7 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 		ii += 4;
 		}
 
-	for(; ii<kmax-3; ii+=4)
+	for(; ii<nb-3; ii+=4)
 		{
 		ptr_tinv[0] = 1.0/ptr_t[0];
 		ptr_tinv[1] = 1.0/ptr_t[1];
@@ -784,9 +1012,9 @@ void d_update_hessian_box_mpc(int N, int k0, int k1, int kmax, int cnz, double s
 		ptr_db    += 8;
 
 		}
-	if(ii<kmax)
+	if(ii<nb)
 		{
-		bs0 = kmax-ii;
+		bs0 = nb-ii;
 		for(ll=0; ll<bs0; ll++)
 			{
 			ptr_tinv[0] = 1.0/ptr_t[0];
@@ -1509,10 +1737,12 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 
 
 
-void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db)
+void d_compute_alpha_box_mpc(int N, int nx, int nu, int nb, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db)
 	{
 	
 /*	const int bs = 4; //d_get_mr();*/
+
+	const int nbu = nu<nb ? nu : nb ;
 	
 	double alpha = ptr_alpha[0];
 	
@@ -1524,28 +1754,28 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 	// first stage
 
 	ll = 0;
-	for(; ll<k0; ll+=2)
+	for(; ll<nbu; ll++)
 		{
 
-		dt[0][ll+0] =   dux[0][ll/2] - db[0][ll+0] - t[0][ll+0];
-		dt[0][ll+1] = - dux[0][ll/2] - db[0][ll+1] - t[0][ll+1];
-		dlam[0][ll+0] -= lamt[0][ll+0] * dt[0][ll+0] + lam[0][ll+0];
-		dlam[0][ll+1] -= lamt[0][ll+1] * dt[0][ll+1] + lam[0][ll+1];
-		if( -alpha*dlam[0][ll+0]>lam[0][ll+0] )
+		dt[0][2*ll+0] =   dux[0][ll] - db[0][2*ll+0] - t[0][2*ll+0];
+		dt[0][2*ll+1] = - dux[0][ll] - db[0][2*ll+1] - t[0][2*ll+1];
+		dlam[0][2*ll+0] -= lamt[0][2*ll+0] * dt[0][2*ll+0] + lam[0][2*ll+0];
+		dlam[0][2*ll+1] -= lamt[0][2*ll+1] * dt[0][2*ll+1] + lam[0][2*ll+1];
+		if( -alpha*dlam[0][2*ll+0]>lam[0][2*ll+0] )
 			{
-			alpha = - lam[0][ll+0] / dlam[0][ll+0];
+			alpha = - lam[0][2*ll+0] / dlam[0][2*ll+0];
 			}
-		if( -alpha*dlam[0][ll+1]>lam[0][ll+1] )
+		if( -alpha*dlam[0][2*ll+1]>lam[0][2*ll+1] )
 			{
-			alpha = - lam[0][ll+1] / dlam[0][ll+1];
+			alpha = - lam[0][2*ll+1] / dlam[0][2*ll+1];
 			}
-		if( -alpha*dt[0][ll+0]>t[0][ll+0] )
+		if( -alpha*dt[0][2*ll+0]>t[0][2*ll+0] )
 			{
-			alpha = - t[0][ll+0] / dt[0][ll+0];
+			alpha = - t[0][2*ll+0] / dt[0][2*ll+0];
 			}
-		if( -alpha*dt[0][ll+1]>t[0][ll+1] )
+		if( -alpha*dt[0][2*ll+1]>t[0][2*ll+1] )
 			{
-			alpha = - t[0][ll+1] / dt[0][ll+1];
+			alpha = - t[0][2*ll+1] / dt[0][2*ll+1];
 			}
 
 		}
@@ -1555,28 +1785,28 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 		{
 
 		ll = 0;
-		for(; ll<kmax; ll+=2)
+		for(; ll<nb; ll++)
 			{
 
-			dt[jj][ll+0] =   dux[jj][ll/2] - db[jj][ll+0] - t[jj][ll+0];
-			dt[jj][ll+1] = - dux[jj][ll/2] - db[jj][ll+1] - t[jj][ll+1];
-			dlam[jj][ll+0] -= lamt[jj][ll+0] * dt[jj][ll+0] + lam[jj][ll+0];
-			dlam[jj][ll+1] -= lamt[jj][ll+1] * dt[jj][ll+1] + lam[jj][ll+1];
-			if( -alpha*dlam[jj][ll+0]>lam[jj][ll+0] )
+			dt[jj][2*ll+0] =   dux[jj][ll] - db[jj][2*ll+0] - t[jj][2*ll+0];
+			dt[jj][2*ll+1] = - dux[jj][ll] - db[jj][2*ll+1] - t[jj][2*ll+1];
+			dlam[jj][2*ll+0] -= lamt[jj][2*ll+0] * dt[jj][2*ll+0] + lam[jj][2*ll+0];
+			dlam[jj][2*ll+1] -= lamt[jj][2*ll+1] * dt[jj][2*ll+1] + lam[jj][2*ll+1];
+			if( -alpha*dlam[jj][2*ll+0]>lam[jj][2*ll+0] )
 				{
-				alpha = - lam[jj][ll+0] / dlam[jj][ll+0];
+				alpha = - lam[jj][2*ll+0] / dlam[jj][2*ll+0];
 				}
-			if( -alpha*dlam[jj][ll+1]>lam[jj][ll+1] )
+			if( -alpha*dlam[jj][2*ll+1]>lam[jj][2*ll+1] )
 				{
-				alpha = - lam[jj][ll+1] / dlam[jj][ll+1];
+				alpha = - lam[jj][2*ll+1] / dlam[jj][2*ll+1];
 				}
-			if( -alpha*dt[jj][ll+0]>t[jj][ll+0] )
+			if( -alpha*dt[jj][2*ll+0]>t[jj][2*ll+0] )
 				{
-				alpha = - t[jj][ll+0] / dt[jj][ll+0];
+				alpha = - t[jj][2*ll+0] / dt[jj][2*ll+0];
 				}
-			if( -alpha*dt[jj][ll+1]>t[jj][ll+1] )
+			if( -alpha*dt[jj][2*ll+1]>t[jj][2*ll+1] )
 				{
-				alpha = - t[jj][ll+1] / dt[jj][ll+1];
+				alpha = - t[jj][2*ll+1] / dt[jj][2*ll+1];
 				}
 
 			}
@@ -1584,29 +1814,29 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 		}		
 
 	// last stage
-	ll = k1;
-	for(; ll<kmax; ll+=2)
+	ll = nu;
+	for(; ll<nb; ll++)
 		{
 
-		dt[N][ll+0] =   dux[N][ll/2] - db[N][ll+0] - t[N][ll+0];
-		dt[N][ll+1] = - dux[N][ll/2] - db[N][ll+1] - t[N][ll+1];
-		dlam[N][ll+0] -= lamt[N][ll+0] * dt[N][ll+0] + lam[N][ll+0];
-		dlam[N][ll+1] -= lamt[N][ll+1] * dt[N][ll+1] + lam[N][ll+1];
-		if( -alpha*dlam[N][ll+0]>lam[N][ll+0] )
+		dt[N][2*ll+0] =   dux[N][ll] - db[N][2*ll+0] - t[N][2*ll+0];
+		dt[N][2*ll+1] = - dux[N][ll] - db[N][2*ll+1] - t[N][2*ll+1];
+		dlam[N][2*ll+0] -= lamt[N][2*ll+0] * dt[N][2*ll+0] + lam[N][2*ll+0];
+		dlam[N][2*ll+1] -= lamt[N][2*ll+1] * dt[N][2*ll+1] + lam[N][2*ll+1];
+		if( -alpha*dlam[N][2*ll+0]>lam[N][2*ll+0] )
 			{
-			alpha = - lam[N][ll+0] / dlam[N][ll+0];
+			alpha = - lam[N][2*ll+0] / dlam[N][2*ll+0];
 			}
-		if( -alpha*dlam[N][ll+1]>lam[N][ll+1] )
+		if( -alpha*dlam[N][2*ll+1]>lam[N][2*ll+1] )
 			{
-			alpha = - lam[N][ll+1] / dlam[N][ll+1];
+			alpha = - lam[N][2*ll+1] / dlam[N][2*ll+1];
 			}
-		if( -alpha*dt[N][ll+0]>t[N][ll+0] )
+		if( -alpha*dt[N][2*ll+0]>t[N][2*ll+0] )
 			{
-			alpha = - t[N][ll+0] / dt[N][ll+0];
+			alpha = - t[N][2*ll+0] / dt[N][2*ll+0];
 			}
-		if( -alpha*dt[N][ll+1]>t[N][ll+1] )
+		if( -alpha*dt[N][2*ll+1]>t[N][2*ll+1] )
 			{
-			alpha = - t[N][ll+1] / dt[N][ll+1];
+			alpha = - t[N][2*ll+1] / dt[N][2*ll+1];
 			}
 
 		}
@@ -1619,8 +1849,204 @@ void d_compute_alpha_box_mpc(int N, int k0, int k1, int kmax, double *ptr_alpha,
 
 
 
-void d_update_var_mpc(int nx, int nu, int N, int nb, int nbu, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
+void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nb, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db, double **Zl, double **zl)
 	{
+	
+/*	const int bs = 4; //d_get_mr();*/
+
+	const int nbu = nu<nb ? nu : nb ;
+	const int nbx = nb-nu>0 ? nb-nu : 0 ;
+
+	// constants
+	const int bs = 4; //D_MR;
+	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
+
+	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
+
+	
+	double alpha = ptr_alpha[0];
+	
+/*	int kna = ((k1+bs-1)/bs)*bs;*/
+
+	int jj, ll;
+
+
+	// first stage
+
+	ll = 0;
+	// hard input constraints
+	for(; ll<nbu; ll++)
+		{
+
+		dt[0][2*ll+0] =   dux[0][ll] - db[0][2*ll+0] - t[0][2*ll+0];
+		dt[0][2*ll+1] = - dux[0][ll] - db[0][2*ll+1] - t[0][2*ll+1];
+		dlam[0][2*ll+0] -= lamt[0][2*ll+0] * dt[0][2*ll+0] + lam[0][2*ll+0];
+		dlam[0][2*ll+1] -= lamt[0][2*ll+1] * dt[0][2*ll+1] + lam[0][2*ll+1];
+		if( -alpha*dlam[0][2*ll+0]>lam[0][2*ll+0] )
+			{
+			alpha = - lam[0][2*ll+0] / dlam[0][2*ll+0];
+			}
+		if( -alpha*dlam[0][2*ll+1]>lam[0][2*ll+1] )
+			{
+			alpha = - lam[0][2*ll+1] / dlam[0][2*ll+1];
+			}
+		if( -alpha*dt[0][2*ll+0]>t[0][2*ll+0] )
+			{
+			alpha = - t[0][2*ll+0] / dt[0][2*ll+0];
+			}
+		if( -alpha*dt[0][2*ll+1]>t[0][2*ll+1] )
+			{
+			alpha = - t[0][2*ll+1] / dt[0][2*ll+1];
+			}
+
+		}
+
+	// middle stages
+	for(jj=1; jj<N; jj++)
+		{
+
+		ll = 0;
+		// hard input constraints
+		for(; ll<nbu; ll++)
+			{
+
+			dt[jj][2*ll+0] =   dux[jj][ll] - db[jj][2*ll+0] - t[jj][2*ll+0];
+			dt[jj][2*ll+1] = - dux[jj][ll] - db[jj][2*ll+1] - t[jj][2*ll+1];
+			dlam[jj][2*ll+0] -= lamt[jj][2*ll+0] * dt[jj][2*ll+0] + lam[jj][2*ll+0];
+			dlam[jj][2*ll+1] -= lamt[jj][2*ll+1] * dt[jj][2*ll+1] + lam[jj][2*ll+1];
+			if( -alpha*dlam[jj][2*ll+0]>lam[jj][2*ll+0] )
+				{
+				alpha = - lam[jj][2*ll+0] / dlam[jj][2*ll+0];
+				}
+			if( -alpha*dlam[jj][2*ll+1]>lam[jj][2*ll+1] )
+				{
+				alpha = - lam[jj][2*ll+1] / dlam[jj][2*ll+1];
+				}
+			if( -alpha*dt[jj][2*ll+0]>t[jj][2*ll+0] )
+				{
+				alpha = - t[jj][2*ll+0] / dt[jj][2*ll+0];
+				}
+			if( -alpha*dt[jj][2*ll+1]>t[jj][2*ll+1] )
+				{
+				alpha = - t[jj][2*ll+1] / dt[jj][2*ll+1];
+				}
+
+			}
+		// soft state constraints
+		for(; ll<nb; ll++)
+			{
+
+			dt[jj][anb+2*ll+0] = ( zl[jj][2*ll+0] - lamt[jj][2*ll+0]*dux[jj][ll] ) * Zl[jj][2*ll+0];
+			dt[jj][anb+2*ll+1] = ( zl[jj][2*ll+1] + lamt[jj][2*ll+1]*dux[jj][ll] ) * Zl[jj][2*ll+1];
+			dt[jj][2*ll+0] = dt[jj][anb+2*ll+0] + dux[jj][ll] - db[jj][2*ll+0] - t[jj][2*ll+0];
+			dt[jj][2*ll+1] = dt[jj][anb+2*ll+1] - dux[jj][ll] - db[jj][2*ll+1] - t[jj][2*ll+1];
+			dt[jj][anb+2*ll+0] -= t[jj][anb+2*ll+0];
+			dt[jj][anb+2*ll+1] -= t[jj][anb+2*ll+1];
+			dlam[jj][2*ll+0] -= lamt[jj][2*ll+0] * dt[jj][2*ll+0] + lam[jj][2*ll+0];
+			dlam[jj][2*ll+1] -= lamt[jj][2*ll+1] * dt[jj][2*ll+1] + lam[jj][2*ll+1];
+			dlam[jj][anb+2*ll+0] -= lamt[jj][anb+2*ll+0] * dt[jj][anb+2*ll+0] + lam[jj][anb+2*ll+0];
+			dlam[jj][anb+2*ll+1] -= lamt[jj][anb+2*ll+1] * dt[jj][anb+2*ll+1] + lam[jj][anb+2*ll+1];
+			if( -alpha*dlam[jj][2*ll+0]>lam[jj][2*ll+0] )
+				{
+				alpha = - lam[jj][2*ll+0] / dlam[jj][2*ll+0];
+				}
+			if( -alpha*dlam[jj][2*ll+1]>lam[jj][2*ll+1] )
+				{
+				alpha = - lam[jj][2*ll+1] / dlam[jj][2*ll+1];
+				}
+			if( -alpha*dt[jj][2*ll+0]>t[jj][2*ll+0] )
+				{
+				alpha = - t[jj][2*ll+0] / dt[jj][2*ll+0];
+				}
+			if( -alpha*dt[jj][2*ll+1]>t[jj][2*ll+1] )
+				{
+				alpha = - t[jj][2*ll+1] / dt[jj][2*ll+1];
+				}
+			if( -alpha*dlam[jj][anb+2*ll+0]>lam[jj][anb+2*ll+0] )
+				{
+				alpha = - lam[jj][anb+2*ll+0] / dlam[jj][anb+2*ll+0];
+				}
+			if( -alpha*dlam[jj][anb+2*ll+1]>lam[jj][anb+2*ll+1] )
+				{
+				alpha = - lam[jj][anb+2*ll+1] / dlam[jj][anb+2*ll+1];
+				}
+			if( -alpha*dt[jj][anb+2*ll+0]>t[jj][anb+2*ll+0] )
+				{
+				alpha = - t[jj][anb+2*ll+0] / dt[jj][anb+2*ll+0];
+				}
+			if( -alpha*dt[jj][anb+2*ll+1]>t[jj][anb+2*ll+1] )
+				{
+				alpha = - t[jj][anb+2*ll+1] / dt[jj][anb+2*ll+1];
+				}
+
+			}
+
+		}		
+
+	// last stage
+	ll = nu;
+	for(; ll<nb; ll++)
+		{
+
+		dt[N][anb+2*ll+0] = ( zl[N][2*ll+0] - lamt[N][2*ll+0]*dux[N][ll] ) * Zl[N][2*ll+0];
+		dt[N][anb+2*ll+1] = ( zl[N][2*ll+1] + lamt[N][2*ll+1]*dux[N][ll] ) * Zl[N][2*ll+1];
+		dt[N][2*ll+0] = dt[N][anb+2*ll+0] + dux[N][ll] - db[N][2*ll+0] - t[N][2*ll+0];
+		dt[N][2*ll+1] = dt[N][anb+2*ll+1] - dux[N][ll] - db[N][2*ll+1] - t[N][2*ll+1];
+		dt[N][anb+2*ll+0] -= t[N][anb+2*ll+0];
+		dt[N][anb+2*ll+1] -= t[N][anb+2*ll+1];
+		dlam[N][2*ll+0] -= lamt[N][2*ll+0] * dt[N][2*ll+0] + lam[N][2*ll+0];
+		dlam[N][2*ll+1] -= lamt[N][2*ll+1] * dt[N][2*ll+1] + lam[N][2*ll+1];
+		dlam[N][anb+2*ll+0] -= lamt[N][anb+2*ll+0] * dt[N][anb+2*ll+0] + lam[N][anb+2*ll+0];
+		dlam[N][anb+2*ll+1] -= lamt[N][anb+2*ll+1] * dt[N][anb+2*ll+1] + lam[N][anb+2*ll+1];
+		if( -alpha*dlam[N][2*ll+0]>lam[N][2*ll+0] )
+			{
+			alpha = - lam[N][2*ll+0] / dlam[N][2*ll+0];
+			}
+		if( -alpha*dlam[N][2*ll+1]>lam[N][2*ll+1] )
+			{
+			alpha = - lam[N][2*ll+1] / dlam[N][2*ll+1];
+			}
+		if( -alpha*dt[N][2*ll+0]>t[N][2*ll+0] )
+			{
+			alpha = - t[N][2*ll+0] / dt[N][2*ll+0];
+			}
+		if( -alpha*dt[N][2*ll+1]>t[N][2*ll+1] )
+			{
+			alpha = - t[N][2*ll+1] / dt[N][2*ll+1];
+			}
+		if( -alpha*dlam[N][anb+2*ll+0]>lam[N][anb+2*ll+0] )
+			{
+			alpha = - lam[N][anb+2*ll+0] / dlam[N][anb+2*ll+0];
+			}
+		if( -alpha*dlam[N][anb+2*ll+1]>lam[N][anb+2*ll+1] )
+			{
+			alpha = - lam[N][anb+2*ll+1] / dlam[N][anb+2*ll+1];
+			}
+		if( -alpha*dt[N][anb+2*ll+0]>t[N][anb+2*ll+0] )
+			{
+			alpha = - t[N][anb+2*ll+0] / dt[N][anb+2*ll+0];
+			}
+		if( -alpha*dt[N][anb+2*ll+1]>t[N][anb+2*ll+1] )
+			{
+			alpha = - t[N][anb+2*ll+1] / dt[N][anb+2*ll+1];
+			}
+
+
+		}
+	
+	ptr_alpha[0] = alpha;
+
+	return;
+	
+	}
+
+
+
+void d_update_var_box_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
+	{
+
+	const int nbu = nu<nb ? nu : nb ;
 	
 	int jj, ll;
 	
@@ -1686,9 +2112,106 @@ void d_update_var_mpc(int nx, int nu, int N, int nb, int nbu, double *ptr_mu, do
 
 
 
-void d_compute_mu_mpc(int N, int nbu, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
+void d_update_var_soft_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
+	{
+
+	const int nbu = nu<nb ? nu : nb ;
+	const int nbx = nb-nu>0 ? nb-nu : 0 ;
+
+	// constants
+	const int bs = 4; //D_MR;
+	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
+
+	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
+
+	int jj, ll;
+	
+	double mu = 0;
+
+	// update inputs
+	for(ll=0; ll<nu; ll++)
+		ux[0][ll] += alpha*(dux[0][ll] - ux[0][ll]);
+	// box constraints on inputs
+	for(ll=0; ll<2*nbu; ll+=2)
+		{
+		lam[0][ll+0] += alpha*dlam[0][ll+0];
+		lam[0][ll+1] += alpha*dlam[0][ll+1];
+		t[0][ll+0] += alpha*dt[0][ll+0];
+		t[0][ll+1] += alpha*dt[0][ll+1];
+		mu += lam[0][ll+0] * t[0][ll+0] + lam[0][ll+1] * t[0][ll+1];
+		}
+
+	for(jj=1; jj<N; jj++)
+		{
+		// update inputs
+		for(ll=0; ll<nu; ll++)
+			ux[jj][ll] += alpha*(dux[jj][ll] - ux[jj][ll]);
+		// update states
+		for(ll=0; ll<nx; ll++)
+			ux[jj][nu+ll] += alpha*(dux[jj][nu+ll] - ux[jj][nu+ll]);
+		// update equality constrained multipliers
+		for(ll=0; ll<nx; ll++)
+			pi[jj][ll] += alpha*(dpi[jj][ll] - pi[jj][ll]);
+		// box constraints on inputs
+		ll = 0;
+		for(; ll<2*nbu; ll+=2)
+			{
+			lam[jj][ll+0] += alpha*dlam[jj][ll+0];
+			lam[jj][ll+1] += alpha*dlam[jj][ll+1];
+			t[jj][ll+0] += alpha*dt[jj][ll+0];
+			t[jj][ll+1] += alpha*dt[jj][ll+1];
+			mu += lam[jj][ll+0] * t[jj][ll+0] + lam[jj][ll+1] * t[jj][ll+1];
+			}
+		// soft constraints on states
+		for(; ll<2*nb; ll+=2)
+			{
+			lam[jj][ll+0] += alpha*dlam[jj][ll+0];
+			lam[jj][ll+1] += alpha*dlam[jj][ll+1];
+			t[jj][ll+0] += alpha*dt[jj][ll+0];
+			t[jj][ll+1] += alpha*dt[jj][ll+1];
+			lam[jj][anb+ll+0] += alpha*dlam[jj][anb+ll+0];
+			lam[jj][anb+ll+1] += alpha*dlam[jj][anb+ll+1];
+			t[jj][anb+ll+0] += alpha*dt[jj][anb+ll+0];
+			t[jj][anb+ll+1] += alpha*dt[jj][anb+ll+1];
+			mu += lam[jj][ll+0] * t[jj][ll+0] + lam[jj][ll+1] * t[jj][ll+1] + lam[jj][anb+ll+0] * t[jj][anb+ll+0] + lam[jj][anb+ll+1] * t[jj][anb+ll+1];
+			}
+		}
+
+	// update states
+	for(ll=0; ll<nx; ll++)
+		ux[N][nu+ll] += alpha*(dux[N][nu+ll] - ux[N][nu+ll]);
+	// update equality constrained multipliers
+	for(ll=0; ll<nx; ll++)
+		pi[N][ll] += alpha*(dpi[N][ll] - pi[N][ll]);
+	// soft constraints on states
+	for(ll=2*nu; ll<2*nb; ll+=2)
+		{
+		lam[N][ll+0] += alpha*dlam[N][ll+0];
+		lam[N][ll+1] += alpha*dlam[N][ll+1];
+		t[N][ll+0] += alpha*dt[N][ll+0];
+		t[N][ll+1] += alpha*dt[N][ll+1];
+		lam[N][anb+ll+0] += alpha*dlam[N][anb+ll+0];
+		lam[N][anb+ll+1] += alpha*dlam[N][anb+ll+1];
+		t[N][anb+ll+0] += alpha*dt[N][anb+ll+0];
+		t[N][anb+ll+1] += alpha*dt[N][anb+ll+1];
+		mu += lam[N][ll+0] * t[N][ll+0] + lam[N][ll+1] * t[N][ll+1] + lam[N][anb+ll+0] * t[N][anb+ll+0] + lam[N][anb+ll+1] * t[N][anb+ll+1];
+		}
+	mu *= mu_scal;
+
+	ptr_mu[0] = mu;
+
+	return;
+	
+	}
+
+
+
+void d_compute_mu_box_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
 	{
 	
+	const int nbu = nu<nb ? nu : nb ;
+
 	int jj, ll;
 	
 	double mu = 0;

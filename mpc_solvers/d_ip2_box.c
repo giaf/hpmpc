@@ -175,12 +175,13 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 
 	// initialize ux & t>0 (slack variable)
-	d_init_ux_pi_t_box_mpc(N, nx, nu, nbu, nb, ux, pi, db, t, warm_start);
+	//d_init_ux_pi_t_box_mpc(N, nx, nu, nbu, nb, ux, pi, db, t, warm_start);
+	d_init_var_box_mpc(N, nx, nu, nb, ux, pi, db, t, lam, warm_start);
 
 
 
 	// initialize lambda>0 (multiplier of the inequality constraint)
-	d_init_lam_mpc(N, nu, nbu, nb, t, lam);
+	//d_init_lam_mpc(N, nu, nbu, nb, t, lam);
 
 
 
@@ -199,7 +200,7 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 	// compute the duality gap
 	alpha = 0.0; // needed to compute mu !!!!!
-	d_compute_mu_mpc(N, nbu, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
+	d_compute_mu_box_mpc(N, nx, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
 
 	// set to zero iteration count
 	*kk = 0;	
@@ -217,7 +218,7 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 		//update cost function matrices and vectors (box constraints)
 
-		d_update_hessian_box_mpc(N, nbu, (nu/bs)*bs, nb, cnz, 0.0, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db);
+		d_update_hessian_box_mpc(N, nx, nu, nb, cnz, 0.0, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db);
 
 
 
@@ -232,7 +233,7 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 				dlam[jj][ll] = 0.0;
 
 		alpha = 1.0;
-		d_compute_alpha_box_mpc(N, 2*nbu, 2*nu, 2*nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
+		d_compute_alpha_box_mpc(N, nbu, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
 		
 
 		stat[5*(*kk)] = sigma;
@@ -243,7 +244,7 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 
 		// compute the affine duality gap
-		d_compute_mu_mpc(N, nbu, nu, nb, &mu_aff, mu_scal, alpha, lam, dlam, t, dt);
+		d_compute_mu_box_mpc(N, nx, nu, nb, &mu_aff, mu_scal, alpha, lam, dlam, t, dt);
 		
 		stat[5*(*kk)+2] = mu_aff;
 
@@ -300,7 +301,7 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 		// compute t & dlam & dt & alpha
 		alpha = 1.0;
-		d_compute_alpha_box_mpc(N, 2*nbu, 2*nu, 2*nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
+		d_compute_alpha_box_mpc(N, nx, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+3] = alpha;
@@ -311,7 +312,7 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 		// update x, u, lam, t & compute the duality gap mu
 
-		d_update_var_mpc(nx, nu, N, nb, nbu, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
+		d_update_var_box_mpc(N, nx, nu, nb, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
 
 		stat[5*(*kk)+4] = mu;
 		
