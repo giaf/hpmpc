@@ -291,6 +291,7 @@ int main()
 	double *(hrb[N]);
 	double *(hrq[N+1]);
 	double *(hrd[N+1]);
+	double *(hrz[N+1]);
 
 	for(jj=0; jj<N; jj++)
 		{
@@ -312,6 +313,7 @@ int main()
 		d_zeros_align(&hrb[jj], anx, 1);
 		d_zeros_align(&hrq[jj], anz, 1);
 		d_zeros_align(&hrd[jj], anb, 1); // TODO pnb
+		d_zeros_align(&hrz[jj], anb, 1); // TODO pnb
 		}
 	d_zeros_align(&hq[N], anz, 1);
 	hZ[N] = Z;
@@ -323,6 +325,7 @@ int main()
 	hdb[N] = db;
 	d_zeros_align(&hrq[N], anz, 1);
 	d_zeros_align(&hrd[N], anb, 1); // TODO pnb
+	d_zeros_align(&hrz[N], anb, 1); // TODO pnb
 	
 	// starting guess
 	for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
@@ -400,7 +403,55 @@ int main()
 	//for(ii=0; ii<=N; ii++)
 	//	d_print_mat(anb, 2, ht[ii], anb);
 	
+	// restore linear part of cost function 
+	for(ii=0; ii<N; ii++)
+		{
+		for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+pnz*jj];
+		}
+	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
+
+	// residuals computation
+	d_res_ip_soft_mpc(nx, nu, N, nb, hpBAbt, hpQ, hq, hZ, hz, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, hrz, &mu);
+
+	printf("\n");
+	printf("\n");
+	printf(" Print residuals\n\n");
+	printf("\n");
+	printf("\n");
+	printf("rq = \n\n");
+	d_print_mat(1, nu, hrq[0], 1);
+	for(ii=1; ii<=N; ii++)
+//		d_print_mat_e(1, nx+nu, hrq[ii], 1);
+		d_print_mat(1, nx+nu, hrq[ii], 1);
+	printf("\n");
+	printf("\n");
+	printf("rz = \n\n");
+	for(ii=0; ii<=N; ii++)
+//		d_print_mat_e(1, 2*nb-2*nu, hrz[ii]+2*nu, 1);
+		d_print_mat(1, 2*nb-2*nu, hrz[ii]+2*nu, 1);
+	printf("\n");
+	printf("\n");
+	printf("rb = \n\n");
+	for(ii=0; ii<N; ii++)
+//		d_print_mat_e(1, nx, hrb[ii], 1);
+		d_print_mat(1, nx, hrb[ii], 1);
+	printf("\n");
+	printf("\n");
+	printf("rd = \n\n");
+	for(ii=0; ii<=N; ii++)
+//		d_print_mat_e(1, 2*nb, hrd[ii], 1);
+		d_print_mat(1, 2*nb, hrd[ii], 1);
+	printf("\n");
+	printf("\n");
+	printf("mu = %e\n\n", mu);
+
+
+
+
 	return 0;
+
+
+
 
 	int kk_avg = 0;
 
@@ -564,6 +615,8 @@ int main()
 	free(db);
 	free(Q);
 	free(pQ);
+	free(Z);
+	free(z);
 	free(work);
 	free(stat);
 	for(jj=0; jj<N; jj++)
@@ -577,6 +630,7 @@ int main()
 		free(hrb[jj]);
 		free(hrq[jj]);
 		free(hrd[jj]);
+		free(hrz[jj]);
 		}
 	free(hpQ[N]);
 	free(hq[N]);
@@ -586,6 +640,7 @@ int main()
 	free(ht[N]);
 	free(hrq[N]);
 	free(hrd[N]);
+	free(hrz[N]);
 
 
 
