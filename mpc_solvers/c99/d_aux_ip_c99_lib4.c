@@ -27,203 +27,6 @@
 
 
 
-void d_init_ux_pi_t_box_mpc(int N, int nx, int nu, int nbu, int nb, double **ux, double **pi, double **db, double **t, int warm_start)
-	{
-	
-	int jj, ll, ii;
-	
-	double thr0 = 1e-3; // minimum distance from a constraint
-
-	if(warm_start==1)
-		{
-		for(ll=0; ll<2*nbu; ll+=2)
-			{
-			t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
-			t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
-			if(t[0][ll+0] < thr0)
-				{
-				if(t[0][ll+1] < thr0)
-					{
-					ux[0][ll/2] = ( - db[0][ll+1] + db[0][ll+0])*0.5;
-					t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
-					t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
-					}
-				else
-					{
-					t[0][ll+0] = thr0;
-					ux[0][ll/2] = db[0][ll+0] + thr0;
-					}
-				}
-			else if(t[0][ll+1] < thr0)
-				{
-				t[0][ll+1] = thr0;
-				ux[0][ll/2] = - db[0][ll+1] - thr0;
-				}
-			}
-		for(; ll<2*nb; ll++)
-			t[0][ll] = 1.0; // this has to be strictly positive !!!
-		for(jj=1; jj<N; jj++)
-			{
-			for(ll=0; ll<2*nb; ll+=2)
-				{
-				t[jj][ll+0] = ux[jj][ll/2] - db[jj][ll+0];
-				t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
-				if(t[jj][ll+0] < thr0)
-					{
-					if(t[jj][ll+1] < thr0)
-						{
-						ux[jj][ll/2] = ( - db[jj][ll+1] + db[jj][ll+0])*0.5;
-						t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
-						t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
-						}
-					else
-						{
-						t[jj][ll+0] = thr0;
-						ux[jj][ll/2] = db[jj][ll+0] + thr0;
-						}
-					}
-				else if(t[jj][ll+1] < thr0)
-					{
-					t[jj][ll+1] = thr0;
-					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
-					}
-				}
-			}
-		for(ll=0; ll<2*nbu; ll++) // this has to be strictly positive !!!
-			t[N][ll] = 1;
-		for(ll=2*nu; ll<2*nb; ll+=2)
-			{
-			t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
-			t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
-			if(t[N][ll+0] < thr0)
-				{
-				if(t[N][ll+1] < thr0)
-					{
-					ux[N][ll/2] = ( - db[N][ll+1] + db[N][ll+0])*0.5;
-					t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
-					t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
-					}
-				else
-					{
-					t[N][ll+0] = thr0;
-					ux[N][ll/2] = db[N][ll+0] + thr0;
-					}
-				}
-			else if(t[N][ll+1] < thr0)
-				{
-				t[N][ll+1] = thr0;
-				ux[N][ll/2] = - db[N][ll+1] - thr0;
-				}
-			}
-
-		}
-	else // cold start
-		{
-		for(ll=0; ll<2*nbu; ll+=2)
-			{
-			ux[0][ll/2] = 0.0;
-/*			t[0][ll+0] = 1.0;*/
-/*			t[0][ll+1] = 1.0;*/
-			t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
-			t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
-			if(t[0][ll+0] < thr0)
-				{
-				if(t[0][ll+1] < thr0)
-					{
-					ux[0][ll/2] = ( - db[0][ll+1] + db[0][ll+0])*0.5;
-					t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
-					t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
-					}
-				else
-					{
-					t[0][ll+0] = thr0;
-					ux[0][ll/2] = db[0][ll+0] + thr0;
-					}
-				}
-			else if(t[0][ll+1] < thr0)
-				{
-				t[0][ll+1] = thr0;
-				ux[0][ll/2] = - db[0][ll+1] - thr0;
-				}
-			}
-		for(ii=ll/2; ii<nu; ii++)
-			ux[0][ii] = 0.0; // initialize remaining components of u to zero
-		for(; ll<2*nb; ll++)
-			t[0][ll] = 1.0; // this has to be strictly positive !!!
-		for(jj=1; jj<N; jj++)
-			{
-			for(ll=0; ll<2*nb; ll+=2)
-				{
-				ux[jj][ll/2] = 0.0;
-/*				t[jj][ll+0] = 1.0;*/
-/*				t[jj][ll+1] = 1.0;*/
-				t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
-				t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
-				if(t[jj][ll+0] < thr0)
-					{
-					if(t[jj][ll+1] < thr0)
-						{
-						ux[jj][ll/2] = ( - db[jj][ll+1] + db[jj][ll+0])*0.5;
-						t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
-						t[jj][ll+1] = - db[jj][ll+1] - ux[jj][ll/2];
-						}
-					else
-						{
-						t[jj][ll+0] = thr0;
-						ux[jj][ll/2] = db[jj][ll+0] + thr0;
-						}
-					}
-				else if(t[jj][ll+1] < thr0)
-					{
-					t[jj][ll+1] = thr0;
-					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
-					}
-				}
-			for(ii=ll/2; ii<nx+nu; ii++)
-				ux[jj][ii] = 0.0; // initialize remaining components of u and x to zero
-			}
-		for(ll=0; ll<2*nbu; ll++)
-			t[N][ll] = 1.0; // this has to be strictly positive !!!
-		for(ll=2*nu; ll<2*nb; ll+=2)
-			{
-			ux[N][ll/2] = 0.0;
-/*			t[N][ll+0] = 1.0;*/
-/*			t[N][ll+1] = 1.0;*/
-			t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
-			t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
-			if(t[N][ll+0] < thr0)
-				{
-				if(t[N][ll+1] < thr0)
-					{
-					ux[N][ll/2] = ( - db[N][ll+1] + db[N][ll+0])*0.5;
-					t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
-					t[N][ll+1] = - db[N][ll+1] - ux[N][ll/2];
-					}
-				else
-					{
-					t[N][ll+0] = thr0;
-					ux[N][ll/2] = db[N][ll+0] + thr0;
-					}
-				}
-			else if(t[N][ll+1] < thr0)
-				{
-				t[N][ll+1] = thr0;
-				ux[N][ll/2] = - db[N][ll+1] - thr0;
-				}
-			}
-		for(ii=ll/2; ii<nx+nu; ii++)
-			ux[N][ii] = 0.0; // initialize remaining components of x to zero
-
-		for(jj=0; jj<=N; jj++)
-			for(ll=0; ll<nx; ll++)
-				pi[jj][ll] = 0.0; // initialize multipliers to zero
-
-		}
-	
-	}
-
-
-
 void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi, double **db, double **t, double **lam, int warm_start)
 	{
 
@@ -670,13 +473,13 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 
 		// inizialize t_theta (cold start only for the moment)
 		for(jj=0; jj<=N; jj++)
-			for(ll=0; ll<nbx; ll++)
-				t[jj][anb+nu+ll] = 1.0;
+			for(ll=0; ll<2*nbx; ll++)
+				t[jj][anb+2*nu+ll] = 1.0;
 
 		// initialize lam_theta (cold start only for the moment)
 		for(jj=0; jj<=N; jj++)
-			for(ll=0; ll<nbx; ll++)
-				lam[jj][anb+nu+ll] = 1.0;
+			for(ll=0; ll<2*nbx; ll++)
+				lam[jj][anb+2*nu+ll] = 1.0;
 
 		// initialize pi
 		for(jj=0; jj<=N; jj++)
@@ -684,31 +487,6 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 				pi[jj][ll] = 0.0; // initialize multipliers to zero
 
 		}
-	
-	}
-
-
-
-void d_init_lam_mpc(int N, int nu, int nbu, int nb, double **t, double **lam)	// TODO approximate reciprocal
-	{
-	
-	int jj, ll;
-	
-	for(ll=0; ll<2*nbu; ll++)
-		lam[0][ll] = 1/t[0][ll];
-	for(; ll<2*nb; ll++)
-		lam[0][ll] = 1.0; // this has to be strictly positive !!!
-	for(jj=1; jj<N; jj++)
-		{
-		for(ll=0; ll<2*nb; ll++)
-			lam[jj][ll] = 1/t[jj][ll];
-/*			lam[jj][ll] = thr0/t[jj][ll];*/
-		}
-	for(ll=0; ll<2*nu; ll++)
-		lam[N][ll] = 1.0; // this has to be strictly positive !!!
-	for(ll=2*nu; ll<2*nb; ll++)
-		lam[N][ll] = 1/t[jj][ll];
-/*		lam[N][ll] = thr0/t[jj][ll];*/
 	
 	}
 
