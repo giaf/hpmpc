@@ -21,7 +21,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		
 	// get data 
 	int k_max;
-	double tol, *A, *B, *b, *Q, *Qf, *R, *S, *q, *qf, *r, *x, *u, *lb, *ub, *stat, *kkk;
+	double tol, *A, *B, *b, *Q, *Qf, *R, *S, *q, *qf, *r, *x, *u, *lZ, *uZ, *lz, *uz, *lb, *ub, *stat, *kkk;
 	
 	k_max = (int) mxGetScalar(prhs[0]);
 	tol = mxGetScalar(prhs[1]);
@@ -39,22 +39,26 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	q = mxGetPr(prhs[12]);
 	qf = mxGetPr(prhs[13]);
 	r = mxGetPr(prhs[14]);
-	lb = mxGetPr(prhs[15]);
-	ub = mxGetPr(prhs[16]);
-	x = mxGetPr(prhs[17]);
-	u = mxGetPr(prhs[18]);
-	kkk = mxGetPr(prhs[19]);
-	stat = mxGetPr(prhs[20]);
+	lZ = mxGetPr(prhs[15]);
+	uZ = mxGetPr(prhs[16]);
+	lz = mxGetPr(prhs[17]);
+	uz = mxGetPr(prhs[18]);
+	lb = mxGetPr(prhs[19]);
+	ub = mxGetPr(prhs[20]);
+	x = mxGetPr(prhs[21]);
+	u = mxGetPr(prhs[22]);
+	kkk = mxGetPr(prhs[23]);
+	stat = mxGetPr(prhs[24]);
 	
 	int kk = -1;
 
-	int work_space_size = hpmpc_ip_box_mpc_dp_work_space(nx, nu, N);
+	int work_space_size = hpmpc_ip_soft_mpc_dp_work_space(nx, nu, N);
 	
 	double *work = (double *) malloc( work_space_size * sizeof(double) );
 
 	// call solver 
-	fortran_order_ip_box_mpc(k_max, tol, 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, x, u, work, &kk, stat);
-	//c_order_ip_box_mpc(k_max, tol, 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, x, u, work, &kk, stat);
+	fortran_order_ip_soft_mpc(k_max, tol, 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, Zb, Zb, zb, zb, lb, ub, x, u, work, &kk, stat);
+	//c_order_ip_soft_mpc(k_max, tol, 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, Zb, Zb, zb, zb, lb, ub, x, u, work, &kk, stat);
 	
 	*kkk = (double) kk;
 

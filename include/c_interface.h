@@ -84,6 +84,8 @@
 #define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 5*D_ANZ + 3*D_ANX + 7*D_ANB) + 3*D_ANZ)
 // Riccati-based IP method for box-constrained MPC, single precision
 #define HPMPC_IP_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 3*S_ANX + 7*S_ANB) + 3*S_ANZ)
+// Riccati-based IP method for soft-constrained MPC, double precision
+#define HPMPC_IP_SOFT_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 5*D_ANZ + 3*D_ANX + 17*D_ANB) + 3*D_ANZ)
 // Riccati-based solver for unconstrained MPC, double precision
 #define HPMPC_RIC_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 2*D_ANZ + 2*D_ANX) + 3*D_ANZ)
 // Riccati-based solver for unconstrained MPC, single precision
@@ -96,7 +98,7 @@
 // work space: dynamic definition as function return value
 
 // Riccati-based IP method for box-constrained MPC, double precision
-int hpmpc_ip_mpc_dp_work_space(int nx, int nu, int N);
+int hpmpc_ip_box_mpc_dp_work_space(int nx, int nu, int N);
 #if 0
 	{
 	const int bs = D_MR; //d_get_mr();
@@ -120,7 +122,7 @@ int hpmpc_ip_mpc_dp_work_space(int nx, int nu, int N);
 #endif
 
 // Riccati-based IP method for box-constrained MPC, single precision
-int hpmpc_ip_mpc_sp_work_space(int nx, int nu, int N);
+int hpmpc_ip_box_mpc_sp_work_space(int nx, int nu, int N);
 #if 0
 	{
 	const int bs = S_MR; //d_get_mr();
@@ -143,6 +145,9 @@ int hpmpc_ip_mpc_sp_work_space(int nx, int nu, int N);
 	}
 #endif
     
+// Riccati-based IP method for box-constrained MPC, double precision
+int hpmpc_ip_soft_mpc_dp_work_space(int nx, int nu, int N);
+
 // Riccati-based solver for unconstrained MPC, double precision
 int hpmpc_ric_mpc_dp_work_space(int nx, int nu, int N);
 #if 0
@@ -248,7 +253,9 @@ int hpmpc_ric_mhe_if_dp_work_space(int nx, int nw, int ny, int N);
 
 
 // c (or row-major) order
-int c_order_ip_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
+int c_order_ip_box_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
+
+int c_order_ip_soft_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lZ, double* uZ, double* lz, double* uz, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
 
 int c_order_riccati_mpc( const char prec, const int nx, const int nu, const int N, double *A, double *B, double *b, double *Q, double *Qf, double *S, double *R, double *q, double *qf, double *r, double *x, double *u, double *pi, double *work0 );
 
@@ -259,7 +266,9 @@ int c_order_riccati_mhe_if( char prec, int alg, int nx, int nw, int ny, int N, d
 
 
 // fortran (or column-major) order
-int fortran_order_ip_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
+int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
+
+int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lZ, double* uZ, double* lz, double* uz, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
 
 int fortran_order_riccati_mpc( const char prec, const int nx, const int nu, const int N, double *A, double *B, double *b, double *Q, double *Qf, double *S, double *R, double *q, double *qf, double *r, double *x, double *u, double *pi, double *work0 );
 

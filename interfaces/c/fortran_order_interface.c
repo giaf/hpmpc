@@ -69,7 +69,7 @@
 #endif /* PC_DEBUG */
 
 /* version dealing with equality constratins: is lb=ub, then fix the variable (corresponding column in A or B set to zero, and updated b) */
-int fortran_order_ip_mpc( int k_max, double mu_tol, const char prec,
+int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
                           const int nx, const int nu, const int N,
                           double* A, double* B, double* b, 
                           double* Q, double* Qf, double* S, double* R, 
@@ -537,6 +537,521 @@ int fortran_order_ip_mpc( int k_max, double mu_tol, const char prec,
 
 
 		}
+	else
+		{
+		printf("\nUnsopported precision type: %s\n\n", &prec);
+		return -1;
+		}
+	
+/*printf("\nend of wrapper\n");*/
+
+    return hpmpc_status;
+
+	}
+
+
+
+int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec,
+                               const int nx, const int nu, const int N,
+                               double* A, double* B, double* b, 
+                               double* Q, double* Qf, double* S, double* R, 
+                               double* q, double* qf, double* r, 
+                               double* lZ, double* uZ,
+                               double* lz, double* uz,
+                               double* lb, double* ub, 
+                               double* x, double* u,
+                               double* work0, 
+                               int* nIt, double* stat )
+
+	{
+
+//printf("\nstart of wrapper\n");
+
+	int hpmpc_status = -1;
+
+    //char prec = PREC;
+
+    if(prec=='d')
+	    {
+	    
+		const int bs = D_MR; //d_get_mr();
+		const int ncl = D_NCL;
+		const int nal = D_MR*D_NCL;
+	
+		const int nz = nx+nu+1;
+		const int pnz = bs*((nz+bs-1)/bs);
+		const int pnx = bs*((nx+bs-1)/bs);
+		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
+		const int cnx = ncl*((nx+ncl-1)/ncl);
+		const int anz = nal*((nz+nal-1)/nal);
+		const int anx = nal*((nx+nal-1)/nal);
+
+		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
+		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+
+		const int nb = nx+nu; // number of box constraints
+		const int anb = nal*((2*nb+nal-1)/nal);
+
+		double alpha_min = ALPHA_MIN; // minimum accepted step length
+        static double sigma_par[] = {0.4, 0.1, 0.001}; // control primal-dual IP behaviour
+/*      static double stat[5*K_MAX]; // statistics from the IP routine*/
+//      double *work0 = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 3*anx + 7*anb) + 3*anz)*sizeof(double));
+        int warm_start = WARM_START;
+        int compute_mult = 1; // compute multipliers
+        
+        int info = 0;
+
+        int i, ii, jj, ll;
+
+
+
+        /* align work space */
+        size_t align = 64;
+        size_t addr = (size_t) work0;
+        size_t offset = addr % 64;
+        double *ptr = work0 + offset / 8;
+
+
+
+        /* array or pointers */
+        double *(hpBAbt[N]);
+        double *(hpQ[N + 1]);
+		double *(hZ[N + 1]);
+		double *(hz[N + 1]);
+        double *(hux[N + 1]);
+        double *(hdb[N + 1]);
+        double *(hpi[N + 1]);
+        double *(hlam[N + 1]);
+        double *(ht[N + 1]);
+		double *work;
+
+        for(ii=0; ii<N; ii++)
+	        {
+            hpBAbt[ii] = ptr;
+            ptr += pnz*cnx;
+	        }
+
+        for(ii=0; ii<=N; ii++) // time variant and copied again internally in the IP !!!
+	        {
+            hpQ[ii] = ptr;
+            ptr += pnz*cnz;
+	        }
+
+		for(ii=0; ii<=N; ii++)
+	        {
+			hZ[ii] = ptr;
+			ptr += anb;
+			}
+
+		for(ii=0; ii<=N; ii++)
+	        {
+			hz[ii] = ptr;
+			ptr += anb;
+			}
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hux[ii] = ptr;
+            ptr += anz;
+	        }
+
+        for(ii=0; ii<=N; ii++) // time Variant box constraints
+	        {
+            hdb[ii] = ptr;
+            ptr += anb; //nb; // for alignment of ptr
+	        }
+
+        for(ii=0; ii<=N; ii++) // time Variant box constraints
+	        {
+            hpi[ii] = ptr;
+            ptr += anx; // for alignment of ptr
+	        }
+
+        for(ii=0; ii<=N; ii++) // time Variant box constraints
+	        {
+            hlam[ii] = ptr;
+            ptr += 2*anb; //nb; // for alignment of ptr
+	        }
+
+        for(ii=0; ii<=N; ii++) // time Variant box constraints
+	        {
+            ht[ii] = ptr;
+            ptr += 2*anb; //nb; // for alignment of ptr
+	        }
+
+		work = ptr;
+
+
+
+        /* pack matrices 	*/
+
+        // dynamic system
+        for(ii=0; ii<N; ii++)
+	        {
+            d_cvt_tran_mat2pmat(nx, nu, 0, bs, B+ii*nu*nx, nx, hpBAbt[ii], cnx);
+            d_cvt_tran_mat2pmat(nx, nx, nu, bs, A+ii*nx*nx, nx, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
+            for (jj = 0; jj<nx; jj++)
+                hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
+	        }
+
+        // cost function
+        for(jj=0; jj<N; jj++)
+	        {
+            d_cvt_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
+            d_cvt_tran_mat2pmat(nu, nx, nu, bs, S+jj*nx*nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
+            d_cvt_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+            for(ii=0; ii<nu; ii++)
+                hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
+            for(ii=0; ii<nx; ii++)
+                hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+ii)*bs] = q[ii+nx*jj];
+	        }
+
+        for(jj=0; jj<nu; jj++)
+            for(ii=0; ii<nz; ii+=bs)
+                for(i=0; i<bs; i++)
+                    hpQ[N][ii*cnz+i+jj*bs] = 0.0;
+        for(jj=0; jj<nu; jj++)
+            hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
+        d_cvt_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+        for(jj=0; jj<nx; jj++)
+            hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
+
+		// cost function of soft constraint slack variable
+		for(ii=0; ii<N; ii++)
+			{
+			for(jj=0; jj<nx; jj++)
+				{
+				hZ[ii+1][2*nu+jj+0] = lZ[nx*ii+jj];
+				hZ[ii+1][2*nu+jj+1] = uZ[nx*ii+jj];
+				}
+			for(jj=0; jj<nx; jj++)
+				{
+				hz[ii+1][2*nu+jj+0] = lz[nx*ii+jj];
+				hz[ii+1][2*nu+jj+1] = uz[nx*ii+jj];
+				}
+			}
+
+		// input constraints
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nu; ii++)
+				{
+				if(lb[ii+nu*jj]!=ub[ii+nu*jj]) // equality constraint
+					{
+					hdb[jj][2*ii+0] =   lb[ii+nu*jj];
+					hdb[jj][2*ii+1] = - ub[ii+nu*jj];
+					}
+				else
+					{
+					for(ll=0; ll<nx; ll++)
+						{
+						// update linear term
+						hpBAbt[jj][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+ll*bs] += hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs]*lb[ii+nu*jj];
+						// zero corresponding B column
+						hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs] = 0;
+						}
+					
+					// inactive box constraints
+					hdb[jj][2*ii+0] =   lb[ii+nu*jj] + 1e3;
+					hdb[jj][2*ii+1] = - ub[ii+nu*jj] - 1e3;
+
+					}
+				}
+			}
+		// state constraints 
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nx; ii++)
+				{
+				hdb[jj+1][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
+				hdb[jj+1][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+				}
+			}
+
+        // initial guess
+        for(jj=0; jj<N; jj++)
+            for(ii=0; ii<nu; ii++)
+                hux[jj][ii] = u[ii+nu*jj];
+
+        for(jj=0; jj<=N; jj++)
+            for(ii=0; ii<nx; ii++)
+                hux[jj][nu+ii] = x[ii+nx*jj];
+
+
+
+
+        // call the IP solver
+	    if(IP==1)
+	        hpmpc_status = d_ip_soft_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
+	    else
+	        hpmpc_status = d_ip2_soft_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
+
+
+
+        // copy back inputs and states
+        for(jj=0; jj<N; jj++)
+            for(ii=0; ii<nu; ii++)
+                u[ii+nu*jj] = hux[jj][ii];
+
+        for(jj=0; jj<=N; jj++)
+            for(ii=0; ii<nx; ii++)
+                x[ii+nx*jj] = hux[jj][nu+ii];
+
+		// check for input and states equality constraints
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nu; ii++)
+				{
+				if(lb[ii+nu*jj]==ub[ii+nu*jj]) // equality constraint
+					{
+	                u[ii+nu*jj] = lb[ii+nu*jj];
+					}
+				}
+			}
+
+
+
+#if PC_DEBUG == 1
+        for (jj = 0; jj < *nIt; jj++)
+            printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\n", jj,
+                   stat[5 * jj], stat[5 * jj + 1], stat[5 * jj + 2],
+                   stat[5 * jj + 2]);
+        printf("\n");
+#endif /* PC_DEBUG == 1 */
+
+
+	    }
+#if 0
+    else if(prec=='s')
+	    {
+	    
+		const int bs = S_MR; //d_get_mr();
+		const int ncl = S_NCL;
+		const int nal = S_MR*S_NCL;
+
+		const int nz = nx+nu+1;
+		const int pnz = bs*((nz+bs-1)/bs);
+		const int pnx = bs*((nx+bs-1)/bs);
+		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
+		const int cnx = ncl*((nx+ncl-1)/ncl);
+		const int anz = nal*((nz+nal-1)/nal);
+		const int anx = nal*((nx+nal-1)/nal);
+
+		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
+		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+
+		const int nb = nx+nu; // number of box constraints
+		const int anb = nal*((2*nb+nal-1)/nal);
+
+		float alpha_min = ALPHA_MIN; // minimum accepted step length
+        static float sigma_par[] = {0.4, 0.1, 0.01}; // control primal-dual IP behaviour
+/*        static float stat[5*K_MAX]; // statistics from the IP routine*/
+        //float *work0 = (float *) malloc((16 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 3*anx + 7*anb) + 3*anz)*sizeof(float));
+        int warm_start = WARM_START;
+        int compute_mult = 1; // compute multipliers
+        
+        int info = 0;
+
+        int i, ii, jj, ll;
+
+
+        /* align work space */
+        size_t align = 64;
+        size_t addr = (size_t) work0;
+        size_t offset = addr % 64;
+        float *ptr = ((float *) work0) + offset / 4;
+
+
+
+        /* array or pointers */
+        float *(hpBAbt[N]);
+        float *(hpQ[N + 1]);
+        float *(hux[N + 1]);
+        float *(hdb[N + 1]);
+        float *(hpi[N + 1]);
+        float *(hlam[N + 1]);
+        float *(ht[N + 1]);
+		float *work;
+
+        for(ii=0; ii<N; ii++)
+	        {
+            hpBAbt[ii] = ptr;
+            ptr += pnz*cnx;
+	        }
+
+        for(ii=0; ii<=N; ii++) // time variant and copied again internally in the IP !!!
+	        {
+            hpQ[ii] = ptr;
+            ptr += pnz*cnz;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hux[ii] = ptr;
+            ptr += anz;
+	        }
+
+        for(ii=0; ii<=N; ii++) // time Variant box constraints
+	        {
+            hdb[ii] = ptr;
+            ptr += anb; //nb; // for alignment of ptr
+	        }
+
+        for(ii=0; ii<=N; ii++) // time Variant box constraints
+	        {
+            hpi[ii] = ptr;
+            ptr += anx; // for alignment of ptr
+	        }
+
+        for(ii=0; ii<=N; ii++) // time Variant box constraints
+	        {
+            hlam[ii] = ptr;
+            ptr += anb; //nb; // for alignment of ptr
+	        }
+
+        for(ii=0; ii<=N; ii++) // time Variant box constraints
+	        {
+            ht[ii] = ptr;
+            ptr += anb; //nb; // for alignment of ptr
+	        }
+
+		work = ptr;
+
+
+
+        /* pack matrices 	*/
+
+        // dynamic system
+        for(ii=0; ii<N; ii++)
+	        {
+            cvt_tran_d2s_mat2pmat(nx, nu, 0, bs, B+ii*nu*nx, nx, hpBAbt[ii], cnx);
+            cvt_tran_d2s_mat2pmat(nx, nx, nu, bs, A+ii*nx*nx, nx, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
+            for (jj = 0; jj<nx; jj++)
+                hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = (float) b[ii*nx+jj];
+	        }
+
+        // cost function
+        for(jj=0; jj<N; jj++)
+	        {
+            cvt_d2s_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
+            cvt_tran_d2s_mat2pmat(nu, nx, nu, bs, S+jj*nx*nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
+            cvt_d2s_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+            for(ii=0; ii<nu; ii++)
+                hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = (float) r[ii+jj*nu];
+            for(ii=0; ii<nx; ii++)
+                hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+ii)*bs] = (float) q[ii+nx*jj];
+	        }
+
+        for(jj=0; jj<nu; jj++)
+            for(ii=0; ii<nz; ii+=bs)
+                for(i=0; i<bs; i++)
+                    hpQ[N][ii*cnz+i+jj*bs] = 0.0;
+        for(jj=0; jj<nu; jj++)
+            hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
+        cvt_d2s_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+        for(jj=0; jj<nx; jj++)
+            hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = (float) qf[jj];
+
+		// input constraints
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nu; ii++)
+				{
+				if(lb[ii+nu*jj]!=ub[ii+nu*jj]) // equality constraint
+					{
+					hdb[jj][2*ii+0] = (float)   lb[ii+nu*jj];
+					hdb[jj][2*ii+1] = (float) - ub[ii+nu*jj];
+					}
+				else
+					{
+					for(ll=0; ll<nx; ll++)
+						{
+						// update linear term
+						hpBAbt[jj][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+ll*bs] += hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs]*lb[ii+nu*jj];
+						// zero corresponding B column
+						hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs] = 0;
+						}
+					
+					// inactive box constraints
+					hdb[jj][2*ii+0] = (float)   lb[ii+nu*jj] + 1e3;
+					hdb[jj][2*ii+1] = (float) - ub[ii+nu*jj] - 1e3;
+
+/*		            d_print_pmat(nx+nu, nx, bs, hpBAbt[jj], cnx);*/
+					}
+				}
+			}
+		// state constraints
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nx; ii++)
+				{
+				hdb[jj+1][2*nu+2*ii+0] = (float)   lb[N*nu+ii+nx*jj];
+				hdb[jj+1][2*nu+2*ii+1] = (float) - ub[N*nu+ii+nx*jj];
+				}
+			}
+
+
+        // initial guess
+        for(jj=0; jj<N; jj++)
+            for(ii=0; ii<nu; ii++)
+                hux[jj][ii] = (float) u[ii+nu*jj];
+
+        for(jj=0; jj<=N; jj++)
+            for(ii=0; ii<nx; ii++)
+                hux[jj][nu+ii] = (float) x[ii+nx*jj];
+
+
+
+        // call the IP solver
+		if(IP==1)
+		    hpmpc_status = s_ip_box_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+		else
+		    hpmpc_status = s_ip2_box_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+
+
+
+		// convert stat into double (start fom end !!!)
+		float *ptr_stat = (float *) stat;
+		for(ii=5*k_max-1; ii>=0; ii--)
+			{
+			stat[ii] = (double) ptr_stat[ii];
+			}
+
+
+
+        // copy back inputs and states
+        for(jj=0; jj<N; jj++)
+            for(ii=0; ii<nu; ii++)
+                u[ii+nu*jj] = (double) hux[jj][ii];
+
+        for(jj=0; jj<=N; jj++)
+            for(ii=0; ii<nx; ii++)
+                x[ii+nx*jj] = (double) hux[jj][nu+ii];
+
+		// check for input equality constraints
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nu; ii++)
+				{
+				if(lb[ii+nu*jj]==ub[ii+nu*jj]) // equality constraint
+					{
+	                u[ii+nu*jj] = lb[ii+nu*jj];
+					}
+				}
+			}
+
+
+#if PC_DEBUG == 1
+        for (jj = 0; jj < *nIt; jj++)
+            printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\n", jj,
+                   stat[5 * jj], stat[5 * jj + 1], stat[5 * jj + 2],
+                   stat[5 * jj + 2]);
+        printf("\n");
+#endif /* PC_DEBUG == 1 */
+
+
+		}
+#endif
 	else
 		{
 		printf("\nUnsopported precision type: %s\n\n", &prec);
