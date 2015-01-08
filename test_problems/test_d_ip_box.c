@@ -377,6 +377,7 @@ int main()
 		}
 
 
+
 	int kk_avg = 0;
 
 	/* timing */
@@ -474,6 +475,10 @@ int main()
 		printf("\nu = \n\n");
 		for(ii=0; ii<N; ii++)
 			d_print_mat(1, nu, hux[ii], 1);
+		
+		printf("\nx = \n\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nx, hux[ii]+nu, 1);
 		
 		printf("\nlam = \n\n");
 		for(ii=0; ii<=N; ii++)

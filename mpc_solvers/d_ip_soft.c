@@ -68,7 +68,6 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 	const int anz = nal*((nz+nal-1)/nal);
 	const int anx = nal*((nx+nal-1)/nal);
 	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box and soft constraints
-	const int anb2 = 2*nal*((2*nb+nal-1)/nal); // !!!!! doubled to include soft constraints !!!!!
 
 	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
@@ -149,20 +148,21 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 	for(jj=0; jj<=N; jj++)
 		{
 		dlam[jj] = ptr;
-		dt[jj]   = ptr + anb2;;
-		ptr += 2*anb2;
+		dt[jj]   = ptr + 2*anb;;
+		ptr += 4*anb;
 		}
 	for(jj=0; jj<=N; jj++)
 		{
 		lamt[jj] = ptr;
-		ptr += anb2;
+		ptr += 2*anb;
 		}
 	for(jj=0; jj<=N; jj++)
 		{
 		t_inv[jj] = ptr;
-		ptr += anb2;
+		ptr += 2*anb;
 		}
 
+	// updated cost function of soft constraint slack variables
 	for(jj=0; jj<=N; jj++)
 		{
 		Zl[jj] = ptr;
@@ -170,8 +170,6 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 		ptr += 2*anb;
 		}
 
-/*dlam[0][0] = 1;*/
-/*printf("\ncazzo %f\n", dlam[0][0]);*/
 
 	double temp0, temp1;
 	double alpha, mu;
@@ -186,11 +184,6 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 	// initialize ux & t>0 (slack variable)
 	d_init_var_soft_mpc(N, nx, nu, nb, ux, pi, db, t, lam, warm_start);
-
-
-
-	// initialize lambda>0 (multiplier of the inequality constraint)
-	//d_init_lam_mpc(N, nu, nbu, nb, t, lam);
 
 
 
@@ -228,6 +221,7 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 		// box constraints
 
+		// update hessian
 		d_update_hessian_soft_mpc(N, nx, nu, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db, Z, z, Zl, zl);
 
 /*return;*/

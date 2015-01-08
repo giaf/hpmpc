@@ -99,7 +99,11 @@ void d_res_ip_soft_mpc(int nx, int nu, int N, int nb, double **hpBAbt, double **
 	for(jj=2*nu ; jj<2*nb; jj+=2) mu[0] += hlam[N][jj+0] * ht[N][jj+0] + hlam[N][jj+1] * ht[N][jj+1];
 	for(jj=2*nu ; jj<2*nb; jj+=2) mu[0] += hlam[N][anb+jj+0] * ht[N][anb+jj+0] + hlam[N][anb+jj+1] * ht[N][anb+jj+1];
 	mu[0] /= N*(2*nb + 2*nbx);
-	for(jj=2*nu; jj<2*nb; jj+=2) { hrd[N][jj+0] = ht[N][anb+jj+0] + hux[N][jj/2] - hdb[N][jj+0] - ht[N][jj+0]; hrd[N][jj+1] = ht[N][anb+jj+1] - hdb[N][jj+1] - hux[N][jj/2] - ht[N][jj+1]; }
+	for(jj=2*nu; jj<2*nb; jj+=2) 
+		{ 
+		hrd[N][jj+0] = ht[N][anb+jj+0] + hux[N][jj/2] - hdb[N][jj+0] - ht[N][jj+0]; 
+		hrd[N][jj+1] = ht[N][anb+jj+1] - hdb[N][jj+1] - hux[N][jj/2] - ht[N][jj+1]; 
+		}
 	for(jj=0; jj<nx; jj++) hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj] + hlam[N][2*nu+2*jj+0] - hlam[N][2*nu+2*jj+1];
 	dsymv_lib(nx+nu%bs, nx+nu%bs, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hux[N]+(nu/bs)*bs, hrq[N]+(nu/bs)*bs, -1);
 	for(jj=0; jj<2*nbx; jj+=2) 
