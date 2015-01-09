@@ -158,9 +158,12 @@ int main()
 	int N  = NN; // horizon lenght
 	int nb = NB; // number of box constrained inputs and states
 
+	int nbu = nu<nb ? nu : nb ;
+	int nbx = nbu<nb ? nb-nbu : 0 ;
+
 	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx/2, nu);
 	printf("\n");
-	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints.\n", nx, nu, N, nb);
+	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints on inputs, %d two-sided soft constraints on states.\n", nx, nu, N, nbu, nbx);
 	printf("\n");
 #if IP == 1
 	printf(" IP method parameters: primal-dual IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_d_ip_box.c to change them).\n", K_MAX, MU_TOL);

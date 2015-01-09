@@ -36,6 +36,7 @@ LIBS = -lm #-lopenblas
 #OBJS_TEST = tools.o test_d_ric_mhe.o
 OBJS_TEST = tools.o test_d_ip_box.o
 #OBJS_TEST = tools.o test_s_ip_box.o
+#OBJS_TEST = tools.o test_d_ip_soft.o
 #OBJS_TEST = tools.o test_d_admm_box.o
 #OBJS_TEST = tools.o test_s_admm_box.o
 #OBJS_TEST = tools.o test_d_admm_soft.o
