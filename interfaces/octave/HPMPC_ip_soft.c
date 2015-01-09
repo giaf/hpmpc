@@ -57,8 +57,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	double *work = (double *) malloc( work_space_size * sizeof(double) );
 
 	// call solver 
-	fortran_order_ip_soft_mpc(k_max, tol, 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, Zb, Zb, zb, zb, lb, ub, x, u, work, &kk, stat);
-	//c_order_ip_soft_mpc(k_max, tol, 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, Zb, Zb, zb, zb, lb, ub, x, u, work, &kk, stat);
+	fortran_order_ip_soft_mpc(k_max, tol, 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, lZ, uZ, lz, uz, lb, ub, x, u, work, &kk, stat);
+	//c_order_ip_soft_mpc(k_max, tol, 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, lZ, uZ, lz, uz, lb, ub, x, u, work, &kk, stat);
 	
 	*kkk = (double) kk;
 
