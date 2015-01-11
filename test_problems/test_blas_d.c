@@ -89,6 +89,9 @@ int main()
 #elif defined(TARGET_C99_4X4)
 	const float flops_max = 2;
 	printf("Testing reference BLAS version, 4x4 kernel: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
+#elif defined(TARGET_C99_4X4_PREFETCH)
+	const float flops_max = 2;
+	printf("Testing reference BLAS version, 4x4 kernel with register prefetch: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_C99_2X2)
 	const float flops_max = 2;
 	printf("Testing reference BLAS version, 2x2 kernel: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
@@ -122,10 +125,13 @@ int main()
 	fprintf(f, "C = 'd_PowerPC_G2';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_C99_4X4)
-	fprintf(f, "C = 'd_c99_2x2';\n");
+	fprintf(f, "C = 'd_c99_4x4';\n");
+	fprintf(f, "\n");
+#elif defined(TARGET_C99_4X4_PREFETCH)
+	fprintf(f, "C = 'd_c99_4x4';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_C99_2X2)
-	fprintf(f, "C = 'd_c99_4x4';\n");
+	fprintf(f, "C = 'd_c99_2x2';\n");
 	fprintf(f, "\n");
 #endif
 

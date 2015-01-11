@@ -26,28 +26,28 @@
 include ../Makefile.rule
 
 ifeq ($(TARGET), X64_AVX2)
-OBJS = aux_d_c99_lib4.o aux_s_c99_lib8.o block_size_x64_avx.o
+OBJS = aux_d_c99_lib4.o aux_s_c99_lib8.o #block_size_x64_avx.o
 endif
 ifeq ($(TARGET), X64_AVX)
-OBJS = aux_d_c99_lib4.o aux_s_c99_lib8.o block_size_x64_avx.o
+OBJS = aux_d_c99_lib4.o aux_s_c99_lib8.o #block_size_x64_avx.o
 endif
 ifeq ($(TARGET), X64_SSE3)
-OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o block_size_x64_sse.o
+OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o #block_size_x64_sse.o
 endif
 ifeq ($(TARGET), C99_4X4)
-OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o block_size_c99_4x4.o
+OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o #block_size_c99_4x4.o
 endif
 ifeq ($(TARGET), C99_4X4_PREFETCH)
-OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o block_size_c99_4x4.o
+OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o #block_size_c99_4x4.o
 endif
 ifeq ($(TARGET), CORTEX_A15)
-OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o block_size_cortex_a15.o
+OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o #block_size_cortex_a15.o
 endif
 ifeq ($(TARGET), CORTEX_A9)
-OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o block_size_cortex_a15.o
+OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o #block_size_cortex_a15.o
 endif
 ifeq ($(TARGET), CORTEX_A7)
-OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o block_size_cortex_a15.o
+OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o #block_size_cortex_a15.o
 endif
 
 obj: $(OBJS)
