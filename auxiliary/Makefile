@@ -37,6 +37,9 @@ endif
 ifeq ($(TARGET), C99_4X4)
 OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o block_size_c99_4x4.o
 endif
+ifeq ($(TARGET), C99_4X4_PREFETCH)
+OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o block_size_c99_4x4.o
+endif
 ifeq ($(TARGET), CORTEX_A15)
 OBJS = aux_d_c99_lib4.o aux_s_c99_lib4.o block_size_cortex_a15.o
 endif

@@ -54,6 +54,13 @@ KERNEL_OBJS_SINGLE = ./kernel/c99/kernel_sgemm_c99_lib4.o ./kernel/c99/kernel_st
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 MPC_AUX_OBJS = ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o
 endif
+ifeq ($(TARGET), C99_4X4_PREFETCH)
+AUX_OBJS = ./auxiliary/block_size_c99_4x4.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99_lib4.o 
+KERNEL_OBJS_DOUBLE = ./kernel/c99/kernel_dgemm_c99_prefetch_lib4.o ./kernel/c99/kernel_dtrmm_c99_prefetch_lib4.o  ./kernel/c99/kernel_dtrsm_c99_prefetch_lib4.o ./kernel/c99/kernel_dsyrk_c99_lib4.o  ./kernel/c99/kernel_dpotrf_c99_prefetch_lib4.o ./kernel/c99/kernel_dgemv_c99_lib4.o ./kernel/c99/kernel_dtrmv_c99_lib4.o ./kernel/c99/kernel_dtrsv_c99_lib4.o ./kernel/c99/kernel_dsymv_c99_lib4.o ./kernel/c99/kernel_dtran_c99_lib4.o ./kernel/c99/kernel_dttmm_c99_lib4.o ./kernel/c99/kernel_dtrinv_c99_lib4.o
+KERNEL_OBJS_SINGLE = ./kernel/c99/kernel_sgemm_c99_lib4.o ./kernel/c99/kernel_strmm_c99_lib4.o ./kernel/c99/kernel_sgemm_strsm_c99_lib4.o ./kernel/c99/kernel_ssyrk_spotrf_c99_lib4.o ./kernel/c99/kernel_sgemv_c99_lib4.o ./kernel/c99/kernel_strmv_c99_lib4.o ./kernel/c99/kernel_strsv_c99_lib4.o ./kernel/c99/kernel_ssymv_c99_lib4.o ./kernel/c99/kernel_stran_c99_lib4.o 
+BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
+MPC_AUX_OBJS = ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o
+endif
 ifeq ($(TARGET), CORTEX_A15)
 AUX_OBJS = ./auxiliary/block_size_cortex_a15.o ./auxiliary/aux_d_c99_lib4.o ./auxiliary/aux_s_c99_lib4.o 
 KERNEL_OBJS_DOUBLE = ./kernel/neon/kernel_dgemm_vfpv3_lib4.o ./kernel/neon/kernel_dtrmm_vfpv3_lib4.o  ./kernel/neon/kernel_dtrsm_vfpv3_lib4.o ./kernel/neon/kernel_dsyrk_vfpv3_lib4.o  ./kernel/neon/kernel_dpotrf_vfpv3_lib4.o ./kernel/neon/kernel_dgemv_c99_lib4.o ./kernel/neon/kernel_dtrmv_c99_lib4.o ./kernel/neon/kernel_dtrsv_c99_lib4.o ./kernel/neon/kernel_dsymv_c99_lib4.o ./kernel/neon/kernel_dtran_c99_lib4.o ./kernel/neon/kernel_dttmm_c99_lib4.o ./kernel/neon/kernel_dtrinv_c99_lib4.o 

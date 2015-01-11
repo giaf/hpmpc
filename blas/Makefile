@@ -37,6 +37,9 @@ endif
 ifeq ($(TARGET), C99_4X4)
 OBJS = blas_d_lib4.o blas_s_lib4.o
 endif
+ifeq ($(TARGET), C99_4X4_PREFETCH)
+OBJS = blas_d_lib4.o blas_s_lib4.o
+endif
 ifeq ($(TARGET), CORTEX_A15)
 OBJS = blas_d_lib4.o blas_s_lib4.o
 endif

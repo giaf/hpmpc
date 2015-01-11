@@ -1551,7 +1551,7 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 			//d_print_pmat(8, 4, bs, &pA[(k0+k+j)*bs+i*sda], sda);
 			i += 8;
 #else
-#if defined(TARGET_C99_4X4) //|| defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_C99_4X4) || defined(TARGET_C99_4X4_PREFETCH) //|| defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			kernel_dsyrk_dpotrf_nt_4x4_lib4(1, k-i, j, &pA[i*sda+i*bs], &pA[i*sda+i*bs], &pC[j*bs+i*sdc], &pA[(k+k0+j)*bs+i*sda], fact, alg);
 			i += 4;
 #else
@@ -1580,7 +1580,7 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 #endif
 			for(; i<m-2 && i<k; i+=4)
 				{
-#if defined(TARGET_C99_4X4) || defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_C99_4X4) || defined(TARGET_C99_4X4_PREFETCH) || defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 				//printf("\n%d\n", k-i);
 				//d_print_mat(k-i, 4, &pA[i*sda+i*bs], 4);
 				//d_print_mat(k-i, 4, &pA[j*sda+i*bs], 4);
@@ -1614,7 +1614,7 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 			}
 		else //if(i<m-2)
 			{
-#if defined(TARGET_C99_4X4) || defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_C99_4X4) || defined(TARGET_C99_4X4_PREFETCH) || defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			kernel_dsyrk_dpotrf_nt_4x4_lib4(1, k-i, j, &pA[i*sda+i*bs], &pA[i*sda+i*bs], &pC[j*bs+i*sdc], &pA[(k+k0+j)*bs+i*sda], fact, alg);
 #else
 			kernel_dtsyrk_dpotrf_nt_4x4_lib4(k-i, j, &pA[i*sda+i*bs], &pC[j*bs+i*sdc], &pA[(k+k0+j)*bs+i*sda], fact, alg);
