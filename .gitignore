@@ -176,3 +176,8 @@ octave-workspace
 
 # eps figures
 *.eps
+
+# tex
+*.aux
+*.log
+*.toc

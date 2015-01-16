@@ -3,7 +3,7 @@
 # This file is part of HPMPC.                                                                     #
 #                                                                                                 #
 # HPMPC -- Library for High-Performance implementation of solvers for MPC.                        #
-# Copyright (C) 2014 by Technical University of Denmark. All rights reserved.                     #
+# Copyright (C) 2014-2015 by Technical University of Denmark. All rights reserved.                #
 #                                                                                                 #
 # HPMPC is free software; you can redistribute it and/or                                          #
 # modify it under the terms of the GNU Lesser General Public                                      #
