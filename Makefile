@@ -87,11 +87,11 @@ LQCP_CODEGEN_OBJS = ./codegen/d_ric_sv_codegen.o ./codegen/d_res_codegen.o ./cod
 MPC_OBJS = $(MPC_AUX_OBJS) ./mpc_solvers/d_ip_box.o ./mpc_solvers/d_ip2_box.o ./mpc_solvers/d_res_ip_box.o ./mpc_solvers/d_ip_soft.o ./mpc_solvers/d_ip2_soft.o ./mpc_solvers/d_res_ip_soft.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/d_admm_soft.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o ./mpc_solvers/s_admm_soft.o
 INTERFACE_OBJS = ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/c_order_dynamic_mem_interface.o ./interfaces/c/c_order_static_mem_interface.o ./interfaces/c/fortran_order_interface.o ./interfaces/c/fortran_order_dynamic_mem_interface.o ./interfaces/c/fortran_order_static_mem_interface.o
 
-all: clean library test_problem run
+all: clean static_library test_problem run
 
 codegen: clean codegenerator test_problem run
 
-library: target 
+static_library: target 
 	make -C auxiliary obj
 	make -C kernel obj
 	make -C blas obj
@@ -103,7 +103,7 @@ library: target
 	@echo " libhpmpc.a static library build complete."
 	@echo
 
-shared: target
+shared_library: target
 	make -C auxiliary obj
 	make -C kernel obj
 	make -C blas obj
@@ -167,7 +167,7 @@ run:
 	./test_problems/test.out
 
 #install: library
-install:
+install_static:
 	cp -f libhpmpc.a /usr/lib/libhpmpc.a
 	mkdir -p /usr/include/hpmpc
 	cp -rf ./include/*.h /usr/include/hpmpc
@@ -177,7 +177,7 @@ install_shared:
 	mkdir -p /usr/include/hpmpc
 	cp -rf ./include/*.h /usr/include/hpmpc
 	
-uninstall:
+uninstall_static:
 	rm /usr/lib/libhpmpc.a
 	rm -r /usr/include/hpmpc
 	
