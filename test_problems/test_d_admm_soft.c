@@ -199,7 +199,7 @@ int main()
 	mass_spring_system(Ts, nx, nu, N, A, B, b, x0);
 	
 	for(jj=0; jj<nx; jj++)
-		b[jj] = 0.0;
+		b[jj] = 0.1;
 	
 	for(jj=0; jj<nx; jj++)
 		x0[jj] = 0;
@@ -267,8 +267,8 @@ int main()
 
 	double *Q; d_zeros_align(&Q, pnz, pnz);
 	for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
-	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 0.0;
-	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 0.0;
+	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
+	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 0.1;
 /*	Q[(nx+nu)*(pnz+1)] = 1e35; // large enough (not needed any longer) */
 	
 	/* packed into contiguous memory */
@@ -279,9 +279,13 @@ int main()
 * cost function of soft constraints
 ************************************************/	
 
-	double *pS; d_zeros_align(&pS, 2*anx, 1);
-	for(ii=0; ii<nx; ii++) pS[ii] = 100.0; // upper
-	for(ii=0; ii<nx; ii++) pS[anx+ii] = 100.0; // lower
+	double *Z; d_zeros_align(&Z, 2*anx, 1);
+	for(ii=0; ii<nx; ii++) Z[ii] = 10.0; // upper
+	for(ii=0; ii<nx; ii++) Z[anx+ii] = 10.0; // lower
+
+	double *z; d_zeros_align(&z, 2*anx, 1);
+	for(ii=0; ii<nx; ii++) z[ii] = 10.0; // upper
+	for(ii=0; ii<nx; ii++) z[anx+ii] = 10.0; // lower
 
 /************************************************
 * matrices series
@@ -299,7 +303,8 @@ int main()
 	double *(hrb[N]);
 	double *(hrq[N+1]);
 	double *(hrd[N+1]);
-	double *(hpS[N+1]);
+	double *(hZ[N+1]);
+	double *(hz[N+1]);
 	double *(hux_v[N+1]);
 	double *(hux_w[N+1]);
 	double *(hs_u[N+1]);
@@ -325,7 +330,8 @@ int main()
 		d_zeros_align(&hrb[jj], anx, 1);
 		d_zeros_align(&hrq[jj], anz, 1);
 		d_zeros_align(&hrd[jj], anb, 1); // TODO pnb
-		hpS[jj] = pS;
+		hZ[jj] = Z;
+		hz[jj] = z;
 		d_zeros_align(&hux_v[jj], anz, 1);
 		d_zeros_align(&hux_w[jj], anz, 1);
 		d_zeros_align(&hs_u[jj], 2*anx, 1);
@@ -341,7 +347,8 @@ int main()
 	hub[N] = ub;
 	d_zeros_align(&hrq[N], anz, 1);
 	d_zeros_align(&hrd[N], anb, 1); // TODO pnb
-	hpS[N] = pS;
+	hZ[N] = Z;
+	hz[N] = z;
 	d_zeros_align(&hux_v[N], anz, 1);
 	d_zeros_align(&hux_w[N], anz, 1);
 	d_zeros_align(&hs_u[N], 2*anx, 1);
@@ -398,7 +405,7 @@ int main()
 	// call the ADMM solver
 	if(FREE_X0==0)
 		{
-		d_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, work);
+		d_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hZ, hz, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, work);
 		}
 	else
 		{
@@ -430,7 +437,7 @@ int main()
 		// call the ADMM solver
 		if(FREE_X0==0)
 			{
-			d_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 0, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, work);
+			d_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 0, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hZ, hz, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, work);
 			}
 		else
 			{
@@ -564,7 +571,8 @@ int main()
 	free(ub);
 	free(Q);
 	free(pQ);
-	free(pS);
+	free(Z);
+	free(z);
 	free(work);
 	free(stat);
 	for(jj=0; jj<N; jj++)

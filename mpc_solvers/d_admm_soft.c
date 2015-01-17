@@ -37,7 +37,7 @@
 
 
 /* primal-dual interior-point method, box constraints, time invariant matrices (mpc version) */
-void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_start, int compute_fact, double rho, double alpha, double *stat, int nx, int nu, int N, double **pBAbt, double **pQ, double **pS, double **lb, double **ub, double **ux_u, double **ux_v, double **ux_w, double **s_u, double **s_v, double **s_w, int compute_mult, double **pi, double *work_memory) // TODO return w ???
+void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_start, int compute_fact, double rho, double alpha, double *stat, int nx, int nu, int N, double **pBAbt, double **pQ, double **Z, double **z, double **lb, double **ub, double **ux_u, double **ux_v, double **ux_w, double **s_u, double **s_v, double **s_w, int compute_mult, double **pi, double *work_memory) // TODO return w ???
 	{
 
 //alpha = 1.0; // no relaxation for the moment TODO remove 
@@ -83,7 +83,7 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 	double *(bb[N]);
 	double *work1;
 	double *diag;
-	double *(pSi[N+1]); // inverse of Hessian of soft constraints slack variables
+	double *(Zi[N+1]); // inverse of Hessian of soft constraints slack variables
 /*	double *(s_u[N+1]); // soft constraints slack variable*/
 /*	double *(s_v[N+1]); // soft constraints slack variable*/
 /*	double *(s_w[N+1]); // soft constraints slack variable*/
@@ -154,7 +154,7 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 	// inverse (of diagonal) of Hessian of soft constraints slack variables
 	for(jj=0; jj<=N; jj++)
 		{
-		pSi[jj] = ptr;
+		Zi[jj] = ptr;
 		ptr += 2*anx;
 		}
 
@@ -277,11 +277,11 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 			for(ll=0; ll<nx; ll++)
 				{
 				// upper
-				pSi[jj][ll] = 1.0/(pS[jj][ll] + rho);
-				s_u[jj][ll] = - pSi[jj][ll]*rho*(s_w[jj][ll] - s_v[jj][ll]);
+				Zi[jj][ll] = 1.0/(Z[jj][ll] + rho);
+				s_u[jj][ll] = - Zi[jj][ll]*(z[jj][ll] + rho*(s_w[jj][ll] - s_v[jj][ll]));
 				// lower
-				pSi[jj][anx+ll] = 1.0/(pS[jj][anx+ll] + rho);
-				s_u[jj][anx+ll] = - pSi[jj][anx+ll]*rho*(s_w[jj][anx+ll] - s_v[jj][anx+ll]);
+				Zi[jj][anx+ll] = 1.0/(Z[jj][anx+ll] + rho);
+				s_u[jj][anx+ll] = - Zi[jj][anx+ll]*(z[jj][anx+ll] + rho*(s_w[jj][anx+ll] - s_v[jj][anx+ll]));
 				}
 			}
 
@@ -402,9 +402,9 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 			for(ll=0; ll<nx; ll++)
 				{
 				// upper
-				s_u[jj][ll] = - pSi[jj][ll]*rho*(s_w[jj][ll] - s_v[jj][ll]);
+				s_u[jj][ll] = - Zi[jj][ll]*(z[jj][ll] + rho*(s_w[jj][ll] - s_v[jj][ll]));
 				// lower
-				s_u[jj][anx+ll] = - pSi[jj][anx+ll]*rho*(s_w[jj][anx+ll] - s_v[jj][anx+ll]);
+				s_u[jj][anx+ll] = - Zi[jj][anx+ll]*(z[jj][anx+ll] + rho*(s_w[jj][anx+ll] - s_v[jj][anx+ll]));
 				}
 			}
 

@@ -255,7 +255,7 @@ int main()
 	for(jj=0; jj<2*nu; jj++)
 		db[jj] = - 0.5;   // umin
 	for(; jj<2*nb; jj++)
-		db[jj] = - 4.0;   // xmin
+		db[jj] = - 1.0;   // xmin
 
 /************************************************
 * cost function
@@ -276,7 +276,7 @@ int main()
 	for(ii=0; ii<2*nx; ii++) Z[2*nu+ii] = 10.0;
 	//for(ii=0; ii<nx; ii++) Z[2*nu+2*ii+0] = 100.0;
 	double *z; d_zeros_align(&z, anb, 1);
-	for(ii=0; ii<2*nx; ii++) z[2*nu+ii] = 0.0;
+	for(ii=0; ii<2*nx; ii++) z[2*nu+ii] = 10.0;
 
 /************************************************
 * matrices series
