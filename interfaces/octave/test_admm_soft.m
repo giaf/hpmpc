@@ -1,6 +1,6 @@
 % compile the C code
 
-mex HPMPC_admm_soft.c -lhpmpc #-L. HPMPC.a
+mex HPMPC_admm_soft.c -lhpmpc %-L. HPMPC.a
 
 
 
@@ -25,9 +25,9 @@ b = 0.0*ones(nx,1);
 x0 = zeros(nx, 1);
 x0(1) = 3.5;
 x0(2) = 3.5;
-#if nx==4
-#	x0 = [5 10 15 20]';
-#end
+%if nx==4
+%	x0 = [5 10 15 20]';
+%end
 AA = repmat(A, 1, N);
 BB = repmat(B, 1, N);
 bb = repmat(b, 1, N);
@@ -42,8 +42,9 @@ q = zeros(nx,1);
 qf = q;
 %r = zeros(nu,1);
 r = zeros(nu,1);
-T = 100*ones(2*nx,1);
-#T(nx+1:2*nx,:) = 0;
+Z = 0*ones(2*nx,1);
+z = 100*ones(2*nx,1);
+%T(nx+1:2*nx,:) = 0;
 
 QQ = repmat(Q, 1, N);
 SS = repmat(S, 1, N);
@@ -51,7 +52,8 @@ RR = repmat(R, 1, N);
 qq = repmat(q, 1, N);
 rr = repmat(r, 1, N);
 
-TT = repmat(T, 1, N+1);
+ZZ = repmat(Z, 1, N+1);
+zz = repmat(z, 1, N+1);
 
 % box constraints
 lb_u = -1e2*ones(nu,1);
@@ -63,7 +65,7 @@ for ii=1:nu
 end
 lb_x = -1.0*ones(nx,1);
 ub_x =  1.0*ones(nx,1);
-#db(2*nu+1:end) = -4;
+%db(2*nu+1:end) = -4;
 llb = [repmat(lb_u, 1, N)(:) ; repmat(lb_x, 1, N)(:)];
 uub = [repmat(ub_u, 1, N)(:) ; repmat(ub_x, 1, N)(:)];
 
@@ -78,7 +80,7 @@ tol = 1e-2;		% tolerance in primality and duality measures
 infos = zeros(5, k_max);
 
 tic
-HPMPC_admm_soft(k_max, tol, nx, nu, N, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, TT, llb, uub, x, u, kk, infos);
+HPMPC_admm_soft(k_max, tol, nx, nu, N, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, ZZ, zz, llb, uub, x, u, kk, infos);
 toc
 
 kk

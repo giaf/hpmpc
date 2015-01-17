@@ -2103,7 +2103,7 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
                                      double* A, double* B, double* b, 
                                      double* Q, double* Qf, double* S, double* R, 
                                      double* q, double* qf, double* r, 
-                                     double* T,
+                                     double* Z, double *z,
                                      double* lb, double* ub, 
                                      double* x, double* u,
                                      int* nIt, double *stat )
@@ -2137,7 +2137,7 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
 		const int anb = nal*((2*nb+nal-1)/nal);
 
 		// work space
-        double *work0 = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 9*anz + 15*anx) + 3*anz)*sizeof(double));
+        double *work0 = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 9*anz + 17*anx) + 3*anz)*sizeof(double));
 
 		// parameters
 /*		double rho = 10.0; // penalty parameter*/
@@ -2159,7 +2159,8 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
         /* array or pointers */
         double *(hpBAbt[N]);
         double *(hpQ[N + 1]);
-		double *(hpS[N+1]);
+		double *(hZ[N+1]);
+		double *(hz[N+1]);
         double *(hux[N + 1]);
 		double *(hux_v[N+1]);
 		double *(hux_w[N+1]);
@@ -2184,7 +2185,13 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
 
         for(ii=0; ii<=N; ii++)
 	        {
-            hpS[ii] = ptr;
+            hZ[ii] = ptr;
+            ptr += 2*anx;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hz[ii] = ptr;
             ptr += 2*anx;
 	        }
 
@@ -2282,8 +2289,10 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
 		// soft constraints cost function
         for(jj=0; jj<=N; jj++)
 	        {
-			for(ii=0; ii<nx; ii++) hpS[jj][ii]     = T[jj*2*nx+ii]; // upper
-			for(ii=0; ii<nx; ii++) hpS[jj][anx+ii] = T[jj*2*nx+nx+ii]; // lower
+			for(ii=0; ii<nx; ii++) hZ[jj][ii]     = Z[jj*2*nx+ii]; // upper
+			for(ii=0; ii<nx; ii++) hZ[jj][anx+ii] = Z[jj*2*nx+nx+ii]; // lower
+			for(ii=0; ii<nx; ii++) hz[jj][ii]     = z[jj*2*nx+ii]; // upper
+			for(ii=0; ii<nx; ii++) hz[jj][anx+ii] = z[jj*2*nx+nx+ii]; // lower
 			}
 
 		// input constraints
@@ -2337,7 +2346,7 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
         // call the soft ADMM solver
 /*		if(FREE_X0==0) // mpc*/
 /*			{*/
-	        d_admm_soft_mpc(nIt, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, ptr);
+	        d_admm_soft_mpc(nIt, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hZ, hz, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, ptr);
 /*		    }*/
 /*		else // mhe*/
 /*			{*/
@@ -2390,7 +2399,7 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
 		const int anb = nal*((2*nb+nal-1)/nal);
 
 		// work space
-        float *work0 = (float *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 9*anz + 15*anx) + 3*anz)*sizeof(float));
+        float *work0 = (float *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 9*anz + 17*anx) + 3*anz)*sizeof(float));
 
 		// parameters
 /*		float rho = 10.0; // penalty parameter*/
@@ -2412,7 +2421,8 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
         /* array or pointers */
         float *(hpBAbt[N]);
         float *(hpQ[N + 1]);
-		float *(hpS[N+1]);
+		float *(hZ[N+1]);
+		float *(hz[N+1]);
         float *(hux[N + 1]);
 		float *(hux_v[N+1]);
 		float *(hux_w[N+1]);
@@ -2437,7 +2447,13 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
 
         for(ii=0; ii<=N; ii++)
 	        {
-            hpS[ii] = ptr;
+            hZ[ii] = ptr;
+            ptr += 2*anx;
+	        }
+
+        for(ii=0; ii<=N; ii++)
+	        {
+            hz[ii] = ptr;
             ptr += 2*anx;
 	        }
 
@@ -2531,8 +2547,10 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
 		// soft constraints cost function
         for(jj=0; jj<=N; jj++)
 	        {
-			for(ii=0; ii<nx; ii++) hpS[jj][ii]     = (float) T[jj*2*nx+ii]; // upper
-			for(ii=0; ii<nx; ii++) hpS[jj][anx+ii] = (float) T[jj*2*nx+nx+ii]; // lower
+			for(ii=0; ii<nx; ii++) hZ[jj][ii]     = (float) Z[jj*2*nx+ii]; // upper
+			for(ii=0; ii<nx; ii++) hZ[jj][anx+ii] = (float) Z[jj*2*nx+nx+ii]; // lower
+			for(ii=0; ii<nx; ii++) hz[jj][ii]     = (float) z[jj*2*nx+ii]; // upper
+			for(ii=0; ii<nx; ii++) hz[jj][anx+ii] = (float) z[jj*2*nx+nx+ii]; // lower
 			}
 
 		// input constraints
@@ -2584,7 +2602,7 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
         // call the soft ADMM solver
 /*		if(FREE_X0==0) // mpc*/
 /*			{*/
-	        s_admm_soft_mpc(nIt, k_max, (float) tol, (float) tol, warm_start, 1, (float) rho, (float) alpha, (float *)stat, nx, nu, N, hpBAbt, hpQ, hpS, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, ptr);
+	        s_admm_soft_mpc(nIt, k_max, (float) tol, (float) tol, warm_start, 1, (float) rho, (float) alpha, (float *)stat, nx, nu, N, hpBAbt, hpQ, hZ, hz, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, ptr);
 /*		    }*/
 /*		else // mhe*/
 /*			{*/
