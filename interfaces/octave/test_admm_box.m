@@ -1,6 +1,6 @@
 % compile the C code
 
-mex HPMPC_ip_soft.c -lhpmpc %-L. HPMPC.a
+mex HPMPC_admm_box.c -lhpmpc %-L. HPMPC.a
 
 
 
@@ -25,40 +25,32 @@ b = 0.0*ones(nx,1);
 x0 = zeros(nx, 1);
 x0(1) = 3.5;
 x0(2) = 3.5;
-if nx==4
-	x0 = [5 10 15 20]';
-end
+%if nx==4
+%	x0 = [5 10 15 20]';
+%end
 AA = repmat(A, 1, N);
 BB = repmat(B, 1, N);
-%AA = repmat(A', 1, N);
-%BB = repmat(B', 1, N);
 bb = repmat(b, 1, N);
 
 % cost function
-Q = 0*eye(nx);
+Q = zeros(nx,nx);
+for ii=1:nx
+	Q(ii,ii) = 1.0;
+end
 Qf = Q;
 R = 2*eye(nu);
 S = zeros(nx, nu);
 %q = zeros(nx,1);
-q = 0*Q*[ones(nx/2,1); zeros(nx/2,1)];
+q = zeros(nx,1);
 qf = q;
 %r = zeros(nu,1);
-r = 0*R*ones(nu,1);
+r = zeros(nu,1);
+
 QQ = repmat(Q, 1, N);
 SS = repmat(S, 1, N);
 RR = repmat(R, 1, N);
 qq = repmat(q, 1, N);
 rr = repmat(r, 1, N);
-
-% cost function of soft constrained slack variables
-lZ = 10*ones(nx, 1);
-uZ = 10*ones(nx, 1);
-lz = 10*ones(nx, 1);
-uz = 10*ones(nx, 1);
-llZ = repmat(lZ, 1, N);
-uuZ = repmat(uZ, 1, N);
-llz = repmat(lz, 1, N);
-uuz = repmat(uz, 1, N);
 
 % box constraints
 lb_u = -1e2*ones(nu,1);
@@ -68,9 +60,9 @@ for ii=1:nu
 	lb_u(ii) = -0.5; % lower bound
 	ub_u(ii) =  0.5; % - upper bound
 end
-lb_x = -1*ones(nx,1);
-ub_x =  1*ones(nx,1);
-#db(2*nu+1:end) = -4;
+lb_x = -9.0*ones(nx,1);
+ub_x =  9.0*ones(nx,1);
+%db(2*nu+1:end) = -4;
 llb = [repmat(lb_u, 1, N)(:) ; repmat(lb_x, 1, N)(:)];
 uub = [repmat(ub_u, 1, N)(:) ; repmat(ub_x, 1, N)(:)];
 
@@ -80,17 +72,18 @@ u = -1*ones(nu, N);
 %pi = zeros(nx, N+1);
 
 kk = -1;		% actual number of performed iterations
-k_max = 20;		% maximim number of iterations
-tol = 1e-4;		% tolerance in the duality measure
+k_max = 1000;		% maximim number of iterations
+tol = 1e-4;		% tolerance in primality and duality measures
 infos = zeros(5, k_max);
+rho = 2;        % regularization parameter
+alpha = 1.5;    % relaxation parameter
 
 tic
-%HPMPC_ip_box(k_max, tol, nx, nu, N, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, x, u, kk, infos);
-HPMPC_ip_soft(k_max, tol, nx, nu, N, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llZ, uuZ, llz, uuz, llb, uub, x, u, kk, infos);
+HPMPC_admm_box(k_max, tol, rho, alpha, nx, nu, N, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, x, u, kk, infos);
 toc
 
 kk
-infos(:,1:kk)'
+%infos(:,1:kk)'
 
 %u
 %x

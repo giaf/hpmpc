@@ -1,6 +1,10 @@
 % compile the C code
+mex HPMPC_ip_box.c -lhpmpc %-L. HPMPC.a
 
-mex HPMPC_ip_box.c -lhpmpc #-L. HPMPC.a
+% import cool graphic toolkit if in octave
+if is_octave()
+	graphics_toolkit('gnuplot')
+end
 
 
 
@@ -60,7 +64,7 @@ for ii=1:nu
 end
 lb_x = -1e2*ones(nx,1);
 ub_x =  1e2*ones(nx,1);
-#db(2*nu+1:end) = -4;
+%db(2*nu+1:end) = -4;
 llb = [repmat(lb_u, 1, N)(:) ; repmat(lb_x, 1, N)(:)];
 uub = [repmat(ub_u, 1, N)(:) ; repmat(ub_x, 1, N)(:)];
 
@@ -81,10 +85,9 @@ toc
 kk
 infos(:,1:kk)'
 
-#u
-#x
+%u
+%x
 
-graphics_toolkit('gnuplot')
 
 figure()
 plot([0:N], x(:,:))
@@ -95,4 +98,5 @@ figure()
 plot([1:N], u(:,:))
 title('controls')
 xlabel('N')
+
 

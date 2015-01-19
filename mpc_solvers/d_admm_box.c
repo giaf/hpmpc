@@ -201,12 +201,21 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 
 	if(compute_fact==1) // factorize hessina in the first iteration
 		{
+
 		// dynamic
 	
 		// backup Hessian & add rho to diagonal
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		for(ll=0; ll<nu; ll++)
 			{
-			for(ll=0; ll<nx+nu; ll++)
+			bd[jj][ll] = pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs];
+			pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs] = bd[jj][ll] + rho;
+			bl[jj][ll] = pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs];
+			pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
+			}
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<nu+nx; ll++)
 				{
 				bd[jj][ll] = pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs];
 				pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs] = bd[jj][ll] + rho;
@@ -214,15 +223,37 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 				pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
 				}
 			}
+		jj = N; // last stage
+		for(ll=nu; ll<nu+nx; ll++)
+			{
+			bd[jj][ll] = pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs];
+			pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs] = bd[jj][ll] + rho;
+			bl[jj][ll] = pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs];
+			pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
+			}
 	
 		// initial factorization
 		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, ux_u, pL, work1, diag, compute_mult, pi);
 
+
+
 		// constraints
 		norm_p = 0;
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		for(ll=0; ll<nu; ll++)
 			{
-			for(ll=0; ll<nx+nu; ll++)
+/*			v_temp = - ( - ux_w[jj][ll] - ux_u[jj][ll] );*/
+			ux_r[jj][ll] = alpha*ux_u[jj][ll] + (1.0-alpha)*ux_v[jj][ll]; // relaxation
+			v_temp = - ( - ux_w[jj][ll] - ux_r[jj][ll] );
+			v_temp = fmax(v_temp, lb[jj][ll]);
+			v_temp = fmin(v_temp, ub[jj][ll]);
+			temp = v_temp - ux_v[jj][ll];
+			norm_p += temp*temp;
+			ux_v[jj][ll] = v_temp;
+			}
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<nu+nx; ll++)
 				{
 /*				v_temp = - ( - ux_w[jj][ll] - ux_u[jj][ll] );*/
 				ux_r[jj][ll] = alpha*ux_u[jj][ll] + (1.0-alpha)*ux_v[jj][ll]; // relaxation
@@ -234,20 +265,50 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 				ux_v[jj][ll] = v_temp;
 				}
 			}
+		jj = N; // first stage
+		for(ll=nu; ll<nu+nx; ll++)
+			{
+/*			v_temp = - ( - ux_w[jj][ll] - ux_u[jj][ll] );*/
+			ux_r[jj][ll] = alpha*ux_u[jj][ll] + (1.0-alpha)*ux_v[jj][ll]; // relaxation
+			v_temp = - ( - ux_w[jj][ll] - ux_r[jj][ll] );
+			v_temp = fmax(v_temp, lb[jj][ll]);
+			v_temp = fmin(v_temp, ub[jj][ll]);
+			temp = v_temp - ux_v[jj][ll];
+			norm_p += temp*temp;
+			ux_v[jj][ll] = v_temp;
+			}
 		norm_p = sqrt(norm_p);
 		stat[0+5*kk[0]] = norm_p;
 	
+
+
 		// integral of error
 		norm_d = 0;
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		for(ll=0; ll<nu; ll++)
 			{
-			for(ll=0; ll<nx+nu; ll++)
+/*			temp = ux_u[jj][ll] - ux_v[jj][ll];*/
+			temp = ux_r[jj][ll] - ux_v[jj][ll]; // relaxation
+			norm_d += temp*temp;
+			ux_w[jj][ll] += temp;
+			}
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<nu+nx; ll++)
 				{
 /*				temp = ux_u[jj][ll] - ux_v[jj][ll];*/
 				temp = ux_r[jj][ll] - ux_v[jj][ll]; // relaxation
 				norm_d += temp*temp;
 				ux_w[jj][ll] += temp;
 				}
+			}
+		jj = N; // last stage
+		for(ll=nu; ll<nu+nx; ll++)
+			{
+/*			temp = ux_u[jj][ll] - ux_v[jj][ll];*/
+			temp = ux_r[jj][ll] - ux_v[jj][ll]; // relaxation
+			norm_d += temp*temp;
+			ux_w[jj][ll] += temp;
 			}
 		norm_d = rho*sqrt(norm_d);
 		stat[1+5*kk[0]] = norm_d;
@@ -259,12 +320,22 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 	else
 		{
 		// backup Hessian
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		for(ll=0; ll<nu; ll++)
 			{
-			for(ll=0; ll<nx+nu; ll++)
+			bl[jj][ll] = pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs];
+			}
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<nu+nx; ll++)
 				{
 				bl[jj][ll] = pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs];
 				}
+			}
+		jj = N; // last stage
+		for(ll=nu; ll<nu+nx; ll++)
+			{
+			bl[jj][ll] = pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs];
 			}
 		}
 
@@ -277,12 +348,22 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 
 		// dynamic
 
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		for(ll=0; ll<nu; ll++)
 			{
-			for(ll=0; ll<nx+nu; ll++)
+			pl[jj][ll] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
+			}
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<nu+nx; ll++)
 				{
 				pl[jj][ll] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
 				}
+			}
+		jj = N; // last stage
+		for(ll=nu; ll<nu+nx; ll++)
+			{
+			pl[jj][ll] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
 			}
 
 		// initialize x with b
@@ -298,11 +379,25 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, ux_u, work1, compute_Pb, Pb, compute_mult, pi);
 		compute_Pb = 0;
 
+
+
 		// constraints
 		norm_p = 0;
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		for(ll=0; ll<nu; ll++)
 			{
-			for(ll=0; ll<nx+nu; ll++)
+/*			v_temp = - ( - ux_w[jj][ll] - ux_u[jj][ll] );*/
+			ux_r[jj][ll] = alpha*ux_u[jj][ll] + (1.0-alpha)*ux_v[jj][ll]; // relaxation
+			v_temp = - ( - ux_w[jj][ll] - ux_r[jj][ll] );
+			v_temp = fmax(v_temp, lb[jj][ll]);
+			v_temp = fmin(v_temp, ub[jj][ll]);
+			temp = v_temp - ux_v[jj][ll];
+			norm_p += temp*temp;
+			ux_v[jj][ll] = v_temp;
+			}
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<nu+nx; ll++)
 				{
 /*				v_temp = - ( - ux_w[jj][ll] - ux_u[jj][ll] );*/
 				ux_r[jj][ll] = alpha*ux_u[jj][ll] + (1.0-alpha)*ux_v[jj][ll]; // relaxation
@@ -314,20 +409,50 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 				ux_v[jj][ll] = v_temp;
 				}
 			}
+		jj = N; // last stage
+		for(ll=nu; ll<nu+nx; ll++)
+			{
+/*			v_temp = - ( - ux_w[jj][ll] - ux_u[jj][ll] );*/
+			ux_r[jj][ll] = alpha*ux_u[jj][ll] + (1.0-alpha)*ux_v[jj][ll]; // relaxation
+			v_temp = - ( - ux_w[jj][ll] - ux_r[jj][ll] );
+			v_temp = fmax(v_temp, lb[jj][ll]);
+			v_temp = fmin(v_temp, ub[jj][ll]);
+			temp = v_temp - ux_v[jj][ll];
+			norm_p += temp*temp;
+			ux_v[jj][ll] = v_temp;
+			}
 		norm_p = sqrt(norm_p);
 		stat[0+5*kk[0]] = norm_p;
 	
+
+
 		// integral of error
 		norm_d = 0;
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		for(ll=0; ll<nu; ll++)
 			{
-			for(ll=0; ll<nx+nu; ll++)
+/*			temp = ux_u[jj][ll] - ux_v[jj][ll];*/
+			temp = ux_r[jj][ll] - ux_v[jj][ll]; // relaxation
+			norm_d += temp*temp;
+			ux_w[jj][ll] += temp;
+			}
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<nu+nx; ll++)
 				{
 /*				temp = ux_u[jj][ll] - ux_v[jj][ll];*/
 				temp = ux_r[jj][ll] - ux_v[jj][ll]; // relaxation
 				norm_d += temp*temp;
 				ux_w[jj][ll] += temp;
 				}
+			}
+		jj = N; // last stage
+		for(ll=nu; ll<nu+nx; ll++)
+			{
+/*			temp = ux_u[jj][ll] - ux_v[jj][ll];*/
+			temp = ux_r[jj][ll] - ux_v[jj][ll]; // relaxation
+			norm_d += temp*temp;
+			ux_w[jj][ll] += temp;
 			}
 		norm_d = rho*sqrt(norm_d);
 		stat[1+5*kk[0]] = norm_d;
@@ -346,17 +471,37 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 	// restore Hessian
 	if(compute_fact==1)
 		{
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		for(ll=0; ll<nu; ll++)
 			{
-			for(ll=0; ll<nx+nu; ll++)
+			pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs] = bd[jj][ll];
+			pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll];
+			}
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<nu+nx; ll++)
 				{
 				pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs] = bd[jj][ll];
 				pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll];
 				}
 			}
+		jj = N; // last stage
+		for(ll=nu; ll<nx+nu; ll++)
+			{
+			pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs] = bd[jj][ll];
+			pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll];
+			}
 		}
 
 /*printf("\nfinal iteration %d, mu %f\n", *kk, mu);*/
+
+//	for(ii=0; ii<=N; ii++)
+//		{
+//		d_print_mat(1, nx+nu, ux_u[ii], 1);
+//		d_print_mat(1, nx+nu, ux_v[ii], 1);
+//		d_print_mat(1, nx+nu, ux_r[ii], 1);
+//		printf("\n");
+//		}
 
 	return;
 

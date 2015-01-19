@@ -352,6 +352,7 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 				temp = ux_r[jj][ll] - ux_v[jj][ll]; // relaxation
 				norm_d += temp*temp;
 				ux_w[jj][ll] += temp;
+				//ux_w[jj][ll] += rho*temp;
 				}
 			for(ll=0; ll<nx; ll++)
 				{
@@ -359,6 +360,7 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 				temp = ux_r[jj][nu+ll] - ux_v[jj][nu+ll]; // relaxation
 				norm_d += temp*temp;
 				ux_w[jj][nu+ll] += temp;
+				//ux_w[jj][nu+ll] += rho*temp;
 				}
 			for(ll=0; ll<nx; ll++)
 				{
@@ -366,6 +368,8 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 /*				s_w[jj][anx+ll] += s_u[jj][anx+ll] - s_v[jj][anx+ll];*/
 				s_w[jj][ll] += s_r[jj][ll] - s_v[jj][ll];
 				s_w[jj][anx+ll] += s_r[jj][anx+ll] - s_v[jj][anx+ll];
+				//s_w[jj][ll] += rho*(s_r[jj][ll] - s_v[jj][ll]);
+				//s_w[jj][anx+ll] += rho*(s_r[jj][anx+ll] - s_v[jj][anx+ll]);
 				}
 			}
 
@@ -488,6 +492,7 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 				temp = ux_r[jj][ll] - ux_v[jj][ll]; // relaxation
 				norm_d += temp*temp;
 				ux_w[jj][ll] += temp;
+				//ux_w[jj][ll] += rho*temp;
 				}
 			for(ll=0; ll<nx; ll++)
 				{
@@ -495,6 +500,7 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 				temp = ux_r[jj][nu+ll] - ux_v[jj][nu+ll]; // relaxation
 				norm_d += temp*temp;
 				ux_w[jj][nu+ll] += temp;
+				//ux_w[jj][nu+ll] += rho*temp;
 				}
 			for(ll=0; ll<nx; ll++)
 				{
@@ -502,6 +508,8 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 /*				s_w[jj][anx+ll] += s_u[jj][anx+ll] - s_v[jj][anx+ll];*/
 				s_w[jj][ll] += s_r[jj][ll] - s_v[jj][ll];
 				s_w[jj][anx+ll] += s_r[jj][anx+ll] - s_v[jj][anx+ll];
+				//s_w[jj][ll] += rho*(s_r[jj][ll] - s_v[jj][ll]);
+				//s_w[jj][anx+ll] += rho*(s_r[jj][anx+ll] - s_v[jj][anx+ll]);
 				}
 			}
 		norm_d = rho*sqrt(norm_d);
