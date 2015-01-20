@@ -207,7 +207,7 @@ int main()
 	mass_spring_system(Ts, nx, nu, N, A, B, b, x0);
 	
 	for(jj=0; jj<nx; jj++)
-		b[jj] = 0.1;
+		b[jj] = 0.0;
 	
 	for(jj=0; jj<nx; jj++)
 		x0[jj] = 0;
@@ -263,8 +263,8 @@ int main()
 
 	double *Q; d_zeros_align(&Q, pnz, pnz);
 	for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
-	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
-	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 0.1;
+	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 0.0;
+	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 0.0;
 /*	Q[(nx+nu)*(pnz+1)] = 1e35; // large enough (not needed any longer) */
 	
 	/* packed into contiguous memory */
@@ -273,7 +273,7 @@ int main()
 
 	// cost function of the soft constrained slack variables
 	double *Z; d_zeros_align(&Z, anb, 1);
-	for(ii=0; ii<2*nx; ii++) Z[2*nu+ii] = 10.0;
+	for(ii=0; ii<2*nx; ii++) Z[2*nu+ii] = 0.0;
 	//for(ii=0; ii<nx; ii++) Z[2*nu+2*ii+0] = 100.0;
 	double *z; d_zeros_align(&z, anb, 1);
 	for(ii=0; ii<2*nx; ii++) z[2*nu+ii] = 10.0;

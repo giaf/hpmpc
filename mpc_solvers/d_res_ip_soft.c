@@ -88,8 +88,8 @@ void d_res_ip_soft_mpc(int nx, int nu, int N, int nb, double **hpBAbt, double **
 		dmvmv_lib(nxu, nx, hpBAbt[ii], cnx, hpi[ii+1], hrq[ii], hux[ii], hrb[ii], -1);
 		for(jj=0; jj<2*nbx; jj+=2) 
 			{ 
-			hrz[ii][2*nu+jj+0] = - hz[ii][2*nu+jj+0] + hZ[ii][2*nu+jj+0]*ht[ii][anb+2*nu+jj+0] - hlam[ii][2*nu+jj+0] - hlam[ii][anb+2*nu+jj+0]; 
-			hrz[ii][2*nu+jj+1] = - hz[ii][2*nu+jj+1] + hZ[ii][2*nu+jj+1]*ht[ii][anb+2*nu+jj+1] - hlam[ii][2*nu+jj+1] - hlam[ii][anb+2*nu+jj+1];
+			hrz[ii][2*nu+jj+0] = hz[ii][2*nu+jj+0] + hZ[ii][2*nu+jj+0]*ht[ii][anb+2*nu+jj+0] - hlam[ii][2*nu+jj+0] - hlam[ii][anb+2*nu+jj+0]; 
+			hrz[ii][2*nu+jj+1] = hz[ii][2*nu+jj+1] + hZ[ii][2*nu+jj+1]*ht[ii][anb+2*nu+jj+1] - hlam[ii][2*nu+jj+1] - hlam[ii][anb+2*nu+jj+1];
 			}
 		}
 	
@@ -108,8 +108,8 @@ void d_res_ip_soft_mpc(int nx, int nu, int N, int nb, double **hpBAbt, double **
 	dsymv_lib(nx+nu%bs, nx+nu%bs, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hux[N]+(nu/bs)*bs, hrq[N]+(nu/bs)*bs, -1);
 	for(jj=0; jj<2*nbx; jj+=2) 
 		{ 
-		hrz[N][2*nu+jj+0] = - hz[N][2*nu+jj+0] + hZ[N][2*nu+jj+0]*ht[N][anb+2*nu+jj+0] - hlam[N][2*nu+jj+0] - hlam[N][anb+2*nu+jj+0]; 
-		hrz[N][2*nu+jj+1] = - hz[N][2*nu+jj+1] + hZ[N][2*nu+jj+1]*ht[N][anb+2*nu+jj+1] - hlam[N][2*nu+jj+1] - hlam[N][anb+2*nu+jj+1];
+		hrz[N][2*nu+jj+0] = hz[N][2*nu+jj+0] + hZ[N][2*nu+jj+0]*ht[N][anb+2*nu+jj+0] - hlam[N][2*nu+jj+0] - hlam[N][anb+2*nu+jj+0]; 
+		hrz[N][2*nu+jj+1] = hz[N][2*nu+jj+1] + hZ[N][2*nu+jj+1]*ht[N][anb+2*nu+jj+1] - hlam[N][2*nu+jj+1] - hlam[N][anb+2*nu+jj+1];
 		}
 	
 	}

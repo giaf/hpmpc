@@ -63,7 +63,7 @@
 #define PREC 'd'
 
 // number of iterations of IP method
-#define K_MAX 10
+#define K_MAX 50
 
 // number of iterations of ADMM method
 #define K_MAX_ADMM 2000

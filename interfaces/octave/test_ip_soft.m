@@ -8,7 +8,7 @@ mex HPMPC_ip_soft.c -lhpmpc %-L. HPMPC.a
 
 nx = 12;			% number of states
 nu = 5;				% number of inputs (controls)
-N = 30;				% horizon length
+N = 50;				% horizon length
 nb = nu+nx;		% (even) number of box constraints
 
 Ts = 0.5; % sampling time
@@ -51,8 +51,8 @@ qq = repmat(q, 1, N);
 rr = repmat(r, 1, N);
 
 % cost function of soft constrained slack variables
-lZ = 10*ones(nx, 1);
-uZ = 10*ones(nx, 1);
+lZ = 0.001*ones(nx, 1);
+uZ = 0.001*ones(nx, 1);
 lz = 10*ones(nx, 1);
 uz = 10*ones(nx, 1);
 llZ = repmat(lZ, 1, N);
@@ -80,7 +80,7 @@ u = -1*ones(nu, N);
 %pi = zeros(nx, N+1);
 
 kk = -1;		% actual number of performed iterations
-k_max = 20;		% maximim number of iterations
+k_max = 50;		% maximim number of iterations
 tol = 1e-4;		% tolerance in the duality measure
 infos = zeros(5, k_max);
 
