@@ -23,45 +23,36 @@
 #                                                                                                 #
 ###################################################################################################
 
-include ../Makefile.rule
+include ../../Makefile.rule
 
-LIBS = -lm #-lopenblas
+ifeq ($(TARGET), X64_AVX2)
+OBJS = d_aux_ric_c99_lib4.o #s_aux_ric_c99_lib8.o
+endif
+ifeq ($(TARGET), X64_AVX)
+OBJS = d_aux_ric_c99_lib4.o #s_aux_ric_c99_lib8.o
+endif
+ifeq ($(TARGET), X64_SSE3)
+OBJS = d_aux_ric_c99_lib4.o #s_aux_ric_c99_lib8.o
+endif
+ifeq ($(TARGET), C99_4X4)
+OBJS = d_aux_ric_c99_lib4.o #s_aux_ric_c99_lib8.o
+endif
+ifeq ($(TARGET), C99_4X4_PREFETCH)
+OBJS = d_aux_ric_c99_lib4.o #s_aux_ric_c99_lib8.o
+endif
+ifeq ($(TARGET), CORTEX_A15)
+OBJS = d_aux_ric_c99_lib4.o #s_aux_ric_c99_lib8.o
+endif
+ifeq ($(TARGET), CORTEX_A9)
+OBJS = d_aux_ric_c99_lib4.o #s_aux_ric_c99_lib8.o
+endif
+ifeq ($(TARGET), CORTEX_A7)
+OBJS = d_aux_ric_c99_lib4.o #s_aux_ric_c99_lib8.o
+endif
 
-#OBJS_TEST = test_blas_d_debug.o
-#OBJS_TEST = test_blas_s_debug.o
-#OBJS_TEST = test_blas_d.o
-#OBJS_TEST = test_blas_s.o
-#OBJS_TEST = tools.o test_d_ric_mpc.o
-#OBJS_TEST = tools.o test_s_ric_mpc.o
-#OBJS_TEST = tools.o test_d_ric_mhe.o
-OBJS_TEST = tools.o test_d_ip_box.o
-#OBJS_TEST = tools.o test_s_ip_box.o
-#OBJS_TEST = tools.o test_d_ip_soft.o
-#OBJS_TEST = tools.o test_d_admm_box.o
-#OBJS_TEST = tools.o test_s_admm_box.o
-#OBJS_TEST = tools.o test_d_admm_soft.o
-#OBJS_TEST = tools.o test_s_admm_soft.o
-
-obj: $(OBJS_TEST)
-	$(CC) -o test.out $(OBJS_TEST) -L. libhpmpc.a $(LIBS) #-pg
+obj: $(OBJS)
 
 clean:
 	rm -f *.o
-	rm -f test.out
-	rm -f libhpmpc.a
 
-test_blas_d_debug.o: test_blas_d_debug.c test_param.h ../problem_size.h
-test_blas_s_debug.o: test_blas_s_debug.c test_param.h ../problem_size.h
-test_blas_d.o: test_blas_d.c test_param.h ../problem_size.h
-test_blas_s.o: test_blas_s.c test_param.h ../problem_size.h
-test_d_ric_mpc.o: test_d_ric_mpc.c test_param.h ../problem_size.h
-test_s_ric_mpc.o: test_s_ric_mpc.c test_param.h ../problem_size.h
-test_d_ric_mhe.o: test_d_ric_mhe.c test_param.h ../problem_size.h
-test_d_ip_box.o: test_d_ip_box.c test_param.h ../problem_size.h
-test_s_ip_box.o: test_s_ip_box.c test_param.h ../problem_size.h
-test_d_ip_soft.o: test_d_ip_soft.c test_param.h ../problem_size.h
-test_d_admm_box.o: test_d_admm_box.c test_param.h ../problem_size.h
-test_s_admm_box.o: test_s_admm_box.c test_param.h ../problem_size.h
-test_d_admm_soft.o: test_d_admm_soft.c test_param.h ../problem_size.h
-test_s_admm_soft.o: test_s_admm_soft.c test_param.h ../problem_size.h
 

@@ -81,11 +81,11 @@
 // work space: static definition
 
 // Riccati-based IP method for box-constrained MPC, double precision
-#define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 5*D_ANZ + 3*D_ANX + 7*D_ANB) + 3*D_ANZ)
+#define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 6*D_ANZ + 3*D_ANX + 7*D_ANB) + 3*D_ANZ)
 // Riccati-based IP method for box-constrained MPC, single precision
 #define HPMPC_IP_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 3*S_ANX + 7*S_ANB) + 3*S_ANZ)
 // Riccati-based IP method for soft-constrained MPC, double precision
-#define HPMPC_IP_SOFT_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 5*D_ANZ + 3*D_ANX + 17*D_ANB) + 3*D_ANZ)
+#define HPMPC_IP_SOFT_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 6*D_ANZ + 3*D_ANX + 17*D_ANB) + 3*D_ANZ)
 // Riccati-based solver for unconstrained MPC, double precision
 #define HPMPC_RIC_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 2*D_ANZ + 2*D_ANX) + 3*D_ANZ)
 // Riccati-based solver for unconstrained MPC, single precision
@@ -115,7 +115,7 @@ int hpmpc_ip_box_mpc_dp_work_space(int nx, int nu, int N);
 	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 	const int anb = nal*((2*nb+nal-1)/nal);
 
-	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 3*anx + 7*anb) + 3*anz);
+	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 6*anz + 3*anx + 7*anb) + 3*anz);
 
 	return work_space_size;
 	}

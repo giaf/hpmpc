@@ -499,7 +499,7 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 
 
 
-void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **pl2, double **db)
+void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **db)
 	{
 
 	const int nbu = nu<nb ? nu : nb ;
@@ -546,8 +546,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 		u_lamt = _mm_hadd_pd( _mm256_castpd256_pd128( v_lamt ), u_lamt ); // [ lamt[0]+lamt[1] , lamt[2]+lamt[3] ]
 		u_bd   = _mm_load_pd( &bd[0][ii] );
 		u_bd   = _mm_add_pd( u_bd, u_lamt );
-		_mm_storel_pd( &pd[0][0+(ii+0)*bs+ii*cnz], u_bd );
-		_mm_storeh_pd( &pd[0][1+(ii+1)*bs+ii*cnz], u_bd );
+		_mm_store_pd( &pd[0][ii+0], u_bd );
 		v_db   = _mm256_load_pd( &db[0][2*ii+0] );
 		v_db   = _mm256_mul_pd( v_db, v_lamt );
 		v_lam  = _mm256_add_pd( v_lam, v_dlam );
@@ -556,9 +555,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 		u_lam  = _mm_hsub_pd( _mm256_castpd256_pd128( v_lam ), u_lam ); // [ lam[1]-lam[0] , lam[3]-lam[2] ] + [ dlam[1]-dlam[0] , dlam[3]-dlam[2] ]
 		u_bl   = _mm_load_pd( &bl[0][ii] );
 		u_bl   = _mm_sub_pd( u_bl, u_lam );
-		_mm_storel_pd( &pl[0][(ii+0)*bs], u_bl );
-		_mm_storeh_pd( &pl[0][(ii+1)*bs], u_bl );
-		_mm_store_pd( &pl2[0][ii+0], u_bl );
+		_mm_store_pd( &pl[0][ii+0], u_bl );
 
 		v_tmp  = _mm256_load_pd( &ptr_t[4] );
 		v_tmp  = _mm256_div_pd( v_ones, v_tmp );
@@ -572,8 +569,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 		u_lamt = _mm_hadd_pd( _mm256_castpd256_pd128( v_lamt ), u_lamt ); // [ lamt[0]+lamt[1] , lamt[2]+lamt[3] ]
 		u_bd   = _mm_load_pd( &bd[0][ii+2] );
 		u_bd   = _mm_add_pd( u_bd, u_lamt );
-		_mm_storel_pd( &pd[0][2+(ii+2)*bs+ii*cnz], u_bd );
-		_mm_storeh_pd( &pd[0][3+(ii+3)*bs+ii*cnz], u_bd );
+		_mm_store_pd( &pd[0][ii+2], u_bd );
 		v_db   = _mm256_load_pd( &db[0][2*ii+4] );
 		v_db   = _mm256_mul_pd( v_db, v_lamt );
 		v_lam  = _mm256_add_pd( v_lam, v_dlam );
@@ -582,9 +578,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 		u_lam  = _mm_hsub_pd( _mm256_castpd256_pd128( v_lam ), u_lam ); // [ lam[1]-lam[0] , lam[3]-lam[2] ] + [ dlam[1]-dlam[0] , dlam[3]-dlam[2] ]
 		u_bl   = _mm_load_pd( &bl[0][ii+2] );
 		u_bl   = _mm_sub_pd( u_bl, u_lam );
-		_mm_storel_pd( &pl[0][(ii+2)*bs], u_bl );
-		_mm_storeh_pd( &pl[0][(ii+3)*bs], u_bl );
-		_mm_store_pd( &pl2[0][ii+2], u_bl );
+		_mm_store_pd( &pl[0][ii+2], u_bl );
 
 
 		ptr_t     += 8;
@@ -616,8 +610,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_lamt = _mm_hadd_pd( _mm256_castpd256_pd128( v_lamt ), u_lamt ); // [ lamt[0]+lamt[1] , lamt[2]+lamt[3] ]
 			u_bd   = _mm_load_pd( &bd[0][ii] );
 			u_bd   = _mm_add_pd( u_bd, u_lamt );
-			_mm_storel_pd( &pd[0][0+(ii+0)*bs+ii*cnz], u_bd );
-			_mm_storeh_pd( &pd[0][1+(ii+1)*bs+ii*cnz], u_bd );
+			_mm_store_pd( &pd[0][ii+0], u_bd );
 			v_db   = _mm256_load_pd( &db[0][2*ii+0] );
 			v_db   = _mm256_mul_pd( v_db, v_lamt );
 			v_lam  = _mm256_add_pd( v_lam, v_dlam );
@@ -626,9 +619,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_lam  = _mm_hsub_pd( _mm256_castpd256_pd128( v_lam ), u_lam ); // [ lam[1]-lam[0] , lam[3]-lam[2] ] + [ dlam[1]-dlam[0] , dlam[3]-dlam[2] ]
 			u_bl   = _mm_load_pd( &bl[0][ii] );
 			u_bl   = _mm_sub_pd( u_bl, u_lam );
-			_mm_storel_pd( &pl[0][(ii+0)*bs], u_bl );
-			_mm_storeh_pd( &pl[0][(ii+1)*bs], u_bl );
-			_mm_store_pd( &pl2[0][ii+0], u_bl );
+			_mm_store_pd( &pl[0][ii+0], u_bl );
 
 			ptr_t     += 4;
 			ptr_lam   += 4;
@@ -655,7 +646,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_tmp  = _mm_hadd_pd( u_lamt, u_lamt ); // [ lamt[0]+lamt[1] , xxx ]
 			u_bd   = _mm_load_sd( &bd[0][ii+ll] );
 			u_bd   = _mm_add_sd( u_bd, u_tmp );
-			_mm_store_sd( &pd[0][ll+(ii+ll)*bs+ii*cnz], u_bd );
+			_mm_store_sd( &pd[0][ii+ll], u_bd );
 			u_db   = _mm_load_pd( &db[0][2*ii+2*ll+0] );
 			u_db   = _mm_mul_pd( u_db, u_lamt );
 			u_lam  = _mm_add_pd( u_lam, u_dlam );
@@ -663,8 +654,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_lam  = _mm_hsub_pd( u_lam, u_lam ); // [ lam[1]-lam[0] , xxx ] + [ dlam[1]-dlam[0] , xxx ]
 			u_bl   = _mm_load_sd( &bl[0][ii+ll] );
 			u_bl   = _mm_sub_pd( u_bl, u_lam );
-			_mm_store_sd( &pl[0][(ii+ll)*bs], u_bl );
-			_mm_store_sd( &pl2[0][ii+ll], u_bl );
+			_mm_store_sd( &pl[0][ii+ll], u_bl );
 
 /*			t    += 2;*/
 /*			lam  += 2;*/
@@ -700,8 +690,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_lamt = _mm_hadd_pd( _mm256_castpd256_pd128( v_lamt ), u_lamt ); // [ lamt[0]+lamt[1] , lamt[2]+lamt[3] ]
 			u_bd   = _mm_load_pd( &bd[jj][ii] );
 			u_bd   = _mm_add_pd( u_bd, u_lamt );
-			_mm_storel_pd( &pd[jj][0+(ii+0)*bs+ii*cnz], u_bd );
-			_mm_storeh_pd( &pd[jj][1+(ii+1)*bs+ii*cnz], u_bd );
+			_mm_store_pd( &pd[jj][ii+0], u_bd );
 			v_db   = _mm256_load_pd( &db[jj][2*ii+0] );
 			v_db   = _mm256_mul_pd( v_db, v_lamt );
 			v_lam  = _mm256_add_pd( v_lam, v_dlam );
@@ -710,9 +699,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_lam  = _mm_hsub_pd( _mm256_castpd256_pd128( v_lam ), u_lam ); // [ lam[1]-lam[0] , lam[3]-lam[2] ] + [ dlam[1]-dlam[0] , dlam[3]-dlam[2] ]
 			u_bl   = _mm_load_pd( &bl[jj][ii] );
 			u_bl   = _mm_sub_pd( u_bl, u_lam );
-			_mm_storel_pd( &pl[jj][(ii+0)*bs], u_bl );
-			_mm_storeh_pd( &pl[jj][(ii+1)*bs], u_bl );
-			_mm_store_pd( &pl2[jj][ii+0], u_bl );
+			_mm_store_pd( &pl[jj][ii+0], u_bl );
 
 			v_tmp  = _mm256_load_pd( &ptr_t[4] );
 			v_tmp  = _mm256_div_pd( v_ones, v_tmp );
@@ -726,8 +713,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_lamt = _mm_hadd_pd( _mm256_castpd256_pd128( v_lamt ), u_lamt ); // [ lamt[0]+lamt[1] , lamt[2]+lamt[3] ]
 			u_bd   = _mm_load_pd( &bd[jj][ii+2] );
 			u_bd   = _mm_add_pd( u_bd, u_lamt );
-			_mm_storel_pd( &pd[jj][2+(ii+2)*bs+ii*cnz], u_bd );
-			_mm_storeh_pd( &pd[jj][3+(ii+3)*bs+ii*cnz], u_bd );
+			_mm_store_pd( &pd[jj][ii+2], u_bd );
 			v_db   = _mm256_load_pd( &db[jj][2*ii+4] );
 			v_db   = _mm256_mul_pd( v_db, v_lamt );
 			v_lam  = _mm256_add_pd( v_lam, v_dlam );
@@ -736,9 +722,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_lam  = _mm_hsub_pd( _mm256_castpd256_pd128( v_lam ), u_lam ); // [ lam[1]-lam[0] , lam[3]-lam[2] ] + [ dlam[1]-dlam[0] , dlam[3]-dlam[2] ]
 			u_bl   = _mm_load_pd( &bl[jj][ii+2] );
 			u_bl   = _mm_sub_pd( u_bl, u_lam );
-			_mm_storel_pd( &pl[jj][(ii+2)*bs], u_bl );
-			_mm_storeh_pd( &pl[jj][(ii+3)*bs], u_bl );
-			_mm_store_pd( &pl2[jj][ii+2], u_bl );
+			_mm_store_pd( &pl[jj][ii+2], u_bl );
 
 
 			ptr_t     += 8;
@@ -769,8 +753,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 				u_lamt = _mm_hadd_pd( _mm256_castpd256_pd128( v_lamt ), u_lamt ); // [ lamt[0]+lamt[1] , lamt[2]+lamt[3] ]
 				u_bd   = _mm_load_pd( &bd[jj][ii] );
 				u_bd   = _mm_add_pd( u_bd, u_lamt );
-				_mm_storel_pd( &pd[jj][0+(ii+0)*bs+ii*cnz], u_bd );
-				_mm_storeh_pd( &pd[jj][1+(ii+1)*bs+ii*cnz], u_bd );
+				_mm_store_pd( &pd[jj][ii+0], u_bd );
 				v_db   = _mm256_load_pd( &db[jj][2*ii+0] );
 				v_db   = _mm256_mul_pd( v_db, v_lamt );
 				v_lam  = _mm256_add_pd( v_lam, v_dlam );
@@ -779,9 +762,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 				u_lam  = _mm_hsub_pd( _mm256_castpd256_pd128( v_lam ), u_lam ); // [ lam[1]-lam[0] , lam[3]-lam[2] ] + [ dlam[1]-dlam[0] , dlam[3]-dlam[2] ]
 				u_bl   = _mm_load_pd( &bl[jj][ii] );
 				u_bl   = _mm_sub_pd( u_bl, u_lam );
-				_mm_storel_pd( &pl[jj][(ii+0)*bs], u_bl );
-				_mm_storeh_pd( &pl[jj][(ii+1)*bs], u_bl );
-				_mm_store_pd( &pl2[jj][ii+0], u_bl );
+				_mm_store_pd( &pl[jj][ii+0], u_bl );
 
 				ptr_t     += 4;
 				ptr_lam   += 4;
@@ -808,7 +789,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 				u_tmp  = _mm_hadd_pd( u_lamt, u_lamt ); // [ lamt[0]+lamt[1] , xxx ]
 				u_bd   = _mm_load_sd( &bd[jj][ii+ll] );
 				u_bd   = _mm_add_sd( u_bd, u_tmp );
-				_mm_store_sd( &pd[jj][ll+(ii+ll)*bs+ii*cnz], u_bd );
+				_mm_store_sd( &pd[jj][ii+ll], u_bd );
 				u_db   = _mm_load_pd( &db[jj][2*ii+2*ll+0] );
 				u_db   = _mm_mul_pd( u_db, u_lamt );
 				u_lam  = _mm_add_pd( u_lam, u_dlam );
@@ -816,8 +797,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 				u_lam  = _mm_hsub_pd( u_lam, u_lam ); // [ lam[1]-lam[0] , xxx ] + [ dlam[1]-dlam[0] , xxx ]
 				u_bl   = _mm_load_sd( &bl[jj][ii+ll] );
 				u_bl   = _mm_sub_pd( u_bl, u_lam );
-				_mm_store_sd( &pl[jj][(ii+ll)*bs], u_bl );
-				_mm_store_sd( &pl2[jj][ii+ll], u_bl );
+				_mm_store_sd( &pl[jj][ii+ll], u_bl );
 
 	/*			t    += 2;*/
 	/*			lam  += 2;*/
@@ -863,7 +843,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_tmp  = _mm_hadd_pd( u_lamt, u_lamt ); // [ lamt[0]+lamt[1] , xxx ]
 			u_bd   = _mm_load_sd( &bd[N][ii+ll] );
 			u_bd   = _mm_add_sd( u_bd, u_tmp );
-			_mm_store_sd( &pd[N][ll+(ii+ll)*bs+ii*cnz], u_bd );
+			_mm_store_sd( &pd[N][ii+ll], u_bd );
 			u_db   = _mm_load_pd( &db[N][2*ii+2*ll+0] );
 			u_db   = _mm_mul_pd( u_db, u_lamt );
 			u_lam  = _mm_add_pd( u_lam, u_dlam );
@@ -871,8 +851,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_lam  = _mm_hsub_pd( u_lam, u_lam ); // [ lam[1]-lam[0] , xxx ] + [ dlam[1]-dlam[0] , xxx ]
 			u_bl   = _mm_load_sd( &bl[N][ii+ll] );
 			u_bl   = _mm_sub_pd( u_bl, u_lam );
-			_mm_store_sd( &pl[N][(ii+ll)*bs], u_bl );
-			_mm_store_sd( &pl2[N][ii+ll], u_bl );
+			_mm_store_sd( &pl[N][ii+ll], u_bl );
 
 			ptr_t     += 2;
 			ptr_lam   += 2;
@@ -897,8 +876,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_lamt = _mm_hadd_pd( _mm256_castpd256_pd128( v_lamt ), u_lamt ); // [ lamt[0]+lamt[1] , lamt[2]+lamt[3] ]
 			u_bd   = _mm_load_pd( &bd[N][ii+ll] );
 			u_bd   = _mm_add_pd( u_bd, u_lamt );
-			_mm_storel_pd( &pd[N][ll+0+(ii+ll+0)*bs+ii*cnz], u_bd );
-			_mm_storeh_pd( &pd[N][ll+1+(ii+ll+1)*bs+ii*cnz], u_bd );
+			_mm_store_pd( &pd[N][ii+ll+0], u_bd );
 			v_db   = _mm256_load_pd( &db[N][2*ii+2*ll+0] );
 			v_db   = _mm256_mul_pd( v_db, v_lamt );
 			v_lam  = _mm256_add_pd( v_lam, v_dlam );
@@ -907,9 +885,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_lam  = _mm_hsub_pd( _mm256_castpd256_pd128( v_lam ), u_lam ); // [ lam[1]-lam[0] , lam[3]-lam[2] ] + [ dlam[1]-dlam[0] , dlam[3]-dlam[2] ]
 			u_bl   = _mm_load_pd( &bl[N][ii+ll] );
 			u_bl   = _mm_sub_pd( u_bl, u_lam );
-			_mm_storel_pd( &pl[N][(ii+ll+0)*bs], u_bl );
-			_mm_storeh_pd( &pl[N][(ii+ll+1)*bs], u_bl );
-			_mm_store_pd( &pl2[N][ii+ll+0], u_bl );
+			_mm_store_pd( &pl[N][ii+ll+0], u_bl );
 
 			ptr_t     += 4;
 			ptr_lam   += 4;
@@ -941,8 +917,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 		u_lamt = _mm_hadd_pd( _mm256_castpd256_pd128( v_lamt ), u_lamt ); // [ lamt[0]+lamt[1] , lamt[2]+lamt[3] ]
 		u_bd   = _mm_load_pd( &bd[N][ii] );
 		u_bd   = _mm_add_pd( u_bd, u_lamt );
-		_mm_storel_pd( &pd[N][0+(ii+0)*bs+ii*cnz], u_bd );
-		_mm_storeh_pd( &pd[N][1+(ii+1)*bs+ii*cnz], u_bd );
+		_mm_store_pd( &pd[N][ii+0], u_bd );
 		v_db   = _mm256_load_pd( &db[N][2*ii+0] );
 		v_db   = _mm256_mul_pd( v_db, v_lamt );
 		v_lam  = _mm256_add_pd( v_lam, v_dlam );
@@ -951,9 +926,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 		u_lam  = _mm_hsub_pd( _mm256_castpd256_pd128( v_lam ), u_lam ); // [ lam[1]-lam[0] , lam[3]-lam[2] ] + [ dlam[1]-dlam[0] , dlam[3]-dlam[2] ]
 		u_bl   = _mm_load_pd( &bl[N][ii] );
 		u_bl   = _mm_sub_pd( u_bl, u_lam );
-		_mm_storel_pd( &pl[N][(ii+0)*bs], u_bl );
-		_mm_storeh_pd( &pl[N][(ii+1)*bs], u_bl );
-		_mm_store_pd( &pl2[N][ii+0], u_bl );
+		_mm_store_pd( &pl[N][ii+0], u_bl );
 
 		v_tmp  = _mm256_load_pd( &ptr_t[4] );
 		v_tmp  = _mm256_div_pd( v_ones, v_tmp );
@@ -967,8 +940,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 		u_lamt = _mm_hadd_pd( _mm256_castpd256_pd128( v_lamt ), u_lamt ); // [ lamt[0]+lamt[1] , lamt[2]+lamt[3] ]
 		u_bd   = _mm_load_pd( &bd[N][ii+2] );
 		u_bd   = _mm_add_pd( u_bd, u_lamt );
-		_mm_storel_pd( &pd[N][2+(ii+2)*bs+ii*cnz], u_bd );
-		_mm_storeh_pd( &pd[N][3+(ii+3)*bs+ii*cnz], u_bd );
+		_mm_store_pd( &pd[N][ii+2], u_bd );
 		v_db   = _mm256_load_pd( &db[N][2*ii+4] );
 		v_db   = _mm256_mul_pd( v_db, v_lamt );
 		v_lam  = _mm256_add_pd( v_lam, v_dlam );
@@ -977,9 +949,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 		u_lam  = _mm_hsub_pd( _mm256_castpd256_pd128( v_lam ), u_lam ); // [ lam[1]-lam[0] , lam[3]-lam[2] ] + [ dlam[1]-dlam[0] , dlam[3]-dlam[2] ]
 		u_bl   = _mm_load_pd( &bl[N][ii+2] );
 		u_bl   = _mm_sub_pd( u_bl, u_lam );
-		_mm_storel_pd( &pl[N][(ii+2)*bs], u_bl );
-		_mm_storeh_pd( &pl[N][(ii+3)*bs], u_bl );
-		_mm_store_pd( &pl2[N][ii+2], u_bl );
+		_mm_store_pd( &pl[N][ii+2], u_bl );
 
 
 		ptr_t     += 8;
@@ -1011,8 +981,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_lamt = _mm_hadd_pd( _mm256_castpd256_pd128( v_lamt ), u_lamt ); // [ lamt[0]+lamt[1] , lamt[2]+lamt[3] ]
 			u_bd   = _mm_load_pd( &bd[N][ii] );
 			u_bd   = _mm_add_pd( u_bd, u_lamt );
-			_mm_storel_pd( &pd[N][0+(ii+0)*bs+ii*cnz], u_bd );
-			_mm_storeh_pd( &pd[N][1+(ii+1)*bs+ii*cnz], u_bd );
+			_mm_store_pd( &pd[N][ii+0], u_bd );
 			v_db   = _mm256_load_pd( &db[N][2*ii+0] );
 			v_db   = _mm256_mul_pd( v_db, v_lamt );
 			v_lam  = _mm256_add_pd( v_lam, v_dlam );
@@ -1021,9 +990,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_lam  = _mm_hsub_pd( _mm256_castpd256_pd128( v_lam ), u_lam ); // [ lam[1]-lam[0] , lam[3]-lam[2] ] + [ dlam[1]-dlam[0] , dlam[3]-dlam[2] ]
 			u_bl   = _mm_load_pd( &bl[N][ii] );
 			u_bl   = _mm_sub_pd( u_bl, u_lam );
-			_mm_storel_pd( &pl[N][(ii+0)*bs], u_bl );
-			_mm_storeh_pd( &pl[N][(ii+1)*bs], u_bl );
-			_mm_store_pd( &pl2[N][ii+0], u_bl );
+			_mm_store_pd( &pl[N][ii+0], u_bl );
 
 			ptr_t     += 4;
 			ptr_lam   += 4;
@@ -1050,7 +1017,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_tmp  = _mm_hadd_pd( u_lamt, u_lamt ); // [ lamt[0]+lamt[1] , xxx ]
 			u_bd   = _mm_load_sd( &bd[N][ii+ll] );
 			u_bd   = _mm_add_sd( u_bd, u_tmp );
-			_mm_store_sd( &pd[N][ll+(ii+ll)*bs+ii*cnz], u_bd );
+			_mm_store_sd( &pd[N][ii+ll], u_bd );
 			u_db   = _mm_load_pd( &db[N][2*ii+2*ll+0] );
 			u_db   = _mm_mul_pd( u_db, u_lamt );
 			u_lam  = _mm_add_pd( u_lam, u_dlam );
@@ -1058,8 +1025,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			u_lam  = _mm_hsub_pd( u_lam, u_lam ); // [ lam[1]-lam[0] , xxx ] + [ dlam[1]-dlam[0] , xxx ]
 			u_bl   = _mm_load_sd( &bl[N][ii+ll] );
 			u_bl   = _mm_sub_pd( u_bl, u_lam );
-			_mm_store_sd( &pl[N][(ii+ll)*bs], u_bl );
-			_mm_store_sd( &pl2[N][ii+ll], u_bl );
+			_mm_store_sd( &pl[N][ii+ll], u_bl );
 
 /*			t    += 2;*/
 /*			lam  += 2;*/
@@ -1076,7 +1042,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 
 
 
-void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **pl2, double **db, double **Z, double **z, double **Zl, double **zl)
+void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **db, double **Z, double **z, double **Zl, double **zl)
 
 /*void d_update_hessian_box(int k0, int kmax, int nb, int cnz, double sigma_mu, double *t, double *lam, double *lamt, double *dlam, double *bd, double *bl, double *pd, double *pl, double *lb, double *ub)*/
 	{
@@ -1098,7 +1064,7 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 	
 	double temp0, temp1;
 	
-	double *ptr_t, *ptr_lam, *ptr_lamt, *ptr_dlam, *ptr_tinv, *ptr_pd, *ptr_pl, *ptr_pl2, *ptr_bd, *ptr_bl, *ptr_db, *ptr_Z, *ptr_z, *ptr_Zl, *ptr_zl;
+	double *ptr_t, *ptr_lam, *ptr_lamt, *ptr_dlam, *ptr_tinv, *ptr_pd, *ptr_pl, *ptr_bd, *ptr_bl, *ptr_db, *ptr_Z, *ptr_z, *ptr_Zl, *ptr_zl;
 
 	static double Qx[8] = {};
 	static double qx[8] = {};
@@ -1114,7 +1080,6 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 	ptr_tinv  = t_inv[0];
 	ptr_pd    = pd[0];
 	ptr_pl    = pl[0];
-	ptr_pl2   = pl2[0];
 	ptr_bd    = bd[0];
 	ptr_bl    = bl[0];
 	ptr_db    = db[0];
@@ -1134,9 +1099,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
 		ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
 		ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
-		ptr_pd[0+(ii+0)*bs+ii*cnz] = ptr_bd[ii+0] + ptr_lamt[0] + ptr_lamt[1];
-		ptr_pl[(ii+0)*bs] = ptr_bl[ii+0] + ptr_lam[1] + ptr_lamt[1]*ptr_db[1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
-		ptr_pl2[ii+0] = ptr_pl[(ii+0)*bs];
+		ptr_pd[ii+0] = ptr_bd[ii+0] + ptr_lamt[0] + ptr_lamt[1];
+		ptr_pl[ii+0] = ptr_bl[ii+0] + ptr_lam[1] + ptr_lamt[1]*ptr_db[1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
 
 		ptr_tinv[2] = 1.0/ptr_t[2];
 		ptr_tinv[3] = 1.0/ptr_t[3];
@@ -1144,9 +1108,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		ptr_lamt[3] = ptr_lam[3]*ptr_tinv[3];
 		ptr_dlam[2] = ptr_tinv[2]*sigma_mu; // !!!!!
 		ptr_dlam[3] = ptr_tinv[3]*sigma_mu; // !!!!!
-		ptr_pd[1+(ii+1)*bs+ii*cnz] = ptr_bd[ii+1] + ptr_lamt[2] + ptr_lamt[3];
-		ptr_pl[(ii+1)*bs] = ptr_bl[ii+1] + ptr_lam[3] + ptr_lamt[3]*ptr_db[3] + ptr_dlam[3] - ptr_lam[2] - ptr_lamt[2]*ptr_db[2] - ptr_dlam[2];
-		ptr_pl2[ii+1] = ptr_pl[(ii+1)*bs];
+		ptr_pd[ii+1] = ptr_bd[ii+1] + ptr_lamt[2] + ptr_lamt[3];
+		ptr_pl[ii+1] = ptr_bl[ii+1] + ptr_lam[3] + ptr_lamt[3]*ptr_db[3] + ptr_dlam[3] - ptr_lam[2] - ptr_lamt[2]*ptr_db[2] - ptr_dlam[2];
 
 		ptr_tinv[4] = 1.0/ptr_t[4];
 		ptr_tinv[5] = 1.0/ptr_t[5];
@@ -1154,9 +1117,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		ptr_lamt[5] = ptr_lam[5]*ptr_tinv[5];
 		ptr_dlam[4] = ptr_tinv[4]*sigma_mu; // !!!!!
 		ptr_dlam[5] = ptr_tinv[5]*sigma_mu; // !!!!!
-		ptr_pd[2+(ii+2)*bs+ii*cnz] = ptr_bd[ii+2] + ptr_lamt[4] + ptr_lamt[5];
-		ptr_pl[(ii+2)*bs] = ptr_bl[ii+2] + ptr_lam[5] + ptr_lamt[5]*ptr_db[5] + ptr_dlam[5] - ptr_lam[4] - ptr_lamt[4]*ptr_db[4] - ptr_dlam[4];
-		ptr_pl2[ii+2] = ptr_pl[(ii+2)*bs];
+		ptr_pd[ii+2] = ptr_bd[ii+2] + ptr_lamt[4] + ptr_lamt[5];
+		ptr_pl[ii+2] = ptr_bl[ii+2] + ptr_lam[5] + ptr_lamt[5]*ptr_db[5] + ptr_dlam[5] - ptr_lam[4] - ptr_lamt[4]*ptr_db[4] - ptr_dlam[4];
 
 		ptr_tinv[6] = 1.0/ptr_t[6];
 		ptr_tinv[7] = 1.0/ptr_t[7];
@@ -1164,9 +1126,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		ptr_lamt[7] = ptr_lam[7]*ptr_tinv[7];
 		ptr_dlam[6] = ptr_tinv[6]*sigma_mu; // !!!!!
 		ptr_dlam[7] = ptr_tinv[7]*sigma_mu; // !!!!!
-		ptr_pd[3+(ii+3)*bs+ii*cnz] = ptr_bd[ii+3] + ptr_lamt[6] + ptr_lamt[7];
-		ptr_pl[(ii+3)*bs] = ptr_bl[ii+3] + ptr_lam[7] + ptr_lamt[7]*ptr_db[7] + ptr_dlam[7] - ptr_lam[6] - ptr_lamt[6]*ptr_db[6] - ptr_dlam[6];
-		ptr_pl2[ii+3] = ptr_pl[(ii+3)*bs];
+		ptr_pd[ii+3] = ptr_bd[ii+3] + ptr_lamt[6] + ptr_lamt[7];
+		ptr_pl[ii+3] = ptr_bl[ii+3] + ptr_lam[7] + ptr_lamt[7]*ptr_db[7] + ptr_dlam[7] - ptr_lam[6] - ptr_lamt[6]*ptr_db[6] - ptr_dlam[6];
 
 		ptr_t     += 8;
 		ptr_lam   += 8;
@@ -1187,9 +1148,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
 			ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
 			ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
-			ptr_pd[ll+(ii+ll)*bs+ii*cnz] = ptr_bd[ii+ll] + ptr_lamt[0] + ptr_lamt[1];
-			ptr_pl[(ii+ll)*bs] = ptr_bl[ii+ll] + ptr_lam[1] + ptr_lamt[1]*ptr_db[1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
-			ptr_pl2[ii+ll+0] = ptr_pl[(ii+ll)*bs];
+			ptr_pd[ii+ll] = ptr_bd[ii+ll] + ptr_lamt[0] + ptr_lamt[1];
+			ptr_pl[ii+ll] = ptr_bl[ii+ll] + ptr_lam[1] + ptr_lamt[1]*ptr_db[1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
 
 			ptr_t     += 2;
 			ptr_lam   += 2;
@@ -1212,7 +1172,6 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		ptr_tinv  = t_inv[jj];
 		ptr_pd    = pd[jj];
 		ptr_pl    = pl[jj];
-		ptr_pl2   = pl2[jj];
 		ptr_bd    = bd[jj];
 		ptr_bl    = bl[jj];
 		ptr_db    = db[jj];
@@ -1232,9 +1191,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
 			ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
 			ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
-			ptr_pd[0+(ii+0)*bs+ii*cnz] = ptr_bd[ii+0] + ptr_lamt[0] + ptr_lamt[1];
-			ptr_pl[(ii+0)*bs] = ptr_bl[ii+0] + ptr_lam[1] + ptr_lamt[1]*ptr_db[1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
-			ptr_pl2[ii+0] = ptr_pl[(ii+0)*bs];
+			ptr_pd[ii+0] = ptr_bd[ii+0] + ptr_lamt[0] + ptr_lamt[1];
+			ptr_pl[ii+0] = ptr_bl[ii+0] + ptr_lam[1] + ptr_lamt[1]*ptr_db[1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
 
 			ptr_tinv[2] = 1.0/ptr_t[2];
 			ptr_tinv[3] = 1.0/ptr_t[3];
@@ -1242,9 +1200,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			ptr_lamt[3] = ptr_lam[3]*ptr_tinv[3];
 			ptr_dlam[2] = ptr_tinv[2]*sigma_mu; // !!!!!
 			ptr_dlam[3] = ptr_tinv[3]*sigma_mu; // !!!!!
-			ptr_pd[1+(ii+1)*bs+ii*cnz] = ptr_bd[ii+1] + ptr_lamt[2] + ptr_lamt[3];
-			ptr_pl[(ii+1)*bs] = ptr_bl[ii+1] + ptr_lam[3] + ptr_lamt[3]*ptr_db[3] + ptr_dlam[3] - ptr_lam[2] - ptr_lamt[2]*ptr_db[2] - ptr_dlam[2];
-			ptr_pl2[ii+1] = ptr_pl[(ii+1)*bs];
+			ptr_pd[ii+1] = ptr_bd[ii+1] + ptr_lamt[2] + ptr_lamt[3];
+			ptr_pl[ii+1] = ptr_bl[ii+1] + ptr_lam[3] + ptr_lamt[3]*ptr_db[3] + ptr_dlam[3] - ptr_lam[2] - ptr_lamt[2]*ptr_db[2] - ptr_dlam[2];
 
 			ptr_tinv[4] = 1.0/ptr_t[4];
 			ptr_tinv[5] = 1.0/ptr_t[5];
@@ -1252,9 +1209,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			ptr_lamt[5] = ptr_lam[5]*ptr_tinv[5];
 			ptr_dlam[4] = ptr_tinv[4]*sigma_mu; // !!!!!
 			ptr_dlam[5] = ptr_tinv[5]*sigma_mu; // !!!!!
-			ptr_pd[2+(ii+2)*bs+ii*cnz] = ptr_bd[ii+2] + ptr_lamt[4] + ptr_lamt[5];
-			ptr_pl[(ii+2)*bs] = ptr_bl[ii+2] + ptr_lam[5] + ptr_lamt[5]*ptr_db[5] + ptr_dlam[5] - ptr_lam[4] - ptr_lamt[4]*ptr_db[4] - ptr_dlam[4];
-			ptr_pl2[ii+2] = ptr_pl[(ii+2)*bs];
+			ptr_pd[ii+2] = ptr_bd[ii+2] + ptr_lamt[4] + ptr_lamt[5];
+			ptr_pl[ii+2] = ptr_bl[ii+2] + ptr_lam[5] + ptr_lamt[5]*ptr_db[5] + ptr_dlam[5] - ptr_lam[4] - ptr_lamt[4]*ptr_db[4] - ptr_dlam[4];
 
 			ptr_tinv[6] = 1.0/ptr_t[6];
 			ptr_tinv[7] = 1.0/ptr_t[7];
@@ -1262,9 +1218,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			ptr_lamt[7] = ptr_lam[7]*ptr_tinv[7];
 			ptr_dlam[6] = ptr_tinv[6]*sigma_mu; // !!!!!
 			ptr_dlam[7] = ptr_tinv[7]*sigma_mu; // !!!!!
-			ptr_pd[3+(ii+3)*bs+ii*cnz] = ptr_bd[ii+3] + ptr_lamt[6] + ptr_lamt[7];
-			ptr_pl[(ii+3)*bs] = ptr_bl[ii+3] + ptr_lam[7] + ptr_lamt[7]*ptr_db[7] + ptr_dlam[7] - ptr_lam[6] - ptr_lamt[6]*ptr_db[6] - ptr_dlam[6];
-			ptr_pl2[ii+3] = ptr_pl[(ii+3)*bs];
+			ptr_pd[ii+3] = ptr_bd[ii+3] + ptr_lamt[6] + ptr_lamt[7];
+			ptr_pl[ii+3] = ptr_bl[ii+3] + ptr_lam[7] + ptr_lamt[7]*ptr_db[7] + ptr_dlam[7] - ptr_lam[6] - ptr_lamt[6]*ptr_db[6] - ptr_dlam[6];
 
 			ptr_t     += 8;
 			ptr_lam   += 8;
@@ -1291,9 +1246,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 				ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
 				ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
 				ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
-				ptr_pd[ll+(ii+ll)*bs+ii*cnz] = ptr_bd[ii+ll] + ptr_lamt[0] + ptr_lamt[1];
-				ptr_pl[(ii+ll)*bs] = ptr_bl[ii+ll] + ptr_lam[1] + ptr_lamt[1]*ptr_db[1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
-				ptr_pl2[ii+ll+0] = ptr_pl[(ii+ll)*bs];
+				ptr_pd[ii+ll] = ptr_bd[ii+ll] + ptr_lamt[0] + ptr_lamt[1];
+				ptr_pl[ii+ll] = ptr_bl[ii+ll] + ptr_lam[1] + ptr_lamt[1]*ptr_db[1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
 
 				ptr_t     += 2;
 				ptr_lam   += 2;
@@ -1336,9 +1290,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 				qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
 				Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
 				Qx[1] = Qx[1] - Qx[1]*Qx[1]*ptr_Zl[1];
-				ptr_pd[ll+(ii+ll)*bs+ii*cnz] = ptr_bd[ii+ll] + Qx[1] + Qx[0];
-				ptr_pl[(ii+ll)*bs] = ptr_bl[ii+ll] + qx[1] - qx[0];
-				ptr_pl2[ii+ll] = ptr_pl[(ii+ll)*bs];
+				ptr_pd[ii+ll] = ptr_bd[ii+ll] + Qx[1] + Qx[0];
+				ptr_pl[ii+ll] = ptr_bl[ii+ll] + qx[1] - qx[0];
 
 				ptr_t     += 2;
 				ptr_lam   += 2;
@@ -1380,9 +1333,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
 			Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
 			Qx[1] = Qx[1] - Qx[1]*Qx[1]*ptr_Zl[1];
-			ptr_pd[0+(ii+0)*bs+ii*cnz] = ptr_bd[ii+0] + Qx[1] + Qx[0];
-			ptr_pl[(ii+0)*bs] = ptr_bl[ii+0] + qx[1] - qx[0];
-			ptr_pl2[ii+0] = ptr_pl[(ii+0)*bs];
+			ptr_pd[ii+0] = ptr_bd[ii+0] + Qx[1] + Qx[0];
+			ptr_pl[ii+0] = ptr_bl[ii+0] + qx[1] - qx[0];
 
 			ptr_tinv[2] = 1.0/ptr_t[2];
 			ptr_tinv[3] = 1.0/ptr_t[3];
@@ -1408,9 +1360,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			qx[3] = qx[3] - Qx[3]*ptr_zl[3]*ptr_Zl[3]; // update this before Qx !!!!!!!!!!!
 			Qx[2] = Qx[2] - Qx[2]*Qx[2]*ptr_Zl[2];
 			Qx[3] = Qx[3] - Qx[3]*Qx[3]*ptr_Zl[3];
-			ptr_pd[1+(ii+1)*bs+ii*cnz] = ptr_bd[ii+1] + Qx[3] + Qx[2];
-			ptr_pl[(ii+1)*bs] = ptr_bl[ii+1] + qx[3] - qx[2];
-			ptr_pl2[ii+1] = ptr_pl[(ii+1)*bs];
+			ptr_pd[ii+1] = ptr_bd[ii+1] + Qx[3] + Qx[2];
+			ptr_pl[ii+1] = ptr_bl[ii+1] + qx[3] - qx[2];
 
 			ptr_tinv[4] = 1.0/ptr_t[4];
 			ptr_tinv[5] = 1.0/ptr_t[5];
@@ -1436,9 +1387,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			qx[5] = qx[5] - Qx[5]*ptr_zl[5]*ptr_Zl[5]; // update this before Qx !!!!!!!!!!!
 			Qx[4] = Qx[4] - Qx[4]*Qx[4]*ptr_Zl[4];
 			Qx[5] = Qx[5] - Qx[5]*Qx[5]*ptr_Zl[5];
-			ptr_pd[2+(ii+2)*bs+ii*cnz] = ptr_bd[ii+2] + Qx[5] + Qx[4];
-			ptr_pl[(ii+2)*bs] = ptr_bl[ii+2] + qx[5] - qx[4];
-			ptr_pl2[ii+2] = ptr_pl[(ii+2)*bs];
+			ptr_pd[ii+2] = ptr_bd[ii+2] + Qx[5] + Qx[4];
+			ptr_pl[ii+2] = ptr_bl[ii+2] + qx[5] - qx[4];
 
 			ptr_tinv[6] = 1.0/ptr_t[6];
 			ptr_tinv[7] = 1.0/ptr_t[7];
@@ -1464,9 +1414,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			qx[7] = qx[7] - Qx[7]*ptr_zl[7]*ptr_Zl[7]; // update this before Qx !!!!!!!!!!!
 			Qx[6] = Qx[6] - Qx[6]*Qx[6]*ptr_Zl[6];
 			Qx[7] = Qx[7] - Qx[7]*Qx[7]*ptr_Zl[7];
-			ptr_pd[3+(ii+3)*bs+ii*cnz] = ptr_bd[ii+3] + Qx[7] + Qx[6];
-			ptr_pl[(ii+3)*bs] = ptr_bl[ii+3] + qx[7] - qx[6];
-			ptr_pl2[ii+3] = ptr_pl[(ii+3)*bs];
+			ptr_pd[ii+3] = ptr_bd[ii+3] + Qx[7] + Qx[6];
+			ptr_pl[ii+3] = ptr_bl[ii+3] + qx[7] - qx[6];
 
 			ptr_t     += 8;
 			ptr_lam   += 8;
@@ -1509,9 +1458,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 				qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
 				Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
 				Qx[1] = Qx[1] - Qx[1]*Qx[1]*ptr_Zl[1];
-				ptr_pd[ll+(ii+ll)*bs+ii*cnz] = ptr_bd[ii+ll] + Qx[1] + Qx[0];
-				ptr_pl[(ii+ll)*bs] = ptr_bl[ii+ll] + qx[1] - qx[0];
-				ptr_pl2[ii+ll] = ptr_pl[(ii+ll)*bs];
+				ptr_pd[ii+ll] = ptr_bd[ii+ll] + Qx[1] + Qx[0];
+				ptr_pl[ii+ll] = ptr_bl[ii+ll] + qx[1] - qx[0];
 
 				ptr_t     += 2;
 				ptr_lam   += 2;
@@ -1542,7 +1490,6 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 	ptr_zl    = zl[N]    + 2*nu;
 	ptr_pd    = pd[N];
 	ptr_pl    = pl[N];
-	ptr_pl2   = pl2[N];
 	ptr_bd    = bd[N];
 	ptr_bl    = bl[N];
 
@@ -1577,9 +1524,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
 			Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
 			Qx[1] = Qx[1] - Qx[1]*Qx[1]*ptr_Zl[1];
-			ptr_pd[ll+(ii+ll)*bs+ii*cnz] = ptr_bd[ii+ll] + Qx[1] + Qx[0];
-			ptr_pl[(ii+ll)*bs] = ptr_bl[ii+ll] + qx[1] - qx[0];
-			ptr_pl2[ii+ll] = ptr_pl[(ii+ll)*bs];
+			ptr_pd[ii+ll] = ptr_bd[ii+ll] + Qx[1] + Qx[0];
+			ptr_pl[ii+ll] = ptr_bl[ii+ll] + qx[1] - qx[0];
 
 			ptr_t     += 2;
 			ptr_lam   += 2;
@@ -1621,9 +1567,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
 		Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
 		Qx[1] = Qx[1] - Qx[1]*Qx[1]*ptr_Zl[1];
-		ptr_pd[0+(ii+0)*bs+ii*cnz] = ptr_bd[ii+0] + Qx[1] + Qx[0];
-		ptr_pl[(ii+0)*bs] = ptr_bl[ii+0] + qx[1] - qx[0];
-		ptr_pl2[ii+0] = ptr_pl[(ii+0)*bs];
+		ptr_pd[ii+0] = ptr_bd[ii+0] + Qx[1] + Qx[0];
+		ptr_pl[ii+0] = ptr_bl[ii+0] + qx[1] - qx[0];
 
 		ptr_tinv[2] = 1.0/ptr_t[2];
 		ptr_tinv[3] = 1.0/ptr_t[3];
@@ -1649,9 +1594,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		qx[3] = qx[3] - Qx[3]*ptr_zl[3]*ptr_Zl[3]; // update this before Qx !!!!!!!!!!!
 		Qx[2] = Qx[2] - Qx[2]*Qx[2]*ptr_Zl[2];
 		Qx[3] = Qx[3] - Qx[3]*Qx[3]*ptr_Zl[3];
-		ptr_pd[1+(ii+1)*bs+ii*cnz] = ptr_bd[ii+1] + Qx[3] + Qx[2];
-		ptr_pl[(ii+1)*bs] = ptr_bl[ii+1] + qx[3] - qx[2];
-		ptr_pl2[ii+1] = ptr_pl[(ii+1)*bs];
+		ptr_pd[ii+1] = ptr_bd[ii+1] + Qx[3] + Qx[2];
+		ptr_pl[ii+1] = ptr_bl[ii+1] + qx[3] - qx[2];
 
 		ptr_tinv[4] = 1.0/ptr_t[4];
 		ptr_tinv[5] = 1.0/ptr_t[5];
@@ -1677,9 +1621,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		qx[5] = qx[5] - Qx[5]*ptr_zl[5]*ptr_Zl[5]; // update this before Qx !!!!!!!!!!!
 		Qx[4] = Qx[4] - Qx[4]*Qx[4]*ptr_Zl[4];
 		Qx[5] = Qx[5] - Qx[5]*Qx[5]*ptr_Zl[5];
-		ptr_pd[2+(ii+2)*bs+ii*cnz] = ptr_bd[ii+2] + Qx[5] + Qx[4];
-		ptr_pl[(ii+2)*bs] = ptr_bl[ii+2] + qx[5] - qx[4];
-		ptr_pl2[ii+2] = ptr_pl[(ii+2)*bs];
+		ptr_pd[ii+2] = ptr_bd[ii+2] + Qx[5] + Qx[4];
+		ptr_pl[ii+2] = ptr_bl[ii+2] + qx[5] - qx[4];
 
 		ptr_tinv[6] = 1.0/ptr_t[6];
 		ptr_tinv[7] = 1.0/ptr_t[7];
@@ -1705,9 +1648,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		qx[7] = qx[7] - Qx[7]*ptr_zl[7]*ptr_Zl[7]; // update this before Qx !!!!!!!!!!!
 		Qx[6] = Qx[6] - Qx[6]*Qx[6]*ptr_Zl[6];
 		Qx[7] = Qx[7] - Qx[7]*Qx[7]*ptr_Zl[7];
-		ptr_pd[3+(ii+3)*bs+ii*cnz] = ptr_bd[ii+3] + Qx[7] + Qx[6];
-		ptr_pl[(ii+3)*bs] = ptr_bl[ii+3] + qx[7] - qx[6];
-		ptr_pl2[ii+3] = ptr_pl[(ii+3)*bs];
+		ptr_pd[ii+3] = ptr_bd[ii+3] + Qx[7] + Qx[6];
+		ptr_pl[ii+3] = ptr_bl[ii+3] + qx[7] - qx[6];
 
 		ptr_t     += 8;
 		ptr_lam   += 8;
@@ -1750,9 +1692,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
 			Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
 			Qx[1] = Qx[1] - Qx[1]*Qx[1]*ptr_Zl[1];
-			ptr_pd[ll+(ii+ll)*bs+ii*cnz] = ptr_bd[ii+ll] + Qx[1] + Qx[0];
-			ptr_pl[(ii+ll)*bs] = ptr_bl[ii+ll] + qx[1] - qx[0];
-			ptr_pl2[ii+ll] = ptr_pl[(ii+ll)*bs];
+			ptr_pd[ii+ll] = ptr_bd[ii+ll] + Qx[1] + Qx[0];
+			ptr_pl[ii+ll] = ptr_bl[ii+ll] + qx[1] - qx[0];
 
 			ptr_t     += 2;
 			ptr_lam   += 2;

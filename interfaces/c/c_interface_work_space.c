@@ -47,7 +47,7 @@ int hpmpc_ip_box_mpc_dp_work_space(int nx, int nu, int N)
 	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 	const int anb = nal*((2*nb+nal-1)/nal);
 
-	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 3*anx + 7*anb) + 3*anz);
+	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 6*anz + 3*anx + 7*anb) + 3*anz);
 
 	return work_space_size;
 	}
@@ -91,7 +91,7 @@ int hpmpc_ip_soft_mpc_dp_work_space(int nx, int nu, int N)
 	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 	const int anb = nal*((2*nb+nal-1)/nal);
 
-	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 3*anx + 17*anb) + 3*anz);
+	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 6*anz + 3*anx + 17*anb) + 3*anz);
 
 	return work_space_size;
 	}

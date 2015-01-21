@@ -28,6 +28,7 @@ include ../Makefile.rule
 OBJS = d_ric_sv.o d_res.o s_ric_sv.o s_res.o
 
 obj: $(OBJS)
+	make -C c99 obj
 
 clean:
 	rm -f *.o

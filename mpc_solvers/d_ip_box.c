@@ -79,7 +79,6 @@ int d_ip_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_s
 	double *(pL[N+1]);
 	double *(pd[N+1]); // pointer to diagonal of Hessian
 	double *(pl[N+1]); // pointer to linear part of Hessian
-	double *(pl2[N+1]); // pointer to linear part of Hessian (backup)
 	double *(bd[N+1]); // backup diagonal of Hessian
 	double *(bl[N+1]); // backup linear part of Hessian
 	double *work;
@@ -108,18 +107,22 @@ int d_ip_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_s
 	// Hessian
 	for(jj=0; jj<=N; jj++)
 		{
-		pd[jj] = pQ[jj];
-		pl[jj] = pQ[jj] + ((nu+nx)/bs)*bs*cnz + (nu+nx)%bs;
-		bd[jj] = ptr;
-		bl[jj] = ptr + anz;
-		ptr += 2*anz;
-		// backup
+		// TODO
+		pd[jj] = ptr; //pQ[jj]; // ptr
+		pl[jj] = ptr + anz; //pQ[jj] + ((nu+nx)/bs)*bs*cnz + (nu+nx)%bs; // ptr+anz
+		bd[jj] = ptr + 2*anz; // ptr+2*anz
+		bl[jj] = ptr + 3*anz; // ptr+3*anz
+		ptr += 4*anz; // + 2*anz
+		// backup of diagonal of Hessian and Jacobian
 		for(ll=0; ll<nx+nu; ll++)
 			{
 			bd[jj][ll] = pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs];
 			bl[jj][ll] = pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs];
 			}
 		}
+//	d_print_mat(nx+nu, 1, bd[1], 1);
+//	d_print_mat(nx+nu, 1, bl[1], 1);
+//	exit(1);
 
 	// work space
 	for(jj=0; jj<=N; jj++)
@@ -128,12 +131,6 @@ int d_ip_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_s
 		ptr += pnz*cnl;
 		}
 	
-	for(jj=0; jj<=N; jj++)
-		{
-		pl2[jj] = ptr;
-		ptr += anz;
-		}
-
 	work = ptr;
 	ptr += 2*anz;
 
@@ -207,6 +204,7 @@ int d_ip_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_s
 	alpha = 1.0;
 	
 
+	const int update_hessian = 1;
 
 	// IP loop		
 	while( *kk<k_max && mu>mu_tol && alpha>=alpha_min )
@@ -217,13 +215,13 @@ int d_ip_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_s
 
 		// box constraints
 
-		d_update_hessian_box_mpc(N, nx, nu, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db);
+		d_update_hessian_box_mpc(N, nx, nu, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, db);
 
 /*return;*/
 
 
 		// compute the search direction: factorize and solve the KKT system
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi);
+		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, compute_mult, dpi);
 
 
 

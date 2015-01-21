@@ -1210,9 +1210,13 @@ int fortran_order_riccati_mpc( const char prec,
             hux[0][nu+ii] = x[ii];
 
 
+		// TODO
+		int update_hessian = 0;
+		double **hQd;
+		double **hQl;
 
 		// call Riccati solver
-		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, compute_mult, hpi);
+		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, update_hessian, hQd, hQl, hux, hpL, work, diag, compute_mult, hpi);
 
 
 

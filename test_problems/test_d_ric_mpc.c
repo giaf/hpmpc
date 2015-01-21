@@ -444,9 +444,14 @@ int main()
 			}
 		for(jj=0; jj<pnz*cnz; jj++) hpQ[N][jj]=pQ[jj];
 
+		// TODO
+		int update_hessian = 0;
+		double **Qd;
+		double **Ql;
+	
 		// call the solver
 		if(FREE_X0==0)
-			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, update_hessian, Qd, Ql, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 		else
 			d_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 		
@@ -587,7 +592,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 			if(FREE_X0==0)
-				d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+				d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, update_hessian, Qd, Ql, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 			else
 				d_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 			}

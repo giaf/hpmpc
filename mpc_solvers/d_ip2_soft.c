@@ -75,7 +75,6 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm
 	double *(pL[N+1]);
 	double *(pd[N+1]); // pointer to diagonal of Hessian
 	double *(pl[N+1]); // pointer to linear part of Hessian
-	double *(pl2[N+1]); // pointer to linear part of Hessian (backup)
 	double *(bd[N+1]); // backup diagonal of Hessian
 	double *(bl[N+1]); // backup linear part of Hessian
 	double *work;
@@ -107,11 +106,11 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm
 	// Hessian
 	for(jj=0; jj<=N; jj++)
 		{
-		pd[jj] = pQ[jj];
-		pl[jj] = pQ[jj] + ((nu+nx)/bs)*bs*cnz + (nu+nx)%bs;
-		bd[jj] = ptr;
-		bl[jj] = ptr + anz;
-		ptr += 2*anz;
+		pd[jj] = ptr; //pQ[jj];
+		pl[jj] = ptr + anz; //pQ[jj] + ((nu+nx)/bs)*bs*cnz + (nu+nx)%bs;
+		bd[jj] = ptr + 2*anz;
+		bl[jj] = ptr + 3*anz;
+		ptr += 4*anz;
 		// backup
 		for(ll=0; ll<nx+nu; ll++)
 			{
@@ -127,12 +126,6 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm
 		ptr += pnz*cnl;
 		}
 	
-	for(jj=0; jj<=N; jj++)
-		{
-		pl2[jj] = ptr;
-		ptr += anz;
-		}
-
 	work = ptr;
 	ptr += 2*anz;
 
@@ -214,6 +207,7 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm
 	alpha = 1.0;
 
 
+	const int update_hessian = 1;
 
 	// IP loop		
 	while( *kk<k_max && mu>mu_tol && alpha>=alpha_min )
@@ -224,12 +218,12 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm
 		//update cost function matrices and vectors (box constraints)
 
 		// update hessian
-		d_update_hessian_soft_mpc(N, nx, nu, nb, cnz, 0.0, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, pl2, db, Z, z, Zl, zl);
+		d_update_hessian_soft_mpc(N, nx, nu, nb, cnz, 0.0, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, db, Z, z, Zl, zl);
 
 
 
 		// compute the search direction: factorize and solve the KKT system
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi);
+		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, compute_mult, dpi);
 
 
 
@@ -268,7 +262,7 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm
 
 
 		// update Jacobian
-		d_update_jacobian_soft_mpc(N, nx, nu, nb, sigma*mu, dt, dlam, t_inv, lamt, pl2, Zl, zl);
+		d_update_jacobian_soft_mpc(N, nx, nu, nb, sigma*mu, dt, dlam, t_inv, lamt, pl, Zl, zl);
 
 
 
@@ -281,7 +275,7 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm
 
 
 		// solve the system
-		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl2, dux, work, 1, Pb, compute_mult, dpi);
+		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work, 1, Pb, compute_mult, dpi);
 
 
 

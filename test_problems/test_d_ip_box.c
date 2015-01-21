@@ -261,12 +261,16 @@ int main()
 	double *Q; d_zeros_align(&Q, pnz, pnz);
 	for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
 	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
-	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 0.1;
+	for(ii=0; ii<nu+nx; ii++) Q[nx+nu+ii*pnz] = 0.1;
 /*	Q[(nx+nu)*(pnz+1)] = 1e35; // large enough (not needed any longer) */
 	
 	/* packed into contiguous memory */
 	double *pQ; d_zeros_align(&pQ, pnz, cnz);
 	d_cvt_mat2pmat(nz, nz, 0, bs, Q, pnz, pQ, cnz);
+
+	// linear part copied on another vector
+	double *q; d_zeros_align(&q, anz, 1);
+	for(ii=0; ii<nu+nx; ii++) q[ii] = Q[nx+nu+ii*pnz];
 
 /************************************************
 * matrices series
@@ -286,13 +290,10 @@ int main()
 
 	for(jj=0; jj<N; jj++)
 		{
-		d_zeros_align(&hpQ[jj], pnz, cnz);
-		}
-	d_zeros_align(&hpQ[N], pnz, pnz);
-
-	for(jj=0; jj<N; jj++)
-		{
-		d_zeros_align(&hq[jj], anz, 1);
+		//d_zeros_align(&hpQ[jj], pnz, cnz);
+		hpQ[jj] = pQ;
+		//d_zeros_align(&hq[jj], anz, 1);
+		hq[jj] = q;
 		d_zeros_align(&hux[jj], anz, 1);
 		d_zeros_align(&hpi[jj], anx, 1);
 		d_zeros_align(&hlam[jj],anb, 1); // TODO pnb
@@ -303,7 +304,10 @@ int main()
 		d_zeros_align(&hrq[jj], anz, 1);
 		d_zeros_align(&hrd[jj], anb, 1); // TODO pnb
 		}
-	d_zeros_align(&hq[N], anz, 1);
+	//d_zeros_align(&hpQ[N], pnz, cnz);
+	hpQ[N] = pQ;
+	//d_zeros_align(&hq[N], anz, 1);
+	hq[N] = q;
 	d_zeros_align(&hux[N], anz, 1);
 	d_zeros_align(&hpi[N], anx, 1);
 	d_zeros_align(&hlam[N], anb, 1); // TODO pnb
@@ -319,7 +323,8 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 4*anb + 2*anx) + 3*anz, 1); // work space
+	//double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 4*anb + 2*anx) + 3*anz, 1); // work space
+	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 4*anb + 2*anx) + 3*anz, 1); // work space TODO change work space on other files !!!!!!!!!!!!!
 /*	for(jj=0; jj<( (N+1)*(pnz*cnl + 4*anz + 4*anb + 2*anx) + 3*anz ); jj++) work[jj] = -1.0;*/
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
@@ -337,11 +342,11 @@ int main()
 
 
 	/* initizile the cost function */
-	for(ii=0; ii<N; ii++)
-		{
-		for(jj=0; jj<pnz*cnz; jj++) hpQ[ii][jj]=pQ[jj];
-		}
-	for(jj=0; jj<pnz*cnz; jj++) hpQ[N][jj]=pQ[jj];
+//	for(ii=0; ii<N; ii++)
+//		{
+//		for(jj=0; jj<pnz*cnz; jj++) hpQ[ii][jj]=pQ[jj];
+//		}
+//	for(jj=0; jj<pnz*cnz; jj++) hpQ[N][jj]=pQ[jj];
 
 
 
@@ -544,12 +549,13 @@ int main()
 	free(db);
 	free(Q);
 	free(pQ);
+	free(q);
 	free(work);
 	free(stat);
 	for(jj=0; jj<N; jj++)
 		{
-		free(hpQ[jj]);
-		free(hq[jj]);
+		//free(hpQ[jj]);
+		//free(hq[jj]);
 		free(hux[jj]);
 		free(hpi[jj]);
 		free(hlam[jj]);
@@ -558,8 +564,8 @@ int main()
 		free(hrq[jj]);
 		free(hrd[jj]);
 		}
-	free(hpQ[N]);
-	free(hq[N]);
+	//free(hpQ[N]);
+	//free(hq[N]);
 	free(hux[N]);
 	free(hpi[N]);
 	free(hlam[N]);
