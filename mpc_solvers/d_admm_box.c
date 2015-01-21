@@ -75,6 +75,7 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 /*	double *(ux_v[N+1]);*/
 /*	double *(ux_w[N+1]);*/
 	double *(pL[N+1]);
+	double *(pd[N+1]);
 	double *(pl[N+1]);
 	double *(bd[N+1]);
 	double *(bl[N+1]);
@@ -114,8 +115,9 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 	// work space (vectors)
 	for(jj=0; jj<=N; jj++)
 		{
-		pl[jj] = ptr;
-		ptr += anz;
+		pd[jj] = ptr;
+		pl[jj] = ptr + anz;
+		ptr += 2*anz;
 		}
 
 	// work space
@@ -209,31 +211,34 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 		for(ll=0; ll<nu; ll++)
 			{
 			bd[jj][ll] = pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs];
-			pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs] = bd[jj][ll] + rho;
+			pd[jj][ll] = bd[jj][ll] + rho;
 			bl[jj][ll] = pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs];
-			pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
+			pl[jj][ll] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
 			}
 		for(jj=1; jj<N; jj++)
 			{
 			for(ll=0; ll<nu+nx; ll++)
 				{
 				bd[jj][ll] = pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs];
-				pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs] = bd[jj][ll] + rho;
+				pd[jj][ll] = bd[jj][ll] + rho;
 				bl[jj][ll] = pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs];
-				pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
+				pl[jj][ll] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
 				}
 			}
 		jj = N; // last stage
 		for(ll=nu; ll<nu+nx; ll++)
 			{
 			bd[jj][ll] = pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs];
-			pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs] = bd[jj][ll] + rho;
+			pd[jj][ll] = bd[jj][ll] + rho;
 			bl[jj][ll] = pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs];
-			pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
+			pl[jj][ll] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
 			}
+
 	
+		const int update_hessian = 1;
+
 		// initial factorization
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, ux_u, pL, work1, diag, compute_mult, pi);
+		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, ux_u, pL, work1, diag, compute_mult, pi);
 
 
 

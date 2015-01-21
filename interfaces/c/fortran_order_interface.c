@@ -2140,7 +2140,7 @@ int fortran_order_admm_box_mpc( int k_max, double tol,
 		const int anb = nal*((2*nb+nal-1)/nal);
 
 		// work space
-        double *work0 = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 9*anz + 7*anx) + 3*anz)*sizeof(double));
+        double *work0 = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 10*anz + 7*anx) + 3*anz)*sizeof(double));
 
 		// parameters
 /*		double rho = 10.0; // penalty parameter*/
@@ -2562,6 +2562,9 @@ int fortran_order_admm_box_mpc( int k_max, double tol,
     return 0;
 
 	}
+
+
+
 int fortran_order_admm_soft_wrapper( int k_max, double tol,
                                      double rho, double alpha,
                                      const int nx, const int nu, const int N,
@@ -2602,7 +2605,7 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
 		const int anb = nal*((2*nb+nal-1)/nal);
 
 		// work space
-        double *work0 = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 9*anz + 17*anx) + 3*anz)*sizeof(double));
+        double *work0 = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 10*anz + 17*anx) + 3*anz)*sizeof(double));
 
 		// parameters
 /*		double rho = 10.0; // penalty parameter*/

@@ -77,6 +77,7 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 /*	double *(ux_v[N+1]);*/
 /*	double *(ux_w[N+1]);*/
 	double *(pL[N+1]);
+	double *(pd[N+1]);
 	double *(pl[N+1]);
 	double *(bd[N+1]);
 	double *(bl[N+1]);
@@ -121,8 +122,9 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 	// work space (vectors)
 	for(jj=0; jj<=N; jj++)
 		{
-		pl[jj] = ptr;
-		ptr += anz;
+		pd[jj] = ptr;
+		pl[jj] = ptr + anz;
+		ptr += 2*anz;
 		}
 
 	// work space
@@ -272,7 +274,7 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 		// soft constraints cost function
 
 		// invert Hessian of soft constraints slack variables
-		for(jj=0; jj<=N; jj++)
+		for(jj=1; jj<=N; jj++)
 			{
 			for(ll=0; ll<nx; ll++)
 				{
@@ -288,23 +290,59 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 		// dynamic
 	
 		// backup Hessian & add rho to diagonal
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		for(ll=0; ll<nu; ll++)
 			{
-			for(ll=0; ll<nx+nu; ll++)
+			bd[jj][ll] = pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs];
+			pd[jj][ll] = bd[jj][ll] + rho;
+			bl[jj][ll] = pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs];
+			pl[jj][ll] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
+			}
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<nu+nx; ll++)
 				{
 				bd[jj][ll] = pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs];
-				pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs] = bd[jj][ll] + rho;
+				pd[jj][ll] = bd[jj][ll] + rho;
 				bl[jj][ll] = pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs];
-				pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
+				pl[jj][ll] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
 				}
 			}
+		jj = N; // last stage
+		for(ll=nu; ll<nu+nx; ll++)
+			{
+			bd[jj][ll] = pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs];
+			pd[jj][ll] = bd[jj][ll] + rho;
+			bl[jj][ll] = pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs];
+			pl[jj][ll] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
+			}
+
+
+
+
+		const int update_hessian = 1;
 	
 		// initial factorization
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, ux_u, pL, work1, diag, compute_mult, pi);
+		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, ux_u, pL, work1, diag, compute_mult, pi);
+
+
 
 		// constraints
 		norm_p = 0;
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		// hard constraints on inputs
+		for(ll=0; ll<nu; ll++)
+			{
+			ux_r[jj][ll] = alpha*ux_u[jj][ll] + (1.0-alpha)*ux_v[jj][ll]; // relaxation
+/*			v_temp = - ( - ux_w[jj][ll] - ux_u[jj][ll] );*/
+			v_temp = - ( - ux_w[jj][ll] - ux_r[jj][ll] );
+			v_temp = fmax(v_temp, lb[jj][ll]);
+			v_temp = fmin(v_temp, ub[jj][ll]);
+			temp = v_temp - ux_v[jj][ll];
+			norm_p += temp*temp;
+			ux_v[jj][ll] = v_temp;
+			}
+		for(jj=1; jj<N; jj++)
 			{
 			// hard constraints on inputs
 			for(ll=0; ll<nu; ll++)
@@ -339,12 +377,44 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 				ux_v[jj][nu+ll] = v_temp;
 				}
 			}
+		jj = N; // last stage
+		// soft constraints on states
+		for(ll=0; ll<nx; ll++)
+			{
+			ux_r[jj][nu+ll] = alpha*ux_u[jj][nu+ll] + (1.0-alpha)*ux_v[jj][nu+ll]; // relaxation
+			s_r[jj][ll] = alpha*s_u[jj][ll] + (1.0-alpha)*s_v[jj][ll]; // relaxation
+			s_r[jj][anx+ll] = alpha*s_u[jj][anx+ll] + (1.0-alpha)*s_v[jj][anx+ll]; // relaxation
+/*				x_temp = - ux_w[jj][nu+ll] - ux_u[jj][nu+ll];*/
+			x_temp = - ux_w[jj][nu+ll] - ux_r[jj][nu+ll];
+			v_temp = - ( x_temp );
+			v_temp = fmax(v_temp, lb[jj][nu+ll]);
+			v_temp = fmin(v_temp, ub[jj][nu+ll]);
+/*				s_v[jj][ll] = fmax( -0.5*( ub[jj][nu+ll] + x_temp + (- s_w[jj][ll] - s_u[jj][ll])), 0);*/
+/*				s_v[jj][anx+ll] = fmax( -0.5*( - lb[jj][nu+ll] - x_temp + (- s_w[jj][anx+ll] - s_u[jj][anx+ll])), 0);*/
+			s_v[jj][ll] = fmax( -0.5*( ub[jj][nu+ll] + x_temp + (- s_w[jj][ll] - s_r[jj][ll])), 0);
+			s_v[jj][anx+ll] = fmax( -0.5*( - lb[jj][nu+ll] - x_temp + (- s_w[jj][anx+ll] - s_r[jj][anx+ll])), 0);
+			v_temp = v_temp + s_v[jj][ll] - s_v[jj][anx+ll];
+			temp = v_temp - ux_v[jj][nu+ll];
+			norm_p += temp*temp;
+			ux_v[jj][nu+ll] = v_temp;
+			}
 		norm_p = sqrt(norm_p);
 		stat[0+5*kk[0]] = norm_p;
 
+
+
 		// integral of error
 		norm_d = 0;
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		for(ll=0; ll<nu; ll++)
+			{
+/*			temp = ux_u[jj][ll] - ux_v[jj][ll];*/
+			temp = ux_r[jj][ll] - ux_v[jj][ll]; // relaxation
+			norm_d += temp*temp;
+			ux_w[jj][ll] += temp;
+			//ux_w[jj][ll] += rho*temp;
+			}
+		for(jj=1; jj<N; jj++)
 			{
 			for(ll=0; ll<nu; ll++)
 				{
@@ -371,6 +441,24 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 				//s_w[jj][ll] += rho*(s_r[jj][ll] - s_v[jj][ll]);
 				//s_w[jj][anx+ll] += rho*(s_r[jj][anx+ll] - s_v[jj][anx+ll]);
 				}
+			}
+		jj = N; // last stage
+		for(ll=0; ll<nx; ll++)
+			{
+/*			temp = ux_u[jj][nu+ll] - ux_v[jj][nu+ll];*/
+			temp = ux_r[jj][nu+ll] - ux_v[jj][nu+ll]; // relaxation
+			norm_d += temp*temp;
+			ux_w[jj][nu+ll] += temp;
+			//ux_w[jj][nu+ll] += rho*temp;
+			}
+		for(ll=0; ll<nx; ll++)
+			{
+/*			s_w[jj][ll] += s_u[jj][ll] - s_v[jj][ll];*/
+/*			s_w[jj][anx+ll] += s_u[jj][anx+ll] - s_v[jj][anx+ll];*/
+			s_w[jj][ll] += s_r[jj][ll] - s_v[jj][ll];
+			s_w[jj][anx+ll] += s_r[jj][anx+ll] - s_v[jj][anx+ll];
+			//s_w[jj][ll] += rho*(s_r[jj][ll] - s_v[jj][ll]);
+			//s_w[jj][anx+ll] += rho*(s_r[jj][anx+ll] - s_v[jj][anx+ll]);
 			}
 
 		norm_d = rho*sqrt(norm_d);
@@ -401,7 +489,7 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 
 		// soft constraints cost function
 
-		for(jj=0; jj<=N; jj++)
+		for(jj=1; jj<=N; jj++)
 			{
 			for(ll=0; ll<nx; ll++)
 				{
@@ -415,13 +503,25 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 
 		// dynamic
 
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		for(ll=0; ll<nu; ll++)
+			{
+			pl[jj][ll] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
+			}
+		for(jj=1; jj<N; jj++)
 			{
 			for(ll=0; ll<nx+nu; ll++)
 				{
 				pl[jj][ll] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
 				}
 			}
+		for(ll=nu; ll<nx+nu; ll++)
+			{
+			pl[jj][ll] = bl[jj][ll] + rho*(ux_w[jj][ll] - ux_v[jj][ll]);
+			}
+		jj = N; // last stage
+
+
 
 		// initialize x with b
 		for(jj=0; jj<N; jj++)
@@ -431,6 +531,8 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 				ux_u[jj+1][nu+ll] = bb[jj][ll];
 				}
 			}
+
+
 
 		// Riccati solver		
 		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, ux_u, work1, compute_Pb, Pb, compute_mult, pi);
@@ -442,9 +544,24 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 /*	d_print_mat(1, 2*anx, s_u[jj], 1);*/
 /*exit(1);*/
 
+
+
 		// constraints
 		norm_p = 0;
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		// hard constraints on inputs
+		for(ll=0; ll<nu; ll++)
+			{
+/*			v_temp = - ( - ux_w[jj][ll] - ux_u[jj][ll] );*/
+			ux_r[jj][ll] = alpha*ux_u[jj][ll] + (1.0-alpha)*ux_v[jj][ll]; // relaxation
+			v_temp = - ( - ux_w[jj][ll] - ux_r[jj][ll] );
+			v_temp = fmax(v_temp, lb[jj][ll]);
+			v_temp = fmin(v_temp, ub[jj][ll]);
+			temp = v_temp - ux_v[jj][ll];
+			norm_p += temp*temp;
+			ux_v[jj][ll] = v_temp;
+			}
+		for(jj=1; jj<N; jj++)
 			{
 			// hard constraints on inputs
 			for(ll=0; ll<nu; ll++)
@@ -479,12 +596,45 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 				ux_v[jj][nu+ll] = v_temp;
 				}
 			}
+		jj = N; // last stage
+		// soft constraints on states
+		for(ll=0; ll<nx; ll++)
+			{
+			ux_r[jj][nu+ll] = alpha*ux_u[jj][nu+ll] + (1.0-alpha)*ux_v[jj][nu+ll]; // relaxation
+			s_r[jj][ll] = alpha*s_u[jj][ll] + (1.0-alpha)*s_v[jj][ll]; // relaxation
+			s_r[jj][anx+ll] = alpha*s_u[jj][anx+ll] + (1.0-alpha)*s_v[jj][anx+ll]; // relaxation
+/*			x_temp = - ux_w[jj][nu+ll] - ux_u[jj][nu+ll];*/
+			x_temp = - ux_w[jj][nu+ll] - ux_r[jj][nu+ll];
+			v_temp = - ( x_temp );
+			v_temp = fmax(v_temp, lb[jj][nu+ll]);
+			v_temp = fmin(v_temp, ub[jj][nu+ll]);
+/*			s_v[jj][ll] = fmax( -0.5*( ub[jj][nu+ll] + x_temp + (- s_w[jj][ll] - s_u[jj][ll])), 0);*/
+/*			s_v[jj][anx+ll] = fmax( -0.5*( - lb[jj][nu+ll] - x_temp + (- s_w[jj][anx+ll] - s_u[jj][anx+ll])), 0);*/
+			s_v[jj][ll] = fmax( -0.5*( ub[jj][nu+ll] + x_temp + (- s_w[jj][ll] - s_r[jj][ll])), 0);
+			s_v[jj][anx+ll] = fmax( -0.5*( - lb[jj][nu+ll] - x_temp + (- s_w[jj][anx+ll] - s_r[jj][anx+ll])), 0);
+			v_temp = v_temp + s_v[jj][ll] - s_v[jj][anx+ll];
+			temp = v_temp - ux_v[jj][nu+ll];
+			norm_p += temp*temp;
+			ux_v[jj][nu+ll] = v_temp;
+			}
+
 		norm_p = sqrt(norm_p);
 		stat[0+5*kk[0]] = norm_p;
 	
+	
+
 		// integral of error
 		norm_d = 0;
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		for(ll=0; ll<nu; ll++)
+			{
+/*			temp = ux_u[jj][ll] - ux_v[jj][ll];*/
+			temp = ux_r[jj][ll] - ux_v[jj][ll]; // relaxation
+			norm_d += temp*temp;
+			ux_w[jj][ll] += temp;
+			//ux_w[jj][ll] += rho*temp;
+			}
+		for(jj=1; jj<N; jj++)
 			{
 			for(ll=0; ll<nu; ll++)
 				{
@@ -512,6 +662,25 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 				//s_w[jj][anx+ll] += rho*(s_r[jj][anx+ll] - s_v[jj][anx+ll]);
 				}
 			}
+		jj = N; // last stage
+		for(ll=0; ll<nx; ll++)
+			{
+/*			temp = ux_u[jj][nu+ll] - ux_v[jj][nu+ll];*/
+			temp = ux_r[jj][nu+ll] - ux_v[jj][nu+ll]; // relaxation
+			norm_d += temp*temp;
+			ux_w[jj][nu+ll] += temp;
+			//ux_w[jj][nu+ll] += rho*temp;
+			}
+		for(ll=0; ll<nx; ll++)
+			{
+/*			s_w[jj][ll] += s_u[jj][ll] - s_v[jj][ll];*/
+/*			s_w[jj][anx+ll] += s_u[jj][anx+ll] - s_v[jj][anx+ll];*/
+			s_w[jj][ll] += s_r[jj][ll] - s_v[jj][ll];
+			s_w[jj][anx+ll] += s_r[jj][anx+ll] - s_v[jj][anx+ll];
+			//s_w[jj][ll] += rho*(s_r[jj][ll] - s_v[jj][ll]);
+			//s_w[jj][anx+ll] += rho*(s_r[jj][anx+ll] - s_v[jj][anx+ll]);
+			}
+
 		norm_d = rho*sqrt(norm_d);
 		stat[1+5*kk[0]] = norm_d;
 
@@ -528,13 +697,25 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 	// restore Hessian
 	if(compute_fact==1)
 		{
-		for(jj=0; jj<=N; jj++)
+		jj = 0; // first stage
+		for(ll=0; ll<nu; ll++)
 			{
-			for(ll=0; ll<nx+nu; ll++)
+			pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs] = bd[jj][ll];
+			pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll];
+			}
+		for(jj=1; jj<N; jj++)
+			{
+			for(ll=0; ll<nu+nx; ll++)
 				{
 				pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs] = bd[jj][ll];
 				pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll];
 				}
+			}
+		jj = N; // last stage
+		for(ll=nu; ll<nx+nu; ll++)
+			{
+			pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs] = bd[jj][ll];
+			pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll];
 			}
 		}
 

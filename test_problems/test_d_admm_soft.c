@@ -313,12 +313,8 @@ int main()
 
 	for(jj=0; jj<N; jj++)
 		{
-		d_zeros_align(&hpQ[jj], pnz, cnz);
-		}
-	d_zeros_align(&hpQ[N], pnz, pnz);
-
-	for(jj=0; jj<N; jj++)
-		{
+		//d_zeros_align(&hpQ[jj], pnz, cnz);
+		hpQ[jj] = pQ;
 		d_zeros_align(&hq[jj], anz, 1);
 		d_zeros_align(&hux[jj], anz, 1);
 		d_zeros_align(&hpi[jj], anx, 1);
@@ -338,6 +334,8 @@ int main()
 		d_zeros_align(&hs_v[jj], 2*anx, 1);
 		d_zeros_align(&hs_w[jj], 2*anx, 1);
 		}
+	//d_zeros_align(&hpQ[N], pnz, cnz);
+	hpQ[N] = pQ;
 	d_zeros_align(&hq[N], anz, 1);
 	d_zeros_align(&hux[N], anz, 1);
 	d_zeros_align(&hpi[N], anx, 1);
@@ -362,7 +360,7 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 6*anx) + 3*anz, 1); // work space
+	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 6*anx) + 3*anz, 1); // work space
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
@@ -577,7 +575,7 @@ int main()
 	free(stat);
 	for(jj=0; jj<N; jj++)
 		{
-		free(hpQ[jj]);
+		//free(hpQ[jj]);
 		free(hq[jj]);
 		free(hux[jj]);
 		free(hpi[jj]);
@@ -592,7 +590,7 @@ int main()
 		free(hs_v[jj]);
 		free(hs_w[jj]);
 		}
-	free(hpQ[N]);
+	//free(hpQ[N]);
 	free(hq[N]);
 	free(hux[N]);
 	free(hpi[N]);
