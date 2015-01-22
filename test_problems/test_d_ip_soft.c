@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include <sys/time.h>
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
 #include <xmmintrin.h> // needed to flush to zero sub-normals with _MM_SET_FLUSH_ZERO_MODE (_MM_FLUSH_ZERO_ON); in the main()
@@ -134,7 +135,7 @@ int main()
 	printf("\n");
 	printf("\n");
 	printf(" HPMPC -- Library for High-Performance implementation of solvers for MPC.\n");
-	printf(" Copyright (C) 2014 by Technical University of Denmark. All rights reserved.\n");
+	printf(" Copyright (C) 2014-2015 by Technical University of Denmark. All rights reserved.\n");
 	printf("\n");
 	printf(" HPMPC is distributed in the hope that it will be useful,\n");
 	printf(" but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
@@ -276,7 +277,19 @@ int main()
 	for(ii=0; ii<2*nx; ii++) Z[2*nu+ii] = 0.0;
 	//for(ii=0; ii<nx; ii++) Z[2*nu+2*ii+0] = 100.0;
 	double *z; d_zeros_align(&z, anb, 1);
-	for(ii=0; ii<2*nx; ii++) z[2*nu+ii] = 10.0;
+	for(ii=0; ii<2*nx; ii++) z[2*nu+ii] = 100.0;
+
+	// maximum element in cost functions
+	double mu0 = 1.0;
+	for(ii=0; ii<nu+nx; ii++)
+		for(jj=0; jj<nu+nx; jj++)
+			mu0 = fmax(mu0, Q[jj+nz*ii]);
+	for(ii=0; ii<2*nx; ii++)
+		{
+		mu0 = fmax(mu0, Z[2+nu+ii]);
+		mu0 = fmax(mu0, z[2+nu+ii]);
+		}
+	printf("\n mu0 = %f\n", mu0);
 
 /************************************************
 * matrices series
@@ -383,9 +396,9 @@ int main()
 	if(FREE_X0==0)
 		{
 		if(IP==1)
-			hpmpc_status = d_ip_soft_mpc(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			hpmpc_status = d_ip_soft_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
 		else
-			hpmpc_status = d_ip2_soft_mpc(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			hpmpc_status = d_ip2_soft_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
 		}
 	else
 		{
@@ -422,9 +435,9 @@ int main()
 		if(FREE_X0==0)
 			{
 			if(IP==1)
-				hpmpc_status = d_ip_soft_mpc(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
+				hpmpc_status = d_ip_soft_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
 			else
-				hpmpc_status = d_ip2_soft_mpc(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
+				hpmpc_status = d_ip2_soft_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
 			}
 		else
 			{

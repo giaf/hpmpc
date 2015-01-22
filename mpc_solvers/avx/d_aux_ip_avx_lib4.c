@@ -34,15 +34,14 @@
 
 
 
-void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi, double **db, double **t, double **lam, int warm_start)
+void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi, double **db, double **t, double **lam, double mu0, int warm_start)
 	{
 
 	const int nbu = nu<nb ? nu : nb ;
 	
 	int jj, ll, ii;
 	
-	double thr0 = 1e-1; // minimum distance from a constraint
-	double mu0 = 1.0; // initial desired value in the duality measure
+	double thr0 = 0.1; // minimum distance from a constraint
 
 	if(warm_start==1)
 		{
@@ -260,7 +259,7 @@ void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi,
 
 
 
-void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi, double **db, double **t, double **lam, int warm_start)
+void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi, double **db, double **t, double **lam, double mu0, int warm_start)
 	{
 	
 	const int nbu = nu<nb ? nu : nb ;
@@ -275,7 +274,7 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 
 	int jj, ll, ii;
 	
-	double thr0 = 1e-3; // minimum distance from a constraint
+	double thr0 = 0.1; // minimum distance from a constraint
 
 	if(warm_start==1)
 		{
@@ -303,8 +302,8 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 				ux[0][ll/2] = - db[0][ll+1] - thr0;
 				}
 
-			lam[0][ll+0] = 1.0/t[0][ll+0];
-			lam[0][ll+1] = 1.0/t[0][ll+1];
+			lam[0][ll+0] = mu0/t[0][ll+0];
+			lam[0][ll+1] = mu0/t[0][ll+1];
 			}
 		for(; ll<2*nb; ll++)
 			{
@@ -336,8 +335,8 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 					t[jj][ll+1] = thr0;
 					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
 					}
-				lam[jj][ll+0] = 1.0/t[jj][ll+0];
-				lam[jj][ll+1] = 1.0/t[jj][ll+1];
+				lam[jj][ll+0] = mu0/t[jj][ll+0];
+				lam[jj][ll+1] = mu0/t[jj][ll+1];
 				}
 			}
 		for(ll=0; ll<2*nbu; ll++) // this has to be strictly positive !!!
@@ -368,8 +367,8 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 				t[N][ll+1] = thr0;
 				ux[N][ll/2] = - db[N][ll+1] - thr0;
 				}
-			lam[N][ll+0] = 1.0/t[N][ll+0];
-			lam[N][ll+1] = 1.0/t[N][ll+1];
+			lam[N][ll+0] = mu0/t[N][ll+0];
+			lam[N][ll+1] = mu0/t[N][ll+1];
 			}
 
 		}
@@ -401,8 +400,8 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 				t[0][ll+1] = thr0;
 				ux[0][ll/2] = - db[0][ll+1] - thr0;
 				}
-			lam[0][ll+0] = 1.0/t[0][ll+0];
-			lam[0][ll+1] = 1.0/t[0][ll+1];
+			lam[0][ll+0] = mu0/t[0][ll+0];
+			lam[0][ll+1] = mu0/t[0][ll+1];
 			}
 		for(ii=ll/2; ii<nu; ii++)
 			ux[0][ii] = 0.0; // initialize remaining components of u to zero
@@ -439,8 +438,8 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 					t[jj][ll+1] = thr0;
 					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
 					}
-				lam[jj][ll+0] = 1.0/t[jj][ll+0];
-				lam[jj][ll+1] = 1.0/t[jj][ll+1];
+				lam[jj][ll+0] = mu0/t[jj][ll+0];
+				lam[jj][ll+1] = mu0/t[jj][ll+1];
 				}
 			for(ii=ll/2; ii<nx+nu; ii++)
 				ux[jj][ii] = 0.0; // initialize remaining components of u and x to zero
@@ -476,8 +475,8 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 				t[N][ll+1] = thr0;
 				ux[N][ll/2] = - db[N][ll+1] - thr0;
 				}
-			lam[N][ll+0] = 1.0/t[N][ll+0];
-			lam[N][ll+1] = 1.0/t[N][ll+1];
+			lam[N][ll+0] = mu0/t[N][ll+0];
+			lam[N][ll+1] = mu0/t[N][ll+1];
 			}
 		for(ii=ll/2; ii<nx+nu; ii++)
 			ux[N][ii] = 0.0; // initialize remaining components of x to zero
@@ -490,7 +489,7 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 		// initialize lam_theta (cold start only for the moment)
 		for(jj=0; jj<=N; jj++)
 			for(ll=0; ll<2*nbx; ll++)
-				lam[jj][anb+2*nu+ll] = 1.0;
+				lam[jj][anb+2*nu+ll] = mu0/t[jj][anb+2*nu+ll];
 
 		// initialize pi
 		for(jj=0; jj<=N; jj++)

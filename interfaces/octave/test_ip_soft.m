@@ -51,10 +51,10 @@ qq = repmat(q, 1, N);
 rr = repmat(r, 1, N);
 
 % cost function of soft constrained slack variables
-lZ = 0.001*ones(nx, 1);
-uZ = 0.001*ones(nx, 1);
-lz = 10*ones(nx, 1);
-uz = 10*ones(nx, 1);
+lZ = 0.0*ones(nx, 1);
+uZ = 0.0*ones(nx, 1);
+lz = 100*ones(nx, 1);
+uz = 100*ones(nx, 1);
 llZ = repmat(lZ, 1, N);
 uuZ = repmat(uZ, 1, N);
 llz = repmat(lz, 1, N);
@@ -81,7 +81,7 @@ u = -1*ones(nu, N);
 
 kk = -1;		% actual number of performed iterations
 k_max = 50;		% maximim number of iterations
-tol = 1e-4;		% tolerance in the duality measure
+tol = 1e-6;		% tolerance in the duality measure
 infos = zeros(5, k_max);
 
 tic

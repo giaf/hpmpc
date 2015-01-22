@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 /* ACADO auto-generated header */
 /*#include "acado_common.h"*/
@@ -197,15 +198,25 @@ int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
 	        }
 
         // cost function
+		double mu0 = 1.0;
         for(jj=0; jj<N; jj++)
 	        {
             d_cvt_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
+			for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, R[jj*nu*nu+ii*nu+ll]);
             d_cvt_tran_mat2pmat(nu, nx, nu, bs, S+jj*nx*nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
+			for(ii=0; ii<nx*nu; ii++) mu0 = fmax(mu0, S[jj*nu*nx+ii]);
             d_cvt_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+			for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Q[jj*nx*nx+ii*nx+ll]);
             for(ii=0; ii<nu; ii++)
+				{
                 hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
+				mu0 = fmax(mu0, r[jj*nu+ii]);
+				}
             for(ii=0; ii<nx; ii++)
+				{
                 hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+ii)*bs] = q[ii+nx*jj];
+				mu0 = fmax(mu0, q[jj*nx+ii]);
+				}
 	        }
 
         for(jj=0; jj<nu; jj++)
@@ -215,8 +226,12 @@ int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
         for(jj=0; jj<nu; jj++)
             hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
         d_cvt_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+		for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Qf[ii*nx+ll]);
         for(jj=0; jj<nx; jj++)
+			{
             hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
+			mu0 = fmax(mu0, qf[ii]);
+			}
 
 		// input constraints
 		for(jj=0; jj<N; jj++)
@@ -269,9 +284,9 @@ int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
 
         // call the IP solver
 	    if(IP==1)
-	        hpmpc_status = d_ip_box_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+	        hpmpc_status = d_ip_box_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 	    else
-	        hpmpc_status = d_ip2_box_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+	        hpmpc_status = d_ip2_box_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 
 
 
@@ -695,15 +710,25 @@ int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec,
 	        }
 
         // cost function
+		double mu0 = 1.0;
         for(jj=0; jj<N; jj++)
 	        {
             d_cvt_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
+			for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, R[jj*nu*nu+ii*nu+ll]);
             d_cvt_tran_mat2pmat(nu, nx, nu, bs, S+jj*nx*nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
+			for(ii=0; ii<nx*nu; ii++) mu0 = fmax(mu0, S[jj*nu*nx+ii]);
             d_cvt_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+			for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Q[jj*nx*nx+ii*nx+ll]);
             for(ii=0; ii<nu; ii++)
+				{
                 hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
+				mu0 = fmax(mu0, r[jj*nu+ii]);
+				}
             for(ii=0; ii<nx; ii++)
+				{
                 hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+ii)*bs] = q[ii+nx*jj];
+				mu0 = fmax(mu0, q[jj*nx+ii]);
+				}
 	        }
 
         for(jj=0; jj<nu; jj++)
@@ -713,8 +738,12 @@ int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec,
         for(jj=0; jj<nu; jj++)
             hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
         d_cvt_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+		for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Qf[ii*nx+ll]);
         for(jj=0; jj<nx; jj++)
+			{
             hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
+			mu0 = fmax(mu0, qf[ii]);
+			}
 
 		// cost function of soft constraint slack variable
 		for(ii=0; ii<N; ii++)
@@ -723,11 +752,15 @@ int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec,
 				{
 				hZ[ii+1][2*nu+jj+0] = lZ[nx*ii+jj];
 				hZ[ii+1][2*nu+jj+1] = uZ[nx*ii+jj];
+				mu0 = fmax(mu0, lZ[nx*ii+jj]);
+				mu0 = fmax(mu0, uZ[nx*ii+jj]);
 				}
 			for(jj=0; jj<nx; jj++)
 				{
 				hz[ii+1][2*nu+jj+0] = lz[nx*ii+jj];
 				hz[ii+1][2*nu+jj+1] = uz[nx*ii+jj];
+				mu0 = fmax(mu0, lz[nx*ii+jj]);
+				mu0 = fmax(mu0, uz[nx*ii+jj]);
 				}
 			}
 
@@ -782,9 +815,9 @@ int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec,
 
         // call the IP solver
 	    if(IP==1)
-	        hpmpc_status = d_ip_soft_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
+	        hpmpc_status = d_ip_soft_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
 	    else
-	        hpmpc_status = d_ip2_soft_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
+	        hpmpc_status = d_ip2_soft_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
 
 
 

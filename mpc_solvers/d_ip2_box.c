@@ -37,7 +37,7 @@
 
 
 /* primal-dual interior-point method, box constraints, time variant matrices (mpc version) */
-int d_ip2_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
+int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
 	{
 	
 	int nbu = nu<nb ? nu : nb ;
@@ -168,13 +168,7 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 
 	// initialize ux & t>0 (slack variable)
-	//d_init_ux_pi_t_box_mpc(N, nx, nu, nbu, nb, ux, pi, db, t, warm_start);
-	d_init_var_box_mpc(N, nx, nu, nb, ux, pi, db, t, lam, warm_start);
-
-
-
-	// initialize lambda>0 (multiplier of the inequality constraint)
-	//d_init_lam_mpc(N, nu, nbu, nb, t, lam);
+	d_init_var_box_mpc(N, nx, nu, nb, ux, pi, db, t, lam, mu0, warm_start);
 
 
 
@@ -192,8 +186,9 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 
 	// compute the duality gap
-	alpha = 0.0; // needed to compute mu !!!!!
-	d_compute_mu_box_mpc(N, nx, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
+	//alpha = 0.0; // needed to compute mu !!!!!
+	//d_compute_mu_box_mpc(N, nx, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
+	mu = mu0;
 
 	// set to zero iteration count
 	*kk = 0;	
@@ -201,8 +196,10 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 	// larger than minimum accepted step size
 	alpha = 1.0;
 
-
+	// update hessian in Riccati routine
 	const int update_hessian = 1;
+
+
 
 	// IP loop		
 	while( *kk<k_max && mu>mu_tol && alpha>=alpha_min )

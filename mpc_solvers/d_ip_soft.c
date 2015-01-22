@@ -37,7 +37,7 @@
 
 
 /* primal-dual interior-point method, box constraints, time invariant matrices (mpc version) */
-int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **Z, double **z, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
+int d_ip_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **Z, double **z, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
 	{
 	
 	// TODO Z and z are supposed to be aligned with the corresponding components of t and lam (i.e. have 2*nu dummy elements at the beginning)
@@ -176,7 +176,7 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 
 	// initialize ux & t>0 (slack variable)
-	d_init_var_soft_mpc(N, nx, nu, nb, ux, pi, db, t, lam, warm_start);
+	d_init_var_soft_mpc(N, nx, nu, nb, ux, pi, db, t, lam, mu0, warm_start);
 
 
 
@@ -194,8 +194,9 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 
 
 	// compute the duality gap
-	alpha = 0.0; // needed to compute mu !!!!!
-	d_compute_mu_soft_mpc(N, nx, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
+	//alpha = 0.0; // needed to compute mu !!!!!
+	//d_compute_mu_soft_mpc(N, nx, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
+	mu = mu0;
 
 	// set to zero iteration count
 	*kk = 0;	
@@ -203,9 +204,10 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu_tol, double alpha_min, int warm_
 	// larger than minimum accepted step size
 	alpha = 1.0;
 	
-
-
+	// update hessian in Riccati routine
 	const int update_hessian = 1;
+
+
 
 	// IP loop		
 	while( *kk<k_max && mu>mu_tol && alpha>=alpha_min )

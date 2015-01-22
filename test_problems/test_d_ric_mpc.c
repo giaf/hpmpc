@@ -136,7 +136,7 @@ int main()
 	printf("\n");
 	printf("\n");
 	printf(" HPMPC -- Library for High-Performance implementation of solvers for MPC.\n");
-	printf(" Copyright (C) 2014 by Technical University of Denmark. All rights reserved.\n");
+	printf(" Copyright (C) 2014-2015 by Technical University of Denmark. All rights reserved.\n");
 	printf("\n");
 	printf(" HPMPC is distributed in the hope that it will be useful,\n");
 	printf(" but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
