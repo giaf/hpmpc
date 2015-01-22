@@ -350,6 +350,22 @@ int main()
 
 
 
+	// solution of unconstrained problem
+//	double *(hpL[N+1]);
+//	double *(hPb[N]);
+//	for(jj=0; jj<=N; jj++)
+//		{
+//		d_zeros_align(&hpL[jj], pnz, cnl);
+//		d_zeros_align(&hPb[jj], anx, 1);
+//		}
+//	double *diag; d_zeros_align(&diag, pnz, 1);
+//	int update_hessian = 0;
+//	double **Qd;
+//	double **Ql;
+//	d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, update_hessian, Qd, Ql, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+
+
+
 	// initial states
 	double xx0[] = {3.5, 3.5, 3.66465, 2.15833, 1.81327, -0.94207, 1.86531, -2.35760, 2.91534, 1.79890, -1.49600, -0.76600, -2.60268, 1.92456, 1.66630, -2.28522, 3.12038, 1.83830, 1.93519, -1.87113};
 
@@ -364,6 +380,11 @@ int main()
 
 	hux[0][nu+0] = xx0[0];
 	hux[0][nu+1] = xx0[1];
+
+//	// solution of unconstrained problem as warm start
+//	warm_start = 1;
+//	d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
+//	//d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, update_hessian, Qd, Ql, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 
 	// call the IP solver
 	if(FREE_X0==0)
@@ -403,6 +424,11 @@ int main()
 
 		hux[0][nu+0] = xx0[2*idx];
 		hux[0][nu+1] = xx0[2*idx+1];
+
+//		// solution of unconstrained problem as warm start
+//		warm_start = 1;
+//		d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
+//		//d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, update_hessian, Qd, Ql, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 
 		// call the IP solver
 		if(FREE_X0==0)

@@ -34,7 +34,8 @@ void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi,
 	
 	int jj, ll, ii;
 	
-	double thr0 = 1e-3; // minimum distance from a constraint
+	double thr0 = 1e-1; // minimum distance from a constraint
+	double mu0 = 1.0; // initial desired value in the duality measure
 
 	if(warm_start==1)
 		{
@@ -61,8 +62,8 @@ void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi,
 				t[0][ll+1] = thr0;
 				ux[0][ll/2] = - db[0][ll+1] - thr0;
 				}
-			lam[0][ll+0] = 1.0/t[0][ll+0];
-			lam[0][ll+1] = 1.0/t[0][ll+1];
+			lam[0][ll+0] = mu0/t[0][ll+0];
+			lam[0][ll+1] = mu0/t[0][ll+1];
 			}
 		for(; ll<2*nb; ll++)
 			{
@@ -94,8 +95,8 @@ void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi,
 					t[jj][ll+1] = thr0;
 					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
 					}
-				lam[jj][ll+0] = 1.0/t[jj][ll+0];
-				lam[jj][ll+1] = 1.0/t[jj][ll+1];
+				lam[jj][ll+0] = mu0/t[jj][ll+0];
+				lam[jj][ll+1] = mu0/t[jj][ll+1];
 				}
 			}
 		for(ll=0; ll<2*nbu; ll++) // this has to be strictly positive !!!
@@ -126,8 +127,8 @@ void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi,
 				t[N][ll+1] = thr0;
 				ux[N][ll/2] = - db[N][ll+1] - thr0;
 				}
-			lam[N][ll+0] = 1.0/t[N][ll+0];
-			lam[N][ll+1] = 1.0/t[N][ll+1];
+			lam[N][ll+0] = mu0/t[N][ll+0];
+			lam[N][ll+1] = mu0/t[N][ll+1];
 			}
 		}
 	else // cold start
@@ -135,6 +136,7 @@ void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi,
 		for(ll=0; ll<2*nbu; ll+=2)
 			{
 			ux[0][ll/2] = 0.0;
+			//ux[0][ll/2] = 0.5*( - db[0][ll+1] + db[0][ll+0] );
 /*			t[0][ll+0] = 1.0;*/
 /*			t[0][ll+1] = 1.0;*/
 			t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
@@ -158,8 +160,8 @@ void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi,
 				t[0][ll+1] = thr0;
 				ux[0][ll/2] = - db[0][ll+1] - thr0;
 				}
-			lam[0][ll+0] = 1.0/t[0][ll+0];
-			lam[0][ll+1] = 1.0/t[0][ll+1];
+			lam[0][ll+0] = mu0/t[0][ll+0];
+			lam[0][ll+1] = mu0/t[0][ll+1];
 			}
 		for(ii=ll/2; ii<nu; ii++)
 			ux[0][ii] = 0.0; // initialize remaining components of u to zero
@@ -173,6 +175,7 @@ void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi,
 			for(ll=0; ll<2*nb; ll+=2)
 				{
 				ux[jj][ll/2] = 0.0;
+				//ux[jj][ll/2] = 0.5*( - db[jj][ll+1] + db[jj][ll+0] );
 /*				t[jj][ll+0] = 1.0;*/
 /*				t[jj][ll+1] = 1.0;*/
 				t[jj][ll+0] =   ux[jj][ll/2] - db[jj][ll+0];
@@ -196,8 +199,8 @@ void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi,
 					t[jj][ll+1] = thr0;
 					ux[jj][ll/2] = - db[jj][ll+1] - thr0;
 					}
-				lam[jj][ll+0] = 1.0/t[jj][ll+0];
-				lam[jj][ll+1] = 1.0/t[jj][ll+1];
+				lam[jj][ll+0] = mu0/t[jj][ll+0];
+				lam[jj][ll+1] = mu0/t[jj][ll+1];
 				}
 			for(ii=ll/2; ii<nx+nu; ii++)
 				ux[jj][ii] = 0.0; // initialize remaining components of u and x to zero
@@ -210,6 +213,7 @@ void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi,
 		for(ll=2*nu; ll<2*nb; ll+=2)
 			{
 			ux[N][ll/2] = 0.0;
+			//ux[N][ll/2] = 0.5*( - db[N][ll+1] + db[N][ll+0] );
 /*			t[N][ll+0] = 1.0;*/
 /*			t[N][ll+1] = 1.0;*/
 			t[N][ll+0] =   ux[N][ll/2] - db[N][ll+0];
@@ -233,8 +237,8 @@ void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi,
 				t[N][ll+1] = thr0;
 				ux[N][ll/2] = - db[N][ll+1] - thr0;
 				}
-			lam[N][ll+0] = 1.0/t[N][ll+0];
-			lam[N][ll+1] = 1.0/t[N][ll+1];
+			lam[N][ll+0] = mu0/t[N][ll+0];
+			lam[N][ll+1] = mu0/t[N][ll+1];
 			}
 		for(ii=ll/2; ii<nx+nu; ii++)
 			ux[N][ii] = 0.0; // initialize remaining components of x to zero
