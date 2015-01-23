@@ -422,10 +422,10 @@ int main()
 		for(jj=0; jj<pnz*cnz; jj++) hpQ[N][jj]=pQ[jj];
 
 		// call the solver
-		if(FREE_X0==0)
+//		if(FREE_X0==0)
 			s_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
-		else
-			s_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+//		else
+//			s_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 
 		if(PRINTRES==1 && ll_max==1)
 			{
@@ -450,26 +450,26 @@ int main()
 		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 		// residuals computation
-		if(FREE_X0==0)
+//		if(FREE_X0==0)
 			s_res_mpc(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
-		else
-			s_res_mhe_old(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+//		else
+//			s_res_mhe_old(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 
 		if(PRINTRES==1 && COMPUTE_MULT==1 && ll_max==1)
 			{
 			// print result 
 			printf("\n\nres\n\n");
-			if(FREE_X0==0)
-				{
+//			if(FREE_X0==0)
+//				{
 				s_print_mat(1, nu, hrq[0], 1);
 				for(ii=1; ii<=N; ii++)
 					s_print_mat(1, nx+nu, hrq[ii], 1);
-				}
-			else
-				{
-				for(ii=0; ii<=N; ii++)
-					s_print_mat(1, nx+nu, hrq[ii], 1);
-				}
+//				}
+//			else
+//				{
+//				for(ii=0; ii<=N; ii++)
+//					s_print_mat(1, nx+nu, hrq[ii], 1);
+//				}
 			for(ii=0; ii<N; ii++)
 				s_print_mat(1, nx, hrb[ii], 1);
 			}
@@ -494,10 +494,10 @@ int main()
 		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 		// call the solver 
-		if(FREE_X0==0)
+//		if(FREE_X0==0)
 			s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
-		else
-			s_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
+//		else
+//			s_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
 
 		if(PRINTRES==1 && ll_max==1)
 			{
@@ -526,26 +526,26 @@ int main()
 		for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 		// residuals computation
-		if(FREE_X0==0)
+//		if(FREE_X0==0)
 			s_res_mpc(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
-		else
-			s_res_mhe_old(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+//		else
+//			s_res_mhe_old(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 
 		if(PRINTRES==1 && COMPUTE_MULT==1 && ll_max==1)
 			{
 			// print result 
 			printf("\n\nres\n\n");
-			if(FREE_X0==0)
-				{
+//			if(FREE_X0==0)
+//				{
 				s_print_mat(1, nu, hrq[0], 1);
 				for(ii=1; ii<=N; ii++)
 					s_print_mat(1, nx+nu, hrq[ii], 1);
-				}
-			else
-				{
-				for(ii=0; ii<=N; ii++)
-					s_print_mat(1, nx+nu, hrq[ii], 1);
-				}
+//				}
+//			else
+//				{
+//				for(ii=0; ii<=N; ii++)
+//					s_print_mat(1, nx+nu, hrq[ii], 1);
+//				}
 			for(ii=0; ii<N; ii++)
 				s_print_mat(1, nx, hrb[ii], 1);
 			}
@@ -564,10 +564,10 @@ int main()
 		// factorize & solve
 		for(rep=0; rep<nrep; rep++)
 			{
-			if(FREE_X0==0)
+//			if(FREE_X0==0)
 				s_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
-			else
-				s_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+//			else
+//				s_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
@@ -590,10 +590,10 @@ int main()
 			for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 			// call the solver 
-			if(FREE_X0==0)
+//			if(FREE_X0==0)
 				s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
-			else
-				s_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
+//			else
+//				s_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
 			}
 		
 		gettimeofday(&tv2, NULL); // start
@@ -601,10 +601,10 @@ int main()
 		// residuals
 		for(rep=0; rep<nrep; rep++)
 			{
-			if(FREE_X0==0)
+//			if(FREE_X0==0)
 				s_res_mpc(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
-			else
-				s_res_mhe_old(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+//			else
+//				s_res_mhe_old(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 			}
 
 		gettimeofday(&tv3, NULL); // start
@@ -627,10 +627,10 @@ int main()
 			for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 			// call the solver 
-			if(FREE_X0==0)
+//			if(FREE_X0==0)
 				s_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 0, hPb, 0, hpi);
-			else
-				s_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 0, hPb, 0, hpi);
+//			else
+//				s_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 0, hPb, 0, hpi);
 			}
 		
 		gettimeofday(&tv4, NULL); // start

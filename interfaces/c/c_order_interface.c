@@ -50,7 +50,7 @@
 /*#define NN ACADO_N*/
 
 // free initial state: 0 mpc, 1 mhe
-#define FREE_X0 0
+//#define FREE_X0 0
 
 // ip method: 1 primal-dual, 2 predictor-corrector primal-dual
 #define IP 2
@@ -2280,28 +2280,14 @@ int c_order_admm_box_wrapper( int k_max, double tol,
 				}
 			}
 		// state constraints 
-/*		if(FREE_X0==0) // mpc*/
-/*			{*/
-			for(jj=0; jj<N; jj++)
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nx; ii++)
 				{
-				for(ii=0; ii<nx; ii++)
-					{
-					hlb[jj+1][nu+ii] = lb[N*nu+ii+nx*jj];
-					hub[jj+1][nu+ii] = ub[N*nu+ii+nx*jj];
-					}
+				hlb[jj+1][nu+ii] = lb[N*nu+ii+nx*jj];
+				hub[jj+1][nu+ii] = ub[N*nu+ii+nx*jj];
 				}
-/*			}*/
-/*		else // mhe*/
-/*			{*/
-/*			for(jj=0; jj<=N; jj++)*/
-/*				{*/
-/*				for(ii=0; ii<nx; ii++)*/
-/*					{*/
-/*					hlb[jj][nu+ii] = lb[N*nu+ii+nx*jj];*/
-/*					hub[jj][nu+ii] = ub[N*nu+ii+nx*jj];*/
-/*					}*/
-/*				}*/
-/*			}*/
+			}
 
 
 
@@ -2319,14 +2305,7 @@ int c_order_admm_box_wrapper( int k_max, double tol,
 /*printf("\nstart of ip solver\n");*/
 
         // call the soft ADMM solver
-/*		if(FREE_X0==0) // mpc*/
-/*			{*/
-	        d_admm_box_mpc(nIt, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hlb, hub, hux, hux_v, hux_w, compute_mult, hpi, ptr);
-/*		    }*/
-/*		else // mhe*/
-/*			{*/
-/*	        d_ip_box_mhe(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);*/
-/*		    }*/
+		d_admm_box_mpc(nIt, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hlb, hub, hux, hux_v, hux_w, compute_mult, hpi, ptr);
 
 /*printf("\nend of ip solver\n");*/
 
@@ -2493,28 +2472,14 @@ int c_order_admm_box_wrapper( int k_max, double tol,
 				}
 			}
 		// state constraints 
-/*		if(FREE_X0==0) // mpc*/
-/*			{*/
-			for(jj=0; jj<N; jj++)
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nx; ii++)
 				{
-				for(ii=0; ii<nx; ii++)
-					{
-					hlb[jj+1][nu+ii] = (float) lb[N*nu+ii+nx*jj];
-					hub[jj+1][nu+ii] = (float) ub[N*nu+ii+nx*jj];
-					}
+				hlb[jj+1][nu+ii] = (float) lb[N*nu+ii+nx*jj];
+				hub[jj+1][nu+ii] = (float) ub[N*nu+ii+nx*jj];
 				}
-/*			}*/
-/*		else // mhe*/
-/*			{*/
-/*			for(jj=0; jj<=N; jj++)*/
-/*				{*/
-/*				for(ii=0; ii<nx; ii++)*/
-/*					{*/
-/*					hlb[jj][nu+ii] = lb[N*nu+ii+nx*jj];*/
-/*					hub[jj][nu+ii] = ub[N*nu+ii+nx*jj];*/
-/*					}*/
-/*				}*/
-/*			}*/
+			}
 
 
 
@@ -2530,14 +2495,7 @@ int c_order_admm_box_wrapper( int k_max, double tol,
 
 
         // call the soft ADMM solver
-/*		if(FREE_X0==0) // mpc*/
-/*			{*/
-	        s_admm_box_mpc(nIt, k_max, (float) tol, (float) tol, warm_start, 1, (float) rho, (float) alpha, (float *)stat, nx, nu, N, hpBAbt, hpQ, hlb, hub, hux, hux_v, hux_w, compute_mult, hpi, ptr);
-/*		    }*/
-/*		else // mhe*/
-/*			{*/
-/*	        d_ip_box_mhe(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);*/
-/*		    }*/
+		s_admm_box_mpc(nIt, k_max, (float) tol, (float) tol, warm_start, 1, (float) rho, (float) alpha, (float *)stat, nx, nu, N, hpBAbt, hpQ, hlb, hub, hux, hux_v, hux_w, compute_mult, hpi, ptr);
 
 
 
@@ -2787,28 +2745,14 @@ int c_order_admm_soft_wrapper( int k_max, double tol,
 				}
 			}
 		// state constraints 
-/*		if(FREE_X0==0) // mpc*/
-/*			{*/
-			for(jj=0; jj<N; jj++)
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nx; ii++)
 				{
-				for(ii=0; ii<nx; ii++)
-					{
-					hlb[jj+1][nu+ii] = lb[N*nu+ii+nx*jj];
-					hub[jj+1][nu+ii] = ub[N*nu+ii+nx*jj];
-					}
+				hlb[jj+1][nu+ii] = lb[N*nu+ii+nx*jj];
+				hub[jj+1][nu+ii] = ub[N*nu+ii+nx*jj];
 				}
-/*			}*/
-/*		else // mhe*/
-/*			{*/
-/*			for(jj=0; jj<=N; jj++)*/
-/*				{*/
-/*				for(ii=0; ii<nx; ii++)*/
-/*					{*/
-/*					hlb[jj][nu+ii] = lb[N*nu+ii+nx*jj];*/
-/*					hub[jj][nu+ii] = ub[N*nu+ii+nx*jj];*/
-/*					}*/
-/*				}*/
-/*			}*/
+			}
 
 
 
@@ -2826,14 +2770,7 @@ int c_order_admm_soft_wrapper( int k_max, double tol,
 /*printf("\nstart of ip solver\n");*/
 
         // call the soft ADMM solver
-/*		if(FREE_X0==0) // mpc*/
-/*			{*/
-	        d_admm_soft_mpc(nIt, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hZ, hz, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, ptr);
-/*		    }*/
-/*		else // mhe*/
-/*			{*/
-/*	        d_ip_box_mhe(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);*/
-/*		    }*/
+		d_admm_soft_mpc(nIt, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hZ, hz, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, ptr);
 
 /*printf("\nend of ip solver\n");*/
 
@@ -3044,28 +2981,14 @@ int c_order_admm_soft_wrapper( int k_max, double tol,
 				}
 			}
 		// state constraints 
-/*		if(FREE_X0==0) // mpc*/
-/*			{*/
-			for(jj=0; jj<N; jj++)
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nx; ii++)
 				{
-				for(ii=0; ii<nx; ii++)
-					{
-					hlb[jj+1][nu+ii] = (float) lb[N*nu+ii+nx*jj];
-					hub[jj+1][nu+ii] = (float) ub[N*nu+ii+nx*jj];
-					}
+				hlb[jj+1][nu+ii] = (float) lb[N*nu+ii+nx*jj];
+				hub[jj+1][nu+ii] = (float) ub[N*nu+ii+nx*jj];
 				}
-/*			}*/
-/*		else // mhe*/
-/*			{*/
-/*			for(jj=0; jj<=N; jj++)*/
-/*				{*/
-/*				for(ii=0; ii<nx; ii++)*/
-/*					{*/
-/*					hlb[jj][nu+ii] = lb[N*nu+ii+nx*jj];*/
-/*					hub[jj][nu+ii] = ub[N*nu+ii+nx*jj];*/
-/*					}*/
-/*				}*/
-/*			}*/
+			}
 
 
 
@@ -3081,14 +3004,7 @@ int c_order_admm_soft_wrapper( int k_max, double tol,
 
 
         // call the soft ADMM solver
-/*		if(FREE_X0==0) // mpc*/
-/*			{*/
-	        s_admm_soft_mpc(nIt, k_max, (float) tol, (float) tol, warm_start, 1, (float) rho, (float) alpha, (float *)stat, nx, nu, N, hpBAbt, hpQ, hZ, hz, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, ptr);
-/*		    }*/
-/*		else // mhe*/
-/*			{*/
-/*	        d_ip_box_mhe(nIt, k_max, tol, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, ptr);*/
-/*		    }*/
+		s_admm_soft_mpc(nIt, k_max, (float) tol, (float) tol, warm_start, 1, (float) rho, (float) alpha, (float *)stat, nx, nu, N, hpBAbt, hpQ, hZ, hz, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, ptr);
 
 
 
