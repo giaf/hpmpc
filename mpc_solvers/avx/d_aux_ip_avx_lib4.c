@@ -685,8 +685,8 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 		}
 	for( ; ii<nu; ii++)
 		{
-		pd[jj][ll] = bd[jj][ll];
-		pl[jj][ll] = bl[jj][ll];
+		pd[jj][ii] = bd[jj][ii];
+		pl[jj][ii] = bl[jj][ii];
 		}
 
 	
@@ -839,8 +839,8 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			}
 		for( ; ii<nu+nx; ii++)
 			{
-			pd[jj][ll] = bd[jj][ll];
-			pl[jj][ll] = bl[jj][ll];
+			pd[jj][ii] = bd[jj][ii];
+			pl[jj][ii] = bl[jj][ii];
 			}
 			
 		}
@@ -1084,8 +1084,8 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 		}
 		for( ; ii<nu+nx; ii++)
 			{
-			pd[jj][ll] = bd[jj][ll];
-			pl[jj][ll] = bl[jj][ll];
+			pd[jj][ii] = bd[jj][ii];
+			pl[jj][ii] = bl[jj][ii];
 			}
 
 	
@@ -1297,8 +1297,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		}
 	for( ; ii<nu; ii++)
 		{
-		pd[jj][ll] = bd[jj][ll];
-		pl[jj][ll] = bl[jj][ll];
+		pd[jj][ii] = bd[jj][ii];
+		pl[jj][ii] = bl[jj][ii];
 		}
 
 
@@ -1873,10 +1873,10 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 
 			ii += ll;
 			}
-		for( ; ii<nu; ii++)
+		for( ; ii<nu+nx; ii++)
 			{
-			pd[jj][ll] = bd[jj][ll];
-			pl[jj][ll] = bl[jj][ll];
+			pd[jj][ii] = bd[jj][ii];
+			pl[jj][ii] = bl[jj][ii];
 			}
 	
 		}
@@ -1904,48 +1904,7 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		{
 		bs0 = nb-ii<4 ? nb-ii : 4 ;
 		ll = nu-ii; //k0%4;
-#if 0
-		for(; ll<bs0; ll++)
-			{
-			ptr_t_inv[0] = 1.0/ptr_t[0];
-			ptr_t_inv[1] = 1.0/ptr_t[1];
-			ptr_t_inv[anb+0] = 1.0/ptr_t[anb+0];
-			ptr_t_inv[anb+1] = 1.0/ptr_t[anb+1];
-			ptr_lamt[0] = ptr_lam[0]*ptr_t_inv[0];
-			ptr_lamt[1] = ptr_lam[1]*ptr_t_inv[1];
-			ptr_lamt[anb+0] = ptr_lam[anb+0]*ptr_t_inv[anb+0];
-			ptr_lamt[anb+1] = ptr_lam[anb+1]*ptr_t_inv[anb+1];
-			ptr_dlam[0] = ptr_t_inv[0]*sigma_mu; // !!!!!
-			ptr_dlam[1] = ptr_t_inv[1]*sigma_mu; // !!!!!
-			ptr_dlam[anb+0] = ptr_t_inv[anb+0]*sigma_mu; // !!!!!
-			ptr_dlam[anb+1] = ptr_t_inv[anb+1]*sigma_mu; // !!!!!
-			Qx[0] = ptr_lamt[0];
-			Qx[1] = ptr_lamt[1];
-			qx[0] = ptr_lam[0] + ptr_dlam[0] + ptr_lamt[0]*ptr_db[0];
-			qx[1] = ptr_lam[1] + ptr_dlam[1] + ptr_lamt[1]*ptr_db[1];
-			ptr_Zl[0] = 1.0 / (ptr_Z[0] + Qx[0] + ptr_lamt[anb+0]); // inverted of updated diagonal !!!
-			ptr_Zl[1] = 1.0 / (ptr_Z[1] + Qx[1] + ptr_lamt[anb+1]); // inverted of updated diagonal !!!
-			ptr_zl[0] = - ptr_z[0] + qx[0] + ptr_lam[anb+0] + ptr_dlam[anb+0];
-			ptr_zl[1] = - ptr_z[1] + qx[1] + ptr_lam[anb+1] + ptr_dlam[anb+1];
-			qx[0] = qx[0] - Qx[0]*ptr_zl[0]*ptr_Zl[0]; // update this before Qx !!!!!!!!!!!
-			qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
-			Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
-			Qx[1] = Qx[1] - Qx[1]*Qx[1]*ptr_Zl[1];
-			ptr_pd[ii+ll] = ptr_bd[ii+ll] + Qx[1] + Qx[0];
-			ptr_pl[ii+ll] = ptr_bl[ii+ll] + qx[1] - qx[0];
 
-			ptr_t     += 2;
-			ptr_lam   += 2;
-			ptr_lamt  += 2;
-			ptr_dlam  += 2;
-			ptr_t_inv  += 2;
-			ptr_db    += 2;
-			ptr_Z     += 2;
-			ptr_z     += 2;
-			ptr_Zl    += 2;
-			ptr_zl    += 2;
-			}
-#else
 		if(ll%2==1)
 			{
 
@@ -2080,7 +2039,6 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			ll+=2;
 			}
 
-#endif
 		ii += 4;
 		}
 
@@ -2332,10 +2290,10 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 
 		ii += ll;
 		}
-	for( ; ii<nu; ii++)
+	for( ; ii<nu+nx; ii++)
 		{
-		pd[jj][ll] = bd[jj][ll];
-		pl[jj][ll] = bl[jj][ll];
+		pd[jj][ii] = bd[jj][ii];
+		pl[jj][ii] = bl[jj][ii];
 		}
 
 

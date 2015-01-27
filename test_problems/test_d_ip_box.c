@@ -159,6 +159,8 @@ int main()
 	int N  = NN; // horizon lenght
 	int nb = NB; // number of box constrained inputs and states
 
+	int nbu = nu<nb ? nu : nb ;
+
 	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx/2, nu);
 	printf("\n");
 	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints.\n", nx, nu, N, nb);
@@ -250,7 +252,7 @@ int main()
 ************************************************/	
 
 	double *db; d_zeros_align(&db, 2*nb, 1);
-	for(jj=0; jj<2*nu; jj++)
+	for(jj=0; jj<2*nbu; jj++)
 		db[jj] = - 0.5;   // umin
 	for(; jj<2*nb; jj++)
 		db[jj] = - 4.0;   // xmin

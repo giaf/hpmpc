@@ -516,6 +516,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 	int ii, jj, ll, bs0;
 	
 	// first stage
+	jj = 0;
 	
 	ptr_t     = t[0];
 	ptr_lam   = lam[0];
@@ -600,6 +601,11 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			ptr_tinv  += 2;
 			ptr_db    += 2;
 			}
+		}
+	for( ; ii<nu; ii++)
+		{
+		pd[jj][ii] = bd[jj][ii];
+		pl[jj][ii] = bl[jj][ii];
 		}
 
 	// middle stages
@@ -687,10 +693,16 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 				ptr_db    += 2;
 				}
 			}
+		for( ; ii<nu+nx; ii++)
+			{
+			pd[jj][ii] = bd[jj][ii];
+			pl[jj][ii] = bl[jj][ii];
+			}
 	
 		}
 
 	// last stage
+	jj = N;
 
 	ptr_t     = t[N]     + 2*nu;
 	ptr_lam   = lam[N]   + 2*nu;
@@ -797,6 +809,11 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			ptr_db    += 2;
 			}
 		}
+	for( ; ii<nu+nx; ii++)
+		{
+		pd[jj][ii] = bd[jj][ii];
+		pl[jj][ii] = bl[jj][ii];
+		}
 
 
 	}
@@ -833,6 +850,7 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 	int ii, jj, ll, bs0;
 	
 	// first stage
+	jj = 0;
 	
 	ptr_t     = t[0];
 	ptr_lam   = lam[0];
@@ -919,6 +937,11 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			ptr_tinv  += 2;
 			ptr_db    += 2;
 			}
+		}
+	for( ; ii<nu; ii++)
+		{
+		pd[jj][ii] = bd[jj][ii];
+		pl[jj][ii] = bl[jj][ii];
 		}
 
 	// middle stages
@@ -1234,10 +1257,16 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 				ptr_zl    += 2;
 				}
 			}
+		for( ; ii<nu+nx; ii++)
+			{
+			pd[jj][ii] = bd[jj][ii];
+			pl[jj][ii] = bl[jj][ii];
+			}
 	
 		}
 
 	// last stage
+	jj = N;
 
 	ptr_t     = t[N]     + 2*nu;
 	ptr_lam   = lam[N]   + 2*nu;
@@ -1467,6 +1496,11 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			ptr_Zl    += 2;
 			ptr_zl    += 2;
 			}
+		}
+	for( ; ii<nu+nx; ii++)
+		{
+		pd[jj][ii] = bd[jj][ii];
+		pl[jj][ii] = bl[jj][ii];
 		}
 
 

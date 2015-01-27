@@ -54,6 +54,8 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 	// number of general constraints TODO
 	const int ng = 0;
 
+	int nu0 = (nu/bs)*bs;
+
 	int ii, jj, ll;
 
 	// factorization and backward substitution 
@@ -61,9 +63,8 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 	// final stage 
 	if(update_hessian)
 		{
-		// TODO don't update first nu/bs*bs components
-		d_update_hessian_ric_sv(nx+nu, hpQ[N], cnz, hQd[N]);
-		d_update_jacobian_ric_sv(nx+nu, hpQ[N]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N]);
+		d_update_hessian_ric_sv(nu%bs+nx, hpQ[N]+nu0*cnz+nu0*bs, cnz, hQd[N]+nu0);
+		d_update_jacobian_ric_sv(nu%bs+nx, hpQ[N]+nu0*bs+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N]+nu0);
 		}
 	dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, 0, hpL[N]+(ng+nx+pad)*bs+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, diag, 1); // TODO use dpotrf
 
@@ -74,7 +75,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 	// middle stages 
 	for(ii=0; ii<N-1; ii++)
 		{	
-		dtrmm_l_lib(nz, nx, hpBAbt[N-ii-1], cnx, hpL[N-ii]+(ng+nx+pad+ncl)*bs, cnl, hpL[N-ii-1]+ng*bs, cnl); // TODO allow 'rectanguar' B
+		dtrmm_l_lib(nz, nx, hpBAbt[N-ii-1], cnx, hpL[N-ii]+(ng+nx+pad+ncl)*bs, cnl, hpL[N-ii-1]+ng*bs, cnl);
 		for(jj=0; jj<nx; jj++) hpL[N-ii-1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(ng+jj)*bs] += hpL[N-ii][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(ng+nx+pad+nu+jj)*bs];
 		if(update_hessian)
 			{
