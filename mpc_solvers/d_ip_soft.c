@@ -36,13 +36,14 @@
 
 
 
-/* primal-dual interior-point method, box constraints, time invariant matrices (mpc version) */
-int d_ip_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **Z, double **z, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
+/* primal-dual interior-point method, hard and soft box constraints, mpc version */
+int d_ip_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nh, int ns, double **pBAbt, double **pQ, double **Z, double **z, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
 	{
 	
 	// TODO Z and z are supposed to be aligned with the corresponding components of t and lam (i.e. have 2*nu dummy elements at the beginning)
 
-/*printf("\ncazzo\n");*/
+	// number of either hard or soft (box) constraints
+	int nb = nh + ns;
 
 /*	int nbx = nb - nu;*/
 /*	if(nbx<0)*/
@@ -166,7 +167,7 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 	double temp0, temp1;
 	double alpha, mu;
-	double mu_scal = 1.0/(N*2*(nb+nbx));
+	double mu_scal = 1.0/(N*2*(nb+nh));
 	double sigma, sigma_decay, sigma_min;
 
 	sigma = sigma_par[0]; //0.4;
@@ -176,7 +177,7 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 
 	// initialize ux & t>0 (slack variable)
-	d_init_var_soft_mpc(N, nx, nu, nb, ux, pi, db, t, lam, mu0, warm_start);
+	d_init_var_soft_mpc(N, nx, nu, nh, ns, ux, pi, db, t, lam, mu0, warm_start);
 
 
 
@@ -219,7 +220,7 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 		// box constraints
 
 		// update hessian
-		d_update_hessian_soft_mpc(N, nx, nu, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, db, Z, z, Zl, zl);
+		d_update_hessian_soft_mpc(N, nx, nu, nh, ns, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, db, Z, z, Zl, zl);
 
 /*return;*/
 
@@ -231,7 +232,7 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1.0;
-		d_compute_alpha_soft_mpc(N, nx, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, db, Zl, zl);
+		d_compute_alpha_soft_mpc(N, nx, nu, nh, ns, &alpha, t, dt, lam, dlam, lamt, dux, db, Zl, zl);
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+1] = alpha;
@@ -242,7 +243,7 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 
 		// update x, u, lam, t & compute the duality gap mu
-		d_update_var_soft_mpc(N, nx, nu, nb, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
+		d_update_var_soft_mpc(N, nx, nu, nh, ns, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
 		
 		stat[5*(*kk)+2] = mu;
 		

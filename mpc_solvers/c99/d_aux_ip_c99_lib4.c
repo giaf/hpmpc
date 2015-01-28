@@ -252,11 +252,12 @@ void d_init_var_box_mpc(int N, int nx, int nu, int nb, double **ux, double **pi,
 
 
 
-void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi, double **db, double **t, double **lam, double mu0, int warm_start)
+void d_init_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double **ux, double **pi, double **db, double **t, double **lam, double mu0, int warm_start)
 	{
+
+	int nb = nh + ns;
 	
-	const int nbu = nu<nb ? nu : nb ;
-	const int nbx = nb-nu>0 ? nb-nu : 0 ;
+	const int nhu = nu<nh ? nu : nh ;
 
 	// constants
 	const int bs = D_MR;
@@ -269,9 +270,11 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 	
 	double thr0 = 0.1; // minimum distance from a constraint
 
+	// warm start: user-provided guess as starting point
 	if(warm_start==1)
 		{
-		for(ll=0; ll<2*nbu; ll+=2)
+		// first stage
+		for(ll=0; ll<2*nhu; ll+=2)
 			{
 			t[0][ll+0] =   ux[0][ll/2] - db[0][ll+0];
 			t[0][ll+1] = - db[0][ll+1] - ux[0][ll/2];
@@ -303,6 +306,7 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 			t[0][ll] = 1.0; // this has to be strictly positive !!!
 			lam[0][ll] = 1.0;
 			}
+		// middle stages
 		for(jj=1; jj<N; jj++)
 			{
 			for(ll=0; ll<2*nb; ll+=2)
@@ -332,7 +336,8 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 				lam[jj][ll+1] = mu0/t[jj][ll+1];
 				}
 			}
-		for(ll=0; ll<2*nbu; ll++) // this has to be strictly positive !!!
+		// last stage
+		for(ll=0; ll<2*nhu; ll++) // this has to be strictly positive !!!
 			{
 			t[N][ll] = 1.0;
 			lam[N][ll] = 1.0;
@@ -367,7 +372,8 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 		}
 	else // cold start
 		{
-		for(ll=0; ll<2*nbu; ll+=2)
+		// first stage
+		for(ll=0; ll<2*nhu; ll+=2)
 			{
 			ux[0][ll/2] = 0.0;
 /*			t[0][ll+0] = 1.0;*/
@@ -403,6 +409,7 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 			t[0][ll] = 1.0; // this has to be strictly positive !!!
 			lam[0][ll] = 1.0;
 			}
+		// middle stages
 		for(jj=1; jj<N; jj++)
 			{
 			for(ll=0; ll<2*nb; ll+=2)
@@ -437,7 +444,8 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 			for(ii=ll/2; ii<nx+nu; ii++)
 				ux[jj][ii] = 0.0; // initialize remaining components of u and x to zero
 			}
-		for(ll=0; ll<2*nbu; ll++)
+		// last stage
+		for(ll=0; ll<2*nhu; ll++)
 			{
 			t[N][ll] = 1.0; // this has to be strictly positive !!!
 			lam[N][ll] = 1.0;
@@ -474,15 +482,13 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nb, double **ux, double **pi
 		for(ii=ll/2; ii<nx+nu; ii++)
 			ux[N][ii] = 0.0; // initialize remaining components of x to zero
 
-		// inizialize t_theta (cold start only for the moment)
+		// inizialize t_theta and lam_theta (cold start only for the moment)
 		for(jj=0; jj<=N; jj++)
-			for(ll=0; ll<2*nbx; ll++)
-				t[jj][anb+2*nu+ll] = 1.0;
-
-		// initialize lam_theta (cold start only for the moment)
-		for(jj=0; jj<=N; jj++)
-			for(ll=0; ll<2*nbx; ll++)
-				lam[jj][anb+2*nu+ll] = mu0/t[jj][anb+2*nu+ll];
+			for(ll=0; ll<2*ns; ll++)
+				{
+				t[jj][anb+ll] = 1.0;
+				lam[jj][anb+ll] = mu0; // /t[jj][anb+ll]; // TODO restore division if needed
+				}
 
 		// initialize pi
 		for(jj=0; jj<=N; jj++)
@@ -820,13 +826,14 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 
 
 
-void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **db, double **Z, double **z, double **Zl, double **zl)
+void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **db, double **Z, double **z, double **Zl, double **zl)
 
 /*void d_update_hessian_box(int k0, int kmax, int nb, int cnz, double sigma_mu, double *t, double *lam, double *lamt, double *dlam, double *bd, double *bl, double *pd, double *pl, double *lb, double *ub)*/
 	{
 
-	const int nbu = nu<nb ? nu : nb ;
-	const int nbx = nb-nu>0 ? nb-nu : 0 ;
+	int nb = nh + ns;
+
+	int nhu = nu<nh ? nu : nh ;
 
 	// constants
 	const int bs = 4; //D_MR;
@@ -869,7 +876,7 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 	
 	ii = 0;
 	// hard constraints on u only
-	for(; ii<nbu-3; ii+=4)
+	for(; ii<nhu-3; ii+=4)
 		{
 
 		ptr_tinv[0] = 1.0/ptr_t[0];
@@ -916,9 +923,9 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		ptr_db    += 8;
 
 		}
-	if(ii<nbu)
+	if(ii<nhu)
 		{
-		bs0 = nbu-ii;
+		bs0 = nhu-ii;
 		for(ll=0; ll<bs0; ll++)
 			{
 			ptr_tinv[0] = 1.0/ptr_t[0];
@@ -965,8 +972,8 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		ptr_zl    = zl[jj];
 
 		ii = 0;
-		// hard constraints on u
-		for(; ii<nbu-3; ii+=4)
+		// hard constraints on u and x
+		for(; ii<nh-3; ii+=4)
 			{
 
 			ptr_tinv[0] = 1.0/ptr_t[0];
@@ -1017,10 +1024,10 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 			ptr_zl    += 8;
 
 			}
-		if(ii<nbu)
+		if(ii<nh)
 			{
 			// clean-up loop
-			bs0 = nbu-ii;
+			bs0 = nh-ii;
 			ll = 0;
 			for(; ll<bs0; ll++)
 				{
@@ -1284,53 +1291,205 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nb, int cnz, double si
 	ptr_bl    = bl[N];
 
 	ii=4*(nu/4); // k1 supposed to be multiple of bs !!!!!!!!!! NO MORE !!!!!!!
-	if(ii<nu)
+	if(nh>nu) // there are hard state-constraints
 		{
-		bs0 = nb-ii<4 ? nb-ii : 4 ;
-		ll = nu-ii; //k0%4;
-		for(; ll<bs0; ll++)
+
+		if(ii<nu)
+			{
+			bs0 = nh-ii<4 ? nh-ii : 4 ;
+			ll = nu-ii; //k0%4;
+			for(; ll<bs0; ll++)
+				{
+				ptr_tinv[0] = 1.0/ptr_t[0];
+				ptr_tinv[1] = 1.0/ptr_t[1];
+				ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
+				ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
+				ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
+				ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
+				ptr_pd[ii+ll] = ptr_bd[ii+ll] + ptr_lamt[0] + ptr_lamt[1];
+				ptr_pl[ii+ll] = ptr_bl[ii+ll] + ptr_lam[1] + ptr_lamt[1]*ptr_db[1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
+
+				ptr_t     += 2;
+				ptr_lam   += 2;
+				ptr_lamt  += 2;
+				ptr_dlam  += 2;
+				ptr_tinv  += 2;
+				ptr_db    += 2;
+				}
+			ii += 4;
+			}
+
+		for(; ii<nh-3; ii+=4)
 			{
 			ptr_tinv[0] = 1.0/ptr_t[0];
 			ptr_tinv[1] = 1.0/ptr_t[1];
-			ptr_tinv[anb+0] = 1.0/ptr_t[anb+0];
-			ptr_tinv[anb+1] = 1.0/ptr_t[anb+1];
 			ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
 			ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
-			ptr_lamt[anb+0] = ptr_lam[anb+0]*ptr_tinv[anb+0];
-			ptr_lamt[anb+1] = ptr_lam[anb+1]*ptr_tinv[anb+1];
 			ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
 			ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
-			ptr_dlam[anb+0] = ptr_tinv[anb+0]*sigma_mu; // !!!!!
-			ptr_dlam[anb+1] = ptr_tinv[anb+1]*sigma_mu; // !!!!!
-			Qx[0] = ptr_lamt[0];
-			Qx[1] = ptr_lamt[1];
-			qx[0] = ptr_lam[0] + ptr_dlam[0] + ptr_lamt[0]*ptr_db[0];
-			qx[1] = ptr_lam[1] + ptr_dlam[1] + ptr_lamt[1]*ptr_db[1];
-			ptr_Zl[0] = 1.0 / (ptr_Z[0] + Qx[0] + ptr_lamt[anb+0]); // inverted of updated diagonal !!!
-			ptr_Zl[1] = 1.0 / (ptr_Z[1] + Qx[1] + ptr_lamt[anb+1]); // inverted of updated diagonal !!!
-			ptr_zl[0] = - ptr_z[0] + qx[0] + ptr_lam[anb+0] + ptr_dlam[anb+0];
-			ptr_zl[1] = - ptr_z[1] + qx[1] + ptr_lam[anb+1] + ptr_dlam[anb+1];
-			qx[0] = qx[0] - Qx[0]*ptr_zl[0]*ptr_Zl[0]; // update this before Qx !!!!!!!!!!!
-			qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
-			Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
-			Qx[1] = Qx[1] - Qx[1]*Qx[1]*ptr_Zl[1];
-			ptr_pd[ii+ll] = ptr_bd[ii+ll] + Qx[1] + Qx[0];
-			ptr_pl[ii+ll] = ptr_bl[ii+ll] + qx[1] - qx[0];
+			ptr_pd[ii+0] = ptr_bd[ii+0] + ptr_lamt[0] + ptr_lamt[1];
+			ptr_pl[ii+0] = ptr_bl[ii+0] + ptr_lam[1] + ptr_lamt[1]*ptr_db[1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
 
-			ptr_t     += 2;
-			ptr_lam   += 2;
-			ptr_lamt  += 2;
-			ptr_dlam  += 2;
-			ptr_tinv  += 2;
-			ptr_db    += 2;
-			ptr_Z     += 2;
-			ptr_z     += 2;
-			ptr_Zl    += 2;
-			ptr_zl    += 2;
+			ptr_tinv[2] = 1.0/ptr_t[2];
+			ptr_tinv[3] = 1.0/ptr_t[3];
+			ptr_lamt[2] = ptr_lam[2]*ptr_tinv[2];
+			ptr_lamt[3] = ptr_lam[3]*ptr_tinv[3];
+			ptr_dlam[2] = ptr_tinv[2]*sigma_mu; // !!!!!
+			ptr_dlam[3] = ptr_tinv[3]*sigma_mu; // !!!!!
+			ptr_pd[ii+1] = ptr_bd[ii+1] + ptr_lamt[2] + ptr_lamt[3];
+			ptr_pl[ii+1] = ptr_bl[ii+1] + ptr_lam[3] + ptr_lamt[3]*ptr_db[3] + ptr_dlam[3] - ptr_lam[2] - ptr_lamt[2]*ptr_db[2] - ptr_dlam[2];
+
+			ptr_tinv[4] = 1.0/ptr_t[4];
+			ptr_tinv[5] = 1.0/ptr_t[5];
+			ptr_lamt[4] = ptr_lam[4]*ptr_tinv[4];
+			ptr_lamt[5] = ptr_lam[5]*ptr_tinv[5];
+			ptr_dlam[4] = ptr_tinv[4]*sigma_mu; // !!!!!
+			ptr_dlam[5] = ptr_tinv[5]*sigma_mu; // !!!!!
+			ptr_pd[ii+2] = ptr_bd[ii+2] + ptr_lamt[4] + ptr_lamt[5];
+			ptr_pl[ii+2] = ptr_bl[ii+2] + ptr_lam[5] + ptr_lamt[5]*ptr_db[5] + ptr_dlam[5] - ptr_lam[4] - ptr_lamt[4]*ptr_db[4] - ptr_dlam[4];
+
+			ptr_tinv[6] = 1.0/ptr_t[6];
+			ptr_tinv[7] = 1.0/ptr_t[7];
+			ptr_lamt[6] = ptr_lam[6]*ptr_tinv[6];
+			ptr_lamt[7] = ptr_lam[7]*ptr_tinv[7];
+			ptr_dlam[6] = ptr_tinv[6]*sigma_mu; // !!!!!
+			ptr_dlam[7] = ptr_tinv[7]*sigma_mu; // !!!!!
+			ptr_pd[ii+3] = ptr_bd[ii+3] + ptr_lamt[6] + ptr_lamt[7];
+			ptr_pl[ii+3] = ptr_bl[ii+3] + ptr_lam[7] + ptr_lamt[7]*ptr_db[7] + ptr_dlam[7] - ptr_lam[6] - ptr_lamt[6]*ptr_db[6] - ptr_dlam[6];
+
+			ptr_t     += 8;
+			ptr_lam   += 8;
+			ptr_lamt  += 8;
+			ptr_dlam  += 8;
+			ptr_tinv  += 8;
+			ptr_db    += 8;
+
 			}
-		ii += 4;
+		if(ii<nh)
+			{
+			bs0 = nh-ii;
+			ll=0;
+			// cleanup hard constraints
+			for(; ll<bs0; ll++)
+				{
+				ptr_tinv[0] = 1.0/ptr_t[0];
+				ptr_tinv[1] = 1.0/ptr_t[1];
+				ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
+				ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
+				ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
+				ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
+				ptr_pd[ii+ll] = ptr_bd[ii+ll] + ptr_lamt[0] + ptr_lamt[1];
+				ptr_pl[ii+ll] = ptr_bl[ii+ll] + ptr_lam[1] + ptr_lamt[1]*ptr_db[1] + ptr_dlam[1] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
+
+				ptr_t     += 2;
+				ptr_lam   += 2;
+				ptr_lamt  += 2;
+				ptr_dlam  += 2;
+				ptr_tinv  += 2;
+				ptr_db    += 2;
+				}
+
+			// soft constraints on x
+			// pre clean-up loop
+			bs0 = nb-ii<4 ? nb-ii : 4 ;
+			for(; ll<bs0; ll++)
+				{
+				ptr_tinv[0] = 1.0/ptr_t[0];
+				ptr_tinv[1] = 1.0/ptr_t[1];
+				ptr_tinv[anb+0] = 1.0/ptr_t[anb+0];
+				ptr_tinv[anb+1] = 1.0/ptr_t[anb+1];
+				ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
+				ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
+				ptr_lamt[anb+0] = ptr_lam[anb+0]*ptr_tinv[anb+0];
+				ptr_lamt[anb+1] = ptr_lam[anb+1]*ptr_tinv[anb+1];
+				ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
+				ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
+				ptr_dlam[anb+0] = ptr_tinv[anb+0]*sigma_mu; // !!!!!
+				ptr_dlam[anb+1] = ptr_tinv[anb+1]*sigma_mu; // !!!!!
+				Qx[0] = ptr_lamt[0];
+				Qx[1] = ptr_lamt[1];
+				qx[0] = ptr_lam[0] + ptr_dlam[0] + ptr_lamt[0]*ptr_db[0];
+				qx[1] = ptr_lam[1] + ptr_dlam[1] + ptr_lamt[1]*ptr_db[1];
+				ptr_Zl[0] = 1.0 / (ptr_Z[0] + Qx[0] + ptr_lamt[anb+0]); // inverted of updated diagonal !!!
+				ptr_Zl[1] = 1.0 / (ptr_Z[1] + Qx[1] + ptr_lamt[anb+1]); // inverted of updated diagonal !!!
+				ptr_zl[0] = - ptr_z[0] + qx[0] + ptr_lam[anb+0] + ptr_dlam[anb+0];
+				ptr_zl[1] = - ptr_z[1] + qx[1] + ptr_lam[anb+1] + ptr_dlam[anb+1];
+				qx[0] = qx[0] - Qx[0]*ptr_zl[0]*ptr_Zl[0]; // update this before Qx !!!!!!!!!!!
+				qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
+				Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
+				Qx[1] = Qx[1] - Qx[1]*Qx[1]*ptr_Zl[1];
+				ptr_pd[ii+ll] = ptr_bd[ii+ll] + Qx[1] + Qx[0];
+				ptr_pl[ii+ll] = ptr_bl[ii+ll] + qx[1] - qx[0];
+
+				ptr_t     += 2;
+				ptr_lam   += 2;
+				ptr_lamt  += 2;
+				ptr_dlam  += 2;
+				ptr_tinv  += 2;
+				ptr_db    += 2;
+				ptr_Z     += 2;
+				ptr_z     += 2;
+				ptr_Zl    += 2;
+				ptr_zl    += 2;
+				}
+
+			ii += ll;
+			}
+
+		}
+	else // there are not hard state-constraints
+		{
+
+		if(ii<nu)
+			{
+			bs0 = nb-ii<4 ? nb-ii : 4 ;
+			ll = nu-ii; //k0%4;
+			for(; ll<bs0; ll++)
+				{
+				ptr_tinv[0] = 1.0/ptr_t[0];
+				ptr_tinv[1] = 1.0/ptr_t[1];
+				ptr_tinv[anb+0] = 1.0/ptr_t[anb+0];
+				ptr_tinv[anb+1] = 1.0/ptr_t[anb+1];
+				ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
+				ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
+				ptr_lamt[anb+0] = ptr_lam[anb+0]*ptr_tinv[anb+0];
+				ptr_lamt[anb+1] = ptr_lam[anb+1]*ptr_tinv[anb+1];
+				ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
+				ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
+				ptr_dlam[anb+0] = ptr_tinv[anb+0]*sigma_mu; // !!!!!
+				ptr_dlam[anb+1] = ptr_tinv[anb+1]*sigma_mu; // !!!!!
+				Qx[0] = ptr_lamt[0];
+				Qx[1] = ptr_lamt[1];
+				qx[0] = ptr_lam[0] + ptr_dlam[0] + ptr_lamt[0]*ptr_db[0];
+				qx[1] = ptr_lam[1] + ptr_dlam[1] + ptr_lamt[1]*ptr_db[1];
+				ptr_Zl[0] = 1.0 / (ptr_Z[0] + Qx[0] + ptr_lamt[anb+0]); // inverted of updated diagonal !!!
+				ptr_Zl[1] = 1.0 / (ptr_Z[1] + Qx[1] + ptr_lamt[anb+1]); // inverted of updated diagonal !!!
+				ptr_zl[0] = - ptr_z[0] + qx[0] + ptr_lam[anb+0] + ptr_dlam[anb+0];
+				ptr_zl[1] = - ptr_z[1] + qx[1] + ptr_lam[anb+1] + ptr_dlam[anb+1];
+				qx[0] = qx[0] - Qx[0]*ptr_zl[0]*ptr_Zl[0]; // update this before Qx !!!!!!!!!!!
+				qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
+				Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
+				Qx[1] = Qx[1] - Qx[1]*Qx[1]*ptr_Zl[1];
+				ptr_pd[ii+ll] = ptr_bd[ii+ll] + Qx[1] + Qx[0];
+				ptr_pl[ii+ll] = ptr_bl[ii+ll] + qx[1] - qx[0];
+
+				ptr_t     += 2;
+				ptr_lam   += 2;
+				ptr_lamt  += 2;
+				ptr_dlam  += 2;
+				ptr_tinv  += 2;
+				ptr_db    += 2;
+				ptr_Z     += 2;
+				ptr_z     += 2;
+				ptr_Zl    += 2;
+				ptr_zl    += 2;
+				}
+			ii += 4;
+			}
+
 		}
 
+	// soft constraints main loop
 	for(; ii<nb-3; ii+=4)
 		{
 		ptr_tinv[0] = 1.0/ptr_t[0];
@@ -1546,11 +1705,12 @@ void d_update_jacobian_box_mpc(int N, int nx, int nu, int nb, double sigma_mu, d
 
 
 
-void d_update_jacobian_soft_mpc(int N, int nx, int nu, int nb, double sigma_mu, double **dt, double **dlam, double **t_inv, double **lamt, double **pl2, double **Zl, double **zl)
+void d_update_jacobian_soft_mpc(int N, int nx, int nu, int nh, int ns, double sigma_mu, double **dt, double **dlam, double **t_inv, double **lamt, double **pl2, double **Zl, double **zl)
 	{
 
-	const int nbu = nu<nb ? nu : nb ;
-	const int nbx = nb-nu>0 ? nb-nu : 0 ;
+	int nb = nh + ns;
+
+	int nhu = nu<nh ? nu : nh ;
 
 	// constants
 	const int bs = 4; //D_MR;
@@ -1566,7 +1726,8 @@ void d_update_jacobian_soft_mpc(int N, int nx, int nu, int nb, double sigma_mu, 
 
 
 	// first stage
-	for(ii=0; ii<2*nbu; ii+=2)
+	jj = 0;
+	for(ii=0; ii<2*nhu; ii+=2)
 		{
 		dlam[0][ii+0] = t_inv[0][ii+0]*(sigma_mu - dlam[0][ii+0]*dt[0][ii+0]); // !!!!!
 		dlam[0][ii+1] = t_inv[0][ii+1]*(sigma_mu - dlam[0][ii+1]*dt[0][ii+1]); // !!!!!
@@ -1577,7 +1738,7 @@ void d_update_jacobian_soft_mpc(int N, int nx, int nu, int nb, double sigma_mu, 
 	for(jj=1; jj<N; jj++)
 		{
 		ii=0;
-		for(; ii<2*nbu; ii+=2)
+		for(; ii<2*nh; ii+=2)
 			{
 			dlam[jj][ii+0] = t_inv[jj][ii+0]*(sigma_mu - dlam[jj][ii+0]*dt[jj][ii+0]); // !!!!!
 			dlam[jj][ii+1] = t_inv[jj][ii+1]*(sigma_mu - dlam[jj][ii+1]*dt[jj][ii+1]); // !!!!!
@@ -1608,7 +1769,15 @@ void d_update_jacobian_soft_mpc(int N, int nx, int nu, int nb, double sigma_mu, 
 		}
 
 	// last stages
-	for(ii=2*nu; ii<2*nb; ii+=2)
+	jj = N;
+	ii=2*nu;
+	for(; ii<2*nh; ii+=2)
+		{
+		dlam[jj][ii+0] = t_inv[jj][ii+0]*(sigma_mu - dlam[jj][ii+0]*dt[jj][ii+0]); // !!!!!
+		dlam[jj][ii+1] = t_inv[jj][ii+1]*(sigma_mu - dlam[jj][ii+1]*dt[jj][ii+1]); // !!!!!
+		pl2[jj][ii/2] += dlam[jj][ii+1] - dlam[jj][ii+0];
+		}
+	for(; ii<2*nb; ii+=2)
 		{
 		dlam[N][ii+0] = t_inv[N][ii+0]*(sigma_mu - dlam[N][ii+0]*dt[N][ii+0]); // !!!!!
 		dlam[N][ii+1] = t_inv[N][ii+1]*(sigma_mu - dlam[N][ii+1]*dt[N][ii+1]); // !!!!!
@@ -1747,13 +1916,14 @@ void d_compute_alpha_box_mpc(int N, int nx, int nu, int nb, double *ptr_alpha, d
 
 
 
-void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nb, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db, double **Zl, double **zl)
+void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db, double **Zl, double **zl)
 	{
 	
 /*	const int bs = 4; //d_get_mr();*/
 
-	const int nbu = nu<nb ? nu : nb ;
-	const int nbx = nb-nu>0 ? nb-nu : 0 ;
+	int nb = nh + ns;
+
+	int nhu = nu<nh ? nu : nh ;
 
 	// constants
 	const int bs = 4; //D_MR;
@@ -1774,7 +1944,7 @@ void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nb, double *ptr_alpha, 
 
 	ll = 0;
 	// hard input constraints
-	for(; ll<nbu; ll++)
+	for(; ll<nhu; ll++)
 		{
 
 		dt[0][2*ll+0] =   dux[0][ll] - db[0][2*ll+0] - t[0][2*ll+0];
@@ -1805,8 +1975,8 @@ void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nb, double *ptr_alpha, 
 		{
 
 		ll = 0;
-		// hard input constraints
-		for(; ll<nbu; ll++)
+		// hard input and state constraints
+		for(; ll<nh; ll++)
 			{
 
 			dt[jj][2*ll+0] =   dux[jj][ll] - db[jj][2*ll+0] - t[jj][2*ll+0];
@@ -1883,7 +2053,35 @@ void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nb, double *ptr_alpha, 
 		}		
 
 	// last stage
+	jj = N;
 	ll = nu;
+	// hard state constraints
+	for(; ll<nh; ll++)
+		{
+
+		dt[jj][2*ll+0] =   dux[jj][ll] - db[jj][2*ll+0] - t[jj][2*ll+0];
+		dt[jj][2*ll+1] = - dux[jj][ll] - db[jj][2*ll+1] - t[jj][2*ll+1];
+		dlam[jj][2*ll+0] -= lamt[jj][2*ll+0] * dt[jj][2*ll+0] + lam[jj][2*ll+0];
+		dlam[jj][2*ll+1] -= lamt[jj][2*ll+1] * dt[jj][2*ll+1] + lam[jj][2*ll+1];
+		if( -alpha*dlam[jj][2*ll+0]>lam[jj][2*ll+0] )
+			{
+			alpha = - lam[jj][2*ll+0] / dlam[jj][2*ll+0];
+			}
+		if( -alpha*dlam[jj][2*ll+1]>lam[jj][2*ll+1] )
+			{
+			alpha = - lam[jj][2*ll+1] / dlam[jj][2*ll+1];
+			}
+		if( -alpha*dt[jj][2*ll+0]>t[jj][2*ll+0] )
+			{
+			alpha = - t[jj][2*ll+0] / dt[jj][2*ll+0];
+			}
+		if( -alpha*dt[jj][2*ll+1]>t[jj][2*ll+1] )
+			{
+			alpha = - t[jj][2*ll+1] / dt[jj][2*ll+1];
+			}
+
+		}
+	// soft state constraints
 	for(; ll<nb; ll++)
 		{
 
@@ -2010,11 +2208,12 @@ void d_update_var_box_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double 
 
 
 
-void d_update_var_soft_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
+void d_update_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
 	{
 
-	const int nbu = nu<nb ? nu : nb ;
-	const int nbx = nb-nu>0 ? nb-nu : 0 ;
+	int nb = nh + ns;
+
+	int nhu = nu<nh ? nu : nh ;
 
 	// constants
 	const int bs = 4; //D_MR;
@@ -2027,11 +2226,12 @@ void d_update_var_soft_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double
 	
 	double mu = 0;
 
+	// initial stage
 	// update inputs
 	for(ll=0; ll<nu; ll++)
 		ux[0][ll] += alpha*(dux[0][ll] - ux[0][ll]);
 	// box constraints on inputs
-	for(ll=0; ll<2*nbu; ll+=2)
+	for(ll=0; ll<2*nhu; ll+=2)
 		{
 		lam[0][ll+0] += alpha*dlam[0][ll+0];
 		lam[0][ll+1] += alpha*dlam[0][ll+1];
@@ -2040,6 +2240,7 @@ void d_update_var_soft_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double
 		mu += lam[0][ll+0] * t[0][ll+0] + lam[0][ll+1] * t[0][ll+1];
 		}
 
+	// middle stages
 	for(jj=1; jj<N; jj++)
 		{
 		// update inputs
@@ -2051,9 +2252,9 @@ void d_update_var_soft_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double
 		// update equality constrained multipliers
 		for(ll=0; ll<nx; ll++)
 			pi[jj][ll] += alpha*(dpi[jj][ll] - pi[jj][ll]);
-		// box constraints on inputs
+		// box constraints on inputs and states
 		ll = 0;
-		for(; ll<2*nbu; ll+=2)
+		for(; ll<2*nh; ll+=2)
 			{
 			lam[jj][ll+0] += alpha*dlam[jj][ll+0];
 			lam[jj][ll+1] += alpha*dlam[jj][ll+1];
@@ -2076,14 +2277,25 @@ void d_update_var_soft_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double
 			}
 		}
 
+	// final stage
 	// update states
 	for(ll=0; ll<nx; ll++)
 		ux[N][nu+ll] += alpha*(dux[N][nu+ll] - ux[N][nu+ll]);
 	// update equality constrained multipliers
 	for(ll=0; ll<nx; ll++)
 		pi[N][ll] += alpha*(dpi[N][ll] - pi[N][ll]);
+	ll=2*nu;
+	// box constraints on states
+	for(; ll<2*nh; ll+=2)
+		{
+		lam[jj][ll+0] += alpha*dlam[jj][ll+0];
+		lam[jj][ll+1] += alpha*dlam[jj][ll+1];
+		t[jj][ll+0] += alpha*dt[jj][ll+0];
+		t[jj][ll+1] += alpha*dt[jj][ll+1];
+		mu += lam[jj][ll+0] * t[jj][ll+0] + lam[jj][ll+1] * t[jj][ll+1];
+		}
 	// soft constraints on states
-	for(ll=2*nu; ll<2*nb; ll+=2)
+	for(; ll<2*nb; ll+=2)
 		{
 		lam[N][ll+0] += alpha*dlam[N][ll+0];
 		lam[N][ll+1] += alpha*dlam[N][ll+1];
@@ -2137,11 +2349,12 @@ void d_compute_mu_box_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double 
 
 
 
-void d_compute_mu_soft_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
+void d_compute_mu_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
 	{
+
+	int nb = nh + ns;
 	
-	const int nbu = nu<nb ? nu : nb ;
-	const int nbx = nb-nu>0 ? nb-nu : 0 ;
+	int nhu = nu<nh ? nu : nh ;
 
 	// constants
 	const int bs = D_MR;
@@ -2155,7 +2368,7 @@ void d_compute_mu_soft_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double
 	double mu = 0;
 	
 	// fist stage: bounds on u only
-	for(ll=0; ll<2*nbu; ll+=2)
+	for(ll=0; ll<2*nhu; ll+=2)
 		{
 		mu += (lam[0][ll+0] + alpha*dlam[0][ll+0]) * (t[0][ll+0] + alpha*dt[0][ll+0]) + (lam[0][ll+1] + alpha*dlam[0][ll+1]) * (t[0][ll+1] + alpha*dt[0][ll+1]);
 		}
@@ -2165,14 +2378,14 @@ void d_compute_mu_soft_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double
 		{
 		for(ll=0; ll<2*nb; ll+=2)
 			mu += (lam[jj][ll+0] + alpha*dlam[jj][ll+0]) * (t[jj][ll+0] + alpha*dt[jj][ll+0]) + (lam[jj][ll+1] + alpha*dlam[jj][ll+1]) * (t[jj][ll+1] + alpha*dt[jj][ll+1]);
-		for(ll=anb+2*nu; ll<anb+2*nb; ll+=2)
+		for(ll=anb+2*nh; ll<anb+2*nb; ll+=2)
 			mu += (lam[jj][ll+0] + alpha*dlam[jj][ll+0]) * (t[jj][ll+0] + alpha*dt[jj][ll+0]) + (lam[jj][ll+1] + alpha*dlam[jj][ll+1]) * (t[jj][ll+1] + alpha*dt[jj][ll+1]);
 		}	
 
 	// last stage: bounds on x only
 	for(ll=2*nu; ll<2*nb; ll+=2)
 		mu += (lam[N][ll+0] + alpha*dlam[N][ll+0]) * (t[N][ll+0] + alpha*dt[N][ll+0]) + (lam[N][ll+1] + alpha*dlam[N][ll+1]) * (t[N][ll+1] + alpha*dt[N][ll+1]);
-	for(ll=anb+2*nu; ll<anb+2*nb; ll+=2)
+	for(ll=anb+2*nh; ll<anb+2*nb; ll+=2)
 		mu += (lam[N][ll+0] + alpha*dlam[N][ll+0]) * (t[N][ll+0] + alpha*dt[N][ll+0]) + (lam[N][ll+1] + alpha*dlam[N][ll+1]) * (t[N][ll+1] + alpha*dt[N][ll+1]);
 
 	mu *= mu_scal;

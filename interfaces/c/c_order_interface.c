@@ -819,9 +819,9 @@ int c_order_ip_soft_mpc( int k_max, double mu_tol, char prec,
 
         // call the IP solver
 	    if(IP==1)
-	        hpmpc_status = d_ip_soft_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
+	        hpmpc_status = d_ip_soft_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nu, nb-nu, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
 	    else
-	        hpmpc_status = d_ip2_soft_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
+	        hpmpc_status = d_ip2_soft_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nu, nb-nu, hpBAbt, hpQ, hZ, hz, hdb, hux, compute_mult, hpi, hlam, ht, work);
 
 /*printf("\nend of ip solver\n");*/
 
