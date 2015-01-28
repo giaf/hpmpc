@@ -607,6 +607,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			ptr_tinv  += 2;
 			ptr_db    += 2;
 			}
+		ii += ll;
 		}
 	for( ; ii<nu; ii++)
 		{
@@ -698,6 +699,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 				ptr_tinv  += 2;
 				ptr_db    += 2;
 				}
+			ii += ll;
 			}
 		for( ; ii<nu+nx; ii++)
 			{
@@ -814,6 +816,7 @@ void d_update_hessian_box_mpc(int N, int nx, int nu, int nb, int cnz, double sig
 			ptr_tinv  += 2;
 			ptr_db    += 2;
 			}
+		ii += ll;
 		}
 	for( ; ii<nu+nx; ii++)
 		{
@@ -944,6 +947,7 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 			ptr_tinv  += 2;
 			ptr_db    += 2;
 			}
+		ii += ll;
 		}
 	for( ; ii<nu; ii++)
 		{
@@ -1263,6 +1267,7 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 				ptr_Zl    += 2;
 				ptr_zl    += 2;
 				}
+			ii += ll;
 			}
 		for( ; ii<nu+nx; ii++)
 			{
@@ -1655,6 +1660,7 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 			ptr_Zl    += 2;
 			ptr_zl    += 2;
 			}
+		ii += ll;
 		}
 	for( ; ii<nu+nx; ii++)
 		{
