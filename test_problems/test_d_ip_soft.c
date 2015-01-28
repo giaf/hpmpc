@@ -158,8 +158,8 @@ int main()
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
 //	int nb = NB; // number of box constrained inputs and states
-	int nh = nu+nx; // number of hard box constraints
-	int ns = 0;//nx/2;//nx; // number of soft box constraints
+	int nh = nu+nx/2; // number of hard box constraints
+	int ns = nx/2;//nx; // number of soft box constraints
 	int nb = nh + ns;
 
 	int nhu = nu<nh ? nu : nh ;
@@ -269,7 +269,7 @@ int main()
 
 	double *Q; d_zeros_align(&Q, pnz, pnz);
 	for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
-	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
+	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 0.0;
 	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 0.0;
 /*	Q[(nx+nu)*(pnz+1)] = 1e35; // large enough (not needed any longer) */
 	
