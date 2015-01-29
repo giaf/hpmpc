@@ -268,7 +268,7 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 
 		// update Jacobian
-		d_update_jacobian_soft_mpc(N, nx, nu, nh, ns, sigma*mu, dt, dlam, t_inv, lamt, pl, Zl, zl);
+		d_update_gradient_soft_mpc(N, nx, nu, nh, ns, sigma*mu, dt, dlam, t_inv, lamt, pl, Zl, zl);
 
 
 

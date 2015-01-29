@@ -249,7 +249,7 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 
 
-		d_update_jacobian_box_mpc(N, nx, nu, nb, sigma*mu, dt, dlam, t_inv, pl);
+		d_update_gradient_box_mpc(N, nx, nu, nb, sigma*mu, dt, dlam, t_inv, pl);
 
 #if 0
 		// first stage

@@ -1441,7 +1441,7 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 
 
 
-void d_update_jacobian_box_mpc(int N, int nx, int nu, int nb, double sigma_mu, double **dt, double **dlam, double **t_inv, double **pl2)
+void d_update_gradient_box_mpc(int N, int nx, int nu, int nb, double sigma_mu, double **dt, double **dlam, double **t_inv, double **pl2)
 	{
 
 	const int nbu = nu<nb ? nu : nb ;
@@ -1479,7 +1479,7 @@ void d_update_jacobian_box_mpc(int N, int nx, int nu, int nb, double sigma_mu, d
 
 
 
-void d_update_jacobian_soft_mpc(int N, int nx, int nu, int nh, int ns, double sigma_mu, double **dt, double **dlam, double **t_inv, double **lamt, double **pl2, double **Zl, double **zl)
+void d_update_gradient_soft_mpc(int N, int nx, int nu, int nh, int ns, double sigma_mu, double **dt, double **dlam, double **t_inv, double **lamt, double **pl2, double **Zl, double **zl)
 	{
 
 	int nb = nh + ns;
