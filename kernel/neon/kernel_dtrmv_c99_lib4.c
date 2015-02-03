@@ -739,12 +739,14 @@ void kernel_dtrmv_u_t_1_lib4(int kmax, double *A, int sda, double *x, double *y,
 	
 	
 	
-void kernel_dtrmv_u_n_8_lib4(int kmax, double *A0, double *A1, double *x, double *y, int alg)
+void kernel_dtrmv_u_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y, int alg)
 	{
-
+	
 	if(kmax<=0) 
 		return;
 	
+	double *A1 = A0 + 4*sda;
+
 	__builtin_prefetch( A0 );
 	__builtin_prefetch( A1 );
 #if defined(TARGET_CORTEX_A9)

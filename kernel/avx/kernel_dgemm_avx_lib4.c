@@ -33,11 +33,15 @@
 
 
 // normal-transposed, 8x4 with data packed in 4
-void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, int alg)
+void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
+	
+	double *A1 = A0 + 4*sda;
+	double *C1 = C0 + 4*sdc;
+	double *D1 = D0 + 4*sdd;
 	
 	const int ldc = 4;
 	
@@ -345,11 +349,15 @@ void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, double *A1, double *B, doubl
 
 
 // normal-transposed, 8x4 with data packed in 4
-void kernel_dgemm_nt_m8x4_lib4(int m, int kmax, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, int alg)
+void kernel_dgemm_nt_m8x4_lib4(int m, int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
+	
+	double *A1 = A0 + 4*sda;
+	double *C1 = C0 + 4*sdc;
+	double *D1 = D0 + 4*sdd;
 	
 	const int ldc = 4;
 	
@@ -729,11 +737,15 @@ void kernel_dgemm_nt_m8x4_lib4(int m, int kmax, double *A0, double *A1, double *
 
 
 // normal-transposed, 8x2 with data packed in 4
-void kernel_dgemm_nt_8x2_lib4(int kmax, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, int alg)
+void kernel_dgemm_nt_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
+	
+	double *A1 = A0 + 4*sda;
+	double *C1 = C0 + 4*sdc;
+	double *D1 = D0 + 4*sdd;
 	
 	const int ldc = 4;
 
@@ -932,11 +944,15 @@ void kernel_dgemm_nt_8x2_lib4(int kmax, double *A0, double *A1, double *B, doubl
 
 
 // normal-transposed, 8x2 with data packed in 4
-void kernel_dgemm_nt_m8x2_lib4(int m, int kmax, double *A0, double *A1, double *B, double *C0, double *C1, double *D0, double *D1, int alg)
+void kernel_dgemm_nt_m8x2_lib4(int m, int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
 	
 	if(kmax<=0)
 		return;
+	
+	double *A1 = A0 + 4*sda;
+	double *C1 = C0 + 4*sdc;
+	double *D1 = D0 + 4*sdd;
 	
 	const int ldc = 4;
 
