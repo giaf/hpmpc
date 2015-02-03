@@ -43,17 +43,17 @@
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
+void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
 	{
 	
 	int ki_add = kadd/4;
 	int kl_add = kadd%4;
 	int ki_sub = ksub/4;
 
-	const int bs = D_MR;//4;
-	const int d_ncl = D_NCL;//2;
+//	const int bs = D_MR;//4;
+//	const int d_ncl = D_NCL;//2;
 
-	long long dA = bs*((d_ncl-kadd%d_ncl)%d_ncl)*sizeof(double);
+//	long long dA = bs*((d_ncl-kadd%d_ncl)%d_ncl)*sizeof(double);
 
 	__asm__ volatile
 	(
@@ -63,12 +63,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, dou
 		"movq          %4, %%rbx         \n\t" // load address of B
 		"                                \n\t"
 		"                                \n\t"
-		"movaps        0(%%rax), %%xmm0  \n\t" // initialize loop by pre-loading elements
-		"movaps       16(%%rax), %%xmm1  \n\t" // of a and b.
-		"movaps        0(%%rbx), %%xmm2  \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"xorpd     %%xmm3,  %%xmm3       \n\t"
+		"xorpd     %%xmm3,  %%xmm3       \n\t" // zero registers
 		"movaps    %%xmm3,  %%xmm4       \n\t"
 		"movaps    %%xmm3,  %%xmm5       \n\t"
 		"movaps    %%xmm3,  %%xmm6       \n\t"
@@ -83,8 +78,17 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, dou
 		"movaps    %%xmm3, %%xmm15       \n\t"
 		"                                \n\t"
 		"                                \n\t"
+		"movl      %0, %%esi             \n\t"
+		"movl      %0, %%ecx             \n\t"
+		"addl      %%esi, %%ecx          \n\t"
+		"testl  %%ecx, %%ecx             \n\t" 
+		"je     .DCONSIDERSUB            \n\t" // kadd = 0
 		"                                \n\t"
-		"movl      %0, %%esi             \n\t" // i = k_iter;
+		"movaps        0(%%rax), %%xmm0  \n\t" // initialize loop by pre-loading elements
+		"movaps       16(%%rax), %%xmm1  \n\t" // of a and b.
+		"movaps        0(%%rbx), %%xmm2  \n\t"
+		"                                \n\t"
+//		"movl      %0, %%esi             \n\t" // i = k_iter;
 		"testl  %%esi, %%esi             \n\t" // check i via logical AND.
 		"je     .DCONSIDERADD            \n\t" // if i == 0, jump to code that
 		"                                \n\t" // contains the k_left loop.
@@ -289,23 +293,28 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, dou
 		"movaps    %%xmm3,  %%xmm6       \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"movl   %2, %%ecx                \n\t"
-		"cmpl	$0, %%ecx                \n\t"
-		"jle    .DPOSTACC                \n\t"
+//		"movl   %2, %%ecx                \n\t"
+//		"cmpl	$0, %%ecx                \n\t"
+//		"jle    .DPOSTACC                \n\t"
+		"movl   %2, %%esi                \n\t"
+		"testl  %%esi, %%esi             \n\t" // check i via logical AND.
+		"je     .DPOSTACC                \n\t"
 		"                                \n\t"
-		"movq   %8, %%rcx                \n\t"
-		"cmpq	$0, %%rcx                \n\t"
-		"jle    .DPRELOOPSUB             \n\t"
+//		"movq   %8, %%rcx                \n\t"
+//		"cmpq	$0, %%rcx                \n\t"
+//		"jle    .DPRELOOPSUB             \n\t"
 		"                                \n\t"
-		"movl   %0, %%ecx                \n\t"
-		"movl   %1, %%edx                \n\t"
-		"addl   %%edx, %%ecx              \n\t"
-		"cmpl	$0, %%ecx                \n\t"
-		"jle    .DPRELOOPSUB             \n\t"
+//		"movl   %0, %%ecx                \n\t"
+//		"movl   %1, %%edx                \n\t"
+//		"addl   %%edx, %%ecx              \n\t"
+//		"cmpl	$0, %%ecx                \n\t"
+//		"jle    .DPRELOOPSUB             \n\t"
 		"                                \n\t"
-		"movq   %8, %%rcx                \n\t"
-		"addq   %%rcx, %%rax             \n\t" 
-		"addq   %%rcx, %%rbx             \n\t" 
+//		"movq   %8, %%rcx                \n\t"
+//		"addq   %%rcx, %%rax             \n\t" 
+//		"addq   %%rcx, %%rbx             \n\t" 
+		"movq   %9,  %%rax               \n\t"
+		"movq   %10, %%rbx               \n\t"
 		"                                \n\t"
 		"movaps        0(%%rax), %%xmm0  \n\t" // initialize loop by pre-loading elements
 		"movaps       16(%%rax), %%xmm1  \n\t" // of a and b.
@@ -313,9 +322,9 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, dou
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		".DPRELOOPSUB:                   \n\t" // 
+//		".DPRELOOPSUB:                   \n\t" // 
 		"                                \n\t"
-		"movl   %2, %%esi                \n\t"
+//		"movl   %2, %%esi                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DLOOPSUB:                      \n\t" // main loop 2
@@ -481,7 +490,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, dou
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"movl      %9, %%esi             \n\t" // alg
+		"movl      %8, %%esi             \n\t" // alg
 		"testl  %%esi, %%esi             \n\t" // check alg via logical AND.
 		"je     .DSOLVE                  \n\t" // if alg != 0, jump 
 		"                                \n\t"
@@ -659,13 +668,15 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, dou
 		  "m" (ki_add),		// %0
 		  "m" (kl_add),		// %1
 		  "m" (ki_sub),		// %2
-		  "m" (A),			// %3
-		  "m" (B),			// %4
+		  "m" (Ap),			// %3
+		  "m" (Bp),			// %4
 		  "m" (C),			// %5
 		  "m" (D),			// %6
 		  "m" (fact),		// %7
-		  "m" (dA),			// %8
-		  "m" (alg)			// %9
+//		  "m" (dA),			// %8
+		  "m" (alg),		// %8
+		  "m" (Am),			// %9
+		  "m" (Bm)			// %10
 		: // register clobber list
 		  "rax", "rbx", "rcx", "rdx", "rsi", //"rdx", //"rdi", "r8", "r9", "r10", "r11",
 		  "xmm0", "xmm1", "xmm2", "xmm3",
@@ -678,7 +689,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, dou
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
+void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -710,19 +721,19 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 				{
 			
 				// k = 0
-				a_0 = A[0+bs*0];
+				a_0 = Ap[0+bs*0];
 				
-				b_0 = B[0+bs*0];
+				b_0 = Bp[0+bs*0];
 					
 				c_00 += a_0 * b_0;
 
 
 				// k = 1
-				a_0 = A[0+bs*1];
-				a_1 = A[1+bs*1];
+				a_0 = Ap[0+bs*1];
+				a_1 = Ap[1+bs*1];
 					
-				b_0 = B[0+bs*1];
-				b_1 = B[1+bs*1];
+				b_0 = Bp[0+bs*1];
+				b_1 = Bp[1+bs*1];
 					
 				c_00 += a_0 * b_0;
 				c_10 += a_1 * b_0;
@@ -731,12 +742,12 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 
 
 				// k = 2
-				a_0 = A[0+bs*2];
-				a_1 = A[1+bs*2];
-				a_2 = A[2+bs*2];
+				a_0 = Ap[0+bs*2];
+				a_1 = Ap[1+bs*2];
+				a_2 = Ap[2+bs*2];
 					
-				b_0 = B[0+bs*2];
-				b_1 = B[1+bs*2];
+				b_0 = Bp[0+bs*2];
+				b_1 = Bp[1+bs*2];
 					
 				c_00 += a_0 * b_0;
 				c_10 += a_1 * b_0;
@@ -747,13 +758,13 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 
 
 				// k = 3
-				a_0 = A[0+bs*3];
-				a_1 = A[1+bs*3];
-				a_2 = A[2+bs*3];
-				a_3 = A[3+bs*3];
+				a_0 = Ap[0+bs*3];
+				a_1 = Ap[1+bs*3];
+				a_2 = Ap[2+bs*3];
+				a_3 = Ap[3+bs*3];
 					
-				b_0 = B[0+bs*3];
-				b_1 = B[1+bs*3];
+				b_0 = Bp[0+bs*3];
+				b_1 = Bp[1+bs*3];
 					
 				c_00 += a_0 * b_0;
 				c_10 += a_1 * b_0;
@@ -764,18 +775,18 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 				c_21 += a_2 * b_1;
 				c_31 += a_3 * b_1;
 
-				A += 16;
-				B += 16;
-				k += 4;
+				Ap += 16;
+				Bp += 16;
+				k  += 4;
 
 				}
 			else
 				{
 
 				// k = 0
-				a_0 = A[0+bs*0];
+				a_0 = Ap[0+bs*0];
 				
-				b_0 = B[0+bs*0];
+				b_0 = Bp[0+bs*0];
 					
 				c_00 += a_0 * b_0;
 
@@ -783,11 +794,11 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 					{
 
 					// k = 1
-					a_0 = A[0+bs*1];
-					a_1 = A[1+bs*1];
+					a_0 = Ap[0+bs*1];
+					a_1 = Ap[1+bs*1];
 						
-					b_0 = B[0+bs*1];
-					b_1 = B[1+bs*1];
+					b_0 = Bp[0+bs*1];
+					b_1 = Bp[1+bs*1];
 						
 					c_00 += a_0 * b_0;
 					c_10 += a_1 * b_0;
@@ -798,12 +809,12 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 						{
 
 						// k = 2
-						a_0 = A[0+bs*2];
-						a_1 = A[1+bs*2];
-						a_2 = A[2+bs*2];
+						a_0 = Ap[0+bs*2];
+						a_1 = Ap[1+bs*2];
+						a_2 = Ap[2+bs*2];
 							
-						b_0 = B[0+bs*2];
-						b_1 = B[1+bs*2];
+						b_0 = Bp[0+bs*2];
+						b_1 = Bp[1+bs*2];
 							
 						c_00 += a_0 * b_0;
 						c_10 += a_1 * b_0;
@@ -812,21 +823,21 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 						c_11 += a_1 * b_1;
 						c_21 += a_2 * b_1;
 
-						A += 4;
-						B += 4;
-						k += 1;
+						Ap += 4;
+						Bp += 4;
+						k  += 1;
 
 						}
 
-					A += 4;
-					B += 4;
-					k += 1;
+					Ap += 4;
+					Bp += 4;
+					k  += 1;
 
 					}
 
-				A += 4;
-				B += 4;
-				k += 1;
+				Ap += 4;
+				Bp += 4;
+				k  += 1;
 
 				}
 
@@ -835,31 +846,13 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 		for(; k<kadd-3; k+=4)
 			{
 			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
-			a_2 = A[2+bs*0];
-			a_3 = A[3+bs*0];
+			a_0 = Ap[0+bs*0];
+			a_1 = Ap[1+bs*0];
+			a_2 = Ap[2+bs*0];
+			a_3 = Ap[3+bs*0];
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			
-			c_00 += a_0 * b_0;
-			c_10 += a_1 * b_0;
-			c_20 += a_2 * b_0;
-			c_30 += a_3 * b_0;
-
-			c_11 += a_1 * b_1;
-			c_21 += a_2 * b_1;
-			c_31 += a_3 * b_1;
-
-
-			a_0 = A[0+bs*1];
-			a_1 = A[1+bs*1];
-			a_2 = A[2+bs*1];
-			a_3 = A[3+bs*1];
-			
-			b_0 = B[0+bs*1];
-			b_1 = B[1+bs*1];
+			b_0 = Bp[0+bs*0];
+			b_1 = Bp[1+bs*0];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -871,13 +864,31 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 			c_31 += a_3 * b_1;
 
 
-			a_0 = A[0+bs*2];
-			a_1 = A[1+bs*2];
-			a_2 = A[2+bs*2];
-			a_3 = A[3+bs*2];
+			a_0 = Ap[0+bs*1];
+			a_1 = Ap[1+bs*1];
+			a_2 = Ap[2+bs*1];
+			a_3 = Ap[3+bs*1];
 			
-			b_0 = B[0+bs*2];
-			b_1 = B[1+bs*2];
+			b_0 = Bp[0+bs*1];
+			b_1 = Bp[1+bs*1];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+			c_20 += a_2 * b_0;
+			c_30 += a_3 * b_0;
+
+			c_11 += a_1 * b_1;
+			c_21 += a_2 * b_1;
+			c_31 += a_3 * b_1;
+
+
+			a_0 = Ap[0+bs*2];
+			a_1 = Ap[1+bs*2];
+			a_2 = Ap[2+bs*2];
+			a_3 = Ap[3+bs*2];
+			
+			b_0 = Bp[0+bs*2];
+			b_1 = Bp[1+bs*2];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -889,13 +900,13 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 			c_31 += a_3 * b_1;
 
 
-			a_0 = A[0+bs*3];
-			a_1 = A[1+bs*3];
-			a_2 = A[2+bs*3];
-			a_3 = A[3+bs*3];
+			a_0 = Ap[0+bs*3];
+			a_1 = Ap[1+bs*3];
+			a_2 = Ap[2+bs*3];
+			a_3 = Ap[3+bs*3];
 			
-			b_0 = B[0+bs*3];
-			b_1 = B[1+bs*3];
+			b_0 = Bp[0+bs*3];
+			b_1 = Bp[1+bs*3];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -907,20 +918,20 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 			c_31 += a_3 * b_1;
 			
 			
-			A += 16;
-			B += 16;
+			Ap += 16;
+			Bp += 16;
 
 			}
 		for(; k<kadd; k++)
 			{
 			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
-			a_2 = A[2+bs*0];
-			a_3 = A[3+bs*0];
+			a_0 = Ap[0+bs*0];
+			a_1 = Ap[1+bs*0];
+			a_2 = Ap[2+bs*0];
+			a_3 = Ap[3+bs*0];
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
+			b_0 = Bp[0+bs*0];
+			b_1 = Bp[1+bs*0];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -932,15 +943,9 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 			c_31 += a_3 * b_1;
 
 
-			A += 4;
-			B += 4;
+			Ap += 4;
+			Bp += 4;
 
-			}
-
-		if(ksub>0)
-			{
-			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			}
 
 		}
@@ -948,31 +953,13 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 	for(k=0; k<ksub-3; k+=4)
 		{
 		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		a_2 = A[2+lda*0];
-		a_3 = A[3+lda*0];
+		a_0 = Am[0+lda*0];
+		a_1 = Am[1+lda*0];
+		a_2 = Am[2+lda*0];
+		a_3 = Am[3+lda*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		
-		c_00 -= a_0 * b_0;
-		c_10 -= a_1 * b_0;
-		c_20 -= a_2 * b_0;
-		c_30 -= a_3 * b_0;
-
-		c_11 -= a_1 * b_1;
-		c_21 -= a_2 * b_1;
-		c_31 -= a_3 * b_1;
-
-
-		a_0 = A[0+lda*1];
-		a_1 = A[1+lda*1];
-		a_2 = A[2+lda*1];
-		a_3 = A[3+lda*1];
-		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
+		b_0 = Bm[0+lda*0];
+		b_1 = Bm[1+lda*0];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -984,13 +971,31 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 		c_31 -= a_3 * b_1;
 
 
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
-		a_2 = A[2+lda*2];
-		a_3 = A[3+lda*2];
+		a_0 = Am[0+lda*1];
+		a_1 = Am[1+lda*1];
+		a_2 = Am[2+lda*1];
+		a_3 = Am[3+lda*1];
 		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
+		b_0 = Bm[0+lda*1];
+		b_1 = Bm[1+lda*1];
+		
+		c_00 -= a_0 * b_0;
+		c_10 -= a_1 * b_0;
+		c_20 -= a_2 * b_0;
+		c_30 -= a_3 * b_0;
+
+		c_11 -= a_1 * b_1;
+		c_21 -= a_2 * b_1;
+		c_31 -= a_3 * b_1;
+
+
+		a_0 = Am[0+lda*2];
+		a_1 = Am[1+lda*2];
+		a_2 = Am[2+lda*2];
+		a_3 = Am[3+lda*2];
+		
+		b_0 = Bm[0+lda*2];
+		b_1 = Bm[1+lda*2];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1002,13 +1007,13 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 		c_31 -= a_3 * b_1;
 
 
-		a_0 = A[0+lda*3];
-		a_1 = A[1+lda*3];
-		a_2 = A[2+lda*3];
-		a_3 = A[3+lda*3];
+		a_0 = Am[0+lda*3];
+		a_1 = Am[1+lda*3];
+		a_2 = Am[2+lda*3];
+		a_3 = Am[3+lda*3];
 		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
+		b_0 = Bm[0+lda*3];
+		b_1 = Bm[1+lda*3];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1020,8 +1025,8 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 		c_31 -= a_3 * b_1;
 		
 		
-		A += 16;
-		B += 16;
+		Am += 16;
+		Bm += 16;
 
 		}
 
@@ -1091,7 +1096,7 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, dou
 
 
 
-void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
+void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -1121,19 +1126,19 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, dou
 				{
 
 				// k = 0
-				a_0 = A[0+bs*0];
+				a_0 = Ap[0+bs*0];
 					
-				b_0 = B[0+bs*0];
+				b_0 = Bp[0+bs*0];
 					
 				c_00 += a_0 * b_0;
 
 
 				// k = 1
-				a_0 = A[0+bs*1];
-				a_1 = A[1+bs*1];
+				a_0 = Ap[0+bs*1];
+				a_1 = Ap[1+bs*1];
 					
-				b_0 = B[0+bs*1];
-				b_1 = B[1+bs*1];
+				b_0 = Bp[0+bs*1];
+				b_1 = Bp[1+bs*1];
 					
 				c_00 += a_0 * b_0;
 				c_10 += a_1 * b_0;
@@ -1141,23 +1146,23 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, dou
 				c_11 += a_1 * b_1;
 
 
-				A += 8;
-				B += 8;
-				k += 2;
+				Ap += 8;
+				Bp += 8;
+				k  += 2;
 
 				}
 			else
 				{
 				// k = 0
-				a_0 = A[0+bs*0];
+				a_0 = Ap[0+bs*0];
 					
-				b_0 = B[0+bs*0];
+				b_0 = Bp[0+bs*0];
 					
 				c_00 += a_0 * b_0;
 
-				A += 4;
-				B += 4;
-				k += 1;
+				Ap += 4;
+				Bp += 4;
+				k  += 1;
 
 				}
 
@@ -1166,23 +1171,11 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, dou
 		for(; k<kadd-3; k+=4)
 			{
 			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
+			a_0 = Ap[0+bs*0];
+			a_1 = Ap[1+bs*0];
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			
-			c_00 += a_0 * b_0;
-			c_10 += a_1 * b_0;
-
-			c_11 += a_1 * b_1;
-
-
-			a_0 = A[0+bs*1];
-			a_1 = A[1+bs*1];
-			
-			b_0 = B[0+bs*1];
-			b_1 = B[1+bs*1];
+			b_0 = Bp[0+bs*0];
+			b_1 = Bp[1+bs*0];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -1190,11 +1183,23 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, dou
 			c_11 += a_1 * b_1;
 
 
-			a_0 = A[0+bs*2];
-			a_1 = A[1+bs*2];
+			a_0 = Ap[0+bs*1];
+			a_1 = Ap[1+bs*1];
 			
-			b_0 = B[0+bs*2];
-			b_1 = B[1+bs*2];
+			b_0 = Bp[0+bs*1];
+			b_1 = Bp[1+bs*1];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+
+			c_11 += a_1 * b_1;
+
+
+			a_0 = Ap[0+bs*2];
+			a_1 = Ap[1+bs*2];
+			
+			b_0 = Bp[0+bs*2];
+			b_1 = Bp[1+bs*2];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -1202,11 +1207,11 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, dou
 			c_11 += a_1 * b_1;
 
 
-			a_0 = A[0+bs*3];
-			a_1 = A[1+bs*3];
+			a_0 = Ap[0+bs*3];
+			a_1 = Ap[1+bs*3];
 			
-			b_0 = B[0+bs*3];
-			b_1 = B[1+bs*3];
+			b_0 = Bp[0+bs*3];
+			b_1 = Bp[1+bs*3];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -1214,18 +1219,18 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, dou
 			c_11 += a_1 * b_1;
 			
 			
-			A += 16;
-			B += 16;
+			Ap += 16;
+			Bp += 16;
 
 			}
 		for(; k<kadd; k++)
 			{
 			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
+			a_0 = Ap[0+bs*0];
+			a_1 = Ap[1+bs*0];
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
+			b_0 = Bp[0+bs*0];
+			b_1 = Bp[1+bs*0];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -1233,39 +1238,21 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, dou
 			c_11 += a_1 * b_1;
 
 
-			A += 4;
-			B += 4;
+			Ap += 4;
+			Bp += 4;
 
 			}
 
-		if(ksub>0)
-			{
-			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			}
-	
 		}
 
 	for(k=0; k<ksub-3; k+=4)
 		{
 		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
+		a_0 = Am[0+lda*0];
+		a_1 = Am[1+lda*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		
-		c_00 -= a_0 * b_0;
-		c_10 -= a_1 * b_0;
-
-		c_11 -= a_1 * b_1;
-
-
-		a_0 = A[0+lda*1];
-		a_1 = A[1+lda*1];
-		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
+		b_0 = Bm[0+lda*0];
+		b_1 = Bm[1+lda*0];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1273,11 +1260,23 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, dou
 		c_11 -= a_1 * b_1;
 
 
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
+		a_0 = Am[0+lda*1];
+		a_1 = Am[1+lda*1];
 		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
+		b_0 = Bm[0+lda*1];
+		b_1 = Bm[1+lda*1];
+		
+		c_00 -= a_0 * b_0;
+		c_10 -= a_1 * b_0;
+
+		c_11 -= a_1 * b_1;
+
+
+		a_0 = Am[0+lda*2];
+		a_1 = Am[1+lda*2];
+		
+		b_0 = Bm[0+lda*2];
+		b_1 = Bm[1+lda*2];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1285,11 +1284,11 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, dou
 		c_11 -= a_1 * b_1;
 
 
-		a_0 = A[0+lda*3];
-		a_1 = A[1+lda*3];
+		a_0 = Am[0+lda*3];
+		a_1 = Am[1+lda*3];
 		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
+		b_0 = Bm[0+lda*3];
+		b_1 = Bm[1+lda*3];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1297,8 +1296,8 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, dou
 		c_11 -= a_1 * b_1;
 		
 		
-		A += 16;
-		B += 16;
+		Am += 16;
+		Bm += 16;
 
 		}
 
@@ -1351,7 +1350,7 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, dou
 
 
 // A is upper triangular and it coincides with B
-void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, double *D, double *fact, int alg)
+void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *Ap, double *Am, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -1375,14 +1374,14 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 		// initial triangle
 
 		// k = 0
-		a_0 = A[0+bs*0];
+		a_0 = Ap[0+bs*0];
 		
 		c_00 += a_0 * a_0;
 
 
 		// k = 1
-		a_0 = A[0+bs*1];
-		a_1 = A[1+bs*1];
+		a_0 = Ap[0+bs*1];
+		a_1 = Ap[1+bs*1];
 		
 		c_00 += a_0 * a_0;
 		c_10 += a_1 * a_0;
@@ -1391,9 +1390,9 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 
 
 		// k = 2
-		a_0 = A[0+bs*2];
-		a_1 = A[1+bs*2];
-		a_2 = A[2+bs*2];
+		a_0 = Ap[0+bs*2];
+		a_1 = Ap[1+bs*2];
+		a_2 = Ap[2+bs*2];
 		
 		c_00 += a_0 * a_0;
 		c_10 += a_1 * a_0;
@@ -1406,10 +1405,10 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 
 
 		// k = 3
-		a_0 = A[0+bs*3];
-		a_1 = A[1+bs*3];
-		a_2 = A[2+bs*3];
-		a_3 = A[3+bs*3];
+		a_0 = Ap[0+bs*3];
+		a_1 = Ap[1+bs*3];
+		a_2 = Ap[2+bs*3];
+		a_3 = Ap[3+bs*3];
 			
 		c_00 += a_0 * a_0;
 		c_10 += a_1 * a_0;
@@ -1425,17 +1424,17 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 
 		c_33 += a_3 * a_3;
 
-		A += 16;
+		Ap += 16;
 		k = 4;
 
 				
 		for(; k<kadd-3; k+=4)
 			{
 			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
-			a_2 = A[2+bs*0];
-			a_3 = A[3+bs*0];
+			a_0 = Ap[0+bs*0];
+			a_1 = Ap[1+bs*0];
+			a_2 = Ap[2+bs*0];
+			a_3 = Ap[3+bs*0];
 			
 			c_00 += a_0 * a_0;
 			c_10 += a_1 * a_0;
@@ -1452,10 +1451,10 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 			c_33 += a_3 * a_3;
 
 
-			a_0 = A[0+bs*1];
-			a_1 = A[1+bs*1];
-			a_2 = A[2+bs*1];
-			a_3 = A[3+bs*1];
+			a_0 = Ap[0+bs*1];
+			a_1 = Ap[1+bs*1];
+			a_2 = Ap[2+bs*1];
+			a_3 = Ap[3+bs*1];
 			
 			c_00 += a_0 * a_0;
 			c_10 += a_1 * a_0;
@@ -1472,10 +1471,10 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 			c_33 += a_3 * a_3;
 
 
-			a_0 = A[0+bs*2];
-			a_1 = A[1+bs*2];
-			a_2 = A[2+bs*2];
-			a_3 = A[3+bs*2];
+			a_0 = Ap[0+bs*2];
+			a_1 = Ap[1+bs*2];
+			a_2 = Ap[2+bs*2];
+			a_3 = Ap[3+bs*2];
 			
 			c_00 += a_0 * a_0;
 			c_10 += a_1 * a_0;
@@ -1492,10 +1491,10 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 			c_33 += a_3 * a_3;
 
 
-			a_0 = A[0+bs*3];
-			a_1 = A[1+bs*3];
-			a_2 = A[2+bs*3];
-			a_3 = A[3+bs*3];
+			a_0 = Ap[0+bs*3];
+			a_1 = Ap[1+bs*3];
+			a_2 = Ap[2+bs*3];
+			a_3 = Ap[3+bs*3];
 			
 			c_00 += a_0 * a_0;
 			c_10 += a_1 * a_0;
@@ -1512,16 +1511,16 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 			c_33 += a_3 * a_3;
 			
 			
-			A += 16;
+			Ap += 16;
 
 			}
 		for(; k<kadd; k++)
 			{
 			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
-			a_2 = A[2+bs*0];
-			a_3 = A[3+bs*0];
+			a_0 = Ap[0+bs*0];
+			a_1 = Ap[1+bs*0];
+			a_2 = Ap[2+bs*0];
+			a_3 = Ap[3+bs*0];
 			
 			c_00 += a_0 * a_0;
 			c_10 += a_1 * a_0;
@@ -1538,7 +1537,7 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 			c_33 += a_3 * a_3;
 
 
-			A += 4;
+			Ap += 4;
 
 			}
 
@@ -1547,35 +1546,35 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 		{
 
 		// k = 0
-		a_0 = A[0+bs*0];
+		a_0 = Ap[0+bs*0];
 		
 		c_00 += a_0 * a_0;
 
-		A += 4;
+		Ap += 4;
 		k += 1;
 
 		if(kadd>1)
 			{
 
 			// k = 1
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
+			a_0 = Ap[0+bs*0];
+			a_1 = Ap[1+bs*0];
 			
 			c_00 += a_0 * a_0;
 			c_10 += a_1 * a_0;
 
 			c_11 += a_1 * a_1;
 
-			A += 4;
+			Ap += 4;
 			k += 1;
 
 			if(kadd>2)
 				{
 
 				// k = 2
-				a_0 = A[0+bs*0];
-				a_1 = A[1+bs*0];
-				a_2 = A[2+bs*0];
+				a_0 = Ap[0+bs*0];
+				a_1 = Ap[1+bs*0];
+				a_2 = Ap[2+bs*0];
 				
 				c_00 += a_0 * a_0;
 				c_10 += a_1 * a_0;
@@ -1586,7 +1585,7 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 
 				c_22 += a_2 * a_2;
 
-				A += 4;
+				Ap += 4;
 				k += 1;
 
 				}
@@ -1595,21 +1594,13 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 
 		}
 
-	if(ksub>0)
-		{
-		if(kadd>0)
-			{
-			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			}
-		}
-
 	for(k=0; k<ksub-3; k+=4)
 		{
 		
-		a_0 = A[0+bs*0];
-		a_1 = A[1+bs*0];
-		a_2 = A[2+bs*0];
-		a_3 = A[3+bs*0];
+		a_0 = Am[0+bs*0];
+		a_1 = Am[1+bs*0];
+		a_2 = Am[2+bs*0];
+		a_3 = Am[3+bs*0];
 		
 		c_00 -= a_0 * a_0;
 		c_10 -= a_1 * a_0;
@@ -1626,10 +1617,10 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 		c_33 -= a_3 * a_3;
 
 
-		a_0 = A[0+bs*1];
-		a_1 = A[1+bs*1];
-		a_2 = A[2+bs*1];
-		a_3 = A[3+bs*1];
+		a_0 = Am[0+bs*1];
+		a_1 = Am[1+bs*1];
+		a_2 = Am[2+bs*1];
+		a_3 = Am[3+bs*1];
 		
 		c_00 -= a_0 * a_0;
 		c_10 -= a_1 * a_0;
@@ -1646,10 +1637,10 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 		c_33 -= a_3 * a_3;
 
 
-		a_0 = A[0+bs*2];
-		a_1 = A[1+bs*2];
-		a_2 = A[2+bs*2];
-		a_3 = A[3+bs*2];
+		a_0 = Am[0+bs*2];
+		a_1 = Am[1+bs*2];
+		a_2 = Am[2+bs*2];
+		a_3 = Am[3+bs*2];
 		
 		c_00 -= a_0 * a_0;
 		c_10 -= a_1 * a_0;
@@ -1666,10 +1657,10 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 		c_33 -= a_3 * a_3;
 
 
-		a_0 = A[0+bs*3];
-		a_1 = A[1+bs*3];
-		a_2 = A[2+bs*3];
-		a_3 = A[3+bs*3];
+		a_0 = Am[0+bs*3];
+		a_1 = Am[1+bs*3];
+		a_2 = Am[2+bs*3];
+		a_3 = Am[3+bs*3];
 		
 		c_00 -= a_0 * a_0;
 		c_10 -= a_1 * a_0;
@@ -1686,7 +1677,7 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 		c_33 -= a_3 * a_3;
 		
 		
-		A += 16;
+		Am += 16;
 
 		}
 

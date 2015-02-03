@@ -48,10 +48,10 @@ void kernel_dsyrk_nt_8x4_lib4(int kadd, double *A0, int sda, double *B, double *
 void kernel_dsyrk_nt_4x4_lib4(int kadd, double *A, double *B, double *C, double *D, int alg);
 void kernel_dsyrk_nt_4x2_lib4(int kadd, double *A, double *B, double *C, double *D, int alg);
 void kernel_dsyrk_nt_2x2_lib4(int kadd, double *A, double *B, double *C, double *D, int alg);
-void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, double *fact, int alg);
-void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg);
-void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg);
-void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg);
+void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap, int sdap, double *Bp, double *Am, int sdam, double *Bm, double *C, int sdc, double *D, int sdd, double *fact, int alg);
+void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg);
+void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg);
+void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg);
 void kernel_dgemm_dtrsm_nt_8x4_lib4(int tri, int kadd, int ksub, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, double *fact, int alg);
 void kernel_dgemm_dtrsm_nt_8x2_lib4(int tri, int kadd, int ksub, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, double *fact, int alg);
 void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg);
@@ -98,9 +98,9 @@ void kernel_dtrma_4_lib4(int kmax, int kna, double *A, int sda, double *C, int s
 void kernel_dtrtr_u_4_lib4(int kmax, double *A, double *C, int sdc);
 void kernel_dtrinv_4x4_lib4(int kmax, double *A, double *B, double *C, double *fact);
 void kernel_dtrinv_4x2_lib4(int kmax, double *A, double *B, double *C, double *fact);
-void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, double *D, double *fact, int alg);
-void kernel_dtsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *C, double *D, double *fact, int alg);
-void kernel_dtsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *C, double *D, double *fact, int alg);
+void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *Ap, double *Am, double *C, double *D, double *fact, int alg);
+//void kernel_dtsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *Ap, double *Am, double *C, double *D, double *fact, int alg);
+//void kernel_dtsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *Ap, double *Am, double *C, double *D, double *fact, int alg);
 void kernel_dtrmm_dtrsm_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg);
 void kernel_dtrmm_dtrsm_nt_4x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg);
 void kernel_dtrmm_dtrsm_nt_2x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg);
