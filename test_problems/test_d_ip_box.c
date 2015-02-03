@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include <sys/time.h>
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
 #include <xmmintrin.h> // needed to flush to zero sub-normals with _MM_SET_FLUSH_ZERO_MODE (_MM_FLUSH_ZERO_ON); in the main()
@@ -134,7 +135,7 @@ int main()
 	printf("\n");
 	printf("\n");
 	printf(" HPMPC -- Library for High-Performance implementation of solvers for MPC.\n");
-	printf(" Copyright (C) 2014 by Technical University of Denmark. All rights reserved.\n");
+	printf(" Copyright (C) 2014-2015 by Technical University of Denmark. All rights reserved.\n");
 	printf("\n");
 	printf(" HPMPC is distributed in the hope that it will be useful,\n");
 	printf(" but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
@@ -157,6 +158,8 @@ int main()
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
 	int nb = NB; // number of box constrained inputs and states
+
+	int nbu = nu<nb ? nu : nb ;
 
 	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx/2, nu);
 	printf("\n");
@@ -249,7 +252,7 @@ int main()
 ************************************************/	
 
 	double *db; d_zeros_align(&db, 2*nb, 1);
-	for(jj=0; jj<2*nu; jj++)
+	for(jj=0; jj<2*nbu; jj++)
 		db[jj] = - 0.5;   // umin
 	for(; jj<2*nb; jj++)
 		db[jj] = - 4.0;   // xmin
@@ -271,6 +274,13 @@ int main()
 	// linear part copied on another vector
 	double *q; d_zeros_align(&q, anz, 1);
 	for(ii=0; ii<nu+nx; ii++) q[ii] = Q[nx+nu+ii*pnz];
+
+	// maximum element in cost functions
+	double mu0 = 1.0;
+	for(ii=0; ii<nu+nx; ii++)
+		for(jj=0; jj<nu+nx; jj++)
+			mu0 = fmax(mu0, Q[jj+nz*ii]);
+	//printf("\n mu0 = %f\n", mu0);
 
 /************************************************
 * matrices series
@@ -350,6 +360,22 @@ int main()
 
 
 
+	// solution of unconstrained problem
+//	double *(hpL[N+1]);
+//	double *(hPb[N]);
+//	for(jj=0; jj<=N; jj++)
+//		{
+//		d_zeros_align(&hpL[jj], pnz, cnl);
+//		d_zeros_align(&hPb[jj], anx, 1);
+//		}
+//	double *diag; d_zeros_align(&diag, pnz, 1);
+//	int update_hessian = 0;
+//	double **Qd;
+//	double **Ql;
+//	d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, update_hessian, Qd, Ql, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+
+
+
 	// initial states
 	double xx0[] = {3.5, 3.5, 3.66465, 2.15833, 1.81327, -0.94207, 1.86531, -2.35760, 2.91534, 1.79890, -1.49600, -0.76600, -2.60268, 1.92456, 1.66630, -2.28522, 3.12038, 1.83830, 1.93519, -1.87113};
 
@@ -365,21 +391,26 @@ int main()
 	hux[0][nu+0] = xx0[0];
 	hux[0][nu+1] = xx0[1];
 
+//	// solution of unconstrained problem as warm start
+//	warm_start = 1;
+//	d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
+//	//d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, update_hessian, Qd, Ql, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+
 	// call the IP solver
-	if(FREE_X0==0)
-		{
+//	if(FREE_X0==0)
+//		{
 		if(IP==1)
-			hpmpc_status = d_ip_box_mpc(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			hpmpc_status = d_ip_box_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 		else
-			hpmpc_status = d_ip2_box_mpc(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
-		}
-	else
-		{
-		if(IP==1)
-			hpmpc_status = d_ip_box_mhe_old(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
-		else
-			hpmpc_status = d_ip2_box_mhe_old(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
-		}
+			hpmpc_status = d_ip2_box_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+//		}
+//	else
+//		{
+//		if(IP==1)
+//			hpmpc_status = d_ip_box_mhe_old(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+//		else
+//			hpmpc_status = d_ip2_box_mhe_old(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+//		}
 
 
 
@@ -404,21 +435,26 @@ int main()
 		hux[0][nu+0] = xx0[2*idx];
 		hux[0][nu+1] = xx0[2*idx+1];
 
+//		// solution of unconstrained problem as warm start
+//		warm_start = 1;
+//		d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
+//		//d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, update_hessian, Qd, Ql, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+
 		// call the IP solver
-		if(FREE_X0==0)
-			{
+//		if(FREE_X0==0)
+//			{
 			if(IP==1)
-				hpmpc_status = d_ip_box_mpc(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+				hpmpc_status = d_ip_box_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 			else
-				hpmpc_status = d_ip2_box_mpc(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
-			}
-		else
-			{
-			if(IP==1)
-				hpmpc_status = d_ip_box_mhe_old(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
-			else
-				hpmpc_status = d_ip2_box_mhe_old(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
-			}
+				hpmpc_status = d_ip2_box_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+//			}
+//		else
+//			{
+//			if(IP==1)
+//				hpmpc_status = d_ip_box_mhe_old(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+//			else
+//				hpmpc_status = d_ip2_box_mhe_old(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+//			}
 
 		kk_avg += kk;
 
@@ -449,10 +485,10 @@ int main()
 	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
 
 	// residuals computation
-	if(FREE_X0==0)
+//	if(FREE_X0==0)
 		d_res_ip_box_mpc(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, &mu);
-	else
-		d_res_ip_box_mhe_old(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+//	else
+//		d_res_ip_box_mhe_old(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 
 	if(PRINTSTAT==1)
@@ -501,19 +537,19 @@ int main()
 		printf("\n");
 		printf("\n");
 		printf("rq = \n\n");
-		if(FREE_X0==0)
-			{
+//		if(FREE_X0==0)
+//			{
 			d_print_mat(1, nu, hrq[0], 1);
 			for(ii=1; ii<=N; ii++)
 /*				d_print_mat_e(1, nx+nu, hrq[ii], 1);*/
 				d_print_mat(1, nx+nu, hrq[ii], 1);
-			}
-		else
-			{
-			for(ii=0; ii<=N; ii++)
-/*				d_print_mat_e(1, nx+nu, hrq[ii], 1);*/
-				d_print_mat(1, nx+nu, hrq[ii], 1);
-			}
+//			}
+//		else
+//			{
+//			for(ii=0; ii<=N; ii++)
+///*				d_print_mat_e(1, nx+nu, hrq[ii], 1);*/
+//				d_print_mat(1, nx+nu, hrq[ii], 1);
+//			}
 		printf("\n");
 		printf("\n");
 		printf("rb = \n\n");

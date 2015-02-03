@@ -401,14 +401,14 @@ int main()
 	hux[0][nu+1] = xx0[1];
 
 	// call the ADMM solver
-	if(FREE_X0==0)
-		{
+//	if(FREE_X0==0)
+//		{
 		d_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 1, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hZ, hz, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, work);
-		}
-	else
-		{
-/*		d_ip_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);*/
-		}
+//		}
+//	else
+//		{
+///*		d_ip_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);*/
+//		}
 
 
 	int kk_avg = 0;
@@ -433,14 +433,14 @@ int main()
 		hux[0][nu+1] = xx0[2*idx+1];
 
 		// call the ADMM solver
-		if(FREE_X0==0)
-			{
+//		if(FREE_X0==0)
+//			{
 			d_admm_soft_mpc(&kk, k_max, tol, tol, warm_start, 0, rho, alpha, stat, nx, nu, N, hpBAbt, hpQ, hZ, hz, hlb, hub, hux, hux_v, hux_w, hs_u, hs_v, hs_w, compute_mult, hpi, work);
-			}
-		else
-			{
-/*			d_ip_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);*/
-			}
+//			}
+//		else
+//			{
+///*			d_ip_box_mhe(&kk, k_max, tol, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);*/
+//			}
 
 		kk_avg += kk;
 
@@ -520,19 +520,19 @@ int main()
 		printf("\n");
 		printf("\n");
 		printf("rq = \n\n");
-		if(FREE_X0==0)
-			{
+//		if(FREE_X0==0)
+//			{
 			d_print_mat(1, nu, hrq[0], 1);
 			for(ii=1; ii<=N; ii++)
 /*				d_print_mat_e(1, nx+nu, hrq[ii], 1);*/
 				d_print_mat(1, nx+nu, hrq[ii], 1);
-			}
-		else
-			{
-			for(ii=0; ii<=N; ii++)
-/*				d_print_mat_e(1, nx+nu, hrq[ii], 1);*/
-				d_print_mat(1, nx+nu, hrq[ii], 1);
-			}
+//			}
+//		else
+//			{
+//			for(ii=0; ii<=N; ii++)
+///*				d_print_mat_e(1, nx+nu, hrq[ii], 1);*/
+//				d_print_mat(1, nx+nu, hrq[ii], 1);
+//			}
 		printf("\n");
 		printf("\n");
 		printf("rb = \n\n");
