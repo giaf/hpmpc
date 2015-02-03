@@ -28,7 +28,8 @@ void dtrmm_l_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double 
 void dtrmm_u_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
 void dsyrk_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pD, int sdd, double *pC, int sdc, int alg);
 void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *diag);
-void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *diag, int alg);
+//void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *diag, int alg);
+void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, double *diag, int alg);
 void dgemv_n_lib(int n, int m, double *pA, int sda, double *x, double *y, int alg);
 void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, double *y, int alg);
 void dtrmv_u_n_lib(int m, double *pA, int sda, double *x, double *y, int alg);
@@ -46,6 +47,8 @@ void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 void dttmm_ll_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
 void dtrma_lib(int m, int mna, double *pA, int sda, double *pC, int sdc);
 void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc);
-void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *pE, int sde, double *diag, int alg);
-void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *diag, int alg);
+//void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *pE, int sde, double *diag, int alg);
+void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdd, double *pD, int sdc, double *pE, int sde, double *diag, int alg);
+//void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *diag, int alg);
+void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, double *diag, int alg);
 

@@ -66,7 +66,8 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		d_update_hessian_ric_sv(nu%bs+nx, hpQ[N]+nu0*cnz+nu0*bs, cnz, hQd[N]+nu0);
 		d_update_jacobian_ric_sv(nu%bs+nx, hpQ[N]+nu0*bs+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N]+nu0);
 		}
-	dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, 0, hpL[N]+(ng+nx+pad)*bs+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, diag, 1); // TODO use dpotrf
+	//dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, 0, hpL[N]+(ng+nx+pad)*bs+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, diag, 1); // TODO use dpotrf
+	dpotrf_lib(nx+nu%bs+1, nx+nu%bs, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(ng+nx+pad)*bs+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, diag);
 
 	dtrtr_l_lib(nx, nu, hpL[N]+(ng+nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N]+(ng+nx+pad+ncl)*bs, cnl);	
 
@@ -82,7 +83,8 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 			d_update_hessian_ric_sv(nx+nu, hpQ[N-ii-1], cnz, hQd[N-ii-1]);
 			d_update_jacobian_ric_sv(nx+nu, hpQ[N-ii-1]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N-ii-1]);
 			}
-		dsyrk_dpotrf_lib(nz, nu+nx, nx, hpL[N-ii-1]+ng*bs, cnl, hpQ[N-ii-1], cnz, diag, 1);
+		//dsyrk_dpotrf_lib(nz, nu+nx, nx, hpL[N-ii-1]+ng*bs, cnl, hpQ[N-ii-1], cnz, diag, 1);
+		dsyrk_dpotrf_lib(nz, nu+nx, nx, hpL[N-ii-1], cnl, hpQ[N-ii-1], cnz, hpL[N-ii-1]+(ng+nx+pad)*bs, cnl, diag, 1);
 		for(jj=0; jj<nu; jj++) hpL[N-ii-1][(ng+nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 		dtrtr_l_lib(nx, nu, hpL[N-ii-1]+(ng+nx+pad)*bs+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-ii-1]+(ng+nx+pad+ncl)*bs, cnl);	
 /*d_print_pmat(pnz, cnl, bs, hpL[N-ii-1]+ng*bs, cnl);*/
@@ -97,7 +99,8 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		d_update_hessian_ric_sv(nu, hpQ[0], cnz, hQd[0]);
 		d_update_jacobian_ric_sv(nu, hpQ[0]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[0]);
 		}
-	dsyrk_dpotrf_lib(nz, ((nu+2-1)/2)*2, nx, hpL[0]+ng*bs, cnl, hpQ[0], cnz, diag, 1);
+	//dsyrk_dpotrf_lib(nz, ((nu+2-1)/2)*2, nx, hpL[0]+ng*bs, cnl, hpQ[0], cnz, diag, 1);
+	dsyrk_dpotrf_lib(nz, ((nu+2-1)/2)*2, nx, hpL[0], cnl, hpQ[0], cnz, hpL[0]+(ng+nx+pad)*bs, cnl, diag, 1);
 	for(jj=0; jj<nu; jj++) hpL[0][(ng+nx+pad)*bs+(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 
 /*d_print_pmat(pnz, cnl, bs, hpL[0], cnl);*/
@@ -220,7 +223,8 @@ int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double
 	for(ii=0; ii<N; ii++)
 		{
 		//d_print_pmat(2*nx, cnx, bs, hpQA[ii], cnx);
-		dtsyrk_dpotrf_lib(2*nx, nx, nx, hpALe[ii], cnx2, hpQA[ii], cnx, diag, 1);
+		//dtsyrk_dpotrf_lib(2*nx, nx, nx, hpALe[ii], cnx2, hpQA[ii], cnx, diag, 1);
+		dtsyrk_dpotrf_lib(2*nx, nx, nx, hpALe[ii], cnx2, hpQA[ii], cnx, hpALe[ii]+(cnx)*bs, cnx2, diag, 1);
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
 		// copy reciprocal of diagonal
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
@@ -243,7 +247,8 @@ int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double
 		d_align_pmat(nx, nx, nx, bs, hpALe[ii]+cnx*bs, cnx2, GLrALeLp+nw*bs, cnl);
 		//d_print_pmat(nx, cnl, bs, GLrALeLp, cnl);
 
-		dsyrk_dpotrf_dtrinv_lib(nx, nx, nwx, GLrALeLp, cnl, ptr, 0, hpALe[ii+1], cnx2, diag, 0);
+		//dsyrk_dpotrf_dtrinv_lib(nx, nx, nwx, GLrALeLp, cnl, ptr, 0, hpALe[ii+1], cnx2, diag, 0);
+		dsyrk_dpotrf_dtrinv_lib(nx, nx, nwx, GLrALeLp, cnl, ptr, 0, GLrALeLp+(nw+nx+pad)*bs, cnl, hpALe[ii+1], cnx2, diag, 0);
 		//d_print_pmat(nx, cnl, bs, GLrALeLp, cnl);
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii+1], cnx2);
 		for(jj=0; jj<nx; jj++) 
@@ -259,7 +264,8 @@ int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double
 		}
 
 	//d_print_pmat(nx, nx, bs, GLrALeLp+(nx+nw+pad)*bs, cnl);
-	dtsyrk_dpotrf_lib(nx, nx, nx, hpALe[N], cnx2, hpQA[N], cnx, diag, 1);
+	//dtsyrk_dpotrf_lib(nx, nx, nx, hpALe[N], cnx2, hpQA[N], cnx, diag, 1);
+	dtsyrk_dpotrf_lib(nx, nx, nx, hpALe[N], cnx2, hpQA[N], cnx, hpALe[N]+(cnx)*bs, cnx2, diag, 1);
 	//d_print_pmat(nx, cnx2, bs, hpALe[ii], cnx2);
 	// copy reciprocal of diagonal
 	for(jj=0; jj<nx; jj++) 
@@ -1090,7 +1096,8 @@ void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hp
 		//d_print_pmat(nz, cnl-1, bs, hpLp[ii+1], cnl);
 
 		// compute Lp
-		dsyrk_dpotrf_lib(nz, nz, nx, hpLp[ii+1], cnl, hpLp[ii+1]+(nx+pad)*bs, cnl, diag, 1);
+		//dsyrk_dpotrf_lib(nz, nz, nx, hpLp[ii+1], cnl, hpLp[ii+1]+(nx+pad)*bs, cnl, diag, 1);
+		dsyrk_dpotrf_lib(nz, nz, nx, hpLp[ii+1], cnl, hpLp[ii+1]+(nx+pad)*bs, cnl, hpLp[ii+1]+(nx+pad)*bs, cnl, diag, 1);
 
 		// inverted diagonal of top-left part of hpLe
 		for(jj=0; jj<ny; jj++) hpLp[ii+1][(jj/bs)*bs*cnl+jj%bs+(nx+pad+jj)*bs] = diag[jj];
@@ -1312,7 +1319,8 @@ void d_ric_trf_mhe_test(int nx, int nw, int ny, int N, double **hpA, double **hp
 		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[ii+1], cnl);
 
 		// compute /Pi_p and factorize it
-		dsyrk_dpotrf_lib(nx, nx, nx+nw, hpLp[ii+1], cnl, hpLp[ii+1], cnl, diag, 0);
+		//dsyrk_dpotrf_lib(nx, nx, nx+nw, hpLp[ii+1], cnl, hpLp[ii+1], cnl, diag, 0);
+		dsyrk_dpotrf_lib(nx, nx, nx+nw, hpLp[ii+1], cnl, hpLp[ii+1], cnl, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, diag, 0);
 		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[ii+1], cnl);
 
 		// transpose in place the lower cholesky factor of /Pi_p
