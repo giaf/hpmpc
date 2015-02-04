@@ -25,11 +25,7 @@
 
 #include <math.h>
 
-#include "../../include/block_size.h"
-
-
-
-#include "../../include/block_size.h"
+//#include "../../include/block_size.h" // TODO remove when not needed any longer
 
 
 
@@ -50,10 +46,6 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 	int kl_add = kadd%4;
 	int ki_sub = ksub/4;
 
-//	const int bs = D_MR;//4;
-//	const int d_ncl = D_NCL;//2;
-
-//	long long dA = bs*((d_ncl-kadd%d_ncl)%d_ncl)*sizeof(double);
 
 	__asm__ volatile
 	(
@@ -78,20 +70,224 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 		"movaps    %%xmm3, %%xmm15       \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"movl      %0, %%esi             \n\t"
-		"movl      %0, %%ecx             \n\t"
-		"addl      %%esi, %%ecx          \n\t"
+		"movl      %0, %%esi             \n\t" // ki_add
+		"movl      %1, %%ecx             \n\t" // kl_add
+		"addl      %%esi, %%ecx          \n\t" // ki_add + kl_add
 		"testl  %%ecx, %%ecx             \n\t" 
 		"je     .DCONSIDERSUB            \n\t" // kadd = 0
+		"                                \n\t"
 		"                                \n\t"
 		"movaps        0(%%rax), %%xmm0  \n\t" // initialize loop by pre-loading elements
 		"movaps       16(%%rax), %%xmm1  \n\t" // of a and b.
 		"movaps        0(%%rbx), %%xmm2  \n\t"
 		"                                \n\t"
-//		"movl      %0, %%esi             \n\t" // i = k_iter;
-		"testl  %%esi, %%esi             \n\t" // check i via logical AND.
-		"je     .DCONSIDERADD            \n\t" // if i == 0, jump to code that
-		"                                \n\t" // contains the k_left loop.
+		"                                \n\t"
+		"movl      %11, %%ecx            \n\t"
+		"cmpl      $1,  %%ecx            \n\t"
+		"jne       .DCONSIDERLOOPADD     \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"testl  %%esi, %%esi             \n\t" // logical AND
+		"je     .DTRIADD                 \n\t" // if ki_add == 0, jump
+		"                                \n\t"
+		"                                \n\t"
+//		"movaps       16(%%rbx), %%xmm6  \n\t"
+//		"pshufd   $0x4e, %%xmm2, %%xmm7  \n\t"
+		"mulsd   %%xmm0, %%xmm2          \n\t"
+		"                                \n\t"
+//		"mulsd   %%xmm0, %%xmm7          \n\t"
+		"                                \n\t"
+		"addsd   %%xmm2, %%xmm8          \n\t"
+		"movaps       32(%%rbx), %%xmm2  \n\t"
+//		"pshufd   $0x4e, %%xmm6, %%xmm4  \n\t"
+//		"mulsd   %%xmm0, %%xmm6          \n\t"
+		"                                \n\t"
+//		"addsd   %%xmm7, %%xmm9          \n\t"
+//		"mulsd   %%xmm0, %%xmm4          \n\t"
+		"movaps       32(%%rax), %%xmm0  \n\t"
+//		"movaps       48(%%rax), %%xmm1  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+//		"addsd   %%xmm6, %%xmm10         \n\t" // iteration 1
+//		"movaps       48(%%rbx), %%xmm6  \n\t"
+		"pshufd   $0x4e, %%xmm2, %%xmm7  \n\t"
+		"mulpd   %%xmm0, %%xmm2          \n\t"
+		"                                \n\t"
+//		"addsd   %%xmm4, %%xmm11         \n\t"
+		"mulpd   %%xmm0, %%xmm7          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm2, %%xmm8          \n\t"
+		"movaps       64(%%rbx), %%xmm2  \n\t"
+//		"pshufd   $0x4e, %%xmm6, %%xmm4  \n\t"
+//		"mulpd   %%xmm0, %%xmm6          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm7, %%xmm9          \n\t"
+//		"mulpd   %%xmm0, %%xmm4          \n\t"
+		"movaps       64(%%rax), %%xmm0  \n\t"
+		"movaps       80(%%rax), %%xmm1  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+//		"addpd   %%xmm6, %%xmm10         \n\t" // iteration 2
+		"movaps       80(%%rbx), %%xmm6  \n\t"
+		"movaps  %%xmm2, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm2, %%xmm7  \n\t"
+		"mulpd   %%xmm0, %%xmm2          \n\t"
+		"mulsd   %%xmm1, %%xmm3          \n\t"
+		"                                \n\t"
+//		"addpd   %%xmm4, %%xmm11         \n\t"
+		"movaps  %%xmm7, %%xmm5          \n\t"
+		"mulpd   %%xmm0, %%xmm7          \n\t"
+		"mulsd   %%xmm1, %%xmm5          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm2, %%xmm8          \n\t"
+		"movaps       96(%%rbx), %%xmm2  \n\t"
+		"addsd   %%xmm3, %%xmm12         \n\t"
+		"movaps  %%xmm6, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm6, %%xmm4  \n\t"
+//		"mulpd   %%xmm0, %%xmm6          \n\t"
+		"mulsd   %%xmm1, %%xmm3          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm7, %%xmm9          \n\t"
+		"addsd   %%xmm5, %%xmm13         \n\t"
+		"movaps  %%xmm4, %%xmm5          \n\t"
+//		"mulpd   %%xmm0, %%xmm4          \n\t"
+		"movaps       96(%%rax), %%xmm0  \n\t"
+		"mulsd   %%xmm1, %%xmm5          \n\t"
+		"movaps      112(%%rax), %%xmm1  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+//		"addpd   %%xmm6, %%xmm10         \n\t" // iteration 3
+		"movaps      112(%%rbx), %%xmm6  \n\t"
+		"addsd   %%xmm3, %%xmm14         \n\t"
+		"movaps  %%xmm2, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm2, %%xmm7  \n\t"
+		"mulpd   %%xmm0, %%xmm2          \n\t"
+		"mulpd   %%xmm1, %%xmm3          \n\t"
+		"addq      $128, %%rax           \n\t" // A0 += 16
+		"                                \n\t"
+//		"addpd   %%xmm4, %%xmm11         \n\t"
+		"addsd   %%xmm5, %%xmm15         \n\t"
+		"movaps  %%xmm7, %%xmm5          \n\t"
+		"mulpd   %%xmm0, %%xmm7          \n\t"
+		"mulpd   %%xmm1, %%xmm5          \n\t"
+		"addq      $128, %%rbx           \n\t" // B += 16
+		"                                \n\t"
+		"addpd   %%xmm2, %%xmm8          \n\t"
+		"movaps         (%%rbx), %%xmm2  \n\t"
+		"addpd   %%xmm3, %%xmm12         \n\t"
+		"movaps  %%xmm6, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm6, %%xmm4  \n\t"
+//		"mulpd   %%xmm0, %%xmm6          \n\t"
+		"mulpd   %%xmm1, %%xmm3          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"addpd   %%xmm7, %%xmm9          \n\t"
+		"decl    %%esi                   \n\t" // i -= 1;
+		"addpd   %%xmm5, %%xmm13         \n\t"
+		"movaps  %%xmm4, %%xmm5          \n\t"
+//		"mulpd   %%xmm0, %%xmm4          \n\t"
+		"movaps         (%%rax), %%xmm0  \n\t"
+		"mulpd   %%xmm1, %%xmm5          \n\t"
+		"movaps       16(%%rax), %%xmm1  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"jmp     .DCONSIDERLOOPADD       \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DTRIADD:                       \n\t"
+		"                                \n\t"
+		"movl    %1, %%esi               \n\t"
+		"                                \n\t"
+		"                                \n\t"
+//		"movaps       16(%%rbx), %%xmm6  \n\t" // iteration 0
+//		"pshufd   $0x4e, %%xmm2, %%xmm7  \n\t"
+		"mulsd   %%xmm0, %%xmm2          \n\t"
+		"addsd   %%xmm2, %%xmm8          \n\t"
+		"                                \n\t"
+//		"mulsd   %%xmm0, %%xmm7          \n\t"
+//		"addsd   %%xmm7, %%xmm9          \n\t"
+		"                                \n\t"
+		"movaps       32(%%rbx), %%xmm2  \n\t"
+//		"pshufd   $0x4e, %%xmm6, %%xmm4  \n\t"
+//		"mulsd   %%xmm0, %%xmm6          \n\t"
+//		"addsd   %%xmm6, %%xmm10         \n\t"
+		"                                \n\t"
+//		"mulsd   %%xmm0, %%xmm4          \n\t"
+//		"addsd   %%xmm4, %%xmm11         \n\t"
+		"movaps       32(%%rax), %%xmm0  \n\t"
+//		"movaps       48(%%rax), %%xmm1  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+//		"cmpl    $1, %%esi               \n\t"
+//		"jle    .DCONSIDERSUB_NOCLEAN    \n\t" //
+		"cmpl    $2, %%esi               \n\t"
+		"jl     .DCONSIDERSUB_NOCLEAN    \n\t" //
+		"                                \n\t"
+		"                                \n\t"
+//		"movaps       48(%%rbx), %%xmm6  \n\t"
+		"pshufd   $0x4e, %%xmm2, %%xmm7  \n\t"
+		"mulpd   %%xmm0, %%xmm2          \n\t"
+		"addpd   %%xmm2, %%xmm8          \n\t"
+		"                                \n\t"
+		"mulpd   %%xmm0, %%xmm7          \n\t"
+		"addpd   %%xmm7, %%xmm9          \n\t"
+		"                                \n\t"
+		"movaps       64(%%rbx), %%xmm2  \n\t"
+//		"pshufd   $0x4e, %%xmm6, %%xmm4  \n\t"
+//		"mulpd   %%xmm0, %%xmm6          \n\t"
+//		"addpd   %%xmm6, %%xmm10         \n\t" // iteration 1
+		"                                \n\t"
+//		"mulpd   %%xmm0, %%xmm4          \n\t"
+//		"addpd   %%xmm4, %%xmm11         \n\t"
+		"movaps       64(%%rax), %%xmm0  \n\t"
+		"movaps       80(%%rax), %%xmm1  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+//		"cmpl    $2, %%esi               \n\t"
+//		"jle    .DCONSIDERSUB_NOCLEAN    \n\t" //
+		"je     .DCONSIDERSUB_NOCLEAN    \n\t" //
+		"                                \n\t"
+		"                                \n\t"
+		"movaps       80(%%rbx), %%xmm6  \n\t"
+		"movaps  %%xmm2, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm2, %%xmm7  \n\t"
+		"mulpd   %%xmm0, %%xmm2          \n\t"
+		"mulsd   %%xmm1, %%xmm3          \n\t"
+		"addpd   %%xmm2, %%xmm8          \n\t"
+		"addsd   %%xmm3, %%xmm12         \n\t"
+		"                                \n\t"
+		"movaps  %%xmm7, %%xmm5          \n\t"
+		"mulpd   %%xmm0, %%xmm7          \n\t"
+		"mulsd   %%xmm1, %%xmm5          \n\t"
+		"addpd   %%xmm7, %%xmm9          \n\t"
+		"addsd   %%xmm5, %%xmm13         \n\t"
+		"                                \n\t"
+//		"movaps       96(%%rbx), %%xmm2  \n\t"
+		"movaps  %%xmm6, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm6, %%xmm4  \n\t"
+//		"mulpd   %%xmm0, %%xmm6          \n\t"
+		"mulsd   %%xmm1, %%xmm3          \n\t"
+//		"addpd   %%xmm6, %%xmm10         \n\t" // iteration 2
+		"addsd   %%xmm3, %%xmm14         \n\t"
+		"                                \n\t"
+		"movaps  %%xmm4, %%xmm5          \n\t"
+//		"mulpd   %%xmm0, %%xmm4          \n\t"
+//		"movaps       96(%%rax), %%xmm0  \n\t"
+		"mulsd   %%xmm1, %%xmm5          \n\t"
+//		"movaps      112(%%rax), %%xmm1  \n\t"
+//		"addpd   %%xmm4, %%xmm11         \n\t"
+		"addsd   %%xmm5, %%xmm15         \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"jmp    .DCONSIDERSUB_NOCLEAN    \n\t" //
+		"                                \n\t"
+		"                                \n\t"
+		".DCONSIDERLOOPADD:              \n\t" // MAIN LOOP add
+		"                                \n\t"
+		"                                \n\t"
+		"testl  %%esi, %%esi             \n\t" // logical AND
+		"je     .DCONSIDERADD            \n\t" // if ki_add == 0, jump
+		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DLOOPADD:                      \n\t" // MAIN LOOP add
@@ -287,44 +483,27 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 /*		"addpd   %%xmm4, %%xmm11         \n\t"*/
 		"addpd   %%xmm5, %%xmm15         \n\t"
 		"                                \n\t"
+		"                                \n\t"
+		".DCONSIDERSUB_NOCLEAN:          \n\t" // padd
+		"                                \n\t"
+		"                                \n\t"
 		"xorpd     %%xmm3,  %%xmm3       \n\t"
 		"movaps    %%xmm3,  %%xmm4       \n\t"
 		"movaps    %%xmm3,  %%xmm5       \n\t"
 		"movaps    %%xmm3,  %%xmm6       \n\t"
 		"                                \n\t"
 		"                                \n\t"
-//		"movl   %2, %%ecx                \n\t"
-//		"cmpl	$0, %%ecx                \n\t"
-//		"jle    .DPOSTACC                \n\t"
 		"movl   %2, %%esi                \n\t"
 		"testl  %%esi, %%esi             \n\t" // check i via logical AND.
 		"je     .DPOSTACC                \n\t"
 		"                                \n\t"
-//		"movq   %8, %%rcx                \n\t"
-//		"cmpq	$0, %%rcx                \n\t"
-//		"jle    .DPRELOOPSUB             \n\t"
 		"                                \n\t"
-//		"movl   %0, %%ecx                \n\t"
-//		"movl   %1, %%edx                \n\t"
-//		"addl   %%edx, %%ecx              \n\t"
-//		"cmpl	$0, %%ecx                \n\t"
-//		"jle    .DPRELOOPSUB             \n\t"
-		"                                \n\t"
-//		"movq   %8, %%rcx                \n\t"
-//		"addq   %%rcx, %%rax             \n\t" 
-//		"addq   %%rcx, %%rbx             \n\t" 
 		"movq   %9,  %%rax               \n\t"
 		"movq   %10, %%rbx               \n\t"
 		"                                \n\t"
 		"movaps        0(%%rax), %%xmm0  \n\t" // initialize loop by pre-loading elements
 		"movaps       16(%%rax), %%xmm1  \n\t" // of a and b.
 		"movaps        0(%%rbx), %%xmm2  \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-//		".DPRELOOPSUB:                   \n\t" // 
-		"                                \n\t"
-//		"movl   %2, %%esi                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DLOOPSUB:                      \n\t" // main loop 2
@@ -673,10 +852,10 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 		  "m" (C),			// %5
 		  "m" (D),			// %6
 		  "m" (fact),		// %7
-//		  "m" (dA),			// %8
 		  "m" (alg),		// %8
 		  "m" (Am),			// %9
-		  "m" (Bm)			// %10
+		  "m" (Bm),			// %10
+		  "m" (tri)			// %11
 		: // register clobber list
 		  "rax", "rbx", "rcx", "rdx", "rsi", //"rdx", //"rdi", "r8", "r9", "r10", "r11",
 		  "xmm0", "xmm1", "xmm2", "xmm3",
@@ -693,7 +872,7 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
+//	const int d_ncl = D_NCL;
 	const int lda = bs;
 	const int ldc = bs;
 
@@ -790,6 +969,8 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 					
 				c_00 += a_0 * b_0;
 
+				k  += 1;
+
 				if(kadd>1)
 					{
 
@@ -804,6 +985,8 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 					c_10 += a_1 * b_0;
 
 					c_11 += a_1 * b_1;
+
+					k  += 1;
 
 					if(kadd>2)
 						{
@@ -823,21 +1006,11 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 						c_11 += a_1 * b_1;
 						c_21 += a_2 * b_1;
 
-						Ap += 4;
-						Bp += 4;
 						k  += 1;
 
 						}
 
-					Ap += 4;
-					Bp += 4;
-					k  += 1;
-
 					}
-
-				Ap += 4;
-				Bp += 4;
-				k  += 1;
 
 				}
 
@@ -1100,7 +1273,7 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
+//	const int d_ncl = D_NCL;
 	const int lda = bs;
 	const int ldc = bs;
 
@@ -1160,8 +1333,6 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 					
 				c_00 += a_0 * b_0;
 
-				Ap += 4;
-				Bp += 4;
 				k  += 1;
 
 				}
@@ -1348,449 +1519,4 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 	}
 
 
-
-// A is upper triangular and it coincides with B
-void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *Ap, double *Am, double *C, double *D, double *fact, int alg)
-	{
-
-	const int bs = 4;
-	const int d_ncl = D_NCL;
-
-	int k;
-
-	double
-		a_0, a_1, a_2, a_3,
-		c_00=0, 
-		c_10=0, c_11=0, 
-		c_20=0, c_21=0, c_22=0, 
-		c_30=0, c_31=0, c_32=0, c_33=0;
-
-	// initialize loop counter
-	k = 0;
-
-	if(kadd>=4)
-		{
-
-		// initial triangle
-
-		// k = 0
-		a_0 = Ap[0+bs*0];
-		
-		c_00 += a_0 * a_0;
-
-
-		// k = 1
-		a_0 = Ap[0+bs*1];
-		a_1 = Ap[1+bs*1];
-		
-		c_00 += a_0 * a_0;
-		c_10 += a_1 * a_0;
-
-		c_11 += a_1 * a_1;
-
-
-		// k = 2
-		a_0 = Ap[0+bs*2];
-		a_1 = Ap[1+bs*2];
-		a_2 = Ap[2+bs*2];
-		
-		c_00 += a_0 * a_0;
-		c_10 += a_1 * a_0;
-		c_20 += a_2 * a_0;
-
-		c_11 += a_1 * a_1;
-		c_21 += a_2 * a_1;
-
-		c_22 += a_2 * a_2;
-
-
-		// k = 3
-		a_0 = Ap[0+bs*3];
-		a_1 = Ap[1+bs*3];
-		a_2 = Ap[2+bs*3];
-		a_3 = Ap[3+bs*3];
-			
-		c_00 += a_0 * a_0;
-		c_10 += a_1 * a_0;
-		c_20 += a_2 * a_0;
-		c_30 += a_3 * a_0;
-
-		c_11 += a_1 * a_1;
-		c_21 += a_2 * a_1;
-		c_31 += a_3 * a_1;
-
-		c_22 += a_2 * a_2;
-		c_32 += a_3 * a_2;
-
-		c_33 += a_3 * a_3;
-
-		Ap += 16;
-		k = 4;
-
-				
-		for(; k<kadd-3; k+=4)
-			{
-			
-			a_0 = Ap[0+bs*0];
-			a_1 = Ap[1+bs*0];
-			a_2 = Ap[2+bs*0];
-			a_3 = Ap[3+bs*0];
-			
-			c_00 += a_0 * a_0;
-			c_10 += a_1 * a_0;
-			c_20 += a_2 * a_0;
-			c_30 += a_3 * a_0;
-
-			c_11 += a_1 * a_1;
-			c_21 += a_2 * a_1;
-			c_31 += a_3 * a_1;
-
-			c_22 += a_2 * a_2;
-			c_32 += a_3 * a_2;
-
-			c_33 += a_3 * a_3;
-
-
-			a_0 = Ap[0+bs*1];
-			a_1 = Ap[1+bs*1];
-			a_2 = Ap[2+bs*1];
-			a_3 = Ap[3+bs*1];
-			
-			c_00 += a_0 * a_0;
-			c_10 += a_1 * a_0;
-			c_20 += a_2 * a_0;
-			c_30 += a_3 * a_0;
-
-			c_11 += a_1 * a_1;
-			c_21 += a_2 * a_1;
-			c_31 += a_3 * a_1;
-
-			c_22 += a_2 * a_2;
-			c_32 += a_3 * a_2;
-
-			c_33 += a_3 * a_3;
-
-
-			a_0 = Ap[0+bs*2];
-			a_1 = Ap[1+bs*2];
-			a_2 = Ap[2+bs*2];
-			a_3 = Ap[3+bs*2];
-			
-			c_00 += a_0 * a_0;
-			c_10 += a_1 * a_0;
-			c_20 += a_2 * a_0;
-			c_30 += a_3 * a_0;
-
-			c_11 += a_1 * a_1;
-			c_21 += a_2 * a_1;
-			c_31 += a_3 * a_1;
-
-			c_22 += a_2 * a_2;
-			c_32 += a_3 * a_2;
-
-			c_33 += a_3 * a_3;
-
-
-			a_0 = Ap[0+bs*3];
-			a_1 = Ap[1+bs*3];
-			a_2 = Ap[2+bs*3];
-			a_3 = Ap[3+bs*3];
-			
-			c_00 += a_0 * a_0;
-			c_10 += a_1 * a_0;
-			c_20 += a_2 * a_0;
-			c_30 += a_3 * a_0;
-
-			c_11 += a_1 * a_1;
-			c_21 += a_2 * a_1;
-			c_31 += a_3 * a_1;
-
-			c_22 += a_2 * a_2;
-			c_32 += a_3 * a_2;
-
-			c_33 += a_3 * a_3;
-			
-			
-			Ap += 16;
-
-			}
-		for(; k<kadd; k++)
-			{
-			
-			a_0 = Ap[0+bs*0];
-			a_1 = Ap[1+bs*0];
-			a_2 = Ap[2+bs*0];
-			a_3 = Ap[3+bs*0];
-			
-			c_00 += a_0 * a_0;
-			c_10 += a_1 * a_0;
-			c_20 += a_2 * a_0;
-			c_30 += a_3 * a_0;
-
-			c_11 += a_1 * a_1;
-			c_21 += a_2 * a_1;
-			c_31 += a_3 * a_1;
-
-			c_22 += a_2 * a_2;
-			c_32 += a_3 * a_2;
-
-			c_33 += a_3 * a_3;
-
-
-			Ap += 4;
-
-			}
-
-		}
-	else if(kadd>0)
-		{
-
-		// k = 0
-		a_0 = Ap[0+bs*0];
-		
-		c_00 += a_0 * a_0;
-
-		Ap += 4;
-		k += 1;
-
-		if(kadd>1)
-			{
-
-			// k = 1
-			a_0 = Ap[0+bs*0];
-			a_1 = Ap[1+bs*0];
-			
-			c_00 += a_0 * a_0;
-			c_10 += a_1 * a_0;
-
-			c_11 += a_1 * a_1;
-
-			Ap += 4;
-			k += 1;
-
-			if(kadd>2)
-				{
-
-				// k = 2
-				a_0 = Ap[0+bs*0];
-				a_1 = Ap[1+bs*0];
-				a_2 = Ap[2+bs*0];
-				
-				c_00 += a_0 * a_0;
-				c_10 += a_1 * a_0;
-				c_20 += a_2 * a_0;
-
-				c_11 += a_1 * a_1;
-				c_21 += a_2 * a_1;
-
-				c_22 += a_2 * a_2;
-
-				Ap += 4;
-				k += 1;
-
-				}
-
-			}
-
-		}
-
-	for(k=0; k<ksub-3; k+=4)
-		{
-		
-		a_0 = Am[0+bs*0];
-		a_1 = Am[1+bs*0];
-		a_2 = Am[2+bs*0];
-		a_3 = Am[3+bs*0];
-		
-		c_00 -= a_0 * a_0;
-		c_10 -= a_1 * a_0;
-		c_20 -= a_2 * a_0;
-		c_30 -= a_3 * a_0;
-
-		c_11 -= a_1 * a_1;
-		c_21 -= a_2 * a_1;
-		c_31 -= a_3 * a_1;
-
-		c_22 -= a_2 * a_2;
-		c_32 -= a_3 * a_2;
-
-		c_33 -= a_3 * a_3;
-
-
-		a_0 = Am[0+bs*1];
-		a_1 = Am[1+bs*1];
-		a_2 = Am[2+bs*1];
-		a_3 = Am[3+bs*1];
-		
-		c_00 -= a_0 * a_0;
-		c_10 -= a_1 * a_0;
-		c_20 -= a_2 * a_0;
-		c_30 -= a_3 * a_0;
-
-		c_11 -= a_1 * a_1;
-		c_21 -= a_2 * a_1;
-		c_31 -= a_3 * a_1;
-
-		c_22 -= a_2 * a_2;
-		c_32 -= a_3 * a_2;
-
-		c_33 -= a_3 * a_3;
-
-
-		a_0 = Am[0+bs*2];
-		a_1 = Am[1+bs*2];
-		a_2 = Am[2+bs*2];
-		a_3 = Am[3+bs*2];
-		
-		c_00 -= a_0 * a_0;
-		c_10 -= a_1 * a_0;
-		c_20 -= a_2 * a_0;
-		c_30 -= a_3 * a_0;
-
-		c_11 -= a_1 * a_1;
-		c_21 -= a_2 * a_1;
-		c_31 -= a_3 * a_1;
-
-		c_22 -= a_2 * a_2;
-		c_32 -= a_3 * a_2;
-
-		c_33 -= a_3 * a_3;
-
-
-		a_0 = Am[0+bs*3];
-		a_1 = Am[1+bs*3];
-		a_2 = Am[2+bs*3];
-		a_3 = Am[3+bs*3];
-		
-		c_00 -= a_0 * a_0;
-		c_10 -= a_1 * a_0;
-		c_20 -= a_2 * a_0;
-		c_30 -= a_3 * a_0;
-
-		c_11 -= a_1 * a_1;
-		c_21 -= a_2 * a_1;
-		c_31 -= a_3 * a_1;
-
-		c_22 -= a_2 * a_2;
-		c_32 -= a_3 * a_2;
-
-		c_33 -= a_3 * a_3;
-		
-		
-		Am += 16;
-
-		}
-
-	if(alg!=0)
-		{
-		c_00 += C[0+bs*0];
-		c_10 += C[1+bs*0];
-		c_20 += C[2+bs*0];
-		c_30 += C[3+bs*0];
-
-		c_11 += C[1+bs*1];
-		c_21 += C[2+bs*1];
-		c_31 += C[3+bs*1];
-
-		c_22 += C[2+bs*2];
-		c_32 += C[3+bs*2];
-
-		c_33 += C[3+bs*3];
-		}
-	
-	// dpotrf
-	
-	// first column
-	if(c_00 > 1e-15)
-		{
-		c_00 = sqrt(c_00);
-		D[0+bs*0] = c_00;
-		c_00 = 1.0/c_00;
-		c_10 *= c_00;
-		c_20 *= c_00;
-		c_30 *= c_00;
-		}
-	else
-		{
-		c_00 = 0.0;
-		D[0+bs*0] = c_00;
-		c_10 = 0.0;
-		c_20 = 0.0;
-		c_30 = 0.0;
-		}
-	D[1+bs*0] = c_10;
-	D[2+bs*0] = c_20;
-	D[3+bs*0] = c_30;
-	
-	// second column
-	c_11 -= c_10*c_10;
-	if(c_11 > 1e-15)
-		{
-		c_11 = sqrt(c_11);
-		D[1+bs*1] = c_11;
-		c_11 = 1.0/c_11;
-		c_21 -= c_20*c_10;
-		c_31 -= c_30*c_10;
-		c_21 *= c_11;
-		c_31 *= c_11;
-		}
-	else
-		{
-		c_11 = 0.0;
-		D[1+bs*1] = c_11;
-		c_21 = 0.0;
-		c_31 = 0.0;
-		}
-	D[2+bs*1] = c_21;
-	D[3+bs*1] = c_31;
-
-	// third column
-	c_22 -= c_20*c_20;
-	c_22 -= c_21*c_21;
-	if(c_22 > 1e-15)
-		{
-		c_22 = sqrt(c_22);
-		D[2+bs*2] = c_22;
-		c_22 = 1.0/c_22;
-		c_32 -= c_30*c_20;
-		c_32 -= c_31*c_21;
-		c_32 *= c_22;
-		}
-	else
-		{
-		c_22 = 0.0;
-		D[2+bs*2] = c_22;
-		c_32 = 0.0;
-		}
-	D[3+bs*2] = c_32;
-
-	// fourth column
-	c_33 -= c_30*c_30;
-	c_33 -= c_31*c_31;
-	c_33 -= c_32*c_32;
-	if(c_33 > 1e-15)
-		{
-		c_33 = sqrt(c_33);
-		D[3+bs*3] = c_33;
-		c_33 = 1.0/c_33;
-		}
-	else
-		{
-		c_33 = 0.0;
-		D[3+bs*3] = c_33;
-		}
-	
-	// save factorized matrix with reciprocal of diagonal
-	fact[0] = c_00;
-	fact[1] = c_10;
-	fact[3] = c_20;
-	fact[6] = c_30;
-	fact[2] = c_11;
-	fact[4] = c_21;
-	fact[7] = c_31;
-	fact[5] = c_22;
-	fact[8] = c_32;
-	fact[9] = c_33;
-
-	}
 

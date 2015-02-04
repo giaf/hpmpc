@@ -23,14 +23,14 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-#include "../../include/block_size.h"
+//#include "../../include/block_size.h"
 
 
 
 // normal-transposed, 4x4 with data packed in 4
 // prefetch optimized for Cortex-A9 (cache line is 32 bytes, while A15 is 64 bytes)
 /*void kernel_dgemm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)*/
-void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
+void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
 	{
 	
 	__builtin_prefetch( A );
@@ -44,10 +44,10 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, doub
 	int kl_add = kadd%4;
 	int ki_sub = ksub/4;
 
-	const int bs = D_MR;//4;
-	const int d_ncl = D_NCL;//2;
+//	const int bs = D_MR;//4;
+//	const int d_ncl = D_NCL;//2;
 
-	int dA = bs*((d_ncl-kadd%d_ncl)%d_ncl)*sizeof(double);
+//	int dA = bs*((d_ncl-kadd%d_ncl)%d_ncl)*sizeof(double);
 /*	int dA = bs*((d_ncl-kadd%d_ncl)%d_ncl);*/
 
 	__builtin_prefetch( A+8 );
@@ -62,35 +62,8 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, doub
 	__asm__ volatile
 	(
 		"                                \n\t"
-		"mov    r3, %0                   \n\t" // k_iter
 		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-//		"mov    r2, %5                   \n\t" // load address of C
-		"                                \n\t"
-		"                                \n\t"
-		"fldd   d16, [%3, #0]            \n\t" // prefetch A_even
-		"fldd   d17, [%3, #8]            \n\t"
-		"fldd   d18, [%3, #16]           \n\t"
-		"fldd   d19, [%3, #24]           \n\t"
-		"                                \n\t"
-		"fldd   d20, [%4, #0]            \n\t" // prefetch B_even
-		"fldd   d21, [%4, #8]            \n\t"
-		"fldd   d22, [%4, #16]           \n\t"
-		"fldd   d23, [%4, #24]           \n\t"
-		"                                \n\t"
-		"cmp    r3, #0                   \n\t"
-		"                                \n\t"
-		"fldd   d24, [%3, #32]           \n\t" // prefetch A_odd
-		"fldd   d25, [%3, #40]           \n\t"
-		"fldd   d26, [%3, #48]           \n\t"
-		"fldd   d27, [%3, #56]           \n\t"
-		"                                \n\t"
-		"fldd   d28, [%4, #32]           \n\t" // prefetch B_odd
-		"fldd   d29, [%4, #40]           \n\t"
-		"fldd   d30, [%4, #48]           \n\t"
-		"fldd   d31, [%4, #56]           \n\t"
-		"                                \n\t"
+		"add    r3, %0, %1               \n\t" // k_add
 		"                                \n\t"
 		"                                \n\t"
 		"fldd   d0, .DOUBLEZERO          \n\t" // load zero double
@@ -111,16 +84,297 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, doub
 		"fcpyd  d15, d0                  \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"ble    .DCONSIDERADD            \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
 		"b      .DENDZERO                \n\t"
 		".align 3                        \n\t"
 		".DOUBLEZERO:                    \n\t" // zero double word
 		".word  0                        \n\t"
 		".word  0                        \n\t"
 		".DENDZERO:                      \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"cmp    r3, #0                   \n\t"
+		"blt    .DCONSIDERSUB            \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"fldd   d16, [%3, #0]            \n\t" // prefetch A_even
+		"fldd   d17, [%3, #8]            \n\t"
+		"fldd   d18, [%3, #16]           \n\t"
+		"fldd   d19, [%3, #24]           \n\t"
+		"                                \n\t"
+		"fldd   d20, [%4, #0]            \n\t" // prefetch B_even
+		"fldd   d21, [%4, #8]            \n\t"
+		"fldd   d22, [%4, #16]           \n\t"
+		"fldd   d23, [%4, #24]           \n\t"
+		"                                \n\t"
+		"fldd   d24, [%3, #32]           \n\t" // prefetch A_odd
+		"fldd   d25, [%3, #40]           \n\t"
+		"fldd   d26, [%3, #48]           \n\t"
+		"fldd   d27, [%3, #56]           \n\t"
+		"                                \n\t"
+		"fldd   d28, [%4, #32]           \n\t" // prefetch B_odd
+		"fldd   d29, [%4, #40]           \n\t"
+		"fldd   d30, [%4, #48]           \n\t"
+		"fldd   d31, [%4, #56]           \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"cmp    %11, #1                  \n\t"
+		"bne    .DCONSIDERLOOPADD        \n\t" // tri != 1
+		"                                \n\t"
+		"                                \n\t"
+		"cmp    %0, #0                   \n\t"
+		"ble    .DTRIADD                 \n\t" // if ki_add == 0, jump
+		"                                \n\t"
+		"                                \n\t"
+		"mov    r3, %0                   \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"pld    [%3, #128]               \n\t"
+		"pld    [%4, #128]               \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"fmacd  d0, d16, d20             \n\t"
+//		"fmacd  d1, d17, d20             \n\t"
+//		"fmacd  d2, d18, d20             \n\t"
+//		"fmacd  d3, d19, d20             \n\t"
+		"fldd   d20, [%4, #64]           \n\t" // prefetch B_even
+		"                                \n\t"
+		"fmacd  d4, d16, d21             \n\t"
+//		"fmacd  d5, d17, d21             \n\t"
+//		"fmacd  d6, d18, d21             \n\t"
+//		"fmacd  d7, d19, d21             \n\t"
+		"fldd   d21, [%4, #72]           \n\t"
+		"                                \n\t"
+		"fmacd  d8, d16, d22             \n\t"
+//		"fmacd  d9, d17, d22             \n\t"
+//		"fmacd  d10, d18, d22            \n\t"
+//		"fmacd  d11, d19, d22            \n\t"
+		"fldd   d22, [%4, #80]           \n\t"
+		"                                \n\t"
+		"fmacd  d12, d16, d23            \n\t"
+		"fldd   d16, [%3, #64]           \n\t" // prefetch A_even
+//		"fmacd  d13, d17, d23            \n\t"
+		"fldd   d17, [%3, #72]           \n\t"
+//		"fmacd  d14, d18, d23            \n\t"
+		"fldd   d18, [%3, #80]           \n\t"
+//		"fmacd  d15, d19, d23            \n\t"
+		"fldd   d23, [%4, #88]           \n\t"
+		"                                \n\t"
+		"                                \n\t"
+#if defined(TARGET_CORTEX_A9)
+		"pld    [%3, #160]               \n\t"
+		"pld    [%4, #160]               \n\t"
+#endif
+		"                                \n\t"
+		"                                \n\t"
+		"fmacd  d0, d24, d28             \n\t"
+		"fldd   d19, [%3, #88]           \n\t"
+		"fmacd  d1, d25, d28             \n\t"
+		"sub    r3, r3, #1               \n\t" // iter++
+//		"fmacd  d2, d26, d28             \n\t"
+//		"fmacd  d3, d27, d28             \n\t"
+		"fldd   d28, [%4, #96]           \n\t" // prefetch B_odd
+		"                                \n\t"
+		"fmacd  d4, d24, d29             \n\t"
+		"fmacd  d5, d25, d29             \n\t"
+//		"fmacd  d6, d26, d29             \n\t"
+//		"fmacd  d7, d27, d29             \n\t"
+		"fldd   d29, [%4, #104]          \n\t"
+		"                                \n\t"
+		"fmacd  d8, d24, d30             \n\t"
+		"fmacd  d9, d25, d30             \n\t"
+//		"fmacd  d10, d26, d30            \n\t"
+//		"fmacd  d11, d27, d30            \n\t"
+		"fldd   d30, [%4, #112]          \n\t"
+		"                                \n\t"
+		"fmacd  d12, d24, d31            \n\t"
+		"fldd   d24, [%3, #96]           \n\t" // prefetch A_odd
+		"fmacd  d13, d25, d31            \n\t"
+		"fldd   d25, [%3, #104]          \n\t"
+//		"fmacd  d14, d26, d31            \n\t"
+		"fldd   d26, [%3, #112]          \n\t"
+//		"fmacd  d15, d27, d31            \n\t"
+		"fldd   d31, [%4, #120]          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"pld    [%3, #192]               \n\t"
+		"pld    [%4, #192]               \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"fmacd  d0, d16, d20             \n\t"
+		"fldd   d27, [%3, #120]          \n\t"
+		"fmacd  d1, d17, d20             \n\t"
+		"cmp    r3, #0                   \n\t" // next iter?
+		"fmacd  d2, d18, d20             \n\t"
+//		"fmacd  d3, d19, d20             \n\t"
+		"fldd   d20, [%4, #128]          \n\t" // prefetch B_even
+		"                                \n\t"
+		"fmacd  d4, d16, d21             \n\t"
+		"fmacd  d5, d17, d21             \n\t"
+		"fmacd  d6, d18, d21             \n\t"
+//		"fmacd  d7, d19, d21             \n\t"
+		"fldd   d21, [%4, #136]          \n\t"
+		"                                \n\t"
+		"fmacd  d8, d16, d22             \n\t"
+		"fmacd  d9, d17, d22             \n\t"
+		"fmacd  d10, d18, d22            \n\t"
+//		"fmacd  d11, d19, d22            \n\t"
+		"fldd   d22, [%4, #144]          \n\t"
+		"                                \n\t"
+		"fmacd  d12, d16, d23            \n\t"
+		"fldd   d16, [%3, #128]          \n\t" // prefetch A_even
+		"fmacd  d13, d17, d23            \n\t"
+		"fldd   d17, [%3, #136]          \n\t"
+		"fmacd  d14, d18, d23            \n\t"
+		"fldd   d18, [%3, #144]          \n\t"
+//		"fmacd  d15, d19, d23            \n\t"
+		"fldd   d19, [%3, #152]          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+#if defined(TARGET_CORTEX_A9)
+		"pld    [%3, #224]               \n\t"
+		"pld    [%4, #224]               \n\t"
+#endif
+		"                                \n\t"
+		"                                \n\t"
+		"fmacd  d0, d24, d28             \n\t"
+		"add    %3, %3, #128             \n\t" // increase A
+		"fmacd  d1, d25, d28             \n\t"
+		"fldd   d23, [%4, #152]          \n\t"
+		"fmacd  d2, d26, d28             \n\t"
+		"add    %4, %4, #128             \n\t" // increase B
+		"fmacd  d3, d27, d28             \n\t"
+		"fldd   d28, [%4, #32]           \n\t" // prefetch B_odd
+		"                                \n\t"
+		"fmacd  d4, d24, d29             \n\t"
+		"fmacd  d5, d25, d29             \n\t"
+		"fmacd  d6, d26, d29             \n\t"
+		"fmacd  d7, d27, d29             \n\t"
+		"fldd   d29, [%4, #40]           \n\t"
+		"                                \n\t"
+		"fmacd  d8, d24, d30             \n\t"
+		"fmacd  d9, d25, d30             \n\t"
+		"fmacd  d10, d26, d30            \n\t"
+		"fmacd  d11, d27, d30            \n\t"
+		"fldd   d30, [%4, #48]           \n\t"
+		"                                \n\t"
+		"fmacd  d12, d24, d31            \n\t"
+		"fldd   d24, [%3, #32]           \n\t" // prefetch A_odd
+		"fmacd  d13, d25, d31            \n\t"
+		"fldd   d25, [%3, #40]           \n\t"
+		"fmacd  d14, d26, d31            \n\t"
+		"fldd   d26, [%3, #48]           \n\t"
+		"fmacd  d15, d27, d31            \n\t"
+		"fldd   d31, [%4, #56]           \n\t"
+		"fldd   d27, [%3, #56]           \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"b       .DCONSIDERLOOPADD       \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DTRIADD:                       \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"fmacd  d0, d16, d20             \n\t"
+//		"fmacd  d1, d17, d20             \n\t"
+//		"fmacd  d2, d18, d20             \n\t"
+//		"fmacd  d3, d19, d20             \n\t"
+		"fldd   d20, [%4, #64]           \n\t" // prefetch B_even
+		"                                \n\t"
+		"fmacd  d4, d16, d21             \n\t"
+//		"fmacd  d5, d17, d21             \n\t"
+//		"fmacd  d6, d18, d21             \n\t"
+//		"fmacd  d7, d19, d21             \n\t"
+		"fldd   d21, [%4, #72]           \n\t"
+		"                                \n\t"
+		"fmacd  d8, d16, d22             \n\t"
+//		"fmacd  d9, d17, d22             \n\t"
+//		"fmacd  d10, d18, d22            \n\t"
+//		"fmacd  d11, d19, d22            \n\t"
+		"fldd   d22, [%4, #80]           \n\t"
+		"                                \n\t"
+		"fmacd  d12, d16, d23            \n\t"
+		"fldd   d16, [%3, #64]           \n\t" // prefetch A_even
+//		"fmacd  d13, d17, d23            \n\t"
+		"fldd   d17, [%3, #72]           \n\t"
+//		"fmacd  d14, d18, d23            \n\t"
+		"fldd   d18, [%3, #80]           \n\t"
+//		"fmacd  d15, d19, d23            \n\t"
+		"fldd   d23, [%4, #88]           \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"cmp    %1, #2                   \n\t"
+		"blt    .DCONSIDERSUB            \n\t" //
+		"                                \n\t"
+		"                                \n\t"
+		"fmacd  d0, d24, d28             \n\t"
+		"fldd   d19, [%3, #88]           \n\t"
+		"fmacd  d1, d25, d28             \n\t"
+//		"fmacd  d2, d26, d28             \n\t"
+//		"fmacd  d3, d27, d28             \n\t"
+		"fldd   d28, [%4, #96]           \n\t" // prefetch B_odd
+		"                                \n\t"
+		"fmacd  d4, d24, d29             \n\t"
+		"fmacd  d5, d25, d29             \n\t"
+//		"fmacd  d6, d26, d29             \n\t"
+//		"fmacd  d7, d27, d29             \n\t"
+		"fldd   d29, [%4, #104]          \n\t"
+		"                                \n\t"
+		"fmacd  d8, d24, d30             \n\t"
+		"fmacd  d9, d25, d30             \n\t"
+//		"fmacd  d10, d26, d30            \n\t"
+//		"fmacd  d11, d27, d30            \n\t"
+		"fldd   d30, [%4, #112]          \n\t"
+		"                                \n\t"
+		"fmacd  d12, d24, d31            \n\t"
+		"fldd   d24, [%3, #96]           \n\t" // prefetch A_odd
+		"fmacd  d13, d25, d31            \n\t"
+		"fldd   d25, [%3, #104]          \n\t"
+//		"fmacd  d14, d26, d31            \n\t"
+		"fldd   d26, [%3, #112]          \n\t"
+//		"fmacd  d15, d27, d31            \n\t"
+		"fldd   d31, [%4, #120]          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"beq    .DCONSIDERSUB            \n\t" //
+		"                                \n\t"
+		"                                \n\t"
+		"fmacd  d0, d16, d20             \n\t"
+		"fldd   d27, [%3, #120]          \n\t"
+		"fmacd  d1, d17, d20             \n\t"
+		"fmacd  d2, d18, d20             \n\t"
+//		"fmacd  d3, d19, d20             \n\t"
+		"fldd   d20, [%4, #128]          \n\t" // prefetch B_even
+		"                                \n\t"
+		"fmacd  d4, d16, d21             \n\t"
+		"fmacd  d5, d17, d21             \n\t"
+		"fmacd  d6, d18, d21             \n\t"
+//		"fmacd  d7, d19, d21             \n\t"
+		"fldd   d21, [%4, #136]          \n\t"
+		"                                \n\t"
+		"fmacd  d8, d16, d22             \n\t"
+		"fmacd  d9, d17, d22             \n\t"
+		"fmacd  d10, d18, d22            \n\t"
+//		"fmacd  d11, d19, d22            \n\t"
+		"fldd   d22, [%4, #144]          \n\t"
+		"                                \n\t"
+		"fmacd  d12, d16, d23            \n\t"
+		"fldd   d16, [%3, #128]          \n\t" // prefetch A_even
+		"fmacd  d13, d17, d23            \n\t"
+		"fldd   d17, [%3, #136]          \n\t"
+		"fmacd  d14, d18, d23            \n\t"
+		"fldd   d18, [%3, #144]          \n\t"
+//		"fmacd  d15, d19, d23            \n\t"
+		"fldd   d19, [%3, #152]          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"b      .DCONSIDERSUB            \n\t" //
+		"                                \n\t"
+		"                                \n\t"
+		".DCONSIDERLOOPADD:              \n\t" // MAIN LOOP add
+		"                                \n\t"
+		"                                \n\t"
+		"cmp    r3, #0                   \n\t"
+		"ble    .DCONSIDERADD            \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DLOOPADD:                      \n\t" // main loop
@@ -266,19 +520,15 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, doub
 		"fldd   d27, [%3, #56]           \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"                                \n\t"
 		"bgt    .DLOOPADD                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DCONSIDERADD:                  \n\t" // consider left
 		"                                \n\t"
 		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
 		"mov    r3, %1                   \n\t" // k_left
 		"cmp    r3, #0                   \n\t"
 		"ble    .DCONSIDERSUB            \n\t"
-		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DLOOPLEFT:                     \n\t" // clean up loop
@@ -323,185 +573,176 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, doub
 		"                                \n\t"
 		".DCONSIDERSUB:                  \n\t" // padd
 		"                                \n\t"
-		"add    r3, %0, %1               \n\t"
 		"                                \n\t"
 		"cmp    %2, #0                   \n\t"
 		"ble    .DPOSTACC                \n\t"
 		"                                \n\t"
-		"cmp    %8, #0                   \n\t"
-		"ble    .DPRELOOPSUB             \n\t"
-		"                                \n\t"
-		"cmp    r3, #0                   \n\t"
-		"ble    .DPRELOOPSUB             \n\t"
-		"                                \n\t"
-		"add    %3, %3, %8               \n\t"
-		"add    %4, %4, %8               \n\t"
-		"                                \n\t"
-		"fldd   d16, [%3, #0]            \n\t" // prefetch A_even
-		"fldd   d17, [%3, #8]            \n\t"
-		"fldd   d18, [%3, #16]           \n\t"
-		"fldd   d19, [%3, #24]           \n\t"
-		"                                \n\t"
-		"fldd   d20, [%4, #0]            \n\t" // prefetch B_even
-		"fldd   d21, [%4, #8]            \n\t"
-		"fldd   d22, [%4, #16]           \n\t"
-		"fldd   d23, [%4, #24]           \n\t"
-		"                                \n\t"
-		".DPRELOOPSUB:                   \n\t" // 
 		"                                \n\t"
 		"mov    r3, %2                   \n\t" // k_iter
 		"                                \n\t"
-		"fldd   d24, [%3, #32]           \n\t" // prefetch A_odd
-		"fldd   d25, [%3, #40]           \n\t"
-		"fldd   d26, [%3, #48]           \n\t"
-		"fldd   d27, [%3, #56]           \n\t"
 		"                                \n\t"
-		"fldd   d28, [%4, #32]           \n\t" // prefetch B_odd
-		"fldd   d29, [%4, #40]           \n\t"
-		"fldd   d30, [%4, #48]           \n\t"
-		"fldd   d31, [%4, #56]           \n\t"
+		"fldd   d16, [%9, #0]            \n\t" // prefetch A_even
+		"fldd   d17, [%9, #8]            \n\t"
+		"fldd   d18, [%9, #16]           \n\t"
+		"fldd   d19, [%9, #24]           \n\t"
+		"                                \n\t"
+		"fldd   d20, [%10, #0]            \n\t" // prefetch B_even
+		"fldd   d21, [%10, #8]            \n\t"
+		"fldd   d22, [%10, #16]           \n\t"
+		"fldd   d23, [%10, #24]           \n\t"
+		"                                \n\t"
+		"fldd   d24, [%9, #32]           \n\t" // prefetch A_odd
+		"fldd   d25, [%9, #40]           \n\t"
+		"fldd   d26, [%9, #48]           \n\t"
+		"fldd   d27, [%9, #56]           \n\t"
+		"                                \n\t"
+		"fldd   d28, [%10, #32]           \n\t" // prefetch B_odd
+		"fldd   d29, [%10, #40]           \n\t"
+		"fldd   d30, [%10, #48]           \n\t"
+		"fldd   d31, [%10, #56]           \n\t"
+		"                                \n\t"
 		"                                \n\t"
 		".DLOOPSUB:                      \n\t" // main loop 2
 		"                                \n\t"
 		"                                \n\t"
-		"pld    [%3, #128]               \n\t"
-		"pld    [%4, #128]               \n\t"
+		"pld    [%9, #128]               \n\t"
+		"pld    [%10, #128]               \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"fnmacd  d0, d16, d20             \n\t"
 		"fnmacd  d1, d17, d20             \n\t"
 		"fnmacd  d2, d18, d20             \n\t"
 		"fnmacd  d3, d19, d20             \n\t"
-		"fldd   d20, [%4, #64]           \n\t" // prefetch B_even
+		"fldd   d20, [%10, #64]           \n\t" // prefetch B_even
 		"                                \n\t"
 		"fnmacd  d4, d16, d21             \n\t"
 		"fnmacd  d5, d17, d21             \n\t"
 		"fnmacd  d6, d18, d21             \n\t"
 		"fnmacd  d7, d19, d21             \n\t"
-		"fldd   d21, [%4, #72]           \n\t"
+		"fldd   d21, [%10, #72]           \n\t"
 		"                                \n\t"
 		"fnmacd  d8, d16, d22             \n\t"
 		"fnmacd  d9, d17, d22             \n\t"
 		"fnmacd  d10, d18, d22            \n\t"
 		"fnmacd  d11, d19, d22            \n\t"
-		"fldd   d22, [%4, #80]           \n\t"
+		"fldd   d22, [%10, #80]           \n\t"
 		"                                \n\t"
 		"fnmacd  d12, d16, d23            \n\t"
-		"fldd   d16, [%3, #64]           \n\t" // prefetch A_even
+		"fldd   d16, [%9, #64]           \n\t" // prefetch A_even
 		"fnmacd  d13, d17, d23            \n\t"
-		"fldd   d17, [%3, #72]           \n\t"
+		"fldd   d17, [%9, #72]           \n\t"
 		"fnmacd  d14, d18, d23            \n\t"
-		"fldd   d18, [%3, #80]           \n\t"
+		"fldd   d18, [%9, #80]           \n\t"
 		"fnmacd  d15, d19, d23            \n\t"
-		"fldd   d23, [%4, #88]           \n\t"
+		"fldd   d23, [%10, #88]           \n\t"
 		"                                \n\t"
 		"                                \n\t"
 #if defined(TARGET_CORTEX_A9)
-		"pld    [%3, #160]               \n\t"
-		"pld    [%4, #160]               \n\t"
+		"pld    [%9, #160]               \n\t"
+		"pld    [%10, #160]               \n\t"
 #endif
 		"                                \n\t"
 		"                                \n\t"
 		"fnmacd  d0, d24, d28             \n\t"
-		"fldd   d19, [%3, #88]           \n\t"
+		"fldd   d19, [%9, #88]           \n\t"
 		"fnmacd  d1, d25, d28             \n\t"
 		"sub    r3, r3, #1               \n\t" // iter++
 		"fnmacd  d2, d26, d28             \n\t"
 		"fnmacd  d3, d27, d28             \n\t"
-		"fldd   d28, [%4, #96]           \n\t" // prefetch B_odd
+		"fldd   d28, [%10, #96]           \n\t" // prefetch B_odd
 		"                                \n\t"
 		"fnmacd  d4, d24, d29             \n\t"
 		"fnmacd  d5, d25, d29             \n\t"
 		"fnmacd  d6, d26, d29             \n\t"
 		"fnmacd  d7, d27, d29             \n\t"
-		"fldd   d29, [%4, #104]          \n\t"
+		"fldd   d29, [%10, #104]          \n\t"
 		"                                \n\t"
 		"fnmacd  d8, d24, d30             \n\t"
 		"fnmacd  d9, d25, d30             \n\t"
 		"fnmacd  d10, d26, d30            \n\t"
 		"fnmacd  d11, d27, d30            \n\t"
-		"fldd   d30, [%4, #112]          \n\t"
+		"fldd   d30, [%10, #112]          \n\t"
 		"                                \n\t"
 		"fnmacd  d12, d24, d31            \n\t"
-		"fldd   d24, [%3, #96]           \n\t" // prefetch A_odd
+		"fldd   d24, [%9, #96]           \n\t" // prefetch A_odd
 		"fnmacd  d13, d25, d31            \n\t"
-		"fldd   d25, [%3, #104]          \n\t"
+		"fldd   d25, [%9, #104]          \n\t"
 		"fnmacd  d14, d26, d31            \n\t"
-		"fldd   d26, [%3, #112]          \n\t"
+		"fldd   d26, [%9, #112]          \n\t"
 		"fnmacd  d15, d27, d31            \n\t"
-		"fldd   d31, [%4, #120]          \n\t"
+		"fldd   d31, [%10, #120]          \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"pld    [%3, #192]               \n\t"
-		"pld    [%4, #192]               \n\t"
+		"pld    [%9, #192]               \n\t"
+		"pld    [%10, #192]               \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"fnmacd  d0, d16, d20             \n\t"
-		"fldd   d27, [%3, #120]          \n\t"
+		"fldd   d27, [%9, #120]          \n\t"
 		"fnmacd  d1, d17, d20             \n\t"
 		"cmp    r3, #0                   \n\t" // next iter?
 		"fnmacd  d2, d18, d20             \n\t"
 		"fnmacd  d3, d19, d20             \n\t"
-		"fldd   d20, [%4, #128]          \n\t" // prefetch B_even
+		"fldd   d20, [%10, #128]          \n\t" // prefetch B_even
 		"                                \n\t"
 		"fnmacd  d4, d16, d21             \n\t"
 		"fnmacd  d5, d17, d21             \n\t"
 		"fnmacd  d6, d18, d21             \n\t"
 		"fnmacd  d7, d19, d21             \n\t"
-		"fldd   d21, [%4, #136]          \n\t"
+		"fldd   d21, [%10, #136]          \n\t"
 		"                                \n\t"
 		"fnmacd  d8, d16, d22             \n\t"
 		"fnmacd  d9, d17, d22             \n\t"
 		"fnmacd  d10, d18, d22            \n\t"
 		"fnmacd  d11, d19, d22            \n\t"
-		"fldd   d22, [%4, #144]          \n\t"
+		"fldd   d22, [%10, #144]          \n\t"
 		"                                \n\t"
 		"fnmacd  d12, d16, d23            \n\t"
-		"fldd   d16, [%3, #128]          \n\t" // prefetch A_even
+		"fldd   d16, [%9, #128]          \n\t" // prefetch A_even
 		"fnmacd  d13, d17, d23            \n\t"
-		"fldd   d17, [%3, #136]          \n\t"
+		"fldd   d17, [%9, #136]          \n\t"
 		"fnmacd  d14, d18, d23            \n\t"
-		"fldd   d18, [%3, #144]          \n\t"
+		"fldd   d18, [%9, #144]          \n\t"
 		"fnmacd  d15, d19, d23            \n\t"
-		"fldd   d19, [%3, #152]          \n\t"
+		"fldd   d19, [%9, #152]          \n\t"
 		"                                \n\t"
 		"                                \n\t"
 #if defined(TARGET_CORTEX_A9)
-		"pld    [%3, #224]               \n\t"
-		"pld    [%4, #224]               \n\t"
+		"pld    [%9, #224]               \n\t"
+		"pld    [%10, #224]               \n\t"
 #endif
 		"                                \n\t"
 		"                                \n\t"
 		"fnmacd  d0, d24, d28             \n\t"
-		"add    %3, %3, #128             \n\t" // increase A
+		"add    %9, %9, #128             \n\t" // increase A
 		"fnmacd  d1, d25, d28             \n\t"
-		"fldd   d23, [%4, #152]          \n\t"
+		"fldd   d23, [%10, #152]          \n\t"
 		"fnmacd  d2, d26, d28             \n\t"
-		"add    %4, %4, #128             \n\t" // increase B
+		"add    %10, %10, #128             \n\t" // increase B
 		"fnmacd  d3, d27, d28             \n\t"
-		"fldd   d28, [%4, #32]           \n\t" // prefetch B_odd
+		"fldd   d28, [%10, #32]           \n\t" // prefetch B_odd
 		"                                \n\t"
 		"fnmacd  d4, d24, d29             \n\t"
 		"fnmacd  d5, d25, d29             \n\t"
 		"fnmacd  d6, d26, d29             \n\t"
 		"fnmacd  d7, d27, d29             \n\t"
-		"fldd   d29, [%4, #40]           \n\t"
+		"fldd   d29, [%10, #40]           \n\t"
 		"                                \n\t"
 		"fnmacd  d8, d24, d30             \n\t"
 		"fnmacd  d9, d25, d30             \n\t"
 		"fnmacd  d10, d26, d30            \n\t"
 		"fnmacd  d11, d27, d30            \n\t"
-		"fldd   d30, [%4, #48]           \n\t"
+		"fldd   d30, [%10, #48]           \n\t"
 		"                                \n\t"
 		"fnmacd  d12, d24, d31            \n\t"
-		"fldd   d24, [%3, #32]           \n\t" // prefetch A_odd
+		"fldd   d24, [%9, #32]           \n\t" // prefetch A_odd
 		"fnmacd  d13, d25, d31            \n\t"
-		"fldd   d25, [%3, #40]           \n\t"
+		"fldd   d25, [%9, #40]           \n\t"
 		"fnmacd  d14, d26, d31            \n\t"
-		"fldd   d26, [%3, #48]           \n\t"
+		"fldd   d26, [%9, #48]           \n\t"
 		"fnmacd  d15, d27, d31            \n\t"
-		"fldd   d31, [%4, #56]           \n\t"
-		"fldd   d27, [%3, #56]           \n\t"
+		"fldd   d31, [%10, #56]           \n\t"
+		"fldd   d27, [%9, #56]           \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"bgt    .DLOOPSUB                \n\t"
@@ -510,7 +751,7 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, doub
 		".DPOSTACC:                      \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"cmp    %9, #0                   \n\t" // alg
+		"cmp    %8, #0                   \n\t" // alg
 		"bne    .DLOAD_D                 \n\t"
 		"                                \n\t"
 		"fcpyd  d0, d16                  \n\t"
@@ -684,13 +925,15 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, doub
 		  "r" (ki_add),		// %0
 		  "r" (kl_add),		// %1
 		  "r" (ki_sub),		// %2
-		  "r" (A),			// %3
-		  "r" (B),			// %4
+		  "r" (Ap),			// %3
+		  "r" (Bp),			// %4
 		  "r" (C),			// %5
 		  "r" (D),			// %6
 		  "r" (fact),		// %7
-		  "r" (dA),			// %8
-		  "r" (alg)			// %9
+		  "r" (alg),		// %8
+		  "r" (Ap),			// %9
+		  "r" (Bp),			// %10
+		  "r" (tri)			// %11
 		: // register clobber list
 		  "r3",
 		  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
@@ -703,11 +946,11 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *A, doub
 
 
 
-void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
+void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
+//	const int d_ncl = D_NCL;
 
 	int k;
 
@@ -733,10 +976,10 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 				{
 
 				// k=0
-				a_0 = A[0+bs*0];
+				a_0 = Ap[0+bs*0];
 					
-				b_0 = B[0+bs*0];
-				b_1 = B[1+bs*0];
+				b_0 = Bp[0+bs*0];
+				b_1 = Bp[1+bs*0];
 					
 				c_00 += a_0 * b_0;
 
@@ -744,11 +987,11 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 
 
 				// k=1
-				a_0 = A[0+bs*1];
-				a_1 = A[1+bs*1];
+				a_0 = Ap[0+bs*1];
+				a_1 = Ap[1+bs*1];
 					
-				b_0 = B[0+bs*1];
-				b_1 = B[1+bs*1];
+				b_0 = Bp[0+bs*1];
+				b_1 = Bp[1+bs*1];
 					
 				c_00 += a_0 * b_0;
 				c_10 += a_1 * b_0;
@@ -758,12 +1001,12 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 
 
 				// k=2
-				a_0 = A[0+bs*2];
-				a_1 = A[1+bs*2];
-				a_2 = A[2+bs*2];
+				a_0 = Ap[0+bs*2];
+				a_1 = Ap[1+bs*2];
+				a_2 = Ap[2+bs*2];
 					
-				b_0 = B[0+bs*2];
-				b_1 = B[1+bs*2];
+				b_0 = Bp[0+bs*2];
+				b_1 = Bp[1+bs*2];
 					
 				c_00 += a_0 * b_0;
 				c_10 += a_1 * b_0;
@@ -775,13 +1018,13 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 
 
 				// k=3
-				a_0 = A[0+bs*3];
-				a_1 = A[1+bs*3];
-				a_2 = A[2+bs*3];
-				a_3 = A[3+bs*3];
+				a_0 = Ap[0+bs*3];
+				a_1 = Ap[1+bs*3];
+				a_2 = Ap[2+bs*3];
+				a_3 = Ap[3+bs*3];
 					
-				b_0 = B[0+bs*3];
-				b_1 = B[1+bs*3];
+				b_0 = Bp[0+bs*3];
+				b_1 = Bp[1+bs*3];
 					
 				c_00 += a_0 * b_0;
 				c_10 += a_1 * b_0;
@@ -794,8 +1037,8 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 				c_31 += a_3 * b_1;
 
 
-				A += 16;
-				B += 16;
+				Ap += 16;
+				Bp += 16;
 				k += 4;
 
 				}
@@ -803,24 +1046,26 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 				{
 
 				// k=0
-				a_0 = A[0+bs*0];
+				a_0 = Ap[0+bs*0];
 					
-				b_0 = B[0+bs*0];
-				b_1 = B[1+bs*0];
+				b_0 = Bp[0+bs*0];
+				b_1 = Bp[1+bs*0];
 					
 				c_00 += a_0 * b_0;
 
 				c_01 += a_0 * b_1;
 
+				k += 1;
+
 				if(kadd>1)
 					{
 
 					// k=1
-					a_0 = A[0+bs*1];
-					a_1 = A[1+bs*1];
+					a_0 = Ap[0+bs*1];
+					a_1 = Ap[1+bs*1];
 						
-					b_0 = B[0+bs*1];
-					b_1 = B[1+bs*1];
+					b_0 = Bp[0+bs*1];
+					b_1 = Bp[1+bs*1];
 						
 					c_00 += a_0 * b_0;
 					c_10 += a_1 * b_0;
@@ -828,16 +1073,18 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 					c_01 += a_0 * b_1;
 					c_11 += a_1 * b_1;
 
+					k += 1;
+
 					if(kadd>2)
 						{
 
 						// k=2
-						a_0 = A[0+bs*2];
-						a_1 = A[1+bs*2];
-						a_2 = A[2+bs*2];
+						a_0 = Ap[0+bs*2];
+						a_1 = Ap[1+bs*2];
+						a_2 = Ap[2+bs*2];
 							
-						b_0 = B[0+bs*2];
-						b_1 = B[1+bs*2];
+						b_0 = Bp[0+bs*2];
+						b_1 = Bp[1+bs*2];
 							
 						c_00 += a_0 * b_0;
 						c_10 += a_1 * b_0;
@@ -847,21 +1094,11 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 						c_11 += a_1 * b_1;
 						c_21 += a_2 * b_1;
 
-						A += 4;
-						B += 4;
 						k += 1;
 
 						}
 
-					A += 4;
-					B += 4;
-					k += 1;
-
 					}
-
-				A += 4;
-				B += 4;
-				k += 1;
 
 				}
 
@@ -870,32 +1107,13 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 		for(; k<kadd-3; k+=4)
 			{
 			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
-			a_2 = A[2+bs*0];
-			a_3 = A[3+bs*0];
+			a_0 = Ap[0+bs*0];
+			a_1 = Ap[1+bs*0];
+			a_2 = Ap[2+bs*0];
+			a_3 = Ap[3+bs*0];
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			
-			c_00 += a_0 * b_0;
-			c_10 += a_1 * b_0;
-			c_20 += a_2 * b_0;
-			c_30 += a_3 * b_0;
-
-			c_01 += a_0 * b_1;
-			c_11 += a_1 * b_1;
-			c_21 += a_2 * b_1;
-			c_31 += a_3 * b_1;
-
-
-			a_0 = A[0+bs*1];
-			a_1 = A[1+bs*1];
-			a_2 = A[2+bs*1];
-			a_3 = A[3+bs*1];
-			
-			b_0 = B[0+bs*1];
-			b_1 = B[1+bs*1];
+			b_0 = Bp[0+bs*0];
+			b_1 = Bp[1+bs*0];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -908,13 +1126,32 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 			c_31 += a_3 * b_1;
 
 
-			a_0 = A[0+bs*2];
-			a_1 = A[1+bs*2];
-			a_2 = A[2+bs*2];
-			a_3 = A[3+bs*2];
+			a_0 = Ap[0+bs*1];
+			a_1 = Ap[1+bs*1];
+			a_2 = Ap[2+bs*1];
+			a_3 = Ap[3+bs*1];
 			
-			b_0 = B[0+bs*2];
-			b_1 = B[1+bs*2];
+			b_0 = Bp[0+bs*1];
+			b_1 = Bp[1+bs*1];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+			c_20 += a_2 * b_0;
+			c_30 += a_3 * b_0;
+
+			c_01 += a_0 * b_1;
+			c_11 += a_1 * b_1;
+			c_21 += a_2 * b_1;
+			c_31 += a_3 * b_1;
+
+
+			a_0 = Ap[0+bs*2];
+			a_1 = Ap[1+bs*2];
+			a_2 = Ap[2+bs*2];
+			a_3 = Ap[3+bs*2];
+			
+			b_0 = Bp[0+bs*2];
+			b_1 = Bp[1+bs*2];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -927,13 +1164,13 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 			c_31 += a_3 * b_1;
 
 
-			a_0 = A[0+bs*3];
-			a_1 = A[1+bs*3];
-			a_2 = A[2+bs*3];
-			a_3 = A[3+bs*3];
+			a_0 = Ap[0+bs*3];
+			a_1 = Ap[1+bs*3];
+			a_2 = Ap[2+bs*3];
+			a_3 = Ap[3+bs*3];
 			
-			b_0 = B[0+bs*3];
-			b_1 = B[1+bs*3];
+			b_0 = Bp[0+bs*3];
+			b_1 = Bp[1+bs*3];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -946,20 +1183,20 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 			c_31 += a_3 * b_1;
 			
 			
-			A += 16;
-			B += 16;
+			Ap += 16;
+			Bp += 16;
 
 			}
 		for(; k<kadd; k++)
 			{
 			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
-			a_2 = A[2+bs*0];
-			a_3 = A[3+bs*0];
+			a_0 = Ap[0+bs*0];
+			a_1 = Ap[1+bs*0];
+			a_2 = Ap[2+bs*0];
+			a_3 = Ap[3+bs*0];
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
+			b_0 = Bp[0+bs*0];
+			b_1 = Bp[1+bs*0];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -972,47 +1209,23 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 			c_31 += a_3 * b_1;
 
 
-			A += 4;
-			B += 4;
+			Ap += 4;
+			Bp += 4;
 
 			}
 
-		if(ksub>0)
-			{
-			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			}
 		}
 
 	for(k=0; k<ksub-3; k+=4)
 		{
 		
-		a_0 = A[0+bs*0];
-		a_1 = A[1+bs*0];
-		a_2 = A[2+bs*0];
-		a_3 = A[3+bs*0];
+		a_0 = Am[0+bs*0];
+		a_1 = Am[1+bs*0];
+		a_2 = Am[2+bs*0];
+		a_3 = Am[3+bs*0];
 		
-		b_0 = B[0+bs*0];
-		b_1 = B[1+bs*0];
-		
-		c_00 -= a_0 * b_0;
-		c_10 -= a_1 * b_0;
-		c_20 -= a_2 * b_0;
-		c_30 -= a_3 * b_0;
-
-		c_01 -= a_0 * b_1;
-		c_11 -= a_1 * b_1;
-		c_21 -= a_2 * b_1;
-		c_31 -= a_3 * b_1;
-
-
-		a_0 = A[0+bs*1];
-		a_1 = A[1+bs*1];
-		a_2 = A[2+bs*1];
-		a_3 = A[3+bs*1];
-		
-		b_0 = B[0+bs*1];
-		b_1 = B[1+bs*1];
+		b_0 = Bm[0+bs*0];
+		b_1 = Bm[1+bs*0];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1025,13 +1238,32 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 		c_31 -= a_3 * b_1;
 
 
-		a_0 = A[0+bs*2];
-		a_1 = A[1+bs*2];
-		a_2 = A[2+bs*2];
-		a_3 = A[3+bs*2];
+		a_0 = Am[0+bs*1];
+		a_1 = Am[1+bs*1];
+		a_2 = Am[2+bs*1];
+		a_3 = Am[3+bs*1];
 		
-		b_0 = B[0+bs*2];
-		b_1 = B[1+bs*2];
+		b_0 = Bm[0+bs*1];
+		b_1 = Bm[1+bs*1];
+		
+		c_00 -= a_0 * b_0;
+		c_10 -= a_1 * b_0;
+		c_20 -= a_2 * b_0;
+		c_30 -= a_3 * b_0;
+
+		c_01 -= a_0 * b_1;
+		c_11 -= a_1 * b_1;
+		c_21 -= a_2 * b_1;
+		c_31 -= a_3 * b_1;
+
+
+		a_0 = Am[0+bs*2];
+		a_1 = Am[1+bs*2];
+		a_2 = Am[2+bs*2];
+		a_3 = Am[3+bs*2];
+		
+		b_0 = Bm[0+bs*2];
+		b_1 = Bm[1+bs*2];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1044,13 +1276,13 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 		c_31 -= a_3 * b_1;
 
 
-		a_0 = A[0+bs*3];
-		a_1 = A[1+bs*3];
-		a_2 = A[2+bs*3];
-		a_3 = A[3+bs*3];
+		a_0 = Am[0+bs*3];
+		a_1 = Am[1+bs*3];
+		a_2 = Am[2+bs*3];
+		a_3 = Am[3+bs*3];
 		
-		b_0 = B[0+bs*3];
-		b_1 = B[1+bs*3];
+		b_0 = Bm[0+bs*3];
+		b_1 = Bm[1+bs*3];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1063,8 +1295,8 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 		c_31 -= a_3 * b_1;
 		
 		
-		A += 16;
-		B += 16;
+		Am += 16;
+		Bm += 16;
 
 		}
 
@@ -1114,11 +1346,11 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *A, doub
 	
 	
 	
-void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
+void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
+//	const int d_ncl = D_NCL;
 
 	int k;
 
@@ -1142,12 +1374,12 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 				{
 
 				// k=0
-				a_0 = A[0+bs*0];
+				a_0 = Ap[0+bs*0];
 					
-				b_0 = B[0+bs*0];
-				b_1 = B[1+bs*0];
-				b_2 = B[2+bs*0];
-				b_3 = B[3+bs*0];
+				b_0 = Bp[0+bs*0];
+				b_1 = Bp[1+bs*0];
+				b_2 = Bp[2+bs*0];
+				b_3 = Bp[3+bs*0];
 					
 				c_00 += a_0 * b_0;
 
@@ -1159,13 +1391,13 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 
 
 				// k=1
-				a_0 = A[0+bs*1];
-				a_1 = A[1+bs*1];
+				a_0 = Ap[0+bs*1];
+				a_1 = Ap[1+bs*1];
 					
-				b_0 = B[0+bs*1];
-				b_1 = B[1+bs*1];
-				b_2 = B[2+bs*1];
-				b_3 = B[3+bs*1];
+				b_0 = Bp[0+bs*1];
+				b_1 = Bp[1+bs*1];
+				b_2 = Bp[2+bs*1];
+				b_3 = Bp[3+bs*1];
 					
 				c_00 += a_0 * b_0;
 				c_10 += a_1 * b_0;
@@ -1180,8 +1412,8 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 				c_13 += a_1 * b_3;
 
 
-				A += 8;
-				B += 8;
+				Ap += 8;
+				Bp += 8;
 				k += 2;
 			
 				}
@@ -1189,12 +1421,12 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 				{
 
 				// k=0
-				a_0 = A[0+bs*0];
+				a_0 = Ap[0+bs*0];
 					
-				b_0 = B[0+bs*0];
-				b_1 = B[1+bs*0];
-				b_2 = B[2+bs*0];
-				b_3 = B[3+bs*0];
+				b_0 = Bp[0+bs*0];
+				b_1 = Bp[1+bs*0];
+				b_2 = Bp[2+bs*0];
+				b_3 = Bp[3+bs*0];
 					
 				c_00 += a_0 * b_0;
 
@@ -1204,8 +1436,6 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 
 				c_03 += a_0 * b_3;
 
-				A += 4;
-				B += 3;
 				k += 1;
 
 				}
@@ -1215,34 +1445,13 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 		for(; k<kadd-3; k+=4)
 			{
 			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
+			a_0 = Ap[0+bs*0];
+			a_1 = Ap[1+bs*0];
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			b_2 = B[2+bs*0];
-			b_3 = B[3+bs*0];
-			
-			c_00 += a_0 * b_0;
-			c_10 += a_1 * b_0;
-
-			c_01 += a_0 * b_1;
-			c_11 += a_1 * b_1;
-
-			c_02 += a_0 * b_2;
-			c_12 += a_1 * b_2;
-
-			c_03 += a_0 * b_3;
-			c_13 += a_1 * b_3;
-
-
-			a_0 = A[0+bs*1];
-			a_1 = A[1+bs*1];
-			
-			b_0 = B[0+bs*1];
-			b_1 = B[1+bs*1];
-			b_2 = B[2+bs*1];
-			b_3 = B[3+bs*1];
+			b_0 = Bp[0+bs*0];
+			b_1 = Bp[1+bs*0];
+			b_2 = Bp[2+bs*0];
+			b_3 = Bp[3+bs*0];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -1257,13 +1466,34 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 			c_13 += a_1 * b_3;
 
 
-			a_0 = A[0+bs*2];
-			a_1 = A[1+bs*2];
+			a_0 = Ap[0+bs*1];
+			a_1 = Ap[1+bs*1];
 			
-			b_0 = B[0+bs*2];
-			b_1 = B[1+bs*2];
-			b_2 = B[2+bs*2];
-			b_3 = B[3+bs*2];
+			b_0 = Bp[0+bs*1];
+			b_1 = Bp[1+bs*1];
+			b_2 = Bp[2+bs*1];
+			b_3 = Bp[3+bs*1];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+
+			c_01 += a_0 * b_1;
+			c_11 += a_1 * b_1;
+
+			c_02 += a_0 * b_2;
+			c_12 += a_1 * b_2;
+
+			c_03 += a_0 * b_3;
+			c_13 += a_1 * b_3;
+
+
+			a_0 = Ap[0+bs*2];
+			a_1 = Ap[1+bs*2];
+			
+			b_0 = Bp[0+bs*2];
+			b_1 = Bp[1+bs*2];
+			b_2 = Bp[2+bs*2];
+			b_3 = Bp[3+bs*2];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -1278,13 +1508,13 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 			c_13 += a_1 * b_3;
 
 
-			a_0 = A[0+bs*3];
-			a_1 = A[1+bs*3];
+			a_0 = Ap[0+bs*3];
+			a_1 = Ap[1+bs*3];
 			
-			b_0 = B[0+bs*3];
-			b_1 = B[1+bs*3];
-			b_2 = B[2+bs*3];
-			b_3 = B[3+bs*3];
+			b_0 = Bp[0+bs*3];
+			b_1 = Bp[1+bs*3];
+			b_2 = Bp[2+bs*3];
+			b_3 = Bp[3+bs*3];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -1299,20 +1529,20 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 			c_13 += a_1 * b_3;
 			
 			
-			A += 16;
-			B += 16;
+			Ap += 16;
+			Bp += 16;
 
 			}
 		for(; k<kadd; k++)
 			{
 			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
+			a_0 = Ap[0+bs*0];
+			a_1 = Ap[1+bs*0];
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			b_2 = B[2+bs*0];
-			b_3 = B[3+bs*0];
+			b_0 = Bp[0+bs*0];
+			b_1 = Bp[1+bs*0];
+			b_2 = Bp[2+bs*0];
+			b_3 = Bp[3+bs*0];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -1327,15 +1557,9 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 			c_13 += a_1 * b_3;
 
 
-			A += 4;
-			B += 4;
+			Ap += 4;
+			Bp += 4;
 
-			}
-
-		if(ksub>0)
-			{
-			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			}
 
 		}
@@ -1343,34 +1567,13 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 	for(k=0; k<ksub-3; k+=4)
 		{
 		
-		a_0 = A[0+bs*0];
-		a_1 = A[1+bs*0];
+		a_0 = Am[0+bs*0];
+		a_1 = Am[1+bs*0];
 		
-		b_0 = B[0+bs*0];
-		b_1 = B[1+bs*0];
-		b_2 = B[2+bs*0];
-		b_3 = B[3+bs*0];
-		
-		c_00 -= a_0 * b_0;
-		c_10 -= a_1 * b_0;
-
-		c_01 -= a_0 * b_1;
-		c_11 -= a_1 * b_1;
-
-		c_02 -= a_0 * b_2;
-		c_12 -= a_1 * b_2;
-
-		c_03 -= a_0 * b_3;
-		c_13 -= a_1 * b_3;
-
-
-		a_0 = A[0+bs*1];
-		a_1 = A[1+bs*1];
-		
-		b_0 = B[0+bs*1];
-		b_1 = B[1+bs*1];
-		b_2 = B[2+bs*1];
-		b_3 = B[3+bs*1];
+		b_0 = Bm[0+bs*0];
+		b_1 = Bm[1+bs*0];
+		b_2 = Bm[2+bs*0];
+		b_3 = Bm[3+bs*0];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1385,13 +1588,34 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 		c_13 -= a_1 * b_3;
 
 
-		a_0 = A[0+bs*2];
-		a_1 = A[1+bs*2];
+		a_0 = Am[0+bs*1];
+		a_1 = Am[1+bs*1];
 		
-		b_0 = B[0+bs*2];
-		b_1 = B[1+bs*2];
-		b_2 = B[2+bs*2];
-		b_3 = B[3+bs*2];
+		b_0 = Bm[0+bs*1];
+		b_1 = Bm[1+bs*1];
+		b_2 = Bm[2+bs*1];
+		b_3 = Bm[3+bs*1];
+		
+		c_00 -= a_0 * b_0;
+		c_10 -= a_1 * b_0;
+
+		c_01 -= a_0 * b_1;
+		c_11 -= a_1 * b_1;
+
+		c_02 -= a_0 * b_2;
+		c_12 -= a_1 * b_2;
+
+		c_03 -= a_0 * b_3;
+		c_13 -= a_1 * b_3;
+
+
+		a_0 = Am[0+bs*2];
+		a_1 = Am[1+bs*2];
+		
+		b_0 = Bm[0+bs*2];
+		b_1 = Bm[1+bs*2];
+		b_2 = Bm[2+bs*2];
+		b_3 = Bm[3+bs*2];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1406,13 +1630,13 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 		c_13 -= a_1 * b_3;
 
 
-		a_0 = A[0+bs*3];
-		a_1 = A[1+bs*3];
+		a_0 = Am[0+bs*3];
+		a_1 = Am[1+bs*3];
 		
-		b_0 = B[0+bs*3];
-		b_1 = B[1+bs*3];
-		b_2 = B[2+bs*3];
-		b_3 = B[3+bs*3];
+		b_0 = Bm[0+bs*3];
+		b_1 = Bm[1+bs*3];
+		b_2 = Bm[2+bs*3];
+		b_3 = Bm[3+bs*3];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1427,8 +1651,8 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 		c_13 -= a_1 * b_3;
 		
 		
-		A += 16;
-		B += 16;
+		Am += 16;
+		Bm += 16;
 
 		}
 
@@ -1497,11 +1721,11 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *A, doub
 	
 	
 	
-void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
+void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
+//	const int d_ncl = D_NCL;
 
 	int k;
 
@@ -1525,10 +1749,10 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 				{
 
 				// k=0
-				a_0 = A[0+bs*0];
+				a_0 = Ap[0+bs*0];
 					
-				b_0 = B[0+bs*0];
-				b_1 = B[1+bs*0];
+				b_0 = Bp[0+bs*0];
+				b_1 = Bp[1+bs*0];
 					
 				c_00 += a_0 * b_0;
 
@@ -1536,11 +1760,11 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 
 
 				// k=1
-				a_0 = A[0+bs*1];
-				a_1 = A[1+bs*1];
+				a_0 = Ap[0+bs*1];
+				a_1 = Ap[1+bs*1];
 					
-				b_0 = B[0+bs*1];
-				b_1 = B[1+bs*1];
+				b_0 = Bp[0+bs*1];
+				b_1 = Bp[1+bs*1];
 					
 				c_00 += a_0 * b_0;
 				c_10 += a_1 * b_0;
@@ -1549,8 +1773,8 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 				c_11 += a_1 * b_1;
 
 
-				A += 8;
-				B += 8;
+				Ap += 8;
+				Bp += 8;
 				k += 2;
 
 				}
@@ -1558,17 +1782,15 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 				{
 
 				// k=0
-				a_0 = A[0+bs*0];
+				a_0 = Ap[0+bs*0];
 					
-				b_0 = B[0+bs*0];
-				b_1 = B[1+bs*0];
+				b_0 = Bp[0+bs*0];
+				b_1 = Bp[1+bs*0];
 					
 				c_00 += a_0 * b_0;
 
 				c_01 += a_0 * b_1;
 
-				A += 4;
-				B += 4;
 				k += 1;
 
 
@@ -1579,24 +1801,11 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 		for(; k<kadd-3; k+=4)
 			{
 			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
+			a_0 = Ap[0+bs*0];
+			a_1 = Ap[1+bs*0];
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			
-			c_00 += a_0 * b_0;
-			c_10 += a_1 * b_0;
-
-			c_01 += a_0 * b_1;
-			c_11 += a_1 * b_1;
-
-
-			a_0 = A[0+bs*1];
-			a_1 = A[1+bs*1];
-			
-			b_0 = B[0+bs*1];
-			b_1 = B[1+bs*1];
+			b_0 = Bp[0+bs*0];
+			b_1 = Bp[1+bs*0];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -1605,11 +1814,24 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 			c_11 += a_1 * b_1;
 
 
-			a_0 = A[0+bs*2];
-			a_1 = A[1+bs*2];
+			a_0 = Ap[0+bs*1];
+			a_1 = Ap[1+bs*1];
 			
-			b_0 = B[0+bs*2];
-			b_1 = B[1+bs*2];
+			b_0 = Bp[0+bs*1];
+			b_1 = Bp[1+bs*1];
+			
+			c_00 += a_0 * b_0;
+			c_10 += a_1 * b_0;
+
+			c_01 += a_0 * b_1;
+			c_11 += a_1 * b_1;
+
+
+			a_0 = Ap[0+bs*2];
+			a_1 = Ap[1+bs*2];
+			
+			b_0 = Bp[0+bs*2];
+			b_1 = Bp[1+bs*2];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -1618,11 +1840,11 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 			c_11 += a_1 * b_1;
 
 
-			a_0 = A[0+bs*3];
-			a_1 = A[1+bs*3];
+			a_0 = Ap[0+bs*3];
+			a_1 = Ap[1+bs*3];
 			
-			b_0 = B[0+bs*3];
-			b_1 = B[1+bs*3];
+			b_0 = Bp[0+bs*3];
+			b_1 = Bp[1+bs*3];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -1631,18 +1853,18 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 			c_11 += a_1 * b_1;
 			
 			
-			A += 16;
-			B += 16;
+			Ap += 16;
+			Bp += 16;
 
 			}
 		for(; k<kadd; k++)
 			{
 			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
+			a_0 = Ap[0+bs*0];
+			a_1 = Ap[1+bs*0];
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
+			b_0 = Bp[0+bs*0];
+			b_1 = Bp[1+bs*0];
 			
 			c_00 += a_0 * b_0;
 			c_10 += a_1 * b_0;
@@ -1651,15 +1873,9 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 			c_11 += a_1 * b_1;
 
 
-			A += 4;
-			B += 4;
+			Ap += 4;
+			Bp += 4;
 
-			}
-
-		if(ksub>0)
-			{
-			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
 			}
 
 		}
@@ -1667,24 +1883,11 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 	for(k=0; k<ksub-3; k+=4)
 		{
 		
-		a_0 = A[0+bs*0];
-		a_1 = A[1+bs*0];
+		a_0 = Am[0+bs*0];
+		a_1 = Am[1+bs*0];
 		
-		b_0 = B[0+bs*0];
-		b_1 = B[1+bs*0];
-		
-		c_00 -= a_0 * b_0;
-		c_10 -= a_1 * b_0;
-
-		c_01 -= a_0 * b_1;
-		c_11 -= a_1 * b_1;
-
-
-		a_0 = A[0+bs*1];
-		a_1 = A[1+bs*1];
-		
-		b_0 = B[0+bs*1];
-		b_1 = B[1+bs*1];
+		b_0 = Bm[0+bs*0];
+		b_1 = Bm[1+bs*0];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1693,11 +1896,24 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 		c_11 -= a_1 * b_1;
 
 
-		a_0 = A[0+bs*2];
-		a_1 = A[1+bs*2];
+		a_0 = Am[0+bs*1];
+		a_1 = Am[1+bs*1];
 		
-		b_0 = B[0+bs*2];
-		b_1 = B[1+bs*2];
+		b_0 = Bm[0+bs*1];
+		b_1 = Bm[1+bs*1];
+		
+		c_00 -= a_0 * b_0;
+		c_10 -= a_1 * b_0;
+
+		c_01 -= a_0 * b_1;
+		c_11 -= a_1 * b_1;
+
+
+		a_0 = Am[0+bs*2];
+		a_1 = Am[1+bs*2];
+		
+		b_0 = Bm[0+bs*2];
+		b_1 = Bm[1+bs*2];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1706,11 +1922,11 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 		c_11 -= a_1 * b_1;
 
 
-		a_0 = A[0+bs*3];
-		a_1 = A[1+bs*3];
+		a_0 = Am[0+bs*3];
+		a_1 = Am[1+bs*3];
 		
-		b_0 = B[0+bs*3];
-		b_1 = B[1+bs*3];
+		b_0 = Bm[0+bs*3];
+		b_1 = Bm[1+bs*3];
 		
 		c_00 -= a_0 * b_0;
 		c_10 -= a_1 * b_0;
@@ -1719,8 +1935,8 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 		c_11 -= a_1 * b_1;
 		
 		
-		A += 16;
-		B += 16;
+		Am += 16;
+		Bm += 16;
 
 		}
 
@@ -1753,640 +1969,5 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *A, doub
 	D[1+bs*1] = c_11;
 
 	}
-	
-	
-
-// A is upper triangular
-void kernel_dtrmm_dtrsm_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg)
-	{
-
-	const int bs = 4;
-	const int d_ncl = D_NCL;
-
-//	d_print_mat(4, kadd, A, 4);
-//	d_print_mat(4, kadd, B, 4);
-
-	int k;
-
-	double
-		a_0, a_1, a_2, a_3,
-		b_0, b_1, b_2, b_3,
-		c_00=0, c_01=0, c_02=0, c_03=0,
-		c_10=0, c_11=0, c_12=0, c_13=0,
-		c_20=0, c_21=0, c_22=0, c_23=0,
-		c_30=0, c_31=0, c_32=0, c_33=0;
-	
-	// initialize loop counter
-	k = 0;
-
-	if(kadd>=4)
-		{
-
-		// initial triangle
-
-		// k=0
-		a_0 = A[0+bs*0];
-			
-		b_0 = B[0+bs*0];
-		b_1 = B[1+bs*0];
-		b_2 = B[2+bs*0];
-		b_3 = B[3+bs*0];
-			
-		c_00 += a_0 * b_0;
-
-		c_01 += a_0 * b_1;
-
-		c_02 += a_0 * b_2;
-
-		c_03 += a_0 * b_3;
-
-
-		// k=1
-		a_0 = A[0+bs*1];
-		a_1 = A[1+bs*1];
-			
-		b_0 = B[0+bs*1];
-		b_1 = B[1+bs*1];
-		b_2 = B[2+bs*1];
-		b_3 = B[3+bs*1];
-			
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-
-
-		// k=2
-		a_0 = A[0+bs*2];
-		a_1 = A[1+bs*2];
-		a_2 = A[2+bs*2];
-			
-		b_0 = B[0+bs*2];
-		b_1 = B[1+bs*2];
-		b_2 = B[2+bs*2];
-		b_3 = B[3+bs*2];
-			
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-		c_22 += a_2 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-		c_23 += a_2 * b_3;
-
-
-		// k=3
-		a_0 = A[0+bs*3];
-		a_1 = A[1+bs*3];
-		a_2 = A[2+bs*3];
-		a_3 = A[3+bs*3];
-			
-		b_0 = B[0+bs*3];
-		b_1 = B[1+bs*3];
-		b_2 = B[2+bs*3];
-		b_3 = B[3+bs*3];
-			
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-		c_22 += a_2 * b_2;
-		c_32 += a_3 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-		c_23 += a_2 * b_3;
-		c_33 += a_3 * b_3;
-
-
-		A += 16;
-		B += 16;
-		k = 4;
-			
-
-		for(; k<kadd-3; k+=4)
-			{
-			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
-			a_2 = A[2+bs*0];
-			a_3 = A[3+bs*0];
-			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			b_2 = B[2+bs*0];
-			b_3 = B[3+bs*0];
-			
-			c_00 += a_0 * b_0;
-			c_10 += a_1 * b_0;
-			c_20 += a_2 * b_0;
-			c_30 += a_3 * b_0;
-
-			c_01 += a_0 * b_1;
-			c_11 += a_1 * b_1;
-			c_21 += a_2 * b_1;
-			c_31 += a_3 * b_1;
-
-			c_02 += a_0 * b_2;
-			c_12 += a_1 * b_2;
-			c_22 += a_2 * b_2;
-			c_32 += a_3 * b_2;
-
-			c_03 += a_0 * b_3;
-			c_13 += a_1 * b_3;
-			c_23 += a_2 * b_3;
-			c_33 += a_3 * b_3;
-
-
-			a_0 = A[0+bs*1];
-			a_1 = A[1+bs*1];
-			a_2 = A[2+bs*1];
-			a_3 = A[3+bs*1];
-			
-			b_0 = B[0+bs*1];
-			b_1 = B[1+bs*1];
-			b_2 = B[2+bs*1];
-			b_3 = B[3+bs*1];
-			
-			c_00 += a_0 * b_0;
-			c_10 += a_1 * b_0;
-			c_20 += a_2 * b_0;
-			c_30 += a_3 * b_0;
-
-			c_01 += a_0 * b_1;
-			c_11 += a_1 * b_1;
-			c_21 += a_2 * b_1;
-			c_31 += a_3 * b_1;
-
-			c_02 += a_0 * b_2;
-			c_12 += a_1 * b_2;
-			c_22 += a_2 * b_2;
-			c_32 += a_3 * b_2;
-
-			c_03 += a_0 * b_3;
-			c_13 += a_1 * b_3;
-			c_23 += a_2 * b_3;
-			c_33 += a_3 * b_3;
-
-
-			a_0 = A[0+bs*2];
-			a_1 = A[1+bs*2];
-			a_2 = A[2+bs*2];
-			a_3 = A[3+bs*2];
-			
-			b_0 = B[0+bs*2];
-			b_1 = B[1+bs*2];
-			b_2 = B[2+bs*2];
-			b_3 = B[3+bs*2];
-			
-			c_00 += a_0 * b_0;
-			c_10 += a_1 * b_0;
-			c_20 += a_2 * b_0;
-			c_30 += a_3 * b_0;
-
-			c_01 += a_0 * b_1;
-			c_11 += a_1 * b_1;
-			c_21 += a_2 * b_1;
-			c_31 += a_3 * b_1;
-
-			c_02 += a_0 * b_2;
-			c_12 += a_1 * b_2;
-			c_22 += a_2 * b_2;
-			c_32 += a_3 * b_2;
-
-			c_03 += a_0 * b_3;
-			c_13 += a_1 * b_3;
-			c_23 += a_2 * b_3;
-			c_33 += a_3 * b_3;
-
-
-			a_0 = A[0+bs*3];
-			a_1 = A[1+bs*3];
-			a_2 = A[2+bs*3];
-			a_3 = A[3+bs*3];
-			
-			b_0 = B[0+bs*3];
-			b_1 = B[1+bs*3];
-			b_2 = B[2+bs*3];
-			b_3 = B[3+bs*3];
-			
-			c_00 += a_0 * b_0;
-			c_10 += a_1 * b_0;
-			c_20 += a_2 * b_0;
-			c_30 += a_3 * b_0;
-
-			c_01 += a_0 * b_1;
-			c_11 += a_1 * b_1;
-			c_21 += a_2 * b_1;
-			c_31 += a_3 * b_1;
-
-			c_02 += a_0 * b_2;
-			c_12 += a_1 * b_2;
-			c_22 += a_2 * b_2;
-			c_32 += a_3 * b_2;
-
-			c_03 += a_0 * b_3;
-			c_13 += a_1 * b_3;
-			c_23 += a_2 * b_3;
-			c_33 += a_3 * b_3;
-			
-			
-			A += 16;
-			B += 16;
-
-			}
-		for(; k<kadd; k++)
-			{
-			
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
-			a_2 = A[2+bs*0];
-			a_3 = A[3+bs*0];
-			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			b_2 = B[2+bs*0];
-			b_3 = B[3+bs*0];
-			
-			c_00 += a_0 * b_0;
-			c_10 += a_1 * b_0;
-			c_20 += a_2 * b_0;
-			c_30 += a_3 * b_0;
-
-			c_01 += a_0 * b_1;
-			c_11 += a_1 * b_1;
-			c_21 += a_2 * b_1;
-			c_31 += a_3 * b_1;
-
-			c_02 += a_0 * b_2;
-			c_12 += a_1 * b_2;
-			c_22 += a_2 * b_2;
-			c_32 += a_3 * b_2;
-
-			c_03 += a_0 * b_3;
-			c_13 += a_1 * b_3;
-			c_23 += a_2 * b_3;
-			c_33 += a_3 * b_3;
-
-
-			A += 4;
-			B += 4;
-
-			}
-		}
-	else if(kadd>0)
-		{
-
-		// k = 0
-		a_0 = A[0+bs*0];
-			
-		b_0 = B[0+bs*0];
-		b_1 = B[1+bs*0];
-		b_2 = B[2+bs*0];
-		b_3 = B[3+bs*0];
-			
-		c_00 += a_0 * b_0;
-
-		c_01 += a_0 * b_1;
-
-		c_02 += a_0 * b_2;
-
-		c_03 += a_0 * b_3;
-
-		A += 4;
-		B += 4;
-		k += 1;
-
-		if(kadd>1)
-			{
-
-			// k = 1
-			a_0 = A[0+bs*0];
-			a_1 = A[1+bs*0];
-				
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			b_2 = B[2+bs*0];
-			b_3 = B[3+bs*0];
-				
-			c_00 += a_0 * b_0;
-			c_10 += a_1 * b_0;
-
-			c_01 += a_0 * b_1;
-			c_11 += a_1 * b_1;
-
-			c_02 += a_0 * b_2;
-			c_12 += a_1 * b_2;
-
-			c_03 += a_0 * b_3;
-			c_13 += a_1 * b_3;
-
-			A += 4;
-			B += 4;
-			k += 1;
-
-			if(kadd>2)
-				{
-
-				// k = 2
-				a_0 = A[0+bs*0];
-				a_1 = A[1+bs*0];
-				a_2 = A[2+bs*0];
-					
-				b_0 = B[0+bs*0];
-				b_1 = B[1+bs*0];
-				b_2 = B[2+bs*0];
-				b_3 = B[3+bs*0];
-					
-				c_00 += a_0 * b_0;
-				c_10 += a_1 * b_0;
-				c_20 += a_2 * b_0;
-
-				c_01 += a_0 * b_1;
-				c_11 += a_1 * b_1;
-				c_21 += a_2 * b_1;
-
-				c_02 += a_0 * b_2;
-				c_12 += a_1 * b_2;
-				c_22 += a_2 * b_2;
-
-				c_03 += a_0 * b_3;
-				c_13 += a_1 * b_3;
-				c_23 += a_2 * b_3;
-
-				A += 4;
-				B += 4;
-				k += 1;
-
-				}
-
-			}
-
-		}
-
-	if(ksub>0)
-		{
-		if(kadd>0)
-			{
-			A += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			B += bs*((d_ncl-kadd%d_ncl)%d_ncl);
-			}
-		}
-
-	for(k=0; k<ksub-3; k+=4)
-		{
-		
-		a_0 = A[0+bs*0];
-		a_1 = A[1+bs*0];
-		a_2 = A[2+bs*0];
-		a_3 = A[3+bs*0];
-		
-		b_0 = B[0+bs*0];
-		b_1 = B[1+bs*0];
-		b_2 = B[2+bs*0];
-		b_3 = B[3+bs*0];
-		
-		c_00 -= a_0 * b_0;
-		c_10 -= a_1 * b_0;
-		c_20 -= a_2 * b_0;
-		c_30 -= a_3 * b_0;
-
-		c_01 -= a_0 * b_1;
-		c_11 -= a_1 * b_1;
-		c_21 -= a_2 * b_1;
-		c_31 -= a_3 * b_1;
-
-		c_02 -= a_0 * b_2;
-		c_12 -= a_1 * b_2;
-		c_22 -= a_2 * b_2;
-		c_32 -= a_3 * b_2;
-
-		c_03 -= a_0 * b_3;
-		c_13 -= a_1 * b_3;
-		c_23 -= a_2 * b_3;
-		c_33 -= a_3 * b_3;
-
-
-		a_0 = A[0+bs*1];
-		a_1 = A[1+bs*1];
-		a_2 = A[2+bs*1];
-		a_3 = A[3+bs*1];
-		
-		b_0 = B[0+bs*1];
-		b_1 = B[1+bs*1];
-		b_2 = B[2+bs*1];
-		b_3 = B[3+bs*1];
-		
-		c_00 -= a_0 * b_0;
-		c_10 -= a_1 * b_0;
-		c_20 -= a_2 * b_0;
-		c_30 -= a_3 * b_0;
-
-		c_01 -= a_0 * b_1;
-		c_11 -= a_1 * b_1;
-		c_21 -= a_2 * b_1;
-		c_31 -= a_3 * b_1;
-
-		c_02 -= a_0 * b_2;
-		c_12 -= a_1 * b_2;
-		c_22 -= a_2 * b_2;
-		c_32 -= a_3 * b_2;
-
-		c_03 -= a_0 * b_3;
-		c_13 -= a_1 * b_3;
-		c_23 -= a_2 * b_3;
-		c_33 -= a_3 * b_3;
-
-
-		a_0 = A[0+bs*2];
-		a_1 = A[1+bs*2];
-		a_2 = A[2+bs*2];
-		a_3 = A[3+bs*2];
-		
-		b_0 = B[0+bs*2];
-		b_1 = B[1+bs*2];
-		b_2 = B[2+bs*2];
-		b_3 = B[3+bs*2];
-		
-		c_00 -= a_0 * b_0;
-		c_10 -= a_1 * b_0;
-		c_20 -= a_2 * b_0;
-		c_30 -= a_3 * b_0;
-
-		c_01 -= a_0 * b_1;
-		c_11 -= a_1 * b_1;
-		c_21 -= a_2 * b_1;
-		c_31 -= a_3 * b_1;
-
-		c_02 -= a_0 * b_2;
-		c_12 -= a_1 * b_2;
-		c_22 -= a_2 * b_2;
-		c_32 -= a_3 * b_2;
-
-		c_03 -= a_0 * b_3;
-		c_13 -= a_1 * b_3;
-		c_23 -= a_2 * b_3;
-		c_33 -= a_3 * b_3;
-
-
-		a_0 = A[0+bs*3];
-		a_1 = A[1+bs*3];
-		a_2 = A[2+bs*3];
-		a_3 = A[3+bs*3];
-		
-		b_0 = B[0+bs*3];
-		b_1 = B[1+bs*3];
-		b_2 = B[2+bs*3];
-		b_3 = B[3+bs*3];
-		
-		c_00 -= a_0 * b_0;
-		c_10 -= a_1 * b_0;
-		c_20 -= a_2 * b_0;
-		c_30 -= a_3 * b_0;
-
-		c_01 -= a_0 * b_1;
-		c_11 -= a_1 * b_1;
-		c_21 -= a_2 * b_1;
-		c_31 -= a_3 * b_1;
-
-		c_02 -= a_0 * b_2;
-		c_12 -= a_1 * b_2;
-		c_22 -= a_2 * b_2;
-		c_32 -= a_3 * b_2;
-
-		c_03 -= a_0 * b_3;
-		c_13 -= a_1 * b_3;
-		c_23 -= a_2 * b_3;
-		c_33 -= a_3 * b_3;
-		
-		
-		A += 16;
-		B += 16;
-
-		}
-
-	if(alg!=0)
-		{
-		c_00 += C[0+bs*0];
-		c_10 += C[1+bs*0];
-		c_20 += C[2+bs*0];
-		c_30 += C[3+bs*0];
-
-		c_01 += C[0+bs*1];
-		c_11 += C[1+bs*1];
-		c_21 += C[2+bs*1];
-		c_31 += C[3+bs*1];
-
-		c_02 += C[0+bs*2];
-		c_12 += C[1+bs*2];
-		c_22 += C[2+bs*2];
-		c_32 += C[3+bs*2];
-
-		c_03 += C[0+bs*3];
-		c_13 += C[1+bs*3];
-		c_23 += C[2+bs*3];
-		c_33 += C[3+bs*3];
-		}
-	
-	// dtrsm
-	double
-		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33;
-	
-	a_00 = fact[0];
-	c_00 *= a_00;
-	c_10 *= a_00;
-	c_20 *= a_00;
-	c_30 *= a_00;
-	D[0+bs*0] = c_00;
-	D[1+bs*0] = c_10;
-	D[2+bs*0] = c_20;
-	D[3+bs*0] = c_30;
-
-	a_10 = fact[1];
-	a_11 = fact[2];
-	c_01 -= c_00*a_10;
-	c_11 -= c_10*a_10;
-	c_21 -= c_20*a_10;
-	c_31 -= c_30*a_10;
-	c_01 *= a_11;
-	c_11 *= a_11;
-	c_21 *= a_11;
-	c_31 *= a_11;
-	D[0+bs*1] = c_01;
-	D[1+bs*1] = c_11;
-	D[2+bs*1] = c_21;
-	D[3+bs*1] = c_31;
-
-	a_20 = fact[3];
-	a_21 = fact[4];
-	a_22 = fact[5];
-	c_02 -= c_00*a_20;
-	c_12 -= c_10*a_20;
-	c_22 -= c_20*a_20;
-	c_32 -= c_30*a_20;
-	c_02 -= c_01*a_21;
-	c_12 -= c_11*a_21;
-	c_22 -= c_21*a_21;
-	c_32 -= c_31*a_21;
-	c_02 *= a_22;
-	c_12 *= a_22;
-	c_22 *= a_22;
-	c_32 *= a_22;
-	D[0+bs*2] = c_02;
-	D[1+bs*2] = c_12;
-	D[2+bs*2] = c_22;
-	D[3+bs*2] = c_32;
-
-	a_30 = fact[6];
-	a_31 = fact[7];
-	a_32 = fact[8];
-	a_33 = fact[9];
-	c_03 -= c_00*a_30;
-	c_13 -= c_10*a_30;
-	c_23 -= c_20*a_30;
-	c_33 -= c_30*a_30;
-	c_03 -= c_01*a_31;
-	c_13 -= c_11*a_31;
-	c_23 -= c_21*a_31;
-	c_33 -= c_31*a_31;
-	c_03 -= c_02*a_32;
-	c_13 -= c_12*a_32;
-	c_23 -= c_22*a_32;
-	c_33 -= c_32*a_32;
-	c_03 *= a_33;
-	c_13 *= a_33;
-	c_23 *= a_33;
-	c_33 *= a_33;
-	D[0+bs*3] = c_03;
-	D[1+bs*3] = c_13;
-	D[2+bs*3] = c_23;
-	D[3+bs*3] = c_33;
-
-	}
-	
-	
 	
 	

@@ -279,6 +279,8 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 						c_02_13_20_31 = _mm256_add_pd( c_02_13_20_31, ab_tmp0 );
 						c_42_53_60_71 = _mm256_add_pd( c_42_53_60_71, ab_tmp1 );
 
+						k += 1;
+
 						if(kadd>5)
 							{
 
@@ -307,6 +309,8 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 							a_4567        = _mm256_load_pd( &Ap1[8] ); // prefetch
 							c_02_13_20_31 = _mm256_add_pd( c_02_13_20_31, ab_tmp0 );
 							c_42_53_60_71 = _mm256_add_pd( c_42_53_60_71, ab_tmp1 );
+
+							k += 1;
 
 							if(kadd>6)
 								{
@@ -337,24 +341,11 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 								c_02_13_20_31 = _mm256_add_pd( c_02_13_20_31, ab_tmp0 );
 								c_42_53_60_71 = _mm256_add_pd( c_42_53_60_71, ab_tmp1 );
 
-								Ap0 += 4;
-								Ap1 += 4;
-								Bp  += 4;
 								k   += 1;
 
 								}
 
-							Ap0 += 4;
-							Ap1 += 4;
-							Bp  += 4;
-							k   += 1;
-
 							}
-
-						Ap0 += 4;
-						Ap1 += 4;
-						Bp  += 4;
-						k   += 1;
 
 						}
 
@@ -373,6 +364,8 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 				c_00_11_22_33 = _mm256_add_pd( c_00_11_22_33, ab_tmp0 );
 				a_0123        = _mm256_load_pd( &Ap0[4] ); // prefetch
 
+				k += 1;
+
 				if(kadd>1)
 					{
 
@@ -385,6 +378,8 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 					ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
 					c_01_10_23_32 = _mm256_add_pd( c_01_10_23_32, ab_tmp0 );
 					a_0123        = _mm256_load_pd( &Ap0[8] ); // prefetch
+
+					k += 1;
 
 					if(kadd>2)
 						{
@@ -405,24 +400,11 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 						a_0123        = _mm256_load_pd( &Ap0[12] ); // prefetch
 						c_02_13_20_31 = _mm256_add_pd( c_02_13_20_31, ab_tmp0 );
 
-						Ap0 += 4;
-						Ap1 += 4;
-						Bp  += 4;
-						k   += 1;
+						k += 1;
 
 						}
 
-					Ap0 += 4;
-					Ap1 += 4;
-					Bp  += 4;
-					k   += 1;
-
 					}
-
-				Ap0 += 4;
-				Ap1 += 4;
-				Bp  += 4;
-				k   += 1;
 
 				}
 
@@ -1266,6 +1248,8 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 				c_00_11_22_33 = _mm256_add_pd( c_00_11_22_33, ab_temp );
 				b_0123        = _mm256_load_pd( &Bp[4] ); // prefetch
 
+				k  += 1;
+
 				if(kadd>1)
 					{
 
@@ -1278,6 +1262,8 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 					ab_temp       = _mm256_mul_pd( a_0123, b_1032 );
 					c_01_10_23_32 = _mm256_add_pd( c_01_10_23_32, ab_temp );
 					a_0123        = _mm256_load_pd( &Ap[8] ); // prefetch
+
+					k  += 1;
 
 					if(kadd>2)
 						{
@@ -1298,21 +1284,11 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 						a_0123        = _mm256_load_pd( &Ap[12] ); // prefetch
 						c_02_13_20_31 = _mm256_add_pd( c_02_13_20_31, ab_temp );
 
-						Ap += 4;
-						Bp += 4;
 						k  += 1;
 
 						}
 
-					Ap += 4;
-					Bp += 4;
-					k  += 1;
-
 					}
-
-				Ap += 4;
-				Bp += 4;
-				k  += 1;
 
 				}
 
@@ -1923,6 +1899,8 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 				c_00_11_20_31 = _mm256_add_pd( c_00_11_20_31, ab_temp );
 				b_0101        = _mm256_broadcast_pd( (__m128d *) &Bp[4] ); // prefetch
 
+				k  += 1;
+
 				if(kadd>1)
 					{
 		
@@ -1937,6 +1915,8 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 					a_0123        = _mm256_load_pd( &Ap[8] ); // prefetch
 					C_01_10_21_30 = _mm256_add_pd( C_01_10_21_30, ab_temp );
 
+					k  += 1;
+
 					if(kadd>2)
 						{
 
@@ -1950,21 +1930,11 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 						a_0123        = _mm256_load_pd( &Ap[12] ); // prefetch
 						c_01_10_21_30 = _mm256_add_pd( c_01_10_21_30, ab_temp );
 
-						Ap += 4;
-						Bp += 4;
 						k  += 1;
 
 						}
 
-					Ap += 4;
-					Bp += 4;
-					k  += 1;
-
 					}
-
-				Ap += 4;
-				Bp += 4;
-				k  += 1;
 
 				}
 
@@ -2342,8 +2312,6 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 				b_01    = _mm_load_pd( &Bp[4] ); // prefetch
 				a_01    = _mm_load_pd( &Ap[4] ); // prefetch
 
-				Ap += 4;
-				Bp += 4;
 				k  += 1;
 
 				}
