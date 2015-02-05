@@ -51,7 +51,11 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 	int ki_sub = ksub/4;
 
 
-//	printf("\n%d %d %d\n", kmax, k_iter, k_left);
+//	printf("\n%d %d %d\n", ki_add, kl_add, ki_sub);
+//	d_print_mat(4, kadd, Ap, 4);
+//	d_print_mat(4, kadd, Bp, 4);
+//	d_print_mat(4, 4, C, 4);
+//	d_print_mat(4, 4, D, 4);
 
 
 	__asm__ volatile
@@ -98,6 +102,9 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 #endif
 		"                                \n\t"
 		"                                \n\t"
+		"mov    r3, %0                   \n\t" // ki_add
+		"                                \n\t"
+		"                                \n\t"
 		"fldd   d16, [%3, #0]            \n\t" // prefetch A_even
 		"fldd   d17, [%3, #8]            \n\t"
 		"fldd   d18, [%3, #16]           \n\t"
@@ -125,9 +132,6 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 		"                                \n\t"
 		"cmp    %0, #0                   \n\t"
 		"ble    .DTRIADD                 \n\t" // if ki_add == 0, jump
-		"                                \n\t"
-		"                                \n\t"
-		"mov    r3, %0                   \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"pld    [%3, #128]               \n\t"
@@ -716,28 +720,11 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 		".DPOSTACC:                      \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"cmp    %8, #0                   \n\t" // alg
-		"bne    .DLOAD_D                 \n\t"
-		"                                \n\t"
-		"fcpyd  d0, d16                  \n\t"
-		"fcpyd  d1, d17                  \n\t"
-		"fcpyd  d2, d18                  \n\t"
-		"fcpyd  d3, d19                  \n\t"
-		"                                \n\t"
-		"fcpyd  d5, d21                  \n\t"
-		"fcpyd  d6, d22                  \n\t"
-		"fcpyd  d7, d23                  \n\t"
-		"                                \n\t"
-		"fcpyd  d10, d26                  \n\t"
-		"fcpyd  d11, d27                  \n\t"
-		"                                \n\t"
-		"fcpyd  d15, d31                  \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"b      .DSOLVE                  \n\t"
+		"cmp    %8, #1                   \n\t" // alg
+		"bne    .DSOLVE                  \n\t"
 		"                                \n\t"
-		"                                \n\t"
-		".DLOAD_D:                       \n\t"
 		"                                \n\t"
 		"fldd   d16, [%5, #0]            \n\t" // load C elements
 		"fldd   d17, [%5, #8]            \n\t"
@@ -768,6 +755,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 		"faddd  d11, d11, d27            \n\t"
 		"                                \n\t"
 		"faddd  d15, d15, d31            \n\t"
+		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DSOLVE:                        \n\t"

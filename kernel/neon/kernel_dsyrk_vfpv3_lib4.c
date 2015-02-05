@@ -302,12 +302,12 @@ void kernel_dsyrk_nt_4x4_lib4(int kadd, double *A, double *B, double *C, double 
 //		"pld    [%6, #64]                \n\t"
 //		"pld    [%6, #96]                \n\t"
 
-//		"ldr    r5, %5                   \n\t" // alg
-		"mov    r5, %5                   \n\t" // alg
-		"cmp    r5, #0                   \n\t"
+//		"ldr    r3, %5                   \n\t" // alg
+		"mov    r3, %5                   \n\t" // alg
+		"cmp    r3, #0                   \n\t"
 		"beq    .D0                      \n\t" // if alg==0, jump
 		"                                \n\t"
-		"cmp    r5, #1                   \n\t"
+		"cmp    r3, #1                   \n\t"
 		"                                \n\t"
 		"fldd   d16, [%4, #0]            \n\t" // load C elements
 		"fldd   d17, [%4, #8]            \n\t"
@@ -398,6 +398,9 @@ void kernel_dsyrk_nt_4x4_lib4(int kadd, double *A, double *B, double *C, double 
 //		"fstd   d13, [%6, #104]          \n\t"
 //		"fstd   d14, [%6, #112]          \n\t"
 		"fstd   d15, [%6, #120]          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".DEND:                          \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		: // output operands (none)
