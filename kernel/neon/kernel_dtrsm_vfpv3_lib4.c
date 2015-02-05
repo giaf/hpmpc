@@ -33,31 +33,23 @@
 void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
 	{
 	
-	__builtin_prefetch( A );
-	__builtin_prefetch( B );
+	if(kadd>0)
+		{
+		__builtin_prefetch( Ap );
+		__builtin_prefetch( Bp );
 #if defined(TARGET_CORTEX_A9)
-	__builtin_prefetch( A+4 );
-	__builtin_prefetch( B+4 );
+		__builtin_prefetch( Ap+4 );
+		__builtin_prefetch( Bp+4 );
 #endif
+		}
 
 	int ki_add = kadd/4;
 	int kl_add = kadd%4;
 	int ki_sub = ksub/4;
 
-//	const int bs = D_MR;//4;
-//	const int d_ncl = D_NCL;//2;
-
-//	int dA = bs*((d_ncl-kadd%d_ncl)%d_ncl)*sizeof(double);
-/*	int dA = bs*((d_ncl-kadd%d_ncl)%d_ncl);*/
-
-	__builtin_prefetch( A+8 );
-	__builtin_prefetch( B+8 );
-#if defined(TARGET_CORTEX_A9)
-	__builtin_prefetch( A+12 );
-	__builtin_prefetch( B+12 );
-#endif
 
 //	printf("\n%d %d %d\n", kmax, k_iter, k_left);
+
 
 	__asm__ volatile
 	(
@@ -93,7 +85,15 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 		"                                \n\t"
 		"                                \n\t"
 		"cmp    r3, #0                   \n\t"
-		"blt    .DCONSIDERSUB            \n\t"
+		"ble    .DCONSIDERSUB            \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"pld    [%3, #64]                 \n\t"
+		"pld    [%4, #64]                \n\t"
+#if defined(TARGET_CORTEX_A9)
+		"pld    [%3, #96]                \n\t"
+		"pld    [%4, #96]               \n\t"
+#endif
 		"                                \n\t"
 		"                                \n\t"
 		"fldd   d16, [%3, #0]            \n\t" // prefetch A_even
@@ -578,6 +578,14 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 		"ble    .DPOSTACC                \n\t"
 		"                                \n\t"
 		"                                \n\t"
+		"pld    [%9, #0]                 \n\t"
+		"pld    [%10, #0]                \n\t"
+#if defined(TARGET_CORTEX_A9)
+		"pld    [%9, #32]                \n\t"
+		"pld    [%10, #32]               \n\t"
+#endif
+		"                                \n\t"
+		"                                \n\t"
 		"mov    r3, %2                   \n\t" // k_iter
 		"                                \n\t"
 		"                                \n\t"
@@ -600,6 +608,14 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 		"fldd   d29, [%10, #40]           \n\t"
 		"fldd   d30, [%10, #48]           \n\t"
 		"fldd   d31, [%10, #56]           \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"pld    [%9, #64]                \n\t"
+		"pld    [%10, #64]               \n\t"
+#if defined(TARGET_CORTEX_A9)
+		"pld    [%9, #96]                \n\t"
+		"pld    [%10, #96]               \n\t"
+#endif
 		"                                \n\t"
 		"                                \n\t"
 		".DLOOPSUB:                      \n\t" // main loop 2
@@ -917,6 +933,7 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
+		".DEND:                          \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -931,8 +948,8 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 		  "r" (D),			// %6
 		  "r" (fact),		// %7
 		  "r" (alg),		// %8
-		  "r" (Ap),			// %9
-		  "r" (Bp),			// %10
+		  "r" (Am),			// %9
+		  "r" (Bm),			// %10
 		  "r" (tri)			// %11
 		: // register clobber list
 		  "r3",
