@@ -300,8 +300,9 @@ int main()
 		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 		const int cnx = ncl*((nx+ncl-1)/ncl);
 
-		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+//		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
+		//const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+		const int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
 	
 /************************************************
 * dynamical system
@@ -429,7 +430,8 @@ int main()
 	
 		double *diag; d_zeros_align(&diag, pnz, 1);
 		
-		double *work; d_zeros_align(&work, 2*anz, 1);
+		//double *work; d_zeros_align(&work, 2*anz, 1);
+		double *work; d_zeros_align(&work, pnz, cnx);
 
 /************************************************
 * riccati-like iteration

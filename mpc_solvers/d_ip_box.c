@@ -66,8 +66,9 @@ int d_ip_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min
 	const int anx = nal*((nx+nal-1)/nal);
 	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box constraints
 
-	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+//	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
+//	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+	const int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
 	
 	
 	// initialize work space
@@ -132,7 +133,8 @@ int d_ip_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min
 		}
 	
 	work = ptr;
-	ptr += 2*anz;
+//	ptr += 2*anz;
+	ptr += pnz*cnx;
 
 	diag = ptr;
 	ptr += anz;

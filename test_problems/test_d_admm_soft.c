@@ -181,8 +181,9 @@ int main()
 	const int anx = nal*((nx+nal-1)/nal);
 	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box constraints
 
-	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+//	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
+//	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+	const int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
 	
 /************************************************
 * dynamical system
@@ -360,7 +361,8 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 6*anx) + 3*anz, 1); // work space
+//	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 6*anx) + 3*anz, 1); // work space
+	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 6*anx) + anz + pnz*cnx, 1); // work space
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/

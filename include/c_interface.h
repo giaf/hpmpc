@@ -38,7 +38,7 @@
 #define NB (NU+NX) // number of two-sided box constraints
 // double precision constants
 #define D_NAL (D_MR*D_NCL)
-#define D_PADX ((D_NCL-NX%D_NCL)%D_NCL) // padding after nx
+//#define D_PADX ((D_NCL-NX%D_NCL)%D_NCL) // padding after nx
 #define D_PADXU ((D_NCL-(NX+NU)%D_NCL)%D_NCL) // padding after (nx+nw)
 #define D_ANB (D_NAL*((2*NB+D_NAL-1)/(D_NAL)))
 #define D_ANT (D_NAL*((NT+D_NAL-1)/(D_NAL)))
@@ -48,7 +48,8 @@
 #define D_ANZ (D_NAL*((NZ+D_NAL-1)/(D_NAL)))
 #define D_CNF (D_CNT<D_CNX+D_NCL ? D_CNX+D_NCL : D_CNT)
 #define D_CNJ (NX+NU+D_PADXU+D_CNX)
-#define D_CNL (D_CNZ<D_CNX+D_NCL ? NX+D_PADX+D_CNX+D_NCL : NX+D_PADX+D_CNZ)
+//#define D_CNL (D_CNZ<D_CNX+D_NCL ? NX+D_PADX+D_CNX+D_NCL : NX+D_PADX+D_CNZ)
+#define D_CNL (D_CNZ<D_CNX+D_NCL ? D_CNX+D_NCL : D_CNZ)
 #define D_CNT (D_NCL*((NT+D_NCL-1)/D_NCL))
 #define D_CNU (D_NCL*((NU+D_NCL-1)/D_NCL))
 #define D_CNX (D_NCL*((NX+D_NCL-1)/D_NCL))
@@ -81,15 +82,15 @@
 // work space: static definition
 
 // Riccati-based IP method for box-constrained MPC, double precision
-#define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 6*D_ANZ + 3*D_ANX + 7*D_ANB) + 3*D_ANZ)
+#define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 6*D_ANZ + 3*D_ANX + 7*D_ANB) + D_ANZ + D_PNZ*P_CNX)
 // Riccati-based IP method for box-constrained MPC, single precision
-#define HPMPC_IP_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 3*S_ANX + 7*S_ANB) + 3*S_ANZ)
+#define HPMPC_IP_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 3*S_ANX + 7*S_ANB) + S_ANZ + D_PNZ*P_CNX)
 // Riccati-based IP method for soft-constrained MPC, double precision
-#define HPMPC_IP_SOFT_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 6*D_ANZ + 3*D_ANX + 17*D_ANB) + 3*D_ANZ)
+#define HPMPC_IP_SOFT_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 6*D_ANZ + 3*D_ANX + 17*D_ANB) + D_ANZ + D_PNZ*P_CNX)
 // Riccati-based solver for unconstrained MPC, double precision
-#define HPMPC_RIC_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 2*D_ANZ + 2*D_ANX) + 3*D_ANZ)
+#define HPMPC_RIC_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 2*D_ANZ + 2*D_ANX) + D_ANZ + D_PNZ*P_CNX)
 // Riccati-based solver for unconstrained MPC, single precision
-#define HPMPC_RIC_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 2*S_ANZ + 2*S_ANX) + 3*S_ANZ)
+#define HPMPC_RIC_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 2*S_ANZ + 2*S_ANX) + S_ANZ + D_PNZ*P_CNX)
 // Riccati-based solver for unconstrained MHE, double precision
 #define HPMPC_RIC_MHE_DP_WORK_SPACE (8 + (NN+1)*(D_PNX*D_CNX+D_PNX*D_CNU+D_PNY*D_CNX+5*D_ANX+D_PNU*D_CNU+D_PNY*D_CNY+2*D_ANU+2*D_ANY+D_PNX*D_CNJ+D_PNT*D_CNF) + 2*D_PNY*D_CNX+D_PNT*D_CNT+D_ANT+D_PNU*D_CNU+D_PNX*D_CNX)
 // Riccati-based solver for unconstrained MHE, Information Filter version, double precision
@@ -99,156 +100,24 @@
 
 // Riccati-based IP method for box-constrained MPC, double precision
 int hpmpc_ip_box_mpc_dp_work_space(int nx, int nu, int N);
-#if 0
-	{
-	const int bs = D_MR; //d_get_mr();
-	const int ncl = D_NCL;
-	const int nal = D_MR*D_NCL;
-	const int nz = nx+nu+1;
-	const int nb = nx+nu; // number of two-sided box constraints
-	const int pnz = bs*((nz+bs-1)/bs);
-	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
-	const int cnx = ncl*((nx+ncl-1)/ncl);
-	const int anz = nal*((nz+nal-1)/nal);
-	const int anx = nal*((nx+nal-1)/nal);
-	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
-	const int anb = nal*((2*nb+nal-1)/nal);
-
-	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 6*anz + 3*anx + 7*anb) + 3*anz);
-
-	return work_space_size;
-	}
-#endif
 
 // Riccati-based IP method for box-constrained MPC, single precision
 int hpmpc_ip_box_mpc_sp_work_space(int nx, int nu, int N);
-#if 0
-	{
-	const int bs = S_MR; //d_get_mr();
-	const int ncl = S_NCL;
-	const int nal = S_MR*S_NCL;
-	const int nz = nx+nu+1;
-	const int nb = nx+nu; // number of two-sided box constraints
-	const int pnz = bs*((nz+bs-1)/bs);
-	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
-	const int cnx = ncl*((nx+ncl-1)/ncl);
-	const int anz = nal*((nz+nal-1)/nal);
-	const int anx = nal*((nx+nal-1)/nal);
-	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
-	const int anb = nal*((2*nb+nal-1)/nal);
-
-	int work_space_size = (16 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 3*anx + 7*anb) + 3*anz);
-
-	return work_space_size;
-	}
-#endif
     
 // Riccati-based IP method for box-constrained MPC, double precision
 int hpmpc_ip_soft_mpc_dp_work_space(int nx, int nu, int N);
 
 // Riccati-based solver for unconstrained MPC, double precision
 int hpmpc_ric_mpc_dp_work_space(int nx, int nu, int N);
-#if 0
-	{
-	const int bs = D_MR; //d_get_mr();
-	const int ncl = D_NCL;
-	const int nal = D_MR*D_NCL;
-	const int nz = nx+nu+1;
-	const int pnz = bs*((nz+bs-1)/bs);
-	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
-	const int cnx = ncl*((nx+ncl-1)/ncl);
-	const int anz = nal*((nz+nal-1)/nal);
-	const int anx = nal*((nx+nal-1)/nal);
-	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
-
-	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 2*anz + 2*anx) + 3*anz);
-
-	return work_space_size;
-	}
-#endif
 
 // Riccati-based solver for unconstrained MPC, single precision
 int hpmpc_ric_mpc_sp_work_space(int nx, int nu, int N);
-#if 0
-	{
-	const int bs = S_MR; //d_get_mr();
-	const int ncl = S_NCL;
-	const int nal = S_MR*S_NCL;
-	const int nz = nx+nu+1;
-	const int pnz = bs*((nz+bs-1)/bs);
-	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
-	const int cnx = ncl*((nx+ncl-1)/ncl);
-	const int anz = nal*((nz+nal-1)/nal);
-	const int anx = nal*((nx+nal-1)/nal);
-	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
-
-	int work_space_size = (16 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 2*anz + 2*anx) + 3*anz);
-
-	return work_space_size;
-	}
-#endif
 
 // Riccati-based solver for unconstrained MHE, covariance filter version, double precision
 int hpmpc_ric_mhe_dp_work_space(int nx, int nw, int ny, int N);
-#if 0
-	{
-	const int bs = D_MR; //d_get_mr();
-	const int ncl = D_NCL;
-	const int nal = D_MR*D_NCL;
-	const int nt = nx+ny; 
-	const int ant = nal*((nt+nal-1)/nal);
-	const int anx = nal*((nx+nal-1)/nal);
-	const int anw = nal*((nw+nal-1)/nal);
-	const int any = nal*((ny+nal-1)/nal);
-	const int pnt = bs*((nt+bs-1)/bs);
-	const int pnx = bs*((nx+bs-1)/bs);
-	const int pnw = bs*((nw+bs-1)/bs);
-	const int pny = bs*((ny+bs-1)/bs);
-	const int cnt = ncl*((nt+ncl-1)/ncl);
-	const int cnx = ncl*((nx+ncl-1)/ncl);
-	const int cnw = ncl*((nw+ncl-1)/ncl);
-	const int cny = ncl*((ny+ncl-1)/ncl);
-	const int cnf = cnt<cnx+ncl ? cnx+ncl : cnt;
-	const int pad = (ncl-(nx+nw)%ncl)%ncl; // packing between AGL & P
-	const int cnj = nx+nw+pad+cnx;
-
-	int work_space_size = (8 + (N+1)*(pnx*cnx+pnx*cnw+pny*cnx+5*anx+pnw*cnw+pny*cny+2*anw+2*any+pnx*cnj+pnt*cnf) + 2*pny*cnx+pnt*cnt+ant+pnw*cnw+pnx*cnx);
-
-	return work_space_size;
-	}
-#endif
 
 // Riccati-based solver for unconstrained MHE, information filter version, double precision
 int hpmpc_ric_mhe_if_dp_work_space(int nx, int nw, int ny, int N);
-#if 0
-	{
-	const int bs = D_MR; //d_get_mr();
-	const int ncl = D_NCL;
-	const int nal = D_MR*D_NCL;
-	const int nwx = nw+nx; 
-	const int anx = nal*((nx+nal-1)/nal);
-	const int anw = nal*((nw+nal-1)/nal);
-	const int any = nal*((ny+nal-1)/nal);
-	const int pnx = bs*((nx+bs-1)/bs);
-	const int pny = bs*((ny+bs-1)/bs);
-	const int pnx2 = bs*((2*nx+bs-1)/bs);
-	const int pnwx = bs*((nwx+bs-1)/bs);
-	const int cnx = ncl*((nx+ncl-1)/ncl);
-	const int cnw = ncl*((nw+ncl-1)/ncl);
-	const int cny = ncl*((ny+ncl-1)/ncl);
-	const int cnx2 = 2*(ncl*((nx+ncl-1)/ncl));
-	const int pad = (ncl-(nx+nw)%ncl)%ncl; // padding
-	const int cnj = nx+nw+pad+cnx;
-
-	int work_space_size = (8 + (N+1)*(pnwx*cnw+pnx2*cnx+pnwx*cnw+pnx2*cnx2+pnx*cny+2*anw+any+5*anx) + 2*pnx*cnx+pnx*cnj+anx+pny*cny+pnx*cny+anx);
-
-	return work_space_size;
-	}
-#endif
 
 
 

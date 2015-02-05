@@ -70,8 +70,9 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	const int anx = nal*((nx+nal-1)/nal);
 	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box and soft constraints
 
-	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+//	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
+//	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+	const int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
 	
 	// initialize work space
 	double *ptr;
@@ -133,7 +134,8 @@ int d_ip_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 		}
 	
 	work = ptr;
-	ptr += 2*anz;
+//	ptr += 2*anz;
+	ptr += pnz*cnx;
 
 	diag = ptr;
 	ptr += anz;
