@@ -283,10 +283,11 @@ int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
 
 
         // call the IP solver
+		const int ng = 0; // TODO remove when not needed any longer
 	    if(IP==1)
-	        hpmpc_status = d_ip_box_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+	        hpmpc_status = d_ip_hard_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 	    else
-	        hpmpc_status = d_ip2_box_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+	        hpmpc_status = d_ip2_hard_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 
 
 

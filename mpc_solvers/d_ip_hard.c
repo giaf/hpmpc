@@ -36,14 +36,20 @@
 
 
 
-/* primal-dual interior-point method, box constraints, time variant matrices (mpc version) */
-int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
+/* primal-dual interior-point method, hard constraints, time invariant matrices (mpc version) */
+int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, int ng, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
 	{
-	
+
+/*printf("\ncazzo\n");*/
+
+/*	int nbx = nb - nu;*/
+/*	if(nbx<0)*/
+/*		nbx = 0;*/
 	int nbu = nu<nb ? nu : nb ;
 
 	// indeces
 	int jj, ll, ii, bs0;
+
 
 	// constants
 	const int bs = D_MR; //d_get_mr();
@@ -61,11 +67,10 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box constraints
 
 //	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-	//const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+//	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 	const int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
 	
 	
-
 	// initialize work space
 	double *ptr;
 	ptr = work_memory;
@@ -83,9 +88,8 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	double *(dt[N+1]);
 	double *(lamt[N+1]);
 	double *(t_inv[N+1]);
-	double *(Pb[N]);
 
-//	ptr += (N+1)*(pnx + pnz*cnl + 12*pnz) + 3*pnz;
+//	ptr += (N+1)*(pnz + pnx + pnz*cnl + 8*pnz) + 3*pnz;
 
 	// inputs and states
 	for(jj=0; jj<=N; jj++)
@@ -104,18 +108,22 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	// Hessian
 	for(jj=0; jj<=N; jj++)
 		{
-		pd[jj] = ptr; //pQ[jj];
-		pl[jj] = ptr + anz; //pQ[jj] + ((nu+nx)/bs)*bs*cnz + (nu+nx)%bs;
-		bd[jj] = ptr + 2*anz;
-		bl[jj] = ptr + 3*anz;
-		ptr += 4*anz;
-		// backup
+		// TODO
+		pd[jj] = ptr; //pQ[jj]; // ptr
+		pl[jj] = ptr + anz; //pQ[jj] + ((nu+nx)/bs)*bs*cnz + (nu+nx)%bs; // ptr+anz
+		bd[jj] = ptr + 2*anz; // ptr+2*anz
+		bl[jj] = ptr + 3*anz; // ptr+3*anz
+		ptr += 4*anz; // + 2*anz
+		// backup of diagonal of Hessian and Jacobian
 		for(ll=0; ll<nx+nu; ll++)
 			{
 			bd[jj][ll] = pQ[jj][(ll/bs)*bs*cnz+ll%bs+ll*bs];
 			bl[jj][ll] = pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs];
 			}
 		}
+//	d_print_mat(nx+nu, 1, bd[1], 1);
+//	d_print_mat(nx+nu, 1, bl[1], 1);
+//	exit(1);
 
 	// work space
 	for(jj=0; jj<=N; jj++)
@@ -125,7 +133,7 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 		}
 	
 	work = ptr;
-	//ptr += 2*anz;
+//	ptr += 2*anz;
 	ptr += pnz*cnx;
 
 	diag = ptr;
@@ -149,17 +157,11 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 		ptr += anb;
 		}
 
-	// backup of P*b
-	for(jj=0; jj<N; jj++)
-		{
-		Pb[jj] = ptr;
-		ptr += anx;
-		}
-
-
+/*dlam[0][0] = 1;*/
+/*printf("\ncazzo %f\n", dlam[0][0]);*/
 
 	double temp0, temp1;
-	double alpha, mu, mu_aff;
+	double alpha, mu;
 	double mu_scal = 1.0/(N*2*nb);
 	double sigma, sigma_decay, sigma_min;
 
@@ -170,7 +172,7 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 
 	// initialize ux & t>0 (slack variable)
-	d_init_var_box_mpc(N, nx, nu, nb, ux, pi, db, t, lam, mu0, warm_start);
+	d_init_var_hard_mpc(N, nx, nu, nb, ng, ux, pi, db, t, lam, mu0, warm_start);
 
 
 
@@ -189,7 +191,7 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 	// compute the duality gap
 	//alpha = 0.0; // needed to compute mu !!!!!
-	//d_compute_mu_box_mpc(N, nx, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
+	//d_compute_mu_hard_mpc(N, nx, nu, nb, &mu, mu_scal, alpha, lam, dlam, t, dt);
 	mu = mu0;
 
 	// set to zero iteration count
@@ -197,7 +199,7 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 	// larger than minimum accepted step size
 	alpha = 1.0;
-
+	
 	// update hessian in Riccati routine
 	const int update_hessian = 1;
 
@@ -207,12 +209,14 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	while( *kk<k_max && mu>mu_tol && alpha>=alpha_min )
 		{
 						
-
-
+/*printf("\niteration %d, mu %f\n", *kk, mu);*/
 		//update cost function matrices and vectors (box constraints)
 
-		d_update_hessian_box_mpc(N, nx, nu, nb, cnz, 0.0, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, db);
+		// box constraints
 
+		d_update_hessian_hard_mpc(N, nx, nu, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, db);
+
+/*return;*/
 
 
 		// compute the search direction: factorize and solve the KKT system
@@ -221,13 +225,9 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
-		for(jj=0; jj<=N; jj++)
-			for(ll=0; ll<2*nb; ll++)
-				dlam[jj][ll] = 0.0;
-
 		alpha = 1.0;
-		d_compute_alpha_box_mpc(N, nbu, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
-		
+		//d_compute_alpha_hard_mpc(N, 2*nbu, 2*nu, 2*nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
+		d_compute_alpha_hard_mpc(N, nx, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+1] = alpha;
@@ -236,89 +236,21 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 
 
-		// compute the affine duality gap
-		d_compute_mu_box_mpc(N, nx, nu, nb, &mu_aff, mu_scal, alpha, lam, dlam, t, dt);
-		
-		stat[5*(*kk)+2] = mu_aff;
-
-
-
-		// compute sigma
-		sigma = mu_aff/mu;
-		sigma = sigma*sigma*sigma;
-//		if(sigma<sigma_min)
-//			sigma = sigma_min;
-
-
-
-		d_update_gradient_box_mpc(N, nx, nu, nb, sigma*mu, dt, dlam, t_inv, pl);
-
-#if 0
-		// first stage
-		for(ii=0; ii<2*nbu; ii+=2)
-			{
-			dlam[0][ii+0] = t_inv[0][ii+0]*(sigma*mu - dlam[0][ii+0]*dt[0][ii+0]); // !!!!!
-			dlam[0][ii+1] = t_inv[0][ii+1]*(sigma*mu - dlam[0][ii+1]*dt[0][ii+1]); // !!!!!
-			pl[0][ii/2] += dlam[0][ii+1] - dlam[0][ii+0];
-			}
-
-		// middle stages
-		for(jj=1; jj<N; jj++)
-			{
-			for(ii=0; ii<2*nb; ii+=2)
-				{
-				dlam[jj][ii+0] = t_inv[jj][ii+0]*(sigma*mu - dlam[jj][ii+0]*dt[jj][ii+0]); // !!!!!
-				dlam[jj][ii+1] = t_inv[jj][ii+1]*(sigma*mu - dlam[jj][ii+1]*dt[jj][ii+1]); // !!!!!
-				pl[jj][ii/2] += dlam[jj][ii+1] - dlam[jj][ii+0];
-				}
-			}
-
-		// last stages
-		for(ii=2*nu; ii<2*nb; ii+=2)
-			{
-			dlam[jj][ii+0] = t_inv[jj][ii+0]*(sigma*mu - dlam[jj][ii+0]*dt[jj][ii+0]); // !!!!!
-			dlam[jj][ii+1] = t_inv[jj][ii+1]*(sigma*mu - dlam[jj][ii+1]*dt[jj][ii+1]); // !!!!!
-			pl[jj][ii/2] += dlam[jj][ii+1] - dlam[jj][ii+0];
-			}
-#endif
-
-
-
-		// copy b into x
-		for(ii=0; ii<N; ii++)
-			for(jj=0; jj<nx; jj++) 
-				dux[ii+1][nu+jj] = pBAbt[ii][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj]; // copy b
-
-
-
-		// solve the system
-		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work, 1, Pb, compute_mult, dpi);
-
-
-
-		// compute t & dlam & dt & alpha
-		alpha = 1.0;
-		d_compute_alpha_box_mpc(N, nx, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
-
-		stat[5*(*kk)] = sigma;
-		stat[5*(*kk)+3] = alpha;
-			
-		alpha *= 0.995;
-
-
 
 		// update x, u, lam, t & compute the duality gap mu
-
-		d_update_var_box_mpc(N, nx, nu, nb, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
-
-		stat[5*(*kk)+4] = mu;
+		d_update_var_hard_mpc(N, nx, nu, nb, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
 		
+		stat[5*(*kk)+2] = mu;
+		
+
+
 		// update sigma
-/*		sigma *= sigma_decay;*/
-/*		if(sigma<sigma_min)*/
-/*			sigma = sigma_min;*/
-/*		if(alpha<0.3)*/
-/*			sigma = sigma_par[0];*/
+		sigma *= sigma_decay;
+		if(sigma<sigma_min)
+			sigma = sigma_min;
+		
+		if(alpha<0.3)
+			sigma = sigma_par[0];
 
 
 
@@ -329,6 +261,7 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 		} // end of IP loop
 	
+
 	// restore Hessian
 	for(jj=0; jj<=N; jj++)
 		{
@@ -338,6 +271,8 @@ int d_ip2_box_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 			pQ[jj][((nx+nu)/bs)*bs*cnz+(nx+nu)%bs+ll*bs] = bl[jj][ll];
 			}
 		}
+
+/*printf("\nfinal iteration %d, mu %f\n", *kk, mu);*/
 
 
 

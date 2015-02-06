@@ -34,7 +34,7 @@ LIBS = -lm #-lopenblas
 #OBJS_TEST = tools.o test_d_ric_mpc.o
 #OBJS_TEST = tools.o test_s_ric_mpc.o
 #OBJS_TEST = tools.o test_d_ric_mhe.o
-OBJS_TEST = tools.o test_d_ip_box.o
+OBJS_TEST = tools.o test_d_ip_hard.o
 #OBJS_TEST = tools.o test_s_ip_box.o
 #OBJS_TEST = tools.o test_d_ip_soft.o
 #OBJS_TEST = tools.o test_d_admm_box.o
@@ -57,7 +57,7 @@ test_blas_s.o: test_blas_s.c test_param.h ../problem_size.h
 test_d_ric_mpc.o: test_d_ric_mpc.c test_param.h ../problem_size.h
 test_s_ric_mpc.o: test_s_ric_mpc.c test_param.h ../problem_size.h
 test_d_ric_mhe.o: test_d_ric_mhe.c test_param.h ../problem_size.h
-test_d_ip_box.o: test_d_ip_box.c test_param.h ../problem_size.h
+test_d_ip_hard.o: test_d_ip_hard.c test_param.h ../problem_size.h
 test_s_ip_box.o: test_s_ip_box.c test_param.h ../problem_size.h
 test_d_ip_soft.o: test_d_ip_soft.c test_param.h ../problem_size.h
 test_d_admm_box.o: test_d_admm_box.c test_param.h ../problem_size.h
