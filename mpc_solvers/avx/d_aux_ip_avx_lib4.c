@@ -41,6 +41,13 @@ void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, dou
 
 	const int nbu = nu<nb ? nu : nb ;
 	
+	// constants
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
+
+	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
+
 	int jj, ll, ii;
 	
 	double thr0 = 0.1; // minimum distance from a constraint
@@ -251,9 +258,21 @@ void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, dou
 		for(ii=ll/2; ii<nx+nu; ii++)
 			ux[N][ii] = 0.0; // initialize remaining components of x to zero
 
+		// initialize pi
 		for(jj=0; jj<=N; jj++)
 			for(ll=0; ll<nx; ll++)
 				pi[jj][ll] = 0.0; // initialize multipliers to zero
+
+		// TODO find a better way to initialize general constraints
+		if(ng>0)
+			{
+			for(jj=0; jj<=N; jj++)
+				for(ll=0; ll<ng; ll++)
+					{
+					t[jj][anb+ll] = 1.0;
+					lam[jj][anb+ll] = mu0; // /t[jj][anb+ll];
+					}
+			}
 
 		}
 	

@@ -158,9 +158,10 @@ int main()
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
 	int nb = NB; // number of box constrained inputs and states
-	int ng = 0;  // number of general constraints
+	int ng = 0; //4;  // number of general constraints
 
 	int nbu = nu<nb ? nu : nb ;
+	int ngu = nu<ng ? nu : ng ; // TODO remove when not needed any longer in tests
 
 	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx/2, nu);
 	printf("\n");
@@ -185,6 +186,7 @@ int main()
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
+	const int cng = ncl*((ng+ncl-1)/ncl);
 	const int pnb = bs*((2*nb+bs-1)/bs); // packed number of box constraints
 	const int anz = nal*((nz+nal-1)/nal);
 	const int anx = nal*((nx+nal-1)/nal);
@@ -258,6 +260,27 @@ int main()
 		db[jj] = - 0.5;   // umin
 	for(; jj<2*nb; jj++)
 		db[jj] = - 4.0;   // xmin
+
+/************************************************
+* general constraints
+************************************************/	
+
+	double *dg; d_zeros_align(&dg, 2*ng, 1);
+	for(jj=0; jj<2*ngu; jj++)
+		dg[jj] = - 0.5;   // umin
+	for(; jj<2*ng; jj++)
+		dg[jj] = - 4.0;   // xmin
+	
+	double *D; d_zeros(&D, ng, nu+nx);
+	for(jj=0; jj<ng; jj++)
+		D[jj*(ng+1)] = 1.0;
+	//d_print_mat(ng, nu+nx, D, ng);
+
+	double *pD; d_zeros_align(&pD, pnz, cng);
+	d_cvt_tran_mat2pmat(ng, nu+nx, 0, bs, D, ng, pD, cng);
+	//d_print_pmat(nu+nx, ng, bs, pD, cng);
+	//exit(1);
+	// TODO arrived here working on general constraints
 
 /************************************************
 * cost function
