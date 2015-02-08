@@ -40,7 +40,7 @@
 #define D_NAL (D_MR*D_NCL)
 //#define D_PADX ((D_NCL-NX%D_NCL)%D_NCL) // padding after nx
 #define D_PADXU ((D_NCL-(NX+NU)%D_NCL)%D_NCL) // padding after (nx+nw)
-#define D_ANB (D_NAL*((2*NB+D_NAL-1)/(D_NAL)))
+#define D_ANB (2*D_NAL*((NB+D_NAL-1)/(D_NAL))) // TODO change once updated lam and t order in soft constraints too
 #define D_ANT (D_NAL*((NT+D_NAL-1)/(D_NAL)))
 #define D_ANU (D_NAL*((NU+D_NAL-1)/(D_NAL)))
 #define D_ANX (D_NAL*((NX+D_NAL-1)/(D_NAL)))
