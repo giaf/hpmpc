@@ -64,7 +64,8 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 	const int anz = nal*((nz+nal-1)/nal);
 	const int anx = nal*((nx+nal-1)/nal);
-	const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box constraints
+	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box constraints
+	const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box constraints
 
 //	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 //	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
@@ -143,18 +144,18 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	for(jj=0; jj<=N; jj++)
 		{
 		dlam[jj] = ptr;
-		dt[jj]   = ptr + 2*anb;;
-		ptr += 4*anb;
+		dt[jj]   = ptr + 2*pnb;;
+		ptr += 4*pnb;
 		}
 	for(jj=0; jj<=N; jj++)
 		{
 		lamt[jj] = ptr;
-		ptr += 2*anb;
+		ptr += 2*pnb;
 		}
 	for(jj=0; jj<=N; jj++)
 		{
 		t_inv[jj] = ptr;
-		ptr += 2*anb;
+		ptr += 2*pnb;
 		}
 
 /*dlam[0][0] = 1;*/

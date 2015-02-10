@@ -39,7 +39,8 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, double **hpBAbt, d
 	const int pnz = bs*((nx+nu+1+bs-1)/bs);
 	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
-	const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box constraints
+	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box constraints
+	const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box constraints
 
 	static double temp[D_MR] = {};
 
@@ -59,14 +60,14 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, double **hpBAbt, d
 	// first block
 	mu[0] = 0;
 	for(jj=0 ; jj<nbu; jj++) 
-		mu[0] += hlam[0][jj] * ht[0][jj] + hlam[0][anb+jj] * ht[0][anb+jj];
+		mu[0] += hlam[0][jj] * ht[0][jj] + hlam[0][pnb+jj] * ht[0][pnb+jj];
 	for(jj=0; jj<nbu; jj++) 
 		{ 
 		hrd[0][jj]     =   hux[0][jj] - hdb[0][jj]     - ht[0][jj]; 
-		hrd[0][anb+jj] = - hux[0][jj] - hdb[0][anb+jj] - ht[0][anb+jj]; 
+		hrd[0][pnb+jj] = - hux[0][jj] - hdb[0][pnb+jj] - ht[0][pnb+jj]; 
 		}
 	for(jj=0; jj<nbu; jj++) 
-		hrq[0][jj] = - hq[0][jj] + hlam[0][jj] - hlam[0][anb+jj];
+		hrq[0][jj] = - hq[0][jj] + hlam[0][jj] - hlam[0][pnb+jj];
 	for(; jj<nu; jj++) 
 		hrq[0][jj] = - hq[0][jj];
 	for(jj=0; jj<nu%bs; jj++) 
@@ -89,18 +90,18 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, double **hpBAbt, d
 	for(ii=1; ii<N; ii++)
 		{
 		for(jj=0 ; jj<nb; jj++) 
-			mu[0] += hlam[ii][jj] * ht[ii][jj] + hlam[ii][anb+jj] * ht[ii][anb+jj];
+			mu[0] += hlam[ii][jj] * ht[ii][jj] + hlam[ii][pnb+jj] * ht[ii][pnb+jj];
 		for(jj=0; jj<nb; jj++) 
 			{	
 			hrd[ii][jj]     =   hux[ii][jj] - hdb[ii][jj]     - ht[ii][jj]; 
-			hrd[ii][anb+jj] = - hux[ii][jj] - hdb[ii][anb+jj] - ht[ii][anb+jj]; 
+			hrd[ii][pnb+jj] = - hux[ii][jj] - hdb[ii][pnb+jj] - ht[ii][pnb+jj]; 
 			}
 		for(jj=0; jj<nbu; jj++) 
-			hrq[ii][jj] = - hq[ii][jj] + hlam[ii][jj] - hlam[ii][anb+jj];
+			hrq[ii][jj] = - hq[ii][jj] + hlam[ii][jj] - hlam[ii][pnb+jj];
 		for(; jj<nu; jj++) 
 			hrq[ii][jj] = - hq[ii][jj];
 		for(jj=0; jj<nbx; jj++) 
-			hrq[ii][nu+jj] = hpi[ii][jj] - hq[ii][nu+jj] + hlam[ii][nu+jj] - hlam[ii][anb+nu+jj];
+			hrq[ii][nu+jj] = hpi[ii][jj] - hq[ii][nu+jj] + hlam[ii][nu+jj] - hlam[ii][pnb+nu+jj];
 		for(; jj<nx; jj++) 
 			hrq[ii][nu+jj] = hpi[ii][jj] - hq[ii][nu+jj];
 		dsymv_lib(nxu, nxu, hpQ[ii], cnz, hux[ii], hrq[ii], -1);
@@ -113,15 +114,15 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, double **hpBAbt, d
 
 	// last block
 	for(jj=nu ; jj<nb; jj++) 
-		mu[0] += hlam[N][jj] * ht[N][jj] + hlam[N][anb+jj] * ht[N][anb+jj];
+		mu[0] += hlam[N][jj] * ht[N][jj] + hlam[N][pnb+jj] * ht[N][pnb+jj];
 	mu[0] /= N*2*nb; // + 2*nbx;
 	for(jj=nu; jj<nb; jj++) 
 		{ 
 		hrd[N][jj]     =   hux[N][jj] - hdb[N][jj]     - ht[N][jj]; 
-		hrd[N][anb+jj] = - hux[N][jj] - hdb[N][anb+jj] - ht[N][anb+jj]; 
+		hrd[N][pnb+jj] = - hux[N][jj] - hdb[N][pnb+jj] - ht[N][pnb+jj]; 
 		}
 	for(jj=0; jj<nbx; jj++) 
-		hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj] + hlam[N][nu+jj] - hlam[N][anb+nu+jj];
+		hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj] + hlam[N][nu+jj] - hlam[N][pnb+nu+jj];
 	for(; jj<nx; jj++) 
 		hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj];
 	dsymv_lib(nx+nu%bs, nx+nu%bs, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hux[N]+(nu/bs)*bs, hrq[N]+(nu/bs)*bs, -1);
