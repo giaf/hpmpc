@@ -188,12 +188,13 @@ int main()
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 	const int cng = ncl*((ng+ncl-1)/ncl);
 	//const int pnb = bs*((2*nb+bs-1)/bs); // packed number of box constraints
-	const int pnb = bs*((nb+bs-1)/bs); // SIMD aligned number of one-sided box constraints !!!!!!!!!!!!
+	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of one-sided box constraints !!!!!!!!!!!!
+	const int png = bs*((ng+bs-1)/bs); // simd aligned number of one-sided box constraints !!!!!!!!!!!!
 	const int anz = nal*((nz+nal-1)/nal);
 	const int anx = nal*((nx+nal-1)/nal);
 //	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box constraints
-	const int anb = nal*((nb+nal-1)/nal); // cache aligned number of one-sided box constraints !!!!!!!!!!!! // TODO ALIGN TO SIMD-ALIGNED BOUNDARIES
-	const int ang = nal*((ng+nal-1)/nal); // cache aligned number of one-sided box constraints !!!!!!!!!!!! // TODO ALIGN TO SIMD-ALIGNED BOUNDARIES
+	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of one-sided box constraints !!!!!!!!!!!!
+	//const int ang = nal*((ng+nal-1)/nal); // cache aligned number of one-sided box constraints !!!!!!!!!!!!
 
 //	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 //	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
@@ -255,39 +256,51 @@ int main()
 /*	exit(1);*/
 
 /************************************************
-* box constraints
+* box & general constraints
 ************************************************/	
 
-	double *db; d_zeros_align(&db, 2*pnb, 1);
+	double *d; d_zeros_align(&d, 2*pnb+2*png, 1);
 	for(jj=0; jj<nbu; jj++)
 		{
-		db[jj]     = - 0.5;   //   umin
-		db[pnb+jj] = - 0.5;   // - umax
+		d[jj]      = - 0.5;   //   umin
+		d[pnb+jj]  = - 0.5;   // - umax
 		}
 	for(; jj<nb; jj++)
 		{
-		db[jj]     = - 4.0;   //   xmin
-		db[pnb+jj] = - 4.0;   // - xmax
+		d[jj]      = - 4.0;   //   xmin
+		d[pnb+jj]  = - 4.0;   // - xmax
 		}
-
-/************************************************
-* general constraints
-************************************************/	
-
-	double *dg; d_zeros_align(&dg, 2*ng, 1);
-	for(jj=0; jj<2*ngu; jj++)
-		dg[jj] = - 0.5;   // umin
-	for(; jj<2*ng; jj++)
-		dg[jj] = - 4.0;   // xmin
+	for(jj=0; jj<ngu; jj++)
+		{
+		d[2*pnb+jj]     = - 0.5;   //   umin
+		d[2*pnb+png+jj] = - 0.5;   // - umax
+		}
+	for(; jj<ng; jj++)
+		{
+		d[2*pnb+jj]     = - 4.0;   //   xmin
+		d[2*pnb+png+jj] = - 4.0;   // - xmax
+		}
 	
-	double *D; d_zeros(&D, ng, nu+nx);
-	for(jj=0; jj<ng; jj++)
+	double *C; d_zeros(&C, ng, nx);
+	double *D; d_zeros(&D, ng, nu);
+	for(jj=0; jj<ngu; jj++)
 		D[jj*(ng+1)] = 1.0;
-	//d_print_mat(ng, nu+nx, D, ng);
+	for(; jj<ng; jj++)
+		C[jj*(ng+1)-ngu*ng] = 1.0;
+	//d_print_mat(ng, nu, D, ng);
+	//d_print_mat(ng, nx, C, ng);
 
-	double *pD; d_zeros_align(&pD, pnz, cng);
-	d_cvt_tran_mat2pmat(ng, nu+nx, 0, bs, D, ng, pD, cng);
-	//d_print_pmat(nu+nx, ng, bs, pD, cng);
+	// first stage
+	double *pDCt0; d_zeros_align(&pDCt0, pnz, cng);
+	d_cvt_tran_mat2pmat(ng, nu, 0, bs, D, ng, pDCt0, cng);
+	// middle stages
+	double *pDCtn; d_zeros_align(&pDCtn, pnz, cng);
+	d_cvt_tran_mat2pmat(ng, nu, 0, bs, D, ng, pDCtn, cng);
+	d_cvt_tran_mat2pmat(ng, nx, nu, bs, C, ng, pDCtn+nu/bs*cng*bs+nu%bs, cng);
+	// last stages
+	double *pDCtN; d_zeros_align(&pDCtN, pnz, cng);
+	d_cvt_tran_mat2pmat(ng, nx, nu, bs, C, ng, pDCtN+nu/bs*cng*bs+nu%bs, cng);
+	//d_print_pmat(nu+nx, ng, bs, pD0, cng);
 	//exit(1);
 	// TODO arrived here working on general constraints
 
@@ -327,7 +340,8 @@ int main()
 	double *(hlam[N+1]);
 	double *(ht[N+1]);
 	double *(hpBAbt[N]);
-	double *(hdb[N+1]);
+	double *(hd[N+1]);
+	double *(hpDCt[N+1]);
 	double *(hrb[N]);
 	double *(hrq[N+1]);
 	double *(hrd[N+1]);
@@ -343,7 +357,8 @@ int main()
 		d_zeros_align(&hlam[jj],2*pnb, 1); // TODO pnb
 		d_zeros_align(&ht[jj], 2*pnb, 1); // TODO pnb
 		hpBAbt[jj] = pBAbt;
-		hdb[jj] = db;
+		hd[jj] = d;
+		hpDCt[jj] = pDCtn;
 		d_zeros_align(&hrb[jj], anx, 1);
 		d_zeros_align(&hrq[jj], anz, 1);
 		d_zeros_align(&hrd[jj], 2*pnb, 1); // TODO pnb
@@ -356,7 +371,9 @@ int main()
 	d_zeros_align(&hpi[N], anx, 1);
 	d_zeros_align(&hlam[N], 2*pnb, 1); // TODO pnb
 	d_zeros_align(&ht[N], 2*pnb, 1); // TODO pnb
-	hdb[N] = db;
+	hd[N] = d;
+	hpDCt[0] = pDCt0;
+	hpDCt[N] = pDCtN;
 	d_zeros_align(&hrq[N], anz, 1);
 	d_zeros_align(&hrd[N], 2*pnb, 1); // TODO pnb
 	
@@ -370,7 +387,7 @@ int main()
 	//double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 4*anb + 2*anx) + 3*anz, 1); // work space
 	//double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 4*anb + 2*anx) + 3*anz, 1); // work space TODO change work space on other files !!!!!!!!!!!!!
 	//double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 4*anb + 2*anx) + anz + pnz*cnx, 1); // work space TODO change work space on other files !!!!!!!!!!!!!
-	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 8*pnb + 2*anx) + anz + pnz*cnx, 1); // work space TODO change work space on other files !!!!!!!!!!!!!
+	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 8*(pnb+png) + 2*anx) + anz + pnz*cnx, 1); // work space TODO change work space on other files !!!!!!!!!!!!!
 /*	for(jj=0; jj<( (N+1)*(pnz*cnl + 4*anz + 4*anb + 2*anx) + 3*anz ); jj++) work[jj] = -1.0;*/
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
@@ -436,9 +453,9 @@ int main()
 //	if(FREE_X0==0)
 //		{
 		if(IP==1)
-			hpmpc_status = d_ip_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			hpmpc_status = d_ip_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 		else
-			hpmpc_status = d_ip2_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+			hpmpc_status = d_ip2_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 //		}
 //	else
 //		{
@@ -480,9 +497,9 @@ int main()
 //		if(FREE_X0==0)
 //			{
 			if(IP==1)
-				hpmpc_status = d_ip_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+				hpmpc_status = d_ip_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 			else
-				hpmpc_status = d_ip2_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+				hpmpc_status = d_ip2_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 //			}
 //		else
 //			{
@@ -522,7 +539,7 @@ int main()
 
 	// residuals computation
 //	if(FREE_X0==0)
-		d_res_ip_hard_mpc(nx, nu, N, nb, ng, hpBAbt, hpQ, hq, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+		d_res_ip_hard_mpc(nx, nu, N, nb, ng, hpBAbt, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 //	else
 //		d_res_ip_box_mhe_old(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
@@ -618,7 +635,10 @@ int main()
 /*	free(BAb);*/
 /*	free(BAbt);*/
 	free(pBAbt);
-	free(db);
+	free(pDCt0);
+	free(pDCtn);
+	free(pDCtN);
+	free(d);
 	free(Q);
 	free(pQ);
 	free(q);

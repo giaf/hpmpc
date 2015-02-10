@@ -46,9 +46,10 @@ void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, dou
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
-	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
-	const int ang = nb*((ng+nal-1)/nal); // cache aligned number of box and soft constraints
+	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box constraints
+	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of box constraints
+	//const int ang = nal*((ng+nal-1)/nal); // cache aligned number of general constraints
+	const int png = bs*((ng+bs-1)/bs); // simd aligned number of general constraints
 
 	int jj, ll, ii;
 	
@@ -281,8 +282,8 @@ void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, dou
 					{
 					t[jj][2*pnb+ll] = 1.0;
 					lam[jj][2*pnb+ll] = mu0; // /t[jj][pnb+ll];
-					t[jj][2*pnb+ang+ll] = 1.0;
-					lam[jj][2*pnb+ang+ll] = mu0; // /t[jj][pnb+ll];
+					t[jj][2*pnb+png+ll] = 1.0;
+					lam[jj][2*pnb+png+ll] = mu0; // /t[jj][pnb+ll];
 					}
 			}
 

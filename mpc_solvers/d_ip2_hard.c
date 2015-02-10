@@ -37,7 +37,7 @@
 
 
 /* primal-dual interior-point method, hard constraints, time variant matrices (mpc version) */
-int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, int ng, double **pBAbt, double **pQ, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
+int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, int ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
 	{
 	
 	int nbu = nu<nb ? nu : nb ;
@@ -54,13 +54,14 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	const int nxu = nx+nu;
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
+	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of two-sided box constraints !!!!!!!!!!!!!!!!!!
+	const int png = bs*((ng+bs-1)/bs); // simd aligned number of two-sided general constraints !!!!!!!!!!!!!!!!!!
 	const int cnz = ncl*((nz+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 	const int anz = nal*((nz+nal-1)/nal);
 	const int anx = nal*((nx+nal-1)/nal);
 //	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box constraints
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of two-sided box constraints !!!!!!!!!!!!!!!!!!
-	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of two-sided box constraints !!!!!!!!!!!!!!!!!!
 
 //	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 	//const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
@@ -137,18 +138,18 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	for(jj=0; jj<=N; jj++)
 		{
 		dlam[jj] = ptr;
-		dt[jj]   = ptr + 2*pnb;;
-		ptr += 4*pnb;
+		dt[jj]   = ptr + 2*pnb+2*png;
+		ptr += 4*pnb+4*png;
 		}
 	for(jj=0; jj<=N; jj++)
 		{
 		lamt[jj] = ptr;
-		ptr += 2*pnb;
+		ptr += 2*pnb+2*png;
 		}
 	for(jj=0; jj<=N; jj++)
 		{
 		t_inv[jj] = ptr;
-		ptr += 2*pnb;
+		ptr += 2*pnb+2*png;
 		}
 
 	// backup of P*b
@@ -172,7 +173,7 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 
 	// initialize ux & t>0 (slack variable)
-	d_init_var_hard_mpc(N, nx, nu, nb, ng, ux, pi, db, t, lam, mu0, warm_start);
+	d_init_var_hard_mpc(N, nx, nu, nb, ng, ux, pi, d, t, lam, mu0, warm_start);
 
 
 
@@ -214,7 +215,7 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 		//update cost function matrices and vectors (box constraints)
 
-		d_update_hessian_hard_mpc(N, nx, nu, nb, cnz, 0.0, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, db);
+		d_update_hessian_hard_mpc(N, nx, nu, nb, cnz, 0.0, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, d);
 
 
 
@@ -229,7 +230,7 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 				dlam[jj][ll] = 0.0;
 
 		alpha = 1.0;
-		d_compute_alpha_hard_mpc(N, nbu, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
+		d_compute_alpha_hard_mpc(N, nbu, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, d);
 		
 
 		stat[5*(*kk)] = sigma;
@@ -301,7 +302,7 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 		// compute t & dlam & dt & alpha
 		alpha = 1.0;
-		d_compute_alpha_hard_mpc(N, nx, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, db);
+		d_compute_alpha_hard_mpc(N, nx, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, d);
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+3] = alpha;

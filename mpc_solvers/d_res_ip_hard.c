@@ -29,7 +29,7 @@
 
 
 
-void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hdb, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double *mu)
+void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpDCt, double **hd, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double *mu)
 	{
 
 	const int bs = D_MR;
@@ -63,8 +63,8 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, double **hpBAbt, d
 		mu[0] += hlam[0][jj] * ht[0][jj] + hlam[0][pnb+jj] * ht[0][pnb+jj];
 	for(jj=0; jj<nbu; jj++) 
 		{ 
-		hrd[0][jj]     =   hux[0][jj] - hdb[0][jj]     - ht[0][jj]; 
-		hrd[0][pnb+jj] = - hux[0][jj] - hdb[0][pnb+jj] - ht[0][pnb+jj]; 
+		hrd[0][jj]     =   hux[0][jj] - hd[0][jj]     - ht[0][jj]; 
+		hrd[0][pnb+jj] = - hux[0][jj] - hd[0][pnb+jj] - ht[0][pnb+jj]; 
 		}
 	for(jj=0; jj<nbu; jj++) 
 		hrq[0][jj] = - hq[0][jj] + hlam[0][jj] - hlam[0][pnb+jj];
@@ -93,8 +93,8 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, double **hpBAbt, d
 			mu[0] += hlam[ii][jj] * ht[ii][jj] + hlam[ii][pnb+jj] * ht[ii][pnb+jj];
 		for(jj=0; jj<nb; jj++) 
 			{	
-			hrd[ii][jj]     =   hux[ii][jj] - hdb[ii][jj]     - ht[ii][jj]; 
-			hrd[ii][pnb+jj] = - hux[ii][jj] - hdb[ii][pnb+jj] - ht[ii][pnb+jj]; 
+			hrd[ii][jj]     =   hux[ii][jj] - hd[ii][jj]     - ht[ii][jj]; 
+			hrd[ii][pnb+jj] = - hux[ii][jj] - hd[ii][pnb+jj] - ht[ii][pnb+jj]; 
 			}
 		for(jj=0; jj<nbu; jj++) 
 			hrq[ii][jj] = - hq[ii][jj] + hlam[ii][jj] - hlam[ii][pnb+jj];
@@ -118,8 +118,8 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, double **hpBAbt, d
 	mu[0] /= N*2*nb; // + 2*nbx;
 	for(jj=nu; jj<nb; jj++) 
 		{ 
-		hrd[N][jj]     =   hux[N][jj] - hdb[N][jj]     - ht[N][jj]; 
-		hrd[N][pnb+jj] = - hux[N][jj] - hdb[N][pnb+jj] - ht[N][pnb+jj]; 
+		hrd[N][jj]     =   hux[N][jj] - hd[N][jj]     - ht[N][jj]; 
+		hrd[N][pnb+jj] = - hux[N][jj] - hd[N][pnb+jj] - ht[N][pnb+jj]; 
 		}
 	for(jj=0; jj<nbx; jj++) 
 		hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj] + hlam[N][nu+jj] - hlam[N][pnb+nu+jj];
