@@ -532,7 +532,7 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double **ux, dou
 
 
 
-void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **db)
+void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **qx, double **bd, double **bl, double **pd, double **pl, double **db)
 
 /*void d_update_hessian_box(int k0, int kmax, int nb, int cnz, double sigma_mu, double *t, double *lam, double *lamt, double *dlam, double *bd, double *bl, double *pd, double *pl, double *lb, double *ub)*/
 	{
@@ -546,7 +546,8 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int cnz, double si
 	const int nal = bs*ncl; // number of doubles per cache line
 
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
-	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of box constraints
+	const int png = bs*((ng+bs-1)/bs); // simd aligned number of general constraints
 
 	//const int k0 = nbu;
 	//const int k1 = (nu/bs)*bs;
@@ -554,95 +555,147 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int cnz, double si
 	
 	double temp0, temp1;
 	
-	double *ptr_t, *ptr_lam, *ptr_lamt, *ptr_dlam, *ptr_tinv, *ptr_pd, *ptr_pl, *ptr_bd, *ptr_bl, *ptr_db;
+	double 
+		*ptr_pd, *ptr_pl, *ptr_bd, *ptr_bl, *ptr_db, *ptr_qx,
+		*ptr_t, *ptr_lam, *ptr_lamt, *ptr_dlam, *ptr_tinv;
 	
 	int ii, jj, bs0;
 	
 	// first stage
 	jj = 0;
 	
-	ptr_t     = t[0];
-	ptr_lam   = lam[0];
-	ptr_lamt  = lamt[0];
-	ptr_dlam  = dlam[0];
-	ptr_tinv  = t_inv[0];
-	ptr_pd    = pd[0];
-	ptr_pl    = pl[0];
-	ptr_bd    = bd[0];
-	ptr_bl    = bl[0];
-	ptr_db    = db[0];
-	
+	ptr_t     = t[jj];
+	ptr_lam   = lam[jj];
+	ptr_lamt  = lamt[jj];
+	ptr_dlam  = dlam[jj];
+	ptr_tinv  = t_inv[jj];
+	ptr_db    = db[jj];
+	ptr_bd    = bd[jj];
+	ptr_bl    = bl[jj];
+	ptr_pd    = pd[jj];
+	ptr_pl    = pl[jj];
+
 	ii = 0;
 	for(; ii<nbu-3; ii+=4)
 		{
 
-		ptr_tinv[0] = 1.0/ptr_t[0];
-		ptr_tinv[pnb+0] = 1.0/ptr_t[pnb+0];
-		ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
-		ptr_lamt[pnb+0] = ptr_lam[pnb+0]*ptr_tinv[pnb+0];
-		ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
-		ptr_dlam[pnb+0] = ptr_tinv[pnb+0]*sigma_mu; // !!!!!
-		ptr_pd[ii+0] = ptr_bd[ii+0] + ptr_lamt[0] + ptr_lamt[pnb+0];
-		ptr_pl[ii+0] = ptr_bl[ii+0] + ptr_lam[pnb+0] + ptr_lamt[pnb+0]*ptr_db[pnb+0] + ptr_dlam[pnb+0] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
+		ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+		ptr_tinv[ii+pnb+0] = 1.0/ptr_t[ii+pnb+0];
+		ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+		ptr_lamt[ii+pnb+0] = ptr_lam[ii+pnb+0]*ptr_tinv[ii+pnb+0];
+		ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+		ptr_dlam[ii+pnb+0] = ptr_tinv[ii+pnb+0]*sigma_mu; // !!!!!
+		ptr_pd[ii+0] = ptr_bd[ii+0] + ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
+		ptr_pl[ii+0] = ptr_bl[ii+0] + ptr_lam[ii+pnb+0] + ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
 
-		ptr_tinv[1] = 1.0/ptr_t[1];
-		ptr_tinv[pnb+1] = 1.0/ptr_t[pnb+1];
-		ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
-		ptr_lamt[pnb+1] = ptr_lam[pnb+1]*ptr_tinv[pnb+1];
-		ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
-		ptr_dlam[pnb+1] = ptr_tinv[pnb+1]*sigma_mu; // !!!!!
-		ptr_pd[ii+1] = ptr_bd[ii+1] + ptr_lamt[1] + ptr_lamt[pnb+1];
-		ptr_pl[ii+1] = ptr_bl[ii+1] + ptr_lam[pnb+1] + ptr_lamt[pnb+1]*ptr_db[pnb+1] + ptr_dlam[pnb+1] - ptr_lam[1] - ptr_lamt[1]*ptr_db[1] - ptr_dlam[1];
+		ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
+		ptr_tinv[ii+pnb+1] = 1.0/ptr_t[ii+pnb+1];
+		ptr_lamt[ii+1] = ptr_lam[ii+1]*ptr_tinv[ii+1];
+		ptr_lamt[ii+pnb+1] = ptr_lam[ii+pnb+1]*ptr_tinv[ii+pnb+1];
+		ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
+		ptr_dlam[ii+pnb+1] = ptr_tinv[ii+pnb+1]*sigma_mu; // !!!!!
+		ptr_pd[ii+1] = ptr_bd[ii+1] + ptr_lamt[ii+1] + ptr_lamt[ii+pnb+1];
+		ptr_pl[ii+1] = ptr_bl[ii+1] + ptr_lam[ii+pnb+1] + ptr_lamt[ii+pnb+1]*ptr_db[ii+pnb+1] + ptr_dlam[ii+pnb+1] - ptr_lam[ii+1] - ptr_lamt[ii+1]*ptr_db[ii+1] - ptr_dlam[ii+1];
 
-		ptr_tinv[2] = 1.0/ptr_t[2];
-		ptr_tinv[pnb+2] = 1.0/ptr_t[pnb+2];
-		ptr_lamt[2] = ptr_lam[2]*ptr_tinv[2];
-		ptr_lamt[pnb+2] = ptr_lam[pnb+2]*ptr_tinv[pnb+2];
-		ptr_dlam[2] = ptr_tinv[2]*sigma_mu; // !!!!!
-		ptr_dlam[pnb+2] = ptr_tinv[pnb+2]*sigma_mu; // !!!!!
-		ptr_pd[ii+2] = ptr_bd[ii+2] + ptr_lamt[2] + ptr_lamt[pnb+2];
-		ptr_pl[ii+2] = ptr_bl[ii+2] + ptr_lam[pnb+2] + ptr_lamt[pnb+2]*ptr_db[pnb+2] + ptr_dlam[pnb+2] - ptr_lam[2] - ptr_lamt[2]*ptr_db[2] - ptr_dlam[2];
+		ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
+		ptr_tinv[ii+pnb+2] = 1.0/ptr_t[ii+pnb+2];
+		ptr_lamt[ii+2] = ptr_lam[ii+2]*ptr_tinv[ii+2];
+		ptr_lamt[ii+pnb+2] = ptr_lam[ii+pnb+2]*ptr_tinv[ii+pnb+2];
+		ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
+		ptr_dlam[ii+pnb+2] = ptr_tinv[ii+pnb+2]*sigma_mu; // !!!!!
+		ptr_pd[ii+2] = ptr_bd[ii+2] + ptr_lamt[ii+2] + ptr_lamt[ii+pnb+2];
+		ptr_pl[ii+2] = ptr_bl[ii+2] + ptr_lam[ii+pnb+2] + ptr_lamt[ii+pnb+2]*ptr_db[ii+pnb+2] + ptr_dlam[ii+pnb+2] - ptr_lam[ii+2] - ptr_lamt[ii+2]*ptr_db[ii+2] - ptr_dlam[ii+2];
 
-		ptr_tinv[3] = 1.0/ptr_t[3];
-		ptr_tinv[pnb+3] = 1.0/ptr_t[pnb+3];
-		ptr_lamt[3] = ptr_lam[3]*ptr_tinv[3];
-		ptr_lamt[pnb+3] = ptr_lam[pnb+3]*ptr_tinv[pnb+3];
-		ptr_dlam[3] = ptr_tinv[3]*sigma_mu; // !!!!!
-		ptr_dlam[pnb+3] = ptr_tinv[pnb+3]*sigma_mu; // !!!!!
-		ptr_pd[ii+3] = ptr_bd[ii+3] + ptr_lamt[3] + ptr_lamt[pnb+3];
-		ptr_pl[ii+3] = ptr_bl[ii+3] + ptr_lam[pnb+3] + ptr_lamt[pnb+3]*ptr_db[pnb+3] + ptr_dlam[pnb+3] - ptr_lam[3] - ptr_lamt[3]*ptr_db[3] - ptr_dlam[3];
-
-		ptr_t     += 4;
-		ptr_lam   += 4;
-		ptr_lamt  += 4;
-		ptr_dlam  += 4;
-		ptr_tinv  += 4;
-		ptr_db    += 4;
+		ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
+		ptr_tinv[ii+pnb+3] = 1.0/ptr_t[ii+pnb+3];
+		ptr_lamt[ii+3] = ptr_lam[ii+3]*ptr_tinv[ii+3];
+		ptr_lamt[ii+pnb+3] = ptr_lam[ii+pnb+3]*ptr_tinv[ii+pnb+3];
+		ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
+		ptr_dlam[ii+pnb+3] = ptr_tinv[ii+pnb+3]*sigma_mu; // !!!!!
+		ptr_pd[ii+3] = ptr_bd[ii+3] + ptr_lamt[ii+3] + ptr_lamt[ii+pnb+3];
+		ptr_pl[ii+3] = ptr_bl[ii+3] + ptr_lam[ii+pnb+3] + ptr_lamt[ii+pnb+3]*ptr_db[ii+pnb+3] + ptr_dlam[ii+pnb+3] - ptr_lam[ii+3] - ptr_lamt[ii+3]*ptr_db[ii+3] - ptr_dlam[ii+3];
 
 		}
 	for(; ii<nbu; ii++)
 		{
-		ptr_tinv[0] = 1.0/ptr_t[0];
-		ptr_tinv[pnb+0] = 1.0/ptr_t[pnb+0];
-		ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
-		ptr_lamt[pnb+0] = ptr_lam[pnb+0]*ptr_tinv[pnb+0];
-		ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
-		ptr_dlam[pnb+0] = ptr_tinv[pnb+0]*sigma_mu; // !!!!!
-		ptr_pd[ii] = ptr_bd[ii] + ptr_lamt[0] + ptr_lamt[pnb+0];
-		ptr_pl[ii] = ptr_bl[ii] + ptr_lam[pnb+0] + ptr_lamt[pnb+0]*ptr_db[pnb+0] + ptr_dlam[pnb+0] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
 
-		ptr_t     += 1;
-		ptr_lam   += 1;
-		ptr_lamt  += 1;
-		ptr_dlam  += 1;
-		ptr_tinv  += 1;
-		ptr_db    += 1;
+		ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+		ptr_tinv[ii+pnb+0] = 1.0/ptr_t[ii+pnb+0];
+		ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+		ptr_lamt[ii+pnb+0] = ptr_lam[ii+pnb+0]*ptr_tinv[ii+pnb+0];
+		ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+		ptr_dlam[ii+pnb+0] = ptr_tinv[ii+pnb+0]*sigma_mu; // !!!!!
+		ptr_pd[ii] = ptr_bd[ii] + ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
+		ptr_pl[ii] = ptr_bl[ii] + ptr_lam[ii+pnb+0] + ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
+
 		}
 	for( ; ii<nu; ii++)
 		{
-		pd[jj][ii] = bd[jj][ii];
-		pl[jj][ii] = bl[jj][ii];
+		ptr_pd[ii] = ptr_bd[ii];
+		ptr_pl[ii] = ptr_bl[ii];
 		}
+	if(ng>0) // there are general constraints
+		{
+
+		ptr_qx    = qx[jj];
+
+		ii = 2*pnb;
+		for(; ii<2*pnb+ng-3; ii+=4)
+			{
+
+			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+			ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
+			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+			ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
+			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+			ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
+			ptr_qx[ii+0] =  ptr_lam[ii+0] + ptr_lamt[ii+0]*ptr_db[ii+0] + ptr_dlam[ii+0];
+			ptr_qx[ii+png+0] = ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0];
+
+			ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
+			ptr_tinv[ii+png+1] = 1.0/ptr_t[ii+png+1];
+			ptr_lamt[ii+1] = ptr_lam[ii+1]*ptr_tinv[ii+1];
+			ptr_lamt[ii+png+1] = ptr_lam[ii+png+1]*ptr_tinv[ii+png+1];
+			ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
+			ptr_dlam[ii+png+1] = ptr_tinv[ii+png+1]*sigma_mu; // !!!!!
+			ptr_qx[ii+1] =  ptr_lam[ii+1] + ptr_lamt[ii+1]*ptr_db[ii+1] + ptr_dlam[ii+1];
+			ptr_qx[ii+png+1] = ptr_lam[ii+png+1] + ptr_lamt[ii+png+1]*ptr_db[ii+png+1] + ptr_dlam[ii+png+1];
+
+			ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
+			ptr_tinv[ii+png+2] = 1.0/ptr_t[ii+png+2];
+			ptr_lamt[ii+2] = ptr_lam[ii+2]*ptr_tinv[ii+2];
+			ptr_lamt[ii+png+2] = ptr_lam[ii+png+2]*ptr_tinv[ii+png+2];
+			ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
+			ptr_dlam[ii+png+2] = ptr_tinv[ii+png+2]*sigma_mu; // !!!!!
+			ptr_qx[ii+2] =  ptr_lam[ii+2] + ptr_lamt[ii+2]*ptr_db[ii+2] + ptr_dlam[ii+2];
+			ptr_qx[ii+png+2] = ptr_lam[ii+png+2] + ptr_lamt[ii+png+2]*ptr_db[ii+png+2] + ptr_dlam[ii+png+2];
+
+			ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
+			ptr_tinv[ii+png+3] = 1.0/ptr_t[ii+png+3];
+			ptr_lamt[ii+3] = ptr_lam[ii+3]*ptr_tinv[ii+3];
+			ptr_lamt[ii+png+3] = ptr_lam[ii+png+3]*ptr_tinv[ii+png+3];
+			ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
+			ptr_dlam[ii+png+3] = ptr_tinv[ii+png+3]*sigma_mu; // !!!!!
+			ptr_qx[ii+3] =  ptr_lam[ii+3] + ptr_lamt[ii+3]*ptr_db[ii+3] + ptr_dlam[ii+3];
+			ptr_qx[ii+png+3] = ptr_lam[ii+png+3] + ptr_lamt[ii+png+3]*ptr_db[ii+png+3] + ptr_dlam[ii+png+3];
+
+			}
+		for(; ii<2*pnb+ng-3; ii+=4)
+			{
+
+			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+			ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
+			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+			ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
+			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+			ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
+			ptr_qx[ii+0] =  ptr_lam[ii+0] + ptr_lamt[ii+0]*ptr_db[ii+0] + ptr_dlam[ii+0];
+			ptr_qx[ii+png+0] = ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0];
+
+			}
+
+		}
+
 
 	// middle stages
 
@@ -654,81 +707,131 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int cnz, double si
 		ptr_lamt  = lamt[jj];
 		ptr_dlam  = dlam[jj];
 		ptr_tinv  = t_inv[jj];
-		ptr_pd    = pd[jj];
-		ptr_pl    = pl[jj];
+		ptr_db    = db[jj];
 		ptr_bd    = bd[jj];
 		ptr_bl    = bl[jj];
-		ptr_db    = db[jj];
+		ptr_pd    = pd[jj];
+		ptr_pl    = pl[jj];
 
 		ii = 0;
 		for(; ii<nb-3; ii+=4)
 			{
-			ptr_tinv[0] = 1.0/ptr_t[0];
-			ptr_tinv[pnb+0] = 1.0/ptr_t[pnb+0];
-			ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
-			ptr_lamt[pnb+0] = ptr_lam[pnb+0]*ptr_tinv[pnb+0];
-			ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
-			ptr_dlam[pnb+0] = ptr_tinv[pnb+0]*sigma_mu; // !!!!!
-			ptr_pd[ii+0] = ptr_bd[ii+0] + ptr_lamt[0] + ptr_lamt[pnb+0];
-			ptr_pl[ii+0] = ptr_bl[ii+0] + ptr_lam[pnb+0] + ptr_lamt[pnb+0]*ptr_db[pnb+0] + ptr_dlam[pnb+0] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
 
-			ptr_tinv[1] = 1.0/ptr_t[1];
-			ptr_tinv[pnb+1] = 1.0/ptr_t[pnb+1];
-			ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
-			ptr_lamt[pnb+1] = ptr_lam[pnb+1]*ptr_tinv[pnb+1];
-			ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
-			ptr_dlam[pnb+1] = ptr_tinv[pnb+1]*sigma_mu; // !!!!!
-			ptr_pd[ii+1] = ptr_bd[ii+1] + ptr_lamt[1] + ptr_lamt[pnb+1];
-			ptr_pl[ii+1] = ptr_bl[ii+1] + ptr_lam[pnb+1] + ptr_lamt[pnb+1]*ptr_db[pnb+1] + ptr_dlam[pnb+1] - ptr_lam[1] - ptr_lamt[1]*ptr_db[1] - ptr_dlam[1];
+			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+			ptr_tinv[ii+pnb+0] = 1.0/ptr_t[ii+pnb+0];
+			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+			ptr_lamt[ii+pnb+0] = ptr_lam[ii+pnb+0]*ptr_tinv[ii+pnb+0];
+			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pnb+0] = ptr_tinv[ii+pnb+0]*sigma_mu; // !!!!!
+			ptr_pd[ii+0] = ptr_bd[ii+0] + ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
+			ptr_pl[ii+0] = ptr_bl[ii+0] + ptr_lam[ii+pnb+0] + ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
 
-			ptr_tinv[2] = 1.0/ptr_t[2];
-			ptr_tinv[pnb+2] = 1.0/ptr_t[pnb+2];
-			ptr_lamt[2] = ptr_lam[2]*ptr_tinv[2];
-			ptr_lamt[pnb+2] = ptr_lam[pnb+2]*ptr_tinv[pnb+2];
-			ptr_dlam[2] = ptr_tinv[2]*sigma_mu; // !!!!!
-			ptr_dlam[pnb+2] = ptr_tinv[pnb+2]*sigma_mu; // !!!!!
-			ptr_pd[ii+2] = ptr_bd[ii+2] + ptr_lamt[2] + ptr_lamt[pnb+2];
-			ptr_pl[ii+2] = ptr_bl[ii+2] + ptr_lam[pnb+2] + ptr_lamt[pnb+2]*ptr_db[pnb+2] + ptr_dlam[pnb+2] - ptr_lam[2] - ptr_lamt[2]*ptr_db[2] - ptr_dlam[2];
+			ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
+			ptr_tinv[ii+pnb+1] = 1.0/ptr_t[ii+pnb+1];
+			ptr_lamt[ii+1] = ptr_lam[ii+1]*ptr_tinv[ii+1];
+			ptr_lamt[ii+pnb+1] = ptr_lam[ii+pnb+1]*ptr_tinv[ii+pnb+1];
+			ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pnb+1] = ptr_tinv[ii+pnb+1]*sigma_mu; // !!!!!
+			ptr_pd[ii+1] = ptr_bd[ii+1] + ptr_lamt[ii+1] + ptr_lamt[ii+pnb+1];
+			ptr_pl[ii+1] = ptr_bl[ii+1] + ptr_lam[ii+pnb+1] + ptr_lamt[ii+pnb+1]*ptr_db[ii+pnb+1] + ptr_dlam[ii+pnb+1] - ptr_lam[ii+1] - ptr_lamt[ii+1]*ptr_db[ii+1] - ptr_dlam[ii+1];
 
-			ptr_tinv[3] = 1.0/ptr_t[3];
-			ptr_tinv[pnb+3] = 1.0/ptr_t[pnb+3];
-			ptr_lamt[3] = ptr_lam[3]*ptr_tinv[3];
-			ptr_lamt[pnb+3] = ptr_lam[pnb+3]*ptr_tinv[pnb+3];
-			ptr_dlam[3] = ptr_tinv[3]*sigma_mu; // !!!!!
-			ptr_dlam[pnb+3] = ptr_tinv[pnb+3]*sigma_mu; // !!!!!
-			ptr_pd[ii+3] = ptr_bd[ii+3] + ptr_lamt[3] + ptr_lamt[pnb+3];
-			ptr_pl[ii+3] = ptr_bl[ii+3] + ptr_lam[pnb+3] + ptr_lamt[pnb+3]*ptr_db[pnb+3] + ptr_dlam[pnb+3] - ptr_lam[3] - ptr_lamt[3]*ptr_db[3] - ptr_dlam[3];
+			ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
+			ptr_tinv[ii+pnb+2] = 1.0/ptr_t[ii+pnb+2];
+			ptr_lamt[ii+2] = ptr_lam[ii+2]*ptr_tinv[ii+2];
+			ptr_lamt[ii+pnb+2] = ptr_lam[ii+pnb+2]*ptr_tinv[ii+pnb+2];
+			ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pnb+2] = ptr_tinv[ii+pnb+2]*sigma_mu; // !!!!!
+			ptr_pd[ii+2] = ptr_bd[ii+2] + ptr_lamt[ii+2] + ptr_lamt[ii+pnb+2];
+			ptr_pl[ii+2] = ptr_bl[ii+2] + ptr_lam[ii+pnb+2] + ptr_lamt[ii+pnb+2]*ptr_db[ii+pnb+2] + ptr_dlam[ii+pnb+2] - ptr_lam[ii+2] - ptr_lamt[ii+2]*ptr_db[ii+2] - ptr_dlam[ii+2];
 
-			ptr_t     += 4;
-			ptr_lam   += 4;
-			ptr_lamt  += 4;
-			ptr_dlam  += 4;
-			ptr_tinv  += 4;
-			ptr_db    += 4;
+			ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
+			ptr_tinv[ii+pnb+3] = 1.0/ptr_t[ii+pnb+3];
+			ptr_lamt[ii+3] = ptr_lam[ii+3]*ptr_tinv[ii+3];
+			ptr_lamt[ii+pnb+3] = ptr_lam[ii+pnb+3]*ptr_tinv[ii+pnb+3];
+			ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pnb+3] = ptr_tinv[ii+pnb+3]*sigma_mu; // !!!!!
+			ptr_pd[ii+3] = ptr_bd[ii+3] + ptr_lamt[ii+3] + ptr_lamt[ii+pnb+3];
+			ptr_pl[ii+3] = ptr_bl[ii+3] + ptr_lam[ii+pnb+3] + ptr_lamt[ii+pnb+3]*ptr_db[ii+pnb+3] + ptr_dlam[ii+pnb+3] - ptr_lam[ii+3] - ptr_lamt[ii+3]*ptr_db[ii+3] - ptr_dlam[ii+3];
 
 			}
 		for(; ii<nb; ii++)
 			{
-			ptr_tinv[0] = 1.0/ptr_t[0];
-			ptr_tinv[pnb+0] = 1.0/ptr_t[pnb+0];
-			ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
-			ptr_lamt[pnb+0] = ptr_lam[pnb+0]*ptr_tinv[pnb+0];
-			ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
-			ptr_dlam[pnb+0] = ptr_tinv[pnb+0]*sigma_mu; // !!!!!
-			ptr_pd[ii] = ptr_bd[ii] + ptr_lamt[0] + ptr_lamt[pnb+0];
-			ptr_pl[ii] = ptr_bl[ii] + ptr_lam[pnb+0] + ptr_lamt[pnb+0]*ptr_db[pnb+0] + ptr_dlam[pnb+0] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
 
-			ptr_t     += 1;
-			ptr_lam   += 1;
-			ptr_lamt  += 1;
-			ptr_dlam  += 1;
-			ptr_tinv  += 1;
-			ptr_db    += 1;
+			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+			ptr_tinv[ii+pnb+0] = 1.0/ptr_t[ii+pnb+0];
+			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+			ptr_lamt[ii+pnb+0] = ptr_lam[ii+pnb+0]*ptr_tinv[ii+pnb+0];
+			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pnb+0] = ptr_tinv[ii+pnb+0]*sigma_mu; // !!!!!
+			ptr_pd[ii] = ptr_bd[ii] + ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
+			ptr_pl[ii] = ptr_bl[ii] + ptr_lam[ii+pnb+0] + ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
+
 			}
 		for( ; ii<nu+nx; ii++)
 			{
-			pd[jj][ii] = bd[jj][ii];
-			pl[jj][ii] = bl[jj][ii];
+			ptr_pd[ii] = ptr_bd[ii];
+			ptr_pl[ii] = ptr_bl[ii];
+			}
+		if(ng>0) // there are general constraints
+			{
+
+			ptr_qx    = qx[jj];
+
+			ii = 2*pnb;
+			for(; ii<2*pnb+ng-3; ii+=4)
+				{
+
+				ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+				ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
+				ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+				ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
+				ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+				ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
+				ptr_qx[ii+0] =  ptr_lam[ii+0] + ptr_lamt[ii+0]*ptr_db[ii+0] + ptr_dlam[ii+0];
+				ptr_qx[ii+png+0] = ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0];
+
+				ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
+				ptr_tinv[ii+png+1] = 1.0/ptr_t[ii+png+1];
+				ptr_lamt[ii+1] = ptr_lam[ii+1]*ptr_tinv[ii+1];
+				ptr_lamt[ii+png+1] = ptr_lam[ii+png+1]*ptr_tinv[ii+png+1];
+				ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
+				ptr_dlam[ii+png+1] = ptr_tinv[ii+png+1]*sigma_mu; // !!!!!
+				ptr_qx[ii+1] =  ptr_lam[ii+1] + ptr_lamt[ii+1]*ptr_db[ii+1] + ptr_dlam[ii+1];
+				ptr_qx[ii+png+1] = ptr_lam[ii+png+1] + ptr_lamt[ii+png+1]*ptr_db[ii+png+1] + ptr_dlam[ii+png+1];
+
+				ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
+				ptr_tinv[ii+png+2] = 1.0/ptr_t[ii+png+2];
+				ptr_lamt[ii+2] = ptr_lam[ii+2]*ptr_tinv[ii+2];
+				ptr_lamt[ii+png+2] = ptr_lam[ii+png+2]*ptr_tinv[ii+png+2];
+				ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
+				ptr_dlam[ii+png+2] = ptr_tinv[ii+png+2]*sigma_mu; // !!!!!
+				ptr_qx[ii+2] =  ptr_lam[ii+2] + ptr_lamt[ii+2]*ptr_db[ii+2] + ptr_dlam[ii+2];
+				ptr_qx[ii+png+2] = ptr_lam[ii+png+2] + ptr_lamt[ii+png+2]*ptr_db[ii+png+2] + ptr_dlam[ii+png+2];
+
+				ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
+				ptr_tinv[ii+png+3] = 1.0/ptr_t[ii+png+3];
+				ptr_lamt[ii+3] = ptr_lam[ii+3]*ptr_tinv[ii+3];
+				ptr_lamt[ii+png+3] = ptr_lam[ii+png+3]*ptr_tinv[ii+png+3];
+				ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
+				ptr_dlam[ii+png+3] = ptr_tinv[ii+png+3]*sigma_mu; // !!!!!
+				ptr_qx[ii+3] =  ptr_lam[ii+3] + ptr_lamt[ii+3]*ptr_db[ii+3] + ptr_dlam[ii+3];
+				ptr_qx[ii+png+3] = ptr_lam[ii+png+3] + ptr_lamt[ii+png+3]*ptr_db[ii+png+3] + ptr_dlam[ii+png+3];
+
+				}
+			for(; ii<2*pnb+ng-3; ii+=4)
+				{
+
+				ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+				ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
+				ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+				ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
+				ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+				ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
+				ptr_qx[ii+0] =  ptr_lam[ii+0] + ptr_lamt[ii+0]*ptr_db[ii+0] + ptr_dlam[ii+0];
+				ptr_qx[ii+png+0] = ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0];
+
+				}
+
 			}
 	
 		}
@@ -736,86 +839,136 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int cnz, double si
 	// last stage
 	jj = N;
 
-	ptr_t     = t[N]     + nu;
-	ptr_lam   = lam[N]   + nu;
-	ptr_lamt  = lamt[N]  + nu;
-	ptr_dlam  = dlam[N]  + nu;
-	ptr_tinv  = t_inv[N] + nu;
-	ptr_pd    = pd[N];
-	ptr_pl    = pl[N];
-	ptr_bd    = bd[N];
-	ptr_bl    = bl[N];
-	ptr_db    = db[N];
+	ptr_t     = t[jj];
+	ptr_lam   = lam[jj];
+	ptr_lamt  = lamt[jj];
+	ptr_dlam  = dlam[jj];
+	ptr_tinv  = t_inv[jj];
+	ptr_db    = db[jj];
+	ptr_bd    = bd[jj];
+	ptr_bl    = bl[jj];
+	ptr_pd    = pd[jj];
+	ptr_pl    = pl[jj];
 
 	ii=nu;
 	for(; ii<nb-3; ii+=4)
 		{
-		ptr_tinv[0] = 1.0/ptr_t[0];
-		ptr_tinv[pnb+0] = 1.0/ptr_t[pnb+0];
-		ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
-		ptr_lamt[pnb+0] = ptr_lam[pnb+0]*ptr_tinv[pnb+0];
-		ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
-		ptr_dlam[pnb+0] = ptr_tinv[pnb+0]*sigma_mu; // !!!!!
-		ptr_pd[ii+0] = ptr_bd[ii+0] + ptr_lamt[0] + ptr_lamt[pnb+0];
-		ptr_pl[ii+0] = ptr_bl[ii+0] + ptr_lam[pnb+0] + ptr_lamt[pnb+0]*ptr_db[pnb+0] + ptr_dlam[pnb+0] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
 
-		ptr_tinv[1] = 1.0/ptr_t[1];
-		ptr_tinv[pnb+1] = 1.0/ptr_t[pnb+1];
-		ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
-		ptr_lamt[pnb+1] = ptr_lam[pnb+1]*ptr_tinv[pnb+1];
-		ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
-		ptr_dlam[pnb+1] = ptr_tinv[pnb+1]*sigma_mu; // !!!!!
-		ptr_pd[ii+1] = ptr_bd[ii+1] + ptr_lamt[1] + ptr_lamt[pnb+1];
-		ptr_pl[ii+1] = ptr_bl[ii+1] + ptr_lam[pnb+1] + ptr_lamt[pnb+1]*ptr_db[pnb+1] + ptr_dlam[pnb+1] - ptr_lam[1] - ptr_lamt[1]*ptr_db[1] - ptr_dlam[1];
+		ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+		ptr_tinv[ii+pnb+0] = 1.0/ptr_t[ii+pnb+0];
+		ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+		ptr_lamt[ii+pnb+0] = ptr_lam[ii+pnb+0]*ptr_tinv[ii+pnb+0];
+		ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+		ptr_dlam[ii+pnb+0] = ptr_tinv[ii+pnb+0]*sigma_mu; // !!!!!
+		ptr_pd[ii+0] = ptr_bd[ii+0] + ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
+		ptr_pl[ii+0] = ptr_bl[ii+0] + ptr_lam[ii+pnb+0] + ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
 
-		ptr_tinv[2] = 1.0/ptr_t[2];
-		ptr_tinv[pnb+2] = 1.0/ptr_t[pnb+2];
-		ptr_lamt[2] = ptr_lam[2]*ptr_tinv[2];
-		ptr_lamt[pnb+2] = ptr_lam[pnb+2]*ptr_tinv[pnb+2];
-		ptr_dlam[2] = ptr_tinv[2]*sigma_mu; // !!!!!
-		ptr_dlam[pnb+2] = ptr_tinv[pnb+2]*sigma_mu; // !!!!!
-		ptr_pd[ii+2] = ptr_bd[ii+2] + ptr_lamt[2] + ptr_lamt[pnb+2];
-		ptr_pl[ii+2] = ptr_bl[ii+2] + ptr_lam[pnb+2] + ptr_lamt[pnb+2]*ptr_db[pnb+2] + ptr_dlam[pnb+2] - ptr_lam[2] - ptr_lamt[2]*ptr_db[2] - ptr_dlam[2];
+		ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
+		ptr_tinv[ii+pnb+1] = 1.0/ptr_t[ii+pnb+1];
+		ptr_lamt[ii+1] = ptr_lam[ii+1]*ptr_tinv[ii+1];
+		ptr_lamt[ii+pnb+1] = ptr_lam[ii+pnb+1]*ptr_tinv[ii+pnb+1];
+		ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
+		ptr_dlam[ii+pnb+1] = ptr_tinv[ii+pnb+1]*sigma_mu; // !!!!!
+		ptr_pd[ii+1] = ptr_bd[ii+1] + ptr_lamt[ii+1] + ptr_lamt[ii+pnb+1];
+		ptr_pl[ii+1] = ptr_bl[ii+1] + ptr_lam[ii+pnb+1] + ptr_lamt[ii+pnb+1]*ptr_db[ii+pnb+1] + ptr_dlam[ii+pnb+1] - ptr_lam[ii+1] - ptr_lamt[ii+1]*ptr_db[ii+1] - ptr_dlam[ii+1];
 
-		ptr_tinv[3] = 1.0/ptr_t[3];
-		ptr_tinv[pnb+3] = 1.0/ptr_t[pnb+3];
-		ptr_lamt[3] = ptr_lam[3]*ptr_tinv[3];
-		ptr_lamt[pnb+3] = ptr_lam[pnb+3]*ptr_tinv[pnb+3];
-		ptr_dlam[3] = ptr_tinv[3]*sigma_mu; // !!!!!
-		ptr_dlam[pnb+3] = ptr_tinv[pnb+3]*sigma_mu; // !!!!!
-		ptr_pd[ii+3] = ptr_bd[ii+3] + ptr_lamt[3] + ptr_lamt[pnb+3];
-		ptr_pl[ii+3] = ptr_bl[ii+3] + ptr_lam[pnb+3] + ptr_lamt[pnb+3]*ptr_db[pnb+3] + ptr_dlam[pnb+3] - ptr_lam[3] - ptr_lamt[3]*ptr_db[3] - ptr_dlam[3];
+		ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
+		ptr_tinv[ii+pnb+2] = 1.0/ptr_t[ii+pnb+2];
+		ptr_lamt[ii+2] = ptr_lam[ii+2]*ptr_tinv[ii+2];
+		ptr_lamt[ii+pnb+2] = ptr_lam[ii+pnb+2]*ptr_tinv[ii+pnb+2];
+		ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
+		ptr_dlam[ii+pnb+2] = ptr_tinv[ii+pnb+2]*sigma_mu; // !!!!!
+		ptr_pd[ii+2] = ptr_bd[ii+2] + ptr_lamt[ii+2] + ptr_lamt[ii+pnb+2];
+		ptr_pl[ii+2] = ptr_bl[ii+2] + ptr_lam[ii+pnb+2] + ptr_lamt[ii+pnb+2]*ptr_db[ii+pnb+2] + ptr_dlam[ii+pnb+2] - ptr_lam[ii+2] - ptr_lamt[ii+2]*ptr_db[ii+2] - ptr_dlam[ii+2];
 
-		ptr_t     += 4;
-		ptr_lam   += 4;
-		ptr_lamt  += 4;
-		ptr_dlam  += 4;
-		ptr_tinv  += 4;
-		ptr_db    += 4;
+		ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
+		ptr_tinv[ii+pnb+3] = 1.0/ptr_t[ii+pnb+3];
+		ptr_lamt[ii+3] = ptr_lam[ii+3]*ptr_tinv[ii+3];
+		ptr_lamt[ii+pnb+3] = ptr_lam[ii+pnb+3]*ptr_tinv[ii+pnb+3];
+		ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
+		ptr_dlam[ii+pnb+3] = ptr_tinv[ii+pnb+3]*sigma_mu; // !!!!!
+		ptr_pd[ii+3] = ptr_bd[ii+3] + ptr_lamt[ii+3] + ptr_lamt[ii+pnb+3];
+		ptr_pl[ii+3] = ptr_bl[ii+3] + ptr_lam[ii+pnb+3] + ptr_lamt[ii+pnb+3]*ptr_db[ii+pnb+3] + ptr_dlam[ii+pnb+3] - ptr_lam[ii+3] - ptr_lamt[ii+3]*ptr_db[ii+3] - ptr_dlam[ii+3];
 
 		}
 	for(; ii<nb; ii++)
 		{
-		ptr_tinv[0] = 1.0/ptr_t[0];
-		ptr_tinv[pnb+0] = 1.0/ptr_t[pnb+0];
-		ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
-		ptr_lamt[pnb+0] = ptr_lam[pnb+0]*ptr_tinv[pnb+0];
-		ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
-		ptr_dlam[pnb+0] = ptr_tinv[pnb+0]*sigma_mu; // !!!!!
-		ptr_pd[ii] = ptr_bd[ii] + ptr_lamt[0] + ptr_lamt[pnb+0];
-		ptr_pl[ii] = ptr_bl[ii] + ptr_lam[pnb+0] + ptr_lamt[pnb+0]*ptr_db[pnb+0] + ptr_dlam[pnb+0] - ptr_lam[0] - ptr_lamt[0]*ptr_db[0] - ptr_dlam[0];
 
-		ptr_t     += 1;
-		ptr_lam   += 1;
-		ptr_lamt  += 1;
-		ptr_dlam  += 1;
-		ptr_tinv  += 1;
-		ptr_db    += 1;
+		ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+		ptr_tinv[ii+pnb+0] = 1.0/ptr_t[ii+pnb+0];
+		ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+		ptr_lamt[ii+pnb+0] = ptr_lam[ii+pnb+0]*ptr_tinv[ii+pnb+0];
+		ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+		ptr_dlam[ii+pnb+0] = ptr_tinv[ii+pnb+0]*sigma_mu; // !!!!!
+		ptr_pd[ii] = ptr_bd[ii] + ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
+		ptr_pl[ii] = ptr_bl[ii] + ptr_lam[ii+pnb+0] + ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
+
 		}
 	for( ; ii<nu+nx; ii++)
 		{
-		pd[jj][ii] = bd[jj][ii];
-		pl[jj][ii] = bl[jj][ii];
+		ptr_pd[ii] = ptr_bd[ii];
+		ptr_pl[ii] = ptr_bl[ii];
+		}
+	if(ng>0) // there are general constraints
+		{
+
+		ptr_qx    = qx[jj];
+
+		ii = 2*pnb;
+		for(; ii<2*pnb+ng-3; ii+=4)
+			{
+
+			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+			ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
+			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+			ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
+			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+			ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
+			ptr_qx[ii+0] =  ptr_lam[ii+0] + ptr_lamt[ii+0]*ptr_db[ii+0] + ptr_dlam[ii+0];
+			ptr_qx[ii+png+0] = ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0];
+
+			ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
+			ptr_tinv[ii+png+1] = 1.0/ptr_t[ii+png+1];
+			ptr_lamt[ii+1] = ptr_lam[ii+1]*ptr_tinv[ii+1];
+			ptr_lamt[ii+png+1] = ptr_lam[ii+png+1]*ptr_tinv[ii+png+1];
+			ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
+			ptr_dlam[ii+png+1] = ptr_tinv[ii+png+1]*sigma_mu; // !!!!!
+			ptr_qx[ii+1] =  ptr_lam[ii+1] + ptr_lamt[ii+1]*ptr_db[ii+1] + ptr_dlam[ii+1];
+			ptr_qx[ii+png+1] = ptr_lam[ii+png+1] + ptr_lamt[ii+png+1]*ptr_db[ii+png+1] + ptr_dlam[ii+png+1];
+
+			ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
+			ptr_tinv[ii+png+2] = 1.0/ptr_t[ii+png+2];
+			ptr_lamt[ii+2] = ptr_lam[ii+2]*ptr_tinv[ii+2];
+			ptr_lamt[ii+png+2] = ptr_lam[ii+png+2]*ptr_tinv[ii+png+2];
+			ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
+			ptr_dlam[ii+png+2] = ptr_tinv[ii+png+2]*sigma_mu; // !!!!!
+			ptr_qx[ii+2] =  ptr_lam[ii+2] + ptr_lamt[ii+2]*ptr_db[ii+2] + ptr_dlam[ii+2];
+			ptr_qx[ii+png+2] = ptr_lam[ii+png+2] + ptr_lamt[ii+png+2]*ptr_db[ii+png+2] + ptr_dlam[ii+png+2];
+
+			ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
+			ptr_tinv[ii+png+3] = 1.0/ptr_t[ii+png+3];
+			ptr_lamt[ii+3] = ptr_lam[ii+3]*ptr_tinv[ii+3];
+			ptr_lamt[ii+png+3] = ptr_lam[ii+png+3]*ptr_tinv[ii+png+3];
+			ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
+			ptr_dlam[ii+png+3] = ptr_tinv[ii+png+3]*sigma_mu; // !!!!!
+			ptr_qx[ii+3] =  ptr_lam[ii+3] + ptr_lamt[ii+3]*ptr_db[ii+3] + ptr_dlam[ii+3];
+			ptr_qx[ii+png+3] = ptr_lam[ii+png+3] + ptr_lamt[ii+png+3]*ptr_db[ii+png+3] + ptr_dlam[ii+png+3];
+
+			}
+		for(; ii<2*pnb+ng-3; ii+=4)
+			{
+
+			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+			ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
+			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+			ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
+			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+			ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
+			ptr_qx[ii+0] =  ptr_lam[ii+0] + ptr_lamt[ii+0]*ptr_db[ii+0] + ptr_dlam[ii+0];
+			ptr_qx[ii+png+0] = ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0];
+
+			}
+
 		}
 
 

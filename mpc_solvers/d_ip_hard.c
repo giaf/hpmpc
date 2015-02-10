@@ -90,6 +90,7 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	double *(dt[N+1]);
 	double *(lamt[N+1]);
 	double *(t_inv[N+1]);
+	double *(qx[N+1]);
 
 //	ptr += (N+1)*(pnz + pnx + pnz*cnl + 8*pnz) + 3*pnz;
 
@@ -158,6 +159,11 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 		t_inv[jj] = ptr;
 		ptr += 2*pnb+2*png;
 		}
+	for(jj=0; jj<=N; jj++)
+		{
+		qx[jj] = ptr;
+		ptr += 2*pnb+2*png;
+		}
 
 /*dlam[0][0] = 1;*/
 /*printf("\ncazzo %f\n", dlam[0][0]);*/
@@ -216,7 +222,7 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 		// box constraints
 
-		d_update_hessian_hard_mpc(N, nx, nu, nb, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, d);
+		d_update_hessian_hard_mpc(N, nx, nu, nb, ng, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, qx, bd, bl, pd, pl, d);
 
 /*return;*/
 

@@ -86,6 +86,7 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	double *(dt[N+1]);
 	double *(lamt[N+1]);
 	double *(t_inv[N+1]);
+	double *(qx[N+1]);
 	double *(Pb[N]);
 
 //	ptr += (N+1)*(pnx + pnz*cnl + 12*pnz) + 3*pnz;
@@ -149,6 +150,11 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	for(jj=0; jj<=N; jj++)
 		{
 		t_inv[jj] = ptr;
+		ptr += 2*pnb+2*png;
+		}
+	for(jj=0; jj<=N; jj++)
+		{
+		qx[jj] = ptr;
 		ptr += 2*pnb+2*png;
 		}
 
@@ -215,7 +221,7 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 		//update cost function matrices and vectors (box constraints)
 
-		d_update_hessian_hard_mpc(N, nx, nu, nb, cnz, 0.0, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, d);
+		d_update_hessian_hard_mpc(N, nx, nu, nb, ng, cnz, 0.0, t, t_inv, lam, lamt, dlam, qx, bd, bl, pd, pl, d);
 
 
 
