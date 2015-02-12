@@ -64,6 +64,7 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	const int png = bs*((ng+bs-1)/bs); // cache aligned number of general constraints
 	const int cnz = ncl*((nz+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
+	const int cnxg= ncl*((ng+nx+ncl-1)/ncl);
 	const int anz = nal*((nz+nal-1)/nal);
 	const int anx = nal*((nx+nal-1)/nal);
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box constraints
@@ -91,6 +92,7 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	double *(lamt[N+1]);
 	double *(t_inv[N+1]);
 	double *(qx[N+1]);
+	double *(Qx[N+1]);
 
 //	ptr += (N+1)*(pnz + pnx + pnz*cnl + 8*pnz) + 3*pnz;
 
@@ -137,7 +139,7 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	
 	work = ptr;
 //	ptr += 2*anz;
-	ptr += pnz*cnx;
+	ptr += pnz*cnxg;
 
 	diag = ptr;
 	ptr += anz;
@@ -161,7 +163,8 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 		}
 	for(jj=0; jj<=N; jj++)
 		{
-		qx[jj] = ptr;
+		Qx[jj] = ptr;
+		qx[jj] = ptr+png;
 		ptr += 2*pnb+2*png;
 		}
 
@@ -170,7 +173,7 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 	double temp0, temp1;
 	double alpha, mu;
-	double mu_scal = 1.0/(N*2*nb);
+	double mu_scal = 1.0/(N*2*(nb+ng));
 	double sigma, sigma_decay, sigma_min;
 
 	sigma = sigma_par[0]; //0.4;
@@ -217,25 +220,21 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	while( *kk<k_max && mu>mu_tol && alpha>=alpha_min )
 		{
 						
-/*printf("\niteration %d, mu %f\n", *kk, mu);*/
+
+
 		//update cost function matrices and vectors (box constraints)
+		d_update_hessian_hard_mpc(N, nx, nu, nb, ng, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, Qx, qx, bd, bl, pd, pl, d);
 
-		// box constraints
-
-		d_update_hessian_hard_mpc(N, nx, nu, nb, ng, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, qx, bd, bl, pd, pl, d);
-
-/*return;*/
 
 
 		// compute the search direction: factorize and solve the KKT system
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, compute_mult, dpi);
+		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, compute_mult, dpi, nb, ng, pDCt, Qx, qx);
 
 
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1.0;
-		//d_compute_alpha_hard_mpc(N, 2*nbu, 2*nu, 2*nb, &alpha, t, dt, lam, dlam, lamt, dux, d);
-		d_compute_alpha_hard_mpc(N, nx, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, d);
+		d_compute_alpha_hard_mpc(N, nx, nu, nb, ng, &alpha, t, dt, lam, dlam, lamt, dux, pDCt, d);
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+1] = alpha;
@@ -246,7 +245,7 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 
 		// update x, u, lam, t & compute the duality gap mu
-		d_update_var_hard_mpc(N, nx, nu, nb, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
+		d_update_var_hard_mpc(N, nx, nu, nb, ng, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
 		
 		stat[5*(*kk)+2] = mu;
 		

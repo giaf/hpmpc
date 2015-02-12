@@ -157,6 +157,8 @@ int main()
 	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
+//	int nb = 0;//NB; // number of box constrained inputs and states
+//	int ng = nx+nu;//0; //4;  // number of general constraints
 	int nb = NB; // number of box constrained inputs and states
 	int ng = 0; //4;  // number of general constraints
 
@@ -187,6 +189,7 @@ int main()
 	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 	const int cng = ncl*((ng+ncl-1)/ncl);
+	const int cnxg= ncl*((ng+nx+ncl-1)/ncl);
 	//const int pnb = bs*((2*nb+bs-1)/bs); // packed number of box constraints
 	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of one-sided box constraints !!!!!!!!!!!!
 	const int png = bs*((ng+bs-1)/bs); // simd aligned number of one-sided box constraints !!!!!!!!!!!!
@@ -300,7 +303,9 @@ int main()
 	// last stages
 	double *pDCtN; d_zeros_align(&pDCtN, pnz, cng);
 	d_cvt_tran_mat2pmat(ng, nx, nu, bs, C, ng, pDCtN+nu/bs*cng*bs+nu%bs, cng);
-	//d_print_pmat(nu+nx, ng, bs, pD0, cng);
+	//d_print_pmat(nu+nx, ng, bs, pDCt0, cng);
+	//d_print_pmat(nu+nx, ng, bs, pDCtn, cng);
+	//d_print_pmat(nu+nx, ng, bs, pDCtN, cng);
 	//exit(1);
 	// TODO arrived here working on general constraints
 
@@ -354,14 +359,14 @@ int main()
 		hq[jj] = q;
 		d_zeros_align(&hux[jj], anz, 1);
 		d_zeros_align(&hpi[jj], anx, 1);
-		d_zeros_align(&hlam[jj],2*pnb, 1); // TODO pnb
-		d_zeros_align(&ht[jj], 2*pnb, 1); // TODO pnb
+		d_zeros_align(&hlam[jj],2*pnb+2*png, 1);
+		d_zeros_align(&ht[jj], 2*pnb+2*png, 1);
 		hpBAbt[jj] = pBAbt;
 		hd[jj] = d;
 		hpDCt[jj] = pDCtn;
 		d_zeros_align(&hrb[jj], anx, 1);
 		d_zeros_align(&hrq[jj], anz, 1);
-		d_zeros_align(&hrd[jj], 2*pnb, 1); // TODO pnb
+		d_zeros_align(&hrd[jj], 2*pnb+2*png, 1);
 		}
 	//d_zeros_align(&hpQ[N], pnz, cnz);
 	hpQ[N] = pQ;
@@ -369,13 +374,13 @@ int main()
 	hq[N] = q;
 	d_zeros_align(&hux[N], anz, 1);
 	d_zeros_align(&hpi[N], anx, 1);
-	d_zeros_align(&hlam[N], 2*pnb, 1); // TODO pnb
-	d_zeros_align(&ht[N], 2*pnb, 1); // TODO pnb
+	d_zeros_align(&hlam[N], 2*pnb+2*png, 1);
+	d_zeros_align(&ht[N], 2*pnb+2*png, 1);
 	hd[N] = d;
 	hpDCt[0] = pDCt0;
 	hpDCt[N] = pDCtN;
 	d_zeros_align(&hrq[N], anz, 1);
-	d_zeros_align(&hrd[N], 2*pnb, 1); // TODO pnb
+	d_zeros_align(&hrd[N], 2*pnb+2*png, 1); // TODO pnb
 	
 	// starting guess
 	for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
@@ -387,7 +392,7 @@ int main()
 	//double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 4*anb + 2*anx) + 3*anz, 1); // work space
 	//double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 4*anb + 2*anx) + 3*anz, 1); // work space TODO change work space on other files !!!!!!!!!!!!!
 	//double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 4*anb + 2*anx) + anz + pnz*cnx, 1); // work space TODO change work space on other files !!!!!!!!!!!!!
-	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 10*(pnb+png) + 2*anx) + anz + pnz*cnx, 1); // work space TODO change work space on other files !!!!!!!!!!!!!
+	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 10*(pnb+png) + 2*anx) + anz + pnz*cnxg, 1); // work space TODO change work space on other files !!!!!!!!!!!!!
 /*	for(jj=0; jj<( (N+1)*(pnz*cnl + 4*anz + 4*anb + 2*anx) + 3*anz ); jj++) work[jj] = -1.0;*/
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
@@ -576,7 +581,7 @@ int main()
 		
 		printf("\nlam = \n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat(1, 2*pnb, hlam[ii], 1);
+			d_print_mat(1, 2*pnb+2*png, hlam[ii], 1);
 		
 		}
 
@@ -614,7 +619,7 @@ int main()
 		printf("rd = \n\n");
 		for(ii=0; ii<=N; ii++)
 /*			d_print_mat_e(1, 2*nb, hrd[ii], 1);*/
-			d_print_mat(1, 2*nb, hrd[ii], 1);
+			d_print_mat(1, 2*pnb+2*png, hrd[ii], 1);
 		printf("\n");
 		printf("\n");
 		printf("mu = %e\n\n", mu);
