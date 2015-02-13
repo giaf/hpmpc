@@ -33,12 +33,16 @@
 // Riccati-based IP method for box-constrained MPC, double precision
 int hpmpc_ip_box_mpc_dp_work_space(int nx, int nu, int N)
 	{
+	const int nb = nx+nu;
+	const int ng = 0;
+
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
 	const int nal = D_MR*D_NCL;
 	const int nz = nx+nu+1;
-	const int nb = nx+nu; // number of two-sided box constraints
 	const int pnz = bs*((nz+bs-1)/bs);
+	const int pnb = bs*((nb+bs-1)/bs);
+	const int png = bs*((ng+bs-1)/bs);
 	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 	const int anz = nal*((nz+nal-1)/nal);
@@ -46,10 +50,10 @@ int hpmpc_ip_box_mpc_dp_work_space(int nx, int nu, int N)
 //	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 //	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 	const int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
-	const int anb = 2*nal*((nb+nal-1)/nal);
+	//const int anb = 2*nal*((nb+nal-1)/nal);
 
 //	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 6*anz + 3*anx + 7*anb) + 3*anz);
-	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 6*anz + 3*anx + 7*anb) + anz + pnz*cnx);
+	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 6*anz + 3*anx + 16*(pnb+png)) + anz + pnz*cnx);
 
 	return work_space_size;
 	}

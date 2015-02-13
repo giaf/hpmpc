@@ -49,6 +49,9 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	// indeces
 	int jj, ll, ii, bs0;
 
+	double **dummy;
+
+
 	// constants
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
@@ -231,7 +234,7 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 
 		// compute the search direction: factorize and solve the KKT system
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, compute_mult, dpi);
+		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, compute_mult, dpi, 0, 0, dummy, dummy, dummy);
 
 
 
@@ -283,7 +286,7 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 
 		// solve the system
-		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work, 1, Pb, compute_mult, dpi);
+		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work, 1, Pb, compute_mult, dpi, 0, 0, dummy, dummy);
 
 
 

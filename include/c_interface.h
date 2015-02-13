@@ -36,6 +36,7 @@
 #define NZ (NX+NU+1)
 #define NT (NX+NY)
 #define NB (NU+NX) // number of two-sided box constraints
+#define NG 0 // number of two-sided general constraints
 // double precision constants
 #define D_NAL (D_MR*D_NCL)
 //#define D_PADX ((D_NCL-NX%D_NCL)%D_NCL) // padding after nx
@@ -56,7 +57,9 @@
 #define D_CNY (D_NCL*((NY+D_NCL-1)/D_NCL))
 #define D_CNZ (D_NCL*((NZ+D_NCL-1)/D_NCL))
 #define D_CNX2 (2*D_NCL*((NX+D_NCL-1)/D_NCL))
-#define D_PNB (D_MR*((2*NB+D_MR-1)/D_MR))
+#define D_CNXG (D_NCL*((NX+NG+D_NCL-1)/D_NCL))
+#define D_PNB (D_MR*((NB+D_MR-1)/D_MR))
+#define D_PNG (D_MR*((NG+D_MR-1)/D_MR))
 #define D_PNT (D_MR*((NT+D_MR-1)/D_MR))
 #define D_PNU (D_MR*((NU+D_MR-1)/D_MR))
 #define D_PNX (D_MR*((NX+D_MR-1)/D_MR))
@@ -82,7 +85,7 @@
 // work space: static definition
 
 // Riccati-based IP method for box-constrained MPC, double precision
-#define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 6*D_ANZ + 3*D_ANX + 7*D_ANB) + D_ANZ + D_PNZ*P_CNX)
+#define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + 6*D_ANZ + 3*D_ANX + 16*(D_PNB+D_PNG)) + D_ANZ + D_PNZ*P_CNXG)
 // Riccati-based IP method for box-constrained MPC, single precision
 #define HPMPC_IP_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 3*S_ANX + 7*S_ANB) + S_ANZ + D_PNZ*P_CNX)
 // Riccati-based IP method for soft-constrained MPC, double precision

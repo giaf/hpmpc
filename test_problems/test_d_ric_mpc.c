@@ -252,6 +252,9 @@ int main()
 /*#endif*/
 	
 	int ii, jj;
+
+	double **dummy;
+
 	
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
@@ -446,14 +449,10 @@ int main()
 			}
 		for(jj=0; jj<pnz*cnz; jj++) hpQ[N][jj]=pQ[jj];
 
-		// TODO
-		int update_hessian = 0;
-		double **Qd;
-		double **Ql;
 	
 		// call the solver
 //		if(FREE_X0==0)
-			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, update_hessian, Qd, Ql, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, dummy, dummy, dummy);
 //		else
 //			d_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 		
@@ -525,7 +524,7 @@ int main()
 
 		// call the solver 
 //		if(FREE_X0==0)
-			d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
+			d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi, 0, 0, dummy, dummy);
 //		else
 //			d_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
 
@@ -594,7 +593,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 //			if(FREE_X0==0)
-				d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, update_hessian, Qd, Ql, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+				d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, dummy, dummy, dummy);
 //			else
 //				d_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 			}
@@ -620,7 +619,7 @@ int main()
 
 			// call the solver 
 //			if(FREE_X0==0)
-				d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
+				d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi, 0, 0, dummy, dummy);
 //			else
 //				d_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
 			}
@@ -657,7 +656,7 @@ int main()
 
 			// call the solver 
 //			if(FREE_X0==0)
-				d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 0, hPb, 0, hpi);
+				d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work, 0, hPb, 0, hpi, 0, 0, dummy, dummy);
 //			else
 //				d_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 0, hPb, 0, hpi);
 			}

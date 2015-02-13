@@ -94,6 +94,9 @@ int c_order_ip_box_mpc(	int k_max, double mu_tol, char prec,
     if(prec=='d')
 	    {
 	    
+		const int nb = nx+nu; // number of box constraints
+		const int ng = 0; // number of general constratins // TODO remove when not needed any longer
+
 		const int bs = D_MR; //d_get_mr();
 		const int ncl = D_NCL;
 		const int nal = D_MR*D_NCL;
@@ -101,27 +104,31 @@ int c_order_ip_box_mpc(	int k_max, double mu_tol, char prec,
 		const int nz = nx+nu+1;
 		const int pnz = bs*((nz+bs-1)/bs);
 		const int pnx = bs*((nx+bs-1)/bs);
+		const int pnb = bs*((nb+bs-1)/bs);
+		const int png = bs*((ng+bs-1)/bs);
 		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 		const int cnx = ncl*((nx+ncl-1)/ncl);
+		//const int cng = ncl*((ng+ncl-1)/ncl);
 		const int anz = nal*((nz+nal-1)/nal);
 		const int anx = nal*((nx+nal-1)/nal);
 
 		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 
-		const int nb = nx+nu; // number of box constraints
-		const int anb = nal*((2*nb+nal-1)/nal);
+		//const int anb = nal*((2*nb+nal-1)/nal);
 
 		double alpha_min = ALPHA_MIN; // minimum accepted step length
         static double sigma_par[] = {0.4, 0.1, 0.001}; // control primal-dual IP behaviour
 /*      static double stat[5*K_MAX]; // statistics from the IP routine*/
-//      double *work = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 3*anx + 7*anb) + 3*anz)*sizeof(double));
+//      double *work = (double g) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 3*anx + 7*anb) + 3*anz)*sizeof(double));
         int warm_start = WARM_START;
         int compute_mult = 1; // compute multipliers
         
         int info = 0;
 
         int i, ii, jj, ll;
+
+		double **dummy;
 
 
         /* align work space */
@@ -161,7 +168,7 @@ int c_order_ip_box_mpc(	int k_max, double mu_tol, char prec,
         for(ii=0; ii<=N; ii++) // time Variant box constraints
 	        {
             hdb[ii] = ptr;
-            ptr += anb; //nb; // for alignment of ptr
+            ptr += 2*pnb+2*png;//anb; //nb; // for alignment of ptr
 	        }
 
         for(ii=0; ii<=N; ii++) // eq. constr. multipliers
@@ -173,13 +180,13 @@ int c_order_ip_box_mpc(	int k_max, double mu_tol, char prec,
         for(ii=0; ii<=N; ii++) // slack variables
 	        {
             hlam[ii] = ptr;
-            ptr += anb; //nb; // for alignment of ptr
+            ptr += 2*pnb+2*png;//anb; //nb; // for alignment of ptr
 	        }
 
         for(ii=0; ii<=N; ii++) // eq. constr. multipliers
 	        {
             ht[ii] = ptr;
-            ptr += anb; //nb; // for alignment of ptr
+            ptr += 2*pnb+2*png;//anb; //nb; // for alignment of ptr
 	        }
 
 		work = ptr;
@@ -285,8 +292,6 @@ int c_order_ip_box_mpc(	int k_max, double mu_tol, char prec,
 /*printf("\nstart of ip solver\n");*/
 
         // call the IP solver
-		const int ng = 0; // TODO remove when not needed any longer
-		double **dummy;
 	    if(IP==1)
 	        hpmpc_status = d_ip_hard_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, dummy, hdb, hux, compute_mult, hpi, hlam, ht, work);
 	    else
@@ -1253,12 +1258,10 @@ int c_order_riccati_mpc( const char prec,
         
 
 		// TODO
-		int update_hessian = 0;
-		double **hQd;
-		double **hQl;
+		double **dummy;
 
 		// call Riccati solver
-		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, update_hessian, hQd, hQl, hux, hpL, work, diag, compute_mult, hpi);
+		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, compute_mult, hpi, 0, 0, dummy, dummy, dummy);
 
 
 
