@@ -23,6 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#include <math.h>
+#include "../../include/blas_d.h"
 #include "../../include/block_size.h"
 
 
@@ -532,11 +534,8 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double **ux, dou
 
 
 
-void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **qx, double **bd, double **bl, double **pd, double **pl, double **db)
-
-/*void d_update_hessian_box(int k0, int kmax, int nb, int cnz, double sigma_mu, double *t, double *lam, double *lamt, double *dlam, double *bd, double *bl, double *pd, double *pl, double *lb, double *ub)*/
+void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **Qx, double **qx, double **bd, double **bl, double **pd, double **pl, double **db)
 	{
-	// TODO remove k1 !!! and use nx nu nb instead of k0 k1 kmax
 	
 	const int nbu = nu<nb ? nu : nb ;
 
@@ -556,7 +555,7 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int cnz, d
 	double temp0, temp1;
 	
 	double 
-		*ptr_pd, *ptr_pl, *ptr_bd, *ptr_bl, *ptr_db, *ptr_qx,
+		*ptr_pd, *ptr_pl, *ptr_bd, *ptr_bl, *ptr_db, *ptr_Qx, *ptr_qx,
 		*ptr_t, *ptr_lam, *ptr_lamt, *ptr_dlam, *ptr_tinv;
 	
 	int ii, jj, bs0;
@@ -634,68 +633,6 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int cnz, d
 		ptr_pd[ii] = ptr_bd[ii];
 		ptr_pl[ii] = ptr_bl[ii];
 		}
-	if(ng>0) // there are general constraints
-		{
-
-		ptr_qx    = qx[jj];
-
-		ii = 2*pnb;
-		for(; ii<2*pnb+ng-3; ii+=4)
-			{
-
-			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
-			ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
-			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
-			ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
-			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
-			ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
-			ptr_qx[ii+0] =  ptr_lam[ii+0] + ptr_lamt[ii+0]*ptr_db[ii+0] + ptr_dlam[ii+0];
-			ptr_qx[ii+png+0] = ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0];
-
-			ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
-			ptr_tinv[ii+png+1] = 1.0/ptr_t[ii+png+1];
-			ptr_lamt[ii+1] = ptr_lam[ii+1]*ptr_tinv[ii+1];
-			ptr_lamt[ii+png+1] = ptr_lam[ii+png+1]*ptr_tinv[ii+png+1];
-			ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
-			ptr_dlam[ii+png+1] = ptr_tinv[ii+png+1]*sigma_mu; // !!!!!
-			ptr_qx[ii+1] =  ptr_lam[ii+1] + ptr_lamt[ii+1]*ptr_db[ii+1] + ptr_dlam[ii+1];
-			ptr_qx[ii+png+1] = ptr_lam[ii+png+1] + ptr_lamt[ii+png+1]*ptr_db[ii+png+1] + ptr_dlam[ii+png+1];
-
-			ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
-			ptr_tinv[ii+png+2] = 1.0/ptr_t[ii+png+2];
-			ptr_lamt[ii+2] = ptr_lam[ii+2]*ptr_tinv[ii+2];
-			ptr_lamt[ii+png+2] = ptr_lam[ii+png+2]*ptr_tinv[ii+png+2];
-			ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
-			ptr_dlam[ii+png+2] = ptr_tinv[ii+png+2]*sigma_mu; // !!!!!
-			ptr_qx[ii+2] =  ptr_lam[ii+2] + ptr_lamt[ii+2]*ptr_db[ii+2] + ptr_dlam[ii+2];
-			ptr_qx[ii+png+2] = ptr_lam[ii+png+2] + ptr_lamt[ii+png+2]*ptr_db[ii+png+2] + ptr_dlam[ii+png+2];
-
-			ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
-			ptr_tinv[ii+png+3] = 1.0/ptr_t[ii+png+3];
-			ptr_lamt[ii+3] = ptr_lam[ii+3]*ptr_tinv[ii+3];
-			ptr_lamt[ii+png+3] = ptr_lam[ii+png+3]*ptr_tinv[ii+png+3];
-			ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
-			ptr_dlam[ii+png+3] = ptr_tinv[ii+png+3]*sigma_mu; // !!!!!
-			ptr_qx[ii+3] =  ptr_lam[ii+3] + ptr_lamt[ii+3]*ptr_db[ii+3] + ptr_dlam[ii+3];
-			ptr_qx[ii+png+3] = ptr_lam[ii+png+3] + ptr_lamt[ii+png+3]*ptr_db[ii+png+3] + ptr_dlam[ii+png+3];
-
-			}
-		for(; ii<2*pnb+ng-3; ii+=4)
-			{
-
-			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
-			ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
-			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
-			ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
-			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
-			ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
-			ptr_qx[ii+0] =  ptr_lam[ii+0] + ptr_lamt[ii+0]*ptr_db[ii+0] + ptr_dlam[ii+0];
-			ptr_qx[ii+png+0] = ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0];
-
-			}
-
-		}
-
 
 	// middle stages
 
@@ -771,67 +708,6 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int cnz, d
 			{
 			ptr_pd[ii] = ptr_bd[ii];
 			ptr_pl[ii] = ptr_bl[ii];
-			}
-		if(ng>0) // there are general constraints
-			{
-
-			ptr_qx    = qx[jj];
-
-			ii = 2*pnb;
-			for(; ii<2*pnb+ng-3; ii+=4)
-				{
-
-				ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
-				ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
-				ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
-				ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
-				ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
-				ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
-				ptr_qx[ii+0] =  ptr_lam[ii+0] + ptr_lamt[ii+0]*ptr_db[ii+0] + ptr_dlam[ii+0];
-				ptr_qx[ii+png+0] = ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0];
-
-				ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
-				ptr_tinv[ii+png+1] = 1.0/ptr_t[ii+png+1];
-				ptr_lamt[ii+1] = ptr_lam[ii+1]*ptr_tinv[ii+1];
-				ptr_lamt[ii+png+1] = ptr_lam[ii+png+1]*ptr_tinv[ii+png+1];
-				ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
-				ptr_dlam[ii+png+1] = ptr_tinv[ii+png+1]*sigma_mu; // !!!!!
-				ptr_qx[ii+1] =  ptr_lam[ii+1] + ptr_lamt[ii+1]*ptr_db[ii+1] + ptr_dlam[ii+1];
-				ptr_qx[ii+png+1] = ptr_lam[ii+png+1] + ptr_lamt[ii+png+1]*ptr_db[ii+png+1] + ptr_dlam[ii+png+1];
-
-				ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
-				ptr_tinv[ii+png+2] = 1.0/ptr_t[ii+png+2];
-				ptr_lamt[ii+2] = ptr_lam[ii+2]*ptr_tinv[ii+2];
-				ptr_lamt[ii+png+2] = ptr_lam[ii+png+2]*ptr_tinv[ii+png+2];
-				ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
-				ptr_dlam[ii+png+2] = ptr_tinv[ii+png+2]*sigma_mu; // !!!!!
-				ptr_qx[ii+2] =  ptr_lam[ii+2] + ptr_lamt[ii+2]*ptr_db[ii+2] + ptr_dlam[ii+2];
-				ptr_qx[ii+png+2] = ptr_lam[ii+png+2] + ptr_lamt[ii+png+2]*ptr_db[ii+png+2] + ptr_dlam[ii+png+2];
-
-				ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
-				ptr_tinv[ii+png+3] = 1.0/ptr_t[ii+png+3];
-				ptr_lamt[ii+3] = ptr_lam[ii+3]*ptr_tinv[ii+3];
-				ptr_lamt[ii+png+3] = ptr_lam[ii+png+3]*ptr_tinv[ii+png+3];
-				ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
-				ptr_dlam[ii+png+3] = ptr_tinv[ii+png+3]*sigma_mu; // !!!!!
-				ptr_qx[ii+3] =  ptr_lam[ii+3] + ptr_lamt[ii+3]*ptr_db[ii+3] + ptr_dlam[ii+3];
-				ptr_qx[ii+png+3] = ptr_lam[ii+png+3] + ptr_lamt[ii+png+3]*ptr_db[ii+png+3] + ptr_dlam[ii+png+3];
-
-				}
-			for(; ii<2*pnb+ng-3; ii+=4)
-				{
-
-				ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
-				ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
-				ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
-				ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
-				ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
-				ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
-				ptr_qx[ii+0] =  ptr_lam[ii+0] + ptr_lamt[ii+0]*ptr_db[ii+0] + ptr_dlam[ii+0];
-				ptr_qx[ii+png+0] = ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0];
-
-				}
-
 			}
 	
 		}
@@ -909,64 +785,83 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int cnz, d
 		ptr_pd[ii] = ptr_bd[ii];
 		ptr_pl[ii] = ptr_bl[ii];
 		}
-	if(ng>0) // there are general constraints
+
+
+
+	// general constraints
+	if(ng>0)
 		{
-
-		ptr_qx    = qx[jj];
-
-		ii = 2*pnb;
-		for(; ii<2*pnb+ng-3; ii+=4)
+		for(jj=0; jj<=N; jj++)
 			{
 
-			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
-			ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
-			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
-			ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
-			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
-			ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
-			ptr_qx[ii+0] =  ptr_lam[ii+0] + ptr_lamt[ii+0]*ptr_db[ii+0] + ptr_dlam[ii+0];
-			ptr_qx[ii+png+0] = ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0];
+			ptr_t     = t[jj];
+			ptr_lam   = lam[jj];
+			ptr_lamt  = lamt[jj];
+			ptr_dlam  = dlam[jj];
+			ptr_tinv = t_inv[jj];
+			ptr_db    = db[jj];
+			ptr_bd    = bd[jj];
+			ptr_bl    = bl[jj];
+			ptr_pd    = pd[jj];
+			ptr_pl    = pl[jj];
 
-			ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
-			ptr_tinv[ii+png+1] = 1.0/ptr_t[ii+png+1];
-			ptr_lamt[ii+1] = ptr_lam[ii+1]*ptr_tinv[ii+1];
-			ptr_lamt[ii+png+1] = ptr_lam[ii+png+1]*ptr_tinv[ii+png+1];
-			ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
-			ptr_dlam[ii+png+1] = ptr_tinv[ii+png+1]*sigma_mu; // !!!!!
-			ptr_qx[ii+1] =  ptr_lam[ii+1] + ptr_lamt[ii+1]*ptr_db[ii+1] + ptr_dlam[ii+1];
-			ptr_qx[ii+png+1] = ptr_lam[ii+png+1] + ptr_lamt[ii+png+1]*ptr_db[ii+png+1] + ptr_dlam[ii+png+1];
+			ptr_Qx    = Qx[jj];
+			ptr_qx    = qx[jj];
 
-			ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
-			ptr_tinv[ii+png+2] = 1.0/ptr_t[ii+png+2];
-			ptr_lamt[ii+2] = ptr_lam[ii+2]*ptr_tinv[ii+2];
-			ptr_lamt[ii+png+2] = ptr_lam[ii+png+2]*ptr_tinv[ii+png+2];
-			ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
-			ptr_dlam[ii+png+2] = ptr_tinv[ii+png+2]*sigma_mu; // !!!!!
-			ptr_qx[ii+2] =  ptr_lam[ii+2] + ptr_lamt[ii+2]*ptr_db[ii+2] + ptr_dlam[ii+2];
-			ptr_qx[ii+png+2] = ptr_lam[ii+png+2] + ptr_lamt[ii+png+2]*ptr_db[ii+png+2] + ptr_dlam[ii+png+2];
+			ii = 2*pnb;
+			for(; ii<2*pnb+ng-3; ii+=4)
+				{
 
-			ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
-			ptr_tinv[ii+png+3] = 1.0/ptr_t[ii+png+3];
-			ptr_lamt[ii+3] = ptr_lam[ii+3]*ptr_tinv[ii+3];
-			ptr_lamt[ii+png+3] = ptr_lam[ii+png+3]*ptr_tinv[ii+png+3];
-			ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
-			ptr_dlam[ii+png+3] = ptr_tinv[ii+png+3]*sigma_mu; // !!!!!
-			ptr_qx[ii+3] =  ptr_lam[ii+3] + ptr_lamt[ii+3]*ptr_db[ii+3] + ptr_dlam[ii+3];
-			ptr_qx[ii+png+3] = ptr_lam[ii+png+3] + ptr_lamt[ii+png+3]*ptr_db[ii+png+3] + ptr_dlam[ii+png+3];
+				ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+				ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
+				ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+				ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
+				ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+				ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
+				ptr_qx[ii+0] =  ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
+				ptr_Qx[ii+0] = sqrt(ptr_lamt[ii+0] + ptr_lamt[ii+png+0]);
 
-			}
-		for(; ii<2*pnb+ng-3; ii+=4)
-			{
+				ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
+				ptr_tinv[ii+png+1] = 1.0/ptr_t[ii+png+1];
+				ptr_lamt[ii+1] = ptr_lam[ii+1]*ptr_tinv[ii+1];
+				ptr_lamt[ii+png+1] = ptr_lam[ii+png+1]*ptr_tinv[ii+png+1];
+				ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
+				ptr_dlam[ii+png+1] = ptr_tinv[ii+png+1]*sigma_mu; // !!!!!
+				ptr_qx[ii+1] =  ptr_lam[ii+png+1] + ptr_lamt[ii+png+1]*ptr_db[ii+png+1] + ptr_dlam[ii+png+1] - ptr_lam[ii+1] - ptr_lamt[ii+1]*ptr_db[ii+1] - ptr_dlam[ii+1];
+				ptr_Qx[ii+1] = sqrt(ptr_lamt[ii+1] + ptr_lamt[ii+png+1]);
 
-			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
-			ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
-			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
-			ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
-			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
-			ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
-			ptr_qx[ii+0] =  ptr_lam[ii+0] + ptr_lamt[ii+0]*ptr_db[ii+0] + ptr_dlam[ii+0];
-			ptr_qx[ii+png+0] = ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0];
+				ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
+				ptr_tinv[ii+png+2] = 1.0/ptr_t[ii+png+2];
+				ptr_lamt[ii+2] = ptr_lam[ii+2]*ptr_tinv[ii+2];
+				ptr_lamt[ii+png+2] = ptr_lam[ii+png+2]*ptr_tinv[ii+png+2];
+				ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
+				ptr_dlam[ii+png+2] = ptr_tinv[ii+png+2]*sigma_mu; // !!!!!
+				ptr_qx[ii+2] =  ptr_lam[ii+png+2] + ptr_lamt[ii+png+2]*ptr_db[ii+png+2] + ptr_dlam[ii+png+2] - ptr_lam[ii+2] - ptr_lamt[ii+2]*ptr_db[ii+2] - ptr_dlam[ii+2];
+				ptr_Qx[ii+2] = sqrt(ptr_lamt[ii+2] + ptr_lamt[ii+png+2]);
 
+				ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
+				ptr_tinv[ii+png+3] = 1.0/ptr_t[ii+png+3];
+				ptr_lamt[ii+3] = ptr_lam[ii+3]*ptr_tinv[ii+3];
+				ptr_lamt[ii+png+3] = ptr_lam[ii+png+3]*ptr_tinv[ii+png+3];
+				ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
+				ptr_dlam[ii+png+3] = ptr_tinv[ii+png+3]*sigma_mu; // !!!!!
+				ptr_qx[ii+3] =  ptr_lam[ii+png+3] + ptr_lamt[ii+png+3]*ptr_db[ii+png+3] + ptr_dlam[ii+png+3] - ptr_lam[ii+3] - ptr_lamt[ii+3]*ptr_db[ii+3] - ptr_dlam[ii+3];
+				ptr_Qx[ii+3] = sqrt(ptr_lamt[ii+3] + ptr_lamt[ii+png+3]);
+
+				}
+			for(; ii<2*pnb+ng; ii++)
+				{
+
+				ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+				ptr_tinv[ii+png+0] = 1.0/ptr_t[ii+png+0];
+				ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+				ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
+				ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+				ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
+				ptr_qx[ii+0] =  ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
+				ptr_Qx[ii+0] = sqrt(ptr_lamt[ii+0] + ptr_lamt[ii+png+0]);
+
+				}
 			}
 
 		}
@@ -977,8 +872,6 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int cnz, d
 
 
 void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **db, double **Z, double **z, double **Zl, double **zl)
-
-/*void d_update_hessian_box(int k0, int kmax, int nb, int cnz, double sigma_mu, double *t, double *lam, double *lamt, double *dlam, double *bd, double *bl, double *pd, double *pl, double *lb, double *ub)*/
 	{
 
 	int nb = nh + ns;
@@ -1631,7 +1524,7 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 
 
 
-void d_update_gradient_hard_mpc(int N, int nx, int nu, int nb, double sigma_mu, double **dt, double **dlam, double **t_inv, double **pl2)
+void d_update_gradient_hard_mpc(int N, int nx, int nu, int nb, int ng, double sigma_mu, double **dt, double **dlam, double **t_inv, double **pl2, double **qx)
 	{
 
 	const int nbu = nu<nb ? nu : nb ;
@@ -1643,34 +1536,82 @@ void d_update_gradient_hard_mpc(int N, int nx, int nu, int nb, double sigma_mu, 
 
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
 	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int png = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
 
 	int ii, jj;
 
+	double
+		*ptr_dlam, *ptr_t_inv, *ptr_dt, *ptr_pl2, *ptr_qx;
+
 	// first stage
+	jj = 0;
+
+	ptr_dlam  = dlam[jj];
+	ptr_dt    = dt[jj];
+	ptr_t_inv = t_inv[jj];
+	ptr_pl2   = pl2[jj];
+
 	for(ii=0; ii<nbu; ii++)
 		{
-		dlam[0][ii]     = t_inv[0][ii]    *(sigma_mu - dlam[0][ii]*dt[0][ii]); // !!!!!
-		dlam[0][pnb+ii] = t_inv[0][pnb+ii]*(sigma_mu - dlam[0][pnb+ii]*dt[0][pnb+ii]); // !!!!!
-		pl2[0][ii] += dlam[0][pnb+ii] - dlam[0][ii];
+		ptr_dlam[ii]     = ptr_t_inv[ii]    *(sigma_mu - ptr_dlam[ii]*ptr_dt[ii]); // !!!!!
+		ptr_dlam[pnb+ii] = ptr_t_inv[pnb+ii]*(sigma_mu - ptr_dlam[pnb+ii]*ptr_dt[pnb+ii]); // !!!!!
+		ptr_pl2[ii] += ptr_dlam[pnb+ii] - ptr_dlam[ii];
 		}
 
 	// middle stages
 	for(jj=1; jj<N; jj++)
 		{
+
+		ptr_dlam  = dlam[jj];
+		ptr_dt    = dt[jj];
+		ptr_t_inv = t_inv[jj];
+		ptr_pl2   = pl2[jj];
+
 		for(ii=0; ii<nb; ii++)
 			{
-			dlam[jj][ii]     = t_inv[jj][ii]    *(sigma_mu - dlam[jj][ii]*dt[jj][ii]); // !!!!!
-			dlam[jj][pnb+ii] = t_inv[jj][pnb+ii]*(sigma_mu - dlam[jj][pnb+ii]*dt[jj][pnb+ii]); // !!!!!
-			pl2[jj][ii] += dlam[jj][pnb+ii] - dlam[jj][ii];
+			ptr_dlam[ii]     = ptr_t_inv[ii]    *(sigma_mu - ptr_dlam[ii]*ptr_dt[ii]); // !!!!!
+			ptr_dlam[pnb+ii] = ptr_t_inv[pnb+ii]*(sigma_mu - ptr_dlam[pnb+ii]*ptr_dt[pnb+ii]); // !!!!!
+			ptr_pl2[ii] += ptr_dlam[pnb+ii] - ptr_dlam[ii];
 			}
 		}
 
 	// last stages
+	jj = N;
+
+	ptr_dlam  = dlam[jj];
+	ptr_dt    = dt[jj];
+	ptr_t_inv = t_inv[jj];
+	ptr_pl2   = pl2[jj];
+
 	for(ii=nu; ii<nb; ii++)
 		{
-		dlam[jj][ii]     = t_inv[jj][ii]    *(sigma_mu - dlam[jj][ii]*dt[jj][ii]); // !!!!!
-		dlam[jj][pnb+ii] = t_inv[jj][pnb+ii]*(sigma_mu - dlam[jj][pnb+ii]*dt[jj][pnb+ii]); // !!!!!
-		pl2[jj][ii] += dlam[jj][pnb+ii] - dlam[jj][ii];
+		ptr_dlam[ii]     = ptr_t_inv[ii]    *(sigma_mu - ptr_dlam[ii]*ptr_dt[ii]); // !!!!!
+		ptr_dlam[pnb+ii] = ptr_t_inv[pnb+ii]*(sigma_mu - ptr_dlam[pnb+ii]*ptr_dt[pnb+ii]); // !!!!!
+		ptr_pl2[ii] += ptr_dlam[pnb+ii] - ptr_dlam[ii];
+		}
+	
+	// general constraints
+	if(ng>0)
+		{
+
+		for(jj=0; jj<=N; jj++)
+			{
+
+			ptr_dlam  = dlam[jj];
+			ptr_dt    = dt[jj];
+			ptr_t_inv = t_inv[jj];
+			ptr_pl2   = pl2[jj];
+			ptr_qx    = qx[jj];
+
+			for(ii=2*pnb; ii<2*pnb+ng; ii++)
+				{
+				ptr_dlam[ii]     = ptr_t_inv[ii]    *(sigma_mu - ptr_dlam[ii]*ptr_dt[ii]);
+				ptr_dlam[png+ii] = ptr_t_inv[png+ii]*(sigma_mu - ptr_dlam[png+ii]*ptr_dt[png+ii]);
+				ptr_qx[ii] = ptr_dlam[png+ii] - ptr_dlam[ii];
+				}
+
+			}
+
 		}
 
 	}
@@ -1776,7 +1717,7 @@ void d_update_gradient_soft_mpc(int N, int nx, int nu, int nh, int ns, double si
 
 
 
-void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db)
+void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **pDCt, double **db)
 	{
 	
 /*	const int bs = 4; //d_get_mr();*/
@@ -1790,39 +1731,53 @@ void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, double *ptr_alpha, 
 
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
 	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int png = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int cng = ncl*((ng+ncl-1)/ncl); // simd aligned number of box and soft constraints
 
 	double alpha = ptr_alpha[0];
 	
 /*	int kna = ((k1+bs-1)/bs)*bs;*/
 
+	double
+		*ptr_db, *ptr_dux, *ptr_t, *ptr_dt, *ptr_lamt, *ptr_lam, *ptr_dlam;
+	
 	int jj, ll;
 
 
 	// first stage
+	jj = 0;
+
+	ptr_db   = db[jj];
+	ptr_dux  = dux[jj];
+	ptr_t    = t[jj];
+	ptr_dt   = dt[jj];
+	ptr_lamt = lamt[jj];
+	ptr_lam  = lam[jj];
+	ptr_dlam = dlam[jj];
 
 	ll = 0;
 	for(; ll<nbu; ll++)
 		{
 
-		dt[0][ll+0]   =   dux[0][ll] - db[0][ll+0]   - t[0][ll+0];
-		dt[0][ll+pnb] = - dux[0][ll] - db[0][ll+pnb] - t[0][ll+pnb];
-		dlam[0][ll+0]   -= lamt[0][ll+0]   * dt[0][ll+0]   + lam[0][ll+0];
-		dlam[0][ll+pnb] -= lamt[0][ll+pnb] * dt[0][ll+pnb] + lam[0][ll+pnb];
-		if( -alpha*dlam[0][ll+0]>lam[0][ll+0] )
+		ptr_dt[ll+0]   =   ptr_dux[ll] - ptr_db[ll+0]   - ptr_t[ll+0];
+		ptr_dt[ll+pnb] = - ptr_dux[ll] - ptr_db[ll+pnb] - ptr_t[ll+pnb];
+		ptr_dlam[ll+0]   -= ptr_lamt[ll+0]   * ptr_dt[ll+0]   + ptr_lam[ll+0];
+		ptr_dlam[ll+pnb] -= ptr_lamt[ll+pnb] * ptr_dt[ll+pnb] + ptr_lam[ll+pnb];
+		if( -alpha*ptr_dlam[ll+0]>ptr_lam[ll+0] )
 			{
-			alpha = - lam[0][ll+0] / dlam[0][ll+0];
+			alpha = - ptr_lam[ll+0] / ptr_dlam[ll+0];
 			}
-		if( -alpha*dlam[0][ll+pnb]>lam[0][ll+pnb] )
+		if( -alpha*ptr_dlam[ll+pnb]>ptr_lam[ll+pnb] )
 			{
-			alpha = - lam[0][ll+pnb] / dlam[0][ll+pnb];
+			alpha = - ptr_lam[ll+pnb] / ptr_dlam[ll+pnb];
 			}
-		if( -alpha*dt[0][ll+0]>t[0][ll+0] )
+		if( -alpha*ptr_dt[ll+0]>ptr_t[ll+0] )
 			{
-			alpha = - t[0][ll+0] / dt[0][ll+0];
+			alpha = - ptr_t[ll+0] / ptr_dt[ll+0];
 			}
-		if( -alpha*dt[0][ll+pnb]>t[0][ll+pnb] )
+		if( -alpha*ptr_dt[ll+pnb]>ptr_t[ll+pnb] )
 			{
-			alpha = - t[0][ll+pnb] / dt[0][ll+pnb];
+			alpha = - ptr_t[ll+pnb] / ptr_dt[ll+pnb];
 			}
 
 		}
@@ -1831,29 +1786,37 @@ void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, double *ptr_alpha, 
 	for(jj=1; jj<N; jj++)
 		{
 
+		ptr_db   = db[jj];
+		ptr_dux  = dux[jj];
+		ptr_t    = t[jj];
+		ptr_dt   = dt[jj];
+		ptr_lamt = lamt[jj];
+		ptr_lam  = lam[jj];
+		ptr_dlam = dlam[jj];
+
 		ll = 0;
 		for(; ll<nb; ll++)
 			{
 
-			dt[jj][ll+0]   =   dux[jj][ll] - db[jj][ll+0]   - t[jj][ll+0];
-			dt[jj][ll+pnb] = - dux[jj][ll] - db[jj][ll+pnb] - t[jj][ll+pnb];
-			dlam[jj][ll+0]   -= lamt[jj][ll+0]   * dt[jj][ll+0]   + lam[jj][ll+0];
-			dlam[jj][ll+pnb] -= lamt[jj][ll+pnb] * dt[jj][ll+pnb] + lam[jj][ll+pnb];
-			if( -alpha*dlam[jj][ll+0]>lam[jj][ll+0] )
+			ptr_dt[ll+0]   =   ptr_dux[ll] - ptr_db[ll+0]   - ptr_t[ll+0];
+			ptr_dt[ll+pnb] = - ptr_dux[ll] - ptr_db[ll+pnb] - ptr_t[ll+pnb];
+			ptr_dlam[ll+0]   -= ptr_lamt[ll+0]   * ptr_dt[ll+0]   + ptr_lam[ll+0];
+			ptr_dlam[ll+pnb] -= ptr_lamt[ll+pnb] * ptr_dt[ll+pnb] + ptr_lam[ll+pnb];
+			if( -alpha*ptr_dlam[ll+0]>ptr_lam[ll+0] )
 				{
-				alpha = - lam[jj][ll+0] / dlam[jj][ll+0];
+				alpha = - ptr_lam[ll+0] / ptr_dlam[ll+0];
 				}
-			if( -alpha*dlam[jj][ll+pnb]>lam[jj][ll+pnb] )
+			if( -alpha*ptr_dlam[ll+pnb]>ptr_lam[ll+pnb] )
 				{
-				alpha = - lam[jj][ll+pnb] / dlam[jj][ll+pnb];
+				alpha = - ptr_lam[ll+pnb] / ptr_dlam[ll+pnb];
 				}
-			if( -alpha*dt[jj][ll+0]>t[jj][ll+0] )
+			if( -alpha*ptr_dt[ll+0]>ptr_t[ll+0] )
 				{
-				alpha = - t[jj][ll+0] / dt[jj][ll+0];
+				alpha = - ptr_t[ll+0] / ptr_dt[ll+0];
 				}
-			if( -alpha*dt[jj][ll+pnb]>t[jj][ll+pnb] )
+			if( -alpha*ptr_dt[ll+pnb]>ptr_t[ll+pnb] )
 				{
-				alpha = - t[jj][ll+pnb] / dt[jj][ll+pnb];
+				alpha = - ptr_t[ll+pnb] / ptr_dt[ll+pnb];
 				}
 
 			}
@@ -1861,33 +1824,92 @@ void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, double *ptr_alpha, 
 		}		
 
 	// last stage
+	jj = N;
+
+	ptr_db   = db[jj];
+	ptr_dux  = dux[jj];
+	ptr_t    = t[jj];
+	ptr_dt   = dt[jj];
+	ptr_lamt = lamt[jj];
+	ptr_lam  = lam[jj];
+	ptr_dlam = dlam[jj];
+
 	ll = nu;
 	for(; ll<nb; ll++)
 		{
 
-		dt[N][ll+0]   =   dux[N][ll] - db[N][ll+0]   - t[N][ll+0];
-		dt[N][ll+pnb] = - dux[N][ll] - db[N][ll+pnb] - t[N][ll+pnb];
-		dlam[N][ll+0]   -= lamt[N][ll+0]   * dt[N][ll+0]   + lam[N][ll+0];
-		dlam[N][ll+pnb] -= lamt[N][ll+pnb] * dt[N][ll+pnb] + lam[N][ll+pnb];
-		if( -alpha*dlam[N][ll+0]>lam[N][ll+0] )
+		ptr_dt[ll+0]   =   ptr_dux[ll] - ptr_db[ll+0]   - ptr_t[ll+0];
+		ptr_dt[ll+pnb] = - ptr_dux[ll] - ptr_db[ll+pnb] - ptr_t[ll+pnb];
+		ptr_dlam[ll+0]   -= ptr_lamt[ll+0]   * ptr_dt[ll+0]   + ptr_lam[ll+0];
+		ptr_dlam[ll+pnb] -= ptr_lamt[ll+pnb] * ptr_dt[ll+pnb] + ptr_lam[ll+pnb];
+		if( -alpha*ptr_dlam[ll+0]>ptr_lam[ll+0] )
 			{
-			alpha = - lam[N][ll+0] / dlam[N][ll+0];
+			alpha = - ptr_lam[ll+0] / ptr_dlam[ll+0];
 			}
-		if( -alpha*dlam[N][ll+pnb]>lam[N][ll+pnb] )
+		if( -alpha*ptr_dlam[ll+pnb]>ptr_lam[ll+pnb] )
 			{
-			alpha = - lam[N][ll+pnb] / dlam[N][ll+pnb];
+			alpha = - ptr_lam[ll+pnb] / ptr_dlam[ll+pnb];
 			}
-		if( -alpha*dt[N][ll+0]>t[N][ll+0] )
+		if( -alpha*ptr_dt[ll+0]>ptr_t[ll+0] )
 			{
-			alpha = - t[N][ll+0] / dt[N][ll+0];
+			alpha = - ptr_t[ll+0] / ptr_dt[ll+0];
 			}
-		if( -alpha*dt[N][ll+pnb]>t[N][ll+pnb] )
+		if( -alpha*ptr_dt[ll+pnb]>ptr_t[ll+pnb] )
 			{
-			alpha = - t[N][ll+pnb] / dt[N][ll+pnb];
+			alpha = - ptr_t[ll+pnb] / ptr_dt[ll+pnb];
 			}
 
 		}
 	
+	// general constraints
+	if(ng>0)
+		{
+
+		for(jj=0; jj<=N; jj++)
+			{
+		
+			ptr_db   = db[jj];
+			ptr_dux  = dux[jj];
+			ptr_t    = t[jj];
+			ptr_dt   = dt[jj];
+			ptr_lamt = lamt[jj];
+			ptr_lam  = lam[jj];
+			ptr_dlam = dlam[jj];
+
+			dgemv_t_lib(nx+nu, ng, pDCt[jj], cng, ptr_dux, ptr_dt+2*pnb, 0);
+
+			for(ll=2*pnb; ll<2*pnb+ng; ll++)
+				{
+				ptr_dt[ll+png] = - ptr_dt[ll];
+				ptr_dt[ll+0]   += - ptr_db[ll+0]   - ptr_t[ll+0];
+				ptr_dt[ll+png] += - ptr_db[ll+png] - ptr_t[ll+png];
+				ptr_dlam[ll+0]   -= ptr_lamt[ll+0]   * ptr_dt[ll+0]   + ptr_lam[ll+0];
+				ptr_dlam[ll+png] -= ptr_lamt[ll+png] * ptr_dt[ll+png] + ptr_lam[ll+png];
+				if( -alpha*ptr_dlam[ll+0]>ptr_lam[ll+0] )
+					{
+					alpha = - ptr_lam[ll+0] / ptr_dlam[ll+0];
+					}
+				if( -alpha*ptr_dlam[ll+png]>ptr_lam[ll+png] )
+					{
+					alpha = - ptr_lam[ll+png] / ptr_dlam[ll+png];
+					}
+				if( -alpha*ptr_dt[ll+0]>ptr_t[ll+0] )
+					{
+					alpha = - ptr_t[ll+0] / ptr_dt[ll+0];
+					}
+				if( -alpha*ptr_dt[ll+png]>ptr_t[ll+png] )
+					{
+					alpha = - ptr_t[ll+png] / ptr_dt[ll+png];
+					}
+
+				}
+
+			}
+
+		}
+			
+
+	// store alpha
 	ptr_alpha[0] = alpha;
 
 	return;
@@ -2119,7 +2141,7 @@ void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr
 
 
 
-void d_update_var_hard_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
+void d_update_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
 	{
 
 	const int nbu = nu<nb ? nu : nb ;
@@ -2131,61 +2153,120 @@ void d_update_var_hard_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double
 
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
 	const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box and soft constraints
+	const int png = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
 
 	int jj, ll;
 	
+	double
+		*ptr_pi, *ptr_dpi, *ptr_ux, *ptr_dux, *ptr_t, *ptr_dt, *ptr_lam, *ptr_dlam;
+
 	double mu = 0;
+
+	// first stage
+	jj = 0;
+
+	ptr_ux   = ux[jj];
+	ptr_dux  = dux[jj];
+	ptr_t    = t[jj];
+	ptr_dt   = dt[jj];
+	ptr_lam  = lam[jj];
+	ptr_dlam = dlam[jj];
 
 	// update inputs
 	for(ll=0; ll<nu; ll++)
-		ux[0][ll] += alpha*(dux[0][ll] - ux[0][ll]);
+		ptr_ux[ll] += alpha*(ptr_dux[ll] - ptr_ux[ll]);
 	// box constraints
 	for(ll=0; ll<nbu; ll++)
 		{
-		lam[0][ll+0]   += alpha*dlam[0][ll+0];
-		lam[0][ll+pnb] += alpha*dlam[0][ll+pnb];
-		t[0][ll+0]   += alpha*dt[0][ll+0];
-		t[0][ll+pnb] += alpha*dt[0][ll+pnb];
-		mu += lam[0][ll+0] * t[0][ll+0] + lam[0][ll+pnb] * t[0][ll+pnb];
+		ptr_lam[ll+0]   += alpha*ptr_dlam[ll+0];
+		ptr_lam[ll+pnb] += alpha*ptr_dlam[ll+pnb];
+		ptr_t[ll+0]   += alpha*ptr_dt[ll+0];
+		ptr_t[ll+pnb] += alpha*ptr_dt[ll+pnb];
+		mu += ptr_lam[ll+0] * ptr_t[ll+0] + ptr_lam[ll+pnb] * ptr_t[ll+pnb];
 		}
 
 	for(jj=1; jj<N; jj++)
 		{
-		// update inputs
-		for(ll=0; ll<nu; ll++)
-			ux[jj][ll] += alpha*(dux[jj][ll] - ux[jj][ll]);
-		// update states
-		for(ll=0; ll<nx; ll++)
-			ux[jj][nu+ll] += alpha*(dux[jj][nu+ll] - ux[jj][nu+ll]);
+
+		ptr_pi   = pi[jj];
+		ptr_dpi  = dpi[jj];
+		ptr_ux   = ux[jj];
+		ptr_dux  = dux[jj];
+		ptr_t    = t[jj];
+		ptr_dt   = dt[jj];
+		ptr_lam  = lam[jj];
+		ptr_dlam = dlam[jj];
+
+		// update inputs and states
+		for(ll=0; ll<nu+nx; ll++)
+			ptr_ux[ll] += alpha*(ptr_dux[ll] - ptr_ux[ll]);
 		// update equality constrained multipliers
 		for(ll=0; ll<nx; ll++)
-			pi[jj][ll] += alpha*(dpi[jj][ll] - pi[jj][ll]);
+			ptr_pi[ll] += alpha*(ptr_dpi[ll] - ptr_pi[ll]);
 		// box constraints
 		for(ll=0; ll<nb; ll++)
 			{
-			lam[jj][ll+0] += alpha*dlam[jj][ll+0];
-			lam[jj][ll+pnb] += alpha*dlam[jj][ll+pnb];
-			t[jj][ll+0] += alpha*dt[jj][ll+0];
-			t[jj][ll+pnb] += alpha*dt[jj][ll+pnb];
-			mu += lam[jj][ll+0] * t[jj][ll+0] + lam[jj][ll+pnb] * t[jj][ll+pnb];
+			ptr_lam[ll+0] += alpha*ptr_dlam[ll+0];
+			ptr_lam[ll+pnb] += alpha*ptr_dlam[ll+pnb];
+			ptr_t[ll+0] += alpha*ptr_dt[ll+0];
+			ptr_t[ll+pnb] += alpha*ptr_dt[ll+pnb];
+			mu += ptr_lam[ll+0] * ptr_t[ll+0] + ptr_lam[ll+pnb] * ptr_t[ll+pnb];
 			}
 		}
 
+	// last stage
+	jj = N;
+
+	ptr_pi   = pi[jj];
+	ptr_dpi  = dpi[jj];
+	ptr_ux   = ux[jj];
+	ptr_dux  = dux[jj];
+	ptr_t    = t[jj];
+	ptr_dt   = dt[jj];
+	ptr_lam  = lam[jj];
+	ptr_dlam = dlam[jj];
+
 	// update states
 	for(ll=0; ll<nx; ll++)
-		ux[N][nu+ll] += alpha*(dux[N][nu+ll] - ux[N][nu+ll]);
+		ptr_ux[nu+ll] += alpha*(ptr_dux[nu+ll] - ptr_ux[nu+ll]);
 	// update equality constrained multipliers
 	for(ll=0; ll<nx; ll++)
-		pi[N][ll] += alpha*(dpi[N][ll] - pi[N][ll]);
+		ptr_pi[ll] += alpha*(ptr_dpi[ll] - ptr_pi[ll]);
 	// box constraints
 	for(ll=nu; ll<nb; ll++)
 		{
-		lam[N][ll+0] += alpha*dlam[N][ll+0];
-		lam[N][ll+pnb] += alpha*dlam[N][ll+pnb];
-		t[N][ll+0] += alpha*dt[N][ll+0];
-		t[N][ll+pnb] += alpha*dt[N][ll+pnb];
-		mu += lam[N][ll+0] * t[N][ll+0] + lam[N][ll+pnb] * t[N][ll+pnb];
+		ptr_lam[ll+0] += alpha*ptr_dlam[ll+0];
+		ptr_lam[ll+pnb] += alpha*ptr_dlam[ll+pnb];
+		ptr_t[ll+0] += alpha*ptr_dt[ll+0];
+		ptr_t[ll+pnb] += alpha*ptr_dt[ll+pnb];
+		mu += ptr_lam[ll+0] * ptr_t[ll+0] + ptr_lam[ll+pnb] * ptr_t[ll+pnb];
 		}
+	
+	// genreal constraints
+	if(ng>0)
+		{
+
+		for(jj=0; jj<=N; jj++)
+			{
+
+			ptr_t    = t[jj];
+			ptr_dt   = dt[jj];
+			ptr_lam  = lam[jj];
+			ptr_dlam = dlam[jj];
+
+			for(ll=2*pnb; ll<2*pnb+ng; ll++)
+				{
+				ptr_lam[ll+0] += alpha*ptr_dlam[ll+0];
+				ptr_lam[ll+png] += alpha*ptr_dlam[ll+png];
+				ptr_t[ll+0] += alpha*ptr_dt[ll+0];
+				ptr_t[ll+png] += alpha*ptr_dt[ll+png];
+				mu += ptr_lam[ll+0] * ptr_t[ll+0] + ptr_lam[ll+png] * ptr_t[ll+png];
+				}
+			}
+
+		}
+
+	// scale mu
 	mu *= mu_scal;
 
 	ptr_mu[0] = mu;
@@ -2305,7 +2386,7 @@ void d_update_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr_mu
 
 
 
-void d_compute_mu_hard_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
+void d_compute_mu_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
 	{
 	
 	const int nbu = nu<nb ? nu : nb ;
@@ -2317,24 +2398,77 @@ void d_compute_mu_hard_mpc(int N, int nx, int nu, int nb, double *ptr_mu, double
 
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
 	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int png = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
 
 	int jj, ll;
 	
+	double
+		*ptr_t, *ptr_lam, *ptr_dt, *ptr_dlam;
+		
 	double mu = 0;
 	
+	// first stage
+	jj = 0;
+
+	ptr_t    = t[jj];
+	ptr_lam  = lam[jj];
+	ptr_dt   = dt[jj];
+	ptr_dlam = dlam[jj];
+
 	for(ll=0 ; ll<nbu; ll++)
 		{
-		mu += (lam[0][ll+0] + alpha*dlam[0][ll+0]) * (t[0][ll+0] + alpha*dt[0][ll+0]) + (lam[0][ll+pnb] + alpha*dlam[0][ll+pnb]) * (t[0][ll+pnb] + alpha*dt[0][ll+pnb]);
+		mu += (ptr_lam[ll+0] + alpha*ptr_dlam[ll+0]) * (ptr_t[ll+0] + alpha*ptr_dt[ll+0]) + (ptr_lam[ll+pnb] + alpha*ptr_dlam[ll+pnb]) * (ptr_t[ll+pnb] + alpha*ptr_dt[ll+pnb]);
 		}
 
 
 	for(jj=1; jj<N; jj++)
+		{
+		
+		ptr_t    = t[jj];
+		ptr_lam  = lam[jj];
+		ptr_dt   = dt[jj];
+		ptr_dlam = dlam[jj];
+
 		for(ll=0 ; ll<nb; ll++)
-			mu += (lam[jj][ll+0] + alpha*dlam[jj][ll+0]) * (t[jj][ll+0] + alpha*dt[jj][ll+0]) + (lam[jj][ll+pnb] + alpha*dlam[jj][ll+pnb]) * (t[jj][ll+pnb] + alpha*dt[jj][ll+pnb]);
+			{
+			mu += (ptr_lam[ll+0] + alpha*ptr_dlam[ll+0]) * (ptr_t[ll+0] + alpha*ptr_dt[ll+0]) + (ptr_lam[ll+pnb] + alpha*ptr_dlam[ll+pnb]) * (ptr_t[ll+pnb] + alpha*ptr_dt[ll+pnb]);
+			}
+		}
+
+	// last stage
+	jj = N;
+	
+	ptr_t    = t[jj];
+	ptr_lam  = lam[jj];
+	ptr_dt   = dt[jj];
+	ptr_dlam = dlam[jj];
 
 	for(ll=nu ; ll<nb; ll++)
-		mu += (lam[N][ll+0] + alpha*dlam[N][ll+0]) * (t[N][ll+0] + alpha*dt[N][ll+0]) + (lam[N][ll+pnb] + alpha*dlam[N][ll+pnb]) * (t[N][ll+pnb] + alpha*dt[N][ll+pnb]);
+		{
+		mu += (ptr_lam[ll+0] + alpha*ptr_dlam[ll+0]) * (ptr_t[ll+0] + alpha*ptr_dt[ll+0]) + (ptr_lam[ll+pnb] + alpha*ptr_dlam[ll+pnb]) * (ptr_t[ll+pnb] + alpha*ptr_dt[ll+pnb]);
+		}
 
+	// general constraints
+	if(ng>0)
+		{
+
+		for(jj=0; jj<=N; jj++)
+			{
+
+			ptr_t    = t[jj];
+			ptr_lam  = lam[jj];
+			ptr_dt   = dt[jj];
+			ptr_dlam = dlam[jj];
+
+			for(ll=2*pnb; ll<2*pnb+ng; ll++)
+				{
+				mu += (ptr_lam[ll+0] + alpha*ptr_dlam[ll+0]) * (ptr_t[ll+0] + alpha*ptr_dt[ll+0]) + (ptr_lam[ll+png] + alpha*ptr_dlam[ll+png]) * (ptr_t[ll+png] + alpha*ptr_dt[ll+png]);
+				}
+			}
+
+		}
+
+	// scale mu
 	mu *= mu_scal;
 		
 	ptr_mu[0] = mu;
