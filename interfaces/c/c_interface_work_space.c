@@ -45,6 +45,7 @@ int hpmpc_ip_box_mpc_dp_work_space(int nx, int nu, int N)
 	const int png = bs*((ng+bs-1)/bs);
 	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
+	const int cnxg= ncl*((nx+ng+ncl-1)/ncl);
 	const int anz = nal*((nz+nal-1)/nal);
 	const int anx = nal*((nx+nal-1)/nal);
 //	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
@@ -53,7 +54,7 @@ int hpmpc_ip_box_mpc_dp_work_space(int nx, int nu, int N)
 	//const int anb = 2*nal*((nb+nal-1)/nal);
 
 //	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 6*anz + 3*anx + 7*anb) + 3*anz);
-	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 6*anz + 3*anx + 16*(pnb+png)) + anz + pnz*cnx);
+	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 6*anz + 3*anx + 16*(pnb+png)) + anz + pnz*cnxg);
 
 	return work_space_size;
 	}

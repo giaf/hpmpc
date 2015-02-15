@@ -70,15 +70,15 @@
 #endif /* PC_DEBUG */
 
 /* version dealing with equality constratins: is lb=ub, then fix the variable (corresponding column in A or B set to zero, and updated b) */
-int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
-                          const int nx, const int nu, const int N,
+int fortran_order_ip_box_mpc( int *kk, int k_max, double mu0, double mu_tol, char prec,
+                          int N, int nx, int nu, int nb,
                           double* A, double* B, double* b, 
                           double* Q, double* Qf, double* S, double* R, 
                           double* q, double* qf, double* r, 
                           double* lb, double* ub, 
                           double* x, double* u,
 						  double *work0, 
-                          int* nIt, double *stat )
+                          double *stat )
 
 	{
 
@@ -91,8 +91,9 @@ int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
     if(prec=='d')
 	    {
 	    
-		const int nb = nx+nu; // number of box constraints
+		//const int nb = nx+nu; // number of box constraints
 		const int ng = 0; // number of general constraints // TODO remove when not needed any longer
+		const int nbu = nb<nu ? nb : nu ;
 
 		const int bs = D_MR; //d_get_mr();
 		const int ncl = D_NCL;
@@ -203,27 +204,20 @@ int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
             for (jj = 0; jj<nx; jj++)
                 hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
 	        }
+		//d_print_pmat(nz, nx, bs, hpBAbt[0], cnx);
+		//d_print_pmat(nz, nx, bs, hpBAbt[N-1], cnx);
+		//exit(1);
 
         // cost function
-		double mu0 = 1.0;
         for(jj=0; jj<N; jj++)
 	        {
             d_cvt_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
-			for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, R[jj*nu*nu+ii*nu+ll]);
             d_cvt_tran_mat2pmat(nu, nx, nu, bs, S+jj*nx*nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
-			for(ii=0; ii<nx*nu; ii++) mu0 = fmax(mu0, S[jj*nu*nx+ii]);
             d_cvt_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
-			for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Q[jj*nx*nx+ii*nx+ll]);
             for(ii=0; ii<nu; ii++)
-				{
                 hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
-				mu0 = fmax(mu0, r[jj*nu+ii]);
-				}
             for(ii=0; ii<nx; ii++)
-				{
                 hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+ii)*bs] = q[ii+nx*jj];
-				mu0 = fmax(mu0, q[jj*nx+ii]);
-				}
 	        }
 
         for(jj=0; jj<nu; jj++)
@@ -233,22 +227,41 @@ int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
         for(jj=0; jj<nu; jj++)
             hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
         d_cvt_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
-		for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Qf[ii*nx+ll]);
         for(jj=0; jj<nx; jj++)
 			{
             hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
-			mu0 = fmax(mu0, qf[ii]);
 			}
 
+		// estimate mu0 if not user-provided
+		if(mu0<=0)
+			{
+			for(jj=0; jj<N; jj++)
+				{
+				for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, R[jj*nu*nu+ii*nu+ll]);
+				for(ii=0; ii<nx*nu; ii++) mu0 = fmax(mu0, S[jj*nu*nx+ii]);
+				for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Q[jj*nx*nx+ii*nx+ll]);
+				for(ii=0; ii<nu; ii++) mu0 = fmax(mu0, r[jj*nu+ii]);
+				for(ii=0; ii<nx; ii++) mu0 = fmax(mu0, q[jj*nx+ii]);
+				}
+			for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Qf[ii*nx+ll]);
+			for(jj=0; jj<nx; jj++) mu0 = fmax(mu0, qf[ii]);
+			}
+
+		//d_print_pmat(nz, nz, bs, hpQ[0], cnz);
+		//d_print_pmat(nz, nz, bs, hpQ[1], cnz);
+		//d_print_pmat(nz, nz, bs, hpQ[N], cnz);
+		//exit(1);
+
 		// input constraints
+		// TODO consider ng and nb !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		for(jj=0; jj<N; jj++)
 			{
-			for(ii=0; ii<nu; ii++)
+			for(ii=0; ii<nbu; ii++)
 				{
-				if(lb[ii+nu*jj]!=ub[ii+nu*jj]) // equality constraint
+				if(lb[ii+(nb+ng)*jj]!=ub[ii+(nb+ng)*jj]) // equality constraint
 					{
-					hdb[jj][2*ii+0] =   lb[ii+nu*jj];
-					hdb[jj][2*ii+1] = - ub[ii+nu*jj];
+					hdb[jj][ii+0]   =   lb[ii+(nb+ng)*jj];
+					hdb[jj][ii+pnb] = - ub[ii+(nb+ng)*jj];
 					}
 				else
 					{
@@ -261,21 +274,28 @@ int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
 						}
 					
 					// inactive box constraints
-					hdb[jj][2*ii+0] =   lb[ii+nu*jj] + 1e3;
-					hdb[jj][2*ii+1] = - ub[ii+nu*jj] - 1e3;
+					hdb[jj][ii+0]   =   lb[ii+(nb+ng)*jj] + 1e3;
+					hdb[jj][ii+pnb] = - ub[ii+(nb+ng)*jj] - 1e3;
 
 					}
 				}
 			}
 		// state constraints 
-		for(jj=0; jj<N; jj++)
+		// TODO consider ng and nb !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		for(jj=1; jj<=N; jj++)
 			{
-			for(ii=0; ii<nx; ii++)
+			for(ii=nbu; ii<nb; ii++)
 				{
-				hdb[jj+1][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
-				hdb[jj+1][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+				hdb[jj][ii+0]   =   lb[ii+(nb+ng)*jj];
+				hdb[jj][ii+pnb] = - ub[ii+(nb+ng)*jj];
+				//hdb[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
+				//hdb[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
 				}
 			}
+		//d_print_mat(2*pnb+2*png, 1, hdb[0], 1);
+		//d_print_mat(2*pnb+2*png, 1, hdb[1], 1);
+		//d_print_mat(2*pnb+2*png, 1, hdb[N], 1);
+		//exit(1);
 
         // initial guess
         for(jj=0; jj<N; jj++)
@@ -288,12 +308,11 @@ int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
 
 
 
-
         // call the IP solver
 	    if(IP==1)
-	        hpmpc_status = d_ip_hard_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, dummy, hdb, hux, compute_mult, hpi, hlam, ht, work);
+	        hpmpc_status = d_ip_hard_mpc(kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, dummy, hdb, hux, compute_mult, hpi, hlam, ht, work);
 	    else
-	        hpmpc_status = d_ip2_hard_mpc(nIt, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, dummy, hdb, hux, compute_mult, hpi, hlam, ht, work);
+	        hpmpc_status = d_ip2_hard_mpc(kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, dummy, hdb, hux, compute_mult, hpi, hlam, ht, work);
 
 
 
@@ -306,14 +325,16 @@ int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
             for(ii=0; ii<nx; ii++)
                 x[ii+nx*jj] = hux[jj][nu+ii];
 
+
+
 		// check for input and states equality constraints
 		for(jj=0; jj<N; jj++)
 			{
-			for(ii=0; ii<nu; ii++)
+			for(ii=0; ii<nbu; ii++)
 				{
-				if(lb[ii+nu*jj]==ub[ii+nu*jj]) // equality constraint
+				if(lb[ii+(nb+ng)*jj]==ub[ii+(nb+ng)*jj]) // equality constraint
 					{
-	                u[ii+nu*jj] = lb[ii+nu*jj];
+	                u[ii+nu*jj] = lb[ii+(nb+ng)*jj];
 					}
 				}
 			}
@@ -321,7 +342,7 @@ int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
 
 
 #if PC_DEBUG == 1
-        for (jj = 0; jj < *nIt; jj++)
+        for (jj = 0; jj < *kk; jj++)
             printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\n", jj,
                    stat[5 * jj], stat[5 * jj + 1], stat[5 * jj + 2],
                    stat[5 * jj + 2]);
@@ -512,9 +533,9 @@ int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
 
         // call the IP solver
 		if(IP==1)
-		    hpmpc_status = s_ip_box_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+		    hpmpc_status = s_ip_box_mpc(kk, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 		else
-		    hpmpc_status = s_ip2_box_mpc(nIt, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
+		    hpmpc_status = s_ip2_box_mpc(kk, k_max, mu_tol, alpha_min, warm_start, sigma_par, (float *) stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 
 
 
@@ -550,7 +571,7 @@ int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec,
 
 
 #if PC_DEBUG == 1
-        for (jj = 0; jj < *nIt; jj++)
+        for (jj = 0; jj < *kk; jj++)
             printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\n", jj,
                    stat[5 * jj], stat[5 * jj + 1], stat[5 * jj + 2],
                    stat[5 * jj + 2]);

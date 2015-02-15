@@ -60,6 +60,18 @@ void d_zeros_align(double **pA, int row, int col)
 
 
 
+/* creates a zero matrix aligned */
+void d_ones(double **pA, int row, int col)
+	{
+	void *temp = malloc((row*col)*sizeof(double));
+	*pA = temp;
+	double *A = *pA;
+	int i;
+	for(i=0; i<row*col; i++) A[i] = 1.0;
+	}
+
+
+
 /* creates a zero matrix aligned to a cache line */
 void d_ones_align(double **pA, int row, int col)
 	{
@@ -87,6 +99,27 @@ void d_eye(double **pA, int row)
 	int i;
 	for(i=0; i<row*row; i++) A[i] = 0.0;
 	for(i=0; i<row; i++) A[i*(row+1)] = 1.0;
+	}
+
+
+
+/* copies a matrix */
+void d_rep_mat(int reps, int row, int col, double *A, int lda, double *B, int ldb)
+	{
+	
+	int i, j, l;
+	
+	for(l=0; l<reps; l++)
+		{
+		for(j=0; j<col; j++)
+			{
+			for(i=0; i<row; i++)
+				{
+				B[i+j*ldb+l*row*col] = A[i+j*lda];
+				}
+			}
+		}
+		
 	}
 
 

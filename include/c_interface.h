@@ -35,8 +35,12 @@
 // define common quantities
 #define NZ (NX+NU+1)
 #define NT (NX+NY)
-#define NB (NU+NX) // number of two-sided box constraints
-#define NG 0 // number of two-sided general constraints
+#ifndef NB
+	#define NB (NU+NX) // number of two-sided box constraints
+#endif
+#ifndef NG
+	#define NG 0 // number of two-sided general constraints
+#endif
 // double precision constants
 #define D_NAL (D_MR*D_NCL)
 //#define D_PADX ((D_NCL-NX%D_NCL)%D_NCL) // padding after nx
@@ -138,7 +142,7 @@ int c_order_riccati_mhe_if( char prec, int alg, int nx, int nw, int ny, int N, d
 
 
 // fortran (or column-major) order
-int fortran_order_ip_box_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
+int fortran_order_ip_box_mpc( int *kk, int k_max, double mu0, double mu_tol, char prec, int N, int nx, int nu, int nb, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lb, double* ub, double* x, double* u, double *work0, double *stat );
 
 int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lZ, double* uZ, double* lz, double* uz, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
 

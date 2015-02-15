@@ -39,6 +39,7 @@
 #include "../include/block_size.h"
 #include "tools.h"
 #include "test_param.h"
+#include "../include/c_interface.h"
 
 
 
@@ -157,10 +158,13 @@ int main()
 	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
-//	int nb = 0;//NB; // number of box constrained inputs and states
-//	int ng = nx+nu;//0; //4;  // number of general constraints
+#if 1
 	int nb = NB; // number of box constrained inputs and states
 	int ng = 0; //4;  // number of general constraints
+#else
+	int nb = 0;//NB; // number of box constrained inputs and states
+	int ng = nx+nu;//0; //4;  // number of general constraints
+#endif
 
 	int nbu = nu<nb ? nu : nb ;
 	int ngu = nu<ng ? nu : ng ; // TODO remove when not needed any longer in tests
@@ -312,12 +316,41 @@ int main()
 /************************************************
 * cost function
 ************************************************/	
+	
+	double *Q0; d_zeros(&Q0, nx, nx);
+	for(ii=0; ii<nx; ii++) Q0[ii*(nx+1)] = 1.0;
 
+	double *R0; d_zeros(&R0, nu, nu);
+	for(ii=0; ii<nu; ii++) R0[ii*(nu+1)] = 2.0;
+
+	double *S0; d_zeros(&S0, nu, nx);
+
+	double *St0; d_zeros(&St0, nu, nx);
+	for(ii=0; ii<nx; ii++)
+		for(jj=0; jj<nu; jj++)
+			St0[ii+nx*jj] = S0[jj+nu*ii];
+
+	double *q0; d_zeros(&q0, nx, 1);
+	for(ii=0; ii<nx; ii++) q0[ii] = 0.1;
+
+	double *r0; d_zeros(&r0, nu, 1);
+	for(ii=0; ii<nu; ii++) r0[ii] = 0.1;
+
+	// packed matrix (symmetric)
 	double *Q; d_zeros_align(&Q, pnz, pnz);
-	for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
-	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
-	for(ii=0; ii<nu+nx; ii++) Q[nx+nu+ii*pnz] = 0.1;
+	//for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
+	//for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
+	//for(ii=0; ii<nu+nx; ii++) Q[nx+nu+ii*pnz] = 0.1;
 /*	Q[(nx+nu)*(pnz+1)] = 1e35; // large enough (not needed any longer) */
+	d_copy_mat(nu, nu, R0, nu, Q, pnz);
+	d_copy_mat(nx, nx, Q0, nx, Q+nu*(pnz+1), pnz);
+	d_copy_mat(nu, nx, S0, nu, Q+nu*pnz, pnz);
+	d_copy_mat(nx, nu, St0, nx, Q+nu, pnz);
+	d_copy_mat(nu, 1, r0, nu, Q+(nu+nx)*pnz, pnz);
+	d_copy_mat(1, nu, r0, 1, Q+nu+nx, pnz);
+	d_copy_mat(nx, 1, q0, nx, Q+nu+(nu+nx)*pnz, pnz);
+	d_copy_mat(1, nx, q0, 1, Q+nu+nx+nu*pnz, pnz);
+	//d_print_mat(nz, nz, Q, pnz);
 	
 	/* packed into contiguous memory */
 	double *pQ; d_zeros_align(&pQ, pnz, cnz);
@@ -335,7 +368,67 @@ int main()
 	//printf("\n mu0 = %f\n", mu0);
 
 /************************************************
-* matrices series
+* high-level interface: repmat
+************************************************/	
+
+
+	double *rA; d_zeros(&rA, nx, N*nx);
+	d_rep_mat(N, nx, nx, A, nx, rA, nx);
+
+	double *rB; d_zeros(&rB, nx, N*nu);
+	d_rep_mat(N, nx, nu, B, nx, rB, nx);
+
+	double *rb; d_zeros(&rb, nx, N*1);
+	d_rep_mat(N, nx, 1, b, nx, rb, nx);
+
+	double *rQ; d_zeros(&rQ, nx, N*nx);
+	d_rep_mat(N, nx, nx, Q0, nx, rQ, nx);
+
+	double *rQf; d_zeros(&rQf, nx, nx);
+	d_copy_mat(nx, nx, Q0, nx, rQf, nx);
+
+	double *rS; d_zeros(&rS, nu, N*nx);
+	d_rep_mat(N, nu, nx, S0, nu, rS, nu);
+
+	double *rR; d_zeros(&rR, nu, N*nu);
+	d_rep_mat(N, nu, nu, R0, nu, rR, nu);
+
+	double *rq; d_zeros(&rq, nx, N);
+	d_rep_mat(N, nx, 1, q0, nx, rq, nx);
+
+	double *rqf; d_zeros(&rqf, nx, 1);
+	d_copy_mat(nx, 1, q0, nx, rqf, nx);
+
+	double *rr; d_zeros(&rr, nu, N);
+	d_rep_mat(N, nu, 1, r0, nu, rr, nu);
+
+	double *lb; d_zeros(&lb, nb+ng, 1);
+	for(ii=0; ii<nb; ii++)
+		lb[ii] = d[ii];
+	for(ii=0; ii<ng; ii++)
+		lb[nb+ii] = d[2*pnb+ii];
+	double *rlb; d_zeros(&rlb, nb+ng, N+1);
+	d_rep_mat(N+1, nb+ng, 1, lb, nb+ng, rlb, nb+ng);
+
+	double *ub; d_zeros(&ub, nb+ng, 1);
+	for(ii=0; ii<nb; ii++)
+		ub[ii] = - d[pnb+ii];
+	for(ii=0; ii<ng; ii++)
+		ub[nb+ii] = - d[2*pnb+png+ii];
+	double *rub; d_zeros(&rub, nb+ng, N+1);
+	d_rep_mat(N+1, nb+ng, 1, ub, nb+ng, rub, nb+ng);
+
+	double *rx; d_zeros(&rx, nx, N+1);
+
+	double *ru; d_zeros(&ru, nu, N);
+
+
+	//d_print_mat(nb+ng, 3, rlb, nb+ng);
+	//d_print_mat(nb+ng, 3, rub, nb+ng);
+	//exit(1);
+
+/************************************************
+* low-level interface: series of panel format of packed matrices
 ************************************************/	
 
 	double *(hpQ[N+1]);
@@ -407,6 +500,8 @@ int main()
 	double mu = -1.0;
 	int hpmpc_status;
 	
+	double *rwork; d_zeros(&rwork, hpmpc_ip_box_mpc_dp_work_space(nx, nu, N), 1);
+	double *rstat; d_zeros(&rstat, 5, k_max); // stats from the IP routine
 
 
 	/* initizile the cost function */
@@ -475,7 +570,8 @@ int main()
 	int kk_avg = 0;
 
 	/* timing */
-	struct timeval tv0, tv1;
+	struct timeval tv0, tv1, tv2;
+
 	gettimeofday(&tv0, NULL); // start
 
 	for(rep=0; rep<nrep; rep++)
@@ -519,18 +615,44 @@ int main()
 		}
 	
 	gettimeofday(&tv1, NULL); // stop
+
+	int rkk_avg = 0;
+
+	for(rep=0; rep<nrep; rep++)
+		{
+
+		// initialize states and inputs to zero
+		for(ii=0; ii<(nx*(N+1)); ii++)
+			rx[ii] = 0;
+		for(ii=0; ii<(nu*N); ii++)
+			ru[ii] = 0;
+
+		idx = rep%10;
+		rx[0] = xx0[2*idx];
+		rx[1] = xx0[2*idx+1];
+
+		hpmpc_status = fortran_order_ip_box_mpc(&kk, k_max, mu0, mu_tol, 'd', N, nx, nu, nb, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rx, ru, rwork, rstat);
+
+		rkk_avg += kk;
+
+		}
+	
+	gettimeofday(&tv2, NULL); // stop
 	
 
 
 	double time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+	double rtime = (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
 	
 /*	printf("\nnx\tnu\tN\tkernel\n\n");*/
 /*	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);*/
 	
 	printf("\n");
-	printf(" Average number of iterations over %d runs: %5.1f\n", nrep, kk_avg / (double) nrep);
+	printf(" Average number of iterations over %d runs: %5.1f (low-level interface)\n", nrep, kk_avg / (double) nrep);
+	printf(" Average number of iterations over %d runs: %5.1f (high-level interface)\n", nrep, rkk_avg / (double) nrep);
 	printf("\n");
-	printf(" Average solution time over %d runs: %5.2e seconds\n", nrep, time);
+	printf(" Average solution time over %d runs: %5.2e seconds (low-level interface)\n", nrep, time);
+	printf(" Average solution time over %d runs: %5.2e seconds (high-level interface)\n", nrep, rtime);
 	printf("\n");
 
 
@@ -561,6 +683,10 @@ int main()
 			printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, stat[5*jj], stat[5*jj+1], stat[5*jj+2], stat[5*jj+2], stat[5*jj+3], stat[5*jj+4], stat[5*jj+4]);
 		printf("\n");
 		
+		for(jj=0; jj<kk; jj++)
+			printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, rstat[5*jj], rstat[5*jj+1], rstat[5*jj+2], rstat[5*jj+2], rstat[5*jj+3], rstat[5*jj+4], rstat[5*jj+4]);
+		printf("\n");
+		
 		}
 
 	if(PRINTRES==1)
@@ -582,6 +708,12 @@ int main()
 		printf("\nlam = \n\n");
 		for(ii=0; ii<=N; ii++)
 			d_print_mat(1, 2*pnb+2*png, hlam[ii], 1);
+		
+		printf("\nru = \n\n");
+		d_print_mat(nu, N, ru, nu);
+
+		printf("\nrx = \n\n");
+		d_print_mat(nx, N+1, rx, nx);
 		
 		}
 
@@ -649,6 +781,29 @@ int main()
 	free(q);
 	free(work);
 	free(stat);
+	free(Q0);
+	free(S0);
+	free(St0);
+	free(R0);
+	free(q0);
+	free(r0);
+	free(rA);
+	free(rB);
+	free(rb);
+	free(rQ);
+	free(rQf);
+	free(rS);
+	free(rR);
+	free(rq);
+	free(rqf);
+	free(rr);
+	free(lb);
+	free(ub);
+	free(rlb);
+	free(rub);
+	free(rx);
+	free(ru);
+	free(rwork);
 	for(jj=0; jj<N; jj++)
 		{
 		//free(hpQ[jj]);

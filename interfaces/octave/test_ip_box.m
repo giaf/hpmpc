@@ -55,31 +55,34 @@ qq = repmat(q, 1, N);
 rr = repmat(r, 1, N);
 
 % box constraints
-lb_u = -1e2*ones(nu,1);
-ub_u =  1e2*ones(nu,1);
+lb = -1e2*ones(nu+nx,1);
+ub =  1e2*ones(nu+nx,1);
 %db(1:2*nu) = -1.5;
 for ii=1:nu
-	lb_u(ii) = -2.5; % lower bound
-	ub_u(ii) = -0.1; % - upper bound
+	lb(ii) = -2.5; % lower bound
+	ub(ii) = -0.1; % - upper bound
 end
-lb_x = -1e2*ones(nx,1);
-ub_x =  1e2*ones(nx,1);
+for ii=1:nx
+	lb(nu+ii) = -1e2;
+	ub(nu+ii) =  1e2;
+end
 %db(2*nu+1:end) = -4;
-llb = [repmat(lb_u, 1, N)(:) ; repmat(lb_x, 1, N)(:)];
-uub = [repmat(ub_u, 1, N)(:) ; repmat(ub_x, 1, N)(:)];
+llb = repmat(lb, 1, N+1);
+uub = repmat(ub, 1, N+1);
 
 % initial guess for states and inputs
 x = zeros(nx, N+1); %x(:,1) = x0; % initial condition
 u = -1*ones(nu, N);
 %pi = zeros(nx, N+1);
 
+mu0 = 2;        % max element in cost function as estimate of max multiplier
 kk = -1;		% actual number of performed iterations
 k_max = 20;		% maximim number of iterations
 tol = 1e-4;		% tolerance in the duality measure
 infos = zeros(5, k_max);
 
 tic
-HPMPC_ip_box(k_max, tol, nx, nu, N, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, x, u, kk, infos);
+HPMPC_ip_box(kk, k_max, mu0, tol, N, nx, nu, nb, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, x, u, infos);
 toc
 
 kk
