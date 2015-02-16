@@ -365,6 +365,7 @@ int main()
 	for(ii=0; ii<nu+nx; ii++)
 		for(jj=0; jj<nu+nx; jj++)
 			mu0 = fmax(mu0, Q[jj+nz*ii]);
+	//mu0 = 1;
 	//printf("\n mu0 = %f\n", mu0);
 
 /************************************************
@@ -494,6 +495,7 @@ int main()
 	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 10*(pnb+png) + 2*anx) + anz + pnz*cnxg, 1); // work space TODO change work space on other files !!!!!!!!!!!!!
 /*	for(jj=0; jj<( (N+1)*(pnz*cnl + 4*anz + 4*anb + 2*anx) + 3*anz ); jj++) work[jj] = -1.0;*/
 	int kk = 0; // acutal number of iterations
+	int rkk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/
 	int k_max = K_MAX; // maximum number of iterations in the IP method
@@ -637,9 +639,9 @@ int main()
 		rx[0] = xx0[2*idx];
 		rx[1] = xx0[2*idx+1];
 
-		hpmpc_status = fortran_order_ip_hard_mpc(&kk, k_max, mu0, mu_tol, 'd', N, nx, nu, nb, ng, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rC, rD, rlb, rub, rx, ru, rwork, rstat);
+		hpmpc_status = fortran_order_ip_hard_mpc(&rkk, k_max, mu0, mu_tol, 'd', N, nx, nu, nb, ng, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rC, rD, rlb, rub, rx, ru, rwork, rstat);
 
-		rkk_avg += kk;
+		rkk_avg += rkk;
 
 		}
 	

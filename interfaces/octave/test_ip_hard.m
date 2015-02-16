@@ -13,7 +13,7 @@ end
 nx = 12;			% number of states
 nu = 5;				% number of inputs (controls)
 N = 30;				% horizon length
-if 1
+if 0
 	nb = nu+nx;		% two-sided number of box constraints
 	ng = 0;         % two-sided number of general constraints
 else
@@ -82,7 +82,7 @@ ub = zeros(nb+ng,1);
 %db(1:2*nu) = -1.5;
 for ii=1:nbu
 	lb(ii) = -2.5; % lower bound
-	ub(ii) =  2.1; % - upper bound
+	ub(ii) =  2.5; % - upper bound
 end
 for ii=nbu+1:nb
 	lb(ii) = -1e2;
@@ -90,12 +90,12 @@ for ii=nbu+1:nb
 end
 if(ng>0)
 	for ii=1:min(nu,ng)
-		lb(nb+ii) = -2.5; % lower bound
-		ub(nb+ii) =  2.1; % - upper bound
+		lb(nb+ii) = -0.5; % lower bound
+		ub(nb+ii) =  0.5; % - upper bound
 	end
-	for ii=min(nu,ng):ng
-		lb(nb+ii) = -1e2;
-		ub(nb+ii) =  1e2;
+	for ii=min(nu,ng)+1:ng
+		lb(nb+ii) = -10;
+		ub(nb+ii) =  10;
 	end
 end
 %db(2*nu+1:end) = -4;

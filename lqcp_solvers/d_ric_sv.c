@@ -103,7 +103,9 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 	//printf("\nQl\n");
 	//d_print_mat(1, nx+nu, hQl[N], 1);
 	//dpotrf_lib(nx+nu%bs+1, nx+nu%bs, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, diag);
-	dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, ng, work+nx*bs, cnxg, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, diag, 1);
+	//d_print_pmat(nz, ng, bs, work+nx*bs, cnxg);
+	//d_print_pmat(nz, nz, bs, hpQ[N], cnz);
+	dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, ng, work+(nu/bs)*bs*cnxg+nx*bs, cnxg, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, diag, 1);
 #if 0
 	d_print_pmat(nz, nx+ng, bs, work, cnxg);
 	d_print_pmat(nz, nz, bs, hpL[N], cnl);
