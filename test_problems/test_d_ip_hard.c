@@ -158,7 +158,7 @@ int main()
 	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
-#if 0
+#if 1
 	int nb = NB; // number of box constrained inputs and states
 	int ng = 0; //4;  // number of general constraints
 #else
