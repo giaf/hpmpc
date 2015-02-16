@@ -1,5 +1,5 @@
 % compile the C code
-mex HPMPC_ip_box.c -lhpmpc %-L. HPMPC.a
+mex HPMPC_ip_hard.c -lhpmpc %-L. HPMPC.a
 
 % import cool graphic toolkit if in octave
 if is_octave()
@@ -13,7 +13,15 @@ end
 nx = 12;			% number of states
 nu = 5;				% number of inputs (controls)
 N = 30;				% horizon length
-nb = nu+nx;		% (even) number of box constraints
+if 1
+	nb = nu+nx;		% two-sided number of box constraints
+	ng = 0;         % two-sided number of general constraints
+else
+	nb = 0;
+	ng = nu+nx;
+end
+
+nbu = min(nb, nu);
 
 Ts = 0.5; % sampling time
 
@@ -43,36 +51,61 @@ Q = eye(nx);
 Qf = Q;
 R = 2*eye(nu);
 S = zeros(nx, nu);
-%q = zeros(nx,1);
-q = 1*Q*[ones(nx/2,1); zeros(nx/2,1)];
+q = zeros(nx,1);
+%q = 1*Q*[ones(nx/2,1); zeros(nx/2,1)];
 qf = q;
-%r = zeros(nu,1);
-r = 1*R*ones(nu,1);
+r = zeros(nu,1);
+%r = 1*R*ones(nu,1);
 QQ = repmat(Q, 1, N);
 SS = repmat(S, 1, N);
 RR = repmat(R, 1, N);
 qq = repmat(q, 1, N);
 rr = repmat(r, 1, N);
 
-% box constraints
-lb = -1e2*ones(nu+nx,1);
-ub =  1e2*ones(nu+nx,1);
-%db(1:2*nu) = -1.5;
-for ii=1:nu
-	lb(ii) = -2.5; % lower bound
-	ub(ii) = -0.1; % - upper bound
+% general constraints
+C = zeros(ng, nx);
+D = zeros(ng, nu);
+if(ng>0)
+	for ii=1:min(nu,ng)
+		D(ii,ii) = 1.0;
+	end
+	for ii=min(nu,ng)+1:ng
+		C(ii,ii-nu) = 1.0;
+	end
 end
-for ii=1:nx
-	lb(nu+ii) = -1e2;
-	ub(nu+ii) =  1e2;
+CC = [zeros(ng,nx), repmat(C, 1, N)];
+DD = [repmat(D, 1, N), zeros(ng,nu)];
+
+% box constraints
+lb = zeros(nb+ng,1);
+ub = zeros(nb+ng,1);
+%db(1:2*nu) = -1.5;
+for ii=1:nbu
+	lb(ii) = -2.5; % lower bound
+	ub(ii) =  2.1; % - upper bound
+end
+for ii=nbu+1:nb
+	lb(ii) = -1e2;
+	ub(ii) =  1e2;
+end
+if(ng>0)
+	for ii=1:min(nu,ng)
+		lb(nb+ii) = -2.5; % lower bound
+		ub(nb+ii) =  2.1; % - upper bound
+	end
+	for ii=min(nu,ng):ng
+		lb(nb+ii) = -1e2;
+		ub(nb+ii) =  1e2;
+	end
 end
 %db(2*nu+1:end) = -4;
 llb = repmat(lb, 1, N+1);
 uub = repmat(ub, 1, N+1);
 
 % initial guess for states and inputs
-x = zeros(nx, N+1); %x(:,1) = x0; % initial condition
-u = -1*ones(nu, N);
+x = zeros(nx, N+1); x(:,1) = x0; % initial condition
+%u = -1*ones(nu, N);
+u = zeros(nu, N);
 %pi = zeros(nx, N+1);
 
 mu0 = 2;        % max element in cost function as estimate of max multiplier
@@ -82,7 +115,7 @@ tol = 1e-4;		% tolerance in the duality measure
 infos = zeros(5, k_max);
 
 tic
-HPMPC_ip_box(kk, k_max, mu0, tol, N, nx, nu, nb, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, x, u, infos);
+HPMPC_ip_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, CC, DD, llb, uub, x, u, infos);
 toc
 
 kk

@@ -158,7 +158,7 @@ int main()
 	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
-#if 1
+#if 0
 	int nb = NB; // number of box constrained inputs and states
 	int ng = 0; //4;  // number of general constraints
 #else
@@ -378,6 +378,12 @@ int main()
 	double *rB; d_zeros(&rB, nx, N*nu);
 	d_rep_mat(N, nx, nu, B, nx, rB, nx);
 
+	double *rC; d_zeros(&rC, ng, (N+1)*nx);
+	d_rep_mat(N, ng, nx, C, ng, rC+nx*ng, ng);
+
+	double *rD; d_zeros(&rD, ng, (N+1)*nu);
+	d_rep_mat(N, ng, nu, D, ng, rD, ng);
+
 	double *rb; d_zeros(&rb, nx, N*1);
 	d_rep_mat(N, nx, 1, b, nx, rb, nx);
 
@@ -500,7 +506,7 @@ int main()
 	double mu = -1.0;
 	int hpmpc_status;
 	
-	double *rwork; d_zeros(&rwork, hpmpc_ip_box_mpc_dp_work_space(nx, nu, N), 1);
+	double *rwork; d_zeros(&rwork, hpmpc_ip_hard_mpc_dp_work_space(N, nx, nu, nb, ng), 1);
 	double *rstat; d_zeros(&rstat, 5, k_max); // stats from the IP routine
 
 
@@ -631,7 +637,7 @@ int main()
 		rx[0] = xx0[2*idx];
 		rx[1] = xx0[2*idx+1];
 
-		hpmpc_status = fortran_order_ip_box_mpc(&kk, k_max, mu0, mu_tol, 'd', N, nx, nu, nb, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rx, ru, rwork, rstat);
+		hpmpc_status = fortran_order_ip_hard_mpc(&kk, k_max, mu0, mu_tol, 'd', N, nx, nu, nb, ng, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rC, rD, rlb, rub, rx, ru, rwork, rstat);
 
 		rkk_avg += kk;
 
@@ -767,6 +773,8 @@ int main()
 
 	free(A);
 	free(B);
+	free(C);
+	free(D);
 	free(b);
 	free(x0);
 /*	free(BAb);*/
@@ -789,6 +797,8 @@ int main()
 	free(r0);
 	free(rA);
 	free(rB);
+	free(rC);
+	free(rD);
 	free(rb);
 	free(rQ);
 	free(rQf);
