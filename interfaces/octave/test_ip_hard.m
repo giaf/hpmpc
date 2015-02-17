@@ -13,7 +13,7 @@ end
 nx = 12;			% number of states
 nu = 5;				% number of inputs (controls)
 N = 30;				% horizon length
-if 0
+if 1
 	nb = nu+nx;		% two-sided number of box constraints
 	ng = 0;         % two-sided number of general constraints
 else
@@ -52,10 +52,10 @@ Qf = Q;
 R = 2*eye(nu);
 S = zeros(nx, nu);
 q = zeros(nx,1);
-%q = 1*Q*[ones(nx/2,1); zeros(nx/2,1)];
+q = 1*Q*[ones(nx/2,1); zeros(nx/2,1)];
 qf = q;
 r = zeros(nu,1);
-%r = 1*R*ones(nu,1);
+r = 1*R*ones(nu,1);
 QQ = repmat(Q, 1, N);
 SS = repmat(S, 1, N);
 RR = repmat(R, 1, N);
@@ -82,16 +82,16 @@ ub = zeros(nb+ng,1);
 %db(1:2*nu) = -1.5;
 for ii=1:nbu
 	lb(ii) = -2.5; % lower bound
-	ub(ii) =  2.5; % - upper bound
+	ub(ii) = -0.1; % - upper bound
 end
 for ii=nbu+1:nb
-	lb(ii) = -1e2;
-	ub(ii) =  1e2;
+	lb(ii) = -10;
+	ub(ii) =  10;
 end
 if(ng>0)
 	for ii=1:min(nu,ng)
-		lb(nb+ii) = -0.5; % lower bound
-		ub(nb+ii) =  0.5; % - upper bound
+		lb(nb+ii) = -2.5; % lower bound
+		ub(nb+ii) = -0.1; % - upper bound
 	end
 	for ii=min(nu,ng)+1:ng
 		lb(nb+ii) = -10;
@@ -101,9 +101,12 @@ end
 %db(2*nu+1:end) = -4;
 llb = repmat(lb, 1, N+1);
 uub = repmat(ub, 1, N+1);
+if(ng>0)
+	uub(1:min(nu,ng),N+1) =  0.0;
+end
 
 % initial guess for states and inputs
-x = zeros(nx, N+1); x(:,1) = x0; % initial condition
+x = zeros(nx, N+1); %x(:,1) = x0; % initial condition
 %u = -1*ones(nu, N);
 u = zeros(nu, N);
 %pi = zeros(nx, N+1);

@@ -262,25 +262,28 @@ void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, dou
 		for(ii=ll; ii<nx+nu; ii++)
 			ux[N][ii] = 0.0; // initialize remaining components of x to zero
 
-		// initialize pi
-		for(jj=0; jj<=N; jj++)
-			for(ll=0; ll<nx; ll++)
-				pi[jj][ll] = 0.0; // initialize multipliers to zero
-
-		// TODO find a better way to initialize general constraints
-		if(ng>0)
-			{
-			for(jj=0; jj<=N; jj++)
-				for(ll=0; ll<ng; ll++)
-					{
-					t[jj][2*pnb+ll] = 1.0;
-					lam[jj][2*pnb+ll] = mu0; // /t[jj][pnb+ll];
-					t[jj][2*pnb+png+ll] = 1.0;
-					lam[jj][2*pnb+png+ll] = mu0; // /t[jj][pnb+ll];
-					}
-			}
-
 		}
+
+	// initialize pi
+	for(jj=0; jj<=N; jj++)
+		for(ll=0; ll<nx; ll++)
+			pi[jj][ll] = 0.0; // initialize multipliers to zero
+
+	// TODO find a better way to initialize general constraints
+	if(ng>0)
+		{
+		for(jj=0; jj<=N; jj++)
+			{
+			for(ll=0; ll<ng; ll++)
+				{
+				t[jj][2*pnb+ll] = 1.0;
+				lam[jj][2*pnb+ll] = mu0; // /t[jj][pnb+ll];
+				t[jj][2*pnb+png+ll] = 1.0;
+				lam[jj][2*pnb+png+ll] = mu0; // /t[jj][pnb+ll];
+				}
+			}
+		}
+
 	}
 
 
