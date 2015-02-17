@@ -24,7 +24,7 @@
 **************************************************************************************************/
 
 // box-constrained MPC
-void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, double **pi, double **db, double **t, double **lam, double mu0, int warm_start);
+void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, double **pi, double **pDCt, double **db, double **t, double **lam, double mu0, int warm_start);
 void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **Qx, double **qx, double **bd, double **bl, double **pd, double **pl, double **db);
 void d_update_gradient_hard_mpc(int N, int nx, int nu, int nb, int ng, double sigma_mu, double **dt, double **dlam, double **t_inv, double **pl2, double **qx);
 void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **pDCt, double **db);

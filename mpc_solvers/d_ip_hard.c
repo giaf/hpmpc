@@ -183,7 +183,7 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 
 	// initialize ux & t>0 (slack variable)
-	d_init_var_hard_mpc(N, nx, nu, nb, ng, ux, pi, d, t, lam, mu0, warm_start);
+	d_init_var_hard_mpc(N, nx, nu, nb, ng, ux, pi, pDCt, d, t, lam, mu0, warm_start);
 
 
 

@@ -691,7 +691,7 @@ int main()
 			printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, stat[5*jj], stat[5*jj+1], stat[5*jj+2], stat[5*jj+2], stat[5*jj+3], stat[5*jj+4], stat[5*jj+4]);
 		printf("\n");
 		
-		for(jj=0; jj<kk; jj++)
+		for(jj=0; jj<rkk; jj++)
 			printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, rstat[5*jj], rstat[5*jj+1], rstat[5*jj+2], rstat[5*jj+2], rstat[5*jj+3], rstat[5*jj+4], rstat[5*jj+4]);
 		printf("\n");
 		

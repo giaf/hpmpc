@@ -274,12 +274,22 @@ void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, dou
 		{
 		for(jj=0; jj<=N; jj++)
 			{
-			for(ll=0; ll<ng; ll++)
+
+			ptr_t   = t[jj];
+			ptr_lam = lam[jj];
+			ptr_db  = db[jj];
+
+			dgemv_t_lib(nx+nu, ng, pDCt[jj], cng, ux[jj], ptr_t+2*pnb, 0);
+
+			for(ll=2*pnb; ll<2*pnb+ng; ll++)
 				{
-				t[jj][2*pnb+ll] = 1.0;
-				lam[jj][2*pnb+ll] = mu0; // /t[jj][pnb+ll];
-				t[jj][2*pnb+png+ll] = 1.0;
-				lam[jj][2*pnb+png+ll] = mu0; // /t[jj][pnb+ll];
+				ptr_t[ll+png] = - ptr_t[ll];
+				ptr_t[ll]     += - ptr_db[ll];
+				ptr_t[ll+png] += - ptr_db[ll+png];
+				ptr_t[ll]     = fmax( thr0, ptr_t[ll] );
+				ptr_t[png+ll] = fmax( thr0, ptr_t[png+ll] );
+				ptr_lam[ll]     = mu0/ptr_t[ll];
+				ptr_lam[png+ll] = mu0/ptr_t[png+ll];
 				}
 			}
 		}
