@@ -21,7 +21,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		
 	// get data 
 	int k_max;
-	double mu0, tol, *A, *B, *b, *Q, *Qf, *R, *S, *q, *qf, *r, *x, *u, *C, *D, *lb, *ub, *stat, *kkk;
+	double mu0, tol, *A, *B, *b, *Q, *Qf, *R, *S, *q, *qf, *r, *x, *u, *C, *D, *lb, *ub, *stat, *kkk, *inf_norm_res;
 	
 	kkk = mxGetPr(prhs[0]);
 	k_max = (int) mxGetScalar(prhs[1]);
@@ -50,6 +50,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	x = mxGetPr(prhs[23]);
 	u = mxGetPr(prhs[24]);
 	stat = mxGetPr(prhs[25]);
+	int compute_res = (int) mxGetScalar(prhs[26]);
+	inf_norm_res = mxGetPr(prhs[27]);
 	
 	int kk = -1;
 
@@ -58,7 +60,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	double *work = (double *) malloc( work_space_size * sizeof(double) );
 
 	// call solver 
-	fortran_order_ip_hard_mpc(&kk, k_max, mu0, tol, 'd', N, nx, nu, nb, ng, A, B, b, Q, Qf, S, R, q, qf, r, C, D, lb, ub, x, u, work, stat);
+	fortran_order_ip_hard_mpc(&kk, k_max, mu0, tol, 'd', N, nx, nu, nb, ng, A, B, b, Q, Qf, S, R, q, qf, r, C, D, lb, ub, x, u, work, stat, compute_res, inf_norm_res);
 	//c_order_ip_box_mpc(k_max, tol, 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, x, u, work, &kk, stat);
 	
 	*kkk = (double) kk;

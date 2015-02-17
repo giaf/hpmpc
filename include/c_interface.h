@@ -90,7 +90,7 @@
 // work space: static definition
 
 // Riccati-based IP method for box-constrained MPC, double precision
-#define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + D_PNZ*D_CNG + 6*D_ANZ + 3*D_ANX + 16*(D_PNB+D_PNG)) + D_ANZ + D_PNZ*P_CNXG)
+#define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + D_PNZ*D_CNG + 8*D_ANZ + 4*D_ANX + 18*(D_PNB+D_PNG)) + D_ANZ + D_PNZ*P_CNXG)
 // Riccati-based IP method for box-constrained MPC, single precision
 #define HPMPC_IP_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 3*S_ANX + 7*S_ANB) + S_ANZ + D_PNZ*P_CNX)
 // Riccati-based IP method for soft-constrained MPC, double precision
@@ -143,7 +143,7 @@ int c_order_riccati_mhe_if( char prec, int alg, int nx, int nw, int ny, int N, d
 
 
 // fortran (or column-major) order
-int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char prec, int N, int nx, int nu, int nb, int ng, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double *C, double *D, double* lb, double* ub, double* x, double* u, double *work0, double *stat );
+int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char prec, int N, int nx, int nu, int nb, int ng, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double *C, double *D, double* lb, double* ub, double* x, double* u, double *work0, double *stat, int compute_res, double *inf_norm_res );
 
 int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lZ, double* uZ, double* lz, double* uz, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
 

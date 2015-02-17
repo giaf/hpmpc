@@ -510,6 +510,7 @@ int main()
 	
 	double *rwork; d_zeros(&rwork, hpmpc_ip_hard_mpc_dp_work_space(N, nx, nu, nb, ng), 1);
 	double *rstat; d_zeros(&rstat, 5, k_max); // stats from the IP routine
+	double inf_norm_res[4] = {}; // infinity norm of residuals: rq, rb, rd, mu
 
 
 	/* initizile the cost function */
@@ -639,7 +640,7 @@ int main()
 		rx[0] = xx0[2*idx];
 		rx[1] = xx0[2*idx+1];
 
-		hpmpc_status = fortran_order_ip_hard_mpc(&rkk, k_max, mu0, mu_tol, 'd', N, nx, nu, nb, ng, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rC, rD, rlb, rub, rx, ru, rwork, rstat);
+		hpmpc_status = fortran_order_ip_hard_mpc(&rkk, k_max, mu0, mu_tol, 'd', N, nx, nu, nb, ng, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rC, rD, rlb, rub, rx, ru, rwork, rstat, 1, inf_norm_res);
 
 		rkk_avg += rkk;
 
