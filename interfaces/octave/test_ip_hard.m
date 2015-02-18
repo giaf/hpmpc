@@ -13,7 +13,7 @@ end
 nx = 12;			% number of states
 nu = 5;				% number of inputs (controls)
 N = 30;				% horizon length
-if 0
+if 1
 	nb = nu+nx;		% two-sided number of box constraints
 	ng = 0;         % two-sided number of general constraints
 else
@@ -75,6 +75,8 @@ if(ng>0)
 end
 CC = [zeros(ng,nx), repmat(C, 1, N)];
 DD = [repmat(D, 1, N), zeros(ng,nu)];
+%CC = [zeros(nx,ng), repmat(C', 1, N)];
+%DD = [repmat(D', 1, N), zeros(nu,ng)];
 
 % box constraints
 lb = zeros(nb+ng,1);
@@ -114,20 +116,25 @@ u = zeros(nu, N);
 mu0 = 2;        % max element in cost function as estimate of max multiplier
 kk = -1;		% actual number of performed iterations
 k_max = 20;		% maximim number of iterations
-tol = 1e-4;		% tolerance in the duality measure
+tol = 1e-8;		% tolerance in the duality measure
 infos = zeros(5, k_max);
+compute_res = 1;
 inf_norm_res = zeros(1, 4);
+compute_mult = 1;
+mult_pi = zeros(nx,N+1);
+mult_lam = zeros(2*(nb+ng),N+1);
+mult_t = zeros(2*(nb+ng),N+1);
 
 tic
-HPMPC_ip_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, CC, DD, llb, uub, x, u, infos, 1, inf_norm_res);
+HPMPC_ip_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, CC, DD, llb, uub, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
 toc
 
 kk
 infos(:,1:kk)'
 inf_norm_res
 
-%u
-%x
+u
+x
 
 
 figure()

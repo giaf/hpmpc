@@ -130,7 +130,7 @@ int hpmpc_ric_mhe_if_dp_work_space(int nx, int nw, int ny, int N);
 
 
 // c (or row-major) order
-int c_order_ip_box_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
+int c_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char prec, int N, int nx, int nu, int nb, int ng, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double *C, double *D, double* lb, double* ub, double* x, double* u, double *work0, double *stat, int compute_res, double *inf_norm_res, int compute_mult, double *pi, double *lam, double *t );
 
 int c_order_ip_soft_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lZ, double* uZ, double* lz, double* uz, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
 
@@ -143,7 +143,7 @@ int c_order_riccati_mhe_if( char prec, int alg, int nx, int nw, int ny, int N, d
 
 
 // fortran (or column-major) order
-int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char prec, int N, int nx, int nu, int nb, int ng, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double *C, double *D, double* lb, double* ub, double* x, double* u, double *work0, double *stat, int compute_res, double *inf_norm_res );
+int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char prec, int N, int nx, int nu, int nb, int ng, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double *C, double *D, double* lb, double* ub, double* x, double* u, double *work0, double *stat, int compute_res, double *inf_norm_res, int compute_mult, double *pi, double *lam, double *t );
 
 int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lZ, double* uZ, double* lz, double* uz, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
 

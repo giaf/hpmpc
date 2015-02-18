@@ -79,7 +79,8 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
                           double* x, double* u,
 						  double *work0, 
                           double *stat,
-						  int compute_res, double *inf_norm_res)
+						  int compute_res, double *inf_norm_res,
+						  int compute_mult, double *pi, double *lam, double *t)
 
 	{
 
@@ -290,9 +291,7 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
             hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
         d_cvt_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
         for(jj=0; jj<nx; jj++)
-			{
             hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
-			}
 
 		// estimate mu0 if not user-provided
 		if(mu0<=0)
@@ -474,6 +473,51 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 			inf_norm_res[3] = mu;
 
 			//printf("\n%e %e %e %e\n", norm_res[0], norm_res[1], norm_res[2], norm_res[3]);
+
+			}
+
+		if(compute_mult)
+			{
+
+			for(ii=0; ii<=N; ii++)
+				for(jj=0; jj<nx; jj++)
+					pi[jj+ii*nx] = hpi[ii][jj];
+
+			ii = 0;
+			for(jj=0; jj<nbu; jj++)
+				{
+				lam[jj+ii*(2*nb+2*ng)]       = hlam[ii][jj];
+				lam[jj+ii*(2*nb+2*ng)+nb+ng] = hlam[ii][pnb+jj];
+				t[jj+ii*(2*nb+2*ng)]       = ht[ii][jj];
+				t[jj+ii*(2*nb+2*ng)+nb+ng] = ht[ii][pnb+jj];
+				}
+			for(ii=1; ii<N; ii++)
+				{
+				for(jj=0; jj<nb; jj++)
+					{
+					lam[jj+ii*(2*nb+2*ng)]       = hlam[ii][jj];
+					lam[jj+ii*(2*nb+2*ng)+nb+ng] = hlam[ii][pnb+jj];
+					t[jj+ii*(2*nb+2*ng)]       = ht[ii][jj];
+					t[jj+ii*(2*nb+2*ng)+nb+ng] = ht[ii][pnb+jj];
+					}
+				}
+			ii = N;
+			for(jj=nbu; jj<nb; jj++)
+				{
+				lam[jj+ii*(2*nb+2*ng)]       = hlam[ii][jj];
+				lam[jj+ii*(2*nb+2*ng)+nb+ng] = hlam[ii][pnb+jj];
+				t[jj+ii*(2*nb+2*ng)]       = ht[ii][jj];
+				t[jj+ii*(2*nb+2*ng)+nb+ng] = ht[ii][pnb+jj];
+				}
+
+			for(ii=0; ii<=N; ii++)
+				for(jj=0; jj<ng; jj++)
+					{
+					lam[jj+ii*(2*nb+2*ng)+nb]       = hlam[ii][2*pnb+jj];
+					lam[jj+ii*(2*nb+2*ng)+nb+ng+nb] = hlam[ii][2*pnb+png+jj];
+					t[jj+ii*(2*nb+2*ng)+nb]       = ht[ii][2*pnb+jj];
+					t[jj+ii*(2*nb+2*ng)+nb+ng+nb] = ht[ii][2*pnb+png+jj];
+					}
 
 			}
 
