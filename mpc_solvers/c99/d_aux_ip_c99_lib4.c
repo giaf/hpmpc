@@ -29,7 +29,7 @@
 
 
 
-void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, double **pi, double **db, double **t, double **lam, double mu0, int warm_start)
+void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, double **pi, double **pDCt, double **db, double **t, double **lam, double mu0, int warm_start)
 	{
 
 	const int nbu = nu<nb ? nu : nb ;
@@ -43,10 +43,14 @@ void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, dou
 	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of box constraints
 	//const int ang = nal*((ng+nal-1)/nal); // cache aligned number of general constraints
 	const int png = bs*((ng+bs-1)/bs); // cache aligned number of general constraints
+	const int cng = ncl*((ng+ncl-1)/ncl);
 
 	int jj, ll, ii;
 	
-	double thr0 = 0.1; // minimum distance from a constraint
+	double
+		*ptr_t, *ptr_lam, *ptr_db;
+
+	double thr0 = 0.1; // minimum vale of t (minimum distance from a constraint)
 
 	if(warm_start==1)
 		{

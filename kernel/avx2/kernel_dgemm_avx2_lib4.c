@@ -32,7 +32,7 @@
 
 
 
-void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sda, double *D0, int sda, int alg)
+void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
 	
 	if(kmax<=0)
