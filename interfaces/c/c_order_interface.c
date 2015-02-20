@@ -940,15 +940,15 @@ int c_order_ip_soft_mpc( int k_max, double mu_tol, char prec,
 			{
 			for(jj=0; jj<nx; jj++)
 				{
-				hZ[ii+1][2*nu+jj+0] = lZ[nx*ii+jj];
-				hZ[ii+1][2*nu+jj+1] = uZ[nx*ii+jj];
+				hZ[ii+1][2*nu+2*jj+0] = lZ[nx*ii+jj];
+				hZ[ii+1][2*nu+2*jj+1] = uZ[nx*ii+jj];
 				mu0 = fmax(mu0, lZ[nx*ii+jj]);
 				mu0 = fmax(mu0, uZ[nx*ii+jj]);
 				}
 			for(jj=0; jj<nx; jj++)
 				{
-				hz[ii+1][2*nu+jj+0] = lz[nx*ii+jj];
-				hz[ii+1][2*nu+jj+1] = uz[nx*ii+jj];
+				hz[ii+1][2*nu+2*jj+0] = lz[nx*ii+jj];
+				hz[ii+1][2*nu+2*jj+1] = uz[nx*ii+jj];
 				mu0 = fmax(mu0, lz[nx*ii+jj]);
 				mu0 = fmax(mu0, uz[nx*ii+jj]);
 				}

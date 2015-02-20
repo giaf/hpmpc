@@ -240,6 +240,8 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 
         /* pack matrices 	*/
 
+		//printf("\n%d %d %d %d %d\n", N, nx, nu, nb, ng);
+
         // dynamic system
         for(ii=0; ii<N; ii++)
 	        {
@@ -248,6 +250,8 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
             for (jj = 0; jj<nx; jj++)
                 hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
 	        }
+		//d_print_mat(nx, nu, B, nx);
+		//d_print_mat(nx, nx, A, nx);
 		//d_print_pmat(nz, nx, bs, hpBAbt[0], cnx);
 		//d_print_pmat(nz, nx, bs, hpBAbt[N-1], cnx);
 		//exit(1);
@@ -961,15 +965,15 @@ int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec,
 			{
 			for(jj=0; jj<nx; jj++)
 				{
-				hZ[ii+1][2*nu+jj+0] = lZ[nx*ii+jj];
-				hZ[ii+1][2*nu+jj+1] = uZ[nx*ii+jj];
+				hZ[ii+1][2*nu+2*jj+0] = lZ[nx*ii+jj];
+				hZ[ii+1][2*nu+2*jj+1] = uZ[nx*ii+jj];
 				mu0 = fmax(mu0, lZ[nx*ii+jj]);
 				mu0 = fmax(mu0, uZ[nx*ii+jj]);
 				}
 			for(jj=0; jj<nx; jj++)
 				{
-				hz[ii+1][2*nu+jj+0] = lz[nx*ii+jj];
-				hz[ii+1][2*nu+jj+1] = uz[nx*ii+jj];
+				hz[ii+1][2*nu+2*jj+0] = lz[nx*ii+jj];
+				hz[ii+1][2*nu+2*jj+1] = uz[nx*ii+jj];
 				mu0 = fmax(mu0, lz[nx*ii+jj]);
 				mu0 = fmax(mu0, uz[nx*ii+jj]);
 				}
