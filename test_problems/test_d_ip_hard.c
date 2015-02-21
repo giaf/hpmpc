@@ -337,28 +337,28 @@ int main()
 	for(ii=0; ii<nu; ii++) r0[ii] = 0.1;
 
 	// packed matrix (symmetric)
-	double *Q; d_zeros_align(&Q, pnz, pnz);
+	double *Q; d_zeros_align(&Q, nz, nz);
 	//for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
 	//for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 1.0;
 	//for(ii=0; ii<nu+nx; ii++) Q[nx+nu+ii*pnz] = 0.1;
 /*	Q[(nx+nu)*(pnz+1)] = 1e35; // large enough (not needed any longer) */
-	d_copy_mat(nu, nu, R0, nu, Q, pnz);
-	d_copy_mat(nx, nx, Q0, nx, Q+nu*(pnz+1), pnz);
-	d_copy_mat(nu, nx, S0, nu, Q+nu*pnz, pnz);
-	d_copy_mat(nx, nu, St0, nx, Q+nu, pnz);
-	d_copy_mat(nu, 1, r0, nu, Q+(nu+nx)*pnz, pnz);
-	d_copy_mat(1, nu, r0, 1, Q+nu+nx, pnz);
-	d_copy_mat(nx, 1, q0, nx, Q+nu+(nu+nx)*pnz, pnz);
-	d_copy_mat(1, nx, q0, 1, Q+nu+nx+nu*pnz, pnz);
-	//d_print_mat(nz, nz, Q, pnz);
+	d_copy_mat(nu, nu, R0, nu, Q, nz);
+	d_copy_mat(nx, nx, Q0, nx, Q+nu*(nz+1), nz);
+	d_copy_mat(nu, nx, S0, nu, Q+nu*nz, nz);
+	d_copy_mat(nx, nu, St0, nx, Q+nu, nz);
+	d_copy_mat(nu, 1, r0, nu, Q+(nu+nx)*nz, nz);
+	d_copy_mat(1, nu, r0, 1, Q+nu+nx, nz);
+	d_copy_mat(nx, 1, q0, nx, Q+nu+(nu+nx)*nz, nz);
+	d_copy_mat(1, nx, q0, 1, Q+nu+nx+nu*nz, nz);
+	//d_print_mat(nz, nz, Q, nz);
 	
 	/* packed into contiguous memory */
 	double *pQ; d_zeros_align(&pQ, pnz, cnz);
-	d_cvt_mat2pmat(nz, nz, 0, bs, Q, pnz, pQ, cnz);
+	d_cvt_mat2pmat(nz, nz, 0, bs, Q, nz, pQ, cnz);
 
 	// linear part copied on another vector
 	double *q; d_zeros_align(&q, anz, 1);
-	for(ii=0; ii<nu+nx; ii++) q[ii] = Q[nx+nu+ii*pnz];
+	for(ii=0; ii<nu+nx; ii++) q[ii] = Q[nx+nu+ii*nz];
 
 	// maximum element in cost functions
 	double mu0 = 1.0;
@@ -674,11 +674,11 @@ int main()
 
 
 	// restore linear part of cost function 
-	for(ii=0; ii<N; ii++)
-		{
-		for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+pnz*jj];
-		}
-	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
+//	for(ii=0; ii<N; ii++)
+//		{
+//		for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+nz*jj];
+//		}
+//	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+nz*jj];
 
 	// residuals computation
 //	if(FREE_X0==0)

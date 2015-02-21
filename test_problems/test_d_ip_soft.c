@@ -158,8 +158,8 @@ int main()
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
 //	int nb = NB; // number of box constrained inputs and states
-	int nh = nu+nx/2; // number of hard box constraints
-	int ns = nx/2;//nx; // number of soft box constraints
+	int nh = nu;//nu+nx/2; // number of hard box constraints
+	int ns = nx;//nx/2;//nx; // number of soft box constraints
 	int nb = nh + ns;
 
 	int nhu = nu<nh ? nu : nh ;
@@ -196,6 +196,7 @@ int main()
 //	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 	const int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
 	
+
 /************************************************
 * dynamical system
 ************************************************/	
@@ -268,19 +269,19 @@ int main()
 * cost function
 ************************************************/	
 
-	double *Q; d_zeros_align(&Q, pnz, pnz);
-	for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
-	for(; ii<pnz; ii++) Q[ii*(pnz+1)] = 0.0;
-	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*pnz] = 0.0;
+	double *Q; d_zeros(&Q, nz, nz);
+	for(ii=0; ii<nu; ii++) Q[ii*(nz+1)] = 2.0;
+	for(; ii<pnz; ii++) Q[ii*(nz+1)] = 0.0;
+	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*nz] = 0.0;
 /*	Q[(nx+nu)*(pnz+1)] = 1e35; // large enough (not needed any longer) */
 	
 	/* packed into contiguous memory */
 	double *pQ; d_zeros_align(&pQ, pnz, cnz);
-	d_cvt_mat2pmat(nz, nz, 0, bs, Q, pnz, pQ, cnz);
+	d_cvt_mat2pmat(nz, nz, 0, bs, Q, nz, pQ, cnz);
 
 	// cost function of the soft constrained slack variables
 	double *Z; d_zeros_align(&Z, anb, 1);
-	for(ii=0; ii<2*ns; ii++) Z[2*nh+ii] = 10.0;
+	for(ii=0; ii<2*ns; ii++) Z[2*nh+ii] = 0.0;
 	//for(ii=0; ii<nx; ii++) Z[2*nu+2*ii+0] = 100.0;
 	double *z; d_zeros_align(&z, anb, 1);
 	for(ii=0; ii<2*ns; ii++) z[2*nh+ii] = 100.0;
@@ -318,9 +319,11 @@ int main()
 
 	for(jj=0; jj<N; jj++)
 		{
-		d_zeros_align(&hpQ[jj], pnz, cnz);
+		//d_zeros_align(&hpQ[jj], pnz, cnz);
+		hpQ[jj] = pQ;
 		}
-	d_zeros_align(&hpQ[N], pnz, pnz);
+	//d_zeros_align(&hpQ[N], pnz, pnz);
+	hpQ[N] = pQ;
 
 	for(jj=0; jj<N; jj++)
 		{
@@ -376,11 +379,11 @@ int main()
 
 
 	/* initizile the cost function */
-	for(ii=0; ii<N; ii++)
-		{
-		for(jj=0; jj<pnz*cnz; jj++) hpQ[ii][jj]=pQ[jj];
-		}
-	for(jj=0; jj<pnz*cnz; jj++) hpQ[N][jj]=pQ[jj];
+//	for(ii=0; ii<N; ii++)
+//		{
+//		for(jj=0; jj<pnz*cnz; jj++) hpQ[ii][jj]=pQ[jj];
+//		}
+//	for(jj=0; jj<pnz*cnz; jj++) hpQ[N][jj]=pQ[jj];
 
 
 
@@ -418,17 +421,190 @@ int main()
 
 
 	int kk_avg = 0;
+	int kks_avg = 0;
 
 	/* timing */
-	struct timeval tv0, tv1;
+	struct timeval tv0, tv1, tv2, tv3;
+
+	// use general constraint to solve the soft-box-constrainted problem
+	#if 1 
+	int nus = nu + 2*nx; // number of inputs and slack variables
+	int nbs = nus;
+	int ngs = nx;
+	const int nzs = nx+nus+1;
+	const int cnzs = ncl*((nzs+ncl-1)/ncl);
+	const int cngs = ncl*((ngs+ncl-1)/ncl);
+	const int cnxgs= ncl*((ngs+nx+ncl-1)/ncl);
+	const int pnzs = bs*((nzs+bs-1)/bs);
+	const int pnbs = bs*((nbs+bs-1)/bs); // simd aligned number of one-sided box constraints !!!!!!!!!!!!
+	const int pngs = bs*((ngs+bs-1)/bs); // simd aligned number of one-sided box constraints !!!!!!!!!!!!
+	const int cnls = cnzs<cnx+ncl ? cnx+ncl : cnzs;
+	const int anzs = nal*((nzs+nal-1)/nal);
+	double *pBAbts; d_zeros_align(&pBAbts, pnzs, cnx);
+	d_cvt_tran_mat2pmat(nx, nu, 0, bs, B, nx, pBAbts, cnx);
+	d_cvt_tran_mat2pmat(nx, nx, nus, bs, A, nx, pBAbts+nus/bs*cnx*bs+nus%bs, cnx);
+	for (jj = 0; jj<nx; jj++)
+		pBAbt[(nx+nus)/bs*cnx*bs+(nx+nus)%bs+jj*bs] = b[jj];
+	//d_print_pmat (nzs, nx, bs, pBAbts, cnx);
+	double *ds; d_zeros_align(&ds, 2*pnbs+2*pngs, 1);
+	for(jj=0; jj<nu; jj++)
+		{
+		ds[jj]      = - 0.5; //   umin
+		ds[pnbs+jj] = - 0.5; // - umax
+		}
+	for(; jj<nus; jj++)
+		{
+		ds[jj]      =    0.0; //   smin
+		ds[pnbs+jj] = - 10.0; // - smax
+		}
+	for(jj=0; jj<ngs; jj++)
+		{
+		ds[2*pnbs+jj]      = - 1.0; //   xmin
+		ds[2*pnbs+pngs+jj] = - 1.0; // - xmax
+		}
+	//d_print_mat(1, 2*pnbs+2*pngs, ds, 1);
+	double *Cs; d_zeros(&Cs, ngs, nx);
+	double *Ds; d_zeros(&Ds, ngs, nus);
+	for(jj=0; jj<nx; jj++)
+		{
+		Cs[jj+jj*ngs] = 1.0;
+		Ds[jj+(nu+jj)*ngs] = 1.0;
+		Ds[jj+(nu+nx+jj)*ngs] = - 1.0;
+		}
+	double *pDCts; d_zeros_align(&pDCts, pnzs, cngs);
+	d_cvt_tran_mat2pmat(ngs, nus, 0, bs, Ds, ngs, pDCts, cngs);
+	d_cvt_tran_mat2pmat(ngs, nx, nus, bs, Cs, ngs, pDCts+nus/bs*cngs*bs+nus%bs, cngs);
+	//d_print_pmat(nus+nx, ngs, bs, pDCts, cngs);
+	double *Qs; d_zeros(&Qs, nzs, nzs);
+	d_copy_mat(nu, nu, Q, nz, Qs, nzs);
+	d_copy_mat(nx+1, nu, Q+nu, nz, Qs+nus, nzs);
+	d_copy_mat(nx+1, nx, Q+nu*(nz+1), nz, Qs+nus*(nzs+1), nzs);
+	for(jj=0; jj<nx; jj++)
+		{
+		Qs[(nu+jj)*(nzs+1)] = Z[2*nh+2*jj+0]; // TODO change when updated IP !!!!!
+		Qs[(nu+nx+jj)*(nzs+1)] = Z[2*nh+2*jj+1]; // TODO change when updated IP !!!!!
+		Qs[nus+nx+(nu+jj)*nzs] = z[2*nh+2*jj+0]; // TODO change when updated IP !!!!!
+		Qs[nus+nx+(nu+nx+jj)*nzs] = z[2*nh+2*jj+1]; // TODO change when updated IP !!!!!
+		}
+	double *pQs; d_zeros_align(&pQs, pnzs, cnzs);
+	d_cvt_mat2pmat(nzs, nzs, 0, bs, Qs, nzs, pQs, cnzs);
+	//d_print_pmat(nzs, nzs, bs, pQs, cnzs);
+	double *(hpQs[N+1]);
+	double *(huxs[N+1]);
+	double *(hpis[N+1]);
+	double *(hlams[N+1]);
+	double *(hts[N+1]);
+	double *(hpBAbts[N]);
+	double *(hpDCts[N+1]);
+	double *(hds[N+1]);
+	for(jj=0; jj<N; jj++)
+		{
+		hpQs[jj] = pQs;
+		hpBAbts[jj] = pBAbts;
+		hpDCts[jj] = pDCts;
+		hds[jj] = ds;
+		d_zeros_align(&huxs[jj], pnzs, 1);
+		d_zeros_align(&hpis[jj], pnx, 1);
+		d_zeros_align(&hlams[jj], 2*pnbs+2*pngs, 1);
+		d_zeros_align(&hts[jj], 2*pnbs+2*pngs, 1);
+		}
+	hpQs[N] = pQs;
+	d_zeros_align(&hpDCts[N], pnzs, cngs);
+	d_zeros_align(&hds[N], 2*pnbs+2*pngs, 1);
+	d_zeros_align(&huxs[N], pnzs, 1);
+	d_zeros_align(&hpis[N], pnx, 1);
+	d_zeros_align(&hlams[N] ,2*pnbs+2*pngs, 1);
+	d_zeros_align(&hts[N], 2*pnbs+2*pngs, 1);
+	double *works; d_zeros_align(&works, (N+1)*(pnzs*cnls + 5*anzs + 10*(pnbs+pngs) + 2*anx) + anzs + pnzs*cnxgs, 1); // work space 
+
 	gettimeofday(&tv0, NULL); // start
 
 	for(rep=0; rep<nrep; rep++)
 		{
 
+		// initialize states and inputs
+		for(ii=0; ii<=N; ii++)
+			for(jj=0; jj<nx+nus; jj++)
+				huxs[ii][jj] = 0;
+
 		idx = rep%10;
-		x0[0] = xx0[2*idx];
-		x0[1] = xx0[2*idx+1];
+		huxs[0][nus+0] = xx0[2*idx];
+		huxs[0][nus+1] = xx0[2*idx+1];
+
+		if(IP==1)
+			hpmpc_status = d_ip_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nus, N, nbs, ngs, hpBAbts, hpQs, hpDCts, hds, huxs, compute_mult, hpis, hlams, hts, works);
+		else
+			hpmpc_status = d_ip2_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nus, N, nbs, ngs, hpBAbts, hpQs, hpDCts, hds, huxs, compute_mult, hpis, hlams, hts, works);
+
+		kks_avg += kk;
+
+		}
+
+
+	gettimeofday(&tv1, NULL); // stop
+
+	if(PRINTSTAT==1)
+		{
+
+		printf("\n");
+		printf("\n");
+		printf(" Print IP statistics of the last run\n");
+		printf("\n");
+
+		for(jj=0; jj<kk; jj++)
+			printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, stat[5*jj], stat[5*jj+1], stat[5*jj+2], stat[5*jj+2], stat[5*jj+3], stat[5*jj+4], stat[5*jj+4]);
+		printf("\n");
+		
+		}
+
+	if(PRINTRES==1)
+		{
+
+		printf("\n");
+		printf("\n");
+		printf(" Print solution\n");
+		printf("\n");
+
+		printf("\nus = \n\n");
+		for(ii=0; ii<N; ii++)
+			d_print_mat(1, nus, huxs[ii], 1);
+		
+		printf("\nxs = \n\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nx, huxs[ii]+nus, 1);
+	
+		}
+
+
+	for(jj=0; jj<N; jj++)
+		{
+		free(huxs[jj]);
+		free(hpis[jj]);
+		free(hlams[jj]);
+		free(hts[jj]);
+		}
+	free(hpDCts[N]);
+	free(hds[N]);
+	free(huxs[N]);
+	free(hpis[N]);
+	free(hlams[N]);
+	free(hts[N]);
+	free(works);
+	//exit(1);
+	#endif
+
+
+
+	gettimeofday(&tv2, NULL); // start
+
+
+
+	for(rep=0; rep<nrep; rep++)
+		{
+
+		idx = rep%10;
+//		x0[0] = xx0[2*idx];
+//		x0[1] = xx0[2*idx+1];
 
 		// initialize states and inputs
 		for(ii=0; ii<=N; ii++)
@@ -458,19 +634,22 @@ int main()
 
 		}
 	
-	gettimeofday(&tv1, NULL); // stop
+	gettimeofday(&tv3, NULL); // stop
 	
 
 
-	double time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+	double times = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+	double time = (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
 	
 /*	printf("\nnx\tnu\tN\tkernel\n\n");*/
 /*	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);*/
 	
 	printf("\n");
-	printf(" Average number of iterations over %d runs: %5.1f\n", nrep, kk_avg / (double) nrep);
+	printf(" Average number of iterations over %d runs: %5.1f (soft-constraints solver)\n", nrep, kk_avg / (double) nrep);
+	printf(" Average number of iterations over %d runs: %5.1f (general-constraints solver)\n", nrep, kks_avg / (double) nrep);
 	printf("\n");
-	printf(" Average solution time over %d runs: %5.2e seconds\n", nrep, time);
+	printf(" Average solution time over %d runs: %5.2e seconds (soft-constraints solver)\n", nrep, time);
+	printf(" Average solution time over %d runs: %5.2e seconds (general-constraints solver)\n", nrep, times);
 	printf("\n");
 
 
@@ -478,9 +657,9 @@ int main()
 	// restore linear part of cost function 
 	for(ii=0; ii<N; ii++)
 		{
-		for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+pnz*jj];
+		for(jj=0; jj<nx+nu; jj++) hq[ii][jj] = Q[nx+nu+nz*jj];
 		}
-	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+pnz*jj];
+	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+nz*jj];
 
 	// residuals computation
 //	if(FREE_X0==0)
@@ -595,7 +774,7 @@ int main()
 	free(stat);
 	for(jj=0; jj<N; jj++)
 		{
-		free(hpQ[jj]);
+//		free(hpQ[jj]);
 		free(hq[jj]);
 		free(hux[jj]);
 		free(hpi[jj]);
@@ -606,7 +785,7 @@ int main()
 		free(hrd[jj]);
 		free(hrz[jj]);
 		}
-	free(hpQ[N]);
+//	free(hpQ[N]);
 	free(hq[N]);
 	free(hux[N]);
 	free(hpi[N]);

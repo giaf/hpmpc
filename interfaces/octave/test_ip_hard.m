@@ -13,12 +13,17 @@ end
 nx = 12;			% number of states
 nu = 5;				% number of inputs (controls)
 N = 30;				% horizon length
-if 1
+if 0
 	nb = nu+nx;		% two-sided number of box constraints
 	ng = 0;         % two-sided number of general constraints
 else
-	nb = 0;
-	ng = nu+nx;
+	if 0
+		nb = 0;
+		ng = nu+nx;
+	else
+		nb = nu;
+		ng = nx;
+	end
 end
 
 nbu = min(nb, nu);
@@ -66,11 +71,17 @@ rr = repmat(r, 1, N);
 C = zeros(ng, nx);
 D = zeros(ng, nu);
 if(ng>0)
-	for ii=1:min(nu,ng)
-		D(ii,ii) = 1.0;
-	end
-	for ii=min(nu,ng)+1:ng
-		C(ii,ii-nu) = 1.0;
+	if(nb==0)
+		for ii=1:min(nu,ng)
+			D(ii,ii) = 1.0;
+		end
+		for ii=min(nu,ng)+1:ng
+			C(ii,ii-nu) = 1.0;
+		end
+	else
+		for ii=1:ng
+			C(ii,ii) = 1.0;
+		end
 	end
 end
 CC = [zeros(ng,nx), repmat(C, 1, N)];
@@ -91,20 +102,29 @@ for ii=nbu+1:nb
 	ub(ii) =  10;
 end
 if(ng>0)
-	for ii=1:min(nu,ng)
-		lb(nb+ii) = -2.5; % lower bound
-		ub(nb+ii) = -0.1; % - upper bound
-	end
-	for ii=min(nu,ng)+1:ng
-		lb(nb+ii) = -10;
-		ub(nb+ii) =  10;
+	if(nb==0)
+		for ii=1:min(nu,ng)
+			lb(nb+ii) = -2.5; % lower bound
+			ub(nb+ii) = -0.1; % - upper bound
+		end
+		for ii=min(nu,ng)+1:ng
+			lb(nb+ii) = -10;
+			ub(nb+ii) =  10;
+		end
+	else
+		for ii=1:ng
+			lb(nb+ii) = -10;
+			ub(nb+ii) =  10;
+		end
 	end
 end
 %db(2*nu+1:end) = -4;
 llb = repmat(lb, 1, N+1);
 uub = repmat(ub, 1, N+1);
 if(ng>0)
-	uub(1:min(nu,ng),N+1) =  0.0;
+	if(nb==0)
+		uub(1:min(nu,ng),N+1) =  0.0;
+	end
 end
 
 % initial guess for states and inputs

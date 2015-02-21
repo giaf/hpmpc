@@ -68,6 +68,24 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 //	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 	//const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 	const int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
+
+	//printf("\n%d %d %d %d %d\n", N, nx, nu, nb, ng);
+	//d_print_pmat(nz, nx, bs, pBAbt[0], cnx);
+	//d_print_pmat(nz, nx, bs, pBAbt[1], cnx);
+	//d_print_pmat(nz, nx, bs, pBAbt[N-1], cnx);
+	//d_print_pmat(nz, nz, bs, pQ[0], cnz);
+	//d_print_pmat(nz, nz, bs, pQ[1], cnz);
+	//d_print_pmat(nz, nz, bs, pQ[N], cnz);
+	//d_print_pmat(nx+nu, ng, bs, pDCt[0], cng);
+	//d_print_pmat(nx+nu, ng, bs, pDCt[1], cng);
+	//d_print_pmat(nx+nu, ng, bs, pDCt[N], cng);
+	//d_print_mat(1, 2*pnb+2*png, d[0], 1);
+	//d_print_mat(1, 2*pnb+2*png, d[1], 1);
+	//d_print_mat(1, 2*pnb+2*png, d[N], 1);
+	//d_print_mat(1, nx+nu, ux[0], 1);
+	//d_print_mat(1, nx+nu, ux[1], 1);
+	//d_print_mat(1, nx+nu, ux[N], 1);
+	//exit(1);
 	
 	
 
@@ -186,6 +204,15 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	d_init_var_hard_mpc(N, nx, nu, nb, ng, ux, pi, pDCt, d, t, lam, mu0, warm_start);
 
 
+#if 0
+d_print_mat(1, 2*pnb+2*png, t[0], 1);
+d_print_mat(1, 2*pnb+2*png, t[1], 1);
+d_print_mat(1, 2*pnb+2*png, t[N], 1);
+d_print_mat(1, 2*pnb+2*png, lam[0], 1);
+d_print_mat(1, 2*pnb+2*png, lam[1], 1);
+d_print_mat(1, 2*pnb+2*png, lam[N], 1);
+exit(1);
+#endif
 
 	// initialize pi
 	for(jj=0; jj<=N; jj++)
@@ -225,6 +252,15 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 		//update cost function matrices and vectors (box constraints)
 		d_update_hessian_hard_mpc(N, nx, nu, nb, ng, cnz, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx, bd, bl, pd, pl, d);
 
+#if 0
+d_print_mat(1, 2*pnb+2*png, Qx[0], 1);
+d_print_mat(1, 2*pnb+2*png, Qx[1], 1);
+d_print_mat(1, 2*pnb+2*png, Qx[N], 1);
+d_print_mat(1, 2*pnb+2*png, qx[0], 1);
+d_print_mat(1, 2*pnb+2*png, qx[1], 1);
+d_print_mat(1, 2*pnb+2*png, qx[N], 1);
+exit(1);
+#endif
 
 
 		// compute the search direction: factorize and solve the KKT system

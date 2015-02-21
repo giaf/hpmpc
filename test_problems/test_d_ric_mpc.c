@@ -291,7 +291,7 @@ int main()
 			nrep = nnrep[ll];
 			}
 
-		const int LTI = 0;
+		const int LTI = 1;
 
 		int rep;
 	
