@@ -90,7 +90,7 @@
 // work space: static definition
 
 // Riccati-based IP method for box-constrained MPC, double precision
-#define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + D_PNZ*D_CNG + 8*D_ANZ + 4*D_ANX + 18*(D_PNB+D_PNG)) + D_ANZ + D_PNZ*P_CNXG)
+#define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + D_PNZ*D_CNG + 8*D_ANZ + 4*D_ANX + 18*(D_PNB+D_PNG)) + D_ANZ + D_PNZ*D_CNXG)
 // Riccati-based IP method for box-constrained MPC, single precision
 #define HPMPC_IP_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 3*S_ANX + 7*S_ANB) + S_ANZ + D_PNZ*P_CNX)
 // Riccati-based IP method for soft-constrained MPC, double precision
