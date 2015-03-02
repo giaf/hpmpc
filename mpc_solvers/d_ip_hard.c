@@ -37,7 +37,7 @@
 
 
 /* primal-dual interior-point method, hard constraints, time invariant matrices (mpc version) */
-int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, int ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
+int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, int ng, int ngN, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
 	{
 
 /*printf("\ncazzo\n");*/
@@ -62,8 +62,10 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	const int pnx = bs*((nx+bs-1)/bs);
 	const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box constraints
 	const int png = bs*((ng+bs-1)/bs); // cache aligned number of general constraints
+	const int pngN = bs*((ngN+bs-1)/bs); // cache aligned number of general constraints
 	const int cnz = ncl*((nz+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
+	const int cngN = ncl*((ngN+ncl-1)/ncl);
 	const int cnxg= ncl*((ng+nx+ncl-1)/ncl);
 	const int anz = nal*((nz+nal-1)/nal);
 	const int anx = nal*((nx+nal-1)/nal);
@@ -139,41 +141,57 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	
 	work = ptr;
 //	ptr += 2*anz;
-	ptr += pnz*cnxg;
+	if(cngN<=cnxg)
+		ptr += pnz*cnxg;
+	else
+		ptr += pnz*cngN;
 
 	diag = ptr;
 	ptr += anz;
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space (assume # box constraints <= 2*(nx+nu) < 2*pnz)
-	for(jj=0; jj<=N; jj++)
+	for(jj=0; jj<N; jj++)
 		{
 		dlam[jj] = ptr;
 		dt[jj]   = ptr + 2*pnb+2*png;
 		ptr += 4*pnb+4*png;
 		}
-	for(jj=0; jj<=N; jj++)
+	dlam[N] = ptr;
+	dt[N]   = ptr + 2*pnb+2*pngN;
+	ptr += 4*pnb+4*pngN;
+
+	for(jj=0; jj<N; jj++)
 		{
 		lamt[jj] = ptr;
 		ptr += 2*pnb+2*png;
 		}
-	for(jj=0; jj<=N; jj++)
+	lamt[N] = ptr;
+	ptr += 2*pnb+2*pngN;
+
+	for(jj=0; jj<N; jj++)
 		{
 		t_inv[jj] = ptr;
 		ptr += 2*pnb+2*png;
 		}
-	for(jj=0; jj<=N; jj++)
+	t_inv[N] = ptr;
+	ptr += 2*pnb+2*pngN;
+
+	for(jj=0; jj<N; jj++)
 		{
 		Qx[jj] = ptr;
 		qx[jj] = ptr+png;
 		ptr += 2*pnb+2*png;
 		}
+	Qx[N] = ptr;
+	qx[N] = ptr+png;
+	ptr += 2*pnb+2*pngN;
 
 /*dlam[0][0] = 1;*/
 /*printf("\ncazzo %f\n", dlam[0][0]);*/
 
 	double temp0, temp1;
 	double alpha, mu;
-	double mu_scal = 1.0/(N*2*(nb+ng));
+	double mu_scal = 1.0/((N-1)*2*(nb+ng)+2*(nb+ngN));
 	double sigma, sigma_decay, sigma_min;
 
 	sigma = sigma_par[0]; //0.4;
@@ -183,7 +201,7 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 
 	// initialize ux & t>0 (slack variable)
-	d_init_var_hard_mpc(N, nx, nu, nb, ng, ux, pi, pDCt, d, t, lam, mu0, warm_start);
+	d_init_var_hard_mpc(N, nx, nu, nb, ng, ngN, ux, pi, pDCt, d, t, lam, mu0, warm_start);
 
 
 
@@ -223,18 +241,18 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 
 		//update cost function matrices and vectors (box constraints)
-		d_update_hessian_hard_mpc(N, nx, nu, nb, ng, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, Qx, qx, bd, bl, pd, pl, d);
+		d_update_hessian_hard_mpc(N, nx, nu, nb, ng, ngN, cnz, sigma*mu, t, t_inv, lam, lamt, dlam, Qx, qx, bd, bl, pd, pl, d);
 
 
 
 		// compute the search direction: factorize and solve the KKT system
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, compute_mult, dpi, nb, ng, pDCt, Qx, qx);
+		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx);
 
 
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1.0;
-		d_compute_alpha_hard_mpc(N, nx, nu, nb, ng, &alpha, t, dt, lam, dlam, lamt, dux, pDCt, d);
+		d_compute_alpha_hard_mpc(N, nx, nu, nb, ng, ngN, &alpha, t, dt, lam, dlam, lamt, dux, pDCt, d);
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+1] = alpha;
@@ -245,7 +263,7 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 
 		// update x, u, lam, t & compute the duality gap mu
-		d_update_var_hard_mpc(N, nx, nu, nb, ng, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
+		d_update_var_hard_mpc(N, nx, nu, nb, ng, ngN, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
 		
 		stat[5*(*kk)+2] = mu;
 		

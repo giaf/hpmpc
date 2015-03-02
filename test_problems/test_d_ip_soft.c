@@ -532,9 +532,9 @@ int main()
 		huxs[0][nus+1] = xx0[2*idx+1];
 
 		if(IP==1)
-			hpmpc_status = d_ip_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nus, N, nbs, ngs, hpBAbts, hpQs, hpDCts, hds, huxs, compute_mult, hpis, hlams, hts, works);
+			hpmpc_status = d_ip_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nus, N, nbs, ngs, ngs, hpBAbts, hpQs, hpDCts, hds, huxs, compute_mult, hpis, hlams, hts, works);
 		else
-			hpmpc_status = d_ip2_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nus, N, nbs, ngs, hpBAbts, hpQs, hpDCts, hds, huxs, compute_mult, hpis, hlams, hts, works);
+			hpmpc_status = d_ip2_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nus, N, nbs, ngs, ngs, hpBAbts, hpQs, hpDCts, hds, huxs, compute_mult, hpis, hlams, hts, works);
 
 		kks_avg += kk;
 

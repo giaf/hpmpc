@@ -13,16 +13,19 @@ end
 nx = 12;			% number of states
 nu = 5;				% number of inputs (controls)
 N = 30;				% horizon length
-if 0
-	nb = nu+nx;		% two-sided number of box constraints
-	ng = 0;         % two-sided number of general constraints
+if 1
+	nb  = nu+nx;		% number of two-sided box constraints
+	ng  = 0;         % number of two-sided general constraints
+	ngN = nx;         % number of two-sided general constraints on last stage
 else
 	if 0
-		nb = 0;
-		ng = nu+nx;
+		nb  = 0;
+		ng  = nu+nx;
+		ngN = nu+nx;
 	else
-		nb = nu;
-		ng = nx;
+		nb  = nu;
+		ng  = nx;
+		ngN = nx;
 	end
 end
 
@@ -68,8 +71,9 @@ qq = repmat(q, 1, N);
 rr = repmat(r, 1, N);
 
 % general constraints
-C = zeros(ng, nx);
-D = zeros(ng, nu);
+C  = zeros(ng, nx);
+D  = zeros(ng, nu);
+CN = zeros(ngN, nx);
 if(ng>0)
 	if(nb==0)
 		for ii=1:min(nu,ng)
@@ -84,14 +88,19 @@ if(ng>0)
 		end
 	end
 end
-CC = [zeros(ng,nx), repmat(C, 1, N)];
-DD = [repmat(D, 1, N), zeros(ng,nu)];
+if(ngN>0)
+	for ii=1:ngN
+		CN(ii,ii) = 1.0;
+	end
+end
+CC = [zeros(ng,nx), repmat(C, 1, N-1)];
+DD = [repmat(D, 1, N)];
 %CC = [zeros(nx,ng), repmat(C', 1, N)];
 %DD = [repmat(D', 1, N), zeros(nu,ng)];
 
 % box constraints
-lb = zeros(nb+ng,1);
-ub = zeros(nb+ng,1);
+lb = zeros(nb,1);
+ub = zeros(nb,1);
 %db(1:2*nu) = -1.5;
 for ii=1:nbu
 	lb(ii) = -2.5; % lower bound
@@ -101,31 +110,56 @@ for ii=nbu+1:nb
 	lb(ii) = -10;
 	ub(ii) =  10;
 end
+llb = repmat(lb, 1, N+1);
+uub = repmat(ub, 1, N+1);
+% general constraints
+lg = zeros(ng,1);
+ug = zeros(ng,1);
 if(ng>0)
 	if(nb==0)
 		for ii=1:min(nu,ng)
-			lb(nb+ii) = -2.5; % lower bound
-			ub(nb+ii) = -0.1; % - upper bound
+			lg(ii) = -2.5; % lower bound
+			ug(ii) = -0.1; % - upper bound
 		end
 		for ii=min(nu,ng)+1:ng
-			lb(nb+ii) = -10;
-			ub(nb+ii) =  10;
+			lg(ii) = -10;
+			ug(ii) =  10;
 		end
 	else
 		for ii=1:ng
-			lb(nb+ii) = -10;
-			ub(nb+ii) =  10;
+			lg(ii) = -10;
+			ug(ii) =  10;
 		end
 	end
 end
 %db(2*nu+1:end) = -4;
-llb = repmat(lb, 1, N+1);
-uub = repmat(ub, 1, N+1);
-if(ng>0)
+llg = repmat(lg, 1, N);
+uug = repmat(ug, 1, N);
+% general constraints last stage
+lgN = zeros(ngN,1);
+ugN = zeros(ngN,1);
+if(ngN>0)
 	if(nb==0)
-		uub(1:min(nu,ng),N+1) =  0.0;
+%		for ii=1:min(nu,ng)
+%			lg(ii) = -2.5; % lower bound
+%			ug(ii) = -0.1; % - upper bound
+%		end
+		for ii=min(nu,ng)+1:ng
+			lgN(ii) =   0;
+			ugN(ii) =   0;
+		end
+	else
+		for ii=1:ng
+			lgN(ii) =   0;
+			ugN(ii) =   0;
+		end
 	end
 end
+%if(ng>0)
+%	if(nb==0)
+%		uub(1:min(nu,ng),N+1) =  0.0;
+%	end
+%end
 
 % initial guess for states and inputs
 x = zeros(nx, N+1); %x(:,1) = x0; % initial condition
@@ -142,11 +176,11 @@ compute_res = 1;
 inf_norm_res = zeros(1, 4);
 compute_mult = 1;
 mult_pi = zeros(nx,N+1);
-mult_lam = zeros(2*(nb+ng),N+1);
-mult_t = zeros(2*(nb+ng),N+1);
+mult_lam = zeros(2*(nb+ng)*N+2*(nb+ngN),1);
+mult_t = zeros(2*(nb+ng)*N+2*(nb+ngN),1);
 
 tic
-HPMPC_ip_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, CC, DD, llb, uub, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
+HPMPC_ip_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, CC, DD, llg, uug, CN, lgN, ugN, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
 toc
 
 kk

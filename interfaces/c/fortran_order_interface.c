@@ -71,11 +71,13 @@
 
 /* version dealing with equality constratins: is lb=ub, then fix the variable (corresponding column in A or B set to zero, and updated b) */
 int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char prec,
-                          int N, int nx, int nu, int nb, int ng,
+                          int N, int nx, int nu, int nb, int ng, int ngN, 
                           double* A, double* B, double* b, 
                           double* Q, double* Qf, double* S, double* R, 
                           double* q, double* qf, double* r, 
-                          double *C, double *D, double* lb, double* ub, 
+						  double *lb, double *ub,
+                          double *C, double *D, double *lg, double *ug,
+						  double *CN, double *lgf, double *ugf,
                           double* x, double* u,
 						  double *work0, 
                           double *stat,
@@ -85,6 +87,8 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 	{
 
 //printf("\nstart of wrapper\n");
+
+	//printf("\n%d %d %d %d %d %d\n", N, nx, nu, nb, ng, ngN);
 
 	int hpmpc_status = -1;
 
@@ -101,16 +105,19 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 		const int ncl = D_NCL;
 		const int nal = D_MR*D_NCL;
 	
-		const int nz = nx+nu+1;
-		const int pnz = bs*((nz+bs-1)/bs);
-		const int pnx = bs*((nx+bs-1)/bs);
-		const int pnb = bs*((nb+bs-1)/bs);
-		const int png = bs*((ng+bs-1)/bs);
-		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
-		const int cnx = ncl*((nx+ncl-1)/ncl);
-		const int cng = ncl*((ng+ncl-1)/ncl);
-		const int anz = nal*((nz+nal-1)/nal);
-		const int anx = nal*((nx+nal-1)/nal);
+		const int nz   = nx+nu+1;
+		const int pnz  = bs*((nz+bs-1)/bs);
+		const int pnu  = bs*((nu+bs-1)/bs);
+		const int pnx  = bs*((nx+bs-1)/bs);
+		const int pnb  = bs*((nb+bs-1)/bs);
+		const int png  = bs*((ng+bs-1)/bs);
+		const int pngN = bs*((ngN+bs-1)/bs);
+		const int cnz  = ncl*((nx+nu+1+ncl-1)/ncl);
+		const int cnx  = ncl*((nx+ncl-1)/ncl);
+		const int cng  = ncl*((ng+ncl-1)/ncl);
+		const int cngN = ncl*((ngN+ncl-1)/ncl);
+		const int anz  = nal*((nz+nal-1)/nal);
+		const int anx  = nal*((nx+nal-1)/nal);
 
 		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
@@ -162,11 +169,16 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 
 		if(ng>0)
 			{
-			for(ii=0; ii<=N; ii++)
+			for(ii=0; ii<N; ii++)
 				{
 				hpDCt[ii] = ptr;
 				ptr += pnz*cng;
 				}
+			}
+		if(ngN>0)
+			{
+			hpDCt[N] = ptr;
+			ptr += pnz*cngN;
 			}
 
         for(ii=0; ii<=N; ii++) // time variant and copied again internally in the IP !!!
@@ -181,11 +193,13 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
             ptr += anz;
 	        }
 
-        for(ii=0; ii<=N; ii++) // time Variant box constraints
+        for(ii=0; ii<N; ii++) // time Variant box constraints
 	        {
             hd[ii] = ptr;
             ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
 	        }
+		hd[N] = ptr;
+		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
 
         for(ii=0; ii<=N; ii++) // time Variant box constraints
 	        {
@@ -193,17 +207,21 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
             ptr += anx; // for alignment of ptr
 	        }
 
-        for(ii=0; ii<=N; ii++) // time Variant box constraints
+        for(ii=0; ii<N; ii++) // time Variant box constraints
 	        {
             hlam[ii] = ptr;
             ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
 	        }
+		hlam[N] = ptr;
+		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
 
-        for(ii=0; ii<=N; ii++) // time Variant box constraints
+        for(ii=0; ii<N; ii++) // time Variant box constraints
 	        {
             ht[ii] = ptr;
             ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
 	        }
+		ht[N] = ptr;
+		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
 
 		if(compute_res)
 			{
@@ -226,11 +244,13 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 				ptr += anz;
 				}
 
-			for(ii=0; ii<=N; ii++)
+			for(ii=0; ii<N; ii++)
 				{
 				hrd[ii] = ptr;
 				ptr += 2*pnb+2*png;
 				}
+			hrd[N] = ptr;
+			ptr += 2*pnb+2*pngN;
 
 			}
 
@@ -259,12 +279,22 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 		// general constraints
 		if(ng>0)
 			{
-			for(ii=0; ii<=N; ii++)
+			for(ii=0; ii<N; ii++)
 				{
 				d_cvt_tran_mat2pmat(ng, nu, 0, bs, D+ii*nu*ng, ng, hpDCt[ii], cng);
 				d_cvt_tran_mat2pmat(ng, nx, nu, bs, C+ii*nx*ng, ng, hpDCt[ii]+nu/bs*cng*bs+nu%bs, cng);
 				}
 			}
+		if(ngN>0)
+			{
+			for(ii=0; ii<pnu*cngN; ii++) hpDCt[N][ii] = 0.0; // make sure D is zero !!!!!
+			d_cvt_tran_mat2pmat(ngN, nx, nu, bs, CN, ngN, hpDCt[N]+nu/bs*cngN*bs+nu%bs, cngN);
+			}
+		//d_print_mat(ngN, nx, CN, ngN);
+		//d_print_pmat(nx+nu, ng, bs, hpDCt[0], cng);
+		//d_print_pmat(nx+nu, ng, bs, hpDCt[1], cng);
+		//d_print_pmat(nx+nu, ngN, bs, hpDCt[N], cngN);
+		//exit(1);
 		//printf("\n%d %d\n", nb, ng);
 		//d_print_mat(ng, nx, C, ng);
 		//d_print_mat(ng, nx, C+nx*ng, ng);
@@ -322,24 +352,24 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 			{
 			for(ii=0; ii<nbu; ii++)
 				{
-				if(lb[ii+(nb+ng)*jj]!=ub[ii+(nb+ng)*jj]) // equality constraint
+				if(lb[ii+nb*jj]!=ub[ii+nb*jj]) // equality constraint
 					{
-					hd[jj][ii+0]   =   lb[ii+(nb+ng)*jj];
-					hd[jj][ii+pnb] = - ub[ii+(nb+ng)*jj];
+					hd[jj][ii+0]   =   lb[ii+nb*jj];
+					hd[jj][ii+pnb] = - ub[ii+nb*jj];
 					}
 				else
 					{
 					for(ll=0; ll<nx; ll++)
 						{
 						// update linear term
-						hpBAbt[jj][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+ll*bs] += hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs]*lb[ii+nu*jj];
+						hpBAbt[jj][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+ll*bs] += hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs]*lb[ii+nb*jj];
 						// zero corresponding B column
 						hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs] = 0;
 						}
 					
 					// inactive box constraints
-					hd[jj][ii+0]   =   lb[ii+(nb+ng)*jj] + 1e3;
-					hd[jj][ii+pnb] = - ub[ii+(nb+ng)*jj] - 1e3;
+					hd[jj][ii+0]   =   lb[ii+nb*jj] + 1e3;
+					hd[jj][ii+pnb] = - ub[ii+nb*jj] - 1e3;
 
 					}
 				}
@@ -349,8 +379,8 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 			{
 			for(ii=nbu; ii<nb; ii++)
 				{
-				hd[jj][ii+0]   =   lb[ii+(nb+ng)*jj];
-				hd[jj][ii+pnb] = - ub[ii+(nb+ng)*jj];
+				hd[jj][ii+0]   =   lb[ii+nb*jj];
+				hd[jj][ii+pnb] = - ub[ii+nb*jj];
 				//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
 				//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
 				}
@@ -358,18 +388,26 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 		// general constraints
 		if(ng>0)
 			{
-			for(jj=0; jj<=N; jj++)
+			for(jj=0; jj<N; jj++)
 				{
 				for(ii=0; ii<ng; ii++)
 					{
-					hd[jj][2*pnb+ii+0]   =   lb[nb+ii+(nb+ng)*jj];
-					hd[jj][2*pnb+ii+png] = - ub[nb+ii+(nb+ng)*jj];
+					hd[jj][2*pnb+ii+0]   =   lg[ii+ng*jj];
+					hd[jj][2*pnb+ii+png] = - ug[ii+ng*jj];
 					}
 				}
 			}
-		//d_print_mat(2*pnb+2*png, 1, hd[0], 1);
-		//d_print_mat(2*pnb+2*png, 1, hd[1], 1);
-		//d_print_mat(2*pnb+2*png, 1, hd[N], 1);
+		if(ngN>0) // last stage
+			{
+			for(ii=0; ii<ngN; ii++)
+				{
+				hd[N][2*pnb+ii+0]    =   lgf[ii];
+				hd[N][2*pnb+ii+pngN] = - ugf[ii];
+				}
+			}
+		//d_print_mat(1, 2*pnb+2*png, hd[0], 1);
+		//d_print_mat(1, 2*pnb+2*png, hd[1], 1);
+		//d_print_mat(1, 2*pnb+2*pngN, hd[N], 1);
 		//exit(1);
 
         // initial guess
@@ -385,9 +423,9 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 
         // call the IP solver
 	    if(IP==1)
-	        hpmpc_status = d_ip_hard_mpc(kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+	        hpmpc_status = d_ip_hard_mpc(kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, ng, ngN, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 	    else
-	        hpmpc_status = d_ip2_hard_mpc(kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+	        hpmpc_status = d_ip2_hard_mpc(kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, ng, ngN, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 
 
 
@@ -407,9 +445,9 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 			{
 			for(ii=0; ii<nbu; ii++)
 				{
-				if(lb[ii+(nb+ng)*jj]==ub[ii+(nb+ng)*jj]) // equality constraint
+				if(lb[ii+nb*jj]==ub[ii+nb*jj]) // equality constraint
 					{
-	                u[ii+nu*jj] = lb[ii+(nb+ng)*jj];
+	                u[ii+nu*jj] = lb[ii+nb*jj];
 					}
 				}
 			}
@@ -431,7 +469,7 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 
 			double mu;
 
-			d_res_ip_hard_mpc(nx, nu, N, nb, ng, hpBAbt, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+			d_res_ip_hard_mpc(nx, nu, N, nb, ng, ngN, hpBAbt, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 			temp = fabs(hrq[0][0]);
 			for(jj=0; jj<nu; jj++) 
@@ -466,12 +504,17 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 				temp = fmax( temp, fabs(hrq[N][jj]) );
 				temp = fmax( temp, fabs(hrq[N][pnb+jj]) );
 				}
-			for(ii=0; ii<=N; ii++)
+			for(ii=0; ii<N; ii++)
 				for(jj=2*pnb; jj<2*pnb+ng; jj++) 
 					{
 					temp = fmax( temp, fabs(hrd[ii][jj]) );
 					temp = fmax( temp, fabs(hrd[ii][png+jj]) );
 					}
+			for(jj=2*pnb; jj<2*pnb+ngN; jj++) 
+				{
+				temp = fmax( temp, fabs(hrd[N][jj]) );
+				temp = fmax( temp, fabs(hrd[N][pngN+jj]) );
+				}
 			inf_norm_res[2] = temp;
 
 			inf_norm_res[3] = mu;
@@ -508,13 +551,13 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 			ii = N;
 			for(jj=nbu; jj<nb; jj++)
 				{
-				lam[jj+ii*(2*nb+2*ng)]       = hlam[ii][jj];
-				lam[jj+ii*(2*nb+2*ng)+nb+ng] = hlam[ii][pnb+jj];
-				t[jj+ii*(2*nb+2*ng)]       = ht[ii][jj];
-				t[jj+ii*(2*nb+2*ng)+nb+ng] = ht[ii][pnb+jj];
+				lam[jj+ii*(2*nb+2*ng)]        = hlam[ii][jj];
+				lam[jj+ii*(2*nb+2*ng)+nb+ngN] = hlam[ii][pnb+jj];
+				t[jj+ii*(2*nb+2*ng)]        = ht[ii][jj];
+				t[jj+ii*(2*nb+2*ng)+nb+ngN] = ht[ii][pnb+jj];
 				}
 
-			for(ii=0; ii<=N; ii++)
+			for(ii=0; ii<N; ii++)
 				for(jj=0; jj<ng; jj++)
 					{
 					lam[jj+ii*(2*nb+2*ng)+nb]       = hlam[ii][2*pnb+jj];
@@ -522,9 +565,15 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 					t[jj+ii*(2*nb+2*ng)+nb]       = ht[ii][2*pnb+jj];
 					t[jj+ii*(2*nb+2*ng)+nb+ng+nb] = ht[ii][2*pnb+png+jj];
 					}
+			for(jj=0; jj<ngN; jj++)
+				{
+				lam[jj+N*(2*nb+2*ng)+nb]        = hlam[N][2*pnb+jj];
+				lam[jj+N*(2*nb+2*ng)+nb+ngN+nb] = hlam[N][2*pnb+pngN+jj];
+				t[jj+N*(2*nb+2*ng)+nb]        = ht[N][2*pnb+jj];
+				t[jj+N*(2*nb+2*ng)+nb+ngN+nb] = ht[N][2*pnb+pngN+jj];
+				}
 
 			}
-
 
 
 
@@ -1340,8 +1389,8 @@ int fortran_order_riccati_mpc( const char prec,
 		const int anz = nal*((nz+nal-1)/nal);
 		const int anx = nal*((nx+nal-1)/nal);
 
-		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+		//const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
+		const int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
 
 		//double *work = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 2*anz + 2*anx) + 3*anz)*sizeof(double));
 
@@ -1462,7 +1511,7 @@ int fortran_order_riccati_mpc( const char prec,
 		double **dummy;
 
 		// call Riccati solver
-		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, compute_mult, hpi, 0, 0, dummy, dummy, dummy);
+		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, compute_mult, hpi, 0, 0, 0, dummy, dummy, dummy);
 
 
 

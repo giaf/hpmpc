@@ -242,7 +242,7 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 		const int update_hessian = 1;
 
 		// initial factorization
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, ux_u, pL, work1, diag, compute_mult, pi, 0, 0, dummy, dummy, dummy);
+		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, ux_u, pL, work1, diag, compute_mult, pi, 0, 0, 0, dummy, dummy, dummy);
 
 
 
@@ -385,7 +385,7 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 			}
 
 		// Riccati solver		
-		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, ux_u, work1, compute_Pb, Pb, compute_mult, pi, 0, 0, dummy, dummy);
+		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, ux_u, work1, compute_Pb, Pb, compute_mult, pi, 0, 0, 0, dummy, dummy);
 		compute_Pb = 0;
 
 

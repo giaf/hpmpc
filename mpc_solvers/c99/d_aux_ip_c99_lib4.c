@@ -29,21 +29,23 @@
 
 
 
-void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, double **pi, double **pDCt, double **db, double **t, double **lam, double mu0, int warm_start)
+void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, double **ux, double **pi, double **pDCt, double **db, double **t, double **lam, double mu0, int warm_start)
 	{
 
 	const int nbu = nu<nb ? nu : nb ;
 	
 	// constants
-	const int bs = D_MR;
+	const int bs  = D_MR;
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box constraints
-	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of box constraints
+	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of box constraints
 	//const int ang = nal*((ng+nal-1)/nal); // cache aligned number of general constraints
-	const int png = bs*((ng+bs-1)/bs); // cache aligned number of general constraints
-	const int cng = ncl*((ng+ncl-1)/ncl);
+	const int png  = bs*((ng+bs-1)/bs); // cache aligned number of general constraints
+	const int pngN = bs*((ngN+bs-1)/bs); // cache aligned number of general constraints at stage N
+	const int cng  = ncl*((ng+ncl-1)/ncl);
+	const int cngN = ncl*((ngN+ncl-1)/ncl);
 
 	int jj, ll, ii;
 	
@@ -276,7 +278,7 @@ void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, dou
 	// TODO find a better way to initialize general constraints
 	if(ng>0)
 		{
-		for(jj=0; jj<=N; jj++)
+		for(jj=0; jj<N; jj++)
 			{
 
 			ptr_t   = t[jj];
@@ -295,6 +297,25 @@ void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double **ux, dou
 				ptr_lam[ll]     = mu0/ptr_t[ll];
 				ptr_lam[png+ll] = mu0/ptr_t[png+ll];
 				}
+			}
+		}
+	if(ngN>0)
+		{
+		ptr_t   = t[N];
+		ptr_lam = lam[N];
+		ptr_db  = db[N];
+
+		dgemv_t_lib(nx+nu, ngN, pDCt[N], cngN, ux[N], ptr_t+2*pnb, 0);
+
+		for(ll=2*pnb; ll<2*pnb+ngN; ll++)
+			{
+			ptr_t[ll+pngN] = - ptr_t[ll];
+			ptr_t[ll]      += - ptr_db[ll];
+			ptr_t[ll+pngN] += - ptr_db[ll+pngN];
+			ptr_t[ll]      = fmax( thr0, ptr_t[ll] );
+			ptr_t[pngN+ll] = fmax( thr0, ptr_t[pngN+ll] );
+			ptr_lam[ll]      = mu0/ptr_t[ll];
+			ptr_lam[pngN+ll] = mu0/ptr_t[pngN+ll];
 			}
 		}
 
@@ -551,7 +572,7 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double **ux, dou
 
 
 
-void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **Qx, double **qx, double **bd, double **bl, double **pd, double **pl, double **db)
+void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **Qx, double **qx, double **bd, double **bl, double **pd, double **pl, double **db)
 	{
 	
 	const int nbu = nu<nb ? nu : nb ;
@@ -562,8 +583,9 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int cnz, d
 	const int nal = bs*ncl; // number of doubles per cache line
 
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
-	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of box constraints
-	const int png = bs*((ng+bs-1)/bs); // simd aligned number of general constraints
+	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of box constraints
+	const int png  = bs*((ng+bs-1)/bs); // simd aligned number of general constraints
+	const int pngN = bs*((ngN+bs-1)/bs); // simd aligned number of general constraints at last stage
 
 	//const int k0 = nbu;
 	//const int k1 = (nu/bs)*bs;
@@ -808,7 +830,7 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int cnz, d
 	// general constraints
 	if(ng>0)
 		{
-		for(jj=0; jj<=N; jj++)
+		for(jj=0; jj<N; jj++)
 			{
 
 			ptr_t     = t[jj];
@@ -881,6 +903,78 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int cnz, d
 				}
 			}
 
+		}
+	if(ngN>0)
+		{
+
+		ptr_t     = t[N];
+		ptr_lam   = lam[N];
+		ptr_lamt  = lamt[N];
+		ptr_dlam  = dlam[N];
+		ptr_tinv = t_inv[N];
+		ptr_db    = db[N];
+		ptr_bd    = bd[N];
+		ptr_bl    = bl[N];
+		ptr_pd    = pd[N];
+		ptr_pl    = pl[N];
+
+		ptr_Qx    = Qx[N];
+		ptr_qx    = qx[N];
+
+		ii = 2*pnb;
+		for(; ii<2*pnb+ngN-3; ii+=4)
+			{
+
+			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+			ptr_tinv[ii+pngN+0] = 1.0/ptr_t[ii+pngN+0];
+			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+			ptr_lamt[ii+pngN+0] = ptr_lam[ii+pngN+0]*ptr_tinv[ii+pngN+0];
+			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pngN+0] = ptr_tinv[ii+pngN+0]*sigma_mu; // !!!!!
+			ptr_qx[ii+0] =  ptr_lam[ii+pngN+0] + ptr_lamt[ii+pngN+0]*ptr_db[ii+pngN+0] + ptr_dlam[ii+pngN+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
+			ptr_Qx[ii+0] = sqrt(ptr_lamt[ii+0] + ptr_lamt[ii+pngN+0]);
+
+			ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
+			ptr_tinv[ii+pngN+1] = 1.0/ptr_t[ii+pngN+1];
+			ptr_lamt[ii+1] = ptr_lam[ii+1]*ptr_tinv[ii+1];
+			ptr_lamt[ii+pngN+1] = ptr_lam[ii+pngN+1]*ptr_tinv[ii+pngN+1];
+			ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pngN+1] = ptr_tinv[ii+pngN+1]*sigma_mu; // !!!!!
+			ptr_qx[ii+1] =  ptr_lam[ii+pngN+1] + ptr_lamt[ii+pngN+1]*ptr_db[ii+pngN+1] + ptr_dlam[ii+pngN+1] - ptr_lam[ii+1] - ptr_lamt[ii+1]*ptr_db[ii+1] - ptr_dlam[ii+1];
+			ptr_Qx[ii+1] = sqrt(ptr_lamt[ii+1] + ptr_lamt[ii+pngN+1]);
+
+			ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
+			ptr_tinv[ii+pngN+2] = 1.0/ptr_t[ii+pngN+2];
+			ptr_lamt[ii+2] = ptr_lam[ii+2]*ptr_tinv[ii+2];
+			ptr_lamt[ii+pngN+2] = ptr_lam[ii+pngN+2]*ptr_tinv[ii+pngN+2];
+			ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pngN+2] = ptr_tinv[ii+pngN+2]*sigma_mu; // !!!!!
+			ptr_qx[ii+2] =  ptr_lam[ii+pngN+2] + ptr_lamt[ii+pngN+2]*ptr_db[ii+pngN+2] + ptr_dlam[ii+pngN+2] - ptr_lam[ii+2] - ptr_lamt[ii+2]*ptr_db[ii+2] - ptr_dlam[ii+2];
+			ptr_Qx[ii+2] = sqrt(ptr_lamt[ii+2] + ptr_lamt[ii+pngN+2]);
+
+			ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
+			ptr_tinv[ii+pngN+3] = 1.0/ptr_t[ii+pngN+3];
+			ptr_lamt[ii+3] = ptr_lam[ii+3]*ptr_tinv[ii+3];
+			ptr_lamt[ii+pngN+3] = ptr_lam[ii+pngN+3]*ptr_tinv[ii+pngN+3];
+			ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pngN+3] = ptr_tinv[ii+pngN+3]*sigma_mu; // !!!!!
+			ptr_qx[ii+3] =  ptr_lam[ii+pngN+3] + ptr_lamt[ii+pngN+3]*ptr_db[ii+pngN+3] + ptr_dlam[ii+pngN+3] - ptr_lam[ii+3] - ptr_lamt[ii+3]*ptr_db[ii+3] - ptr_dlam[ii+3];
+			ptr_Qx[ii+3] = sqrt(ptr_lamt[ii+3] + ptr_lamt[ii+pngN+3]);
+
+			}
+		for(; ii<2*pnb+ngN; ii++)
+			{
+
+			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+			ptr_tinv[ii+pngN+0] = 1.0/ptr_t[ii+pngN+0];
+			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+			ptr_lamt[ii+pngN+0] = ptr_lam[ii+pngN+0]*ptr_tinv[ii+pngN+0];
+			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pngN+0] = ptr_tinv[ii+pngN+0]*sigma_mu; // !!!!!
+			ptr_qx[ii+0] =  ptr_lam[ii+pngN+0] + ptr_lamt[ii+pngN+0]*ptr_db[ii+pngN+0] + ptr_dlam[ii+pngN+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
+			ptr_Qx[ii+0] = sqrt(ptr_lamt[ii+0] + ptr_lamt[ii+pngN+0]);
+
+			}
 		}
 
 
@@ -1541,7 +1635,7 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 
 
 
-void d_update_gradient_hard_mpc(int N, int nx, int nu, int nb, int ng, double sigma_mu, double **dt, double **dlam, double **t_inv, double **pl2, double **qx)
+void d_update_gradient_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, double sigma_mu, double **dt, double **dlam, double **t_inv, double **pl2, double **qx)
 	{
 
 	const int nbu = nu<nb ? nu : nb ;
@@ -1552,8 +1646,9 @@ void d_update_gradient_hard_mpc(int N, int nx, int nu, int nb, int ng, double si
 	const int nal = bs*ncl; // number of doubles per cache line
 
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
-	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
-	const int png = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int png  = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int pngN = bs*((ngN+bs-1)/bs); // simd aligned number of box and soft constraints at last stage
 
 	int ii, jj;
 
@@ -1611,7 +1706,7 @@ void d_update_gradient_hard_mpc(int N, int nx, int nu, int nb, int ng, double si
 	if(ng>0)
 		{
 
-		for(jj=0; jj<=N; jj++)
+		for(jj=0; jj<N; jj++)
 			{
 
 			ptr_dlam  = dlam[jj];
@@ -1627,6 +1722,23 @@ void d_update_gradient_hard_mpc(int N, int nx, int nu, int nb, int ng, double si
 				ptr_qx[ii] = ptr_dlam[png+ii] - ptr_dlam[ii];
 				}
 
+			}
+
+		}
+	if(ngN>0)
+		{
+
+		ptr_dlam  = dlam[N];
+		ptr_dt    = dt[N];
+		ptr_t_inv = t_inv[N];
+		ptr_pl2   = pl2[N];
+		ptr_qx    = qx[N];
+
+		for(ii=2*pnb; ii<2*pnb+ngN; ii++)
+			{
+			ptr_dlam[ii]     = ptr_t_inv[ii]    *(sigma_mu - ptr_dlam[ii]*ptr_dt[ii]);
+			ptr_dlam[pngN+ii] = ptr_t_inv[pngN+ii]*(sigma_mu - ptr_dlam[pngN+ii]*ptr_dt[pngN+ii]);
+			ptr_qx[ii] = ptr_dlam[pngN+ii] - ptr_dlam[ii];
 			}
 
 		}
@@ -1734,7 +1846,7 @@ void d_update_gradient_soft_mpc(int N, int nx, int nu, int nh, int ns, double si
 
 
 
-void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **pDCt, double **db)
+void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **pDCt, double **db)
 	{
 	
 /*	const int bs = 4; //d_get_mr();*/
@@ -1747,9 +1859,11 @@ void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr
 	const int nal = bs*ncl; // number of doubles per cache line
 
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
-	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
-	const int png = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
-	const int cng = ncl*((ng+ncl-1)/ncl); // simd aligned number of box and soft constraints
+	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int png  = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int pngN = bs*((ngN+bs-1)/bs); // simd aligned number of box and soft constraints at last stage
+	const int cng  = ncl*((ng+ncl-1)/ncl); // simd aligned number of box and soft constraints
+	const int cngN = ncl*((ngN+ncl-1)/ncl); // simd aligned number of box and soft constraints at last stage
 
 	double alpha = ptr_alpha[0];
 	
@@ -1882,7 +1996,7 @@ void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr
 	if(ng>0)
 		{
 
-		for(jj=0; jj<=N; jj++)
+		for(jj=0; jj<N; jj++)
 			{
 		
 			ptr_db   = db[jj];
@@ -1919,6 +2033,46 @@ void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr
 					alpha = - ptr_t[ll+png] / ptr_dt[ll+png];
 					}
 
+				}
+
+			}
+
+		}
+	if(ngN>0)
+		{
+
+		ptr_db   = db[N];
+		ptr_dux  = dux[N];
+		ptr_t    = t[N];
+		ptr_dt   = dt[N];
+		ptr_lamt = lamt[N];
+		ptr_lam  = lam[N];
+		ptr_dlam = dlam[N];
+
+		dgemv_t_lib(nx+nu, ngN, pDCt[N], cngN, ptr_dux, ptr_dt+2*pnb, 0);
+
+		for(ll=2*pnb; ll<2*pnb+ngN; ll++)
+			{
+			ptr_dt[ll+pngN] = - ptr_dt[ll];
+			ptr_dt[ll+0]    += - ptr_db[ll+0]   - ptr_t[ll+0];
+			ptr_dt[ll+pngN] += - ptr_db[ll+pngN] - ptr_t[ll+pngN];
+			ptr_dlam[ll+0]    -= ptr_lamt[ll+0]   * ptr_dt[ll+0]   + ptr_lam[ll+0];
+			ptr_dlam[ll+pngN] -= ptr_lamt[ll+pngN] * ptr_dt[ll+pngN] + ptr_lam[ll+pngN];
+			if( -alpha*ptr_dlam[ll+0]>ptr_lam[ll+0] )
+				{
+				alpha = - ptr_lam[ll+0] / ptr_dlam[ll+0];
+				}
+			if( -alpha*ptr_dlam[ll+pngN]>ptr_lam[ll+pngN] )
+				{
+				alpha = - ptr_lam[ll+pngN] / ptr_dlam[ll+pngN];
+				}
+			if( -alpha*ptr_dt[ll+0]>ptr_t[ll+0] )
+				{
+				alpha = - ptr_t[ll+0] / ptr_dt[ll+0];
+				}
+			if( -alpha*ptr_dt[ll+pngN]>ptr_t[ll+pngN] )
+				{
+				alpha = - ptr_t[ll+pngN] / ptr_dt[ll+pngN];
 				}
 
 			}
@@ -2158,7 +2312,7 @@ void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr
 
 
 
-void d_update_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
+void d_update_var_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
 	{
 
 	const int nbu = nu<nb ? nu : nb ;
@@ -2169,8 +2323,9 @@ void d_update_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr_mu
 	const int nal = bs*ncl; // number of doubles per cache line
 
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
-	const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box and soft constraints
-	const int png = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int pnb  = bs*((nb+bs-1)/bs); // cache aligned number of box and soft constraints
+	const int png  = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int pngN = bs*((ngN+bs-1)/bs); // simd aligned number of box and soft constraints at last stage
 
 	int jj, ll;
 	
@@ -2263,7 +2418,7 @@ void d_update_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr_mu
 	if(ng>0)
 		{
 
-		for(jj=0; jj<=N; jj++)
+		for(jj=0; jj<N; jj++)
 			{
 
 			ptr_t    = t[jj];
@@ -2279,6 +2434,25 @@ void d_update_var_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr_mu
 				ptr_t[ll+png] += alpha*ptr_dt[ll+png];
 				mu += ptr_lam[ll+0] * ptr_t[ll+0] + ptr_lam[ll+png] * ptr_t[ll+png];
 				}
+			}
+
+		}
+
+	if(ngN>0)
+		{
+
+		ptr_t    = t[N];
+		ptr_dt   = dt[N];
+		ptr_lam  = lam[N];
+		ptr_dlam = dlam[N];
+
+		for(ll=2*pnb; ll<2*pnb+ngN; ll++)
+			{
+			ptr_lam[ll+0] += alpha*ptr_dlam[ll+0];
+			ptr_lam[ll+pngN] += alpha*ptr_dlam[ll+pngN];
+			ptr_t[ll+0] += alpha*ptr_dt[ll+0];
+			ptr_t[ll+pngN] += alpha*ptr_dt[ll+pngN];
+			mu += ptr_lam[ll+0] * ptr_t[ll+0] + ptr_lam[ll+pngN] * ptr_t[ll+pngN];
 			}
 
 		}
@@ -2403,7 +2577,7 @@ void d_update_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr_mu
 
 
 
-void d_compute_mu_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
+void d_compute_mu_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
 	{
 	
 	const int nbu = nu<nb ? nu : nb ;
@@ -2414,8 +2588,9 @@ void d_compute_mu_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr_mu
 	const int nal = bs*ncl; // number of doubles per cache line
 
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
-	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
-	const int png = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int png  = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
+	const int pngN = bs*((ngN+bs-1)/bs); // simd aligned number of box and soft constraints at last stage
 
 	int jj, ll;
 	
@@ -2469,7 +2644,7 @@ void d_compute_mu_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr_mu
 	if(ng>0)
 		{
 
-		for(jj=0; jj<=N; jj++)
+		for(jj=0; jj<N; jj++)
 			{
 
 			ptr_t    = t[jj];
@@ -2481,6 +2656,20 @@ void d_compute_mu_hard_mpc(int N, int nx, int nu, int nb, int ng, double *ptr_mu
 				{
 				mu += (ptr_lam[ll+0] + alpha*ptr_dlam[ll+0]) * (ptr_t[ll+0] + alpha*ptr_dt[ll+0]) + (ptr_lam[ll+png] + alpha*ptr_dlam[ll+png]) * (ptr_t[ll+png] + alpha*ptr_dt[ll+png]);
 				}
+			}
+
+		}
+	if(ngN>0)
+		{
+
+		ptr_t    = t[N];
+		ptr_lam  = lam[N];
+		ptr_dt   = dt[N];
+		ptr_dlam = dlam[N];
+
+		for(ll=2*pnb; ll<2*pnb+ngN; ll++)
+			{
+			mu += (ptr_lam[ll+0] + alpha*ptr_dlam[ll+0]) * (ptr_t[ll+0] + alpha*ptr_dt[ll+0]) + (ptr_lam[ll+pngN] + alpha*ptr_dlam[ll+pngN]) * (ptr_t[ll+pngN] + alpha*ptr_dt[ll+pngN]);
 			}
 
 		}

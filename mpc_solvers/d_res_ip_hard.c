@@ -29,20 +29,22 @@
 
 
 
-void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpDCt, double **hd, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double *mu)
+void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, int ngN, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpDCt, double **hd, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double *mu)
 	{
 
 	const int bs = D_MR;
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	const int pnz = bs*((nx+nu+1+bs-1)/bs);
-	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
-	const int cnx = ncl*((nx+ncl-1)/ncl);
-	const int cng = ncl*((ng+ncl-1)/ncl);
+	const int pnz  = bs*((nx+nu+1+bs-1)/bs);
+	const int cnz  = ncl*((nx+nu+1+ncl-1)/ncl);
+	const int cnx  = ncl*((nx+ncl-1)/ncl);
+	const int cng  = ncl*((ng+ncl-1)/ncl);
+	const int cngN = ncl*((ngN+ncl-1)/ncl);
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box constraints
-	const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box constraints
-	const int png = bs*((ng+bs-1)/bs); // cache aligned number of box constraints
+	const int pnb  = bs*((nb+bs-1)/bs); // cache aligned number of box constraints
+	const int png  = bs*((ng+bs-1)/bs); // cache aligned number of box constraints
+	const int pngN = bs*((ngN+bs-1)/bs); // cache aligned number of box constraints
 
 	static double temp[D_MR] = {};
 
@@ -145,7 +147,7 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, double **hpBAbt, d
 	// general constraints
 	if(ng>0)
 		{
-		for(ii=0; ii<=N; ii++)
+		for(ii=0; ii<N; ii++)
 			{
 
 			for(jj=0 ; jj<ng; jj++) 
@@ -165,9 +167,27 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, double **hpBAbt, d
 				
 			}
 		}
+	if(ngN>0)
+		{
+		for(jj=0 ; jj<ngN; jj++) 
+			mu[0] += hlam[N][2*pnb+jj] * ht[N][2*pnb+jj] + hlam[N][2*pnb+pngN+jj] * ht[N][2*pnb+pngN+jj];
+
+		dgemv_t_lib(nx+nu, ngN, hpDCt[N], cngN, hux[N], hrd[N]+2*pnb, 0);
+		for(jj=0; jj<ngN; jj++)
+			{
+			hrd[N][2*pnb+pngN+jj] = - hrd[N][2*pnb+jj];
+			hrd[N][2*pnb+jj] += - hd[N][2*pnb+jj] - ht[N][2*pnb+jj];
+			hrd[N][2*pnb+pngN+jj] += - hd[N][2*pnb+pngN+jj] - ht[N][2*pnb+pngN+jj];
+			}
+
+		// TODO work space + one dgemv call
+		dgemv_n_lib(nx+nu, ngN, hpDCt[N], cngN, hlam[N]+2*pnb, hrq[N], 1);
+		dgemv_n_lib(nx+nu, ngN, hpDCt[N], cngN, hlam[N]+2*pnb+pngN, hrq[N], -1);
+			
+		}
 
 	// normalize mu
-	mu[0] /= N*2*(nb+ng); // + 2*nbx;
+	mu[0] /= (N-1)*2*(nb+ng) + 2*(nb+ngN); // + 2*nbx;
 
 	}
 

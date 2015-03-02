@@ -159,11 +159,13 @@ int main()
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
 #if 1
-	int nb = NB; // number of box constrained inputs and states
-	int ng = 0; //4;  // number of general constraints
+	int nb  = NB; // number of box constrained inputs and states
+	int ng  = 0; //4;  // number of general constraints
+	int ngN = 0;//nx;
 #else
-	int nb = 0;//NB; // number of box constrained inputs and states
-	int ng = nx+nu;//0; //4;  // number of general constraints
+	int nb  = 0;//NB; // number of box constrained inputs and states
+	int ng  = nx+nu;//0; //4;  // number of general constraints
+	int ngN = nx;//0; //4;  // number of general constraints at last stage
 #endif
 
 	int nbu = nu<nb ? nu : nb ;
@@ -171,7 +173,7 @@ int main()
 
 	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx/2, nu);
 	printf("\n");
-	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints, %d two-sided general constraints.\n", nx, nu, N, nb, ng);
+	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints, %d two-sided general constraints, %d two-sided general constraints on the last stage.\n", nx, nu, N, nb, ng, ngN);
 	printf("\n");
 #if IP == 1
 	printf(" IP method parameters: primal-dual IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_param.c to change them).\n", K_MAX, MU_TOL);
@@ -183,23 +185,25 @@ int main()
 
 	int info = 0;
 		
-	const int bs = D_MR; //d_get_mr();
+	const int bs  = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 	
-	const int nz = nx+nu+1;
-	const int pnz = bs*((nz+bs-1)/bs);
-	const int pnx = bs*((nx+bs-1)/bs);
-	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
-	const int cnx = ncl*((nx+ncl-1)/ncl);
-	const int cng = ncl*((ng+ncl-1)/ncl);
-	const int cnxg= ncl*((ng+nx+ncl-1)/ncl);
+	const int nz   = nx+nu+1;
+	const int pnz  = bs*((nz+bs-1)/bs);
+	const int pnx  = bs*((nx+bs-1)/bs);
+	const int cnz  = ncl*((nx+nu+1+ncl-1)/ncl);
+	const int cnx  = ncl*((nx+ncl-1)/ncl);
+	const int cng  = ncl*((ng+ncl-1)/ncl);
+	const int cngN = ncl*((ngN+ncl-1)/ncl);
+	const int cnxg = ncl*((ng+nx+ncl-1)/ncl);
 	//const int pnb = bs*((2*nb+bs-1)/bs); // packed number of box constraints
-	const int pnb = bs*((nb+bs-1)/bs); // simd aligned number of one-sided box constraints !!!!!!!!!!!!
-	const int png = bs*((ng+bs-1)/bs); // simd aligned number of one-sided box constraints !!!!!!!!!!!!
-	const int anz = nal*((nz+nal-1)/nal);
-	const int anx = nal*((nx+nal-1)/nal);
-//	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box constraints
+	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of one-sided box constraints !!!!!!!!!!!!
+	const int png  = bs*((ng+bs-1)/bs); // simd aligned number of one-sided box constraints !!!!!!!!!!!!
+	const int pngN = bs*((ngN+bs-1)/bs); // simd aligned number of one-sided box constraints !!!!!!!!!!!!
+	const int anz  = nal*((nz+nal-1)/nal);
+	const int anx  = nal*((nx+nal-1)/nal);
+//	const int anb  = nal*((2*nb+nal-1)/nal); // cache aligned number of box constraints
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of one-sided box constraints !!!!!!!!!!!!
 	//const int ang = nal*((ng+nal-1)/nal); // cache aligned number of one-sided box constraints !!!!!!!!!!!!
 
@@ -287,15 +291,35 @@ int main()
 		d[2*pnb+jj]     = - 4.0;   //   xmin
 		d[2*pnb+png+jj] = - 4.0;   // - xmax
 		}
+
+	double *dN; d_zeros_align(&dN, 2*pnb+2*pngN, 1);
+	for(jj=nu; jj<nb; jj++)
+		{
+		dN[jj]      = - 4.0;   //   xmin
+		dN[pnb+jj]  = - 4.0;   // - xmax
+		}
+	for(jj=0; jj<ngN; jj++)
+		{
+		dN[2*pnb+jj]      =   0.0;   //   xmin
+		dN[2*pnb+pngN+jj] = - 0.0;   // - xmax
+		}
+	//d_print_mat(1, 2*pnb+2*png, d, 1);
+	//d_print_mat(1, 2*pnb+2*pngN, dN, 1);
+	//exit(1);
 	
-	double *C; d_zeros(&C, ng, nx);
 	double *D; d_zeros(&D, ng, nu);
 	for(jj=0; jj<ngu; jj++)
 		D[jj*(ng+1)] = 1.0;
+	double *C; d_zeros(&C, ng, nx);
 	for(; jj<ng; jj++)
 		C[jj*(ng+1)-ngu*ng] = 1.0;
+	double *CN; d_zeros(&CN, ngN, nx);
+	for(jj=0; jj<ngN; jj++)
+		CN[jj*(ngN+1)] = 1.0;
 	//d_print_mat(ng, nu, D, ng);
 	//d_print_mat(ng, nx, C, ng);
+	//d_print_mat(ngN, nx, CN, ngN);
+	//exit(1);
 
 	// first stage
 	double *pDCt0; d_zeros_align(&pDCt0, pnz, cng);
@@ -305,11 +329,11 @@ int main()
 	d_cvt_tran_mat2pmat(ng, nu, 0, bs, D, ng, pDCtn, cng);
 	d_cvt_tran_mat2pmat(ng, nx, nu, bs, C, ng, pDCtn+nu/bs*cng*bs+nu%bs, cng);
 	// last stages
-	double *pDCtN; d_zeros_align(&pDCtN, pnz, cng);
-	d_cvt_tran_mat2pmat(ng, nx, nu, bs, C, ng, pDCtN+nu/bs*cng*bs+nu%bs, cng);
+	double *pDCtN; d_zeros_align(&pDCtN, pnz, cngN);
+	d_cvt_tran_mat2pmat(ngN, nx, nu, bs, CN, ngN, pDCtN+nu/bs*cngN*bs+nu%bs, cngN);
 	//d_print_pmat(nu+nx, ng, bs, pDCt0, cng);
 	//d_print_pmat(nu+nx, ng, bs, pDCtn, cng);
-	//d_print_pmat(nu+nx, ng, bs, pDCtN, cng);
+	//d_print_pmat(nu+nx, ngN, bs, pDCtN, cngN);
 	//exit(1);
 	// TODO arrived here working on general constraints
 
@@ -379,10 +403,10 @@ int main()
 	double *rB; d_zeros(&rB, nx, N*nu);
 	d_rep_mat(N, nx, nu, B, nx, rB, nx);
 
-	double *rC; d_zeros(&rC, ng, (N+1)*nx);
+	double *rC; d_zeros(&rC, ng, N*nx);
 	d_rep_mat(N, ng, nx, C, ng, rC+nx*ng, ng);
 
-	double *rD; d_zeros(&rD, ng, (N+1)*nu);
+	double *rD; d_zeros(&rD, ng, N*nu);
 	d_rep_mat(N, ng, nu, D, ng, rD, ng);
 
 	double *rb; d_zeros(&rb, nx, N*1);
@@ -409,21 +433,44 @@ int main()
 	double *rr; d_zeros(&rr, nu, N);
 	d_rep_mat(N, nu, 1, r0, nu, rr, nu);
 
-	double *lb; d_zeros(&lb, nb+ng, 1);
+	double *lb; d_zeros(&lb, nb, 1);
 	for(ii=0; ii<nb; ii++)
 		lb[ii] = d[ii];
-	for(ii=0; ii<ng; ii++)
-		lb[nb+ii] = d[2*pnb+ii];
-	double *rlb; d_zeros(&rlb, nb+ng, N+1);
-	d_rep_mat(N+1, nb+ng, 1, lb, nb+ng, rlb, nb+ng);
+	double *rlb; d_zeros(&rlb, nb, N+1);
+	d_rep_mat(N+1, nb, 1, lb, nb, rlb, nb);
+	//d_print_mat(nb, N+1, rlb, nb);
 
-	double *ub; d_zeros(&ub, nb+ng, 1);
+	double *lg; d_zeros(&lg, ng, 1);
+	for(ii=0; ii<ng; ii++)
+		lg[ii] = d[2*pnb+ii];
+	double *rlg; d_zeros(&rlg, ng, N);
+	d_rep_mat(N, ng, 1, lg, ng, rlg, ng);
+	//d_print_mat(ng, N, rlg, ng);
+
+	double *lgN; d_zeros(&lgN, ngN, 1);
+	for(ii=0; ii<ngN; ii++)
+		lgN[ii] = dN[2*pnb+ii];
+	//d_print_mat(ngN, 1, lgN, ngN);
+
+	double *ub; d_zeros(&ub, nb, 1);
 	for(ii=0; ii<nb; ii++)
 		ub[ii] = - d[pnb+ii];
+	double *rub; d_zeros(&rub, nb, N+1);
+	d_rep_mat(N+1, nb, 1, ub, nb, rub, nb);
+	//d_print_mat(nb, N+1, rub, nb);
+
+	double *ug; d_zeros(&ug, ng, 1);
 	for(ii=0; ii<ng; ii++)
-		ub[nb+ii] = - d[2*pnb+png+ii];
-	double *rub; d_zeros(&rub, nb+ng, N+1);
-	d_rep_mat(N+1, nb+ng, 1, ub, nb+ng, rub, nb+ng);
+		ug[ii] = - d[2*pnb+png+ii];
+	double *rug; d_zeros(&rug, ng, N);
+	d_rep_mat(N, ng, 1, ug, ng, rug, ng);
+	//d_print_mat(ng, N, rug, ng);
+
+	double *ugN; d_zeros(&ugN, ngN, 1);
+	for(ii=0; ii<ngN; ii++)
+		ugN[ii] = - dN[2*pnb+pngN+ii];
+	//d_print_mat(ngN, 1, ugN, ngN);
+	//exit(1);
 
 	double *rx; d_zeros(&rx, nx, N+1);
 
@@ -431,9 +478,9 @@ int main()
 
 	double *rpi; d_zeros(&rpi, nx, N+1);
 
-	double *rlam; d_zeros(&rlam, 2*(nb+ng), N+1);
+	double *rlam; d_zeros(&rlam, N*2*(nb+ng)+2*(nb+ngN), 1);
 
-	double *rt; d_zeros(&rt, 2*(nb+ng), N+1);
+	double *rt; d_zeros(&rt, N*2*(nb+ng)+2*(nb+ngN), 1);
 
 
 	//d_print_mat(nb+ng, 3, rlb, nb+ng);
@@ -480,13 +527,13 @@ int main()
 	hq[N] = q;
 	d_zeros_align(&hux[N], anz, 1);
 	d_zeros_align(&hpi[N], anx, 1);
-	d_zeros_align(&hlam[N], 2*pnb+2*png, 1);
-	d_zeros_align(&ht[N], 2*pnb+2*png, 1);
-	hd[N] = d;
+	d_zeros_align(&hlam[N], 2*pnb+2*pngN, 1);
+	d_zeros_align(&ht[N], 2*pnb+2*pngN, 1);
+	hd[N] = dN;
 	hpDCt[0] = pDCt0;
 	hpDCt[N] = pDCtN;
 	d_zeros_align(&hrq[N], anz, 1);
-	d_zeros_align(&hrd[N], 2*pnb+2*png, 1); // TODO pnb
+	d_zeros_align(&hrd[N], 2*pnb+2*pngN, 1); // TODO pnb
 	
 	// starting guess
 	for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
@@ -498,7 +545,7 @@ int main()
 	//double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 4*anz + 4*anb + 2*anx) + 3*anz, 1); // work space
 	//double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 4*anb + 2*anx) + 3*anz, 1); // work space TODO change work space on other files !!!!!!!!!!!!!
 	//double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 4*anb + 2*anx) + anz + pnz*cnx, 1); // work space TODO change work space on other files !!!!!!!!!!!!!
-	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 10*(pnb+png) + 2*anx) + anz + pnz*cnxg, 1); // work space TODO change work space on other files !!!!!!!!!!!!!
+	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 10*(pnb+png) + 2*anx) + 10*(pngN-png) + anz + pnz*(cngN<cnxg ? cnxg : cngN), 1); // work space TODO change work space on other files !!!!!!!!!!!!!
 /*	for(jj=0; jj<( (N+1)*(pnz*cnl + 4*anz + 4*anb + 2*anx) + 3*anz ); jj++) work[jj] = -1.0;*/
 	int kk = 0; // acutal number of iterations
 	int rkk = 0; // acutal number of iterations
@@ -514,7 +561,7 @@ int main()
 	double mu = -1.0;
 	int hpmpc_status;
 	
-	double *rwork; d_zeros(&rwork, hpmpc_ip_hard_mpc_dp_work_space(N, nx, nu, nb, ng), 1);
+	double *rwork; d_zeros(&rwork, hpmpc_ip_hard_mpc_dp_work_space(N, nx, nu, nb, ng, ngN), 1);
 	double *rstat; d_zeros(&rstat, 5, k_max); // stats from the IP routine
 	int compute_res = 1; // flag to control the computation of residuals on exit (high-level interface only)
 	double inf_norm_res[4] = {}; // infinity norm of residuals: rq, rb, rd, mu
@@ -569,9 +616,9 @@ int main()
 //	if(FREE_X0==0)
 //		{
 		if(IP==1)
-			hpmpc_status = d_ip_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+			hpmpc_status = d_ip_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, ngN, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 		else
-			hpmpc_status = d_ip2_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+			hpmpc_status = d_ip2_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, ngN, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 //		}
 //	else
 //		{
@@ -614,9 +661,9 @@ int main()
 //		if(FREE_X0==0)
 //			{
 			if(IP==1)
-				hpmpc_status = d_ip_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+				hpmpc_status = d_ip_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, ngN, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 			else
-				hpmpc_status = d_ip2_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+				hpmpc_status = d_ip2_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, ng, ngN, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 //			}
 //		else
 //			{
@@ -647,7 +694,7 @@ int main()
 		rx[0] = xx0[2*idx];
 		rx[1] = xx0[2*idx+1];
 
-		hpmpc_status = fortran_order_ip_hard_mpc(&rkk, k_max, mu0, mu_tol, 'd', N, nx, nu, nb, ng, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rC, rD, rlb, rub, rx, ru, rwork, rstat, compute_res, inf_norm_res, compute_mult, rpi, rlam, rt);
+		hpmpc_status = fortran_order_ip_hard_mpc(&rkk, k_max, mu0, mu_tol, 'd', N, nx, nu, nb, ng, ngN, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, rx, ru, rwork, rstat, compute_res, inf_norm_res, compute_mult, rpi, rlam, rt);
 
 		rkk_avg += rkk;
 
@@ -682,7 +729,7 @@ int main()
 
 	// residuals computation
 //	if(FREE_X0==0)
-		d_res_ip_hard_mpc(nx, nu, N, nb, ng, hpBAbt, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+		d_res_ip_hard_mpc(nx, nu, N, nb, ng, ngN, hpBAbt, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 //	else
 //		d_res_ip_box_mhe_old(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
@@ -725,8 +772,9 @@ int main()
 			d_print_mat(1, nx, hux[ii]+nu, 1);
 		
 		printf("\nlam = \n\n");
-		for(ii=0; ii<=N; ii++)
+		for(ii=0; ii<N; ii++)
 			d_print_mat(1, 2*pnb+2*png, hlam[ii], 1);
+		d_print_mat(1, 2*pnb+2*pngN, hlam[N], 1);
 		
 		printf("\nru = \n\n");
 		d_print_mat(nu, N, ru, nu);
@@ -768,9 +816,10 @@ int main()
 		printf("\n");
 		printf("\n");
 		printf("rd = \n\n");
-		for(ii=0; ii<=N; ii++)
+		for(ii=0; ii<N; ii++)
 /*			d_print_mat_e(1, 2*nb, hrd[ii], 1);*/
 			d_print_mat(1, 2*pnb+2*png, hrd[ii], 1);
+		d_print_mat(1, 2*pnb+2*pngN, hrd[N], 1);
 		printf("\n");
 		printf("\n");
 		printf("mu = %e\n\n", mu);
@@ -787,6 +836,7 @@ int main()
 	free(A);
 	free(B);
 	free(C);
+	free(CN);
 	free(D);
 	free(b);
 	free(x0);
@@ -797,6 +847,7 @@ int main()
 	free(pDCtn);
 	free(pDCtN);
 	free(d);
+	free(dN);
 	free(Q);
 	free(pQ);
 	free(q);
@@ -821,9 +872,15 @@ int main()
 	free(rqf);
 	free(rr);
 	free(lb);
+	free(lg);
+	free(lgN);
 	free(ub);
+	free(ug);
+	free(ugN);
 	free(rlb);
+	free(rlg);
 	free(rub);
+	free(rug);
 	free(rx);
 	free(ru);
 	free(rwork);

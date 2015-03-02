@@ -41,6 +41,9 @@
 #ifndef NG
 	#define NG 0 // number of two-sided general constraints
 #endif
+#ifndef NGN
+	#define NGN 0 // number of two-sided general constraints at last stage
+#endif
 // double precision constants
 #define D_NAL (D_MR*D_NCL)
 //#define D_PADX ((D_NCL-NX%D_NCL)%D_NCL) // padding after nx
@@ -61,10 +64,12 @@
 #define D_CNY (D_NCL*((NY+D_NCL-1)/D_NCL))
 #define D_CNZ (D_NCL*((NZ+D_NCL-1)/D_NCL))
 #define D_CNG (D_NCL*((NG+D_NCL-1)/D_NCL))
+#define D_CNGN (D_NCL*((NGN+D_NCL-1)/D_NCL))
 #define D_CNX2 (2*D_NCL*((NX+D_NCL-1)/D_NCL))
 #define D_CNXG (D_NCL*((NX+NG+D_NCL-1)/D_NCL))
 #define D_PNB (D_MR*((NB+D_MR-1)/D_MR))
 #define D_PNG (D_MR*((NG+D_MR-1)/D_MR))
+#define D_PNGN (D_MR*((NGN+D_MR-1)/D_MR))
 #define D_PNT (D_MR*((NT+D_MR-1)/D_MR))
 #define D_PNU (D_MR*((NU+D_MR-1)/D_MR))
 #define D_PNX (D_MR*((NX+D_MR-1)/D_MR))
@@ -90,7 +95,7 @@
 // work space: static definition
 
 // Riccati-based IP method for box-constrained MPC, double precision
-#define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + D_PNZ*D_CNG + 8*D_ANZ + 4*D_ANX + 18*(D_PNB+D_PNG)) + D_ANZ + D_PNZ*D_CNXG)
+#define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + D_PNZ*D_CNG + 8*D_ANZ + 4*D_ANX + 18*(D_PNB+D_PNG)) + D_PNZ*(D_CNGN-D_CNG) + 18*(D_PNGN-D_PNG) + D_ANZ + (D_CNGN<D_CNXG ? D_PNZ*D_CNXG : D_PNZ*D_CNGN ) )
 // Riccati-based IP method for box-constrained MPC, single precision
 #define HPMPC_IP_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 3*S_ANX + 7*S_ANB) + S_ANZ + D_PNZ*P_CNX)
 // Riccati-based IP method for soft-constrained MPC, double precision
@@ -107,7 +112,7 @@
 // work space: dynamic definition as function return value
 
 // Riccati-based IP method for box-constrained MPC, double precision
-int hpmpc_ip_hard_mpc_dp_work_space(int N, int nx, int nu, int nb, int ng);
+int hpmpc_ip_hard_mpc_dp_work_space(int N, int nx, int nu, int nb, int ng, int ngN);
 
 // Riccati-based IP method for box-constrained MPC, single precision
 int hpmpc_ip_box_mpc_sp_work_space(int nx, int nu, int N);
@@ -130,7 +135,7 @@ int hpmpc_ric_mhe_if_dp_work_space(int nx, int nw, int ny, int N);
 
 
 // c (or row-major) order
-int c_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char prec, int N, int nx, int nu, int nb, int ng, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double *C, double *D, double* lb, double* ub, double* x, double* u, double *work0, double *stat, int compute_res, double *inf_norm_res, int compute_mult, double *pi, double *lam, double *t );
+int c_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char prec, int N, int nx, int nu, int nb, int ng, int ngf, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lb, double* ub, double *C, double *D, double* lg, double* ug, double *Cf, double *lgf, double *ugf, double* x, double* u, double *work0, double *stat, int compute_res, double *inf_norm_res, int compute_mult, double *pi, double *lam, double *t );
 
 int c_order_ip_soft_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lZ, double* uZ, double* lz, double* uz, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
 
@@ -143,7 +148,7 @@ int c_order_riccati_mhe_if( char prec, int alg, int nx, int nw, int ny, int N, d
 
 
 // fortran (or column-major) order
-int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char prec, int N, int nx, int nu, int nb, int ng, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double *C, double *D, double* lb, double* ub, double* x, double* u, double *work0, double *stat, int compute_res, double *inf_norm_res, int compute_mult, double *pi, double *lam, double *t );
+int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char prec, int N, int nx, int nu, int nb, int ng, int ngf, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lb, double* ub, double *C, double *D, double* lg, double* ug, double *Cf, double *lgf, double *ugf, double* x, double* u, double *work0, double *stat, int compute_res, double *inf_norm_res, int compute_mult, double *pi, double *lam, double *t );
 
 int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec, const int nx, const int nu, const int N, double* A, double* B, double* b, double* Q, double* Qf, double* S, double* R, double* q, double* qf, double* r, double* lZ, double* uZ, double* lz, double* uz, double* lb, double* ub, double* x, double* u, double *work0, int* nIt, double *stat );
 
