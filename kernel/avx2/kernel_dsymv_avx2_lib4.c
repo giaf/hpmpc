@@ -42,19 +42,19 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 /*printf("\nciao %d\n", kmax);	*/
 	const int bs = 4;
 	
-	__builtin_prefetch( A + bs*0 );
-	__builtin_prefetch( A + bs*2 );
+//	__builtin_prefetch( A + bs*0 );
+//	__builtin_prefetch( A + bs*2 );
 
 	int k, ka;
 	ka = kmax; // number from aligned positon
 	
-	double *sA, *sy_n, *sx_t;
+	double *sA, *sy_n, *sx_t, *A1;
 
 	__m256d
 		zeros, temp,
 		a_00, a_01, a_02, a_03,
-		x_n_0, x_n_1, x_n_2, x_n_3, y_n_0,
-		x_t_0, y_t_0, y_t_1, y_t_2, y_t_3;
+		x_n_0, x_n_1, x_n_2, x_n_3, y_n_0, y_n_1,
+		x_t_0, y_t_0, y_t_1, y_t_2, y_t_3, x_t_1;
 
 	__m128d
 		stemp,
@@ -145,8 +145,8 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 	if(tri==1)
 		{
 		
-		__builtin_prefetch( A + sda*bs +bs*0 );
-		__builtin_prefetch( A + sda*bs +bs*2 );
+//		__builtin_prefetch( A + sda*bs +bs*0 );
+//		__builtin_prefetch( A + sda*bs +bs*2 );
 
 		y_n_0 = _mm256_loadu_pd( &y_n[0] );
 		x_t_0 = _mm256_loadu_pd( &x_t[0] );
@@ -191,33 +191,24 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 	for(; k<ka-7; k+=2*bs)
 		{
 		
-		__builtin_prefetch( A + sda*bs +bs*0 );
-		__builtin_prefetch( A + sda*bs +bs*2 );
+//		__builtin_prefetch( A + sda*bs +bs*0 );
+//		__builtin_prefetch( A + sda*bs +bs*2 );
 
 		y_n_0 = _mm256_loadu_pd( &y_n[0] );
 		x_t_0 = _mm256_loadu_pd( &x_t[0] );
 		
 		a_00 = _mm256_load_pd( &A[0+bs*0] );
-		a_01 = _mm256_load_pd( &A[0+bs*1] );
-		a_02 = _mm256_load_pd( &A[0+bs*2] );
-		a_03 = _mm256_load_pd( &A[0+bs*3] );
-		
-		temp  = _mm256_mul_pd( a_00, x_n_0 );
-		y_n_0 = _mm256_add_pd( y_n_0, temp );
-		temp  = _mm256_mul_pd( a_00, x_t_0 );
-		y_t_0 = _mm256_add_pd( y_t_0, temp );
-		temp  = _mm256_mul_pd( a_01, x_n_1 );
-		y_n_0 = _mm256_add_pd( y_n_0, temp );
-		temp  = _mm256_mul_pd( a_01, x_t_0 );
-		y_t_1 = _mm256_add_pd( y_t_1, temp );
-		temp  = _mm256_mul_pd( a_02, x_n_2 );
-		y_n_0 = _mm256_add_pd( y_n_0, temp );
-		temp  = _mm256_mul_pd( a_02, x_t_0 );
-		y_t_2 = _mm256_add_pd( y_t_2, temp );
-		temp  = _mm256_mul_pd( a_03, x_n_3 );
-		y_n_0 = _mm256_add_pd( y_n_0, temp );
-		temp  = _mm256_mul_pd( a_03, x_t_0 );
-		y_t_3 = _mm256_add_pd( y_t_3, temp );
+		y_n_0 = _mm256_fmadd_pd( a_00, x_n_0, y_n_0 );
+		y_t_0 = _mm256_fmadd_pd( a_00, x_t_0, y_t_0 );
+		a_00 = _mm256_load_pd( &A[0+bs*1] );
+		y_n_0 = _mm256_fmadd_pd( a_00, x_n_1, y_n_0 );
+		y_t_1 = _mm256_fmadd_pd( a_00, x_t_0, y_t_1 );
+		a_00 = _mm256_load_pd( &A[0+bs*2] );
+		y_n_0 = _mm256_fmadd_pd( a_00, x_n_2, y_n_0 );
+		y_t_2 = _mm256_fmadd_pd( a_00, x_t_0, y_t_2 );
+		a_00 = _mm256_load_pd( &A[0+bs*3] );
+		y_n_0 = _mm256_fmadd_pd( a_00, x_n_3, y_n_0 );
+		y_t_3 = _mm256_fmadd_pd( a_00, x_t_0, y_t_3 );
 		
 		_mm256_storeu_pd( &y_n[0], y_n_0 );
 
@@ -226,33 +217,24 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n += 4;
 		x_t += 4;
 
-		__builtin_prefetch( A + sda*bs +bs*0 );
-		__builtin_prefetch( A + sda*bs +bs*2 );
+//		__builtin_prefetch( A + sda*bs +bs*0 );
+//		__builtin_prefetch( A + sda*bs +bs*2 );
 
 		y_n_0 = _mm256_loadu_pd( &y_n[0] );
 		x_t_0 = _mm256_loadu_pd( &x_t[0] );
 		
 		a_00 = _mm256_load_pd( &A[0+bs*0] );
-		a_01 = _mm256_load_pd( &A[0+bs*1] );
-		a_02 = _mm256_load_pd( &A[0+bs*2] );
-		a_03 = _mm256_load_pd( &A[0+bs*3] );
-		
-		temp  = _mm256_mul_pd( a_00, x_n_0 );
-		y_n_0 = _mm256_add_pd( y_n_0, temp );
-		temp  = _mm256_mul_pd( a_00, x_t_0 );
-		y_t_0 = _mm256_add_pd( y_t_0, temp );
-		temp  = _mm256_mul_pd( a_01, x_n_1 );
-		y_n_0 = _mm256_add_pd( y_n_0, temp );
-		temp  = _mm256_mul_pd( a_01, x_t_0 );
-		y_t_1 = _mm256_add_pd( y_t_1, temp );
-		temp  = _mm256_mul_pd( a_02, x_n_2 );
-		y_n_0 = _mm256_add_pd( y_n_0, temp );
-		temp  = _mm256_mul_pd( a_02, x_t_0 );
-		y_t_2 = _mm256_add_pd( y_t_2, temp );
-		temp  = _mm256_mul_pd( a_03, x_n_3 );
-		y_n_0 = _mm256_add_pd( y_n_0, temp );
-		temp  = _mm256_mul_pd( a_03, x_t_0 );
-		y_t_3 = _mm256_add_pd( y_t_3, temp );
+		y_n_0 = _mm256_fmadd_pd( a_00, x_n_0, y_n_0 );
+		y_t_0 = _mm256_fmadd_pd( a_00, x_t_0, y_t_0 );
+		a_00 = _mm256_load_pd( &A[0+bs*1] );
+		y_n_0 = _mm256_fmadd_pd( a_00, x_n_1, y_n_0 );
+		y_t_1 = _mm256_fmadd_pd( a_00, x_t_0, y_t_1 );
+		a_00 = _mm256_load_pd( &A[0+bs*2] );
+		y_n_0 = _mm256_fmadd_pd( a_00, x_n_2, y_n_0 );
+		y_t_2 = _mm256_fmadd_pd( a_00, x_t_0, y_t_2 );
+		a_00 = _mm256_load_pd( &A[0+bs*3] );
+		y_n_0 = _mm256_fmadd_pd( a_00, x_n_3, y_n_0 );
+		y_t_3 = _mm256_fmadd_pd( a_00, x_t_0, y_t_3 );
 		
 		_mm256_storeu_pd( &y_n[0], y_n_0 );
 
@@ -266,33 +248,24 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 	for(; k<ka-3; k+=bs)
 		{
 		
-		__builtin_prefetch( A + sda*bs +bs*0 );
-		__builtin_prefetch( A + sda*bs +bs*2 );
+//		__builtin_prefetch( A + sda*bs +bs*0 );
+//		__builtin_prefetch( A + sda*bs +bs*2 );
 
 		y_n_0 = _mm256_loadu_pd( &y_n[0] );
 		x_t_0 = _mm256_loadu_pd( &x_t[0] );
 		
 		a_00 = _mm256_load_pd( &A[0+bs*0] );
-		a_01 = _mm256_load_pd( &A[0+bs*1] );
-		a_02 = _mm256_load_pd( &A[0+bs*2] );
-		a_03 = _mm256_load_pd( &A[0+bs*3] );
-		
-		temp  = _mm256_mul_pd( a_00, x_n_0 );
-		y_n_0 = _mm256_add_pd( y_n_0, temp );
-		temp  = _mm256_mul_pd( a_00, x_t_0 );
-		y_t_0 = _mm256_add_pd( y_t_0, temp );
-		temp  = _mm256_mul_pd( a_01, x_n_1 );
-		y_n_0 = _mm256_add_pd( y_n_0, temp );
-		temp  = _mm256_mul_pd( a_01, x_t_0 );
-		y_t_1 = _mm256_add_pd( y_t_1, temp );
-		temp  = _mm256_mul_pd( a_02, x_n_2 );
-		y_n_0 = _mm256_add_pd( y_n_0, temp );
-		temp  = _mm256_mul_pd( a_02, x_t_0 );
-		y_t_2 = _mm256_add_pd( y_t_2, temp );
-		temp  = _mm256_mul_pd( a_03, x_n_3 );
-		y_n_0 = _mm256_add_pd( y_n_0, temp );
-		temp  = _mm256_mul_pd( a_03, x_t_0 );
-		y_t_3 = _mm256_add_pd( y_t_3, temp );
+		y_n_0 = _mm256_fmadd_pd( a_00, x_n_0, y_n_0 );
+		y_t_0 = _mm256_fmadd_pd( a_00, x_t_0, y_t_0 );
+		a_00 = _mm256_load_pd( &A[0+bs*1] );
+		y_n_0 = _mm256_fmadd_pd( a_00, x_n_1, y_n_0 );
+		y_t_1 = _mm256_fmadd_pd( a_00, x_t_0, y_t_1 );
+		a_00 = _mm256_load_pd( &A[0+bs*2] );
+		y_n_0 = _mm256_fmadd_pd( a_00, x_n_2, y_n_0 );
+		y_t_2 = _mm256_fmadd_pd( a_00, x_t_0, y_t_2 );
+		a_00 = _mm256_load_pd( &A[0+bs*3] );
+		y_n_0 = _mm256_fmadd_pd( a_00, x_n_3, y_n_0 );
+		y_t_3 = _mm256_fmadd_pd( a_00, x_t_0, y_t_3 );
 		
 		_mm256_storeu_pd( &y_n[0], y_n_0 );
 
