@@ -3411,6 +3411,54 @@ void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, do
 	ptr_dlam = dlam[jj];
 
 	ll = nu;
+	// special case: nu=1, nx=2 // TODO mask before and after instead !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	if(ll==nb-2 && ll%2==1)
+		{
+		u_db0   = _mm_loadu_pd( &ptr_db[ll] );
+		u_db1   = _mm_loadu_pd( &ptr_db[pnb+ll] );
+		u_db1   = _mm_xor_pd( u_db1, u_sign );
+		u_dux   = _mm_loadu_pd( &ptr_dux[ll] );
+		u_dt0   = _mm_sub_pd ( u_dux, u_db0 );
+		u_dt1   = _mm_sub_pd ( u_db1, u_dux );
+		u_t0    = _mm_loadu_pd( &ptr_t[ll] );
+		u_t1    = _mm_loadu_pd( &ptr_t[pnb+ll] );
+		u_dt0   = _mm_sub_pd( u_dt0, u_t0 );
+		u_dt1   = _mm_sub_pd( u_dt1, u_t1 );
+		_mm_storeu_pd( &ptr_dt[ll], u_dt0 );
+		_mm_storeu_pd( &ptr_dt[pnb+ll], u_dt1 );
+		v_dt0   = _mm256_permute2f128_pd( _mm256_castpd128_pd256( u_dt0 ), _mm256_castpd128_pd256( u_dt1 ), 0x20 );
+		v_t0    = _mm256_permute2f128_pd( _mm256_castpd128_pd256( u_t0 ), _mm256_castpd128_pd256( u_t1 ), 0x20 );
+
+		u_lamt0 = _mm_loadu_pd( &ptr_lamt[ll] );
+		u_lamt1 = _mm_loadu_pd( &ptr_lamt[pnb+ll] );
+		u_temp0 = _mm_mul_pd( u_lamt0, u_dt0 );
+		u_temp1 = _mm_mul_pd( u_lamt1, u_dt1 );
+		u_dlam0 = _mm_loadu_pd( &ptr_dlam[ll] );
+		u_dlam1 = _mm_loadu_pd( &ptr_dlam[pnb+ll] );
+		u_lam0  = _mm_loadu_pd( &ptr_lam[ll] );
+		u_lam1  = _mm_loadu_pd( &ptr_lam[pnb+ll] );
+		u_dlam0 = _mm_sub_pd( u_dlam0, u_lam0 );
+		u_dlam1 = _mm_sub_pd( u_dlam1, u_lam1 );
+		u_dlam0 = _mm_sub_pd( u_dlam0, u_temp0 );
+		u_dlam1 = _mm_sub_pd( u_dlam1, u_temp1 );
+		_mm_storeu_pd( &ptr_dlam[ll], u_dlam0 );
+		_mm_storeu_pd( &ptr_dlam[pnb+ll], u_dlam1 );
+		v_dlam0   = _mm256_permute2f128_pd( _mm256_castpd128_pd256( u_dlam0 ), _mm256_castpd128_pd256( u_dlam1 ), 0x20 );
+		v_lam0    = _mm256_permute2f128_pd( _mm256_castpd128_pd256( u_lam0 ), _mm256_castpd128_pd256( u_lam1 ), 0x20 );
+
+		t_dlam   = _mm256_permute2f128_ps( _mm256_castps128_ps256( _mm256_cvtpd_ps( v_dlam0 ) ), _mm256_castps128_ps256( _mm256_cvtpd_ps( v_dt0 ) ), 0x20 );
+		t_mask0  = _mm256_cmp_ps( t_dlam, t_zeros, 0x01 );
+		t_lam    = _mm256_permute2f128_ps( _mm256_castps128_ps256( _mm256_cvtpd_ps( v_lam0 ) ), _mm256_castps128_ps256( _mm256_cvtpd_ps( v_t0 ) ), 0x20 );
+		t_lam    = _mm256_xor_ps( t_lam, t_sign );
+		t_tmp0   = _mm256_div_ps( t_lam, t_dlam );
+		t_tmp0   = _mm256_blendv_ps( t_ones, t_tmp0, t_mask0 );
+		t_alpha0 = _mm256_min_ps( t_alpha0, t_tmp0 );
+
+		ll+=2; // delete when in for
+		}
+
+
+
 	if(ll<nb && ll%2==1)
 	//for(; ll<((nu+bs-1)/bs)*bs; ll++)
 		{
