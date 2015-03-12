@@ -270,8 +270,8 @@ int main()
 	int nx, nu, N, nrep;
 
 	int ll;
-//	int ll_max = 77;
-	int ll_max = 1;
+	int ll_max = 77;
+//	int ll_max = 1;
 	for(ll=0; ll<ll_max; ll++)
 		{
 		
@@ -397,7 +397,6 @@ int main()
 				{
 				hpBAbt[jj] = pBAbt; // LTI
 				hpQ[jj] = pQ;
-				hq[jj] = q;
 				}
 			else // LTV
 				{
@@ -405,15 +404,14 @@ int main()
 				for(ii=0; ii<pnz*cnx; ii++) hpBAbt[jj][ii] = pBAbt[ii];
 				d_zeros_align(&hpQ[jj], pnz, cnz);
 				for(ii=0; ii<pnz*cnz; ii++) hpQ[jj][ii] = pQ[ii];
-				d_zeros_align(&hq[jj], pnz, 1); // it has to be pnz !!!
-				for(ii=0; ii<pnz; ii++) hq[jj][ii] = q[ii];
 				}
+			d_zeros_align(&hq[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hpL[jj], pnz, cnl);
 			d_zeros_align(&hux[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hpi[jj], pnx, 1);
 			d_zeros_align(&hrb[jj], pnx, 1);
 			d_zeros_align(&hrq[jj], pnz, 1);
-			d_zeros_align(&hPb[jj], anx, 1);
+			d_zeros_align(&hPb[jj], pnx, 1);
 			}
 		if(LTI==1)
 			{
@@ -565,7 +563,13 @@ int main()
 		for(ii=0; ii<N; ii++)
 			{
 			for(jj=0; jj<nu; jj++) hux[ii][jj] = 0;
-			for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = 0;
+			//for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = 0;
+			}
+
+		// put b into x
+		for(ii=0; ii<N; ii++)
+			{
+			for(jj=0; jj<nx; jj++) hux[ii+1][nu+jj] = b[jj];
 			}
 
 		// restore linear part of cost function 
