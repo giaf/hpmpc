@@ -45,7 +45,7 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
-		for(; j<n-3; j+=4)
+		for(; j<n-2; j+=4)
 			{
 			kernel_dgemm_nt_m8x4_lib4(m-i, k, &pA[0+i*sda], sda, &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], sdc, &pC[0+(j+0)*bs+i*sdc], sdc, alg);
 			}
@@ -63,14 +63,14 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 	if(i<m)
 		{
 		j = 0;
-		for(; j<n-3; j+=4)
+		for(; j<n-2; j+=4)
 			{
 			kernel_dgemm_nt_m4x4_lib4(m-i, k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], alg);
 			}
 		jj = 0;
 		for(; jj<n-j; jj+=2)
 			{
-			kernel_dgemm_nt_m4x2_lib4(m-i, k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], alg);
+			kernel_dgemm_nt_m4x2_lib4(m-i, k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+i*sdc], alg);
 			}
 		}
 #else
@@ -78,7 +78,7 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 	for(; i<m-8; i+=12)
 		{
 		j = 0;
-		for(; j<n-3; j+=4)
+		for(; j<n-2; j+=4)
 			{
 			kernel_dgemm_nt_12x4_lib4(k, &pA[0+i*sda], sda, &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], sdc, &pC[0+(j+0)*bs+i*sdc], sdc, alg);
 			}
@@ -99,7 +99,7 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 	for(; i<m-4; i+=8)
 		{
 		j = 0;
-		for(; j<n-3; j+=4)
+		for(; j<n-2; j+=4)
 			{
 			kernel_dgemm_nt_8x4_lib4(k, &pA[0+i*sda], sda, &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], sdc, &pC[0+(j+0)*bs+i*sdc], sdc, alg);
 			}
@@ -118,7 +118,7 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 	for(; i<m-2; i+=4)
 		{
 		j = 0;
-		for(; j<n-3; j+=4)
+		for(; j<n-2; j+=4)
 			{
 			kernel_dgemm_nt_4x4_lib4(k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], alg);
 			}
@@ -126,7 +126,7 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 /*		for(; jj<n-j-1; jj+=2)*/
 		for(; jj<n-j; jj+=2)
 			{
-			kernel_dgemm_nt_4x2_lib4(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], alg);
+			kernel_dgemm_nt_4x2_lib4(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+i*sdc], alg);
 			}
 /*		for(; jj<n-j; jj++)*/
 /*			{*/
@@ -136,7 +136,7 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 	for(; i<m; i+=2)
 		{
 		j = 0;
-		for(; j<n-3; j+=4)
+		for(; j<n-2; j+=4)
 			{
 			kernel_dgemm_nt_2x4_lib4(k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], alg);
 			}
@@ -144,7 +144,7 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 /*		for(; jj<n-j-1; jj+=2)*/
 		for(; jj<n-j; jj+=2)
 			{
-			kernel_dgemm_nt_2x2_lib4(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], alg);
+			kernel_dgemm_nt_2x2_lib4(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], &pC[0+(j+jj)*bs+i*sdc], alg);
 			}
 /*		for(; jj<n-j; jj++)*/
 /*			{*/
@@ -1277,6 +1277,47 @@ void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 		corner_dttmm_uu_nt_2x2_lib4(pA+ii*sda+ii*bs, pB+ii*sdb+ii*bs, pC+ii*sdc+ii*bs);
 		}
 
+	}
+//#endif
+
+
+
+//#if defined(TARGET_C99_4X4)
+void dgema_lib(int m, int n, int offset, double *pA, int sda, double *pC, int sdc)
+	{
+
+	const int bs = 4;
+
+	int mna = (bs-offset%bs)%bs;
+
+	int i;
+
+	i=0;
+	for( ; i<n-3; i+=4)
+		{
+		kernel_dgema_4_lib4(m-i, mna, &pA[i*sda+i*bs], sda, &pC[i*sdc+i*bs], sdc);
+		}
+	if(n-i==0)
+		{
+		return;
+		}
+	else if(n-i==1)
+		{
+		kernel_dgema_1_lib4(m-i, mna, &pA[i*sda+i*bs], sda, &pC[i*sdc+i*bs], sdc);
+		return;
+		}
+	else if(n-i==2)
+		{
+		kernel_dgema_2_lib4(m-i, mna, &pA[i*sda+i*bs], sda, &pC[i*sdc+i*bs], sdc);
+		return;
+		}
+	else //if(n-i==3)
+		{
+		kernel_dgema_3_lib4(m-i, mna, &pA[i*sda+i*bs], sda, &pC[i*sdc+i*bs], sdc);
+		return;
+		}
+
+	
 	}
 //#endif
 

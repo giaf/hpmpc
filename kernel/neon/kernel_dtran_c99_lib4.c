@@ -642,6 +642,1028 @@ void corner_dtran_2_lib4(int kna, double *A, int sda, double *C)
 
 
 
+// mis-align a general matrix; it moves across panels; read aligned, write mis-aligned
+void kernel_dgema_4_lib4(int kmax, int kna, double *A, int sda, double *C, int sdc)
+	{
+
+	// assume kmax >= 4 !!!
+
+	const int bs = 4;
+
+	int k;
+
+	if(kna==0) // same alignment
+		{
+
+		k = 0;
+
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[0+bs*0] = A[0+bs*0];
+			C[1+bs*0] = A[1+bs*0];
+			C[2+bs*0] = A[2+bs*0];
+			C[3+bs*0] = A[3+bs*0];
+
+			C[0+bs*1] = A[0+bs*1];
+			C[1+bs*1] = A[1+bs*1];
+			C[2+bs*1] = A[2+bs*1];
+			C[3+bs*1] = A[3+bs*1];
+
+			C[0+bs*2] = A[0+bs*2];
+			C[1+bs*2] = A[1+bs*2];
+			C[2+bs*2] = A[2+bs*2];
+			C[3+bs*2] = A[3+bs*2];
+
+			C[0+bs*3] = A[0+bs*3];
+			C[1+bs*3] = A[1+bs*3];
+			C[2+bs*3] = A[2+bs*3];
+			C[3+bs*3] = A[3+bs*3];
+
+			A += bs*sda;
+			C += bs*sdc;
+			}
+
+		// clean-up loop
+		for( ; k<kmax; k++)
+			{
+			C[0+bs*0] = A[0+bs*0];
+
+			C[0+bs*1] = A[0+bs*1];
+
+			C[0+bs*2] = A[0+bs*2];
+
+			C[0+bs*3] = A[0+bs*3];
+
+			A += 1;
+			C += 1;
+			}
+
+		return;
+
+		}
+	else if(kna==1)
+		{
+
+		k = 0;
+
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[3+bs*0] = A[0+bs*0];
+
+			C[3+bs*1] = A[0+bs*1];
+
+			C[3+bs*2] = A[0+bs*2];
+
+			C[3+bs*3] = A[0+bs*3];
+
+			C += bs*sdc;
+
+			C[0+bs*0] = A[1+bs*0];
+			C[1+bs*0] = A[2+bs*0];
+			C[2+bs*0] = A[3+bs*0];
+
+			C[0+bs*1] = A[1+bs*1];
+			C[1+bs*1] = A[2+bs*1];
+			C[2+bs*1] = A[3+bs*1];
+
+			C[0+bs*2] = A[1+bs*2];
+			C[1+bs*2] = A[2+bs*2];
+			C[2+bs*2] = A[3+bs*2];
+
+			C[0+bs*3] = A[1+bs*3];
+			C[1+bs*3] = A[2+bs*3];
+			C[2+bs*3] = A[3+bs*3];
+
+			A += bs*sda;
+			}
+
+		if(k>=kmax)
+			{
+			return;
+			}
+
+		C[3+bs*0] = A[0+bs*0];
+
+		C[3+bs*1] = A[0+bs*1];
+
+		C[3+bs*2] = A[0+bs*2];
+
+		C[3+bs*3] = A[0+bs*3];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C += bs*sdc;
+
+		C[0+bs*0] = A[1+bs*0];
+
+		C[0+bs*1] = A[1+bs*1];
+
+		C[0+bs*2] = A[1+bs*2];
+
+		C[0+bs*3] = A[1+bs*3];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[1+bs*0] = A[2+bs*0];
+
+		C[1+bs*1] = A[2+bs*1];
+
+		C[1+bs*2] = A[2+bs*2];
+
+		C[1+bs*3] = A[2+bs*3];
+
+		return;
+
+		}
+	else if(kna==2)
+		{
+
+		k = 0;
+	
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[2+bs*0] = A[0+bs*0];
+			C[3+bs*0] = A[1+bs*0];
+
+			C[2+bs*1] = A[0+bs*1];
+			C[3+bs*1] = A[1+bs*1];
+
+			C[2+bs*2] = A[0+bs*2];
+			C[3+bs*2] = A[1+bs*2];
+
+			C[2+bs*3] = A[0+bs*3];
+			C[3+bs*3] = A[1+bs*3];
+
+			C += bs*sdc;
+
+			C[0+bs*0] = A[2+bs*0];
+			C[1+bs*0] = A[3+bs*0];
+
+			C[0+bs*1] = A[2+bs*1];
+			C[1+bs*1] = A[3+bs*1];
+
+			C[0+bs*2] = A[2+bs*2];
+			C[1+bs*2] = A[3+bs*2];
+
+			C[0+bs*3] = A[2+bs*3];
+			C[1+bs*3] = A[3+bs*3];
+
+			A += bs*sda;
+			}
+
+		if(k>=kmax)
+			{
+			return;
+			}
+
+		C[2+bs*0] = A[0+bs*0];
+
+		C[2+bs*1] = A[0+bs*1];
+
+		C[2+bs*2] = A[0+bs*2];
+
+		C[2+bs*3] = A[0+bs*3];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[3+bs*0] = A[1+bs*0];
+
+		C[3+bs*1] = A[1+bs*1];
+
+		C[3+bs*2] = A[1+bs*2];
+
+		C[3+bs*3] = A[1+bs*3];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C += bs*sdc;
+
+		C[0+bs*0] = A[3+bs*0];
+
+		C[0+bs*1] = A[3+bs*1];
+
+		C[0+bs*2] = A[3+bs*2];
+
+		C[0+bs*3] = A[3+bs*3];
+
+		return;
+
+		}
+	else  //if(kna==3)
+		{
+
+		k = 0;
+
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[1+bs*0] = A[0+bs*0];
+			C[2+bs*0] = A[1+bs*0];
+			C[3+bs*0] = A[2+bs*0];
+
+			C[1+bs*1] = A[0+bs*1];
+			C[2+bs*1] = A[1+bs*1];
+			C[3+bs*1] = A[2+bs*1];
+
+			C[1+bs*2] = A[0+bs*2];
+			C[2+bs*2] = A[1+bs*2];
+			C[3+bs*2] = A[2+bs*2];
+
+			C[1+bs*3] = A[0+bs*3];
+			C[2+bs*3] = A[1+bs*3];
+			C[3+bs*3] = A[2+bs*3];
+
+			C += bs*sdc;
+
+			C[0+bs*0] = A[3+bs*0];
+
+			C[0+bs*1] = A[3+bs*1];
+
+			C[0+bs*2] = A[3+bs*2];
+
+			C[0+bs*3] = A[3+bs*3];
+
+			A += bs*sda;
+			}
+
+		if(k>=kmax)
+			{
+			return;
+			}
+
+		C[1+bs*0] = A[0+bs*0];
+
+		C[1+bs*1] = A[0+bs*1];
+
+		C[1+bs*2] = A[0+bs*2];
+
+		C[1+bs*3] = A[0+bs*3];
+
+		k++;
+
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[2+bs*0] = A[1+bs*0];
+
+		C[2+bs*1] = A[1+bs*1];
+
+		C[2+bs*2] = A[1+bs*2];
+
+		C[2+bs*3] = A[1+bs*3];
+
+		k++;
+
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[3+bs*0] = A[2+bs*0];
+
+		C[3+bs*1] = A[2+bs*1];
+
+		C[3+bs*2] = A[2+bs*2];
+
+		C[3+bs*3] = A[2+bs*3];
+
+		return;
+
+		}
+
+	}
+
+
+
+// mis-align a general matrix; it moves across panels; read aligned, write mis-aligned
+void kernel_dgema_3_lib4(int kmax, int kna, double *A, int sda, double *C, int sdc)
+	{
+
+	// assume kmax >= 4 !!!
+
+	const int bs = 4;
+
+	int k;
+
+	if(kna==0) // same alignment
+		{
+
+		k = 0;
+
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[0+bs*0] = A[0+bs*0];
+			C[1+bs*0] = A[1+bs*0];
+			C[2+bs*0] = A[2+bs*0];
+			C[3+bs*0] = A[3+bs*0];
+
+			C[0+bs*1] = A[0+bs*1];
+			C[1+bs*1] = A[1+bs*1];
+			C[2+bs*1] = A[2+bs*1];
+			C[3+bs*1] = A[3+bs*1];
+
+			C[0+bs*2] = A[0+bs*2];
+			C[1+bs*2] = A[1+bs*2];
+			C[2+bs*2] = A[2+bs*2];
+			C[3+bs*2] = A[3+bs*2];
+
+			A += bs*sda;
+			C += bs*sdc;
+			}
+
+		// clean-up loop
+		for( ; k<kmax; k++)
+			{
+			C[0+bs*0] = A[0+bs*0];
+
+			C[0+bs*1] = A[0+bs*1];
+
+			C[0+bs*2] = A[0+bs*2];
+
+			A += 1;
+			C += 1;
+			}
+
+		return;
+
+		}
+	else if(kna==1)
+		{
+
+		k = 0;
+
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[3+bs*0] = A[0+bs*0];
+
+			C[3+bs*1] = A[0+bs*1];
+
+			C[3+bs*2] = A[0+bs*2];
+
+			C += bs*sdc;
+
+			C[0+bs*0] = A[1+bs*0];
+			C[1+bs*0] = A[2+bs*0];
+			C[2+bs*0] = A[3+bs*0];
+
+			C[0+bs*1] = A[1+bs*1];
+			C[1+bs*1] = A[2+bs*1];
+			C[2+bs*1] = A[3+bs*1];
+
+			C[0+bs*2] = A[1+bs*2];
+			C[1+bs*2] = A[2+bs*2];
+			C[2+bs*2] = A[3+bs*2];
+
+			A += bs*sda;
+			}
+
+		if(k>=kmax)
+			{
+			return;
+			}
+
+		C[3+bs*0] = A[0+bs*0];
+
+		C[3+bs*1] = A[0+bs*1];
+
+		C[3+bs*2] = A[0+bs*2];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C += bs*sdc;
+
+		C[0+bs*0] = A[1+bs*0];
+
+		C[0+bs*1] = A[1+bs*1];
+
+		C[0+bs*2] = A[1+bs*2];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[1+bs*0] = A[2+bs*0];
+
+		C[1+bs*1] = A[2+bs*1];
+
+		C[1+bs*2] = A[2+bs*2];
+
+		return;
+
+		}
+	else if(kna==2)
+		{
+
+		k = 0;
+	
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[2+bs*0] = A[0+bs*0];
+			C[3+bs*0] = A[1+bs*0];
+
+			C[2+bs*1] = A[0+bs*1];
+			C[3+bs*1] = A[1+bs*1];
+
+			C[2+bs*2] = A[0+bs*2];
+			C[3+bs*2] = A[1+bs*2];
+
+			C += bs*sdc;
+
+			C[0+bs*0] = A[2+bs*0];
+			C[1+bs*0] = A[3+bs*0];
+
+			C[0+bs*1] = A[2+bs*1];
+			C[1+bs*1] = A[3+bs*1];
+
+			C[0+bs*2] = A[2+bs*2];
+			C[1+bs*2] = A[3+bs*2];
+
+			A += bs*sda;
+			}
+
+		if(k>=kmax)
+			{
+			return;
+			}
+
+		C[2+bs*0] = A[0+bs*0];
+
+		C[2+bs*1] = A[0+bs*1];
+
+		C[2+bs*2] = A[0+bs*2];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[3+bs*0] = A[1+bs*0];
+
+		C[3+bs*1] = A[1+bs*1];
+
+		C[3+bs*2] = A[1+bs*2];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C += bs*sdc;
+
+		C[0+bs*0] = A[3+bs*0];
+
+		C[0+bs*1] = A[3+bs*1];
+
+		C[0+bs*2] = A[3+bs*2];
+
+		return;
+
+		}
+	else  //if(kna==3)
+		{
+
+		k = 0;
+
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[1+bs*0] = A[0+bs*0];
+			C[2+bs*0] = A[1+bs*0];
+			C[3+bs*0] = A[2+bs*0];
+
+			C[1+bs*1] = A[0+bs*1];
+			C[2+bs*1] = A[1+bs*1];
+			C[3+bs*1] = A[2+bs*1];
+
+			C[1+bs*2] = A[0+bs*2];
+			C[2+bs*2] = A[1+bs*2];
+			C[3+bs*2] = A[2+bs*2];
+
+			C += bs*sdc;
+
+			C[0+bs*0] = A[3+bs*0];
+
+			C[0+bs*1] = A[3+bs*1];
+
+			C[0+bs*2] = A[3+bs*2];
+
+			A += bs*sda;
+			}
+
+		if(k>=kmax)
+			{
+			return;
+			}
+
+		C[1+bs*0] = A[0+bs*0];
+
+		C[1+bs*1] = A[0+bs*1];
+
+		C[1+bs*2] = A[0+bs*2];
+
+		k++;
+
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[2+bs*0] = A[1+bs*0];
+
+		C[2+bs*1] = A[1+bs*1];
+
+		C[2+bs*2] = A[1+bs*2];
+
+		k++;
+
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[3+bs*0] = A[2+bs*0];
+
+		C[3+bs*1] = A[2+bs*1];
+
+		C[3+bs*2] = A[2+bs*2];
+
+		return;
+
+		}
+
+	}
+
+
+
+// mis-align a general matrix; it moves across panels; read aligned, write mis-aligned
+void kernel_dgema_2_lib4(int kmax, int kna, double *A, int sda, double *C, int sdc)
+	{
+
+	// assume kmax >= 4 !!!
+
+	const int bs = 4;
+
+	int k;
+
+	if(kna==0) // same alignment
+		{
+
+		k = 0;
+
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[0+bs*0] = A[0+bs*0];
+			C[1+bs*0] = A[1+bs*0];
+			C[2+bs*0] = A[2+bs*0];
+			C[3+bs*0] = A[3+bs*0];
+
+			C[0+bs*1] = A[0+bs*1];
+			C[1+bs*1] = A[1+bs*1];
+			C[2+bs*1] = A[2+bs*1];
+			C[3+bs*1] = A[3+bs*1];
+
+			A += bs*sda;
+			C += bs*sdc;
+			}
+
+		// clean-up loop
+		for( ; k<kmax; k++)
+			{
+			C[0+bs*0] = A[0+bs*0];
+
+			C[0+bs*1] = A[0+bs*1];
+
+			A += 1;
+			C += 1;
+			}
+
+		return;
+
+		}
+	else if(kna==1)
+		{
+
+		k = 0;
+
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[3+bs*0] = A[0+bs*0];
+
+			C[3+bs*1] = A[0+bs*1];
+
+			C += bs*sdc;
+
+			C[0+bs*0] = A[1+bs*0];
+			C[1+bs*0] = A[2+bs*0];
+			C[2+bs*0] = A[3+bs*0];
+
+			C[0+bs*1] = A[1+bs*1];
+			C[1+bs*1] = A[2+bs*1];
+			C[2+bs*1] = A[3+bs*1];
+
+			A += bs*sda;
+			}
+
+		if(k>=kmax)
+			{
+			return;
+			}
+
+		C[3+bs*0] = A[0+bs*0];
+
+		C[3+bs*1] = A[0+bs*1];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C += bs*sdc;
+
+		C[0+bs*0] = A[1+bs*0];
+
+		C[0+bs*1] = A[1+bs*1];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[1+bs*0] = A[2+bs*0];
+
+		C[1+bs*1] = A[2+bs*1];
+
+		return;
+
+		}
+	else if(kna==2)
+		{
+
+		k = 0;
+	
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[2+bs*0] = A[0+bs*0];
+			C[3+bs*0] = A[1+bs*0];
+
+			C[2+bs*1] = A[0+bs*1];
+			C[3+bs*1] = A[1+bs*1];
+
+			C += bs*sdc;
+
+			C[0+bs*0] = A[2+bs*0];
+			C[1+bs*0] = A[3+bs*0];
+
+			C[0+bs*1] = A[2+bs*1];
+			C[1+bs*1] = A[3+bs*1];
+
+			A += bs*sda;
+			}
+
+		if(k>=kmax)
+			{
+			return;
+			}
+
+		C[2+bs*0] = A[0+bs*0];
+
+		C[2+bs*1] = A[0+bs*1];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[3+bs*0] = A[1+bs*0];
+
+		C[3+bs*1] = A[1+bs*1];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C += bs*sdc;
+
+		C[0+bs*0] = A[3+bs*0];
+
+		C[0+bs*1] = A[3+bs*1];
+
+		return;
+
+		}
+	else  //if(kna==3)
+		{
+
+		k = 0;
+
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[1+bs*0] = A[0+bs*0];
+			C[2+bs*0] = A[1+bs*0];
+			C[3+bs*0] = A[2+bs*0];
+
+			C[1+bs*1] = A[0+bs*1];
+			C[2+bs*1] = A[1+bs*1];
+			C[3+bs*1] = A[2+bs*1];
+
+			C += bs*sdc;
+
+			C[0+bs*0] = A[3+bs*0];
+
+			C[0+bs*1] = A[3+bs*1];
+
+			A += bs*sda;
+			}
+
+		if(k>=kmax)
+			{
+			return;
+			}
+
+		C[1+bs*0] = A[0+bs*0];
+
+		C[1+bs*1] = A[0+bs*1];
+
+		k++;
+
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[2+bs*0] = A[1+bs*0];
+
+		C[2+bs*1] = A[1+bs*1];
+
+		k++;
+
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[3+bs*0] = A[2+bs*0];
+
+		C[3+bs*1] = A[2+bs*1];
+
+		return;
+
+		}
+
+	}
+
+
+
+// mis-align a general matrix; it moves across panels; read aligned, write mis-aligned
+void kernel_dgema_1_lib4(int kmax, int kna, double *A, int sda, double *C, int sdc)
+	{
+
+	// assume kmax >= 4 !!!
+
+	const int bs = 4;
+
+	int k;
+
+	if(kna==0) // same alignment
+		{
+
+		k = 0;
+
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[0+bs*0] = A[0+bs*0];
+			C[1+bs*0] = A[1+bs*0];
+			C[2+bs*0] = A[2+bs*0];
+			C[3+bs*0] = A[3+bs*0];
+
+			A += bs*sda;
+			C += bs*sdc;
+			}
+
+		// clean-up loop
+		for( ; k<kmax; k++)
+			{
+			C[0+bs*0] = A[0+bs*0];
+
+			A += 1;
+			C += 1;
+			}
+
+		return;
+
+		}
+	else if(kna==1)
+		{
+
+		k = 0;
+
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[3+bs*0] = A[0+bs*0];
+
+			C += bs*sdc;
+
+			C[0+bs*0] = A[1+bs*0];
+			C[1+bs*0] = A[2+bs*0];
+			C[2+bs*0] = A[3+bs*0];
+
+			A += bs*sda;
+			}
+
+		if(k>=kmax)
+			{
+			return;
+			}
+
+		C[3+bs*0] = A[0+bs*0];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C += bs*sdc;
+
+		C[0+bs*0] = A[1+bs*0];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[1+bs*0] = A[2+bs*0];
+
+		return;
+
+		}
+	else if(kna==2)
+		{
+
+		k = 0;
+	
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[2+bs*0] = A[0+bs*0];
+			C[3+bs*0] = A[1+bs*0];
+
+			C += bs*sdc;
+
+			C[0+bs*0] = A[2+bs*0];
+			C[1+bs*0] = A[3+bs*0];
+
+			A += bs*sda;
+			}
+
+		if(k>=kmax)
+			{
+			return;
+			}
+
+		C[2+bs*0] = A[0+bs*0];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[3+bs*0] = A[1+bs*0];
+
+		k++;
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C += bs*sdc;
+
+		C[0+bs*0] = A[3+bs*0];
+
+		return;
+
+		}
+	else  //if(kna==3)
+		{
+
+		k = 0;
+
+		// main loop
+		for( ; k<kmax-3; k+=4)
+			{
+			C[1+bs*0] = A[0+bs*0];
+			C[2+bs*0] = A[1+bs*0];
+			C[3+bs*0] = A[2+bs*0];
+
+			C += bs*sdc;
+
+			C[0+bs*0] = A[3+bs*0];
+
+			A += bs*sda;
+			}
+
+		if(k>=kmax)
+			{
+			return;
+			}
+
+		C[1+bs*0] = A[0+bs*0];
+
+		k++;
+
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[2+bs*0] = A[1+bs*0];
+
+		k++;
+
+
+		if(k==kmax)
+			{
+			return;
+			}
+
+		C[3+bs*0] = A[2+bs*0];
+
+		return;
+
+		}
+
+	}
+
+
+
 // mis-align a triangolar matrix; it moves across panels; read aligned, write mis-aligned
 void kernel_dtrma_4_lib4(int kmax, int kna, double *A, int sda, double *C, int sdc)
 	{

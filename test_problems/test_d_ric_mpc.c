@@ -270,8 +270,8 @@ int main()
 	int nx, nu, N, nrep;
 
 	int ll;
-	int ll_max = 77;
-/*	int ll_max = 1;*/
+//	int ll_max = 77;
+	int ll_max = 1;
 	for(ll=0; ll<ll_max; ll++)
 		{
 		
@@ -300,8 +300,10 @@ int main()
 		const int anx = nal*((nx+nal-1)/nal);
 		const int pnz = bs*((nz+bs-1)/bs);
 		const int pnx = bs*((nx+bs-1)/bs);
+		const int pnu = bs*((nu+bs-1)/bs);
 		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 		const int cnx = ncl*((nx+ncl-1)/ncl);
+		const int cnu = ncl*((nu+ncl-1)/ncl);
 
 //		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 		//const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
@@ -437,9 +439,60 @@ int main()
 		double *work; d_zeros_align(&work, pnz, cnx);
 
 /************************************************
+* test of riccati_eye 
+************************************************/
+		
+#if 0
+		double *pBt; d_zeros_align(&pBt, pnu, cnx);
+		d_cvt_tran_mat2pmat(nx, nu, 0, bs, B, nx, pBt, cnx);
+		//d_print_mat(nx, nu, B, nx);
+		//d_print_pmat(nu, nx, bs, pBt, cnx);
+
+		double *pR; d_zeros_align(&pR, pnx, cnu);
+		d_cvt_tran_mat2pmat(nu, nu, 0, bs, Q, nz, pR, cnu);
+		//d_print_pmat(nu, nu, bs, pR, cnu);
+
+		double *pQx; d_zeros_align(&pQx, pnx, cnx);
+		d_cvt_tran_mat2pmat(nx, nx, 0, bs, Q+nu*(nz+1), nz, pQx, cnx);
+		//d_print_pmat(nx, nx, bs, pQx, cnx);
+
+		double *pS; d_zeros_align(&pS, pnu, cnx);
+
+		double *work_eye; d_zeros_align(&work_eye, pnu*cnx+pnx*cnu+pnx*cnu, 1);
+
+
+		double *(hpBt[N]);
+		double *(hpP[N+1]);
+		double *(hpR[N]);
+		double *(hpQx[N+1]);
+		double *(hpS[N]);
+
+		for(ii=0; ii<N; ii++)
+			{
+			hpBt[ii] = pBt;
+			d_zeros_align(&hpP[ii], pnx, cnx);
+			hpR[ii] = pR;
+			hpQx[ii] = pQx;
+			hpS[ii] = pS;
+			}
+		d_zeros_align(&hpP[N], pnx, cnx);
+		hpQx[N] = pQx;
+
+		d_ric_eye_sv_mpc(nx, nu, N, hpBt, hpR, hpS, hpQx, hpL, hpP, work_eye, diag);
+
+		d_print_pmat(nx, nx, bs, hpP[0], cnx);
+		d_print_pmat(nx, nx, bs, hpP[1], cnx);
+		d_print_pmat(nx, nx, bs, hpP[2], cnx);
+		d_print_pmat(nx, nx, bs, hpP[N-1], cnx);
+		d_print_pmat(nx, nx, bs, hpP[N], cnx);
+
+		exit(0);
+#endif
+		
+/************************************************
 * riccati-like iteration
 ************************************************/
-
+		
 		// predictor
 
 		// restore cost function 

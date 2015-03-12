@@ -324,6 +324,118 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 
 
 
+// version exploiting A=I
+// L = chol(R + B'*P*B)
+// K = (P*B)\L
+// P = Q + P + K*K'
+void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double **hpS, double **hpQ, double **hpL, double **hpP, double *work, double *diag)
+	{
+
+	const int bs = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+//	const int nal = bs*ncl; // number of doubles per cache line
+	
+//	const int nz   = nx+nu+1;
+//	const int anz  = nal*((nz+nal-1)/nal);
+//	const int pnz  = bs*((nz+bs-1)/bs);
+	const int pnx  = bs*((nx+bs-1)/bs);
+	const int pnu  = bs*((nu+bs-1)/bs);
+//	const int pnb  = bs*((nb+bs-1)/bs);
+//	const int png  = bs*((ng+bs-1)/bs);
+//	const int pngN = bs*((ngN+bs-1)/bs);
+//	const int cnz  = ncl*((nz+ncl-1)/ncl);
+	const int cnu  = ncl*((nu+ncl-1)/ncl);
+	const int cnx  = ncl*((nx+ncl-1)/ncl);
+//	const int cng  = ncl*((ng+ncl-1)/ncl);
+//	const int cngN = ncl*((ngN+ncl-1)/ncl);
+//	const int cnxg = ncl*((ng+nx+ncl-1)/ncl);
+
+//	const int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
+
+	// number of general constraints TODO
+	//const int ng = 0;
+
+	int nu_m = (nu/bs)*bs;
+	int nu_r = nu%bs;
+
+	int ii, jj, ll, nn;
+
+	double temp;
+
+	double *pPB, *pPBt, *pK;
+
+	pPB = work;
+	work += pnx*cnu;
+
+	pPBt = work;
+	work += pnu*cnx;
+
+	pK = work;
+	work += pnx*cnu;
+
+	// last stage: inintialize P with Q_N
+	d_copy_pmat(nx, nx, bs, hpQ[N], cnx, hpP[N], cnx);
+
+	// factorization and backward substitution 
+	for(nn=0; nn<N; nn++)
+		{
+		// PB = P*(B')'
+		dgemm_nt_lib(nx, nu, nx, hpP[N-nn], cnx, hpBt[N-nn-1], cnx, pPB, cnu, 0); // TODO embed transpose of result in dgemm_nt
+		//d_print_pmat(nx, nx, bs, hpP[N-nn], cnx);
+		//d_print_pmat(nu, nx, bs, hpBt[N-nn-1], cnx);
+		//d_print_pmat(nx, nu, bs, pPB, cnu);
+		//exit(1);
+
+		// PBt = (PB)'
+		dgetr_lib(nx, 0, nu, 0, pPB, cnu, pPBt, cnx);
+		//d_print_pmat(nu, nx, bs, pPBt, cnx);
+		//exit(1);
+
+		// R + PBt*B'
+		//dgemm_nt_lib(nu, nu, nx, pPBt, cnx, hpBt[N-nn-1], cnx, hpL[N-nn-1], cnu, 0);
+		dsyrk_lib(nu, nu, nx, pPBt, cnx, hpBt[N-nn-1], cnx, hpR[N-nn-1], cnu, hpL[N-nn-1], cnu, 1);
+		//d_print_pmat(nu, nu, bs, hpL[N-nn-1], cnu);
+		//exit(1);
+
+		// S + PBt
+		for(ii=0; ii<pnu*cnx; ii++) pPBt[ii] = pPBt[ii] + hpS[N-nn-1][ii]; // TODO routine for this
+		//d_print_pmat(nu, nx, bs, pPBt, cnx);
+		//exit(1);
+
+		// PB on bottom of L
+		dgetr_lib(nu, 0, nx, nu, pPBt, cnx, hpL[N-nn-1]+nu_m*cnu+nu_r, cnu);
+		//d_print_pmat(nu+nx, nu, bs, hpL[N-nn-1], cnu);
+		//exit(1);
+		
+		// [L; K] = chol([R + B'*P*B; P*B])
+		dpotrf_lib(nx+nu, nu, hpL[N-nn-1], cnu, hpL[N-nn-1], cnu, diag);
+		//d_print_pmat(nu+nx, nu, bs, hpL[N-nn-1], cnu);
+		//exit(1);
+
+		// copy K to alinged memory
+		d_align_pmat(nx, nu, nu, bs, hpL[N-nn-1]+nu/bs*bs*cnu, cnu, pK, cnu); // TODO make kernel for this
+		//d_print_pmat(nx, nu, bs, pK, cnu);
+		//exit(1);
+
+		// P_n = Q_n + P_{n+1}
+		for(ii=0; ii<pnx*cnx; ii++) hpP[N-nn-1][ii] = hpP[N-nn][ii] + hpQ[N-nn-1][ii]; // TODO routine for this
+		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
+
+		// TODO if nu small, low-rank update
+		dsyrk_lib(nx, nx, nu, pK, cnu, pK, cnu, hpP[N-nn-1], cnx, hpP[N-nn-1], cnx, -1);
+		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
+
+		// copy lower triangular to upper triangular
+		dtrtr_l_lib(nx, 0, hpP[N-nn-1], cnx, hpP[N-nn-1], cnx);	
+		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
+		//exit(1);
+
+		}
+		
+	}
+
+
+
 // information filter version
 int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double **hpALe, double **hpGLr, double *work)
 	{
