@@ -32,7 +32,7 @@
 
 
 
-void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
+void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg, int td)
 	{
 	
 	if(kmax<=0)
@@ -383,7 +383,7 @@ void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double 
 
 
 // normal-transposed, 8x4 with data packed in 4
-void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
+void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg, int td)
 	{
 	
 	if(kmax<=0)
@@ -398,6 +398,8 @@ void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *
 	int k;
 	
 	__m256d
+		v0, v1, v2, v3,
+		u0, u1, u2, u3,
 		a_0123, a_4567, //A_0123,
 		b_0123, b_1032, b_3210, b_2301,
 		ab_tmp0, ab_tmp1, // temporary results
@@ -584,14 +586,45 @@ void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *
 
 	if(alg==0) // C = A * B'
 		{
-		_mm256_store_pd( &D0[0+ldc*0], c_00_10_20_30 );
-		_mm256_store_pd( &D0[0+ldc*1], c_01_11_21_31 );
-		_mm256_store_pd( &D0[0+ldc*2], c_02_12_22_32 );
-		_mm256_store_pd( &D0[0+ldc*3], c_03_13_23_33 );
-		_mm256_store_pd( &D1[0+ldc*0], c_40_50_60_70 );
-		_mm256_store_pd( &D1[0+ldc*1], c_41_51_61_71 );
-		_mm256_store_pd( &D1[0+ldc*2], c_42_52_62_72 );
-		_mm256_store_pd( &D1[0+ldc*3], c_43_53_63_73 );
+		if(td==0)
+			{
+			_mm256_store_pd( &D0[0+ldc*0], c_00_10_20_30 );
+			_mm256_store_pd( &D0[0+ldc*1], c_01_11_21_31 );
+			_mm256_store_pd( &D0[0+ldc*2], c_02_12_22_32 );
+			_mm256_store_pd( &D0[0+ldc*3], c_03_13_23_33 );
+			_mm256_store_pd( &D1[0+ldc*0], c_40_50_60_70 );
+			_mm256_store_pd( &D1[0+ldc*1], c_41_51_61_71 );
+			_mm256_store_pd( &D1[0+ldc*2], c_42_52_62_72 );
+			_mm256_store_pd( &D1[0+ldc*3], c_43_53_63_73 );
+			}
+		else // transposed
+			{
+			u0 = _mm256_unpacklo_pd( c_00_10_20_30, c_01_11_21_31 ); // 00 01 20 21
+			u1 = _mm256_unpackhi_pd( c_00_10_20_30, c_01_11_21_31 ); // 10 11 30 31
+			u2 = _mm256_unpacklo_pd( c_02_12_22_32, c_03_13_23_33 ); // 02 03 22 23
+			u3 = _mm256_unpackhi_pd( c_02_12_22_32, c_03_13_23_33 ); // 12 13 32 33
+			v0 = _mm256_permute2f128_pd( u0, u2, 0x20 ); // 00 01 02 03
+			v2 = _mm256_permute2f128_pd( u0, u2, 0x31 ); // 20 21 22 23
+			v1 = _mm256_permute2f128_pd( u1, u3, 0x20 ); // 10 11 12 13
+			v3 = _mm256_permute2f128_pd( u1, u3, 0x31 ); // 30 31 32 33
+			_mm256_store_pd( &D0[0+ldc*0], v0 );
+			_mm256_store_pd( &D0[0+ldc*1], v1 );
+			_mm256_store_pd( &D0[0+ldc*2], v2 );
+			_mm256_store_pd( &D0[0+ldc*3], v3 );
+
+			u0 = _mm256_unpacklo_pd( c_40_50_60_70, c_41_51_61_71 ); // 00 01 20 21
+			u1 = _mm256_unpackhi_pd( c_40_50_60_70, c_41_51_61_71 ); // 10 11 30 31
+			u2 = _mm256_unpacklo_pd( c_42_52_62_72, c_43_53_63_73 ); // 02 03 22 23
+			u3 = _mm256_unpackhi_pd( c_42_52_62_72, c_43_53_63_73 ); // 12 13 32 33
+			v0 = _mm256_permute2f128_pd( u0, u2, 0x20 ); // 00 01 02 03
+			v2 = _mm256_permute2f128_pd( u0, u2, 0x31 ); // 20 21 22 23
+			v1 = _mm256_permute2f128_pd( u1, u3, 0x20 ); // 10 11 12 13
+			v3 = _mm256_permute2f128_pd( u1, u3, 0x31 ); // 30 31 32 33
+			_mm256_store_pd( &D0[0+ldc*4], v0 );
+			_mm256_store_pd( &D0[0+ldc*5], v1 );
+			_mm256_store_pd( &D0[0+ldc*6], v2 );
+			_mm256_store_pd( &D0[0+ldc*7], v3 );
+			}
 		}
 	else 
 		{
@@ -627,14 +660,45 @@ void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *
 			d_43_53_63_73 = _mm256_sub_pd( d_43_53_63_73, c_43_53_63_73 );
 			}
 
-		_mm256_store_pd( &D0[0+ldc*0], d_00_10_20_30 );
-		_mm256_store_pd( &D0[0+ldc*1], d_01_11_21_31 );
-		_mm256_store_pd( &D0[0+ldc*2], d_02_12_22_32 );
-		_mm256_store_pd( &D0[0+ldc*3], d_03_13_23_33 );
-		_mm256_store_pd( &D1[0+ldc*0], d_40_50_60_70 );
-		_mm256_store_pd( &D1[0+ldc*1], d_41_51_61_71 );
-		_mm256_store_pd( &D1[0+ldc*2], d_42_52_62_72 );
-		_mm256_store_pd( &D1[0+ldc*3], d_43_53_63_73 );
+		if(td==0)
+			{
+			_mm256_store_pd( &D0[0+ldc*0], d_00_10_20_30 );
+			_mm256_store_pd( &D0[0+ldc*1], d_01_11_21_31 );
+			_mm256_store_pd( &D0[0+ldc*2], d_02_12_22_32 );
+			_mm256_store_pd( &D0[0+ldc*3], d_03_13_23_33 );
+			_mm256_store_pd( &D1[0+ldc*0], d_40_50_60_70 );
+			_mm256_store_pd( &D1[0+ldc*1], d_41_51_61_71 );
+			_mm256_store_pd( &D1[0+ldc*2], d_42_52_62_72 );
+			_mm256_store_pd( &D1[0+ldc*3], d_43_53_63_73 );
+			}
+		else // transposed
+			{
+			u0 = _mm256_unpacklo_pd( d_00_10_20_30, d_01_11_21_31 ); // 00 01 20 21
+			u1 = _mm256_unpackhi_pd( d_00_10_20_30, d_01_11_21_31 ); // 10 11 30 31
+			u2 = _mm256_unpacklo_pd( d_02_12_22_32, d_03_13_23_33 ); // 02 03 22 23
+			u3 = _mm256_unpackhi_pd( d_02_12_22_32, d_03_13_23_33 ); // 12 13 32 33
+			v0 = _mm256_permute2f128_pd( u0, u2, 0x20 ); // 00 01 02 03
+			v2 = _mm256_permute2f128_pd( u0, u2, 0x31 ); // 20 21 22 23
+			v1 = _mm256_permute2f128_pd( u1, u3, 0x20 ); // 10 11 12 13
+			v3 = _mm256_permute2f128_pd( u1, u3, 0x31 ); // 30 31 32 33
+			_mm256_store_pd( &D0[0+ldc*0], v0 );
+			_mm256_store_pd( &D0[0+ldc*1], v1 );
+			_mm256_store_pd( &D0[0+ldc*2], v2 );
+			_mm256_store_pd( &D0[0+ldc*3], v3 );
+
+			u0 = _mm256_unpacklo_pd( d_40_50_60_70, d_41_51_61_71 ); // 00 01 20 21
+			u1 = _mm256_unpackhi_pd( d_40_50_60_70, d_41_51_61_71 ); // 10 11 30 31
+			u2 = _mm256_unpacklo_pd( d_42_52_62_72, d_43_53_63_73 ); // 02 03 22 23
+			u3 = _mm256_unpackhi_pd( d_42_52_62_72, d_43_53_63_73 ); // 12 13 32 33
+			v0 = _mm256_permute2f128_pd( u0, u2, 0x20 ); // 00 01 02 03
+			v2 = _mm256_permute2f128_pd( u0, u2, 0x31 ); // 20 21 22 23
+			v1 = _mm256_permute2f128_pd( u1, u3, 0x20 ); // 10 11 12 13
+			v3 = _mm256_permute2f128_pd( u1, u3, 0x31 ); // 30 31 32 33
+			_mm256_store_pd( &D0[0+ldc*4], v0 );
+			_mm256_store_pd( &D0[0+ldc*5], v1 );
+			_mm256_store_pd( &D0[0+ldc*6], v2 );
+			_mm256_store_pd( &D0[0+ldc*7], v3 );
+			}
 		}
 
 	}
@@ -642,7 +706,7 @@ void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *
 
 
 // normal-transposed, 8x2 with data packed in 4
-void kernel_dgemm_nt_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
+void kernel_dgemm_nt_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg, int td)
 	{
 	
 	if(kmax<=0)
@@ -849,7 +913,7 @@ void kernel_dgemm_nt_8x2_lib4(int kmax, double *A0, int sda, double *B, double *
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int td)
 	{
 	
 	if(kmax<=0)
@@ -860,6 +924,8 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 	int k;
 	
 	__m256d
+		v0, v1, v2, v3,
+		u0, u1, u2, u3,
 		a_0123,
 		b_0123, b_1032, b_3210, b_2301,
 		ab_temp, // temporary results
@@ -1021,10 +1087,28 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 
 	if(alg==0) // C = A * B'
 		{
-		_mm256_store_pd( &D[0+ldc*0], c_00_10_20_30 );
-		_mm256_store_pd( &D[0+ldc*1], c_01_11_21_31 );
-		_mm256_store_pd( &D[0+ldc*2], c_02_12_22_32 );
-		_mm256_store_pd( &D[0+ldc*3], c_03_13_23_33 );
+		if(td==0)
+			{
+			_mm256_store_pd( &D[0+ldc*0], c_00_10_20_30 );
+			_mm256_store_pd( &D[0+ldc*1], c_01_11_21_31 );
+			_mm256_store_pd( &D[0+ldc*2], c_02_12_22_32 );
+			_mm256_store_pd( &D[0+ldc*3], c_03_13_23_33 );
+			}
+		else // transposed
+			{
+			u0 = _mm256_unpacklo_pd( c_00_10_20_30, c_01_11_21_31 ); // 00 01 20 21
+			u1 = _mm256_unpackhi_pd( c_00_10_20_30, c_01_11_21_31 ); // 10 11 30 31
+			u2 = _mm256_unpacklo_pd( c_02_12_22_32, c_03_13_23_33 ); // 02 03 22 23
+			u3 = _mm256_unpackhi_pd( c_02_12_22_32, c_03_13_23_33 ); // 12 13 32 33
+			v0 = _mm256_permute2f128_pd( u0, u2, 0x20 ); // 00 01 02 03
+			v2 = _mm256_permute2f128_pd( u0, u2, 0x31 ); // 20 21 22 23
+			v1 = _mm256_permute2f128_pd( u1, u3, 0x20 ); // 10 11 12 13
+			v3 = _mm256_permute2f128_pd( u1, u3, 0x31 ); // 30 31 32 33
+			_mm256_store_pd( &D[0+ldc*0], v0 );
+			_mm256_store_pd( &D[0+ldc*1], v1 );
+			_mm256_store_pd( &D[0+ldc*2], v2 );
+			_mm256_store_pd( &D[0+ldc*3], v3 );
+			}
 		}
 	else 
 		{
@@ -1048,10 +1132,28 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 			d_03_13_23_33 = _mm256_sub_pd( d_03_13_23_33, c_03_13_23_33 );
 			}
 
-		_mm256_store_pd( &D[0+ldc*0], d_00_10_20_30 );
-		_mm256_store_pd( &D[0+ldc*1], d_01_11_21_31 );
-		_mm256_store_pd( &D[0+ldc*2], d_02_12_22_32 );
-		_mm256_store_pd( &D[0+ldc*3], d_03_13_23_33 );
+		if(td==0)
+			{
+			_mm256_store_pd( &D[0+ldc*0], d_00_10_20_30 );
+			_mm256_store_pd( &D[0+ldc*1], d_01_11_21_31 );
+			_mm256_store_pd( &D[0+ldc*2], d_02_12_22_32 );
+			_mm256_store_pd( &D[0+ldc*3], d_03_13_23_33 );
+			}
+		else // transposed
+			{
+			u0 = _mm256_unpacklo_pd( d_00_10_20_30, d_01_11_21_31 ); // 00 01 20 21
+			u1 = _mm256_unpackhi_pd( d_00_10_20_30, d_01_11_21_31 ); // 10 11 30 31
+			u2 = _mm256_unpacklo_pd( d_02_12_22_32, d_03_13_23_33 ); // 02 03 22 23
+			u3 = _mm256_unpackhi_pd( d_02_12_22_32, d_03_13_23_33 ); // 12 13 32 33
+			v0 = _mm256_permute2f128_pd( u0, u2, 0x20 ); // 00 01 02 03
+			v2 = _mm256_permute2f128_pd( u0, u2, 0x31 ); // 20 21 22 23
+			v1 = _mm256_permute2f128_pd( u1, u3, 0x20 ); // 10 11 12 13
+			v3 = _mm256_permute2f128_pd( u1, u3, 0x31 ); // 30 31 32 33
+			_mm256_store_pd( &D[0+ldc*0], v0 );
+			_mm256_store_pd( &D[0+ldc*1], v1 );
+			_mm256_store_pd( &D[0+ldc*2], v2 );
+			_mm256_store_pd( &D[0+ldc*3], v3 );
+			}
 		}
 
 	}
@@ -1059,7 +1161,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 
 
 // normal-transposed, 4x2 with data packed in 4
-void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int td)
 	{
 	
 	if(kmax<=0)
@@ -1212,7 +1314,7 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 
 
 // normal-transposed, 2x4 with data packed in 4
-void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int td)
 	{
 	
 	if(kmax<=0)
@@ -1383,7 +1485,7 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double 
 
 
 // normal-transposed, 2x2 with data packed in 4
-void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int td)
 	{
 	
 	if(kmax<=0)

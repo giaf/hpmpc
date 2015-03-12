@@ -270,8 +270,8 @@ int main()
 	int nx, nu, N, nrep;
 
 	int ll;
-	int ll_max = 77;
-//	int ll_max = 1;
+//	int ll_max = 77;
+	int ll_max = 1;
 	for(ll=0; ll<ll_max; ll++)
 		{
 		

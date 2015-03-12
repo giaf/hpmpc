@@ -285,7 +285,9 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 	/* backward substitution */
 	// general constraints
 	if(ngN>0)
+		{
 		dgemv_n_lib(nx+nu, ngN, hpDCt[N], cngN, qx[N]+2*pnb, hq[N], 1);
+		}
 	for(ii=0; ii<N; ii++)
 		{
 		if(compute_Pb)
@@ -380,7 +382,8 @@ void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double
 	for(nn=0; nn<N; nn++)
 		{
 		// PB = P*(B')'
-		dgemm_nt_lib(nx, nu, nx, hpP[N-nn], cnx, hpBt[N-nn-1], cnx, pPB, cnu, 0); // TODO embed transpose of result in dgemm_nt
+		dgemm_nt_lib(nx, nu, nx, hpP[N-nn], cnx, hpBt[N-nn-1], cnx, pPB, cnu, pPB, cnu, 0, 0); // TODO embed transpose of result in dgemm_nt
+		//dgemm_nt_lib(nx, nu, nx, hpP[N-nn], cnx, hpBt[N-nn-1], cnx, pPB, cnu, pPBt, cnx, 0, 1); // TODO embed transpose of result in dgemm_nt
 		//d_print_pmat(nx, nx, bs, hpP[N-nn], cnx);
 		//d_print_pmat(nu, nx, bs, hpBt[N-nn-1], cnx);
 		//d_print_pmat(nx, nu, bs, pPB, cnu);
