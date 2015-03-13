@@ -73,7 +73,7 @@ void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *
 	c_42_53_60_71 = _mm256_setzero_pd();
 
 
-#if 0
+#if 1
 	for(k=0; k<kmax-3; k+=4) // TODO prefetch A0 and A1 using 2 extra registers ????????????????
 		{
 		

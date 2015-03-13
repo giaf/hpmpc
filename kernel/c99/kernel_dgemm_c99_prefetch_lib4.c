@@ -270,15 +270,15 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 			D[1+ldc*2] = c_21;
 			D[1+ldc*3] = c_31;
 
-			D[2+ldc*0] = d_02;
-			D[2+ldc*1] = d_12;
-			D[2+ldc*2] = d_22;
-			D[2+ldc*3] = d_32;
+			D[2+ldc*0] = c_02;
+			D[2+ldc*1] = c_12;
+			D[2+ldc*2] = c_22;
+			D[2+ldc*3] = c_32;
 
-			D[3+ldc*0] = d_03;
-			D[3+ldc*1] = d_13;
-			D[3+ldc*2] = d_23;
-			D[3+ldc*3] = d_33;
+			D[3+ldc*0] = c_03;
+			D[3+ldc*1] = c_13;
+			D[3+ldc*2] = c_23;
+			D[3+ldc*3] = c_33;
 			}
 		}
 	else 
