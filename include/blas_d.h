@@ -23,7 +23,7 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg, int td);
+void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg, int tc, int td);
 void dtrmm_l_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
 void dtrmm_u_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
 void dsyrk_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pD, int sdd, double *pC, int sdc, int alg);

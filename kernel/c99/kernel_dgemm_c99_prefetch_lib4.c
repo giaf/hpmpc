@@ -26,14 +26,13 @@
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int td)
+void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
 	if(kmax<=0)
 		return;
 	
-	const int lda = 4;
-	const int ldc = 4;
+	const int bs = 4;
 
 	int k;
 
@@ -47,29 +46,29 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		c_20=0, c_21=0, c_22=0, c_23=0,
 		c_30=0, c_31=0, c_32=0, c_33=0;
 		
-	a_0 = A[0+lda*0];
-	a_1 = A[1+lda*0];
-	a_2 = A[2+lda*0];
-	a_3 = A[3+lda*0];
+	a_0 = A[0+bs*0];
+	a_1 = A[1+bs*0];
+	a_2 = A[2+bs*0];
+	a_3 = A[3+bs*0];
 	
-	b_0 = B[0+lda*0];
-	b_1 = B[1+lda*0];
-	b_2 = B[2+lda*0];
-	b_3 = B[3+lda*0];
+	b_0 = B[0+bs*0];
+	b_1 = B[1+bs*0];
+	b_2 = B[2+bs*0];
+	b_3 = B[3+bs*0];
 
 	k=0;
 	for(; k<kmax-3; k+=4)
 		{
 		
-		A_0 = A[0+lda*1];
-		A_1 = A[1+lda*1];
-		A_2 = A[2+lda*1];
-		A_3 = A[3+lda*1];
+		A_0 = A[0+bs*1];
+		A_1 = A[1+bs*1];
+		A_2 = A[2+bs*1];
+		A_3 = A[3+bs*1];
 		
-		B_0 = B[0+lda*1];
-		B_1 = B[1+lda*1];
-		B_2 = B[2+lda*1];
-		B_3 = B[3+lda*1];
+		B_0 = B[0+bs*1];
+		B_1 = B[1+bs*1];
+		B_2 = B[2+bs*1];
+		B_3 = B[3+bs*1];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -92,15 +91,15 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		c_33 += a_3 * b_3;
 
 
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
-		a_2 = A[2+lda*2];
-		a_3 = A[3+lda*2];
+		a_0 = A[0+bs*2];
+		a_1 = A[1+bs*2];
+		a_2 = A[2+bs*2];
+		a_3 = A[3+bs*2];
 		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
-		b_2 = B[2+lda*2];
-		b_3 = B[3+lda*2];
+		b_0 = B[0+bs*2];
+		b_1 = B[1+bs*2];
+		b_2 = B[2+bs*2];
+		b_3 = B[3+bs*2];
 		
 		c_00 += A_0 * B_0;
 		c_10 += A_1 * B_0;
@@ -123,15 +122,15 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		c_33 += A_3 * B_3;
 
 
-		A_0 = A[0+lda*3];
-		A_1 = A[1+lda*3];
-		A_2 = A[2+lda*3];
-		A_3 = A[3+lda*3];
+		A_0 = A[0+bs*3];
+		A_1 = A[1+bs*3];
+		A_2 = A[2+bs*3];
+		A_3 = A[3+bs*3];
 		
-		B_0 = B[0+lda*3];
-		B_1 = B[1+lda*3];
-		B_2 = B[2+lda*3];
-		B_3 = B[3+lda*3];
+		B_0 = B[0+bs*3];
+		B_1 = B[1+bs*3];
+		B_2 = B[2+bs*3];
+		B_3 = B[3+bs*3];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -154,15 +153,15 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		c_33 += a_3 * b_3;
 
 
-		a_0 = A[0+lda*4];
-		a_1 = A[1+lda*4];
-		a_2 = A[2+lda*4];
-		a_3 = A[3+lda*4];
+		a_0 = A[0+bs*4];
+		a_1 = A[1+bs*4];
+		a_2 = A[2+bs*4];
+		a_3 = A[3+bs*4];
 		
-		b_0 = B[0+lda*4];
-		b_1 = B[1+lda*4];
-		b_2 = B[2+lda*4];
-		b_3 = B[3+lda*4];
+		b_0 = B[0+bs*4];
+		b_1 = B[1+bs*4];
+		b_2 = B[2+bs*4];
+		b_3 = B[3+bs*4];
 		
 		c_00 += A_0 * B_0;
 		c_10 += A_1 * B_0;
@@ -192,15 +191,15 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 	for(; k<kmax; k++)
 		{
 		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		a_2 = A[2+lda*0];
-		a_3 = A[3+lda*0];
+		a_0 = A[0+bs*0];
+		a_1 = A[1+bs*0];
+		a_2 = A[2+bs*0];
+		a_3 = A[3+bs*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		b_2 = B[2+lda*0];
-		b_3 = B[3+lda*0];
+		b_0 = B[0+bs*0];
+		b_1 = B[1+bs*0];
+		b_2 = B[2+bs*0];
+		b_3 = B[3+bs*0];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -234,76 +233,101 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		d_20, d_21, d_22, d_23,
 		d_30, d_31, d_32, d_33;
 	
-	if(alg==0) // C = A * B'
+	if(alg==0) // D = A * B' , there is no tc
 		{
 		if(td==0) // not transpose D
 			{
-			D[0+ldc*0] = c_00;
-			D[1+ldc*0] = c_10;
-			D[2+ldc*0] = c_20;
-			D[3+ldc*0] = c_30;
+			D[0+bs*0] = c_00;
+			D[1+bs*0] = c_10;
+			D[2+bs*0] = c_20;
+			D[3+bs*0] = c_30;
 
-			D[0+ldc*1] = c_01;
-			D[1+ldc*1] = c_11;
-			D[2+ldc*1] = c_21;
-			D[3+ldc*1] = c_31;
+			D[0+bs*1] = c_01;
+			D[1+bs*1] = c_11;
+			D[2+bs*1] = c_21;
+			D[3+bs*1] = c_31;
 
-			D[0+ldc*2] = c_02;
-			D[1+ldc*2] = c_12;
-			D[2+ldc*2] = c_22;
-			D[3+ldc*2] = c_32;
+			D[0+bs*2] = c_02;
+			D[1+bs*2] = c_12;
+			D[2+bs*2] = c_22;
+			D[3+bs*2] = c_32;
 
-			D[0+ldc*3] = c_03;
-			D[1+ldc*3] = c_13;
-			D[2+ldc*3] = c_23;
-			D[3+ldc*3] = c_33;
+			D[0+bs*3] = c_03;
+			D[1+bs*3] = c_13;
+			D[2+bs*3] = c_23;
+			D[3+bs*3] = c_33;
 			}
 		else // transpose D
 			{
-			D[0+ldc*0] = c_00;
-			D[0+ldc*1] = c_10;
-			D[0+ldc*2] = c_20;
-			D[0+ldc*3] = c_30;
+			D[0+bs*0] = c_00;
+			D[0+bs*1] = c_10;
+			D[0+bs*2] = c_20;
+			D[0+bs*3] = c_30;
 
-			D[1+ldc*0] = c_01;
-			D[1+ldc*1] = c_11;
-			D[1+ldc*2] = c_21;
-			D[1+ldc*3] = c_31;
+			D[1+bs*0] = c_01;
+			D[1+bs*1] = c_11;
+			D[1+bs*2] = c_21;
+			D[1+bs*3] = c_31;
 
-			D[2+ldc*0] = c_02;
-			D[2+ldc*1] = c_12;
-			D[2+ldc*2] = c_22;
-			D[2+ldc*3] = c_32;
+			D[2+bs*0] = c_02;
+			D[2+bs*1] = c_12;
+			D[2+bs*2] = c_22;
+			D[2+bs*3] = c_32;
 
-			D[3+ldc*0] = c_03;
-			D[3+ldc*1] = c_13;
-			D[3+ldc*2] = c_23;
-			D[3+ldc*3] = c_33;
+			D[3+bs*0] = c_03;
+			D[3+bs*1] = c_13;
+			D[3+bs*2] = c_23;
+			D[3+bs*3] = c_33;
 			}
 		}
-	else 
+	else // D = C +/- A * B'
 		{
-		d_00 = C[0+ldc*0];
-		d_10 = C[1+ldc*0];
-		d_20 = C[2+ldc*0];
-		d_30 = C[3+ldc*0];
+		if(tc==td) // not transpose C
+			{
+			d_00 = C[0+bs*0];
+			d_10 = C[1+bs*0];
+			d_20 = C[2+bs*0];
+			d_30 = C[3+bs*0];
+			
+			d_01 = C[0+bs*1];
+			d_11 = C[1+bs*1];
+			d_21 = C[2+bs*1];
+			d_31 = C[3+bs*1];
+			
+			d_02 = C[0+bs*2];
+			d_12 = C[1+bs*2];
+			d_22 = C[2+bs*2];
+			d_32 = C[3+bs*2];
+			
+			d_03 = C[0+bs*3];
+			d_13 = C[1+bs*3];
+			d_23 = C[2+bs*3];
+			d_33 = C[3+bs*3];
+			}
+		else // transpose C
+			{
+			d_00 = C[0+bs*0];
+			d_01 = C[1+bs*0];
+			d_02 = C[2+bs*0];
+			d_03 = C[3+bs*0];
+			
+			d_10 = C[0+bs*1];
+			d_11 = C[1+bs*1];
+			d_12 = C[2+bs*1];
+			d_13 = C[3+bs*1];
+			
+			d_20 = C[0+bs*2];
+			d_21 = C[1+bs*2];
+			d_22 = C[2+bs*2];
+			d_23 = C[3+bs*2];
+			
+			d_30 = C[0+bs*3];
+			d_31 = C[1+bs*3];
+			d_32 = C[2+bs*3];
+			d_33 = C[3+bs*3];
+			}
 		
-		d_01 = C[0+ldc*1];
-		d_11 = C[1+ldc*1];
-		d_21 = C[2+ldc*1];
-		d_31 = C[3+ldc*1];
-		
-		d_02 = C[0+ldc*2];
-		d_12 = C[1+ldc*2];
-		d_22 = C[2+ldc*2];
-		d_32 = C[3+ldc*2];
-		
-		d_03 = C[0+ldc*3];
-		d_13 = C[1+ldc*3];
-		d_23 = C[2+ldc*3];
-		d_33 = C[3+ldc*3];
-		
-		if(alg==1) // C += A * B'
+		if(alg==1) // D = C + A * B'
 			{
 			d_00 += c_00;
 			d_10 += c_10;
@@ -325,7 +349,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 			d_23 += c_23;
 			d_33 += c_33;
 			}
-		else // C -= A * B'
+		else // D = C - A * B'
 			{
 			d_00 -= c_00;
 			d_10 -= c_10;
@@ -350,47 +374,47 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 
 		if(td==0) // not transpose D
 			{
-			D[0+ldc*0] = d_00;
-			D[1+ldc*0] = d_10;
-			D[2+ldc*0] = d_20;
-			D[3+ldc*0] = d_30;
+			D[0+bs*0] = d_00;
+			D[1+bs*0] = d_10;
+			D[2+bs*0] = d_20;
+			D[3+bs*0] = d_30;
 
-			D[0+ldc*1] = d_01;
-			D[1+ldc*1] = d_11;
-			D[2+ldc*1] = d_21;
-			D[3+ldc*1] = d_31;
+			D[0+bs*1] = d_01;
+			D[1+bs*1] = d_11;
+			D[2+bs*1] = d_21;
+			D[3+bs*1] = d_31;
 
-			D[0+ldc*2] = d_02;
-			D[1+ldc*2] = d_12;
-			D[2+ldc*2] = d_22;
-			D[3+ldc*2] = d_32;
+			D[0+bs*2] = d_02;
+			D[1+bs*2] = d_12;
+			D[2+bs*2] = d_22;
+			D[3+bs*2] = d_32;
 
-			D[0+ldc*3] = d_03;
-			D[1+ldc*3] = d_13;
-			D[2+ldc*3] = d_23;
-			D[3+ldc*3] = d_33;
+			D[0+bs*3] = d_03;
+			D[1+bs*3] = d_13;
+			D[2+bs*3] = d_23;
+			D[3+bs*3] = d_33;
 			}
 		else // transpose D
 			{
-			D[0+ldc*0] = d_00;
-			D[0+ldc*1] = d_10;
-			D[0+ldc*2] = d_20;
-			D[0+ldc*3] = d_30;
+			D[0+bs*0] = d_00;
+			D[0+bs*1] = d_10;
+			D[0+bs*2] = d_20;
+			D[0+bs*3] = d_30;
 
-			D[1+ldc*0] = d_01;
-			D[1+ldc*1] = d_11;
-			D[1+ldc*2] = d_21;
-			D[1+ldc*3] = d_31;
+			D[1+bs*0] = d_01;
+			D[1+bs*1] = d_11;
+			D[1+bs*2] = d_21;
+			D[1+bs*3] = d_31;
 
-			D[2+ldc*0] = d_02;
-			D[2+ldc*1] = d_12;
-			D[2+ldc*2] = d_22;
-			D[2+ldc*3] = d_32;
+			D[2+bs*0] = d_02;
+			D[2+bs*1] = d_12;
+			D[2+bs*2] = d_22;
+			D[2+bs*3] = d_32;
 
-			D[3+ldc*0] = d_03;
-			D[3+ldc*1] = d_13;
-			D[3+ldc*2] = d_23;
-			D[3+ldc*3] = d_33;
+			D[3+bs*0] = d_03;
+			D[3+bs*1] = d_13;
+			D[3+bs*2] = d_23;
+			D[3+bs*3] = d_33;
 			}
 		}
 	
@@ -399,14 +423,13 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 
 
 // normal-transposed, 4x2 with data packed in 4
-void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *D, double *C, int alg, int td)
+void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
 	if(kmax<=0)
 		return;
 	
-	const int lda = 4;
-	const int ldc = 4;
+	const int bs = 4;
 
 	int k;
 
@@ -421,32 +444,13 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *D, double 
 	for(k=0; k<kmax-3; k+=4)
 		{
 		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		a_2 = A[2+lda*0];
-		a_3 = A[3+lda*0];
+		a_0 = A[0+bs*0];
+		a_1 = A[1+bs*0];
+		a_2 = A[2+bs*0];
+		a_3 = A[3+bs*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-
-		a_0 = A[0+lda*1];
-		a_1 = A[1+lda*1];
-		a_2 = A[2+lda*1];
-		a_3 = A[3+lda*1];
-		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
+		b_0 = B[0+bs*0];
+		b_1 = B[1+bs*0];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -459,13 +463,13 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *D, double 
 		c_31 += a_3 * b_1;
 
 
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
-		a_2 = A[2+lda*2];
-		a_3 = A[3+lda*2];
+		a_0 = A[0+bs*1];
+		a_1 = A[1+bs*1];
+		a_2 = A[2+bs*1];
+		a_3 = A[3+bs*1];
 		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
+		b_0 = B[0+bs*1];
+		b_1 = B[1+bs*1];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -478,13 +482,32 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *D, double 
 		c_31 += a_3 * b_1;
 
 
-		a_0 = A[0+lda*3];
-		a_1 = A[1+lda*3];
-		a_2 = A[2+lda*3];
-		a_3 = A[3+lda*3];
+		a_0 = A[0+bs*2];
+		a_1 = A[1+bs*2];
+		a_2 = A[2+bs*2];
+		a_3 = A[3+bs*2];
 		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
+		b_0 = B[0+bs*2];
+		b_1 = B[1+bs*2];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+		c_20 += a_2 * b_0;
+		c_30 += a_3 * b_0;
+
+		c_01 += a_0 * b_1;
+		c_11 += a_1 * b_1;
+		c_21 += a_2 * b_1;
+		c_31 += a_3 * b_1;
+
+
+		a_0 = A[0+bs*3];
+		a_1 = A[1+bs*3];
+		a_2 = A[2+bs*3];
+		a_3 = A[3+bs*3];
+		
+		b_0 = B[0+bs*3];
+		b_1 = B[1+bs*3];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -504,13 +527,13 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *D, double 
 	for(; k<kmax; k++)
 		{
 		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		a_2 = A[2+lda*0];
-		a_3 = A[3+lda*0];
+		a_0 = A[0+bs*0];
+		a_1 = A[1+bs*0];
+		a_2 = A[2+bs*0];
+		a_3 = A[3+bs*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
+		b_0 = B[0+bs*0];
+		b_1 = B[1+bs*0];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -534,31 +557,65 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *D, double 
 		d_20, d_21,
 		d_30, d_31;
 	
-	if(alg==0) // C = A * B'
+	if(alg==0) // D = A * B'
 		{
-		C[0+ldc*0] = c_00;
-		C[1+ldc*0] = c_10;
-		C[2+ldc*0] = c_20;
-		C[3+ldc*0] = c_30;
+		if(td==0) // not transpose D
+			{
+			D[0+bs*0] = c_00;
+			D[1+bs*0] = c_10;
+			D[2+bs*0] = c_20;
+			D[3+bs*0] = c_30;
 
-		C[0+ldc*1] = c_01;
-		C[1+ldc*1] = c_11;
-		C[2+ldc*1] = c_21;
-		C[3+ldc*1] = c_31;
+			D[0+bs*1] = c_01;
+			D[1+bs*1] = c_11;
+			D[2+bs*1] = c_21;
+			D[3+bs*1] = c_31;
+			}
+		else // transpose D
+			{
+			D[0+bs*0] = c_00;
+			D[1+bs*0] = c_01;
+
+			D[0+bs*1] = c_10;
+			D[1+bs*1] = c_11;
+
+			D[0+bs*2] = c_20;
+			D[1+bs*2] = c_21;
+
+			D[0+bs*3] = c_30;
+			D[1+bs*3] = c_31;
+			}
 		}
 	else 
 		{
-		d_00 = D[0+ldc*0];
-		d_10 = D[1+ldc*0];
-		d_20 = D[2+ldc*0];
-		d_30 = D[3+ldc*0];
+		if(tc==td) // not transpose C
+			{
+			d_00 = C[0+bs*0];
+			d_10 = C[1+bs*0];
+			d_20 = C[2+bs*0];
+			d_30 = C[3+bs*0];
+			
+			d_01 = C[0+bs*1];
+			d_11 = C[1+bs*1];
+			d_21 = C[2+bs*1];
+			d_31 = C[3+bs*1];
+			}
+		else // transpose C
+			{
+			d_00 = C[0+bs*0];
+			d_01 = C[1+bs*0];
+
+			d_10 = C[0+bs*1];
+			d_11 = C[1+bs*1];
+
+			d_20 = C[0+bs*2];
+			d_21 = C[1+bs*2];
+
+			d_30 = C[0+bs*3];
+			d_31 = C[1+bs*3];
+			}
 		
-		d_01 = D[0+ldc*1];
-		d_11 = D[1+ldc*1];
-		d_21 = D[2+ldc*1];
-		d_31 = D[3+ldc*1];
-		
-		if(alg==1) // C += A * B'
+		if(alg==1) // D = C + A * B'
 			{
 			d_00 += c_00;
 			d_10 += c_10;
@@ -570,7 +627,7 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *D, double 
 			d_21 += c_21;
 			d_31 += c_31;
 			}
-		else // C -= A * B'
+		else // D = C - A * B'
 			{
 			d_00 -= c_00;
 			d_10 -= c_10;
@@ -583,15 +640,32 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *D, double 
 			d_31 -= c_31;
 			}
 
-		C[0+ldc*0] = d_00;
-		C[1+ldc*0] = d_10;
-		C[2+ldc*0] = d_20;
-		C[3+ldc*0] = d_30;
+		if(td==0) // not transpose D
+			{
+			D[0+bs*0] = d_00;
+			D[1+bs*0] = d_10;
+			D[2+bs*0] = d_20;
+			D[3+bs*0] = d_30;
 
-		C[0+ldc*1] = d_01;
-		C[1+ldc*1] = d_11;
-		C[2+ldc*1] = d_21;
-		C[3+ldc*1] = d_31;
+			D[0+bs*1] = d_01;
+			D[1+bs*1] = d_11;
+			D[2+bs*1] = d_21;
+			D[3+bs*1] = d_31;
+			}
+		else // transpose D
+			{
+			D[0+bs*0] = d_00;
+			D[1+bs*0] = d_01;
+
+			D[0+bs*1] = d_10;
+			D[1+bs*1] = d_11;
+
+			D[0+bs*2] = d_20;
+			D[1+bs*2] = d_21;
+
+			D[0+bs*3] = d_30;
+			D[1+bs*3] = d_31;
+			}
 		}
 	
 	}
@@ -599,14 +673,13 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *D, double 
 
 
 // normal-transposed, 2x4 with data packed in 4
-void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *D, double *C, int alg, int td)
+void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
 	if(kmax<=0)
 		return;
 	
-	const int lda = 4;
-	const int ldc = 4;
+	const int bs = 4;
 
 	int k;
 
@@ -619,34 +692,13 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *D, double 
 	for(k=0; k<kmax-3; k+=4)
 		{
 		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
+		a_0 = A[0+bs*0];
+		a_1 = A[1+bs*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		b_2 = B[2+lda*0];
-		b_3 = B[3+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-
-		c_02 += a_0 * b_2;
-		c_12 += a_1 * b_2;
-
-		c_03 += a_0 * b_3;
-		c_13 += a_1 * b_3;
-
-
-		a_0 = A[0+lda*1];
-		a_1 = A[1+lda*1];
-		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
-		b_2 = B[2+lda*1];
-		b_3 = B[3+lda*1];
+		b_0 = B[0+bs*0];
+		b_1 = B[1+bs*0];
+		b_2 = B[2+bs*0];
+		b_3 = B[3+bs*0];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -661,13 +713,13 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *D, double 
 		c_13 += a_1 * b_3;
 
 
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
+		a_0 = A[0+bs*1];
+		a_1 = A[1+bs*1];
 		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
-		b_2 = B[2+lda*2];
-		b_3 = B[3+lda*2];
+		b_0 = B[0+bs*1];
+		b_1 = B[1+bs*1];
+		b_2 = B[2+bs*1];
+		b_3 = B[3+bs*1];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -682,13 +734,34 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *D, double 
 		c_13 += a_1 * b_3;
 
 
-		a_0 = A[0+lda*3];
-		a_1 = A[1+lda*3];
+		a_0 = A[0+bs*2];
+		a_1 = A[1+bs*2];
 		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
-		b_2 = B[2+lda*3];
-		b_3 = B[3+lda*3];
+		b_0 = B[0+bs*2];
+		b_1 = B[1+bs*2];
+		b_2 = B[2+bs*2];
+		b_3 = B[3+bs*2];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+
+		c_01 += a_0 * b_1;
+		c_11 += a_1 * b_1;
+
+		c_02 += a_0 * b_2;
+		c_12 += a_1 * b_2;
+
+		c_03 += a_0 * b_3;
+		c_13 += a_1 * b_3;
+
+
+		a_0 = A[0+bs*3];
+		a_1 = A[1+bs*3];
+		
+		b_0 = B[0+bs*3];
+		b_1 = B[1+bs*3];
+		b_2 = B[2+bs*3];
+		b_3 = B[3+bs*3];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -710,13 +783,13 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *D, double 
 	for(; k<kmax; k++)
 		{
 		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
+		a_0 = A[0+bs*0];
+		a_1 = A[1+bs*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		b_2 = B[2+lda*0];
-		b_3 = B[3+lda*0];
+		b_0 = B[0+bs*0];
+		b_1 = B[1+bs*0];
+		b_2 = B[2+bs*0];
+		b_3 = B[3+bs*0];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -740,35 +813,65 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *D, double 
 		d_00, d_01, d_02, d_03,
 		d_10, d_11, d_12, d_13;
 	
-	if(alg==0) // C = A * B'
+	if(alg==0) // D = A * B'
 		{
-		C[0+ldc*0] = c_00;
-		C[1+ldc*0] = c_10;
+		if(td==0) // not transpose D
+			{
+			D[0+bs*0] = c_00;
+			D[1+bs*0] = c_10;
 
-		C[0+ldc*1] = c_01;
-		C[1+ldc*1] = c_11;
+			D[0+bs*1] = c_01;
+			D[1+bs*1] = c_11;
 
-		C[0+ldc*2] = c_02;
-		C[1+ldc*2] = c_12;
+			D[0+bs*2] = c_02;
+			D[1+bs*2] = c_12;
 
-		C[0+ldc*3] = c_03;
-		C[1+ldc*3] = c_13;
+			D[0+bs*3] = c_03;
+			D[1+bs*3] = c_13;
+			}
+		else // transpose D
+			{
+			D[0+bs*0] = c_00;
+			D[1+bs*0] = c_01;
+			D[2+bs*0] = c_02;
+			D[3+bs*0] = c_03;
+
+			D[0+bs*1] = c_10;
+			D[1+bs*1] = c_11;
+			D[2+bs*1] = c_12;
+			D[3+bs*1] = c_13;
+			}
 		}
 	else 
 		{
-		d_00 = D[0+ldc*0];
-		d_10 = D[1+ldc*0];
+		if(tc==td) // not transpose C
+			{
+			d_00 = C[0+bs*0];
+			d_10 = C[1+bs*0];
+			
+			d_01 = C[0+bs*1];
+			d_11 = C[1+bs*1];
+			
+			d_02 = C[0+bs*2];
+			d_12 = C[1+bs*2];
+			
+			d_03 = C[0+bs*3];
+			d_13 = C[1+bs*3];
+			}
+		else // transpose C
+			{
+			d_00 = C[0+bs*0];
+			d_01 = C[1+bs*0];
+			d_02 = C[2+bs*0];
+			d_03 = C[3+bs*0];
+
+			d_10 = C[0+bs*1];
+			d_11 = C[1+bs*1];
+			d_12 = C[2+bs*1];
+			d_13 = C[3+bs*1];
+			}
 		
-		d_01 = D[0+ldc*1];
-		d_11 = D[1+ldc*1];
-		
-		d_02 = D[0+ldc*2];
-		d_12 = D[1+ldc*2];
-		
-		d_03 = D[0+ldc*3];
-		d_13 = D[1+ldc*3];
-		
-		if(alg==1) // C += A * B'
+		if(alg==1) // D = C + A * B'
 			{
 			d_00 += c_00;
 			d_10 += c_10;
@@ -782,7 +885,7 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *D, double 
 			d_03 += c_03;
 			d_13 += c_13;
 			}
-		else // C -= A * B'
+		else // D = C - A * B'
 			{
 			d_00 -= c_00;
 			d_10 -= c_10;
@@ -797,17 +900,32 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *D, double 
 			d_13 -= c_13;
 			}
 
-		C[0+ldc*0] = d_00;
-		C[1+ldc*0] = d_10;
+		if(td==0) // not transpose D
+			{
+			D[0+bs*0] = d_00;
+			D[1+bs*0] = d_10;
 
-		C[0+ldc*1] = d_01;
-		C[1+ldc*1] = d_11;
+			D[0+bs*1] = d_01;
+			D[1+bs*1] = d_11;
 
-		C[0+ldc*2] = d_02;
-		C[1+ldc*2] = d_12;
+			D[0+bs*2] = d_02;
+			D[1+bs*2] = d_12;
 
-		C[0+ldc*3] = d_03;
-		C[1+ldc*3] = d_13;
+			D[0+bs*3] = d_03;
+			D[1+bs*3] = d_13;
+			}
+		else // transpose D
+			{
+			D[0+bs*0] = d_00;
+			D[1+bs*0] = d_01;
+			D[2+bs*0] = d_02;
+			D[3+bs*0] = d_03;
+
+			D[0+bs*1] = d_10;
+			D[1+bs*1] = d_11;
+			D[2+bs*1] = d_12;
+			D[3+bs*1] = d_13;
+			}
 		}
 	
 	}
@@ -815,14 +933,13 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *D, double 
 
 
 // normal-transposed, 2x2 with data packed in 4
-void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *D, double *C, int alg, int td)
+void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
 	if(kmax<=0)
 		return;
 	
-	const int lda = 4;
-	const int ldc = 4;
+	const int bs = 4;
 
 	int k;
 
@@ -835,24 +952,11 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *D, double 
 	for(k=0; k<kmax-3; k+=4)
 		{
 		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
+		a_0 = A[0+bs*0];
+		a_1 = A[1+bs*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_01 += a_0 * b_1;
-		c_11 += a_1 * b_1;
-
-
-		a_0 = A[0+lda*1];
-		a_1 = A[1+lda*1];
-		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
+		b_0 = B[0+bs*0];
+		b_1 = B[1+bs*0];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -861,11 +965,11 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *D, double 
 		c_11 += a_1 * b_1;
 
 
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
+		a_0 = A[0+bs*1];
+		a_1 = A[1+bs*1];
 		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
+		b_0 = B[0+bs*1];
+		b_1 = B[1+bs*1];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -874,11 +978,24 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *D, double 
 		c_11 += a_1 * b_1;
 
 
-		a_0 = A[0+lda*3];
-		a_1 = A[1+lda*3];
+		a_0 = A[0+bs*2];
+		a_1 = A[1+bs*2];
 		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
+		b_0 = B[0+bs*2];
+		b_1 = B[1+bs*2];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+
+		c_01 += a_0 * b_1;
+		c_11 += a_1 * b_1;
+
+
+		a_0 = A[0+bs*3];
+		a_1 = A[1+bs*3];
+		
+		b_0 = B[0+bs*3];
+		b_1 = B[1+bs*3];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -894,11 +1011,11 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *D, double 
 	for(; k<kmax; k++)
 		{
 		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
+		a_0 = A[0+bs*0];
+		a_1 = A[1+bs*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
+		b_0 = B[0+bs*0];
+		b_1 = B[1+bs*0];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -918,21 +1035,43 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *D, double 
 	
 	if(alg==0) // C = A * B'
 		{
-		C[0+ldc*0] = c_00;
-		C[1+ldc*0] = c_10;
+		if(td==0) // not transpose D
+			{
+			D[0+bs*0] = c_00;
+			D[1+bs*0] = c_10;
 
-		C[0+ldc*1] = c_01;
-		C[1+ldc*1] = c_11;
+			D[0+bs*1] = c_01;
+			D[1+bs*1] = c_11;
+			}
+		else // transpose D
+			{
+			D[0+bs*0] = c_00;
+			D[1+bs*0] = c_01;
+
+			D[0+bs*1] = c_10;
+			D[1+bs*1] = c_11;
+			}
 		}
 	else 
 		{
-		d_00 = D[0+ldc*0];
-		d_10 = D[1+ldc*0];
+		if(tc==td) // not transpose C
+			{
+			d_00 = C[0+bs*0];
+			d_10 = C[1+bs*0];
+			
+			d_01 = C[0+bs*1];
+			d_11 = C[1+bs*1];
+			}
+		else // transpose C
+			{
+			d_00 = C[0+bs*0];
+			d_01 = C[1+bs*0];
+			
+			d_10 = C[0+bs*1];
+			d_11 = C[1+bs*1];
+			}
 		
-		d_01 = D[0+ldc*1];
-		d_11 = D[1+ldc*1];
-		
-		if(alg==1) // C += A * B'
+		if(alg==1) // D = C + A * B'
 			{
 			d_00 += c_00;
 			d_10 += c_10;
@@ -940,7 +1079,7 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *D, double 
 			d_01 += c_01;
 			d_11 += c_11;
 			}
-		else // C -= A * B'
+		else // D = C - A * B'
 			{
 			d_00 -= c_00;
 			d_10 -= c_10;
@@ -949,12 +1088,23 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *D, double 
 			d_11 -= c_11;
 			}
 
-		C[0+ldc*0] = d_00;
-		C[1+ldc*0] = d_10;
+		if(td==0) // not transpose D
+			{
+			D[0+bs*0] = d_00;
+			D[1+bs*0] = d_10;
 
-		C[0+ldc*1] = d_01;
-		C[1+ldc*1] = d_11;
+			D[0+bs*1] = d_01;
+			D[1+bs*1] = d_11;
+			}
+		else // transpose D
+			{
+			D[0+bs*0] = d_00;
+			D[1+bs*0] = d_01;
+
+			D[0+bs*1] = d_10;
+			D[1+bs*1] = d_11;
+			}
 		}
-	
+
 	}
 

@@ -33,7 +33,7 @@
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int td)
+void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
 	if(kmax<=0)
@@ -383,7 +383,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 
 
 // 4x2 with data packed in 4
-void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int td)
+void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
 	if(kmax<=0)
@@ -568,7 +568,7 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 
 
 // 2x4 with data packed in 4
-void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int td)
+void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
 	if(kmax<=0)
@@ -758,7 +758,7 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double 
 
 
 // 2x2 with data packed in 4
-void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int td)
+void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
 	if(kmax<=0)

@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bs);
 	
-	int n = 10;
+	int n = 8;
 	int nrep = 1;
 	
 	double *A; d_zeros(&A, n, n);
@@ -92,10 +92,10 @@ int main()
 	int cn = ((n+D_NCL-1)/D_NCL)*D_NCL;//+4;	
 	int cn2 = ((2*n+D_NCL-1)/D_NCL)*D_NCL;	
 
-	double *pA; d_zeros_align(&pA, pn, pn);
-	double *pB; d_zeros_align(&pB, pn, pn);
-	double *pC; d_zeros_align(&pC, pn, pn);
-	double *pL; d_zeros_align(&pL, pn, pn);
+	double *pA; d_zeros_align(&pA, pn, cn);
+	double *pB; d_zeros_align(&pB, pn, cn);
+	double *pC; d_zeros_align(&pC, pn, cn);
+	double *pL; d_zeros_align(&pL, pn, cn);
 /*	float *spA; s_zeros_align(&spA, pns, pns);*/
 /*	float *spB; s_zeros_align(&spB, pns, pns);*/
 /*	float *spC; s_zeros_align(&spC, pns, pns);*/
@@ -130,9 +130,10 @@ int main()
 
 /*	d_cvt_mat2pmat(n, n, 0, bs, C, n, pC, pn);*/
 /*	d_cvt_mat2pmat(n, n, bs-n%bs, bs, C, n, pC+((bs-n%bs))%bs*(bs+1), pn);*/
-	d_print_pmat(pn, pn, bs, pA, pn);
-	d_print_pmat(pn, pn, bs, pB, pn);
-	d_print_pmat(pn, pn, bs, pC, pn);
+	d_print_pmat(pn, pn, bs, pA, cn);
+	d_print_pmat(pn, pn, bs, pB, cn);
+	d_print_pmat(pn, pn, bs, pC, cn);
+	d_print_pmat(pn, pn, bs, pD, cn);
 
 	/* timing */
 	struct timeval tv0, tv1;
@@ -143,6 +144,7 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
+		dgemm_nt_lib(8, 2, n, pA, cn, pB, cn, pC, cn, pD, cn, 1, 1, 1);
 //		dgemm_nt_lib(13, n, n, pA, pn, pB, pn, pC, pn, 0);
 /*		dgemm_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
 /*		dtrmm_lib(n, n, pA, pn, pB, pn, pC, pn);*/
@@ -151,7 +153,7 @@ int main()
 //		dttmm_ll_lib(n, pA, pn, pA, pn, pC, pn);
 //		dttmm_uu_lib(n, pA, pn, pA, pn, pC, pn);
 //		dtrmm_u_lib(n, n, pA, pn, pB, pn, pC, pn);
-		dtrma_lib(7, 3, pA, pn, pC+1, pn);
+//		dtrma_lib(7, 3, pA, pn, pC+1, pn);
 
 /*		dsyrk_lib(n, n, pA, pn, pC, pn);*/
 /*		dgemm_nt_lib(n, n, n, pA, pn, pA, pn, pB, pn, 0);*/
@@ -192,7 +194,8 @@ int main()
 
 	if(n<=20)
 		{
-		d_print_pmat(pn, pn, bs, pC, pn);
+//		d_print_pmat(pn, pn, bs, pC, pn);
+		d_print_pmat(pn, pn, bs, pD, cn);
 //		d_print_pmat(n, n, bs, pB, pn);
 /*		d_print_pmat(n, n, bs, pA, pn);*/
 /*		d_print_mat(n, n, B, n);*/

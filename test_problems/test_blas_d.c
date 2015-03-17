@@ -210,7 +210,7 @@ int main()
 		/* warm up */
 		for(rep=0; rep<nrep; rep++)
 			{
-			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, pC, cnd, pC, cnd, 0, 0);
+			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, pC, cnd, pC, cnd, 0, 0, 0);
 			}
 
 		gettimeofday(&tv0, NULL); // start
@@ -218,7 +218,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, pC, cnd, pC, cnd, 0, 0);
+			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, pC, cnd, pC, cnd, 0, 0, 0);
 
 			}
 	

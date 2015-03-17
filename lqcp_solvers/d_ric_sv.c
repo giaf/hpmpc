@@ -382,8 +382,10 @@ void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double
 	for(nn=0; nn<N; nn++)
 		{
 		// PB = P*(B')'
-		dgemm_nt_lib(nx, nu, nx, hpP[N-nn], cnx, hpBt[N-nn-1], cnx, pPB, cnu, pPB, cnu, 0, 0); // TODO embed transpose of result in dgemm_nt
-		//dgemm_nt_lib(nx, nu, nx, hpP[N-nn], cnx, hpBt[N-nn-1], cnx, pPB, cnu, pPBt, cnx, 0, 1); // TODO embed transpose of result in dgemm_nt
+#if defined(TARGET_C99_4X4) || defined(TARGET_C99_4X4_PREFETCH) || defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+		dgemm_nt_lib(nx, nu, nx, hpP[N-nn], cnx, hpBt[N-nn-1], cnx, pPB, cnu, pPBt, cnx, 0, 0, 1); // TODO embed transpose of result in dgemm_nt
+#else
+		dgemm_nt_lib(nx, nu, nx, hpP[N-nn], cnx, hpBt[N-nn-1], cnx, pPB, cnu, pPB, cnu, 0, 0, 0);
 		//d_print_pmat(nx, nx, bs, hpP[N-nn], cnx);
 		//d_print_pmat(nu, nx, bs, hpBt[N-nn-1], cnx);
 		//d_print_pmat(nx, nu, bs, pPB, cnu);
@@ -393,6 +395,7 @@ void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double
 		dgetr_lib(nx, 0, nu, 0, pPB, cnu, pPBt, cnx);
 		//d_print_pmat(nu, nx, bs, pPBt, cnx);
 		//exit(1);
+#endif
 
 		// R + PBt*B'
 		//dgemm_nt_lib(nu, nu, nx, pPBt, cnx, hpBt[N-nn-1], cnx, hpL[N-nn-1], cnu, 0);
