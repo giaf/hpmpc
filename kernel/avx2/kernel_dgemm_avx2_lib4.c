@@ -360,10 +360,10 @@ void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double 
 			c_60 = _mm256_permute2f128_pd( e_42, e_40, 0x31 );
 			c_70 = _mm256_permute2f128_pd( e_52, e_50, 0x31 );
 
-			_mm256_store_pd( &D1[0+ldc*0], c_40 );
-			_mm256_store_pd( &D1[0+ldc*1], c_50 );
-			_mm256_store_pd( &D1[0+ldc*2], c_60 );
-			_mm256_store_pd( &D1[0+ldc*3], c_70 );
+			_mm256_store_pd( &D0[0+ldc*4], c_40 );
+			_mm256_store_pd( &D0[0+ldc*5], c_50 );
+			_mm256_store_pd( &D0[0+ldc*6], c_60 );
+			_mm256_store_pd( &D0[0+ldc*7], c_70 );
 
 			e_80 = _mm256_unpacklo_pd( c_80, c_81 );
 			e_90 = _mm256_unpackhi_pd( c_81, c_80 );
@@ -375,10 +375,10 @@ void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double 
 			c_a0 = _mm256_permute2f128_pd( e_82, e_80, 0x31 );
 			c_b0 = _mm256_permute2f128_pd( e_92, e_90, 0x31 );
 
-			_mm256_store_pd( &D2[0+ldc*0], c_80 );
-			_mm256_store_pd( &D2[0+ldc*1], c_90 );
-			_mm256_store_pd( &D2[0+ldc*2], c_a0 );
-			_mm256_store_pd( &D2[0+ldc*3], c_b0 );
+			_mm256_store_pd( &D0[0+ldc*8], c_80 );
+			_mm256_store_pd( &D0[0+ldc*9], c_90 );
+			_mm256_store_pd( &D0[0+ldc*10], c_a0 );
+			_mm256_store_pd( &D0[0+ldc*11], c_b0 );
 			}
 		}
 	else
@@ -395,11 +395,26 @@ void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double 
 			c_01 = _mm256_blend_pd( e_01, e_03, 0xc );
 			c_03 = _mm256_blend_pd( e_01, e_03, 0x3 );
 
-			d_00 = _mm256_load_pd( &C0[0+ldc*0] );
-			d_01 = _mm256_load_pd( &C0[0+ldc*1] );
-			d_02 = _mm256_load_pd( &C0[0+ldc*2] );
-			d_03 = _mm256_load_pd( &C0[0+ldc*3] );
+			e_00 = _mm256_blend_pd( c_40, c_41, 0xa );
+			e_01 = _mm256_blend_pd( c_40, c_41, 0x5 );
+			e_02 = _mm256_blend_pd( c_42, c_43, 0xa );
+			e_03 = _mm256_blend_pd( c_42, c_43, 0x5 );
 			
+			c_40 = _mm256_blend_pd( e_00, e_02, 0xc );
+			c_42 = _mm256_blend_pd( e_00, e_02, 0x3 );
+			c_41 = _mm256_blend_pd( e_01, e_03, 0xc );
+			c_43 = _mm256_blend_pd( e_01, e_03, 0x3 );
+
+			e_00 = _mm256_blend_pd( c_80, c_81, 0xa );
+			e_01 = _mm256_blend_pd( c_80, c_81, 0x5 );
+			e_02 = _mm256_blend_pd( c_82, c_83, 0xa );
+			e_03 = _mm256_blend_pd( c_82, c_83, 0x5 );
+			
+			c_80 = _mm256_blend_pd( e_00, e_02, 0xc );
+			c_82 = _mm256_blend_pd( e_00, e_02, 0x3 );
+			c_81 = _mm256_blend_pd( e_01, e_03, 0xc );
+			c_83 = _mm256_blend_pd( e_01, e_03, 0x3 );
+
 			if(alg==1) // AB = A * B'
 				{
 				d_00 = _mm256_load_pd( &C0[0+ldc*0] );
@@ -645,30 +660,30 @@ void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double 
 				_mm256_store_pd( &D0[0+ldc*2], c_20 );
 				_mm256_store_pd( &D0[0+ldc*3], c_30 );
 
-				e_40 = _mm256_unpacklo_pd( d_40, d_41 );
-				e_50 = _mm256_unpackhi_pd( d_40, d_41 );
-				e_42 = _mm256_unpacklo_pd( d_42, d_43 );
-				e_52 = _mm256_unpackhi_pd( d_42, d_43 );
+				e_00 = _mm256_unpacklo_pd( d_40, d_41 );
+				e_10 = _mm256_unpackhi_pd( d_40, d_41 );
+				e_02 = _mm256_unpacklo_pd( d_42, d_43 );
+				e_12 = _mm256_unpackhi_pd( d_42, d_43 );
 
-				c_40 = _mm256_permute2f128_pd( e_40, e_42, 0x20 );
-				c_60 = _mm256_permute2f128_pd( e_40, e_42, 0x31 );
-				c_50 = _mm256_permute2f128_pd( e_50, e_52, 0x20 );
-				c_70 = _mm256_permute2f128_pd( e_50, e_52, 0x31 );
+				c_40 = _mm256_permute2f128_pd( e_00, e_02, 0x20 );
+				c_60 = _mm256_permute2f128_pd( e_00, e_02, 0x31 );
+				c_50 = _mm256_permute2f128_pd( e_10, e_12, 0x20 );
+				c_70 = _mm256_permute2f128_pd( e_10, e_12, 0x31 );
 
 				_mm256_store_pd( &D1[0+ldc*0], c_40 );
 				_mm256_store_pd( &D1[0+ldc*1], c_50 );
 				_mm256_store_pd( &D1[0+ldc*2], c_60 );
 				_mm256_store_pd( &D1[0+ldc*3], c_70 );
 
-				e_80 = _mm256_unpacklo_pd( d_80, d_81 );
-				e_90 = _mm256_unpackhi_pd( d_80, d_81 );
-				e_82 = _mm256_unpacklo_pd( d_82, d_83 );
-				e_92 = _mm256_unpackhi_pd( d_82, d_83 );
+				e_00 = _mm256_unpacklo_pd( d_80, d_81 );
+				e_10 = _mm256_unpackhi_pd( d_80, d_81 );
+				e_02 = _mm256_unpacklo_pd( d_82, d_83 );
+				e_12 = _mm256_unpackhi_pd( d_82, d_83 );
 
-				c_80 = _mm256_permute2f128_pd( e_80, e_82, 0x20 );
-				c_90 = _mm256_permute2f128_pd( e_80, e_82, 0x31 );
-				c_a0 = _mm256_permute2f128_pd( e_90, e_92, 0x20 );
-				c_b0 = _mm256_permute2f128_pd( e_90, e_92, 0x31 );
+				c_80 = _mm256_permute2f128_pd( e_00, e_02, 0x20 );
+				c_a0 = _mm256_permute2f128_pd( e_00, e_02, 0x31 );
+				c_90 = _mm256_permute2f128_pd( e_10, e_12, 0x20 );
+				c_b0 = _mm256_permute2f128_pd( e_10, e_12, 0x31 );
 
 				_mm256_store_pd( &D2[0+ldc*0], c_80 );
 				_mm256_store_pd( &D2[0+ldc*1], c_90 );
