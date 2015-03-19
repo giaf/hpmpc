@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bs);
 	
-	int n = 8;
+	int n = 12;
 	int nrep = 1;
 	
 	double *A; d_zeros(&A, n, n);
@@ -133,7 +133,7 @@ int main()
 	d_print_pmat(pn, pn, bs, pA, cn);
 	d_print_pmat(pn, pn, bs, pB, cn);
 	d_print_pmat(pn, pn, bs, pC, cn);
-	d_print_pmat(pn, pn, bs, pD, cn);
+	//d_print_pmat(pn, pn, bs, pD, cn);
 
 	/* timing */
 	struct timeval tv0, tv1;
@@ -144,7 +144,8 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		dgemm_nt_lib(8, 2, n, pA, cn, pB, cn, pC, cn, pD, cn, 1, 1, 1);
+		dgemm_nt_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0, 0, 0);
+//		dtrmm_l_lib(n, n, pA, cn, pB, cn, pD, cn);
 //		dgemm_nt_lib(13, n, n, pA, pn, pB, pn, pC, pn, 0);
 /*		dgemm_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
 /*		dtrmm_lib(n, n, pA, pn, pB, pn, pC, pn);*/
