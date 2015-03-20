@@ -482,8 +482,10 @@ int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double
 		{
 		//d_print_pmat(2*nx, cnx, bs, hpQA[ii], cnx);
 		//dtsyrk_dpotrf_lib(2*nx, nx, nx, hpALe[ii], cnx2, hpQA[ii], cnx, diag, 1);
+		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
 		dtsyrk_dpotrf_lib(2*nx, nx, nx, hpALe[ii], cnx2, hpQA[ii], cnx, hpALe[ii]+(cnx)*bs, cnx2, diag, 1);
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
+		//exit(1);
 		// copy reciprocal of diagonal
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
 		for(jj=0; jj<nx; jj++) 
@@ -494,7 +496,7 @@ int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
 
 		dpotrf_lib(nwx, nw, hpRG[ii], cnw, hpGLr[ii], cnw, diag);
-		//d_print_pmat(nwx, nw, bs, hpGLr[0], cnw);
+		//d_print_pmat(nwx, nw, bs, hpGLr[ii], cnw);
 
 		// copy reciprocal of diagonal
 		for(jj=0; jj<nw; jj++) hpGLr[ii][(jj/bs)*bs*cnw+jj%bs+jj*bs] = diag[jj]; 
@@ -513,6 +515,8 @@ int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double
 			{
 			diag_min = fmin(diag_min, diag[jj]);
 			}
+
+		//exit(1);
 
 		if(diag_min==0.0)
 			return ii+1;

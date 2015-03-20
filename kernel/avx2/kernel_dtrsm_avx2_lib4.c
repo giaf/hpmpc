@@ -2529,26 +2529,24 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	c_02 = _mm256_add_pd( c_02, C_02 );
 
 	__m256d
-		c_00_10_22_32, c_01_11_23_33, c_02_12_20_30, c_03_13_21_31,
-		c_00_10_20_30, c_01_11_21_31, c_02_12_22_32, c_03_13_23_33,
 		d_00, d_01, d_02, d_03;
 
-	c_00_10_20_30 = _mm256_blend_pd( c_00, c_01, 0xa );
-	c_01_11_21_31 = _mm256_blend_pd( c_00, c_01, 0x5 );
-	c_02_12_22_32 = _mm256_blend_pd( c_02, c_03, 0xa );
-	c_03_13_23_33 = _mm256_blend_pd( c_02, c_03, 0x5 );
+	d_00 = _mm256_blend_pd( c_00, c_01, 0xa );
+	d_01 = _mm256_blend_pd( c_00, c_01, 0x5 );
+	d_02 = _mm256_blend_pd( c_02, c_03, 0xa );
+	d_03 = _mm256_blend_pd( c_02, c_03, 0x5 );
 	
 	if(alg!=0)
 		{
-		d_00 = _mm256_load_pd( &C[0+bs*0] );
-		d_01 = _mm256_load_pd( &C[0+bs*1] );
-		d_02 = _mm256_load_pd( &C[0+bs*2] );
-		d_03 = _mm256_load_pd( &C[0+bs*3] );
+		c_00 = _mm256_load_pd( &C[0+bs*0] );
+		c_01 = _mm256_load_pd( &C[0+bs*1] );
+		c_02 = _mm256_load_pd( &C[0+bs*2] );
+		c_03 = _mm256_load_pd( &C[0+bs*3] );
 
-		d_00 = _mm256_add_pd( d_00, c_00_10_20_30 );
-		d_01 = _mm256_add_pd( d_01, c_01_11_21_31 );
-		d_02 = _mm256_add_pd( d_02, c_02_12_22_32 );
-		d_03 = _mm256_add_pd( d_03, c_03_13_23_33 );
+		d_00 = _mm256_add_pd( d_00, c_00 );
+		d_01 = _mm256_add_pd( d_01, c_01 );
+		d_02 = _mm256_add_pd( d_02, c_02 );
+		d_03 = _mm256_add_pd( d_03, c_03 );
 		}
 
 	__m256d

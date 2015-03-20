@@ -2175,7 +2175,7 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 			if(fact[5]==0.0) fact[5]=1.0;
 			if(fact[9]==0.0) fact[9]=1.0;
 
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX)
 			for(; i<m-4 && i<k; i+=8)
 				{
 				//printf("\n%d\n", k-i);
@@ -2198,7 +2198,7 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 				{
 				kernel_dgemm_dtrsm_nt_2x4_lib4(1, k-i, j, &pA[i*sda+i*bs], &pA[j*sda+i*bs], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
 				}
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX)
 			for(; i<m-4; i+=8)
 				{
 				//d_print_pmat(8, k-i, bs, &pA[i*sda+i*bs], sda);
