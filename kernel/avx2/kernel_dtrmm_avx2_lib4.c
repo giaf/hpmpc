@@ -1250,7 +1250,7 @@ void corner_dtrmm_l_nt_12x1_lib4(double *A0, int sda, double *B, double *C0, int
 	b_0 = _mm256_broadcast_sd( &B[0+4*0] );
 	a_00 = _mm256_load_pd( &A0[0+4*0] );
 	a_40 = _mm256_load_pd( &A1[0+4*0] );
-	a_80 = _mm256_load_pd( &A1[0+4*0] );
+	a_80 = _mm256_load_pd( &A2[0+4*0] );
 	
 	c_00 = _mm256_mul_pd( a_00, b_0 );
 	c_40 = _mm256_mul_pd( a_40, b_0 );
