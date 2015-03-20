@@ -45,10 +45,12 @@ void kernel_dtrmm_u_nt_4x2_lib4(int kmax, double *A, double *B, double *C);
 void kernel_dtrmm_u_nt_2x4_lib4(int kmax, double *A, double *B, double *C);
 void kernel_dtrmm_u_nt_2x2_lib4(int kmax, double *A, double *B, double *C);
 void kernel_dtrmm_l_u_nt_4x4_lib4(int kmax, double *A, double *B, double *C);
+void kernel_dsyrk_nt_12x4_lib4(int kadd, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg);
 void kernel_dsyrk_nt_8x4_lib4(int kadd, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg);
 void kernel_dsyrk_nt_4x4_lib4(int kadd, double *A, double *B, double *C, double *D, int alg);
 void kernel_dsyrk_nt_4x2_lib4(int kadd, double *A, double *B, double *C, double *D, int alg);
 void kernel_dsyrk_nt_2x2_lib4(int kadd, double *A, double *B, double *C, double *D, int alg);
+void kernel_dsyrk_dpotrf_nt_12x4_lib4(int tri, int kadd, int ksub, double *Ap, int sdap, double *Bp, double *Am, int sdam, double *Bm, double *C, int sdc, double *D, int sdd, double *fact, int alg);
 void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap, int sdap, double *Bp, double *Am, int sdam, double *Bm, double *C, int sdc, double *D, int sdd, double *fact, int alg);
 void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg);
 void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg);
@@ -112,6 +114,9 @@ void kernel_dtrmm_dtrsm_nt_4x4_lib4(int kadd, int ksub, double *A, double *B, do
 //void kernel_dtrmm_dtrsm_nt_2x4_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg);
 //void kernel_dtrmm_dtrsm_nt_2x2_lib4(int kadd, int ksub, double *A, double *B, double *C, double *D, double *fact, int alg);
 // corner
+void corner_dtrmm_l_nt_12x3_lib4(double *A0, int sda, double *B, double *C0, int sdc);
+void corner_dtrmm_l_nt_12x2_lib4(double *A0, int sda, double *B, double *C0, int sdc);
+void corner_dtrmm_l_nt_12x1_lib4(double *A0, int sda, double *B, double *C0, int sdc);
 void corner_dtrmm_l_nt_8x3_lib4(double *A0, int sda, double *B, double *C0, int sdc);
 void corner_dtrmm_l_nt_8x2_lib4(double *A0, int sda, double *B, double *C0, int sdc);
 void corner_dtrmm_l_nt_8x1_lib4(double *A0, int sda, double *B, double *C0, int sdc);

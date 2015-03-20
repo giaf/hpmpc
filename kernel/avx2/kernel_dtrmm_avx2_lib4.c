@@ -1085,6 +1085,185 @@ void kernel_dtrmm_l_nt_4x4_lib4_old(int kadd, double *A, double *B, double *D)
 
 
 /*inline void corner_dtrmm_pp_nt_8x3_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
+void corner_dtrmm_l_nt_12x3_lib4(double *A0, int sda, double *B, double *C0, int sdc)
+	{
+	
+	double *A1 = A0 + 4*sda;
+	double *A2 = A0 + 8*sda;
+	double *C1 = C0 + 4*sdc;
+	double *C2 = C0 + 8*sdc;
+	
+	const int ldc = 4;
+
+	__m256d
+		a_00, a_01, a_02, 
+		a_40, a_41, a_42,
+		a_80, a_81, a_82,
+		b_0, b_1, b_2,
+		c_00, c_01, c_02, 
+		c_40, c_41, c_42,
+		c_80, c_81, c_82;
+	
+	// first column 
+	b_0 = _mm256_broadcast_sd( &B[0+4*0] );
+	a_00 = _mm256_load_pd( &A0[0+4*0] );
+	a_40 = _mm256_load_pd( &A1[0+4*0] );
+	a_80 = _mm256_load_pd( &A2[0+4*0] );
+	
+	c_00 = _mm256_mul_pd( a_00, b_0 );
+	c_40 = _mm256_mul_pd( a_40, b_0 );
+	c_80 = _mm256_mul_pd( a_80, b_0 );
+
+	b_1 = _mm256_broadcast_sd( &B[0+4*1] );
+	a_01 = _mm256_load_pd( &A0[0+4*1] );
+	a_41 = _mm256_load_pd( &A1[0+4*1] );
+	a_81 = _mm256_load_pd( &A2[0+4*1] );
+
+	c_00 = _mm256_fmadd_pd( a_01, b_1, c_00 );
+	c_40 = _mm256_fmadd_pd( a_41, b_1, c_40 );
+	c_80 = _mm256_fmadd_pd( a_81, b_1, c_80 );
+
+	b_2 = _mm256_broadcast_sd( &B[0+4*2] );
+	a_02 = _mm256_load_pd( &A0[0+4*2] );
+	a_42 = _mm256_load_pd( &A1[0+4*2] );
+	a_82 = _mm256_load_pd( &A2[0+4*2] );
+
+	c_00 = _mm256_fmadd_pd( a_02, b_2, c_00 );
+	c_40 = _mm256_fmadd_pd( a_42, b_2, c_40 );
+	c_80 = _mm256_fmadd_pd( a_82, b_2, c_80 );
+
+	_mm256_store_pd( &C0[0+ldc*0], c_00 );
+	_mm256_store_pd( &C1[0+ldc*0], c_40 );
+	_mm256_store_pd( &C2[0+ldc*0], c_80 );
+	
+	// second column 
+	b_1 = _mm256_broadcast_sd( &B[1+4*1] );
+
+	c_01 = _mm256_mul_pd( a_01, b_1 );
+	c_41 = _mm256_mul_pd( a_41, b_1 );
+	c_81 = _mm256_mul_pd( a_81, b_1 );
+
+	b_2 = _mm256_broadcast_sd( &B[1+4*2] );
+
+	c_01 = _mm256_fmadd_pd( a_02, b_2, c_01 );
+	c_41 = _mm256_fmadd_pd( a_42, b_2, c_41 );
+	c_81 = _mm256_fmadd_pd( a_82, b_2, c_81 );
+	
+	_mm256_store_pd( &C0[0+ldc*1], c_01 );
+	_mm256_store_pd( &C1[0+ldc*1], c_41 );
+	_mm256_store_pd( &C2[0+ldc*1], c_81 );
+	
+	// third column 
+	b_2 = _mm256_broadcast_sd( &B[2+4*2] );
+
+	c_02 = _mm256_mul_pd( a_02, b_2 );
+	c_42 = _mm256_mul_pd( a_42, b_2 );
+	c_82 = _mm256_mul_pd( a_82, b_2 );
+
+	_mm256_store_pd( &C0[0+ldc*2], c_02 );
+	_mm256_store_pd( &C1[0+ldc*2], c_42 );
+	_mm256_store_pd( &C2[0+ldc*2], c_82 );
+
+	}
+	
+
+
+/*inline void corner_dtrmm_pp_nt_8x2_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
+void corner_dtrmm_l_nt_12x2_lib4(double *A0, int sda, double *B, double *C0, int sdc)
+	{
+	
+	double *A1 = A0 + 4*sda;
+	double *A2 = A0 + 8*sda;
+	double *C1 = C0 + 4*sdc;
+	double *C2 = C0 + 8*sdc;
+	
+	const int ldc = 4;
+
+	__m256d
+		a_00, a_01, 
+		a_40, a_41,
+		a_80, a_81,
+		b_0, b_1,
+		c_00, c_01, 
+		c_40, c_41,
+		c_80, c_81;
+	
+	// first column 
+	b_0 = _mm256_broadcast_sd( &B[0+4*0] );
+	a_00 = _mm256_load_pd( &A0[0+4*0] );
+	a_40 = _mm256_load_pd( &A1[0+4*0] );
+	a_80 = _mm256_load_pd( &A2[0+4*0] );
+	
+	c_00 = _mm256_mul_pd( a_00, b_0 );
+	c_40 = _mm256_mul_pd( a_40, b_0 );
+	c_80 = _mm256_mul_pd( a_80, b_0 );
+
+	b_1 = _mm256_broadcast_sd( &B[0+4*1] );
+	a_01 = _mm256_load_pd( &A0[0+4*1] );
+	a_41 = _mm256_load_pd( &A1[0+4*1] );
+	a_81 = _mm256_load_pd( &A2[0+4*1] );
+
+	c_00 = _mm256_fmadd_pd( a_01, b_1, c_00 );
+	c_40 = _mm256_fmadd_pd( a_41, b_1, c_40 );
+	c_80 = _mm256_fmadd_pd( a_81, b_1, c_80 );
+	
+	_mm256_store_pd( &C0[0+ldc*0], c_00 );
+	_mm256_store_pd( &C1[0+ldc*0], c_40 );
+	_mm256_store_pd( &C2[0+ldc*0], c_80 );
+
+	// second column 
+	b_1 = _mm256_broadcast_sd( &B[1+4*1] );
+
+	c_01 = _mm256_mul_pd( a_01, b_1 );
+	c_41 = _mm256_mul_pd( a_41, b_1 );
+	c_81 = _mm256_mul_pd( a_81, b_1 );
+	
+	_mm256_store_pd( &C0[0+ldc*1], c_01 );
+	_mm256_store_pd( &C1[0+ldc*1], c_41 );
+	_mm256_store_pd( &C2[0+ldc*1], c_81 );
+	
+	}
+
+
+
+/*inline void corner_dtrmm_pp_nt_8x1_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
+void corner_dtrmm_l_nt_12x1_lib4(double *A0, int sda, double *B, double *C0, int sdc)
+	{
+	
+	double *A1 = A0 + 4*sda;
+	double *A2 = A0 + 8*sda;
+	double *C1 = C0 + 4*sdc;
+	double *C2 = C0 + 8*sdc;
+	
+	const int ldc = 4;
+
+	__m256d
+		a_00, 
+		a_40,
+		a_80,
+		b_0,
+		c_00, 
+		c_40,
+		c_80;
+	
+	// first column 
+	b_0 = _mm256_broadcast_sd( &B[0+4*0] );
+	a_00 = _mm256_load_pd( &A0[0+4*0] );
+	a_40 = _mm256_load_pd( &A1[0+4*0] );
+	a_80 = _mm256_load_pd( &A1[0+4*0] );
+	
+	c_00 = _mm256_mul_pd( a_00, b_0 );
+	c_40 = _mm256_mul_pd( a_40, b_0 );
+	c_80 = _mm256_mul_pd( a_80, b_0 );
+
+	_mm256_store_pd( &C0[0+ldc*0], c_00 );
+	_mm256_store_pd( &C1[0+ldc*0], c_40 );
+	_mm256_store_pd( &C2[0+ldc*0], c_80 );
+	
+	}
+
+
+/*inline void corner_dtrmm_pp_nt_8x3_lib4(double *A0, double *A1, double *B, double *C0, double *C1, int ldc)*/
 void corner_dtrmm_l_nt_8x3_lib4(double *A0, int sda, double *B, double *C0, int sdc)
 	{
 	
@@ -1094,62 +1273,59 @@ void corner_dtrmm_l_nt_8x3_lib4(double *A0, int sda, double *B, double *C0, int 
 	const int ldc = 4;
 
 	__m256d
-		ab_temp,
-		a_00_10_20_30, a_01_11_21_31, a_02_12_22_32, a_40_50_60_70, a_41_51_61_71, a_42_52_62_72,
-		b_00, b_10, b_20, b_11, b_21, b_22,
-		c_00_10_20_30, c_01_11_21_31, c_02_12_22_32, c_40_50_60_70, c_41_51_61_71, c_42_52_62_72;
-	
-	a_00_10_20_30 = _mm256_load_pd( &A0[0+4*0] );
-	a_40_50_60_70 = _mm256_load_pd( &A1[0+4*0] );
-	a_01_11_21_31 = _mm256_load_pd( &A0[0+4*1] );
-	a_41_51_61_71 = _mm256_load_pd( &A1[0+4*1] );
-	a_02_12_22_32 = _mm256_load_pd( &A0[0+4*2] );
-	a_42_52_62_72 = _mm256_load_pd( &A1[0+4*2] );
+		a_00, a_01, a_02, 
+		a_40, a_41, a_42,
+		b_0, b_1, b_2,
+		c_00, c_01, c_02, 
+		c_40, c_41, c_42;
 	
 	// first column 
-	b_00 = _mm256_broadcast_sd( &B[0+4*0] );
-	b_10 = _mm256_broadcast_sd( &B[0+4*1] );
-	b_20 = _mm256_broadcast_sd( &B[0+4*2] );
+	b_0 = _mm256_broadcast_sd( &B[0+4*0] );
+	a_00 = _mm256_load_pd( &A0[0+4*0] );
+	a_40 = _mm256_load_pd( &A1[0+4*0] );
 	
-	c_00_10_20_30 = _mm256_mul_pd( a_00_10_20_30, b_00 );
-	c_40_50_60_70 = _mm256_mul_pd( a_40_50_60_70, b_00 );
+	c_00 = _mm256_mul_pd( a_00, b_0 );
+	c_40 = _mm256_mul_pd( a_40, b_0 );
 
-	ab_temp = _mm256_mul_pd( a_01_11_21_31, b_10 );
-	c_00_10_20_30 = _mm256_add_pd( c_00_10_20_30, ab_temp );
-	ab_temp = _mm256_mul_pd( a_41_51_61_71, b_10 );
-	c_40_50_60_70 = _mm256_add_pd( c_40_50_60_70, ab_temp );
+	b_1 = _mm256_broadcast_sd( &B[0+4*1] );
+	a_01 = _mm256_load_pd( &A0[0+4*1] );
+	a_41 = _mm256_load_pd( &A1[0+4*1] );
 
-	ab_temp = _mm256_mul_pd( a_02_12_22_32, b_20 );
-	c_00_10_20_30 = _mm256_add_pd( c_00_10_20_30, ab_temp );
-	ab_temp = _mm256_mul_pd( a_42_52_62_72, b_20 );
-	c_40_50_60_70 = _mm256_add_pd( c_40_50_60_70, ab_temp );
+	c_00 = _mm256_fmadd_pd( a_01, b_1, c_00 );
+	c_40 = _mm256_fmadd_pd( a_41, b_1, c_40 );
 
-	_mm256_store_pd( &C0[0+ldc*0], c_00_10_20_30 );
-	_mm256_store_pd( &C1[0+ldc*0], c_40_50_60_70 );
+	b_2 = _mm256_broadcast_sd( &B[0+4*2] );
+	a_02 = _mm256_load_pd( &A0[0+4*2] );
+	a_42 = _mm256_load_pd( &A1[0+4*2] );
+
+	c_00 = _mm256_fmadd_pd( a_02, b_2, c_00 );
+	c_40 = _mm256_fmadd_pd( a_42, b_2, c_40 );
+
+	_mm256_store_pd( &C0[0+ldc*0], c_00 );
+	_mm256_store_pd( &C1[0+ldc*0], c_40 );
 	
 	// second column 
-	b_11 = _mm256_broadcast_sd( &B[1+4*1] );
-	b_21 = _mm256_broadcast_sd( &B[1+4*2] );
+	b_1 = _mm256_broadcast_sd( &B[1+4*1] );
 
-	c_01_11_21_31 = _mm256_mul_pd( a_01_11_21_31, b_11 );
-	c_41_51_61_71 = _mm256_mul_pd( a_41_51_61_71, b_11 );
+	c_01 = _mm256_mul_pd( a_01, b_1 );
+	c_41 = _mm256_mul_pd( a_41, b_1 );
 
-	ab_temp = _mm256_mul_pd( a_02_12_22_32, b_21 );
-	c_01_11_21_31 = _mm256_add_pd( c_01_11_21_31, ab_temp );
-	ab_temp = _mm256_mul_pd( a_42_52_62_72, b_21 );
-	c_41_51_61_71 = _mm256_add_pd( c_41_51_61_71, ab_temp );
+	b_2 = _mm256_broadcast_sd( &B[1+4*2] );
+
+	c_01 = _mm256_fmadd_pd( a_02, b_2, c_01 );
+	c_41 = _mm256_fmadd_pd( a_42, b_2, c_41 );
 	
-	_mm256_store_pd( &C0[0+ldc*1], c_01_11_21_31 );
-	_mm256_store_pd( &C1[0+ldc*1], c_41_51_61_71 );
+	_mm256_store_pd( &C0[0+ldc*1], c_01 );
+	_mm256_store_pd( &C1[0+ldc*1], c_41 );
 	
 	// third column 
-	b_22 = _mm256_broadcast_sd( &B[2+4*2] );
+	b_2 = _mm256_broadcast_sd( &B[2+4*2] );
 
-	c_02_12_22_32 = _mm256_mul_pd( a_02_12_22_32, b_22 );
-	c_42_52_62_72 = _mm256_mul_pd( a_42_52_62_72, b_22 );
+	c_02 = _mm256_mul_pd( a_02, b_2 );
+	c_42 = _mm256_mul_pd( a_42, b_2 );
 
-	_mm256_store_pd( &C0[0+ldc*2], c_02_12_22_32 );
-	_mm256_store_pd( &C1[0+ldc*2], c_42_52_62_72 );
+	_mm256_store_pd( &C0[0+ldc*2], c_02 );
+	_mm256_store_pd( &C1[0+ldc*2], c_42 );
 
 	}
 	
@@ -1165,39 +1341,38 @@ void corner_dtrmm_l_nt_8x2_lib4(double *A0, int sda, double *B, double *C0, int 
 	const int ldc = 4;
 
 	__m256d
-		ab_temp,
-		a_00_10_20_30, a_01_11_21_31, a_40_50_60_70, a_41_51_61_71,
-		b_00, b_10, b_11,
-		c_00_10_20_30, c_01_11_21_31, c_40_50_60_70, c_41_51_61_71;
-	
-	a_00_10_20_30 = _mm256_load_pd( &A0[0+4*0] );
-	a_40_50_60_70 = _mm256_load_pd( &A1[0+4*0] );
-	a_01_11_21_31 = _mm256_load_pd( &A0[0+4*1] );
-	a_41_51_61_71 = _mm256_load_pd( &A1[0+4*1] );
+		a_00, a_01, 
+		a_40, a_41,
+		b_0, b_1,
+		c_00, c_01, 
+		c_40, c_41;
 	
 	// first column 
-	b_00 = _mm256_broadcast_sd( &B[0+4*0] );
-	b_10 = _mm256_broadcast_sd( &B[0+4*1] );
+	b_0 = _mm256_broadcast_sd( &B[0+4*0] );
+	a_00 = _mm256_load_pd( &A0[0+4*0] );
+	a_40 = _mm256_load_pd( &A1[0+4*0] );
 	
-	c_00_10_20_30 = _mm256_mul_pd( a_00_10_20_30, b_00 );
-	c_40_50_60_70 = _mm256_mul_pd( a_40_50_60_70, b_00 );
+	c_00 = _mm256_mul_pd( a_00, b_0 );
+	c_40 = _mm256_mul_pd( a_40, b_0 );
 
-	ab_temp = _mm256_mul_pd( a_01_11_21_31, b_10 );
-	c_00_10_20_30 = _mm256_add_pd( c_00_10_20_30, ab_temp );
-	ab_temp = _mm256_mul_pd( a_41_51_61_71, b_10 );
-	c_40_50_60_70 = _mm256_add_pd( c_40_50_60_70, ab_temp );
+	b_1 = _mm256_broadcast_sd( &B[0+4*1] );
+	a_01 = _mm256_load_pd( &A0[0+4*1] );
+	a_41 = _mm256_load_pd( &A1[0+4*1] );
+
+	c_00 = _mm256_fmadd_pd( a_01, b_1, c_00 );
+	c_40 = _mm256_fmadd_pd( a_41, b_1, c_40 );
 	
-	_mm256_store_pd( &C0[0+ldc*0], c_00_10_20_30 );
-	_mm256_store_pd( &C1[0+ldc*0], c_40_50_60_70 );
+	_mm256_store_pd( &C0[0+ldc*0], c_00 );
+	_mm256_store_pd( &C1[0+ldc*0], c_40 );
 
 	// second column 
-	b_11 = _mm256_broadcast_sd( &B[1+4*1] );
+	b_1 = _mm256_broadcast_sd( &B[1+4*1] );
 
-	c_01_11_21_31 = _mm256_mul_pd( a_01_11_21_31, b_11 );
-	c_41_51_61_71 = _mm256_mul_pd( a_41_51_61_71, b_11 );
+	c_01 = _mm256_mul_pd( a_01, b_1 );
+	c_41 = _mm256_mul_pd( a_41, b_1 );
 	
-	_mm256_store_pd( &C0[0+ldc*1], c_01_11_21_31 );
-	_mm256_store_pd( &C1[0+ldc*1], c_41_51_61_71 );
+	_mm256_store_pd( &C0[0+ldc*1], c_01 );
+	_mm256_store_pd( &C1[0+ldc*1], c_41 );
 	
 	}
 
@@ -1213,21 +1388,22 @@ void corner_dtrmm_l_nt_8x1_lib4(double *A0, int sda, double *B, double *C0, int 
 	const int ldc = 4;
 
 	__m256d
-		a_00_10_20_30, a_40_50_60_70,
-		b_00,
-		c_00_10_20_30, c_40_50_60_70;
-	
-	a_00_10_20_30 = _mm256_load_pd( &A0[0+4*0] );
-	a_40_50_60_70 = _mm256_load_pd( &A1[0+4*0] );
+		a_00, 
+		a_40,
+		b_0,
+		c_00, 
+		c_40;
 	
 	// first column 
-	b_00 = _mm256_broadcast_sd( &B[0+4*0] );
+	b_0 = _mm256_broadcast_sd( &B[0+4*0] );
+	a_00 = _mm256_load_pd( &A0[0+4*0] );
+	a_40 = _mm256_load_pd( &A1[0+4*0] );
 	
-	c_00_10_20_30 = _mm256_mul_pd( a_00_10_20_30, b_00 );
-	c_40_50_60_70 = _mm256_mul_pd( a_40_50_60_70, b_00 );
+	c_00 = _mm256_mul_pd( a_00, b_0 );
+	c_40 = _mm256_mul_pd( a_40, b_0 );
 
-	_mm256_store_pd( &C0[0+ldc*0], c_00_10_20_30 );
-	_mm256_store_pd( &C1[0+ldc*0], c_40_50_60_70 );
+	_mm256_store_pd( &C0[0+ldc*0], c_00 );
+	_mm256_store_pd( &C1[0+ldc*0], c_40 );
 	
 	}
 
@@ -1239,47 +1415,45 @@ void corner_dtrmm_l_nt_4x3_lib4(double *A, double *B, double *C)
 	const int ldc = 4;
 
 	__m256d
-		ab_temp,
-		a_00_10_20_30, a_01_11_21_31, a_02_12_22_32,
-		b_00, b_10, b_20, b_11, b_21, b_22,
-		c_00_10_20_30, c_01_11_21_31, c_02_12_22_32;
-	
-	a_00_10_20_30 = _mm256_load_pd( &A[0+4*0] );
-	a_01_11_21_31 = _mm256_load_pd( &A[0+4*1] );
-	a_02_12_22_32 = _mm256_load_pd( &A[0+4*2] );
+		a_00, a_01, a_02,
+		b_0, b_1, b_2,
+		c_00, c_01, c_02;
 	
 	// first column 
-	b_00 = _mm256_broadcast_sd( &B[0+4*0] );
-	b_10 = _mm256_broadcast_sd( &B[0+4*1] );
-	b_20 = _mm256_broadcast_sd( &B[0+4*2] );
+	b_0 = _mm256_broadcast_sd( &B[0+4*0] );
+	a_00 = _mm256_load_pd( &A[0+4*0] );
 	
-	c_00_10_20_30 = _mm256_mul_pd( a_00_10_20_30, b_00 );
+	c_00 = _mm256_mul_pd( a_00, b_0 );
 
-	ab_temp = _mm256_mul_pd( a_01_11_21_31, b_10 );
-	c_00_10_20_30 = _mm256_add_pd( c_00_10_20_30, ab_temp );
+	b_1 = _mm256_broadcast_sd( &B[0+4*1] );
+	a_01 = _mm256_load_pd( &A[0+4*1] );
 
-	ab_temp = _mm256_mul_pd( a_02_12_22_32, b_20 );
-	c_00_10_20_30 = _mm256_add_pd( c_00_10_20_30, ab_temp );
+	c_00 = _mm256_fmadd_pd( a_01, b_1, c_00 );
 
-	_mm256_store_pd( &C[0+ldc*0], c_00_10_20_30 );
+	b_2 = _mm256_broadcast_sd( &B[0+4*2] );
+	a_02 = _mm256_load_pd( &A[0+4*2] );
+
+	c_00 = _mm256_fmadd_pd( a_02, b_2, c_00 );
+
+	_mm256_store_pd( &C[0+ldc*0], c_00 );
 	
 	// second column 
-	b_11 = _mm256_broadcast_sd( &B[1+4*1] );
-	b_21 = _mm256_broadcast_sd( &B[1+4*2] );
+	b_1 = _mm256_broadcast_sd( &B[1+4*1] );
 
-	c_01_11_21_31 = _mm256_mul_pd( a_01_11_21_31, b_11 );
+	c_01 = _mm256_mul_pd( a_01, b_1 );
 
-	ab_temp = _mm256_mul_pd( a_02_12_22_32, b_21 );
-	c_01_11_21_31 = _mm256_add_pd( c_01_11_21_31, ab_temp );
+	b_2 = _mm256_broadcast_sd( &B[1+4*2] );
+
+	c_01 = _mm256_fmadd_pd( a_02, b_2, c_01 );
 	
-	_mm256_store_pd( &C[0+ldc*1], c_01_11_21_31 );
+	_mm256_store_pd( &C[0+ldc*1], c_01 );
 	
 	// third column 
-	b_22 = _mm256_broadcast_sd( &B[2+4*2] );
+	b_2 = _mm256_broadcast_sd( &B[2+4*2] );
 
-	c_02_12_22_32 = _mm256_mul_pd( a_02_12_22_32, b_22 );
+	c_02 = _mm256_mul_pd( a_02, b_2 );
 
-	_mm256_store_pd( &C[0+ldc*2], c_02_12_22_32 );
+	_mm256_store_pd( &C[0+ldc*2], c_02 );
 
 	}
 	
@@ -1292,31 +1466,29 @@ void corner_dtrmm_l_nt_4x2_lib4(double *A, double *B, double *C)
 	const int ldc = 4;
 
 	__m256d
-		ab_temp,
-		a_00_10_20_30, a_01_11_21_31,
-		b_00, b_10, b_11,
-		c_00_10_20_30, c_01_11_21_31;
-	
-	a_00_10_20_30 = _mm256_load_pd( &A[0+4*0] );
-	a_01_11_21_31 = _mm256_load_pd( &A[0+4*1] );
+		a_00, a_01,
+		b_0, b_1,
+		c_00, c_01;
 	
 	// first column 
-	b_00 = _mm256_broadcast_sd( &B[0+4*0] );
-	b_10 = _mm256_broadcast_sd( &B[0+4*1] );
+	b_0 = _mm256_broadcast_sd( &B[0+4*0] );
+	a_00 = _mm256_load_pd( &A[0+4*0] );
 	
-	c_00_10_20_30 = _mm256_mul_pd( a_00_10_20_30, b_00 );
+	c_00 = _mm256_mul_pd( a_00, b_0 );
 
-	ab_temp = _mm256_mul_pd( a_01_11_21_31, b_10 );
-	c_00_10_20_30 = _mm256_add_pd( c_00_10_20_30, ab_temp );
+	b_1 = _mm256_broadcast_sd( &B[0+4*1] );
+	a_01 = _mm256_load_pd( &A[0+4*1] );
+
+	c_00 = _mm256_fmadd_pd( a_01, b_1, c_00 );
 	
-	_mm256_store_pd( &C[0+ldc*0], c_00_10_20_30 );
+	_mm256_store_pd( &C[0+ldc*0], c_00 );
 
 	// second column 
-	b_11 = _mm256_broadcast_sd( &B[1+4*1] );
+	b_1 = _mm256_broadcast_sd( &B[1+4*1] );
 
-	c_01_11_21_31 = _mm256_mul_pd( a_01_11_21_31, b_11 );
+	c_01 = _mm256_mul_pd( a_01, b_1 );
 	
-	_mm256_store_pd( &C[0+ldc*1], c_01_11_21_31 );
+	_mm256_store_pd( &C[0+ldc*1], c_01 );
 	
 	}
 
@@ -1329,18 +1501,17 @@ void corner_dtrmm_l_nt_4x1_lib4(double *A, double *B, double *C)
 	const int ldc = 4;
 
 	__m256d
-		a_00_10_20_30,
-		b_00,
-		c_00_10_20_30;
-	
-	a_00_10_20_30 = _mm256_load_pd( &A[0+4*0] );
+		a_00,
+		b_0,
+		c_00;
 	
 	// first column 
-	b_00 = _mm256_broadcast_sd( &B[0+4*0] );
+	b_0 = _mm256_broadcast_sd( &B[0+4*0] );
+	a_00 = _mm256_load_pd( &A[0+4*0] );
 	
-	c_00_10_20_30 = _mm256_mul_pd( a_00_10_20_30, b_00 );
+	c_00 = _mm256_mul_pd( a_00, b_0 );
 
-	_mm256_store_pd( &C[0+ldc*0], c_00_10_20_30 );
+	_mm256_store_pd( &C[0+ldc*0], c_00 );
 	
 	}
 

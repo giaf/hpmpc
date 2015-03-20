@@ -472,18 +472,15 @@ void dtrmm_l_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double 
 			}
 		if(n-j==1)
 			{
-			corner_dtrmm_l_nt_8x1_lib4(&pA[0+(j+0)*bs+i*sda], sda, &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], sdc);
-			corner_dtrmm_l_nt_4x1_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc]);
+			corner_dtrmm_l_nt_12x1_lib4(&pA[j*bs+(i+0)*sda], sda, &pB[j*bs+j*sdb], &pC[j*bs+(i+0)*sdc], sdc);
 			}
 		else if(n-j==2)
 			{
-			corner_dtrmm_l_nt_8x2_lib4(&pA[0+(j+0)*bs+i*sda], sda, &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], sdc);
-			corner_dtrmm_l_nt_4x2_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc]);
+			corner_dtrmm_l_nt_12x2_lib4(&pA[j*bs+(i+0)*sda], sda, &pB[j*bs+j*sdb], &pC[j*bs+(i+0)*sdc], sdc);
 			}
 		else if(n-j==3)
 			{
-			corner_dtrmm_l_nt_8x3_lib4(&pA[0+(j+0)*bs+i*sda], sda, &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc], sdc);
-			corner_dtrmm_l_nt_4x3_lib4(&pA[0+(j+0)*bs+i*sda], &pB[0+(j+0)*bs+j*sdb], &pC[0+(j+0)*bs+i*sdc]);
+			corner_dtrmm_l_nt_12x3_lib4(&pA[j*bs+(i+0)*sda], sda, &pB[j*bs+j*sdb], &pC[j*bs+(i+0)*sdc], sdc);
 			}
 		}
 #endif
@@ -614,16 +611,44 @@ void dsyrk_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, do
 	for(; j<n-2; j+=4)
 		{
 		i = j;
+#if defined(TARGET_X64_AVX2)
+		if(i<m-8)
+			{
+			kernel_dsyrk_nt_12x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pD[j*bs+i*sdd], sdd, &pC[j*bs+i*sdc], sdc, alg);
+			i += 12;
+			for(; i<m-8; i+=12)
+				{
+				kernel_dgemm_nt_12x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pD[j*bs+i*sdd], sdd, &pC[j*bs+i*sdc], sdc, alg, 0, 0);
+				}
+			for(; i<m-4; i+=8)
+				{
+				kernel_dgemm_nt_8x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pD[j*bs+i*sdd], sdd, &pC[j*bs+i*sdc], sdc, alg, 0, 0);
+				}
+			for(; i<m-2; i+=4)
+				{
+				kernel_dgemm_nt_4x4_lib4(k, &pA[i*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], alg, 0, 0);
+				}
+			for(; i<m; i+=2)
+				{
+				kernel_dgemm_nt_2x4_lib4(k, &pA[i*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], alg, 0, 0);
+				}
+			}
+		else if(i<m-4)
+			{
+			kernel_dsyrk_nt_8x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pD[j*bs+i*sdd], sdd, &pC[j*bs+i*sdc], sdc, alg);
+			i += 8;
+			}
+#else
 		if(i<m-4)
 			{
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX)
 			kernel_dsyrk_nt_8x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pD[j*bs+i*sdd], sdd, &pC[j*bs+i*sdc], sdc, alg);
 			i += 8;
 #else
 			kernel_dsyrk_nt_4x4_lib4(k, &pA[i*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], alg);
 			i += 4;
 #endif
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX)
 			for(; i<m-4; i+=8)
 				{
 				kernel_dgemm_nt_8x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pD[j*bs+i*sdd], sdd, &pC[j*bs+i*sdc], sdc, alg, 0, 0);
@@ -638,9 +663,11 @@ void dsyrk_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, do
 				kernel_dgemm_nt_2x4_lib4(k, &pA[i*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], alg, 0, 0);
 				}
 			}
-		else //if(i<m-2)
+#endif
+		else //if(i<m)
 			{
 			kernel_dsyrk_nt_4x4_lib4(k, &pA[i*sda], &pB[j*sdb], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], alg);
+			//i += 4;
 			}
 		}
 	for(; j<n; j+=2)
@@ -691,9 +718,54 @@ void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *
 	for(; j<n-2; j+=4)
 		{
 		i = j;
+#if defined(TARGET_X64_AVX2)
+		if(i<m-8)
+			{
+			kernel_dsyrk_dpotrf_nt_12x4_lib4(0, 0, j, dummy, 0, dummy, &pC[i*sdc], sdc, &pC[j*sdc], &pD[j*bs+i*sdd], sdd, &pC[j*bs+i*sdc], sdc, fact, 1);
+			i += 12;
+
+			diag[j+0] = fact[0];
+			diag[j+1] = fact[2];
+			diag[j+2] = fact[5];
+			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
+			for(; i<m-8; i+=12)
+				{
+				kernel_dgemm_dtrsm_nt_12x4_lib4(0, 0, j, dummy, 0, dummy, &pC[i*sdc], sdc, &pC[j*sdc], &pD[j*bs+i*sdd], sdd, &pC[j*bs+i*sdc], sdc, fact, 1);
+				}
+			for(; i<m-4; i+=8)
+				{
+				kernel_dgemm_dtrsm_nt_8x4_lib4(0, 0, j, dummy, 0, dummy, &pC[i*sdc], sdc, &pC[j*sdc], &pD[j*bs+i*sdd], sdd, &pC[j*bs+i*sdc], sdc, fact, 1);
+				}
+			for(; i<m-2; i+=4)
+				{
+				kernel_dgemm_dtrsm_nt_4x4_lib4(0, 0, j, dummy, dummy, &pC[i*sdc], &pC[j*sdc], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], fact, 1);
+				}
+			for(; i<m; i+=2)
+				{
+				kernel_dgemm_dtrsm_nt_2x4_lib4(0, 0, j, dummy, dummy, &pC[i*sdc], &pC[j*sdc], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], fact, 1);
+				}
+			}
+		else if(i<m-4)
+			{
+			kernel_dsyrk_dpotrf_nt_8x4_lib4(0, 0, j, dummy, 0, dummy, &pC[i*sdc], sdc, &pC[j*sdc], &pD[j*bs+i*sdd], sdd, &pC[j*bs+i*sdc], sdc, fact, 1);
+			i += 8;
+			diag[j+0] = fact[0];
+			diag[j+1] = fact[2];
+			diag[j+2] = fact[5];
+			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
+			}
+#else
 		if(i<m-4)
 			{
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX)
 			kernel_dsyrk_dpotrf_nt_8x4_lib4(0, 0, j, dummy, 0, dummy, &pC[i*sdc], sdc, &pC[j*sdc], &pD[j*bs+i*sdd], sdd, &pC[j*bs+i*sdc], sdc, fact, 1);
 			i += 8;
 #else
@@ -708,13 +780,7 @@ void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *
 			if(fact[2]==0.0) fact[2]=1.0;
 			if(fact[5]==0.0) fact[5]=1.0;
 			if(fact[9]==0.0) fact[9]=1.0;
-#if defined(TARGET_X64_AVX2)
-			for(; i<m-8; i+=12)
-				{
-				kernel_dgemm_dtrsm_nt_12x4_lib4(0, 0, j, dummy, 0, dummy, &pC[i*sdc], sdc, &pC[j*sdc], &pD[j*bs+i*sdd], sdd, &pC[j*bs+i*sdc], sdc, fact, 1);
-				}
-#endif
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX)
 			for(; i<m-4; i+=8)
 				{
 				kernel_dgemm_dtrsm_nt_8x4_lib4(0, 0, j, dummy, 0, dummy, &pC[i*sdc], sdc, &pC[j*sdc], &pD[j*bs+i*sdd], sdd, &pC[j*bs+i*sdc], sdc, fact, 1);
@@ -729,7 +795,8 @@ void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *
 				kernel_dgemm_dtrsm_nt_2x4_lib4(0, 0, j, dummy, dummy, &pC[i*sdc], &pC[j*sdc], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], fact, 1);
 				}
 			}
-		else //if(i<m-2)
+#endif
+		else //if(i<m)
 			{
 			kernel_dsyrk_dpotrf_nt_4x4_lib4(0, 0, j, dummy, dummy, &pC[i*sdc], &pC[j*sdc], &pD[j*bs+i*sdd], &pC[j*bs+i*sdc], fact, 1);
 			diag[j+0] = fact[0];
@@ -799,9 +866,54 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int 
 	for(; j<n-2; j+=4)
 		{
 		i = j;
+#if defined(TARGET_X64_AVX2)
+		if(i<m-8)
+			{
+			kernel_dsyrk_dpotrf_nt_12x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+			i += 12;
+
+			diag[j+0] = fact[0];
+			diag[j+1] = fact[2];
+			diag[j+2] = fact[5];
+			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
+			for(; i<m-8; i+=12)
+				{
+				kernel_dgemm_dtrsm_nt_12x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+				}
+			for(; i<m-4; i+=8)
+				{
+				kernel_dgemm_dtrsm_nt_8x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+				}
+			for(; i<m-2; i+=4)
+				{
+				kernel_dgemm_dtrsm_nt_4x4_lib4(0, k, j, &pA[i*sda], &pA[j*sda], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
+				}
+			for(; i<m; i+=2)
+				{
+				kernel_dgemm_dtrsm_nt_2x4_lib4(0, k, j, &pA[i*sda], &pA[j*sda], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
+				}
+			}
+		else if(i<m-4)
+			{
+			kernel_dsyrk_dpotrf_nt_8x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+			i += 8;
+			diag[j+0] = fact[0];
+			diag[j+1] = fact[2];
+			diag[j+2] = fact[5];
+			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
+			}
+#else
 		if(i<m-4)
 			{
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX)
 			kernel_dsyrk_dpotrf_nt_8x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
 			i += 8;
 #else
@@ -816,13 +928,7 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int 
 			if(fact[2]==0.0) fact[2]=1.0;
 			if(fact[5]==0.0) fact[5]=1.0;
 			if(fact[9]==0.0) fact[9]=1.0;
-#if defined(TARGET_X64_AVX2)
-			for(; i<m-8; i+=12)
-				{
-				kernel_dgemm_dtrsm_nt_12x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
-				}
-#endif
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX)
 			for(; i<m-4; i+=8)
 				{
 				kernel_dgemm_dtrsm_nt_8x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
@@ -837,7 +943,8 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int 
 				kernel_dgemm_dtrsm_nt_2x4_lib4(0, k, j, &pA[i*sda], &pA[j*sda], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
 				}
 			}
-		else //if(i<m-2)
+#endif
+		else //if(i<m)
 			{
 			kernel_dsyrk_dpotrf_nt_4x4_lib4(0, k, j, &pA[i*sda], &pA[j*sda], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
 			diag[j+0] = fact[0];
@@ -876,7 +983,7 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int 
 				kernel_dgemm_dtrsm_nt_2x2_lib4(0, k, j, &pA[i*sda], &pA[j*sda], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
 				}
 			}
-		else //if(i<m)
+		else if(i<m)
 			{
 			kernel_dsyrk_dpotrf_nt_2x2_lib4(0, k, j, &pA[i*sda], &pA[j*sda], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
 			diag[j+0] = fact[0];
@@ -1792,9 +1899,54 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 	for(; j<n-2; j+=4)
 		{
 		i = j;
+#if defined(TARGET_X64_AVX2)
 		if(i<m-4)
 			{
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+			kernel_dsyrk_dpotrf_nt_12x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+			i += 12;
+
+			diag[j+0] = fact[0];
+			diag[j+1] = fact[2];
+			diag[j+2] = fact[5];
+			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
+			for(; i<m-8; i+=12)
+				{
+				kernel_dgemm_dtrsm_nt_12x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+				}
+			for(; i<m-4; i+=8)
+				{
+				kernel_dgemm_dtrsm_nt_8x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+				}
+			for(; i<m-2; i+=4)
+				{
+				kernel_dgemm_dtrsm_nt_4x4_lib4(0, k, j, &pA[i*sda], &pA[j*sda], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
+				}
+			for(; i<m; i+=2)
+				{
+				kernel_dgemm_dtrsm_nt_2x4_lib4(0, k, j, &pA[i*sda], &pA[j*sda], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
+				}
+			}
+		else if(i<m-4)
+			{
+			kernel_dsyrk_dpotrf_nt_8x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+			i += 8;
+			diag[j+0] = fact[0];
+			diag[j+1] = fact[2];
+			diag[j+2] = fact[5];
+			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
+			}
+#else
+		if(i<m-4)
+			{
+#if defined(TARGET_X64_AVX)
 			kernel_dsyrk_dpotrf_nt_8x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
 			i += 8;
 #else
@@ -1809,13 +1961,7 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 			if(fact[2]==0.0) fact[2]=1.0;
 			if(fact[5]==0.0) fact[5]=1.0;
 			if(fact[9]==0.0) fact[9]=1.0;
-#if defined(TARGET_X64_AVX2)
-			for(; i<m-8; i+=12)
-				{
-				kernel_dgemm_dtrsm_nt_12x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
-				}
-#endif
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX)
 			for(; i<m-4; i+=8)
 				{
 				kernel_dgemm_dtrsm_nt_8x4_lib4(0, k, j, &pA[i*sda], sda, &pA[j*sda], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
@@ -1830,7 +1976,8 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 				kernel_dgemm_dtrsm_nt_2x4_lib4(0, k, j, &pA[i*sda], &pA[j*sda], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
 				}
 			}
-		else //if(i<m-2)
+#endif
+		else //if(i<m)
 			{
 			kernel_dsyrk_dpotrf_nt_4x4_lib4(0, k, j, &pA[i*sda], &pA[j*sda], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
 			diag[j+0] = fact[0];
@@ -1923,9 +2070,92 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 	for(; j<n-2; j+=4)
 		{
 		i = j;
+#if defined(TARGET_X64_AVX2)
+		if(i<m-8)
+			{
+			//d_print_mat(4, k-i, &pA[(i+4)*sda+i*bs], 4);
+			//d_print_pmat(8, k-i, bs, &pA[i*sda+i*bs], sda);
+			kernel_dsyrk_dpotrf_nt_12x4_lib4(1, k-i, j, &pA[i*sda+i*bs], sda, &pA[i*sda+i*bs], &pD[i*sdd], sdd, &pD[i*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+			//d_print_pmat(8, 4, bs, &pA[(k0+k+j)*bs+i*sda], sda);
+			i += 12;
+
+			diag[j+0] = fact[0];
+			diag[j+1] = fact[2];
+			diag[j+2] = fact[5];
+			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
+
+			for(; i<m-8 && i<k; i+=12)
+				{
+				//printf("\n%d\n", k-i);
+				//d_print_pmat(8, k-i, bs, &pA[i*sda+i*bs], sda);
+				//d_print_mat(k-i, 4, &pA[j*sda+i*bs], 4);
+				kernel_dgemm_dtrsm_nt_12x4_lib4(1, k-i, j, &pA[i*sda+i*bs], sda, &pA[j*sda+i*bs], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+				//d_print_pmat(8, 4, bs, &pA[(k0+k+j)*bs+i*sda], sda);
+				}
+			for(; i<m-4 && i<k; i+=8)
+				{
+				//printf("\n%d\n", k-i);
+				//d_print_pmat(8, k-i, bs, &pA[i*sda+i*bs], sda);
+				//d_print_mat(k-i, 4, &pA[j*sda+i*bs], 4);
+				kernel_dgemm_dtrsm_nt_8x4_lib4(1, k-i, j, &pA[i*sda+i*bs], sda, &pA[j*sda+i*bs], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+				//d_print_pmat(8, 4, bs, &pA[(k0+k+j)*bs+i*sda], sda);
+				}
+			for(; i<m-2 && i<k; i+=4)
+				{
+				//printf("\n%d\n", k-i);
+				//d_print_mat(k-i, 4, &pA[i*sda+i*bs], 4);
+				//d_print_mat(k-i, 4, &pA[j*sda+i*bs], 4);
+				kernel_dgemm_dtrsm_nt_4x4_lib4(1, k-i, j, &pA[i*sda+i*bs], &pA[j*sda+i*bs], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
+				//d_print_mat(4, 4, &pA[(k0+k+j)*bs+i*sda], 4);
+				//kernel_dtrmm_dtrsm_nt_4x4_lib4(k-i, j, &pA[i*sda+i*bs], &pA[j*sda+i*bs], &pC[j*bs+i*sdc], &pA[(k+k0+j)*bs+i*sda], fact, alg);
+				}
+			for(; i<m && i<k; i+=2)
+				{
+				kernel_dgemm_dtrsm_nt_2x4_lib4(1, k-i, j, &pA[i*sda+i*bs], &pA[j*sda+i*bs], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
+				}
+			for(; i<m-8; i+=12)
+				{
+				//d_print_pmat(8, k-i, bs, &pA[i*sda+i*bs], sda);
+				kernel_dgemm_dtrsm_nt_12x4_lib4(0, 0, j, dummy, 0, dummy, &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+				//d_print_pmat(8, 4, bs, &pA[(k0+k+j)*bs+i*sda], sda);
+				}
+			for(; i<m-4; i+=8)
+				{
+				//d_print_pmat(8, k-i, bs, &pA[i*sda+i*bs], sda);
+				kernel_dgemm_dtrsm_nt_8x4_lib4(0, 0, j, dummy, 0, dummy, &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+				//d_print_pmat(8, 4, bs, &pA[(k0+k+j)*bs+i*sda], sda);
+				}
+			for(; i<m-2; i+=4)
+				{
+				kernel_dgemm_dtrsm_nt_4x4_lib4(0, 0, j, dummy, dummy, &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
+				//d_print_mat(4, 4, &pA[(k0+k+j)*bs+i*sda], 4);
+				}
+			for(; i<m; i+=2)
+				{
+				kernel_dgemm_dtrsm_nt_2x4_lib4(0, 0, j, dummy, dummy, &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
+				}
+			}		
+		else if(i<m-4)
+			{
+			kernel_dsyrk_dpotrf_nt_8x4_lib4(1, k-i, j, &pA[i*sda+i*bs], sda, &pA[i*sda+i*bs], &pD[i*sdd], sdd, &pD[i*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
+			i += 8;
+			diag[j+0] = fact[0];
+			diag[j+1] = fact[2];
+			diag[j+2] = fact[5];
+			diag[j+3] = fact[9];
+			if(fact[0]==0.0) fact[0]=1.0;
+			if(fact[2]==0.0) fact[2]=1.0;
+			if(fact[5]==0.0) fact[5]=1.0;
+			if(fact[9]==0.0) fact[9]=1.0;
+			}
+#else
 		if(i<m-4)
 			{
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX)
 			//d_print_mat(4, k-i, &pA[(i+4)*sda+i*bs], 4);
 			//d_print_pmat(8, k-i, bs, &pA[i*sda+i*bs], sda);
 			kernel_dsyrk_dpotrf_nt_8x4_lib4(1, k-i, j, &pA[i*sda+i*bs], sda, &pA[i*sda+i*bs], &pD[i*sdd], sdd, &pD[i*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
@@ -1945,16 +2175,6 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 			if(fact[5]==0.0) fact[5]=1.0;
 			if(fact[9]==0.0) fact[9]=1.0;
 
-#if defined(TARGET_X64_AVX2)
-			for(; i<m-8 && i<k; i+=12)
-				{
-				//printf("\n%d\n", k-i);
-				//d_print_pmat(8, k-i, bs, &pA[i*sda+i*bs], sda);
-				//d_print_mat(k-i, 4, &pA[j*sda+i*bs], 4);
-				kernel_dgemm_dtrsm_nt_12x4_lib4(1, k-i, j, &pA[i*sda+i*bs], sda, &pA[j*sda+i*bs], &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
-				//d_print_pmat(8, 4, bs, &pA[(k0+k+j)*bs+i*sda], sda);
-				}
-#endif
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			for(; i<m-4 && i<k; i+=8)
 				{
@@ -1978,14 +2198,6 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 				{
 				kernel_dgemm_dtrsm_nt_2x4_lib4(1, k-i, j, &pA[i*sda+i*bs], &pA[j*sda+i*bs], &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
 				}
-#if defined(TARGET_X64_AVX2)
-			for(; i<m-8; i+=12)
-				{
-				//d_print_pmat(8, k-i, bs, &pA[i*sda+i*bs], sda);
-				kernel_dgemm_dtrsm_nt_12x4_lib4(0, 0, j, dummy, 0, dummy, &pD[i*sdd], sdd, &pD[j*sdd], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, fact, alg);
-				//d_print_pmat(8, 4, bs, &pA[(k0+k+j)*bs+i*sda], sda);
-				}
-#endif
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 			for(; i<m-4; i+=8)
 				{
@@ -2004,7 +2216,8 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 				kernel_dgemm_dtrsm_nt_2x4_lib4(0, 0, j, dummy, dummy, &pD[i*sdd], &pD[j*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
 				}
 			}
-		else //if(i<m-2)
+#endif
+		else //if(i<m)
 			{
 			kernel_dsyrk_dpotrf_nt_4x4_lib4(1, k-i, j, &pA[i*sda+i*bs], &pA[i*sda+i*bs], &pD[i*sdd], &pD[i*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
 			//kernel_dtsyrk_dpotrf_nt_4x4_lib4(k-i, j, &pA[i*sda+i*bs], &pD[i*sdd], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], fact, alg);
