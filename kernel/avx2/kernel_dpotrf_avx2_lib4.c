@@ -2904,34 +2904,34 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 			{
 			
 	/*	__builtin_prefetch( A+32 );*/
-			c_00_11_20_31 = _mm256_fmadd_pd( a_0123, b_0101, c_00_11_20_31 );
+			c_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, c_00_11_20_31 );
 			b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
 			b_0101        = _mm256_broadcast_pd( (__m128d *) &Bm[4] ); // prefetch
-			c_01_10_21_30 = _mm256_fmadd_pd( a_0123, b_1010, c_01_10_21_30 );
+			c_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, c_01_10_21_30 );
 			a_0123        = _mm256_load_pd( &Am[4] ); // prefetch
 			
 			
 	/*	__builtin_prefetch( A+40 );*/
-			C_00_11_20_31 = _mm256_fmadd_pd( a_0123, b_0101, C_00_11_20_31 );
+			C_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, C_00_11_20_31 );
 			b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
 			b_0101        = _mm256_broadcast_pd( (__m128d *) &Bm[8] ); // prefetch
-			C_01_10_21_30 = _mm256_fmadd_pd( a_0123, b_1010, C_01_10_21_30 );
+			C_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, C_01_10_21_30 );
 			a_0123        = _mm256_load_pd( &Am[8] ); // prefetch
 
 
 	/*	__builtin_prefetch( A+48 );*/
-			d_00_11_20_31 = _mm256_fmadd_pd( a_0123, b_0101, d_00_11_20_31 );
+			d_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, d_00_11_20_31 );
 			b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
 			b_0101        = _mm256_broadcast_pd( (__m128d *) &Bm[12] ); // prefetch
-			d_01_10_21_30 = _mm256_fmadd_pd( a_0123, b_1010, d_01_10_21_30 );
+			d_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, d_01_10_21_30 );
 			a_0123        = _mm256_load_pd( &Am[12] ); // prefetch
 
 
 	/*	__builtin_prefetch( A+56 );*/
-			D_00_11_20_31 = _mm256_fmadd_pd( a_0123, b_0101, D_00_11_20_31 );
+			D_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, D_00_11_20_31 );
 			b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
 			b_0101        = _mm256_broadcast_pd( (__m128d *) &Bm[16] ); // prefetch
-			D_01_10_21_30 = _mm256_fmadd_pd( a_0123, b_1010, D_01_10_21_30 );
+			D_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, D_01_10_21_30 );
 			a_0123        = _mm256_load_pd( &Am[16] ); // prefetch
 				
 			Am += 16;
@@ -3269,34 +3269,34 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 			{
 			
 	/*	__builtin_prefetch( A+32 );*/
-			c_00_11 = _mm_fmadd_pd( a_01, b_01, c_00_11 );
+			c_00_11 = _mm_fnmadd_pd( a_01, b_01, c_00_11 );
 			b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
 			b_01    = _mm_load_pd( &Bm[4] ); // prefetch
-			c_01_10 = _mm_fmadd_pd( a_01, b_10, c_01_10 );
+			c_01_10 = _mm_fnmadd_pd( a_01, b_10, c_01_10 );
 			a_01    = _mm_load_pd( &Am[4] ); // prefetch
 			
 			
 	/*	__builtin_prefetch( A+40 );*/
-			C_00_11 = _mm_fmadd_pd( a_01, b_01, C_00_11 );
+			C_00_11 = _mm_fnmadd_pd( a_01, b_01, C_00_11 );
 			b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
 			b_01    = _mm_load_pd( &Bm[8] ); // prefetch
-			C_01_10 = _mm_fmadd_pd( a_01, b_10, C_01_10 );
+			C_01_10 = _mm_fnmadd_pd( a_01, b_10, C_01_10 );
 			a_01    = _mm_load_pd( &Am[8] ); // prefetch
 
 
 	/*	__builtin_prefetch( A+48 );*/
-			c_00_11 = _mm_fmadd_pd( a_01, b_01, c_00_11 );
+			c_00_11 = _mm_fnmadd_pd( a_01, b_01, c_00_11 );
 			b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
 			b_01    = _mm_load_pd( &Bm[12] ); // prefetch
-			c_01_10 = _mm_fmadd_pd( a_01, b_10, c_01_10 );
+			c_01_10 = _mm_fnmadd_pd( a_01, b_10, c_01_10 );
 			a_01    = _mm_load_pd( &Am[12] ); // prefetch
 
 
 	/*	__builtin_prefetch( A+56 );*/
-			C_00_11 = _mm_fmadd_pd( a_01, b_01, C_00_11 );
+			C_00_11 = _mm_fnmadd_pd( a_01, b_01, C_00_11 );
 			b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
 			b_01    = _mm_load_pd( &Bm[16] ); // prefetch
-			C_01_10 = _mm_fmadd_pd( a_01, b_10, C_01_10 );
+			C_01_10 = _mm_fnmadd_pd( a_01, b_10, C_01_10 );
 			a_01    = _mm_load_pd( &Am[16] ); // prefetch
 				
 			Am += 16;
