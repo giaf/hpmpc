@@ -3123,13 +3123,18 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 		a_01,
 		b_01, b_10,
 		ab_temp, // temporary results
-		c_00_11, c_01_10, C_00_11, C_01_10;
+		c_00_11, c_01_10, C_00_11, C_01_10,
+		d_00_11, d_01_10, D_00_11, D_01_10;
 	
 	// zero registers
 	c_00_11 = _mm_setzero_pd();
 	c_01_10 = _mm_setzero_pd();
 	C_00_11 = _mm_setzero_pd();
 	C_01_10 = _mm_setzero_pd();
+	d_00_11 = _mm_setzero_pd();
+	d_01_10 = _mm_setzero_pd();
+	D_00_11 = _mm_setzero_pd();
+	D_01_10 = _mm_setzero_pd();
 
 	k = 0;
 
@@ -3201,18 +3206,18 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 
 
 	/*	__builtin_prefetch( A+48 );*/
-			c_00_11 = _mm_fmadd_pd( a_01, b_01, c_00_11 );
+			d_00_11 = _mm_fmadd_pd( a_01, b_01, d_00_11 );
 			b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
 			b_01    = _mm_load_pd( &Bp[12] ); // prefetch
-			c_01_10 = _mm_fmadd_pd( a_01, b_10, c_01_10 );
+			d_01_10 = _mm_fmadd_pd( a_01, b_10, d_01_10 );
 			a_01    = _mm_load_pd( &Ap[12] ); // prefetch
 
 
 	/*	__builtin_prefetch( A+56 );*/
-			C_00_11 = _mm_fmadd_pd( a_01, b_01, C_00_11 );
+			D_00_11 = _mm_fmadd_pd( a_01, b_01, D_00_11 );
 			b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
 			b_01    = _mm_load_pd( &Bp[16] ); // prefetch
-			C_01_10 = _mm_fmadd_pd( a_01, b_10, C_01_10 );
+			D_01_10 = _mm_fmadd_pd( a_01, b_10, D_01_10 );
 			a_01    = _mm_load_pd( &Ap[16] ); // prefetch
 				
 			Ap += 16;
@@ -3285,18 +3290,18 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 
 
 	/*	__builtin_prefetch( A+48 );*/
-			c_00_11 = _mm_fnmadd_pd( a_01, b_01, c_00_11 );
+			d_00_11 = _mm_fnmadd_pd( a_01, b_01, d_00_11 );
 			b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
 			b_01    = _mm_load_pd( &Bm[12] ); // prefetch
-			c_01_10 = _mm_fnmadd_pd( a_01, b_10, c_01_10 );
+			d_01_10 = _mm_fnmadd_pd( a_01, b_10, d_01_10 );
 			a_01    = _mm_load_pd( &Am[12] ); // prefetch
 
 
 	/*	__builtin_prefetch( A+56 );*/
-			C_00_11 = _mm_fnmadd_pd( a_01, b_01, C_00_11 );
+			D_00_11 = _mm_fnmadd_pd( a_01, b_01, D_00_11 );
 			b_10    = _mm_shuffle_pd( b_01, b_01, 0x5 );
 			b_01    = _mm_load_pd( &Bm[16] ); // prefetch
-			C_01_10 = _mm_fnmadd_pd( a_01, b_10, C_01_10 );
+			D_01_10 = _mm_fnmadd_pd( a_01, b_10, D_01_10 );
 			a_01    = _mm_load_pd( &Am[16] ); // prefetch
 				
 			Am += 16;
@@ -3306,6 +3311,10 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 
 		}
 
+	c_00_11 = _mm_add_pd( c_00_11, d_00_11 );
+	c_01_10 = _mm_add_pd( c_01_10, d_01_10 );
+	C_00_11 = _mm_add_pd( C_00_11, D_00_11 );
+	C_01_10 = _mm_add_pd( C_01_10, D_01_10 );
 	c_00_11 = _mm_add_pd( c_00_11, C_00_11 );
 	c_01_10 = _mm_add_pd( c_01_10, C_01_10 );
 
