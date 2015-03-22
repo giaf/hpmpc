@@ -443,8 +443,8 @@ int main()
 	double *pBAbts; d_zeros_align(&pBAbts, pnzs, cnx);
 	d_cvt_tran_mat2pmat(nx, nu, 0, bs, B, nx, pBAbts, cnx);
 	d_cvt_tran_mat2pmat(nx, nx, nus, bs, A, nx, pBAbts+nus/bs*cnx*bs+nus%bs, cnx);
-	for (jj = 0; jj<nx; jj++)
-		pBAbt[(nx+nus)/bs*cnx*bs+(nx+nus)%bs+jj*bs] = b[jj];
+	for(jj=0; jj<nx; jj++)
+		pBAbts[(nx+nus)/bs*cnx*bs+(nx+nus)%bs+jj*bs] = b[jj];
 	//d_print_pmat (nzs, nx, bs, pBAbts, cnx);
 	double *ds; d_zeros_align(&ds, 2*pnbs+2*pngs, 1);
 	for(jj=0; jj<nu; jj++)
@@ -548,7 +548,7 @@ int main()
 
 		printf("\n");
 		printf("\n");
-		printf(" Print IP statistics of the last run\n");
+		printf(" Print IP statistics of the last run (general-constraints solver)\n");
 		printf("\n");
 
 		for(jj=0; jj<kk; jj++)
@@ -673,7 +673,7 @@ int main()
 
 		printf("\n");
 		printf("\n");
-		printf(" Print IP statistics of the last run\n");
+		printf(" Print IP statistics of the last run (soft-constraints solver)\n");
 		printf("\n");
 
 		for(jj=0; jj<kk; jj++)
