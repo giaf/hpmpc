@@ -35,6 +35,10 @@
 
 
 
+#define LOW_ACC 0
+
+
+
 // normal-transposed, 12x4 with data packed in 4
 void kernel_dsyrk_dpotrf_nt_12x4_lib4(int tri, int kadd, int ksub, double *Ap0, int sdap, double *Bp, double *Am0, int sdam, double *Bm, double *C0, int sdc, double *D0, int sdd, double *fact, int alg)
 	{
@@ -915,6 +919,9 @@ void kernel_dsyrk_dpotrf_nt_12x4_lib4(int tri, int kadd, int ksub, double *Ap0, 
 		}
 		
 	// factorize
+	__m128
+		ssa_00;
+
 	__m128d
 		zeros_ones, sab_temp,
 		sa_00, sa_10, sa_20, sa_30, sa_11, sa_21, sa_31, sa_22, sa_32, sa_33;
@@ -931,9 +938,13 @@ void kernel_dsyrk_dpotrf_nt_12x4_lib4(int tri, int kadd, int ksub, double *Ap0, 
 	sa_00 = _mm_move_sd( sa_00, _mm256_castpd256_pd128(d_00) );
 	if( _mm_comigt_sd ( sa_00, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_00 = _mm_cvtss_sd( sa_00, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_00 ) ) );
+#else
 		sa_00 = _mm_sqrt_sd( sa_00, sa_00 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_00 = _mm_div_sd( zeros_ones, sa_00 );
+#endif
 		//sa_00 = _mm_movedup_pd( sa_00 );
 		_mm_store_sd( &fact[0], sa_00 );
 		//a_00  = _mm256_permute2f128_pd( _mm256_castpd128_pd256( sa_00 ), _mm256_castpd128_pd256( sa_00 ), 0x0 );
@@ -968,9 +979,13 @@ void kernel_dsyrk_dpotrf_nt_12x4_lib4(int tri, int kadd, int ksub, double *Ap0, 
 	sa_11 = _mm_permute_pd( _mm256_castpd256_pd128(d_01), 0x3 );
 	if( _mm_comigt_sd ( sa_11, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_11 = _mm_cvtss_sd( sa_11, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_11 ) ) );
+#else
 		sa_11 = _mm_sqrt_sd( sa_11, sa_11 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_11 = _mm_div_sd( zeros_ones, sa_11 );
+#endif
 		mask = _mm256_set_epi64x( -1, -1, -1, 1 ); // static memory and load ???
 		//sa_11 = _mm_movedup_pd( sa_11 );
 		_mm_store_sd( &fact[2], sa_11 );
@@ -1017,9 +1032,13 @@ void kernel_dsyrk_dpotrf_nt_12x4_lib4(int tri, int kadd, int ksub, double *Ap0, 
 	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
 	if( _mm_comigt_sd ( sa_22, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_22 = _mm_cvtss_sd( sa_22, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_22 ) ) );
+#else
 		sa_22 = _mm_sqrt_sd( sa_22, sa_22 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_22 = _mm_div_sd( zeros_ones, sa_22 );
+#endif
 		mask = _mm256_set_epi64x( -1, -1, 1, 1 );
 		//sa_22 = _mm_movedup_pd( sa_22 );
 		_mm_store_sd( &fact[5], sa_22 );
@@ -1076,9 +1095,13 @@ void kernel_dsyrk_dpotrf_nt_12x4_lib4(int tri, int kadd, int ksub, double *Ap0, 
 	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
 	if( _mm_comigt_sd ( sa_33, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_33 = _mm_cvtss_sd( sa_33, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_33 ) ) );
+#else
 		sa_33 = _mm_sqrt_sd( sa_33, sa_33 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_33 = _mm_div_sd( zeros_ones, sa_33 );
+#endif
 		mask = _mm256_set_epi64x( -1, 1, 1, 1 );
 		//sa_33 = _mm_movedup_pd( sa_33 );
 		_mm_store_sd( &fact[9], sa_33 );
@@ -1696,6 +1719,9 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 
 #if 1
 	// factorize
+	__m128
+		ssa_00;
+
 	__m128d
 		zeros_ones, sab_temp,
 		sa_00, sa_10, sa_20, sa_30, sa_11, sa_21, sa_31, sa_22, sa_32, sa_33;
@@ -1712,9 +1738,13 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 	sa_00 = _mm_move_sd( sa_00, _mm256_castpd256_pd128(d_00) );
 	if( _mm_comigt_sd ( sa_00, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_00 = _mm_cvtss_sd( sa_00, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_00 ) ) );
+#else
 		sa_00 = _mm_sqrt_sd( sa_00, sa_00 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_00 = _mm_div_sd( zeros_ones, sa_00 );
+#endif
 		//sa_00 = _mm_movedup_pd( sa_00 );
 		_mm_store_sd( &fact[0], sa_00 );
 		//a_00 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( sa_00 ), _mm256_castpd128_pd256( sa_00 ), 0x0 );
@@ -1745,9 +1775,13 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 	sa_11 = _mm_permute_pd( _mm256_castpd256_pd128(d_01), 0x3 );
 	if( _mm_comigt_sd ( sa_11, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_11 = _mm_cvtss_sd( sa_11, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_11 ) ) );
+#else
 		sa_11 = _mm_sqrt_sd( sa_11, sa_11 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_11 = _mm_div_sd( zeros_ones, sa_11 );
+#endif
 		mask = _mm256_set_epi64x( -1, -1, -1, 1 ); // static memory and load ???
 		//sa_11 = _mm_movedup_pd( sa_11 );
 		_mm_store_sd( &fact[2], sa_11 );
@@ -1789,9 +1823,13 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
 	if( _mm_comigt_sd ( sa_22, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_22 = _mm_cvtss_sd( sa_22, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_22 ) ) );
+#else
 		sa_22 = _mm_sqrt_sd( sa_22, sa_22 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_22 = _mm_div_sd( zeros_ones, sa_22 );
+#endif
 		mask = _mm256_set_epi64x( -1, -1, 1, 1 );
 		//sa_22 = _mm_movedup_pd( sa_22 );
 		_mm_store_sd( &fact[5], sa_22 );
@@ -1842,9 +1880,13 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
 	if( _mm_comigt_sd ( sa_33, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_33 = _mm_cvtss_sd( sa_33, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_33 ) ) );
+#else
 		sa_33 = _mm_sqrt_sd( sa_33, sa_33 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_33 = _mm_div_sd( zeros_ones, sa_33 );
+#endif
 		mask = _mm256_set_epi64x( -1, 1, 1, 1 );
 		//sa_33 = _mm_movedup_pd( sa_33 );
 		_mm_store_sd( &fact[9], sa_33 );
@@ -2399,6 +2441,9 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 		
 #if 1
 	// factorize
+	__m128
+		ssa_00;
+
 	__m128d
 		zeros_ones, sab_temp,
 		sa_00, sa_10, sa_20, sa_30, sa_11, sa_21, sa_31, sa_22, sa_32, sa_33;
@@ -2415,9 +2460,13 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 	sa_00 = _mm_move_sd( sa_00, _mm256_castpd256_pd128(d_00) );
 	if( _mm_comigt_sd ( sa_00, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_00 = _mm_cvtss_sd( sa_00, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_00 ) ) );
+#else
 		sa_00 = _mm_sqrt_sd( sa_00, sa_00 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_00 = _mm_div_sd( zeros_ones, sa_00 );
+#endif
 		//sa_00 = _mm_movedup_pd( sa_00 );
 		_mm_store_sd( &fact[0], sa_00 );
 		//a_00 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( sa_00 ), _mm256_castpd128_pd256( sa_00 ), 0x0 );
@@ -2444,9 +2493,13 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 	sa_11 = _mm_permute_pd( _mm256_castpd256_pd128(d_01), 0x3 );
 	if( _mm_comigt_sd ( sa_11, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_11 = _mm_cvtss_sd( sa_11, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_11 ) ) );
+#else
 		sa_11 = _mm_sqrt_sd( sa_11, sa_11 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_11 = _mm_div_sd( zeros_ones, sa_11 );
+#endif
 		mask = _mm256_set_epi64x( -1, -1, -1, 1 ); // static memory and load  ???
 		//sa_11 = _mm_movedup_pd( sa_11 );
 		_mm_store_sd( &fact[2], sa_11 );
@@ -2483,9 +2536,13 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
 	if( _mm_comigt_sd ( sa_22, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_22 = _mm_cvtss_sd( sa_22, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_22 ) ) );
+#else
 		sa_22 = _mm_sqrt_sd( sa_22, sa_22 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_22 = _mm_div_sd( zeros_ones, sa_22 );
+#endif
 		mask = _mm256_set_epi64x( -1, -1, 1, 1 );
 		//sa_22 = _mm_movedup_pd( sa_22 );
 		_mm_store_sd( &fact[5], sa_22 );
@@ -2530,9 +2587,13 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 	zeros_ones = _mm_set_sd( 1e-15 ); // 0.0 ???
 	if( _mm_comigt_sd ( sa_33, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_33 = _mm_cvtss_sd( sa_33, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_33 ) ) );
+#else
 		sa_33 = _mm_sqrt_sd( sa_33, sa_33 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_33 = _mm_div_sd( zeros_ones, sa_33 );
+#endif
 		mask = _mm256_set_epi64x( -1, 1, 1, 1 );
 		//sa_33 = _mm_movedup_pd( sa_33 );
 		_mm_store_sd( &fact[9], sa_33 );
@@ -2970,6 +3031,9 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 		
 #if 1
 	// factorize
+	__m128
+		ssa_00;
+
 	__m128d
 		zeros_ones, sab_temp,
 		sa_00, sa_10, sa_20, sa_30, sa_11, sa_21, sa_31, sa_22, sa_32, sa_33;
@@ -2986,9 +3050,13 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 	sa_00 = _mm_move_sd( sa_00, _mm256_castpd256_pd128(d_00) );
 	if( _mm_comigt_sd ( sa_00, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_00 = _mm_cvtss_sd( sa_00, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_00 ) ) );
+#else
 		sa_00 = _mm_sqrt_sd( sa_00, sa_00 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_00 = _mm_div_sd( zeros_ones, sa_00 );
+#endif
 		//sa_00 = _mm_movedup_pd( sa_00 );
 		_mm_store_sd( &fact[0], sa_00 );
 		//a_00 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( sa_00 ), _mm256_castpd128_pd256( sa_00 ), 0x0 );
@@ -3015,9 +3083,13 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 	sa_11 = _mm_permute_pd( _mm256_castpd256_pd128(d_01), 0x3 );
 	if( _mm_comigt_sd ( sa_11, zeros_ones ) )
 		{
+#if LOW_ACC
+		sa_11 = _mm_cvtss_sd( sa_11, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_11 ) ) );
+#else
 		sa_11 = _mm_sqrt_sd( sa_11, sa_11 );
 		zeros_ones = _mm_set_sd( 1.0 );
 		sa_11 = _mm_div_sd( zeros_ones, sa_11 );
+#endif
 		mask = _mm256_set_epi64x( -1, -1, -1, 1 ); // static memory and load ???
 		//sa_11 = _mm_movedup_pd( sa_11 );
 		_mm_store_sd( &fact[2], sa_11 );
