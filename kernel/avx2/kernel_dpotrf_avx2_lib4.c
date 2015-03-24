@@ -36,6 +36,7 @@
 
 
 #define LOW_ACC 0
+#define NEWTON_IT 1
 
 
 
@@ -923,6 +924,7 @@ void kernel_dsyrk_dpotrf_nt_12x4_lib4(int tri, int kadd, int ksub, double *Ap0, 
 		ssa_00;
 
 	__m128d
+		x_half, t_const, y2_const,
 		zeros_ones, sab_temp,
 		sa_00, sa_10, sa_20, sa_30, sa_11, sa_21, sa_31, sa_22, sa_32, sa_33;
 
@@ -939,7 +941,23 @@ void kernel_dsyrk_dpotrf_nt_12x4_lib4(int tri, int kadd, int ksub, double *Ap0, 
 	if( _mm_comigt_sd ( sa_00, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_00;
 		sa_00 = _mm_cvtss_sd( sa_00, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_00 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_00, sa_00 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_00 = _mm_mul_pd( sa_00, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_00, sa_00 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_00 = _mm_mul_pd( sa_00, t_const );
+
+#endif
+#endif
 #else
 		sa_00 = _mm_sqrt_sd( sa_00, sa_00 );
 		zeros_ones = _mm_set_sd( 1.0 );
@@ -980,7 +998,22 @@ void kernel_dsyrk_dpotrf_nt_12x4_lib4(int tri, int kadd, int ksub, double *Ap0, 
 	if( _mm_comigt_sd ( sa_11, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_11;
 		sa_11 = _mm_cvtss_sd( sa_11, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_11 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_11, sa_11 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_11 = _mm_mul_pd( sa_11, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_11, sa_11 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_11 = _mm_mul_pd( sa_11, t_const );
+#endif
+#endif
 #else
 		sa_11 = _mm_sqrt_sd( sa_11, sa_11 );
 		zeros_ones = _mm_set_sd( 1.0 );
@@ -1033,7 +1066,22 @@ void kernel_dsyrk_dpotrf_nt_12x4_lib4(int tri, int kadd, int ksub, double *Ap0, 
 	if( _mm_comigt_sd ( sa_22, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_22;
 		sa_22 = _mm_cvtss_sd( sa_22, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_22 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_22, sa_22 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_22 = _mm_mul_pd( sa_22, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_22, sa_22 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_22 = _mm_mul_pd( sa_22, t_const );
+#endif
+#endif
 #else
 		sa_22 = _mm_sqrt_sd( sa_22, sa_22 );
 		zeros_ones = _mm_set_sd( 1.0 );
@@ -1096,7 +1144,22 @@ void kernel_dsyrk_dpotrf_nt_12x4_lib4(int tri, int kadd, int ksub, double *Ap0, 
 	if( _mm_comigt_sd ( sa_33, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_33;
 		sa_33 = _mm_cvtss_sd( sa_33, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_33 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_33, sa_33 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_33 = _mm_mul_pd( sa_33, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_33, sa_33 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_33 = _mm_mul_pd( sa_33, t_const );
+#endif
+#endif
 #else
 		sa_33 = _mm_sqrt_sd( sa_33, sa_33 );
 		zeros_ones = _mm_set_sd( 1.0 );
@@ -1723,6 +1786,7 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 		ssa_00;
 
 	__m128d
+		x_half, t_const, y2_const,
 		zeros_ones, sab_temp,
 		sa_00, sa_10, sa_20, sa_30, sa_11, sa_21, sa_31, sa_22, sa_32, sa_33;
 
@@ -1739,7 +1803,22 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 	if( _mm_comigt_sd ( sa_00, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_00;
 		sa_00 = _mm_cvtss_sd( sa_00, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_00 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_00, sa_00 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_00 = _mm_mul_pd( sa_00, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_00, sa_00 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_00 = _mm_mul_pd( sa_00, t_const );
+#endif
+#endif
 #else
 		sa_00 = _mm_sqrt_sd( sa_00, sa_00 );
 		zeros_ones = _mm_set_sd( 1.0 );
@@ -1776,7 +1855,22 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 	if( _mm_comigt_sd ( sa_11, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_11;
 		sa_11 = _mm_cvtss_sd( sa_11, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_11 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_11, sa_11 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_11 = _mm_mul_pd( sa_11, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_11, sa_11 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_11 = _mm_mul_pd( sa_11, t_const );
+#endif
+#endif
 #else
 		sa_11 = _mm_sqrt_sd( sa_11, sa_11 );
 		zeros_ones = _mm_set_sd( 1.0 );
@@ -1824,7 +1918,22 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 	if( _mm_comigt_sd ( sa_22, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_22;
 		sa_22 = _mm_cvtss_sd( sa_22, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_22 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_22, sa_22 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_22 = _mm_mul_pd( sa_22, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_22, sa_22 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_22 = _mm_mul_pd( sa_22, t_const );
+#endif
+#endif
 #else
 		sa_22 = _mm_sqrt_sd( sa_22, sa_22 );
 		zeros_ones = _mm_set_sd( 1.0 );
@@ -1881,7 +1990,22 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 	if( _mm_comigt_sd ( sa_33, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_33;
 		sa_33 = _mm_cvtss_sd( sa_33, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_33 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_33, sa_33 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_33 = _mm_mul_pd( sa_33, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_33, sa_33 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_33 = _mm_mul_pd( sa_33, t_const );
+#endif
+#endif
 #else
 		sa_33 = _mm_sqrt_sd( sa_33, sa_33 );
 		zeros_ones = _mm_set_sd( 1.0 );
@@ -2445,6 +2569,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 		ssa_00;
 
 	__m128d
+		x_half, t_const, y2_const,
 		zeros_ones, sab_temp,
 		sa_00, sa_10, sa_20, sa_30, sa_11, sa_21, sa_31, sa_22, sa_32, sa_33;
 
@@ -2461,7 +2586,22 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 	if( _mm_comigt_sd ( sa_00, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_00;
 		sa_00 = _mm_cvtss_sd( sa_00, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_00 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_00, sa_00 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_00 = _mm_mul_pd( sa_00, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_00, sa_00 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_00 = _mm_mul_pd( sa_00, t_const );
+#endif
+#endif
 #else
 		sa_00 = _mm_sqrt_sd( sa_00, sa_00 );
 		zeros_ones = _mm_set_sd( 1.0 );
@@ -2494,7 +2634,22 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 	if( _mm_comigt_sd ( sa_11, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_11;
 		sa_11 = _mm_cvtss_sd( sa_11, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_11 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_11, sa_11 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_11 = _mm_mul_pd( sa_11, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_11, sa_11 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_11 = _mm_mul_pd( sa_11, t_const );
+#endif
+#endif
 #else
 		sa_11 = _mm_sqrt_sd( sa_11, sa_11 );
 		zeros_ones = _mm_set_sd( 1.0 );
@@ -2537,7 +2692,22 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 	if( _mm_comigt_sd ( sa_22, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_22;
 		sa_22 = _mm_cvtss_sd( sa_22, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_22 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_22, sa_22 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_22 = _mm_mul_pd( sa_22, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_22, sa_22 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_22 = _mm_mul_pd( sa_22, t_const );
+#endif
+#endif
 #else
 		sa_22 = _mm_sqrt_sd( sa_22, sa_22 );
 		zeros_ones = _mm_set_sd( 1.0 );
@@ -2588,7 +2758,22 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 	if( _mm_comigt_sd ( sa_33, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_33;
 		sa_33 = _mm_cvtss_sd( sa_33, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_33 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_33, sa_33 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_33 = _mm_mul_pd( sa_33, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_33, sa_33 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_33 = _mm_mul_pd( sa_33, t_const );
+#endif
+#endif
 #else
 		sa_33 = _mm_sqrt_sd( sa_33, sa_33 );
 		zeros_ones = _mm_set_sd( 1.0 );
@@ -3035,6 +3220,7 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 		ssa_00;
 
 	__m128d
+		x_half, t_const, y2_const,
 		zeros_ones, sab_temp,
 		sa_00, sa_10, sa_20, sa_30, sa_11, sa_21, sa_31, sa_22, sa_32, sa_33;
 
@@ -3051,7 +3237,22 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 	if( _mm_comigt_sd ( sa_00, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_00;
 		sa_00 = _mm_cvtss_sd( sa_00, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_00 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_00, sa_00 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_00 = _mm_mul_pd( sa_00, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_00, sa_00 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_00 = _mm_mul_pd( sa_00, t_const );
+#endif
+#endif
 #else
 		sa_00 = _mm_sqrt_sd( sa_00, sa_00 );
 		zeros_ones = _mm_set_sd( 1.0 );
@@ -3084,7 +3285,22 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 	if( _mm_comigt_sd ( sa_11, zeros_ones ) )
 		{
 #if LOW_ACC
+		t_const = sa_11;
 		sa_11 = _mm_cvtss_sd( sa_11, _mm_rsqrt_ss ( _mm_cvtsd_ss ( ssa_00, sa_11 ) ) );
+#if (NEWTON_IT>=1)
+		x_half = _mm_set_sd( 0.5 );
+		y2_const = _mm_mul_sd( sa_11, sa_11 );
+		x_half = _mm_mul_sd( x_half, t_const );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_11 = _mm_mul_pd( sa_11, t_const );
+#if (NEWTON_IT==2)
+		y2_const = _mm_mul_sd( sa_11, sa_11 );
+		t_const = _mm_set_sd( 1.5 );
+		t_const = _mm_fnmadd_sd( x_half, y2_const, t_const );
+		sa_11 = _mm_mul_pd( sa_11, t_const );
+#endif
+#endif
 #else
 		sa_11 = _mm_sqrt_sd( sa_11, sa_11 );
 		zeros_ones = _mm_set_sd( 1.0 );
