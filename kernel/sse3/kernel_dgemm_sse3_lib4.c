@@ -271,6 +271,56 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
+		"movl   %5, %%ecx                \n\t" // alg
+		"testl  %%ecx, %%ecx             \n\t" // check alg
+		"jne     .ALG1                   \n\t" // if alg==0, jump
+		"                                \n\t"
+		"                                \n\t"
+		"movq   %6, %%rbx                \n\t" // load address of D
+		"                                \n\t"
+		"                                \n\t"
+		"movl   %8, %%ecx                \n\t" // alg
+		"testl  %%ecx, %%ecx             \n\t" // check alg
+		"jne     .ALG101                 \n\t" // if alg==0, jump
+		"                                \n\t"
+		"                                \n\t"
+		"movaps   %%xmm8,  %%xmm0        \n\t"
+		"movsd    %%xmm9,  %%xmm8        \n\t"
+		"movsd    %%xmm0,  %%xmm9        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm10,  %%xmm0        \n\t"
+		"movsd   %%xmm11, %%xmm10        \n\t"
+		"movsd    %%xmm0, %%xmm11        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm12,  %%xmm0        \n\t"
+		"movsd   %%xmm13, %%xmm12        \n\t"
+		"movsd    %%xmm0, %%xmm13        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm14,  %%xmm0        \n\t"
+		"movsd   %%xmm15, %%xmm14        \n\t"
+		"movsd    %%xmm0, %%xmm15        \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"movaps	%%xmm9,  (%%rbx)         \n\t"
+		"movaps	%%xmm8,  32(%%rbx)       \n\t"
+		"movaps	%%xmm11, 64(%%rbx)       \n\t"
+		"movaps	%%xmm10, 96(%%rbx)       \n\t"
+		"movaps	%%xmm13, 16(%%rbx)       \n\t"
+		"movaps	%%xmm12, 48(%%rbx)       \n\t"
+		"movaps	%%xmm15, 80(%%rbx)       \n\t"
+		"movaps	%%xmm14, 112(%%rbx)      \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"jmp    .SDONE                   \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".ALG101:                        \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
 		"movaps   %%xmm8,  %%xmm0        \n\t"
 		"movsd    %%xmm9,  %%xmm8        \n\t"
 		"movsd    %%xmm0,  %%xmm9        \n\t"
@@ -357,6 +407,9 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
+		".ALG1:                          \n\t"
+		"                                \n\t"
+		"                                \n\t"
 		"                                \n\t"
 		".SDONE:                         \n\t"
 		"                                \n\t"
@@ -369,7 +422,9 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		  "m" (B),			// %3
 		  "m" (C),			// %4
 		  "m" (alg),		// %5
-		  "m" (D)			// %6
+		  "m" (D),			// %6
+		  "m" (tc),			// %7
+		  "m" (td)			// %8
 		: // register clobber list
 		  "rax", "rbx", "rsi", //"rdx", //"rdi", "r8", "r9", "r10", "r11",
 		  "xmm0", "xmm1", "xmm2", "xmm3",
@@ -515,52 +570,135 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 		}
 
 	__m128d
+		c_00_01, c_10_11, c_20_21, c_30_31,
 		c_00_10, c_20_30, c_01_11, c_21_31,
+		d_02_12, d_03_13, d_02_03, d_12_13,
+		d_00_01, d_10_11, d_20_21, d_30_31,
 		d_00_10, d_20_30, d_01_11, d_21_31;
 
-/*	c_00_10 = _mm_blend_pd(c_00_11, c_01_10, 2);*/
-/*	c_01_11 = _mm_blend_pd(c_01_10, c_00_11, 2);*/
-/*	c_20_30 = _mm_blend_pd(c_20_31, c_21_30, 2);*/
-/*	c_21_31 = _mm_blend_pd(c_21_30, c_20_31, 2);*/
-
-	c_00_10 = _mm_shuffle_pd(c_00_11, c_01_10, 2);
-	c_01_11 = _mm_shuffle_pd(c_01_10, c_00_11, 2);
-	c_20_30 = _mm_shuffle_pd(c_20_31, c_21_30, 2);
-	c_21_31 = _mm_shuffle_pd(c_21_30, c_20_31, 2);
-
-	if(alg==0) // C = A * B'
+	if(alg==0) // D = A * B' , there is no tc
 		{
-		_mm_store_pd(&D[0+ldc*0], c_00_10);
-		_mm_store_pd(&D[2+ldc*0], c_20_30);
-		_mm_store_pd(&D[0+ldc*1], c_01_11);
-		_mm_store_pd(&D[2+ldc*1], c_21_31);
+		if(td==0)
+			{
+			c_00_10 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
+			c_01_11 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
+			c_20_30 = _mm_shuffle_pd( c_20_31, c_21_30, 0x2 );
+			c_21_31 = _mm_shuffle_pd( c_21_30, c_20_31, 0x2 );
+
+			_mm_store_pd( &D[0+ldc*0], c_00_10 );
+			_mm_store_pd( &D[2+ldc*0], c_20_30 );
+			_mm_store_pd( &D[0+ldc*1], c_01_11 );
+			_mm_store_pd( &D[2+ldc*1], c_21_31 );
+			}
+		else
+			{
+			c_00_01 = _mm_unpacklo_pd( c_00_11, c_01_10 );
+			c_10_11 = _mm_unpackhi_pd( c_01_10, c_00_11 );
+			c_20_21 = _mm_unpacklo_pd( c_20_31, c_21_30 );
+			c_30_31 = _mm_unpackhi_pd( c_21_30, c_20_31 );
+
+			_mm_store_pd( &D[0+ldc*0], c_00_01 );
+			_mm_store_pd( &D[0+ldc*1], c_10_11 );
+			_mm_store_pd( &D[0+ldc*2], c_20_21 );
+			_mm_store_pd( &D[0+ldc*3], c_30_31 );
+			}
 		}
 	else
 		{
-		d_00_10 = _mm_load_pd(&C[0+ldc*0]);
-		d_20_30 = _mm_load_pd(&C[2+ldc*0]);
-		d_01_11 = _mm_load_pd(&C[0+ldc*1]);
-		d_21_31 = _mm_load_pd(&C[2+ldc*1]);
-		
-		if(alg==1) // C += A * B'
+		if(tc==0) // C
 			{
-			d_00_10 = _mm_add_pd( d_00_10, c_00_10 ); 
-			d_01_11 = _mm_add_pd( d_01_11, c_01_11 ); 
-			d_20_30 = _mm_add_pd( d_20_30, c_20_30 ); 
-			d_21_31 = _mm_add_pd( d_21_31, c_21_31 );
-			}
-		else // C -= A * B'
-			{
-			d_00_10 = _mm_sub_pd( d_00_10, c_00_10 ); 
-			d_01_11 = _mm_sub_pd( d_01_11, c_01_11 ); 
-			d_20_30 = _mm_sub_pd( d_20_30, c_20_30 ); 
-			d_21_31 = _mm_sub_pd( d_21_31, c_21_31 ); 
-			}
+			c_00_10 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
+			c_01_11 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
+			c_20_30 = _mm_shuffle_pd( c_20_31, c_21_30, 0x2 );
+			c_21_31 = _mm_shuffle_pd( c_21_30, c_20_31, 0x2 );
 
-		_mm_store_pd(&D[0+ldc*0], d_00_10);
-		_mm_store_pd(&D[2+ldc*0], d_20_30);
-		_mm_store_pd(&D[0+ldc*1], d_01_11);
-		_mm_store_pd(&D[2+ldc*1], d_21_31);
+			d_00_10 = _mm_load_pd( &C[0+ldc*0] );
+			d_20_30 = _mm_load_pd( &C[2+ldc*0] );
+			d_01_11 = _mm_load_pd( &C[0+ldc*1] );
+			d_21_31 = _mm_load_pd( &C[2+ldc*1] );
+		
+			if(alg==1) // AB = A * B'
+				{
+				d_00_10 = _mm_add_pd( d_00_10, c_00_10 ); 
+				d_01_11 = _mm_add_pd( d_01_11, c_01_11 ); 
+				d_20_30 = _mm_add_pd( d_20_30, c_20_30 ); 
+				d_21_31 = _mm_add_pd( d_21_31, c_21_31 );
+				}
+			else // AB = - A * B'
+				{
+				d_00_10 = _mm_sub_pd( d_00_10, c_00_10 ); 
+				d_01_11 = _mm_sub_pd( d_01_11, c_01_11 ); 
+				d_20_30 = _mm_sub_pd( d_20_30, c_20_30 ); 
+				d_21_31 = _mm_sub_pd( d_21_31, c_21_31 ); 
+				}
+
+			if(td==0) // AB + C
+				{
+				_mm_store_pd( &D[0+ldc*0], d_00_10 );
+				_mm_store_pd( &D[2+ldc*0], d_20_30 );
+				_mm_store_pd( &D[0+ldc*1], d_01_11 );
+				_mm_store_pd( &D[2+ldc*1], d_21_31 );
+				}
+			else // t(AB + C)
+				{
+				d_00_01 = _mm_unpacklo_pd( d_00_10, d_01_11 );
+				d_10_11 = _mm_unpackhi_pd( d_00_10, d_01_11 );
+				d_20_21 = _mm_unpacklo_pd( d_20_30, d_21_31 );
+				d_30_31 = _mm_unpackhi_pd( d_20_30, d_21_31 );
+
+				_mm_store_pd( &D[0+ldc*0], d_00_01 );
+				_mm_store_pd( &D[0+ldc*1], d_10_11 );
+				_mm_store_pd( &D[0+ldc*2], d_20_21 );
+				_mm_store_pd( &D[0+ldc*3], d_30_31 );
+				}
+			}
+		else // t(C)
+			{
+			c_00_01 = _mm_unpacklo_pd( c_00_11, c_01_10 );
+			c_10_11 = _mm_unpackhi_pd( c_01_10, c_00_11 );
+			c_20_21 = _mm_unpacklo_pd( c_20_31, c_21_30 );
+			c_30_31 = _mm_unpackhi_pd( c_21_30, c_20_31 );
+
+			d_00_10 = _mm_load_pd( &C[0+ldc*0] );
+			d_01_11 = _mm_load_pd( &C[0+ldc*1] );
+			d_02_12 = _mm_load_pd( &C[0+ldc*2] );
+			d_03_13 = _mm_load_pd( &C[0+ldc*3] );
+
+			if(alg==1) // AB = A * B'
+				{
+				d_00_10 = _mm_add_pd( d_00_10, c_00_01 );
+				d_01_11 = _mm_add_pd( d_01_11, c_10_11 );
+				d_02_12 = _mm_add_pd( d_02_12, c_20_21 );
+				d_03_13 = _mm_add_pd( d_03_13, c_30_31 );
+				}
+			else // AB = - A * B'
+				{
+				d_00_10 = _mm_sub_pd( d_00_10, c_00_01 );
+				d_01_11 = _mm_sub_pd( d_01_11, c_10_11 );
+				d_02_12 = _mm_sub_pd( d_02_12, c_20_21 );
+				d_03_13 = _mm_sub_pd( d_03_13, c_30_31 );
+				}
+
+			if(td==0) // t( t(AB) + C )
+				{
+				d_00_01 = _mm_unpacklo_pd( d_00_10, d_01_11 );
+				d_10_11 = _mm_unpackhi_pd( d_00_10, d_01_11 );
+				d_02_03 = _mm_unpacklo_pd( d_02_12, d_03_13 );
+				d_12_13 = _mm_unpackhi_pd( d_02_12, d_03_13 );
+
+				_mm_store_pd( &D[0+ldc*0], d_00_01 );
+				_mm_store_pd( &D[2+ldc*0], d_02_03 );
+				_mm_store_pd( &D[0+ldc*1], d_10_11 );
+				_mm_store_pd( &D[2+ldc*1], d_12_13 );
+				}
+			else // t(AB) + C
+				{
+				_mm_store_pd( &D[0+ldc*0], d_00_10 );
+				_mm_store_pd( &D[0+ldc*1], d_01_11 );
+				_mm_store_pd( &D[0+ldc*2], d_02_12 );
+				_mm_store_pd( &D[0+ldc*3], d_03_13 );
+				}
+			}
 		}
 
 	}
@@ -706,51 +844,134 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double 
 
 	__m128d
 		c_00_10, c_01_11, c_02_12, c_03_13,
+		c_00_01, c_10_11, c_02_03, c_12_13,
+		d_20_21, d_30_31,
+		d_00_01, d_10_11, d_02_03, d_12_13,
 		d_00_10, d_01_11, d_02_12, d_03_13;
 
-/*	c_00_10 = _mm_blend_pd(c_00_11, c_01_10, 2);*/
-/*	c_01_11 = _mm_blend_pd(c_01_10, c_00_11, 2);*/
-/*	c_02_12 = _mm_blend_pd(c_02_13, c_03_12, 2);*/
-/*	c_03_13 = _mm_blend_pd(c_03_12, c_02_13, 2);*/
-
-	c_00_10 = _mm_shuffle_pd(c_00_11, c_01_10, 2);
-	c_01_11 = _mm_shuffle_pd(c_01_10, c_00_11, 2);
-	c_02_12 = _mm_shuffle_pd(c_02_13, c_03_12, 2);
-	c_03_13 = _mm_shuffle_pd(c_03_12, c_02_13, 2);
-
-	if(alg==0) // C = A * B'
+	if(alg==0) // D = A * B' , there is no tc
 		{
-		_mm_store_pd(&D[0+ldc*0], c_00_10);
-		_mm_store_pd(&D[0+ldc*1], c_01_11);
-		_mm_store_pd(&D[0+ldc*2], c_02_12);
-		_mm_store_pd(&D[0+ldc*3], c_03_13);
+		if(td==0)
+			{
+			c_00_10 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
+			c_01_11 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
+			c_02_12 = _mm_shuffle_pd( c_02_13, c_03_12, 0x2 );
+			c_03_13 = _mm_shuffle_pd( c_03_12, c_02_13, 0x2 );
+
+			_mm_store_pd( &D[0+ldc*0], c_00_10 );
+			_mm_store_pd( &D[0+ldc*1], c_01_11 );
+			_mm_store_pd( &D[0+ldc*2], c_02_12 );
+			_mm_store_pd( &D[0+ldc*3], c_03_13 );
+			}
+		else
+			{
+			c_00_01 = _mm_unpacklo_pd( c_00_11, c_01_10 );
+			c_10_11 = _mm_unpackhi_pd( c_01_10, c_00_11 );
+			c_02_03 = _mm_unpacklo_pd( c_02_13, c_03_12 );
+			c_12_13 = _mm_unpackhi_pd( c_03_12, c_02_13 );
+
+			_mm_store_pd( &D[0+ldc*0], c_00_01 );
+			_mm_store_pd( &D[2+ldc*0], c_02_03 );
+			_mm_store_pd( &D[0+ldc*1], c_10_11 );
+			_mm_store_pd( &D[2+ldc*1], c_12_13 );
+			}
 		}
 	else
 		{
-		d_00_10 = _mm_load_pd(&C[0+ldc*0]);
-		d_01_11 = _mm_load_pd(&C[0+ldc*1]);
-		d_02_12 = _mm_load_pd(&C[0+ldc*2]);
-		d_03_13 = _mm_load_pd(&C[0+ldc*3]);
-		
-		if(alg==1) // C += A * B'
+		if(tc==0) // C
 			{
-			d_00_10 = _mm_add_pd( d_00_10, c_00_10 ); 
-			d_01_11 = _mm_add_pd( d_01_11, c_01_11 ); 
-			d_02_12 = _mm_add_pd( d_02_12, c_02_12 ); 
-			d_03_13 = _mm_add_pd( d_03_13, c_03_13 ); 
-			}
-		else // C -= A * B'
-			{
-			d_00_10 = _mm_sub_pd( d_00_10, c_00_10 ); 
-			d_01_11 = _mm_sub_pd( d_01_11, c_01_11 ); 
-			d_02_12 = _mm_sub_pd( d_02_12, c_02_12 ); 
-			d_03_13 = _mm_sub_pd( d_03_13, c_03_13 ); 
-			}
+			c_00_10 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
+			c_01_11 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
+			c_02_12 = _mm_shuffle_pd( c_02_13, c_03_12, 0x2 );
+			c_03_13 = _mm_shuffle_pd( c_03_12, c_02_13, 0x2 );
 
-		_mm_store_pd(&D[0+ldc*0], d_00_10);
-		_mm_store_pd(&D[0+ldc*1], d_01_11);
-		_mm_store_pd(&D[0+ldc*2], d_02_12);
-		_mm_store_pd(&D[0+ldc*3], d_03_13);
+			d_00_10 = _mm_load_pd(&C[0+ldc*0]);
+			d_01_11 = _mm_load_pd(&C[0+ldc*1]);
+			d_02_12 = _mm_load_pd(&C[0+ldc*2]);
+			d_03_13 = _mm_load_pd(&C[0+ldc*3]);
+		
+			if(alg==1) // AB = A * B'
+				{
+				d_00_10 = _mm_add_pd( d_00_10, c_00_10 ); 
+				d_01_11 = _mm_add_pd( d_01_11, c_01_11 ); 
+				d_02_12 = _mm_add_pd( d_02_12, c_02_12 ); 
+				d_03_13 = _mm_add_pd( d_03_13, c_03_13 ); 
+				}
+			else // AB = - A * B'
+				{
+				d_00_10 = _mm_sub_pd( d_00_10, c_00_10 ); 
+				d_01_11 = _mm_sub_pd( d_01_11, c_01_11 ); 
+				d_02_12 = _mm_sub_pd( d_02_12, c_02_12 ); 
+				d_03_13 = _mm_sub_pd( d_03_13, c_03_13 ); 
+				}
+
+			if(td==0) // AB + C
+				{
+				_mm_store_pd( &D[0+ldc*0], d_00_10 );
+				_mm_store_pd( &D[0+ldc*1], d_01_11 );
+				_mm_store_pd( &D[0+ldc*2], d_02_12 );
+				_mm_store_pd( &D[0+ldc*3], d_03_13 );
+				}
+			else // t(AB + C)
+				{
+				d_00_01 = _mm_unpacklo_pd( d_00_10, d_01_11 );
+				d_10_11 = _mm_unpackhi_pd( d_00_10, d_01_11 );
+				d_02_03 = _mm_unpacklo_pd( d_02_12, d_03_13 );
+				d_12_13 = _mm_unpackhi_pd( d_02_12, d_03_13 );
+
+				_mm_store_pd( &D[0+ldc*0], d_00_01 );
+				_mm_store_pd( &D[2+ldc*0], d_02_03 );
+				_mm_store_pd( &D[0+ldc*1], d_10_11 );
+				_mm_store_pd( &D[2+ldc*1], d_12_13 );
+				}
+			}
+		else // t(C)
+			{
+			c_00_01 = _mm_unpacklo_pd( c_00_11, c_01_10 );
+			c_10_11 = _mm_unpackhi_pd( c_01_10, c_00_11 );
+			c_02_03 = _mm_unpacklo_pd( c_02_13, c_03_12 );
+			c_12_13 = _mm_unpackhi_pd( c_03_12, c_02_13 );
+
+			d_00_10 = _mm_load_pd( &C[0+ldc*0] );
+			d_01_11 = _mm_load_pd( &C[0+ldc*1] );
+			d_02_12 = _mm_load_pd( &C[2+ldc*0] );
+			d_03_13 = _mm_load_pd( &C[2+ldc*1] );
+
+			if(alg==1) // AB = A * B'
+				{
+				d_00_10 = _mm_add_pd( d_00_10, c_00_01 );
+				d_01_11 = _mm_add_pd( d_01_11, c_10_11 );
+				d_02_12 = _mm_add_pd( d_02_12, c_02_03 );
+				d_03_13 = _mm_add_pd( d_03_13, c_12_13 );
+				}
+			else // AB = - A * B'
+				{
+				d_00_10 = _mm_sub_pd( d_00_10, c_00_01 );
+				d_01_11 = _mm_sub_pd( d_01_11, c_10_11 );
+				d_02_12 = _mm_sub_pd( d_02_12, c_02_03 );
+				d_03_13 = _mm_sub_pd( d_03_13, c_12_13 );
+				}
+
+			if(td==0) // t( t(AB) + C )
+				{
+				d_00_01 = _mm_unpacklo_pd( d_00_10, d_01_11 );
+				d_10_11 = _mm_unpackhi_pd( d_00_10, d_01_11 );
+				d_20_21 = _mm_unpacklo_pd( d_02_12, d_03_13 );
+				d_30_31 = _mm_unpackhi_pd( d_02_12, d_03_13 );
+
+				_mm_store_pd( &D[0+ldc*0], d_00_01 );
+				_mm_store_pd( &D[0+ldc*1], d_10_11 );
+				_mm_store_pd( &D[0+ldc*2], d_20_21 );
+				_mm_store_pd( &D[0+ldc*3], d_30_31 );
+				}
+			else // t(AB) + C
+				{
+				_mm_store_pd( &D[0+ldc*0], d_00_10 );
+				_mm_store_pd( &D[2+ldc*0], d_02_12 );
+				_mm_store_pd( &D[0+ldc*1], d_01_11 );
+				_mm_store_pd( &D[2+ldc*1], d_03_13 );
+				}
+			}
 		}
 
 	}
@@ -854,38 +1075,98 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 
 	__m128d
 		c_00_10, c_01_11,
-		d_00_10, d_01_11;
+		c_00_01, c_10_11,
+		d_00_11, d_01_10,
+		d_00_10, d_01_11,
+		d_00_01, d_10_11;
 
-/*	c_00_10 = _mm_blend_pd(c_00_11, c_01_10, 2);*/
-/*	c_01_11 = _mm_blend_pd(c_01_10, c_00_11, 2);*/
-
-	c_00_10 = _mm_shuffle_pd(c_00_11, c_01_10, 2);
-	c_01_11 = _mm_shuffle_pd(c_01_10, c_00_11, 2);
-
-	if(alg==0) // C = A * B'
+	if(alg==0) // D = A * B' , there is no tc
 		{
-		_mm_store_pd(&D[0+ldc*0], c_00_10);
-		_mm_store_pd(&D[0+ldc*1], c_01_11);
+		if(td==0)
+			{
+			c_00_10 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
+			c_01_11 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
+
+			_mm_store_pd( &D[0+ldc*0], c_00_10 );
+			_mm_store_pd( &D[0+ldc*1], c_01_11 );
+			}
+		else
+			{
+			c_00_01 = _mm_unpacklo_pd( c_00_11, c_01_10 );
+			c_10_11 = _mm_unpackhi_pd( c_01_10, c_00_11 );
+
+			_mm_store_pd( &D[0+ldc*0], c_00_01 );
+			_mm_store_pd( &D[0+ldc*1], c_10_11 );
+			}
 		}
-	else
+	else 
 		{
-		d_00_10 = _mm_load_pd(&C[0+ldc*0]);
-		d_01_11 = _mm_load_pd(&C[0+ldc*1]);
+		if(tc==0) // C
+			{
+			c_00_10 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
+			c_01_11 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
+
+			d_00_10 = _mm_load_pd( &C[0+ldc*0] );
+			d_01_11 = _mm_load_pd( &C[0+ldc*1] );
 		
-		if(alg==1) // C += A * B'
-			{
-			d_00_10 = _mm_add_pd( d_00_10, c_00_10 ); 
-			d_01_11 = _mm_add_pd( d_01_11, c_01_11 ); 
-			}
-		else // C -= A * B'
-			{
-			d_00_10 = _mm_sub_pd( d_00_10, c_00_10 ); 
-			d_01_11 = _mm_sub_pd( d_01_11, c_01_11 ); 
-			}
+			if(alg==1) // AB = A * B'
+				{
+				d_00_10 = _mm_add_pd( d_00_10, c_00_10 );
+				d_01_11 = _mm_add_pd( d_01_11, c_01_11 );
+				}
+			else // AB = - A * B'
+				{
+				d_00_10 = _mm_sub_pd( d_00_10, c_00_10 );
+				d_01_11 = _mm_sub_pd( d_01_11, c_01_11 );
+				}
 
-		_mm_store_pd(&D[0+ldc*0], d_00_10);
-		_mm_store_pd(&D[0+ldc*1], d_01_11);
+			if(td==0) // AB + C
+				{
+				_mm_store_pd( &D[0+ldc*0], d_00_10 );
+				_mm_store_pd( &D[0+ldc*1], d_01_11 );
+				}
+			else // t(AB + C)
+				{
+				d_00_01 = _mm_unpacklo_pd( d_00_10, d_01_11 );
+				d_10_11 = _mm_unpackhi_pd( d_00_10, d_01_11 );
+
+				_mm_store_pd( &D[0+ldc*0], d_00_01 );
+				_mm_store_pd( &D[0+ldc*1], d_10_11 );
+				}
+			}
+		else // t(C)
+			{
+			c_00_01 = _mm_unpacklo_pd( c_00_11, c_01_10 );
+			c_10_11 = _mm_unpackhi_pd( c_01_10, c_00_11 );
+
+			d_00_10 = _mm_load_pd( &C[0+ldc*0] );
+			d_01_11 = _mm_load_pd( &C[0+ldc*1] );
+
+			if(alg==1) // AB = A * B'
+				{
+				d_00_10 = _mm_add_pd( d_00_10, c_00_01 );
+				d_01_11 = _mm_add_pd( d_01_11, c_10_11 );
+				}
+			else // AB = - A * B'
+				{
+				d_00_10 = _mm_sub_pd( d_00_10, c_00_01 );
+				d_01_11 = _mm_sub_pd( d_01_11, c_10_11 );
+				}
+
+			if(td==0) // t( t(AB) + C )
+				{
+				d_00_01 = _mm_unpacklo_pd( d_00_10, d_01_11 );
+				d_10_11 = _mm_unpackhi_pd( d_00_10, d_01_11 );
+
+				_mm_store_pd( &D[0+ldc*0], d_00_01 );
+				_mm_store_pd( &D[0+ldc*1], d_10_11 );
+				}
+			else // t(AB) + C
+				{
+				_mm_store_pd( &D[0+ldc*0], d_00_10 );
+				_mm_store_pd( &D[0+ldc*1], d_01_11 );
+				}
+			}
 		}
-
 	}
 
