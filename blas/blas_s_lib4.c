@@ -413,7 +413,7 @@ void ssyrk_spotrf_lib(int m, int n, int k, float *pA, int sda, float *pC, int sd
 				}
 			for(; i<m; i+=4)
 				{
-				kernel_sgemm_trsm_nt_4x4_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact);
+				kernel_sgemm_strsm_nt_4x4_lib4(k, j, &pA[i*sda], &pA[j*sda], &pC[j*bs+i*sdc], &pA[(k0+k+j)*bs+i*sda], fact);
 				}
 			}
 		else if(i<m-4)
