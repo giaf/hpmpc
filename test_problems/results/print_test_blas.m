@@ -44,6 +44,9 @@ plot(B(:,1), B(:,20), 'g-^', 'LineWidth', 2)
 plot(B(:,1), B(:,22), 'm-*', 'LineWidth', 2)
 plot(B(:,1), B(:,24), 'b-o', 'LineWidth', 2)
 plot(B(:,1), B(:,26), 'k-x', 'LineWidth', 2)
+plot(B(:,1), B(:,28), 'k-o', 'LineWidth', 2)
+plot(B(:,1), B(:,30), 'k-*', 'LineWidth', 2)
+plot(B(:,1), B(:,32), 'k-^', 'LineWidth', 2)
 hold off
 
 title(['test HPMPC BLAS'])

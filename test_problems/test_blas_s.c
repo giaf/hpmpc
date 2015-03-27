@@ -35,10 +35,22 @@
 #include "test_param.h"
 
 
+#define TEST_BLAS 0
+
+#if TEST_BLAS
+void sgemm_(char *ta, char *tb, int *m, int *n, int *k, float *alpha, float *A, int *lda, float *B, int *ldb, float *beta, float *C, int *ldc);
+void sgemv_(char *ta, int *m, int *n, float *alpha, float *A, int *lda, float *x, int *incx, float *beta, float *y, int *incy);
+#endif
+
+
 
 int main()
 	{
 		
+#if TEST_BLAS
+	openblas_set_num_threads(1);
+#endif
+
 	printf("\n");
 	printf("\n");
 	printf("\n");
@@ -171,6 +183,12 @@ int main()
 		float *sB; s_zeros(&sB, n, n);
 		float *sC; s_zeros(&sC, n, n);
 	
+		char c_n = 'n';
+		char c_t = 't';
+		int i_1 = 1;
+		float d_1 = 1;
+		float d_0 = 0;
+	
 		for(i=0; i<n*n; i++)
 			A[i] = i;
 	
@@ -211,7 +229,7 @@ int main()
 		for(i=0; i<pns; i++) x2[i] = 1;
 
 		/* timing */
-		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6, tv7, tv8, tv9, tv10, tv11, tv12;
+		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6, tv7, tv8, tv9, tv10, tv11, tv12, tv13, tv14, tv15, tv16;
 
 		/* warm up */
 		for(rep=0; rep<nrep; rep++)
@@ -331,6 +349,35 @@ int main()
 	
 		gettimeofday(&tv12, NULL); // stop
 
+		gettimeofday(&tv13, NULL); // stop
+
+#if TEST_BLAS
+		for(rep=0; rep<nrep; rep++)
+			{
+			sgemm_(&c_n, &c_n, &n, &n, &n, &d_1, sA, &n, sB, &n, &d_0, sC, &n);
+			}
+#endif
+
+		gettimeofday(&tv14, NULL); // stop
+
+#if TEST_BLAS
+		for(rep=0; rep<nrep; rep++)
+			{
+			sgemv_(&c_n, &n, &n, &d_1, sA, &n, x, &i_1, &d_0, y, &i_1);
+			}
+#endif
+
+		gettimeofday(&tv15, NULL); // stop
+
+#if TEST_BLAS
+		for(rep=0; rep<nrep; rep++)
+			{
+			sgemv_(&c_t, &n, &n, &d_1, sA, &n, x, &i_1, &d_0, y, &i_1);
+			}
+#endif
+
+		gettimeofday(&tv16, NULL); // stop
+
 
 
 		float Gflops_max = flops_max * GHz_max;
@@ -383,9 +430,21 @@ int main()
 		float flop_dmvmv = 4.0*n*n;
 		float Gflops_dmvmv = 1e-9*flop_dmvmv/time_dmvmv;
 
-		printf("%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_dgemm, 100.0*Gflops_dgemm/Gflops_max, Gflops_dsyrk_dpotrf, 100.0*Gflops_dsyrk_dpotrf/Gflops_max, Gflops_dtrmm, 100.0*Gflops_dtrmm/Gflops_max, Gflops_dtrtr, 100.0*Gflops_dtrtr/Gflops_max, Gflops_dgemv_n, 100.0*Gflops_dgemv_n/Gflops_max, Gflops_dgemv_t, 100.0*Gflops_dgemv_t/Gflops_max, Gflops_dtrmv_n, 100.0*Gflops_dtrmv_n/Gflops_max, Gflops_dtrmv_t, 100.0*Gflops_dtrmv_t/Gflops_max, Gflops_dtrsv_n, 100.0*Gflops_dtrsv_n/Gflops_max, Gflops_dtrsv_t, 100.0*Gflops_dtrsv_t/Gflops_max, Gflops_dsymv, 100.0*Gflops_dsymv/Gflops_max, Gflops_dmvmv, 100.0*Gflops_dmvmv/Gflops_max);
+		float time_dgemm_blas = (float) (tv14.tv_sec-tv13.tv_sec)/(nrep+0.0)+(tv14.tv_usec-tv13.tv_usec)/(nrep*1e6);
+		float flop_dgemm_blas = 2.0*n*n*n;
+		float Gflops_dgemm_blas = 1e-9*flop_dgemm_blas/time_dgemm_blas;
 
-	fprintf(f, "%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_dgemm, 100.0*Gflops_dgemm/Gflops_max, Gflops_dsyrk_dpotrf, 100.0*Gflops_dsyrk_dpotrf/Gflops_max, Gflops_dtrmm, 100.0*Gflops_dtrmm/Gflops_max, Gflops_dtrtr, 100.0*Gflops_dtrtr/Gflops_max, Gflops_dgemv_n, 100.0*Gflops_dgemv_n/Gflops_max, Gflops_dgemv_t, 100.0*Gflops_dgemv_t/Gflops_max, Gflops_dtrmv_n, 100.0*Gflops_dtrmv_n/Gflops_max, Gflops_dtrmv_t, 100.0*Gflops_dtrmv_t/Gflops_max, Gflops_dtrsv_n, 100.0*Gflops_dtrsv_n/Gflops_max, Gflops_dtrsv_t, 100.0*Gflops_dtrsv_t/Gflops_max, Gflops_dsymv, 100.0*Gflops_dsymv/Gflops_max, Gflops_dmvmv, 100.0*Gflops_dmvmv/Gflops_max);
+		float time_dgemv_n_blas = (float) (tv15.tv_sec-tv14.tv_sec)/(nrep+0.0)+(tv15.tv_usec-tv14.tv_usec)/(nrep*1e6);
+		float flop_dgemv_n_blas = 2.0*n*n;
+		float Gflops_dgemv_n_blas = 1e-9*flop_dgemv_n_blas/time_dgemv_n_blas;
+
+		float time_dgemv_t_blas = (float) (tv16.tv_sec-tv15.tv_sec)/(nrep+0.0)+(tv16.tv_usec-tv15.tv_usec)/(nrep*1e6);
+		float flop_dgemv_t_blas = 2.0*n*n;
+		float Gflops_dgemv_t_blas = 1e-9*flop_dgemv_t_blas/time_dgemv_t_blas;
+
+		printf("%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_dgemm, 100.0*Gflops_dgemm/Gflops_max, Gflops_dsyrk_dpotrf, 100.0*Gflops_dsyrk_dpotrf/Gflops_max, Gflops_dtrmm, 100.0*Gflops_dtrmm/Gflops_max, Gflops_dtrtr, 100.0*Gflops_dtrtr/Gflops_max, Gflops_dgemv_n, 100.0*Gflops_dgemv_n/Gflops_max, Gflops_dgemv_t, 100.0*Gflops_dgemv_t/Gflops_max, Gflops_dtrmv_n, 100.0*Gflops_dtrmv_n/Gflops_max, Gflops_dtrmv_t, 100.0*Gflops_dtrmv_t/Gflops_max, Gflops_dtrsv_n, 100.0*Gflops_dtrsv_n/Gflops_max, Gflops_dtrsv_t, 100.0*Gflops_dtrsv_t/Gflops_max, Gflops_dsymv, 100.0*Gflops_dsymv/Gflops_max, Gflops_dmvmv, 100.0*Gflops_dmvmv/Gflops_max, Gflops_dgemm_blas, 100.0*Gflops_dgemm_blas/Gflops_max, Gflops_dgemv_n_blas, 100.0*Gflops_dgemv_n_blas/Gflops_max, Gflops_dgemv_t_blas, 100.0*Gflops_dgemv_t_blas/Gflops_max);
+
+	fprintf(f, "%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_dgemm, 100.0*Gflops_dgemm/Gflops_max, Gflops_dsyrk_dpotrf, 100.0*Gflops_dsyrk_dpotrf/Gflops_max, Gflops_dtrmm, 100.0*Gflops_dtrmm/Gflops_max, Gflops_dtrtr, 100.0*Gflops_dtrtr/Gflops_max, Gflops_dgemv_n, 100.0*Gflops_dgemv_n/Gflops_max, Gflops_dgemv_t, 100.0*Gflops_dgemv_t/Gflops_max, Gflops_dtrmv_n, 100.0*Gflops_dtrmv_n/Gflops_max, Gflops_dtrmv_t, 100.0*Gflops_dtrmv_t/Gflops_max, Gflops_dtrsv_n, 100.0*Gflops_dtrsv_n/Gflops_max, Gflops_dtrsv_t, 100.0*Gflops_dtrsv_t/Gflops_max, Gflops_dsymv, 100.0*Gflops_dsymv/Gflops_max, Gflops_dmvmv, 100.0*Gflops_dmvmv/Gflops_max, Gflops_dgemm_blas, 100.0*Gflops_dgemm_blas/Gflops_max, Gflops_dgemv_n_blas, 100.0*Gflops_dgemv_n_blas/Gflops_max, Gflops_dgemv_t_blas, 100.0*Gflops_dgemv_t_blas/Gflops_max);
 
 		free(A);
 		free(B);
