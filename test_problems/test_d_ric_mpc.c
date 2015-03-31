@@ -288,10 +288,10 @@ int main()
 			nx = nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
 			nu = 2; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 			N  = 10; // horizon lenght
-			nrep = nnrep[ll];
+			nrep = 2*nnrep[ll];
 			}
 
-		const int LTI = 1;
+		const int LTI = 0;
 
 		int rep;
 	

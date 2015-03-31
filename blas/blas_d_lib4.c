@@ -28,6 +28,152 @@
 
 
 
+// test for the performance of the dgemm kernel
+void dgemm_kernel_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg, int tc, int td)
+	{
+
+	const int bs = 4;
+
+	int i, j, jj;
+	
+#if 1
+	i = 0;
+#if defined(TARGET_X64_AVX2)
+	for(; i<m-8; i+=12)
+		{
+		j = 0;
+		for(; j<n-2; j+=4)
+			{
+			kernel_dgemm_nt_12x4_lib4(k, &pA[0], sda, &pB[0], &pC[0], sdc, &pD[0], sdd, alg, tc, td);
+			}
+		jj = 0;
+/*		for(; jj<n-j-1; jj+=2)*/
+		for(; jj<n-j; jj+=2)
+			{
+			kernel_dgemm_nt_8x2_lib4(k, &pA[0], sda, &pB[0], &pC[0], sdc, &pD[0], sdd, alg, tc, td);
+			kernel_dgemm_nt_4x2_lib4(k, &pA[0], &pB[0], &pC[0], &pD[0], alg, tc, td);
+			}
+/*		for(; jj<n-j; jj++)*/
+/*			{*/
+/*			kernel_dgemm_nt_8x1_lib4(k, &pA[0+i*sda], sda, &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], sdc, alg);*/
+/*			}*/
+		}
+#endif
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+	for(; i<m-4; i+=8)
+		{
+		j = 0;
+		for(; j<n-2; j+=4)
+			{
+			kernel_dgemm_nt_8x4_lib4(k, &pA[0], sda, &pB[0], &pC[0], sdc, &pD[0], sdd, alg, tc, td);
+			}
+		jj = 0;
+/*		for(; jj<n-j-1; jj+=2)*/
+		for(; jj<n-j; jj+=2)
+			{
+			kernel_dgemm_nt_8x2_lib4(k, &pA[0], sda, &pB[0], &pC[0], sdc, &pD[0], sdd, alg, tc, td);
+			}
+/*		for(; jj<n-j; jj++)*/
+/*			{*/
+/*			kernel_dgemm_nt_8x1_lib4(k, &pA[0+i*sda], sda, &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], sdc, alg);*/
+/*			}*/
+		}
+#endif
+	for(; i<m-2; i+=4)
+		{
+		j = 0;
+		for(; j<n-2; j+=4)
+			{
+			kernel_dgemm_nt_4x4_lib4(k, &pA[0], &pB[0], &pC[0], &pD[0], alg, tc, td);
+			}
+		jj = 0;
+/*		for(; jj<n-j-1; jj+=2)*/
+		for(; jj<n-j; jj+=2)
+			{
+			kernel_dgemm_nt_4x2_lib4(k, &pA[0], &pB[0], &pC[0], &pD[0], alg, tc, td);
+			}
+/*		for(; jj<n-j; jj++)*/
+/*			{*/
+/*			kernel_dgemm_nt_4x1_lib4(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], alg);*/
+/*			}*/
+		}
+	for(; i<m; i+=2)
+		{
+		j = 0;
+		for(; j<n-2; j+=4)
+			{
+			kernel_dgemm_nt_2x4_lib4(k, &pA[0], &pB[0], &pC[0], &pD[0], alg, tc, td);
+			}
+		jj = 0;
+/*		for(; jj<n-j-1; jj+=2)*/
+		for(; jj<n-j; jj+=2)
+			{
+			kernel_dgemm_nt_2x2_lib4(k, &pA[0], &pB[0], &pC[0], &pD[0], alg, tc, td);
+			}
+/*		for(; jj<n-j; jj++)*/
+/*			{*/
+/*			kernel_dgemm_nt_4x1_lib4(k, &pA[0+i*sda], &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], alg);*/
+/*			}*/
+		}
+#else
+	j = 0;
+	for(; j<n-2; j+=4)
+		{
+		i = 0;
+#if defined(TARGET_X64_AVX2)
+		for(; i<m-8; i+=12)
+			{
+			kernel_dgemm_nt_12x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, tc, td);
+			}
+#endif
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+		for(; i<m-4; i+=8)
+			{
+			kernel_dgemm_nt_8x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, tc, td);
+			}
+#endif
+		for(; i<m-2; i+=4)
+			{
+			kernel_dgemm_nt_4x4_lib4(k, &pA[i*sda], &pB[j*sdb], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], alg, tc, td);
+			}
+		for(; i<m; i+=2)
+			{
+			kernel_dgemm_nt_2x4_lib4(k, &pA[i*sda], &pB[j*sdb], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], alg, tc, td);
+			}
+		}
+	jj = 0;
+	for(; jj<n-j; jj+=2)
+		{
+		i = 0;
+#if defined(TARGET_X64_AVX2)
+		for(; i<m-8; i+=12)
+			{
+			kernel_dgemm_nt_8x2_lib4(k, &pA[i*sda], sda, &pB[jj+j*sdb], &pC[(j+jj)*bs+i*sdc], sdc, &pD[(j+jj)*bs+i*sdd], sdd, alg, tc, td);
+			kernel_dgemm_nt_4x2_lib4(k, &pA[(i+8)*sda], &pB[jj+j*sdb], &pC[(j+jj)*bs+(i+8)*sdc], &pD[(j+jj)*bs+(i+8)*sdd], alg, tc, td);
+			}
+#endif
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+		for(; i<m-4; i+=8)
+			{
+			kernel_dgemm_nt_8x2_lib4(k, &pA[i*sda], sda, &pB[jj+j*sdb], &pC[(j+jj)*bs+i*sdc], sdc, &pD[(j+jj)*bs+i*sdd], sdd, alg, tc, td);
+			}
+#endif
+		for(; i<m-2; i+=4)
+			{
+			kernel_dgemm_nt_4x2_lib4(k, &pA[i*sda], &pB[jj+j*sdb], &pC[(j+jj)*bs+i*sdc], &pD[(j+jj)*bs+i*sdd], alg, tc, td);
+			}
+		for(; i<m; i+=2)
+			{
+			kernel_dgemm_nt_2x2_lib4(k, &pA[i*sda], &pB[jj+j*sdb], &pC[(j+jj)*bs+i*sdc], &pD[(j+jj)*bs+i*sdd], alg, tc, td);
+			}
+		}
+#endif
+
+
+	}
+
+
+
 /* preforms                                          */
 /* C  = A * B' (alg== 0)                             */
 /* C += A * B' (alg== 1)                             */

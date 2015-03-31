@@ -25,7 +25,7 @@
 
 include ../Makefile.rule
 
-LIBS = -lm #-lopenblas
+LIBS = -lm #-lopenblas -pthread
 
 #OBJS_TEST = test_blas_d_debug.o
 #OBJS_TEST = test_blas_s_debug.o
