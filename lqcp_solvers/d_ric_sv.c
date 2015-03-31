@@ -110,7 +110,15 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 	//dpotrf_lib(nx+nu%bs+1, nx+nu%bs, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, diag);
 	//d_print_pmat(nz, ng, bs, work, cnxg);
 	//d_print_pmat(nz, nz, bs, hpQ[N], cnz);
-	dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, ngN, work+(nu/bs)*bs*cngN, cngN, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, diag, 1);
+	if(nx+nu%bs+1<128)
+		{
+		dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, ngN, work+(nu/bs)*bs*cngN, cngN, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, diag, 1);
+		}
+	else
+		{
+		dsyrk_lib(nx+nu%bs+1, nx+nu%bs, ngN, work+(nu/bs)*bs*cngN, cngN, work+(nu/bs)*bs*cngN, cngN, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, 1);
+		dpotrf_lib(nx+nu%bs+1, nx+nu%bs, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, diag);
+		}
 #if 0
 	d_print_pmat(nz, nx+ng, bs, work, cnxg);
 	d_print_pmat(nz, nz, bs, hpL[N], cnl);
@@ -168,7 +176,15 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 			d_update_jacobian_ric_sv(nx+nu, hpQ[N-nn-1]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N-nn-1]);
 			}
 		//dsyrk_dpotrf_lib(nz, nu+nx, nx, work+ng*bs, cnx, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, diag, 1);
-		dsyrk_dpotrf_lib(nz, nu+nx, nx+ng, work, cnxg, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, diag, 1);
+		if(nz<128)
+			{
+			dsyrk_dpotrf_lib(nz, nu+nx, nx+ng, work, cnxg, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, diag, 1);
+			}
+		else
+			{
+			dsyrk_lib(nz, nu+nx, nx+ng, work, cnxg, work, cnxg, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, 1);
+			dpotrf_lib(nz, nu+nx, hpL[N-nn-1], cnl, hpL[N-nn-1], cnl, diag);
+			}
 #if 0
 	d_print_pmat(nz, nx+ng, bs, work, cnxg);
 	d_print_pmat(nz, nz, bs, hpL[N-nn-1], cnl);

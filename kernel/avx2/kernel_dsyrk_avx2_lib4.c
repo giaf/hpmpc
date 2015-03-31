@@ -356,10 +356,10 @@ void kernel_dsyrk_nt_12x4_lib4(int kadd, double *A0, int sda, double *B, double 
 			d_42 = _mm256_add_pd( d_42, c_42 );
 			d_43 = _mm256_add_pd( d_43, c_43 );
 
-			d_80 = _mm256_load_pd( &C1[0+ldc*0] );
-			d_81 = _mm256_load_pd( &C1[0+ldc*1] );
-			d_82 = _mm256_load_pd( &C1[0+ldc*2] );
-			d_83 = _mm256_load_pd( &C1[0+ldc*3] );
+			d_80 = _mm256_load_pd( &C2[0+ldc*0] );
+			d_81 = _mm256_load_pd( &C2[0+ldc*1] );
+			d_82 = _mm256_load_pd( &C2[0+ldc*2] );
+			d_83 = _mm256_load_pd( &C2[0+ldc*3] );
 		
 			d_80 = _mm256_add_pd( d_80, c_80 );
 			d_81 = _mm256_add_pd( d_81, c_81 );
@@ -388,10 +388,10 @@ void kernel_dsyrk_nt_12x4_lib4(int kadd, double *A0, int sda, double *B, double 
 			d_42 = _mm256_sub_pd( d_42, c_42 );
 			d_43 = _mm256_sub_pd( d_43, c_43 );
 
-			d_80 = _mm256_load_pd( &C1[0+ldc*0] );
-			d_81 = _mm256_load_pd( &C1[0+ldc*1] );
-			d_82 = _mm256_load_pd( &C1[0+ldc*2] );
-			d_83 = _mm256_load_pd( &C1[0+ldc*3] );
+			d_80 = _mm256_load_pd( &C2[0+ldc*0] );
+			d_81 = _mm256_load_pd( &C2[0+ldc*1] );
+			d_82 = _mm256_load_pd( &C2[0+ldc*2] );
+			d_83 = _mm256_load_pd( &C2[0+ldc*3] );
 		
 			d_80 = _mm256_sub_pd( d_80, c_80 );
 			d_81 = _mm256_sub_pd( d_81, c_81 );

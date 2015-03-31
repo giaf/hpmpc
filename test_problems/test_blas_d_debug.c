@@ -144,7 +144,8 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		dgemm_nt_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0, 0, 0);
+//		dgemm_nt_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0, 0, 0);
+		dsyrk_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
 //		dtrmm_l_lib(n, n, pA, cn, pB, cn, pD, cn);
 //		dgemm_nt_lib(13, n, n, pA, pn, pB, pn, pC, pn, 0);
 /*		dgemm_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
