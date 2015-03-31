@@ -62,7 +62,7 @@ ifeq ($(TARGET), X64_SSE3)
 CFLAGS = $(COMMON_FLAGS) -msse3 -DTARGET_X64_SSE3 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4)
-CFLAGS = $(COMMON_FLAGS) -DTARGET_C99_4X4 $(DEBUG)
+CFLAGS = $(COMMON_FLAGS) -march=native -DTARGET_C99_4X4 $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4_PREFETCH)
 CFLAGS = $(COMMON_FLAGS) -DTARGET_C99_4X4_PREFETCH $(DEBUG)
@@ -74,7 +74,7 @@ ifeq ($(TARGET), CORTEX_A9)
 CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a9 -DTARGET_CORTEX_A9 $(DEBUG)
 endif
 ifeq ($(TARGET), CORTEX_A7)
-CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a9 -DTARGET_CORTEX_A7 $(DEBUG)
+CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon-vfpv4 -mcpu=cortex-a7 -DTARGET_CORTEX_A7 $(DEBUG)
 endif
 
 

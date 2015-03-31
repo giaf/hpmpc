@@ -42,13 +42,13 @@ ifeq ($(TARGET), C99_4X4_PREFETCH)
 	make -C c99 obj
 endif
 ifeq ($(TARGET), CORTEX_A15)
-	make -C neon obj
+	make -C armv7a obj
 endif
 ifeq ($(TARGET), CORTEX_A9)
-	make -C neon obj
+	make -C armv7a obj
 endif
 ifeq ($(TARGET), CORTEX_A7)
-	make -C neon obj
+	make -C armv7a obj
 endif
 
 clean:
@@ -56,5 +56,5 @@ clean:
 	make -C avx clean
 	make -C sse3 clean
 	make -C c99 clean
-	make -C neon clean
+	make -C armv7a clean
 
