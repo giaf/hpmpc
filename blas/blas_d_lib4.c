@@ -791,8 +791,7 @@ void dsyrk_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, do
 					}
 				else if(j<n-4)
 					{
-					kernel_dsyrk_nt_4x2_lib4(k, &pA[(i+4)*sda], &pB[(j+4)*sdb], &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], alg);
-					kernel_dgemm_nt_4x2_lib4(k, &pA[(i+8)*sda], &pB[(j+4)*sdb], &pC[(j+4)*bs+(i+8)*sdc], &pD[(j+4)*bs+(i+8)*sdd], alg, 0, 0);
+					kernel_dsyrk_nt_8x2_lib4(k, &pA[(i+4)*sda], sda, &pB[(j+4)*sdb], &pC[(j+4)*bs+(i+4)*sdc], sdc, &pD[(j+4)*bs+(i+4)*sdd], sdd, alg);
 					}
 				}
 			else if(j<n)
@@ -801,9 +800,6 @@ void dsyrk_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, do
 				kernel_dgemm_nt_8x2_lib4(k, &pA[(i+4)*sda], sda, &pB[j*sdb], &pC[j*bs+(i+4)*sdc], sdc, &pD[j*bs+(i+4)*sdd], sdd, alg, 0, 0);
 				}
 			}
-//		kernel_dsyrk_nt_12x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg);
-//		kernel_dsyrk_nt_8x4_lib4(k, &pA[(i+4)*sda], sda, &pB[(j+4)*sdb], &pC[(j+4)*bs+(i+4)*sdc], sdc, &pD[(j+4)*bs+(i+4)*sdd], sdd, alg);
-//		kernel_dsyrk_nt_4x4_lib4(k, &pA[(i+8)*sda], &pB[(j+8)*sdb], &pC[(j+8)*bs+(i+8)*sdc], &pD[(j+8)*bs+(i+8)*sdd], alg);
 		}
 #endif
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
@@ -838,12 +834,9 @@ void dsyrk_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, do
 				}
 			else if(j<n)
 				{
-				kernel_dsyrk_nt_4x2_lib4(k, &pA[i*sda], &pB[j*sdb], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], alg);
-				kernel_dgemm_nt_4x2_lib4(k, &pA[(i+4)*sda], &pB[j*sdb], &pC[j*bs+(i+4)*sdc], &pD[j*bs+(i+4)*sdd], alg, 0, 0);
+				kernel_dsyrk_nt_8x2_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg);
 				}
 			}
-//		kernel_dsyrk_nt_8x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg);
-//		kernel_dsyrk_nt_4x4_lib4(k, &pA[(i+4)*sda], &pB[(j+4)*sdb], &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], alg);
 		}
 #endif
 	for(; i<m; i+=4)
@@ -872,7 +865,6 @@ void dsyrk_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, do
 				kernel_dsyrk_nt_4x2_lib4(k, &pA[i*sda], &pB[j*sdb], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], alg);
 				}
 			}
-//		kernel_dsyrk_nt_4x4_lib4(k, &pA[i*sda], &pB[j*sdb], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], alg);
 		}
 #else
 	j = 0;
