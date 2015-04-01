@@ -234,11 +234,17 @@ int main()
 	fprintf(f, "B = [\n");
 	
 
+	const int LTI = 1;
+
 	printf("\n");
 	printf("Tested solvers:\n");
 	printf("-sv : Riccati factorization and system solution (prediction step in IP methods)\n");
 	printf("-trs: system solution after a previous call to Riccati factorization (correction step in IP methods)\n");
 	printf("\n");
+	if(LTI==1)
+		printf("\nTest for linear time-invariant systems\n");
+	else
+		printf("\nTest for linear time-variant systems\n");
 	printf("\n");
 	
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
@@ -290,8 +296,6 @@ int main()
 			N  = 10; // horizon lenght
 			nrep = 2*nnrep[ll];
 			}
-
-		const int LTI = 0;
 
 		int rep;
 	
@@ -723,7 +727,7 @@ int main()
 
 
 		float time_sv = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
-		float flop_sv = (1.0/3.0*nx*nx*nx+3.0/2.0*nx*nx) + N*(7.0/3.0*nx*nx*nx+4.0*nx*nx*nu+2.0*nx*nu*nu+1.0/3.0*nu*nu*nu+13.0/2.0*nx*nx+9.0*nx*nu+5.0/2.0*nu*nu);
+		float flop_sv = (1.0/3.0*nx*nx*nx+3.0/2.0*nx*nx) + N*(7.0/3.0*nx*nx*nx+4.0*nx*nx*nu+2.0*nx*nu*nu+1.0/3.0*nu*nu*nu+13.0/2.0*nx*nx+9.0*nx*nu+5.0/2.0*nu*nu) - (nx*(nx+nu)+1.0/3.0*nx*nx*nx+3.0/2.0*nx*nx);
 		if(COMPUTE_MULT==1)
 			flop_sv += N*2*nx*nx;
 		float Gflops_sv = 1e-9*flop_sv/time_sv;
