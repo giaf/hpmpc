@@ -34,7 +34,7 @@
 
 
 /* version tailored for mpc (x0 fixed) */
-void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int update_hessian, double **hQd, double **hQl, double **hux, double **hpL, double *work, double *diag, int compute_pi, double **hpi, int nb, int ng, int ngN, double **hpDCt, double **Qx, double **qx)
+void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int update_hessian, double **hQd, double **hQl, double **hux, double **hpL, double *work, double *diag, int compute_pi, double **hpi, int nb, int ng, int ngN, double **hpDCt, double **Qx, double **qx, int fast_rsqrt)
 	{
 	
 	const int bs = D_MR; //d_get_mr();
@@ -112,7 +112,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 	//d_print_pmat(nz, nz, bs, hpQ[N], cnz);
 	if(nx+nu%bs+1<128)
 		{
-		dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, ngN, work+(nu/bs)*bs*cngN, cngN, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, diag, 1);
+		dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, ngN, work+(nu/bs)*bs*cngN, cngN, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, diag, 1, fast_rsqrt);
 		}
 	else
 		{
@@ -178,7 +178,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		//dsyrk_dpotrf_lib(nz, nu+nx, nx, work+ng*bs, cnx, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, diag, 1);
 		if(nz<128)
 			{
-			dsyrk_dpotrf_lib(nz, nu+nx, nx+ng, work, cnxg, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, diag, 1);
+			dsyrk_dpotrf_lib(nz, nu+nx, nx+ng, work, cnxg, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, diag, 1, fast_rsqrt);
 			}
 		else
 			{
@@ -241,7 +241,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		d_update_jacobian_ric_sv(nu, hpQ[0]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[0]);
 		}
 	//dsyrk_dpotrf_lib(nz, ((nu+2-1)/2)*2, nx, work+ng*bs, cnx, hpQ[0], cnz, hpL[0], cnl, diag, 1);
-	dsyrk_dpotrf_lib(nz, ((nu+2-1)/2)*2, nx+ng, work, cnxg, hpQ[0], cnz, hpL[0], cnl, diag, 1);
+	dsyrk_dpotrf_lib(nz, ((nu+2-1)/2)*2, nx+ng, work, cnxg, hpQ[0], cnz, hpL[0], cnl, diag, 1, fast_rsqrt);
 	for(jj=0; jj<nu; jj++) hpL[0][(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 
 
@@ -1375,7 +1375,7 @@ void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hp
 
 		// compute Lp
 		//dsyrk_dpotrf_lib(nz, nz, nx, hpLp[ii+1], cnl, hpLp[ii+1]+(nx+pad)*bs, cnl, diag, 1);
-		dsyrk_dpotrf_lib(nz, nz, nx, hpLp[ii+1], cnl, hpLp[ii+1]+(nx+pad)*bs, cnl, hpLp[ii+1]+(nx+pad)*bs, cnl, diag, 1);
+		dsyrk_dpotrf_lib(nz, nz, nx, hpLp[ii+1], cnl, hpLp[ii+1]+(nx+pad)*bs, cnl, hpLp[ii+1]+(nx+pad)*bs, cnl, diag, 1, 0);
 
 		// inverted diagonal of top-left part of hpLe
 		for(jj=0; jj<ny; jj++) hpLp[ii+1][(jj/bs)*bs*cnl+jj%bs+(nx+pad+jj)*bs] = diag[jj];
@@ -1598,7 +1598,7 @@ void d_ric_trf_mhe_test(int nx, int nw, int ny, int N, double **hpA, double **hp
 
 		// compute /Pi_p and factorize it
 		//dsyrk_dpotrf_lib(nx, nx, nx+nw, hpLp[ii+1], cnl, hpLp[ii+1], cnl, diag, 0);
-		dsyrk_dpotrf_lib(nx, nx, nx+nw, hpLp[ii+1], cnl, hpLp[ii+1], cnl, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, diag, 0);
+		dsyrk_dpotrf_lib(nx, nx, nx+nw, hpLp[ii+1], cnl, hpLp[ii+1], cnl, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, diag, 0, 0);
 		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[ii+1], cnl);
 
 		// transpose in place the lower cholesky factor of /Pi_p

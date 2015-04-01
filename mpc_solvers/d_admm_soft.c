@@ -327,7 +327,7 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 		const int update_hessian = 1;
 	
 		// initial factorization
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, ux_u, pL, work1, diag, compute_mult, pi, 0, 0, 0, dummy, dummy, dummy);
+		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, ux_u, pL, work1, diag, compute_mult, pi, 0, 0, 0, dummy, dummy, dummy, 0);
 
 
 

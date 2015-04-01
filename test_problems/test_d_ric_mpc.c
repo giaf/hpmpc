@@ -507,7 +507,7 @@ int main()
 	
 		// call the solver
 //		if(FREE_X0==0)
-			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
+			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
 //		else
 //			d_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 		
@@ -654,7 +654,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 //			if(FREE_X0==0)
-				d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
+				d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
 //			else
 //				d_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
 			}

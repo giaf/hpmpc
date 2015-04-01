@@ -232,6 +232,8 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	// update hessian in Riccati routine
 	const int update_hessian = 1;
 
+	int fast_rsqrt = 0;
+
 
 
 	// IP loop		
@@ -246,7 +248,18 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 
 		// compute the search direction: factorize and solve the KKT system
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx);
+		if(mu>1e-2)
+			fast_rsqrt = 2;
+		else
+			{
+			if(mu>1e-4)
+				fast_rsqrt = 1;
+			else
+				fast_rsqrt = 0;
+			}
+		//fast_rsqrt = 0;
+		//printf("\n%d %f\n", fast_rsqrt, mu);
+		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx, 0);
 
 
 

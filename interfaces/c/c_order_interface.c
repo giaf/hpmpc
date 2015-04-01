@@ -101,6 +101,7 @@ int c_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char pre
 		//const int nb = nx+nu; // number of box constraints
 		//const int ng = 0; // number of general constratins // TODO remove when not needed any longer
 		const int nbu = nb<nu ? nb : nu ;
+		const int nbx = nb - nbu;
 
 		const int bs = D_MR; //d_get_mr();
 		const int ncl = D_NCL;
@@ -320,6 +321,7 @@ int c_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char pre
 			for(jj=0; jj<nx; jj++) mu0 = fmax(mu0, qf[ii]);
 			}
 
+#if 1
 		// input constraints
 		for(jj=0; jj<N; jj++)
 			{
@@ -358,6 +360,46 @@ int c_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char pre
 				//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
 				}
 			}
+#else
+		// input constraints
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nbu; ii++)
+				{
+				if(lb[ii+nbu*jj]!=ub[ii+nbu*jj]) // equality constraint
+					{
+					hd[jj][ii+0]   =   lb[ii+nbu*jj];
+					hd[jj][ii+pnb] = - ub[ii+nbu*jj];
+					}
+				else
+					{
+					for(ll=0; ll<nx; ll++)
+						{
+						// update linear term
+						hpBAbt[jj][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+ll*bs] += hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs]*lb[ii+nbu*jj];
+						// zero corresponding B column
+						hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs] = 0;
+						}
+					
+					// inactive box constraints
+					hd[jj][ii+0]   =   lb[ii+nbu*jj] + 1e3;
+					hd[jj][ii+pnb] = - ub[ii+nbu*jj] - 1e3;
+
+					}
+				}
+			}
+		// state constraints 
+		for(jj=0; jj<N; jj++)
+			{
+			for(ii=0; ii<nbx; ii++)
+				{
+				hd[jj+1][nbu+ii+0]   =   lb[N*nbu+ii+nbx*jj];
+				hd[jj+1][nbu+ii+pnb] = - ub[N*nbu+ii+nbx*jj];
+				//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
+				//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+				}
+			}
+#endif
 		// general constraints
 		if(ng>0)
 			{
@@ -1487,7 +1529,7 @@ int c_order_riccati_mpc( const char prec,
 		double **dummy;
 
 		// call Riccati solver
-		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, compute_mult, hpi, 0, 0, 0, dummy, dummy, dummy);
+		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, compute_mult, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
 
 
 
