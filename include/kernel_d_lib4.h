@@ -68,6 +68,7 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, dou
 void kernel_dgemv_t_12_lib4(int kmax, double *A, int sda, double *x, double *y, int alg);
 void kernel_dgemv_t_8_lib4(int kmax, double *A, int sda, double *x, double *y, int alg);
 void kernel_dgemv_t_4_lib4(int kmax, double *A, int sda, double *x, double *y, int alg);
+void kernel_dgemv_t_3_lib4(int kmax, double *A, int sda, double *x, double *y, int alg);
 void kernel_dgemv_t_2_lib4(int kmax, double *A, int sda, double *x, double *y, int alg);
 void kernel_dgemv_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, int alg);
 void kernel_dgemv_n_12_lib4(int kmax, double *A0, int sda, double *x, double *y, int alg);
