@@ -313,7 +313,7 @@ void kernel_dgetr_1_lib4(int kmax, int kna, double *A, double *C, int sdc)
 
 
 // TODO change name of routine TODO is this the best way???
-void kernel_dtran_4_lib4(int kmax, int kna, double *A, int sda, double *C)
+void kernel_dtrtr_l_4_lib4(int kmax, int kna, double *A, int sda, double *C)
 	{
 	
 	// kmax is at least 4 !!!
@@ -526,7 +526,7 @@ void kernel_dtran_4_lib4(int kmax, int kna, double *A, int sda, double *C)
 
 
 
-void corner_dtran_3_lib4(int kna, double *A, int sda, double *C)
+void corner_dtrtr_l_3_lib4(int kna, double *A, int sda, double *C)
 	{
 
 	const int bs = 4;
@@ -594,7 +594,7 @@ void corner_dtran_3_lib4(int kna, double *A, int sda, double *C)
 
 
 
-void corner_dtran_2_lib4(int kna, double *A, int sda, double *C)
+void corner_dtrtr_l_2_lib4(int kna, double *A, int sda, double *C)
 	{
 
 	const int bs = 4;

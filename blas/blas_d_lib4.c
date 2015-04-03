@@ -2185,9 +2185,17 @@ void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
 	int j;
 	
 	j=0;
+#if defined(TARGET_X64_AVX2)
+	for(; j<m-7; j+=8)
+		{
+		kernel_dtrtr_l_8_lib4(m-j, mna, pA, sda, pC, sdc);
+		pA += 2*bs*(sda+bs);
+		pC += 2*bs*(sdc+bs);
+		}
+#endif
 	for(; j<m-3; j+=4)
 		{
-		kernel_dtran_4_lib4(m-j, mna, pA, sda, pC);
+		kernel_dtrtr_l_4_lib4(m-j, mna, pA, sda, pC);
 		pA += bs*(sda+bs);
 		pC += bs*(sdc+bs);
 		}
@@ -2201,11 +2209,11 @@ void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
 		}
 	else if(m-j==2)
 		{
-		corner_dtran_2_lib4(mna, pA, sda, pC);
+		corner_dtrtr_l_2_lib4(mna, pA, sda, pC);
 		}
 	else // if(m-j==3)
 		{
-		corner_dtran_3_lib4(mna, pA, sda, pC);
+		corner_dtrtr_l_3_lib4(mna, pA, sda, pC);
 		}
 	
 	}
@@ -2233,7 +2241,14 @@ void dgetr_lib(int m, int mna, int n, int offset, double *pA, int sda, double *p
 		pA += mna + bs*(sda-1);
 		pC += mna*bs;
 		}
-	
+#if defined(TARGET_X64_AVX2)
+	for( ; ii<m-7; ii+=8)
+		{
+		kernel_dgetr_8_lib4(n, nna, pA, sda, pC, sdc);
+		pA += 2*bs*sda;
+		pC += 2*bs*bs;
+		}
+#endif
 	for( ; ii<m-3; ii+=4)
 //	for( ; ii<m; ii+=4)
 		{

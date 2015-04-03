@@ -276,6 +276,7 @@ int main()
 			{
 
 			dtrtr_l_lib(n, 0, pA, cnd, pC, cnd); // triangualr matrix transpose
+			//dgetr_lib(n, 0, n, 0, pA, cnd, pC, cnd); // general matrix transpose
 
 			}
 	
