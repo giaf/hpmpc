@@ -14,16 +14,17 @@
 
 HPMPC -- A library for High-Performance implementation of solvers for MPC.
 
-HPMPC has been developed with the aim of providing extremely fast building blocks to implement algorithms for Model Predictive Control. 
+HPMPC has been developed with the aim of providing extremely fast building blocks to implement algorithms for Model Predictive Control (MPC). 
 This has been achieved by carefully implementing the linear algebra routines using high-performance computing techniques with a focus on small-medium scale problems, typical of MPC applications.
 
-The current version of the library contains an interior-poit (IP) solver for the linear MPC (LMPC) problem with box constraints, and a Riccati solver for the linear-quadratic control problem, that is used as a routine in the IP method.
+The current version of the library contains Interior-Point Method (IPM) and Alternating Direction Methods of Multipliers (ADMM) solvers for the linear MPC (LMPC) problem with box constraints, and a Riccati-based solver for the unconstrained MPC problem, that is used as a routine in the IP method.
 A basic API is provided for these solvers, while lower level interfaces provide access to kernels, linear-algebra routines and MPC solvers.
 The library is self-contained, not requiring any other library beside the standard C library.
 
 The code is highly-optimized for a number of common architectures, plus a reference version in plain C code.
-The code is intended to be used on a Linux machine (it has been developed on this OS) and using gcc as a compiler (the code for some architecture makes use of extended asm inline assembly).
-The time-critical routines have been carefully implemented in assembly exploiting architecture-specific features, so there would be no practical advantage in compiling the code with more performing (read commercial) compilers.
+The code has been developed on this Linux machines and tested also on MAC machines. 
+The code is intended to be compiled using gcc as a compiler (the code for some architecture makes use of extended asm inline assembly); it may be compiled using clang as well.
+The time-critical routines have been carefully implemented in assembly exploiting architecture-specific features, so there would be no practical advantage in compiling the code with more performing (e.g. commercial) compilers.
 
 The library is released under the LGPL version 3 licence, and it can be used as a basis for the development of higher-level solvers for MPC or other applications requiring extremely fast solvers for small-medium scale problems.
 
@@ -31,15 +32,17 @@ The library is released under the LGPL version 3 licence, and it can be used as 
 
 \chapter{Problems definition}
 
-In this chapter the constrained and unconstrained MPC problems are presented.
+In this chapter the unconstrained and constrained MPC problems are presented.
 
 \section{Linear-Quadratic Control Problem}
 
-The Linear-Quadratic Control Problem (in the following, LQCP) is the equality constrained quadratic program
+The Linear-Quadratic Control Problem (in the following, LQCP) is a general formulation of unconstrained MPC problem.
+It is the equality constrained quadratic program
 \begin{equation}
 \begin{aligned}
-\min_{u_n,x_{n+1}} &&& \phi = \sum_{n=0}^{N-1} \varphi_n(x_n,u_n) + \varphi_N(x_N) \\
-s.t. &&& x_{n+1} = A_nx_n+B_nu_n+b_n
+\min_{u_n,x_n} &&& \phi = \sum_{n=0}^{N-1} \varphi_n(x_n,u_n) + \varphi_N(x_N) \\
+s.t. &&& x_{n+1} = A_nx_n+B_nu_n+b_n \\
+&&& x_0 = \overline x_0
 \end{aligned}
 \label{lqcp}
 \end{equation}
@@ -58,8 +61,9 @@ All matrices in this formulation can in general be dense and time variant. The m
 The linear MPC problem with box constraints is the quadratic program
 \begin{equation}
 \begin{aligned}
-\min_{u_n,x_{n+1}} &&& \phi = \sum_{n=0}^{N-1} \varphi_n(x_n,u_n) + \varphi_N(x_N) \\
+\min_{u_n,x_n} &&& \phi = \sum_{n=0}^{N-1} \varphi_n(x_n,u_n) + \varphi_N(x_N) \\
 s.t. &&& x_{n+1} = A_nx_n+B_nu_n+b_n \\
+&&& x_0 = \overline x_0 \\
 &&& \underline{u}_n\leq u_n\leq\bar{u}_n \\
 &&& \underline{x}_n\leq x_n\leq\bar{x}_n \\
 \end{aligned}
@@ -71,29 +75,34 @@ where $n\in\{0,1,\dots,N-1\}$, $\varphi_n(x_n,u_n)$ and $\varphi_N(x_N)$ are def
 
 \chapter{Compilation and installation of the library}
 
-The code has been developed and tested on Linux machines, using gcc as compiler.
-The library is mainly written in C code, with time-critical parts (kernels) written using intrinsics or extended asm inline assembly: from here the need for the gcc compiler (also clang should work, even if it has not been tested yet).
+The code has been developed on Linux machines, using the gcc compiler.
+It has been also tested on MAC machines using the clang compiler.
+The library is mainly written in C code, with time-critical parts (kernels) written using intrinsics or extended asm inline assembly: from here the need for the gcc or clang compiler.
 The use of commercial compilers would not improve performance.
 
 Time-critical routines are carefully optimized by hand for a number of architectures, using assembly to explicitly exploit e.g. the number of registers and SIMD instruction sets specific to each architecture.
 
 %\section{Complilation}
 
-As already said, the code is expected to be compiled using {\tt gcc}, and is self-contained, depending only on the standard library.
+%As already said, the code is expected to be compiled using {\tt gcc}, and is self-contained, depending only on the standard library.
 {\tt gcc} is usually part of all Linux distributions.
 
 Redarding utilities, {\tt make} is used to automate the compilation of the code, and {\tt ar} to build the static library: both of them are usually part of all Linux distributions.
+Alternatively, the library can be built using {\tt CMake}.
 
-Once the code has been downloaded, the first step is the editing of the configuration file Makefile.rule.
+Once the code has been downloaded, the first step is the editing of the configuration file {\tt Makefile.rule}.
 In general, the only part that needs to be edited is the TARGET, used to choose architeture-specific code and flags.
 
 Currently supported targets are
 \begin{description}
-\item[X64\_AVX2] this a recent x86\_64 processor supporting AVX2 and FMA3 instruction sets (e.g. Intel Haswell architecture). The 64-bit version of the OS is required. At the moment, this architecture is supported, but the code is not fully optimized yet, and thus code for AVX can perform better.
+\item[X64\_AVX2] this a recent x86\_64 processor supporting AVX2 and FMA3 instruction sets (e.g. Intel Haswell architecture). 
+The 64-bit version of the OS is required. 
+At the moment, this architecture is supported, but only the double-precision version of the library if fully-optimized.
 \item[X64\_AVX] this is a x86\_64 processor supporting the AVX instruction set (e.g. Intel Sandy Bridge and Ivy Bridge, AMD Bulldozer or more recent architectures). The 64-bit version of the OS is required.
 \item[X64\_SSE3] this is a x86\_64 processor supporting the SSE3 instruction set (e.g. Intel Pentium 4 Prescott, AMD Athlon 64 revision E or more recent architectures). The 64-bit version of the OS is required. The code is not fully optimized yet.
-\item[CORTEX\_A15] this is a processor implementing the ARMv7A architecture with VFPv3 and NEON instruction sets, code optimized for ARM Cortex A15. The code is not fully optimized yet.
-\item[CORTEX\_A9] this is a processor implementing the ARMv7A architecture with VFPv3 and NEON instruction sets, code optimized for ARM Cortex A9. The code is not fully optimized yet.
+\item[CORTEX\_A15] this is a processor implementing the ARMv7A architecture with VFPv4 and NEONv2 instruction sets, code optimized for ARM Cortex A15.
+\item[CORTEX\_A9] this is a processor implementing the ARMv7A architecture with VFPv3 and NEON instruction sets, code optimized for ARM Cortex A9.
+\item[CORTEX\_A7] this is a processor implementing the ARMv7A architecture with VFPv4 and NEONv2 instruction sets, code optimized for ARM Cortex A7.
 \item[C99\_4X4] this version is written entirely in C code and works with all machines, even if performing worse that machine-specific code. The code works better on a machine with at least 32 scalar FP registers.
 \end{description}
 More architectures are supported in the older version 0.1 of the library, that can still be downloaded from github.
@@ -107,7 +116,7 @@ In any case, even if the code is compiled for the wrong architecutre, an {\tt Il
 
 Once the architecture has been chosen, the static library can be build by typing
 \begin{verbatim}
-make library
+make static
 \end{verbatim}
 on a terminal. The dynamic library can be build by typing
 \begin{verbatim}
@@ -117,7 +126,7 @@ on a terminal.
 
 The static library and the headers can be installed by typing
 \begin{verbatim}
-sudo make install
+sudo make install_static
 \end{verbatim}
 on a terminal. The dynamic library and the headers can be installed by typing
 \begin{verbatim}
@@ -125,7 +134,7 @@ sudo make install_shared
 \end{verbatim}
 on a terminal. The installation forder can be changed by editing the Makefile file.
 
-A number of test problems is available in the folder test\_problems, and it is possible to chose between them by editing the file test\_problems/Makefile.
+A number of test problems is available in the folder test\_problems, and it is possible to choose between them by editing the file {\tt test\_problems/Makefile}.
 Notice that test problems are not part of the library.
 The chosen test problem is compiled by typing
 \begin{verbatim}
@@ -138,104 +147,16 @@ make run
 on a terminal opened on the main HPMPC folder.
 
 
-\chapter{Basic API}
 
-In this chapter the basic API is presented. 
-It is intended to give accesso to the higher level routines in the library, namely the Riccati solver for the unconstrained problem (\ref{lqcp}), and the IP solver for the MPC problem (\ref{lmpc}).
+\chapter{High-level API}
+
+In this chapter the high-level API is presented. 
+It is intended to give accesso to the higher level routines in the library, namely the Riccati solver for the unconstrained problem (\ref{lqcp}), and the IPM solver for the MPC problem (\ref{lmpc}).
 
 For performance purposes, internally the library makes use of a packed matrix format, and routines are provided to convert to and from this packed format and standard column- and row-major orders.
 
-In this basic API, all matrices are passed using standard column- or row-major orders, and wrappers take care of the conversions.
-For the best performance, users may consider to skyp the wrappers and directly call the solvers using the packed matrix format.
-
-Furthermore, the library internally does not allocate static nor dynamic memory, since all work space has to be supplied from the extern.
-Again, wrappers take care of this, but at some performance expense, especially if dynamic memory has to be allocate and deallocated at each solver call.Notice that static memory allocation needs the knowledge of the problem instance size, so the wrapper has to be recompiled for different sizes.
-
-As a consequence, the each wrapper comes in 4 variants, for all combinations of static or dynamic memory allocation and comumn- or row major order.
-
-\section{Solvers for problem (\ref{lqcp})}
-
-The linear-quadratic control problem (\ref{lqcp}) is solved using a modified version of Riccati recursion, improving small-scale performance with respect to the classical version.
-
-\subsection{xxx\_order\_dynamic\_mem\_riccati\_wrapper\_init() } 
-where 'xxx' can be either 'c' (i.e. row-major) or 'fortran' (i.e. column-major) order.
-
-This routine allocates and returns dynamic memory, and converts all matrices into packed format.
-It returns 0 if execution went fine.
-
-Input arguments are, in the order
-\begin{description}
-\item[const int nx] number of states
-\item[const int nu] number of inputs
-\item[const int N] control horizon lenght
-\item[double *A] pointer to an array of doubles containing the $N$ matrices $A_n$ (each of size $n_x\times n_x$) stored one after the other.
-\item[double *B] pointer to an array of doubles containing the $N$ matrices $B_n$ (each of size $n_x\times n_u$) stored one after the other.
-\item[double *b] pointer to an array of doubles containing the $N$ vectors $b_n$ (each of size $n_x$) stored one after the other.
-\item[double *Q] pointer to an array of doubles containing the $N$ matrices $Q_n$ (each of size $n_x\times n_x$) stored one after the other.
-\item[double *Qf] pointer to an array of doubles containing the matrix $Q_f$ (of size $n_x\times n_x$).
-\item[double *S] pointer to an array of doubles containing the $N$ matrices $S_n$ (each of size $n_u\times n_x$) stored one after the other.
-\item[double *R] pointer to an array of doubles containing the $N$ matrices $R_n$ (each of size $n_u\times n_u$) stored one after the other.
-\item[double *q] pointer to an array of doubles containing the $N$ vectors $q_n$ (each of size $n_x$) stored one after the other.
-\item[double *qf] pointer to an array of doubles containing the vector $q_f$ (of size $n_x$).
-\item[double *r] pointer to an array of doubles containing the $N$ vectors $r_n$ (each of size $n_u$) stored one after the other.
-\item[double **ptr\_work] address of the pointer to an array of doubles, used to return the memory dynamically allocated by the routine, and containing the packed matrices.
-\end{description}
-
-
-\subsection{xxx\_order\_dynamic\_mem\_riccati\_wrapper\_free() } 
-where 'xxx' can be either 'c' (i.e. row-major) or 'fortran' (i.e. column-major) order.
-
-This routine frees the dynamic memory allocated by the init routine.
-It returns 0 if execution went fine.
-
-Input arguments are, in the order
-\begin{description}
-\item[double *work] pointer to the memory to be deallocated.
-\end{description}
-
-
-\subsection{xxx\_order\_dynamic\_mem\_riccati\_wrapper\_fact\_solve() } 
-where 'xxx' can be either 'c' (i.e. row-major) or 'fortran' (i.e. column-major) order.
-
-This routine factorizes the KKT matrix and solves the KKT system using a modified Riccati recursion.
-The data in packed matrix format has to be initialized beforehand by the init routine, and it is passed in the work space.
-After execution, the data in the factorized KKT matrix is passed in the work space.
-It returns 0 if execution went fine.
-
-Input arguments are, in the order
-\begin{description}
-\item[const int nx] number of states
-\item[const int nu] number of inputs
-\item[const int N] control horizon lenght
-\item[double *x] pointer to an array of doubles containing the $N+1$ states vectors $x_n$ (each of size $n_x$) stored one after the other. On input, $x_0$ must contain the initial state. On output, it contains the optimal states sequence.
-\item[double *u] pointer to an array of doubles containing the $N$ inputs vectors $u_n$ (each of size $n_u$) stored one after the other. On output, it contains the optimal inputs sequence.
-\item[double *pi] pointer to an array of doubles containing the $N+1$ equality constraints Lagrangian multipliers vectors $\pi_n$ (each of size $n_x$) stored one after the other. On output, it contains the optimal multipliers sequence.
-\item[double *work] pointer to an array of doubles, as previously allocated and initialized by the init routine. On output, it contains information about the factorized KKT matrix.
-\end{description}
-
-
-\subsection{xxx\_order\_dynamic\_mem\_riccati\_wrapper\_solve() } 
-where 'xxx' can be either 'c' (i.e. row-major) or 'fortran' (i.e. column-major) order.
-
-This routine solves the KKT system using a modified Riccati recursion, reusing a previous factorization of the KKT system.
-It is used to solve several KKT systems with the same LHS matrix, but different RHS vector, without factorizing the KKT matrix again, as e.g. in predictor corrector interior-point methods, or in mixed precision algorithms.
-The data in packed matrix format has to be initialized beforehand by the init routine, and the KKT matrix factorized by the fact routine, and both are passed in the work space.
-It returns 0 if execution went fine.
-
-Input arguments are, in the order
-\begin{description}
-\item[const int nx] number of states
-\item[const int nu] number of inputs
-\item[const int N] control horizon lenght
-\item[double *b] pointer to an array of doubles containing the $N$ vectors $b_n$ (each of size $n_x$) stored one after the other.
-\item[double *q] pointer to an array of doubles containing the $N$ vectors $q_n$ (each of size $n_x$) stored one after the other.
-\item[double *qf] pointer to an array of doubles containing the vector $q_f$ (of size $n_x$).
-\item[double *r] pointer to an array of doubles containing the $N$ vectors $r_n$ (each of size $n_u$) stored one after the other.
-\item[double *x] pointer to an array of doubles containing the $N+1$ states vectors $x_n$ (each of size $n_x$) stored one after the other. On input, $x_0$ must contain the initial state. On output, it contains the optimal states sequence.
-\item[double *u] pointer to an array of doubles containing the $N$ inputs vectors $u_n$ (each of size $n_u$) stored one after the other. On output, it contains the optimal inputs sequence.
-\item[double *pi] pointer to an array of doubles containing the $N+1$ equality constraints Lagrangian multipliers vectors $\pi_n$ (each of size $n_x$) stored one after the other. On output, it contains the optimal multipliers sequence.
-\item[double *work] pointer to an array of doubles, as previously allocated and initialized by the init routine. On input, it must contain information about the factorized KKT matrix as given by the fact routine.
-\end{description}
+In this high-level API, all matrices are passed using standard column- or row-major orders, and wrappers take care of the conversions.
+For the best performance, users may consider to skip the wrappers and directly call the solvers using the packed matrix format (low-level API).
 
 
 
@@ -246,6 +167,8 @@ The library has undergone several revisions before being published, and some of 
 \begin{itemize}
 \item G. Frison, H.H.B. S{\o}rensen, B. Dammann, J.B. J{\o}rgensen, \emph{ High-Performance Small-Scale Solvers for Linear Model Predictive Control}, in proceedings of 13th European Control Conference, Strasbourg (France), 2014.
 \item G. Frison, L.E. Sokoler, J.B. J{\o}rgensen, \emph{A Family of High-Performance Solvers for Linear Model Predictive Control}, in proceedings of 19th IFAC World Congress, Cape Town (South Africa), 2014.
+\item G. Frison, D.K.M. Kufualor, L. Imsland, J.B. J{\o}rgensen, \emph{Efficient Implementation of Solvers for Linear Model Predictive Control on Embedded Devices}, in proceedings of IEEE Multi-conference on Systems and Control, Antibes (France), 2014.
+\item G. Frison, J.B. J{\o}rgensen, \emph{MPC Related Computational Capabilities of ARMv7A Processors}, in proceedings of 14th European Control Conference, Linz (Austria), 2015.
 \end{itemize}
 
 
