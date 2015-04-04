@@ -1892,6 +1892,15 @@ void dtrmv_u_n_lib(int m, double *pA, int sda, double *x, double *y, int alg)
 	int j;
 	
 	j=0;
+#if defined(TARGET_X64_AVX2)
+	for(; j<m-11; j+=12)
+		{
+		kernel_dtrmv_u_n_12_lib4(m-j, pA, sda, x, y, alg);
+		pA += 3*sda*bs + 3*4*bs;
+		x  += 3*bs;
+		y  += 3*bs;
+		}
+#endif
 	for(; j<m-7; j+=8)
 		{
 		kernel_dtrmv_u_n_8_lib4(m-j, pA, sda, x, y, alg);
@@ -1937,6 +1946,14 @@ void dtrmv_u_t_lib(int m, double *pA, int sda, double *x, double *y, int alg)
 	double *ptrA;
 	
 	j=0;
+#if defined(TARGET_X64_AVX2)
+	for(; j<m-11; j+=12)
+		{
+		kernel_dtrmv_u_t_12_lib4(j, pA, sda, x, y, alg);
+		pA += 3*4*bs;
+		y  += 3*bs;
+		}
+#endif
 	for(; j<m-7; j+=8)
 		{
 		kernel_dtrmv_u_t_8_lib4(j, pA, sda, x, y, alg);
