@@ -81,6 +81,7 @@ void kernel_dtrmv_u_t_8_lib4(int kmax, double *A, int sda, double *x, double *y,
 void kernel_dtrmv_u_t_4_lib4(int kmax, double *A, int sda, double *x, double *y, int alg);
 void kernel_dtrmv_u_t_2_lib4(int kmax, double *A, int sda, double *x, double *y, int alg);
 void kernel_dtrmv_u_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, int alg);
+void kernel_dtrmv_u_n_12_lib4(int kmax, double *A0, int sda, double *x, double *y, int alg);
 void kernel_dtrmv_u_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y, int alg);
 void kernel_dtrmv_u_n_4_lib4(int kmax, double *A, double *x, double *y, int alg);
 void kernel_dtrmv_u_n_2_lib4(int kmax, double *A, double *x, double *y, int alg);
