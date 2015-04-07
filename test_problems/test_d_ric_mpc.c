@@ -445,34 +445,42 @@ int main()
 ************************************************/
 		
 #if 0
+		double *dA; d_zeros_align(&dA, pnx, 1);
+		for(ii=0; ii<nx; ii++) dA[ii] = 1.0;
+
 		double *pBt; d_zeros_align(&pBt, pnu, cnx);
 		d_cvt_tran_mat2pmat(nx, nu, 0, bs, B, nx, pBt, cnx);
 		//d_print_mat(nx, nu, B, nx);
 		//d_print_pmat(nu, nx, bs, pBt, cnx);
 
 		double *pR; d_zeros_align(&pR, pnx, cnu);
-		d_cvt_tran_mat2pmat(nu, nu, 0, bs, Q, nz, pR, cnu);
+		d_cvt_tran_mat2pmat(nu, nu, 0, bs, Q, pnz, pR, cnu);
 		//d_print_pmat(nu, nu, bs, pR, cnu);
 
 		double *pQx; d_zeros_align(&pQx, pnx, cnx);
-		d_cvt_tran_mat2pmat(nx, nx, 0, bs, Q+nu*(nz+1), nz, pQx, cnx);
+		d_cvt_tran_mat2pmat(nx, nx, 0, bs, Q+nu*(pnz+1), pnz, pQx, cnx);
 		//d_print_pmat(nx, nx, bs, pQx, cnx);
 
 		double *pS; d_zeros_align(&pS, pnu, cnx);
+		//for(ii=0; ii<pnu*cnx; ii++) pS[ii] = 1.0;
 
 		double *work_eye; d_zeros_align(&work_eye, pnu*cnx+pnx*cnu+pnx*cnu, 1);
 
 
+		double *(hdA[N]);
 		double *(hpBt[N]);
 		double *(hpP[N+1]);
+		double *(hpLK[N+1]);
 		double *(hpR[N]);
 		double *(hpQx[N+1]);
 		double *(hpS[N]);
 
 		for(ii=0; ii<N; ii++)
 			{
+			hdA[ii] = dA;
 			hpBt[ii] = pBt;
 			d_zeros_align(&hpP[ii], pnx, cnx);
+			d_zeros_align(&hpLK[ii], pnu+pnx, cnu);
 			hpR[ii] = pR;
 			hpQx[ii] = pQx;
 			hpS[ii] = pS;
@@ -480,7 +488,8 @@ int main()
 		d_zeros_align(&hpP[N], pnx, cnx);
 		hpQx[N] = pQx;
 
-		d_ric_eye_sv_mpc(nx, nu, N, hpBt, hpR, hpS, hpQx, hpL, hpP, work_eye, diag);
+		//d_ric_eye_sv_mpc(nx, nu, N, hpBt, hpR, hpS, hpQx, hpL, hpP, work_eye, diag);
+		d_ric_diag_trs_mpc(nx, nu, N, hdA, hpBt, hpR, hpS, hpQx, hpLK, hpP, work_eye, diag);
 
 		d_print_pmat(nx, nx, bs, hpP[0], cnx);
 		d_print_pmat(nx, nx, bs, hpP[1], cnx);

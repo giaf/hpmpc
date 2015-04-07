@@ -360,7 +360,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dsyrk_lib(n, n, n, pE, cnd2, pE, cnd2, pD, cnd, pE+(n+pad)*bsd, cnd2, 1);
+			dsyrk_nt_lib(n, n, n, pE, cnd2, pE, cnd2, pD, cnd, pE+(n+pad)*bsd, cnd2, 1);
 			dpotrf_lib(n, n, pE+(n+pad)*bsd, cnd2, pE+(n+pad)*bsd, cnd2, diag);
 			//d_print_pmat(pnd, cnd2, bsd, pE, cnd2);
 			//exit(1);

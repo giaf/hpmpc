@@ -116,7 +116,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		}
 	else
 		{
-		dsyrk_lib(nx+nu%bs+1, nx+nu%bs, ngN, work+(nu/bs)*bs*cngN, cngN, work+(nu/bs)*bs*cngN, cngN, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, 1);
+		dsyrk_nt_lib(nx+nu%bs+1, nx+nu%bs, ngN, work+(nu/bs)*bs*cngN, cngN, work+(nu/bs)*bs*cngN, cngN, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, 1);
 		dpotrf_lib(nx+nu%bs+1, nx+nu%bs, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, diag);
 		}
 #if 0
@@ -182,7 +182,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 			}
 		else
 			{
-			dsyrk_lib(nz, nu+nx, nx+ng, work, cnxg, work, cnxg, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, 1);
+			dsyrk_nt_lib(nz, nu+nx, nx+ng, work, cnxg, work, cnxg, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, 1);
 			dpotrf_lib(nz, nu+nx, hpL[N-nn-1], cnl, hpL[N-nn-1], cnl, diag);
 			}
 #if 0
@@ -342,11 +342,104 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 
 
 
+// version exploiting the fact that A is the diagonal of a matrix
+// L = chol(R + B'*P*B)
+// K = (diag(A)'*P*B)\L
+// P = Q + diag(A')*P*diag(A) + K*K'
+void d_ric_diag_trs_mpc(int nx, int nu, int N, double **hA, double **hpBt, double **hpR, double **hpSt, double **hpQ, double **hpL, double **hpP, double *work, double *diag_work)
+	{
+
+	const int bs = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+//	const int nal = bs*ncl; // number of doubles per cache line
+	
+//	const int nz   = nx+nu+1;
+//	const int anz  = nal*((nz+nal-1)/nal);
+//	const int pnz  = bs*((nz+bs-1)/bs);
+//	const int pnx  = bs*((nx+bs-1)/bs);
+	const int pnu  = bs*((nu+bs-1)/bs);
+//	const int pnb  = bs*((nb+bs-1)/bs);
+//	const int png  = bs*((ng+bs-1)/bs);
+//	const int pngN = bs*((ngN+bs-1)/bs);
+//	const int cnz  = ncl*((nz+ncl-1)/ncl);
+	const int cnu  = ncl*((nu+ncl-1)/ncl);
+	const int cnx  = ncl*((nx+ncl-1)/ncl);
+//	const int cng  = ncl*((ng+ncl-1)/ncl);
+//	const int cngN = ncl*((ngN+ncl-1)/ncl);
+//	const int cnxg = ncl*((ng+nx+ncl-1)/ncl);
+
+//	const int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
+
+	// number of general constraints TODO
+	//const int ng = 0;
+
+//	int nu_m = (nu/bs)*bs;
+//	int nu_r = nu%bs;
+
+	int ii, jj, ll, nn;
+
+	//double temp;
+
+	//double *pPB, *pPBt, *pK;
+
+//	pPB = work;
+//	work += pnx*cnu;
+
+//	pPBt = work;
+//	work += pnu*cnx;
+
+//	pK = work;
+//	work += pnx*cnu;
+
+	// last stage: inintialize P with Q_N
+	d_copy_pmat(nx, nx, bs, hpQ[N], cnx, hpP[N], cnx);
+	//d_print_pmat(nx, nx, bs, hpQ[N], cnx);
+
+	// factorization and backward substitution 
+	for(nn=0; nn<N; nn++)
+		{
+		// PB = P*(B')'
+		dgemm_nt_lib(nx, nu, nx, hpP[N-nn], cnx, hpBt[N-nn-1], cnx, hpL[N-nn-1]+pnu*cnu, cnu, hpL[N-nn-1]+pnu*cnu, cnu, 0, 0, 0);
+		//d_print_pmat(nx, nx, bs, hpP[N-nn], cnx);
+		//d_print_pmat(nu, nx, bs, hpBt[N-nn-1], cnx);
+		//d_print_pmat(pnu+nx, nu, bs, hpL[N-nn-1], cnu);
+
+		dsyrk_nn_lib(nu, nu, nx, hpBt[N-nn-1], cnx, hpL[N-nn-1]+pnu*cnu, cnu, hpR[N-nn-1], cnu, hpL[N-nn-1], cnu, 1);
+		//d_print_pmat(nu, nu, bs, hpQ[N-nn-1], cnu);
+		//d_print_pmat(pnu+nx, nu, bs, hpL[N-nn-1], cnu);
+
+		dgemm_diag_left_lib(nx, nu, hA[N-nn-1], hpL[N-nn-1]+pnu*cnu, cnu, hpSt[N-nn-1], cnu, hpL[N-nn-1]+pnu*cnu, cnu, 1);
+		//d_print_pmat(pnu+nx, nu, bs, hpL[N-nn-1], cnu);
+
+		dpotrf_lib(pnu+nx, nu, hpL[N-nn-1], cnu, hpL[N-nn-1], cnu, diag_work);
+		//d_print_pmat(pnu+nx, nu, bs, hpL[N-nn-1], cnu);
+
+		dsyrk_diag_left_right_lib(nx, hA[N-nn-1], hA[N-nn-1], hpP[N-nn], cnx, hpQ[N-nn-1], cnx, hpP[N-nn-1], cnx, 1);
+		//d_print_mat(1, nx, hA[N-nn-1], 1);
+		//d_print_pmat(nx, nx, bs, hpP[N-nn], cnx);
+		//d_print_pmat(nx, nx, bs, hpQ[N-nn-1], cnx);
+		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
+
+		dsyrk_nt_lib(nx, nx, nu, hpL[N-nn-1]+pnu*cnu, cnu, hpL[N-nn-1]+pnu*cnu, cnu, hpP[N-nn-1], cnx, hpP[N-nn-1], cnx, -1);
+		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
+
+		dtrtr_l_lib(nx, 0, hpP[N-nn-1], cnx, hpP[N-nn-1], cnx);	
+		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
+
+		//exit(1);
+
+
+		}
+		
+	}
+
+
+
 // version exploiting A=I
 // L = chol(R + B'*P*B)
 // K = (P*B)\L
 // P = Q + P + K*K'
-void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double **hpS, double **hpQ, double **hpL, double **hpP, double *work, double *diag)
+void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double **hpSt, double **hpQ, double **hpL, double **hpP, double *work, double *diag)
 	{
 
 	const int bs = D_MR; //d_get_mr();
@@ -415,12 +508,12 @@ void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double
 
 		// R + PBt*B'
 		//dgemm_nt_lib(nu, nu, nx, pPBt, cnx, hpBt[N-nn-1], cnx, hpL[N-nn-1], cnu, 0);
-		dsyrk_lib(nu, nu, nx, pPBt, cnx, hpBt[N-nn-1], cnx, hpR[N-nn-1], cnu, hpL[N-nn-1], cnu, 1);
+		dsyrk_nt_lib(nu, nu, nx, pPBt, cnx, hpBt[N-nn-1], cnx, hpR[N-nn-1], cnu, hpL[N-nn-1], cnu, 1);
 		//d_print_pmat(nu, nu, bs, hpL[N-nn-1], cnu);
 		//exit(1);
 
 		// S + PBt
-		for(ii=0; ii<pnu*cnx; ii++) pPBt[ii] = pPBt[ii] + hpS[N-nn-1][ii]; // TODO routine for this
+		for(ii=0; ii<pnu*cnx; ii++) pPBt[ii] = pPBt[ii] + hpSt[N-nn-1][ii]; // TODO routine for this
 		//d_print_pmat(nu, nx, bs, pPBt, cnx);
 		//exit(1);
 
@@ -444,7 +537,7 @@ void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double
 		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
 
 		// TODO if nu small, low-rank update
-		dsyrk_lib(nx, nx, nu, pK, cnu, pK, cnu, hpP[N-nn-1], cnx, hpP[N-nn-1], cnx, -1);
+		dsyrk_nt_lib(nx, nx, nu, pK, cnu, pK, cnu, hpP[N-nn-1], cnx, hpP[N-nn-1], cnx, -1);
 		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
 
 		// copy lower triangular to upper triangular
@@ -1121,7 +1214,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		//d_print_pmat(ny, nx, bs, CL, cnx);
 
 		// compute R + (C*U')*(C*U')' on the top left of Lam
-		dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[ii], cny, hpLe[ii], cnf, 1);
+		dsyrk_nt_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[ii], cny, hpLe[ii], cnf, 1);
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 		// recover overwritten part of /Pi_p in bottom right part of Lam
@@ -1181,7 +1274,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[ii+1], cnl);
 
 		// compute /Pi_p
-		dsyrk_lib(nx, nx, nx+nw, hpLp[ii+1], cnl, hpLp[ii+1], cnl, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, 0);
+		dsyrk_nt_lib(nx, nx, nx+nw, hpLp[ii+1], cnl, hpLp[ii+1], cnl, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, 0);
 		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[ii+1], cnl);
 		//d_print_pmat(nx, nx, bs, hpLp[ii+1]+(nx+nw+pad)*bs, cnl);
 
@@ -1228,7 +1321,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	//d_print_pmat(ny, nx, bs, CL, cnx);
 
 	// compute R + (C*U')*(C*U')' on the top left of Lam
-	dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[N], cny, hpLe[N], cnf, 1);
+	dsyrk_nt_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[N], cny, hpLe[N], cnf, 1);
 	//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 	// recover overwritten part of I in bottom right part of Lam
@@ -1359,7 +1452,7 @@ void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hp
 		//d_print_pmat(nx, nw, bs, GLam_w, cnw);
 
 		// compute GQGt
-		dsyrk_lib(nx, nx, nw, GLam_w, cnw, GLam_w, cnw, GQGt, cnx, GQGt, cnx, 0);
+		dsyrk_nt_lib(nx, nx, nw, GLam_w, cnw, GLam_w, cnw, GQGt, cnx, GQGt, cnx, 0);
 		//d_print_pmat(nx, nx, bs, GQGt, cnx);
 		//d_print_pmat(nx, nx, bs, hpLp[ii+1]+(nx+nw+pad)*bs, cnl);
 
@@ -1426,8 +1519,8 @@ void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hp
 	//d_print_pmat(ny, nx, bs, CL, cnx);
 
 	// compute R + (C*U')*(C*U')' on the top left of hpLe
-	dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[N], cny, hpLe[N], cnf, 1);
-	//dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[N], cny, Lam, cnz, 1);
+	dsyrk_nt_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[N], cny, hpLe[N], cnf, 1);
+	//dsyrk_nt_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[N], cny, Lam, cnz, 1);
 	//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 	// recover overwritten part of I in bottom right part of hpLe
@@ -1542,7 +1635,7 @@ void d_ric_trf_mhe_test(int nx, int nw, int ny, int N, double **hpA, double **hp
 		//d_print_pmat(ny, nx, bs, CL, cnx);
 
 		// compute R + (C*U')*(C*U')' on the top left of Lam
-		dsyrk_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[ii], cny, Lam, cnz, 1);
+		dsyrk_nt_lib(ny, ny, nx, CL, cnx, CL, cnx, hpR[ii], cny, Lam, cnz, 1);
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 		// copy C*U' on the bottom left of Lam

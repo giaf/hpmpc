@@ -103,8 +103,8 @@ int main()
 	double *pE; d_zeros_align(&pE, pn, cn2);
 	double *diag; d_zeros_align(&diag, pn, 1);
 	
-	d_cvt_mat2pmat(n, n, 0, bs, A, n, pA, pn);
-	d_cvt_mat2pmat(n, n, 0, bs, B, n, pB, pn);
+	d_cvt_mat2pmat(n, n, 0, bs, A, n, pA, cn);
+	d_cvt_mat2pmat(n, n, 0, bs, B, n, pB, cn);
 /*	s_cvt_mat2pmat(n, n, 0, bss, sA, n, spA, pns);*/
 /*	s_cvt_mat2pmat(n, n, 0, bss, sB, n, spB, pns);*/
 	s_cvt_mat2pmat(n, n, 0, bs, B, n, pD, cn);
@@ -115,6 +115,8 @@ int main()
 	
 	pA[0] = -1;
 	x[2] = 1;
+	for(i=0; i<n; i++) x[i] = i;
+	for(i=0; i<n; i++) y[i] = 1;
 
 /*	for(i=0; i<pn*pn; i++) pC[i] = -1;*/
 /*	for(i=0; i<pn*pn; i++) spC[i] = -1;*/
@@ -134,6 +136,8 @@ int main()
 	d_print_pmat(pn, pn, bs, pB, cn);
 	d_print_pmat(pn, pn, bs, pC, cn);
 	//d_print_pmat(pn, pn, bs, pD, cn);
+	d_print_mat(1, n, x, 1);
+	d_print_mat(1, n, y, 1);
 
 	/* timing */
 	struct timeval tv0, tv1;
@@ -145,7 +149,11 @@ int main()
 		{
 
 //		dgemm_nt_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0, 0, 0);
-		dsyrk_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
+//		dgemm_nn_lib(n, n, n, pB, cn, pA, cn, pC, cn, pD, cn, 0, 0, 0);
+//		dsyrk_nt_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
+//		dsyrk_nn_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
+//		dgemm_diag_left_lib(n, n, x, pA, cn, pC, cn, pD, cn, 0);
+		dsyrk_diag_left_right_lib(n, x, x, pA, cn, pC, cn, pD, cn, 0);
 //		dtrmm_l_lib(n, n, pA, cn, pB, cn, pD, cn);
 //		dgemm_nt_lib(13, n, n, pA, pn, pB, pn, pC, pn, 0);
 /*		dgemm_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
