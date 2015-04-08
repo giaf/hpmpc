@@ -541,11 +541,27 @@ int main()
 		d_zeros_align(&hpLe[N], pnz, cnf);
 		hr[N] = r;
 
-		double *pCtRC; d_zeros_align(&pCtRC, pnx, cnx);
+		// equality constraints on the states at the last stage
+		int ndN = 2;
+		double *D; d_zeros(&D, ndN, nx);
+		D[0+ndN*0] = 1;
+		D[1+ndN*(nx-1)] = 1;
+		double *d; d_zeros_align(&d, ndN, 1);
+		d[0] = 1;
+		d[1] = 0;
+		const int pnxdN = bs*((nx+ndN+bs-1)/bs);
+		double *pCtRC; d_zeros_align(&pCtRC, pnxdN, cnx);
 		d_cvt_mat2pmat(ny, ny, 0, bs, R, ny, pCtRC, cnx);
+		d_cvt_mat2pmat(ndN, nx, nx, bs, D, ndN, pCtRC+nx/bs*bs*cnx+nx%bs, cnx);
+		d_print_pmat(nx+ndN, nx, bs, pCtRC, cnx);
 		hpRA[N] = pCtRC; // there is not A_N
-		d_zeros_align(&hpALe[N], pnx, cnx2); // there is not A_N: pnx not pnx2
+		d_zeros_align(&hpALe[N], pnxdN, cnx2); // there is not A_N: pnx not pnx2
 		hrr[N] = p_hrr+N*anx;
+		const int pndN = bs*((ndN+bs-1)/bs);
+		const int cndN = ncl*((ndN+ncl-1)/ncl);
+		double *Ld; d_zeros_align(&Ld, pndN, cndN);
+		double *lamd; d_zeros_align(&lamd, pndN, 1);
+		double *d_res; d_zeros_align(&d_res, pndN, 1);
 
 		hxe[N] = p_hxe+N*anx; //d_zeros_align(&hxe[N], anx, 1);
 		hxp[N] = p_hxp+N*anx; //d_zeros_align(&hxp[N], anx, 1);
@@ -631,7 +647,7 @@ int main()
 		//d_print_mat(nw, N, hw[0], anw);
 
 		// information filter - factorization
-		d_ric_trf_mhe_if(nx, nw, N, hpRA, hpQG, hpALe, hpGLq, work3);
+		d_ric_trf_mhe_if(nx, nw, ndN, N, hpRA, hpQG, hpALe, hpGLq, Ld, work3);
 
 		// information filter - solution
 		double *y_temp; d_zeros_align(&y_temp, any, 1);
@@ -648,7 +664,7 @@ int main()
 			//if(ii==9)
 			//exit(1);
 			}
-		d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLq, hrr, hqq, hff, hxp, hxe, hw, hlam, work3);
+		d_ric_trs_mhe_if(nx, nw, ndN, N, hpALe, hpGLq, Ld, hrr, hqq, hff, d, hxp, hxe, hw, hlam, lamd, work3);
 		//d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 1, hlam, work);
 
 		//d_print_pmat(nx, nx, bs, hpALe[N-1], cnx2);
@@ -676,12 +692,13 @@ int main()
 		double *x_temp; d_zeros_align(&x_temp, anx, 1);
 		dtrmv_u_t_lib(nx, pL0_inv, cnx, x0, x_temp, 0);
 		dtrmv_u_n_lib(nx, pL0_inv, cnx, x_temp, p0, 0);
-		d_res_mhe_if(nx, nw, N, hpRA, hpQG, pL0_inv, hrr, hqq, hff, p0, hxe, hw, hlam, hr_res, hq_res, hf_res, work4);
+		d_res_mhe_if(nx, nw, ndN, N, hpRA, hpQG, pL0_inv, hrr, hqq, hff, p0, d, hxe, hw, hlam, lamd, hr_res, hq_res, hf_res, d_res, work4);
 
 		printf("\nprint residuals\n\n");
 		d_print_mat(nx, N+1, hr_res[0], anx);
 		d_print_mat(nw, N, hq_res[0], anw);
 		d_print_mat(nx, N, hf_res[0], anx);
+		d_print_mat(ndN, 1, d_res, 1);
 
 		return 0;
 		//exit(1);
@@ -761,7 +778,7 @@ int main()
 		// factorize information filter
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_trf_mhe_if(nx, nw, N, hpRA, hpQG, hpALe, hpGLq, work3);
+			d_ric_trf_mhe_if(nx, nw, N, 0, hpRA, hpQG, hpALe, hpGLq, Ld, work3);
 			}
 
 		gettimeofday(&tv5, NULL); // start
@@ -769,7 +786,7 @@ int main()
 		// factorize information filter
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLq, hrr, hqq, hff, hxp, hxe, hw, hlam, work3);
+			d_ric_trs_mhe_if(nx, nw, ndN, N, hpALe, hpGLq, Ld, hrr, hqq, hff, d, hxp, hxe, hw, hlam, lamd, work3);
 			}
 
 		gettimeofday(&tv6, NULL); // start

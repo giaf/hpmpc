@@ -73,7 +73,7 @@ void d_res_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hq
 
 
 
-void d_res_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double *L0_inv, double **hq, double **hr, double **hf, double *p0, double **hx, double **hw, double **hlam, double **hrq, double **hrr, double **hrf, double *work)
+void d_res_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpRG, double *L0_inv, double **hq, double **hr, double **hf, double *p0, double *d, double **hx, double **hw, double **hlam, double *lamd, double **hrq, double **hrr, double **hrf, double *rd, double *work)
 	{
 	
 	const int bs = D_MR; //d_get_mr();
@@ -91,10 +91,10 @@ void d_res_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double *L
 
 	double *x_temp; x_temp = ptr; //d_zeros_align(&x_temp, 2*anx, 1);
 	//double *x_temp; d_zeros_align(&x_temp, 2*anx, 1);
-	ptr += 2*anx;
+	ptr += 2*anx; // assume nx >= ndN !!!!!
 	double *x_temp2; x_temp2 = ptr; //d_zeros_align(&x_temp, 2*anx, 1);
 	//double *x_temp2; d_zeros_align(&x_temp2, 2*anx, 1);
-	ptr += 2*anx;
+	ptr += 2*anx; // assume nx >= ndN !!!!!
 
 	double *wx_temp; wx_temp = ptr; //d_zeros_align(&wx_temp, anw+anx, 1); // TODO too large 
 	//double *wx_temp; d_zeros_align(&wx_temp, anw+anx, 1); // TODO too large 
@@ -161,8 +161,24 @@ void d_res_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double *L
 	
 	// last stage
 	for(jj=0; jj<nx; jj++) hrq[N][jj] = hq[N][jj] - hlam[N-1][jj];
-	dsymv_lib(nx, nx, hpQA[N], cnx, hx[N], hrq[N], 1);
-	//d_print_mat(1, nx, hrr[N], 1);
+	if(ndN<=0)
+		{
+		dsymv_lib(nx, nx, hpQA[N], cnx, hx[N], hrq[N], 1);
+		}
+	else
+		{
+		for(jj=0; jj<nx; jj++) x_temp[jj] = hx[N][jj];
+		for(jj=0; jj<ndN; jj++) x_temp[nx+jj] = lamd[jj];
+		for(jj=0; jj<nx; jj++) x_temp2[jj] = hrq[N][jj];
+		for(jj=0; jj<ndN; jj++) x_temp2[nx+jj] = - d[jj];
+		dsymv_lib(nx+ndN, nx, hpQA[N], cnx, x_temp, x_temp2, 1);
+		for(jj=0; jj<nx; jj++) hrq[N][jj] = x_temp2[jj];
+		for(jj=0; jj<ndN; jj++) rd[jj] = x_temp2[nx+jj];
+		}
+	//d_print_mat(1, nx, hrq[N], 1);
+	//d_print_mat(1, ndN, rd, 1);
+	//d_print_pmat(nx+ndN, nx, bs, hpQA[N], cnx);
+	//exit(1);
 
 	//free(x_temp);
 	//free(x_temp2);

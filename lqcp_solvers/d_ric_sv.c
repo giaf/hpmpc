@@ -611,7 +611,7 @@ void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double
 
 
 // information filter version
-int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double **hpALe, double **hpGLr, double *work)
+int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpRG, double **hpALe, double **hpGLr, double *Ld, double *work)
 	{
 
 	const int bs = D_MR; //d_get_mr();
@@ -695,13 +695,25 @@ int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double
 
 	//d_print_pmat(nx, nx, bs, GLrALeLp+(nx+nw+pad)*bs, cnl);
 	//dtsyrk_dpotrf_lib(nx, nx, nx, hpALe[N], cnx2, hpQA[N], cnx, diag, 1);
-	dtsyrk_dpotrf_lib(nx, nx, nx, hpALe[N], cnx2, hpQA[N], cnx, hpALe[N]+(cnx)*bs, cnx2, diag, 1);
-	//d_print_pmat(nx, cnx2, bs, hpALe[ii], cnx2);
+	dtsyrk_dpotrf_lib(nx+ndN, nx, nx, hpALe[N], cnx2, hpQA[N], cnx, hpALe[N]+(cnx)*bs, cnx2, diag, 1);
+	//d_print_pmat(nx+ndN, cnx2, bs, hpALe[ii], cnx2);
+
 	// copy reciprocal of diagonal
 	for(jj=0; jj<nx; jj++) 
 		{
 		diag_min = fmin(diag_min, diag[jj]);
 		hpALe[N][cnx*bs+(jj/bs)*bs*cnx2+jj%bs+jj*bs] = diag[jj]; 
+		}
+
+	// equality constraints at the last stage
+	if(ndN>0)
+		{
+		d_align_pmat(ndN, nx, nx, bs, hpALe[ii]+cnx*bs, cnx2, GLrALeLp, cnl);
+
+		int cndN = ncl*((ndN+ncl-1)/ncl);
+		dsyrk_dpotrf_lib(ndN, ndN, nx, GLrALeLp, cnl, Ld, cndN, Ld, cndN, diag, 0, 0);
+		for(jj=0; jj<ndN; jj++) Ld[jj/bs*bs*cndN+jj%bs+jj*bs] = diag[jj];
+		//d_print_pmat(ndN, ndN, bs, Ld, cndN);
 		}
 
 	if(diag_min==0.0)
@@ -716,7 +728,7 @@ int d_ric_trf_mhe_if(int nx, int nw, int N, double **hpQA, double **hpRG, double
 
 
 // information filter version
-void d_ric_trs_mhe_if(int nx, int nw, int N, double **hpALe, double **hpGLr, double **hq, double **hr, double **hf, double **hxp, double **hx, double **hw, double **hlam, double *work)
+void d_ric_trs_mhe_if(int nx, int nw, int ndN, int N, double **hpALe, double **hpGLr, double *Ld, double **hq, double **hr, double **hf, double *d, double **hxp, double **hx, double **hw, double **hlam, double *lamd, double *work)
 	{
 
 	//printf("\nin solver\n");
@@ -736,7 +748,7 @@ void d_ric_trs_mhe_if(int nx, int nw, int N, double **hpALe, double **hpGLr, dou
 	double *ptr = work;
 
 	double *x_temp; x_temp = ptr; //d_zeros_align(&x_temp, 2*anx, 1);
-	ptr += 2*anx;
+	ptr += 2*anx; // assume ndN <= nx !!!!!
 
 	double *wx_temp; wx_temp = ptr; //d_zeros_align(&wx_temp, anw+anx, 1); // TODO too large 
 	ptr += anw+anx;
@@ -791,12 +803,42 @@ void d_ric_trs_mhe_if(int nx, int nw, int N, double **hpALe, double **hpGLr, dou
 	//d_print_mat(1, nx, hx[N], 1);
 
 	// backwars substitution
-	//d_print_pmat(nx, nx, bs, hpALe[N]+cnx*bs, cnx2); 
-	//d_print_mat(1, nx, hx[N], 1);
-	dtrsv_dgemv_n_lib(nx, nx, hpALe[N]+cnx*bs, cnx2, hx[N]);
-	//d_print_mat(1, nx, hx[N], 1);
-	dtrsv_dgemv_t_lib(nx, nx, hpALe[N]+cnx*bs, cnx2, hx[N]);
-	//d_print_mat(1, nx, hx[N], 1);
+	if(ndN<=0)
+		{
+		//d_print_pmat(nx, nx, bs, hpALe[N]+cnx*bs, cnx2); 
+		//d_print_mat(1, nx, hx[N], 1);
+		dtrsv_dgemv_n_lib(nx, nx, hpALe[N]+cnx*bs, cnx2, hx[N]);
+		//d_print_mat(1, nx, hx[N], 1);
+		dtrsv_dgemv_t_lib(nx, nx, hpALe[N]+cnx*bs, cnx2, hx[N]);
+		//d_print_mat(1, nx, hx[N], 1);
+		}
+	else
+		{
+		for(jj=0; jj<nx; jj++) x_temp[jj] = hx[N][jj];
+		for(jj=0; jj<ndN; jj++) x_temp[nx+jj] = d[jj];
+		//d_print_mat(1, nx+ndN, x_temp, 1);
+		dtrsv_dgemv_n_lib(nx, nx+ndN, hpALe[N]+cnx*bs, cnx2, x_temp);
+		//d_print_mat(1, nx+ndN, x_temp, 1);
+		//exit(1);
+
+		for(jj=0; jj<ndN; jj++) lamd[jj] = - x_temp[nx+jj];
+		int cndN = ncl*((ndN+ncl-1)/ncl);
+		//d_print_mat(1, ndN, d, 1);
+		//d_print_pmat(ndN, ndN, bs, Ld, cndN);
+		dtrsv_dgemv_n_lib(ndN, ndN, Ld, cndN, lamd);
+		//d_print_mat(1, ndN, d, 1);
+		dtrsv_dgemv_t_lib(ndN, ndN, Ld, cndN, lamd);
+		//d_print_mat(1, ndN, d, 1);
+		//exit(1);
+
+		for(jj=0; jj<ndN; jj++) x_temp[nx+jj] = lamd[jj];
+		dtrsv_dgemv_t_lib(nx, nx+ndN, hpALe[N]+cnx*bs, cnx2, x_temp);
+
+		for(jj=0; jj<nx; jj++) hx[N][jj] = x_temp[jj];
+		//d_print_mat(1, nx+ndN, x_temp, 1);
+		//exit(1);
+
+		}
 
 	for(ii=0; ii<N; ii++)
 		{
