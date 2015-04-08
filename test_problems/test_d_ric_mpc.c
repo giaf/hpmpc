@@ -448,6 +448,15 @@ int main()
 ************************************************/
 		
 #if 0
+
+		// size-varing
+		int nxx[N+1];
+		for(ii=0; ii<=N; ii++) nxx[ii] = nx;
+
+		int nuu[N];
+		for(ii=0; ii<N; ii++) nuu[ii] = nu;
+
+		// problem data
 		double *dA; d_zeros_align(&dA, pnx, 1);
 		for(ii=0; ii<nx; ii++) dA[ii] = 1.0;
 
@@ -472,6 +481,8 @@ int main()
 
 		double *qx; d_zeros_align(&qx, pnx, 1);
 		for(ii=0; ii<nx; ii++) qx[ii] = Q[nx+nu+(nu+ii)*pnz];
+
+		double *pK; d_zeros_align(&pK, pnx, cnu);
 
 		double *work_eye; d_zeros_align(&work_eye, pnu*cnx+pnx*cnu+pnx*cnu, 1);
 		double *work_diag; d_zeros_align(&work_diag, pnx, 1);
@@ -523,7 +534,7 @@ int main()
 				hx[ii][jj] = b[jj];
 
 		//d_ric_eye_sv_mpc(nx, nu, N, hpBt, hpR, hpS, hpQx, hpL, hpP, work_eye, diag);
-		d_ric_diag_trf_mpc(nx, nu, N, hdA, hpBt, hpR, hpS, hpQx, hpLK, hpP, diag);
+		d_ric_diag_trf_mpc(nxx, nuu, N, hdA, hpBt, hpR, hpS, hpQx, hpLK, pK, hpP, diag);
 
 		d_print_pmat(nx, nx, bs, hpP[0], cnx);
 		d_print_pmat(nx, nx, bs, hpP[1], cnx);
@@ -534,7 +545,7 @@ int main()
 		d_print_pmat(pnu+nx, nu, bs, hpLK[1], cnu);
 		d_print_pmat(pnu+nx, nu, bs, hpLK[N-1], cnu);
 
-		d_ric_diag_trs_mpc(nx, nu, N, hdA, hpBt, hpLK, hpP, hr, hqx, hu, hx, work_diag, 1, hPb, 1, hpi);
+		d_ric_diag_trs_mpc(nxx, nuu, N, hdA, hpBt, hpLK, hpP, hr, hqx, hu, hx, work_diag, 1, hPb, 1, hpi);
 
 		for(ii=0; ii<N; ii++)
 			d_print_mat(1, nu, hu[ii], 1);
