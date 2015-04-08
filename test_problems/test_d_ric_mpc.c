@@ -339,6 +339,9 @@ int main()
 //	d_print_mat(nx, nu, B, nx);
 //	d_print_mat(nx, 1, b, nx);
 //	d_print_mat(nx, 1, x0, nx);
+		
+		for(ii=0; ii<nx*nx; ii++) A[ii] = 0.0;
+		for(ii=0; ii<nx; ii++) A[ii*(nx+1)] = 1.0;
 	
 	/* packed */
 		double *BAb; d_zeros(&BAb, nx, nz);
@@ -441,7 +444,7 @@ int main()
 		double *work; d_zeros_align(&work, pnz, cnx);
 
 /************************************************
-* test of riccati_eye 
+* test of riccati_eye / diag
 ************************************************/
 		
 #if 0
@@ -464,7 +467,14 @@ int main()
 		double *pS; d_zeros_align(&pS, pnu, cnx);
 		//for(ii=0; ii<pnu*cnx; ii++) pS[ii] = 1.0;
 
+		double *r; d_zeros_align(&r, pnu, 1);
+		for(ii=0; ii<nu; ii++) r[ii] = Q[nx+nu+ii*pnz];
+
+		double *qx; d_zeros_align(&qx, pnx, 1);
+		for(ii=0; ii<nx; ii++) qx[ii] = Q[nx+nu+(nu+ii)*pnz];
+
 		double *work_eye; d_zeros_align(&work_eye, pnu*cnx+pnx*cnu+pnx*cnu, 1);
+		double *work_diag; d_zeros_align(&work_diag, pnx, 1);
 
 
 		double *(hdA[N]);
@@ -474,6 +484,10 @@ int main()
 		double *(hpR[N]);
 		double *(hpQx[N+1]);
 		double *(hpS[N]);
+		double *(hr[N]);
+		double *(hqx[N+1]);
+		double *(hu[N]);
+		double *(hx[N+1]);
 
 		for(ii=0; ii<N; ii++)
 			{
@@ -484,18 +498,49 @@ int main()
 			hpR[ii] = pR;
 			hpQx[ii] = pQx;
 			hpS[ii] = pS;
+			d_zeros_align(&hr[ii], pnu, 1);;
+			d_zeros_align(&hqx[ii], pnx, 1);;
+			d_zeros_align(&hu[ii], pnu, 1);
+			d_zeros_align(&hx[ii], pnx, 1);
 			}
 		d_zeros_align(&hpP[N], pnx, cnx);
 		hpQx[N] = pQx;
+		d_zeros_align(&hqx[N], pnx, 1);;
+		d_zeros_align(&hx[N], pnx, 1);
+
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nu; jj++)
+				hr[ii][jj] = r[jj];
+
+		for(ii=0; ii<=N; ii++)
+			for(jj=0; jj<nx; jj++)
+				hqx[ii][jj] = qx[jj];
+
+		hx[0][0] = 3.5;
+		hx[0][1] = 3.5;
+		for(ii=1; ii<=N; ii++)
+			for(jj=0; jj<nx; jj++)
+				hx[ii][jj] = b[jj];
 
 		//d_ric_eye_sv_mpc(nx, nu, N, hpBt, hpR, hpS, hpQx, hpL, hpP, work_eye, diag);
-		d_ric_diag_trs_mpc(nx, nu, N, hdA, hpBt, hpR, hpS, hpQx, hpLK, hpP, work_eye, diag);
+		d_ric_diag_trf_mpc(nx, nu, N, hdA, hpBt, hpR, hpS, hpQx, hpLK, hpP, diag);
 
 		d_print_pmat(nx, nx, bs, hpP[0], cnx);
 		d_print_pmat(nx, nx, bs, hpP[1], cnx);
-		d_print_pmat(nx, nx, bs, hpP[2], cnx);
 		d_print_pmat(nx, nx, bs, hpP[N-1], cnx);
 		d_print_pmat(nx, nx, bs, hpP[N], cnx);
+
+		d_print_pmat(pnu+nx, nu, bs, hpLK[0], cnu);
+		d_print_pmat(pnu+nx, nu, bs, hpLK[1], cnu);
+		d_print_pmat(pnu+nx, nu, bs, hpLK[N-1], cnu);
+
+		d_ric_diag_trs_mpc(nx, nu, N, hdA, hpBt, hpLK, hpP, hr, hqx, hu, hx, work_diag, 1, hPb, 1, hpi);
+
+		for(ii=0; ii<N; ii++)
+			d_print_mat(1, nu, hu[ii], 1);
+
+		for(ii=0; ii<N; ii++)
+			d_print_mat(1, nx, hx[ii], 1);
 
 		exit(0);
 #endif
@@ -519,13 +564,14 @@ int main()
 			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
 //		else
 //			d_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
-		
+
 		if(PRINTRES==1 && ll_max==1)
 			{
 			/* print result */
 			printf("\n\nsv\n\n");
 			for(ii=0; ii<N; ii++)
-				d_print_mat(1, nu, hux[ii], 1);
+				d_print_mat(1, nu+nx, hux[ii], 1);
+			exit(1);
 			}
 		if(PRINTRES==1 && COMPUTE_MULT==1 && ll_max==1)
 			{

@@ -346,50 +346,17 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 // L = chol(R + B'*P*B)
 // K = (diag(A)'*P*B)\L
 // P = Q + diag(A')*P*diag(A) + K*K'
-void d_ric_diag_trs_mpc(int nx, int nu, int N, double **hA, double **hpBt, double **hpR, double **hpSt, double **hpQ, double **hpL, double **hpP, double *work, double *diag_work)
+void d_ric_diag_trf_mpc(int nx, int nu, int N, double **hdA, double **hpBt, double **hpR, double **hpSt, double **hpQ, double **hpL, double **hpP, double *diag_work)
 	{
 
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
-//	const int nal = bs*ncl; // number of doubles per cache line
 	
-//	const int nz   = nx+nu+1;
-//	const int anz  = nal*((nz+nal-1)/nal);
-//	const int pnz  = bs*((nz+bs-1)/bs);
-//	const int pnx  = bs*((nx+bs-1)/bs);
 	const int pnu  = bs*((nu+bs-1)/bs);
-//	const int pnb  = bs*((nb+bs-1)/bs);
-//	const int png  = bs*((ng+bs-1)/bs);
-//	const int pngN = bs*((ngN+bs-1)/bs);
-//	const int cnz  = ncl*((nz+ncl-1)/ncl);
 	const int cnu  = ncl*((nu+ncl-1)/ncl);
 	const int cnx  = ncl*((nx+ncl-1)/ncl);
-//	const int cng  = ncl*((ng+ncl-1)/ncl);
-//	const int cngN = ncl*((ngN+ncl-1)/ncl);
-//	const int cnxg = ncl*((ng+nx+ncl-1)/ncl);
-
-//	const int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
-
-	// number of general constraints TODO
-	//const int ng = 0;
-
-//	int nu_m = (nu/bs)*bs;
-//	int nu_r = nu%bs;
 
 	int ii, jj, ll, nn;
-
-	//double temp;
-
-	//double *pPB, *pPBt, *pK;
-
-//	pPB = work;
-//	work += pnx*cnu;
-
-//	pPBt = work;
-//	work += pnu*cnx;
-
-//	pK = work;
-//	work += pnx*cnu;
 
 	// last stage: inintialize P with Q_N
 	d_copy_pmat(nx, nx, bs, hpQ[N], cnx, hpP[N], cnx);
@@ -408,14 +375,16 @@ void d_ric_diag_trs_mpc(int nx, int nu, int N, double **hA, double **hpBt, doubl
 		//d_print_pmat(nu, nu, bs, hpQ[N-nn-1], cnu);
 		//d_print_pmat(pnu+nx, nu, bs, hpL[N-nn-1], cnu);
 
-		dgemm_diag_left_lib(nx, nu, hA[N-nn-1], hpL[N-nn-1]+pnu*cnu, cnu, hpSt[N-nn-1], cnu, hpL[N-nn-1]+pnu*cnu, cnu, 1);
+		dgemm_diag_left_lib(nx, nu, hdA[N-nn-1], hpL[N-nn-1]+pnu*cnu, cnu, hpSt[N-nn-1], cnu, hpL[N-nn-1]+pnu*cnu, cnu, 1);
 		//d_print_pmat(pnu+nx, nu, bs, hpL[N-nn-1], cnu);
 
 		dpotrf_lib(pnu+nx, nu, hpL[N-nn-1], cnu, hpL[N-nn-1], cnu, diag_work);
 		//d_print_pmat(pnu+nx, nu, bs, hpL[N-nn-1], cnu);
+		for(jj=0; jj<nu; jj++) hpL[N-nn-1][(jj/bs)*bs*cnu+jj%bs+jj*bs] = diag_work[jj]; // copy reciprocal of diagonal
+		//d_print_pmat(pnu+nx, nu, bs, hpL[N-nn-1], cnu);
 
-		dsyrk_diag_left_right_lib(nx, hA[N-nn-1], hA[N-nn-1], hpP[N-nn], cnx, hpQ[N-nn-1], cnx, hpP[N-nn-1], cnx, 1);
-		//d_print_mat(1, nx, hA[N-nn-1], 1);
+		dsyrk_diag_left_right_lib(nx, hdA[N-nn-1], hdA[N-nn-1], hpP[N-nn], cnx, hpQ[N-nn-1], cnx, hpP[N-nn-1], cnx, 1);
+		//d_print_mat(1, nx, hdA[N-nn-1], 1);
 		//d_print_pmat(nx, nx, bs, hpP[N-nn], cnx);
 		//d_print_pmat(nx, nx, bs, hpQ[N-nn-1], cnx);
 		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
@@ -427,10 +396,57 @@ void d_ric_diag_trs_mpc(int nx, int nu, int N, double **hA, double **hpBt, doubl
 		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
 
 		//exit(1);
-
-
 		}
 		
+	}
+
+
+
+// version exploiting the fact that A is the diagonal of a matrix
+void d_ric_diag_trs_mpc(int nx, int nu, int N, double **hdA, double **hpBt, double **hpL, double **hpP, double **hr, double **hq, double **hu, double **hx, double *work, int compute_Pb, double **hPb, int compute_pi, double **hpi)
+	{
+	
+	const int bs  = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
+
+	const int pnu  = bs*((nu+bs-1)/bs);
+	const int cnx  = ncl*((nx+ncl-1)/ncl);
+	const int cnu  = ncl*((nu+ncl-1)/ncl);
+
+	int ii, jj;
+	
+	/* backward substitution */
+	// general constraints
+	for(ii=0; ii<N; ii++)
+		{
+		if(compute_Pb)
+			{
+			dgemv_n_lib(nx, nx, hpP[N-ii], cnx, hx[N-ii], hPb[N-ii-1], 0); // P*b
+			}
+		for(jj=0; jj<nx; jj++) work[jj] = hPb[N-ii-1][jj] + hq[N-ii][jj]; // add p
+		dgemv_n_lib(nu, nx, hpBt[N-ii-1], cnx, work, hr[N-ii-1], 1);
+		for(jj=0; jj<nx; jj++) hq[N-ii-1][jj] += hdA[N-ii-1][jj] * work[jj];
+		dtrsv_dgemv_n_lib(nu, nu, hpL[N-ii-1], cnu, hr[N-ii-1]);
+		dgemv_n_lib(nx, nu, hpL[N-ii-1]+pnu*cnu, cnu, hr[N-ii-1], hq[N-ii-1], -1);
+		}
+
+
+	/* forward substitution */
+	for(ii=0; ii<N; ii++)
+		{
+		for(jj=0; jj<nu; jj++) hu[ii][jj] = - hr[ii][jj];
+		dgemv_t_lib(nx, nu, hpL[ii]+pnu*cnu, cnu, hx[ii], hu[ii], -1);
+		dtrsv_dgemv_t_lib(nu, nu, hpL[ii], cnu, hu[ii]);
+		dgemv_t_lib(nu, nx, hpBt[ii], cnx, hu[ii], hx[ii+1], 1);
+		for(jj=0; jj<nx; jj++) hx[ii+1][jj] += hdA[ii][jj] * hx[ii][jj];
+		if(compute_pi)
+			{
+			dgemv_n_lib(nx, nx, hpP[ii+1], cnx, hx[ii+1], hpi[ii+1], 0); // P*b + p
+			for(jj=0; jj<nx; jj++) hpi[ii+1][jj] += hq[ii+1][nu+jj];
+			}
+		}
+
 	}
 
 
