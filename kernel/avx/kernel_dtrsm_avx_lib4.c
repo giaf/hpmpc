@@ -30,8 +30,6 @@
 #include <smmintrin.h>  // SSE4
 #include <immintrin.h>  // AVX
 
-#include "../../include/block_size.h"
-
 
 
 // normal-transposed, 8x4 with data packed in 4
@@ -44,7 +42,6 @@ void kernel_dgemm_dtrsm_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, in
 	double *D1 = D0 + 4*sdd;
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	int k;
 	
@@ -887,7 +884,6 @@ void kernel_dgemm_dtrsm_nt_8x2_lib4(int tri, int kadd, int ksub, double *Ap0, in
 	double *D1 = D0 + 4*sdd;
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	int k;
 	
@@ -1425,7 +1421,6 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	{
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 
 	int k;
 	
@@ -1890,7 +1885,6 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	{
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 
 	int k;
 	
@@ -2212,7 +2206,6 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	{
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 
 	int k;
 	
@@ -2518,7 +2511,6 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	{
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 
 	int k;
 	
