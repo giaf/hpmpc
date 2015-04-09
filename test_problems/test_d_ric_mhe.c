@@ -40,6 +40,7 @@
 #include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/block_size.h"
+#include "../include/c_interface.h"
 #include "tools.h"
 
 
@@ -480,23 +481,23 @@ int main()
 		double *(hpALe[N+1]);
 		double *(hqq[N]);
 		double *(hrr[N+1]);
-		double *(hff[N]);
+		double *(hff[N+1]);
 		double *p_hqq; d_zeros_align(&p_hqq, anw, N);
 		double *p_hrr; d_zeros_align(&p_hrr, anx, N+1);
-		double *p_hff; d_zeros_align(&p_hff, anx, N);
+		double *p_hff; d_zeros_align(&p_hff, anx, N+1);
 
 		double *p_hxe; d_zeros_align(&p_hxe, anx, N+1);
 		double *p_hxp; d_zeros_align(&p_hxp, anx, N+1);
 		double *p_hw; d_zeros_align(&p_hw, anw, N);
 		double *p_hy; d_zeros_align(&p_hy, any, N+1);
-		double *p_hlam; d_zeros_align(&p_hlam, anx, N);
+		double *p_hlam; d_zeros_align(&p_hlam, anx, N+1);
 
 		double *(hr_res[N+1]);
 		double *(hq_res[N]);
-		double *(hf_res[N]);
+		double *(hf_res[N+1]);
 		double *p_hr_res; d_zeros_align(&p_hr_res, anx, N+1);
 		double *p_hq_res; d_zeros_align(&p_hq_res, anw, N);
-		double *p_hf_res; d_zeros_align(&p_hf_res, anx, N);
+		double *p_hf_res; d_zeros_align(&p_hf_res, anx, N+1);
 
 		for(jj=0; jj<N; jj++)
 			{
@@ -553,20 +554,22 @@ int main()
 		double *pCtRC; d_zeros_align(&pCtRC, pnxdN, cnx);
 		d_cvt_mat2pmat(ny, ny, 0, bs, R, ny, pCtRC, cnx);
 		d_cvt_mat2pmat(ndN, nx, nx, bs, D, ndN, pCtRC+nx/bs*bs*cnx+nx%bs, cnx);
-		d_print_pmat(nx+ndN, nx, bs, pCtRC, cnx);
+		//d_print_pmat(nx+ndN, nx, bs, pCtRC, cnx);
 		hpRA[N] = pCtRC; // there is not A_N
 		d_zeros_align(&hpALe[N], pnxdN, cnx2); // there is not A_N: pnx not pnx2
 		hrr[N] = p_hrr+N*anx;
+		hff[N] = p_hff+N*anx;
 		const int pndN = bs*((ndN+bs-1)/bs);
 		const int cndN = ncl*((ndN+ncl-1)/ncl);
 		double *Ld; d_zeros_align(&Ld, pndN, cndN);
-		double *lamd; d_zeros_align(&lamd, pndN, 1);
 		double *d_res; d_zeros_align(&d_res, pndN, 1);
 
 		hxe[N] = p_hxe+N*anx; //d_zeros_align(&hxe[N], anx, 1);
 		hxp[N] = p_hxp+N*anx; //d_zeros_align(&hxp[N], anx, 1);
 		hy[N] = p_hy+N*any; //d_zeros_align(&hy[N], any, 1);
+		hlam[N] = p_hlam+N*anx; //d_zeros_align(&hlambda[jj], anx, 1);
 
+		hf_res[N] = p_hf_res+N*anx;
 		hr_res[N] = p_hr_res+N*anx;
 
 		// initialize hpLp[0] with the cholesky factorization of /Pi_p
@@ -614,6 +617,97 @@ int main()
 			hxp[0][ii] = x0[ii];
 
 /************************************************
+* high-level interface
+************************************************/	
+
+#if 1
+		double *AA; d_zeros(&AA, nx, nx*N);
+		//for(ii=0; ii<N; ii++) for(jj=0; jj<nx; jj++) for(ll=0; ll<nx; ll++) AA[ll+nx*jj+nx*nx*ii] = A[ll+nx*jj];
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nx; jj++) for(ll=0; ll<nx; ll++) AA[jj+nx*ll+nx*nx*ii] = A[ll+nx*jj];
+
+		double *GG; d_zeros(&GG, nx, nw*N);
+		//for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) for(ll=0; ll<nx; ll++) GG[ll+nx*jj+nx*nw*ii] = B[ll+nx*jj];
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) for(ll=0; ll<nx; ll++) GG[jj+nw*ll+nx*nw*ii] = B[ll+nx*jj];
+
+		double *ff; d_zeros(&ff, nx, N);
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nx; jj++) ff[jj+nx*ii] = f[jj];
+
+		double *DD; d_zeros(&DD, ndN, nx);
+		//for(jj=0; jj<nx; jj++) for(ll=0; ll<ndN; ll++) DD[ll+ndN*jj] = D[ll+ndN*jj];
+		for(jj=0; jj<nx; jj++) for(ll=0; ll<ndN; ll++) DD[jj+nx*ll] = D[ll+ndN*jj];
+
+		double *RR; d_zeros(&RR, nw, nw*N);
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nw*nw; jj++) RR[jj+nw*nw*ii] = Q[jj];
+
+		double *QQ; d_zeros(&QQ, nx, nx*N);
+		for(ii=0; ii<N; ii++) for(jj=0; jj<ny; jj++) for(ll=0; ll<ny; ll++) QQ[ll+nx*jj+nx*nx*ii] = R[ll+ny*jj];
+
+		double *Qf; d_zeros(&Qf, nx, nx);
+		for(jj=0; jj<ny; jj++) for(ll=0; ll<ny; ll++) Qf[ll+nx*jj] = R[ll+ny*jj];
+
+		double *rr; d_zeros(&rr, nw, N);
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) rr[jj+nw*ii] = q[jj];
+
+		double *qq; d_zeros(&qq, nx, N);
+		for(ii=0; ii<N; ii++) for(jj=0; jj<ny; jj++) qq[jj+nx*ii] = r[jj];
+		double *yy_tmp; d_zeros_align(&yy_tmp, any, 1);
+		for(ii=0; ii<N; ii++) 
+			{
+			for(jj=0; jj<ny; jj++) yy_tmp[jj] = - r[jj];
+			dsymv_lib(ny, ny, hpR[ii], cny, hy[ii], yy_tmp, -1);
+			dgemv_t_lib(ny, nx, hpC[ii], cnx, yy_tmp, &qq[ii*nx], 0);
+			}
+
+		double *qf; d_zeros(&qf, nx, 1);
+		for(jj=0; jj<ny; jj++) qf[jj] = r[jj];
+		if(ndN>0) 
+			{
+			for(jj=0; jj<ny; jj++) yy_tmp[jj] = - r[jj];
+			dsymv_lib(ny, ny, hpR[N], cny, hy[N], yy_tmp, -1);
+			dgemv_t_lib(ny, nx, hpC[N], cnx, yy_tmp, qf, 0);
+			}
+
+		double *xxe; d_zeros(&xxe, nx, N+1);
+
+		double *LLe; d_zeros(&LLe, nx, nx);
+
+		double *ww; d_zeros(&ww, nw, N);
+
+		double *llam; d_zeros(&llam, nx, N+1);
+
+		double *work_high_level; d_zeros(&work_high_level, hpmpc_ric_mhe_if_dp_work_space(nx, nw, ny, ndN, N), 1);
+
+		double *dummy;
+		//int error_code = fortran_order_riccati_mhe_if( 'd', 2, nx, nw, 0, ndN, N, AA, GG, dummy, ff, DD, d, RR, QQ, Qf, rr, qq, qf, dummy, x0, L0, xxe, LLe, ww, llam, work_high_level);
+		int error_code = c_order_riccati_mhe_if( 'd', 2, nx, nw, 0, ndN, N, AA, GG, dummy, ff, DD, d, RR, QQ, Qf, rr, qq, qf, dummy, x0, L0, xxe, LLe, ww, llam, work_high_level);
+
+		printf("\nerror_code: %d\n", error_code);
+
+		d_print_mat(nx, N+1, xxe, nx);
+		d_print_mat(nw, N, ww, nw);
+
+		free(AA);
+		free(GG);
+		free(ff);
+		free(DD);
+		free(RR);
+		free(QQ);
+		free(Qf);
+		free(rr);
+		free(qq);
+		free(qf);
+		free(xxe);
+		free(LLe);
+		free(ww);
+		free(llam);
+		free(work_high_level);
+		free(yy_tmp);
+
+		exit(1);
+#endif
+
+
+/************************************************
 * call the solver
 ************************************************/	
 
@@ -653,6 +747,7 @@ int main()
 		double *y_temp; d_zeros_align(&y_temp, any, 1);
 		for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) hqq[ii][jj] = q[jj];
 		for(ii=0; ii<N; ii++) for(jj=0; jj<nx; jj++) hff[ii][jj] = f[jj];
+		for(jj=0; jj<ndN; jj++) hff[N][jj] = d[jj];
 		for(ii=0; ii<=N; ii++) 
 			{
 			for(jj=0; jj<ny; jj++) y_temp[jj] = - r[jj];
@@ -664,7 +759,7 @@ int main()
 			//if(ii==9)
 			//exit(1);
 			}
-		d_ric_trs_mhe_if(nx, nw, ndN, N, hpALe, hpGLq, Ld, hrr, hqq, hff, d, hxp, hxe, hw, hlam, lamd, work3);
+		d_ric_trs_mhe_if(nx, nw, ndN, N, hpALe, hpGLq, Ld, hrr, hqq, hff, hxp, hxe, hw, hlam, work3);
 		//d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 1, hlam, work);
 
 		//d_print_pmat(nx, nx, bs, hpALe[N-1], cnx2);
@@ -692,13 +787,13 @@ int main()
 		double *x_temp; d_zeros_align(&x_temp, anx, 1);
 		dtrmv_u_t_lib(nx, pL0_inv, cnx, x0, x_temp, 0);
 		dtrmv_u_n_lib(nx, pL0_inv, cnx, x_temp, p0, 0);
-		d_res_mhe_if(nx, nw, ndN, N, hpRA, hpQG, pL0_inv, hrr, hqq, hff, p0, d, hxe, hw, hlam, lamd, hr_res, hq_res, hf_res, d_res, work4);
+		d_res_mhe_if(nx, nw, ndN, N, hpRA, hpQG, pL0_inv, hrr, hqq, hff, p0, hxe, hw, hlam, hr_res, hq_res, hf_res, work4);
 
 		printf("\nprint residuals\n\n");
 		d_print_mat(nx, N+1, hr_res[0], anx);
 		d_print_mat(nw, N, hq_res[0], anw);
 		d_print_mat(nx, N, hf_res[0], anx);
-		d_print_mat(ndN, 1, d_res, 1);
+		d_print_mat(ndN, 1, hf_res[0]+N*anx, anx);
 
 		return 0;
 		//exit(1);
@@ -786,7 +881,7 @@ int main()
 		// factorize information filter
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_trs_mhe_if(nx, nw, ndN, N, hpALe, hpGLq, Ld, hrr, hqq, hff, d, hxp, hxe, hw, hlam, lamd, work3);
+			d_ric_trs_mhe_if(nx, nw, ndN, N, hpALe, hpGLq, Ld, hrr, hqq, hff, hxp, hxe, hw, hlam, work3);
 			}
 
 		gettimeofday(&tv6, NULL); // start

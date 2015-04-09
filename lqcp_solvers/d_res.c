@@ -73,7 +73,7 @@ void d_res_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hq
 
 
 
-void d_res_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpRG, double *L0_inv, double **hq, double **hr, double **hf, double *p0, double *d, double **hx, double **hw, double **hlam, double *lamd, double **hrq, double **hrr, double **hrf, double *rd, double *work)
+void d_res_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpRG, double *L0_inv, double **hq, double **hr, double **hf, double *p0, double **hx, double **hw, double **hlam, double **hrq, double **hrr, double **hrf, double *work)
 	{
 	
 	const int bs = D_MR; //d_get_mr();
@@ -168,12 +168,12 @@ void d_res_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpRG, 
 	else
 		{
 		for(jj=0; jj<nx; jj++) x_temp[jj] = hx[N][jj];
-		for(jj=0; jj<ndN; jj++) x_temp[nx+jj] = lamd[jj];
+		for(jj=0; jj<ndN; jj++) x_temp[nx+jj] = hlam[N][jj];
 		for(jj=0; jj<nx; jj++) x_temp2[jj] = hrq[N][jj];
-		for(jj=0; jj<ndN; jj++) x_temp2[nx+jj] = - d[jj];
+		for(jj=0; jj<ndN; jj++) x_temp2[nx+jj] = - hf[N][jj];
 		dsymv_lib(nx+ndN, nx, hpQA[N], cnx, x_temp, x_temp2, 1);
 		for(jj=0; jj<nx; jj++) hrq[N][jj] = x_temp2[jj];
-		for(jj=0; jj<ndN; jj++) rd[jj] = x_temp2[nx+jj];
+		for(jj=0; jj<ndN; jj++) hrf[N][jj] = x_temp2[nx+jj];
 		}
 	//d_print_mat(1, nx, hrq[N], 1);
 	//d_print_mat(1, ndN, rd, 1);

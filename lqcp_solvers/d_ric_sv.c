@@ -728,7 +728,7 @@ int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpR
 
 
 // information filter version
-void d_ric_trs_mhe_if(int nx, int nw, int ndN, int N, double **hpALe, double **hpGLr, double *Ld, double **hq, double **hr, double **hf, double *d, double **hxp, double **hx, double **hw, double **hlam, double *lamd, double *work)
+void d_ric_trs_mhe_if(int nx, int nw, int ndN, int N, double **hpALe, double **hpGLr, double *Ld, double **hq, double **hr, double **hf, double **hxp, double **hx, double **hw, double **hlam, double *work)
 	{
 
 	//printf("\nin solver\n");
@@ -815,23 +815,23 @@ void d_ric_trs_mhe_if(int nx, int nw, int ndN, int N, double **hpALe, double **h
 	else
 		{
 		for(jj=0; jj<nx; jj++) x_temp[jj] = hx[N][jj];
-		for(jj=0; jj<ndN; jj++) x_temp[nx+jj] = d[jj];
+		for(jj=0; jj<ndN; jj++) x_temp[nx+jj] = hf[N][jj];
 		//d_print_mat(1, nx+ndN, x_temp, 1);
 		dtrsv_dgemv_n_lib(nx, nx+ndN, hpALe[N]+cnx*bs, cnx2, x_temp);
 		//d_print_mat(1, nx+ndN, x_temp, 1);
 		//exit(1);
 
-		for(jj=0; jj<ndN; jj++) lamd[jj] = - x_temp[nx+jj];
+		for(jj=0; jj<ndN; jj++) hlam[N][jj] = - x_temp[nx+jj];
 		int cndN = ncl*((ndN+ncl-1)/ncl);
 		//d_print_mat(1, ndN, d, 1);
 		//d_print_pmat(ndN, ndN, bs, Ld, cndN);
-		dtrsv_dgemv_n_lib(ndN, ndN, Ld, cndN, lamd);
-		//d_print_mat(1, ndN, d, 1);
-		dtrsv_dgemv_t_lib(ndN, ndN, Ld, cndN, lamd);
-		//d_print_mat(1, ndN, d, 1);
+		dtrsv_dgemv_n_lib(ndN, ndN, Ld, cndN, hlam[N]);
+		//d_print_mat(1, ndN, hlam[N], 1);
+		dtrsv_dgemv_t_lib(ndN, ndN, Ld, cndN, hlam[N]);
+		//d_print_mat(1, ndN, hlam[N], 1);
 		//exit(1);
 
-		for(jj=0; jj<ndN; jj++) x_temp[nx+jj] = lamd[jj];
+		for(jj=0; jj<ndN; jj++) x_temp[nx+jj] = hlam[N][jj];
 		dtrsv_dgemv_t_lib(nx, nx+ndN, hpALe[N]+cnx*bs, cnx2, x_temp);
 
 		for(jj=0; jj<nx; jj++) hx[N][jj] = x_temp[jj];

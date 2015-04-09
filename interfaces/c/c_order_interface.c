@@ -1987,11 +1987,12 @@ int c_order_riccati_mhe( const char prec, const int smooth,
 
 
 int c_order_riccati_mhe_if( char prec, int alg,
-                                  int nx, int nw, int ny, int N,
+                                  int nx, int nw, int ny, int ndN, int N,
                                   double *A, double *G, double *C, double *f, 
+								  double *D, double *d,
                                   double *R, double *Q, double *Qf, double *r, double *q, double *qf,
                                   double *y, double *x0, double *L0,
-                                  double *xe, double *Le, double *w, double *lam,
+                                  double *xe, double *Le, double *w, double *lam, 
                                   double *work0 )
 	{
 
@@ -2022,10 +2023,13 @@ int c_order_riccati_mhe_if( char prec, int alg,
 		const int pny = bs*((ny+bs-1)/bs);
 		const int pnx2 = bs*((2*nx+bs-1)/bs);
 		const int pnwx = bs*((nwx+bs-1)/bs);
+		const int pndN = bs*((ndN+bs-1)/bs);
+		const int pnxdN = bs*((nx+ndN+bs-1)/bs);
 		const int cnx = ncl*((nx+ncl-1)/ncl);
 		const int cnw = ncl*((nw+ncl-1)/ncl);
 		const int cny = ncl*((ny+ncl-1)/ncl);
 		const int cnx2 = 2*(ncl*((nx+ncl-1)/ncl));
+		const int cndN = ncl*((ndN+ncl-1)/ncl);
 
 		const int pad = (ncl-(nx+nw)%ncl)%ncl; // padding
 		const int cnj = nx+nw+pad+cnx;
@@ -2054,6 +2058,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 		double *(hpCt[N+1]);
 		double *(hpGLr[N]);
 		double *(hpALe[N+1]);
+		double *Ld; 
 
 		double *(hf[N]);
 		double *(hr[N]);
@@ -2123,7 +2128,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 				}
 			}
 		hpQA[N] = ptr;
-		ptr += pnx*cnx;
+		ptr += pnxdN*cnx;
 		if(alg==2)
 			{
 			//d_cvt_tran_mat2pmat(nx, nx, 0, bs, Q+N*nx*nx, nx, hpQA[N], cnx);
@@ -2147,8 +2152,16 @@ int c_order_riccati_mhe_if( char prec, int alg,
 			//d_print_pmat(nx, nx, bs, hpQA[ii], cnx);
 			//return 0;
 			}
+		//d_print_pmat(nx+ndN, nx, bs, hpQA[N], cnx);
+		//d_print_mat(ndN, nx, D, ndN);
+		if(ndN>0)
+			{
+			d_cvt_tran_mat2pmat(nx, ndN, nx, bs, D, nx, hpQA[N]+nx/bs*bs*cnx+nx%bs, cnx);
+			Ld = ptr;
+			ptr += pndN*cndN;
+			}
 		//d_print_pmat(nx+nx, nx, bs, hpQA[0], cnx);
-		//d_print_pmat(nx, nx, bs, hpQA[N], cnx);
+		//d_print_pmat(nx+ndN, nx, bs, hpQA[N], cnx);
 
 		for(ii=0; ii<N; ii++)
 			{
@@ -2173,6 +2186,13 @@ int c_order_riccati_mhe_if( char prec, int alg,
 			ptr += anx;
 			for(jj=0; jj<nx; jj++) hf[ii][jj] = f[ii*nx+jj];
 			}
+		if(ndN>0)
+			{
+			hf[N] = ptr;
+			ptr += anx;
+			for(jj=0; jj<ndN; jj++) hf[N][jj] = d[jj];
+			}
+
 
 		for(ii=0; ii<N; ii++)
 			{
@@ -2280,18 +2300,19 @@ int c_order_riccati_mhe_if( char prec, int alg,
 
 
 		// factorize KKT matrix
-		hpmpc_status = d_ric_trf_mhe_if(nx, nw, N, hpQA, hpRG, hpALe, hpGLr, work);
+		hpmpc_status = d_ric_trf_mhe_if(nx, nw, ndN, N, hpQA, hpRG, hpALe, hpGLr, Ld, work);
 
 		if(hpmpc_status!=0)
 			return hpmpc_status;
 
 		// solve KKT system
-		d_ric_trs_mhe_if(nx, nw, N, hpALe, hpGLr, hq, hr, hf, hxp, hxe, hw, hlam, work);
+		d_ric_trs_mhe_if(nx, nw, ndN, N, hpALe, hpGLr, Ld, hq, hr, hf, hxp, hxe, hw, hlam, work);
 
 
 
 		// residuals computation
 		//#if 1
+		//#define DEBUG_MODE
 		#ifdef DEBUG_MODE
 		printf("\nstart of print residuals\n\n");
 		double *(hq_res[N+1]);
@@ -2299,7 +2320,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 		double *(hf_res[N]);
 		double *p_hq_res; d_zeros_align(&p_hq_res, anx, N+1);
 		double *p_hr_res; d_zeros_align(&p_hr_res, anw, N);
-		double *p_hf_res; d_zeros_align(&p_hf_res, anx, N);
+		double *p_hf_res; d_zeros_align(&p_hf_res, anx, N+1);
 
 		for(jj=0; jj<N; jj++)
 			{
@@ -2308,6 +2329,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 			hf_res[jj] = p_hf_res+jj*anx;
 			}
 		hq_res[N] = p_hq_res+N*anx;
+		hf_res[N] = p_hf_res+N*anx;
 
 		double *pL0_inv2; d_zeros_align(&pL0_inv2, pnx, cnx);
 		dtrinv_lib(nx, pL0, cnx, pL0_inv2, cnx);
@@ -2317,11 +2339,12 @@ int c_order_riccati_mhe_if( char prec, int alg,
 		dtrmv_u_t_lib(nx, pL0_inv2, cnx, x0, x_temp, 0);
 		dtrmv_u_n_lib(nx, pL0_inv2, cnx, x_temp, p0, 0);
 
-		d_res_mhe_if(nx, nw, N, hpQA, hpRG, pL0_inv2, hq, hr, hf, p0, hxe, hw, hlam, hq_res, hr_res, hf_res, work);
+		d_res_mhe_if(nx, nw, ndN, N, hpQA, hpRG, pL0_inv2, hq, hr, hf, p0, hxe, hw, hlam, hq_res, hr_res, hf_res, work);
 
 		d_print_mat(nx, N+1, hq_res[0], anx);
 		d_print_mat(nw, N, hr_res[0], anw);
 		d_print_mat(nx, N, hf_res[0], anx);
+		d_print_mat(ndN, 1, hf_res[0]+N*anx, anx);
 
 		free(p_hq_res);
 		free(p_hr_res);
@@ -2359,6 +2382,8 @@ int c_order_riccati_mhe_if( char prec, int alg,
 		for(ii=0; ii<N; ii++)
 			for(jj=0; jj<nx; jj++)
 				lam[ii*nx+jj] = hlam[ii][jj];
+		for(jj=0; jj<ndN; jj++)
+			lam[N*nx+jj] = hlam[N][jj];
 
 		// copy back cholesky factor of information matrix at last stage
 		//d_print_pmat(pnx2, cnx2, bs, hpALe[N], cnx2);

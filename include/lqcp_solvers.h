@@ -37,8 +37,8 @@ int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, dou
 void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hpG, double **hpC, double **hpLp, double **hpQ, double **hpR, double **hpLe, double *work);
 void d_ric_trs_mhe_end(int nx, int nw, int ny, int N, double **hpA, double **hpG, double **hpC, double **hpLp, double **hpQ, double **hpR, double **hpLe, double **hq, double **hr, double **hf, double **hxp, double **hxe, double **hy, double *work);
 int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpRA, double **hpQG, double **hpALe, double **hpGLq, double *Ld, double *work);
-void d_ric_trs_mhe_if(int nx, int nw, int ndN, int N, double **hpALe, double **hpGLq, double *Ld, double **hr, double **hq, double **hf, double *d, double **hxp, double **hx, double **hw, double **hlam, double *lamd, double *work);
-void d_res_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpRG, double *L0_inv, double **hq, double **hr, double **hf, double *p0, double *d, double **hx, double **hw, double **hlam, double *lamd, double **hrq, double **hrr, double **hrf, double *rd, double *work);
+void d_ric_trs_mhe_if(int nx, int nw, int ndN, int N, double **hpALe, double **hpGLq, double *Ld, double **hr, double **hq, double **hf, double **hxp, double **hx, double **hw, double **hlam, double *work);
+void d_res_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpRG, double *L0_inv, double **hq, double **hr, double **hf, double *p0, double **hx, double **hw, double **hlam, double **hrq, double **hrr, double **hrf, double *work);
 
 // MHE wrong
 void d_ric_sv_mhe_old(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *work, double *diag, int compute_pi, double **hpi);

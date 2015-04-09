@@ -29,7 +29,7 @@
 
 
 // MPC problem: define NX (state dimension), NU (input dimension), NN (horizon length)
-// MHE problem: define NX (state dimension), NU (process disturbance dimension), NY (measurement dimension), NN (horizon length)
+// MHE problem: define NX (state dimension), NU (process disturbance dimension), NY (measurement dimension), NDN (number of equality constraints on last stage), NN (horizon length)
 
 
 // define common quantities
@@ -43,6 +43,9 @@
 #endif
 #ifndef NGN
 	#define NGN 0 // number of two-sided general constraints at last stage
+#endif
+#ifndef NDN
+	#define NDN 0 // number of equality constraints at last stage of MHE
 #endif
 // double precision constants
 #define D_NAL (D_MR*D_NCL)
@@ -67,6 +70,7 @@
 #define D_CNGN (D_NCL*((NGN+D_NCL-1)/D_NCL))
 #define D_CNX2 (2*D_NCL*((NX+D_NCL-1)/D_NCL))
 #define D_CNXG (D_NCL*((NX+NG+D_NCL-1)/D_NCL))
+#define D_CNDN (D_NCL*((NDN+D_NCL-1)/D_NCL))
 #define D_PNB (D_MR*((NB+D_MR-1)/D_MR))
 #define D_PNG (D_MR*((NG+D_MR-1)/D_MR))
 #define D_PNGN (D_MR*((NGN+D_MR-1)/D_MR))
@@ -77,6 +81,7 @@
 #define D_PNZ (D_MR*((NZ+D_MR-1)/D_MR))
 #define D_PNX2 (D_MR*((NX+NX+D_MR-1)/D_MR))
 #define D_PNUX (D_MR*((NU+NX+D_MR-1)/D_MR))
+#define D_PNDN (D_MR*((NDN+D_MR-1)/D_MR))
 // single precision constants
 #define S_NAL (S_MR*S_NCL)
 #define S_PADX ((S_NCL-NX%S_NCL)%S_NCL) // padding between BAbtL & P
@@ -107,7 +112,7 @@
 // Riccati-based solver for unconstrained MHE, double precision
 #define HPMPC_RIC_MHE_DP_WORK_SPACE (8 + (NN+1)*(D_PNX*D_CNX+D_PNX*D_CNU+D_PNY*D_CNX+5*D_ANX+D_PNU*D_CNU+D_PNY*D_CNY+2*D_ANU+2*D_ANY+D_PNX*D_CNJ+D_PNT*D_CNF) + 2*D_PNY*D_CNX+D_PNT*D_CNT+D_ANT+D_PNU*D_CNU+D_PNX*D_CNX)
 // Riccati-based solver for unconstrained MHE, Information Filter version, double precision
-#define HPMPC_RIC_MHE_IF_DP_WORK_SPACE (8 + (NN+1)*(D_PNUX*D_CNU+D_PNX2*D_CNX+D_PNUX*D_CNU+D_PNX2*D_CNX2+D_PNX*D_CNY+2*D_ANU+D_ANY+5*D_ANX) + 2*D_PNX*D_CNX+D_PNX*D_CNJ+D_ANX+D_PNY*D_CNY+D_PNX*D_CNY+D_ANX)
+#define HPMPC_RIC_MHE_IF_DP_WORK_SPACE (8 + (NN+1)*(D_PNUX*D_CNU+D_PNX2*D_CNX+D_PNUX*D_CNU+D_PNX2*D_CNX2+D_PNX*D_CNY+2*D_ANU+D_ANY+5*D_ANX) + 2*D_PNX*D_CNX+D_PNX*D_CNJ+D_ANX+D_PNY*D_CNY+D_PNX*D_CNY+D_ANX + D_PNDN*D_CNDN)
 
 // work space: dynamic definition as function return value
 
@@ -130,7 +135,7 @@ int hpmpc_ric_mpc_sp_work_space(int nx, int nu, int N);
 int hpmpc_ric_mhe_dp_work_space(int nx, int nw, int ny, int N);
 
 // Riccati-based solver for unconstrained MHE, information filter version, double precision
-int hpmpc_ric_mhe_if_dp_work_space(int nx, int nw, int ny, int N);
+int hpmpc_ric_mhe_if_dp_work_space(int nx, int nw, int ny, int ndN, int N);
 
 
 
@@ -143,7 +148,7 @@ int c_order_riccati_mpc( const char prec, const int nx, const int nu, const int 
 
 int c_order_riccati_mhe( const char prec, const int smooth, const int nx, const int nw, const int ny, const int N, double *A, double *G, double *C, double *f, double *Q, double *R, double *q, double *r, double *y, double *x0, double *L0, double *xe, double *Le, double *w, double *lam, double *work0 );
 
-int c_order_riccati_mhe_if( char prec, int alg, int nx, int nw, int ny, int N, double *A, double *G, double *C, double *f, double *R, double *Q, double *Qf, double *r, double *q, double *qf, double *y, double *x0, double *L0, double *xe, double *Le, double *w, double *lam, double *work0 );
+int c_order_riccati_mhe_if( char prec, int alg, int nx, int nw, int ny, int ndN, int N, double *A, double *G, double *C, double *f, double *D, double *d, double *R, double *Q, double *Qf, double *r, double *q, double *qf, double *y, double *x0, double *L0, double *xe, double *Le, double *w, double *lam, double *work0 );
 
 
 
@@ -156,4 +161,4 @@ int fortran_order_riccati_mpc( const char prec, const int nx, const int nu, cons
 
 int fortran_order_riccati_mhe( const char prec, const int smooth, const int nx, const int nw, const int ny, const int N, double *A, double *G, double *C, double *f, double *Q, double *R, double *q, double *r, double *y, double *x0, double *L0, double *xe, double *Le, double *w, double *lam, double *work0 );
 
-int fortran_order_riccati_mhe_if( char prec, int alg, int nx, int nw, int ny, int N, double *A, double *G, double *C, double *f, double *R, double *Q, double *Qf, double *r, double *q, double *qf, double *y, double *x0, double *L0, double *xe, double *Le, double *w, double *lam, double *work0 );
+int fortran_order_riccati_mhe_if( char prec, int alg, int nx, int nw, int ny, int ndN, int N, double *A, double *G, double *C, double *f, double *D, double *d, double *R, double *Q, double *Qf, double *r, double *q, double *qf, double *y, double *x0, double *L0, double *xe, double *Le, double *w, double *lam, double *work0 );
