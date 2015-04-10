@@ -634,132 +634,136 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 		x_0, x_1, x_2, x_3,
 		y_0=0, y_1=0, y_2=0;
 	
-	// clean up at the beginning
-	x_3 = x[3];
-
-	y_0 += A[3+lda*0] * x_3;
-	y_1 += A[3+lda*1] * x_3;
-	y_2 += A[3+lda*2] * x_3;
-
-	k=4;
-	A += 4 + (sda-1)*lda;
-	x += 4;
-
-	__builtin_prefetch( A );
-#if defined(TARGET_CORTEX_A9)
-	__builtin_prefetch( A+4 );
-#endif		
-	__builtin_prefetch( A+8 );
-#if defined(TARGET_CORTEX_A9)
-	__builtin_prefetch( A+12 );
-#endif		
-
-	for(; k<kmax-7; k+=8)
+	k = 3;
+	if(kmax>4)
 		{
-		
-		__builtin_prefetch( A+sda*bs );
-#if defined(TARGET_CORTEX_A9)
-		__builtin_prefetch( A+sda*bs+4 );
-#endif		
-		__builtin_prefetch( A+sda*bs+8 );
-#if defined(TARGET_CORTEX_A9)
-		__builtin_prefetch( A+sda*bs+12 );
-#endif		
-
-		x_0 = x[0];
-		x_1 = x[1];
-		x_2 = x[2];
+		// clean up at the beginning
 		x_3 = x[3];
-		
-		y_0 += A[0+lda*0] * x_0;
-		y_1 += A[0+lda*1] * x_0;
-		y_2 += A[0+lda*2] * x_0;
-
-		y_0 += A[1+lda*0] * x_1;
-		y_1 += A[1+lda*1] * x_1;
-		y_2 += A[1+lda*2] * x_1;
-		
-		y_0 += A[2+lda*0] * x_2;
-		y_1 += A[2+lda*1] * x_2;
-		y_2 += A[2+lda*2] * x_2;
 
 		y_0 += A[3+lda*0] * x_3;
 		y_1 += A[3+lda*1] * x_3;
 		y_2 += A[3+lda*2] * x_3;
-		
-		A += sda*bs;
+
+		k=4;
+		A += 4 + (sda-1)*lda;
 		x += 4;
 
-		__builtin_prefetch( A+sda*bs );
+		__builtin_prefetch( A );
 #if defined(TARGET_CORTEX_A9)
-		__builtin_prefetch( A+sda*bs+4 );
+		__builtin_prefetch( A+4 );
 #endif		
-		__builtin_prefetch( A+sda*bs+8 );
+		__builtin_prefetch( A+8 );
 #if defined(TARGET_CORTEX_A9)
-		__builtin_prefetch( A+sda*bs+12 );
-#endif		
-
-		x_0 = x[0];
-		x_1 = x[1];
-		x_2 = x[2];
-		x_3 = x[3];
-		
-		y_0 += A[0+lda*0] * x_0;
-		y_1 += A[0+lda*1] * x_0;
-		y_2 += A[0+lda*2] * x_0;
-
-		y_0 += A[1+lda*0] * x_1;
-		y_1 += A[1+lda*1] * x_1;
-		y_2 += A[1+lda*2] * x_1;
-		
-		y_0 += A[2+lda*0] * x_2;
-		y_1 += A[2+lda*1] * x_2;
-		y_2 += A[2+lda*2] * x_2;
-
-		y_0 += A[3+lda*0] * x_3;
-		y_1 += A[3+lda*1] * x_3;
-		y_2 += A[3+lda*2] * x_3;
-		
-		A += sda*bs;
-		x += 4;
-
-		}
-	for(; k<kmax-3; k+=4)
-		{
-		
-		__builtin_prefetch( A+sda*bs );
-#if defined(TARGET_CORTEX_A9)
-		__builtin_prefetch( A+sda*bs+4 );
-#endif		
-		__builtin_prefetch( A+sda*bs+8 );
-#if defined(TARGET_CORTEX_A9)
-		__builtin_prefetch( A+sda*bs+12 );
+		__builtin_prefetch( A+12 );
 #endif		
 
-		x_0 = x[0];
-		x_1 = x[1];
-		x_2 = x[2];
-		x_3 = x[3];
-		
-		y_0 += A[0+lda*0] * x_0;
-		y_1 += A[0+lda*1] * x_0;
-		y_2 += A[0+lda*2] * x_0;
+		for(; k<kmax-7; k+=8)
+			{
+			
+			__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+			__builtin_prefetch( A+sda*bs+4 );
+#endif		
+			__builtin_prefetch( A+sda*bs+8 );
+#if defined(TARGET_CORTEX_A9)
+			__builtin_prefetch( A+sda*bs+12 );
+#endif		
 
-		y_0 += A[1+lda*0] * x_1;
-		y_1 += A[1+lda*1] * x_1;
-		y_2 += A[1+lda*2] * x_1;
-		
-		y_0 += A[2+lda*0] * x_2;
-		y_1 += A[2+lda*1] * x_2;
-		y_2 += A[2+lda*2] * x_2;
+			x_0 = x[0];
+			x_1 = x[1];
+			x_2 = x[2];
+			x_3 = x[3];
+			
+			y_0 += A[0+lda*0] * x_0;
+			y_1 += A[0+lda*1] * x_0;
+			y_2 += A[0+lda*2] * x_0;
 
-		y_0 += A[3+lda*0] * x_3;
-		y_1 += A[3+lda*1] * x_3;
-		y_2 += A[3+lda*2] * x_3;
-		
-		A += sda*bs;
-		x += 4;
+			y_0 += A[1+lda*0] * x_1;
+			y_1 += A[1+lda*1] * x_1;
+			y_2 += A[1+lda*2] * x_1;
+			
+			y_0 += A[2+lda*0] * x_2;
+			y_1 += A[2+lda*1] * x_2;
+			y_2 += A[2+lda*2] * x_2;
 
+			y_0 += A[3+lda*0] * x_3;
+			y_1 += A[3+lda*1] * x_3;
+			y_2 += A[3+lda*2] * x_3;
+			
+			A += sda*bs;
+			x += 4;
+
+			__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+			__builtin_prefetch( A+sda*bs+4 );
+#endif		
+			__builtin_prefetch( A+sda*bs+8 );
+#if defined(TARGET_CORTEX_A9)
+			__builtin_prefetch( A+sda*bs+12 );
+#endif		
+
+			x_0 = x[0];
+			x_1 = x[1];
+			x_2 = x[2];
+			x_3 = x[3];
+			
+			y_0 += A[0+lda*0] * x_0;
+			y_1 += A[0+lda*1] * x_0;
+			y_2 += A[0+lda*2] * x_0;
+
+			y_0 += A[1+lda*0] * x_1;
+			y_1 += A[1+lda*1] * x_1;
+			y_2 += A[1+lda*2] * x_1;
+			
+			y_0 += A[2+lda*0] * x_2;
+			y_1 += A[2+lda*1] * x_2;
+			y_2 += A[2+lda*2] * x_2;
+
+			y_0 += A[3+lda*0] * x_3;
+			y_1 += A[3+lda*1] * x_3;
+			y_2 += A[3+lda*2] * x_3;
+			
+			A += sda*bs;
+			x += 4;
+
+			}
+		for(; k<kmax-3; k+=4)
+			{
+			
+			__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+			__builtin_prefetch( A+sda*bs+4 );
+#endif		
+			__builtin_prefetch( A+sda*bs+8 );
+#if defined(TARGET_CORTEX_A9)
+			__builtin_prefetch( A+sda*bs+12 );
+#endif		
+
+			x_0 = x[0];
+			x_1 = x[1];
+			x_2 = x[2];
+			x_3 = x[3];
+			
+			y_0 += A[0+lda*0] * x_0;
+			y_1 += A[0+lda*1] * x_0;
+			y_2 += A[0+lda*2] * x_0;
+
+			y_0 += A[1+lda*0] * x_1;
+			y_1 += A[1+lda*1] * x_1;
+			y_2 += A[1+lda*2] * x_1;
+			
+			y_0 += A[2+lda*0] * x_2;
+			y_1 += A[2+lda*1] * x_2;
+			y_2 += A[2+lda*2] * x_2;
+
+			y_0 += A[3+lda*0] * x_3;
+			y_1 += A[3+lda*1] * x_3;
+			y_2 += A[3+lda*2] * x_3;
+			
+			A += sda*bs;
+			x += 4;
+
+			}
 		}
 	for(; k<kmax; k++)
 		{
@@ -820,107 +824,111 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 		x_0, x_1, x_2, x_3,
 		y_0=0, y_1=0;
 	
-	// clean up at the beginning
-	x_2 = x[2];
-	x_3 = x[3];
-
-	y_0 += A[2+lda*0] * x_2;
-	y_1 += A[2+lda*1] * x_2;
-
-	y_0 += A[3+lda*0] * x_3;
-	y_1 += A[3+lda*1] * x_3;
-
-	k=4;
-	A += 4 + (sda-1)*lda;
-	x += 4;
-
-	__builtin_prefetch( A );
-#if defined(TARGET_CORTEX_A9)
-	__builtin_prefetch( A+4 );
-#endif		
-
-	for(; k<kmax-7; k+=8)
+	k = 2;
+	if(kmax>4)
 		{
-		
-		__builtin_prefetch( A+sda*bs );
-#if defined(TARGET_CORTEX_A9)
-		__builtin_prefetch( A+sda*bs+4 );
-#endif		
-
-		x_0 = x[0];
-		x_1 = x[1];
+		// clean up at the beginning
 		x_2 = x[2];
 		x_3 = x[3];
-		
-		y_0 += A[0+lda*0] * x_0;
-		y_1 += A[0+lda*1] * x_0;
 
-		y_0 += A[1+lda*0] * x_1;
-		y_1 += A[1+lda*1] * x_1;
-		
 		y_0 += A[2+lda*0] * x_2;
 		y_1 += A[2+lda*1] * x_2;
 
 		y_0 += A[3+lda*0] * x_3;
 		y_1 += A[3+lda*1] * x_3;
-		
-		A += sda*bs;
+
+		k=4;
+		A += 4 + (sda-1)*lda;
 		x += 4;
 
-		__builtin_prefetch( A+sda*bs );
+		__builtin_prefetch( A );
 #if defined(TARGET_CORTEX_A9)
-		__builtin_prefetch( A+sda*bs+4 );
+		__builtin_prefetch( A+4 );
 #endif		
 
-		x_0 = x[0];
-		x_1 = x[1];
-		x_2 = x[2];
-		x_3 = x[3];
-		
-		y_0 += A[0+lda*0] * x_0;
-		y_1 += A[0+lda*1] * x_0;
-
-		y_0 += A[1+lda*0] * x_1;
-		y_1 += A[1+lda*1] * x_1;
-		
-		y_0 += A[2+lda*0] * x_2;
-		y_1 += A[2+lda*1] * x_2;
-
-		y_0 += A[3+lda*0] * x_3;
-		y_1 += A[3+lda*1] * x_3;
-		
-		A += sda*bs;
-		x += 4;
-
-		}
-	for(; k<kmax-3; k+=4)
-		{
-		
-		__builtin_prefetch( A+sda*bs );
+		for(; k<kmax-7; k+=8)
+			{
+			
+			__builtin_prefetch( A+sda*bs );
 #if defined(TARGET_CORTEX_A9)
-		__builtin_prefetch( A+sda*bs+4 );
+			__builtin_prefetch( A+sda*bs+4 );
 #endif		
 
-		x_0 = x[0];
-		x_1 = x[1];
-		x_2 = x[2];
-		x_3 = x[3];
-		
-		y_0 += A[0+lda*0] * x_0;
-		y_1 += A[0+lda*1] * x_0;
+			x_0 = x[0];
+			x_1 = x[1];
+			x_2 = x[2];
+			x_3 = x[3];
+			
+			y_0 += A[0+lda*0] * x_0;
+			y_1 += A[0+lda*1] * x_0;
 
-		y_0 += A[1+lda*0] * x_1;
-		y_1 += A[1+lda*1] * x_1;
-		
-		y_0 += A[2+lda*0] * x_2;
-		y_1 += A[2+lda*1] * x_2;
+			y_0 += A[1+lda*0] * x_1;
+			y_1 += A[1+lda*1] * x_1;
+			
+			y_0 += A[2+lda*0] * x_2;
+			y_1 += A[2+lda*1] * x_2;
 
-		y_0 += A[3+lda*0] * x_3;
-		y_1 += A[3+lda*1] * x_3;
-		
-		A += sda*bs;
-		x += 4;
+			y_0 += A[3+lda*0] * x_3;
+			y_1 += A[3+lda*1] * x_3;
+			
+			A += sda*bs;
+			x += 4;
 
+			__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+			__builtin_prefetch( A+sda*bs+4 );
+#endif		
+
+			x_0 = x[0];
+			x_1 = x[1];
+			x_2 = x[2];
+			x_3 = x[3];
+			
+			y_0 += A[0+lda*0] * x_0;
+			y_1 += A[0+lda*1] * x_0;
+
+			y_0 += A[1+lda*0] * x_1;
+			y_1 += A[1+lda*1] * x_1;
+			
+			y_0 += A[2+lda*0] * x_2;
+			y_1 += A[2+lda*1] * x_2;
+
+			y_0 += A[3+lda*0] * x_3;
+			y_1 += A[3+lda*1] * x_3;
+			
+			A += sda*bs;
+			x += 4;
+
+			}
+		for(; k<kmax-3; k+=4)
+			{
+			
+			__builtin_prefetch( A+sda*bs );
+#if defined(TARGET_CORTEX_A9)
+			__builtin_prefetch( A+sda*bs+4 );
+#endif		
+
+			x_0 = x[0];
+			x_1 = x[1];
+			x_2 = x[2];
+			x_3 = x[3];
+			
+			y_0 += A[0+lda*0] * x_0;
+			y_1 += A[0+lda*1] * x_0;
+
+			y_0 += A[1+lda*0] * x_1;
+			y_1 += A[1+lda*1] * x_1;
+			
+			y_0 += A[2+lda*0] * x_2;
+			y_1 += A[2+lda*1] * x_2;
+
+			y_0 += A[3+lda*0] * x_3;
+			y_1 += A[3+lda*1] * x_3;
+			
+			A += sda*bs;
+			x += 4;
+
+			}
 		}
 	for(; k<kmax; k++)
 		{
@@ -973,70 +981,74 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 		x_0, x_1, x_2, x_3,
 		y_0=0;
 	
-	// clean up at the beginning
-	x_1 = x[1];
-	x_2 = x[2];
-	x_3 = x[3];
-
-	y_0 += A[1+lda*0] * x_1;
-	y_0 += A[2+lda*0] * x_2;
-	y_0 += A[3+lda*0] * x_3;
-
-	k=4;
-	A += 4 + (sda-1)*lda;
-	x += 4;
-	for(; k<kmax-7; k+=8)
+	k = 1;
+	if(kmax>4)
 		{
-		
-		__builtin_prefetch( A+sda*bs );
-
-		x_0 = x[0];
+		// clean up at the beginning
 		x_1 = x[1];
 		x_2 = x[2];
 		x_3 = x[3];
-		
-		y_0 += A[0+lda*0] * x_0;
+
 		y_0 += A[1+lda*0] * x_1;
 		y_0 += A[2+lda*0] * x_2;
 		y_0 += A[3+lda*0] * x_3;
-		
-		A += sda*bs;
+
+		k=4;
+		A += 4 + (sda-1)*lda;
 		x += 4;
+		for(; k<kmax-7; k+=8)
+			{
+			
+			__builtin_prefetch( A+sda*bs );
 
-		__builtin_prefetch( A+sda*bs );
+			x_0 = x[0];
+			x_1 = x[1];
+			x_2 = x[2];
+			x_3 = x[3];
+			
+			y_0 += A[0+lda*0] * x_0;
+			y_0 += A[1+lda*0] * x_1;
+			y_0 += A[2+lda*0] * x_2;
+			y_0 += A[3+lda*0] * x_3;
+			
+			A += sda*bs;
+			x += 4;
 
-		x_0 = x[0];
-		x_1 = x[1];
-		x_2 = x[2];
-		x_3 = x[3];
-		
-		y_0 += A[0+lda*0] * x_0;
-		y_0 += A[1+lda*0] * x_1;
-		y_0 += A[2+lda*0] * x_2;
-		y_0 += A[3+lda*0] * x_3;
-		
-		A += sda*bs;
-		x += 4;
+			__builtin_prefetch( A+sda*bs );
 
-		}
-	for(; k<kmax-3; k+=4)
-		{
-		
-		__builtin_prefetch( A+sda*bs );
+			x_0 = x[0];
+			x_1 = x[1];
+			x_2 = x[2];
+			x_3 = x[3];
+			
+			y_0 += A[0+lda*0] * x_0;
+			y_0 += A[1+lda*0] * x_1;
+			y_0 += A[2+lda*0] * x_2;
+			y_0 += A[3+lda*0] * x_3;
+			
+			A += sda*bs;
+			x += 4;
 
-		x_0 = x[0];
-		x_1 = x[1];
-		x_2 = x[2];
-		x_3 = x[3];
-		
-		y_0 += A[0+lda*0] * x_0;
-		y_0 += A[1+lda*0] * x_1;
-		y_0 += A[2+lda*0] * x_2;
-		y_0 += A[3+lda*0] * x_3;
-		
-		A += sda*bs;
-		x += 4;
+			}
+		for(; k<kmax-3; k+=4)
+			{
+			
+			__builtin_prefetch( A+sda*bs );
 
+			x_0 = x[0];
+			x_1 = x[1];
+			x_2 = x[2];
+			x_3 = x[3];
+			
+			y_0 += A[0+lda*0] * x_0;
+			y_0 += A[1+lda*0] * x_1;
+			y_0 += A[2+lda*0] * x_2;
+			y_0 += A[3+lda*0] * x_3;
+			
+			A += sda*bs;
+			x += 4;
+
+			}
 		}
 	for(; k<kmax; k++)
 		{

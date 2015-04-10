@@ -266,7 +266,7 @@ int main()
 	int vnrep[] = {100, 100, 100, 100, 100, 100, 50, 50, 50, 20, 10, 10};
 	int vN[] = {4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256};
 
-	int nx, nw, ny, N, nrep, Ns;
+	int nx, nw, ny, ndN, N, nrep, Ns;
 
 	int ll;
 //	int ll_max = 77;
@@ -297,12 +297,13 @@ int main()
 				}
 			//printf("\n");
 			fclose(fid);
-			N = Ns-1; // NN;
+			N = 15; //Ns-1; // NN;
 			nrep = NREP;
-			nx = 12;
-			nw = 5;
+			nx = 33;
+			nw = 6;
 			ny = 3;
-			printf("\nnx = %d; nw =  %d; ny =  %d; N = %d\n\n", nx, nw, ny, N);
+			ndN = 9;
+			printf("\nnx = %d; nw =  %d; ny =  %d; ndN = %d; N = %d\n\n", nx, nw, ny, ndN, N);
 			}
 		else if(ll_max==1)
 			{
@@ -545,13 +546,14 @@ int main()
 		hr[N] = r;
 
 		// equality constraints on the states at the last stage
-		int ndN = 2;
 		double *D; d_zeros(&D, ndN, nx);
-		D[0+ndN*0] = 1;
-		D[1+ndN*(nx-1)] = 1;
+		for(ii=0; ii<ndN; ii++) D[ii*(ndN+1)] = 1;
+		//D[0+ndN*0] = 1;
+		//D[1+ndN*(nx-1)] = 1;
 		double *d; d_zeros_align(&d, ndN, 1);
-		d[0] = 1;
-		d[1] = 0;
+		for(ii=0; ii<ndN; ii++) d[ii] = ii;
+		//d[0] = 1;
+		//d[1] = 0;
 		const int pnxdN = bs*((nx+ndN+bs-1)/bs);
 		double *pCtRC; d_zeros_align(&pCtRC, pnxdN, cnx);
 		d_cvt_mat2pmat(ny, ny, 0, bs, R, ny, pCtRC, cnx);
