@@ -122,6 +122,7 @@ void kernel_dgema_2_lib4(int kmax, int kna, double *A, int sda, double *C, int s
 void kernel_dgema_1_lib4(int kmax, int kna, double *A, int sda, double *C, int sdc);
 void kernel_dtrma_4_lib4(int kmax, int kna, double *A, int sda, double *C, int sdc);
 void kernel_dtrtr_u_4_lib4(int kmax, double *A, double *C, int sdc);
+void kernel_dtrinv_8x4_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *fact);
 void kernel_dtrinv_4x4_lib4(int kmax, double *A, double *B, double *C, double *fact);
 void kernel_dtrinv_4x2_lib4(int kmax, double *A, double *B, double *C, double *fact);
 void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *Ap, double *Am, double *C, double *D, double *fact, int alg);

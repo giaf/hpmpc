@@ -3282,7 +3282,14 @@ void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
 			fact[9] = 1.0/ptr[3+bs*3];
 		else
 			fact[9] = 0.0;
-		for(ii=0; ii<jj; ii+=4)
+		ii = 0;
+#if defined(TARGET_X64_AVX) // TODO avx2 !!!!!!!!!
+		for(; ii<jj; ii+=4)
+			{
+			kernel_dtrinv_8x4_lib4(jj-ii, &pC[ii*sdc+bs*ii], sdc, &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], sdc, fact);
+			}
+#endif
+		for(; ii<jj; ii+=4)
 			{
 			kernel_dtrinv_4x4_lib4(jj-ii, &pC[ii*sdc+bs*ii], &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], fact);
 			}
@@ -3422,7 +3429,14 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 		if(diag[j+1]==0.0) fact[2]=0.0;
 		if(diag[j+2]==0.0) fact[5]=0.0;
 		if(diag[j+3]==0.0) fact[9]=0.0;
-		for(i=0; i<j; i+=4)
+		i = 0;
+#if defined(TARGET_X64_AVX) // TODO add avx2 !!!!!!!!!!!!!!!
+		for(; i<j-4; i+=8)
+			{
+			kernel_dtrinv_8x4_lib4(j-i, &pE[i*sde+bs*i], sde, &pA[j*sda+(k0+k+i)*bs], &pE[i*sde+j*bs], sde, fact);
+			}
+#endif
+		for(; i<j; i+=4)
 			{
 			kernel_dtrinv_4x4_lib4(j-i, &pE[i*sde+bs*i], &pA[j*sda+(k0+k+i)*bs], &pE[i*sde+j*bs], fact);
 			}
