@@ -64,6 +64,12 @@
 // minimum accepted step length
 #define ALPHA_MIN 1e-12
 
+/*// threshold in the duality measure to switch from single to double precision*/
+/*#define SP_THR 1e5*/
+
+// assume the R matrices to be diagonal in MHE if
+#define DIAG_R 0
+
 // Debug flag
 #ifndef PC_DEBUG
 #define PC_DEBUG 0
@@ -2303,8 +2309,12 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 
 
 
+		int diag_R = DIAG_R;
+
+
+
 		// factorize KKT matrix
-		hpmpc_status = d_ric_trf_mhe_if(nx, nw, ndN, N, hpQA, hpRG, hpALe, hpGLr, Ld, work);
+		hpmpc_status = d_ric_trf_mhe_if(nx, nw, ndN, N, hpQA, hpRG, diag_R, hpALe, hpGLr, Ld, work);
 
 		if(hpmpc_status!=0)
 			return hpmpc_status;

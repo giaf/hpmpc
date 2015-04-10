@@ -407,6 +407,8 @@ int main()
 		for(jj=0; jj<nw; jj++)
 			Q[jj*(nw+1)] = 1.0;
 
+		int diag_R = 1;
+
 		double *R; d_zeros(&R, ny, ny);
 		for(jj=0; jj<ny; jj++)
 			R[jj*(ny+1)] = 1.0;
@@ -594,7 +596,7 @@ int main()
 
 		//double *work; d_zeros_align(&work, pny*cnx+pnz*cnz+anz+pnz*cnf+pnw*cnw, 1);
 		double *work; d_zeros_align(&work, 2*pny*cnx+anz+pnw*cnw+pnx*cnx, 1);
-		printf("\nciao %d %d %d %d %d %d\n", pny, cnx, anz, pnw, cnw, pnx);
+		//printf("\nciao %d %d %d %d %d %d\n", pny, cnx, anz, pnw, cnw, pnx);
 
 		double *work2; d_zeros_align(&work2, 2*pny*cnx+pnw*cnw+pnx*cnw+2*pnx*cnx+anz, 1);
 
@@ -636,6 +638,9 @@ int main()
 		//for(jj=0; jj<nx; jj++) for(ll=0; ll<ndN; ll++) DD[ll+ndN*jj] = D[ll+ndN*jj];
 		for(jj=0; jj<nx; jj++) for(ll=0; ll<ndN; ll++) DD[jj+nx*ll] = D[ll+ndN*jj];
 
+		double *dd; d_zeros(&dd, ndN, 1);
+		for(ll=0; ll<ndN; ll++) dd[ll] = d[ll];
+
 		double *RR; d_zeros(&RR, nw, nw*N);
 		for(ii=0; ii<N; ii++) for(jj=0; jj<nw*nw; jj++) RR[jj+nw*nw*ii] = Q[jj];
 
@@ -667,6 +672,10 @@ int main()
 			dgemv_t_lib(ny, nx, hpC[N], cnx, yy_tmp, qf, 0);
 			}
 
+		double *xx0; d_zeros(&xx0, nx, 1);
+
+		double *LL0; d_zeros(&LL0, nx, nx);
+
 		double *xxe; d_zeros(&xxe, nx, N+1);
 
 		double *LLe; d_zeros(&LLe, nx, nx);
@@ -678,10 +687,30 @@ int main()
 		double *work_high_level; d_zeros(&work_high_level, hpmpc_ric_mhe_if_dp_work_space(nx, nw, ny, ndN, N), 1);
 
 		double *dummy;
-		//int error_code = fortran_order_riccati_mhe_if( 'd', 2, nx, nw, 0, ndN, N, AA, GG, dummy, ff, DD, d, RR, QQ, Qf, rr, qq, qf, dummy, x0, L0, xxe, LLe, ww, llam, work_high_level);
-		int error_code = c_order_riccati_mhe_if( 'd', 2, nx, nw, 0, ndN, N, AA, GG, dummy, ff, DD, d, RR, QQ, Qf, rr, qq, qf, dummy, x0, L0, xxe, LLe, ww, llam, work_high_level);
 
-		printf("\nerror_code: %d\n", error_code);
+		struct timeval tv00, tv01;
+
+		int error_code;
+
+		// double precision
+		gettimeofday(&tv00, NULL); // start
+
+		for(ii=0; ii<nrep; ii++)
+			{
+
+			for(jj=0; jj<nx; jj++) xx0[jj] = x0[jj];
+			for(jj=0; jj<nx*nx; jj++) LL0[jj] = L0[jj];
+
+			//error_code = fortran_order_riccati_mhe_if( 'd', 2, nx, nw, 0, ndN, N, AA, GG, dummy, ff, DD, dd, RR, QQ, Qf, rr, qq, qf, dummy, xx0, LL0, xxe, LLe, ww, llam, work_high_level);
+			error_code = c_order_riccati_mhe_if( 'd', 2, nx, nw, 0, ndN, N, AA, GG, dummy, ff, DD, dd, RR, QQ, Qf, rr, qq, qf, dummy, xx0, LL0, xxe, LLe, ww, llam, work_high_level);
+
+			}
+
+		gettimeofday(&tv01, NULL); // stop
+
+		float time_mhe_if_high_level = (float) (tv01.tv_sec-tv00.tv_sec)/(nrep+0.0)+(tv01.tv_usec-tv00.tv_usec)/(nrep*1e6);
+
+		printf("\nhigh-level interface for MHE_if\n\nerror_code: %d, time = %e\n\n", error_code, time_mhe_if_high_level);
 
 		d_print_mat(nx, N+1, xxe, nx);
 		d_print_mat(nw, N, ww, nw);
@@ -690,12 +719,15 @@ int main()
 		free(GG);
 		free(ff);
 		free(DD);
+		free(dd);
 		free(RR);
 		free(QQ);
 		free(Qf);
 		free(rr);
 		free(qq);
 		free(qf);
+		free(xx0);
+		free(LL0);
 		free(xxe);
 		free(LLe);
 		free(ww);
@@ -741,7 +773,7 @@ int main()
 		//d_print_mat(nw, N, hw[0], anw);
 
 		// information filter - factorization
-		d_ric_trf_mhe_if(nx, nw, ndN, N, hpRA, hpQG, hpALe, hpGLq, Ld, work3);
+		d_ric_trf_mhe_if(nx, nw, ndN, N, hpRA, hpQG, diag_R, hpALe, hpGLq, Ld, work3);
 
 		// information filter - solution
 		double *y_temp; d_zeros_align(&y_temp, any, 1);
@@ -795,7 +827,7 @@ int main()
 		d_print_mat(nx, N, hf_res[0], anx);
 		d_print_mat(ndN, 1, hf_res[0]+N*anx, anx);
 
-		return 0;
+		//return 0;
 		//exit(1);
 
 		if(PRINTRES)
@@ -873,7 +905,7 @@ int main()
 		// factorize information filter
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_trf_mhe_if(nx, nw, N, 0, hpRA, hpQG, hpALe, hpGLq, Ld, work3);
+			d_ric_trf_mhe_if(nx, nw, ndN, N, hpRA, hpQG, diag_R, hpALe, hpGLq, Ld, work3);
 			}
 
 		gettimeofday(&tv5, NULL); // start

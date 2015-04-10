@@ -611,7 +611,7 @@ void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double
 
 
 // information filter version
-int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpRG, double **hpALe, double **hpGLr, double *Ld, double *work)
+int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpRG, int diag_R, double **hpALe, double **hpGLr, double *Ld, double *work)
 	{
 
 	const int bs = D_MR; //d_get_mr();
@@ -644,7 +644,9 @@ int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpR
 	double *diag; diag = ptr;
 	ptr += anx;
 
-	int ii, jj;	
+	int ii, jj, ll;	
+
+	double alpha;
 
 	for(ii=0; ii<N; ii++)
 		{
@@ -663,13 +665,31 @@ int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpR
 			}
 		//d_print_pmat(2*nx, cnx2, bs, hpALe[ii], cnx2);
 
-		dpotrf_lib(nwx, nw, hpRG[ii], cnw, hpGLr[ii], cnw, diag);
-		//d_print_pmat(nwx, nw, bs, hpGLr[ii], cnw);
+		if(diag_R)
+			{
+			for(jj=0; jj<nw; jj++)
+				{
+				alpha = 1.0/sqrt(hpRG[ii][jj/bs*bs*cnw+jj%bs+jj*bs]);
+				for(ll=0; ll<pnwx; ll+=4)
+					{
+					hpGLr[ii][0+ll*cnw+jj*bs] = alpha * hpRG[ii][0+ll*cnw+jj*bs];
+					hpGLr[ii][1+ll*cnw+jj*bs] = alpha * hpRG[ii][1+ll*cnw+jj*bs];
+					hpGLr[ii][2+ll*cnw+jj*bs] = alpha * hpRG[ii][2+ll*cnw+jj*bs];
+					hpGLr[ii][3+ll*cnw+jj*bs] = alpha * hpRG[ii][3+ll*cnw+jj*bs];
+					}
+				}
+			hpGLr[ii][jj/bs*bs*cnw+jj%bs+jj*bs] = alpha;
+			//d_print_pmat(nwx, nw, bs, hpGLr[ii], cnw);
+			}
+		else
+			{
+			dpotrf_lib(nwx, nw, hpRG[ii], cnw, hpGLr[ii], cnw, diag);
+			//d_print_pmat(nwx, nw, bs, hpGLr[ii], cnw);
 
-		// copy reciprocal of diagonal
-		for(jj=0; jj<nw; jj++) hpGLr[ii][(jj/bs)*bs*cnw+jj%bs+jj*bs] = diag[jj]; 
-		//d_print_pmat(nwx, nw, bs, hpGLr[0], cnw);
-		//exit(1);
+			// copy reciprocal of diagonal
+			for(jj=0; jj<nw; jj++) hpGLr[ii][(jj/bs)*bs*cnw+jj%bs+jj*bs] = diag[jj]; 
+			//d_print_pmat(nwx, nw, bs, hpGLr[0], cnw);
+			}
 
 		d_align_pmat(nx, nw, nw, bs, hpGLr[ii], cnw, GLrALeLp, cnl);
 		d_align_pmat(nx, nx, nx, bs, hpALe[ii]+cnx*bs, cnx2, GLrALeLp+nw*bs, cnl);
