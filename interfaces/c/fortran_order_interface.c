@@ -2080,8 +2080,8 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 		double *(hw[N]);
 		double *(hlam[N]);
 
-		double *pL0; 
-		double *pL0_inv;
+		//double *pL0; 
+		//double *pL0_inv;
 		double *Q_temp;
 		double *q_temp;
 		double *Ct_temp;
@@ -2185,10 +2185,11 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 			hpALe[ii] = ptr;
 			ptr += pnx2*cnx2;
 			}
-		pL0 = ptr;
-		ptr += pnx*cnx; // TODO use work space ???
-		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, pL0, cnx);
-		dtrinv_lib(nx, pL0, cnx, hpALe[0], cnx2);
+		//pL0 = ptr;
+		//ptr += pnx*cnx; // TODO use work space ???
+		//d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, pL0, cnx);
+		//dtrinv_lib(nx, pL0, cnx, hpALe[0], cnx2);
+		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpALe[0], cnx2);
 		//d_print_pmat(nx, nx, bs, hpALe[0], cnx2);
 
 		for(ii=0; ii<N; ii++)
@@ -2346,7 +2347,8 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 		hf_res[N] = p_hf_res+N*anx;
 
 		double *pL0_inv2; d_zeros_align(&pL0_inv2, pnx, cnx);
-		dtrinv_lib(nx, pL0, cnx, pL0_inv2, cnx);
+		//dtrinv_lib(nx, pL0, cnx, pL0_inv2, cnx);
+		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, pL0_inv2, cnx); // XXX
 
 		double *p0; d_zeros_align(&p0, anx, 1);
 		double *x_temp; d_zeros_align(&x_temp, anx, 1);
@@ -2375,11 +2377,12 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 		for(jj=0; jj<nx; jj++) x0[jj] = hxp[1][jj];
 
 		// save L0 for next step
-		pL0_inv = ptr;
-		ptr += pnx*cnx; // TODO use work space ??? remove ???
-		dgetr_lib(nx, 0, nx, 0, hpALe[1], cnx2, pL0_inv, cnx); // TODO write dtrtr_u to transpose in place
-		dtrinv_lib(nx, pL0_inv, cnx, pL0, cnx);
-		d_cvt_tran_pmat2mat(nx, nx, 0, bs, pL0, cnx, L0, nx);
+		//pL0_inv = ptr;
+		//ptr += pnx*cnx; // TODO use work space ??? remove ???
+		//dgetr_lib(nx, 0, nx, 0, hpALe[1], cnx2, pL0_inv, cnx); // TODO write dtrtr_u to transpose in place
+		//dtrinv_lib(nx, pL0_inv, cnx, pL0, cnx);
+		//d_cvt_tran_pmat2mat(nx, nx, 0, bs, pL0, cnx, L0, nx);
+		d_cvt_pmat2mat(nx, nx, 0, bs, hpALe[1], cnx2, L0, nx);
 
 
 		// copy back estimates at all stages 0,1,...,N

@@ -2072,8 +2072,8 @@ int c_order_riccati_mhe_if( char prec, int alg,
 		double *(hw[N]);
 		double *(hlam[N]);
 
-		double *pL0; 
-		double *pL0_inv;
+		//double *pL0; 
+		//double *pL0_inv;
 		double *Q_temp;
 		double *q_temp;
 		double *Ct_temp;
@@ -2177,8 +2177,8 @@ int c_order_riccati_mhe_if( char prec, int alg,
 			hpALe[ii] = ptr;
 			ptr += pnx2*cnx2;
 			}
-		pL0 = ptr;
-		ptr += pnx*cnx; // TODO use work space ???
+		//pL0 = ptr;
+		//ptr += pnx*cnx; // TODO use work space ???
 		//d_cvt_tran_mat2pmat(nx, nx, 0, bs, L0, nx, pL0, cnx); // XXX
 		//dtrinv_lib(nx, pL0, cnx, hpALe[0], cnx2); // XXX
 		d_cvt_tran_mat2pmat(nx, nx, 0, bs, L0, nx, hpALe[0], cnx2);
@@ -2375,7 +2375,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 		//dgetr_lib(nx, 0, nx, 0, hpALe[1], cnx2, pL0_inv, cnx); // TODO write dtrtr_u to transpose in place
 		//dtrinv_lib(nx, pL0_inv, cnx, pL0, cnx);
 		//d_cvt_pmat2mat(nx, nx, 0, bs, pL0, cnx, L0, nx);
-		d_cvt_pmat2mat(nx, nx, 0, bs, hpALe[1], cnx2, L0, nx);
+		d_cvt_tran_pmat2mat(nx, nx, 0, bs, hpALe[1], cnx2, L0, nx);
 
 
 		// copy back estimates at all stages 0,1,...,N
