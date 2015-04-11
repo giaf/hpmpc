@@ -299,8 +299,8 @@ int main()
 			fclose(fid);
 			N = 15; //Ns-1; // NN;
 			nrep = NREP;
-			nx = 33;
-			nw = 6;
+			nx = 12;
+			nw = 5;
 			ny = 3;
 			ndN = 9;
 			printf("\nnx = %d; nw =  %d; ny =  %d; ndN = %d; N = %d\n\n", nx, nw, ny, ndN, N);
@@ -416,7 +416,7 @@ int main()
 
 		double *L0; d_zeros(&L0, nx, nx);
 		for(jj=0; jj<nx; jj++)
-			L0[jj*(nx+1)] = 1.0;
+			L0[jj*(nx+1)] = 0*1e-6; //1.0;
 
 		double *r; d_zeros_align(&r, any, 1);
 		for(jj=0; jj<ny; jj++)
@@ -647,7 +647,11 @@ int main()
 		for(ii=0; ii<N; ii++) for(jj=0; jj<nw*nw; jj++) RR[jj+nw*nw*ii] = Q[jj];
 
 		double *QQ; d_zeros(&QQ, nx, nx*N);
-		for(ii=0; ii<N; ii++) for(jj=0; jj<ny; jj++) for(ll=0; ll<ny; ll++) QQ[ll+nx*jj+nx*nx*ii] = R[ll+ny*jj];
+		for(ii=0; ii<N; ii++) 
+			{
+			for(jj=0; jj<ny; jj++) for(ll=0; ll<ny; ll++) QQ[ll+nx*jj+nx*nx*ii] = R[ll+ny*jj];
+			for(jj=ny; jj<nx; jj++) QQ[jj+nx*jj+nx*nx*ii] = 1e-8;
+			}
 
 		double *Qf; d_zeros(&Qf, nx, nx);
 		for(jj=0; jj<ny; jj++) for(ll=0; ll<ny; ll++) Qf[ll+nx*jj] = R[ll+ny*jj];
@@ -705,6 +709,9 @@ int main()
 
 			//error_code = fortran_order_riccati_mhe_if( 'd', 2, nx, nw, 0, ndN, N, AA, GG, dummy, ff, DD, dd, RR, QQ, Qf, rr, qq, qf, dummy, xx0, LL0, xxe, LLe, ww, llam, work_high_level);
 			error_code = c_order_riccati_mhe_if( 'd', 2, nx, nw, 0, ndN, N, AA, GG, dummy, ff, DD, dd, RR, QQ, Qf, rr, qq, qf, dummy, xx0, LL0, xxe, LLe, ww, llam, work_high_level);
+
+			if(error_code)
+				break;
 
 			}
 
