@@ -2456,7 +2456,7 @@ void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, double *y, int al
 	int j;
 	
 	j=0;
-#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+#if 0 //defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	for(; j<n-11; j+=12)
 		{
 		kernel_dgemv_t_12_lib4(m, pA+j*bs, sda, x, y+j, alg);
