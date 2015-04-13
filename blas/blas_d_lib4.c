@@ -2470,7 +2470,7 @@ void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, double *y, int al
 		{
 		kernel_dgemv_t_4_lib4(m, pA+j*bs, sda, x, y+j, alg);
 		}
-#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+#if 1 //defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	if(n>j)
 		{
 		if(n-j==1)
