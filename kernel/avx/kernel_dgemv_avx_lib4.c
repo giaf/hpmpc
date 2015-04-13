@@ -137,7 +137,7 @@ void kernel_dgemv_t_12_lib4(int kmax, double *A, int sda, double *x, double *y, 
 			ax_temp = _mm_mul_pd( a_0, x_0 );	
 			y_8 = _mm_add_pd (y_8, ax_temp );
 		
-			a_0 = _mm_load_pd( &tA[0+lda*0] );
+			a_0 = _mm_load_pd( &tA[0+lda*9] );
 			ax_temp = _mm_mul_pd( a_0, x_0 );	
 			y_9 = _mm_add_pd (y_9, ax_temp );
 		
