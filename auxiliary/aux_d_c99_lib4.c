@@ -371,12 +371,61 @@ void d_align_pmat(int row, int col, int offset, int bs_dummy, double *A, int sda
 	int i, j;
 	
 	double *ptrA, *ptrB;
-	
-	for(i=0; i<row; i++)
+
+	int miss_align = offset%bs;
+
+	i = 0;
+	if(miss_align==0) // B is aligned
+		{
+		for(; i<row-3; i+=4)
+			{
+			ptrA = A + (i+offset)*sda;
+			ptrB = B + i*sdb;
+			j = 0;
+			for(; j<col-3; j+=4)
+				{
+				ptrB[0+(j+0)*bs] = ptrA[0+(j+0)*bs];
+				ptrB[1+(j+0)*bs] = ptrA[1+(j+0)*bs];
+				ptrB[2+(j+0)*bs] = ptrA[2+(j+0)*bs];
+				ptrB[3+(j+0)*bs] = ptrA[3+(j+0)*bs];
+
+				ptrB[0+(j+1)*bs] = ptrA[0+(j+1)*bs];
+				ptrB[1+(j+1)*bs] = ptrA[1+(j+1)*bs];
+				ptrB[2+(j+1)*bs] = ptrA[2+(j+1)*bs];
+				ptrB[3+(j+1)*bs] = ptrA[3+(j+1)*bs];
+
+				ptrB[0+(j+2)*bs] = ptrA[0+(j+2)*bs];
+				ptrB[1+(j+2)*bs] = ptrA[1+(j+2)*bs];
+				ptrB[2+(j+2)*bs] = ptrA[2+(j+2)*bs];
+				ptrB[3+(j+2)*bs] = ptrA[3+(j+2)*bs];
+
+				ptrB[0+(j+3)*bs] = ptrA[0+(j+3)*bs];
+				ptrB[1+(j+3)*bs] = ptrA[1+(j+3)*bs];
+				ptrB[2+(j+3)*bs] = ptrA[2+(j+3)*bs];
+				ptrB[3+(j+3)*bs] = ptrA[3+(j+3)*bs];
+				}
+			for(; j<col; j++)
+				{
+				ptrB[0+j*bs] = ptrA[0+j*bs];
+				ptrB[1+j*bs] = ptrA[1+j*bs];
+				ptrB[2+j*bs] = ptrA[2+j*bs];
+				ptrB[3+j*bs] = ptrA[3+j*bs];
+				}
+			}
+		}
+	for(; i<row; i++)
 		{
 		ptrA = A + ((offset+i)/bs)*bs*sda + ((offset+i)%bs);
 		ptrB = B + (i/bs)*bs*sdb + (i%bs);
-		for(j=0; j<col; j++)
+		j = 0;
+		for(; j<col-3; j+=4)
+			{
+			ptrB[(j+0)*bs] = ptrA[(j+0)*bs];
+			ptrB[(j+1)*bs] = ptrA[(j+1)*bs];
+			ptrB[(j+2)*bs] = ptrA[(j+2)*bs];
+			ptrB[(j+3)*bs] = ptrA[(j+3)*bs];
+			}
+		for(; j<col; j++)
 			{
 			ptrB[j*bs] = ptrA[j*bs];
 			}
