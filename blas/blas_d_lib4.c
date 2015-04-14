@@ -3322,7 +3322,7 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 	{
 	const int bs = 4;
 	const int d_ncl = D_NCL;
-	const int k0 = (d_ncl-k%d_ncl)%d_ncl;
+	//const int k0 = (d_ncl-k%d_ncl)%d_ncl;
 	
 	int i, j;
 	
@@ -3433,12 +3433,12 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 #if defined(TARGET_X64_AVX) // TODO add avx2 !!!!!!!!!!!!!!!
 		for(; i<j-4; i+=8)
 			{
-			kernel_dtrinv_8x4_lib4(j-i, &pE[i*sde+bs*i], sde, &pA[j*sda+(k0+k+i)*bs], &pE[i*sde+j*bs], sde, fact);
+			kernel_dtrinv_8x4_lib4(j-i, &pE[i*sde+bs*i], sde, &pD[j*sdd+i*bs], &pE[i*sde+j*bs], sde, fact);
 			}
 #endif
 		for(; i<j; i+=4)
 			{
-			kernel_dtrinv_4x4_lib4(j-i, &pE[i*sde+bs*i], &pA[j*sda+(k0+k+i)*bs], &pE[i*sde+j*bs], fact);
+			kernel_dtrinv_4x4_lib4(j-i, &pE[i*sde+bs*i], &pD[j*sdd+i*bs], &pE[i*sde+j*bs], fact);
 			}
 		corner_dtrinv_4x4_lib4(fact, pE+j*sde+j*bs);
 		}
@@ -3481,7 +3481,7 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 		if(diag[j+1]==0.0) fact[2]=0.0;
 		for(i=0; i<j; i+=4)
 			{
-			kernel_dtrinv_4x2_lib4(j-i, &pE[i*sde+bs*i], &pA[j*sda+(k0+k+i)*bs], &pE[i*sde+j*bs], fact);
+			kernel_dtrinv_4x2_lib4(j-i, &pE[i*sde+bs*i], &pD[j*sdd+i*bs], &pE[i*sde+j*bs], fact);
 			}
 		corner_dtrinv_2x2_lib4(fact, pE+j*sde+j*bs);
 		}
