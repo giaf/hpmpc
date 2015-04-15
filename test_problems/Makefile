@@ -25,16 +25,18 @@
 
 include ../Makefile.rule
 
-LIBS = -lm #-lopenblas -pthread
+LIBS = -lm 
+#LIBS = -lm -lopenblas -pthread
+#LIBS = -lblis -lm -fopenmp
 
 #OBJS_TEST = test_blas_d_debug.o
 #OBJS_TEST = test_blas_s_debug.o
-#OBJS_TEST = test_blas_d.o
+OBJS_TEST = test_blas_d.o
 #OBJS_TEST = test_blas_s.o
 #OBJS_TEST = tools.o test_d_ric_mpc.o
 #OBJS_TEST = tools.o test_s_ric_mpc.o
 #OBJS_TEST = tools.o test_d_ric_mhe.o
-OBJS_TEST = tools.o test_d_ip_hard.o
+#OBJS_TEST = tools.o test_d_ip_hard.o
 #OBJS_TEST = tools.o test_s_ip_box.o
 #OBJS_TEST = tools.o test_d_ip_soft.o
 #OBJS_TEST = tools.o test_d_admm_box.o

@@ -35,19 +35,27 @@
 #include "test_param.h"
 
 
-#define TEST_BLAS 0
+#define TEST_OPENBLAS 0
+#define TEST_BLIS 0
 
-#if TEST_BLAS
+
+#if TEST_OPENBLAS
 void dgemm_(char *ta, char *tb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc);
 void dgemv_(char *ta, int *m, int *n, double *alpha, double *A, int *lda, double *x, int *incx, double *beta, double *y, int *incy);
+#endif
+#if TEST_BLIS
+#include <blis/blis.h>
 #endif
 
 
 int main()
 	{
 		
-#if TEST_BLAS
+#if TEST_OPENBLAS
 	openblas_set_num_threads(1);
+#endif
+#if TEST_BLIS
+	omp_set_num_threads(1);
 #endif
 
 	printf("\n");
@@ -173,6 +181,10 @@ int main()
 
 		int n = nn[ll];
 		int nrep = nnrep[ll];
+
+#if TEST_BLIS
+		f77_int n77 = n;
+#endif
 	
 		double *A; d_zeros(&A, n, n);
 		double *B; d_zeros(&B, n, n);
@@ -181,6 +193,9 @@ int main()
 		char c_n = 'n';
 		char c_t = 't';
 		int i_1 = 1;
+#if TEST_BLIS
+		f77_int i77_1 = i_1;
+#endif
 		double d_1 = 1;
 		double d_0 = 0;
 	
@@ -370,30 +385,39 @@ int main()
 	
 		gettimeofday(&tv13, NULL); // stop
 	
-#if TEST_BLAS
 		for(rep=0; rep<nrep; rep++)
 			{
+#if TEST_OPENBLAS
 			dgemm_(&c_n, &c_n, &n, &n, &n, &d_1, A, &n, B, &n, &d_0, C, &n);
-			}
 #endif
+#if TEST_BLIS
+			dgemm_(&c_n, &c_n, &n77, &n77, &n77, &d_1, A, &n77, B, &n77, &d_0, C, &n77);
+#endif
+			}
 
 		gettimeofday(&tv14, NULL); // stop
 
-#if TEST_BLAS
 		for(rep=0; rep<nrep; rep++)
 			{
+#if TEST_OPENBLAS
 			dgemv_(&c_n, &n, &n, &d_1, A, &n, x, &i_1, &d_0, y, &i_1);
-			}
 #endif
+#if TEST_BLIS
+			dgemv_(&c_n, &n77, &n77, &d_1, A, &n77, x2, &i77_1, &d_0, y, &i77_1);
+#endif
+			}
 
 		gettimeofday(&tv15, NULL); // stop
 
-#if TEST_BLAS
 		for(rep=0; rep<nrep; rep++)
 			{
+#if TEST_OPENBLAS
 			dgemv_(&c_t, &n, &n, &d_1, A, &n, x, &i_1, &d_0, y, &i_1);
-			}
 #endif
+#if TEST_BLIS
+			dgemv_(&c_t, &n77, &n77, &d_1, A, &n77, x2, &i77_1, &d_0, y, &i77_1);
+#endif
+			}
 
 		gettimeofday(&tv16, NULL); // stop
 
