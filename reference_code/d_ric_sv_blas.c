@@ -24,8 +24,10 @@
 **************************************************************************************************/
 
 // BLAS
-void dtrsm_ ( char *side, char *uplo, char *transa, char *diag, int *m, int *n, double *alpha, double *A, int *lda, double *B, int *ldb ); // side='L' if op(A)*X = alpha*B
-void dsyrk_ ( char *uplo, char *trans, int *n, int *k, double *alpha, double *A, int *lda, double *beta, double *C, int *ldc ); // trans='N' if C := alpha*A*A' + beta*C
+void dgemm_( char *transa, char *transb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc );
+void dtrmm_( char *side, char *uplo, char *transa, char *diag, int *m, int *n, double *alpha, double *A, int *lda, double *B, int *ldb ); // side='L' if B := alpha*op(A)*B
+void dtrsm_( char *side, char *uplo, char *transa, char *diag, int *m, int *n, double *alpha, double *A, int *lda, double *B, int *ldb ); // side='L' if op(A)*X = alpha*B
+void dsyrk_( char *uplo, char *trans, int *n, int *k, double *alpha, double *A, int *lda, double *beta, double *C, int *ldc ); // trans='N' if C := alpha*A*A' + beta*C
 
 // LAPACK
 void dlauum_( char *uplo, int *n, double *A, int *lda, int *info ); // info==0 success
@@ -178,3 +180,81 @@ void d_ric_trf_mhe_if_blas(int nx, int nw, int ndN, int N, double **A, double **
 
 
 	}
+
+
+
+void d_ric_sv_mpc_blas(int nx, int nu, int N, double **BAbt, double **Q, double **Lp, double *BAbtL)
+	{
+
+	int ii, jj, nn;
+	
+	int nz  = nx+nu+1;
+	int nx1 = nx+1;
+	
+	int info;
+	char c_l = 'L';
+	char c_n = 'N';
+	char c_r = 'R';
+	char c_t = 'T';
+	char c_u = 'U';
+	double d_0 = 0.0;
+	double d_1 = 1.0;
+
+	// copy P_N
+	for(jj=0; jj<nx; jj++)
+		for(ii=jj; ii<nx; ii++)
+			Lp[N][nu+ii+nz*(nu+jj)] = Q[N][nu+ii+nz*(nu+jj)];
+
+	// L_N = chol(P_N)
+	dpotrf_( &c_l, &nx, Lp[N], &nx, &info );
+
+	for(nn=0; nn<N-1; nn++)
+		{
+
+		// copy BAbt
+		for(ii=0; ii<nx*nz; ii++)
+			BAbtL[ii] = BAbt[N-nn-1][ii];
+
+		// BAbtL = BAbt * L
+		dtrmm_( &c_r, &c_l, &c_n, &c_n, &nz, &nx, &d_1, Lp[N-nn]+nu*(nz+1), &nz, BAbtL, &nz );
+		for(ii=0; ii<nx; ii++) BAbtL[nx+nu+ii*nz] += Lp[N-nn][nx+nu+(nu+ii)*nz];
+
+		// copy P_N
+		for(jj=0; jj<nz; jj++)
+			for(ii=jj; ii<nz; ii++)
+				Lp[N-nn-1][ii+nz*jj] = Q[N-nn-1][ii+nz*jj];
+
+		// Q_n += BAbtL * BAbtL'
+		dsyrk_( &c_l, &c_n, &nz, &nx, &d_1, BAbtL, &nz, &d_1, Lp[N-nn-1], &nz );
+
+		// L_n = chol(Q_n)
+		dpotrf_( &c_l, &nz, Lp[N-nn-1], &nz, &info );
+
+		}
+	
+	// copy BAbt
+	for(ii=0; ii<nx*nz; ii++)
+		BAbtL[ii] = BAbt[0][ii];
+
+	// BAbtL = BAbt * L
+	dtrmm_( &c_r, &c_l, &c_n, &c_n, &nz, &nx, &d_1, Lp[1]+nu*(nz+1), &nz, BAbtL, &nz );
+	for(ii=0; ii<nx; ii++) BAbtL[nx+nu+ii*nz] += Lp[1][nx+nu+(nu+ii)*nz];
+
+	// copy P_N
+	for(jj=0; jj<nu; jj++)
+		for(ii=jj; ii<nz; ii++)
+			Lp[0][ii+nz*jj] = Q[0][ii+nz*jj];
+
+	// Q_n += BAbtL * BAbtL'
+	dsyrk_( &c_l, &c_n, &nu, &nx, &d_1, BAbtL, &nz, &d_1, Lp[0], &nz );
+	dgemm_( &c_n, &c_t, &nx1, &nu, &nx, &d_1, BAbtL+nu, &nz, BAbtL, &nz, &d_1, Lp[0]+nu, &nz );
+
+	// L_n = chol(Q_n)
+	dpotrf_( &c_l, &nu, Lp[0], &nz, &info );
+	dtrsm_( &c_r, &c_l, &c_t, &c_n, &nx1, &nu, &d_1, Lp[0], &nz, Lp[0]+nu, &nz );
+
+	// TODO forward loop
+
+	}
+
+
