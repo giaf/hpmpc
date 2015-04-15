@@ -94,6 +94,7 @@ LQCP_OBJS = $(LQCP_AUX_OBJS) ./lqcp_solvers/d_ric_sv.o ./lqcp_solvers/d_res.o ./
 LQCP_CODEGEN_OBJS = ./codegen/d_ric_sv_codegen.o ./codegen/d_res_codegen.o ./codegen/s_ric_sv_codegen.o  ./codegen/s_res_codegen.o 
 MPC_OBJS = $(MPC_AUX_OBJS) ./mpc_solvers/d_ip_hard.o ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d_ip_soft.o ./mpc_solvers/d_ip2_soft.o ./mpc_solvers/d_res_ip_soft.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/d_admm_soft.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o ./mpc_solvers/s_admm_soft.o
 INTERFACE_OBJS = ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/fortran_order_interface.o
+REFERENCE_CODE = ./reference_code/d_ric_sv_blas.o
 
 all: clean static_library test_problem run
 
@@ -106,7 +107,8 @@ static_library: target
 	make -C lqcp_solvers obj
 	make -C mpc_solvers obj
 	make -C interfaces obj
-	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
+	make -C reference_code obj
+	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS) $(REFERENCE_CODE)
 	@echo
 	@echo " libhpmpc.a static library build complete."
 	@echo
@@ -118,7 +120,8 @@ shared_library: target
 	make -C lqcp_solvers obj
 	make -C mpc_solvers obj
 	make -C interfaces obj
-	gcc -shared -o libhpmpc.so $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
+	make -C reference_code obj
+	gcc -shared -o libhpmpc.so $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS) $(REFERENCE_CODE)
 	@echo
 	@echo " libhpmpc.so shared library build complete."
 	@echo

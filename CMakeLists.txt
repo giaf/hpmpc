@@ -157,6 +157,7 @@ ADD_SUBDIRECTORY( auxiliary )
 ADD_SUBDIRECTORY( lqcp_solvers )
 ADD_SUBDIRECTORY( mpc_solvers )
 ADD_SUBDIRECTORY( interfaces )
+ADD_SUBDIRECTORY( reference_code )
 #ADD_SUBDIRECTORY( codegen )
 
 #
