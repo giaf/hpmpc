@@ -23,6 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#include <math.h>
+
 
 
 void d_update_hessian_ric_sv(int kmax, double *pQ, int sda, double *Qd)
@@ -65,4 +67,107 @@ void d_update_jacobian_ric_sv(int kmax, double *pQ, double *Ql)
 	
 	}
 
+
+
+// the diagonal is inverted !!!!!
+void dpotrf_diag_lib(int m, int n, double *C, int sdc, double *D, int sdd)
+	{
+
+	const int bs = 4;
+
+	int ii, jj, ll, ll_max;
+
+	double alpha0, alpha1, alpha2, alpha3;
+
+	for(jj=0; jj<n-3; jj+=4)
+		{
+		alpha0 = 1.0/sqrt(C[(jj)*sdc+0+(jj+0)*bs]);
+		alpha1 = 1.0/sqrt(C[(jj)*sdc+1+(jj+1)*bs]);
+		alpha2 = 1.0/sqrt(C[(jj)*sdc+2+(jj+2)*bs]);
+		alpha3 = 1.0/sqrt(C[(jj)*sdc+3+(jj+3)*bs]);
+		// initial triangle
+		D[(jj)*sdc+0+(jj+0)*bs] = alpha0;
+		D[(jj)*sdc+1+(jj+0)*bs] = 0.0;
+		D[(jj)*sdc+2+(jj+0)*bs] = 0.0;
+		D[(jj)*sdc+3+(jj+0)*bs] = 0.0;
+		D[(jj)*sdc+1+(jj+1)*bs] = alpha1;
+		D[(jj)*sdc+2+(jj+1)*bs] = 0.0;
+		D[(jj)*sdc+3+(jj+1)*bs] = 0.0;
+		D[(jj)*sdc+2+(jj+2)*bs] = alpha2;
+		D[(jj)*sdc+3+(jj+2)*bs] = 0.0;
+		D[(jj)*sdc+3+(jj+3)*bs] = alpha3;
+		// remaining rows
+		for(ll=jj+4; ll<n/bs*bs; ll+=4)
+			{
+			D[(ll)*sdd+0+(jj+0)*bs] = 0.0;
+			D[(ll)*sdd+1+(jj+0)*bs] = 0.0;
+			D[(ll)*sdd+2+(jj+0)*bs] = 0.0;
+			D[(ll)*sdd+3+(jj+0)*bs] = 0.0;
+
+			D[(ll)*sdd+0+(jj+1)*bs] = 0.0;
+			D[(ll)*sdd+1+(jj+1)*bs] = 0.0;
+			D[(ll)*sdd+2+(jj+1)*bs] = 0.0;
+			D[(ll)*sdd+3+(jj+1)*bs] = 0.0;
+
+			D[(ll)*sdd+0+(jj+2)*bs] = 0.0;
+			D[(ll)*sdd+1+(jj+2)*bs] = 0.0;
+			D[(ll)*sdd+2+(jj+2)*bs] = 0.0;
+			D[(ll)*sdd+3+(jj+2)*bs] = 0.0;
+
+			D[(ll)*sdd+0+(jj+3)*bs] = 0.0;
+			D[(ll)*sdd+1+(jj+3)*bs] = 0.0;
+			D[(ll)*sdd+2+(jj+3)*bs] = 0.0;
+			D[(ll)*sdd+3+(jj+3)*bs] = 0.0;
+			}
+		for(; ll<m; ll+=4)
+			{
+			D[(ll)*sdd+0+(jj+0)*bs] = alpha0 * C[(ll)*sdc+0+(jj+0)*bs];
+			D[(ll)*sdd+1+(jj+0)*bs] = alpha0 * C[(ll)*sdc+1+(jj+0)*bs];
+			D[(ll)*sdd+2+(jj+0)*bs] = alpha0 * C[(ll)*sdc+2+(jj+0)*bs];
+			D[(ll)*sdd+3+(jj+0)*bs] = alpha0 * C[(ll)*sdc+3+(jj+0)*bs];
+
+			D[(ll)*sdd+0+(jj+1)*bs] = alpha1 * C[(ll)*sdc+0+(jj+1)*bs];
+			D[(ll)*sdd+1+(jj+1)*bs] = alpha1 * C[(ll)*sdc+1+(jj+1)*bs];
+			D[(ll)*sdd+2+(jj+1)*bs] = alpha1 * C[(ll)*sdc+2+(jj+1)*bs];
+			D[(ll)*sdd+3+(jj+1)*bs] = alpha1 * C[(ll)*sdc+3+(jj+1)*bs];
+
+			D[(ll)*sdd+0+(jj+2)*bs] = alpha2 * C[(ll)*sdc+0+(jj+2)*bs];
+			D[(ll)*sdd+1+(jj+2)*bs] = alpha2 * C[(ll)*sdc+1+(jj+2)*bs];
+			D[(ll)*sdd+2+(jj+2)*bs] = alpha2 * C[(ll)*sdc+2+(jj+2)*bs];
+			D[(ll)*sdd+3+(jj+2)*bs] = alpha2 * C[(ll)*sdc+3+(jj+2)*bs];
+
+			D[(ll)*sdd+0+(jj+3)*bs] = alpha3 * C[(ll)*sdc+0+(jj+3)*bs];
+			D[(ll)*sdd+1+(jj+3)*bs] = alpha3 * C[(ll)*sdc+1+(jj+3)*bs];
+			D[(ll)*sdd+2+(jj+3)*bs] = alpha3 * C[(ll)*sdc+2+(jj+3)*bs];
+			D[(ll)*sdd+3+(jj+3)*bs] = alpha3 * C[(ll)*sdc+3+(jj+3)*bs];
+			}
+		}
+	for(ii=0; ii<n-jj; ii++)
+		{
+		alpha0 = 1.0/sqrt(C[(jj)*sdc+ii+(jj+ii)*bs]);
+		D[(jj)*sdc+ii+(jj+ii)*bs] = alpha0;
+		// initial part of column
+		ll_max = n-jj<4 ? n-jj : 4;
+		for(ll=ii+1; ll<ll_max; ll++)
+			D[(jj)*sdc+ll+(jj+ii)*bs] = 0.0;
+		for(; ll<4; ll++)
+			D[(jj)*sdc+ll+(jj+ii)*bs] = alpha0 * C[(jj)*sdc+ll+(jj+ii)*bs];
+		// remaining
+		for(ll=jj+4; ll<n/bs*bs+8; ll+=4)
+			{
+			D[(ll)*sdd+0+(jj+ii)*bs] = 0.0;
+			D[(ll)*sdd+1+(jj+ii)*bs] = 0.0;
+			D[(ll)*sdd+2+(jj+ii)*bs] = 0.0;
+			D[(ll)*sdd+3+(jj+ii)*bs] = 0.0;
+			}
+		for(; ll<m; ll+=4)
+			{
+			D[(ll)*sdd+0+(jj+ii)*bs] = alpha0 * C[(ll)*sdc+0+(jj+ii)*bs];
+			D[(ll)*sdd+1+(jj+ii)*bs] = alpha0 * C[(ll)*sdc+1+(jj+ii)*bs];
+			D[(ll)*sdd+2+(jj+ii)*bs] = alpha0 * C[(ll)*sdc+2+(jj+ii)*bs];
+			D[(ll)*sdd+3+(jj+ii)*bs] = alpha0 * C[(ll)*sdc+3+(jj+ii)*bs];
+			}
+		}
+
+	}
 

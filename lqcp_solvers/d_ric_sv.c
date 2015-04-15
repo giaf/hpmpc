@@ -624,8 +624,11 @@ int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpR
 	const int pnw = bs*((nw+bs-1)/bs);
 	const int pnx2 = bs*((2*nx+bs-1)/bs);
 	const int pnwx = bs*((nw+nx+bs-1)/bs);
+	const int pndN = bs*((ndN+bs-1)/bs);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 	const int cnw = ncl*((nw+ncl-1)/ncl);
+	const int cnwx = ncl*((nw+nx+ncl-1)/ncl);
+	const int cnwx1 = ncl*((nw+nx+1+ncl-1)/ncl);
 	const int cnx2 = 2*(ncl*((nx+ncl-1)/ncl));
 	//const int cnwx = ncl*((nw+nx+ncl-1)/ncl);
 
@@ -647,6 +650,155 @@ int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpR
 	int ii, jj, ll;	
 
 	double alpha;
+
+
+#if 0
+
+	double **hpQRAG = hpQA;
+	double **hpLe = hpALe;
+	double **hpLAG = hpGLr;
+
+	// if(pnx>-pnw)
+	for(ii=0; ii<N; ii++)
+		{
+
+		//d_print_pmat(nx, nx, bs, hpLe[ii], cnx);
+		//d_print_pmat(2*pnx, cnwx1, bs, hpQRAG[ii], cnwx1);
+		dtsyrk_dpotrf_lib(2*nx, nx, nx, hpLe[ii], cnx, hpQRAG[ii], cnwx1, hpLAG[ii], cnwx1, diag, 1);
+		//d_print_pmat(2*pnx, cnwx1, bs, hpLAG[ii], cnwx1);
+		if(nx>pnx-nx)
+			d_copy_pmat_panel(pnx-nx, nx, 2*nx, hpLAG[ii]+nx/bs*bs*cnwx1+nx%bs, hpLAG[ii]+(2*nx)/bs*bs*cnwx1+(2*nx)%bs, cnwx1);
+		else
+			d_copy_pmat_panel(nx, nx, pnx, hpLAG[ii]+nx/bs*bs*cnwx1+nx%bs, hpLAG[ii]+pnx*cnwx1, cnwx1);
+		//d_print_pmat(2*pnx, cnwx, bs, hpLAG[ii], cnwx1);
+
+		// copy reciprocal of diagonal
+		for(jj=0; jj<nx-3; jj+=4) 
+			{
+			diag_min = fmin(diag_min, diag[jj+0]);
+			hpLAG[ii][jj*cnwx1+0+(jj+0)*bs] = diag[jj+0]; 
+			diag_min = fmin(diag_min, diag[jj+1]);
+			hpLAG[ii][jj*cnwx1+1+(jj+1)*bs] = diag[jj+1]; 
+			diag_min = fmin(diag_min, diag[jj+2]);
+			hpLAG[ii][jj*cnwx1+2+(jj+2)*bs] = diag[jj+2]; 
+			diag_min = fmin(diag_min, diag[jj+3]);
+			hpLAG[ii][jj*cnwx1+3+(jj+3)*bs] = diag[jj+3]; 
+			}
+		for(; jj<nx; jj++) 
+			{
+			diag_min = fmin(diag_min, diag[jj]);
+			hpLAG[ii][jj/bs*bs*cnwx1+jj%bs+jj*bs] = diag[jj]; 
+			}
+		//d_print_pmat(2*pnx, cnwx, bs, hpLAG[ii], cnwx1);
+
+		if(diag_R)
+			{
+			dpotrf_diag_lib(nwx, nw, hpQRAG[ii]+(pnx-pnw)*cnwx1+nx*bs, cnwx1, hpLAG[ii]+(pnx-pnw)*cnwx1+nx*bs, cnwx1);
+			//d_print_pmat(2*pnx, cnwx, bs, hpLAG[ii], cnwx1);
+			}
+		else
+			{
+			dpotrf_lib(nwx, nw, hpQRAG[ii]+(pnx-pnw)*cnwx1+nx*bs, cnwx1, hpLAG[ii]+(pnx-pnw)*cnwx1+nx*bs, cnwx1, diag);
+			//d_print_pmat(2*pnx, cnwx, bs, hpLAG[ii], cnwx1);
+
+			// copy reciprocal of diagonal
+			for(jj=0; jj<nw-3; jj+=4) 
+				{
+				hpLAG[ii][(jj+pnx-pnw)*cnwx1+0+(nx+jj+0)*bs] = diag[jj+0];
+				hpLAG[ii][(jj+pnx-pnw)*cnwx1+1+(nx+jj+1)*bs] = diag[jj+1];
+				hpLAG[ii][(jj+pnx-pnw)*cnwx1+2+(nx+jj+2)*bs] = diag[jj+2];
+				hpLAG[ii][(jj+pnx-pnw)*cnwx1+3+(nx+jj+3)*bs] = diag[jj+3];
+				}
+			for(; jj<nw; jj++) 
+				{
+				hpLAG[ii][(jj/bs*bs+pnx-pnw)*cnwx1+jj%bs+(nx+jj)*bs] = diag[jj];
+				}
+			//d_print_pmat(2*pnx, cnwx, bs, hpLAG[ii], cnwx1);
+			}
+		if(nx>pnw-nw)
+			d_copy_pmat_panel(pnw-nw, nw, nx+nw, hpLAG[ii]+(pnx-pnw+nw)/bs*bs*cnwx1+nw%bs+nx*bs, hpLAG[ii]+(pnx-pnw+nw+nx)/bs*bs*cnwx1+(pnx-pnw+nw+nx)%bs+nx*bs, cnwx1);
+		else
+			d_copy_pmat_panel(nx, nw, pnx, hpLAG[ii]+(pnx-pnw+nw)/bs*bs*cnwx1+nw%bs+nx*bs, hpLAG[ii]+pnx*cnwx1+nx*bs, cnwx1);
+		//d_print_pmat(2*pnx, cnwx1, bs, hpLAG[ii], cnwx1);
+
+		//dsyrk_dpotrf_dtrinv_lib(nx, nx, nwx, GLrALeLp, cnl, ptr, 0, GLrALeLp+(nw+nx+pad)*bs, cnl, hpALe[ii+1], cnx2, diag, 0);
+		dsyrk_dpotrf_dtrinv_lib(nx, nx, nwx, hpLAG[ii]+pnx*cnwx1, cnwx1, ptr, 0, GLrALeLp, cnx, hpLe[ii+1], cnx, diag, 0);
+		//d_print_pmat(nx, nx, bs, GLrALeLp, cnx);
+		//d_print_pmat(nx, nx, bs, hpLe[ii+1], cnx);
+
+		for(jj=0; jj<nx; jj++) 
+			{
+			diag_min = fmin(diag_min, diag[jj]);
+			}
+		//if(diag_min==0.0)
+		//	{
+		//	d_print_pmat(nx, cnl, bs, GLrALeLp, cnl);
+		//	d_print_pmat(2*nx, cnx2, bs, hpALe[ii+1], cnx2);
+		//	}
+
+		if(diag_min==0.0)
+			return ii+1;
+
+
+		//exit(1);
+
+		}
+
+	//dtsyrk_dpotrf_lib(nx+ndN, nx, nx, hpALe[N], cnx2, hpQA[N], cnx, hpALe[N]+(cnx)*bs, cnx2, diag, 1);
+	dtsyrk_dpotrf_lib(nx+ndN, nx, nx, hpLe[N], cnx, hpQRAG[N], cnx, hpLAG[N], cnx, diag, 1);
+	//d_print_pmat(pnx+pndN, cnx, bs, hpLAG[N], cnx);
+	if(ndN>0)
+		{
+		if(ndN>pnx-nx)
+			d_copy_pmat_panel(pnx-nx, nx, nx+ndN, hpLAG[N]+nx/bs*bs*cnx+nx%bs, hpLAG[N]+(nx+ndN)/bs*bs*cnx+(nx+ndN)%bs, cnx);
+		else
+			d_copy_pmat_panel(ndN, nx, pnx, hpLAG[N]+nx/bs*bs*cnx+nx%bs, hpLAG[N]+pnx*cnx, cnx);
+		}
+	//d_print_pmat(pnx+pndN, cnx, bs, hpLAG[N], cnx);
+
+	// copy reciprocal of diagonal
+	for(jj=0; jj<nx-3; jj+=4) 
+		{
+		diag_min = fmin(diag_min, diag[jj+0]);
+		hpLAG[N][jj*cnx+0+(jj+0)*bs] = diag[jj+0]; 
+		diag_min = fmin(diag_min, diag[jj+1]);
+		hpLAG[N][jj*cnx+1+(jj+1)*bs] = diag[jj+1]; 
+		diag_min = fmin(diag_min, diag[jj+2]);
+		hpLAG[N][jj*cnx+2+(jj+2)*bs] = diag[jj+2]; 
+		diag_min = fmin(diag_min, diag[jj+3]);
+		hpLAG[N][jj*cnx+3+(jj+3)*bs] = diag[jj+3]; 
+		}
+	for(; jj<nx; jj++) 
+		{
+		diag_min = fmin(diag_min, diag[jj]);
+		hpLAG[N][jj/bs*bs*cnx+jj%bs+jj*bs] = diag[jj]; 
+		}
+	//d_print_pmat(pnx+pndN, cnx, bs, hpLAG[N], cnx);
+
+	// equality constraints at the last stage
+	if(ndN>0)
+		{
+		int cndN = ncl*((ndN+ncl-1)/ncl);
+		dsyrk_dpotrf_lib(ndN, ndN, nx, hpLAG[N]+pnx*cnx, cnx, Ld, cndN, Ld, cndN, diag, 0, 0);
+		//d_print_pmat(ndN, ndN, bs, Ld, cndN);
+		// copy reciprocal of diagonal
+		for(jj=0; jj<ndN-3; jj+=4) 
+			{
+			Ld[jj*cndN+0+(jj+0)*bs] = diag[jj+0];
+			Ld[jj*cndN+1+(jj+1)*bs] = diag[jj+1];
+			Ld[jj*cndN+2+(jj+2)*bs] = diag[jj+2];
+			Ld[jj*cndN+3+(jj+3)*bs] = diag[jj+3];
+			}
+		for(; jj<ndN; jj++) 
+			{
+			Ld[jj/bs*bs*cndN+jj%bs+jj*bs] = diag[jj];
+			}
+		//d_print_pmat(ndN, ndN, bs, Ld, cndN);
+		}
+
+	//exit(1);
+
+#else
 
 	for(ii=0; ii<N; ii++)
 		{
@@ -715,8 +867,6 @@ int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpR
 		//	d_print_pmat(2*nx, cnx2, bs, hpALe[ii+1], cnx2);
 		//	}
 
-		//exit(1);
-
 		if(diag_min==0.0)
 			return ii+1;
 
@@ -724,10 +874,11 @@ int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpR
 		//exit(1);
 		}
 
+
 	//d_print_pmat(nx, nx, bs, GLrALeLp+(nx+nw+pad)*bs, cnl);
 	//dtsyrk_dpotrf_lib(nx, nx, nx, hpALe[N], cnx2, hpQA[N], cnx, diag, 1);
 	dtsyrk_dpotrf_lib(nx+ndN, nx, nx, hpALe[N], cnx2, hpQA[N], cnx, hpALe[N]+(cnx)*bs, cnx2, diag, 1);
-	//d_print_pmat(nx+ndN, cnx2, bs, hpALe[ii], cnx2);
+	d_print_pmat(nx+ndN, cnx2, bs, hpALe[N], cnx2);
 
 	// copy reciprocal of diagonal
 	for(jj=0; jj<nx; jj++) 
@@ -739,13 +890,16 @@ int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpR
 	// equality constraints at the last stage
 	if(ndN>0)
 		{
-		d_align_pmat(ndN, nx, nx, bs, hpALe[ii]+cnx*bs, cnx2, GLrALeLp, cnl);
+		d_align_pmat(ndN, nx, nx, bs, hpALe[N]+cnx*bs, cnx2, GLrALeLp, cnl);
 
 		int cndN = ncl*((ndN+ncl-1)/ncl);
 		dsyrk_dpotrf_lib(ndN, ndN, nx, GLrALeLp, cnl, Ld, cndN, Ld, cndN, diag, 0, 0);
 		for(jj=0; jj<ndN; jj++) Ld[jj/bs*bs*cndN+jj%bs+jj*bs] = diag[jj];
-		//d_print_pmat(ndN, ndN, bs, Ld, cndN);
+		d_print_pmat(ndN, ndN, bs, Ld, cndN);
+		exit(1);
 		}
+
+#endif
 
 	if(diag_min==0.0)
 		return ii+1;
