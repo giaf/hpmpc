@@ -832,6 +832,9 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 	else // tract as scalar
 		{
 
+		A += 3;
+		x += 3;
+
 		y_0 = _mm_setzero_pd();
 		y_1 = _mm_setzero_pd();
 		y_2 = _mm_setzero_pd();
@@ -1044,6 +1047,9 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 	else // tract as scalar
 		{
 
+		A += 2;
+		x += 2;
+
 		y_0 = _mm_setzero_pd();
 		y_1 = _mm_setzero_pd();
 
@@ -1223,6 +1229,9 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 		}
 	else // tract as scalar
 		{
+
+		A += 1;
+		x += 1;
 
 		y_0 = _mm_setzero_pd();
 

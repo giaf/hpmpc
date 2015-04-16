@@ -634,6 +634,11 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 
 			}
 		}
+	else
+		{
+		A += 3;
+		x += 1;
+		}
 	for(; k<kmax; k++)
 		{
 		
@@ -778,6 +783,11 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 
 			}
 		}
+	else
+		{
+		A += 2;
+		x += 2;
+		}
 	for(; k<kmax; k++)
 		{
 		
@@ -889,6 +899,11 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 			x += 4;
 
 			}
+		}
+	else
+		{
+		A += 1;
+		x += 1;
 		}
 	for(; k<kmax; k++)
 		{
