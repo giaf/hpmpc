@@ -194,11 +194,13 @@ int hpmpc_ric_mhe_if_dp_work_space(int nx, int nw, int ny, int ndN, int N)
 	const int anw = nal*((nw+nal-1)/nal);
 	const int any = nal*((ny+nal-1)/nal);
 	const int pnx = bs*((nx+bs-1)/bs);
+	const int pnw = bs*((nw+bs-1)/bs);
 	const int pny = bs*((ny+bs-1)/bs);
 	const int pnx2 = bs*((2*nx+bs-1)/bs);
 	const int pnwx = bs*((nwx+bs-1)/bs);
 	const int pndN = bs*((ndN+bs-1)/bs);
 //	const int pnxdN = bs*((nx+ndN+bs-1)/bs);
+	const int pnwx1 = pnx>pnw ? 2*pnx : pnx+pnw;
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 	const int cnw = ncl*((nw+ncl-1)/ncl);
 	const int cny = ncl*((ny+ncl-1)/ncl);
@@ -206,8 +208,12 @@ int hpmpc_ric_mhe_if_dp_work_space(int nx, int nw, int ny, int ndN, int N)
 	const int pad = (ncl-(nx+nw)%ncl)%ncl; // padding
 	const int cnj = nx+nw+pad+cnx;
 	const int cndN = ncl*((ndN+ncl-1)/ncl);
+	const int cnwx1 = ncl*((nw+nx+1+ncl-1)/ncl);
+	const int pnm = pnx>pnw ? pnx : pnw;
 
-	int work_space_size = (8 + (N+1)*(pnwx*cnw+pnx2*cnx+pnwx*cnw+pnx2*cnx2+pnx*cny+2*anw+any+5*anx) + 2*pnx*cnx+pnx*cnj+anx+pny*cny+pnx*cny+anx + pndN*cndN);
+	//int work_space_size = (8 + (N+1)*(pnwx*cnw+pnx2*cnx+pnwx*cnw+pnx2*cnx2+pnx*cny+2*anw+any+5*anx) + 2*pnx*cnx+pnx*cnj+anx+pny*cny+pnx*cny+anx + pndN*cndN);
+
+	int work_space_size = (8 + (N+1)*(2*pnwx1*cnwx1+pnx*cny+pndN*cndN+pnx*cnx+5*anx+2*anw+any) + pny*cny+pnx*cny+2*anx+pnx*cnx+pnm+any);
 
 	return work_space_size;
 	}

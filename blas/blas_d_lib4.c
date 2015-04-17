@@ -2359,6 +2359,9 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int 
 // TODO modify kernels instead
 void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, int alg) // pA has to be aligned !!!
 	{
+
+	if(m<=0  || n<=0)
+		return;
 	
 	const int bs = 4;
 	
@@ -2450,6 +2453,9 @@ void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, int al
 
 void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, double *y, int alg)
 	{
+	
+	if(m<=0  || n<=0)
+		return;
 	
 	const int bs = 4;
 	

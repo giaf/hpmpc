@@ -32,6 +32,7 @@ void d_rep_mat(int reps, int row, int col, double *A, int lda, double *B, int ld
 void d_copy_mat(int row, int col, double *A, int lda, double *B, int ldb);
 void d_copy_pmat(int row, int col, int bs, double *A, int sda, double *B, int sdb);
 void d_copy_pmat_l(int row, int bs, double *A, int sda, double *B, int sdb);
+void d_copy_pmat_panel(int row, int col, int offset, double *A, double *B, int sdb);
 //void d_transpose_pmat_lo(int row, int offset, double *A, int sda, double *B, int sdb);
 void d_align_pmat(int row, int col, int offset, int bs, double *A, int sda, double *B, int sdb);
 void d_cvt_mat2pmat(int row, int col, int offset, int bs, double *A, int lda, double *pA, int sda);

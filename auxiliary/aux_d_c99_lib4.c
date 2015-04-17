@@ -177,6 +177,133 @@ void d_copy_pmat(int row, int col, int bs_dummy, double *A, int sda, double *B, 
 
 
 
+/* copies 1 to 4 rows from a block of a packed matrix into a (misalinged) packed matrix */
+void d_copy_pmat_panel(int row, int col, int offset, double *A, double *B, int sdb)
+	{
+
+	if(row<=0 || col<=0)
+		return;
+	
+	const int bs = 4;
+
+	int i, ii;
+
+	int row0 = bs - offset%bs;
+	row0 = row0>row ? row : row0;
+	int row1 = row - row0;
+
+	double *(ptrB[4]);
+	for(i=0; i<row0; i++)
+		ptrB[i] = B + i;
+	for(i=0; i<row1; i++)
+		ptrB[row0+i] = B + row0 + (sdb-1)*bs + i;
+	
+
+	if(row==1)
+		{
+		i = 0;
+		for(; i<col-3; i+=4)
+			{
+			ptrB[0][(i+0)*bs] = A[0+(i+0)*bs];
+			ptrB[0][(i+1)*bs] = A[0+(i+1)*bs];
+			ptrB[0][(i+2)*bs] = A[0+(i+2)*bs];
+			ptrB[0][(i+3)*bs] = A[0+(i+3)*bs];
+			}
+		for(; i<col; i++)
+			{
+			ptrB[0][(i+0)*bs] = A[0+(i+0)*bs];
+			}
+		}
+	else if(row==2)
+		{
+		i = 0;
+		for(; i<col-3; i+=4)
+			{
+			ptrB[0][(i+0)*bs] = A[0+(i+0)*bs];
+			ptrB[1][(i+0)*bs] = A[1+(i+0)*bs];
+
+			ptrB[0][(i+1)*bs] = A[0+(i+1)*bs];
+			ptrB[1][(i+1)*bs] = A[1+(i+1)*bs];
+
+			ptrB[0][(i+2)*bs] = A[0+(i+2)*bs];
+			ptrB[1][(i+2)*bs] = A[1+(i+2)*bs];
+
+			ptrB[0][(i+3)*bs] = A[0+(i+3)*bs];
+			ptrB[1][(i+3)*bs] = A[1+(i+3)*bs];
+			}
+		for(; i<col; i++)
+			{
+			ptrB[0][(i+0)*bs] = A[0+(i+0)*bs];
+			ptrB[1][(i+0)*bs] = A[1+(i+0)*bs];
+			}
+		}
+	else if(row==3)
+		{
+		i = 0;
+		for(; i<col-3; i+=4)
+			{
+			ptrB[0][(i+0)*bs] = A[0+(i+0)*bs];
+			ptrB[1][(i+0)*bs] = A[1+(i+0)*bs];
+			ptrB[2][(i+0)*bs] = A[2+(i+0)*bs];
+
+			ptrB[0][(i+1)*bs] = A[0+(i+1)*bs];
+			ptrB[1][(i+1)*bs] = A[1+(i+1)*bs];
+			ptrB[2][(i+1)*bs] = A[2+(i+1)*bs];
+
+			ptrB[0][(i+2)*bs] = A[0+(i+2)*bs];
+			ptrB[1][(i+2)*bs] = A[1+(i+2)*bs];
+			ptrB[2][(i+2)*bs] = A[2+(i+2)*bs];
+
+			ptrB[0][(i+3)*bs] = A[0+(i+3)*bs];
+			ptrB[1][(i+3)*bs] = A[1+(i+3)*bs];
+			ptrB[2][(i+3)*bs] = A[2+(i+3)*bs];
+			}
+		for(; i<col; i++)
+			{
+			ptrB[0][(i+0)*bs] = A[0+(i+0)*bs];
+			ptrB[1][(i+0)*bs] = A[1+(i+0)*bs];
+			ptrB[2][(i+0)*bs] = A[2+(i+0)*bs];
+			}
+		}
+	else //if(row==4)
+		{
+		i = 0;
+		for(; i<col-3; i+=4)
+			{
+			ptrB[0][(i+0)*bs] = A[0+(i+0)*bs];
+			ptrB[1][(i+0)*bs] = A[1+(i+0)*bs];
+			ptrB[2][(i+0)*bs] = A[2+(i+0)*bs];
+			ptrB[3][(i+0)*bs] = A[3+(i+0)*bs];
+
+			ptrB[0][(i+1)*bs] = A[0+(i+1)*bs];
+			ptrB[1][(i+1)*bs] = A[1+(i+1)*bs];
+			ptrB[2][(i+1)*bs] = A[2+(i+1)*bs];
+			ptrB[3][(i+0)*bs] = A[3+(i+0)*bs];
+
+			ptrB[0][(i+2)*bs] = A[0+(i+2)*bs];
+			ptrB[1][(i+2)*bs] = A[1+(i+2)*bs];
+			ptrB[2][(i+2)*bs] = A[2+(i+2)*bs];
+			ptrB[3][(i+0)*bs] = A[3+(i+0)*bs];
+
+			ptrB[0][(i+3)*bs] = A[0+(i+3)*bs];
+			ptrB[1][(i+3)*bs] = A[1+(i+3)*bs];
+			ptrB[2][(i+3)*bs] = A[2+(i+3)*bs];
+			ptrB[3][(i+0)*bs] = A[3+(i+0)*bs];
+			}
+		for(; i<col; i++)
+			{
+			ptrB[0][(i+0)*bs] = A[0+(i+0)*bs];
+			ptrB[1][(i+0)*bs] = A[1+(i+0)*bs];
+			ptrB[2][(i+0)*bs] = A[2+(i+0)*bs];
+			ptrB[3][(i+0)*bs] = A[3+(i+0)*bs];
+			}
+		}
+		
+		
+	}
+
+
+
 // copies a lower triangular packed matrix 
 void d_copy_pmat_l(int row, int bs_dummy, double *A, int sda, double *B, int sdb)
 	{

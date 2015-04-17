@@ -28,6 +28,9 @@ void dgemm_( char *transa, char *transb, int *m, int *n, int *k, double *alpha, 
 void dtrmm_( char *side, char *uplo, char *transa, char *diag, int *m, int *n, double *alpha, double *A, int *lda, double *B, int *ldb ); // side='L' if B := alpha*op(A)*B
 void dtrsm_( char *side, char *uplo, char *transa, char *diag, int *m, int *n, double *alpha, double *A, int *lda, double *B, int *ldb ); // side='L' if op(A)*X = alpha*B
 void dsyrk_( char *uplo, char *trans, int *n, int *k, double *alpha, double *A, int *lda, double *beta, double *C, int *ldc ); // trans='N' if C := alpha*A*A' + beta*C
+void dgemv_( char *trans, int *m, int *n, double *alpha, double *A, int *lda, double *x, int *incx, double *beta, double *y, int *incy );
+void dtrmv_( char *uplo, char *trans, char *diag, int *n, double *A, int *lda, double *x, int *incx );
+void dtrsv_( char *uplo, char *trans, char *diag, int *n, double *A, int *lda, double *x, int *incx );
 
 // LAPACK
 void dlauum_( char *uplo, int *n, double *A, int *lda, int *info ); // info==0 success
@@ -36,6 +39,7 @@ void dtrtri_( char *uplo, char *diag, int *n, double *A, int *lda, int *info ); 
 
 
 
+// TODO return error code
 void d_ric_trf_mhe_if_blas(int nx, int nw, int ndN, int N, double **A, double **G, double **Q, double **R, double **AGU, double **Up, double **Ue, double **Ur, double *Ud)
 	{
 
@@ -44,10 +48,10 @@ void d_ric_trf_mhe_if_blas(int nx, int nw, int ndN, int N, double **A, double **
 	int nxw = nx+nw;
 
 	int info;
-	char c_u = 'U';
 	char c_l = 'L';
-	char c_r = 'R';
 	char c_n = 'N';
+	char c_r = 'R';
+	char c_u = 'U';
 	double d_0 = 0.0;
 	double d_1 = 1.0;
 
@@ -60,77 +64,62 @@ void d_ric_trf_mhe_if_blas(int nx, int nw, int ndN, int N, double **A, double **
 		for(jj=0; jj<nx; jj++)
 			for(ii=0; ii<=jj; ii++)
 				Ue[nn][ii+nx*jj] = Up[nn][ii+nx*jj];
-
 		//d_print_mat(nx, nx, Ue[nn], nx);
 		
 		// E = U*U'
 		dlauum_( &c_u, &nx, Ue[nn], &nx, &info );
-
 		//d_print_mat(nx, nx, Ue[nn], nx);
-		//d_print_mat(nx, nx, Q[nn], nx);
 		
 		// E = Q + U*U'
 		for(jj=0; jj<nx; jj++)
 			for(ii=0; ii<=jj; ii++)
 				Ue[nn][ii+nx*jj] += Q[nn][ii+nx*jj];
-
 		//d_print_mat(nx, nx, Ue[nn], nx);
 		
 		// Ue = chol(E)
 		dpotrf_( &c_u, &nx, Ue[nn], &nx, &info );
-
 		//d_print_mat(nx, nx, Ue[nn], nx);
 		
 		// copy A to AGU
 		for(jj=0; jj<nx*nx; jj++)
 			AGU[nn][jj] = A[nn][jj];
-
 		//d_print_mat(nx, nx+nw, AGU[nn], nx);
 		
 		// AUe = A * inv(Ue)
 		dtrsm_( &c_r, &c_u, &c_n, &c_n, &nx, &nx, &d_1, Ue[nn], &nx, AGU[nn], &nx );
-
 		//d_print_mat(nx, nx+nw, AGU[nn], nx);
 
 		// copy R to Ur
 		for(jj=0; jj<nw; jj++)
 			for(ii=0; ii<=jj; ii++)
 				Ur[nn][ii+nw*jj] = R[nn][ii+nw*jj];
-
 		//d_print_mat(nw, nw, Ur[nn], nw);
 
 		// Ur = chol(R)
 		dpotrf_( &c_u, &nw, Ur[nn], &nw, &info );
-
 		//d_print_mat(nw, nw, Ur[nn], nw);
 
 		// copy G to AGU
 		for(jj=0; jj<nx*nw; jj++)
 			AGU[nn][nx*nx+jj] = G[nn][jj];
-
 		//d_print_mat(nx, nx+nw, AGU[nn], nx);
 
 		// GUr = G * inv(Ur)
 		dtrsm_( &c_r, &c_u, &c_n, &c_n, &nx, &nw, &d_1, Ur[nn], &nw, AGU[nn]+nx*nx, &nx );
-
 		//d_print_mat(nx, nx+nw, AGU[nn], nx);
 
 		// U = AGu * AGu'
 		dsyrk_( &c_u, &c_n, &nx, &nxw, &d_1, AGU[nn], &nx, &d_0, Up[nn+1], &nx );
-
 		//d_print_mat(nx, nx, Up[nn+1], nx);
 		
 		// U = chol(U)
 		dpotrf_( &c_u, &nx, Up[nn+1], &nx, &info );
-
 		//d_print_mat(nx, nx, Up[nn+1], nx);
 		
 		// U = inv(U)
 		dtrtri_( &c_u, &c_n, &nx, Up[nn+1], &nx, &info );
-
 		//d_print_mat(nx, nx, Up[nn+1], nx);
 
-		//if(nn==1)
 		//exit(1);
 		
 		}
@@ -157,27 +146,152 @@ void d_ric_trf_mhe_if_blas(int nx, int nw, int ndN, int N, double **A, double **
 		// copy D to AGU
 		for(jj=0; jj<ndN*nx; jj++)
 			AGU[N][jj] = A[N][jj];
-
 		//d_print_mat(nx, nx+nw, AGU[nn], nx);
 		
 		// AUe = D * inv(Ue)
 		dtrsm_( &c_r, &c_u, &c_n, &c_n, &ndN, &nx, &d_1, Ue[N], &nx, AGU[N], &ndN );
-
 		//d_print_mat(nx, nx+nw, AGU[nn], nx);
 
 		// U = AGU * AGU'
 		dsyrk_( &c_u, &c_n, &ndN, &nx, &d_1, AGU[N], &ndN, &d_0, Ud, &ndN );
-
 		//d_print_mat(ndN, ndN, Ud, ndN);
 
 		// Ud = chol(Ud)
 		dpotrf_( &c_u, &ndN, Ud, &ndN, &info );
-
 		//d_print_mat(ndN, ndN, Ud, ndN);
+
+		}
+
+	//exit(1);
+
+	}
+
+
+
+void d_ric_trs_mhe_if_blas(int nx, int nw, int ndN, int N, double **AGU, double **Up, double **Ue, double **Ur, double *Ud, double **q, double **r, double **f, double **xp, double **x, double **w, double **lam, double *work)
+	{
+
+	int ii, jj, nn;
+
+	int nxw = nx+nw;
+
+	int info;
+	int i_1 = 1;
+	char c_l = 'L';
+	char c_n = 'N';
+	char c_r = 'R';
+	char c_t = 'T';
+	char c_u = 'U';
+	double d_0 = 0.0;
+	double d_1 = 1.0;
+	double d_m1 = -1.0;
+
+	double *x_temp, *w_temp;
+	x_temp = work;
+	work += nx;
+	w_temp = work;
+	work += nw;
+
+	// forward substitution
+	for(nn=0; nn<N; nn++)
+		{
+
+		for(ii=0; ii<nx; ii++) x_temp[ii] = xp[nn][ii];
+		//d_print_mat(1, nx, x_temp, 1);
+		//d_print_mat(nx, nx, Up[nn], nx);
+		dtrmv_( &c_u, &c_t, &c_n, &nx, Up[nn], &nx, x_temp, &i_1 );
+		//d_print_mat(1, nx, x_temp, 1);
+		dtrmv_( &c_u, &c_n, &c_n, &nx, Up[nn], &nx, x_temp, &i_1 );
+		//d_print_mat(1, nx, x_temp, 1);
+		for(ii=0; ii<nx; ii++) x[nn][ii] = - q[nn][ii] + x_temp[ii];
+		//d_print_mat(1, nx, x[nn], 1);
+
+		dtrsv_( &c_u, &c_t, &c_n, &nx, Ue[nn], &nx, x[nn], &i_1 );
+		//d_print_mat(1, nx, x[nn], 1);
+		//for(ii=0; ii<nx; ii++) x[nn][ii] = - x[nn][ii];
+		//d_print_mat(1, nx, x[nn], 1);
+		for(ii=0; ii<nx; ii++) xp[nn+1][ii] = f[nn][ii];
+		//d_print_mat(1, nx, xp[nn+1], 1);
+		dgemv_( &c_n, &nx, &nx, &d_1, AGU[nn], &nx, x[nn], &i_1, &d_1, xp[nn+1], &i_1 );
+		//d_print_mat(1, nx, xp[nn+1], 1);
+
+		for(ii=0; ii<nw; ii++) w[nn][ii] = r[nn][ii];
+		dtrsv_( &c_u, &c_t, &c_n, &nw, Ur[nn], &nw, w[nn], &i_1 );
+		//d_print_mat(1, nw, w[nn], 1);
+		dgemv_( &c_n, &nx, &nw, &d_m1, AGU[nn]+nx*nx, &nx, w[nn], &i_1, &d_1, xp[nn+1], &i_1 );
+		//d_print_mat(1, nx, xp[nn+1], 1);
+
+		//if(nn==1)
+		//return;
 		//exit(1);
 
 		}
 
+	//d_print_mat(1, nx, xp[N], 1);
+	for(ii=0; ii<nx; ii++) x_temp[ii] = xp[N][ii];
+	//d_print_mat(1, nx, x_temp, 1);
+	//d_print_mat(nx, nx, Up[nn], nx);
+	dtrmv_( &c_u, &c_t, &c_n, &nx, Up[N], &nx, x_temp, &i_1 );
+	//d_print_mat(1, nx, x_temp, 1);
+	dtrmv_( &c_u, &c_n, &c_n, &nx, Up[N], &nx, x_temp, &i_1 );
+	//d_print_mat(1, nx, x_temp, 1);
+	for(ii=0; ii<nx; ii++) x[N][ii] = - q[N][ii] + x_temp[ii];
+	//d_print_mat(1, nx, x[N], 1);
+
+
+	// backwars substitution
+	if(ndN<=0)
+		{
+		dtrsv_( &c_u, &c_t, &c_n, &nx, Ue[N], &nx, x[N], &i_1 );
+		//d_print_mat(1, nx, x[N], 1);
+		dtrsv_( &c_u, &c_n, &c_n, &nx, Ue[N], &nx, x[N], &i_1 );
+		//d_print_mat(1, nx, x[N], 1);
+		}
+	else
+		{
+		//d_print_mat(nx, nx, Ue[N], nx);
+		//d_print_mat(ndN, nx, AGU[N], ndN);
+		dtrsv_( &c_u, &c_t, &c_n, &nx, Ue[N], &nx, x[N], &i_1 );
+		//d_print_mat(1, nx, x[N], 1);
+		for(ii=0; ii<ndN; ii++) lam[N][ii] = f[N][ii];
+		//d_print_mat(1, ndN, lam[N], 1);
+		dgemv_( &c_n, &ndN, &nx, &d_1, AGU[N], &ndN, x[N], &i_1, &d_m1, lam[N], &i_1 );
+		//d_print_mat(1, ndN, lam[N], 1);
+		dtrsv_( &c_u, &c_t, &c_n, &ndN, Ud, &ndN, lam[N], &i_1 );
+		dtrsv_( &c_u, &c_n, &c_n, &ndN, Ud, &ndN, lam[N], &i_1 );
+		//d_print_mat(1, ndN, lam[N], 1);
+
+		//d_print_mat(1, nx, x[N], 1);
+		dgemv_( &c_t, &ndN, &nx, &d_m1, AGU[N], &ndN, lam[N], &i_1, &d_1, x[N], &i_1 );
+		dtrsv_( &c_u, &c_n, &c_n, &nx, Ue[N], &nx, x[N], &i_1 );
+		//d_print_mat(1, nx, x[N], 1);
+
+		}
+	
+	for(nn=0; nn<N; nn++)
+		{
+
+		for(ii=0; ii<nx; ii++) lam[N-nn-1][ii] = xp[N-nn][ii] - x[N-nn][ii];
+		//d_print_mat(1, nx, lam[N-nn-1], 1);
+		dtrmv_( &c_u, &c_t, &c_n, &nx, Up[N-nn], &nx, lam[N-nn-1], &i_1 );
+		//d_print_mat(1, nx, lam[N-nn-1], 1);
+		dtrmv_( &c_u, &c_n, &c_n, &nx, Up[N-nn], &nx, lam[N-nn-1], &i_1 );
+		//d_print_mat(1, nx, lam[N-nn-1], 1);
+
+		dgemv_( &c_t, &nx, &nx, &d_m1, AGU[N-nn-1], &nx, lam[N-nn-1], &i_1, &d_1, x[N-nn-1], &i_1 );
+		dtrsv_( &c_u, &c_n, &c_n, &nx, Ue[N-nn-1], &nx, x[N-nn-1], &i_1 );
+		//d_print_mat(1, nx, x[N-nn-1], 1);
+
+		dgemv_( &c_t, &nx, &nw, &d_m1, AGU[N-nn-1]+nx*nx, &nx, lam[N-nn-1], &i_1, &d_m1, w[N-nn-1], &i_1 );
+		dtrsv_( &c_u, &c_n, &c_n, &nw, Ur[N-nn-1], &nw, w[N-nn-1], &i_1 );
+		//d_print_mat(1, nw, w[N-nn-1], 1);
+
+		}
+
+	//d_print_mat(1, nw, w[0], 1);
+	//exit(1);
+
+	return;
 
 	}
 

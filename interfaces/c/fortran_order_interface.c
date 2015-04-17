@@ -2031,24 +2031,25 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 		const int anw = nal*((nw+nal-1)/nal);
 		const int any = nal*((ny+nal-1)/nal);
 		const int pnx = bs*((nx+bs-1)/bs);
+		const int pnw = bs*((nw+bs-1)/bs);
 		const int pny = bs*((ny+bs-1)/bs);
 		const int pnx2 = bs*((2*nx+bs-1)/bs);
 		const int pnwx = bs*((nwx+bs-1)/bs);
 		const int pndN = bs*((ndN+bs-1)/bs);
 		const int pnxdN = bs*((nx+ndN+bs-1)/bs);
+		const int pnwx1 = pnx>pnw ? 2*pnx : pnx+pnw;
+		const int pnm = pnx>pnw ? pnx : pnw;
 		const int cnx = ncl*((nx+ncl-1)/ncl);
 		const int cnw = ncl*((nw+ncl-1)/ncl);
 		const int cny = ncl*((ny+ncl-1)/ncl);
 		const int cnx2 = 2*(ncl*((nx+ncl-1)/ncl));
 		const int cndN = ncl*((ndN+ncl-1)/ncl);
+		const int cnwx1 = ncl*((nw+nx+1+ncl-1)/ncl);
 
 		const int pad = (ncl-(nx+nw)%ncl)%ncl; // padding
 		const int cnj = nx+nw+pad+cnx;
 
-//		double *work0 = (double *) malloc(hpmpc_ric_mhe_if_dp_work_space(nx, nw, ny, N)*sizeof(double));
-//		printf("\nwork space allocated\n");
 
-//		int compute_mult = 1; // compute multipliers
 
 		int i, ii, jj, ll;
 
@@ -2060,15 +2061,13 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 		size_t offset = addr % 64;
 		double *ptr = work0 + offset / 8;
 
-		//for(ii=0; ii<(N+1)*(pnx*cnx+pnx*cnw+pny*cnx+5*anx+pnw*cnw+pny*cny+2*anw+2*any+pnx*cnj+pnt*cnf) + 2*pny*cnx+pnt*cnt+ant+pnw*cnw+pnx*cnx; ii++)
-		//	ptr[ii] = 0.0;
+
 
 		/* array or pointers */
-		double *(hpRG[N]);
-		double *(hpQA[N+1]);
 		double *(hpCt[N+1]);
-		double *(hpGLr[N]);
-		double *(hpALe[N+1]);
+		double *(hpQRAG[N+1]);
+		double *(hpLAG[N+1]);
+		double *(hpLe[N+1]);
 		double *Ld; 
 
 		double *(hf[N+1]);
@@ -2080,8 +2079,6 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 		double *(hw[N]);
 		double *(hlam[N]);
 
-		//double *pL0; 
-		//double *pL0_inv;
 		double *Q_temp;
 		double *q_temp;
 		double *Ct_temp;
@@ -2091,7 +2088,6 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 
 
 
-		//if(1 || alg==0)
 		if(alg==0)
 			{
 			Q_temp = ptr;
@@ -2104,70 +2100,115 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 
 		for(ii=0; ii<N; ii++)
 			{
-			hpRG[ii] = ptr;
-			ptr += pnwx*cnw;
-			d_cvt_mat2pmat(nw, nw, 0, bs, R+ii*nw*nw, nw, hpRG[ii], cnw);
-			d_cvt_mat2pmat(nx, nw, nw, bs, G+ii*nx*nw, nx, hpRG[ii]+(nw/bs)*bs*cnw+nw%bs, cnw);
+			hpQRAG[ii] = ptr;
+			ptr += pnwx1*cnwx1;
+			if(nx>=nw)
+				{
+				if(alg==2)
+					{
+					d_cvt_mat2pmat(nx, nx, 0, bs, Q+ii*nx*nx, nx, hpQRAG[ii], cnwx1);
+					}
+				else
+					{
+					for(jj=0; jj<pnx; jj+=4) // loop on panels 
+						for(ll=0; ll<nx*bs; ll++) // loop within panels
+							hpQRAG[ii][ll+jj*bs*cnwx1] = 0.0;
+					d_cvt_mat2pmat(ny, ny, 0, bs, Q+ii*ny*ny, ny, hpQRAG[ii], cnwx1);
+					if(alg==0)
+						{
+						hpCt[ii] = ptr;
+						ptr += pnx*cny;
+						d_cvt_tran_mat2pmat(ny, nx, 0, bs, C+ii*ny*nx, ny, hpCt[ii], cny);
+						dpotrf_lib(ny, ny, hpQRAG[ii], cnwx1, Q_temp, cny, diag);
+						dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
+						dtrmm_l_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
+						dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQRAG[ii], cnwx1, hpQRAG[ii], cnwx1, 0);
+						}
+					}
+				d_cvt_mat2pmat(nx, nx, 0, bs, A+ii*nx*nx, nx, hpQRAG[ii]+pnx*cnwx1, cnwx1);
+				d_cvt_mat2pmat(nw, nw, 0, bs, R+ii*nw*nw, nw, hpQRAG[ii]+(pnx-pnw)*cnwx1+nx*bs, cnwx1);
+				d_cvt_mat2pmat(nx, nw, 0, bs, G+ii*nw*nx, nx, hpQRAG[ii]+pnx*cnwx1+nx*bs, cnwx1);
+				//d_print_pmat(pnwx1, cnwx1, bs, hpQRAG[ii], cnwx1);
+				if(nx>pnx-nx)
+					d_cvt_mat2pmat(pnx-nx, nx, nx, bs, A+ii*nx*nx+(nx-pnx+nx), nx, hpQRAG[ii]+nx/bs*bs*cnwx1+nx%bs, cnwx1);
+				else
+					d_cvt_mat2pmat(nx, nx, nx, bs, A+ii*nx*nx, nx, hpQRAG[ii]+nx/bs*bs*cnwx1+nx%bs, cnwx1);
+				if(nx>pnw-nw)
+					d_cvt_mat2pmat(pnw-nw, nw, nw, bs, G+ii*nw*nx+(nx-pnw+nw), nx, hpQRAG[ii]+(pnx-pnw+nw/bs*bs)*cnwx1+nw%bs+nx*bs, cnwx1);
+				else
+					d_cvt_mat2pmat(nx, nw, nw, bs, G+ii*nw*nx, nx, hpQRAG[ii]+(pnx-pnw+nw/bs*bs)*cnwx1+nw%bs+nx*bs, cnwx1);
+				//d_print_pmat(pnwx1, ncnwx1, bs, hpQRAG[ii], cnwx1);
+				}
+			else
+				{
+				if(alg==2)
+					{
+					d_cvt_mat2pmat(nx, nx, 0, bs, Q+ii*nx*nx, nx, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1);
+					}
+				else
+					{
+					for(jj=0; jj<pnx; jj+=4) // loop on panels 
+						for(ll=0; ll<nx*bs; ll++) // loop within panels
+							hpQRAG[ii][ll+jj*bs*cnwx1] = 0.0;
+					d_cvt_mat2pmat(ny, ny, 0, bs, Q+ii*ny*ny, ny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1);
+					if(alg==0)
+						{
+						hpCt[ii] = ptr;
+						ptr += pnx*cny;
+						d_cvt_tran_mat2pmat(ny, nx, 0, bs, C+ii*ny*nx, ny, hpCt[ii], cny);
+						dpotrf_lib(ny, ny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, Q_temp, cny, diag);
+						dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
+						dtrmm_l_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
+						dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, 0);
+						}
+					}
+				d_cvt_mat2pmat(nx, nx, 0, bs, A+ii*nx*nx, nx, hpQRAG[ii]+pnw*cnwx1, cnwx1);
+				d_cvt_mat2pmat(nw, nw, 0, bs, R+ii*nw*nw, nw, hpQRAG[ii]+nx*bs, cnwx1);
+				d_cvt_mat2pmat(nx, nw, 0, bs, G+ii*nw*nx, nx, hpQRAG[ii]+pnw*cnwx1+nx*bs, cnwx1);
+				//d_print_pmat(pnwx1, cnwx1, bs, hpQRAG[ii], cnwx1);
+				if(nx>pnx-nx)
+					d_cvt_mat2pmat(pnx-nx, nx, nx, bs, A+ii*nx*nx+(nx-pnx+nx), nx, hpQRAG[ii]+(pnw-pnx+nx/bs*bs)*cnwx1+nx%bs, cnwx1);
+				else
+					d_cvt_mat2pmat(nx, nx, nx, bs, A+ii*nx*nx, nx, hpQRAG[ii]+(pnw-pnx+nx/bs*bs)*cnwx1+nx%bs, cnwx1);
+				if(nx>pnw-nw)
+					d_cvt_mat2pmat(pnw-nw, nw, nw, bs, G+ii*nw*nx+(nx-pnw+nw), nx, hpQRAG[ii]+nw/bs*bs*cnwx1+nw%bs+nx*bs, cnwx1);
+				else
+					d_cvt_mat2pmat(nx, nw, nw, bs, G+ii*nw*nx, nx, hpQRAG[ii]+nw/bs*bs*cnwx1+nw%bs+nx*bs, cnwx1);
+				//d_print_pmat(pnwx1, cnwx1, bs, hpQRAG[ii], cnwx1);
+				}
 			}
-		//d_print_pmat(nx+nw, nw, bs, hpQG[0], cnw);
-
-		for(ii=0; ii<N; ii++)
-			{
-			hpQA[ii] = ptr;
-			ptr += pnx2*cnx;
-			if(alg==2)
-				{
-				d_cvt_mat2pmat(nx, nx, 0, bs, Q+ii*nx*nx, nx, hpQA[ii], cnx);
-				}
-			else // if(alg==0 || alg==1)
-				{
-				for(jj=0; jj<pnx*cnx; jj++) hpQA[ii][jj] = 0.0;
-				d_cvt_mat2pmat(ny, ny, 0, bs, Q+ii*ny*ny, ny, hpQA[ii], cnx);
-				}
-			d_cvt_mat2pmat(nx, nx, nx, bs, A+ii*nx*nx, nx, hpQA[ii]+(nx/bs)*bs*cnx+nx%bs, cnx);
-			if(alg==0)
-				{
-				hpCt[ii] = ptr;
-				ptr += pnx*cny;
-				d_cvt_tran_mat2pmat(ny, nx, 0, bs, C+ii*ny*nx, ny, hpCt[ii], cny);
-				dpotrf_lib(ny, ny, hpQA[ii], cnx, Q_temp, cny, diag);
-				dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
-				dtrmm_l_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
-				dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQA[ii], cnx, hpQA[ii], cnx, 0);
-				//d_print_pmat(nx, nx, bs, hpQA[ii], cnx);
-				//return 0;
-				}
-			}
-		hpQA[N] = ptr;
-		ptr += pnxdN*cnx;
+		hpQRAG[N] = ptr;
+		ptr += (pnx+pndN)*cnx;
 		if(alg==2)
 			{
-			//d_cvt_mat2pmat(nx, nx, 0, bs, Q+N*nx*nx, nx, hpQA[N], cnx);
-			d_cvt_mat2pmat(nx, nx, 0, bs, Qf, nx, hpQA[N], cnx);
+			d_cvt_mat2pmat(nx, nx, 0, bs, Qf, nx, hpQRAG[N], cnx);
 			}
 		else // if(alg==0 || alg==1)
 			{
-			for(jj=0; jj<pnx*cnx; jj++) hpQA[N][jj] = 0.0;
-			//d_cvt_mat2pmat(ny, ny, 0, bs, Q+N*ny*ny, ny, hpQA[N], cnx);
-			d_cvt_mat2pmat(ny, ny, 0, bs, Qf, ny, hpQA[N], cnx);
+			for(jj=0; jj<pnx*cnx; jj++) hpQRAG[N][jj] = 0.0;
+			d_cvt_mat2pmat(ny, ny, 0, bs, Qf, ny, hpQRAG[N], cnx);
+			if(alg==0)
+				{
+				hpCt[N] = ptr;
+				ptr += pnx*cny;
+				d_cvt_tran_mat2pmat(ny, nx, 0, bs, C+N*ny*nx, ny, hpCt[N], cny);
+				dpotrf_lib(ny, ny, hpQRAG[N], cnx, Q_temp, cny, diag);
+				dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
+				dtrmm_l_lib(nx, ny, hpCt[N], cny, Q_temp, cny, Ct_temp, cny);
+				dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQRAG[N], cnx, hpQRAG[N], cnx, 0);
+				}
 			}
-		if(alg==0)
-			{
-			hpCt[N] = ptr;
-			ptr += pnx*cny;
-			d_cvt_tran_mat2pmat(ny, nx, 0, bs, C+N*ny*nx, ny, hpCt[N], cny);
-			dpotrf_lib(ny, ny, hpQA[N], cnx, Q_temp, cny, diag);
-			dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
-			dtrmm_l_lib(nx, ny, hpCt[N], cny, Q_temp, cny, Ct_temp, cny);
-			dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQA[N], cnx, hpQA[N], cnx, 0);
-			//d_print_pmat(nx, nx, bs, hpQA[ii], cnx);
-			//return 0;
-			}
-		//d_print_pmat(nx+ndN, nx, bs, hpQA[N], cnx);
-		//d_print_mat(ndN, nx, D, ndN);
+
+
 		if(ndN>0)
 			{
-			d_cvt_mat2pmat(ndN, nx, nx, bs, D, ndN, hpQA[N]+nx/bs*bs*cnx+nx%bs, cnx);
+			d_cvt_mat2pmat(ndN, nx, 0, bs, D, ndN, hpQRAG[N]+pnx*cnx, cnx);
+			//d_print_pmat(pnx+pndN, cnx, bs, pQD, cnx);
+			if(ndN>pnx-nx)
+				d_cvt_mat2pmat(pnx-nx, nx, nx, bs, D+(ndN-pnx+nx), ndN, hpQRAG[N]+nx/bs*bs*cnx+nx%bs, cnx);
+			else
+				d_cvt_mat2pmat(ndN, nx, nx, bs, D, ndN, hpQRAG[N]+nx/bs*bs*cnx+nx%bs, cnx);
+			//d_print_pmat(pnx+pndN, cnx, bs, pQD, cnx);
 			Ld = ptr;
 			ptr += pndN*cndN;
 			}
@@ -2176,21 +2217,22 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 
 		for(ii=0; ii<N; ii++)
 			{
-			hpGLr[ii] = ptr;
-			ptr += pnwx*cnw;
+			hpLAG[ii] = ptr;
+			ptr += pnwx1*cnwx1;
 			}
+		hpLAG[N] = ptr;
+		ptr += (pnx+pndN)*cnx;
 
-		for(ii=0; ii<=N; ii++) // also at stage N, if ndN>0 !!!!!
+		for(ii=0; ii<=N; ii++)
 			{
-			hpALe[ii] = ptr;
-			ptr += pnx2*cnx2;
+			hpLe[ii] = ptr;
+			ptr += pnx*cnx;
 			}
-		//pL0 = ptr;
-		//ptr += pnx*cnx; // TODO use work space ???
-		//d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, pL0, cnx);
-		//dtrinv_lib(nx, pL0, cnx, hpALe[0], cnx2);
-		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpALe[0], cnx2);
+		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLe[0], cnx);
 		//d_print_pmat(nx, nx, bs, hpALe[0], cnx2);
+
+
+
 
 		for(ii=0; ii<N; ii++)
 			{
@@ -2248,7 +2290,10 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 				for(jj=0; jj<ny; jj++) q_temp[jj] = - q[ii*ny+jj];
 				//d_print_pmat(nx, nx, bs, hpQA[ii], cnx);
 				//d_print_mat(1, nx, q_temp, 1);
-				dsymv_lib(ny, ny, hpQA[ii], cnx, hy[ii], q_temp, -1);
+				if(nx>=nw)
+					dsymv_lib(ny, ny, hpQRAG[ii], cnwx1, hy[ii], q_temp, -1);
+				else
+					dsymv_lib(ny, ny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, hy[ii], q_temp, -1);
 				//d_print_mat(1, nx, q_temp, 1);
 				if(alg==0)
 					{
@@ -2265,7 +2310,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 			for(jj=0; jj<ny; jj++) q_temp[jj] = - qf[jj];
 			//d_print_pmat(nx, nx, bs, hpQA[ii], cnx);
 			//d_print_mat(1, nx, q_temp, 1);
-			dsymv_lib(ny, ny, hpQA[N], cnx, hy[N], q_temp, -1);
+			dsymv_lib(ny, ny, hpQRAG[N], cnx, hy[N], q_temp, -1);
 			//d_print_mat(1, nx, q_temp, 1);
 			if(alg==0)
 				{
@@ -2306,7 +2351,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 			}
 
 		work = ptr;
-		ptr += pnx*cnj+anx;
+		ptr += pnx*cnx+pnm+anx;
 
 
 
@@ -2315,13 +2360,13 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 
 
 		// factorize KKT matrix
-		hpmpc_status = d_ric_trf_mhe_if(nx, nw, ndN, N, hpQA, hpRG, diag_R, hpALe, hpGLr, Ld, work);
+		hpmpc_status = d_ric_trf_mhe_if(nx, nw, ndN, N, hpQRAG, diag_R, hpLe, hpLAG, Ld, work);
 
 		if(hpmpc_status!=0)
 			return hpmpc_status;
 
 		// solve KKT system
-		d_ric_trs_mhe_if(nx, nw, ndN, N, hpALe, hpGLr, Ld, hq, hr, hf, hxp, hxe, hw, hlam, work);
+		d_ric_trs_mhe_if(nx, nw, ndN, N, hpLe, hpLAG, Ld, hq, hr, hf, hxp, hxe, hw, hlam, work);
 
 
 
@@ -2377,12 +2422,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 		for(jj=0; jj<nx; jj++) x0[jj] = hxp[1][jj];
 
 		// save L0 for next step
-		//pL0_inv = ptr;
-		//ptr += pnx*cnx; // TODO use work space ??? remove ???
-		//dgetr_lib(nx, 0, nx, 0, hpALe[1], cnx2, pL0_inv, cnx); // TODO write dtrtr_u to transpose in place
-		//dtrinv_lib(nx, pL0_inv, cnx, pL0, cnx);
-		//d_cvt_tran_pmat2mat(nx, nx, 0, bs, pL0, cnx, L0, nx);
-		d_cvt_pmat2mat(nx, nx, 0, bs, hpALe[1], cnx2, L0, nx);
+		d_cvt_pmat2mat(nx, nx, 0, bs, hpLe[1], cnx, L0, nx);
 
 
 		// copy back estimates at all stages 0,1,...,N
@@ -2403,8 +2443,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 			lam[N*nx+jj] = hlam[N][jj];
 
 		// copy back cholesky factor of information matrix at last stage
-		//d_print_pmat(pnx2, cnx2, bs, hpALe[N], cnx2);
-		d_cvt_pmat2mat(nx, nx, 0, bs, hpALe[N]+cnx*bs, cnx2, Le, nx);
+		d_cvt_pmat2mat(nx, nx, 0, bs, hpLAG[N], cnx, Le, nx);
 		for(jj=0; jj<nx; jj++) Le[jj*(nx+1)] = 1.0/Le[jj*(nx+1)];
 
 

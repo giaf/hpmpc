@@ -24,6 +24,6 @@
 **************************************************************************************************/
 
 
-void d_update_hessian_ric_sv(int kmax, double *pQ, int sda, double *Qd);
-void d_update_jacobian_ric_sv(int kmax, double *pQ, double *Ql);
-void dpotrf_diag_lib(int m, int n, double *C, int sdc, double *D, int sdd);
+
+void d_ric_trf_mhe_if_blas(int nx, int nw, int ndN, int N, double **A, double **G, double **Q, double **R, double **AGU, double **Up, double **Ue, double **Ur, double *Ud);
+void d_ric_trs_mhe_if_blas(int nx, int nw, int ndN, int N, double **AGU, double **Up, double **Ue, double **Ur, double *Ud, double **q, double **r, double **f, double **xp, double **x, double **w, double **lam, double *work);

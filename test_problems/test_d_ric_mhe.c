@@ -41,7 +41,14 @@
 #include "../include/lqcp_solvers.h"
 #include "../include/block_size.h"
 #include "../include/c_interface.h"
+#include "../include/reference_code.h"
 #include "tools.h"
+
+#define TEST_OPENBLAS 1
+
+#if TEST_OPENBLAS
+void openblas_set_num_threads(int n_thread);
+#endif
 
 
 
@@ -80,7 +87,7 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	
 	d_zeros(&I, nu, nu); for(ii=0; ii<nu; ii++) I[ii*(nu+1)]=1.0; //I = eye(nu);
 	double *Bc; d_zeros(&Bc, nx, nu);
-	dmcopy(nu, nu, I, nu, Bc+pp, nx);
+	dmcopy(nu, nu, I, nu, Bc+pp, nx); // TODO uncomment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	free(I);
 	
 /************************************************
@@ -133,7 +140,11 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 
 int main()
 	{
-	
+
+#if TEST_OPENBLAS
+	openblas_set_num_threads(1);
+#endif
+
 	printf("\n");
 	printf("\n");
 	printf("\n");
@@ -267,6 +278,7 @@ int main()
 	int vN[] = {4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256};
 
 	int nx, nw, ny, ndN, N, nrep, Ns;
+	int diag_R;
 
 	int ll;
 //	int ll_max = 77;
@@ -297,13 +309,24 @@ int main()
 				}
 			//printf("\n");
 			fclose(fid);
+			#if 1
 			N = 15; //Ns-1; // NN;
-			nrep = NREP;
-			nx = 12;
-			nw = 5;
+			nrep = NREP;//nnrep[ll];
+			nx = 12;//nn[ll];
+			nw = 5;//nn[ll];
 			ny = 3;
-			ndN = 9;
-			printf("\nnx = %d; nw =  %d; ny =  %d; ndN = %d; N = %d\n\n", nx, nw, ny, ndN, N);
+			ndN = 2;
+			diag_R = 0;
+			#else
+			N = 10; //Ns-1; // NN;
+			nrep = nnrep[ll];
+			nx = nn[ll];
+			nw = nn[ll];
+			ny = 3;
+			ndN = 0;
+			diag_R = 0;
+			#endif
+			//printf("\nnx = %d; nw =  %d; ny =  %d; ndN = %d; N = %d\n\n", nx, nw, ny, ndN, N);
 			}
 		else if(ll_max==1)
 			{
@@ -343,6 +366,7 @@ int main()
 		const int cny = ncl*((ny+ncl-1)/ncl);
 		const int cnx2 = 2*(ncl*((nx+ncl-1)/ncl));
 		const int cnwx = ncl*((nw+nx+ncl-1)/ncl);
+		const int cnwx1 = ncl*((nw+nx+1+ncl-1)/ncl);
 		const int cnf = cnz<cnx+ncl ? cnx+ncl : cnz;
 
 		const int pad = (ncl-(nx+nw)%ncl)%ncl; // packing between AGL & P
@@ -404,38 +428,41 @@ int main()
 * cost function
 ************************************************/	
 
-		double *Q; d_zeros(&Q, nw, nw);
+		double *R; d_zeros(&R, nw, nw);
 		for(jj=0; jj<nw; jj++)
-			Q[jj*(nw+1)] = 1.0;
+			R[jj*(nw+1)] = 1.0;
 
-		int diag_R = 1;
-
-		double *R; d_zeros(&R, ny, ny);
+		double *Q; d_zeros(&Q, ny, ny);
 		for(jj=0; jj<ny; jj++)
-			R[jj*(ny+1)] = 1.0;
+			Q[jj*(ny+1)] = 1.0;
+
+		double *Qx; d_zeros(&Qx, nx, nx);
+		for(jj=0; jj<ny; jj++)
+			for(ii=0; ii<ny; ii++)
+				Qx[ii+nx*jj] = Q[ii+ny*jj];
 
 		double *L0; d_zeros(&L0, nx, nx);
 		for(jj=0; jj<nx; jj++)
-			L0[jj*(nx+1)] = 0*1e-6; //1.0;
+			L0[jj*(nx+1)] = 1.0;
 
-		double *r; d_zeros_align(&r, any, 1);
+		double *q; d_zeros_align(&q, any, 1);
 		for(jj=0; jj<ny; jj++)
-			r[jj] = 0.0;
-
-		double *q; d_zeros_align(&q, anw, 1);
-		for(jj=0; jj<nw; jj++)
 			q[jj] = 0.0;
+
+		double *r; d_zeros_align(&r, anw, 1);
+		for(jj=0; jj<nw; jj++)
+			r[jj] = 1.0;
 
 		double *f; d_zeros_align(&f, anx, 1);
 		for(jj=0; jj<nx; jj++)
-			f[jj] = 1.0; //b[jj]; //1.0;
+			f[jj] = jj;//1.0; //b[jj]; //1.0;
 
 		/* packed into contiguous memory */
-		double *pQ; d_zeros_align(&pQ, pnw, cnw);
-		d_cvt_mat2pmat(nw, nw, 0, bs, Q, nw, pQ, cnw);
+		double *pR; d_zeros_align(&pR, pnw, cnw);
+		d_cvt_mat2pmat(nw, nw, 0, bs, R, nw, pR, cnw);
 
-		double *pR; d_zeros_align(&pR, pny, cny);
-		d_cvt_mat2pmat(ny, ny, 0, bs, R, ny, pR, cny);
+		double *pQ; d_zeros_align(&pQ, pny, cny);
+		d_cvt_mat2pmat(ny, ny, 0, bs, Q, ny, pQ, cny);
 
 //		d_print_pmat(nw, nw, bs, pQ, cnw);
 //		d_print_pmat(ny, ny, bs, pR, cny);
@@ -444,15 +471,15 @@ int main()
 * compound quantities
 ************************************************/	
 		
-		double *pQG; d_zeros_align(&pQG, pnwx, cnw);
-		d_cvt_mat2pmat(nw, nw, 0, bs, Q, nw, pQG, cnw);
-		d_cvt_mat2pmat(nx, nw, nw, bs, B, nx, pQG+(nw/bs)*bs*cnw+nw%bs, cnw);
-		//d_print_pmat(nw+nx, nw, bs, pQG, cnw);
+		double *pRG; d_zeros_align(&pRG, pnwx, cnw);
+		d_cvt_mat2pmat(nw, nw, 0, bs, R, nw, pRG, cnw);
+		d_cvt_mat2pmat(nx, nw, nw, bs, B, nx, pRG+(nw/bs)*bs*cnw+nw%bs, cnw);
+		//d_print_pmat(nw+nx, nw, bs, pRG, cnw);
 
-		double *pRA; d_zeros_align(&pRA, pnx2, cnx);
-		d_cvt_mat2pmat(ny, ny, 0, bs, R, ny, pRA, cnx);
-		d_cvt_mat2pmat(nx, nx, nx, bs, A, nx, pRA+(nx/bs)*bs*cnx+nx%bs, cnx);
-		//d_print_pmat(2*nx, cnx, bs, pRA, cnx);
+		double *pQA; d_zeros_align(&pQA, pnx2, cnx);
+		d_cvt_mat2pmat(ny, ny, 0, bs, Q, ny, pQA, cnx);
+		d_cvt_mat2pmat(nx, nx, nx, bs, A, nx, pQA+(nx/bs)*bs*cnx+nx%bs, cnx);
+		//d_print_pmat(2*nx, cnx, bs, pQA, cnx);
 		//exit(1);
 
 /************************************************
@@ -463,8 +490,8 @@ int main()
 		double *(hpCA[N]);
 		double *(hpG[N]);
 		double *(hpC[N+1]);
-		double *(hpQ[N]);
-		double *(hpR[N+1]);
+		double *(hpR[N]);
+		double *(hpQ[N+1]);
 		double *(hpLp[N+1]);
 		double *(hdLp[N+1]);
 		double *(hpLp2[N+1]);
@@ -478,15 +505,15 @@ int main()
 		double *(hy[N+1]);
 		double *(hlam[N]);
 
-		double *(hpQG[N]);
-		double *(hpRA[N+1]);
-		double *(hpGLq[N]);
+		double *(hpRG[N]);
+		double *(hpQA[N+1]);
+		double *(hpGLr[N]);
 		double *(hpALe[N+1]);
-		double *(hqq[N]);
-		double *(hrr[N+1]);
+		double *(hrr[N]);
+		double *(hqq[N+1]);
 		double *(hff[N+1]);
-		double *p_hqq; d_zeros_align(&p_hqq, anw, N);
-		double *p_hrr; d_zeros_align(&p_hrr, anx, N+1);
+		double *p_hrr; d_zeros_align(&p_hrr, anw, N);
+		double *p_hqq; d_zeros_align(&p_hqq, anx, N+1);
 		double *p_hff; d_zeros_align(&p_hff, anx, N+1);
 
 		double *p_hxe; d_zeros_align(&p_hxe, anx, N+1);
@@ -495,11 +522,11 @@ int main()
 		double *p_hy; d_zeros_align(&p_hy, any, N+1);
 		double *p_hlam; d_zeros_align(&p_hlam, anx, N+1);
 
-		double *(hr_res[N+1]);
-		double *(hq_res[N]);
+		double *(hq_res[N+1]);
+		double *(hr_res[N]);
 		double *(hf_res[N+1]);
-		double *p_hr_res; d_zeros_align(&p_hr_res, anx, N+1);
-		double *p_hq_res; d_zeros_align(&p_hq_res, anw, N);
+		double *p_hq_res; d_zeros_align(&p_hq_res, anx, N+1);
+		double *p_hr_res; d_zeros_align(&p_hr_res, anw, N);
 		double *p_hf_res; d_zeros_align(&p_hf_res, anx, N+1);
 
 		for(jj=0; jj<N; jj++)
@@ -508,22 +535,22 @@ int main()
 			hpCA[jj] = pCA;
 			hpG[jj] = pG;
 			hpC[jj] = pC;
-			hpQ[jj] = pQ;
 			hpR[jj] = pR;
+			hpQ[jj] = pQ;
 			d_zeros_align(&hpLp[jj], pnx, cnl);
 			d_zeros_align(&hdLp[jj], anx, 1);
 			d_zeros_align(&hpLp2[jj], pnz, cnl2);
 			d_zeros_align(&hpLe[jj], pnz, cnf);
-			hq[jj] = q;
 			hr[jj] = r;
+			hq[jj] = q;
 			hf[jj] = f;
 
-			hpQG[jj] = pQG;
-			hpRA[jj] = pRA;
-			d_zeros_align(&hpGLq[jj], pnwx, cnw);
+			hpRG[jj] = pRG;
+			hpQA[jj] = pQA;
+			d_zeros_align(&hpGLr[jj], pnwx, cnw);
 			d_zeros_align(&hpALe[jj], pnx2, cnx2);
-			hqq[jj] = p_hqq+jj*anw;
-			hrr[jj] = p_hrr+jj*anx;
+			hrr[jj] = p_hrr+jj*anw;
+			hqq[jj] = p_hqq+jj*anx;
 			hff[jj] = p_hff+jj*anx;
 
 			hxe[jj] = p_hxe+jj*anx; //d_zeros_align(&hxe[jj], anx, 1);
@@ -532,18 +559,18 @@ int main()
 			hy[jj] = p_hy+jj*any; //d_zeros_align(&hy[jj], any, 1);
 			hlam[jj] = p_hlam+jj*anx; //d_zeros_align(&hlambda[jj], anx, 1);
 
-			hr_res[jj] = p_hr_res+jj*anx;
-			hq_res[jj] = p_hq_res+jj*anw;
+			hq_res[jj] = p_hq_res+jj*anx;
+			hr_res[jj] = p_hr_res+jj*anw;
 			hf_res[jj] = p_hf_res+jj*anx;
 			}
 
 		hpC[N] = pC;
-		hpR[N] = pR;
+		hpQ[N] = pQ;
 		d_zeros_align(&hpLp[N], pnx, cnl);
 		d_zeros_align(&hdLp[N], anx, 1);
 		d_zeros_align(&hpLp2[N], pnz, cnl2);
 		d_zeros_align(&hpLe[N], pnz, cnf);
-		hr[N] = r;
+		hq[N] = q;
 
 		// equality constraints on the states at the last stage
 		double *D; d_zeros(&D, ndN, nx);
@@ -555,18 +582,20 @@ int main()
 		//d[0] = 1;
 		//d[1] = 0;
 		const int pnxdN = bs*((nx+ndN+bs-1)/bs);
-		double *pCtRC; d_zeros_align(&pCtRC, pnxdN, cnx);
-		d_cvt_mat2pmat(ny, ny, 0, bs, R, ny, pCtRC, cnx);
-		d_cvt_mat2pmat(ndN, nx, nx, bs, D, ndN, pCtRC+nx/bs*bs*cnx+nx%bs, cnx);
+		double *pCtQC; d_zeros_align(&pCtQC, pnxdN, cnx);
+		d_cvt_mat2pmat(ny, ny, 0, bs, Q, ny, pCtQC, cnx);
+		d_cvt_mat2pmat(ndN, nx, nx, bs, D, ndN, pCtQC+nx/bs*bs*cnx+nx%bs, cnx);
 		//d_print_pmat(nx+ndN, nx, bs, pCtRC, cnx);
-		hpRA[N] = pCtRC; // there is not A_N
+		hpQA[N] = pCtQC; // there is not A_N
 		d_zeros_align(&hpALe[N], pnxdN, cnx2); // there is not A_N: pnx not pnx2
-		hrr[N] = p_hrr+N*anx;
+		hqq[N] = p_hqq+N*anx;
 		hff[N] = p_hff+N*anx;
 		const int pndN = bs*((ndN+bs-1)/bs);
 		const int cndN = ncl*((ndN+ncl-1)/ncl);
 		double *Ld; d_zeros_align(&Ld, pndN, cndN);
 		double *d_res; d_zeros_align(&d_res, pndN, 1);
+
+
 
 		hxe[N] = p_hxe+N*anx; //d_zeros_align(&hxe[N], anx, 1);
 		hxp[N] = p_hxp+N*anx; //d_zeros_align(&hxp[N], anx, 1);
@@ -574,7 +603,7 @@ int main()
 		hlam[N] = p_hlam+N*anx; //d_zeros_align(&hlambda[jj], anx, 1);
 
 		hf_res[N] = p_hf_res+N*anx;
-		hr_res[N] = p_hr_res+N*anx;
+		hq_res[N] = p_hq_res+N*anx;
 
 		// initialize hpLp[0] with the cholesky factorization of /Pi_p
 		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLp[0]+(nx+nw+pad)*bs, cnl);
@@ -620,63 +649,259 @@ int main()
 		for(ii=0; ii<nx; ii++)
 			hxp[0][ii] = x0[ii];
 
+
+
+		// information filter - solution
+		double *y_temp; d_zeros_align(&y_temp, any, 1);
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) hrr[ii][jj] = r[jj];
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nx; jj++) hff[ii][jj] = f[jj];
+		for(jj=0; jj<ndN; jj++) hff[N][jj] = d[jj];
+		for(ii=0; ii<=N; ii++) 
+			{
+			for(jj=0; jj<ny; jj++) y_temp[jj] = - q[jj];
+			//d_print_mat(1, ny, y_temp, 1);
+			dsymv_lib(ny, ny, hpQ[ii], cny, hy[ii], y_temp, -1);
+			//d_print_mat(1, ny, y_temp, 1);
+			dgemv_t_lib(ny, nx, hpC[ii], cnx, y_temp, hqq[ii], 0);
+			//d_print_mat(1, nx, hrr[ii], 1);
+			//if(ii==9)
+			//exit(1);
+			}
+
+
+
+
+/************************************************
+* new low-level mhe_if interface
+************************************************/	
+
+		int nrows = pnx>pnw ? 2*pnx : pnx+pnw;
+		int ncols = cnwx1;
+
+		double *pQRAG; d_zeros_align(&pQRAG, nrows, ncols);
+
+		if(nx>=nw)
+			{
+			d_cvt_mat2pmat(ny, ny, 0, bs, Q, ny, pQRAG, cnwx1);
+			d_cvt_mat2pmat(nx, nx, 0, bs, A, nx, pQRAG+pnx*cnwx1, cnwx1);
+			d_cvt_mat2pmat(nw, nw, 0, bs, R, nw, pQRAG+(pnx-pnw)*cnwx1+nx*bs, cnwx1);
+			d_cvt_mat2pmat(nx, nw, 0, bs, B, nx, pQRAG+pnx*cnwx1+nx*bs, cnwx1);
+			//d_print_pmat(nrows, ncols, bs, pQRAG, ncols);
+			if(nx>pnx-nx)
+				d_cvt_mat2pmat(pnx-nx, nx, nx, bs, A+(nx-pnx+nx), nx, pQRAG+nx/bs*bs*cnwx1+nx%bs, cnwx1);
+			else
+				d_cvt_mat2pmat(nx, nx, nx, bs, A, nx, pQRAG+nx/bs*bs*cnwx1+nx%bs, cnwx1);
+			if(nx>pnw-nw)
+				d_cvt_mat2pmat(pnw-nw, nw, nw, bs, B+(nx-pnw+nw), nx, pQRAG+(pnx-pnw+nw/bs*bs)*cnwx1+nw%bs+nx*bs, cnwx1);
+			else
+				d_cvt_mat2pmat(nx, nw, nw, bs, B, nx, pQRAG+(pnx-pnw+nw/bs*bs)*cnwx1+nw%bs+nx*bs, cnwx1);
+			//d_print_pmat(nrows, ncols, bs, pQRAG, ncols);
+			}
+		else
+			{
+			d_cvt_mat2pmat(ny, ny, 0, bs, Q, ny, pQRAG+(pnw-pnx)*cnwx1, cnwx1);
+			d_cvt_mat2pmat(nx, nx, 0, bs, A, nx, pQRAG+pnw*cnwx1, cnwx1);
+			d_cvt_mat2pmat(nw, nw, 0, bs, R, nw, pQRAG+nx*bs, cnwx1);
+			d_cvt_mat2pmat(nx, nw, 0, bs, B, nx, pQRAG+pnw*cnwx1+nx*bs, cnwx1);
+			//d_print_pmat(nrows, ncols, bs, pQRAG, ncols);
+			if(nx>pnx-nx)
+				d_cvt_mat2pmat(pnx-nx, nx, nx, bs, A+(nx-pnx+nx), nx, pQRAG+(pnw-pnx+nx/bs*bs)*cnwx1+nx%bs, cnwx1);
+			else
+				d_cvt_mat2pmat(nx, nx, nx, bs, A, nx, pQRAG+(pnw-pnx+nx/bs*bs)*cnwx1+nx%bs, cnwx1);
+			if(nx>pnw-nw)
+				d_cvt_mat2pmat(pnw-nw, nw, nw, bs, B+(nx-pnw+nw), nx, pQRAG+nw/bs*bs*cnwx1+nw%bs+nx*bs, cnwx1);
+			else
+				d_cvt_mat2pmat(nx, nw, nw, bs, B, nx, pQRAG+nw/bs*bs*cnwx1+nw%bs+nx*bs, cnwx1);
+			//d_print_pmat(nrows, ncols, bs, pQRAG, ncols);
+			}
+
+		double *pQD; d_zeros_align(&pQD, pnx+pndN, cnx);
+		d_cvt_mat2pmat(ny, ny, 0, bs, Q, ny, pQD, cnx);
+		d_cvt_mat2pmat(ndN, nx, 0, bs, D, ndN, pQD+pnx*cnx, cnx);
+		//d_print_pmat(pnx+pndN, cnx, bs, pQD, cnx);
+		if(ndN>pnx-nx)
+			d_cvt_mat2pmat(pnx-nx, nx, nx, bs, D+(ndN-pnx+nx), ndN, pQD+nx/bs*bs*cnx+nx%bs, cnx);
+		else
+			d_cvt_mat2pmat(ndN, nx, nx, bs, D, ndN, pQD+nx/bs*bs*cnx+nx%bs, cnx);
+		//d_print_pmat(pnx+pndN, cnx, bs, pQD, cnx);
+		//exit(1);
+
+
+
+
+		double *(hpQRAG[N+1]);
+		double *(hpLAG[N+1]);
+		double *(hpLe2[N+1]);
+
+		for(ii=0; ii<N; ii++)	
+			{
+			hpQRAG[ii] = pQRAG;
+			d_zeros_align(&hpLAG[ii], nrows, ncols);
+			d_zeros_align(&hpLe2[ii], pnx, cnx);
+			}
+		hpQRAG[N] = pQD;
+		d_zeros_align(&hpLAG[N], pnx+pndN, cnx);
+		d_zeros_align(&hpLe2[N], pnx, cnx);
+		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLe2[0], cnx);
+		//d_print_pmat(nx, nx, bs, hpLe2[0], cnx);
+
+
+
+		double **dummy;
+#if 0
+
+		struct timeval tv10, tv11, tv12;
+
+		// double precision
+		gettimeofday(&tv10, NULL); // start
+
+		for(ii=0; ii<1; ii++)
+		//for(ii=0; ii<nrep; ii++)
+			{
+
+			d_ric_trf_mhe_if(nx, nw, ndN, N, hpQRAG, diag_R, hpLe2, hpLAG, Ld, work3);
+			//d_ric_trf_mhe_if(nx, nw, ndN, N, hpQA, hpRG, diag_R, hpALe, hpGLr, Ld, work3);
+
+			}
+
+		gettimeofday(&tv11, NULL); // stop
+
+		for(ii=0; ii<1; ii++)
+		//for(ii=0; ii<nrep; ii++)
+			{
+
+			d_ric_trs_mhe_if(nx, nw, ndN, N, hpLe2, hpLAG, Ld, hqq, hrr, hff, hxp, hxe, hw, hlam, work3);
+
+			}
+
+		gettimeofday(&tv12, NULL); // stop
+
+		float time_trf_mhe_if_new = (float) (tv11.tv_sec-tv10.tv_sec)/(nrep+0.0)+(tv11.tv_usec-tv10.tv_usec)/(nrep*1e6);
+		float time_trs_mhe_if_new = (float) (tv12.tv_sec-tv11.tv_sec)/(nrep+0.0)+(tv12.tv_usec-tv11.tv_usec)/(nrep*1e6);
+
+		printf("\ntime = %e\t%e\n\n", time_trf_mhe_if_new, time_trs_mhe_if_new);
+
+
+
+
+		//exit(1);
+#endif
+
+
+/************************************************
+* reference code
+************************************************/	
+
+		double *(hA[N]);
+		double *(hG[N]);
+		double *(hQ[N+1]);
+		double *(hR[N]);
+		double *(hAGU[N]);
+		double *(hUp[N+1]);
+		double *(hUe[N+1]);
+		double *(hUr[N]);
+		double *Ud;
+		double *work_ref;
+
+		for(ii=0; ii<N; ii++)
+			{
+			hA[ii] = A;
+			hG[ii] = B;
+			hQ[ii] = Qx;
+			hR[ii] = R;
+			d_zeros(&hAGU[ii], nx, nx+nw);
+			d_zeros(&hUp[ii], nx, nx);
+			d_zeros(&hUe[ii], nx, nx);
+			d_zeros(&hUr[ii], nw, nw);
+			}
+		hA[N] = D;
+		hQ[N] = Qx;
+		d_zeros(&hAGU[N], ndN, nx);
+		d_zeros(&hUp[N], nx, nx);
+		d_zeros(&hUe[N], nx, nx);
+		d_zeros(&Ud, ndN, ndN);
+		d_zeros(&work_ref, nx+nw, 1);
+
+		for(ii=0; ii<nx*nx; ii++)
+			hUp[0][ii] = L0[ii];
+
+
+
+		#if 1
+
+		printf("\nfactorization\n");
+		d_ric_trf_mhe_if_blas( nx, nw, ndN, N, hA, hG, hQ, hR, hAGU, hUp, hUe, hUr, Ud);
+
+		printf("\nsolution\n");
+		d_ric_trs_mhe_if_blas( nx, nw, ndN, N, hAGU, hUp, hUe, hUr, Ud, hqq, hrr, hff, hxp, hxe, hw, hlam, work_ref);
+
+		//d_print_mat(nx, nx, hUe[N], nx);
+		//exit(1);
+
+		#endif
+
+
+
+
 /************************************************
 * high-level interface
 ************************************************/	
 
 #if 1
+		int kk;
+
 		double *AA; d_zeros(&AA, nx, nx*N);
 		//for(ii=0; ii<N; ii++) for(jj=0; jj<nx; jj++) for(ll=0; ll<nx; ll++) AA[ll+nx*jj+nx*nx*ii] = A[ll+nx*jj];
-		for(ii=0; ii<N; ii++) for(jj=0; jj<nx; jj++) for(ll=0; ll<nx; ll++) AA[jj+nx*ll+nx*nx*ii] = A[ll+nx*jj];
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nx; jj++) for(kk=0; kk<nx; kk++) AA[jj+nx*kk+nx*nx*ii] = A[kk+nx*jj];
 
 		double *GG; d_zeros(&GG, nx, nw*N);
 		//for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) for(ll=0; ll<nx; ll++) GG[ll+nx*jj+nx*nw*ii] = B[ll+nx*jj];
-		for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) for(ll=0; ll<nx; ll++) GG[jj+nw*ll+nx*nw*ii] = B[ll+nx*jj];
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) for(kk=0; kk<nx; kk++) GG[jj+nw*kk+nx*nw*ii] = B[kk+nx*jj];
 
 		double *ff; d_zeros(&ff, nx, N);
 		for(ii=0; ii<N; ii++) for(jj=0; jj<nx; jj++) ff[jj+nx*ii] = f[jj];
 
 		double *DD; d_zeros(&DD, ndN, nx);
 		//for(jj=0; jj<nx; jj++) for(ll=0; ll<ndN; ll++) DD[ll+ndN*jj] = D[ll+ndN*jj];
-		for(jj=0; jj<nx; jj++) for(ll=0; ll<ndN; ll++) DD[jj+nx*ll] = D[ll+ndN*jj];
+		for(jj=0; jj<nx; jj++) for(kk=0; kk<ndN; kk++) DD[jj+nx*kk] = D[kk+ndN*jj];
 
 		double *dd; d_zeros(&dd, ndN, 1);
-		for(ll=0; ll<ndN; ll++) dd[ll] = d[ll];
+		for(kk=0; kk<ndN; kk++) dd[kk] = d[kk];
 
 		double *RR; d_zeros(&RR, nw, nw*N);
-		for(ii=0; ii<N; ii++) for(jj=0; jj<nw*nw; jj++) RR[jj+nw*nw*ii] = Q[jj];
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nw*nw; jj++) RR[jj+nw*nw*ii] = R[jj];
 
 		double *QQ; d_zeros(&QQ, nx, nx*N);
 		for(ii=0; ii<N; ii++) 
 			{
-			for(jj=0; jj<ny; jj++) for(ll=0; ll<ny; ll++) QQ[ll+nx*jj+nx*nx*ii] = R[ll+ny*jj];
-			for(jj=ny; jj<nx; jj++) QQ[jj+nx*jj+nx*nx*ii] = 1e-8;
+			for(jj=0; jj<ny; jj++) for(kk=0; kk<ny; kk++) QQ[kk+nx*jj+nx*nx*ii] = Q[kk+ny*jj];
+			//for(jj=ny; jj<nx; jj++) QQ[jj+nx*jj+nx*nx*ii] = 1e-8;
 			}
 
 		double *Qf; d_zeros(&Qf, nx, nx);
-		for(jj=0; jj<ny; jj++) for(ll=0; ll<ny; ll++) Qf[ll+nx*jj] = R[ll+ny*jj];
+		for(jj=0; jj<ny; jj++) for(kk=0; kk<ny; kk++) Qf[kk+nx*jj] = Q[kk+ny*jj];
 
 		double *rr; d_zeros(&rr, nw, N);
-		for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) rr[jj+nw*ii] = q[jj];
+		for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) rr[jj+nw*ii] = r[jj];
 
 		double *qq; d_zeros(&qq, nx, N);
-		for(ii=0; ii<N; ii++) for(jj=0; jj<ny; jj++) qq[jj+nx*ii] = r[jj];
+		for(ii=0; ii<N; ii++) for(jj=0; jj<ny; jj++) qq[jj+nx*ii] = q[jj];
 		double *yy_tmp; d_zeros_align(&yy_tmp, any, 1);
 		for(ii=0; ii<N; ii++) 
 			{
-			for(jj=0; jj<ny; jj++) yy_tmp[jj] = - r[jj];
-			dsymv_lib(ny, ny, hpR[ii], cny, hy[ii], yy_tmp, -1);
+			for(jj=0; jj<ny; jj++) yy_tmp[jj] = - q[jj];
+			dsymv_lib(ny, ny, hpQ[ii], cny, hy[ii], yy_tmp, -1);
 			dgemv_t_lib(ny, nx, hpC[ii], cnx, yy_tmp, &qq[ii*nx], 0);
 			}
 
 		double *qf; d_zeros(&qf, nx, 1);
-		for(jj=0; jj<ny; jj++) qf[jj] = r[jj];
-		if(ndN>0) 
-			{
-			for(jj=0; jj<ny; jj++) yy_tmp[jj] = - r[jj];
-			dsymv_lib(ny, ny, hpR[N], cny, hy[N], yy_tmp, -1);
+//		for(jj=0; jj<ny; jj++) qf[jj] = q[jj];
+//		if(ndN>0) 
+//			{
+			for(jj=0; jj<ny; jj++) yy_tmp[jj] = - q[jj];
+			dsymv_lib(ny, ny, hpQ[N], cny, hy[N], yy_tmp, -1);
 			dgemv_t_lib(ny, nx, hpC[N], cnx, yy_tmp, qf, 0);
-			}
+//			}
 
 		double *xx0; d_zeros(&xx0, nx, 1);
 
@@ -692,11 +917,13 @@ int main()
 
 		double *work_high_level; d_zeros(&work_high_level, hpmpc_ric_mhe_if_dp_work_space(nx, nw, ny, ndN, N), 1);
 
-		double *dummy;
+		double *dummy0;
 
 		struct timeval tv00, tv01;
 
 		int error_code;
+
+		printf("\nhigh-level\n");
 
 		// double precision
 		gettimeofday(&tv00, NULL); // start
@@ -708,10 +935,10 @@ int main()
 			for(jj=0; jj<nx*nx; jj++) LL0[jj] = L0[jj];
 
 			//error_code = fortran_order_riccati_mhe_if( 'd', 2, nx, nw, 0, ndN, N, AA, GG, dummy, ff, DD, dd, RR, QQ, Qf, rr, qq, qf, dummy, xx0, LL0, xxe, LLe, ww, llam, work_high_level);
-			error_code = c_order_riccati_mhe_if( 'd', 2, nx, nw, 0, ndN, N, AA, GG, dummy, ff, DD, dd, RR, QQ, Qf, rr, qq, qf, dummy, xx0, LL0, xxe, LLe, ww, llam, work_high_level);
+			error_code = c_order_riccati_mhe_if( 'd', 2, nx, nw, 0, ndN, N, AA, GG, dummy0, ff, DD, dd, RR, QQ, Qf, rr, qq, qf, dummy0, xx0, LL0, xxe, LLe, ww, llam, work_high_level);
 
-			if(error_code)
-				break;
+			//if(error_code)
+			//	break;
 
 			}
 
@@ -721,8 +948,8 @@ int main()
 
 		printf("\nhigh-level interface for MHE_if\n\nerror_code: %d, time = %e\n\n", error_code, time_mhe_if_high_level);
 
-		d_print_mat(nx, N+1, xxe, nx);
-		d_print_mat(nw, N, ww, nw);
+		//d_print_mat(nx, N+1, xxe, nx);
+		//d_print_mat(nw, N, ww, nw);
 
 		free(AA);
 		free(GG);
@@ -744,7 +971,7 @@ int main()
 		free(work_high_level);
 		free(yy_tmp);
 
-		exit(1);
+		//exit(1);
 #endif
 
 
@@ -756,12 +983,12 @@ int main()
 		//d_print_mat(nx, nw, B, nx);
 
 		//d_ric_trf_mhe_test(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
-		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, work);
+		d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpR, hpQ, hpLe, work);
 
 		// estimation
-		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 0, hlam, work);
+		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpR, hpQ, hpLe, hr, hq, hf, hxp, hxe, hw, hy, 0, hlam, work);
 
-		if(PRINTRES)
+		if(0 && PRINTRES)
 			{
 			// print solution
 			printf("\nx_e\n");
@@ -769,38 +996,26 @@ int main()
 			}
 	
 		// smooth estimation
-		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 1, hlam, work);
+		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpR, hpQ, hpLe, hr, hq, hf, hxp, hxe, hw, hy, 1, hlam, work);
 
 		//d_print_pmat(nx, nx, bs, hpLp[N-1]+(nx+nw+pad)*bs, cnl);
 		//d_print_pmat(nx, nx, bs, hpLp[N]+(nx+nw+pad)*bs, cnl);
 		//d_print_pmat(nx, nx, bs, hpLe[N-1]+ncl*bs, cnf);
 		//d_print_pmat(nx, nx, bs, hpLe[N]+ncl*bs, cnf);
 
+//		printf("\nx_s\n");
 		//d_print_mat(nx, N+1, hxp[0], anx);
-		d_print_mat(nx, N+1, hxe[0], anx);
+//		d_print_mat(nx, N+1, hxe[0], anx);
 		//d_print_mat(nx, N, hlam[0], anx);
 		//d_print_mat(nw, N, hw[0], anw);
 
 		// information filter - factorization
-		d_ric_trf_mhe_if(nx, nw, ndN, N, hpRA, hpQG, diag_R, hpALe, hpGLq, Ld, work3);
+		//d_ric_trf_mhe_if(nx, nw, ndN, N, hpQA, hpRG, diag_R, hpALe, hpGLr, Ld, work3);
+		d_ric_trf_mhe_if(nx, nw, ndN, N, hpQRAG, diag_R, hpLe2, hpLAG, Ld, work3);
 
 		// information filter - solution
-		double *y_temp; d_zeros_align(&y_temp, any, 1);
-		for(ii=0; ii<N; ii++) for(jj=0; jj<nw; jj++) hqq[ii][jj] = q[jj];
-		for(ii=0; ii<N; ii++) for(jj=0; jj<nx; jj++) hff[ii][jj] = f[jj];
-		for(jj=0; jj<ndN; jj++) hff[N][jj] = d[jj];
-		for(ii=0; ii<=N; ii++) 
-			{
-			for(jj=0; jj<ny; jj++) y_temp[jj] = - r[jj];
-			//d_print_mat(1, ny, y_temp, 1);
-			dsymv_lib(ny, ny, hpR[ii], cny, hy[ii], y_temp, -1);
-			//d_print_mat(1, ny, y_temp, 1);
-			dgemv_t_lib(ny, nx, hpC[ii], cnx, y_temp, hrr[ii], 0);
-			//d_print_mat(1, nx, hrr[ii], 1);
-			//if(ii==9)
-			//exit(1);
-			}
-		d_ric_trs_mhe_if(nx, nw, ndN, N, hpALe, hpGLq, Ld, hrr, hqq, hff, hxp, hxe, hw, hlam, work3);
+		//d_ric_trs_mhe_if(nx, nw, ndN, N, hpALe, hpGLr, Ld, hqq, hrr, hff, hxp, hxe, hw, hlam, work3);
+		d_ric_trs_mhe_if(nx, nw, ndN, N, hpLe2, hpLAG, Ld, hqq, hrr, hff, hxp, hxe, hw, hlam, work3);
 		//d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 1, hlam, work);
 
 		//d_print_pmat(nx, nx, bs, hpALe[N-1], cnx2);
@@ -810,8 +1025,9 @@ int main()
 		//d_print_pmat(nx, nx, bs, hpALe[N]+cnx*bs, cnx2);
 		//d_print_pmat(nx, nx, bs, hpRA[N], cnx);
 
+//		printf("\nx_s_if\n");
 		//d_print_mat(nx, N+1, hxp[0], anx);
-		d_print_mat(nx, N+1, hxe[0], anx);
+//		d_print_mat(nx, N+1, hxe[0], anx);
 		//d_print_mat(nx, N, hlam[0], anx);
 		//d_print_mat(nw, N, hw[0], anw);
 		//exit(1);
@@ -828,18 +1044,18 @@ int main()
 		double *x_temp; d_zeros_align(&x_temp, anx, 1);
 		dtrmv_u_t_lib(nx, pL0_inv, cnx, x0, x_temp, 0);
 		dtrmv_u_n_lib(nx, pL0_inv, cnx, x_temp, p0, 0);
-		d_res_mhe_if(nx, nw, ndN, N, hpRA, hpQG, pL0_inv, hrr, hqq, hff, p0, hxe, hw, hlam, hr_res, hq_res, hf_res, work4);
+		d_res_mhe_if(nx, nw, ndN, N, hpQA, hpRG, pL0_inv, hqq, hrr, hff, p0, hxe, hw, hlam, hq_res, hr_res, hf_res, work4);
 
-		printf("\nprint residuals\n\n");
-		d_print_mat(nx, N+1, hr_res[0], anx);
-		d_print_mat(nw, N, hq_res[0], anw);
-		d_print_mat(nx, N, hf_res[0], anx);
-		d_print_mat(ndN, 1, hf_res[0]+N*anx, anx);
+//		printf("\nprint residuals\n\n");
+//		d_print_mat(nx, N+1, hq_res[0], anx);
+//		d_print_mat(nw, N, hr_res[0], anw);
+//		d_print_mat(nx, N, hf_res[0], anx);
+//		d_print_mat(ndN, 1, hf_res[0]+N*anx, anx);
 
 		//return 0;
 		//exit(1);
 
-		if(PRINTRES)
+		if(0 && PRINTRES)
 			{
 			// print solution
 			printf("\nx_p\n");
@@ -849,14 +1065,14 @@ int main()
 			printf("\nw\n");
 			d_print_mat(nw, N+1, hw[0], anw);
 			//printf("\nL_p\n");
-			d_print_pmat(nx, nx, bs, hpLp[0]+(nx+nw+pad)*bs, cnl);
-			d_print_mat(1, nx, hdLp[0], 1);
-			d_print_pmat(nx, nx, bs, hpLp[1]+(nx+nw+pad)*bs, cnl);
-			d_print_mat(1, nx, hdLp[1], 1);
-			d_print_pmat(nx, nx, bs, hpLp[2]+(nx+nw+pad)*bs, cnl);
-			d_print_mat(1, nx, hdLp[2], 1);
-			d_print_pmat(nx, nx, bs, hpLp[N]+(nx+nw+pad)*bs, cnl);
-			d_print_mat(1, nx, hdLp[N], 1);
+			//d_print_pmat(nx, nx, bs, hpLp[0]+(nx+nw+pad)*bs, cnl);
+			//d_print_mat(1, nx, hdLp[0], 1);
+			//d_print_pmat(nx, nx, bs, hpLp[1]+(nx+nw+pad)*bs, cnl);
+			//d_print_mat(1, nx, hdLp[1], 1);
+			//d_print_pmat(nx, nx, bs, hpLp[2]+(nx+nw+pad)*bs, cnl);
+			//d_print_mat(1, nx, hdLp[2], 1);
+			//d_print_pmat(nx, nx, bs, hpLp[N]+(nx+nw+pad)*bs, cnl);
+			//d_print_mat(1, nx, hdLp[N], 1);
 			//printf("\nL_p\n");
 			//d_print_pmat(nz, nz, bs, hpLp2[0]+(nx+pad2)*bs, cnl2);
 			//d_print_pmat(nz, nz, bs, hpLp2[1]+(nx+pad2)*bs, cnl2);
@@ -870,7 +1086,7 @@ int main()
 
 
 		// timing 
-		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6;
+		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6, tv7, tv8;
 
 		// double precision
 		gettimeofday(&tv0, NULL); // start
@@ -879,7 +1095,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 			//d_ric_trf_mhe_test(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
-			d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, work);
+			d_ric_trf_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpR, hpQ, hpLe, work);
 			}
 
 		gettimeofday(&tv1, NULL); // start
@@ -887,7 +1103,7 @@ int main()
 		// solve
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hw, hy, 1, hlam, work);
+			d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpR, hpQ, hpLe, hr, hq, hf, hxp, hxe, hw, hy, 1, hlam, work);
 			}
 
 		gettimeofday(&tv2, NULL); // start
@@ -898,7 +1114,7 @@ int main()
 			//d_print_pmat(nx, nx, bs, hpLe[N]+(ncl)*bs, cnf);
 			//d_print_pmat(nx, nx, bs, hpLp[N]+(nx+nw+pad)*bs, cnl);
 			//d_ric_trf_mhe_test(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hpQ, hpR, hpLe, work);
-			d_ric_trf_mhe_end(nx, nw, ny, N, hpCA, hpG, hpC, hpLp2, hpQ, hpR, hpLe, work2);
+			d_ric_trf_mhe_end(nx, nw, ny, N, hpCA, hpG, hpC, hpLp2, hpR, hpQ, hpLe, work2);
 			}
 
 		gettimeofday(&tv3, NULL); // start
@@ -906,7 +1122,7 @@ int main()
 		// solve
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_trs_mhe_end(nx, nw, ny, N, hpA, hpG, hpC, hpLp2, hpQ, hpR, hpLe, hq, hr, hf, hxp, hxe, hy, work2);
+			d_ric_trs_mhe_end(nx, nw, ny, N, hpA, hpG, hpC, hpLp2, hpR, hpQ, hpLe, hr, hq, hf, hxp, hxe, hy, work2);
 			}
 
 		gettimeofday(&tv4, NULL); // start
@@ -914,7 +1130,8 @@ int main()
 		// factorize information filter
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_trf_mhe_if(nx, nw, ndN, N, hpRA, hpQG, diag_R, hpALe, hpGLq, Ld, work3);
+			//d_ric_trf_mhe_if(nx, nw, ndN, N, hpQA, hpRG, diag_R, hpALe, hpGLr, Ld, work3);
+			d_ric_trf_mhe_if(nx, nw, ndN, N, hpQRAG, diag_R, hpLe2, hpLAG, Ld, work3);
 			}
 
 		gettimeofday(&tv5, NULL); // start
@@ -922,12 +1139,30 @@ int main()
 		// factorize information filter
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_trs_mhe_if(nx, nw, ndN, N, hpALe, hpGLq, Ld, hrr, hqq, hff, hxp, hxe, hw, hlam, work3);
+			//d_ric_trs_mhe_if(nx, nw, ndN, N, hpALe, hpGLr, Ld, hqq, hrr, hff, hxp, hxe, hw, hlam, work3);
+			d_ric_trs_mhe_if(nx, nw, ndN, N, hpLe2, hpLAG, Ld, hqq, hrr, hff, hxp, hxe, hw, hlam, work3);
 			}
 
 		gettimeofday(&tv6, NULL); // start
 
+		// factorize information filter
+		for(rep=0; rep<nrep; rep++)
+			{
+			//d_ric_trf_mhe_if_blas( nx, nw, ndN, N, hA, hG, hQ, hR, hAGU, hUp, hUe, hUr);
+			d_ric_trf_mhe_if_blas( nx, nw, ndN, N, hA, hG, hQ, hR, hAGU, hUp, hUe, hUr, Ud);
+			}
 
+		gettimeofday(&tv7, NULL); // start
+
+		// solution information filter
+		for(rep=0; rep<nrep; rep++)
+			{
+			d_ric_trs_mhe_if_blas( nx, nw, ndN, N, hAGU, hUp, hUe, hUr, Ud, hqq, hrr, hff, hxp, hxe, hw, hlam, work_ref);
+			}
+
+		gettimeofday(&tv8, NULL); // start
+
+		float Gflops_max = flops_max * GHz_max;
 
 		float time_trf = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		float time_trs = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
@@ -935,15 +1170,28 @@ int main()
 		float time_trs_end = (float) (tv4.tv_sec-tv3.tv_sec)/(nrep+0.0)+(tv4.tv_usec-tv3.tv_usec)/(nrep*1e6);
 		float time_trf_if = (float) (tv5.tv_sec-tv4.tv_sec)/(nrep+0.0)+(tv5.tv_usec-tv4.tv_usec)/(nrep*1e6);
 		float time_trs_if = (float) (tv6.tv_sec-tv5.tv_sec)/(nrep+0.0)+(tv6.tv_usec-tv5.tv_usec)/(nrep*1e6);
+		float time_trf_if_blas = (float) (tv7.tv_sec-tv6.tv_sec)/(nrep+0.0)+(tv7.tv_usec-tv6.tv_usec)/(nrep*1e6);
+		float time_trs_if_blas = (float) (tv8.tv_sec-tv7.tv_sec)/(nrep+0.0)+(tv8.tv_usec-tv7.tv_usec)/(nrep*1e6);
+
+		float flop_trf_if = N*(10.0/3.0*nx*nx*nx+nx*nx*nw)+2.0/3.0*nx*nx*nx+ndN*nx*nx+ndN*ndN*nx+1.0/3.0*ndN*ndN*ndN;
+		if(diag_R==0)
+			flop_trf_if += N*(nx*nw*nw+1.0/3.0*nw*nw*nw);
+		else
+			flop_trf_if += N*(nx*nw+1.0/2.0*nw*nw);
+
+		float Gflops_trf_if = flop_trf_if*1e-9/time_trf_if;
+		float Gflops_trf_if_blas = flop_trf_if*1e-9/time_trf_if_blas;
 
 		if(ll==0)
 			{
-			printf("\nnx\tnw\tny\tN\ttrf time\ttrs time\ttrf_e time\ttrs_e time\ttrf_if time\ttrs_if time\n\n");
+			printf("\nnx\tnw\tny\tN\ttrf time\ttrs time\ttrf_e time\ttrs_e time\ttrf_if time\ttrf_if Gflops\ttrf_if percent\ttrs_if time\ttrf_if BLAS\tGflops\t\tpercent\t\ttrs_if BLAS\n\n");
 //			fprintf(f, "\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
 			}
-		printf("%d\t%d\t%d\t%d\t%e\t%e\t%e\t%e\t%e\t%e\n\n", nx, nw, ny, N, time_trf, time_trs, time_trf_end, time_trs_end, time_trf_if, time_trs_if);
+		printf("%d\t%d\t%d\t%d\t%e\t%e\t%e\t%e\t%e\t%f\t%f\t%e\t%e\t%f\t%f\t%e\n", nx, nw, ny, N, time_trf, time_trs, time_trf_end, time_trs_end, time_trf_if, Gflops_trf_if, 100*Gflops_trf_if/Gflops_max, time_trs_if, time_trf_if_blas, Gflops_trf_if_blas, 100*Gflops_trf_if_blas/Gflops_max, time_trs_if_blas);
 
 
+#if 0
+		return 0;
 
 
 		// moving horizon test
@@ -1079,6 +1327,8 @@ int main()
 			//d_print_pmat(nx, nx, bs, hpLp[Ns-1]+(nx+nw+pad)*bs, cnl);
 			}
 
+#endif
+
 /************************************************
 * return
 ************************************************/
@@ -1087,8 +1337,11 @@ int main()
 		free(B);
 		free(C);
 		free(b);
+		free(D);
+		free(d);
 		free(x0);
 		free(Q);
+		free(Qx);
 		free(R);
 		free(q);
 		free(r);
@@ -1099,6 +1352,8 @@ int main()
 		free(pC);
 		free(pQ);
 		free(pR);
+		free(pQA);
+		free(pRG);
 		free(work);
 		free(work2);
 		free(work3);
@@ -1108,10 +1363,10 @@ int main()
 		free(p_hy);
 		free(p_hw);
 		free(p_hlam);
-		free(p_hhxe);
-		free(p_hhxp);
-		free(p_hhw);
-		free(p_hhlam);
+		//free(p_hhxe);
+		//free(p_hhxp);
+		//free(p_hhw);
+		//free(p_hhlam);
 		free(x_temp);
 		free(y_temp);
 		free(p0);
@@ -1127,8 +1382,34 @@ int main()
 			free(hpLp[jj+1]);
 			free(hdLp[jj+1]);
 			free(hpLe[jj+1]);
+			free(hpGLr[jj]);
+			free(hpALe[jj]);
+			free(hpLp2[jj]);
 			}
+		free(hpALe[N]);
 
+
+		free(pQRAG);
+		free(pQD);
+		for(ii=0; ii<N; ii++)
+			{
+			free(hpLAG[ii]);
+			free(hpLe2[ii]);
+			}
+		free(hpLAG[N]);
+		free(hpLe2[N]);
+
+		for(ii=0; ii<N; ii++)
+			{
+			free(hAGU[ii]);
+			free(hUp[ii]);
+			free(hUe[ii]);
+			free(hUr[ii]);
+			}
+		free(hUp[N]);
+		free(hUe[N]);
+		free(Ud);
+		free(work_ref);
 
 
 		} // increase size

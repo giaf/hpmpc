@@ -71,6 +71,7 @@
 #define D_CNX2 (2*D_NCL*((NX+D_NCL-1)/D_NCL))
 #define D_CNXG (D_NCL*((NX+NG+D_NCL-1)/D_NCL))
 #define D_CNDN (D_NCL*((NDN+D_NCL-1)/D_NCL))
+#define D_CNUX1 (D_NCL*((NX+NU+1+D_NCL-1)/D_NCL))
 #define D_PNB (D_MR*((NB+D_MR-1)/D_MR))
 #define D_PNG (D_MR*((NG+D_MR-1)/D_MR))
 #define D_PNGN (D_MR*((NGN+D_MR-1)/D_MR))
@@ -82,6 +83,8 @@
 #define D_PNX2 (D_MR*((NX+NX+D_MR-1)/D_MR))
 #define D_PNUX (D_MR*((NU+NX+D_MR-1)/D_MR))
 #define D_PNDN (D_MR*((NDN+D_MR-1)/D_MR))
+#define D_PNM (D_PNX>D_PNW?D_PNX:D_PNW)
+#define D_PNUX1 (D_PNX>D_PNU?D_PNX+D_PNX:D_PNX+D_PNU)
 // single precision constants
 #define S_NAL (S_MR*S_NCL)
 #define S_PADX ((S_NCL-NX%S_NCL)%S_NCL) // padding between BAbtL & P
@@ -112,7 +115,7 @@
 // Riccati-based solver for unconstrained MHE, double precision
 #define HPMPC_RIC_MHE_DP_WORK_SPACE (8 + (NN+1)*(D_PNX*D_CNX+D_PNX*D_CNU+D_PNY*D_CNX+5*D_ANX+D_PNU*D_CNU+D_PNY*D_CNY+2*D_ANU+2*D_ANY+D_PNX*D_CNJ+D_PNT*D_CNF) + 2*D_PNY*D_CNX+D_PNT*D_CNT+D_ANT+D_PNU*D_CNU+D_PNX*D_CNX)
 // Riccati-based solver for unconstrained MHE, Information Filter version, double precision
-#define HPMPC_RIC_MHE_IF_DP_WORK_SPACE (8 + (NN+1)*(D_PNUX*D_CNU+D_PNX2*D_CNX+D_PNUX*D_CNU+D_PNX2*D_CNX2+D_PNX*D_CNY+2*D_ANU+D_ANY+5*D_ANX) + 2*D_PNX*D_CNX+D_PNX*D_CNJ+D_ANX+D_PNY*D_CNY+D_PNX*D_CNY+D_ANX + D_PNDN*D_CNDN)
+#define HPMPC_RIC_MHE_IF_DP_WORK_SPACE (8 + (NN+1)*(2*D_PNUX1*D_CNUX1+D_PNX*D_CNY+D_PNDN*D_CNDN+D_PNX*D_CNX+5*D_ANX+2*D_ANU+D_ANY) + D_PNY*D_CNY+D_PNX*D_CNY+2*D_ANX+D_PNX*D_CNX+D_PNM+D_ANY )
 
 // work space: dynamic definition as function return value
 
