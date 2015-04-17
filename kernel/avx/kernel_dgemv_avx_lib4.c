@@ -2214,6 +2214,7 @@ void kernel_dgemv_n_12_lib4(int kmax, double *A0, int sda, double *x, double *y,
 		
 		A0 += 2*lda;
 		A1 += 2*lda;
+		A2 += 2*lda;
 		x  += 2;
 
 		}
