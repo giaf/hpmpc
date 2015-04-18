@@ -2988,7 +2988,7 @@ void dsyttmm_lu_lib(int m, double *pA, int sda, double *pC, int sdc)
 
 
 //#if defined(TARGET_C99_4X4)
-void dsyttmm_ul_lib(int m, double *pA, int sda, double *pC, int sdc)
+void dsyttmm_ul_lib(int m, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, int alg)
 	{
 
 	const int bs = 4;
@@ -2996,74 +2996,146 @@ void dsyttmm_ul_lib(int m, double *pA, int sda, double *pC, int sdc)
 	int ii, jj;
 	
 	ii = 0;
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX)
 //	for( ; ii<m-2; ii+=4)
+	for( ; ii<m-7; ii+=8)
+		{
+		// off-diagonal
+		jj = 0;
+		for( ; jj<ii; jj+=4)
+			{
+			kernel_dtrmm_l_u_nt_8x4_lib4(m-ii, pA+ii*sda+ii*bs, sda, pA+jj*sda+ii*bs, pC+ii*sdc+jj*bs, sdc, pD+ii*sdd+jj*bs, sdd, alg);
+			}
+		// diagonal
+		kernel_dsyttmm_ul_nt_8x4_lib4(m-ii, pA+ii*sda+ii*bs, sda, pA+ii*sda+ii*bs, pC+ii*sdc+ii*bs, sdc, pD+ii*sdd+ii*bs, sdd, alg);
+		kernel_dsyttmm_ul_nt_4x4_lib4(m-ii-4, pA+(ii+4)*sda+(ii+4)*bs, pA+(ii+4)*sda+(ii+4)*bs, pC+(ii+4)*sdc+(ii+4)*bs, pD+(ii+4)*sdd+(ii+4)*bs, alg);
+		}
+#endif
 	for( ; ii<m-3; ii+=4)
 		{
 		// off-diagonal
 		jj = 0;
 		for( ; jj<ii; jj+=4)
 			{
-			kernel_dtrmm_l_u_nt_4x4_lib4(m-ii, pA+ii*sda+ii*bs, pA+jj*sda+ii*bs, pC+ii*sdc+jj*bs);
+			kernel_dtrmm_l_u_nt_4x4_lib4(m-ii, pA+ii*sda+ii*bs, pA+jj*sda+ii*bs, pC+ii*sdc+jj*bs, pD+ii*sdd+jj*bs, alg);
 			}
 		// diagonal
-		kernel_dsyttmm_ul_nt_4x4_lib4(m-ii, pA+ii*sda+ii*bs, pC+ii*sdc+ii*bs);
+		kernel_dsyttmm_ul_nt_4x4_lib4(m-ii, pA+ii*sda+ii*bs, pA+ii*sda+ii*bs, pC+ii*sdc+ii*bs, pD+ii*sdd+ii*bs, alg);
 		}
 	if(ii<m)
 		{
 		if(m-ii==1)
 			{
+			// off-diagonal
+			jj = 0;
+			for( ; jj<ii; jj+=4)
+				{
+				kernel_dtrmm_l_u_nt_4x4_lib4(m-ii, pA+ii*sda+ii*bs, pA+jj*sda+ii*bs, pC+ii*sdc+jj*bs, pD+ii*sdd+jj*bs, alg);
+				}
+			// diagonal
+
 			double
 				a_0,
-				c_00;
+				c_00=0;
 
 			a_0 = pA[ii*sda+0+(ii+0)*bs];
 
 			c_00 = a_0*a_0;
 
-			pC[ii*sdc+0+(ii+0)*bs] = c_00;
+			if(alg==0)
+				{
+				pD[ii*sdd+0+(ii+0)*bs] = c_00;
+				}
+			else
+				{
+				if(alg==1)
+					{
+					pD[ii*sdd+0+(ii+0)*bs] = pC[ii*sdc+0+(ii+0)*bs] + c_00;
+					}
+				else
+					{
+					pD[ii*sdd+0+(ii+0)*bs] = pC[ii*sdc+0+(ii+0)*bs] - c_00;
+					}
+				}
+					
 			}
 		else if(m-ii==2)
 			{
+			// off-diagonal
+			jj = 0;
+			for( ; jj<ii; jj+=4)
+				{
+				kernel_dtrmm_l_u_nt_4x4_lib4(m-ii, pA+ii*sda+ii*bs, pA+jj*sda+ii*bs, pC+ii*sdc+jj*bs, pD+ii*sdd+jj*bs, alg);
+				}
+			// diagonal
+
 			double
 				a_0, a_1,
-				c_00,
-				c_10, c_11;
+				c_00=0,
+				c_10=0, c_11=0;
 
 			a_0 = pA[ii*sda+0+(ii+0)*bs];
 
-			c_00 += a_0 * a_0;
+			c_00 = a_0 * a_0;
 
 			a_0 = pA[ii*sda+0+(ii+1)*bs];
 			a_1 = pA[ii*sda+1+(ii+1)*bs];
 
 			c_00 += a_0 * a_0;
-			c_10 += a_1 * a_0;
+			c_10 = a_1 * a_0;
 
-			c_11 += a_1 * a_1;
+			c_11 = a_1 * a_1;
 
-			pC[ii*sdc+0+(ii+0)*bs] = c_00;
-			pC[ii*sdc+1+(ii+0)*bs] = c_10;
-			pC[ii*sdc+1+(ii+1)*bs] = c_11;
+			if(alg==0)
+				{
+				pD[ii*sdd+0+(ii+0)*bs] = c_00;
+				pD[ii*sdd+1+(ii+0)*bs] = c_10;
+				pD[ii*sdd+1+(ii+1)*bs] = c_11;
+				}
+			else
+				{
+				if(alg==1)
+					{
+					pD[ii*sdd+0+(ii+0)*bs] = pC[ii*sdc+0+(ii+0)*bs] + c_00;
+					pD[ii*sdd+1+(ii+0)*bs] = pC[ii*sdc+1+(ii+0)*bs] + c_10;
+					pD[ii*sdd+1+(ii+1)*bs] = pC[ii*sdc+1+(ii+1)*bs] + c_11;
+					}
+				else
+					{
+					pD[ii*sdd+0+(ii+0)*bs] = pC[ii*sdc+0+(ii+0)*bs] - c_00;
+					pD[ii*sdd+1+(ii+0)*bs] = pC[ii*sdc+1+(ii+0)*bs] - c_10;
+					pD[ii*sdd+1+(ii+1)*bs] = pC[ii*sdc+1+(ii+1)*bs] - c_11;
+					}
+				}
+
 			}
 		else //if(m-ii==3)
 			{
+			// off-diagonal
+			jj = 0;
+			for( ; jj<ii; jj+=4)
+				{
+				kernel_dtrmm_l_u_nt_4x4_lib4(m-ii, pA+ii*sda+ii*bs, pA+jj*sda+ii*bs, pC+ii*sdc+jj*bs, pD+ii*sdd+jj*bs, alg);
+				}
+			// diagonal
+
 			double
 				a_0, a_1, a_2,
-				c_00,
-				c_10, c_11,
-				c_20, c_21, c_22;
+				c_00=0,
+				c_10=0, c_11=0,
+				c_20=0, c_21=0, c_22=0;
 
 			a_0 = pA[ii*sda+0+(ii+0)*bs];
 
-			c_00 += a_0 * a_0;
+			c_00 = a_0 * a_0;
 
 			a_0 = pA[ii*sda+0+(ii+1)*bs];
 			a_1 = pA[ii*sda+1+(ii+1)*bs];
 
 			c_00 += a_0 * a_0;
-			c_10 += a_1 * a_0;
+			c_10 = a_1 * a_0;
 
-			c_11 += a_1 * a_1;
+			c_11 = a_1 * a_1;
 
 			a_0 = pA[ii*sda+0+(ii+2)*bs];
 			a_1 = pA[ii*sda+1+(ii+2)*bs];
@@ -3071,19 +3143,44 @@ void dsyttmm_ul_lib(int m, double *pA, int sda, double *pC, int sdc)
 
 			c_00 += a_0 * a_0;
 			c_10 += a_1 * a_0;
-			c_20 += a_2 * a_0;
+			c_20 = a_2 * a_0;
 
 			c_11 += a_1 * a_1;
-			c_21 += a_2 * a_1;
+			c_21 = a_2 * a_1;
 
-			c_22 += a_2 * a_2;
+			c_22 = a_2 * a_2;
 	
-			pC[ii*sdc+0+(ii+0)*bs] = c_00;
-			pC[ii*sdc+1+(ii+0)*bs] = c_10;
-			pC[ii*sdc+2+(ii+0)*bs] = c_20;
-			pC[ii*sdc+1+(ii+1)*bs] = c_11;
-			pC[ii*sdc+2+(ii+1)*bs] = c_21;
-			pC[ii*sdc+2+(ii+2)*bs] = c_22;
+			if(alg==0)
+				{
+				pD[ii*sdd+0+(ii+0)*bs] = c_00;
+				pD[ii*sdd+1+(ii+0)*bs] = c_10;
+				pD[ii*sdd+2+(ii+0)*bs] = c_20;
+				pD[ii*sdd+1+(ii+1)*bs] = c_11;
+				pD[ii*sdd+2+(ii+1)*bs] = c_21;
+				pD[ii*sdd+2+(ii+2)*bs] = c_22;
+				}
+			else
+				{
+				if(alg==1)
+					{
+					pD[ii*sdd+0+(ii+0)*bs] = pC[ii*sdc+0+(ii+0)*bs] + c_00;
+					pD[ii*sdd+1+(ii+0)*bs] = pC[ii*sdc+1+(ii+0)*bs] + c_10;
+					pD[ii*sdd+2+(ii+0)*bs] = pC[ii*sdc+2+(ii+0)*bs] + c_20;
+					pD[ii*sdd+1+(ii+1)*bs] = pC[ii*sdc+1+(ii+1)*bs] + c_11;
+					pD[ii*sdd+2+(ii+1)*bs] = pC[ii*sdc+2+(ii+1)*bs] + c_21;
+					pD[ii*sdd+2+(ii+2)*bs] = pC[ii*sdc+2+(ii+2)*bs] + c_22;
+					}
+				else
+					{
+					pD[ii*sdd+0+(ii+0)*bs] = pC[ii*sdc+0+(ii+0)*bs] - c_00;
+					pD[ii*sdd+1+(ii+0)*bs] = pC[ii*sdc+1+(ii+0)*bs] - c_10;
+					pD[ii*sdd+2+(ii+0)*bs] = pC[ii*sdc+2+(ii+0)*bs] - c_20;
+					pD[ii*sdd+1+(ii+1)*bs] = pC[ii*sdc+1+(ii+1)*bs] - c_11;
+					pD[ii*sdd+2+(ii+1)*bs] = pC[ii*sdc+2+(ii+1)*bs] - c_21;
+					pD[ii*sdd+2+(ii+2)*bs] = pC[ii*sdc+2+(ii+2)*bs] - c_22;
+					}
+				}
+
 			}
 		}
 	
@@ -3290,7 +3387,7 @@ void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
 			fact[9] = 0.0;
 		ii = 0;
 #if defined(TARGET_X64_AVX) // TODO avx2 !!!!!!!!!
-		for(; ii<jj; ii+=4)
+		for(; ii<jj-4; ii+=8)
 			{
 			kernel_dtrinv_8x4_lib4(jj-ii, &pC[ii*sdc+bs*ii], sdc, &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], sdc, fact);
 			}

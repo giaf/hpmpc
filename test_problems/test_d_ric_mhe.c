@@ -827,7 +827,7 @@ int main()
 
 
 
-		#if 1
+		#if 0
 
 		printf("\nfactorization\n");
 		d_ric_trf_mhe_if_blas( nx, nw, ndN, N, hA, hG, hQ, hR, hAGU, hUp, hUe, hUr, Ud);
@@ -847,7 +847,7 @@ int main()
 * high-level interface
 ************************************************/	
 
-#if 1
+#if 0
 		int kk;
 
 		double *AA; d_zeros(&AA, nx, nx*N);

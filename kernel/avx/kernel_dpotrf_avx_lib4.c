@@ -45,7 +45,6 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 	double *D1  = D0  + 4*sdd;
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	int k;
 	
@@ -578,8 +577,6 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4(int tri, int kadd, int ksub, double *Ap0, i
 		for(; k<kadd; k+=1)
 			{
 			
-	/*printf("\nk0 = ciao %d\n", (d_ncl-kadd%d_ncl)%d_ncl);*/
-
 			ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
 			b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 			ab_tmp1       = _mm256_mul_pd( a_4567, b_0123 );
@@ -1152,7 +1149,6 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 	{
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	int k;
 	
@@ -1814,7 +1810,6 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 	{
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	int k;
 	
@@ -2252,7 +2247,6 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	int k;
 	

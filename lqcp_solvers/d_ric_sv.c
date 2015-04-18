@@ -660,8 +660,24 @@ int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQRAG, int diag_R
 
 		//d_print_pmat(nx, nx, bs, hpLe[ii], cnx);
 		//d_print_pmat(2*pnx, cnwx1, bs, hpQRAG[ii], cnwx1);
-		dtsyrk_dpotrf_lib(2*nx, nx, nx, hpLe[ii], cnx, hpQRAG[ii], cnwx1, hpLAG[ii], cnwx1, diag, 1);
+		if(1) // merged
+			{
+			dtsyrk_dpotrf_lib(2*nx, nx, nx, hpLe[ii], cnx, hpQRAG[ii], cnwx1, hpLAG[ii], cnwx1, diag, 1);
+			}
+		else // un-merged
+			{
+			d_copy_pmat(nx+nx%bs, nx, bs, hpQRAG[ii]+nx/bs*bs*cnwx1, cnwx1, hpLAG[ii]+nx/bs*bs*cnwx1, cnwx1);
+			//d_print_pmat(2*pnx, cnwx1, bs, hpQRAG[ii], cnwx1);
+			//d_print_pmat(2*pnx, cnwx1, bs, hpLAG[ii], cnwx1);
+			//exit(2);
+			//d_print_pmat(nx, nx, bs, hpLe[ii], cnx);
+			dsyttmm_ul_lib(nx, hpLe[ii], cnx, hpQRAG[ii], cnwx1, hpLAG[ii], cnwx1, 1);
+			//d_print_pmat(2*pnx, cnwx1, bs, hpLAG[ii], cnwx1);
+			dpotrf_lib(2*nx, nx, hpLAG[ii], cnwx1, hpLAG[ii], cnwx1, diag);
+			}
 		//d_print_pmat(2*pnx, cnwx1, bs, hpLAG[ii], cnwx1);
+		//if(ii==1)
+		//exit(1);
 		if(nx>pnx-nx)
 			d_copy_pmat_panel(pnx-nx, nx, 2*nx, hpLAG[ii]+nx/bs*bs*cnwx1+nx%bs, hpLAG[ii]+(2*nx)/bs*bs*cnwx1+(2*nx)%bs, cnwx1);
 		else
@@ -717,10 +733,27 @@ int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQRAG, int diag_R
 			d_copy_pmat_panel(nx, nw, pnx, hpLAG[ii]+(pnx-pnw+nw)/bs*bs*cnwx1+nw%bs+nx*bs, hpLAG[ii]+pnx*cnwx1+nx*bs, cnwx1);
 		//d_print_pmat(2*pnx, cnwx1, bs, hpLAG[ii], cnwx1);
 
-		//dsyrk_dpotrf_dtrinv_lib(nx, nx, nwx, GLrALeLp, cnl, ptr, 0, GLrALeLp+(nw+nx+pad)*bs, cnl, hpALe[ii+1], cnx2, diag, 0);
-		dsyrk_dpotrf_dtrinv_lib(nx, nx, nwx, hpLAG[ii]+pnx*cnwx1, cnwx1, ptr, 0, pLe_temp, cnx, hpLe[ii+1], cnx, diag, 0);
-		//d_print_pmat(nx, nx, bs, GLrALeLp, cnx);
+		if(1) // merged
+			{
+			dsyrk_dpotrf_dtrinv_lib(nx, nx, nwx, hpLAG[ii]+pnx*cnwx1, cnwx1, ptr, 0, pLe_temp, cnx, hpLe[ii+1], cnx, diag, 0);
+			}
+		else
+			{
+			if(1) // un-merged
+				{
+				dsyrk_nt_lib(nx, nx, nwx, hpLAG[ii]+pnx*cnwx1, cnwx1, hpLAG[ii]+pnx*cnwx1, cnwx1, ptr, 0, pLe_temp, cnx, 0);
+				dsyrk_dpotrf_dtrinv_lib(nx, nx, 0, ptr, 0, pLe_temp, cnx, pLe_temp, cnx, hpLe[ii+1], cnx, diag, 1);
+				}
+			else
+				{
+				dsyrk_nt_lib(nx, nx, nwx, hpLAG[ii]+pnx*cnwx1, cnwx1, hpLAG[ii]+pnx*cnwx1, cnwx1, ptr, 0, pLe_temp, cnx, 0);
+				dpotrf_lib(nx, nx, pLe_temp, cnx, pLe_temp, cnx, diag);
+				dtrinv_lib(nx, pLe_temp, cnx, hpLe[ii+1], cnx);
+				}
+			}
+		//d_print_pmat(nx, nx, bs, pLe_temp, cnx);
 		//d_print_pmat(nx, nx, bs, hpLe[ii+1], cnx);
+		//exit(1);
 
 		for(jj=0; jj<nx; jj++) 
 			{

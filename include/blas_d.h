@@ -45,7 +45,7 @@ void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc);
 void dtrtr_u_lib(int m, double *pA, int sda, double *pC, int sdc);
 void dgetr_lib(int m, int mna, int n, int offset, double *pA, int sda, double *pC, int sdc);
 void dsyttmm_lu_lib(int m, double *pA, int sda, double *pC, int sdc);
-void dsyttmm_ul_lib(int m, double *pA, int sda, double *pC, int sdc);
+void dsyttmm_ul_lib(int m, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, int alg);
 void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
 void dttmm_ll_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
 void dtrma_lib(int m, int mna, double *pA, int sda, double *pC, int sdc);

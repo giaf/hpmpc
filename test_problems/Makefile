@@ -26,6 +26,7 @@
 include ../Makefile.rule
 
 LIBS = -lm 
+#LIBS = -lm -llapack_netlib -lblas_netlib -lgfortran
 #LIBS = -lm -lopenblas -pthread
 #LIBS = -lblis -lm -fopenmp
 
