@@ -1641,7 +1641,7 @@ void kernel_dtrmm_u_nt_2x2_lib4(int kmax, double *A, double *B, double *C)
 
 
 // A upper triangle matrix on the left
-void kernel_dtrmm_l_u_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
+void kernel_dtrmm_l_u_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 	
 	const int lda = 4;
@@ -1766,7 +1766,7 @@ void kernel_dtrmm_l_u_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 		
 		a_0 = A[0+lda*0];
 		a_1 = A[1+lda*0];
-		a_2 = A[3+lda*0];
+		a_2 = A[2+lda*0];
 		a_3 = A[3+lda*0];
 		
 		b_0 = B[0+lda*0];
@@ -1897,7 +1897,7 @@ void kernel_dtrmm_l_u_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 		
 		a_0 = A[0+lda*0];
 		a_1 = A[1+lda*0];
-		a_2 = A[3+lda*0];
+		a_2 = A[2+lda*0];
 		a_3 = A[3+lda*0];
 		
 		b_0 = B[0+lda*0];
@@ -1930,28 +1930,123 @@ void kernel_dtrmm_l_u_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 
 		}
 	
+	double
+		d_00, d_01, d_02, d_03,
+		d_10, d_11, d_12, d_13,
+		d_20, d_21, d_22, d_23,
+		d_30, d_31, d_32, d_33;
 
 	// store
-	C[0+ldc*0] = c_00;
-	C[1+ldc*0] = c_10;
-	C[2+ldc*0] = c_20;
-	C[3+ldc*0] = c_30;
+	if(alg==0)
+		{
+		D[0+ldc*0] = c_00;
+		D[1+ldc*0] = c_10;
+		D[2+ldc*0] = c_20;
+		D[3+ldc*0] = c_30;
 
-	C[0+ldc*1] = c_01;
-	C[1+ldc*1] = c_11;
-	C[2+ldc*1] = c_21;
-	C[3+ldc*1] = c_31;
+		D[0+ldc*1] = c_01;
+		D[1+ldc*1] = c_11;
+		D[2+ldc*1] = c_21;
+		D[3+ldc*1] = c_31;
 
-	C[0+ldc*2] = c_02;
-	C[1+ldc*2] = c_12;
-	C[2+ldc*2] = c_22;
-	C[3+ldc*2] = c_32;
+		D[0+ldc*2] = c_02;
+		D[1+ldc*2] = c_12;
+		D[2+ldc*2] = c_22;
+		D[3+ldc*2] = c_32;
 
-	C[0+ldc*3] = c_03;
-	C[1+ldc*3] = c_13;
-	C[2+ldc*3] = c_23;
-	C[3+ldc*3] = c_33;
-		
+		D[0+ldc*3] = c_03;
+		D[1+ldc*3] = c_13;
+		D[2+ldc*3] = c_23;
+		D[3+ldc*3] = c_33;
+		}
+	else
+		{
+		d_00 = C[0+ldc*0];
+		d_10 = C[1+ldc*0];
+		d_20 = C[2+ldc*0];
+		d_30 = C[3+ldc*0];
+			
+		d_01 = C[0+ldc*1];
+		d_11 = C[1+ldc*1];
+		d_21 = C[2+ldc*1];
+		d_31 = C[3+ldc*1];
+			
+		d_02 = C[0+ldc*2];
+		d_12 = C[1+ldc*2];
+		d_22 = C[2+ldc*2];
+		d_32 = C[3+ldc*2];
+			
+		d_03 = C[0+ldc*3];
+		d_13 = C[1+ldc*3];
+		d_23 = C[2+ldc*3];
+		d_33 = C[3+ldc*3];
+			
+		if(alg==1)
+			{
+			d_00 += c_00;
+			d_10 += c_10;
+			d_20 += c_20;
+			d_30 += c_30;
+
+			d_01 += c_01;
+			d_11 += c_11;
+			d_21 += c_21;
+			d_31 += c_31;
+
+			d_02 += c_02;
+			d_12 += c_12;
+			d_22 += c_22;
+			d_32 += c_32;
+
+			d_03 += c_03;
+			d_13 += c_13;
+			d_23 += c_23;
+			d_33 += c_33;
+			}
+		else
+			{
+			d_00 -= c_00;
+			d_10 -= c_10;
+			d_20 -= c_20;
+			d_30 -= c_30;
+
+			d_01 -= c_01;
+			d_11 -= c_11;
+			d_21 -= c_21;
+			d_31 -= c_31;
+
+			d_02 -= c_02;
+			d_12 -= c_12;
+			d_22 -= c_22;
+			d_32 -= c_32;
+
+			d_03 -= c_03;
+			d_13 -= c_13;
+			d_23 -= c_23;
+			d_33 -= c_33;
+			}
+
+		D[0+ldc*0] = d_00;
+		D[1+ldc*0] = d_10;
+		D[2+ldc*0] = d_20;
+		D[3+ldc*0] = d_30;
+
+		D[0+ldc*1] = d_01;
+		D[1+ldc*1] = d_11;
+		D[2+ldc*1] = d_21;
+		D[3+ldc*1] = d_31;
+
+		D[0+ldc*2] = d_02;
+		D[1+ldc*2] = d_12;
+		D[2+ldc*2] = d_22;
+		D[3+ldc*2] = d_32;
+
+		D[0+ldc*3] = d_03;
+		D[1+ldc*3] = d_13;
+		D[2+ldc*3] = d_23;
+		D[3+ldc*3] = d_33;
+
+		}	
 	}
 
 
