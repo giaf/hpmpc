@@ -3289,7 +3289,7 @@ void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
 		else
 			fact[9] = 0.0;
 		ii = 0;
-#if defined(TARGET_X64_AVX) // TODO avx2 !!!!!!!!!
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) // TODO avx2 !!!!!!!!!
 		for(; ii<jj; ii+=4)
 			{
 			kernel_dtrinv_8x4_lib4(jj-ii, &pC[ii*sdc+bs*ii], sdc, &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], sdc, fact);
@@ -3436,7 +3436,7 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 		if(diag[j+2]==0.0) fact[5]=0.0;
 		if(diag[j+3]==0.0) fact[9]=0.0;
 		i = 0;
-#if defined(TARGET_X64_AVX) // TODO add avx2 !!!!!!!!!!!!!!!
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) // TODO add avx2 !!!!!!!!!!!!!!!
 		for(; i<j-4; i+=8)
 			{
 			kernel_dtrinv_8x4_lib4(j-i, &pE[i*sde+bs*i], sde, &pD[j*sdd+i*bs], &pE[i*sde+j*bs], sde, fact);

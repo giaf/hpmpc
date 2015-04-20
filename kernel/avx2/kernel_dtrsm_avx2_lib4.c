@@ -2154,7 +2154,7 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	int k;
 	
 	__m256d
-		zeros, ab_temp,
+		zeros, 
 		a_0, A_0,
 		b_0, B_0, b_1, b_2, B_2, b_3,
 		c_00, c_01, c_03, c_02,
@@ -2162,6 +2162,7 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	
 	// zero registers
 	zeros = _mm256_setzero_pd();
+
 	c_00 = _mm256_setzero_pd();
 	c_01 = _mm256_setzero_pd();
 	c_03 = _mm256_setzero_pd();
