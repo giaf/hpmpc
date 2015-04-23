@@ -448,20 +448,141 @@ int main()
 ************************************************/
 		
 #if 0
+		
+		#include "test_matrices_variable_nx.h"
+
+		// horizon length
+		N = 11;
+
+		// base nx
+		int nx0 = 2;
+		int nu0 = 1;
 
 		// size-varing
 		int nxx[N+1];
-		for(ii=0; ii<=N; ii++) nxx[ii] = nx;
+		for(ii=0; ii<=N; ii++) nxx[ii] = (N+1-ii)*nx0;
+
+		int pnxx[N+1];
+		for(ii=0; ii<=N; ii++) pnxx[ii] = (nxx[ii]+bs-1)/bs*bs;
+
+		int cnxx[N+1];
+		for(ii=0; ii<=N; ii++) cnxx[ii] = (nxx[ii]+ncl-1)/ncl*ncl;
 
 		int nuu[N];
-		for(ii=0; ii<N; ii++) nuu[ii] = nu;
+		for(ii=0; ii<N; ii++) nuu[ii] = nu0;
+
+		int pnuu[N];
+		for(ii=0; ii<N; ii++) pnuu[ii] = (nuu[ii]+bs-1)/bs*bs;
+
+		int cnuu[N];
+		for(ii=0; ii<N; ii++) cnuu[ii] = (nuu[ii]+ncl-1)/ncl*ncl;
+
+		for(ii=0; ii<=N; ii++) printf("\n%d %d %d\n", nxx[ii], pnxx[ii], cnxx[ii]);
+		for(ii=0; ii<N; ii++)  printf("\n%d %d %d\n", nuu[ii], pnuu[ii], cnuu[ii]);
+
+
+		// data memory space
+		double *(hdA[N]);
+		double *(hpBt[N]);
+		double *(hpR[N]);
+		double *(hpS[N]);
+		double *(hpQx[N+1]);
+		double *(hpLK[N]);
+		double *(hpP[N+1]);
+		double *pK;
+
+		for(ii=0; ii<N; ii++)
+			{
+			d_zeros_align(&hdA[ii], pnxx[ii], 1);
+			d_zeros_align(&hpBt[ii], pnuu[ii], cnxx[ii+1]);
+			d_zeros_align(&hpR[ii], pnuu[ii], cnuu[ii]);
+			d_zeros_align(&hpS[ii], pnxx[ii], cnuu[ii]);
+			d_zeros_align(&hpQx[ii], pnxx[ii], cnxx[ii]);
+			d_zeros_align(&hpLK[ii], pnuu[ii]+pnxx[ii], cnuu[ii]);
+			d_zeros_align(&hpP[ii], pnxx[ii], cnxx[ii]);
+			}
+		d_zeros_align(&hpQx[N], pnxx[N], cnxx[N]);
+		d_zeros_align(&hpP[N], pnxx[N], cnxx[N]);
+		d_zeros_align(&pK, pnxx[0], cnuu[0]); // max(nx) x nax(nu)
+
+		// A
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nxx[ii+1]; jj++)
+				hdA[ii][jj] = 1.0;
+
+		//d_print_mat(1, cnxx[1], hdA[0], 1);
+
+		// B
+		double *ptrB = BBB;
+		for(ii=0; ii<N; ii++)
+			{
+			d_cvt_tran_mat2pmat(nxx[ii+1], nuu[ii], 0, bs, ptrB, nxx[ii+1], hpBt[ii], pnuu[ii]);
+			ptrB += nxx[ii+1];
+			}
+
+		//d_print_pmat(pnuu[0], cnxx[1], bs, hpBt[0], cnxx[0]);
+		//d_print_pmat(pnuu[1], cnxx[2], bs, hpBt[1], cnxx[1]);
+		//d_print_pmat(pnuu[2], cnxx[3], bs, hpBt[2], cnxx[2]);
+		//d_print_pmat(pnuu[N-1], cnxx[N], bs, hpBt[N-1], cnxx[N-1]);
+
+		// R
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nuu[ii]; jj++)
+				hpR[ii][jj/bs*bs*cnuu[ii]+jj%bs+jj*bs] = 1.0;
+
+		//d_print_pmat(pnuu[0], cnuu[0], bs, hpR[0], pnuu[0]);
+
+		// S
+
+		// Q
+		for(ii=0; ii<=N; ii++)
+			for(jj=0; jj<nxx[ii]; jj++)
+				hpQx[ii][jj/bs*bs*cnxx[ii]+jj%bs+jj*bs] = 1.0;
+
+		//d_print_pmat(pnxx[0], cnxx[0], bs, hpQx[0], cnxx[0]);
+		//d_print_pmat(pnxx[1], cnxx[1], bs, hpQx[1], cnxx[1]);
+		//d_print_pmat(pnxx[N-1], cnxx[N-1], bs, hpQx[N-1], cnxx[N-1]);
+		//d_print_pmat(pnxx[N], cnxx[N], bs, hpQx[N], cnxx[N]);
+
+
+		d_ric_diag_trf_mpc(nxx, nuu, N, hdA, hpBt, hpR, hpS, hpQx, hpLK, pK, hpP, diag);
+
+		d_print_pmat(nxx[0], nxx[0], bs, hpP[0], cnxx[0]);
+		d_print_pmat(nxx[1], nxx[1], bs, hpP[1], cnxx[1]);
+		d_print_pmat(nxx[N-1], nxx[N-1], bs, hpP[N-1], cnxx[N-1]);
+		d_print_pmat(nxx[N], nxx[N], bs, hpP[N], cnxx[N]);
+
+		d_print_pmat(pnuu[0]+nxx[0], nuu[0], bs, hpLK[0], cnuu[0]);
+		d_print_pmat(pnuu[1]+nxx[1], nuu[1], bs, hpLK[1], cnuu[1]);
+		d_print_pmat(pnuu[N-1]+nxx[N-1], nuu[N-1], bs, hpLK[N-1], cnuu[N-1]);
+
+		for(ii=0; ii<N; ii++)
+			{
+			free(hdA[ii]);
+			free(hpBt[ii]);
+			free(hpR[ii]);
+			free(hpS[ii]);
+			free(hpQx[ii]);
+			free(hpLK[ii]);
+			free(hpP[ii]);
+			}
+		free(hpQx[N]);
+		free(hpP[N]);
+		free(pK);
+
+
+
+		exit(1);
+
+
+
 
 		// problem data
-		double *dA; d_zeros_align(&dA, pnx, 1);
-		for(ii=0; ii<nx; ii++) dA[ii] = 1.0;
+		//double *dA; d_zeros_align(&dA, pnx, 1);
+		//for(ii=0; ii<nx; ii++) dA[ii] = 1.0;
 
-		double *pBt; d_zeros_align(&pBt, pnu, cnx);
-		d_cvt_tran_mat2pmat(nx, nu, 0, bs, B, nx, pBt, cnx);
+		//double *pBt; d_zeros_align(&pBt, pnu, cnx);
+		//d_cvt_tran_mat2pmat(nx, nu, 0, bs, B, nx, pBt, cnx);
 		//d_print_mat(nx, nu, B, nx);
 		//d_print_pmat(nu, nx, bs, pBt, cnx);
 
@@ -482,19 +603,12 @@ int main()
 		double *qx; d_zeros_align(&qx, pnx, 1);
 		for(ii=0; ii<nx; ii++) qx[ii] = Q[nx+nu+(nu+ii)*pnz];
 
-		double *pK; d_zeros_align(&pK, pnx, cnu);
+		//double *pK; d_zeros_align(&pK, pnx, cnu);
 
 		double *work_eye; d_zeros_align(&work_eye, pnu*cnx+pnx*cnu+pnx*cnu, 1);
 		double *work_diag; d_zeros_align(&work_diag, pnx, 1);
 
 
-		double *(hdA[N]);
-		double *(hpBt[N]);
-		double *(hpP[N+1]);
-		double *(hpLK[N+1]);
-		double *(hpR[N]);
-		double *(hpQx[N+1]);
-		double *(hpS[N]);
 		double *(hr[N]);
 		double *(hqx[N+1]);
 		double *(hu[N]);
@@ -502,8 +616,8 @@ int main()
 
 		for(ii=0; ii<N; ii++)
 			{
-			hdA[ii] = dA;
-			hpBt[ii] = pBt;
+			d_zeros_align(&hdA[ii], pnxx[ii], 1);
+			d_zeros_aling(&hpBt[ii], pnu, cnxx[ii]);
 			d_zeros_align(&hpP[ii], pnx, cnx);
 			d_zeros_align(&hpLK[ii], pnu+pnx, cnu);
 			hpR[ii] = pR;
