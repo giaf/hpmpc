@@ -288,6 +288,9 @@ int main()
 			nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 			N  = NN; // horizon lenght
 			nrep = NREP;
+			//nx = 24;
+			//nu = 1;
+			//N = 11;
 			}
 		else
 			{
@@ -299,19 +302,19 @@ int main()
 
 		int rep;
 	
-		const int nz = nx+nu+1;
-		const int anz = nal*((nz+nal-1)/nal);
-		const int anx = nal*((nx+nal-1)/nal);
-		const int pnz = bs*((nz+bs-1)/bs);
-		const int pnx = bs*((nx+bs-1)/bs);
-		const int pnu = bs*((nu+bs-1)/bs);
-		const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
-		const int cnx = ncl*((nx+ncl-1)/ncl);
-		const int cnu = ncl*((nu+ncl-1)/ncl);
+		int nz = nx+nu+1;
+		int anz = nal*((nz+nal-1)/nal);
+		int anx = nal*((nx+nal-1)/nal);
+		int pnz = bs*((nz+bs-1)/bs);
+		int pnx = bs*((nx+bs-1)/bs);
+		int pnu = bs*((nu+bs-1)/bs);
+		int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
+		int cnx = ncl*((nx+ncl-1)/ncl);
+		int cnu = ncl*((nu+ncl-1)/ncl);
 
 //		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 		//const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
-		const int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
+		int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
 	
 /************************************************
 * dynamical system
@@ -477,8 +480,8 @@ int main()
 		int cnuu[N];
 		for(ii=0; ii<N; ii++) cnuu[ii] = (nuu[ii]+ncl-1)/ncl*ncl;
 
-		for(ii=0; ii<=N; ii++) printf("\n%d %d %d\n", nxx[ii], pnxx[ii], cnxx[ii]);
-		for(ii=0; ii<N; ii++)  printf("\n%d %d %d\n", nuu[ii], pnuu[ii], cnuu[ii]);
+		//for(ii=0; ii<=N; ii++) printf("\n%d %d %d\n", nxx[ii], pnxx[ii], cnxx[ii]);
+		//for(ii=0; ii<N; ii++)  printf("\n%d %d %d\n", nuu[ii], pnuu[ii], cnuu[ii]);
 
 
 		// data memory space
@@ -548,13 +551,15 @@ int main()
 		d_ric_diag_trf_mpc(nxx, nuu, N, hdA, hpBt, hpR, hpS, hpQx, hpLK, pK, hpP, diag);
 
 		d_print_pmat(nxx[0], nxx[0], bs, hpP[0], cnxx[0]);
-		d_print_pmat(nxx[1], nxx[1], bs, hpP[1], cnxx[1]);
-		d_print_pmat(nxx[N-1], nxx[N-1], bs, hpP[N-1], cnxx[N-1]);
-		d_print_pmat(nxx[N], nxx[N], bs, hpP[N], cnxx[N]);
+		//d_print_pmat(nxx[1], nxx[1], bs, hpP[1], cnxx[1]);
+		//d_print_pmat(nxx[N-2], nxx[N-2], bs, hpP[N-2], cnxx[N-2]);
+		//d_print_pmat(nxx[N-1], nxx[N-1], bs, hpP[N-1], cnxx[N-1]);
+		//d_print_pmat(nxx[N], nxx[N], bs, hpP[N], cnxx[N]);
 
 		d_print_pmat(pnuu[0]+nxx[0], nuu[0], bs, hpLK[0], cnuu[0]);
-		d_print_pmat(pnuu[1]+nxx[1], nuu[1], bs, hpLK[1], cnuu[1]);
-		d_print_pmat(pnuu[N-1]+nxx[N-1], nuu[N-1], bs, hpLK[N-1], cnuu[N-1]);
+		//d_print_pmat(pnuu[1]+nxx[1], nuu[1], bs, hpLK[1], cnuu[1]);
+		//d_print_pmat(pnuu[N-2]+nxx[N-2], nuu[N-2], bs, hpLK[N-2], cnuu[N-2]);
+		//d_print_pmat(pnuu[N-1]+nxx[N-1], nuu[N-1], bs, hpLK[N-1], cnuu[N-1]);
 
 		for(ii=0; ii<N; ii++)
 			{
@@ -571,6 +576,61 @@ int main()
 		free(pK);
 
 
+
+
+		// reference using time-invariant code
+		nx = 24;
+		nu = 1;
+		N  = 11;
+
+		nz  = nx+nu+1;
+		pnz = (nx+nu+1+bs-1)/bs*bs;
+		cnx = (nx+ncl-1)/ncl*ncl;
+		cnz = (nz+ncl-1)/ncl*ncl;
+
+		double *BAb_temp; d_zeros(&BAb_temp, nx, nu+nx+1);
+		double *(hpBAbt2[N]);
+
+		ptrB = BBB;
+		for(ii=0; ii<N; ii++)
+			{
+			//printf("\n%d\n", ii);
+			d_zeros_align(&hpBAbt2[ii], pnz, cnx);
+			for(jj=0; jj<nx*(nx+nu+1); jj++) BAb_temp[jj] = 0.0;
+			d_copy_mat(nxx[ii+1], nuu[ii], ptrB, nxx[ii+1], BAb_temp, nx);
+			ptrB += nxx[ii+1];
+			for(jj=0; jj<nxx[ii+1]; jj++) BAb_temp[nuu[ii]*nx+jj*(nx+1)] = 1.0;
+			//d_print_mat(nx, nu+nx+1, BAb_temp, nx);
+			d_cvt_tran_mat2pmat(nx, nx+nu+1, 0, bs, BAb_temp, nx, hpBAbt2[ii], cnx);
+			//d_print_pmat(nx+nu+1, nx, bs, hpBAbt2[ii], cnx);
+			}
+
+		double *RSQ; d_zeros(&RSQ, nz, nz);
+		double *(hpRSQ[N+1]);
+
+		for(ii=0; ii<=N; ii++)
+			{
+			d_zeros_align(&hpRSQ[ii], pnz, cnz);
+			for(jj=0; jj<nz*nz; jj++) RSQ[jj] = 0.0;
+			for(jj=0; jj<nu+nxx[ii]; jj++) RSQ[jj*(nz+1)] = 1.0;
+			d_cvt_mat2pmat(nz, nz, 0, bs, RSQ, nz, hpRSQ[ii], cnz);
+			//d_print_pmat(nz, nz, bs, hpRSQ[ii], cnz);
+			}
+
+		d_ric_sv_mpc(nx, nu, N, hpBAbt2, hpRSQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
+		d_print_pmat(pnz, cnl, bs, hpL[0], cnl);
+		//d_print_pmat(pnz, cnl, bs, hpL[1], cnl);
+		//d_print_pmat(pnz, cnl, bs, hpL[N-2], cnl);
+		//d_print_pmat(pnz, cnl, bs, hpL[N-1], cnl);
+		//d_print_pmat(pnz, cnl, bs, hpL[N], cnl);
+		
+		free(BAb_temp);
+		for(ii=0; ii<N; ii++)
+			{
+			free(hpBAbt2[ii]);
+			free(hpRSQ[ii]);
+			}
+		free(hpRSQ[N]);
 
 		exit(1);
 

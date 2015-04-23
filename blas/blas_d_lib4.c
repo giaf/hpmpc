@@ -3867,7 +3867,8 @@ void dsyrk_diag_left_right_lib(int m, double *Al, double *Ar, double *B, int sdb
 	const int bs = 4;
 
 	int ii;
-	for( ; ii<m-3; ii+=4)
+
+	for(ii=0; ii<m-3; ii+=4)
 		{
 		kernel_dsyrk_diag_left_right_4_lib4(ii+4, &Al[ii], &Ar[0], &B[ii*sdb], &C[ii*sdc], &D[ii*sdd], alg);
 		}

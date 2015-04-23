@@ -364,7 +364,7 @@ void d_ric_diag_trf_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, do
 	cnx0  = ncl*((nx[N]+ncl-1)/ncl);
 
 	d_copy_pmat(nx0, nx0, bs, hpQ[N], cnx0, hpP[N], cnx0);
-	//d_print_pmat(nx, nx, bs, hpQ[N], cnx);
+	//d_print_pmat(nx0, nx0, bs, hpP[N], cnx0);
 
 	// factorization and backward substitution 
 	for(nn=0; nn<N; nn++)
@@ -380,38 +380,37 @@ void d_ric_diag_trf_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, do
 		nxm = (nx0<nx1) ? nx0 : nx1;
 
 		// PB = P*(B')'
+		//d_print_pmat(nu0, nx1, bs, hpBt[N-nn-1], cnx1);
 		dgemm_nt_lib(nx1, nu0, nx1, hpP[N-nn], cnx1, hpBt[N-nn-1], cnx1, pK, cnu0, pK, cnu0, 0, 0, 0);
-		//d_print_pmat(nx, nx, bs, hpP[N-nn], cnx);
-		//d_print_pmat(nu, nx, bs, hpBt[N-nn-1], cnx);
-		//d_print_pmat(pnu+nx, nu, bs, hpL[N-nn-1], cnu);
+		//d_print_pmat(nx1, nu0, bs, pK, cnu0);
 
+		//d_print_pmat(nu0, nu0, bs, hpR[N-nn-1], cnu0);
 		dsyrk_nn_lib(nu0, nu0, nx1, hpBt[N-nn-1], cnx1, pK, cnu0, hpR[N-nn-1], cnu0, hpL[N-nn-1], cnu0, 1);
-		//d_print_pmat(nu, nu, bs, hpQ[N-nn-1], cnu);
-		//d_print_pmat(pnu+nx, nu, bs, hpL[N-nn-1], cnu);
+		//d_print_pmat(nu0, nu0, bs, hpL[N-nn-1], cnu0);
 
 		d_copy_pmat(nx0, nu0, bs, hpSt[N-nn-1], cnu0, hpL[N-nn-1]+pnu0*cnu0, cnu0);
+		//d_print_pmat(nx0+nu0, nu0, bs, hpL[N-nn-1], cnu0);
 
 		dgemm_diag_left_lib(nxm, nu0, hdA[N-nn-1], pK, cnu0, hpL[N-nn-1]+pnu0*cnu0, cnu0, hpL[N-nn-1]+pnu0*cnu0, cnu0, 1);
-		//d_print_pmat(pnu+nx, nu, bs, hpL[N-nn-1], cnu);
+		//d_print_pmat(pnu0+nx0, nu0, bs, hpL[N-nn-1], cnu0);
 
 		dpotrf_lib(pnu0+nx0, nu0, hpL[N-nn-1], cnu0, hpL[N-nn-1], cnu0, diag_work);
-		//d_print_pmat(pnu+nx, nu, bs, hpL[N-nn-1], cnu);
+		//d_print_pmat(pnu0+nx0, nu0, bs, hpL[N-nn-1], cnu0);
 		for(jj=0; jj<nu0; jj++) hpL[N-nn-1][(jj/bs)*bs*cnu0+jj%bs+jj*bs] = diag_work[jj]; // copy reciprocal of diagonal
-		//d_print_pmat(pnu+nx, nu, bs, hpL[N-nn-1], cnu);
+		//d_print_pmat(pnu0+nx0, nu0, bs, hpL[N-nn-1], cnu0);
 
 		d_copy_pmat(nx0, nx0, bs, hpQ[N-nn-1], cnx0, hpP[N-nn-1], cnx0);
+		//d_print_pmat(nx0, nx0, bs, hpP[N-nn-1], cnx0);
 
 		dsyrk_diag_left_right_lib(nxm, hdA[N-nn-1], hdA[N-nn-1], hpP[N-nn], cnx1, hpP[N-nn-1], cnx0, hpP[N-nn-1], cnx0, 1);
-		//d_print_mat(1, nx, hdA[N-nn-1], 1);
-		//d_print_pmat(nx, nx, bs, hpP[N-nn], cnx);
-		//d_print_pmat(nx, nx, bs, hpQ[N-nn-1], cnx);
-		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
+		//d_print_mat(1, nxm, hdA[N-nn-1], 1);
+		//d_print_pmat(nx0, nx0, bs, hpP[N-nn-1], cnx0);
 
 		dsyrk_nt_lib(nx0, nx0, nu0, hpL[N-nn-1]+pnu0*cnu0, cnu0, hpL[N-nn-1]+pnu0*cnu0, cnu0, hpP[N-nn-1], cnx0, hpP[N-nn-1], cnx0, -1);
-		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
+		//d_print_pmat(nx0, nx0, bs, hpP[N-nn-1], cnx0);
 
 		dtrtr_l_lib(nx0, 0, hpP[N-nn-1], cnx0, hpP[N-nn-1], cnx0);	
-		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
+		//d_print_pmat(nx0, nx0, bs, hpP[N-nn-1], cnx0);
 
 		//exit(1);
 		}
