@@ -548,6 +548,7 @@ int main()
 		//d_print_pmat(pnxx[N], cnxx[N], bs, hpQx[N], cnxx[N]);
 
 
+		printf("\nfactorize\n");
 		d_ric_diag_trf_mpc(nxx, nuu, N, hdA, hpBt, hpR, hpS, hpQx, hpLK, pK, hpP, diag);
 
 		d_print_pmat(nxx[0], nxx[0], bs, hpP[0], cnxx[0]);
@@ -561,6 +562,91 @@ int main()
 		//d_print_pmat(pnuu[N-2]+nxx[N-2], nuu[N-2], bs, hpLK[N-2], cnuu[N-2]);
 		//d_print_pmat(pnuu[N-1]+nxx[N-1], nuu[N-1], bs, hpLK[N-1], cnuu[N-1]);
 
+
+
+		// data memory space
+		double *(hr2[N]);
+		double *(hq2[N+1]);
+		double *(hu2[N]);
+		double *(hx2[N+1]);
+		double *(hpi2[N+1]);
+		double *(hPb2[N]);
+
+		double *(hb2[N]);
+		double *(hrr2[N]);
+		double *(hrq2[N+1]);
+		double *(hrb2[N]);
+
+		for(ii=0; ii<N; ii++)
+			{
+			d_zeros_align(&hr2[ii], pnuu[ii], 1);
+			d_zeros_align(&hq2[ii], pnxx[ii], 1);
+			d_zeros_align(&hu2[ii], pnuu[ii], 1);
+			d_zeros_align(&hx2[ii], pnxx[ii], 1);
+			d_zeros_align(&hpi2[ii], pnxx[ii], 1);
+			d_zeros_align(&hPb2[ii], pnxx[ii+1], 1);
+
+			d_zeros_align(&hb2[ii], pnxx[ii+1], 1);
+			d_zeros_align(&hrr2[ii], pnuu[ii], 1);
+			d_zeros_align(&hrq2[ii], pnxx[ii], 1);
+			d_zeros_align(&hrb2[ii], pnxx[ii+1], 1);
+			}
+		d_zeros_align(&hq2[N], pnxx[N], 1);
+		d_zeros_align(&hx2[N], pnxx[N], 1);
+		d_zeros_align(&hpi2[N], pnxx[N], 1);
+
+		double *work_diag2; d_zeros_align(&work_diag2, pnxx[0], 1);
+
+		// x0
+		hx2[0][0] =  5.0;
+		hx2[0][1] = -5.0;
+
+		printf("\nsolve\n");
+		d_ric_diag_trs_mpc(nxx, nuu, N, hdA, hpBt, hpLK, hpP, hr2, hq2, hu2, hx2, work_diag2, 1, hPb2, 1, hpi2);
+
+		for(ii=0; ii<N; ii++)
+			d_print_mat(1, nuu[ii], hu2[ii], 1);
+
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nxx[ii], hx2[ii], 1);
+
+
+
+		// residuals
+
+		d_res_diag_mpc(nxx, nuu, N, hdA, hpBt, hpR, hpS, hpQx, hb2, hr2, hq2, hu2, hx2, hpi2, hrr2, hrq2, hrb2);
+
+		printf("\nresiduals\n");
+		for(ii=0; ii<N; ii++)
+			d_print_mat(1, nuu[ii], hrr2[ii], 1);
+
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nxx[ii], hrq2[ii], 1);
+
+		for(ii=0; ii<N; ii++)
+			d_print_mat(1, nxx[ii+1], hrb2[ii], 1);
+
+
+
+
+		// timing
+		struct timeval tv20, tv21;
+
+		gettimeofday(&tv20, NULL); // start
+
+		nrep = 10000;
+		for(ii=0; ii<nrep; ii++)
+			{
+			d_ric_diag_trf_mpc(nxx, nuu, N, hdA, hpBt, hpR, hpS, hpQx, hpLK, pK, hpP, diag);
+			d_ric_diag_trs_mpc(nxx, nuu, N, hdA, hpBt, hpLK, hpP, hr2, hq2, hu2, hx2, work_diag2, 1, hPb2, 1, hpi2);
+			}
+
+		gettimeofday(&tv21, NULL); // start
+
+		float time_sv_diag = (float) (tv21.tv_sec-tv20.tv_sec)/(nrep+0.0)+(tv21.tv_usec-tv20.tv_usec)/(nrep*1e6);
+
+
+
 		for(ii=0; ii<N; ii++)
 			{
 			free(hdA[ii]);
@@ -570,10 +656,25 @@ int main()
 			free(hpQx[ii]);
 			free(hpLK[ii]);
 			free(hpP[ii]);
+			free(hr2[ii]);
+			free(hq2[ii]);
+			free(hx2[ii]);
+			free(hu2[ii]);
+			free(hpi2[ii]);
+			free(hPb2[ii]);
+
+			free(hb2[ii]);
+			free(hrr2[ii]);
+			free(hrq2[ii]);
+			free(hrb2[ii]);
 			}
 		free(hpQx[N]);
 		free(hpP[N]);
 		free(pK);
+		free(hq2[N]);
+		free(hx2[N]);
+		free(hpi2[N]);
+		free(work_diag2);
 
 
 
@@ -617,13 +718,38 @@ int main()
 			//d_print_pmat(nz, nz, bs, hpRSQ[ii], cnz);
 			}
 
+		hux[0][nu+0] =  5.0;
+		hux[0][nu+1] = -5.0;
+
 		d_ric_sv_mpc(nx, nu, N, hpBAbt2, hpRSQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
 		d_print_pmat(pnz, cnl, bs, hpL[0], cnl);
 		//d_print_pmat(pnz, cnl, bs, hpL[1], cnl);
 		//d_print_pmat(pnz, cnl, bs, hpL[N-2], cnl);
 		//d_print_pmat(pnz, cnl, bs, hpL[N-1], cnl);
 		//d_print_pmat(pnz, cnl, bs, hpL[N], cnl);
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nx+nu, hux[ii], 1);
 		
+
+
+		// timing
+		//struct timeval tv20, tv21;
+
+		gettimeofday(&tv20, NULL); // start
+
+		for(ii=0; ii<nrep; ii++)
+			{
+			d_ric_sv_mpc(nx, nu, N, hpBAbt2, hpRSQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
+			}
+
+		gettimeofday(&tv21, NULL); // start
+
+		float time_sv_full = (float) (tv21.tv_sec-tv20.tv_sec)/(nrep+0.0)+(tv21.tv_usec-tv20.tv_usec)/(nrep*1e6);
+
+		printf("\ndiag time = %e\t\tfull time = %e\n\n", time_sv_diag, time_sv_full);
+
+
+
 		free(BAb_temp);
 		for(ii=0; ii<N; ii++)
 			{
@@ -677,7 +803,7 @@ int main()
 		for(ii=0; ii<N; ii++)
 			{
 			d_zeros_align(&hdA[ii], pnxx[ii], 1);
-			d_zeros_aling(&hpBt[ii], pnu, cnxx[ii]);
+			d_zeros_align(&hpBt[ii], pnu, cnxx[ii]);
 			d_zeros_align(&hpP[ii], pnx, cnx);
 			d_zeros_align(&hpLK[ii], pnu+pnx, cnu);
 			hpR[ii] = pR;
