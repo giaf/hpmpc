@@ -28,8 +28,8 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double **hq, double **hux, double *work, int compute_Pb, double ** hPb, int compute_pi, double **hpi, int nb, int ng, int ngN, double **hpDCt, double **qx);
 void d_res_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb);
 void d_ric_diag_trf_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, double **hpR, double **hpSt, double **hpQ, double **hpL, double *pK, double **hpP, double *diag_work);
-void d_ric_diag_trs_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, double **hpL, double **hpP, double **hr, double **hq, double **hu, double **hx, double *work, int compute_Pb, double **hPb, int compute_pi, double **hpi);
-void d_res_diag_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, double **hpR, double **hpSt, double **hpQ, double **hb, double **hr, double **hq, double **hu, double **hx, double **hpi, double **hrr, double **hrq, double **hrb);
+void d_ric_diag_trs_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, double **hpL, double **hpP, double **hb, double **hrq, double **hux, double *work, int compute_Pb, double **hPb, int compute_pi, double **hp);
+void d_res_diag_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, double **hpR, double **hpSt, double **hpQ, double **hb, double **hrq, double **hux, double **hpi, double **hres_rq, double **hres_b, double *work);
 void s_ric_sv_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hux, float **hpL, float *work, float *diag, int compute_pi, float **hpi);
 void s_ric_trs_mpc(int nx, int nu, int N, float **hpBAbt, float **hpL, float **hq, float **hux, float *work, int compute_Pb, float ** hPb, int compute_pi, float **hpi);
 void s_res_mpc(int nx, int nu, int N, float **hpBAbt, float **hpQ, float **hq, float **hux, float **hpi, float **hrq, float **hrb);

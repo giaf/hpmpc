@@ -420,14 +420,16 @@ void d_ric_diag_trf_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, do
 
 
 // version exploiting the fact that A is the diagonal of a matrix
-void d_ric_diag_trs_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, double **hpL, double **hpP, double **hr, double **hq, double **hu, double **hx, double *work, int compute_Pb, double **hPb, int compute_pi, double **hpi)
+void d_ric_diag_trs_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, double **hpL, double **hpP, double **hb, double **hrq, double **hux, double *work, int compute_Pb, double **hPb, int compute_pi, double **hpi)
 	{
+
+	// TODO merge hu & hx !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	
 	const int bs  = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	int nu0, nx0, nx1, nxm, pnu0, cnu0, cnx0, cnx1;
+	int nu0, nu1, nx0, nx1, nxm, pnu0, cnu0, cnx0, cnx1;
 
 	int ii, jj;
 	
@@ -435,6 +437,8 @@ void d_ric_diag_trs_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, do
 
 	nx0 = nx[N];
 	cnx0  = ncl*((nx[N]+ncl-1)/ncl);
+
+	for(jj=0; jj<nx0; jj++) hpi[N][jj] = hrq[N][jj]; // no nu+ !!!!!!!!!!
 
 	for(ii=0; ii<N; ii++)
 		{
@@ -450,25 +454,31 @@ void d_ric_diag_trs_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, do
 
 		if(compute_Pb)
 			{
-			dgemv_n_lib(nx1, nx1, hpP[N-ii], cnx1, hx[N-ii], hPb[N-ii-1], 0); // P*b
+			dgemv_n_lib(nx1, nx1, hpP[N-ii], cnx1, hb[N-ii-1], hPb[N-ii-1], 0);
 			}
-		for(jj=0; jj<nx1; jj++) work[jj] = hPb[N-ii-1][jj] + hq[N-ii][jj]; // add p
-		dgemv_n_lib(nu0, nx1, hpBt[N-ii-1], cnx1, work, hr[N-ii-1], 1);
-		for(jj=0; jj<nxm; jj++) hq[N-ii-1][jj] += hdA[N-ii-1][jj] * work[jj];
-		dtrsv_dgemv_n_lib(nu0, nu0, hpL[N-ii-1], cnu0, hr[N-ii-1]);
-		dgemv_n_lib(nx0, nu0, hpL[N-ii-1]+pnu0*cnu0, cnu0, hr[N-ii-1], hq[N-ii-1], -1);
+		for(jj=0; jj<nx1; jj++) work[jj] = hPb[N-ii-1][jj] + hpi[N-ii][jj];
+		for(jj=0; jj<nu0; jj++) hux[N-ii-1][jj] = hrq[N-ii-1][jj];
+		dgemv_n_lib(nu0, nx1, hpBt[N-ii-1], cnx1, work, hux[N-ii-1], 1);
+		for(jj=0; jj<nxm; jj++) hpi[N-ii-1][jj] = hrq[N-ii-1][nu0+jj] - hdA[N-ii-1][jj] * work[jj];
+		dtrsv_dgemv_n_lib(nu0, nu0, hpL[N-ii-1], cnu0, hux[N-ii-1]);
+		dgemv_n_lib(nx0, nu0, hpL[N-ii-1]+pnu0*cnu0, cnu0, hux[N-ii-1], hpi[N-ii-1], -1);
 		}
 
 
 	/* forward substitution */
 
+	nu0 = nu[0];
+	nu1 = nu[1];
+	nx0 = nx[0];
 	nx1 = nx[1];
 	cnx1  = ncl*((nx[1]+ncl-1)/ncl);
+	for(jj=0; jj<nx0; jj++) work[jj] = hux[0][nu0+jj];
 
 	for(ii=0; ii<N; ii++)
 		{
 
-		nu0 = nu[ii];
+		nu0 = nu1;
+		nu1 = nu[ii+1];
 		nx0 = nx1;
 		nx1 = nx[ii+1];
 		pnu0  = bs*((nu0+bs-1)/bs);
@@ -477,15 +487,23 @@ void d_ric_diag_trs_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, do
 		cnx1  = ncl*((nx1+ncl-1)/ncl);
 		nxm = (nx0<nx1) ? nx0 : nx1;
 
-		for(jj=0; jj<nu0; jj++) hu[ii][jj] = - hr[ii][jj];
-		dgemv_t_lib(nx0, nu0, hpL[ii]+pnu0*cnu0, cnu0, hx[ii], hu[ii], -1);
-		dtrsv_dgemv_t_lib(nu0, nu0, hpL[ii], cnu0, hu[ii]);
-		dgemv_t_lib(nu0, nx1, hpBt[ii], cnx1, hu[ii], hx[ii+1], 1);
-		for(jj=0; jj<nxm; jj++) hx[ii+1][jj] += hdA[ii][jj] * hx[ii][jj];
+		for(jj=0; jj<nu0; jj++) hux[ii][jj] = - hux[ii][jj];
+		dgemv_t_lib(nx0, nu0, hpL[ii]+pnu0*cnu0, cnu0, work, hux[ii], -1); // no overwrite of x
+		dtrsv_dgemv_t_lib(nu0, nu0, hpL[ii], cnu0, hux[ii]); // no overwrite of x
+		for(jj=0; jj<nx1; jj++) hux[ii+1][nu1+jj] = hb[ii][jj];
+		dgemv_t_lib(nu0, nx1, hpBt[ii], cnx1, hux[ii], hux[ii+1]+nu1, 1);
+		for(jj=0; jj<nxm; jj++) 
+			{
+			hux[ii+1][nu1+jj] += hdA[ii][jj] * work[jj];
+			work[jj] = hux[ii+1][nu1+jj];
+			}
+		for( ; jj<nx1; jj++)
+			{
+			work[jj] = hux[ii+1][nu1+jj];
+			}
 		if(compute_pi)
 			{
-			dgemv_n_lib(nx1, nx1, hpP[ii+1], cnx1, hx[ii+1], hpi[ii+1], 0); // P*b + p
-			for(jj=0; jj<nx1; jj++) hpi[ii+1][jj] += hq[ii+1][jj];
+			dgemv_n_lib(nx1, nx1, hpP[ii+1], cnx1, work, hpi[ii+1], 1); // P*b + p
 			}
 		}
 
