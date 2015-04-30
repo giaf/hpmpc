@@ -758,7 +758,7 @@ exit(1);
 #endif
 
 
-#if 0
+#if 1
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		for(jj=0; jj<=N; jj++)
 			for(ll=0; ll<2*nb[jj]; ll++)
