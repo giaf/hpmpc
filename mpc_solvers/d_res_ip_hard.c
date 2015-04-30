@@ -247,3 +247,132 @@ void d_res_ip_box_mhe_old(int nx, int nu, int N, int nb, double **hpBAbt, double
 	
 	}
 #endif
+
+
+
+
+void d_res_ip_diag_mpc(int N, int *nx, int *nu, int *nb, double **hdA, double **hpBt, double **hpR, double **hpSt, double **hpQ, double **hb, double **hrq, double **hd, double **hux, double **hpi, double **hlam, double **ht, double **hres_rq, double **hres_b, double **hres_d, double *mu, double *work)
+	{
+
+	const int bs = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+
+	int ii, jj;
+
+	int nu0, nu1, cnu0, nx0, nx1, nxm, cnx0, cnx1, nb0, nbu, pnb, nb_tot;
+
+
+	// initialize mu
+	nb_tot = 0;
+	mu[0] = 0;
+
+
+	// first stage
+	ii = 0;
+	nu0 = nu[ii];
+	nu1 = nu[ii+1];
+	nx0 = nx[ii]; // nx1;
+	nx1 = nx[ii+1];
+	cnu0  = (nu0+ncl-1)/ncl*ncl;
+	cnx1  = (nx1+ncl-1)/ncl*ncl;
+	nxm = (nx0<nx1) ? nx0 : nx1;
+	nb0 = nb[ii];
+	pnb = (nb0+bs-1)/bs*bs;
+	nb_tot += nb[ii];
+
+	for(jj=0; jj<nb[ii]; jj++)
+		mu[0] += hlam[ii][jj] * ht[ii][jj] + hlam[ii][pnb+jj] * ht[ii][pnb+jj];
+	
+	for(jj=0; jj<nb0; jj++)
+		{
+		hres_d[ii][jj]     =   hux[ii][jj] - hd[ii][jj]     - ht[ii][jj];
+		hres_d[ii][pnb+jj] = - hux[ii][jj] - hd[ii][pnb+jj] - ht[ii][pnb+jj];
+		}
+
+	for(jj=0; jj<nb0; jj++) hres_rq[ii][jj] = - hrq[ii][jj] + hlam[ii][jj] - hlam[ii][pnb+jj];
+	for(; jj<nu0; jj++) hres_rq[ii][jj] = - hrq[ii][jj];
+	for(jj=0; jj<nx0; jj++) work[jj] = hux[ii][nu0+jj];
+	dgemv_t_lib(nx0, nu0, hpSt[ii], cnu0, work, hres_rq[ii], -1);
+	dsymv_lib(nu0, nu0, hpR[ii], cnu0, hux[ii], hres_rq[ii], -1);
+	dgemv_n_lib(nu0, nx1, hpBt[ii], cnx1, hpi[ii+1], hres_rq[ii], -1);
+
+	for(jj=0; jj<nx1; jj++) hres_b[ii][jj] = hux[ii+1][nu1+jj] - hb[ii][jj];
+	for(jj=0; jj<nxm; jj++) hres_b[ii][jj] -= hdA[ii][jj] * work[jj];
+	dgemv_t_lib(nu0, nx1, hpBt[ii], cnx1, hux[ii], hres_b[ii], -1);
+
+
+	// middle stages
+	for(ii=1; ii<N; ii++)
+		{
+		nu0 = nu1;
+		nu1 = nu[ii+1];
+		nx0 = nx1;
+		nx1 = nx[ii+1];
+		cnu0  = ncl*((nu0+ncl-1)/ncl);
+		cnx0 = cnx1;
+		cnx1  = ncl*((nx1+ncl-1)/ncl);
+		nxm = (nx0<nx1) ? nx0 : nx1;
+		nb0 = nb[ii];
+		nbu = nu0<nb0 ? nu0 : nb0;
+		pnb = (nb0+bs-1)/bs*bs;
+		nb_tot += nb[ii];
+
+		for(jj=0; jj<nb[ii]; jj++)
+			mu[0] += hlam[ii][jj] * ht[ii][jj] + hlam[ii][pnb+jj] * ht[ii][pnb+jj];
+
+		for(jj=0; jj<nb0; jj++)
+			{
+			hres_d[ii][jj]     =   hux[ii][jj] - hd[ii][jj]     - ht[ii][jj];
+			hres_d[ii][pnb+jj] = - hux[ii][jj] - hd[ii][pnb+jj] - ht[ii][pnb+jj];
+			}
+
+		for(jj=0; jj<nbu; jj++) hres_rq[ii][jj] = - hrq[ii][jj] + hlam[ii][jj] - hlam[ii][pnb+jj];
+		for(; jj<nu0; jj++) hres_rq[ii][jj] = - hrq[ii][jj];
+		for(jj=0; jj<nx0; jj++) work[jj] = hux[ii][nu0+jj];
+		dgemv_t_lib(nx0, nu0, hpSt[ii], cnu0, work, hres_rq[ii], -1);
+		dsymv_lib(nu0, nu0, hpR[ii], cnu0, hux[ii], hres_rq[ii], -1);
+		dgemv_n_lib(nu0, nx1, hpBt[ii], cnx1, hpi[ii+1], hres_rq[ii], -1);
+
+		for(jj=0; jj<nb0-nb0; jj++) hres_rq[ii][nu0+jj] = hpi[ii][jj] - hrq[ii][nu0+jj] + hlam[ii][nu0+jj] - hlam[ii][pnb+nu0+jj];
+		for(; jj<nx0; jj++) hres_rq[ii][nu0+jj] = hpi[ii][jj] - hrq[ii][nu0+jj];
+		for(jj=0; jj<nxm; jj++) hres_rq[ii][nu0+jj] -= hdA[ii][jj] * hpi[ii+1][jj];
+		dgemv_n_lib(nx0, nu0, hpSt[ii], cnu0, hux[ii], hres_rq[ii]+nu0, -1);
+		dsymv_lib(nx0, nx0, hpQ[ii], cnx0, work, hres_rq[ii]+nu0, -1);
+
+		for(jj=0; jj<nx1; jj++) hres_b[ii][jj] = hux[ii+1][nu1+jj] - hb[ii][jj];
+		for(jj=0; jj<nxm; jj++) hres_b[ii][jj] -= hdA[ii][jj] * work[jj];
+		dgemv_t_lib(nu0, nx1, hpBt[ii], cnx1, hux[ii], hres_b[ii], -1);
+
+		}
+
+	// last stage
+	ii = N;
+	nu0 = nu1;
+	nx0 = nx1;
+	cnx0 = cnx1;
+	nb0 = nb[ii];
+	pnb = (nb0+bs-1)/bs*bs;
+	nb_tot += nb[ii];
+
+	for(jj=0; jj<nb[ii]; jj++)
+		mu[0] += hlam[ii][jj] * ht[ii][jj] + hlam[ii][pnb+jj] * ht[ii][pnb+jj];
+
+	for(jj=0; jj<nb0; jj++)
+		{
+		hres_d[ii][jj]     =   hux[ii][jj] - hd[ii][jj]     - ht[ii][jj];
+		hres_d[ii][pnb+jj] = - hux[ii][jj] - hd[ii][pnb+jj] - ht[ii][pnb+jj];
+		}
+
+	for(jj=0; jj<nb0-nb0; jj++) hres_rq[ii][nu0+jj] = hpi[ii][jj] - hrq[ii][nu0+jj] + hlam[ii][nu0+jj] - hlam[ii][pnb+nu0+jj];
+	for(; jj<nx0; jj++) hres_rq[ii][nu0+jj] = hpi[ii][jj] - hrq[ii][nu0+jj]; // no nu+ !!!!!!!!!!
+	for(jj=0; jj<nx0; jj++) work[jj] = hux[ii][nu0+jj];
+	dsymv_lib(nx0, nx0, hpQ[ii], cnx0, work, hres_rq[ii]+nu0, -1);
+
+	// normalize mu
+	mu[0] /= 2.0*nb_tot;
+
+	}
+
+
+
+

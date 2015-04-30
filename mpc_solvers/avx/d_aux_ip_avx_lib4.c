@@ -592,6 +592,119 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double **ux, dou
 
 
 
+void d_init_var_diag_mpc(int N, int *nx, int *nu, int *nb, double **ux, double **pi, double **db, double **t, double **lam, double mu0, int warm_start)
+	{
+
+	// it must be nb[0] <= nu !!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	// constants
+	const int bs  = D_MR;
+	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
+
+	int jj, ll, ii;
+
+	int pnb;
+	
+	double
+		*ptr_t, *ptr_lam, *ptr_db;
+
+	double thr0 = 0.1; // minimum vale of t (minimum distance from a constraint)
+
+	if(warm_start==1)
+		{
+		for(jj=0; jj<=N; jj++)
+			{
+			pnb  = bs*((nb[jj]+bs-1)/bs); // simd aligned number of box constraints
+			for(ll=0; ll<nb[jj]; ll++)
+				{
+				t[jj][ll]     = - db[jj][ll]     + ux[jj][ll];
+				t[jj][pnb+ll] = - db[jj][pnb+ll] - ux[jj][ll];
+				if(t[jj][ll] < thr0)
+					{
+					if(t[jj][pnb+ll] < thr0)
+						{
+						ux[jj][ll] = ( - db[jj][pnb+ll] + db[jj][ll])*0.5;
+						t[jj][ll]     = - db[jj][ll]     + ux[jj][ll];
+						t[jj][pnb+ll] = - db[jj][pnb+ll] - ux[jj][ll];
+						}
+					else
+						{
+						t[jj][ll] = thr0;
+						ux[jj][ll] = db[jj][ll] + thr0;
+						}
+					}
+				else if(t[jj][pnb+ll] < thr0)
+					{
+					t[jj][pnb+ll] = thr0;
+					ux[jj][ll] = - db[jj][pnb+ll] - thr0;
+					}
+				lam[jj][ll]     = mu0/t[jj][ll];
+				lam[jj][pnb+ll] = mu0/t[jj][pnb+ll];
+				}
+			}
+		}
+	else // cold start
+		{
+		for(jj=0; jj<=N; jj++)
+			{
+			pnb  = bs*((nb[jj]+bs-1)/bs); // simd aligned number of box constraints
+			for(ll=0; ll<nb[jj]; ll++)
+				{
+				ux[jj][ll] = 0.0;
+				//ux[jj][ll] = 0.5*( - db[jj][pnb+ll] + db[jj][ll] );
+/*				t[jj][ll] = 1.0;*/
+/*				t[jj][pnb+ll] = 1.0;*/
+				t[jj][ll]     = - db[jj][ll]     + ux[jj][ll];
+				t[jj][pnb+ll] = - db[jj][pnb+ll] - ux[jj][ll];
+				if(t[jj][ll] < thr0)
+					{
+					if(t[jj][pnb+ll] < thr0)
+						{
+						ux[jj][ll] = ( - db[jj][pnb+ll] + db[jj][ll])*0.5;
+						t[jj][ll]     = - db[jj][ll]     + ux[jj][ll];
+						t[jj][pnb+ll] = - db[jj][pnb+ll] - ux[jj][ll];
+						}
+					else
+						{
+						t[jj][ll] = thr0;
+						ux[jj][ll] = db[jj][ll] + thr0;
+						}
+					}
+				else if(t[jj][pnb+ll] < thr0)
+					{
+					t[jj][pnb+ll] = thr0;
+					ux[jj][ll] = - db[jj][pnb+ll] - thr0;
+					}
+				lam[jj][ll] = mu0/t[jj][ll];
+				lam[jj][pnb+ll] = mu0/t[jj][pnb+ll];
+				}
+			if(jj==0)
+				{
+				for(; ll<nu[jj]; ll++)
+					{
+					ux[jj][ll] = 0.0; // initialize remaining components of u and x to 0
+					}
+				}
+			else
+				{
+				for(; ll<nu[jj]+nx[jj]; ll++)
+					{
+					ux[jj][ll] = 0.0; // initialize remaining components of u and x to 0
+					}
+				}
+			}
+		}
+
+	// initialize pi
+	for(jj=0; jj<=N; jj++)
+		for(ll=0; ll<nx[jj]; ll++)
+			pi[jj][ll] = 0.0; // initialize multipliers to zero
+
+	}
+
+
+
 void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **Qx, double **qx, double **bd, double **bl, double **pd, double **pl, double **db)
 	{
 
@@ -2830,6 +2943,104 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 
 
 
+void d_update_hessian_diag_mpc(int N, int *nx, int *nu, int *nb, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **bd, double **bl, double **pd, double **pl, double **db)
+	{
+	
+	// constants
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
+
+	double 
+		*ptr_pd, *ptr_pl, *ptr_bd, *ptr_bl, *ptr_db, *ptr_Qx, *ptr_qx,
+		*ptr_t, *ptr_lam, *ptr_lamt, *ptr_dlam, *ptr_tinv;
+	
+	int ii, jj, bs0;
+
+	int pnb;
+	
+	for(jj=0; jj<=N; jj++)
+		{
+		
+		pnb  = bs*((nb[jj]+bs-1)/bs); // simd aligned number of box constraints
+
+		ptr_t     = t[jj];
+		ptr_lam   = lam[jj];
+		ptr_lamt  = lamt[jj];
+		ptr_dlam  = dlam[jj];
+		ptr_tinv  = t_inv[jj];
+		ptr_db    = db[jj];
+		ptr_bd    = bd[jj];
+		ptr_bl    = bl[jj];
+		ptr_pd    = pd[jj];
+		ptr_pl    = pl[jj];
+
+		ii = 0;
+		for(; ii<nb[jj]-3; ii+=4)
+			{
+
+			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+			ptr_tinv[ii+pnb+0] = 1.0/ptr_t[ii+pnb+0];
+			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+			ptr_lamt[ii+pnb+0] = ptr_lam[ii+pnb+0]*ptr_tinv[ii+pnb+0];
+			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pnb+0] = ptr_tinv[ii+pnb+0]*sigma_mu; // !!!!!
+			ptr_pd[ii+0] = ptr_bd[ii+0] + ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
+			ptr_pl[ii+0] = ptr_bl[ii+0] + ptr_lam[ii+pnb+0] + ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
+
+			ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
+			ptr_tinv[ii+pnb+1] = 1.0/ptr_t[ii+pnb+1];
+			ptr_lamt[ii+1] = ptr_lam[ii+1]*ptr_tinv[ii+1];
+			ptr_lamt[ii+pnb+1] = ptr_lam[ii+pnb+1]*ptr_tinv[ii+pnb+1];
+			ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pnb+1] = ptr_tinv[ii+pnb+1]*sigma_mu; // !!!!!
+			ptr_pd[ii+1] = ptr_bd[ii+1] + ptr_lamt[ii+1] + ptr_lamt[ii+pnb+1];
+			ptr_pl[ii+1] = ptr_bl[ii+1] + ptr_lam[ii+pnb+1] + ptr_lamt[ii+pnb+1]*ptr_db[ii+pnb+1] + ptr_dlam[ii+pnb+1] - ptr_lam[ii+1] - ptr_lamt[ii+1]*ptr_db[ii+1] - ptr_dlam[ii+1];
+
+			ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
+			ptr_tinv[ii+pnb+2] = 1.0/ptr_t[ii+pnb+2];
+			ptr_lamt[ii+2] = ptr_lam[ii+2]*ptr_tinv[ii+2];
+			ptr_lamt[ii+pnb+2] = ptr_lam[ii+pnb+2]*ptr_tinv[ii+pnb+2];
+			ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pnb+2] = ptr_tinv[ii+pnb+2]*sigma_mu; // !!!!!
+			ptr_pd[ii+2] = ptr_bd[ii+2] + ptr_lamt[ii+2] + ptr_lamt[ii+pnb+2];
+			ptr_pl[ii+2] = ptr_bl[ii+2] + ptr_lam[ii+pnb+2] + ptr_lamt[ii+pnb+2]*ptr_db[ii+pnb+2] + ptr_dlam[ii+pnb+2] - ptr_lam[ii+2] - ptr_lamt[ii+2]*ptr_db[ii+2] - ptr_dlam[ii+2];
+
+			ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
+			ptr_tinv[ii+pnb+3] = 1.0/ptr_t[ii+pnb+3];
+			ptr_lamt[ii+3] = ptr_lam[ii+3]*ptr_tinv[ii+3];
+			ptr_lamt[ii+pnb+3] = ptr_lam[ii+pnb+3]*ptr_tinv[ii+pnb+3];
+			ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pnb+3] = ptr_tinv[ii+pnb+3]*sigma_mu; // !!!!!
+			ptr_pd[ii+3] = ptr_bd[ii+3] + ptr_lamt[ii+3] + ptr_lamt[ii+pnb+3];
+			ptr_pl[ii+3] = ptr_bl[ii+3] + ptr_lam[ii+pnb+3] + ptr_lamt[ii+pnb+3]*ptr_db[ii+pnb+3] + ptr_dlam[ii+pnb+3] - ptr_lam[ii+3] - ptr_lamt[ii+3]*ptr_db[ii+3] - ptr_dlam[ii+3];
+
+			}
+		for(; ii<nb[jj]; ii++)
+			{
+
+			ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
+			ptr_tinv[ii+pnb+0] = 1.0/ptr_t[ii+pnb+0];
+			ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
+			ptr_lamt[ii+pnb+0] = ptr_lam[ii+pnb+0]*ptr_tinv[ii+pnb+0];
+			ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
+			ptr_dlam[ii+pnb+0] = ptr_tinv[ii+pnb+0]*sigma_mu; // !!!!!
+			ptr_pd[ii] = ptr_bd[ii] + ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
+			ptr_pl[ii] = ptr_bl[ii] + ptr_lam[ii+pnb+0] + ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
+
+			}
+		for( ; ii<nu[jj]+nx[jj]; ii++)
+			{
+			ptr_pd[ii] = ptr_bd[ii];
+			ptr_pl[ii] = ptr_bl[ii];
+			}
+	
+		}
+
+	}
+
+
+
 void d_update_gradient_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, double sigma_mu, double **dt, double **dlam, double **t_inv, double **pl2, double **qx)
 	{
 
@@ -3035,6 +3246,43 @@ void d_update_gradient_soft_mpc(int N, int nx, int nu, int nh, int ns, double si
 		qx[0] = qx[0] - Qx[0]*(qx[0] + dlam[N][anb+ii+0])*Zl[N][ii+0]; // update this before Qx !!!!!!!!!!!
 		qx[1] = qx[1] - Qx[1]*(qx[1] + dlam[N][anb+ii+1])*Zl[N][ii+1]; // update this before Qx !!!!!!!!!!!
 		pl2[N][ii/2] += qx[1] - qx[0];
+		}
+
+	}
+
+
+
+void d_update_gradient_diag_mpc(int N, int *nx, int *nu, int *nb, double sigma_mu, double **dt, double **dlam, double **t_inv, double **pl2)
+	{
+
+	// constants
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
+
+	int ii, jj;
+
+	int pnb;
+
+	double
+		*ptr_dlam, *ptr_t_inv, *ptr_dt, *ptr_pl2, *ptr_qx;
+
+	for(jj=0; jj<=N; jj++)
+		{
+
+		pnb  = bs*((nb[jj]+bs-1)/bs); // simd aligned number of box and soft constraints
+
+		ptr_dlam  = dlam[jj];
+		ptr_dt    = dt[jj];
+		ptr_t_inv = t_inv[jj];
+		ptr_pl2   = pl2[jj];
+
+		for(ii=0; ii<nb[jj]; ii++)
+			{
+			ptr_dlam[ii]     = ptr_t_inv[ii]    *(sigma_mu - ptr_dlam[ii]*ptr_dt[ii]); // !!!!!
+			ptr_dlam[pnb+ii] = ptr_t_inv[pnb+ii]*(sigma_mu - ptr_dlam[pnb+ii]*ptr_dt[pnb+ii]); // !!!!!
+			ptr_pl2[ii] += ptr_dlam[pnb+ii] - ptr_dlam[ii];
+			}
 		}
 
 	}
@@ -4629,6 +4877,76 @@ void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr
 /*	u_alpha = _mm_min_sd( u_alpha, _mm_load_sd( &alpha ) );*/
 	_mm_store_sd( &alpha, u_alpha );
 
+	ptr_alpha[0] = alpha;
+
+	return;
+	
+	}
+
+
+
+void d_compute_alpha_diag_mpc(int N, int *nx, int *nu, int *nb, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db)
+	{
+	
+	// constants
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
+
+	double alpha = ptr_alpha[0];
+	
+/*	int kna = ((k1+bs-1)/bs)*bs;*/
+
+	double
+		*ptr_db, *ptr_dux, *ptr_t, *ptr_dt, *ptr_lamt, *ptr_lam, *ptr_dlam;
+	
+	int jj, ll;
+
+	int pnb;
+
+	for(jj=0; jj<=N; jj++)
+		{
+
+		pnb  = bs*((nb[jj]+bs-1)/bs); // simd aligned number of box and soft constraints
+
+		ptr_db   = db[jj];
+		ptr_dux  = dux[jj];
+		ptr_t    = t[jj];
+		ptr_dt   = dt[jj];
+		ptr_lamt = lamt[jj];
+		ptr_lam  = lam[jj];
+		ptr_dlam = dlam[jj];
+
+		ll = 0;
+		for(; ll<nb[jj]; ll++)
+			{
+
+			ptr_dt[ll+0]   =   ptr_dux[ll] - ptr_db[ll+0]   - ptr_t[ll+0];
+			ptr_dt[ll+pnb] = - ptr_dux[ll] - ptr_db[ll+pnb] - ptr_t[ll+pnb];
+			ptr_dlam[ll+0]   -= ptr_lamt[ll+0]   * ptr_dt[ll+0]   + ptr_lam[ll+0];
+			ptr_dlam[ll+pnb] -= ptr_lamt[ll+pnb] * ptr_dt[ll+pnb] + ptr_lam[ll+pnb];
+			if( -alpha*ptr_dlam[ll+0]>ptr_lam[ll+0] )
+				{
+				alpha = - ptr_lam[ll+0] / ptr_dlam[ll+0];
+				}
+			if( -alpha*ptr_dlam[ll+pnb]>ptr_lam[ll+pnb] )
+				{
+				alpha = - ptr_lam[ll+pnb] / ptr_dlam[ll+pnb];
+				}
+			if( -alpha*ptr_dt[ll+0]>ptr_t[ll+0] )
+				{
+				alpha = - ptr_t[ll+0] / ptr_dt[ll+0];
+				}
+			if( -alpha*ptr_dt[ll+pnb]>ptr_t[ll+pnb] )
+				{
+				alpha = - ptr_t[ll+pnb] / ptr_dt[ll+pnb];
+				}
+
+			}
+
+		}		
+
+	// store alpha
 	ptr_alpha[0] = alpha;
 
 	return;
@@ -6292,6 +6610,65 @@ void d_update_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr_mu
 
 
 
+void d_update_var_diag_mpc(int N, int *nx, int *nu, int *nb, double *ptr_mu, double mu_scal, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
+	{
+
+	// constants
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
+
+	int jj, ll;
+
+	int pnb;
+	
+	double
+		*ptr_pi, *ptr_dpi, *ptr_ux, *ptr_dux, *ptr_t, *ptr_dt, *ptr_lam, *ptr_dlam;
+
+	double mu = 0;
+
+	for(jj=0; jj<=N; jj++)
+		{
+
+		pnb  = bs*((nb[jj]+bs-1)/bs); // cache aligned number of box and soft constraints
+
+		ptr_pi   = pi[jj];
+		ptr_dpi  = dpi[jj];
+		ptr_ux   = ux[jj];
+		ptr_dux  = dux[jj];
+		ptr_t    = t[jj];
+		ptr_dt   = dt[jj];
+		ptr_lam  = lam[jj];
+		ptr_dlam = dlam[jj];
+
+		// update inputs and states
+		for(ll=0; ll<nu[jj]+nx[jj]; ll++)
+			ptr_ux[ll] += alpha*(ptr_dux[ll] - ptr_ux[ll]);
+		// update equality constrained multipliers
+		for(ll=0; ll<nx[jj]; ll++)
+			ptr_pi[ll] += alpha*(ptr_dpi[ll] - ptr_pi[ll]);
+		// box constraints
+		for(ll=0; ll<nb[jj]; ll++)
+			{
+			ptr_lam[ll+0]   += alpha*ptr_dlam[ll+0];
+			ptr_lam[ll+pnb] += alpha*ptr_dlam[ll+pnb];
+			ptr_t[ll+0]   += alpha*ptr_dt[ll+0];
+			ptr_t[ll+pnb] += alpha*ptr_dt[ll+pnb];
+			mu += ptr_lam[ll+0] * ptr_t[ll+0] + ptr_lam[ll+pnb] * ptr_t[ll+pnb];
+			}
+		}
+
+	// scale mu
+	mu *= mu_scal;
+
+	ptr_mu[0] = mu;
+
+	return;
+	
+	}
+
+
+
 void d_compute_mu_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
 	{
 	
@@ -7167,4 +7544,51 @@ void d_compute_mu_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr_mu
 	return;
 
 	}
+
+
+
+void d_compute_mu_diag_mpc(int N, int *nx, int *nu, int *nb, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
+	{
+	
+	// constants
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
+
+	int jj, ll;
+
+	int pnb;
+	
+	double
+		*ptr_t, *ptr_lam, *ptr_dt, *ptr_dlam;
+		
+	double mu = 0;
+	
+	for(jj=0; jj<=N; jj++)
+		{
+		
+		pnb  = bs*((nb[jj]+bs-1)/bs); // simd aligned number of box and soft constraints
+
+		ptr_t    = t[jj];
+		ptr_lam  = lam[jj];
+		ptr_dt   = dt[jj];
+		ptr_dlam = dlam[jj];
+
+		for(ll=0 ; ll<nb[jj]; ll++)
+			{
+			mu += (ptr_lam[ll+0] + alpha*ptr_dlam[ll+0]) * (ptr_t[ll+0] + alpha*ptr_dt[ll+0]) + (ptr_lam[ll+pnb] + alpha*ptr_dlam[ll+pnb]) * (ptr_t[ll+pnb] + alpha*ptr_dt[ll+pnb]);
+			}
+		}
+
+	// scale mu
+	mu *= mu_scal;
+		
+	ptr_mu[0] = mu;
+
+	return;
+
+	}
+
+
+
 

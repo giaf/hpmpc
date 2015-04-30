@@ -209,7 +209,7 @@ void kernel_dsyttmm_ul_nt_4x4_lib4(int kmax, double *A, double *C, double *D, in
 	double 
 		d_00,
 		d_10, d_11,
-		d_20, d_21, d_22
+		d_20, d_21, d_22,
 		d_30, d_31, d_32, d_33;
 
 	// store

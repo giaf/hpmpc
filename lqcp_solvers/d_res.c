@@ -73,7 +73,7 @@ void d_res_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hq
 
 
 
-void d_res_diag_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, double **hpR, double **hpSt, double **hpQ, double **hb, double **hrq, double **hux, double **hpi, double **hres_rq, double **hres_b, double *work)
+void d_res_diag_mpc(int N, int *nx, int *nu, double **hdA, double **hpBt, double **hpR, double **hpSt, double **hpQ, double **hb, double **hrq, double **hux, double **hpi, double **hres_rq, double **hres_b, double *work)
 	{
 
 	const int bs = D_MR; //d_get_mr();
@@ -141,49 +141,10 @@ void d_res_diag_mpc(int *nx, int *nu, int N, double **hdA, double **hpBt, double
 	nx0 = nx1;
 	cnx0 = cnx1;
 
-	for(jj=0; jj<nx0; jj++) hres_rq[ii][nu0+jj] = hpi[ii][jj] - hrq[ii][jj]; // no nu+ !!!!!!!!!!
+	for(jj=0; jj<nx0; jj++) hres_rq[ii][nu0+jj] = hpi[ii][jj] - hrq[ii][nu0+jj];
 	for(jj=0; jj<nx0; jj++) work[jj] = hux[ii][nu0+jj];
 	dsymv_lib(nx0, nx0, hpQ[ii], cnx0, work, hres_rq[ii]+nu0, -1);
 
-
-	#if 0
-
-	const int pnz = bs*((nx+nu+1+bs-1)/bs);
-	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
-	const int cnx = ncl*((nx+ncl-1)/ncl);
-
-	static double temp[D_MR] = {};
-
-	int ii, jj;
-	
-	int nxu = nx+nu;
-
-	// first block
-	for(jj=0; jj<nu; jj++) hrq[0][jj] = - hq[0][jj];
-	for(jj=0; jj<nu%bs; jj++) { temp[jj] = hux[0][(nu/bs)*bs+jj]; hux[0][(nu/bs)*bs+jj] = 0.0; }
-	dgemv_t_lib(nx, nu, hpQ[0]+(nu/bs)*bs*cnz+nu%bs, cnz, hux[0]+nu, hrq[0], -1);
-	for(jj=0; jj<nu%bs; jj++) hux[0][(nu/bs)*bs+jj] = temp[jj];
-	dsymv_lib(nu, nu, hpQ[0], cnz, hux[0], hrq[0], -1);
-	dgemv_n_lib(nu, nx, hpBAbt[0], cnx, hpi[1], hrq[0], -1);
-	for(jj=0; jj<nx; jj++) hrb[0][jj] = hux[1][nu+jj] - hpBAbt[0][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
-	dgemv_t_lib(nxu, nx, hpBAbt[0], cnx, hux[0], hrb[0], -1);
-
-	// middle blocks
-	for(ii=1; ii<N; ii++)
-		{
-		for(jj=0; jj<nu; jj++) hrq[ii][jj] = - hq[ii][jj];
-		for(jj=0; jj<nx; jj++) hrq[ii][nu+jj] = hpi[ii][jj] - hq[ii][nu+jj];
-		dsymv_lib(nxu, nxu, hpQ[ii], cnz, hux[ii], hrq[ii], -1);
-		for(jj=0; jj<nx; jj++) hrb[ii][jj] = hux[ii+1][nu+jj] - hpBAbt[ii][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
-		dmvmv_lib(nxu, nx, hpBAbt[ii], cnx, hpi[ii+1], hrq[ii], hux[ii], hrb[ii], -1);
-		}
-
-	// last block
-	for(jj=0; jj<nx; jj++) hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj];
-	dsymv_lib(nx+nu%bs, nx+nu%bs, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hux[N]+(nu/bs)*bs, hrq[N]+(nu/bs)*bs, -1);
-
-	#endif
-	
 	}
 
 

@@ -38,6 +38,7 @@
 #include "../problem_size.h"
 #include "../include/aux_d.h"
 #include "../include/lqcp_solvers.h"
+#include "../include/mpc_solvers.h"
 #include "../include/block_size.h"
 #include "tools.h"
 
@@ -492,7 +493,7 @@ int main()
 		double *(hpBt[N]);
 		double *(hpR[N]);
 		double *(hpS[N]);
-		double *(hpQx[N+1]);
+		double *(hpQ2[N+1]);
 		double *(hpLK[N]);
 		double *(hpP[N+1]);
 		double *pK;
@@ -503,11 +504,11 @@ int main()
 			d_zeros_align(&hpBt[ii], pnuu[ii], cnxx[ii+1]);
 			d_zeros_align(&hpR[ii], pnuu[ii], cnuu[ii]);
 			d_zeros_align(&hpS[ii], pnxx[ii], cnuu[ii]);
-			d_zeros_align(&hpQx[ii], pnxx[ii], cnxx[ii]);
+			d_zeros_align(&hpQ2[ii], pnxx[ii], cnxx[ii]);
 			d_zeros_align(&hpLK[ii], pnuu[ii]+pnxx[ii], cnuu[ii]);
 			d_zeros_align(&hpP[ii], pnxx[ii], cnxx[ii]);
 			}
-		d_zeros_align(&hpQx[N], pnxx[N], cnxx[N]);
+		d_zeros_align(&hpQ2[N], pnxx[N], cnxx[N]);
 		d_zeros_align(&hpP[N], pnxx[N], cnxx[N]);
 		d_zeros_align(&pK, pnxx[0], cnuu[0]); // max(nx) x nax(nu)
 
@@ -543,16 +544,19 @@ int main()
 		// Q
 		for(ii=0; ii<=N; ii++)
 			for(jj=0; jj<nxx[ii]; jj++)
-				hpQx[ii][jj/bs*bs*cnxx[ii]+jj%bs+jj*bs] = 1.0;
+				hpQ2[ii][jj/bs*bs*cnxx[ii]+jj%bs+jj*bs] = 1.0;
 
-		//d_print_pmat(pnxx[0], cnxx[0], bs, hpQx[0], cnxx[0]);
-		//d_print_pmat(pnxx[1], cnxx[1], bs, hpQx[1], cnxx[1]);
-		//d_print_pmat(pnxx[N-1], cnxx[N-1], bs, hpQx[N-1], cnxx[N-1]);
-		//d_print_pmat(pnxx[N], cnxx[N], bs, hpQx[N], cnxx[N]);
+		//d_print_pmat(pnxx[0], cnxx[0], bs, hpQ2[0], cnxx[0]);
+		//d_print_pmat(pnxx[1], cnxx[1], bs, hpQ2[1], cnxx[1]);
+		//d_print_pmat(pnxx[N-1], cnxx[N-1], bs, hpQ2[N-1], cnxx[N-1]);
+		//d_print_pmat(pnxx[N], cnxx[N], bs, hpQ2[N], cnxx[N]);
+
+
+		double **ptr_dummy;
 
 
 		printf("\nfactorize\n");
-		d_ric_diag_trf_mpc(nxx, nuu, N, hdA, hpBt, hpR, hpS, hpQx, hpLK, pK, hpP, diag);
+		d_ric_diag_trf_mpc(N, nxx, nuu, hdA, hpBt, hpR, hpS, hpQ2, hpLK, pK, hpP, diag, 0, ptr_dummy);
 		printf("\nfactorize done\n");
 
 		d_print_pmat(nxx[0], nxx[0], bs, hpP[0], cnxx[0]);
@@ -606,12 +610,24 @@ int main()
 
 		double *work_diag2; d_zeros_align(&work_diag2, pnxx[0], 1);
 
+		for(ii=0; ii<=N; ii++)
+			for(jj=0; jj<nuu[ii]; jj++)
+				hrq2[ii][jj] = 0.0;
+
+		for(ii=0; ii<=N; ii++)
+			for(jj=0; jj<nxx[ii]; jj++)
+				hrq2[ii][nuu[ii]+jj] = 0.0;
+
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nxx[ii+1]; jj++)
+				hb2[ii][jj] = 0.0;
+
 		// x0
 		hux2[0][nuu[0]+0] =  5.0;
 		hux2[0][nuu[0]+1] = -5.0;
 
 		printf("\nsolve\n");
-		d_ric_diag_trs_mpc(nxx, nuu, N, hdA, hpBt, hpLK, hpP, hb2, hrq2, hux2, work_diag2, 1, hPb2, 1, hpi2);
+		d_ric_diag_trs_mpc(N, nxx, nuu, hdA, hpBt, hpLK, hpP, hb2, hrq2, hux2, 1, hPb2, 1, hpi2, work_diag2);
 		printf("\nsolve done\n");
 
 		for(ii=0; ii<=N; ii++)
@@ -622,7 +638,7 @@ int main()
 		// residuals
 
 		printf("\nresudyals\n");
-		d_res_diag_mpc(nxx, nuu, N, hdA, hpBt, hpR, hpS, hpQx, hb2, hrq2, hux2, hpi2, hres_rq2, hres_b2, work_diag2);
+		d_res_diag_mpc(N, nxx, nuu, hdA, hpBt, hpR, hpS, hpQ2, hb2, hrq2, hux2, hpi2, hres_rq2, hres_b2, work_diag2);
 		printf("\nresiduals done\n");
 
 		for(ii=0; ii<=N; ii++)
@@ -634,6 +650,8 @@ int main()
 
 
 
+
+#if 1
 		// timing
 		struct timeval tv20, tv21;
 
@@ -642,13 +660,154 @@ int main()
 		nrep = 10000;
 		for(ii=0; ii<nrep; ii++)
 			{
-			d_ric_diag_trf_mpc(nxx, nuu, N, hdA, hpBt, hpR, hpS, hpQx, hpLK, pK, hpP, diag);
-			d_ric_diag_trs_mpc(nxx, nuu, N, hdA, hpBt, hpLK, hpP, hb2, hrq2, hux2, work_diag2, 1, hPb2, 1, hpi2);
+			d_ric_diag_trf_mpc(N, nxx, nuu, hdA, hpBt, hpR, hpS, hpQ2, hpLK, pK, hpP, diag, 0, ptr_dummy);
+			d_ric_diag_trs_mpc(N, nxx, nuu, hdA, hpBt, hpLK, hpP, hb2, hrq2, hux2, 1, hPb2, 1, hpi2, work_diag2);
 			}
 
 		gettimeofday(&tv21, NULL); // start
 
 		float time_sv_diag = (float) (tv21.tv_sec-tv20.tv_sec)/(nrep+0.0)+(tv21.tv_usec-tv20.tv_usec)/(nrep*1e6);
+#endif
+
+
+
+
+
+#if 1
+		// IPM
+		int kk = -1;
+		int kmax = 10;
+		double mu0 = 1;
+		double mu_tol = 1e-8;
+		double alpha_min = 1e-12;
+		double sigma_par[] = {0.4, 0.3, 0.01};
+		double stat[5*10] = {};
+
+		int nbb[N+1];
+		for(ii=0; ii<=N; ii++) nbb[ii] = nuu[ii] + nxx[ii];
+		nbb[0] = nuu[0]; // XXX !!!!!!!!!!!!!!
+
+		int pnbb[N+1];
+		for(ii=0; ii<=N; ii++) pnbb[ii] = (nbb[ii]+bs-1)/bs*bs;
+
+		double *(hd2[N+1]);
+		double *(hlam2[N+1]);
+		double *(ht2[N+1]);
+		double *(hres_d2[N+1]);
+		for(ii=0; ii<=N; ii++)
+			{
+			d_zeros_align(&hd2[ii], 2*pnbb[ii], 1);
+			d_zeros_align(&hlam2[ii], 2*pnbb[ii], 1);
+			d_zeros_align(&ht2[ii], 2*pnbb[ii], 1);
+			d_zeros_align(&hres_d2[ii], 2*pnbb[ii], 1);
+			}
+
+		double mu2 = -1;
+
+		for(ii=0; ii<=N; ii++)
+			for(jj=0; jj<nbb[ii]; jj++)
+				{
+				hd2[ii][jj]          = -10.0;
+				hd2[ii][pnbb[ii]+jj] = -10.0;
+				}
+
+		int pnxM = pnxx[0];
+		int pnuM = pnuu[0];
+		int cnuM = cnuu[0];
+
+		int anxx[N+1];
+		for(ii=0; ii<=N; ii++) anxx[ii] = (nxx[ii]+nal-1)/nal*nal;
+
+		int anuu[N+1];
+		for(ii=0; ii<=N; ii++) anuu[ii] = (nuu[ii]+nal-1)/nal*nal;
+
+		int work_space_ip_double = 0;
+		for(ii=0; ii<=N; ii++)
+			work_space_ip_double += anuu[ii] + 3*anxx[ii] + (pnuu[ii]+pnxx[ii])*cnuu[ii] + pnuu[ii]*cnuu[ii] + 3*pnxx[ii] + 3*pnuu[ii] + 8*pnbb[ii];
+		work_space_ip_double += pnxM*cnuM + pnxM + pnuM;
+		int work_space_ip_int = (N+1)*7*sizeof(int);
+		work_space_ip_int = (work_space_ip_int+63)/64*64;
+		work_space_ip_int /= sizeof(int);
+		printf("\nwork space: %d double + %d int\n", work_space_ip_double, work_space_ip_int);
+		double *work_space_ip; d_zeros_align(&work_space_ip, work_space_ip_double+(work_space_ip_int+1)/2, 1); // XXX assume sizeof(double) = 2 * sizeof(int) !!!!!
+
+
+		printf("\nIPM\n");
+		d_ip2_diag_mpc(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, N, nxx, nuu, nbb, hdA, hpBt, hpR, hpS, hpQ2, hb2, hd2, hrq2, hux2, 1, hpi2, hlam2, ht2, work_space_ip);
+		printf("\nIPM done\n");
+
+
+		printf("\nux\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nuu[ii]+nxx[ii], hux2[ii], 1);
+
+		printf("\nlam\n");
+		for(ii=0; ii<=N; ii++)
+			{
+			d_print_mat(1, nbb[ii], hlam2[ii], 1);
+			d_print_mat(1, nbb[ii], hlam2[ii]+pnbb[ii], 1);
+			}
+
+		printf("\nt\n");
+		for(ii=0; ii<=N; ii++)
+			{
+			d_print_mat(1, nbb[ii], ht2[ii], 1);
+			d_print_mat(1, nbb[ii], ht2[ii]+pnbb[ii], 1);
+			}
+
+		printf("\nstat\n\n");
+		for(ii=0; ii<kk; ii++)
+			printf("%f %f %f %f %f\n", stat[5*ii+0], stat[5*ii+1], stat[5*ii+2], stat[5*ii+3], stat[5*ii+4]);
+		printf("\n\n");
+
+
+		// residuals
+		printf("\nresuduals IPM\n");
+		d_res_ip_diag_mpc(N, nxx, nuu, nbb, hdA, hpBt, hpR, hpS, hpQ2, hb2, hrq2, hd2, hux2, hpi2, hlam2, ht2, hres_rq2, hres_b2, hres_d2, &mu2, work_diag2);
+		printf("\nresiduals IPM done\n");
+
+		printf("\nres_rq\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nuu[ii]+nxx[ii], hres_rq2[ii], 1);
+
+		printf("\nres_b\n");
+		for(ii=0; ii<N; ii++)
+			d_print_mat(1, nxx[ii+1], hres_b2[ii], 1);
+
+		printf("\nres_d\n");
+		for(ii=0; ii<=N; ii++)
+			{
+			d_print_mat(1, nbb[ii], hres_d2[ii], 1);
+			d_print_mat(1, nbb[ii], hres_d2[ii]+pnbb[ii], 1);
+			}
+
+		printf("\nres_mu\n");
+		d_print_mat(1, 1, &mu2, 1);
+
+
+		// timing
+		gettimeofday(&tv20, NULL); // start
+
+		for(ii=0; ii<nrep; ii++)
+			{
+			d_ip2_diag_mpc(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, N, nxx, nuu, nbb, hdA, hpBt, hpR, hpS, hpQ2, hb2, hd2, hrq2, hux2, 1, hpi2, hlam2, ht2, work_space_ip);
+			}
+
+		gettimeofday(&tv21, NULL); // start
+
+		float time_ip_diag = (float) (tv21.tv_sec-tv20.tv_sec)/(nrep+0.0)+(tv21.tv_usec-tv20.tv_usec)/(nrep*1e6);
+
+
+		for(ii=0; ii<=N; ii++)
+			{
+			free(hd2[ii]);
+			free(hlam2[ii]);
+			free(ht2[ii]);
+			}
+		free(work_space_ip);
+#endif
+
+
 
 
 
@@ -658,7 +817,7 @@ int main()
 			free(hpBt[ii]);
 			free(hpR[ii]);
 			free(hpS[ii]);
-			free(hpQx[ii]);
+			free(hpQ2[ii]);
 			free(hpLK[ii]);
 			free(hpP[ii]);
 			free(hrq2[ii]);
@@ -674,7 +833,7 @@ int main()
 			free(hres_rq2[ii]);
 			free(hres_b2[ii]);
 			}
-		free(hpQx[N]);
+		free(hpQ2[N]);
 		free(hpP[N]);
 		free(pK);
 		free(hrq2[N]);
@@ -709,6 +868,7 @@ int main()
 			d_copy_mat(nxx[ii+1], nuu[ii], ptrB, nxx[ii+1], BAb_temp, nx);
 			ptrB += nxx[ii+1];
 			for(jj=0; jj<nxx[ii+1]; jj++) BAb_temp[nuu[ii]*nx+jj*(nx+1)] = 1.0;
+			//for(jj=0; jj<nxx[ii+1]; jj++) BAb_temp[(nuu[ii]+nxx[ii+1])*nx+jj] = 1.0;
 			//d_print_mat(nx, nu+nx+1, BAb_temp, nx);
 			d_cvt_tran_mat2pmat(nx, nx+nu+1, 0, bs, BAb_temp, nx, hpBAbt2[ii], cnx);
 			//d_print_pmat(nx+nu+1, nx, bs, hpBAbt2[ii], cnx);
@@ -743,6 +903,7 @@ int main()
 		// timing
 		//struct timeval tv20, tv21;
 
+#if 1
 		gettimeofday(&tv20, NULL); // start
 
 		for(ii=0; ii<nrep; ii++)
@@ -754,7 +915,8 @@ int main()
 
 		float time_sv_full = (float) (tv21.tv_sec-tv20.tv_sec)/(nrep+0.0)+(tv21.tv_usec-tv20.tv_usec)/(nrep*1e6);
 
-		printf("\ndiag time = %e\t\tfull time = %e\n\n", time_sv_diag, time_sv_full);
+		printf("\ndiag time = %e\t\tfull time = %e\t\tip diag time = %e\n\n", time_sv_diag, time_sv_full, time_ip_diag);
+#endif
 
 
 

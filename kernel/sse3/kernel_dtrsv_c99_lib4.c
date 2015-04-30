@@ -636,7 +636,7 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 		}
 	else
 		{
-		A += 3
+		A += 3;
 		x += 3;
 		}
 	for(; k<kmax; k++)
