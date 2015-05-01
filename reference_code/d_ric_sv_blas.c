@@ -24,18 +24,21 @@
 **************************************************************************************************/
 
 // BLAS
-void dgemm_( char *transa, char *transb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc );
-void dtrmm_( char *side, char *uplo, char *transa, char *diag, int *m, int *n, double *alpha, double *A, int *lda, double *B, int *ldb ); // side='L' if B := alpha*op(A)*B
-void dtrsm_( char *side, char *uplo, char *transa, char *diag, int *m, int *n, double *alpha, double *A, int *lda, double *B, int *ldb ); // side='L' if op(A)*X = alpha*B
-void dsyrk_( char *uplo, char *trans, int *n, int *k, double *alpha, double *A, int *lda, double *beta, double *C, int *ldc ); // trans='N' if C := alpha*A*A' + beta*C
-void dgemv_( char *trans, int *m, int *n, double *alpha, double *A, int *lda, double *x, int *incx, double *beta, double *y, int *incy );
-void dtrmv_( char *uplo, char *trans, char *diag, int *n, double *A, int *lda, double *x, int *incx );
-void dtrsv_( char *uplo, char *trans, char *diag, int *n, double *A, int *lda, double *x, int *incx );
+//void dgemm_( char *transa, char *transb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc );
+//void dtrmm_( char *side, char *uplo, char *transa, char *diag, int *m, int *n, double *alpha, double *A, int *lda, double *B, int *ldb ); // side='L' if B := alpha*op(A)*B
+//void dtrsm_( char *side, char *uplo, char *transa, char *diag, int *m, int *n, double *alpha, double *A, int *lda, double *B, int *ldb ); // side='L' if op(A)*X = alpha*B
+//void dsyrk_( char *uplo, char *trans, int *n, int *k, double *alpha, double *A, int *lda, double *beta, double *C, int *ldc ); // trans='N' if C := alpha*A*A' + beta*C
+//void dgemv_( char *trans, int *m, int *n, double *alpha, double *A, int *lda, double *x, int *incx, double *beta, double *y, int *incy );
+//void dtrmv_( char *uplo, char *trans, char *diag, int *n, double *A, int *lda, double *x, int *incx );
+//void dtrsv_( char *uplo, char *trans, char *diag, int *n, double *A, int *lda, double *x, int *incx );
 
 // LAPACK
-void dlauum_( char *uplo, int *n, double *A, int *lda, int *info ); // info==0 success
-void dpotrf_( char *uplo, int *n, double *A, int *lda, int *info );
-void dtrtri_( char *uplo, char *diag, int *n, double *A, int *lda, int *info ); // diag='N' if not_unit_triangular
+//void dlauum_( char *uplo, int *n, double *A, int *lda, int *info ); // info==0 success
+//void dpotrf_( char *uplo, int *n, double *A, int *lda, int *info );
+//void dtrtri_( char *uplo, char *diag, int *n, double *A, int *lda, int *info ); // diag='N' if not_unit_triangular
+
+#include <blas.h>
+#include <lapack.h>
 
 
 
