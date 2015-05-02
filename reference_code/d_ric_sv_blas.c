@@ -37,8 +37,8 @@
 //void dpotrf_( char *uplo, int *n, double *A, int *lda, int *info );
 //void dtrtri_( char *uplo, char *diag, int *n, double *A, int *lda, int *info ); // diag='N' if not_unit_triangular
 
-#include <blas.h>
-#include <lapack.h>
+#include "blas.h"
+#include "lapack.h"
 
 
 
