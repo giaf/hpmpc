@@ -1,9 +1,26 @@
 /**************************************************************************************************
-* 
-* Author: Gianluca Frison, giaf@imm.dtu.dk
-*
-* Factorizes in double precision the extended LQ control problem, factorized algorithm
-*
+*                                                                                                 *
+* This file is part of HPMPC.                                                                     *
+*                                                                                                 *
+* HPMPC -- Library for High-Performance implementation of solvers for MPC.                        *
+* Copyright (C) 2014-2015 by Technical University of Denmark. All rights reserved.                *
+*                                                                                                 *
+* HPMPC is free software; you can redistribute it and/or                                          *
+* modify it under the terms of the GNU Lesser General Public                                      *
+* License as published by the Free Software Foundation; either                                    *
+* version 2.1 of the License, or (at your option) any later version.                              *
+*                                                                                                 *
+* HPMPC is distributed in the hope that it will be useful,                                        *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of                                  *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                                            *
+* See the GNU Lesser General Public License for more details.                                     *
+*                                                                                                 *
+* You should have received a copy of the GNU Lesser General Public                                *
+* License along with HPMPC; if not, write to the Free Software                                    *
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA                  *
+*                                                                                                 *
+* Author: Gianluca Frison, giaf (at) dtu.dk                                                       *
+*                                                                                                 *
 **************************************************************************************************/
 
 #include "mex.h"
@@ -11,6 +28,20 @@
 #include <stdlib.h>
 /*#include <math.h>*/
 
+// static or dynamic memory allocation
+#define STATIC_MEMORY 0
+
+// definition of problem sizes needed for static memory allocation
+#if STATIC_MEMORY
+	#define NX 12
+	#define NU 5
+	#define NN 30
+	#define NB (NU+NX)
+	#define NG 0
+	#define NGN NX
+#endif
+
+// include macro for work space size
 #include <hpmpc/c_interface.h>
 
 
@@ -67,19 +98,22 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	
 	int kk = -1;
 
+#if (STATIC_MEMORY==1)
+	static double work[HPMPC_IP_MPC_DP_WORK_SPACE];
+#else
 	int work_space_size = hpmpc_ip_hard_mpc_dp_work_space(N, nx, nu, nb, ng, ngN);
-	
 	double *work = (double *) malloc( work_space_size * sizeof(double) );
+#endif
 
 	// call solver 
 	fortran_order_ip_hard_mpc(&kk, k_max, mu0, tol, 'd', N, nx, nu, nb, ng, ngN, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, work, stat, compute_res, inf_norm_res, compute_mult, pi, lam, t);
 	//c_order_ip_hard_mpc(&kk, k_max, mu0, tol, 'd', N, nx, nu, nb, ng, A, B, b, Q, Qf, S, R, q, qf, r, C, D, lb, ub, x, u, work, stat, compute_res, inf_norm_res, compute_mult, pi, lam, t);
-	//c_order_ip_box_mpc(k_max, tol, 'd', nx, nu, N, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, x, u, work, &kk, stat);
-	
 
 	*kkk = (double) kk;
 
+#if (STATIC_MEMORY!=1)
 	free(work);
+#endif
 
 	return;
 

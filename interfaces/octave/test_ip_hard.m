@@ -179,9 +179,13 @@ mult_pi = zeros(nx,N+1);
 mult_lam = zeros(2*(nb+ng)*N+2*(nb+ngN),1);
 mult_t = zeros(2*(nb+ng)*N+2*(nb+ngN),1);
 
+nrep = 100;
+
 tic
-HPMPC_ip_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, CC, DD, llg, uug, CN, lgN, ugN, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
-toc
+for ii=1:nrep
+	HPMPC_ip_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, CC, DD, llg, uug, CN, lgN, ugN, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
+end
+solution_time = toc/nrep
 
 kk
 infos(:,1:kk)'
