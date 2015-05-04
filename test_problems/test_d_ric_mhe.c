@@ -44,9 +44,9 @@
 #include "../include/reference_code.h"
 #include "tools.h"
 
-#define TEST_OPENBLAS 1
 
-#if TEST_OPENBLAS
+
+#if defined(REF_BLAS_OPENBLAS)
 void openblas_set_num_threads(int n_thread);
 #endif
 
@@ -141,8 +141,11 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 int main()
 	{
 
-#if TEST_OPENBLAS
+#if defined(REF_BLAS_OPENBLAS)
 	openblas_set_num_threads(1);
+#endif
+#if defined(REF_BLAS_BLIS)
+	omp_set_num_threads(1);
 #endif
 
 	printf("\n");
@@ -1148,8 +1151,10 @@ int main()
 		// factorize information filter
 		for(rep=0; rep<nrep; rep++)
 			{
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_BLIS) || defined(REF_BLAS_NETLIB)
 			//d_ric_trf_mhe_if_blas( nx, nw, ndN, N, hA, hG, hQ, hR, hAGU, hUp, hUe, hUr);
 			d_ric_trf_mhe_if_blas( nx, nw, ndN, N, hA, hG, hQ, hR, hAGU, hUp, hUe, hUr, Ud);
+#endif
 			}
 
 		gettimeofday(&tv7, NULL); // start
@@ -1157,7 +1162,9 @@ int main()
 		// solution information filter
 		for(rep=0; rep<nrep; rep++)
 			{
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_BLIS) || defined(REF_BLAS_NETLIB)
 			d_ric_trs_mhe_if_blas( nx, nw, ndN, N, hAGU, hUp, hUe, hUr, Ud, hqq, hrr, hff, hxp, hxe, hw, hlam, work_ref);
+#endif
 			}
 
 		gettimeofday(&tv8, NULL); // start

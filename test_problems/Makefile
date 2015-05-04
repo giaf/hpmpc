@@ -25,10 +25,18 @@
 
 include ../Makefile.rule
 
+ifeq ($(REF_BLAS), 0)
 LIBS = -lm 
-#LIBS = -lm -llapack_netlib -lblas_netlib -lgfortran
-#LIBS = -lm -lopenblas -pthread
-#LIBS = -lblis -lm -fopenmp
+endif
+ifeq ($(REF_BLAS), OPENBLAS)
+LIBS = -lm -lopenblas -pthread
+endif
+ifeq ($(REF_BLAS), BLIS)
+LIBS = -lblis -lm -fopenmp
+endif
+ifeq ($(REF_BLAS), NETLIB)
+LIBS = -lm -llapack_netlib -lblas_netlib -lgfortran
+endif
 
 #OBJS_TEST = test_blas_d_debug.o
 #OBJS_TEST = test_blas_s_debug.o

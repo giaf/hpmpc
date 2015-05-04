@@ -35,26 +35,30 @@
 #include "test_param.h"
 
 
-#define TEST_OPENBLAS 0
-#define TEST_BLIS 0
 
+//void dgemm_(char *ta, char *tb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc);
+//void dgemv_(char *ta, int *m, int *n, double *alpha, double *A, int *lda, double *x, int *incx, double *beta, double *y, int *incy);
 
-#if TEST_OPENBLAS
-void dgemm_(char *ta, char *tb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc);
-void dgemv_(char *ta, int *m, int *n, double *alpha, double *A, int *lda, double *x, int *incx, double *beta, double *y, int *incy);
+#if defined(REF_BLAS_OPENBLAS)
+#include "../reference_code/blas.h"
+void openblas_set_num_threads(int n_thread);
 #endif
-#if TEST_BLIS
+#if defined(REF_BLAS_BLIS)
 #include <blis/blis.h>
 #endif
+#if defined(REF_BLAS_NETLIB)
+#include "../reference_code/blas.h"
+#endif
+
 
 
 int main()
 	{
 		
-#if TEST_OPENBLAS
+#if defined(REF_BLAS_OPENBLAS)
 	openblas_set_num_threads(1);
 #endif
-#if TEST_BLIS
+#if defined(REF_BLAS_BLIS)
 	omp_set_num_threads(1);
 #endif
 
@@ -182,18 +186,19 @@ int main()
 		int n = nn[ll];
 		int nrep = nnrep[ll];
 
-#if TEST_BLIS
+#if defined(REF_BLAS_BLIS)
 		f77_int n77 = n;
 #endif
 	
 		double *A; d_zeros(&A, n, n);
 		double *B; d_zeros(&B, n, n);
 		double *C; d_zeros(&C, n, n);
+		double *M; d_zeros(&M, n, n);
 
 		char c_n = 'n';
 		char c_t = 't';
 		int i_1 = 1;
-#if TEST_BLIS
+#if defined(REF_BLAS_BLIS)
 		f77_int i77_1 = i_1;
 #endif
 		double d_1 = 1;
@@ -204,6 +209,9 @@ int main()
 	
 		for(i=0; i<n; i++)
 			B[i*(n+1)] = 1;
+	
+		for(i=0; i<n*n; i++)
+			M[i] = 1;
 	
 		int pnd = ((n+bsd-1)/bsd)*bsd;	
 		int cnd = ((n+D_NCL-1)/D_NCL)*D_NCL;	
@@ -217,6 +225,7 @@ int main()
 		double *pE; d_zeros_align(&pE, pnd, cnd2);
 		double *pF; d_zeros_align(&pF, 2*pnd, cnd);
 		double *pL; d_zeros_align(&pL, pnd, cnd);
+		double *pM; d_zeros_align(&pM, pnd, cnd);
 		double *x; d_zeros_align(&x, pnd, 1);
 		double *y; d_zeros_align(&y, pnd, 1);
 		double *x2; d_zeros_align(&x2, pnd, 1);
@@ -227,6 +236,7 @@ int main()
 		d_cvt_mat2pmat(n, n, 0, bsd, B, n, pB, cnd);
 		d_cvt_mat2pmat(n, n, 0, bsd, B, n, pD, cnd);
 		d_cvt_mat2pmat(n, n, 0, bsd, A, n, pE, cnd2);
+		d_cvt_mat2pmat(n, n, 0, bsd, M, n, pM, cnd);
 /*		d_cvt_mat2pmat(n, n, 0, bsd, B, n, pE+n*bsd, pnd);*/
 		
 /*		d_print_pmat(n, 2*n, bsd, pE, 2*pnd);*/
@@ -387,10 +397,10 @@ int main()
 	
 		for(rep=0; rep<nrep; rep++)
 			{
-#if TEST_OPENBLAS
-			dgemm_(&c_n, &c_n, &n, &n, &n, &d_1, A, &n, B, &n, &d_0, C, &n);
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_NETLIB)
+			dgemm_(&c_n, &c_n, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
 #endif
-#if TEST_BLIS
+#if defined(REF_BLAS_BLIS)
 			dgemm_(&c_n, &c_n, &n77, &n77, &n77, &d_1, A, &n77, B, &n77, &d_0, C, &n77);
 #endif
 			}
@@ -399,10 +409,10 @@ int main()
 
 		for(rep=0; rep<nrep; rep++)
 			{
-#if TEST_OPENBLAS
-			dgemv_(&c_n, &n, &n, &d_1, A, &n, x, &i_1, &d_0, y, &i_1);
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_NETLIB)
+			dgemv_(&c_n, &n, &n, &d_1, A, &n, x2, &i_1, &d_0, y, &i_1);
 #endif
-#if TEST_BLIS
+#if defined(REF_BLAS_BLIS)
 			dgemv_(&c_n, &n77, &n77, &d_1, A, &n77, x2, &i77_1, &d_0, y, &i77_1);
 #endif
 			}
@@ -411,10 +421,10 @@ int main()
 
 		for(rep=0; rep<nrep; rep++)
 			{
-#if TEST_OPENBLAS
-			dgemv_(&c_t, &n, &n, &d_1, A, &n, x, &i_1, &d_0, y, &i_1);
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_NETLIB)
+			dgemv_(&c_t, &n, &n, &d_1, A, &n, x2, &i_1, &d_0, y, &i_1);
 #endif
-#if TEST_BLIS
+#if defined(REF_BLAS_BLIS)
 			dgemv_(&c_t, &n77, &n77, &d_1, A, &n77, x2, &i77_1, &d_0, y, &i77_1);
 #endif
 			}
@@ -499,6 +509,7 @@ int main()
 
 		free(A);
 		free(B);
+		free(M);
 		free(pA);
 		free(pB);
 		free(pC);
@@ -506,6 +517,7 @@ int main()
 		free(pE);
 		free(pF);
 		free(pL);
+		free(pM);
 		free(x);
 		free(y);
 		free(x2);

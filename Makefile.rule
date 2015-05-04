@@ -51,30 +51,48 @@ COMMON_FLAGS = -O2 -std=c99 -fPIC
 DEBUG = #-Wall -pedantic -Wfloat-equal #-pg
 LDFLAGS =
 
+# Reference code linking to standard BLAS and LAPACK
+REF_BLAS = 0
+#REF_BLAS = OPENBLAS
+#REF_BLAS = BLIS
+#REF_BLAS = NETLIB
+ifeq ($(REF_BLAS), 0)
+REF_BLAS_FLAGS = 
+endif
+ifeq ($(REF_BLAS), OPENBLAS)
+REF_BLAS_FLAGS = -DREF_BLAS_OPENBLAS
+endif
+ifeq ($(REF_BLAS), BLIS)
+REF_BLAS_FLAGS = -DREF_BLAS_BLIS
+endif
+ifeq ($(REF_BLAS), NETLIB)
+REF_BLAS_FLAGS = -DREF_BLAS_NETLIB
+endif
+
 # architecture-specific optimization flags
 ifeq ($(TARGET), X64_AVX2)
-CFLAGS = $(COMMON_FLAGS) -mavx2 -mfma -DTARGET_X64_AVX2 $(DEBUG)
+CFLAGS = $(COMMON_FLAGS) -mavx2 -mfma -DTARGET_X64_AVX2 $(REF_BLAS_FLAGS) $(DEBUG)
 endif
 ifeq ($(TARGET), X64_AVX)
-CFLAGS = $(COMMON_FLAGS) -mavx -DTARGET_X64_AVX $(DEBUG)
+CFLAGS = $(COMMON_FLAGS) -mavx -DTARGET_X64_AVX $(REF_BLAS_FLAGS) $(DEBUG)
 endif
 ifeq ($(TARGET), X64_SSE3)
-CFLAGS = $(COMMON_FLAGS) -msse3 -DTARGET_X64_SSE3 $(DEBUG)
+CFLAGS = $(COMMON_FLAGS) -msse3 -DTARGET_X64_SSE3 $(REF_BLAS_FLAGS) $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4)
-CFLAGS = $(COMMON_FLAGS) -march=native -DTARGET_C99_4X4 $(DEBUG)
+CFLAGS = $(COMMON_FLAGS) -march=native -DTARGET_C99_4X4 $(REF_BLAS_FLAGS) $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4_PREFETCH)
-CFLAGS = $(COMMON_FLAGS) -DTARGET_C99_4X4_PREFETCH $(DEBUG)
+CFLAGS = $(COMMON_FLAGS) -DTARGET_C99_4X4_PREFETCH $(REF_BLAS_FLAGS) $(DEBUG)
 endif
 ifeq ($(TARGET), CORTEX_A15)
-CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon-vfpv4 -mcpu=cortex-a15 -DTARGET_CORTEX_A15 $(DEBUG)
+CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon-vfpv4 -mcpu=cortex-a15 -DTARGET_CORTEX_A15 $(REF_BLAS_FLAGS) $(DEBUG)
 endif
 ifeq ($(TARGET), CORTEX_A9)
-CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a9 -DTARGET_CORTEX_A9 $(DEBUG)
+CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a9 -DTARGET_CORTEX_A9 $(REF_BLAS_FLAGS) $(DEBUG)
 endif
 ifeq ($(TARGET), CORTEX_A7)
-CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon-vfpv4 -mcpu=cortex-a7 -DTARGET_CORTEX_A7 $(DEBUG)
+CFLAGS = $(COMMON_FLAGS) -marm -mfloat-abi=hard -mfpu=neon-vfpv4 -mcpu=cortex-a7 -DTARGET_CORTEX_A7 $(REF_BLAS_FLAGS) $(DEBUG)
 endif
 
 
