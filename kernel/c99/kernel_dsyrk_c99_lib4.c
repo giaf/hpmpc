@@ -1632,9 +1632,9 @@ void kernel_dsyrk_diag_left_right_3_lib4(int kmax, double *Al, double *Ar, doubl
 			b_1 = B[1+bs*0];
 			b_2 = B[2+bs*0];
 			
-			c_0 = C[0*bs*0] + a_0 * b_0 * a_r;
-			c_1 = C[1*bs*0] + a_1 * b_1 * a_r;
-			c_2 = C[2*bs*0] + a_2 * b_2 * a_r;
+			c_0 = C[0+bs*0] + a_0 * b_0 * a_r;
+			c_1 = C[1+bs*0] + a_1 * b_1 * a_r;
+			c_2 = C[2+bs*0] + a_2 * b_2 * a_r;
 
 			D[0+bs*0] = c_0;
 			D[1+bs*0] = c_1;
@@ -1647,9 +1647,9 @@ void kernel_dsyrk_diag_left_right_3_lib4(int kmax, double *Al, double *Ar, doubl
 			b_1 = B[1+bs*1];
 			b_2 = B[2+bs*1];
 			
-			c_0 = C[0*bs*1] + a_0 * b_0 * a_r;
-			c_1 = C[1*bs*1] + a_1 * b_1 * a_r;
-			c_2 = C[2*bs*1] + a_2 * b_2 * a_r;
+			c_0 = C[0+bs*1] + a_0 * b_0 * a_r;
+			c_1 = C[1+bs*1] + a_1 * b_1 * a_r;
+			c_2 = C[2+bs*1] + a_2 * b_2 * a_r;
 
 			D[0+bs*1] = c_0;
 			D[1+bs*1] = c_1;
@@ -1662,9 +1662,9 @@ void kernel_dsyrk_diag_left_right_3_lib4(int kmax, double *Al, double *Ar, doubl
 			b_1 = B[1+bs*2];
 			b_2 = B[2+bs*2];
 			
-			c_0 = C[0*bs*2] + a_0 * b_0 * a_r;
-			c_1 = C[1*bs*2] + a_1 * b_1 * a_r;
-			c_2 = C[2*bs*2] + a_2 * b_2 * a_r;
+			c_0 = C[0+bs*2] + a_0 * b_0 * a_r;
+			c_1 = C[1+bs*2] + a_1 * b_1 * a_r;
+			c_2 = C[2+bs*2] + a_2 * b_2 * a_r;
 
 			D[0+bs*2] = c_0;
 			D[1+bs*2] = c_1;
@@ -1677,9 +1677,9 @@ void kernel_dsyrk_diag_left_right_3_lib4(int kmax, double *Al, double *Ar, doubl
 			b_1 = B[1+bs*3];
 			b_2 = B[2+bs*3];
 			
-			c_0 = C[0*bs*3] + a_0 * b_0 * a_r;
-			c_1 = C[1*bs*3] + a_1 * b_1 * a_r;
-			c_2 = C[2*bs*3] + a_2 * b_2 * a_r;
+			c_0 = C[0+bs*3] + a_0 * b_0 * a_r;
+			c_1 = C[1+bs*3] + a_1 * b_1 * a_r;
+			c_2 = C[2+bs*3] + a_2 * b_2 * a_r;
 
 			D[0+bs*3] = c_0;
 			D[1+bs*3] = c_1;
@@ -1856,8 +1856,8 @@ void kernel_dsyrk_diag_left_right_2_lib4(int kmax, double *Al, double *Ar, doubl
 			b_0 = B[0+bs*0];
 			b_1 = B[1+bs*0];
 			
-			c_0 = C[0*bs*0] + a_0 * b_0 * a_r;
-			c_1 = C[1*bs*0] + a_1 * b_1 * a_r;
+			c_0 = C[0+bs*0] + a_0 * b_0 * a_r;
+			c_1 = C[1+bs*0] + a_1 * b_1 * a_r;
 
 			D[0+bs*0] = c_0;
 			D[1+bs*0] = c_1;
@@ -1868,8 +1868,8 @@ void kernel_dsyrk_diag_left_right_2_lib4(int kmax, double *Al, double *Ar, doubl
 			b_0 = B[0+bs*1];
 			b_1 = B[1+bs*1];
 			
-			c_0 = C[0*bs*1] + a_0 * b_0 * a_r;
-			c_1 = C[1*bs*1] + a_1 * b_1 * a_r;
+			c_0 = C[0+bs*1] + a_0 * b_0 * a_r;
+			c_1 = C[1+bs*1] + a_1 * b_1 * a_r;
 
 			D[0+bs*1] = c_0;
 			D[1+bs*1] = c_1;
@@ -1880,8 +1880,8 @@ void kernel_dsyrk_diag_left_right_2_lib4(int kmax, double *Al, double *Ar, doubl
 			b_0 = B[0+bs*2];
 			b_1 = B[1+bs*2];
 			
-			c_0 = C[0*bs*2] + a_0 * b_0 * a_r;
-			c_1 = C[1*bs*2] + a_1 * b_1 * a_r;
+			c_0 = C[0+bs*2] + a_0 * b_0 * a_r;
+			c_1 = C[1+bs*2] + a_1 * b_1 * a_r;
 
 			D[0+bs*2] = c_0;
 			D[1+bs*2] = c_1;
@@ -1892,8 +1892,8 @@ void kernel_dsyrk_diag_left_right_2_lib4(int kmax, double *Al, double *Ar, doubl
 			b_0 = B[0+bs*3];
 			b_1 = B[1+bs*3];
 			
-			c_0 = C[0*bs*3] + a_0 * b_0 * a_r;
-			c_1 = C[1*bs*3] + a_1 * b_1 * a_r;
+			c_0 = C[0+bs*3] + a_0 * b_0 * a_r;
+			c_1 = C[1+bs*3] + a_1 * b_1 * a_r;
 
 			D[0+bs*3] = c_0;
 			D[1+bs*3] = c_1;
@@ -2028,7 +2028,7 @@ void kernel_dsyrk_diag_left_right_1_lib4(int kmax, double *Al, double *Ar, doubl
 			
 			b_0 = B[0+bs*0];
 			
-			c_0 = C[0*bs*0] + a_0 * b_0 * a_r;
+			c_0 = C[0+bs*0] + a_0 * b_0 * a_r;
 
 			D[0+bs*0] = c_0;
 	
@@ -2037,7 +2037,7 @@ void kernel_dsyrk_diag_left_right_1_lib4(int kmax, double *Al, double *Ar, doubl
 			
 			b_0 = B[0+bs*1];
 			
-			c_0 = C[0*bs*1] + a_0 * b_0 * a_r;
+			c_0 = C[0+bs*1] + a_0 * b_0 * a_r;
 
 			D[0+bs*1] = c_0;
 	
@@ -2046,7 +2046,7 @@ void kernel_dsyrk_diag_left_right_1_lib4(int kmax, double *Al, double *Ar, doubl
 			
 			b_0 = B[0+bs*2];
 			
-			c_0 = C[0*bs*2] + a_0 * b_0 * a_r;
+			c_0 = C[0+bs*2] + a_0 * b_0 * a_r;
 
 			D[0+bs*2] = c_0;
 	
@@ -2055,7 +2055,7 @@ void kernel_dsyrk_diag_left_right_1_lib4(int kmax, double *Al, double *Ar, doubl
 			
 			b_0 = B[0+bs*3];
 			
-			c_0 = C[0*bs*3] + a_0 * b_0 * a_r;
+			c_0 = C[0+bs*3] + a_0 * b_0 * a_r;
 
 			D[0+bs*3] = c_0;
 	
