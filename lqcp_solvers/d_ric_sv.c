@@ -400,12 +400,27 @@ void d_ric_diag_trf_mpc(int N, int *nx, int *nu, double **hdA, double **hpBt, do
 		dgemm_diag_left_lib(nxm, nu0, hdA[N-nn-1], pK, cnu0, hpL[N-nn-1]+pnu0*cnu0, cnu0, hpL[N-nn-1]+pnu0*cnu0, cnu0, 1);
 		//d_print_pmat(pnu0+nx0, nu0, bs, hpL[N-nn-1], cnu0);
 
-		dpotrf_lib(pnu0+nx0, nu0, hpL[N-nn-1], cnu0, hpL[N-nn-1], cnu0, work);
+		//d_copy_pmat_panel(pnu0-nu0, nu0, 
+		if(nx0>pnu0-nu0)
+			d_align_pmat_panel(pnu0-nu0, nu0, nu0+nx0, hpL[N-nn-1]+(nu0+nx0)/bs*bs*cnu0+(nu0+nx0)%bs, cnu0, hpL[N-nn-1]+nu0/bs*bs*cnu0+nu0%bs);
+		else
+			d_align_pmat_panel(nx0, nu0, pnu0, hpL[N-nn-1]+pnu0*cnu0, cnu0, hpL[N-nn-1]+nu0/bs*bs*cnu0+nu0%bs);
+		//d_print_pmat(pnu0+nx0, nu0, bs, hpL[N-nn-1], cnu0);
+
+		dpotrf_lib(nu0+nx0, nu0, hpL[N-nn-1], cnu0, hpL[N-nn-1], cnu0, work);
 		//d_print_pmat(pnu0+nx0, nu0, bs, hpL[N-nn-1], cnu0);
 		for(jj=0; jj<nu0; jj++) hpL[N-nn-1][(jj/bs)*bs*cnu0+jj%bs+jj*bs] = work[jj]; // copy reciprocal of diagonal
 		//d_print_pmat(pnu0+nx0, nu0, bs, hpL[N-nn-1], cnu0);
 
+		if(nx0>pnu0-nu0)
+			d_copy_pmat_panel(pnu0-nu0, nu0, nu0+nx0, hpL[N-nn-1]+nu0/bs*bs*cnu0+nu0%bs, hpL[N-nn-1]+(nu0+nx0)/bs*bs*cnu0+(nu0+nx0)%bs, cnu0);
+		else
+			d_copy_pmat_panel(nx0, nu0, pnu0, hpL[N-nn-1]+nu0/bs*bs*cnu0+nu0%bs, hpL[N-nn-1]+pnu0*cnu0, cnu0);
+		//d_print_pmat(pnu0+nx0, nu0, bs, hpL[N-nn-1], cnu0);
+		//for(jj=0; jj<nu0; jj++) for(ii=nu0; ii<pnu0; ii++) hpL[N-nn-1][nu0/bs*bs*cnu0+nu0%bs+jj*bs] = 0.0;
+
 		d_copy_pmat(nx0, nx0, bs, hpQ[N-nn-1], cnx0, hpP[N-nn-1], cnx0);
+
 		if(update_hessian)
 			d_update_hessian_ric_sv(nx0, hpP[N-nn-1], cnx0, hpd[N-nn-1]+nu0);
 		//d_print_pmat(nx0, nx0, bs, hpP[N-nn-1], cnx0);
@@ -439,6 +454,12 @@ void d_ric_diag_trs_mpc(int N, int *nx, int *nu, double **hdA, double **hpBt, do
 
 	int ii, jj;
 	
+	static double x0_bkp[D_MR];
+	int cp_max = (nu[0]+bs-1)/bs*bs - nu0;
+	cp_max = nx[0]<cp_max ? nx[0] : cp_max;
+	for(jj=0; jj<cp_max; jj++)
+		x0_bkp[jj] =  hux[0][nu[0]+jj];
+
 	/* backward substitution */
 
 	nu0 = nu[N];
@@ -474,6 +495,9 @@ void d_ric_diag_trs_mpc(int N, int *nx, int *nu, double **hdA, double **hpBt, do
 
 
 	/* forward substitution */
+
+	for(jj=0; jj<cp_max; jj++)
+		hux[0][nu[0]+jj] = x0_bkp[jj];
 
 	nu0 = nu[0];
 	nu1 = nu[1];

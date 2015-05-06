@@ -1724,6 +1724,7 @@ void kernel_dsyrk_diag_left_right_4_lib4(int kmax, double *Al, double *Ar, doubl
 #if 1
 
 	__m256d
+		sign,
 		a_l, a_r,
 		b_00,
 		c_00, c_01, c_02, c_03,
@@ -1732,7 +1733,9 @@ void kernel_dsyrk_diag_left_right_4_lib4(int kmax, double *Al, double *Ar, doubl
 	if(alg==-1)
 		{
 		a_l = _mm256_load_pd( &Al[0] );
-		a_l = - a_l; // TODO use OR instead !!!!!
+		long long long_sign = 0x8000000000000000;
+		sign = _mm256_broadcast_sd( (double *) &long_sign );
+		a_l = _mm256_xor_pd( sign, a_l );
 		}
 	else
 		{
@@ -2221,6 +2224,7 @@ void kernel_dsyrk_diag_left_right_3_lib4(int kmax, double *Al, double *Ar, doubl
 		mask;
 
 	__m256d
+		sign,
 		a_l, a_r,
 		b_00,
 		c_00, c_01, c_02, c_03,
@@ -2231,7 +2235,9 @@ void kernel_dsyrk_diag_left_right_3_lib4(int kmax, double *Al, double *Ar, doubl
 	if(alg==-1)
 		{
 		a_l = _mm256_load_pd( &Al[0] );
-		a_l = - a_l; // TODO use OR instead !!!!!
+		long long long_sign = 0x8000000000000000;
+		sign = _mm256_broadcast_sd( (double *) &long_sign );
+		a_l = _mm256_xor_pd( sign, a_l );
 		}
 	else
 		{
@@ -2638,6 +2644,7 @@ void kernel_dsyrk_diag_left_right_2_lib4(int kmax, double *Al, double *Ar, doubl
 #if 1
 
 	__m128d
+		sign,
 		a_l, a_r,
 		b_00,
 		c_00, c_01, c_02, c_03,
@@ -2646,7 +2653,9 @@ void kernel_dsyrk_diag_left_right_2_lib4(int kmax, double *Al, double *Ar, doubl
 	if(alg==-1)
 		{
 		a_l = _mm_load_pd( &Al[0] );
-		a_l = - a_l; // TODO use OR instead !!!!!
+		long long long_sign = 0x8000000000000000;
+		sign = _mm_loaddup_pd( (double *) &long_sign );
+		a_l = _mm_xor_pd( sign, a_l );
 		}
 	else
 		{

@@ -304,6 +304,133 @@ void d_copy_pmat_panel(int row, int col, int offset, double *A, double *B, int s
 
 
 
+/* copies 1 to 4 rows from a (misaligned) packed matrix into a block of a packed matrix */
+void d_align_pmat_panel(int row, int col, int offset, double *A, int sda, double *B)
+	{
+
+	if(row<=0 || col<=0)
+		return;
+	
+	const int bs = 4;
+
+	int i, ii;
+
+	int row0 = bs - offset%bs;
+	row0 = row0>row ? row : row0;
+	int row1 = row - row0;
+
+	double *(ptrA[4]);
+	for(i=0; i<row0; i++)
+		ptrA[i] = A + i;
+	for(i=0; i<row1; i++)
+		ptrA[row0+i] = A + row0 + (sda-1)*bs + i;
+	
+
+	if(row==1)
+		{
+		i = 0;
+		for(; i<col-3; i+=4)
+			{
+			B[0+(i+0)*bs] = ptrA[0][(i+0)*bs];
+			B[0+(i+1)*bs] = ptrA[0][(i+1)*bs];
+			B[0+(i+2)*bs] = ptrA[0][(i+2)*bs];
+			B[0+(i+3)*bs] = ptrA[0][(i+3)*bs];
+			}
+		for(; i<col; i++)
+			{
+			B[0+(i+0)*bs] = ptrA[0][(i+0)*bs];
+			}
+		}
+	else if(row==2)
+		{
+		i = 0;
+		for(; i<col-3; i+=4)
+			{
+			B[0+(i+0)*bs] = ptrA[0][(i+0)*bs];
+			B[1+(i+0)*bs] = ptrA[1][(i+0)*bs];
+
+			B[0+(i+1)*bs] = ptrA[0][(i+1)*bs];
+			B[1+(i+1)*bs] = ptrA[1][(i+1)*bs];
+
+			B[0+(i+2)*bs] = ptrA[0][(i+2)*bs];
+			B[1+(i+2)*bs] = ptrA[1][(i+2)*bs];
+
+			B[0+(i+3)*bs] = ptrA[0][(i+3)*bs];
+			B[1+(i+3)*bs] = ptrA[1][(i+3)*bs];
+			}
+		for(; i<col; i++)
+			{
+			B[0+(i+0)*bs] = ptrA[0][(i+0)*bs];
+			B[1+(i+0)*bs] = ptrA[1][(i+0)*bs];
+			}
+		}
+	else if(row==3)
+		{
+		i = 0;
+		for(; i<col-3; i+=4)
+			{
+			B[0+(i+0)*bs] = ptrA[0][(i+0)*bs];
+			B[1+(i+0)*bs] = ptrA[1][(i+0)*bs];
+			B[2+(i+0)*bs] = ptrA[2][(i+0)*bs];
+
+			B[0+(i+1)*bs] = ptrA[0][(i+1)*bs];
+			B[1+(i+1)*bs] = ptrA[1][(i+1)*bs];
+			B[2+(i+1)*bs] = ptrA[2][(i+1)*bs];
+
+			B[0+(i+2)*bs] = ptrA[0][(i+2)*bs];
+			B[1+(i+2)*bs] = ptrA[1][(i+2)*bs];
+			B[2+(i+2)*bs] = ptrA[2][(i+2)*bs];
+
+			B[0+(i+3)*bs] = ptrA[0][(i+3)*bs];
+			B[1+(i+3)*bs] = ptrA[1][(i+3)*bs];
+			B[2+(i+3)*bs] = ptrA[2][(i+3)*bs];
+			}
+		for(; i<col; i++)
+			{
+			B[0+(i+0)*bs] = ptrA[0][(i+0)*bs];
+			B[1+(i+0)*bs] = ptrA[1][(i+0)*bs];
+			B[2+(i+0)*bs] = ptrA[2][(i+0)*bs];
+			}
+		}
+	else //if(row==4)
+		{
+		i = 0;
+		for(; i<col-3; i+=4)
+			{
+			B[0+(i+0)*bs] = ptrA[0][(i+0)*bs];
+			B[1+(i+0)*bs] = ptrA[1][(i+0)*bs];
+			B[2+(i+0)*bs] = ptrA[2][(i+0)*bs];
+			B[3+(i+0)*bs] = ptrA[3][(i+0)*bs];
+
+			B[0+(i+1)*bs] = ptrA[0][(i+1)*bs];
+			B[1+(i+1)*bs] = ptrA[1][(i+1)*bs];
+			B[2+(i+1)*bs] = ptrA[2][(i+1)*bs];
+			B[3+(i+0)*bs] = ptrA[3][(i+0)*bs];
+
+			B[0+(i+2)*bs] = ptrA[0][(i+2)*bs];
+			B[1+(i+2)*bs] = ptrA[1][(i+2)*bs];
+			B[2+(i+2)*bs] = ptrA[2][(i+2)*bs];
+			B[3+(i+0)*bs] = ptrA[3][(i+0)*bs];
+
+			B[0+(i+3)*bs] = ptrA[0][(i+3)*bs];
+			B[1+(i+3)*bs] = ptrA[1][(i+3)*bs];
+			B[2+(i+3)*bs] = ptrA[2][(i+3)*bs];
+			B[3+(i+0)*bs] = ptrA[3][(i+0)*bs];
+			}
+		for(; i<col; i++)
+			{
+			B[0+(i+0)*bs] = ptrA[0][(i+0)*bs];
+			B[1+(i+0)*bs] = ptrA[1][(i+0)*bs];
+			B[2+(i+0)*bs] = ptrA[2][(i+0)*bs];
+			B[3+(i+0)*bs] = ptrA[3][(i+0)*bs];
+			}
+		}
+		
+		
+	}
+
+
+
 // copies a lower triangular packed matrix 
 void d_copy_pmat_l(int row, int bs_dummy, double *A, int sda, double *B, int sdb)
 	{
@@ -492,7 +619,7 @@ void d_copy_pmat_l(int row, int bs_dummy, double *A, int sda, double *B, int sdb
 // copies a packed matrix into an aligned packed matrix ; A has to be aligned at the beginning of the current block : the offset takes care of the row to be copied TODO IMPROVE IMPLEMENTATION !!!
 void d_align_pmat(int row, int col, int offset, int bs_dummy, double *A, int sda, double *B, int sdb)
 	{
-	
+
 	const int bs = 4;
 
 	int i, j;

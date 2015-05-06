@@ -3645,6 +3645,121 @@ void kernel_dgemm_diag_left_4_lib4(int kmax, double *A, double *B, double *C, do
 
 	int k;
 
+#if 1
+
+	__m256d
+		sign,
+		a_00,
+		b_00,
+		c_00, c_01, c_02, c_03,
+		d_00, d_01, d_02, d_03;
+		
+	if(alg==-1)
+		{
+		a_00 = _mm256_load_pd( &A[0] );
+		long long long_sign = 0x8000000000000000;
+		sign = _mm256_broadcast_sd( (double *) &long_sign );
+		a_00 = _mm256_xor_pd( sign, a_00 );
+		}
+	else
+		{
+		a_00 = _mm256_load_pd( &A[0] );
+		}
+	
+	if(alg==0)
+		{
+		
+		for(k=0; k<kmax-3; k+=4)
+			{
+
+			b_00 = _mm256_load_pd( &B[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			b_00 = _mm256_load_pd( &B[4] );
+			d_01 = _mm256_mul_pd( a_00, b_00 );
+			b_00 = _mm256_load_pd( &B[8] );
+			d_02 = _mm256_mul_pd( a_00, b_00 );
+			b_00 = _mm256_load_pd( &B[12] );
+			d_03 = _mm256_mul_pd( a_00, b_00 );
+
+			_mm256_store_pd( &D[0], d_00 );
+			_mm256_store_pd( &D[4], d_01 );
+			_mm256_store_pd( &D[8], d_02 );
+			_mm256_store_pd( &D[12], d_03 );
+			
+			B += 16;
+			D += 16;
+			
+			}
+		for(; k<kmax; k++)
+			{
+			
+			b_00 = _mm256_load_pd( &B[0] );
+			c_00 = _mm256_mul_pd( a_00, b_00 );
+
+			_mm256_store_pd( &D[0], c_00 );
+		
+			B += 4;
+			D += 4;
+			
+			}
+
+		}
+	else
+		{
+
+		for(k=0; k<kmax-3; k+=4)
+			{
+			
+			b_00 = _mm256_load_pd( &B[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			b_00 = _mm256_load_pd( &B[4] );
+			d_01 = _mm256_mul_pd( a_00, b_00 );
+			b_00 = _mm256_load_pd( &B[8] );
+			d_02 = _mm256_mul_pd( a_00, b_00 );
+			b_00 = _mm256_load_pd( &B[12] );
+			d_03 = _mm256_mul_pd( a_00, b_00 );
+
+			c_00 = _mm256_load_pd( &C[0] );
+			d_00 = _mm256_add_pd( c_00, d_00 );
+			c_01 = _mm256_load_pd( &C[4] );
+			d_01 = _mm256_add_pd( c_01, d_01 );
+			c_02 = _mm256_load_pd( &C[8] );
+			d_02 = _mm256_add_pd( c_02, d_02 );
+			c_03 = _mm256_load_pd( &C[12] );
+			d_03 = _mm256_add_pd( c_03, d_03 );
+
+			_mm256_store_pd( &D[0], d_00 );
+			_mm256_store_pd( &D[4], d_01 );
+			_mm256_store_pd( &D[8], d_02 );
+			_mm256_store_pd( &D[12], d_03 );
+	
+			B += 16;
+			C += 16;
+			D += 16;
+			
+			}
+		for(; k<kmax; k++)
+			{
+			
+			b_00 = _mm256_load_pd( &B[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+
+			c_00 = _mm256_load_pd( &C[0] );
+			d_00 = _mm256_add_pd( c_00, d_00 );
+
+			_mm256_store_pd( &D[0], d_00 );
+	
+			B += 4;
+			C += 4;
+			D += 4;
+			
+			}
+
+		}
+
+
+#else
+
 	double
 		a_0, a_1, a_2, a_3,
 		b_0, b_1, b_2, b_3,
@@ -3861,6 +3976,8 @@ void kernel_dgemm_diag_left_4_lib4(int kmax, double *A, double *B, double *C, do
 			}
 
 		}
+
+#endif
 	
 	}
 
@@ -3877,81 +3994,50 @@ void kernel_dgemm_diag_left_3_lib4(int kmax, double *A, double *B, double *C, do
 
 	int k;
 
-	double
-		a_0, a_1, a_2,
-		b_0, b_1, b_2,
-		c_0, c_1, c_2;
+	__m256i
+		mask;
+
+	__m256d
+		sign,
+		a_00,
+		b_00,
+		c_00, c_01, c_02, c_03,
+		d_00, d_01, d_02, d_03;
+	
+	mask = _mm256_set_epi64x( 1, -1, -1, -1 );
 		
 	if(alg==-1)
 		{
-		a_0 = - A[0];
-		a_1 = - A[1];
-		a_2 = - A[2];
+		a_00 = _mm256_load_pd( &A[0] );
+		long long long_sign = 0x8000000000000000;
+		sign = _mm256_broadcast_sd( (double *) &long_sign );
+		a_00 = _mm256_xor_pd( sign, a_00 );
 		}
 	else
 		{
-		a_0 = A[0];
-		a_1 = A[1];
-		a_2 = A[2];
+		a_00 = _mm256_load_pd( &A[0] );
 		}
-		
+	
 	if(alg==0)
 		{
 		
 		for(k=0; k<kmax-3; k+=4)
 			{
-			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			b_2 = B[2+bs*0];
-			
-			c_0 = a_0 * b_0;
-			c_1 = a_1 * b_1;
-			c_2 = a_2 * b_2;
 
-			D[0+bs*0] = c_0;
-			D[1+bs*0] = c_1;
-			D[2+bs*0] = c_2;
+			b_00 = _mm256_load_pd( &B[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			b_00 = _mm256_load_pd( &B[4] );
+			d_01 = _mm256_mul_pd( a_00, b_00 );
+			b_00 = _mm256_load_pd( &B[8] );
+			d_02 = _mm256_mul_pd( a_00, b_00 );
+			b_00 = _mm256_load_pd( &B[12] );
+			d_03 = _mm256_mul_pd( a_00, b_00 );
+
+			_mm256_maskstore_pd( &D[0], mask, d_00 );
+			_mm256_maskstore_pd( &D[4], mask, d_01 );
+			_mm256_maskstore_pd( &D[8], mask, d_02 );
+			_mm256_maskstore_pd( &D[12], mask, d_03 );
 			
-
-			b_0 = B[0+bs*1];
-			b_1 = B[1+bs*1];
-			b_2 = B[2+bs*1];
-			
-			c_0 = a_0 * b_0;
-			c_1 = a_1 * b_1;
-			c_2 = a_2 * b_2;
-
-			D[0+bs*1] = c_0;
-			D[1+bs*1] = c_1;
-			D[2+bs*1] = c_2;
-			
-
-			b_0 = B[0+bs*2];
-			b_1 = B[1+bs*2];
-			b_2 = B[2+bs*2];
-			
-			c_0 = a_0 * b_0;
-			c_1 = a_1 * b_1;
-			c_2 = a_2 * b_2;
-
-			D[0+bs*2] = c_0;
-			D[1+bs*2] = c_1;
-			D[2+bs*2] = c_2;
-			
-
-			b_0 = B[0+bs*3];
-			b_1 = B[1+bs*3];
-			b_2 = B[2+bs*3];
-			
-			c_0 = a_0 * b_0;
-			c_1 = a_1 * b_1;
-			c_2 = a_2 * b_2;
-
-			D[0+bs*3] = c_0;
-			D[1+bs*3] = c_1;
-			D[2+bs*3] = c_2;
-
 			B += 16;
 			D += 16;
 			
@@ -3959,22 +4045,16 @@ void kernel_dgemm_diag_left_3_lib4(int kmax, double *A, double *B, double *C, do
 		for(; k<kmax; k++)
 			{
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			b_2 = B[2+bs*0];
-			
-			c_0 = a_0 * b_0;
-			c_1 = a_1 * b_1;
-			c_2 = a_2 * b_2;
+			b_00 = _mm256_load_pd( &B[0] );
+			c_00 = _mm256_mul_pd( a_00, b_00 );
 
-			D[0+bs*0] = c_0;
-			D[1+bs*0] = c_1;
-			D[2+bs*0] = c_2;
+			_mm256_maskstore_pd( &D[0], mask, c_00 );
 		
 			B += 4;
 			D += 4;
 			
 			}
+
 		}
 	else
 		{
@@ -3982,57 +4062,29 @@ void kernel_dgemm_diag_left_3_lib4(int kmax, double *A, double *B, double *C, do
 		for(k=0; k<kmax-3; k+=4)
 			{
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			b_2 = B[2+bs*0];
-			
-			c_0 = C[0+bs*0] + a_0 * b_0;
-			c_1 = C[1+bs*0] + a_1 * b_1;
-			c_2 = C[2+bs*0] + a_2 * b_2;
+			b_00 = _mm256_load_pd( &B[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			b_00 = _mm256_load_pd( &B[4] );
+			d_01 = _mm256_mul_pd( a_00, b_00 );
+			b_00 = _mm256_load_pd( &B[8] );
+			d_02 = _mm256_mul_pd( a_00, b_00 );
+			b_00 = _mm256_load_pd( &B[12] );
+			d_03 = _mm256_mul_pd( a_00, b_00 );
 
-			D[0+bs*0] = c_0;
-			D[1+bs*0] = c_1;
-			D[2+bs*0] = c_2;
-			
+			c_00 = _mm256_load_pd( &C[0] );
+			d_00 = _mm256_add_pd( c_00, d_00 );
+			c_01 = _mm256_load_pd( &C[4] );
+			d_01 = _mm256_add_pd( c_01, d_01 );
+			c_02 = _mm256_load_pd( &C[8] );
+			d_02 = _mm256_add_pd( c_02, d_02 );
+			c_03 = _mm256_load_pd( &C[12] );
+			d_03 = _mm256_add_pd( c_03, d_03 );
 
-			b_0 = B[0+bs*1];
-			b_1 = B[1+bs*1];
-			b_2 = B[2+bs*1];
-			
-			c_0 = C[0+bs*1] + a_0 * b_0;
-			c_1 = C[1+bs*1] + a_1 * b_1;
-			c_2 = C[2+bs*1] + a_2 * b_2;
-
-			D[0+bs*1] = c_0;
-			D[1+bs*1] = c_1;
-			D[2+bs*1] = c_2;
-			
-
-			b_0 = B[0+bs*2];
-			b_1 = B[1+bs*2];
-			b_2 = B[2+bs*2];
-			
-			c_0 = C[0+bs*2] + a_0 * b_0;
-			c_1 = C[1+bs*2] + a_1 * b_1;
-			c_2 = C[2+bs*2] + a_2 * b_2;
-
-			D[0+bs*2] = c_0;
-			D[1+bs*2] = c_1;
-			D[2+bs*2] = c_2;
-			
-
-			b_0 = B[0+bs*3];
-			b_1 = B[1+bs*3];
-			b_2 = B[2+bs*3];
-			
-			c_0 = C[0+bs*3] + a_0 * b_0;
-			c_1 = C[1+bs*3] + a_1 * b_1;
-			c_2 = C[2+bs*3] + a_2 * b_2;
-
-			D[0+bs*3] = c_0;
-			D[1+bs*3] = c_1;
-			D[2+bs*3] = c_2;
-
+			_mm256_maskstore_pd( &D[0], mask, d_00 );
+			_mm256_maskstore_pd( &D[4], mask, d_01 );
+			_mm256_maskstore_pd( &D[8], mask, d_02 );
+			_mm256_maskstore_pd( &D[12], mask, d_03 );
+	
 			B += 16;
 			C += 16;
 			D += 16;
@@ -4041,18 +4093,14 @@ void kernel_dgemm_diag_left_3_lib4(int kmax, double *A, double *B, double *C, do
 		for(; k<kmax; k++)
 			{
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			b_2 = B[2+bs*0];
-			
-			c_0 = C[0+bs*0] + a_0 * b_0;
-			c_1 = C[1+bs*0] + a_1 * b_1;
-			c_2 = C[2+bs*0] + a_2 * b_2;
+			b_00 = _mm256_load_pd( &B[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
 
-			D[0+bs*0] = c_0;
-			D[1+bs*0] = c_1;
-			D[2+bs*0] = c_2;
-		
+			c_00 = _mm256_load_pd( &C[0] );
+			d_00 = _mm256_add_pd( c_00, d_00 );
+
+			_mm256_maskstore_pd( &D[0], mask, d_00 );
+	
 			B += 4;
 			C += 4;
 			D += 4;
@@ -4060,7 +4108,7 @@ void kernel_dgemm_diag_left_3_lib4(int kmax, double *A, double *B, double *C, do
 			}
 
 		}
-	
+
 	}
 
 
@@ -4076,67 +4124,45 @@ void kernel_dgemm_diag_left_2_lib4(int kmax, double *A, double *B, double *C, do
 
 	int k;
 
-	double
-		a_0, a_1,
-		b_0, b_1,
-		c_0, c_1;
+	__m128d
+		sign,
+		a_00,
+		b_00,
+		c_00, c_01, c_02, c_03,
+		d_00, d_01, d_02, d_03;
 		
 	if(alg==-1)
 		{
-		a_0 = - A[0];
-		a_1 = - A[1];
+		a_00 = _mm_load_pd( &A[0] );
+		long long long_sign = 0x8000000000000000;
+		sign = _mm_loaddup_pd( (double *) &long_sign );
+		a_00 = _mm_xor_pd( sign, a_00 );
 		}
 	else
 		{
-		a_0 = A[0];
-		a_1 = A[1];
+		a_00 = _mm_load_pd( &A[0] );
 		}
-		
+	
 	if(alg==0)
 		{
-
+		
 		for(k=0; k<kmax-3; k+=4)
 			{
-			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			
-			c_0 = a_0 * b_0;
-			c_1 = a_1 * b_1;
 
-			D[0+bs*0] = c_0;
-			D[1+bs*0] = c_1;
+			b_00 = _mm_load_pd( &B[0] );
+			d_00 = _mm_mul_pd( a_00, b_00 );
+			b_00 = _mm_load_pd( &B[4] );
+			d_01 = _mm_mul_pd( a_00, b_00 );
+			b_00 = _mm_load_pd( &B[8] );
+			d_02 = _mm_mul_pd( a_00, b_00 );
+			b_00 = _mm_load_pd( &B[12] );
+			d_03 = _mm_mul_pd( a_00, b_00 );
+
+			_mm_store_pd( &D[0], d_00 );
+			_mm_store_pd( &D[4], d_01 );
+			_mm_store_pd( &D[8], d_02 );
+			_mm_store_pd( &D[12], d_03 );
 			
-
-			b_0 = B[0+bs*1];
-			b_1 = B[1+bs*1];
-			
-			c_0 = a_0 * b_0;
-			c_1 = a_1 * b_1;
-
-			D[0+bs*1] = c_0;
-			D[1+bs*1] = c_1;
-			
-
-			b_0 = B[0+bs*2];
-			b_1 = B[1+bs*2];
-			
-			c_0 = a_0 * b_0;
-			c_1 = a_1 * b_1;
-
-			D[0+bs*2] = c_0;
-			D[1+bs*2] = c_1;
-			
-
-			b_0 = B[0+bs*3];
-			b_1 = B[1+bs*3];
-			
-			c_0 = a_0 * b_0;
-			c_1 = a_1 * b_1;
-
-			D[0+bs*3] = c_0;
-			D[1+bs*3] = c_1;
-
 			B += 16;
 			D += 16;
 			
@@ -4144,14 +4170,10 @@ void kernel_dgemm_diag_left_2_lib4(int kmax, double *A, double *B, double *C, do
 		for(; k<kmax; k++)
 			{
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			
-			c_0 = a_0 * b_0;
-			c_1 = a_1 * b_1;
+			b_00 = _mm_load_pd( &B[0] );
+			c_00 = _mm_mul_pd( a_00, b_00 );
 
-			D[0+bs*0] = c_0;
-			D[1+bs*0] = c_1;
+			_mm_store_pd( &D[0], c_00 );
 		
 			B += 4;
 			D += 4;
@@ -4165,45 +4187,29 @@ void kernel_dgemm_diag_left_2_lib4(int kmax, double *A, double *B, double *C, do
 		for(k=0; k<kmax-3; k+=4)
 			{
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			
-			c_0 = C[0+bs*0] + a_0 * b_0;
-			c_1 = C[1+bs*0] + a_1 * b_1;
+			b_00 = _mm_load_pd( &B[0] );
+			d_00 = _mm_mul_pd( a_00, b_00 );
+			b_00 = _mm_load_pd( &B[4] );
+			d_01 = _mm_mul_pd( a_00, b_00 );
+			b_00 = _mm_load_pd( &B[8] );
+			d_02 = _mm_mul_pd( a_00, b_00 );
+			b_00 = _mm_load_pd( &B[12] );
+			d_03 = _mm_mul_pd( a_00, b_00 );
 
-			D[0+bs*0] = c_0;
-			D[1+bs*0] = c_1;
-			
+			c_00 = _mm_load_pd( &C[0] );
+			d_00 = _mm_add_pd( c_00, d_00 );
+			c_01 = _mm_load_pd( &C[4] );
+			d_01 = _mm_add_pd( c_01, d_01 );
+			c_02 = _mm_load_pd( &C[8] );
+			d_02 = _mm_add_pd( c_02, d_02 );
+			c_03 = _mm_load_pd( &C[12] );
+			d_03 = _mm_add_pd( c_03, d_03 );
 
-			b_0 = B[0+bs*1];
-			b_1 = B[1+bs*1];
-			
-			c_0 = C[0+bs*1] + a_0 * b_0;
-			c_1 = C[1+bs*1] + a_1 * b_1;
-
-			D[0+bs*1] = c_0;
-			D[1+bs*1] = c_1;
-			
-
-			b_0 = B[0+bs*2];
-			b_1 = B[1+bs*2];
-			
-			c_0 = C[0+bs*2] + a_0 * b_0;
-			c_1 = C[1+bs*2] + a_1 * b_1;
-
-			D[0+bs*2] = c_0;
-			D[1+bs*2] = c_1;
-			
-
-			b_0 = B[0+bs*3];
-			b_1 = B[1+bs*3];
-			
-			c_0 = C[0+bs*3] + a_0 * b_0;
-			c_1 = C[1+bs*3] + a_1 * b_1;
-
-			D[0+bs*3] = c_0;
-			D[1+bs*3] = c_1;
-
+			_mm_store_pd( &D[0], d_00 );
+			_mm_store_pd( &D[4], d_01 );
+			_mm_store_pd( &D[8], d_02 );
+			_mm_store_pd( &D[12], d_03 );
+	
 			B += 16;
 			C += 16;
 			D += 16;
@@ -4212,15 +4218,14 @@ void kernel_dgemm_diag_left_2_lib4(int kmax, double *A, double *B, double *C, do
 		for(; k<kmax; k++)
 			{
 			
-			b_0 = B[0+bs*0];
-			b_1 = B[1+bs*0];
-			
-			c_0 = C[0+bs*0] + a_0 * b_0;
-			c_1 = C[1+bs*0] + a_1 * b_1;
+			b_00 = _mm_load_pd( &B[0] );
+			d_00 = _mm_mul_pd( a_00, b_00 );
 
-			D[0+bs*0] = c_0;
-			D[1+bs*0] = c_1;
-		
+			c_00 = _mm_load_pd( &C[0] );
+			d_00 = _mm_add_pd( c_00, d_00 );
+
+			_mm_store_pd( &D[0], d_00 );
+	
 			B += 4;
 			C += 4;
 			D += 4;
@@ -4228,6 +4233,7 @@ void kernel_dgemm_diag_left_2_lib4(int kmax, double *A, double *B, double *C, do
 			}
 
 		}
+
 	
 	}
 

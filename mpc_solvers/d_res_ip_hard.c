@@ -333,7 +333,7 @@ void d_res_ip_diag_mpc(int N, int *nx, int *nu, int *nb, double **hdA, double **
 		dsymv_lib(nu0, nu0, hpR[ii], cnu0, hux[ii], hres_rq[ii], -1);
 		dgemv_n_lib(nu0, nx1, hpBt[ii], cnx1, hpi[ii+1], hres_rq[ii], -1);
 
-		for(jj=0; jj<nb0-nb0; jj++) hres_rq[ii][nu0+jj] = hpi[ii][jj] - hrq[ii][nu0+jj] + hlam[ii][nu0+jj] - hlam[ii][pnb+nu0+jj];
+		for(jj=0; jj<nb0-nu0; jj++) hres_rq[ii][nu0+jj] = hpi[ii][jj] - hrq[ii][nu0+jj] + hlam[ii][nu0+jj] - hlam[ii][pnb+nu0+jj];
 		for(; jj<nx0; jj++) hres_rq[ii][nu0+jj] = hpi[ii][jj] - hrq[ii][nu0+jj];
 		for(jj=0; jj<nxm; jj++) hres_rq[ii][nu0+jj] -= hdA[ii][jj] * hpi[ii+1][jj];
 		dgemv_n_lib(nx0, nu0, hpSt[ii], cnu0, hux[ii], hres_rq[ii]+nu0, -1);
@@ -363,7 +363,7 @@ void d_res_ip_diag_mpc(int N, int *nx, int *nu, int *nb, double **hdA, double **
 		hres_d[ii][pnb+jj] = - hux[ii][jj] - hd[ii][pnb+jj] - ht[ii][pnb+jj];
 		}
 
-	for(jj=0; jj<nb0-nb0; jj++) hres_rq[ii][nu0+jj] = hpi[ii][jj] - hrq[ii][nu0+jj] + hlam[ii][nu0+jj] - hlam[ii][pnb+nu0+jj];
+	for(jj=0; jj<nb0-nu0; jj++) hres_rq[ii][nu0+jj] = hpi[ii][jj] - hrq[ii][nu0+jj] + hlam[ii][nu0+jj] - hlam[ii][pnb+nu0+jj];
 	for(; jj<nx0; jj++) hres_rq[ii][nu0+jj] = hpi[ii][jj] - hrq[ii][nu0+jj]; // no nu+ !!!!!!!!!!
 	for(jj=0; jj<nx0; jj++) work[jj] = hux[ii][nu0+jj];
 	dsymv_lib(nx0, nx0, hpQ[ii], cnx0, work, hres_rq[ii]+nu0, -1);
