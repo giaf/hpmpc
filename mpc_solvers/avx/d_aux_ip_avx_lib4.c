@@ -6605,11 +6605,29 @@ void d_update_var_diag_mpc(int N, int *nx, int *nu, int *nb, double *ptr_mu, dou
 		ptr_dlam = dlam[jj];
 
 		// update inputs and states
-		for(ll=0; ll<nu[jj]+nx[jj]; ll++)
+		for(ll=0; ll<nu[jj]+nx[jj]-3; ll+=4)
+			{
+			ptr_ux[ll+0] += alpha*(ptr_dux[ll+0] - ptr_ux[ll+0]);
+			ptr_ux[ll+1] += alpha*(ptr_dux[ll+1] - ptr_ux[ll+1]);
+			ptr_ux[ll+2] += alpha*(ptr_dux[ll+2] - ptr_ux[ll+2]);
+			ptr_ux[ll+3] += alpha*(ptr_dux[ll+3] - ptr_ux[ll+3]);
+			}
+		for(; ll<nu[jj]+nx[jj]; ll++)
+			{
 			ptr_ux[ll] += alpha*(ptr_dux[ll] - ptr_ux[ll]);
+			}
 		// update equality constrained multipliers
-		for(ll=0; ll<nx[jj]; ll++)
+		for(ll=0; ll<nx[jj]-3; ll+=4)
+			{
+			ptr_pi[ll+0] += alpha*(ptr_dpi[ll+0] - ptr_pi[ll+0]);
+			ptr_pi[ll+1] += alpha*(ptr_dpi[ll+1] - ptr_pi[ll+1]);
+			ptr_pi[ll+2] += alpha*(ptr_dpi[ll+2] - ptr_pi[ll+2]);
+			ptr_pi[ll+3] += alpha*(ptr_dpi[ll+3] - ptr_pi[ll+3]);
+			}
+		for(; ll<nx[jj]; ll++)
+			{
 			ptr_pi[ll] += alpha*(ptr_dpi[ll] - ptr_pi[ll]);
+			}
 		// box constraints
 		for(ll=0; ll<nb[jj]; ll++)
 			{
