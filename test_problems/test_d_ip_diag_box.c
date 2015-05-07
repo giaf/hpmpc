@@ -40,6 +40,7 @@
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_solvers.h"
 #include "../include/block_size.h"
+#include "../include/c_interface.h"
 
 // data matrices
 #include "test_matrices_variable_nx.h"
@@ -511,6 +512,7 @@ int main()
 	printf("\ntiming ...\n\n");
 	gettimeofday(&tv20, NULL); // start
 
+	nrep = 1000;
 	for(ii=0; ii<nrep; ii++)
 		{
 		d_ip2_diag_mpc(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, N, nxx, nuu, nbb, hdA, hpBt, hpR, hpS, hpQ, hb, hd, hrq, hux, 1, hpi, hlam, ht, work_space_ip);
@@ -565,7 +567,7 @@ int main()
 * test of normal riccati & IPM
 ************************************************/
 	
-	printf("\nRiccati diag\n\n");
+	printf("\nRiccati full\n\n");
 
 	nx = 25;
 	nu = 1;
@@ -672,7 +674,7 @@ int main()
 	//d_print_pmat(pnz, cnl, bs, hpL[N], cnl);
 
 #if 1
-	printf("\nux full\n");
+	printf("\nux Riccati full\n");
 	for(ii=0; ii<=N; ii++)
 		d_print_mat(1, nx+nu, hux2[ii], 1);
 #endif
@@ -713,6 +715,7 @@ int main()
 	printf("\ntiming ...\n\n");
 	gettimeofday(&tv20, NULL); // start
 
+	nrep = 10000;
 	for(ii=0; ii<nrep; ii++)
 		{
 		d_ric_sv_mpc(nx, nu, N, hpBAbt2, hpRSQ, 0, dummy, dummy, hux2, hpL, work, diag, COMPUTE_MULT, hpi2, 0, 0, 0, dummy, dummy, dummy, 0);
@@ -726,8 +729,120 @@ int main()
 
 
 
-	// free memory 
+	printf("\nIPM full\n\n");
 
+	int nb  = nu+nx;
+	int ng  = 0;
+	int ngN = 0;
+
+	int pnb  = (nb+bs-1)/bs*bs;
+	int png  = (ng+bs-1)/bs*bs;
+	int pngN = (ngN+bs-1)/bs*bs;
+
+
+
+	double *(hd2[N+1]);
+	double *(hlam2[N+1]);
+	double *(ht2[N+1]);
+
+	for(ii=0; ii<N; ii++)
+		{
+		d_zeros_align(&hd2[ii], 2*pnb+2*png, 1);
+		d_zeros_align(&hlam2[ii],2*pnb+2*png, 1);
+		d_zeros_align(&ht2[ii], 2*pnb+2*png, 1);
+		}
+	d_zeros_align(&hd2[N], 2*pnb+2*pngN, 1);
+	d_zeros_align(&hlam2[N],2*pnb+2*pngN, 1);
+	d_zeros_align(&ht2[N], 2*pnb+2*pngN, 1);
+
+	// work space
+	double *work_ipm_full; d_zeros_align(&work_ipm_full, hpmpc_ip_hard_mpc_dp_work_space(N, nx, nu, nb, ng, ngN), 1);
+
+	// bounds
+	for(ii=0; ii<=N; ii++)
+		{
+		for(jj=0; jj<nu; jj++)
+			{
+			hd2[ii][jj]     = -20.5;
+			hd2[ii][pnb+jj] = -20.5;
+			}
+		for(; jj<2*nu; jj++)
+			{
+			hd2[ii][jj]     = - 2.5;
+			hd2[ii][pnb+jj] = -10.0;
+			}
+		for(; jj<2*nu+(N-ii)*nx0; jj++)
+			{
+			hd2[ii][jj]     = -100.0;
+			hd2[ii][pnb+jj] = -100.0;
+			}
+		hd2[ii][jj+0]     =   0.0;
+		hd2[ii][pnb+jj+0] = -20.0;
+		hd2[ii][jj+1]     = -10.0;
+		hd2[ii][pnb+jj+1] = -10.0;
+		jj += 2;
+		for(; jj<nu+nx; jj++)
+			{
+			hd2[ii][jj]     = -100.0;
+			hd2[ii][pnb+jj] = -100.0;
+			}
+		//d_print_mat(1, nb, hd2[ii], 1);
+		//d_print_mat(1, nb, hd2[ii]+pnb, 1);
+		}
+	//exit(1);
+
+
+
+	printf("\nIPM full solve ...\n\n");
+	d_ip2_hard_mpc(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, nx, nu, N, nb, ng, ngN, hpBAbt2, hpRSQ, ptr_dummy, hd2, hux2, 1, hpi2, hlam2, ht2, work_ipm_full);
+	printf("\nIPM full solve done\n\n");
+
+
+
+#if 1
+	printf("\nux IPM full\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, nx+nu, hux2[ii], 1);
+#endif
+	
+	printf("\nstatistics\n\n");
+	for(ii=0; ii<kk; ii++)
+		printf("%d\t%f\t%f\t%f\t%e\t%f\t%f\t%e\n", ii+1, stat[5*ii+0], stat[5*ii+1], stat[5*ii+2], stat[5*ii+2], stat[5*ii+3], stat[5*ii+4], stat[5*ii+4]);
+	printf("\n\n");
+
+
+
+	// timing
+	printf("\ntiming ...\n\n");
+	gettimeofday(&tv20, NULL); // start
+
+	nrep = 1000;
+	for(ii=0; ii<nrep; ii++)
+		{
+		d_ip2_hard_mpc(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, nx, nu, N, nb, ng, ngN, hpBAbt2, hpRSQ, ptr_dummy, hd2, hux2, 1, hpi2, hlam2, ht2, work_ipm_full);
+		}
+
+	gettimeofday(&tv21, NULL); // start
+	printf("\ntiming done\n\n");
+
+	time_ip_full = (float) (tv21.tv_sec-tv20.tv_sec)/(nrep+0.0)+(tv21.tv_usec-tv20.tv_usec)/(nrep*1e6);
+
+
+
+	// free memory
+	free(work_ipm_full);
+	for(ii=0; ii<N; ii++)
+		{
+		free(hd2[ii]);
+		free(hlam2[ii]);
+		free(ht2[ii]);
+		}
+	free(hd2[N]);
+	free(hlam2[N]);
+	free(ht2[N]);
+
+
+	// free memory 
 	free(work);
 	free(RSQ);
 	free(BAb_temp);
@@ -752,7 +867,7 @@ int main()
 
 #endif
 
-	printf("\nric diag time = %e\t\tric full time = %e\t\tip diag time = %e\t\tip full time = %e\n\n", time_ric_diag, time_ric_full, time_ip_diag, 0.0);
+	printf("\nric diag time = %e\t\tric full time = %e\t\tip diag time = %e\t\tip full time = %e\n\n", time_ric_diag, time_ric_full, time_ip_diag, time_ip_full);
 
 
 #endif

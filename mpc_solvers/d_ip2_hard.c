@@ -274,6 +274,12 @@ exit(1);
 		d_update_hessian_hard_mpc(N, nx, nu, nb, ng, ngN, cnz, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx, bd, bl, pd, pl, d);
 
 #if 0
+d_print_mat(1, 2*pnb+2*png, bd[0], 1);
+d_print_mat(1, 2*pnb+2*png, bd[1], 1);
+d_print_mat(1, 2*pnb+2*png, bd[N], 1);
+d_print_mat(1, 2*pnb+2*png, pl[0], 1);
+d_print_mat(1, 2*pnb+2*png, pl[1], 1);
+d_print_mat(1, 2*pnb+2*png, pl[N], 1);
 d_print_mat(1, 2*pnb+2*png, Qx[0], 1);
 d_print_mat(1, 2*pnb+2*png, Qx[1], 1);
 d_print_mat(1, 2*pnb+2*pngN, Qx[N], 1);
