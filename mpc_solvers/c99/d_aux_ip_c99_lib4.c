@@ -572,7 +572,7 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double **ux, dou
 
 
 
-void d_init_var_diag_mpc(int N, int *nx, int *nu, int *nb, double **ux, double **pi, double **db, double **t, double **lam, double mu0, int warm_start)
+void d_init_var_diag_mpc(int N, int *nx, int *nu, int *nb, int **idxb, double **ux, double **pi, double **db, double **t, double **lam, double mu0, int warm_start)
 	{
 
 	// it must be nb[0] <= nu !!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -591,88 +591,51 @@ void d_init_var_diag_mpc(int N, int *nx, int *nu, int *nb, double **ux, double *
 
 	double thr0 = 0.1; // minimum vale of t (minimum distance from a constraint)
 
-	if(warm_start==1)
+	// cold start
+	if(warm_start==0)
 		{
-		for(jj=0; jj<=N; jj++)
+		for(ll=0; ll<nu[jj]; ll++)
 			{
-			pnb  = bs*((nb[jj]+bs-1)/bs); // simd aligned number of box constraints
-			for(ll=0; ll<nb[jj]; ll++)
+			ux[jj][ll] = 0.0;
+			}
+		for(jj=1; jj<=N; jj++)
+			{
+			for(ll=0; ll<nu[jj]+nx[jj]; ll++)
 				{
-				t[jj][ll]     = - db[jj][ll]     + ux[jj][ll];
-				t[jj][pnb+ll] = - db[jj][pnb+ll] - ux[jj][ll];
-				if(t[jj][ll] < thr0)
-					{
-					if(t[jj][pnb+ll] < thr0)
-						{
-						ux[jj][ll] = ( - db[jj][pnb+ll] + db[jj][ll])*0.5;
-						t[jj][ll]     = - db[jj][ll]     + ux[jj][ll];
-						t[jj][pnb+ll] = - db[jj][pnb+ll] - ux[jj][ll];
-						}
-					else
-						{
-						t[jj][ll] = thr0;
-						ux[jj][ll] = db[jj][ll] + thr0;
-						}
-					}
-				else if(t[jj][pnb+ll] < thr0)
-					{
-					t[jj][pnb+ll] = thr0;
-					ux[jj][ll] = - db[jj][pnb+ll] - thr0;
-					}
-				lam[jj][ll]     = mu0/t[jj][ll];
-				lam[jj][pnb+ll] = mu0/t[jj][pnb+ll];
+				ux[jj][ll] = 0.0;
 				}
 			}
 		}
-	else // cold start
+
+	// check bounds & initialize multipliers
+	for(jj=0; jj<=N; jj++)
 		{
-		for(jj=0; jj<=N; jj++)
+		pnb  = bs*((nb[jj]+bs-1)/bs); // simd aligned number of box constraints
+		for(ll=0; ll<nb[jj]; ll++)
 			{
-			pnb  = bs*((nb[jj]+bs-1)/bs); // simd aligned number of box constraints
-			for(ll=0; ll<nb[jj]; ll++)
+			t[jj][ll]     = - db[jj][ll]     + ux[jj][idxb[jj][ll]];
+			t[jj][pnb+ll] = - db[jj][pnb+ll] - ux[jj][idxb[jj][ll]];
+			if(t[jj][ll] < thr0)
 				{
-				ux[jj][ll] = 0.0;
-				//ux[jj][ll] = 0.5*( - db[jj][pnb+ll] + db[jj][ll] );
-/*				t[jj][ll] = 1.0;*/
-/*				t[jj][pnb+ll] = 1.0;*/
-				t[jj][ll]     = - db[jj][ll]     + ux[jj][ll];
-				t[jj][pnb+ll] = - db[jj][pnb+ll] - ux[jj][ll];
-				if(t[jj][ll] < thr0)
+				if(t[jj][pnb+ll] < thr0)
 					{
-					if(t[jj][pnb+ll] < thr0)
-						{
-						ux[jj][ll] = ( - db[jj][pnb+ll] + db[jj][ll])*0.5;
-						t[jj][ll]     = - db[jj][ll]     + ux[jj][ll];
-						t[jj][pnb+ll] = - db[jj][pnb+ll] - ux[jj][ll];
-						}
-					else
-						{
-						t[jj][ll] = thr0;
-						ux[jj][ll] = db[jj][ll] + thr0;
-						}
+					ux[jj][idxb[jj][ll]] = ( - db[jj][pnb+ll] + db[jj][ll])*0.5;
+					t[jj][ll]     = - db[jj][ll]     + ux[jj][idxb[jj][ll]];
+					t[jj][pnb+ll] = - db[jj][pnb+ll] - ux[jj][idxb[jj][ll]];
 					}
-				else if(t[jj][pnb+ll] < thr0)
+				else
 					{
-					t[jj][pnb+ll] = thr0;
-					ux[jj][ll] = - db[jj][pnb+ll] - thr0;
-					}
-				lam[jj][ll] = mu0/t[jj][ll];
-				lam[jj][pnb+ll] = mu0/t[jj][pnb+ll];
-				}
-			if(jj==0)
-				{
-				for(; ll<nu[jj]; ll++)
-					{
-					ux[jj][ll] = 0.0; // initialize remaining components of u and x to 0
+					t[jj][ll] = thr0;
+					ux[jj][idxb[jj][ll]] = db[jj][ll] + thr0;
 					}
 				}
-			else
+			else if(t[jj][pnb+ll] < thr0)
 				{
-				for(; ll<nu[jj]+nx[jj]; ll++)
-					{
-					ux[jj][ll] = 0.0; // initialize remaining components of u and x to 0
-					}
+				t[jj][pnb+ll] = thr0;
+				ux[jj][idxb[jj][ll]] = - db[jj][pnb+ll] - thr0;
 				}
+			lam[jj][ll]     = mu0/t[jj][ll];
+			lam[jj][pnb+ll] = mu0/t[jj][pnb+ll];
 			}
 		}
 
@@ -1834,11 +1797,11 @@ void d_update_hessian_diag_mpc(int N, int *nx, int *nu, int *nb, double sigma_mu
 			ptr_pl[ii] = ptr_bl[ii] + ptr_lam[ii+pnb+0] + ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
 
 			}
-		for( ; ii<nu[jj]+nx[jj]; ii++)
-			{
-			ptr_pd[ii] = ptr_bd[ii];
-			ptr_pl[ii] = ptr_bl[ii];
-			}
+		//for( ; ii<nu[jj]+nx[jj]; ii++)
+		//	{
+		//	ptr_pd[ii] = ptr_bd[ii];
+		//	ptr_pl[ii] = ptr_bl[ii];
+		//	}
 	
 		}
 
@@ -2560,7 +2523,7 @@ void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr
 
 
 
-void d_compute_alpha_diag_mpc(int N, int *nx, int *nu, int *nb, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db)
+void d_compute_alpha_diag_mpc(int N, int *nx, int *nu, int *nb, int **idxb, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **db)
 	{
 	
 	// constants
@@ -2596,8 +2559,8 @@ void d_compute_alpha_diag_mpc(int N, int *nx, int *nu, int *nb, double *ptr_alph
 		for(; ll<nb[jj]; ll++)
 			{
 
-			ptr_dt[ll+0]   =   ptr_dux[ll] - ptr_db[ll+0]   - ptr_t[ll+0];
-			ptr_dt[ll+pnb] = - ptr_dux[ll] - ptr_db[ll+pnb] - ptr_t[ll+pnb];
+			ptr_dt[ll+0]   =   ptr_dux[idxb[jj][ll]] - ptr_db[ll+0]   - ptr_t[ll+0];
+			ptr_dt[ll+pnb] = - ptr_dux[idxb[jj][ll]] - ptr_db[ll+pnb] - ptr_t[ll+pnb];
 			ptr_dlam[ll+0]   -= ptr_lamt[ll+0]   * ptr_dt[ll+0]   + ptr_lam[ll+0];
 			ptr_dlam[ll+pnb] -= ptr_lamt[ll+pnb] * ptr_dt[ll+pnb] + ptr_lam[ll+pnb];
 			if( -alpha*ptr_dlam[ll+0]>ptr_lam[ll+0] )

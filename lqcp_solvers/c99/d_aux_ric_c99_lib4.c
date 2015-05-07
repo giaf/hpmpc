@@ -27,28 +27,45 @@
 
 
 
-void d_update_hessian_ric_sv(int kmax, double *pQ, int sda, double *Qd)
+void d_update_diag_pmat(int kmax, double *pQ, int sda, double *d)
 	{
 
 	int jj, ll;
 
 	for(jj=0; jj<kmax-3; jj+=4)
 		{
-		pQ[jj*sda+(jj+0)*4+0] = Qd[jj+0];
-		pQ[jj*sda+(jj+1)*4+1] = Qd[jj+1];
-		pQ[jj*sda+(jj+2)*4+2] = Qd[jj+2];
-		pQ[jj*sda+(jj+3)*4+3] = Qd[jj+3];
+		pQ[jj*sda+(jj+0)*4+0] = d[jj+0];
+		pQ[jj*sda+(jj+1)*4+1] = d[jj+1];
+		pQ[jj*sda+(jj+2)*4+2] = d[jj+2];
+		pQ[jj*sda+(jj+3)*4+3] = d[jj+3];
 		}
 	for(ll=0; ll<kmax-jj; ll++)
 		{
-		pQ[jj*sda+(jj+ll)*4+ll] = Qd[jj+ll];
+		pQ[jj*sda+(jj+ll)*4+ll] = d[jj+ll];
 		}
 	
 	}
 
 
 
-void d_update_jacobian_ric_sv(int kmax, double *pQ, double *Ql)
+void d_update_diag_pmat_sparse(int kmax, int *idx, double *pQ, int sda, double *d)
+	{
+
+	const int bs = 4;
+
+	int ii, jj;
+
+	for(jj=0; jj<kmax; jj++)
+		{
+		ii = idx[jj];
+		pQ[ii/bs*bs*sda+ii%bs+ii*bs] = d[jj];
+		}
+	
+	}
+
+
+
+void d_update_row_pmat(int kmax, double *pQ, double *Ql)
 	{
 
 	int jj, ll;
@@ -63,6 +80,20 @@ void d_update_jacobian_ric_sv(int kmax, double *pQ, double *Ql)
 	for(ll=0; ll<kmax-jj; ll++)
 		{
 		pQ[(jj+ll)*4] = Ql[jj+ll];
+		}
+	
+	}
+
+
+
+void d_update_vector_sparse(int kmax, int *idx, double *q, double *d)
+	{
+
+	int ii, jj;
+
+	for(jj=0; jj<kmax; jj++)
+		{
+		q[idx[jj]] = d[jj];
 		}
 	
 	}

@@ -64,7 +64,7 @@ int main()
 	printf("\n");
 	printf("\n");
 	
-	int ii, jj;
+	int ii, jj, ll;
 
 	double **dummy;
 
@@ -189,6 +189,8 @@ int main()
 		for(jj=0; jj<nu0; jj++) 
 			hpQ[ii][jj/bs*bs*cnxx[ii]+jj%bs+jj*bs] = 1.0;
 		// penalty on x
+//		for(jj==1; jj<nxx[ii]-nx0; jj++) 
+//			hpQ[ii][jj/bs*bs*cnxx[ii]+jj%bs+jj*bs] = 0.0002;
 		for(jj=nxx[ii]-nx0; jj<nxx[ii]; jj++) 
 			hpQ[ii][jj/bs*bs*cnxx[ii]+jj%bs+jj*bs] = 1.0;
 		}
@@ -209,7 +211,7 @@ int main()
 
 	// factorization
 	printf("\nfactorization ...\n");
-	d_ric_diag_trf_mpc(N, nxx, nuu, hdA, hpBt, hpR, hpS, hpQ, hpLK, pK, hpP, diag, 0, ptr_dummy);
+	d_ric_diag_trf_mpc(N, nxx, nuu, hdA, hpBt, hpR, hpS, hpQ, hpLK, pK, hpP, diag);
 	printf("\nfactorization done\n\n");
 
 #if 1
@@ -337,7 +339,7 @@ int main()
 	nrep = 10000;
 	for(ii=0; ii<nrep; ii++)
 		{
-		d_ric_diag_trf_mpc(N, nxx, nuu, hdA, hpBt, hpR, hpS, hpQ, hpLK, pK, hpP, diag, 0, ptr_dummy);
+		d_ric_diag_trf_mpc(N, nxx, nuu, hdA, hpBt, hpR, hpS, hpQ, hpLK, pK, hpP, diag);
 		d_ric_diag_trs_mpc(N, nxx, nuu, hdA, hpBt, hpLK, hpP, hb, hrq, hux, 1, hPb, 1, hpi, work_diag);
 		}
 
@@ -364,8 +366,15 @@ int main()
 	double stat[5*50] = {};
 
 	int nbb[N+1];
-	for(ii=0; ii<=N; ii++) nbb[ii] = nuu[ii] + nxx[ii];
-	nbb[0] = nuu[0]; // XXX !!!!!!!!!!!!!!
+	nbb[0] = nu0;//nuu[0]; // XXX !!!!!!!!!!!!!!
+	for(ii=1; ii<N; ii++) nbb[ii] = 2*nu0 + nx0; //nuu[ii] + nxx[ii];
+	nbb[N] = nu0 + nx0;
+
+	int *(idxb[N+1]);
+	for(ii=0; ii<=N; ii++)
+		{
+		idxb[ii] = (int *) malloc(nbb[ii]*sizeof(int));
+		}
 
 	int pnbb[N+1];
 	for(ii=0; ii<=N; ii++) pnbb[ii] = (nbb[ii]+bs-1)/bs*bs;
@@ -387,36 +396,62 @@ int main()
 
 	//printf("\nbounds\n");
 	ii = 0; // initial stage
+	ll = 0;
 	for(jj=0; jj<nuu[ii]; jj++)
 		{
-		hd[ii][jj]                  = -20.5;
-		hd[ii][pnbb[ii]+jj]         = -20.5;
+		hd[ii][ll]                  = -20.5;
+		hd[ii][pnbb[ii]+ll]         = -20.5;
+		idxb[ii][ll] = jj;
+		ll++;
 		}
-	//d_print_mat(1, 2*pnbb[ii], hd2[ii], 1);
+	//d_print_mat(1, 2*pnbb[ii], hd[ii], 1);
 	for(ii=1; ii<=N; ii++)
 		{
+		ll = 0;
 		for(jj=0; jj<nuu[ii]; jj++)
 			{
-			hd[ii][jj]          = -20.5;
-			hd[ii][pnbb[ii]+jj] = -20.5;
+			hd[ii][ll]          = -20.5;
+			hd[ii][pnbb[ii]+ll] = -20.5;
+			idxb[ii][ll] = jj;
+			ll++;
 			}
 		for(; jj<nuu[ii]+nu0; jj++)
 			{
-			hd[ii][jj]          = - 2.5;
-			hd[ii][pnbb[ii]+jj] = -10.0;
+			hd[ii][ll]          = - 2.5; // -2.5
+			hd[ii][pnbb[ii]+ll] = -10.0; // -10
+			idxb[ii][ll] = jj;
+			ll++;
 			}
-		for(; jj<nbb[ii]-nx0; jj++)
+		//for(; jj<nbb[ii]-nx0; jj++)
 		//for(; jj<nbb[ii]; jj++)
-			{
-			hd[ii][jj]          = -100.0;
-			hd[ii][pnbb[ii]+jj] = -100.0;
-			}
-		hd[ii][jj+0]          = - 0.0; //   0
-		hd[ii][pnbb[ii]+jj+0] = -20.0; // -20
-		hd[ii][jj+1]          = -10.0; // -10
-		hd[ii][pnbb[ii]+jj+1] = -10.0; // -10
-		//d_print_mat(1, 2*pnbb[ii], hd2[ii], 1);
+			//{
+			//hd[ii][jj]          = -100.0;
+			//hd[ii][pnbb[ii]+jj] = -100.0;
+			//idxb[ii][ll] = jj;
+			//ll++;
+			//}
+		jj += nx0*(N-ii);
+		hd[ii][ll+0]          = - 0.0; //   0
+		hd[ii][pnbb[ii]+ll+0] = -20.0; // -20
+		idxb[ii][ll] = jj;
+		ll++;
+		jj++;
+		hd[ii][ll+0]          = -10.0; // -10
+		hd[ii][pnbb[ii]+ll+0] = -10.0; // -10
+		idxb[ii][ll] = jj;
+		ll++;
+		jj++;
+		//d_print_mat(1, 2*pnbb[ii], hd[ii], 1);
 		}
+#if 0
+	for(ii=0; ii<=N; ii++)
+		{
+		for(jj=0; jj<nbb[ii]; jj++)
+			printf("%d\t", idxb[ii][jj]);
+		printf("\n");
+		}
+	exit(1);
+#endif
 
 	for(jj=0; jj<nuu[0]; jj++)
 		{
@@ -446,7 +481,7 @@ int main()
 
 	int work_space_ip_double = 0;
 	for(ii=0; ii<=N; ii++)
-		work_space_ip_double += anuu[ii] + 3*anxx[ii] + (pnuu[ii]+pnxx[ii])*cnuu[ii] + pnxx[ii]*cnxx[ii] + 3*pnxx[ii] + 3*pnuu[ii] + 8*pnbb[ii];
+		work_space_ip_double += anuu[ii] + 3*anxx[ii] + (pnuu[ii]+pnxx[ii])*cnuu[ii] + pnxx[ii]*cnxx[ii] + 12*pnbb[ii];
 	work_space_ip_double += pnxM*cnuM + pnxM + pnuM;
 	int work_space_ip_int = (N+1)*7*sizeof(int);
 	work_space_ip_int = (work_space_ip_int+63)/64*64;
@@ -456,7 +491,7 @@ int main()
 
 
 	printf("\nIPM solution ...\n");
-	d_ip2_diag_mpc(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, N, nxx, nuu, nbb, hdA, hpBt, hpR, hpS, hpQ, hb, hd, hrq, hux, 1, hpi, hlam, ht, work_space_ip);
+	d_ip2_diag_mpc(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, N, nxx, nuu, nbb, idxb, hdA, hpBt, hpR, hpS, hpQ, hb, hd, hrq, hux, 1, hpi, hlam, ht, work_space_ip);
 	printf("\nIPM solution done\n");
 
 
@@ -486,7 +521,7 @@ int main()
 
 	// residuals
 	printf("\nresuduals IPM ...\n");
-	d_res_ip_diag_mpc(N, nxx, nuu, nbb, hdA, hpBt, hpR, hpS, hpQ, hb, hrq, hd, hux, hpi, hlam, ht, hres_rq, hres_b, hres_d, &mu, work_diag);
+	d_res_ip_diag_mpc(N, nxx, nuu, nbb, idxb, hdA, hpBt, hpR, hpS, hpQ, hb, hrq, hd, hux, hpi, hlam, ht, hres_rq, hres_b, hres_d, &mu, work_diag);
 	printf("\nresiduals IPM done\n");
 
 	printf("\nres_rq\n");
@@ -515,7 +550,7 @@ int main()
 	nrep = 1000;
 	for(ii=0; ii<nrep; ii++)
 		{
-		d_ip2_diag_mpc(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, N, nxx, nuu, nbb, hdA, hpBt, hpR, hpS, hpQ, hb, hd, hrq, hux, 1, hpi, hlam, ht, work_space_ip);
+		d_ip2_diag_mpc(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, N, nxx, nuu, nbb, idxb, hdA, hpBt, hpR, hpS, hpQ, hb, hd, hrq, hux, 1, hpi, hlam, ht, work_space_ip);
 		}
 
 	gettimeofday(&tv21, NULL); // start
@@ -527,6 +562,7 @@ int main()
 	// free memory
 	for(ii=0; ii<=N; ii++)
 		{
+		free(idxb[ii]);
 		free(hd[ii]);
 		free(hlam[ii]);
 		free(ht[ii]);

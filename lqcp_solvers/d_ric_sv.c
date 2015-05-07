@@ -102,8 +102,8 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		}
 	if(update_hessian)
 		{
-		d_update_hessian_ric_sv(nu%bs+nx, hpQ[N]+nu0*cnz+nu0*bs, cnz, hQd[N]+nu0);
-		d_update_jacobian_ric_sv(nu%bs+nx, hpQ[N]+nu0*bs+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N]+nu0);
+		d_update_diag_pmat(nu%bs+nx, hpQ[N]+nu0*cnz+nu0*bs, cnz, hQd[N]+nu0);
+		d_update_row_pmat(nu%bs+nx, hpQ[N]+nu0*bs+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N]+nu0);
 		}
 	//printf("\nQl\n");
 	//d_print_mat(1, nx+nu, hQl[N], 1);
@@ -172,8 +172,8 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 			}
 		if(update_hessian)
 			{
-			d_update_hessian_ric_sv(nx+nu, hpQ[N-nn-1], cnz, hQd[N-nn-1]);
-			d_update_jacobian_ric_sv(nx+nu, hpQ[N-nn-1]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N-nn-1]);
+			d_update_diag_pmat(nx+nu, hpQ[N-nn-1], cnz, hQd[N-nn-1]);
+			d_update_row_pmat(nx+nu, hpQ[N-nn-1]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N-nn-1]);
 			}
 		//dsyrk_dpotrf_lib(nz, nu+nx, nx, work+ng*bs, cnx, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, diag, 1);
 		if(nz<128)
@@ -237,8 +237,8 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		}
 	if(update_hessian)
 		{
-		d_update_hessian_ric_sv(nu, hpQ[0], cnz, hQd[0]);
-		d_update_jacobian_ric_sv(nu, hpQ[0]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[0]);
+		d_update_diag_pmat(nu, hpQ[0], cnz, hQd[0]);
+		d_update_row_pmat(nu, hpQ[0]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[0]);
 		}
 	//dsyrk_dpotrf_lib(nz, ((nu+2-1)/2)*2, nx, work+ng*bs, cnx, hpQ[0], cnz, hpL[0], cnl, diag, 1);
 	dsyrk_dpotrf_lib(nz, ((nu+2-1)/2)*2, nx+ng, work, cnxg, hpQ[0], cnz, hpL[0], cnl, diag, 1, fast_rsqrt);
@@ -346,7 +346,7 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 // L = chol(R + B'*P*B)
 // K = (diag(A)'*P*B)\L
 // P = Q + diag(A')*P*diag(A) + K*K'
-void d_ric_diag_trf_mpc(int N, int *nx, int *nu, double **hdA, double **hpBt, double **hpR, double **hpSt, double **hpQ, double **hpL, double *pK, double **hpP, double *work, int update_hessian, double **hpd)
+void d_ric_diag_trf_mpc(int N, int *nx, int *nu, double **hdA, double **hpBt, double **hpR, double **hpSt, double **hpQ, double **hpL, double *pK, double **hpP, double *work) //, int update_hessian, double **hpd)
 	{
 
 	// K 0f size (pnu[ii+1]) x (cnu[ii])
@@ -365,8 +365,8 @@ void d_ric_diag_trf_mpc(int N, int *nx, int *nu, double **hdA, double **hpBt, do
 	cnx0  = ncl*((nx[N]+ncl-1)/ncl);
 
 	d_copy_pmat(nx0, nx0, bs, hpQ[N], cnx0, hpP[N], cnx0);
-	if(update_hessian)
-		d_update_hessian_ric_sv(nx0, hpP[N], cnx0, hpd[N]+nu0);
+	//if(update_hessian)
+	//	d_update_diag_pmat(nx0, hpP[N], cnx0, hpd[N]+nu0);
 	//d_print_pmat(nx0, nx0, bs, hpP[N], cnx0);
 
 	// factorization and backward substitution 
@@ -387,8 +387,8 @@ void d_ric_diag_trf_mpc(int N, int *nx, int *nu, double **hdA, double **hpBt, do
 		dgemm_nt_lib(nx1, nu0, nx1, hpP[N-nn], cnx1, hpBt[N-nn-1], cnx1, pK, cnu0, pK, cnu0, 0, 0, 0);
 		//d_print_pmat(nx1, nu0, bs, pK, cnu0);
 
-		if(update_hessian)
-			d_update_hessian_ric_sv(nu0, hpR[N-nn-1], cnu0, hpd[N-nn-1]);
+		//if(update_hessian)
+		//	d_update_diag_pmat(nu0, hpR[N-nn-1], cnu0, hpd[N-nn-1]);
 
 		//d_print_pmat(nu0, nu0, bs, hpR[N-nn-1], cnu0);
 		dsyrk_nn_lib(nu0, nu0, nx1, hpBt[N-nn-1], cnx1, pK, cnu0, hpR[N-nn-1], cnu0, hpL[N-nn-1], cnu0, 1);
@@ -421,8 +421,8 @@ void d_ric_diag_trf_mpc(int N, int *nx, int *nu, double **hdA, double **hpBt, do
 
 		d_copy_pmat(nx0, nx0, bs, hpQ[N-nn-1], cnx0, hpP[N-nn-1], cnx0);
 
-		if(update_hessian)
-			d_update_hessian_ric_sv(nx0, hpP[N-nn-1], cnx0, hpd[N-nn-1]+nu0);
+		//if(update_hessian)
+		//	d_update_diag_pmat(nx0, hpP[N-nn-1], cnx0, hpd[N-nn-1]+nu0);
 		//d_print_pmat(nx0, nx0, bs, hpP[N-nn-1], cnx0);
 
 		dsyrk_diag_left_right_lib(nxm, hdA[N-nn-1], hdA[N-nn-1], hpP[N-nn], cnx1, hpP[N-nn-1], cnx0, hpP[N-nn-1], cnx0, 1);

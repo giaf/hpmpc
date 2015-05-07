@@ -274,18 +274,20 @@ exit(1);
 		d_update_hessian_hard_mpc(N, nx, nu, nb, ng, ngN, cnz, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx, bd, bl, pd, pl, d);
 
 #if 0
-d_print_mat(1, 2*pnb+2*png, bd[0], 1);
-d_print_mat(1, 2*pnb+2*png, bd[1], 1);
-d_print_mat(1, 2*pnb+2*png, bd[N], 1);
+d_print_mat(1, 2*pnb+2*png, pd[0], 1);
+d_print_mat(1, 2*pnb+2*png, pd[1], 1);
+d_print_mat(1, 2*pnb+2*png, pd[N], 1);
 d_print_mat(1, 2*pnb+2*png, pl[0], 1);
 d_print_mat(1, 2*pnb+2*png, pl[1], 1);
 d_print_mat(1, 2*pnb+2*png, pl[N], 1);
+#if 0
 d_print_mat(1, 2*pnb+2*png, Qx[0], 1);
 d_print_mat(1, 2*pnb+2*png, Qx[1], 1);
 d_print_mat(1, 2*pnb+2*pngN, Qx[N], 1);
 d_print_mat(1, 2*pnb+2*png, qx[0], 1);
 d_print_mat(1, 2*pnb+2*png, qx[1], 1);
 d_print_mat(1, 2*pnb+2*pngN, qx[N], 1);
+#endif
 exit(1);
 #endif
 
@@ -309,13 +311,13 @@ exit(1);
 
 #if 0
 printf("\ndux\n");
-d_print_mat(1, nx+nu, dux[0], 1);
-d_print_mat(1, nx+nu, dux[1], 1);
-d_print_mat(1, nx+nu, dux[N], 1);
-if(*kk==1)
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nx+nu, dux[ii], 1);
+//if(*kk==1)
 exit(1);
 #endif
 
+#if 1
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		for(jj=0; jj<=N; jj++)
@@ -393,10 +395,11 @@ exit(1);
 
 
 		// solve the system
-		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work, 1, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, qx);
+		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work, 0, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, qx);
 
 
 
+#endif
 
 
 		// compute t & dlam & dt & alpha
@@ -476,11 +479,11 @@ exit(1);
 
 
 /* primal-dual interior-point method, hard constraints, time variant matrices (mpc version) ; version with A diagonal and nu & nx time-variant*/
-int d_ip2_diag_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int N, int *nx, int *nu, int *nb, double **dA, double **pBt, double **pR, double **pSt, double **pQ, double **b, double **d, double **rq, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
+int d_ip2_diag_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, double **dA, double **pBt, double **pR, double **pSt, double **pQ, double **b, double **d, double **rq, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
 	{
 	
 	// indeces
-	int jj, ll, ii, bs0;
+	int jj, ll, ii, bs0, idx;
 
 	// constants
 	const int bs = D_MR; //d_get_mr();
@@ -571,6 +574,7 @@ int d_ip2_diag_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	double *(pd[N+1]);
 	double *(pl[N+1]);
 	double *(bd[N+1]);
+	double *(bl[N+1]);
 	double *(dlam[N+1]);
 	double *(dt[N+1]);
 	double *(lamt[N+1]);
@@ -622,15 +626,30 @@ int d_ip2_diag_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	for(jj=0; jj<=N; jj++)
 		{
 		pd[jj] = ptr; //pQ[jj];
-		pl[jj] = ptr + 1*(pnx[jj]+pnu[jj]);
-		bd[jj] = ptr + 2*(pnx[jj]+pnu[jj]);
-		ptr += 3*(pnx[jj]+pnu[jj]);
+		pl[jj] = ptr + 1*(pnb[jj]);
+		bd[jj] = ptr + 2*(pnb[jj]);
+		bl[jj] = ptr + 3*(pnb[jj]);
+		ptr += 4*(pnb[jj]);
 		// backup
-		for(ll=0; ll<nu[jj]; ll++)
-			bd[jj][ll] = pR[jj][(ll/bs)*bs*cnu[jj]+ll%bs+ll*bs];
-		for(ll=0; ll<nx[jj]; ll++)
-			bd[jj][nu[jj]+ll] = pQ[jj][(ll/bs)*bs*cnx[jj]+ll%bs+ll*bs];
+		//for(ll=0; ll<nu[jj]; ll++)
+		//	bd[jj][ll] = pR[jj][(ll/bs)*bs*cnu[jj]+ll%bs+ll*bs];
+		//for(ll=0; ll<nx[jj]; ll++)
+		//	bd[jj][nu[jj]+ll] = pQ[jj][(ll/bs)*bs*cnx[jj]+ll%bs+ll*bs];
+		for(ll=0; ll<nb[jj] && idxb[jj][ll]<nu[jj]; ll++)
+			{
+			idx = idxb[jj][ll];
+			bd[jj][ll] = pR[jj][idx/bs*bs*cnu[jj]+idx%bs+idx*bs];
+			bl[jj][ll] = rq[jj][idx];
+			}
+		for(; ll<nb[jj]; ll++)
+			{
+			idx = idxb[jj][ll] - nu[jj];
+			bd[jj][ll] = pQ[jj][idx/bs*bs*cnx[jj]+idx%bs+idx*bs];
+			bl[jj][ll] = rq[jj][idx];
+			}
+		//d_print_mat(1, nb[jj], bd[jj], 1);
 		}
+	//exit(1);
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space
 	for(jj=0; jj<=N; jj++)
@@ -670,7 +689,7 @@ int d_ip2_diag_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	
 
 	// initialize ux & t>0 (slack variable)
-	d_init_var_diag_mpc(N, nx, nu, nb, ux, pi, d, t, lam, mu0, warm_start);
+	d_init_var_diag_mpc(N, nx, nu, nb, idxb, ux, pi, d, t, lam, mu0, warm_start);
 
 
 #if 0
@@ -721,7 +740,7 @@ exit(1);
 
 
 		//update cost function matrices and vectors (box constraints)
-		d_update_hessian_diag_mpc(N, nx, nu, nb, 0.0, t, t_inv, lam, lamt, dlam, bd, rq, pd, pl, d);
+		d_update_hessian_diag_mpc(N, nx, nu, nb, 0.0, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, d);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -735,31 +754,66 @@ for(ii=0; ii<=N; ii++)
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, 2*pnb[ii], dlam[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nu[ii]+nx[ii], pd[ii], 1);
-//for(ii=0; ii<=N; ii++)
-//	d_print_mat(1, nu[ii]+nx[ii], bd[ii], 1);
+	d_print_mat(1, nb[ii], bd[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nu[ii]+nx[ii], pl[ii], 1);
-//exit(1);
+	d_print_mat(1, nb[ii], pd[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nb[ii], bl[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nb[ii], pl[ii], 1);
+if(*kk==1)
+exit(1);
 #endif
+
+
+		// update hessian & jacobian
+		for(jj=0; jj<=N; jj++)
+			{
+			for(ll=0; ll<nb[jj] && idxb[jj][ll]<nu[jj]; ll++)
+				{
+				idx = idxb[jj][ll];
+				pR[jj][idx/bs*bs*cnu[jj]+idx%bs+idx*bs] = pd[jj][ll];
+				rq[jj][idx] = pl[jj][ll];
+				}
+			for(; ll<nb[jj]; ll++)
+				{
+				idx = idxb[jj][ll] - nu[jj];
+				pQ[jj][idx/bs*bs*cnx[jj]+idx%bs+idx*bs] = pd[jj][ll];
+				idx = idxb[jj][ll];
+				rq[jj][idx] = pl[jj][ll];
+				}
+			}
+
+
+
+#if 0
+for(ii=0; ii<N; ii++)
+	d_print_pmat(nu[ii], nu[ii], bs, pR[ii], cnu[ii]);
+for(ii=0; ii<=N; ii++)
+	d_print_pmat(nx[ii], nx[ii], bs, pQ[ii], cnx[ii]);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu[ii]+nx[ii], rq[ii], 1);
+exit(1);
+#endif
+
 
 
 		// compute the search direction: factorize and solve the KKT system
 		//printf("\n%d %f\n", fast_rsqrt, mu);
-		d_ric_diag_trf_mpc(N, nx, nu, dA, pBt, pR, pSt, pQ, pL, pK, pP, work, 1, pd);
+		d_ric_diag_trf_mpc(N, nx, nu, dA, pBt, pR, pSt, pQ, pL, pK, pP, work);
 
 #if 0
 for(ii=0; ii<=N; ii++)
 	d_print_pmat(nx[ii], nx[ii], bs, pP[ii], cnx[ii]);
 #endif
 
-		d_ric_diag_trs_mpc(N, nx, nu, dA, pBt, pL, pP, b, pl, dux, 1, Pb, compute_mult, dpi, work);
+		d_ric_diag_trs_mpc(N, nx, nu, dA, pBt, pL, pP, b, rq, dux, 1, Pb, compute_mult, dpi, work);
 
 #if 0
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
-if(*kk==1)
+//if(*kk==1)
 exit(1);
 #endif
 
@@ -772,7 +826,7 @@ exit(1);
 
 
 		alpha = 1.0;
-		d_compute_alpha_diag_mpc(N, nx, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, d);
+		d_compute_alpha_diag_mpc(N, nx, nu, nb, idxb, &alpha, t, dt, lam, dlam, lamt, dux, d);
 
 		
 
@@ -833,8 +887,26 @@ exit(1);
 
 
 
+		// update jacobian
+		for(jj=0; jj<=N; jj++)
+			{
+			for(ll=0; ll<nb[jj] && idxb[jj][ll]<nu[jj]; ll++)
+				{
+				idx = idxb[jj][ll];
+				rq[jj][idx] = pl[jj][ll];
+				}
+			for(; ll<nb[jj]; ll++)
+				{
+				idx = idxb[jj][ll];
+				rq[jj][idx] = pl[jj][ll];
+				}
+			}
+
+
+
+
 		// solve the system
-		d_ric_diag_trs_mpc(N, nx, nu, dA, pBt, pL, pP, b, pl, dux, 1, Pb, compute_mult, dpi, work);
+		d_ric_diag_trs_mpc(N, nx, nu, dA, pBt, pL, pP, b, rq, dux, 0, Pb, compute_mult, dpi, work);
 		//d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work, 1, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, qx);
 #endif
 
@@ -844,7 +916,7 @@ exit(1);
 
 		// compute t & dlam & dt & alpha
 		alpha = 1.0;
-		d_compute_alpha_diag_mpc(N, nx, nu, nb, &alpha, t, dt, lam, dlam, lamt, dux, d);
+		d_compute_alpha_diag_mpc(N, nx, nu, nb, idxb, &alpha, t, dt, lam, dlam, lamt, dux, d);
 		//printf("\n%f\n", alpha);
 		//exit(1);
 
@@ -900,16 +972,47 @@ exit(1);
 		} // end of IP loop
 	
 
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu[ii]+nx[ii], rq[ii], 1);
+#endif
 
 	// restore Hessian
+	//for(jj=0; jj<=N; jj++)
+	//	{
+	//	for(ll=0; ll<nu[jj]; ll++)
+	//		pR[jj][(ll/bs)*bs*cnu[jj]+ll%bs+ll*bs] = bd[jj][ll];
+	//	for(ll=0; ll<nx[jj]; ll++)
+	//		pQ[jj][(ll/bs)*bs*cnx[jj]+ll%bs+ll*bs] = bd[jj][nu[jj]+ll];
+	//	}
 	for(jj=0; jj<=N; jj++)
 		{
-		for(ll=0; ll<nu[jj]; ll++)
-			pR[jj][(ll/bs)*bs*cnu[jj]+ll%bs+ll*bs] = bd[jj][ll];
-		for(ll=0; ll<nx[jj]; ll++)
-			pQ[jj][(ll/bs)*bs*cnx[jj]+ll%bs+ll*bs] = bd[jj][nu[jj]+ll];
+		for(ll=0; ll<nb[jj] && idxb[jj][ll]<nu[jj]; ll++)
+			{
+			idx = idxb[jj][ll];
+			pR[jj][idx/bs*bs*cnu[jj]+idx%bs+idx*bs] = bd[jj][ll];
+			rq[jj][idx] = bl[jj][ll];
+			}
+		for(; ll<nb[jj]; ll++)
+			{
+			idx = idxb[jj][ll] - nu[jj];
+			pQ[jj][idx/bs*bs*cnx[jj]+idx%bs+idx*bs] = bd[jj][ll];
+			idx = idxb[jj][ll];
+			rq[jj][idx] = bl[jj][ll];
+			}
 		}
 
+#if 0
+for(ii=0; ii<N; ii++)
+	d_print_pmat(nu[ii], nu[ii], bs, pR[ii], cnu[ii]);
+for(ii=0; ii<=N; ii++)
+	d_print_pmat(nx[ii], nx[ii], bs, pQ[ii], cnx[ii]);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nb[ii], bl[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu[ii]+nx[ii], rq[ii], 1);
+exit(1);
+#endif
 
 
 	// successful exit
