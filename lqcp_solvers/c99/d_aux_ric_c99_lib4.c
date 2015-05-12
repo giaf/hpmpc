@@ -77,9 +77,30 @@ void d_update_row_pmat(int kmax, double *pQ, double *Ql)
 		pQ[(jj+2)*4] = Ql[jj+2];
 		pQ[(jj+3)*4] = Ql[jj+3];
 		}
-	for(ll=0; ll<kmax-jj; ll++)
+	for(; jj<kmax; jj++)
 		{
-		pQ[(jj+ll)*4] = Ql[jj+ll];
+		pQ[(jj)*4] = Ql[jj];
+		}
+	
+	}
+
+
+
+void d_add_row_pmat(int kmax, double *pA, double *pC)
+	{
+
+	int jj, ll;
+
+	for(jj=0; jj<kmax-3; jj+=4)
+		{
+		pC[(jj+0)*4] += pA[(jj+0)*4];
+		pC[(jj+1)*4] += pA[(jj+1)*4];
+		pC[(jj+2)*4] += pA[(jj+2)*4];
+		pC[(jj+3)*4] += pA[(jj+3)*4];
+		}
+	for(; jj<kmax; jj++)
+		{
+		pC[(jj+0)*4] += pA[(jj+0)*4];
 		}
 	
 	}
