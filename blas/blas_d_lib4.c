@@ -3861,6 +3861,32 @@ void dgemm_diag_left_lib(int m, int n, double *A, double *B, int sdb, double *C,
 
 
 
+void dgemm_diag_right_lib(int m, int n, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg)
+	{
+
+	const int bs = 4;
+
+	int ii;
+
+	ii = 0;
+	for( ; ii<n-3; ii+=4)
+		{
+		kernel_dgemm_diag_right_4_lib4(m, &A[ii*bs], sda, &B[ii], &C[ii*bs], sdc, &D[ii*bs], sdd, alg);
+		}
+	if(n-ii>0)
+		{
+		if(n-ii==1)
+			kernel_dgemm_diag_right_1_lib4(m, &A[ii*bs], sda, &B[ii], &C[ii*bs], sdc, &D[ii*bs], sdd, alg);
+		else if(n-ii==2)
+			kernel_dgemm_diag_right_2_lib4(m, &A[ii*bs], sda, &B[ii], &C[ii*bs], sdc, &D[ii*bs], sdd, alg);
+		else // if(n-ii==3)
+			kernel_dgemm_diag_right_3_lib4(m, &A[ii*bs], sda, &B[ii], &C[ii*bs], sdc, &D[ii*bs], sdd, alg);
+		}
+	
+	}
+
+
+
 void dsyrk_diag_left_right_lib(int m, double *Al, double *Ar, double *B, int sdb, double *C, int sdc, double *D, int sdd, int alg)
 	{
 

@@ -2105,6 +2105,757 @@ void kernel_dgemm_nn_2x2_lib4(int kmax, double *A, double *B, int sdb, double *C
 
 
 
+// B is the diagonal of a matrix
+void kernel_dgemm_diag_right_4_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg)
+	{
+
+	if(kmax<=0)
+		return;
+	
+	const int bs = 4;
+
+	int k;
+
+	double
+		a_0, a_1, a_2, a_3,
+		b_0, b_1, b_2, b_3,
+		c_0, c_1, c_2, c_3;
+		
+	if(alg==-1)
+		{
+		b_0 = - B[0];
+		b_1 = - B[1];
+		b_2 = - B[2];
+		b_3 = - B[3];
+		}
+	else
+		{
+		b_0 = B[0];
+		b_1 = B[1];
+		b_2 = B[2];
+		b_3 = B[3];
+		}
+	
+	if(alg==0)
+		{
+		
+		for(k=0; k<kmax-3; k+=4)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			a_2 = A[2+bs*0];
+			a_3 = A[3+bs*0];
+			
+			c_0 = a_0 * b_0;
+			c_1 = a_1 * b_0;
+			c_2 = a_2 * b_0;
+			c_3 = a_3 * b_0;
+
+			D[0+bs*0] = c_0;
+			D[1+bs*0] = c_1;
+			D[2+bs*0] = c_2;
+			D[3+bs*0] = c_3;
+			
+
+			a_0 = A[0+bs*1];
+			a_1 = A[1+bs*1];
+			a_2 = A[2+bs*1];
+			a_3 = A[3+bs*1];
+			
+			c_0 = a_0 * b_1;
+			c_1 = a_1 * b_1;
+			c_2 = a_2 * b_1;
+			c_3 = a_3 * b_1;
+
+			D[0+bs*1] = c_0;
+			D[1+bs*1] = c_1;
+			D[2+bs*1] = c_2;
+			D[3+bs*1] = c_3;
+			
+
+			a_0 = A[0+bs*2];
+			a_1 = A[1+bs*2];
+			a_2 = A[2+bs*2];
+			a_3 = A[3+bs*2];
+			
+			c_0 = a_0 * b_2;
+			c_1 = a_1 * b_2;
+			c_2 = a_2 * b_2;
+			c_3 = a_3 * b_2;
+
+			D[0+bs*2] = c_0;
+			D[1+bs*2] = c_1;
+			D[2+bs*2] = c_2;
+			D[3+bs*2] = c_3;
+			
+
+			a_0 = A[0+bs*3];
+			a_1 = A[1+bs*3];
+			a_2 = A[2+bs*3];
+			a_3 = A[3+bs*3];
+			
+			c_0 = a_0 * b_3;
+			c_1 = a_1 * b_3;
+			c_2 = a_2 * b_3;
+			c_3 = a_3 * b_3;
+
+			D[0+bs*3] = c_0;
+			D[1+bs*3] = c_1;
+			D[2+bs*3] = c_2;
+			D[3+bs*3] = c_3;
+
+			A += 4*sda;
+			D += 4*sdd;
+			
+			}
+		for(; k<kmax; k++)
+			{
+			
+			a_0 = A[0+bs*0];
+			
+			c_0 = a_0 * b_0;
+
+			D[0+bs*0] = c_0;
+		
+
+			a_0 = A[0+bs*1];
+			
+			c_0 = a_0 * b_0;
+
+			D[0+bs*1] = c_0;
+		
+
+			a_0 = A[0+bs*2];
+			
+			c_0 = a_0 * b_0;
+
+			D[0+bs*2] = c_0;
+		
+
+			a_0 = A[0+bs*3];
+			
+			c_0 = a_0 * b_0;
+
+			D[0+bs*3] = c_0;
+		
+
+			A += 1;
+			D += 1;
+			
+			}
+
+		}
+	else
+		{
+
+		for(k=0; k<kmax-3; k+=4)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			a_2 = A[2+bs*0];
+			a_3 = A[3+bs*0];
+			
+			c_0 = C[0+bs*0] + a_0 * b_0;
+			c_1 = C[1+bs*0] + a_1 * b_0;
+			c_2 = C[2+bs*0] + a_2 * b_0;
+			c_3 = C[3+bs*0] + a_3 * b_0;
+
+			D[0+bs*0] = c_0;
+			D[1+bs*0] = c_1;
+			D[2+bs*0] = c_2;
+			D[3+bs*0] = c_3;
+			
+
+			a_0 = A[0+bs*1];
+			a_1 = A[1+bs*1];
+			a_2 = A[2+bs*1];
+			a_3 = A[3+bs*1];
+			
+			c_0 = C[0+bs*1] + a_0 * b_1;
+			c_1 = C[1+bs*1] + a_1 * b_1;
+			c_2 = C[2+bs*1] + a_2 * b_1;
+			c_3 = C[3+bs*1] + a_3 * b_1;
+
+			D[0+bs*1] = c_0;
+			D[1+bs*1] = c_1;
+			D[2+bs*1] = c_2;
+			D[3+bs*1] = c_3;
+			
+
+			a_0 = A[0+bs*2];
+			a_1 = A[1+bs*2];
+			a_2 = A[2+bs*2];
+			a_3 = A[3+bs*2];
+			
+			c_0 = C[0+bs*2] + a_0 * b_2;
+			c_1 = C[1+bs*2] + a_1 * b_2;
+			c_2 = C[2+bs*2] + a_2 * b_2;
+			c_3 = C[3+bs*2] + a_3 * b_2;
+
+			D[0+bs*2] = c_0;
+			D[1+bs*2] = c_1;
+			D[2+bs*2] = c_2;
+			D[3+bs*2] = c_3;
+			
+
+			a_0 = A[0+bs*3];
+			a_1 = A[1+bs*3];
+			a_2 = A[2+bs*3];
+			a_3 = A[3+bs*3];
+			
+			c_0 = C[0+bs*3] + a_0 * b_3;
+			c_1 = C[1+bs*3] + a_1 * b_3;
+			c_2 = C[2+bs*3] + a_2 * b_3;
+			c_3 = C[3+bs*3] + a_3 * b_3;
+
+			D[0+bs*3] = c_0;
+			D[1+bs*3] = c_1;
+			D[2+bs*3] = c_2;
+			D[3+bs*3] = c_3;
+
+			A += 4*sda;
+			C += 4*sdc;
+			D += 4*sdd;
+			
+			}
+		for(; k<kmax; k++)
+			{
+			
+			a_0 = A[0+bs*0];
+			
+			c_0 = C[0+bs*0] + a_0 * b_0;
+
+			D[0+bs*0] = c_0;
+			
+
+			a_0 = A[0+bs*1];
+			
+			c_0 = C[0+bs*1] + a_0 * b_1;
+
+			D[0+bs*1] = c_0;
+			
+
+			a_0 = A[0+bs*2];
+			
+			c_0 = C[0+bs*2] + a_0 * b_2;
+
+			D[0+bs*2] = c_0;
+			
+
+			a_0 = A[0+bs*3];
+			
+			c_0 = C[0+bs*3] + a_0 * b_3;
+
+			D[0+bs*3] = c_0;
+
+	
+			A += 1;
+			C += 1;
+			D += 1;
+			
+			}
+
+		}
+	
+	}
+
+
+
+
+// B is the diagonal of a matrix
+void kernel_dgemm_diag_right_3_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg)
+	{
+
+	if(kmax<=0)
+		return;
+	
+	const int bs = 4;
+
+	int k;
+
+	double
+		a_0, a_1, a_2, a_3,
+		b_0, b_1, b_2,
+		c_0, c_1, c_2, c_3;
+		
+	if(alg==-1)
+		{
+		b_0 = - B[0];
+		b_1 = - B[1];
+		b_2 = - B[2];
+		}
+	else
+		{
+		b_0 = B[0];
+		b_1 = B[1];
+		b_2 = B[2];
+		}
+	
+	if(alg==0)
+		{
+		
+		for(k=0; k<kmax-3; k+=4)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			a_2 = A[2+bs*0];
+			a_3 = A[3+bs*0];
+			
+			c_0 = a_0 * b_0;
+			c_1 = a_1 * b_0;
+			c_2 = a_2 * b_0;
+			c_3 = a_3 * b_0;
+
+			D[0+bs*0] = c_0;
+			D[1+bs*0] = c_1;
+			D[2+bs*0] = c_2;
+			D[3+bs*0] = c_3;
+			
+
+			a_0 = A[0+bs*1];
+			a_1 = A[1+bs*1];
+			a_2 = A[2+bs*1];
+			a_3 = A[3+bs*1];
+			
+			c_0 = a_0 * b_1;
+			c_1 = a_1 * b_1;
+			c_2 = a_2 * b_1;
+			c_3 = a_3 * b_1;
+
+			D[0+bs*1] = c_0;
+			D[1+bs*1] = c_1;
+			D[2+bs*1] = c_2;
+			D[3+bs*1] = c_3;
+			
+
+			a_0 = A[0+bs*2];
+			a_1 = A[1+bs*2];
+			a_2 = A[2+bs*2];
+			a_3 = A[3+bs*2];
+			
+			c_0 = a_0 * b_2;
+			c_1 = a_1 * b_2;
+			c_2 = a_2 * b_2;
+			c_3 = a_3 * b_2;
+
+			D[0+bs*2] = c_0;
+			D[1+bs*2] = c_1;
+			D[2+bs*2] = c_2;
+			D[3+bs*2] = c_3;
+			
+
+			A += 4*sda;
+			D += 4*sdd;
+			
+			}
+		for(; k<kmax; k++)
+			{
+			
+			a_0 = A[0+bs*0];
+			
+			c_0 = a_0 * b_0;
+
+			D[0+bs*0] = c_0;
+		
+
+			a_0 = A[0+bs*1];
+			
+			c_0 = a_0 * b_0;
+
+			D[0+bs*1] = c_0;
+		
+
+			a_0 = A[0+bs*2];
+			
+			c_0 = a_0 * b_0;
+
+			D[0+bs*2] = c_0;
+		
+
+			A += 1;
+			D += 1;
+			
+			}
+
+		}
+	else
+		{
+
+		for(k=0; k<kmax-3; k+=4)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			a_2 = A[2+bs*0];
+			a_3 = A[3+bs*0];
+			
+			c_0 = C[0+bs*0] + a_0 * b_0;
+			c_1 = C[1+bs*0] + a_1 * b_0;
+			c_2 = C[2+bs*0] + a_2 * b_0;
+			c_3 = C[3+bs*0] + a_3 * b_0;
+
+			D[0+bs*0] = c_0;
+			D[1+bs*0] = c_1;
+			D[2+bs*0] = c_2;
+			D[3+bs*0] = c_3;
+			
+
+			a_0 = A[0+bs*1];
+			a_1 = A[1+bs*1];
+			a_2 = A[2+bs*1];
+			a_3 = A[3+bs*1];
+			
+			c_0 = C[0+bs*1] + a_0 * b_1;
+			c_1 = C[1+bs*1] + a_1 * b_1;
+			c_2 = C[2+bs*1] + a_2 * b_1;
+			c_3 = C[3+bs*1] + a_3 * b_1;
+
+			D[0+bs*1] = c_0;
+			D[1+bs*1] = c_1;
+			D[2+bs*1] = c_2;
+			D[3+bs*1] = c_3;
+			
+
+			a_0 = A[0+bs*2];
+			a_1 = A[1+bs*2];
+			a_2 = A[2+bs*2];
+			a_3 = A[3+bs*2];
+			
+			c_0 = C[0+bs*2] + a_0 * b_2;
+			c_1 = C[1+bs*2] + a_1 * b_2;
+			c_2 = C[2+bs*2] + a_2 * b_2;
+			c_3 = C[3+bs*2] + a_3 * b_2;
+
+			D[0+bs*2] = c_0;
+			D[1+bs*2] = c_1;
+			D[2+bs*2] = c_2;
+			D[3+bs*2] = c_3;
+			
+
+			A += 4*sda;
+			C += 4*sdc;
+			D += 4*sdd;
+			
+			}
+		for(; k<kmax; k++)
+			{
+			
+			a_0 = A[0+bs*0];
+			
+			c_0 = C[0+bs*0] + a_0 * b_0;
+
+			D[0+bs*0] = c_0;
+			
+
+			a_0 = A[0+bs*1];
+			
+			c_0 = C[0+bs*1] + a_0 * b_1;
+
+			D[0+bs*1] = c_0;
+			
+
+			a_0 = A[0+bs*2];
+			
+			c_0 = C[0+bs*2] + a_0 * b_2;
+
+			D[0+bs*2] = c_0;
+			
+
+			A += 1;
+			C += 1;
+			D += 1;
+			
+			}
+
+		}
+	
+	}
+
+
+
+// B is the diagonal of a matrix
+void kernel_dgemm_diag_right_2_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg)
+	{
+
+	if(kmax<=0)
+		return;
+	
+	const int bs = 4;
+
+	int k;
+
+	double
+		a_0, a_1, a_2, a_3,
+		b_0, b_1,
+		c_0, c_1, c_2, c_3;
+		
+	if(alg==-1)
+		{
+		b_0 = - B[0];
+		b_1 = - B[1];
+		}
+	else
+		{
+		b_0 = B[0];
+		b_1 = B[1];
+		}
+	
+	if(alg==0)
+		{
+		
+		for(k=0; k<kmax-3; k+=4)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			a_2 = A[2+bs*0];
+			a_3 = A[3+bs*0];
+			
+			c_0 = a_0 * b_0;
+			c_1 = a_1 * b_0;
+			c_2 = a_2 * b_0;
+			c_3 = a_3 * b_0;
+
+			D[0+bs*0] = c_0;
+			D[1+bs*0] = c_1;
+			D[2+bs*0] = c_2;
+			D[3+bs*0] = c_3;
+			
+
+			a_0 = A[0+bs*1];
+			a_1 = A[1+bs*1];
+			a_2 = A[2+bs*1];
+			a_3 = A[3+bs*1];
+			
+			c_0 = a_0 * b_1;
+			c_1 = a_1 * b_1;
+			c_2 = a_2 * b_1;
+			c_3 = a_3 * b_1;
+
+			D[0+bs*1] = c_0;
+			D[1+bs*1] = c_1;
+			D[2+bs*1] = c_2;
+			D[3+bs*1] = c_3;
+			
+
+			A += 4*sda;
+			D += 4*sdd;
+			
+			}
+		for(; k<kmax; k++)
+			{
+			
+			a_0 = A[0+bs*0];
+			
+			c_0 = a_0 * b_0;
+
+			D[0+bs*0] = c_0;
+		
+
+			a_0 = A[0+bs*1];
+			
+			c_0 = a_0 * b_0;
+
+			D[0+bs*1] = c_0;
+		
+
+			A += 1;
+			D += 1;
+			
+			}
+
+		}
+	else
+		{
+
+		for(k=0; k<kmax-3; k+=4)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			a_2 = A[2+bs*0];
+			a_3 = A[3+bs*0];
+			
+			c_0 = C[0+bs*0] + a_0 * b_0;
+			c_1 = C[1+bs*0] + a_1 * b_0;
+			c_2 = C[2+bs*0] + a_2 * b_0;
+			c_3 = C[3+bs*0] + a_3 * b_0;
+
+			D[0+bs*0] = c_0;
+			D[1+bs*0] = c_1;
+			D[2+bs*0] = c_2;
+			D[3+bs*0] = c_3;
+			
+
+			a_0 = A[0+bs*1];
+			a_1 = A[1+bs*1];
+			a_2 = A[2+bs*1];
+			a_3 = A[3+bs*1];
+			
+			c_0 = C[0+bs*1] + a_0 * b_1;
+			c_1 = C[1+bs*1] + a_1 * b_1;
+			c_2 = C[2+bs*1] + a_2 * b_1;
+			c_3 = C[3+bs*1] + a_3 * b_1;
+
+			D[0+bs*1] = c_0;
+			D[1+bs*1] = c_1;
+			D[2+bs*1] = c_2;
+			D[3+bs*1] = c_3;
+			
+
+			A += 4*sda;
+			C += 4*sdc;
+			D += 4*sdd;
+			
+			}
+		for(; k<kmax; k++)
+			{
+			
+			a_0 = A[0+bs*0];
+			
+			c_0 = C[0+bs*0] + a_0 * b_0;
+
+			D[0+bs*0] = c_0;
+			
+
+			a_0 = A[0+bs*1];
+			
+			c_0 = C[0+bs*1] + a_0 * b_1;
+
+			D[0+bs*1] = c_0;
+			
+
+			A += 1;
+			C += 1;
+			D += 1;
+			
+			}
+
+		}
+	
+	}
+
+
+
+// B is the diagonal of a matrix
+void kernel_dgemm_diag_right_1_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg)
+	{
+
+	if(kmax<=0)
+		return;
+	
+	const int bs = 4;
+
+	int k;
+
+	double
+		a_0, a_1, a_2, a_3,
+		b_0,
+		c_0, c_1, c_2, c_3;
+		
+	if(alg==-1)
+		{
+		b_0 = - B[0];
+		}
+	else
+		{
+		b_0 = B[0];
+		}
+	
+	if(alg==0)
+		{
+		
+		for(k=0; k<kmax-3; k+=4)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			a_2 = A[2+bs*0];
+			a_3 = A[3+bs*0];
+			
+			c_0 = a_0 * b_0;
+			c_1 = a_1 * b_0;
+			c_2 = a_2 * b_0;
+			c_3 = a_3 * b_0;
+
+			D[0+bs*0] = c_0;
+			D[1+bs*0] = c_1;
+			D[2+bs*0] = c_2;
+			D[3+bs*0] = c_3;
+			
+
+			A += 4*sda;
+			D += 4*sdd;
+			
+			}
+		for(; k<kmax; k++)
+			{
+			
+			a_0 = A[0+bs*0];
+			
+			c_0 = a_0 * b_0;
+
+			D[0+bs*0] = c_0;
+		
+
+			A += 1;
+			D += 1;
+			
+			}
+
+		}
+	else
+		{
+
+		for(k=0; k<kmax-3; k+=4)
+			{
+			
+			a_0 = A[0+bs*0];
+			a_1 = A[1+bs*0];
+			a_2 = A[2+bs*0];
+			a_3 = A[3+bs*0];
+			
+			c_0 = C[0+bs*0] + a_0 * b_0;
+			c_1 = C[1+bs*0] + a_1 * b_0;
+			c_2 = C[2+bs*0] + a_2 * b_0;
+			c_3 = C[3+bs*0] + a_3 * b_0;
+
+			D[0+bs*0] = c_0;
+			D[1+bs*0] = c_1;
+			D[2+bs*0] = c_2;
+			D[3+bs*0] = c_3;
+			
+
+			A += 4*sda;
+			C += 4*sdc;
+			D += 4*sdd;
+			
+			}
+		for(; k<kmax; k++)
+			{
+			
+			a_0 = A[0+bs*0];
+			
+			c_0 = C[0+bs*0] + a_0 * b_0;
+
+			D[0+bs*0] = c_0;
+			
+
+			A += 1;
+			C += 1;
+			D += 1;
+			
+			}
+
+		}
+	
+	}
+
+
+
 // A is the diagonal of a matrix
 void kernel_dgemm_diag_left_4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
 	{

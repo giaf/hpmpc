@@ -4378,6 +4378,552 @@ void kernel_dgemm_nn_2x2_lib4(int kmax, double *A, double *B, int sdb, double *C
 
 
 
+// B is the diagonal of a matrix
+void kernel_dgemm_diag_right_4_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg)
+	{
+
+	if(kmax<=0)
+		return;
+	
+	const int bs = 4;
+
+	int k;
+
+	__m256d
+		mask_f,
+		sign,
+		a_00,
+		b_00, b_11, b_22, b_33,
+		c_00,
+		d_00, d_01, d_02, d_03;
+	
+	__m256i
+		mask_i;
+	
+	if(alg==-1)
+		{
+		b_00 = _mm256_broadcast_sd( &B[0] );
+		b_11 = _mm256_broadcast_sd( &B[1] );
+		b_22 = _mm256_broadcast_sd( &B[2] );
+		b_33 = _mm256_broadcast_sd( &B[3] );
+		long long long_sign = 0x8000000000000000;
+		sign = _mm256_broadcast_sd( (double *) &long_sign );
+		b_00 = _mm256_xor_pd( sign, b_00 );
+		b_11 = _mm256_xor_pd( sign, b_11 );
+		b_22 = _mm256_xor_pd( sign, b_22 );
+		b_33 = _mm256_xor_pd( sign, b_33 );
+		}
+	else
+		{
+		b_00 = _mm256_broadcast_sd( &B[0] );
+		b_11 = _mm256_broadcast_sd( &B[1] );
+		b_22 = _mm256_broadcast_sd( &B[2] );
+		b_33 = _mm256_broadcast_sd( &B[3] );
+		}
+	
+	if(alg==0)
+		{
+		
+		for(k=0; k<kmax-3; k+=4)
+			{
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[4] );
+			d_01 = _mm256_mul_pd( a_00, b_11 );
+			a_00 = _mm256_load_pd( &A[8] );
+			d_02 = _mm256_mul_pd( a_00, b_22 );
+			a_00 = _mm256_load_pd( &A[12] );
+			d_03 = _mm256_mul_pd( a_00, b_33 );
+
+			_mm256_store_pd( &D[0], d_00 );
+			_mm256_store_pd( &D[4], d_01 );
+			_mm256_store_pd( &D[8], d_02 );
+			_mm256_store_pd( &D[12], d_03 );
+
+			A += 4*sda;
+			D += 4*sdd;
+
+			}
+		if(k<kmax)
+			{
+
+			const double mask_f[] = {0.5, 1.5, 2.5, 3.5};
+			double m_f = kmax-k;
+
+			mask_i = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( mask_f ), _mm256_broadcast_sd( &m_f ) ) );
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[4] );
+			d_01 = _mm256_mul_pd( a_00, b_11 );
+			a_00 = _mm256_load_pd( &A[8] );
+			d_02 = _mm256_mul_pd( a_00, b_22 );
+			a_00 = _mm256_load_pd( &A[12] );
+			d_03 = _mm256_mul_pd( a_00, b_33 );
+
+			_mm256_maskstore_pd( &D[0], mask_i, d_00 );
+			_mm256_maskstore_pd( &D[4], mask_i, d_01 );
+			_mm256_maskstore_pd( &D[8], mask_i, d_02 );
+			_mm256_maskstore_pd( &D[12], mask_i, d_03 );
+	
+			}
+
+		}
+	else
+		{
+
+		for(k=0; k<kmax-3; k++)
+			{
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[4] );
+			d_01 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[8] );
+			d_02 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[12] );
+			d_03 = _mm256_mul_pd( a_00, b_00 );
+
+			c_00 = _mm256_load_pd( &C[0] );
+			d_00 = _mm256_add_pd( c_00, d_00 );
+			c_00 = _mm256_load_pd( &C[4] );
+			d_01 = _mm256_add_pd( c_00, d_01 );
+			c_00 = _mm256_load_pd( &C[8] );
+			d_02 = _mm256_add_pd( c_00, d_02 );
+			c_00 = _mm256_load_pd( &C[12] );
+			d_03 = _mm256_add_pd( c_00, d_03 );
+
+			_mm256_store_pd( &D[0], d_00 );
+			_mm256_store_pd( &D[4], d_01 );
+			_mm256_store_pd( &D[8], d_02 );
+			_mm256_store_pd( &D[12], d_03 );
+
+			A += 4*sda;
+			C += 4*sdc;
+			D += 4*sdd;
+
+			}
+		for( ; k<kmax; k++)
+			{
+
+			const double mask_f[] = {0.5, 1.5, 2.5, 3.5};
+			double m_f = kmax-k;
+
+			mask_i = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( mask_f ), _mm256_broadcast_sd( &m_f ) ) );
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[4] );
+			d_01 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[8] );
+			d_02 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[12] );
+			d_03 = _mm256_mul_pd( a_00, b_00 );
+
+			c_00 = _mm256_load_pd( &C[0] );
+			d_00 = _mm256_add_pd( c_00, d_00 );
+			c_00 = _mm256_load_pd( &C[4] );
+			d_01 = _mm256_add_pd( c_00, d_01 );
+			c_00 = _mm256_load_pd( &C[8] );
+			d_02 = _mm256_add_pd( c_00, d_02 );
+			c_00 = _mm256_load_pd( &C[12] );
+			d_03 = _mm256_add_pd( c_00, d_03 );
+
+			_mm256_maskstore_pd( &D[0], mask_i, d_00 );
+			_mm256_maskstore_pd( &D[4], mask_i, d_01 );
+			_mm256_maskstore_pd( &D[8], mask_i, d_02 );
+			_mm256_maskstore_pd( &D[12], mask_i, d_03 );
+
+			}
+
+		}
+	
+	}
+
+
+
+// B is the diagonal of a matrix
+void kernel_dgemm_diag_right_3_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg)
+	{
+
+	if(kmax<=0)
+		return;
+	
+	const int bs = 4;
+
+	int k;
+
+	__m256d
+		mask_f,
+		sign,
+		a_00,
+		b_00, b_11, b_22,
+		c_00,
+		d_00, d_01, d_02;
+	
+	__m256i
+		mask_i;
+	
+	if(alg==-1)
+		{
+		b_00 = _mm256_broadcast_sd( &B[0] );
+		b_11 = _mm256_broadcast_sd( &B[1] );
+		b_22 = _mm256_broadcast_sd( &B[2] );
+		long long long_sign = 0x8000000000000000;
+		sign = _mm256_broadcast_sd( (double *) &long_sign );
+		b_00 = _mm256_xor_pd( sign, b_00 );
+		b_11 = _mm256_xor_pd( sign, b_11 );
+		b_22 = _mm256_xor_pd( sign, b_22 );
+		}
+	else
+		{
+		b_00 = _mm256_broadcast_sd( &B[0] );
+		b_11 = _mm256_broadcast_sd( &B[1] );
+		b_22 = _mm256_broadcast_sd( &B[2] );
+		}
+	
+	if(alg==0)
+		{
+		
+		for(k=0; k<kmax-3; k+=4)
+			{
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[4] );
+			d_01 = _mm256_mul_pd( a_00, b_11 );
+			a_00 = _mm256_load_pd( &A[8] );
+			d_02 = _mm256_mul_pd( a_00, b_22 );
+
+			_mm256_store_pd( &D[0], d_00 );
+			_mm256_store_pd( &D[4], d_01 );
+			_mm256_store_pd( &D[8], d_02 );
+
+			A += 4*sda;
+			D += 4*sdd;
+
+			}
+		if(k<kmax)
+			{
+
+			const double mask_f[] = {0.5, 1.5, 2.5, 3.5};
+			double m_f = kmax-k;
+
+			mask_i = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( mask_f ), _mm256_broadcast_sd( &m_f ) ) );
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[4] );
+			d_01 = _mm256_mul_pd( a_00, b_11 );
+			a_00 = _mm256_load_pd( &A[8] );
+			d_02 = _mm256_mul_pd( a_00, b_22 );
+
+			_mm256_maskstore_pd( &D[0], mask_i, d_00 );
+			_mm256_maskstore_pd( &D[4], mask_i, d_01 );
+			_mm256_maskstore_pd( &D[8], mask_i, d_02 );
+	
+			}
+
+		}
+	else
+		{
+
+		for(k=0; k<kmax-3; k++)
+			{
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[4] );
+			d_01 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[8] );
+			d_02 = _mm256_mul_pd( a_00, b_00 );
+
+			c_00 = _mm256_load_pd( &C[0] );
+			d_00 = _mm256_add_pd( c_00, d_00 );
+			c_00 = _mm256_load_pd( &C[4] );
+			d_01 = _mm256_add_pd( c_00, d_01 );
+			c_00 = _mm256_load_pd( &C[8] );
+			d_02 = _mm256_add_pd( c_00, d_02 );
+
+			_mm256_store_pd( &D[0], d_00 );
+			_mm256_store_pd( &D[4], d_01 );
+			_mm256_store_pd( &D[8], d_02 );
+
+			A += 4*sda;
+			C += 4*sdc;
+			D += 4*sdd;
+
+			}
+		for( ; k<kmax; k++)
+			{
+
+			const double mask_f[] = {0.5, 1.5, 2.5, 3.5};
+			double m_f = kmax-k;
+
+			mask_i = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( mask_f ), _mm256_broadcast_sd( &m_f ) ) );
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[4] );
+			d_01 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[8] );
+			d_02 = _mm256_mul_pd( a_00, b_00 );
+
+			c_00 = _mm256_load_pd( &C[0] );
+			d_00 = _mm256_add_pd( c_00, d_00 );
+			c_00 = _mm256_load_pd( &C[4] );
+			d_01 = _mm256_add_pd( c_00, d_01 );
+			c_00 = _mm256_load_pd( &C[8] );
+			d_02 = _mm256_add_pd( c_00, d_02 );
+
+			_mm256_maskstore_pd( &D[0], mask_i, d_00 );
+			_mm256_maskstore_pd( &D[4], mask_i, d_01 );
+			_mm256_maskstore_pd( &D[8], mask_i, d_02 );
+
+			}
+
+		}
+	
+	}
+
+
+
+// B is the diagonal of a matrix
+void kernel_dgemm_diag_right_2_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg)
+	{
+
+	if(kmax<=0)
+		return;
+	
+	const int bs = 4;
+
+	int k;
+
+	__m256d
+		mask_f,
+		sign,
+		a_00,
+		b_00, b_11,
+		c_00,
+		d_00, d_01;
+	
+	__m256i
+		mask_i;
+	
+	if(alg==-1)
+		{
+		b_00 = _mm256_broadcast_sd( &B[0] );
+		b_11 = _mm256_broadcast_sd( &B[1] );
+		long long long_sign = 0x8000000000000000;
+		sign = _mm256_broadcast_sd( (double *) &long_sign );
+		b_00 = _mm256_xor_pd( sign, b_00 );
+		b_11 = _mm256_xor_pd( sign, b_11 );
+		}
+	else
+		{
+		b_00 = _mm256_broadcast_sd( &B[0] );
+		b_11 = _mm256_broadcast_sd( &B[1] );
+		}
+	
+	if(alg==0)
+		{
+		
+		for(k=0; k<kmax-3; k+=4)
+			{
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[4] );
+			d_01 = _mm256_mul_pd( a_00, b_11 );
+
+			_mm256_store_pd( &D[0], d_00 );
+			_mm256_store_pd( &D[4], d_01 );
+
+			A += 4*sda;
+			D += 4*sdd;
+
+			}
+		if(k<kmax)
+			{
+
+			const double mask_f[] = {0.5, 1.5, 2.5, 3.5};
+			double m_f = kmax-k;
+
+			mask_i = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( mask_f ), _mm256_broadcast_sd( &m_f ) ) );
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[4] );
+			d_01 = _mm256_mul_pd( a_00, b_11 );
+
+			_mm256_maskstore_pd( &D[0], mask_i, d_00 );
+			_mm256_maskstore_pd( &D[4], mask_i, d_01 );
+	
+			}
+
+		}
+	else
+		{
+
+		for(k=0; k<kmax-3; k++)
+			{
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[4] );
+			d_01 = _mm256_mul_pd( a_00, b_00 );
+
+			c_00 = _mm256_load_pd( &C[0] );
+			d_00 = _mm256_add_pd( c_00, d_00 );
+			c_00 = _mm256_load_pd( &C[4] );
+			d_01 = _mm256_add_pd( c_00, d_01 );
+
+			_mm256_store_pd( &D[0], d_00 );
+			_mm256_store_pd( &D[4], d_01 );
+
+			A += 4*sda;
+			C += 4*sdc;
+			D += 4*sdd;
+
+			}
+		for( ; k<kmax; k++)
+			{
+
+			const double mask_f[] = {0.5, 1.5, 2.5, 3.5};
+			double m_f = kmax-k;
+
+			mask_i = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( mask_f ), _mm256_broadcast_sd( &m_f ) ) );
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+			a_00 = _mm256_load_pd( &A[4] );
+			d_01 = _mm256_mul_pd( a_00, b_00 );
+
+			c_00 = _mm256_load_pd( &C[0] );
+			d_00 = _mm256_add_pd( c_00, d_00 );
+			c_00 = _mm256_load_pd( &C[4] );
+			d_01 = _mm256_add_pd( c_00, d_01 );
+
+			_mm256_maskstore_pd( &D[0], mask_i, d_00 );
+			_mm256_maskstore_pd( &D[4], mask_i, d_01 );
+
+			}
+
+		}
+	
+	}
+
+
+
+// B is the diagonal of a matrix
+void kernel_dgemm_diag_right_1_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg)
+	{
+
+	if(kmax<=0)
+		return;
+	
+	const int bs = 4;
+
+	int k;
+
+	__m256d
+		mask_f,
+		sign,
+		a_00,
+		b_00,
+		c_00,
+		d_00;
+	
+	__m256i
+		mask_i;
+	
+	if(alg==-1)
+		{
+		b_00 = _mm256_broadcast_sd( &B[0] );
+		long long long_sign = 0x8000000000000000;
+		sign = _mm256_broadcast_sd( (double *) &long_sign );
+		b_00 = _mm256_xor_pd( sign, b_00 );
+		}
+	else
+		{
+		b_00 = _mm256_broadcast_sd( &B[0] );
+		}
+	
+	if(alg==0)
+		{
+		
+		for(k=0; k<kmax-3; k+=4)
+			{
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+
+			_mm256_store_pd( &D[0], d_00 );
+
+			A += 4*sda;
+			D += 4*sdd;
+
+			}
+		if(k<kmax)
+			{
+
+			const double mask_f[] = {0.5, 1.5, 2.5, 3.5};
+			double m_f = kmax-k;
+
+			mask_i = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( mask_f ), _mm256_broadcast_sd( &m_f ) ) );
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+
+			_mm256_maskstore_pd( &D[0], mask_i, d_00 );
+	
+			}
+
+		}
+	else
+		{
+
+		for(k=0; k<kmax-3; k++)
+			{
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+
+			c_00 = _mm256_load_pd( &C[0] );
+			d_00 = _mm256_add_pd( c_00, d_00 );
+
+			_mm256_store_pd( &D[0], d_00 );
+
+			A += 4*sda;
+			C += 4*sdc;
+			D += 4*sdd;
+
+			}
+		for( ; k<kmax; k++)
+			{
+
+			const double mask_f[] = {0.5, 1.5, 2.5, 3.5};
+			double m_f = kmax-k;
+
+			mask_i = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( mask_f ), _mm256_broadcast_sd( &m_f ) ) );
+
+			a_00 = _mm256_load_pd( &A[0] );
+			d_00 = _mm256_mul_pd( a_00, b_00 );
+
+			c_00 = _mm256_load_pd( &C[0] );
+			d_00 = _mm256_add_pd( c_00, d_00 );
+
+			_mm256_maskstore_pd( &D[0], mask_i, d_00 );
+
+			}
+
+		}
+	
+	}
+
+
+
 // A is the diagonal of a matrix
 void kernel_dgemm_diag_left_4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
@@ -4395,9 +4941,11 @@ void kernel_dgemm_diag_left_4_lib4(int kmax, double *A, double *B, double *C, do
 		sign,
 		a_00,
 		b_00,
-		c_00, c_01, c_02, c_03,
+		c_00,
 		d_00, d_01, d_02, d_03;
 	
+#define DIAG 0
+#if (DIAG==1)
 	if(0)
 		{
 
@@ -4447,12 +4995,12 @@ void kernel_dgemm_diag_left_4_lib4(int kmax, double *A, double *B, double *C, do
 
 				c_00 = _mm256_load_pd( &C[0] );
 				d_00 = _mm256_add_pd( c_00, d_00 );
-				c_01 = _mm256_load_pd( &C[4] );
-				d_01 = _mm256_add_pd( c_01, d_01 );
-				c_02 = _mm256_load_pd( &C[8] );
-				d_02 = _mm256_add_pd( c_02, d_02 );
-				c_03 = _mm256_load_pd( &C[12] );
-				d_03 = _mm256_add_pd( c_03, d_03 );
+				c_00 = _mm256_load_pd( &C[4] );
+				d_01 = _mm256_add_pd( c_00, d_01 );
+				c_00 = _mm256_load_pd( &C[8] );
+				d_02 = _mm256_add_pd( c_00, d_02 );
+				c_00 = _mm256_load_pd( &C[12] );
+				d_03 = _mm256_add_pd( c_00, d_03 );
 
 				_mm256_store_pd( &D[0], d_00 );
 				_mm256_store_pd( &D[4], d_01 );
@@ -4487,6 +5035,7 @@ void kernel_dgemm_diag_left_4_lib4(int kmax, double *A, double *B, double *C, do
 		}
 	else
 		{
+#endif
 		
 		if(alg==-1)
 			{
@@ -4555,12 +5104,12 @@ void kernel_dgemm_diag_left_4_lib4(int kmax, double *A, double *B, double *C, do
 
 				c_00 = _mm256_load_pd( &C[0] );
 				d_00 = _mm256_add_pd( c_00, d_00 );
-				c_01 = _mm256_load_pd( &C[4] );
-				d_01 = _mm256_add_pd( c_01, d_01 );
-				c_02 = _mm256_load_pd( &C[8] );
-				d_02 = _mm256_add_pd( c_02, d_02 );
-				c_03 = _mm256_load_pd( &C[12] );
-				d_03 = _mm256_add_pd( c_03, d_03 );
+				c_00 = _mm256_load_pd( &C[4] );
+				d_01 = _mm256_add_pd( c_00, d_01 );
+				c_00 = _mm256_load_pd( &C[8] );
+				d_02 = _mm256_add_pd( c_00, d_02 );
+				c_00 = _mm256_load_pd( &C[12] );
+				d_03 = _mm256_add_pd( c_00, d_03 );
 
 				_mm256_store_pd( &D[0], d_00 );
 				_mm256_store_pd( &D[4], d_01 );
@@ -4591,7 +5140,9 @@ void kernel_dgemm_diag_left_4_lib4(int kmax, double *A, double *B, double *C, do
 
 			}
 
+#if (DIAG==1)
 		}
+#endif
 
 
 #else

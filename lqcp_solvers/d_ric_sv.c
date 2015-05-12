@@ -66,6 +66,9 @@ void d_ric_sv_mpc_tv(int *nx, int *nu, int N, double **hpBAbt, double **hpQ, int
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[N], cng0, qx[N]+2*pnb0, hQl[N], 1);
 		// copy and scale DCt
 		// TODO // routine for this
+#if 1
+		dgemm_diag_right_lib(nu0+nx0, ng0, hpDCt[N], cng0, Qx[N]+2*pnb0, work, cng0, work, cng0, 0);
+#else
 		for(ii=0; ii<nu0+nx0-3; ii+=4)
 			{
 			for(jj=0; jj<ng0; jj++)
@@ -84,7 +87,8 @@ void d_ric_sv_mpc_tv(int *nx, int *nu, int N, double **hpBAbt, double **hpQ, int
 				work[ll+ii*cng0+jj*bs] = Qx[N][2*pnb0+jj] * hpDCt[N][ll+ii*cng0+jj*bs];
 				}
 			}
-		for(jj=0; jj<nu0+nx0; jj++)
+#endif
+		for(jj=0; jj<ng0; jj++)
 			work[(nu0+nx0)/bs*cng0*bs+(nu0+nx0)%bs+jj*bs] = 0.0;
 		}
 	if(update_hessian)
@@ -138,6 +142,9 @@ void d_ric_sv_mpc_tv(int *nx, int *nu, int N, double **hpBAbt, double **hpQ, int
 			dgemv_n_lib(nu0+nx0, ng0, hpDCt[N-nn-1], cng0, qx[N-nn-1]+2*pnb0, hQl[N-nn-1], 1);
 			// copy and scale DCt
 			// TODO // routine for this
+#if 1
+			dgemm_diag_right_lib(nu0+nx0, ng0, hpDCt[N-nn-1], cng0, Qx[N-nn-1]+2*pnb0, work+nx1*bs, cnxg0, work+nx1*bs, cnxg0, 0);
+#else
 			for(ii=0; ii<nu0+nx0-3; ii+=4)
 				{
 				for(jj=0; jj<ng0; jj++)
@@ -156,8 +163,9 @@ void d_ric_sv_mpc_tv(int *nx, int *nu, int N, double **hpBAbt, double **hpQ, int
 					work[ll+ii*cnxg0+(nx1+jj)*bs] = Qx[N-nn-1][2*pnb0+jj] * hpDCt[N-nn-1][ll+ii*cng0+jj*bs];
 					}
 				}
-			for(jj=0; jj<nu0+nx0; jj++)
-				work[(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs+(nx0+jj)*bs] = 0.0;
+#endif
+			for(jj=0; jj<ng0; jj++)
+				work[(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs+(nx1+jj)*bs] = 0.0;
 			}
 		if(update_hessian)
 			{
@@ -204,6 +212,9 @@ void d_ric_sv_mpc_tv(int *nx, int *nu, int N, double **hpBAbt, double **hpQ, int
 		dgemv_n_lib(nu0+nz0, ng0, hpDCt[0], cng0, qx[0]+2*pnb0, hQl[0], 1);
 		// copy and scale DCt
 		// TODO // routine for this
+#if 1
+		dgemm_diag_right_lib(nu0+nx0, ng0, hpDCt[0], cng0, Qx[0]+2*pnb0, work+nx1*bs, cnxg0, work+nx1*bs, cnxg0, 0);
+#else
 		for(ii=0; ii<nu0+nx0-3; ii+=4)
 			{
 			for(jj=0; jj<ng0; jj++)
@@ -222,8 +233,9 @@ void d_ric_sv_mpc_tv(int *nx, int *nu, int N, double **hpBAbt, double **hpQ, int
 				work[ll+ii*cnxg0+jj*bs] = Qx[0][2*pnb0+jj] * hpDCt[0][ll+ii*cng0+jj*bs];
 				}
 			}
-		for(jj=0; jj<nu0+nx0; jj++)
-			work[(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs+jj*bs] = 0.0;
+#endif
+		for(jj=0; jj<ng0; jj++)
+			work[(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs+(nx1+jj)*bs] = 0.0;
 		}
 	if(update_hessian)
 		{
@@ -419,6 +431,9 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		dgemv_n_lib(nx+nu, ngN, hpDCt[N], cngN, qx[N]+2*pnb, hQl[N], 1);
 		// copy and scale DCt
 		// TODO // routine for this
+#if 1
+		dgemm_diag_right_lib(nx+nu, ngN, hpDCt[N], cngN, Qx[N]+2*pnb, work, cngN, work, cngN, 0);
+#else
 		for(ii=0; ii<nx+nu-3; ii+=4)
 			{
 			for(jj=0; jj<ngN; jj++)
@@ -439,7 +454,8 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 				work[ll+ii*cngN+jj*bs] = Qx[N][2*pnb+jj] * hpDCt[N][ll+ii*cngN+jj*bs];
 				}
 			}
-		for(jj=0; jj<nx+nu; jj++)
+#endif
+		for(jj=0; jj<ngN; jj++)
 			work[(nu+nx)/bs*cngN*bs+(nu+nx)%bs+jj*bs] = 0.0;
 		//d_print_pmat(nz, ngN, bs, work, cngN);
 		//exit(1);
@@ -490,6 +506,9 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 			dgemv_n_lib(nx+nu, ng, hpDCt[N-nn-1], cng, qx[N-nn-1]+2*pnb, hQl[N-nn-1], 1);
 			// copy and scale DCt
 			// TODO // routine for this
+#if 1
+			dgemm_diag_right_lib(nx+nu, ng, hpDCt[N-nn-1], cng, Qx[N-nn-1]+2*pnb, work+nx*bs, cnxg, work+nx*bs, cnxg, 0);
+#else
 			for(ii=0; ii<nx+nu-3; ii+=4)
 				{
 				for(jj=0; jj<ng; jj++)
@@ -510,8 +529,9 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 					work[ll+ii*cnxg+(nx+jj)*bs] = Qx[N-nn-1][2*pnb+jj] * hpDCt[N-nn-1][ll+ii*cng+jj*bs];
 					}
 				}
+			#endif
 			//d_print_pmat(nz, nx+ng, bs, work, cnxg);
-			for(jj=0; jj<nx+nu; jj++)
+			for(jj=0; jj<ng; jj++)
 				work[(nu+nx)/bs*cnxg*bs+(nu+nx)%bs+(nx+jj)*bs] = 0.0;
 			}
 		if(update_hessian)
@@ -555,6 +575,9 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		dgemv_n_lib(nx+nu, ng, hpDCt[0], cng, qx[0]+2*pnb, hQl[0], 1);
 		// copy and scale DCt
 		// TODO // routine for this
+#if 1
+		dgemm_diag_right_lib(nx+nu, ng, hpDCt[0], cng, Qx[0]+2*pnb, work+nx*bs, cnxg, work+nx*bs, cnxg, 0);
+#else
 		for(ii=0; ii<nx+nu-3; ii+=4)
 			{
 			for(jj=0; jj<ng; jj++)
@@ -575,8 +598,9 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 				work[ll+ii*cnxg+(nx+jj)*bs] = Qx[0][2*pnb+jj] * hpDCt[0][ll+ii*cng+jj*bs];
 				}
 			}
+		#endif
 		//d_print_pmat(nz, nx+ng, bs, work, cnxg);
-		for(jj=0; jj<nx+nu; jj++)
+		for(jj=0; jj<ng; jj++)
 			work[(nu+nx)/bs*cnxg*bs+(nu+nx)%bs+(nx+jj)*bs] = 0.0;
 		}
 	if(update_hessian)
