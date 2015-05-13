@@ -35,8 +35,11 @@
 
 
 // normal-transposed, 12x4 with data packed in 4
-void kernel_dsyrk_nt_12x4_lib4(int kadd, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
+void kernel_dsyrk_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
+	
+	if(kmax<=0)
+		return;
 	
 	double *A1 = A0 + 4*sda;
 	double *A2 = A0 + 8*sda;
@@ -77,7 +80,7 @@ void kernel_dsyrk_nt_12x4_lib4(int kadd, double *A0, int sda, double *B, double 
 	c_83 = _mm256_setzero_pd();
 	c_82 = _mm256_setzero_pd();
 
-	for(k=0; k<kadd-3; k+=4)
+	for(k=0; k<kmax-3; k+=4)
 		{
 		
 		c_00 = _mm256_fmadd_pd( a_0, b_0, c_00 );
@@ -184,7 +187,7 @@ void kernel_dsyrk_nt_12x4_lib4(int kadd, double *A0, int sda, double *B, double 
 
 		}
 	
-	if(kadd%4>=2)
+	if(kmax%4>=2)
 		{
 		
 		c_00 = _mm256_fmadd_pd( a_0, b_0, c_00 );
@@ -243,7 +246,7 @@ void kernel_dsyrk_nt_12x4_lib4(int kadd, double *A0, int sda, double *B, double 
 
 		}
 
-	if(kadd%2==1)
+	if(kmax%2==1)
 		{
 		
 		c_00 = _mm256_fmadd_pd( a_0, b_0, c_00 );
@@ -426,8 +429,11 @@ void kernel_dsyrk_nt_12x4_lib4(int kadd, double *A0, int sda, double *B, double 
 
 
 // normal-transposed, 8x8 with data packed in 4
-void kernel_dsyrk_nt_8x8_lib4(int kadd, double *A0, int sda, double *B0, int sdb, double *C0, int sdc, double *D0, int sdd, int alg)
+void kernel_dsyrk_nt_8x8_lib4(int kmax, double *A0, int sda, double *B0, int sdb, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
+	
+	if(kmax<=0)
+		return;
 	
 	double *A1 = A0 + 4*sda;
 	double *B1 = B0 + 4*sdb;
@@ -466,7 +472,7 @@ void kernel_dsyrk_nt_8x8_lib4(int kadd, double *A0, int sda, double *B0, int sdb
 	c_47 = _mm256_setzero_pd();
 	c_46 = _mm256_setzero_pd();
 
-	for(k=0; k<kadd-3; k+=4)
+	for(k=0; k<kmax-3; k+=4)
 		{
 		
 		c_00 = _mm256_fmadd_pd( a_0, b_0, c_00 );
@@ -588,7 +594,7 @@ void kernel_dsyrk_nt_8x8_lib4(int kadd, double *A0, int sda, double *B0, int sdb
 
 		}
 	
-	if(kadd%4>=2)
+	if(kmax%4>=2)
 		{
 		
 		c_00 = _mm256_fmadd_pd( a_0, b_0, c_00 );
@@ -654,7 +660,7 @@ void kernel_dsyrk_nt_8x8_lib4(int kadd, double *A0, int sda, double *B0, int sdb
 
 		}
 
-	if(kadd%2==1)
+	if(kmax%2==1)
 		{
 		
 		c_00 = _mm256_fmadd_pd( a_0, b_0, c_00 );
@@ -855,8 +861,11 @@ void kernel_dsyrk_nt_8x8_lib4(int kadd, double *A0, int sda, double *B0, int sdb
 
 
 // normal-transposed, 8x4 with data packed in 4
-void kernel_dsyrk_nt_8x4_lib4(int kadd, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
+void kernel_dsyrk_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
+	
+	if(kmax<=0)
+		return;
 	
 	double *A1 = A0 + 4*sda;
 	double *C1 = C0 + 4*sdc;
@@ -889,7 +898,7 @@ void kernel_dsyrk_nt_8x4_lib4(int kadd, double *A0, int sda, double *B, double *
 	c_43 = _mm256_setzero_pd();
 	c_42 = _mm256_setzero_pd();
 
-	for(k=0; k<kadd-3; k+=4)
+	for(k=0; k<kmax-3; k+=4)
 		{
 		
 /*	__builtin_prefetch( A+32 );*/
@@ -962,7 +971,7 @@ void kernel_dsyrk_nt_8x4_lib4(int kadd, double *A0, int sda, double *B, double *
 
 		}
 	
-	if(kadd%4>=2)
+	if(kmax%4>=2)
 		{
 		
 		A_0  = _mm256_load_pd( &A0[4] ); // prefetch
@@ -1002,7 +1011,7 @@ void kernel_dsyrk_nt_8x4_lib4(int kadd, double *A0, int sda, double *B, double *
 
 		}
 
-	if(kadd%2==1)
+	if(kmax%2==1)
 		{
 		
 //		A_0  = _mm256_load_pd( &A0[4] ); // prefetch
@@ -1115,6 +1124,9 @@ void kernel_dsyrk_nt_8x4_lib4(int kadd, double *A0, int sda, double *B, double *
 // normal-transposed, 8x2 with data packed in 4
 void kernel_dsyrk_nt_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
+	
+	if(kmax<=0)
+		return;
 	
 	double *A1 = A0 + 4*sda;
 	double *C1 = C0 + 4*sdc;
@@ -1310,8 +1322,11 @@ void kernel_dsyrk_nt_8x2_lib4(int kmax, double *A0, int sda, double *B, double *
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dsyrk_nt_4x4_lib4(int kadd, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
+	
+	if(kmax<=0)
+		return;
 	
 	const int bs = 4;
 	const int ldc = bs;
@@ -1340,7 +1355,7 @@ void kernel_dsyrk_nt_4x4_lib4(int kadd, double *A, double *B, double *C, double 
 	C_02 = _mm256_setzero_pd();
 
 
-	for(k=0; k<kadd-3; k+=4)
+	for(k=0; k<kmax-3; k+=4)
 		{
 		
 /*	__builtin_prefetch( A+32 );*/
@@ -1396,7 +1411,7 @@ void kernel_dsyrk_nt_4x4_lib4(int kadd, double *A, double *B, double *C, double 
 
 		}
 	
-	if(kadd%4>=2)
+	if(kmax%4>=2)
 		{
 		
 		B_0  = _mm256_broadcast_pd( (__m128d *) &B[4] ); // prefetch
@@ -1432,7 +1447,7 @@ void kernel_dsyrk_nt_4x4_lib4(int kadd, double *A, double *B, double *C, double 
 	c_03 = _mm256_add_pd( c_03, C_03 );
 	c_02 = _mm256_add_pd( c_02, C_02 );
 
-	if(kadd%2==1)
+	if(kmax%2==1)
 		{
 		
 //		B_0  = _mm256_broadcast_pd( (__m128d *) &B[4] ); // prefetch
@@ -1517,8 +1532,11 @@ void kernel_dsyrk_nt_4x4_lib4(int kadd, double *A, double *B, double *C, double 
 
 
 // normal-transposed, 4x2 with data packed in 4
-void kernel_dsyrk_nt_4x2_lib4(int kadd, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
+	
+	if(kmax<=0)
+		return;
 	
 	const int bs = 4;
 	const int ldc = bs;
@@ -1541,7 +1559,7 @@ void kernel_dsyrk_nt_4x2_lib4(int kadd, double *A, double *B, double *C, double 
 	C_00_11_20_31 = _mm256_setzero_pd();
 	C_01_10_21_30 = _mm256_setzero_pd();
 
-	for(k=0; k<kadd-3; k+=4)
+	for(k=0; k<kmax-3; k+=4)
 		{
 		
 /*	__builtin_prefetch( A+32 );*/
@@ -1588,7 +1606,7 @@ void kernel_dsyrk_nt_4x2_lib4(int kadd, double *A, double *B, double *C, double 
 
 		}
 	
-	if(kadd%4>=2)
+	if(kmax%4>=2)
 		{
 		
 		ab_temp       = _mm256_mul_pd( a_0123, b_0101 );
@@ -1614,7 +1632,7 @@ void kernel_dsyrk_nt_4x2_lib4(int kadd, double *A, double *B, double *C, double 
 
 		}
 
-	if(kadd%2==1)
+	if(kmax%2==1)
 		{
 		
 		ab_temp       = _mm256_mul_pd( a_0123, b_0101 );
@@ -1679,8 +1697,11 @@ void kernel_dsyrk_nt_4x2_lib4(int kadd, double *A, double *B, double *C, double 
 
 
 // normal-transposed, 2x2 with data packed in 4
-void kernel_dsyrk_nt_2x2_lib4(int kadd, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
+	
+	if(kmax<=0)
+		return;
 	
 	const int bs = 4;
 	const int ldc = bs;
@@ -1703,7 +1724,7 @@ void kernel_dsyrk_nt_2x2_lib4(int kadd, double *A, double *B, double *C, double 
 	C_00_11 = _mm_setzero_pd();
 	C_01_10 = _mm_setzero_pd();
 
-	for(k=0; k<kadd-3; k+=4)
+	for(k=0; k<kmax-3; k+=4)
 		{
 		
 /*	__builtin_prefetch( A+32 );*/
@@ -1750,7 +1771,7 @@ void kernel_dsyrk_nt_2x2_lib4(int kadd, double *A, double *B, double *C, double 
 
 		}
 	
-	if(kadd%4>=2)
+	if(kmax%4>=2)
 		{
 		
 		ab_temp = _mm_mul_pd( a_01, b_01 );
@@ -1776,7 +1797,7 @@ void kernel_dsyrk_nt_2x2_lib4(int kadd, double *A, double *B, double *C, double 
 
 		}
 
-	if(kadd%2==1)
+	if(kmax%2==1)
 		{
 		
 		ab_temp = _mm_mul_pd( a_01, b_01 );
@@ -1841,10 +1862,10 @@ void kernel_dsyrk_nt_2x2_lib4(int kadd, double *A, double *B, double *C, double 
 
 
 
-void kernel_dsyrk_nn_4x4_lib4(int kadd, double *A, double *B, int sdb, double *C, double *D, int alg)
+void kernel_dsyrk_nn_4x4_lib4(int kmax, double *A, double *B, int sdb, double *C, double *D, int alg)
 	{
 
-	if(kadd<=0)
+	if(kmax<=0)
 		return;
 
 	const int bs = 4;
@@ -1859,7 +1880,7 @@ void kernel_dsyrk_nn_4x4_lib4(int kadd, double *A, double *B, int sdb, double *C
 		c_20=0, c_21=0, c_22=0, 
 		c_30=0, c_31=0, c_32=0, c_33=0;
 		
-	for(k=0; k<kadd-3; k+=4)
+	for(k=0; k<kmax-3; k+=4)
 		{
 		
 		a_0 = A[0+bs*0];
@@ -1966,7 +1987,7 @@ void kernel_dsyrk_nn_4x4_lib4(int kadd, double *A, double *B, int sdb, double *C
 		B += 4*sdb;
 
 		}
-	for(; k<kadd; k++)
+	for(; k<kmax; k++)
 		{
 		
 		a_0 = A[0+bs*0];
@@ -2089,10 +2110,10 @@ void kernel_dsyrk_nn_4x4_lib4(int kadd, double *A, double *B, int sdb, double *C
 
 
 
-void kernel_dsyrk_nn_4x2_lib4(int kadd, double *A, double *B, int sdb, double *C, double *D, int alg)
+void kernel_dsyrk_nn_4x2_lib4(int kmax, double *A, double *B, int sdb, double *C, double *D, int alg)
 	{
 
-	if(kadd<=0)
+	if(kmax<=0)
 		return;
 
 	const int bs = 4;
@@ -2107,7 +2128,7 @@ void kernel_dsyrk_nn_4x2_lib4(int kadd, double *A, double *B, int sdb, double *C
 		c_20=0, c_21=0,  
 		c_30=0, c_31=0;
 		
-	for(k=0; k<kadd-3; k+=4)
+	for(k=0; k<kmax-3; k+=4)
 		{
 		
 		a_0 = A[0+bs*0];
@@ -2186,7 +2207,7 @@ void kernel_dsyrk_nn_4x2_lib4(int kadd, double *A, double *B, int sdb, double *C
 		B += 4*sdb;
 
 		}
-	for(; k<kadd; k++)
+	for(; k<kmax; k++)
 		{
 		
 		a_0 = A[0+bs*0];
@@ -2276,10 +2297,10 @@ void kernel_dsyrk_nn_4x2_lib4(int kadd, double *A, double *B, int sdb, double *C
 
 
 
-void kernel_dsyrk_nn_2x2_lib4(int kadd, double *A, double *B, int sdb, double *C, double *D, int alg)
+void kernel_dsyrk_nn_2x2_lib4(int kmax, double *A, double *B, int sdb, double *C, double *D, int alg)
 	{
 
-	if(kadd<=0)
+	if(kmax<=0)
 		return;
 
 	const int bs = 4;
@@ -2292,7 +2313,7 @@ void kernel_dsyrk_nn_2x2_lib4(int kadd, double *A, double *B, int sdb, double *C
 		c_00=0, 
 		c_10=0, c_11=0;
 		
-	for(k=0; k<kadd-3; k+=4)
+	for(k=0; k<kmax-3; k+=4)
 		{
 		
 		a_0 = A[0+bs*0];
@@ -2347,7 +2368,7 @@ void kernel_dsyrk_nn_2x2_lib4(int kadd, double *A, double *B, int sdb, double *C
 		B += 4*sdb;
 
 		}
-	for(; k<kadd; k++)
+	for(; k<kmax; k++)
 		{
 		
 		a_0 = A[0+bs*0];
@@ -2415,9 +2436,7 @@ void kernel_dsyrk_diag_left_right_4_lib4(int kmax, double *Al, double *Ar, doubl
 	{
 
 	if(kmax<=0)
-		{
 		return;
-		}
 	
 	// assume kmax to be multiple of 4
 	
@@ -2912,9 +2931,7 @@ void kernel_dsyrk_diag_left_right_3_lib4(int kmax, double *Al, double *Ar, doubl
 	{
 
 	if(kmax<=0)
-		{
 		return;
-		}
 	
 	// assume kmax to be multiple of 4
 	
@@ -3335,9 +3352,7 @@ void kernel_dsyrk_diag_left_right_2_lib4(int kmax, double *Al, double *Ar, doubl
 	{
 
 	if(kmax<=0)
-		{
 		return;
-		}
 	
 	// assume kmax to be multiple of 4
 	
@@ -3681,9 +3696,7 @@ void kernel_dsyrk_diag_left_right_1_lib4(int kmax, double *Al, double *Ar, doubl
 	{
 
 	if(kmax<=0)
-		{
 		return;
-		}
 	
 	// assume kmax to be multiple of 4
 	

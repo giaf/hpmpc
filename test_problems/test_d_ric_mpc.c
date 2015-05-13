@@ -276,6 +276,8 @@ int main()
 
 	int nx, nu, N, nrep;
 
+	int *nx_v, *nu_v, *nb_v, *ng_v;
+
 	int ll;
 	int ll_max = 77;
 //	int ll_max = 1;
@@ -300,6 +302,18 @@ int main()
 			N  = 10; // horizon lenght
 			nrep = 2*nnrep[ll];
 			}
+
+		nx_v = (int *) malloc((N+1)*sizeof(int));
+		for(ii=0; ii<=N; ii++) nx_v[ii] = nx;
+
+		nu_v = (int *) malloc((N+1)*sizeof(int));
+		for(ii=0; ii<=N; ii++) nu_v[ii] = nu;
+
+		nb_v = (int *) malloc((N+1)*sizeof(int));
+		for(ii=0; ii<=N; ii++) nb_v[ii] = 0;
+
+		ng_v = (int *) malloc((N+1)*sizeof(int));
+		for(ii=0; ii<=N; ii++) ng_v[ii] = 0;
 
 		int rep;
 	
@@ -1218,10 +1232,8 @@ int main()
 
 
 
-
-
 		// timing 
-		struct timeval tv0, tv1, tv2, tv3, tv4, tv5;
+		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6;
 
 		// double precision
 		gettimeofday(&tv0, NULL); // start
@@ -1312,6 +1324,23 @@ int main()
 			
 		gettimeofday(&tv5, NULL); // start
 
+#if 1
+
+		// size-variant code
+
+		for(rep=0; rep<nrep; rep++)
+			{
+			d_ric_sv_mpc_tv(nx_v, nu_v, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, nb_v, ng_v, dummy, dummy, dummy, 0);
+			}
+
+		gettimeofday(&tv6, NULL); // start
+
+#endif
+
+
+
+
+
 
 
 		float time_sv = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
@@ -1335,18 +1364,26 @@ int main()
 		float time_sv_fast = (float) (tv5.tv_sec-tv4.tv_sec)/(nrep+0.0)+(tv5.tv_usec-tv4.tv_usec)/(nrep*1e6);
 		float Gflops_sv_fast = 1e-9*flop_sv/time_sv_fast;
 
+		float time_sv_tv = (float) (tv6.tv_sec-tv5.tv_sec)/(nrep+0.0)+(tv6.tv_usec-tv5.tv_usec)/(nrep*1e6);
+		float Gflops_sv_tv = 1e-9*flop_sv/time_sv_tv;
+	
 		if(ll==0)
 			{
 			printf("\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
 //			fprintf(f, "\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
 			}
-		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max, time_sv_fast, Gflops_sv_fast, 100.0*Gflops_sv_fast/Gflops_max);
-		fprintf(f, "%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max, time_sv_fast, Gflops_sv_fast, 100.0*Gflops_sv_fast/Gflops_max);
+		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max, time_sv_fast, Gflops_sv_fast, 100.0*Gflops_sv_fast/Gflops_max, time_sv_tv, Gflops_sv_tv, 100.0*Gflops_sv_tv/Gflops_max);
+		fprintf(f, "%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max, time_sv_fast, Gflops_sv_fast, 100.0*Gflops_sv_fast/Gflops_max, time_sv_tv, Gflops_sv_tv, 100.0*Gflops_sv_tv/Gflops_max);
 	
 
 /************************************************
 * return
 ************************************************/
+
+		free(nx_v);
+		free(nu_v);
+		free(nb_v);
+		free(ng_v);
 
 		free(A);
 		free(B);

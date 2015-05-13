@@ -1135,6 +1135,10 @@ void dtrmm_u_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double 
 
 void dsyrk_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg)
 	{
+
+	if(k<=0 || m<=0 || n<=0)
+		return;
+
 	const int bs = 4;
 	
 	int i, j;
