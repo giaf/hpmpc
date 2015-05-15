@@ -159,7 +159,7 @@ int main()
 	double *ptrB = BBB;
 	for(ii=0; ii<N; ii++)
 		{
-		d_cvt_mat2pmat(nuu[ii], nuu[ii], 0, bs, eye_nu0, nuu[ii], hpBt[ii], cnxx[ii]);
+		d_cvt_mat2pmat(nuu[ii], nuu[ii], 0, bs, eye_nu0, nuu[ii], hpBt[ii], cnxx[ii+1]);
 		d_cvt_tran_mat2pmat(nxx[ii+1]-nuu[ii], nuu[ii], 0, bs, ptrB, nxx[ii+1]-nuu[ii], hpBt[ii]+nuu[ii]*bs, cnxx[ii+1]);
 		ptrB += nxx[ii+1] - nuu[ii];
 		}
