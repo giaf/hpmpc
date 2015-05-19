@@ -90,9 +90,9 @@ void kernel_dgemv_t_12_lib4(int kmax, double *A, int sda, double *x, double *y, 
 	y_a = _mm256_castpd256_pd128(y_aa);
 	y_b = _mm256_castpd256_pd128(y_bb);
 
-	k = lda*(ka/lda);
-	tA = A + (ka/lda)*sda*lda;
-	tx = x + (ka/lda)*lda;
+	k = ka/lda*lda;
+	tA = A + k*sda;
+	tx = x + k;
 
 	if(ka-k>0) // it can be only ka-k = {1, 2, 3}
 		{

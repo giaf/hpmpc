@@ -2364,6 +2364,7 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int 
 void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, int alg) // pA has to be aligned !!!
 	{
 
+	// early return
 	if(m<=0  || n<=0)
 		return;
 	
@@ -2458,6 +2459,7 @@ void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, int al
 void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, double *y, int alg)
 	{
 	
+	// early return
 	if(m<=0  || n<=0)
 		return;
 	

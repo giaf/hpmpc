@@ -65,21 +65,38 @@ void d_update_diag_pmat_sparse(int kmax, int *idx, double *pQ, int sda, double *
 
 
 
-void d_update_row_pmat(int kmax, double *pQ, double *Ql)
+void d_update_row_pmat(int kmax, double *pQ, double *r)
 	{
 
 	int jj, ll;
 
 	for(jj=0; jj<kmax-3; jj+=4)
 		{
-		pQ[(jj+0)*4] = Ql[jj+0];
-		pQ[(jj+1)*4] = Ql[jj+1];
-		pQ[(jj+2)*4] = Ql[jj+2];
-		pQ[(jj+3)*4] = Ql[jj+3];
+		pQ[(jj+0)*4] = r[jj+0];
+		pQ[(jj+1)*4] = r[jj+1];
+		pQ[(jj+2)*4] = r[jj+2];
+		pQ[(jj+3)*4] = r[jj+3];
 		}
 	for(; jj<kmax; jj++)
 		{
-		pQ[(jj)*4] = Ql[jj];
+		pQ[(jj)*4] = r[jj];
+		}
+	
+	}
+
+
+
+void d_update_row_pmat_sparse(int kmax, int *idx, double *pQ, double *r)
+	{
+
+	const int bs = 4;
+
+	int ii, jj;
+
+	for(jj=0; jj<kmax; jj++)
+		{
+		ii = idx[jj];
+		pQ[ii*bs] = r[jj];
 		}
 	
 	}
@@ -107,14 +124,14 @@ void d_add_row_pmat(int kmax, double *pA, double *pC)
 
 
 
-void d_update_vector_sparse(int kmax, int *idx, double *q, double *d)
+void d_update_vector_sparse(int kmax, int *idx, double *q, double *v)
 	{
 
-	int ii, jj;
+	int jj;
 
 	for(jj=0; jj<kmax; jj++)
 		{
-		q[idx[jj]] = d[jj];
+		q[idx[jj]] = v[jj];
 		}
 	
 	}

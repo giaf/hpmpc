@@ -68,6 +68,7 @@ int main()
 	int ii, jj, ll;
 
 	double **dummy;
+	int ** int_dummy;
 
 	
 	const int bs = D_MR; //d_get_mr();
@@ -77,7 +78,7 @@ int main()
 	int nx, nu, N, nrep;
 
 	// timing variables
-	float time_ric_diag, time_ric_full, time_ric_full_tv, time_ip_diag, time_ip_full;
+	float time_ric_diag, time_ric_full, time_ric_full_tv, time_ip_diag, time_ip_full, time_ip_full_tv;
 
 /************************************************
 * test of riccati eye/diag & size-variant
@@ -206,8 +207,6 @@ int main()
 
 	// work space
 	double *diag; d_zeros_align(&diag, pnxx[0]+pnuu[0], 1);
-
-	double **ptr_dummy;
 
 
 	// factorization
@@ -354,6 +353,7 @@ int main()
 
 
 #if 1
+	printf("\nRiccati full\n\n");
 	// size-variant full
 	int nzz[N+1];
 	for(ii=0; ii<=N; ii++) nzz[ii] = nuu[ii] + nxx[ii] + 1;
@@ -364,6 +364,9 @@ int main()
 	int cnzz[N+1];
 	for(ii=0; ii<=N; ii++) cnzz[ii] = (nzz[ii]+ncl-1)/ncl*ncl;
 
+	int anzz[N+1];
+	for(ii=0; ii<=N; ii++) anzz[ii] = (nzz[ii]+nal-1)/nal*nal;
+
 	int cnll[N+1];
 	for(ii=0; ii<=N; ii++) cnll[ii] = cnzz[ll]<cnxx[ll]+ncl ? cnxx[ll]+ncl : cnzz[ll];
 
@@ -373,17 +376,20 @@ int main()
 	double *(hpBAbt_tv[N]);
 	double *(hpRSQ_tv[N+1]);
 	double *(hpL_tv[N+1]);
+	double *(hl[N+1]);
 
 	for(ii=0; ii<N; ii++)
 		{
 		d_zeros_align(&hpBAbt_tv[ii], pnzz[ii], cnxx[ii+1]);
 		d_zeros_align(&hpRSQ_tv[ii], pnzz[ii], cnzz[ii]);
 		d_zeros_align(&hpL_tv[ii], pnzz[ii], cnll[ii]);
+		d_zeros_align(&hl[ii], anzz[ii], 1);
 		}
 	d_zeros_align(&hpRSQ_tv[N], pnzz[N], cnzz[N]);
 	d_zeros_align(&hpL_tv[N], pnzz[N], cnll[N]);
+	d_zeros_align(&hl[N], anzz[ii], 1);
 	
-	double *work_tv; d_zeros_align(&work_tv, pnzz[0], cnxx[0]);
+	double *work_ric_tv; d_zeros_align(&work_ric_tv, pnzz[0], cnxx[0]);
 
 	for(ii=0; ii<N; ii++)
 		{
@@ -413,7 +419,7 @@ int main()
 
 
 	printf("\nfactorization and backward-forward solution ...\n");
-	d_ric_sv_mpc_tv(nxx, nuu, N, hpBAbt_tv, hpRSQ_tv, 0, dummy, dummy, hux, hpL_tv, work_tv, diag, COMPUTE_MULT, hpi, nzero, nzero, dummy, dummy, dummy, 0);
+	d_ric_sv_mpc_tv(N, nxx, nuu, hpBAbt_tv, hpRSQ_tv, hux, hpL_tv, work_ric_tv, diag, COMPUTE_MULT, hpi, nzero, int_dummy, dummy, dummy, nzero, dummy, dummy, dummy, 0);
 	printf("\nfactorization and backward-forward solution done\n\n");
 
 #if 0
@@ -431,7 +437,7 @@ int main()
 			hux[ii+1][nuu[ii+1]+jj] = hb[ii][jj];
 
 	printf("\nbackward-forward solution ...\n");
-	d_ric_trs_mpc_tv(nxx, nuu, N, hpBAbt_tv, hpL_tv, hrq, hux, work_tv, 1, hPb, COMPUTE_MULT, hpi, nzero, nzero, dummy, dummy);
+	d_ric_trs_mpc_tv(N, nxx, nuu, hpBAbt_tv, hpL_tv, hrq, hl, hux, work_ric_tv, 1, hPb, COMPUTE_MULT, hpi, nzero, int_dummy, dummy, nzero, dummy, dummy);
 	printf("\nbackward-forward solution done\n\n");
 
 	printf("\nux\n");
@@ -462,7 +468,7 @@ int main()
 	nrep = 10000;
 	for(ii=0; ii<nrep; ii++)
 		{
-		d_ric_sv_mpc_tv(nxx, nuu, N, hpBAbt_tv, hpRSQ_tv, 0, dummy, dummy, hux, hpL_tv, work_tv, diag, COMPUTE_MULT, hpi, nzero, nzero, dummy, dummy, dummy, 0);
+		d_ric_sv_mpc_tv(N, nxx, nuu, hpBAbt_tv, hpRSQ_tv, hux, hpL_tv, work_ric_tv, diag, COMPUTE_MULT, hpi, nzero, int_dummy, dummy, dummy, nzero, dummy, dummy, dummy, 0);
 		}
 
 	gettimeofday(&tv21, NULL); // start
@@ -470,19 +476,8 @@ int main()
 	time_ric_full_tv = (float) (tv21.tv_sec-tv20.tv_sec)/(nrep+0.0)+(tv21.tv_usec-tv20.tv_usec)/(nrep*1e6);
 	printf("\ntiming done\n\n");
 #endif
-
-
-	free(work_tv);
-	for(ii=0; ii<N; ii++)
-		{
-		free(hpBAbt_tv[ii]);
-		free(hpRSQ_tv[ii]);
-		free(hpL_tv[ii]);
-		}
-	free(hpRSQ_tv[N]);
-	free(hpL_tv[N]);
 	
-	//exit(1);
+
 #endif
 
 
@@ -714,6 +709,139 @@ int main()
 	//exit(1);
 
 
+
+
+
+#if 1
+	// IPM
+	printf("\nIPM full\n\n");
+
+	int ngg[N+1];
+	for(ii=0; ii<=N; ii++) ngg[ii] = 0;
+
+	int pngg[N+1];
+	for(ii=0; ii<=N; ii++) pngg[ii] = (ngg[ii]+bs-1)/bs*bs;
+
+	int pnzM = pnzz[0]; // max
+	int cnxgM = cnxx[0]; // max
+
+	int cache_line_size = 64;
+	int work_space_int_size = 7*(N+1);
+	int work_space_double_size = pnzM*cnxgM + pnzM;
+	for(ii=0; ii<=N; ii++)
+		work_space_double_size += pnzz[ii]*cnll[ii] + 3*anzz[ii] + 2*anxx[ii] + 14*pnbb[ii] + 10*pngg[ii];
+	
+	printf("\nIPM diag work space size: %d double + %d int\n\n", work_space_double_size, work_space_int_size);
+	double *work_ipm_tv = (double *) malloc(cache_line_size + work_space_int_size*sizeof(int) + work_space_double_size*sizeof(double));
+
+
+	for(jj=0; jj<nuu[0]; jj++)
+		{
+		hux[0][jj] = 0.0;
+		}
+	for(; jj<nuu[0]+nu0; jj++)
+		{
+		hux[0][jj] = 7.5097;
+		}
+	for(; jj<nxx[0]; jj+=2)
+		{
+		hux[0][jj+0] = 15.01940;
+		hux[0][jj+1] =  0.0;
+		}
+	//d_print_mat(1, nuu[0]+nxx[0], hux2[0], 1);
+
+
+
+	printf("\nIPM solution ...\n");
+	d_ip2_hard_mpc_tv(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, N, nxx, nuu, nbb, idxb, ngg, hpBAbt_tv, hpRSQ_tv, dummy, hd, hux, 1, hpi, hlam, ht, work_ipm_tv);
+	printf("\nIPM solution done\n");
+
+
+
+	printf("\nux\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, nuu[ii]+nxx[ii], hux[ii], 1);
+
+	printf("\nlam\n");
+	for(ii=0; ii<=N; ii++)
+		{
+		d_print_mat(1, nbb[ii], hlam[ii], 1);
+		d_print_mat(1, nbb[ii], hlam[ii]+pnbb[ii], 1);
+		}
+
+	printf("\nt\n");
+	for(ii=0; ii<=N; ii++)
+		{
+		d_print_mat(1, nbb[ii], ht[ii], 1);
+		d_print_mat(1, nbb[ii], ht[ii]+pnbb[ii], 1);
+		}
+
+	printf("\nstatistics\n\n");
+	for(ii=0; ii<kk; ii++)
+		printf("%d\t%f\t%f\t%f\t%e\t%f\t%f\t%e\n", ii+1, stat[5*ii+0], stat[5*ii+1], stat[5*ii+2], stat[5*ii+2], stat[5*ii+3], stat[5*ii+4], stat[5*ii+4]);
+	printf("\n\n");
+
+
+	printf("\nresiduals ...\n\n");
+	d_res_ip_hard_mpc_tv(N, nxx, nuu, nbb, idxb, ngg, hpBAbt_tv, hpRSQ_tv, hrq, hux, dummy, hd, hpi, hlam, ht, hres_rq, hres_b, hres_d, &mu);
+	printf("\nresiduals dones\n\n");
+
+	printf("\nres_rq\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, nuu[ii]+nxx[ii], hres_rq[ii], 1);
+
+	printf("\nres_b\n");
+	for(ii=0; ii<N; ii++)
+		d_print_mat(1, nxx[ii+1], hres_b[ii], 1);
+
+	printf("\nres_d\n");
+	for(ii=0; ii<=N; ii++)
+		{
+		d_print_mat(1, nbb[ii], hres_d[ii], 1);
+		d_print_mat(1, nbb[ii], hres_d[ii]+pnbb[ii], 1);
+		}
+
+	printf("\nres_mu\n");
+	d_print_mat(1, 1, &mu, 1);
+
+
+
+	// timing
+	printf("\ntiming ...\n\n");
+	gettimeofday(&tv20, NULL); // start
+
+	nrep = 1000;
+	for(ii=0; ii<nrep; ii++)
+		{
+		d_ip2_hard_mpc_tv(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, N, nxx, nuu, nbb, idxb, ngg, hpBAbt_tv, hpRSQ_tv, dummy, hd, hux, 1, hpi, hlam, ht, work_ipm_tv);
+		}
+
+	gettimeofday(&tv21, NULL); // start
+	printf("\ntiming done\n\n");
+
+	time_ip_full_tv = (float) (tv21.tv_sec-tv20.tv_sec)/(nrep+0.0)+(tv21.tv_usec-tv20.tv_usec)/(nrep*1e6);
+
+
+
+	free(work_ric_tv);
+	free(work_ipm_tv);
+	for(ii=0; ii<N; ii++)
+		{
+		free(hpBAbt_tv[ii]);
+		free(hpRSQ_tv[ii]);
+		free(hpL_tv[ii]);
+		free(hl[ii]);
+		}
+	free(hpRSQ_tv[N]);
+	free(hpL_tv[N]);
+	free(hl[N]);
+	
+	//exit(1);
+
+#endif
+
+
+
 	// free memory
 	for(ii=0; ii<=N; ii++)
 		{
@@ -724,6 +852,8 @@ int main()
 		}
 	free(work_space_ip);
 #endif
+
+
 
 
 	for(ii=0; ii<N; ii++)
@@ -985,7 +1115,7 @@ int main()
 
 
 	printf("\nIPM full solve ...\n\n");
-	d_ip2_hard_mpc(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, nx, nu, N, nb, ng, ngN, hpBAbt2, hpRSQ, ptr_dummy, hd2, hux2, 1, hpi2, hlam2, ht2, work_ipm_full);
+	d_ip2_hard_mpc(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, nx, nu, N, nb, ng, ngN, hpBAbt2, hpRSQ, dummy, hd2, hux2, 1, hpi2, hlam2, ht2, work_ipm_full);
 	printf("\nIPM full solve done\n\n");
 
 
@@ -1010,7 +1140,7 @@ int main()
 	nrep = 1000;
 	for(ii=0; ii<nrep; ii++)
 		{
-		d_ip2_hard_mpc(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, nx, nu, N, nb, ng, ngN, hpBAbt2, hpRSQ, ptr_dummy, hd2, hux2, 1, hpi2, hlam2, ht2, work_ipm_full);
+		d_ip2_hard_mpc(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, nx, nu, N, nb, ng, ngN, hpBAbt2, hpRSQ, dummy, hd2, hux2, 1, hpi2, hlam2, ht2, work_ipm_full);
 		}
 
 	gettimeofday(&tv21, NULL); // start
@@ -1058,7 +1188,7 @@ int main()
 
 #endif
 
-	printf("\nric diag time = %e\t\tric full time = %e\t\tric full tv time = %e\t\tip diag time = %e\t\tip full time = %e\n\n", time_ric_diag, time_ric_full, time_ric_full_tv, time_ip_diag, time_ip_full);
+	printf("\nric diag time = %e\t\tric full time = %e\t\tric full tv time = %e\t\tip diag time = %e\t\tip full time = %e\t\tip full tv time = %e\n\n", time_ric_diag, time_ric_full, time_ric_full_tv, time_ip_diag, time_ip_full, time_ip_full_tv);
 
 
 #endif
