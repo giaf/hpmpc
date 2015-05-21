@@ -561,7 +561,7 @@ int main()
 	double mu = -1.0;
 	int hpmpc_status;
 	
-	double *rwork; d_zeros(&rwork, hpmpc_ip_hard_mpc_dp_work_space(N, nx, nu, nb, ng, ngN), 1);
+	double *rwork; d_zeros(&rwork, 4*hpmpc_ip_hard_mpc_dp_work_space(N, nx, nu, nb, ng, ngN), 1);
 	double *rstat; d_zeros(&rstat, 5, k_max); // stats from the IP routine
 	int compute_res = 1; // flag to control the computation of residuals on exit (high-level interface only)
 	double inf_norm_res[4] = {}; // infinity norm of residuals: rq, rb, rd, mu
@@ -694,7 +694,7 @@ int main()
 		rx[0] = xx0[2*idx];
 		rx[1] = xx0[2*idx+1];
 
-		hpmpc_status = fortran_order_ip_hard_mpc(&rkk, k_max, mu0, mu_tol, 'd', N, nx, nu, nb, ng, ngN, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, rx, ru, rwork, rstat, compute_res, inf_norm_res, compute_mult, rpi, rlam, rt);
+		hpmpc_status = fortran_order_ip_hard_mpc_tv(&rkk, k_max, mu0, mu_tol, 'd', N, nx, nu, nb, ng, ngN, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, rx, ru, rwork, rstat, compute_res, inf_norm_res, compute_mult, rpi, rlam, rt);
 
 		rkk_avg += rkk;
 

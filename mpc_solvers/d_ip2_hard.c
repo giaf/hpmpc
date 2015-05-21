@@ -61,7 +61,7 @@ int d_ip2_hard_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 		anz = (nx[ii]+nu[ii]+1+nal-1)/nal*nal;
 		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*anx + 3*anz + 14*pnb + 10*png;
 		}
-	size += pnzM*((nxM+ngM+ncl-1)/ncl*ncl) + pnzM;
+	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
 
 	return size;
 	}
