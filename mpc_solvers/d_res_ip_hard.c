@@ -127,6 +127,7 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 		pnb = (nb0+bs-1)/bs*bs;
 		ng0 = ng[ii];
 		png = (ng0+bs-1)/bs*bs;
+		cng = (ng0+ncl-1)/ncl*ncl;
 		nb_tot += nb0 + ng0;
 
 		for(jj=0; jj<nb0; jj++)
@@ -181,6 +182,7 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 	pnb = (nb0+bs-1)/bs*bs;
 	ng0 = ng[ii];
 	png = (ng0+bs-1)/bs*bs;
+	cng = (ng0+ncl-1)/ncl*ncl;
 	nb_tot += nb0 + ng0;
 
 	for(jj=0; jj<nb0; jj++)

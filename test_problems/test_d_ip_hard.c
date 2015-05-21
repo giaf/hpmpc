@@ -157,8 +157,8 @@ int main()
 
 	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = NN; // horizon lenght
-#if 1
+	int N  = 10;//NN; // horizon lenght
+#if 0
 	int nb  = NB; // number of box constrained inputs and states
 	int ng  = 0; //4;  // number of general constraints
 	int ngN = 0;//nx;
@@ -300,8 +300,8 @@ int main()
 		}
 	for(jj=0; jj<ngN; jj++)
 		{
-		dN[2*pnb+jj]      =   0.0;   //   xmin
-		dN[2*pnb+pngN+jj] = - 0.0;   // - xmax
+		dN[2*pnb+jj]      = - 4.0;   //   xmin
+		dN[2*pnb+pngN+jj] = - 4.0;   // - xmax
 		}
 	//d_print_mat(1, 2*pnb+2*png, d, 1);
 	//d_print_mat(1, 2*pnb+2*pngN, dN, 1);
@@ -403,7 +403,7 @@ int main()
 	double *rB; d_zeros(&rB, nx, N*nu);
 	d_rep_mat(N, nx, nu, B, nx, rB, nx);
 
-	double *rC; d_zeros(&rC, ng, N*nx);
+	double *rC; d_zeros(&rC, ng, (N+1)*nx);
 	d_rep_mat(N, ng, nx, C, ng, rC+nx*ng, ng);
 
 	double *rD; d_zeros(&rD, ng, N*nu);

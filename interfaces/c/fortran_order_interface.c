@@ -568,7 +568,7 @@ exit(1);
 			for(ii=0; ii<N; ii++)
 				d_print_mat(1, nxx[ii+1], hrb[ii], 1);
 			for(ii=0; ii<=N; ii++)
-				d_print_mat(1, (nbb[ii]+bs-1)/bs*bs*2, hrd[ii], 1);
+				d_print_mat(1, (nbb[ii]+bs-1)/bs*bs*2+(ngg[ii]+bs-1)/bs*bs*2, hrd[ii], 1);
 			exit(1);
 #endif
 

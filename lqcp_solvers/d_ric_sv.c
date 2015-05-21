@@ -65,7 +65,7 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 	
-	int nu0, nu1, nx0, nx1, nz0, nb0, ng0, cnx0, cnx1, cnz0, cnz1, cnl0, cnl1, cng0, cnxg0, pnx1, pnb0;
+	int nu0, nu1, nx0, nx1, nz0, nb0, ng0, cnx0, cnx1, cnz0, cnz1, cnl0, cnl1, cng0, cnxg0, pnx1;
 	// number of general constraints TODO
 	//const int ng = 0;
 
@@ -87,12 +87,12 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 	if(ng0>0)
 		{
 		cng0 = (ng0+ncl-1)/ncl*ncl;
-		pnb0 = (nb0+bs-1)/bs*bs;
-		//dgemv_n_lib(nu0+nx0, ng0, hpDCt[N], cng0, qx[N]+2*pnb0, hQl[N], 1);
+		//pnb0 = (nb0+bs-1)/bs*bs;
+		//dgemv_n_lib(nu0+nx0, ng0, hpDCt[N], cng0, qx[N], hQl[N], 1);
 		// copy and scale DCt
 		// TODO // routine for this
 #if 1
-		dgemm_diag_right_lib(nu0+nx0, ng0, hpDCt[N], cng0, Qx[N]+2*pnb0, work, cng0, work, cng0, 0);
+		dgemm_diag_right_lib(nu0+nx0, ng0, hpDCt[N], cng0, Qx[N], work, cng0, work, cng0, 0);
 #else
 		for(ii=0; ii<nu0+nx0-3; ii+=4)
 			{
@@ -115,7 +115,7 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 #endif
 		//for(jj=0; jj<ng0; jj++)
 		//	work[(nu0+nx0)/bs*cng0*bs+(nu0+nx0)%bs+jj*bs] = 0.0;
-		d_update_row_pmat(ng0, &work[(nu0+nx0)/bs*cng0*bs+(nu0+nx0)%bs], qx[N]+2*pnb0);
+		d_update_row_pmat(ng0, &work[(nu0+nx0)/bs*cng0*bs+(nu0+nx0)%bs], qx[N]);
 		}
 	if(nb0>0)
 		{
@@ -166,12 +166,12 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 		if(ng0>0)
 			{
 			cng0 = (ng0+ncl-1)/ncl*ncl;
-			pnb0 = (nb0+bs-1)/bs*bs;
-			//dgemv_n_lib(nu0+nx0, ng0, hpDCt[N-nn-1], cng0, qx[N-nn-1]+2*pnb0, hQl[N-nn-1], 1);
+			//pnb0 = (nb0+bs-1)/bs*bs;
+			//dgemv_n_lib(nu0+nx0, ng0, hpDCt[N-nn-1], cng0, qx[N-nn-1], hQl[N-nn-1], 1);
 			// copy and scale DCt
 			// TODO // routine for this
 #if 1
-			dgemm_diag_right_lib(nu0+nx0, ng0, hpDCt[N-nn-1], cng0, Qx[N-nn-1]+2*pnb0, work+nx1*bs, cnxg0, work+nx1*bs, cnxg0, 0);
+			dgemm_diag_right_lib(nu0+nx0, ng0, hpDCt[N-nn-1], cng0, Qx[N-nn-1], work+nx1*bs, cnxg0, work+nx1*bs, cnxg0, 0);
 #else
 			for(ii=0; ii<nu0+nx0-3; ii+=4)
 				{
@@ -194,7 +194,7 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 #endif
 			//for(jj=0; jj<ng0; jj++)
 			//	work[(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs+(nx1+jj)*bs] = 0.0;
-			d_update_row_pmat(ng0, &work[(nu0+nx0)/bs*cnxg0*bs+(nu0+nx0)%bs+nx1*bs], qx[N-nn-1]+2*pnb0);
+			d_update_row_pmat(ng0, &work[(nu0+nx0)/bs*cnxg0*bs+(nu0+nx0)%bs+nx1*bs], qx[N-nn-1]);
 			}
 		if(nb0>0)
 			{
@@ -240,12 +240,12 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 	if(ng0>0)
 		{
 		cng0 = (ng0+ncl-1)/ncl*ncl;
-		pnb0 = (nb0+bs-1)/bs*bs;
-		//dgemv_n_lib(nu0+nz0, ng0, hpDCt[0], cng0, qx[0]+2*pnb0, hQl[0], 1);
+		//pnb0 = (nb0+bs-1)/bs*bs;
+		//dgemv_n_lib(nu0+nz0, ng0, hpDCt[0], cng0, qx[0], hQl[0], 1);
 		// copy and scale DCt
 		// TODO // routine for this
 #if 1
-		dgemm_diag_right_lib(nu0+nx0, ng0, hpDCt[0], cng0, Qx[0]+2*pnb0, work+nx1*bs, cnxg0, work+nx1*bs, cnxg0, 0);
+		dgemm_diag_right_lib(nu0+nx0, ng0, hpDCt[0], cng0, Qx[0], work+nx1*bs, cnxg0, work+nx1*bs, cnxg0, 0);
 #else
 		for(ii=0; ii<nu0+nx0-3; ii+=4)
 			{
@@ -268,7 +268,7 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 #endif
 		//for(jj=0; jj<ng0; jj++)
 		//	work[(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs+(nx1+jj)*bs] = 0.0;
-		d_update_row_pmat(ng0, &work[(nu0+nx0)/bs*cnxg0*bs+(nu0+nx0)%bs+nx1*bs], qx[N]+2*pnb0);
+		d_update_row_pmat(ng0, &work[(nu0+nx0)/bs*cnxg0*bs+(nu0+nx0)%bs+nx1*bs], qx[0]);
 		}
 	if(nb0>0)
 		{
@@ -333,7 +333,7 @@ void d_ric_trs_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpL, do
 	const int ncl = D_NCL;
 	//const int nal = bs*ncl; // number of doubles per cache line
 
-	int nu0, nu1, nx0, nx1, nb0, ng0, pnx0, pnx1, pnb0, cnx0, cnx1, cng0, cnz0, cnz1, cnl0, cnl1;
+	int nu0, nu1, nx0, nx1, nb0, ng0, pnx0, pnx1, cnx0, cnx1, cng0, cnz0, cnz1, cnl0, cnl1;
 
 	int ii, jj, nn;
 	
@@ -359,8 +359,11 @@ void d_ric_trs_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpL, do
 	if(ng0>0)
 		{
 		cng0 = (ng0+ncl-1)/ncl*ncl;
-		pnb0 = (nb0+bs-1)/bs*bs;
-		dgemv_n_lib(nu0+nx0, ng0, hpDCt[N], cng0, qx[N]+2*pnb0, hl[N], 1);
+//d_print_pmat(nx0+nu0, ng0, bs, hpDCt[N], cng0);
+//d_print_mat(1, ng0, qx[N], 1);
+//d_print_mat(1, nu0+nx0, hl[N], 1);
+		dgemv_n_lib(nu0+nx0, ng0, hpDCt[N], cng0, qx[N], hl[N], 1);
+//d_print_mat(1, nu0+nx0, hl[N], 1);
 		}
 	// middle stages
 	for(nn=0; nn<N; nn++)
@@ -395,7 +398,8 @@ void d_ric_trs_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpL, do
 		// general constraints
 		if(ng0>0)
 			{
-			dgemv_n_lib(nu0+nx0, ng0, hpDCt[N-nn-1], cng0, qx[N-nn-1]+2*pnb0, hl[N-nn-1], 1);
+			cng0 = (ng0+ncl-1)/ncl*ncl;
+			dgemv_n_lib(nu0+nx0, ng0, hpDCt[N-nn-1], cng0, qx[N-nn-1], hl[N-nn-1], 1);
 			}
 		for(jj=0; jj<nx1; jj++) work[jj] = hPb[N-nn-1][jj] + hl[N-nn][nu1+jj]; // add p
 		dgemv_n_lib(nx0+nu0, nx1, hpBAbt[N-nn-1], cnx1, work, hl[N-nn-1], 1);
@@ -478,11 +482,11 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		{
 		//d_print_pmat(nx+nu, ngN, bs, hpDCt[N], cngN);
 		//d_print_mat(1, 2*pnb+2*pngN, Qx[N], 1);
-		dgemv_n_lib(nx+nu, ngN, hpDCt[N], cngN, qx[N]+2*pnb, hQl[N], 1);
+		dgemv_n_lib(nx+nu, ngN, hpDCt[N], cngN, qx[N], hQl[N], 1);
 		// copy and scale DCt
 		// TODO // routine for this
 #if 1
-		dgemm_diag_right_lib(nx+nu, ngN, hpDCt[N], cngN, Qx[N]+2*pnb, work, cngN, work, cngN, 0);
+		dgemm_diag_right_lib(nx+nu, ngN, hpDCt[N], cngN, Qx[N], work, cngN, work, cngN, 0);
 #else
 		for(ii=0; ii<nx+nu-3; ii+=4)
 			{
@@ -553,11 +557,11 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		for(jj=0; jj<nx; jj++) work[((nx+nu)/bs)*bs*cnxg+(nx+nu)%bs+(jj)*bs] += hpL[N-nn][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nu+jj)*bs];
 		if(ng>0)
 			{
-			dgemv_n_lib(nx+nu, ng, hpDCt[N-nn-1], cng, qx[N-nn-1]+2*pnb, hQl[N-nn-1], 1);
+			dgemv_n_lib(nx+nu, ng, hpDCt[N-nn-1], cng, qx[N-nn-1], hQl[N-nn-1], 1);
 			// copy and scale DCt
 			// TODO // routine for this
 #if 1
-			dgemm_diag_right_lib(nx+nu, ng, hpDCt[N-nn-1], cng, Qx[N-nn-1]+2*pnb, work+nx*bs, cnxg, work+nx*bs, cnxg, 0);
+			dgemm_diag_right_lib(nx+nu, ng, hpDCt[N-nn-1], cng, Qx[N-nn-1], work+nx*bs, cnxg, work+nx*bs, cnxg, 0);
 #else
 			for(ii=0; ii<nx+nu-3; ii+=4)
 				{
@@ -622,11 +626,11 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 	for(jj=0; jj<nx; jj++) work[((nx+nu)/bs)*bs*cnxg+(nx+nu)%bs+(jj)*bs] += hpL[1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nu+jj)*bs];
 	if(ng>0)
 		{
-		dgemv_n_lib(nx+nu, ng, hpDCt[0], cng, qx[0]+2*pnb, hQl[0], 1);
+		dgemv_n_lib(nx+nu, ng, hpDCt[0], cng, qx[0], hQl[0], 1);
 		// copy and scale DCt
 		// TODO // routine for this
 #if 1
-		dgemm_diag_right_lib(nx+nu, ng, hpDCt[0], cng, Qx[0]+2*pnb, work+nx*bs, cnxg, work+nx*bs, cnxg, 0);
+		dgemm_diag_right_lib(nx+nu, ng, hpDCt[0], cng, Qx[0], work+nx*bs, cnxg, work+nx*bs, cnxg, 0);
 #else
 		for(ii=0; ii<nx+nu-3; ii+=4)
 			{
@@ -720,7 +724,11 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 	// general constraints
 	if(ngN>0)
 		{
-		dgemv_n_lib(nx+nu, ngN, hpDCt[N], cngN, qx[N]+2*pnb, hq[N], 1);
+//d_print_pmat(nx+nu, ngN, bs, hpDCt[N], cngN);
+//d_print_mat(1, ngN, qx[N], 1);
+//d_print_mat(1, nu+nx, hq[N], 1);
+		dgemv_n_lib(nx+nu, ngN, hpDCt[N], cngN, qx[N], hq[N], 1);
+//d_print_mat(1, nu+nx, hq[N], 1);
 		}
 	for(ii=0; ii<N; ii++)
 		{
@@ -733,7 +741,7 @@ void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double 
 		// general constraints
 		if(ng>0)
 			{
-			dgemv_n_lib(nx+nu, ng, hpDCt[N-ii-1], cng, qx[N-ii-1]+2*pnb, hq[N-ii-1], 1);
+			dgemv_n_lib(nx+nu, ng, hpDCt[N-ii-1], cng, qx[N-ii-1], hq[N-ii-1], 1);
 			}
 		for(jj=0; jj<nx; jj++) work[jj] = hPb[N-ii-1][jj] + hq[N-ii][nu+jj]; // add p
 		dgemv_n_lib(nx+nu, nx, hpBAbt[N-ii-1], cnx, work, hq[N-ii-1], 1);

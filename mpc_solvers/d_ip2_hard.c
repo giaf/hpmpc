@@ -59,7 +59,7 @@ int d_ip2_hard_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 		cnz = (nx[ii]+nu[ii]+1+ncl-1)/ncl*ncl;
 		anx = (nx[ii]+nal-1)/nal*nal;
 		anz = (nx[ii]+nu[ii]+1+nal-1)/nal*nal;
-		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*anx + 3*anz + 14*pnb + 10*png;
+		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*anx + 3*anz + 12*pnb + 11*png;
 		}
 	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
 
@@ -148,6 +148,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	double *(t_inv[N+1]);
 	double *(Qx[N+1]);
 	double *(qx[N+1]);
+	double *(qx2[N+1]);
 	double *(Pb[N]);
 
 	// work space
@@ -240,7 +241,8 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		Qx[jj] = ptr;
 		qx[jj] = ptr+png[jj];
-		ptr += 2*pnb[jj]+2*png[jj];
+		qx2[jj] = ptr+2*png[jj];
+		ptr += 3*png[jj];
 		}
 
 
@@ -249,8 +251,13 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	double alpha, mu, mu_aff;
 	double mu_scal = 0.0; 
 	for(jj=0; jj<=N; jj++) mu_scal += 2*nb[jj] + 2*ng[jj];
+	//printf("\nmu_scal = %f\n", mu_scal);
 	mu_scal = 1.0 / mu_scal;
+	//printf("\nmu_scal = %f\n", mu_scal);
 	double sigma, sigma_decay, sigma_min;
+	//for(ii=0; ii<=N; ii++)
+	//	printf("\n%d %d\n", nb[ii], ng[ii]);
+	//exit(1);
 
 	sigma = sigma_par[0]; //0.4;
 	sigma_decay = sigma_par[1]; //0.3;
@@ -302,14 +309,20 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 
 		//update cost function matrices and vectors (box constraints)
-		d_update_hessian_hard_mpc_tv(N, nx, nu, nb, ng, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx, bd, bl, pd, pl, d);
+		d_update_hessian_hard_mpc_tv(N, nx, nu, nb, ng, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx, qx2, bd, bl, pd, pl, d);
 
 #if 0
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nb[ii], pd[ii], 1);
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nb[ii], pl[ii], 1);
-//if(*kk==1)
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, ng[ii], Qx[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, ng[ii], qx[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, ng[ii], qx2[ii], 1);
+if(*kk==1)
 exit(1);
 #endif
 
@@ -329,7 +342,7 @@ exit(1);
 		fast_rsqrt = 0;
 #endif
 		//printf("\n%d %f\n", fast_rsqrt, mu);
-		d_ric_sv_mpc_tv(N, nx, nu, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx, fast_rsqrt);
+		d_ric_sv_mpc_tv(N, nx, nu, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2, fast_rsqrt);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -400,6 +413,8 @@ for(ii=0; ii<=N; ii++)
 #if 0
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nb[ii], pl[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, ng[ii], qx[ii], 1);
 if(*kk==1)
 exit(1);
 #endif
@@ -665,8 +680,13 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 	double temp0, temp1;
 	double alpha, mu, mu_aff;
-	double mu_scal = 1.0/((N-1)*2*(nb+ng)+2*(nb+ngN));
+	double mu_scal = N*2*(nb+ng)+2*(nb+ngN);
+	//printf("\nmu_scal = %f\n", mu_scal);
+	mu_scal = 1.0/mu_scal;
+	//printf("\nmu_scal = %f\n", mu_scal);
 	double sigma, sigma_decay, sigma_min;
+	//printf("\n%d %d %d\n", ng, ngN, N*2*ng+2*ngN);
+	//exit(1);
 
 	sigma = sigma_par[0]; //0.4;
 	sigma_decay = sigma_par[1]; //0.3;
@@ -745,6 +765,21 @@ d_print_mat(1, 2*pnb+2*pngN, qx[N], 1);
 #endif
 exit(1);
 #endif
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu+nx, pd[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu+nx, pl[ii], 1);
+for(ii=0; ii<N; ii++)
+	d_print_mat(1, ng, Qx[ii], 1);
+d_print_mat(1, ngN, Qx[N], 1);
+for(ii=0; ii<N; ii++)
+	d_print_mat(1, ng, qx[ii], 1);
+d_print_mat(1, ngN, qx[N], 1);
+if(*kk==1)
+exit(1);
+#endif
+
 
 
 		// compute the search direction: factorize and solve the KKT system
@@ -773,7 +808,7 @@ exit(1);
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nx+nu, dux[ii], 1);
-//if(*kk==1)
+if(*kk==1)
 exit(1);
 #endif
 
@@ -814,6 +849,16 @@ exit(1);
 
 
 		d_update_gradient_hard_mpc(N, nx, nu, nb, ng, ngN, sigma*mu, dt, dlam, t_inv, pl, qx);
+
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu+nx, pl[ii], 1);
+//for(ii=0; ii<N; ii++)
+//	d_print_mat(1, ng, qx[ii], 1);
+//d_print_mat(1, ngN, qx[N], 1);
+if(*kk==1)
+exit(1);
+#endif
 
 
 #if 0
@@ -856,6 +901,14 @@ exit(1);
 
 		// solve the system
 		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work, 1, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, qx);
+
+#if 0
+printf("\ndux\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nx+nu, dux[ii], 1);
+if(*kk==1)
+exit(1);
+#endif
 
 
 
