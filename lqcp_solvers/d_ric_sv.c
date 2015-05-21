@@ -33,11 +33,35 @@
 
 
 
+int d_ric_sv_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, int *ng)
+	{
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int ii;
+
+	int nzM  = 0;
+	int nxgM = 0;
+
+	for(ii=0; ii<=N; ii++)
+		{
+		if(nu[ii]+nx[ii]+1>nzM) nzM = nu[ii]+nx[ii]+1;
+		if(nx[ii]+ng[ii]>nxgM) nxgM = nx[ii]+ng[ii];
+		}
+	
+	int size = ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl);
+
+	return size;
+	}
+
+
+
 /* version tailored for mpc (x0 fixed) ; version supporting time-variant nx, nu, nb, ng */
 void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *work, double *diag, int compute_pi, double **hpi, int *nb, int **idxb, double **hQd, double **hQl, int *ng, double **hpDCt, double **Qx, double **qx, int fast_rsqrt)
 	{
 	
-	const int bs = D_MR; //d_get_mr();
+	const int bs = D_MR;
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 	

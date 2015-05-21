@@ -34,11 +34,53 @@
 
 
 
+int d_ip2_hard_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, int *ng)
+	{
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+	const int nal = bs*ncl;
+
+	int ii;
+
+	int pnz, pnb, png, cnx, cnz, anx, anz;
+
+	int size = 0;
+	int pnzM = 0;
+	int nxgM = 0;
+	for(ii=0; ii<=N; ii++)
+		{
+		if(nx[ii]+ng[ii]>nxgM) nxgM = nx[ii]+ng[ii];
+		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
+		if(pnz>pnzM) pnzM = pnz;
+		pnb = (nb[ii]+bs-1)/bs*bs;
+		png = (ng[ii]+bs-1)/bs*bs;
+		cnx = (nx[ii]+ncl-1)/ncl*ncl;
+		cnz = (nx[ii]+nu[ii]+1+ncl-1)/ncl*ncl;
+		anx = (nx[ii]+nal-1)/nal*nal;
+		anz = (nx[ii]+nu[ii]+1+nal-1)/nal*nal;
+		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*anx + 3*anz + 14*pnb + 10*png;
+		}
+	size += pnzM*((nxM+ngM+ncl-1)/ncl*ncl) + pnzM;
+
+	return size;
+	}
+
+
+
+int d_ip2_hard_mpc_tv_work_space_size_int(int N, int *nx, int *nu, int *nb, int *ng)
+	{
+
+	int size = 7*(N+1);
+
+	return size;
+
+	}
 
 
 
 /* primal-dual interior-point method, hard constraints, time variant matrices, time variant size (mpc version) */
-int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
+int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory, int *int_work_memory)
 	{
 	
 	// indeces
@@ -53,15 +95,12 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 	// matrices size
 	// work_space_int_size_per_stage = 7
-	double *ptr;
-	ptr = work_memory;
-
 	int idx;
 	int nxM = 0;
 	int nzM = 0;
 	int ngM = 0;
 	int *ptr_int, *anx, *anz, *pnz, *pnb, *png, *cnx, *cnz;
-	ptr_int = (int *) ptr;
+	ptr_int = int_work_memory; // no alignmenr requirements
 	anx = ptr_int; ptr_int += N+1;
 	anz = ptr_int; ptr_int += N+1;
 	pnz = ptr_int; ptr_int += N+1;
@@ -86,18 +125,12 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 
 
-	/* align work space */
-	size_t align = 64;
-	size_t addr = (size_t) ptr_int;
-	size_t offset = addr % align;
-	ptr_int = ptr_int + offset / sizeof(int);
-	ptr = (double *) ptr_int;
-
-
-
 	// initialize work space
 	// work_space_double_size_per_stage = pnz*cnl + 2*anz + 2*anx + 14*pnb + 10*png
 	// work_space_double_size_const_max = pnz*cnxg + pnz
+	double *ptr;
+	ptr = double_work_memory; // supposed to be aligned to cache line boundaries
+
 	double *(pL[N+1]);
 	double *(l[N+1]);
 	double *work;
@@ -152,7 +185,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	for(jj=0; jj<N; jj++)
 		{
 		Pb[jj] = ptr;
-		ptr += anx[jj];
+		ptr += anx[jj+1];
 		}
 
 	// linear part of cost function

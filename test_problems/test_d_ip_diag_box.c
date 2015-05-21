@@ -722,17 +722,19 @@ int main()
 	int pngg[N+1];
 	for(ii=0; ii<=N; ii++) pngg[ii] = (ngg[ii]+bs-1)/bs*bs;
 
-	int pnzM = pnzz[0]; // max
-	int cnxgM = cnxx[0]; // max
+	//int pnzM = pnzz[0]; // max
+	//int cnxgM = cnxx[0]; // max
 
-	int cache_line_size = 64;
-	int work_space_int_size = 7*(N+1);
-	int work_space_double_size = pnzM*cnxgM + pnzM;
-	for(ii=0; ii<=N; ii++)
-		work_space_double_size += pnzz[ii]*cnll[ii] + 3*anzz[ii] + 2*anxx[ii] + 14*pnbb[ii] + 10*pngg[ii];
+	//int work_space_int_size = 7*(N+1);
+	//int work_space_double_size = pnzM*cnxgM + pnzM;
+	//for(ii=0; ii<=N; ii++)
+	//	work_space_double_size += pnzz[ii]*cnll[ii] + 3*anzz[ii] + 2*anxx[ii] + 14*pnbb[ii] + 10*pngg[ii];
 	
-	printf("\nIPM diag work space size: %d double + %d int\n\n", work_space_double_size, work_space_int_size);
-	double *work_ipm_tv = (double *) malloc(cache_line_size + work_space_int_size*sizeof(int) + work_space_double_size*sizeof(double));
+	//printf("\nIPM diag work space size: %d double + %d int\n\n", work_space_double_size, work_space_int_size);
+	//double *work_ipm_tv_double; d_zeros_align(&work_ipm_tv_double, work_space_double_size, 1);
+	double *work_ipm_tv_double; d_zeros_align(&work_ipm_tv_double, d_ip2_hard_mpc_tv_work_space_size_double(N, nxx, nuu, nbb, ngg), 1);
+	//int *work_ipm_tv_int = (int *) malloc(work_space_int_size*sizeof(int));
+	int *work_ipm_tv_int = (int *) malloc(d_ip2_hard_mpc_tv_work_space_size_int(N, nxx, nuu, nbb, ngg)*sizeof(int));
 
 
 	for(jj=0; jj<nuu[0]; jj++)
@@ -753,7 +755,7 @@ int main()
 
 
 	printf("\nIPM solution ...\n");
-	d_ip2_hard_mpc_tv(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, N, nxx, nuu, nbb, idxb, ngg, hpBAbt_tv, hpRSQ_tv, dummy, hd, hux, 1, hpi, hlam, ht, work_ipm_tv);
+	d_ip2_hard_mpc_tv(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, N, nxx, nuu, nbb, idxb, ngg, hpBAbt_tv, hpRSQ_tv, dummy, hd, hux, 1, hpi, hlam, ht, work_ipm_tv_double, work_ipm_tv_int);
 	printf("\nIPM solution done\n");
 
 
@@ -813,7 +815,7 @@ int main()
 	nrep = 1000;
 	for(ii=0; ii<nrep; ii++)
 		{
-		d_ip2_hard_mpc_tv(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, N, nxx, nuu, nbb, idxb, ngg, hpBAbt_tv, hpRSQ_tv, dummy, hd, hux, 1, hpi, hlam, ht, work_ipm_tv);
+		d_ip2_hard_mpc_tv(&kk, kmax, mu0, mu_tol, alpha_min, 0, sigma_par, stat, N, nxx, nuu, nbb, idxb, ngg, hpBAbt_tv, hpRSQ_tv, dummy, hd, hux, 1, hpi, hlam, ht, work_ipm_tv_double, work_ipm_tv_int);
 		}
 
 	gettimeofday(&tv21, NULL); // start
@@ -824,7 +826,8 @@ int main()
 
 
 	free(work_ric_tv);
-	free(work_ipm_tv);
+	free(work_ipm_tv_double);
+	free(work_ipm_tv_int);
 	for(ii=0; ii<N; ii++)
 		{
 		free(hpBAbt_tv[ii]);
