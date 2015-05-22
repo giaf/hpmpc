@@ -31,6 +31,41 @@
 // work space: dynamic definition as function return value
 
 // Riccati-based IP method for box-constrained MPC, double precision
+// XXX assume size(double) >= size(int) && size(double) >= size(int *) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+int hpmpc_ip_hard_mpc_dp_work_space_tv(int N, int nx, int nu, int nb, int ng, int ngN)
+	{
+	//const int nb = nx+nu;
+	//const int ng = 0;
+
+	const int bs  = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+	const int nal = D_MR*D_NCL;
+
+	const int nz   = nx+nu+1;
+	const int pnz  = bs*((nz+bs-1)/bs);
+	const int pnb  = bs*((nb+bs-1)/bs);
+	const int png  = bs*((ng+bs-1)/bs);
+	const int pngN = bs*((ngN+bs-1)/bs);
+	const int cnz  = ncl*((nx+nu+1+ncl-1)/ncl);
+	const int cnx  = ncl*((nx+ncl-1)/ncl);
+	const int cng  = ncl*((ng+ncl-1)/ncl);
+	const int cngN = ncl*((ngN+ncl-1)/ncl);
+	const int cnxg = ncl*((nx+ng+ncl-1)/ncl);
+	const int anz  = nal*((nz+nal-1)/nal);
+	const int anx  = nal*((nx+nal-1)/nal);
+//	const int pad  = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
+//	const int cnl  = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
+	const int cnl  = cnz<cnx+ncl ? cnx+ncl : cnz;
+	//const int anb = 2*nal*((nb+nal-1)/nal);
+
+//	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 6*anz + 3*anx + 7*anb) + 3*anz);
+	int work_space_size = (8 + (N+1)*(12 + nb + pnz*cnx + pnz*cnz + pnz*cnl + pnz*cng + 6*anz + 4*anx + 23*pnb + 19*png) + pnz*(cngN-cng) + 19*(pngN-png) + anz + (cngN<cnxg ? pnz*cnxg : pnz*cngN) );
+
+	return work_space_size;
+	}
+
+
+
 int hpmpc_ip_hard_mpc_dp_work_space(int N, int nx, int nu, int nb, int ng, int ngN)
 	{
 	//const int nb = nx+nu;
@@ -62,6 +97,8 @@ int hpmpc_ip_hard_mpc_dp_work_space(int N, int nx, int nu, int nb, int ng, int n
 
 	return work_space_size;
 	}
+
+
 
 // Riccati-based IP method for box-constrained MPC, single precision
 int hpmpc_ip_box_mpc_sp_work_space(int nx, int nu, int N)

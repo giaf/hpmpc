@@ -103,6 +103,8 @@
 // work space: static definition
 
 // Riccati-based IP method for box-constrained MPC, double precision
+// XXX assume size(double) >= size(int) && size(double) >= size(int *) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#define HPMPC_IP_MPC_DP_WORK_SPACE_TV (8 + (NN+1)*(12 + NB + D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + D_PNZ*D_CNG + 6*D_ANZ + 4*D_ANX + 23*D_PNB + 19*D_PNG) + D_PNZ*(D_CNGN-D_CNG) + 19*(D_PNGN-D_PNG) + D_ANZ + (D_CNGN<D_CNXG ? D_PNZ*D_CNXG : D_PNZ*D_CNGN ) )
 #define HPMPC_IP_MPC_DP_WORK_SPACE (8 + (NN+1)*(D_PNZ*D_CNX + D_PNZ*D_CNZ + D_PNZ*D_CNL + D_PNZ*D_CNG + 8*D_ANZ + 4*D_ANX + 18*(D_PNB+D_PNG)) + D_PNZ*(D_CNGN-D_CNG) + 18*(D_PNGN-D_PNG) + D_ANZ + (D_CNGN<D_CNXG ? D_PNZ*D_CNXG : D_PNZ*D_CNGN ) )
 // Riccati-based IP method for box-constrained MPC, single precision
 #define HPMPC_IP_MPC_SP_WORK_SPACE (16 + (NN+1)*(S_PNZ*S_CNX + S_PNZ*S_CNZ + S_PNZ*S_CNL + 5*S_ANZ + 3*S_ANX + 7*S_ANB) + S_ANZ + D_PNZ*P_CNX)
@@ -120,6 +122,7 @@
 // work space: dynamic definition as function return value
 
 // Riccati-based IP method for box-constrained MPC, double precision
+int hpmpc_ip_hard_mpc_dp_work_space_tv(int N, int nx, int nu, int nb, int ng, int ngN);
 int hpmpc_ip_hard_mpc_dp_work_space(int N, int nx, int nu, int nb, int ng, int ngN);
 
 // Riccati-based IP method for box-constrained MPC, single precision

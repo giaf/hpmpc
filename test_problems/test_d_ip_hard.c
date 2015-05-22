@@ -561,7 +561,7 @@ int main()
 	double mu = -1.0;
 	int hpmpc_status;
 	
-	double *rwork; d_zeros(&rwork, 4*hpmpc_ip_hard_mpc_dp_work_space(N, nx, nu, nb, ng, ngN), 1);
+	double *rwork; d_zeros(&rwork, hpmpc_ip_hard_mpc_dp_work_space_tv(N, nx, nu, nb, ng, ngN), 1);
 	double *rstat; d_zeros(&rstat, 5, k_max); // stats from the IP routine
 	int compute_res = 1; // flag to control the computation of residuals on exit (high-level interface only)
 	double inf_norm_res[4] = {}; // infinity norm of residuals: rq, rb, rd, mu

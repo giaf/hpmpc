@@ -99,15 +99,15 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	int kk = -1;
 
 #if (STATIC_MEMORY==1)
-	static double work[HPMPC_IP_MPC_DP_WORK_SPACE];
+	static double work[HPMPC_IP_MPC_DP_WORK_SPACE_TV];
 #else
-	int work_space_size = hpmpc_ip_hard_mpc_dp_work_space(N, nx, nu, nb, ng, ngN);
+	int work_space_size = hpmpc_ip_hard_mpc_dp_work_space_tv(N, nx, nu, nb, ng, ngN);
 	double *work = (double *) malloc( work_space_size * sizeof(double) );
 #endif
 
 	// call solver 
-	fortran_order_ip_hard_mpc(&kk, k_max, mu0, tol, 'd', N, nx, nu, nb, ng, ngN, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, work, stat, compute_res, inf_norm_res, compute_mult, pi, lam, t);
-	//c_order_ip_hard_mpc(&kk, k_max, mu0, tol, 'd', N, nx, nu, nb, ng, A, B, b, Q, Qf, S, R, q, qf, r, C, D, lb, ub, x, u, work, stat, compute_res, inf_norm_res, compute_mult, pi, lam, t);
+	fortran_order_ip_hard_mpc_tv(&kk, k_max, mu0, tol, 'd', N, nx, nu, nb, ng, ngN, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, work, stat, compute_res, inf_norm_res, compute_mult, pi, lam, t);
+	//c_order_ip_hard_mpc_tv(&kk, k_max, mu0, tol, 'd', N, nx, nu, nb, ng, ngN, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, work, stat, compute_res, inf_norm_res, compute_mult, pi, lam, t);
 
 	*kkk = (double) kk;
 

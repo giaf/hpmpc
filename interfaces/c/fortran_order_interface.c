@@ -83,7 +83,7 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
                           double* q, double* qf, double* r, 
 						  double *lb, double *ub,
                           double *C, double *D, double *lg, double *ug,
-						  double *CN, double *lgf, double *ugf,
+						  double *Cf, double *lgf, double *ugf,
                           double* x, double* u,
 						  double *work0, 
                           double *stat,
@@ -256,6 +256,15 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
             ptr += anz;
 	        }
 
+        for(ii=0; ii<=N; ii++) // time Variant box constraints
+	        {
+            hpi[ii] = ptr;
+            ptr += anx; // for alignment of ptr
+	        }
+
+		work = ptr;
+		ptr += d_ip2_hard_mpc_tv_work_space_size_double(N, nxx, nuu, nbb, ngg);
+
         for(ii=0; ii<N; ii++) // time Variant box constraints
 	        {
             hd[ii] = ptr;
@@ -263,12 +272,6 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
 	        }
 		hd[N] = ptr;
 		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
-
-        for(ii=0; ii<=N; ii++) // time Variant box constraints
-	        {
-            hpi[ii] = ptr;
-            ptr += anx; // for alignment of ptr
-	        }
 
         for(ii=0; ii<N; ii++) // time Variant box constraints
 	        {
@@ -317,8 +320,6 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
 
 			}
 
-		work = ptr;
-
 
 
         /* pack matrices 	*/
@@ -351,10 +352,10 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
 		if(ngN>0)
 			{
 			//for(ii=0; ii<pnu*cngN; ii++) hpDCt[N][ii] = 0.0; // make sure D is zero !!!!!
-			//d_cvt_tran_mat2pmat(ngN, nx, nu, bs, CN, ngN, hpDCt[N]+nu/bs*cngN*bs+nu%bs, cngN);
-			d_cvt_tran_mat2pmat(ngN, nx, 0, bs, CN, ngN, hpDCt[N], cngN);
+			//d_cvt_tran_mat2pmat(ngN, nx, nu, bs, Cf, ngN, hpDCt[N]+nu/bs*cngN*bs+nu%bs, cngN);
+			d_cvt_tran_mat2pmat(ngN, nx, 0, bs, Cf, ngN, hpDCt[N], cngN);
 			}
-		//d_print_mat(ngN, nx, CN, ngN);
+		//d_print_mat(ngN, nx, Cf, ngN);
 		//d_print_pmat(nx+nu, ng, bs, hpDCt[0], cng);
 		//d_print_pmat(nx+nu, ng, bs, hpDCt[1], cng);
 		//d_print_pmat(nx+nu, ngN, bs, hpDCt[N], cngN);
@@ -730,7 +731,7 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
                           double* q, double* qf, double* r, 
 						  double *lb, double *ub,
                           double *C, double *D, double *lg, double *ug,
-						  double *CN, double *lgf, double *ugf,
+						  double *Cf, double *lgf, double *ugf,
                           double* x, double* u,
 						  double *work0, 
                           double *stat,
@@ -941,9 +942,9 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 		if(ngN>0)
 			{
 			for(ii=0; ii<pnu*cngN; ii++) hpDCt[N][ii] = 0.0; // make sure D is zero !!!!!
-			d_cvt_tran_mat2pmat(ngN, nx, nu, bs, CN, ngN, hpDCt[N]+nu/bs*cngN*bs+nu%bs, cngN);
+			d_cvt_tran_mat2pmat(ngN, nx, nu, bs, Cf, ngN, hpDCt[N]+nu/bs*cngN*bs+nu%bs, cngN);
 			}
-		//d_print_mat(ngN, nx, CN, ngN);
+		//d_print_mat(ngN, nx, Cf, ngN);
 		//d_print_pmat(nx+nu, ng, bs, hpDCt[0], cng);
 		//d_print_pmat(nx+nu, ng, bs, hpDCt[1], cng);
 		//d_print_pmat(nx+nu, ngN, bs, hpDCt[N], cngN);
