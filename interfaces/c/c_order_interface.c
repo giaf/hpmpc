@@ -2289,7 +2289,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 				//d_print_mat(1, nx, q_temp, 1);
 				if(alg==0)
 					{
-					dgemv_n_lib(nx, ny, hpCt[ii], cny, q_temp, hq[ii], 0);
+					dgemv_n_lib(nx, ny, hpCt[ii], cny, q_temp, hq[ii], hq[ii], 0);
 					}
 				else
 					{
@@ -2306,7 +2306,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 			//d_print_mat(1, nx, q_temp, 1);
 			if(alg==0)
 				{
-				dgemv_n_lib(nx, ny, hpCt[N], cny, q_temp, hq[N], 0);
+				dgemv_n_lib(nx, ny, hpCt[N], cny, q_temp, hq[N], hq[N], 0);
 				}
 			else
 				{

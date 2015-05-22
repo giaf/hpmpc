@@ -2361,7 +2361,7 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int 
 
 
 // TODO modify kernels instead
-void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, int alg) // pA has to be aligned !!!
+void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, double *z, int alg) // pA has to be aligned !!!
 	{
 
 	// early return
@@ -2379,9 +2379,10 @@ void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, int al
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	for(; j<m-8; j+=12)
 		{
-		kernel_dgemv_n_12_lib4(n, pA, sda, x, y, alg);
+		kernel_dgemv_n_12_lib4(n, pA, sda, x, y, z, alg);
 		pA += 3*sda*bs;
 		y  += 3*bs;
+		z  += 3*bs;
 		}
 #endif
 	for(; j<m-4; j+=8)
@@ -2395,7 +2396,7 @@ void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, int al
 //		y_temp[6] = y[6];
 //		y_temp[7] = y[7];
 //		kernel_dgemv_n_8_lib4(n, pA, pA+sda*bs, x, y_temp, alg);
-		kernel_dgemv_n_8_lib4(n, pA, sda, x, y, alg);
+		kernel_dgemv_n_8_lib4(n, pA, sda, x, y, z, alg);
 //		y[0] = y_temp[0];
 //		y[1] = y_temp[1];
 //		y[2] = y_temp[2];
@@ -2414,6 +2415,7 @@ void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, int al
 //			}
 		pA += 2*sda*bs;
 		y  += 2*bs;
+		z  += 2*bs;
 		}
 /*	for(; j<n-3; j+=4)*/
 	for(; j<m; j+=4)
@@ -2423,7 +2425,7 @@ void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, int al
 //		y_temp[2] = y[2];
 //		y_temp[3] = y[3];
 //		kernel_dgemv_n_4_lib4(n, pA, x, y_temp, alg);
-		kernel_dgemv_n_4_lib4(n, pA, x, y, alg);
+		kernel_dgemv_n_4_lib4(n, pA, x, y, z, alg);
 //		if(m-j<4)
 //			{
 //			for(i=0; i<m-j; i++)
@@ -2438,6 +2440,7 @@ void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, int al
 //			}
 		pA += sda*bs;
 		y  += bs;
+		z  += bs;
 		}
 /*	for(; j<m-1; j+=2)*/
 /*		{*/
@@ -2456,7 +2459,7 @@ void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, int al
 
 
 
-void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, double *y, int alg)
+void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, double *y, double *z, int alg)
 	{
 	
 	// early return
@@ -2471,37 +2474,26 @@ void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, double *y, int al
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	for(; j<n-11; j+=12)
 		{
-		kernel_dgemv_t_12_lib4(m, pA+j*bs, sda, x, y+j, alg);
+		kernel_dgemv_t_12_lib4(m, pA+j*bs, sda, x, y+j, z+j, alg);
 		}
 #endif
 	for(; j<n-7; j+=8)
 		{
-		kernel_dgemv_t_8_lib4(m, pA+j*bs, sda, x, y+j, alg);
+		kernel_dgemv_t_8_lib4(m, pA+j*bs, sda, x, y+j, z+j, alg);
 		}
 	for(; j<n-3; j+=4)
 		{
-		kernel_dgemv_t_4_lib4(m, pA+j*bs, sda, x, y+j, alg);
+		kernel_dgemv_t_4_lib4(m, pA+j*bs, sda, x, y+j, z+j, alg);
 		}
-#if 1 //defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	if(n>j)
 		{
 		if(n-j==1)
-			kernel_dgemv_t_1_lib4(m, pA+j*bs, sda, x, y+j, alg);
+			kernel_dgemv_t_1_lib4(m, pA+j*bs, sda, x, y+j, z+j, alg);
 		else if(n-j==2)
-			kernel_dgemv_t_2_lib4(m, pA+j*bs, sda, x, y+j, alg);
+			kernel_dgemv_t_2_lib4(m, pA+j*bs, sda, x, y+j, z+j, alg);
 		else if(n-j==3)
-			kernel_dgemv_t_3_lib4(m, pA+j*bs, sda, x, y+j, alg);
+			kernel_dgemv_t_3_lib4(m, pA+j*bs, sda, x, y+j, z+j, alg);
 		}
-#else
-	for(; j<n-1; j+=2)
-		{
-		kernel_dgemv_t_2_lib4(m, pA+j*bs, sda, x, y+j, alg);
-		}
-	for(; j<n; j++)
-		{
-		kernel_dgemv_t_1_lib4(m, pA+j*bs, sda, x, y+j, alg);
-		}
-#endif
 
 	}
 
@@ -2729,7 +2721,7 @@ void dtrsv_dgemv_n_lib(int m, int n, double *pA, int sda, double *x)
 	for(; j<n-8; j+=12)
 		{
 
-		kernel_dgemv_n_12_lib4(m, pA, sda, x, y, -1);
+		kernel_dgemv_n_12_lib4(m, pA, sda, x, y, y, -1);
 
 		pA += 3*sda*bs;
 		y  += 3*bs;
@@ -2740,7 +2732,7 @@ void dtrsv_dgemv_n_lib(int m, int n, double *pA, int sda, double *x)
 	for(; j<n-4; j+=8)
 		{
 
-		kernel_dgemv_n_8_lib4(m, pA, sda, x, y, -1);
+		kernel_dgemv_n_8_lib4(m, pA, sda, x, y, y, -1);
 
 		pA += 2*sda*bs;
 		y  += 2*bs;
@@ -2750,7 +2742,7 @@ void dtrsv_dgemv_n_lib(int m, int n, double *pA, int sda, double *x)
 	for(; j<n; j+=4)
 		{
 
-		kernel_dgemv_n_4_lib4(m, pA, x, y, -1);
+		kernel_dgemv_n_4_lib4(m, pA, x, y, y, -1);
 
 		pA += sda*bs;
 		y  += bs;

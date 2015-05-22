@@ -48,12 +48,12 @@ void d_res_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hq
 	// first block
 	for(jj=0; jj<nu; jj++) hrq[0][jj] = - hq[0][jj];
 	for(jj=0; jj<nu%bs; jj++) { temp[jj] = hux[0][(nu/bs)*bs+jj]; hux[0][(nu/bs)*bs+jj] = 0.0; }
-	dgemv_t_lib(nx, nu, hpQ[0]+(nu/bs)*bs*cnz+nu%bs, cnz, hux[0]+nu, hrq[0], -1);
+	dgemv_t_lib(nx, nu, hpQ[0]+(nu/bs)*bs*cnz+nu%bs, cnz, hux[0]+nu, hrq[0], hrq[0], -1);
 	for(jj=0; jj<nu%bs; jj++) hux[0][(nu/bs)*bs+jj] = temp[jj];
 	dsymv_lib(nu, nu, hpQ[0], cnz, hux[0], hrq[0], -1);
-	dgemv_n_lib(nu, nx, hpBAbt[0], cnx, hpi[1], hrq[0], -1);
+	dgemv_n_lib(nu, nx, hpBAbt[0], cnx, hpi[1], hrq[0], hrq[0], -1);
 	for(jj=0; jj<nx; jj++) hrb[0][jj] = hux[1][nu+jj] - hpBAbt[0][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
-	dgemv_t_lib(nxu, nx, hpBAbt[0], cnx, hux[0], hrb[0], -1);
+	dgemv_t_lib(nxu, nx, hpBAbt[0], cnx, hux[0], hrb[0], hrb[0], -1);
 
 	// middle blocks
 	for(ii=1; ii<N; ii++)
@@ -97,13 +97,13 @@ void d_res_diag_mpc(int N, int *nx, int *nu, double **hdA, double **hpBt, double
 
 	for(jj=0; jj<nu0; jj++) hres_rq[ii][jj] = - hrq[ii][jj];
 	for(jj=0; jj<nx0; jj++) work[jj] = hux[ii][nu0+jj];
-	dgemv_t_lib(nx0, nu0, hpSt[ii], cnu0, work, hres_rq[ii], -1);
+	dgemv_t_lib(nx0, nu0, hpSt[ii], cnu0, work, hres_rq[ii], hres_rq[ii], -1);
 	dsymv_lib(nu0, nu0, hpR[ii], cnu0, hux[ii], hres_rq[ii], -1);
-	dgemv_n_lib(nu0, nx1, hpBt[ii], cnx1, hpi[ii+1], hres_rq[ii], -1);
+	dgemv_n_lib(nu0, nx1, hpBt[ii], cnx1, hpi[ii+1], hres_rq[ii], hres_rq[ii], -1);
 
 	for(jj=0; jj<nx1; jj++) hres_b[ii][jj] = hux[ii+1][nu1+jj] - hb[ii][jj];
 	for(jj=0; jj<nxm; jj++) hres_b[ii][jj] -= hdA[ii][jj] * work[jj];
-	dgemv_t_lib(nu0, nx1, hpBt[ii], cnx1, hux[ii], hres_b[ii], -1);
+	dgemv_t_lib(nu0, nx1, hpBt[ii], cnx1, hux[ii], hres_b[ii], hres_b[ii], -1);
 
 
 	// middle stages
@@ -120,18 +120,18 @@ void d_res_diag_mpc(int N, int *nx, int *nu, double **hdA, double **hpBt, double
 
 		for(jj=0; jj<nu0; jj++) hres_rq[ii][jj] = - hrq[ii][jj];
 		for(jj=0; jj<nx0; jj++) work[jj] = hux[ii][nu0+jj];
-		dgemv_t_lib(nx0, nu0, hpSt[ii], cnu0, work, hres_rq[ii], -1);
+		dgemv_t_lib(nx0, nu0, hpSt[ii], cnu0, work, hres_rq[ii], hres_rq[ii], -1);
 		dsymv_lib(nu0, nu0, hpR[ii], cnu0, hux[ii], hres_rq[ii], -1);
-		dgemv_n_lib(nu0, nx1, hpBt[ii], cnx1, hpi[ii+1], hres_rq[ii], -1);
+		dgemv_n_lib(nu0, nx1, hpBt[ii], cnx1, hpi[ii+1], hres_rq[ii], hres_rq[ii], -1);
 
 		for(jj=0; jj<nx0; jj++) hres_rq[ii][nu0+jj] = hpi[ii][jj] - hrq[ii][nu0+jj];
 		for(jj=0; jj<nxm; jj++) hres_rq[ii][nu0+jj] -= hdA[ii][jj] * hpi[ii+1][jj];
-		dgemv_n_lib(nx0, nu0, hpSt[ii], cnu0, hux[ii], hres_rq[ii]+nu0, -1);
+		dgemv_n_lib(nx0, nu0, hpSt[ii], cnu0, hux[ii], hres_rq[ii]+nu0, hres_rq[ii]+nu0, -1);
 		dsymv_lib(nx0, nx0, hpQ[ii], cnx0, work, hres_rq[ii]+nu0, -1);
 
 		for(jj=0; jj<nx1; jj++) hres_b[ii][jj] = hux[ii+1][nu1+jj] - hb[ii][jj];
 		for(jj=0; jj<nxm; jj++) hres_b[ii][jj] -= hdA[ii][jj] * work[jj];
-		dgemv_t_lib(nu0, nx1, hpBt[ii], cnx1, hux[ii], hres_b[ii], -1);
+		dgemv_t_lib(nu0, nx1, hpBt[ii], cnx1, hux[ii], hres_b[ii], hres_b[ii], -1);
 
 		}
 

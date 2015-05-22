@@ -59,7 +59,7 @@ int d_ip2_hard_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 		cnz = (nx[ii]+nu[ii]+1+ncl-1)/ncl*ncl;
 		anx = (nx[ii]+nal-1)/nal*nal;
 		anz = (nx[ii]+nu[ii]+1+nal-1)/nal*nal;
-		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*anx + 3*anz + 12*pnb + 11*png;
+		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*anx + 3*anz + 15*pnb + 11*png;
 		}
 	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
 
@@ -240,9 +240,9 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	for(jj=0; jj<=N; jj++)
 		{
 		Qx[jj] = ptr;
-		qx[jj] = ptr+png[jj];
-		qx2[jj] = ptr+2*png[jj];
-		ptr += 3*png[jj];
+		qx[jj] = ptr+pnb[jj]+png[jj];
+		qx2[jj] = ptr+2*pnb[jj]+2*png[jj];
+		ptr += 3*pnb[jj]+3*png[jj];
 		}
 
 
@@ -680,7 +680,7 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 	double temp0, temp1;
 	double alpha, mu, mu_aff;
-	double mu_scal = N*2*(nb+ng)+2*(nb+ngN);
+	double mu_scal = N*2*(nb+ng)+2*ngN;
 	//printf("\nmu_scal = %f\n", mu_scal);
 	mu_scal = 1.0/mu_scal;
 	//printf("\nmu_scal = %f\n", mu_scal);

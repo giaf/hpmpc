@@ -36,7 +36,7 @@
 #define ENABLE_PREFETCH 1
 
 
-void kernel_dgemv_t_12_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_12_lib4(int kmax, double *A, int sda, double *x, double *y, double *z, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -659,9 +659,9 @@ void kernel_dgemv_t_12_lib4(int kmax, double *A, int sda, double *x, double *y, 
 
 	if(alg==0)
 		{
-		_mm256_storeu_pd(&y[0], y_00);
-		_mm256_storeu_pd(&y[4], y_44);
-		_mm256_storeu_pd(&y[8], y_88);
+		_mm256_storeu_pd(&z[0], y_00);
+		_mm256_storeu_pd(&z[4], y_44);
+		_mm256_storeu_pd(&z[8], y_88);
 		}
 	else if(alg==1)
 		{
@@ -673,9 +673,9 @@ void kernel_dgemv_t_12_lib4(int kmax, double *A, int sda, double *x, double *y, 
 		y_4_5_6_7 = _mm256_add_pd( y_4_5_6_7, y_44 );
 		y_8_9_a_b = _mm256_add_pd( y_8_9_a_b, y_88 );
 	
-		_mm256_storeu_pd(&y[0], y_0_1_2_3);
-		_mm256_storeu_pd(&y[4], y_4_5_6_7);
-		_mm256_storeu_pd(&y[8], y_8_9_a_b);
+		_mm256_storeu_pd(&z[0], y_0_1_2_3);
+		_mm256_storeu_pd(&z[4], y_4_5_6_7);
+		_mm256_storeu_pd(&z[8], y_8_9_a_b);
 		}
 	else // alg==-1
 		{
@@ -687,16 +687,16 @@ void kernel_dgemv_t_12_lib4(int kmax, double *A, int sda, double *x, double *y, 
 		y_4_5_6_7 = _mm256_sub_pd( y_4_5_6_7, y_44 );
 		y_8_9_a_b = _mm256_sub_pd( y_8_9_a_b, y_88 );
 	
-		_mm256_storeu_pd(&y[0], y_0_1_2_3);
-		_mm256_storeu_pd(&y[4], y_4_5_6_7);
-		_mm256_storeu_pd(&y[8], y_8_9_a_b);
+		_mm256_storeu_pd(&z[0], y_0_1_2_3);
+		_mm256_storeu_pd(&z[4], y_4_5_6_7);
+		_mm256_storeu_pd(&z[8], y_8_9_a_b);
 		}
 
 	}
 
 
 
-void kernel_dgemv_t_8_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_8_lib4(int kmax, double *A, int sda, double *x, double *y, double *z, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -1120,8 +1120,8 @@ void kernel_dgemv_t_8_lib4(int kmax, double *A, int sda, double *x, double *y, i
 
 	if(alg==0)
 		{
-		_mm256_storeu_pd(&y[0], y_00);
-		_mm256_storeu_pd(&y[4], y_44);
+		_mm256_storeu_pd(&z[0], y_00);
+		_mm256_storeu_pd(&z[4], y_44);
 		}
 	else if(alg==1)
 		{
@@ -1131,8 +1131,8 @@ void kernel_dgemv_t_8_lib4(int kmax, double *A, int sda, double *x, double *y, i
 		y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, y_00 );
 		y_4_5_6_7 = _mm256_add_pd( y_4_5_6_7, y_44 );
 
-		_mm256_storeu_pd(&y[0], y_0_1_2_3);
-		_mm256_storeu_pd(&y[4], y_4_5_6_7);
+		_mm256_storeu_pd(&z[0], y_0_1_2_3);
+		_mm256_storeu_pd(&z[4], y_4_5_6_7);
 		}
 	else // alg==-1
 		{
@@ -1142,15 +1142,15 @@ void kernel_dgemv_t_8_lib4(int kmax, double *A, int sda, double *x, double *y, i
 		y_0_1_2_3 = _mm256_sub_pd( y_0_1_2_3, y_00 );
 		y_4_5_6_7 = _mm256_sub_pd( y_4_5_6_7, y_44 );
 	
-		_mm256_storeu_pd(&y[0], y_0_1_2_3);
-		_mm256_storeu_pd(&y[4], y_4_5_6_7);
+		_mm256_storeu_pd(&z[0], y_0_1_2_3);
+		_mm256_storeu_pd(&z[4], y_4_5_6_7);
 		}
 
 	}
 
 
 
-void kernel_dgemv_t_4_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_4_lib4(int kmax, double *A, int sda, double *x, double *y, double *z, int alg)
 	{
 
 	if(kmax<=0) 
@@ -1318,7 +1318,7 @@ void kernel_dgemv_t_4_lib4(int kmax, double *A, int sda, double *x, double *y, i
 
 	if(alg==0)
 		{
-		_mm256_storeu_pd(&y[0], y_00);
+		_mm256_storeu_pd(&z[0], y_00);
 		}
 	else if(alg==1)
 		{
@@ -1326,7 +1326,7 @@ void kernel_dgemv_t_4_lib4(int kmax, double *A, int sda, double *x, double *y, i
 
 		y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, y_00 );
 
-		_mm256_storeu_pd(&y[0], y_0_1_2_3);
+		_mm256_storeu_pd(&z[0], y_0_1_2_3);
 		}
 	else // alg==-1
 		{
@@ -1334,14 +1334,14 @@ void kernel_dgemv_t_4_lib4(int kmax, double *A, int sda, double *x, double *y, i
 	
 		y_0_1_2_3 = _mm256_sub_pd( y_0_1_2_3, y_00 );
 	
-		_mm256_storeu_pd(&y[0], y_0_1_2_3);
+		_mm256_storeu_pd(&z[0], y_0_1_2_3);
 		}
 
 	}
 
 
 
-void kernel_dgemv_t_3_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_3_lib4(int kmax, double *A, int sda, double *x, double *y, double *z, int alg)
 	{
 
 	if(kmax<=0) 
@@ -1497,7 +1497,7 @@ void kernel_dgemv_t_3_lib4(int kmax, double *A, int sda, double *x, double *y, i
 
 	if(alg==0)
 		{
-		_mm256_storeu_pd(&y[0], y_00);
+		_mm256_storeu_pd(&z[0], y_00);
 		}
 	else 
 		{
@@ -1510,7 +1510,7 @@ void kernel_dgemv_t_3_lib4(int kmax, double *A, int sda, double *x, double *y, i
 
 			y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, y_00 );
 
-			_mm256_storeu_pd(&y[0], y_0_1_2_3);
+			_mm256_storeu_pd(&z[0], y_0_1_2_3);
 			}
 		else // alg==-1
 			{
@@ -1518,7 +1518,7 @@ void kernel_dgemv_t_3_lib4(int kmax, double *A, int sda, double *x, double *y, i
 		
 			y_0_1_2_3 = _mm256_sub_pd( y_0_1_2_3, y_00 );
 		
-			_mm256_storeu_pd(&y[0], y_0_1_2_3);
+			_mm256_storeu_pd(&z[0], y_0_1_2_3);
 			}
 		}
 
@@ -1526,7 +1526,7 @@ void kernel_dgemv_t_3_lib4(int kmax, double *A, int sda, double *x, double *y, i
 
 
 
-void kernel_dgemv_t_2_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_2_lib4(int kmax, double *A, int sda, double *x, double *y, double *z, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -1613,7 +1613,7 @@ void kernel_dgemv_t_2_lib4(int kmax, double *A, int sda, double *x, double *y, i
 
 	if(alg==0)
 		{
-		_mm_storeu_pd(&y[0], y_0);
+		_mm_storeu_pd(&z[0], y_0);
 		}
 	else if(alg==1)
 		{
@@ -1622,7 +1622,7 @@ void kernel_dgemv_t_2_lib4(int kmax, double *A, int sda, double *x, double *y, i
 /*		y_0_1 += y_0;*/
 		y_0_1 = _mm_add_pd( y_0_1, y_0 );
 
-		_mm_storeu_pd(&y[0], y_0_1);
+		_mm_storeu_pd(&z[0], y_0_1);
 		}
 	else // alg==-1
 		{
@@ -1631,14 +1631,14 @@ void kernel_dgemv_t_2_lib4(int kmax, double *A, int sda, double *x, double *y, i
 /*		y_0_1 -= y_0;*/
 		y_0_1 = _mm_sub_pd( y_0_1, y_0 );
 	
-		_mm_storeu_pd(&y[0], y_0_1);
+		_mm_storeu_pd(&z[0], y_0_1);
 		}
 
 	}
 
 
 
-void kernel_dgemv_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
+void kernel_dgemv_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, double *z, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -1714,7 +1714,7 @@ void kernel_dgemv_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, i
 
 	if(alg==0)
 		{
-		_mm_store_sd(&y[0], y_0);
+		_mm_store_sd(&z[0], y_0);
 		}
 	else if(alg==1)
 		{
@@ -1723,7 +1723,7 @@ void kernel_dgemv_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, i
 /*		y_0_1 += y_0;*/
 		y_0_1 = _mm_add_sd( y_0_1, y_0 );
 
-		_mm_store_sd(&y[0], y_0_1);
+		_mm_store_sd(&z[0], y_0_1);
 		}
 	else // alg==-1
 		{
@@ -1732,7 +1732,7 @@ void kernel_dgemv_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, i
 /*		y_0_1 -= y_0;*/
 		y_0_1 = _mm_sub_sd( y_0_1, y_0 );
 	
-		_mm_store_sd(&y[0], y_0_1);
+		_mm_store_sd(&z[0], y_0_1);
 		}
 
 	}
@@ -1740,7 +1740,7 @@ void kernel_dgemv_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, i
 
 
 // it moves horizontally inside a block
-void kernel_dgemv_n_12_lib4(int kmax, double *A0, int sda, double *x, double *y, int alg)
+void kernel_dgemv_n_12_lib4(int kmax, double *A0, int sda, double *x, double *y, double *z, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -2248,9 +2248,9 @@ void kernel_dgemv_n_12_lib4(int kmax, double *A0, int sda, double *x, double *y,
 
 	if(alg==0)
 		{
-		_mm256_storeu_pd(&y[0], y_0);
-		_mm256_storeu_pd(&y[4], y_4);
-		_mm256_storeu_pd(&y[8], y_8);
+		_mm256_storeu_pd(&z[0], y_0);
+		_mm256_storeu_pd(&z[4], y_4);
+		_mm256_storeu_pd(&z[8], y_8);
 		}
 	else if(alg==1)
 		{
@@ -2262,9 +2262,9 @@ void kernel_dgemv_n_12_lib4(int kmax, double *A0, int sda, double *x, double *y,
 		z_4 = _mm256_add_pd( z_4, y_4 );
 		z_8 = _mm256_add_pd( z_8, y_8 );
 
-		_mm256_storeu_pd(&y[0], z_0);
-		_mm256_storeu_pd(&y[4], z_4);
-		_mm256_storeu_pd(&y[8], z_8);
+		_mm256_storeu_pd(&z[0], z_0);
+		_mm256_storeu_pd(&z[4], z_4);
+		_mm256_storeu_pd(&z[8], z_8);
 		}
 	else // alg==-1
 		{
@@ -2276,9 +2276,9 @@ void kernel_dgemv_n_12_lib4(int kmax, double *A0, int sda, double *x, double *y,
 		z_4 = _mm256_sub_pd( z_4, y_4 );
 		z_8 = _mm256_sub_pd( z_8, y_8 );
 
-		_mm256_storeu_pd(&y[0], z_0);
-		_mm256_storeu_pd(&y[4], z_4);
-		_mm256_storeu_pd(&y[8], z_8);
+		_mm256_storeu_pd(&z[0], z_0);
+		_mm256_storeu_pd(&z[4], z_4);
+		_mm256_storeu_pd(&z[8], z_8);
 		}
 
 	}
@@ -2286,7 +2286,7 @@ void kernel_dgemv_n_12_lib4(int kmax, double *A0, int sda, double *x, double *y,
 
 
 // it moves horizontally inside a block
-void kernel_dgemv_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y, int alg)
+void kernel_dgemv_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y, double *z, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -2686,8 +2686,8 @@ void kernel_dgemv_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y, 
 
 	if(alg==0)
 		{
-		_mm256_storeu_pd(&y[0], y_0_1_2_3);
-		_mm256_storeu_pd(&y[4], y_4_5_6_7);
+		_mm256_storeu_pd(&z[0], y_0_1_2_3);
+		_mm256_storeu_pd(&z[4], y_4_5_6_7);
 		}
 	else if(alg==1)
 		{
@@ -2697,8 +2697,8 @@ void kernel_dgemv_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y, 
 		z_0_1_2_3 = _mm256_add_pd( z_0_1_2_3, y_0_1_2_3 );
 		z_4_5_6_7 = _mm256_add_pd( z_4_5_6_7, y_4_5_6_7 );
 
-		_mm256_storeu_pd(&y[0], z_0_1_2_3);
-		_mm256_storeu_pd(&y[4], z_4_5_6_7);
+		_mm256_storeu_pd(&z[0], z_0_1_2_3);
+		_mm256_storeu_pd(&z[4], z_4_5_6_7);
 		}
 	else // alg==-1
 		{
@@ -2708,8 +2708,8 @@ void kernel_dgemv_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y, 
 		z_0_1_2_3 = _mm256_sub_pd( z_0_1_2_3, y_0_1_2_3 );
 		z_4_5_6_7 = _mm256_sub_pd( z_4_5_6_7, y_4_5_6_7 );
 
-		_mm256_storeu_pd(&y[0], z_0_1_2_3);
-		_mm256_storeu_pd(&y[4], z_4_5_6_7);
+		_mm256_storeu_pd(&z[0], z_0_1_2_3);
+		_mm256_storeu_pd(&z[4], z_4_5_6_7);
 		}
 
 	}
@@ -2717,7 +2717,7 @@ void kernel_dgemv_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y, 
 
 
 // it moves horizontally inside a block
-void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, int alg)
+void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, double *z, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -2809,7 +2809,7 @@ void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, int alg)
 
 	if(alg==0)
 		{
-		_mm256_storeu_pd(&y[0], y_0_1_2_3);
+		_mm256_storeu_pd(&z[0], y_0_1_2_3);
 		}
 	else if(alg==1)
 		{
@@ -2817,7 +2817,7 @@ void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, int alg)
 
 		z_0_1_2_3 = _mm256_add_pd ( z_0_1_2_3, y_0_1_2_3 );
 
-		_mm256_storeu_pd(&y[0], z_0_1_2_3);
+		_mm256_storeu_pd(&z[0], z_0_1_2_3);
 		}
 	else // alg==-1
 		{
@@ -2825,7 +2825,7 @@ void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, int alg)
 
 		z_0_1_2_3 = _mm256_sub_pd ( z_0_1_2_3, y_0_1_2_3 );
 
-		_mm256_storeu_pd(&y[0], z_0_1_2_3);
+		_mm256_storeu_pd(&z[0], z_0_1_2_3);
 		}
 
 	}
@@ -2833,7 +2833,7 @@ void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, int alg)
 
 
 // it moves horizontally inside a block
-void kernel_dgemv_n_2_lib4(int kmax, double *A, double *x, double *y, int alg)
+void kernel_dgemv_n_2_lib4(int kmax, double *A, double *x, double *y, double *z, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -2922,7 +2922,7 @@ void kernel_dgemv_n_2_lib4(int kmax, double *A, double *x, double *y, int alg)
 
 	if(alg==0)
 		{
-		_mm_storeu_pd(&y[0], y_0_1);
+		_mm_storeu_pd(&z[0], y_0_1);
 		}
 	else if(alg==1)
 		{
@@ -2930,7 +2930,7 @@ void kernel_dgemv_n_2_lib4(int kmax, double *A, double *x, double *y, int alg)
 
 		z_0_1 = _mm_add_pd( z_0_1, y_0_1 );
 
-		_mm_storeu_pd(&y[0], z_0_1);
+		_mm_storeu_pd(&z[0], z_0_1);
 		}
 	else // alg==-1
 		{
@@ -2938,7 +2938,7 @@ void kernel_dgemv_n_2_lib4(int kmax, double *A, double *x, double *y, int alg)
 
 		z_0_1 = _mm_sub_pd( z_0_1, y_0_1 );
 
-		_mm_storeu_pd(&y[0], z_0_1);
+		_mm_storeu_pd(&z[0], z_0_1);
 		}
 
 	}
@@ -2946,7 +2946,7 @@ void kernel_dgemv_n_2_lib4(int kmax, double *A, double *x, double *y, int alg)
 
 
 // it moves horizontally inside a block
-void kernel_dgemv_n_1_lib4(int kmax, double *A, double *x, double *y, int alg)
+void kernel_dgemv_n_1_lib4(int kmax, double *A, double *x, double *y, double *z, int alg)
 	{
 	if(kmax<=0) 
 		return;
@@ -3045,7 +3045,7 @@ void kernel_dgemv_n_1_lib4(int kmax, double *A, double *x, double *y, int alg)
 
 	if(alg==0)
 		{
-		_mm_store_sd(&y[0], y_0);
+		_mm_store_sd(&z[0], y_0);
 		}
 	else if(alg==1)
 		{
@@ -3054,7 +3054,7 @@ void kernel_dgemv_n_1_lib4(int kmax, double *A, double *x, double *y, int alg)
 /*		z_0 += y_0;*/
 		z_0 = _mm_add_sd( z_0, y_0 );
 
-		_mm_store_sd(&y[0], z_0);
+		_mm_store_sd(&z[0], z_0);
 		}
 	else // alg==-1
 		{
@@ -3063,7 +3063,7 @@ void kernel_dgemv_n_1_lib4(int kmax, double *A, double *x, double *y, int alg)
 /*		z_0 -= y_0;*/
 		z_0 = _mm_sub_sd( z_0, y_0 );
 
-		_mm_store_sd(&y[0], z_0);
+		_mm_store_sd(&z[0], z_0);
 		}
 
 	}

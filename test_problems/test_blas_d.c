@@ -311,7 +311,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dgemv_n_lib(n, n, pA, cnd, x, y, 0);
+			dgemv_n_lib(n, n, pA, cnd, x, y, y, 0);
 
 			}
 	
@@ -320,7 +320,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dgemv_t_lib(n, n, pA, cnd, x, y, 0);
+			dgemv_t_lib(n, n, pA, cnd, x, y, y, 0);
 
 			}
 	
