@@ -67,12 +67,12 @@ void d_res_ip_soft_mpc(int nx, int nu, int N, int nh, int ns, double **hpBAbt, d
 		}
 	for(jj=0; jj<nu; jj++) hrq[0][jj] = - hq[0][jj] + hlam[0][2*jj+0] - hlam[0][2*jj+1];
 	for(jj=0; jj<nu%bs; jj++) { temp[jj] = hux[0][(nu/bs)*bs+jj]; hux[0][(nu/bs)*bs+jj] = 0.0; }
-	dgemv_t_lib(nx, nu, hpQ[0]+(nu/bs)*bs*cnz+nu%bs, cnz, hux[0]+nu, hrq[0], -1);
+	dgemv_t_lib(nx, nu, hpQ[0]+(nu/bs)*bs*cnz+nu%bs, cnz, hux[0]+nu, hrq[0], hrq[0], -1);
 	for(jj=0; jj<nu%bs; jj++) hux[0][(nu/bs)*bs+jj] = temp[jj];
 	dsymv_lib(nu, nu, hpQ[0], cnz, hux[0], hrq[0], -1);
-	dgemv_n_lib(nu, nx, hpBAbt[0], cnx, hpi[1], hrq[0], -1);
+	dgemv_n_lib(nu, nx, hpBAbt[0], cnx, hpi[1], hrq[0], hrq[0], -1);
 	for(jj=0; jj<nx; jj++) hrb[0][jj] = hux[1][nu+jj] - hpBAbt[0][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
-	dgemv_t_lib(nxu, nx, hpBAbt[0], cnx, hux[0], hrb[0], -1);
+	dgemv_t_lib(nxu, nx, hpBAbt[0], cnx, hux[0], hrb[0], hrb[0], -1);
 
 	// middle blocks : hard input constraints and hard & soft state constraints
 	for(ii=1; ii<N; ii++)
