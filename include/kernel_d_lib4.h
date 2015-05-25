@@ -146,6 +146,7 @@ void kernel_dsyrk_diag_left_right_4_lib4(int kmax, double *Al, double *Ar, doubl
 void kernel_dsyrk_diag_left_right_3_lib4(int kmax, double *Al, double *Ar, double *B, double *C, double *D, int alg);
 void kernel_dsyrk_diag_left_right_2_lib4(int kmax, double *Al, double *Ar, double *B, double *C, double *D, int alg);
 void kernel_dsyrk_diag_left_right_1_lib4(int kmax, double *Al, double *Ar, double *B, double *C, double *D, int alg);
+
 // corner
 void corner_dtrmm_l_nt_12x3_lib4(double *A0, int sda, double *B, double *C0, int sdc);
 void corner_dtrmm_l_nt_12x2_lib4(double *A0, int sda, double *B, double *C0, int sdc);
@@ -165,3 +166,19 @@ void corner_dtrma_3_lib4(int kna, double *A, double *C, int sdc);
 void corner_dtrma_2_lib4(int kna, double *A, double *C, int sdc);
 void corner_dtrinv_4x4_lib4(double *fact, double *C);
 void corner_dtrinv_2x2_lib4(double *fact, double *C);
+
+// aux
+void kernel_align_panel_8_0_lib4(int kmax, double *A, int sda, double *B, int sdb);
+void kernel_align_panel_8_1_lib4(int kmax, double *A, int sda, double *B, int sdb);
+void kernel_align_panel_8_2_lib4(int kmax, double *A, int sda, double *B, int sdb);
+void kernel_align_panel_8_3_lib4(int kmax, double *A, int sda, double *B, int sdb);
+void kernel_align_panel_4_0_lib4(int kmax, double *A, double *B);
+void kernel_align_panel_4_1_lib4(int kmax, double *A0, int sda, double *B);
+void kernel_align_panel_4_2_lib4(int kmax, double *A0, int sda, double *B);
+void kernel_align_panel_4_3_lib4(int kmax, double *A0, int sda, double *B);
+void kernel_align_panel_3_0_lib4(int kmax, double *A, double *B);
+void kernel_align_panel_3_2_lib4(int kmax, double *A0, int sda, double *B);
+void kernel_align_panel_3_3_lib4(int kmax, double *A0, int sda, double *B);
+void kernel_align_panel_2_0_lib4(int kmax, double *A, double *B);
+void kernel_align_panel_2_3_lib4(int kmax, double *A0, int sda, double *B);
+void kernel_align_panel_1_0_lib4(int kmax, double *A, double *B);

@@ -109,6 +109,13 @@ int main()
 /*	s_cvt_mat2pmat(n, n, 0, bss, sB, n, spB, pns);*/
 	s_cvt_mat2pmat(n, n, 0, bs, B, n, pD, cn);
 	d_cvt_mat2pmat(n, n, 0, bs, A, n, pE, cn2);
+
+#if 1
+	d_copy_pmat_general(8, 9, 3, pA+3, cn, 0, pC+0, cn);
+	d_print_pmat(n, n, bs, pA, cn);
+	d_print_pmat(n, n, bs, pC, cn);
+	exit(1);
+#endif
 	
 	double *x; d_zeros_align(&x, n, 1);
 	double *y; d_zeros_align(&y, n, 1);

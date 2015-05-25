@@ -23,24 +23,19 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void d_zeros(double **pA, int row, int col);
-void d_zeros_align(double **pA, int row, int col);
-void d_ones(double **pA, int row, int col);
-void d_ones_align(double **pA, int row, int col);
-void d_eye(double **pA, int row);
-void d_rep_mat(int reps, int row, int col, double *A, int lda, double *B, int ldb);
-void d_copy_mat(int row, int col, double *A, int lda, double *B, int ldb);
-void d_copy_pmat(int row, int col, int bs, double *A, int sda, double *B, int sdb);
-void d_copy_pmat_general(int m, int n, int offset_A, double *A, int sda, int offset_B, double *B, int sdb);
-void d_copy_pmat_l(int row, int bs, double *A, int sda, double *B, int sdb);
-void d_copy_pmat_panel(int row, int col, int offset, double *A, double *B, int sdb);
-void d_align_pmat_panel(int row, int col, int offset, double *A, int sda, double *B);
-//void d_transpose_pmat_lo(int row, int offset, double *A, int sda, double *B, int sdb);
-void d_align_pmat(int row, int col, int offset, int bs, double *A, int sda, double *B, int sdb);
-void d_cvt_mat2pmat(int row, int col, int offset, int bs, double *A, int lda, double *pA, int sda);
-void d_cvt_tran_mat2pmat(int row, int col, int offset, int bs, double *A, int lda, double *pA, int sda);
-void d_cvt_pmat2mat(int row, int col, int offset, int bs, double *pA, int sda, double *A, int lda);
-void d_cvt_tran_pmat2mat(int row, int col, int offset, int bs, double *pA, int sda, double *A, int lda);
-void d_print_mat(int row, int col, double *A, int lda);
-void d_print_pmat(int row, int col, int bs, double *A, int sda);
+#include "../include/aux_d.h"
+#include "../include/blas_d.h"
+#include "../include/block_size.h"
 
+
+
+void d_compute_gamma_u(int N, int nx, int nu, double **pA, double **pBt, double **Gamma_u)
+	{
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int ii;
+
+	// first stage
+	d_copy_
