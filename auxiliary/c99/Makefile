@@ -25,7 +25,7 @@
 
 include ../../Makefile.rule
 
-OBJS = d_aux_aux_avx_lib4.o #s_aux_aux_avx_lib8.o
+OBJS = d_aux_aux_c99_lib4.o #s_aux_aux_avx_lib8.o
 
 obj: $(OBJS)
 
