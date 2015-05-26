@@ -752,7 +752,7 @@ void d_init_var_diag_mpc(int N, int *nx, int *nu, int *nb, int **idxb, double **
 
 
 
-void d_update_hessian_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **Qx, double **qx, double **bd, double **bl, double **pd, double **pl, double **db)
+void d_update_hessian_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **Qx, double **qx, double **qx2, double **bd, double **bl, double **pd, double **pl, double **db)
 	{
 	
 	// constants
@@ -765,7 +765,7 @@ void d_update_hessian_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 	double temp0, temp1;
 	
 	double 
-		*ptr_pd, *ptr_pl, *ptr_bd, *ptr_bl, *ptr_db, *ptr_Qx, *ptr_qx,
+		*ptr_pd, *ptr_pl, *ptr_bd, *ptr_bl, *ptr_db, *ptr_Qx, *ptr_qx, *ptr_qx2,
 		*ptr_t, *ptr_lam, *ptr_lamt, *ptr_dlam, *ptr_tinv;
 	
 	int ii, jj, bs0;
@@ -790,6 +790,7 @@ void d_update_hessian_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 		ptr_pl    = pl[jj];
 		ptr_Qx    = Qx[jj];
 		ptr_qx    = qx[jj];
+		ptr_qx2   = qx2[jj];
 
 		ii = 0;
 		for(; ii<nb0-3; ii+=4)
@@ -859,6 +860,7 @@ void d_update_hessian_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 			ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
 			ptr_Qx[ii+0] = sqrt(ptr_lamt[ii+0] + ptr_lamt[ii+png+0]);
 			ptr_qx[ii+0] =  (ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0]) / ptr_Qx[ii+0];
+			ptr_qx2[ii+0] = ptr_qx[ii+0] / ptr_Qx[ii+0];
 
 			ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
 			ptr_tinv[ii+png+1] = 1.0/ptr_t[ii+png+1];
@@ -868,6 +870,7 @@ void d_update_hessian_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 			ptr_dlam[ii+png+1] = ptr_tinv[ii+png+1]*sigma_mu; // !!!!!
 			ptr_Qx[ii+1] = sqrt(ptr_lamt[ii+1] + ptr_lamt[ii+png+1]);
 			ptr_qx[ii+1] =  (ptr_lam[ii+png+1] + ptr_lamt[ii+png+1]*ptr_db[ii+png+1] + ptr_dlam[ii+png+1] - ptr_lam[ii+1] - ptr_lamt[ii+1]*ptr_db[ii+1] - ptr_dlam[ii+1]) / ptr_Qx[ii+1];
+			ptr_qx2[ii+1] = ptr_qx[ii+1] / ptr_Qx[ii+1];
 
 			ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
 			ptr_tinv[ii+png+2] = 1.0/ptr_t[ii+png+2];
@@ -877,6 +880,7 @@ void d_update_hessian_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 			ptr_dlam[ii+png+2] = ptr_tinv[ii+png+2]*sigma_mu; // !!!!!
 			ptr_Qx[ii+2] = sqrt(ptr_lamt[ii+2] + ptr_lamt[ii+png+2]);
 			ptr_qx[ii+2] =  (ptr_lam[ii+png+2] + ptr_lamt[ii+png+2]*ptr_db[ii+png+2] + ptr_dlam[ii+png+2] - ptr_lam[ii+2] - ptr_lamt[ii+2]*ptr_db[ii+2] - ptr_dlam[ii+2]) / ptr_Qx[ii+2];
+			ptr_qx2[ii+2] = ptr_qx[ii+2] / ptr_Qx[ii+2];
 
 			ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
 			ptr_tinv[ii+png+3] = 1.0/ptr_t[ii+png+3];
@@ -886,6 +890,7 @@ void d_update_hessian_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 			ptr_dlam[ii+png+3] = ptr_tinv[ii+png+3]*sigma_mu; // !!!!!
 			ptr_Qx[ii+3] = sqrt(ptr_lamt[ii+3] + ptr_lamt[ii+png+3]);
 			ptr_qx[ii+3] =  (ptr_lam[ii+png+3] + ptr_lamt[ii+png+3]*ptr_db[ii+png+3] + ptr_dlam[ii+png+3] - ptr_lam[ii+3] - ptr_lamt[ii+3]*ptr_db[ii+3] - ptr_dlam[ii+3]) / ptr_Qx[ii+3];
+			ptr_qx2[ii+3] = ptr_qx[ii+3] / ptr_Qx[ii+0];
 
 			}
 		for(; ii<2*pnb+ng0; ii++)
@@ -899,6 +904,7 @@ void d_update_hessian_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 			ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
 			ptr_Qx[ii+0] = sqrt(ptr_lamt[ii+0] + ptr_lamt[ii+png+0]);
 			ptr_qx[ii+0] =  (ptr_lam[ii+png+0] + ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0]) / ptr_Qx[ii+0];
+			ptr_qx2[ii+0] = ptr_qx[ii+0] / ptr_Qx[ii+0];
 
 			}
 
