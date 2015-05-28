@@ -1040,7 +1040,7 @@ void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double
 		//exit(1);
 
 		// PBt = (PB)'
-		dgetr_lib(nx, 0, nu, 0, pPB, cnu, pPBt, cnx);
+		dgetr_lib(nx, nu, 0, pPB, cnu, 0, pPBt, cnx);
 		//d_print_pmat(nu, nx, bs, pPBt, cnx);
 		//exit(1);
 #endif
@@ -1057,7 +1057,7 @@ void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double
 		//exit(1);
 
 		// PB on bottom of L
-		dgetr_lib(nu, 0, nx, nu, pPBt, cnx, hpL[N-nn-1]+nu_m*cnu+nu_r, cnu);
+		dgetr_lib(nu, nx, 0, pPBt, cnx, nu, hpL[N-nn-1]+nu_m*cnu+nu_r, cnu);
 		//d_print_pmat(nu+nx, nu, bs, hpL[N-nn-1], cnu);
 		//exit(1);
 		
@@ -2257,7 +2257,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		//d_print_pmat(ny, nx, bs, CLLt, cnx);
 
 		// copy C*U'*L' on the bottom left of Lam
-		dgetr_lib(ny, 0, nx, ny, CLLt, cnx, hpLe[ii]+(ny/bs)*bs*cnf+ny%bs, cnf);
+		dgetr_lib(ny, nx, 0, CLLt, cnx, ny, hpLe[ii]+(ny/bs)*bs*cnf+ny%bs, cnf);
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 		// cholesky factorization of Lam
@@ -2364,7 +2364,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	//d_print_pmat(ny, nx, bs, CLLt, cnx);
 
 	// copy C*U'*L' on the bottom left of Lam
-	dgetr_lib(ny, 0, nx, ny, CLLt, cnx, hpLe[N]+(ny/bs)*bs*cnf+ny%bs, cnf);
+	dgetr_lib(ny, nx, 0, CLLt, cnx, ny, hpLe[N]+(ny/bs)*bs*cnf+ny%bs, cnf);
 	//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 	// cholesky factorization of Lam
@@ -2565,7 +2565,7 @@ void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hp
 	//d_print_pmat(ny, nx, bs, CLLt, cnx);
 
 	// copy C*U'*L' on the bottom left of hpLe
-	dgetr_lib(ny, 0, nx, ny, CLLt, cnx, hpLe[N]+(ny/bs)*bs*cnf+ny%bs, cnf);
+	dgetr_lib(ny, nx, 0, CLLt, cnx, ny, hpLe[N]+(ny/bs)*bs*cnf+ny%bs, cnf);
 	//d_print_pmat(nz, nz, bs, Lam, cnz);
 	//d_print_pmat(nz, nz, bs, hpLe[N], cnf);
 
@@ -2657,7 +2657,7 @@ void d_ric_trf_mhe_test(int nx, int nw, int ny, int N, double **hpA, double **hp
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 		// copy C*U' on the bottom left of Lam
-		dgetr_lib(ny, 0, nx, ny, CL, cnx, Lam+(ny/bs)*bs*cnz+ny%bs, cnz);
+		dgetr_lib(ny, nx, 0, CL, cnx, ny, Lam+(ny/bs)*bs*cnz+ny%bs, cnz);
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 		// recover overwritten part of I in bottom right part of Lam

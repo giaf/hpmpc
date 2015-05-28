@@ -289,7 +289,7 @@ int main()
 			{
 			nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 			nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-			N  = NN; // horizon lenght
+			N  = 5;//NN; // horizon lenght
 			nrep = NREP;
 			//nx = 25;
 			//nu = 1;
@@ -306,19 +306,17 @@ int main()
 		int rep;
 	
 		int nz = nx+nu+1;
-		int anz = nal*((nz+nal-1)/nal);
-		int anx = nal*((nx+nal-1)/nal);
-		int pnz = bs*((nz+bs-1)/bs);
-		int pnx = bs*((nx+bs-1)/bs);
-		int pnu = bs*((nu+bs-1)/bs);
-		int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
-		int cnx = ncl*((nx+ncl-1)/ncl);
-		int cnu = ncl*((nu+ncl-1)/ncl);
+		int anz = (nz+nal-1)/nal*nal;
+		int anx = (nx+nal-1)/nal*nal;
+		int pnz = (nz+bs-1)/bs*bs;
+		int pnx = (nx+bs-1)/bs*bs;
+		int pnu = (nu+bs-1)/bs*bs;
+		int pNnu = (N*nu+bs-1)/bs*bs;
+		int cnz = (nx+nu+1+ncl-1)/ncl*ncl;
+		int cnx = (nx+ncl-1)/ncl*ncl;
+		int cnu = (nu+ncl-1)/ncl*ncl;
+		int cNnu = ((N-1)*nu+cnu+ncl-1)/ncl*ncl;
 
-//		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-		//const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
-		int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
-	
 /************************************************
 * dynamical system
 ************************************************/	
@@ -345,9 +343,14 @@ int main()
 //		d_print_mat(nx, nu, B, nx);
 //		d_print_mat(nx, 1, b, nx);
 //		d_print_mat(nx, 1, x0, nx);
+//		exit(1);
 
 		double *pA; d_zeros_align(&pA, pnx, cnx);
 		d_cvt_mat2pmat(nx, nx, 0, bs, A, nx, pA, cnx);
+		//d_print_pmat(nx, nx, bs, pA, cnx);
+
+		double *pAt; d_zeros_align(&pAt, pnx, cnx);
+		d_cvt_tran_mat2pmat(nx, nx, 0, bs, A, nx, pAt, cnx);
 		//d_print_pmat(nx, nx, bs, pA, cnx);
 
 		double *pBt; d_zeros_align(&pBt, pnu, cnx);
@@ -363,43 +366,108 @@ int main()
 			Q[ii*(nx+1)] = 2.0;
 		//d_print_mat(nx, nx, Q, nx);
 
+		double *R; d_zeros(&R, nu, nu);
+		for(ii=0; ii<nu; ii++)
+			R[ii*(nu+1)] = 1.0;
+		//d_print_mat(nu, nu, R, nu);
+
+		double *S; d_zeros(&S, nu, nx);
+		for(ii=0; ii<nu; ii++)
+			S[ii*(nu+1)] = 0.0;
+		//d_print_mat(nu, nx, S, nu);
+
 		double *pQ; d_zeros_align(&pQ, pnx, cnx);
 		d_cvt_mat2pmat(nx, nx, 0, bs, Q, nx, pQ, cnx);
 		//d_print_pmat(nx, nx, bs, pQ, cnx);
+
+		double *pR; d_zeros_align(&pR, pnu, cnu);
+		d_cvt_mat2pmat(nu, nu, 0, bs, R, nu, pR, cnu);
+		//d_print_pmat(nu, nu, bs, pR, cnu);
+
+		double *pS; d_zeros_align(&pS, pnu, cnx);
+		d_cvt_mat2pmat(nu, nx, 0, bs, S, nu, pS, cnx);
+		//d_print_pmat(nu, nx, bs, pS, cnx);
 
 /************************************************
 * matrix series
 ************************************************/
 
 		double *(hpA[N]);
+		double *(hpAt[N]);
 		double *(hpBt[N]);
 		double *(hpGamma_u[N]);
 		double *(hpGamma_u_Q[N]);
+		double *(hpGamma_0[N]);
+		double *(hpGamma_0_Q[N]);
 		double *(hpQ[N+1]);
+		double *(hpR[N]);
+		double *(hpS[N]);
+		double *(hpL[N+1]);
+		double *pH_R;
+		double *pH_Q;
+		double *work;
 
+		d_zeros_align(&pH_R, pNnu, cNnu);
+		d_zeros_align(&pH_Q, pnx, cnx);
+		d_zeros_align(&work, pnx, 1);
 		for(ii=0; ii<N; ii++)
 			{
 			hpA[ii] = pA;
+			hpAt[ii] = pAt;
 			hpBt[ii] = pBt;
 			d_zeros_align(&hpGamma_u[ii], ((ii+1)*nu+bs-1)/bs*bs, cnx);
 			d_zeros_align(&hpGamma_u_Q[ii], ((ii+1)*nu+bs-1)/bs*bs, cnx);
+			d_zeros_align(&hpGamma_0[ii], pnx, cnx);
+			d_zeros_align(&hpGamma_0_Q[ii], pnx, cnx);
 			hpQ[ii] = pQ;
+			hpR[ii] = pR;
+			hpS[ii] = pS;
+			d_zeros_align(&hpL[ii], pnx, cnx);;
 			}
 		hpQ[N] = pQ;
+		d_zeros_align(&hpL[N], pnx, cnx);;
 
 /************************************************
 * condensing
 ************************************************/
 		
-		d_compute_Gamma_u(N, nx, nu, hpA, hpBt, hpGamma_u);
+		struct timeval tv0, tv1;
 
+		gettimeofday(&tv0, NULL); // start
+
+		nrep = 1;
+		for(rep=0; rep<nrep; rep++)
+			{
+
+			d_cond_R(N, nx, nu, hpA, hpAt, hpBt, hpQ, hpS, hpR, 1, hpGamma_u, hpGamma_u_Q, pH_R);
+
+			d_cond_Q(N, nx, nu, hpA, hpQ, hpL, 1, hpGamma_0, hpGamma_0_Q, pH_Q, work);
+			
+			}
+
+		gettimeofday(&tv1, NULL); // start
+
+		double time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+		for(ii=0; ii<N; ii++)	
+			d_print_pmat(nx, nx, bs, hpGamma_0[ii], cnx);
+
+		for(ii=0; ii<N; ii++)	
+			d_print_pmat(nx, nx, bs, hpGamma_0_Q[ii], cnx);
+
+		d_print_pmat(nx, nx, bs, pH_Q, cnx);
+
+#if 0
 		for(ii=0; ii<N; ii++)	
 			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u[ii], cnx);
 
-		d_compute_Gamma_u_Q(N, nx, nu, hpGamma_u, hpQ, hpGamma_u_Q);
-
 		for(ii=0; ii<N; ii++)	
 			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u_Q[ii], cnx);
+
+		d_print_pmat(N*nu, N*nu, bs, pH_R, cNnu);
+#endif
+
+		printf("\ntime = %e seconds\n", time);
 
 /************************************************
 * return
@@ -411,13 +479,24 @@ int main()
 		free(x0);
 		free(Q);
 		free(pA);
+		free(pAt);
 		free(pBt);
 		free(pQ);
+		free(pR);
+		free(pS);
+		free(pH_R);
+		free(pH_Q);
+		free(work);
 
 		for(ii=0; ii<N; ii++)
 			{
 			free(hpGamma_u[ii]);
+			free(hpGamma_u_Q[ii]);
+			free(hpGamma_0[ii]);
+			free(hpGamma_0_Q[ii]);
+			free(hpL[ii]);
 			}
+		free(hpL[N]);
 
 		} // increase size
 

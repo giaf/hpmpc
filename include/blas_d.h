@@ -28,8 +28,8 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg, int tc, int td);
 void dtrmm_l_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
 void dtrmm_u_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
-void dsyrk_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pD, int sdd, double *pC, int sdc, int alg);
-void dsyrk_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pD, int sdd, double *pC, int sdc, int alg);
+void dsyrk_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg);
+void dsyrk_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg);
 void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *diag);
 //void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *diag, int alg);
 void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, double *diag, int alg, int fast_rsqrt);
@@ -43,7 +43,7 @@ void dtrsv_dgemv_n_lib(int n, int m, double *pA, int sda, double *x); // TODO ma
 void dtrsv_dgemv_t_lib(int n, int m, double *pA, int sda, double *x);
 void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc);
 void dtrtr_u_lib(int m, double *pA, int sda, double *pC, int sdc);
-void dgetr_lib(int m, int mna, int n, int offset, double *pA, int sda, double *pC, int sdc);
+void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
 void dsyttmm_lu_lib(int m, double *pA, int sda, double *pC, int sdc);
 void dsyttmm_ul_lib(int m, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, int alg);
 void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);

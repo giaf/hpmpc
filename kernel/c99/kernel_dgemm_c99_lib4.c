@@ -269,7 +269,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		}
 	else // D = C +/- A * B'
 		{
-		if(tc==td) // not transpose C
+		if(tc==0) // not transpose C
 			{
 			d_00 = C[0+bs*0];
 			d_10 = C[1+bs*0];
@@ -575,7 +575,7 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 		}
 	else 
 		{
-		if(tc==td) // not transpose C
+		if(tc==0) // not transpose C
 			{
 			d_00 = C[0+bs*0];
 			d_10 = C[1+bs*0];
@@ -831,7 +831,7 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double 
 		}
 	else 
 		{
-		if(tc==td) // not transpose C
+		if(tc==0) // not transpose C
 			{
 			d_00 = C[0+bs*0];
 			d_10 = C[1+bs*0];
@@ -1041,7 +1041,7 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 		}
 	else 
 		{
-		if(tc==td) // not transpose C
+		if(tc==0) // not transpose C
 			{
 			d_00 = C[0+bs*0];
 			d_10 = C[1+bs*0];

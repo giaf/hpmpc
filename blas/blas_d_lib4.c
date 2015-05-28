@@ -2854,12 +2854,13 @@ void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
 
 //#if defined(TARGET_C99_4X4)
 // transpose & align general matrix; m and n are referred to the original matrix
-void dgetr_lib(int m, int mna, int n, int offset, double *pA, int sda, double *pC, int sdc)
+void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc)
 	{
 
 	const int bs = 4;
 
-	int nna = (bs-offset%bs)%bs;
+	int mna = (bs-offsetA%bs)%bs;
+	int nna = (bs-offsetC%bs)%bs;
 	
 	int ii;
 
