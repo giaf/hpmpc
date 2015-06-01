@@ -271,144 +271,281 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"movl   %5, %%ecx                \n\t" // alg
-		"testl  %%ecx, %%ecx             \n\t" // check alg
-		"jne     .ALG1                   \n\t" // if alg==0, jump
-		"                                \n\t"
-		"                                \n\t"
-		"movq   %6, %%rbx                \n\t" // load address of D
-		"                                \n\t"
-		"                                \n\t"
-		"movl   %8, %%ecx                \n\t" // alg
-		"testl  %%ecx, %%ecx             \n\t" // check alg
-		"jne     .ALG101                 \n\t" // if alg==0, jump
-		"                                \n\t"
-		"                                \n\t"
-		"movaps   %%xmm8,  %%xmm0        \n\t"
-		"movsd    %%xmm9,  %%xmm8        \n\t"
-		"movsd    %%xmm0,  %%xmm9        \n\t"
-		"                                \n\t"
-		"movaps  %%xmm10,  %%xmm0        \n\t"
-		"movsd   %%xmm11, %%xmm10        \n\t"
-		"movsd    %%xmm0, %%xmm11        \n\t"
-		"                                \n\t"
-		"movaps  %%xmm12,  %%xmm0        \n\t"
-		"movsd   %%xmm13, %%xmm12        \n\t"
-		"movsd    %%xmm0, %%xmm13        \n\t"
-		"                                \n\t"
-		"movaps  %%xmm14,  %%xmm0        \n\t"
-		"movsd   %%xmm15, %%xmm14        \n\t"
-		"movsd    %%xmm0, %%xmm15        \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"movaps	%%xmm9,  (%%rbx)         \n\t"
-		"movaps	%%xmm8,  32(%%rbx)       \n\t"
-		"movaps	%%xmm11, 64(%%rbx)       \n\t"
-		"movaps	%%xmm10, 96(%%rbx)       \n\t"
-		"movaps	%%xmm13, 16(%%rbx)       \n\t"
-		"movaps	%%xmm12, 48(%%rbx)       \n\t"
-		"movaps	%%xmm15, 80(%%rbx)       \n\t"
-		"movaps	%%xmm14, 112(%%rbx)      \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"jmp    .SDONE                   \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		".ALG101:                        \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"movaps   %%xmm8,  %%xmm0        \n\t"
-		"movsd    %%xmm9,  %%xmm8        \n\t"
-		"movsd    %%xmm0,  %%xmm9        \n\t"
-		"                                \n\t"
-		"movaps  %%xmm10,  %%xmm0        \n\t"
-		"movsd   %%xmm11, %%xmm10        \n\t"
-		"movsd    %%xmm0, %%xmm11        \n\t"
-		"                                \n\t"
-		"movaps  %%xmm12,  %%xmm0        \n\t"
-		"movsd   %%xmm13, %%xmm12        \n\t"
-		"movsd    %%xmm0, %%xmm13        \n\t"
-		"                                \n\t"
-		"movaps  %%xmm14,  %%xmm0        \n\t"
-		"movsd   %%xmm15, %%xmm14        \n\t"
-		"movsd    %%xmm0, %%xmm15        \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"movq   %4, %%rax                \n\t" // load address of C
-		"movq   %6, %%rbx                \n\t" // load address of D
-		"                                \n\t"
+		"                                \n\t" // OK from here !!!!!
 		"                                \n\t"
 		"movl   %5, %%ecx                \n\t" // alg
 		"testl  %%ecx, %%ecx             \n\t" // check alg
 		"je     .S0                      \n\t" // if alg==0, jump
 		"                                \n\t"
+		"movq   %4, %%rax                \n\t" // load address of C
+		"                                \n\t"
+		"movl   %7, %%edx                \n\t" // tc
+		"testl  %%edx, %%edx             \n\t" // check alg
+		"je     .S_N                     \n\t" // if tc==0, jump
+		"                                \n\t"
+		"                                \n\t" // tc==1
+		"movaps   %%xmm9,  %%xmm0        \n\t"
+		"unpckhpd %%xmm8,  %%xmm0        \n\t"
+		"unpcklpd %%xmm9,  %%xmm8        \n\t"
+		"movaps   %%xmm8,  %%xmm9        \n\t"
+		"movaps   %%xmm0,  %%xmm8        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm11, %%xmm0        \n\t"
+		"unpckhpd %%xmm10, %%xmm0        \n\t"
+		"unpcklpd %%xmm11, %%xmm10       \n\t"
+		"movaps   %%xmm10, %%xmm11       \n\t"
+		"movaps   %%xmm0,  %%xmm10       \n\t"
+		"                                \n\t"
+		"movaps   %%xmm13, %%xmm0        \n\t"
+		"unpckhpd %%xmm12, %%xmm0        \n\t"
+		"unpcklpd %%xmm13, %%xmm12       \n\t"
+		"movaps   %%xmm12, %%xmm13       \n\t"
+		"movaps   %%xmm0,  %%xmm12       \n\t"
+		"                                \n\t"
+		"movaps   %%xmm15, %%xmm0        \n\t"
+		"unpckhpd %%xmm14, %%xmm0        \n\t"
+		"unpcklpd %%xmm15, %%xmm14       \n\t"
+		"movaps   %%xmm14, %%xmm15       \n\t"
+		"movaps   %%xmm0,  %%xmm14       \n\t"
+		"                                \n\t"
+		"movaps  (%%rax),   %%xmm1       \n\t" // load C
+		"movaps  16(%%rax), %%xmm3       \n\t"
+		"movaps  32(%%rax), %%xmm0       \n\t"
+		"movaps  48(%%rax), %%xmm2       \n\t"
+		"movaps  64(%%rax), %%xmm5       \n\t"
+		"movaps  80(%%rax), %%xmm7       \n\t"
+		"movaps  96(%%rax), %%xmm4       \n\t"
+		"movaps 112(%%rax), %%xmm6       \n\t"
+		"                                \n\t"
 		"cmpl	$1, %%ecx                \n\t"
 		"                                \n\t"
-		"movaps  (%%rax),   %%xmm0       \n\t" // load C0
-		"movaps  32(%%rax), %%xmm1       \n\t"
-		"movaps  64(%%rax), %%xmm2       \n\t"
-		"movaps  96(%%rax), %%xmm3       \n\t"
-		"movaps  16(%%rax), %%xmm4       \n\t" // load C0
-		"movaps  48(%%rax), %%xmm5       \n\t"
-		"movaps  80(%%rax), %%xmm6       \n\t"
-		"movaps 112(%%rax), %%xmm7       \n\t"
-		"                                \n\t"
-		"je     .S1                      \n\t" // if alg==1, jump
-		"                                \n\t"
+		"je     .S1_T                    \n\t" // if alg==1, jump
 		"                                \n\t"// alg==-1
-		"subpd  %%xmm9,  %%xmm0           \n\t"
-		"subpd  %%xmm8,  %%xmm1           \n\t"
-		"subpd  %%xmm11, %%xmm2           \n\t"
-		"subpd  %%xmm10, %%xmm3           \n\t"
-		"subpd  %%xmm13, %%xmm4           \n\t"
-		"subpd  %%xmm12, %%xmm5           \n\t"
-		"subpd  %%xmm15, %%xmm6           \n\t"
-		"subpd  %%xmm14, %%xmm7           \n\t"
+		"subpd  %%xmm8,  %%xmm0          \n\t"
+		"subpd  %%xmm9,  %%xmm1          \n\t"
+		"subpd  %%xmm10, %%xmm2          \n\t"
+		"subpd  %%xmm11, %%xmm3          \n\t"
+		"subpd  %%xmm12, %%xmm4          \n\t"
+		"subpd  %%xmm13, %%xmm5          \n\t"
+		"subpd  %%xmm14, %%xmm6          \n\t"
+		"subpd  %%xmm15, %%xmm7          \n\t"
 		"                                \n\t"
-		"movaps  %%xmm0, (%%rbx)         \n\t"
-		"movaps  %%xmm1, 32(%%rbx)       \n\t"
-		"movaps  %%xmm2, 64(%%rbx)       \n\t"
-		"movaps  %%xmm3, 96(%%rbx)       \n\t"
-		"movaps  %%xmm4, 16(%%rbx)       \n\t"
-		"movaps  %%xmm5, 48(%%rbx)       \n\t"
-		"movaps  %%xmm6, 80(%%rbx)       \n\t"
-		"movaps  %%xmm7, 112(%%rbx)       \n\t"
+		"jmp    .S1_T_E                  \n\t"
+		"                                \n\t"
+		".S1_T:                          \n\t" // alg==1
+		"                                \n\t"
+		"addpd  %%xmm8,  %%xmm0          \n\t"
+		"addpd  %%xmm9,  %%xmm1          \n\t"
+		"addpd  %%xmm10, %%xmm2          \n\t"
+		"addpd  %%xmm11, %%xmm3          \n\t"
+		"addpd  %%xmm12, %%xmm4          \n\t"
+		"addpd  %%xmm13, %%xmm5          \n\t"
+		"addpd  %%xmm14, %%xmm6          \n\t"
+		"addpd  %%xmm15, %%xmm7          \n\t"
+		"                                \n\t"
+		".S1_T_E:                        \n\t" // end
+		"                                \n\t"
+		"movl   %8, %%edx                \n\t" // td
+		"testl  %%edx, %%edx             \n\t" // check alg
+		"jne    .STORE_T                 \n\t" // if td==1, jump
+		"                                \n\t"
+		"movaps   %%xmm1,  %%xmm8        \n\t"
+		"unpcklpd %%xmm0,  %%xmm1        \n\t"
+		"unpckhpd %%xmm0,  %%xmm8        \n\t"
+		"movaps   %%xmm8,  %%xmm0        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm3,  %%xmm9        \n\t"
+		"unpcklpd %%xmm2,  %%xmm3        \n\t"
+		"unpckhpd %%xmm2,  %%xmm9        \n\t"
+		"movaps   %%xmm9,  %%xmm2        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm5,  %%xmm8        \n\t"
+		"unpcklpd %%xmm4,  %%xmm5        \n\t"
+		"unpckhpd %%xmm4,  %%xmm8        \n\t"
+		"movaps   %%xmm8,  %%xmm4        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm7,  %%xmm9        \n\t"
+		"unpcklpd %%xmm6,  %%xmm7        \n\t"
+		"unpckhpd %%xmm6,  %%xmm9        \n\t"
+		"movaps   %%xmm9,  %%xmm6        \n\t"
+		"                                \n\t"
+		"jmp    .STORE_N                 \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".S_N:                           \n\t" // tc==0
+		"                                \n\t"
+		"movaps   %%xmm8,  %%xmm0        \n\t"
+		"movsd    %%xmm9,  %%xmm8        \n\t"
+		"movsd    %%xmm0,  %%xmm9        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm10,  %%xmm0        \n\t"
+		"movsd   %%xmm11, %%xmm10        \n\t"
+		"movsd    %%xmm0, %%xmm11        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm12,  %%xmm0        \n\t"
+		"movsd   %%xmm13, %%xmm12        \n\t"
+		"movsd    %%xmm0, %%xmm13        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm14,  %%xmm0        \n\t"
+		"movsd   %%xmm15, %%xmm14        \n\t"
+		"movsd    %%xmm0, %%xmm15        \n\t"
+		"                                \n\t"
+		"movaps  (%%rax),   %%xmm1       \n\t" // load C
+		"movaps  16(%%rax), %%xmm5       \n\t"
+		"movaps  32(%%rax), %%xmm0       \n\t"
+		"movaps  48(%%rax), %%xmm4       \n\t"
+		"movaps  64(%%rax), %%xmm3       \n\t"
+		"movaps  80(%%rax), %%xmm7       \n\t"
+		"movaps  96(%%rax), %%xmm2       \n\t"
+		"movaps 112(%%rax), %%xmm6       \n\t"
+		"                                \n\t"
+		"cmpl	$1, %%ecx                \n\t"
+		"                                \n\t"
+		"je     .S1_N                    \n\t" // if alg==1, jump
+		"                                \n\t"// alg==-1
+		"subpd  %%xmm8,  %%xmm0          \n\t"
+		"subpd  %%xmm9,  %%xmm1          \n\t"
+		"subpd  %%xmm10, %%xmm2          \n\t"
+		"subpd  %%xmm11, %%xmm3          \n\t"
+		"subpd  %%xmm12, %%xmm4          \n\t"
+		"subpd  %%xmm13, %%xmm5          \n\t"
+		"subpd  %%xmm14, %%xmm6          \n\t"
+		"subpd  %%xmm15, %%xmm7          \n\t"
+		"                                \n\t"
+		"jmp    .S1_N_E                  \n\t"
+		"                                \n\t"
+		".S1_N:                          \n\t" // alg==1
+		"                                \n\t"
+		"addpd  %%xmm8,  %%xmm0          \n\t"
+		"addpd  %%xmm9,  %%xmm1          \n\t"
+		"addpd  %%xmm10, %%xmm2          \n\t"
+		"addpd  %%xmm11, %%xmm3          \n\t"
+		"addpd  %%xmm12, %%xmm4          \n\t"
+		"addpd  %%xmm13, %%xmm5          \n\t"
+		"addpd  %%xmm14, %%xmm6          \n\t"
+		"addpd  %%xmm15, %%xmm7          \n\t"
+		"                                \n\t"
+		".S1_N_E:                        \n\t" // end
+		"                                \n\t"
+		"movl   %8, %%edx                \n\t" // td
+		"testl  %%edx, %%edx             \n\t" // check alg
+		"je     .S_N_N                   \n\t" // if td==0, jump
+		"                                \n\t"
+		"movaps   %%xmm1,  %%xmm8        \n\t"
+		"unpcklpd %%xmm0,  %%xmm1        \n\t"
+		"unpckhpd %%xmm0,  %%xmm8        \n\t"
+		"movaps   %%xmm8,  %%xmm0        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm3,  %%xmm9        \n\t"
+		"unpcklpd %%xmm2,  %%xmm3        \n\t"
+		"unpckhpd %%xmm2,  %%xmm9        \n\t"
+		"movaps   %%xmm9,  %%xmm2        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm5,  %%xmm8        \n\t"
+		"unpcklpd %%xmm4,  %%xmm5        \n\t"
+		"unpckhpd %%xmm4,  %%xmm8        \n\t"
+		"movaps   %%xmm8,  %%xmm4        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm7,  %%xmm9        \n\t"
+		"unpcklpd %%xmm6,  %%xmm7        \n\t"
+		"unpckhpd %%xmm6,  %%xmm9        \n\t"
+		"movaps   %%xmm9,  %%xmm6        \n\t"
+		"                                \n\t"
+		"jmp    .STORE_T                 \n\t"
+		"                                \n\t"
+		".S_N_N:                         \n\t" // td==0
+		"                                \n\t"
+		"jmp    .STORE_N                 \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".S0:                            \n\t" // alg==0
+		"                                \n\t"
+		"movl   %8, %%ecx                \n\t" // td
+		"testl  %%ecx, %%ecx             \n\t" // check alg
+		"je     .S0_N                    \n\t" // if td==0, jump
+		"                                \n\t"
+		"                                \n\t" // td==1
+		"movaps   %%xmm8,  %%xmm1        \n\t"
+		"movaps   %%xmm9,  %%xmm0        \n\t"
+		"unpckhpd %%xmm8,  %%xmm0        \n\t"
+		"unpcklpd %%xmm9,  %%xmm1        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm10,  %%xmm3       \n\t"
+		"movaps   %%xmm11,  %%xmm2       \n\t"
+		"unpckhpd %%xmm10,  %%xmm2       \n\t"
+		"unpcklpd %%xmm11,  %%xmm3       \n\t"
+		"                                \n\t"
+		"movaps   %%xmm12,  %%xmm5       \n\t"
+		"movaps   %%xmm13,  %%xmm4       \n\t"
+		"unpckhpd %%xmm12,  %%xmm4       \n\t"
+		"unpcklpd %%xmm13,  %%xmm5       \n\t"
+		"                                \n\t"
+		"movaps   %%xmm14,  %%xmm7       \n\t"
+		"movaps   %%xmm15,  %%xmm6       \n\t"
+		"unpckhpd %%xmm14,  %%xmm6       \n\t"
+		"unpcklpd %%xmm15,  %%xmm7       \n\t"
+		"                                \n\t"
+		"jmp    .STORE_T                 \n\t" // if td==0, jump
+		"                                \n\t"
+		"                                \n\t"
+		".S0_N:                          \n\t" // td==0
+		"                                \n\t"
+		"movaps   %%xmm8,  %%xmm0        \n\t"
+		"movaps   %%xmm9,  %%xmm1        \n\t"
+		"movsd    %%xmm9,  %%xmm0        \n\t"
+		"movsd    %%xmm8,  %%xmm1        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm10,  %%xmm2        \n\t"
+		"movaps  %%xmm11,  %%xmm3        \n\t"
+		"movsd   %%xmm11,  %%xmm2        \n\t"
+		"movsd   %%xmm10,  %%xmm3        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm12,  %%xmm4        \n\t"
+		"movaps  %%xmm13,  %%xmm5        \n\t"
+		"movsd   %%xmm13,  %%xmm4        \n\t"
+		"movsd   %%xmm12,  %%xmm5        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm14,  %%xmm6        \n\t"
+		"movaps  %%xmm15,  %%xmm7        \n\t"
+		"movsd   %%xmm15,  %%xmm6        \n\t"
+		"movsd   %%xmm14,  %%xmm7        \n\t"
+		"                                \n\t"
+		"jmp    .STORE_N                 \n\t" // if td==0, jump
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".STORE_N:                       \n\t"
+		"                                \n\t"
+		"movq   %6, %%rbx                \n\t" // load address of D
+		"                                \n\t"
+		"movaps  %%xmm1, (%%rbx)         \n\t"
+		"movaps  %%xmm5, 16(%%rbx)       \n\t"
+		"movaps  %%xmm0, 32(%%rbx)       \n\t"
+		"movaps  %%xmm4, 48(%%rbx)       \n\t"
+		"movaps  %%xmm3, 64(%%rbx)       \n\t"
+		"movaps  %%xmm7, 80(%%rbx)       \n\t"
+		"movaps  %%xmm2, 96(%%rbx)       \n\t"
+		"movaps  %%xmm6, 112(%%rbx)      \n\t"
 		"                                \n\t"
 		"jmp    .SDONE                   \n\t" // jump to end
 		"                                \n\t"
 		"                                \n\t"
+		".STORE_T:                       \n\t"
 		"                                \n\t"
-		".S1:                            \n\t" // alg==1
+		"movq   %6, %%rbx                \n\t" // load address of D
 		"                                \n\t"
-		"addpd  %%xmm0, %%xmm9           \n\t"
-		"addpd  %%xmm1, %%xmm8           \n\t"
-		"addpd  %%xmm2, %%xmm11          \n\t"
-		"addpd  %%xmm3, %%xmm10          \n\t"
-		"addpd  %%xmm4, %%xmm13          \n\t"
-		"addpd  %%xmm5, %%xmm12          \n\t"
-		"addpd  %%xmm6, %%xmm15          \n\t"
-		"addpd  %%xmm7, %%xmm14          \n\t"
-		"                                \n\t"
-		".S0:                            \n\t" // alg==0
-		"                                \n\t"
-		"movaps	%%xmm9,  (%%rbx)          \n\t"
-		"movaps	%%xmm8,  32(%%rbx)        \n\t"
-		"movaps	%%xmm11, 64(%%rbx)        \n\t"
-		"movaps	%%xmm10, 96(%%rbx)        \n\t"
-		"movaps	%%xmm13, 16(%%rbx)        \n\t"
-		"movaps	%%xmm12, 48(%%rbx)        \n\t"
-		"movaps	%%xmm15, 80(%%rbx)        \n\t"
-		"movaps	%%xmm14, 112(%%rbx)       \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		"                                \n\t"
-		".ALG1:                          \n\t"
-		"                                \n\t"
+		"movaps  %%xmm1, (%%rbx)         \n\t"
+		"movaps  %%xmm3, 16(%%rbx)       \n\t"
+		"movaps  %%xmm0, 32(%%rbx)       \n\t"
+		"movaps  %%xmm2, 48(%%rbx)       \n\t"
+		"movaps  %%xmm5, 64(%%rbx)       \n\t"
+		"movaps  %%xmm7, 80(%%rbx)       \n\t"
+		"movaps  %%xmm4, 96(%%rbx)       \n\t"
+		"movaps  %%xmm6, 112(%%rbx)      \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".SDONE:                         \n\t"
@@ -426,7 +563,7 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		  "m" (tc),			// %7
 		  "m" (td)			// %8
 		: // register clobber list
-		  "rax", "rbx", "rsi", //"rdx", //"rdi", "r8", "r9", "r10", "r11",
+		  "rax", "rbx", "rcx", "rdx", "rsi", //"rdx", //"rdi", "r8", "r9", "r10", "r11",
 		  "xmm0", "xmm1", "xmm2", "xmm3",
 		  "xmm4", "xmm5", "xmm6", "xmm7",
 		  "xmm8", "xmm9", "xmm10", "xmm11",
@@ -437,8 +574,594 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 
 
 
+
+// normal-transposed, 4x4 with data packed in 4
+void kernel_dgemm_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
+	{
+	
+	if(kmax<=0)
+		return;
+	
+	int k_iter = kmax / 4;
+	int k_left = kmax % 4;
+
+	__asm__ volatile
+	(
+		"                                \n\t"
+		"                                \n\t"
+		"movq          %2, %%rax         \n\t" // load address of A
+		"movq          %3, %%rbx         \n\t" // load address of B
+		"                                \n\t"
+		"                                \n\t"
+		"movaps        0(%%rax), %%xmm0  \n\t" // initialize loop by pre-loading elements
+		"movaps       16(%%rax), %%xmm1  \n\t" // of a and b.
+		"movaps        0(%%rbx), %%xmm2  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"xorpd     %%xmm3,  %%xmm3       \n\t"
+		"movaps    %%xmm3,  %%xmm4       \n\t"
+		"movaps    %%xmm3,  %%xmm5       \n\t"
+		"movaps    %%xmm3,  %%xmm6       \n\t"
+		"movaps    %%xmm3,  %%xmm7       \n\t"
+		"movaps    %%xmm3,  %%xmm8       \n\t"
+		"movaps    %%xmm3,  %%xmm9       \n\t"
+		"movaps    %%xmm3, %%xmm10       \n\t"
+		"movaps    %%xmm3, %%xmm11       \n\t"
+		"movaps    %%xmm3, %%xmm12       \n\t"
+		"movaps    %%xmm3, %%xmm13       \n\t"
+		"movaps    %%xmm3, %%xmm14       \n\t"
+		"movaps    %%xmm3, %%xmm15       \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"movl      %0, %%esi             \n\t" // i = k_iter;
+		"testl  %%esi, %%esi             \n\t" // check i via logical AND.
+		"je     .TCONSIDKLEFT            \n\t" // if i == 0, jump to code that
+		"                                \n\t" // contains the k_left loop.
+		"                                \n\t"
+		"                                \n\t"
+		".TLOOPKITER:                    \n\t" // MAIN LOOP
+		"                                \n\t"
+		"addpd   %%xmm6, %%xmm10         \n\t" // iteration 0
+		"movaps       16(%%rbx), %%xmm6  \n\t"
+		"addpd   %%xmm3, %%xmm14         \n\t"
+		"movaps  %%xmm2, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm2, %%xmm7  \n\t"
+		"mulpd   %%xmm0, %%xmm2          \n\t"
+		"mulpd   %%xmm1, %%xmm3          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm4, %%xmm11         \n\t"
+		"addpd   %%xmm5, %%xmm15         \n\t"
+		"movaps  %%xmm7, %%xmm5          \n\t"
+		"mulpd   %%xmm0, %%xmm7          \n\t"
+		"mulpd   %%xmm1, %%xmm5          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm2, %%xmm8          \n\t"
+		"movaps       32(%%rbx), %%xmm2  \n\t"
+		"addpd   %%xmm3, %%xmm12         \n\t"
+		"movaps  %%xmm6, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm6, %%xmm4  \n\t"
+		"mulpd   %%xmm0, %%xmm6          \n\t"
+		"mulpd   %%xmm1, %%xmm3          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm7, %%xmm9          \n\t"
+		"addpd   %%xmm5, %%xmm13         \n\t"
+		"movaps  %%xmm4, %%xmm5          \n\t"
+		"mulpd   %%xmm0, %%xmm4          \n\t"
+		"movaps       32(%%rax), %%xmm0  \n\t"
+		"mulpd   %%xmm1, %%xmm5          \n\t"
+		"movaps       48(%%rax), %%xmm1  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"addpd   %%xmm6, %%xmm10         \n\t" // iteration 1
+		"movaps       48(%%rbx), %%xmm6  \n\t"
+		"addpd   %%xmm3, %%xmm14         \n\t"
+		"movaps  %%xmm2, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm2, %%xmm7  \n\t"
+		"mulpd   %%xmm0, %%xmm2          \n\t"
+		"mulpd   %%xmm1, %%xmm3          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm4, %%xmm11         \n\t"
+		"addpd   %%xmm5, %%xmm15         \n\t"
+		"movaps  %%xmm7, %%xmm5          \n\t"
+		"mulpd   %%xmm0, %%xmm7          \n\t"
+		"mulpd   %%xmm1, %%xmm5          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm2, %%xmm8          \n\t"
+		"movaps       64(%%rbx), %%xmm2  \n\t"
+		"addpd   %%xmm3, %%xmm12         \n\t"
+		"movaps  %%xmm6, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm6, %%xmm4  \n\t"
+		"mulpd   %%xmm0, %%xmm6          \n\t"
+		"mulpd   %%xmm1, %%xmm3          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm7, %%xmm9          \n\t"
+		"addpd   %%xmm5, %%xmm13         \n\t"
+		"movaps  %%xmm4, %%xmm5          \n\t"
+		"mulpd   %%xmm0, %%xmm4          \n\t"
+		"movaps       64(%%rax), %%xmm0  \n\t"
+		"mulpd   %%xmm1, %%xmm5          \n\t"
+		"movaps       80(%%rax), %%xmm1  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"addpd   %%xmm6, %%xmm10         \n\t" // iteration 2
+		"movaps       80(%%rbx), %%xmm6  \n\t"
+		"addpd   %%xmm3, %%xmm14         \n\t"
+		"movaps  %%xmm2, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm2, %%xmm7  \n\t"
+		"mulpd   %%xmm0, %%xmm2          \n\t"
+		"mulpd   %%xmm1, %%xmm3          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm4, %%xmm11         \n\t"
+		"addpd   %%xmm5, %%xmm15         \n\t"
+		"movaps  %%xmm7, %%xmm5          \n\t"
+		"mulpd   %%xmm0, %%xmm7          \n\t"
+		"mulpd   %%xmm1, %%xmm5          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm2, %%xmm8          \n\t"
+		"movaps       96(%%rbx), %%xmm2  \n\t"
+		"addpd   %%xmm3, %%xmm12         \n\t"
+		"movaps  %%xmm6, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm6, %%xmm4  \n\t"
+		"mulpd   %%xmm0, %%xmm6          \n\t"
+		"mulpd   %%xmm1, %%xmm3          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm7, %%xmm9          \n\t"
+		"addpd   %%xmm5, %%xmm13         \n\t"
+		"movaps  %%xmm4, %%xmm5          \n\t"
+		"mulpd   %%xmm0, %%xmm4          \n\t"
+		"movaps       96(%%rax), %%xmm0  \n\t"
+		"mulpd   %%xmm1, %%xmm5          \n\t"
+		"movaps      112(%%rax), %%xmm1  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"addpd   %%xmm6, %%xmm10         \n\t" // iteration 3
+		"movaps      112(%%rbx), %%xmm6  \n\t"
+		"addpd   %%xmm3, %%xmm14         \n\t"
+		"movaps  %%xmm2, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm2, %%xmm7  \n\t"
+		"mulpd   %%xmm0, %%xmm2          \n\t"
+		"mulpd   %%xmm1, %%xmm3          \n\t"
+		"                                \n\t"
+		"addq      $128, %%rax           \n\t" // A0 += 16
+		"                                \n\t"
+		"addpd   %%xmm4, %%xmm11         \n\t"
+		"addpd   %%xmm5, %%xmm15         \n\t"
+		"movaps  %%xmm7, %%xmm5          \n\t"
+		"mulpd   %%xmm0, %%xmm7          \n\t"
+		"mulpd   %%xmm1, %%xmm5          \n\t"
+		"                                \n\t"
+		"addq      $128, %%rbx           \n\t" // B += 16
+		"                                \n\t"
+		"addpd   %%xmm2, %%xmm8          \n\t"
+		"movaps         (%%rbx), %%xmm2  \n\t"
+		"addpd   %%xmm3, %%xmm12         \n\t"
+		"movaps  %%xmm6, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm6, %%xmm4  \n\t"
+		"mulpd   %%xmm0, %%xmm6          \n\t"
+		"mulpd   %%xmm1, %%xmm3          \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"addpd   %%xmm7, %%xmm9          \n\t"
+		"decl    %%esi                   \n\t" // i -= 1;
+		"addpd   %%xmm5, %%xmm13         \n\t"
+		"movaps  %%xmm4, %%xmm5          \n\t"
+		"mulpd   %%xmm0, %%xmm4          \n\t"
+		"movaps         (%%rax), %%xmm0  \n\t"
+		"mulpd   %%xmm1, %%xmm5          \n\t"
+		"movaps       16(%%rax), %%xmm1  \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"jne    .TLOOPKITER              \n\t" // iterate again if i != 0.
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".TCONSIDKLEFT:                  \n\t"
+		"                                \n\t"
+		"movl      %1, %%esi             \n\t" // i = k_left;
+		"testl  %%esi, %%esi             \n\t" // check i via logical AND.
+		"je     .TPOSTACCUM              \n\t" // if i == 0, we're done; jump to end.
+		"                                \n\t" // else, we prepare to enter k_left loop.
+		"                                \n\t"
+		"                                \n\t"
+		".TLOOPKLEFT:                    \n\t" // EDGE LOOP
+		"                                \n\t"
+		"addpd   %%xmm6, %%xmm10         \n\t" // iteration 0
+		"movaps       16(%%rbx), %%xmm6  \n\t"
+		"addpd   %%xmm3, %%xmm14         \n\t"
+		"movaps  %%xmm2, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm2, %%xmm7  \n\t"
+		"mulpd   %%xmm0, %%xmm2          \n\t"
+		"mulpd   %%xmm1, %%xmm3          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm4, %%xmm11         \n\t"
+		"addpd   %%xmm5, %%xmm15         \n\t"
+		"movaps  %%xmm7, %%xmm5          \n\t"
+		"mulpd   %%xmm0, %%xmm7          \n\t"
+		"mulpd   %%xmm1, %%xmm5          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm2, %%xmm8          \n\t"
+		"movaps       32(%%rbx), %%xmm2  \n\t"
+		"addpd   %%xmm3, %%xmm12         \n\t"
+		"movaps  %%xmm6, %%xmm3          \n\t"
+		"pshufd   $0x4e, %%xmm6, %%xmm4  \n\t"
+		"mulpd   %%xmm0, %%xmm6          \n\t"
+		"mulpd   %%xmm1, %%xmm3          \n\t"
+		"                                \n\t"
+		"addpd   %%xmm7, %%xmm9          \n\t"
+		"addpd   %%xmm5, %%xmm13         \n\t"
+		"movaps  %%xmm4, %%xmm5          \n\t"
+		"mulpd   %%xmm0, %%xmm4          \n\t"
+		"movaps       32(%%rax), %%xmm0  \n\t"
+		"mulpd   %%xmm1, %%xmm5          \n\t"
+		"movaps       48(%%rax), %%xmm1  \n\t"
+		"                                \n\t"
+		"addq          $32, %%rax        \n\t" // A += 4
+		"addq          $32, %%rbx        \n\t" // B += 4
+		"                                \n\t"
+		"                                \n\t"
+		"decl    %%esi                   \n\t" // i -= 1;
+		"jne    .TLOOPKLEFT              \n\t" // iterate again if i != 0.
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".TPOSTACCUM:                    \n\t"
+		"                                \n\t"
+		"addpd   %%xmm6, %%xmm10         \n\t"
+		"addpd   %%xmm3, %%xmm14         \n\t"
+		"addpd   %%xmm4, %%xmm11         \n\t"
+		"addpd   %%xmm5, %%xmm15         \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t" // OK from here !!!!!
+		"                                \n\t"
+		"movl   %5, %%ecx                \n\t" // alg
+		"testl  %%ecx, %%ecx             \n\t" // check alg
+		"je     .T0                      \n\t" // if alg==0, jump
+		"                                \n\t"
+		"movq   %4, %%rax                \n\t" // load address of C
+		"                                \n\t"
+		"movl   %7, %%edx                \n\t" // tc
+		"testl  %%edx, %%edx             \n\t" // check alg
+		"je     .T_N                     \n\t" // if tc==0, jump
+		"                                \n\t"
+		"                                \n\t" // tc==1
+		"movaps   %%xmm9,  %%xmm0        \n\t"
+		"unpckhpd %%xmm8,  %%xmm0        \n\t"
+		"unpcklpd %%xmm9,  %%xmm8        \n\t"
+		"movaps   %%xmm8,  %%xmm9        \n\t"
+		"movaps   %%xmm0,  %%xmm8        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm11, %%xmm0        \n\t"
+		"unpckhpd %%xmm10, %%xmm0        \n\t"
+		"unpcklpd %%xmm11, %%xmm10       \n\t"
+		"movaps   %%xmm10, %%xmm11       \n\t"
+		"movaps   %%xmm0,  %%xmm10       \n\t"
+		"                                \n\t"
+		"movaps   %%xmm13, %%xmm0        \n\t"
+		"unpckhpd %%xmm12, %%xmm0        \n\t"
+		"unpcklpd %%xmm13, %%xmm12       \n\t"
+		"movaps   %%xmm12, %%xmm13       \n\t"
+		"movaps   %%xmm0,  %%xmm12       \n\t"
+		"                                \n\t"
+		"movaps   %%xmm15, %%xmm0        \n\t"
+		"unpckhpd %%xmm14, %%xmm0        \n\t"
+		"unpcklpd %%xmm15, %%xmm14       \n\t"
+		"movaps   %%xmm14, %%xmm15       \n\t"
+		"movaps   %%xmm0,  %%xmm14       \n\t"
+		"                                \n\t"
+		"movaps  (%%rax),   %%xmm1       \n\t" // load C
+		"movaps  16(%%rax), %%xmm3       \n\t"
+		"movaps  32(%%rax), %%xmm0       \n\t"
+		"movaps  48(%%rax), %%xmm2       \n\t"
+		"movaps  64(%%rax), %%xmm5       \n\t"
+		"movaps  80(%%rax), %%xmm7       \n\t"
+		"movaps  96(%%rax), %%xmm4       \n\t"
+		"movaps 112(%%rax), %%xmm6       \n\t"
+		"                                \n\t"
+		"cmpl	$1, %%ecx                \n\t"
+		"                                \n\t"
+		"je     .T1_T                    \n\t" // if alg==1, jump
+		"                                \n\t"// alg==-1
+		"subpd  %%xmm8,  %%xmm0          \n\t"
+		"subpd  %%xmm9,  %%xmm1          \n\t"
+		"subpd  %%xmm10, %%xmm2          \n\t"
+		"subpd  %%xmm11, %%xmm3          \n\t"
+		"subpd  %%xmm12, %%xmm4          \n\t"
+		"subpd  %%xmm13, %%xmm5          \n\t"
+		"subpd  %%xmm14, %%xmm6          \n\t"
+		"subpd  %%xmm15, %%xmm7          \n\t"
+		"                                \n\t"
+		"jmp    .T1_T_E                  \n\t"
+		"                                \n\t"
+		".T1_T:                          \n\t" // alg==1
+		"                                \n\t"
+		"addpd  %%xmm8,  %%xmm0          \n\t"
+		"addpd  %%xmm9,  %%xmm1          \n\t"
+		"addpd  %%xmm10, %%xmm2          \n\t"
+		"addpd  %%xmm11, %%xmm3          \n\t"
+		"addpd  %%xmm12, %%xmm4          \n\t"
+		"addpd  %%xmm13, %%xmm5          \n\t"
+		"addpd  %%xmm14, %%xmm6          \n\t"
+		"addpd  %%xmm15, %%xmm7          \n\t"
+		"                                \n\t"
+		".T1_T_E:                        \n\t" // end
+		"                                \n\t"
+		"movl   %8, %%edx                \n\t" // td
+		"testl  %%edx, %%edx             \n\t" // check alg
+		"jne    .TTORE_T                 \n\t" // if td==1, jump
+		"                                \n\t"
+		"movaps   %%xmm1,  %%xmm8        \n\t"
+		"unpcklpd %%xmm0,  %%xmm1        \n\t"
+		"unpckhpd %%xmm0,  %%xmm8        \n\t"
+		"movaps   %%xmm8,  %%xmm0        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm3,  %%xmm9        \n\t"
+		"unpcklpd %%xmm2,  %%xmm3        \n\t"
+		"unpckhpd %%xmm2,  %%xmm9        \n\t"
+		"movaps   %%xmm9,  %%xmm2        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm5,  %%xmm8        \n\t"
+		"unpcklpd %%xmm4,  %%xmm5        \n\t"
+		"unpckhpd %%xmm4,  %%xmm8        \n\t"
+		"movaps   %%xmm8,  %%xmm4        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm7,  %%xmm9        \n\t"
+		"unpcklpd %%xmm6,  %%xmm7        \n\t"
+		"unpckhpd %%xmm6,  %%xmm9        \n\t"
+		"movaps   %%xmm9,  %%xmm6        \n\t"
+		"                                \n\t"
+		"jmp    .TTORE_N                 \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".T_N:                           \n\t" // tc==0
+		"                                \n\t"
+		"movaps   %%xmm8,  %%xmm0        \n\t"
+		"movsd    %%xmm9,  %%xmm8        \n\t"
+		"movsd    %%xmm0,  %%xmm9        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm10,  %%xmm0        \n\t"
+		"movsd   %%xmm11, %%xmm10        \n\t"
+		"movsd    %%xmm0, %%xmm11        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm12,  %%xmm0        \n\t"
+		"movsd   %%xmm13, %%xmm12        \n\t"
+		"movsd    %%xmm0, %%xmm13        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm14,  %%xmm0        \n\t"
+		"movsd   %%xmm15, %%xmm14        \n\t"
+		"movsd    %%xmm0, %%xmm15        \n\t"
+		"                                \n\t"
+		"movaps  (%%rax),   %%xmm1       \n\t" // load C
+		"movaps  16(%%rax), %%xmm5       \n\t"
+		"movaps  32(%%rax), %%xmm0       \n\t"
+		"movaps  48(%%rax), %%xmm4       \n\t"
+		"movaps  64(%%rax), %%xmm3       \n\t"
+		"movaps  80(%%rax), %%xmm7       \n\t"
+		"movaps  96(%%rax), %%xmm2       \n\t"
+		"movaps 112(%%rax), %%xmm6       \n\t"
+		"                                \n\t"
+		"cmpl	$1, %%ecx                \n\t"
+		"                                \n\t"
+		"je     .T1_N                    \n\t" // if alg==1, jump
+		"                                \n\t"// alg==-1
+		"subpd  %%xmm8,  %%xmm0          \n\t"
+		"subpd  %%xmm9,  %%xmm1          \n\t"
+		"subpd  %%xmm10, %%xmm2          \n\t"
+		"subpd  %%xmm11, %%xmm3          \n\t"
+		"subpd  %%xmm12, %%xmm4          \n\t"
+		"subpd  %%xmm13, %%xmm5          \n\t"
+		"subpd  %%xmm14, %%xmm6          \n\t"
+		"subpd  %%xmm15, %%xmm7          \n\t"
+		"                                \n\t"
+		"jmp    .T1_N_E                  \n\t"
+		"                                \n\t"
+		".T1_N:                          \n\t" // alg==1
+		"                                \n\t"
+		"addpd  %%xmm8,  %%xmm0          \n\t"
+		"addpd  %%xmm9,  %%xmm1          \n\t"
+		"addpd  %%xmm10, %%xmm2          \n\t"
+		"addpd  %%xmm11, %%xmm3          \n\t"
+		"addpd  %%xmm12, %%xmm4          \n\t"
+		"addpd  %%xmm13, %%xmm5          \n\t"
+		"addpd  %%xmm14, %%xmm6          \n\t"
+		"addpd  %%xmm15, %%xmm7          \n\t"
+		"                                \n\t"
+		".T1_N_E:                        \n\t" // end
+		"                                \n\t"
+		"movl   %8, %%edx                \n\t" // td
+		"testl  %%edx, %%edx             \n\t" // check alg
+		"je     .T_N_N                   \n\t" // if td==0, jump
+		"                                \n\t"
+		"movaps   %%xmm1,  %%xmm8        \n\t"
+		"unpcklpd %%xmm0,  %%xmm1        \n\t"
+		"unpckhpd %%xmm0,  %%xmm8        \n\t"
+		"movaps   %%xmm8,  %%xmm0        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm3,  %%xmm9        \n\t"
+		"unpcklpd %%xmm2,  %%xmm3        \n\t"
+		"unpckhpd %%xmm2,  %%xmm9        \n\t"
+		"movaps   %%xmm9,  %%xmm2        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm5,  %%xmm8        \n\t"
+		"unpcklpd %%xmm4,  %%xmm5        \n\t"
+		"unpckhpd %%xmm4,  %%xmm8        \n\t"
+		"movaps   %%xmm8,  %%xmm4        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm7,  %%xmm9        \n\t"
+		"unpcklpd %%xmm6,  %%xmm7        \n\t"
+		"unpckhpd %%xmm6,  %%xmm9        \n\t"
+		"movaps   %%xmm9,  %%xmm6        \n\t"
+		"                                \n\t"
+		"jmp    .TTORE_T                 \n\t"
+		"                                \n\t"
+		".T_N_N:                         \n\t" // td==0
+		"                                \n\t"
+		"jmp    .TTORE_N                 \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".T0:                            \n\t" // alg==0
+		"                                \n\t"
+		"movl   %8, %%ecx                \n\t" // td
+		"testl  %%ecx, %%ecx             \n\t" // check alg
+		"je     .T0_N                    \n\t" // if td==0, jump
+		"                                \n\t"
+		"                                \n\t" // td==1
+		"movaps   %%xmm8,  %%xmm1        \n\t"
+		"movaps   %%xmm9,  %%xmm0        \n\t"
+		"unpckhpd %%xmm8,  %%xmm0        \n\t"
+		"unpcklpd %%xmm9,  %%xmm1        \n\t"
+		"                                \n\t"
+		"movaps   %%xmm10,  %%xmm3       \n\t"
+		"movaps   %%xmm11,  %%xmm2       \n\t"
+		"unpckhpd %%xmm10,  %%xmm2       \n\t"
+		"unpcklpd %%xmm11,  %%xmm3       \n\t"
+		"                                \n\t"
+		"movaps   %%xmm12,  %%xmm5       \n\t"
+		"movaps   %%xmm13,  %%xmm4       \n\t"
+		"unpckhpd %%xmm12,  %%xmm4       \n\t"
+		"unpcklpd %%xmm13,  %%xmm5       \n\t"
+		"                                \n\t"
+		"movaps   %%xmm14,  %%xmm7       \n\t"
+		"movaps   %%xmm15,  %%xmm6       \n\t"
+		"unpckhpd %%xmm14,  %%xmm6       \n\t"
+		"unpcklpd %%xmm15,  %%xmm7       \n\t"
+		"                                \n\t"
+		"jmp    .TTORE_T                 \n\t" // if td==0, jump
+		"                                \n\t"
+		"                                \n\t"
+		".T0_N:                          \n\t" // td==0
+		"                                \n\t"
+		"movaps   %%xmm8,  %%xmm0        \n\t"
+		"movaps   %%xmm9,  %%xmm1        \n\t"
+		"movsd    %%xmm9,  %%xmm0        \n\t"
+		"movsd    %%xmm8,  %%xmm1        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm10,  %%xmm2        \n\t"
+		"movaps  %%xmm11,  %%xmm3        \n\t"
+		"movsd   %%xmm11,  %%xmm2        \n\t"
+		"movsd   %%xmm10,  %%xmm3        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm12,  %%xmm4        \n\t"
+		"movaps  %%xmm13,  %%xmm5        \n\t"
+		"movsd   %%xmm13,  %%xmm4        \n\t"
+		"movsd   %%xmm12,  %%xmm5        \n\t"
+		"                                \n\t"
+		"movaps  %%xmm14,  %%xmm6        \n\t"
+		"movaps  %%xmm15,  %%xmm7        \n\t"
+		"movsd   %%xmm15,  %%xmm6        \n\t"
+		"movsd   %%xmm14,  %%xmm7        \n\t"
+		"                                \n\t"
+		"jmp    .TTORE_N                 \n\t" // if td==0, jump
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".TTORE_N:                       \n\t"
+		"                                \n\t"
+		"movq   %6, %%rbx                \n\t" // load address of D
+		"                                \n\t"
+		"movl   %9, %%edx                \n\t" // km
+		"movl  %10, %%ecx                \n\t" // kn
+		"cmpl	$4, %%edx                \n\t"
+		"jl      .T_N_3                  \n\t" // if km<4, jump
+		"                                \n\t"
+		"movaps  %%xmm1, (%%rbx)         \n\t"
+		"movaps  %%xmm5, 16(%%rbx)       \n\t"
+		"cmpl	$4, %%ecx                \n\t"
+		"movaps  %%xmm0, 32(%%rbx)       \n\t"
+		"movaps  %%xmm4, 48(%%rbx)       \n\t"
+		"movaps  %%xmm3, 64(%%rbx)       \n\t"
+		"movaps  %%xmm7, 80(%%rbx)       \n\t"
+		"jl      .TDONE                  \n\t" // if kn<4, jump
+		"movaps  %%xmm2, 96(%%rbx)       \n\t"
+		"movaps  %%xmm6, 112(%%rbx)      \n\t"
+		"                                \n\t"
+		".T_N_3:                         \n\t"
+		"                                \n\t"
+		"movaps  %%xmm1, (%%rbx)         \n\t"
+		"movsd   %%xmm5, 16(%%rbx)       \n\t"
+		"cmpl	$4, %%ecx                \n\t"
+		"movaps  %%xmm0, 32(%%rbx)       \n\t"
+		"movsd   %%xmm4, 48(%%rbx)       \n\t"
+		"movaps  %%xmm3, 64(%%rbx)       \n\t"
+		"movsd   %%xmm7, 80(%%rbx)       \n\t"
+		"jl      .TDONE                  \n\t" // if km<4, jump
+		"movaps  %%xmm2, 96(%%rbx)       \n\t"
+		"movsd   %%xmm6, 112(%%rbx)      \n\t"
+		"                                \n\t"
+		"jmp    .TDONE                   \n\t" // jump to end
+		"                                \n\t"
+		"                                \n\t"
+		".TTORE_T:                       \n\t"
+		"                                \n\t"
+		"movq   %6, %%rbx                \n\t" // load address of D
+		"                                \n\t"
+		"movl  %10, %%ecx                \n\t" // kn
+		"movl   %9, %%edx                \n\t" // km
+		"cmpl	$4, %%ecx                \n\t"
+		"jl      .T_T_3                  \n\t" // if kn<4, jump
+		"                                \n\t"
+		"movaps  %%xmm1, (%%rbx)         \n\t"
+		"movaps  %%xmm3, 16(%%rbx)       \n\t"
+		"cmpl	$4, %%edx                \n\t"
+		"movaps  %%xmm0, 32(%%rbx)       \n\t"
+		"movaps  %%xmm2, 48(%%rbx)       \n\t"
+		"movaps  %%xmm5, 64(%%rbx)       \n\t"
+		"movaps  %%xmm7, 80(%%rbx)       \n\t"
+		"jl      .TDONE                  \n\t" // if km<4, jump
+		"movaps  %%xmm4, 96(%%rbx)       \n\t"
+		"movaps  %%xmm6, 112(%%rbx)      \n\t"
+		"                                \n\t"
+		".T_T_3:                         \n\t"
+		"                                \n\t"
+		"movaps  %%xmm1, (%%rbx)         \n\t"
+		"movsd   %%xmm3, 16(%%rbx)       \n\t"
+		"cmpl	$4, %%edx                \n\t"
+		"movaps  %%xmm0, 32(%%rbx)       \n\t"
+		"movsd   %%xmm2, 48(%%rbx)       \n\t"
+		"movaps  %%xmm5, 64(%%rbx)       \n\t"
+		"movsd   %%xmm7, 80(%%rbx)       \n\t"
+		"jl      .TDONE                  \n\t" // if km<4, jump
+		"movaps  %%xmm4, 96(%%rbx)       \n\t"
+		"movsd   %%xmm6, 112(%%rbx)      \n\t"
+		"                                \n\t"
+		"                                \n\t"
+		".TDONE:                         \n\t"
+		"                                \n\t"
+
+		: // output operands (none)
+		: // input operands
+		  "m" (k_iter),		// %0
+		  "m" (k_left),		// %1
+		  "m" (A),			// %2
+		  "m" (B),			// %3
+		  "m" (C),			// %4
+		  "m" (alg),		// %5
+		  "m" (D),			// %6
+		  "m" (tc),			// %7
+		  "m" (td),			// %8
+		  "m" (km),			// %9
+		  "m" (kn)			// %10
+		: // register clobber list
+		  "rax", "rbx", "rcx", "rdx", "rsi", //"rdx", //"rdi", "r8", "r9", "r10", "r11",
+		  "xmm0", "xmm1", "xmm2", "xmm3",
+		  "xmm4", "xmm5", "xmm6", "xmm7",
+		  "xmm8", "xmm9", "xmm10", "xmm11",
+		  "xmm12", "xmm13", "xmm14", "xmm15",
+		  "memory"
+	);
+}
+
+
+
+
 // 4x2 with data packed in 4
-void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
+void kernel_dgemm_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
 	if(kmax<=0)
@@ -570,143 +1293,182 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 		}
 
 	__m128d
-		c_00_01, c_10_11, c_20_21, c_30_31,
-		c_00_10, c_20_30, c_01_11, c_21_31,
-		d_02_12, d_03_13, d_02_03, d_12_13,
-		d_00_01, d_10_11, d_20_21, d_30_31,
-		d_00_10, d_20_30, d_01_11, d_21_31;
+		t_0,
+		c_0, c_1, c_2, c_3,
+		d_0, d_1, d_2, d_3;
 
 	if(alg==0) // D = A * B' , there is no tc
 		{
 		if(td==0)
 			{
-			c_00_10 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
-			c_01_11 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
-			c_20_30 = _mm_shuffle_pd( c_20_31, c_21_30, 0x2 );
-			c_21_31 = _mm_shuffle_pd( c_21_30, c_20_31, 0x2 );
+			d_0 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
+			d_1 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
+			d_2 = _mm_shuffle_pd( c_20_31, c_21_30, 0x2 );
+			d_3 = _mm_shuffle_pd( c_21_30, c_20_31, 0x2 );
 
-			_mm_store_pd( &D[0+ldc*0], c_00_10 );
-			_mm_store_pd( &D[2+ldc*0], c_20_30 );
-			_mm_store_pd( &D[0+ldc*1], c_01_11 );
-			_mm_store_pd( &D[2+ldc*1], c_21_31 );
+			goto store_n;
 			}
 		else
 			{
-			c_00_01 = _mm_unpacklo_pd( c_00_11, c_01_10 );
-			c_10_11 = _mm_unpackhi_pd( c_01_10, c_00_11 );
-			c_20_21 = _mm_unpacklo_pd( c_20_31, c_21_30 );
-			c_30_31 = _mm_unpackhi_pd( c_21_30, c_20_31 );
+			d_0 = _mm_unpacklo_pd( c_00_11, c_01_10 );
+			d_1 = _mm_unpackhi_pd( c_01_10, c_00_11 );
+			d_2 = _mm_unpacklo_pd( c_20_31, c_21_30 );
+			d_3 = _mm_unpackhi_pd( c_21_30, c_20_31 );
 
-			_mm_store_pd( &D[0+ldc*0], c_00_01 );
-			_mm_store_pd( &D[0+ldc*1], c_10_11 );
-			_mm_store_pd( &D[0+ldc*2], c_20_21 );
-			_mm_store_pd( &D[0+ldc*3], c_30_31 );
+			goto store_t;
 			}
 		}
 	else
 		{
 		if(tc==0) // C
 			{
-			c_00_10 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
-			c_01_11 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
-			c_20_30 = _mm_shuffle_pd( c_20_31, c_21_30, 0x2 );
-			c_21_31 = _mm_shuffle_pd( c_21_30, c_20_31, 0x2 );
+			c_0 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
+			c_1 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
+			c_2 = _mm_shuffle_pd( c_20_31, c_21_30, 0x2 );
+			c_3 = _mm_shuffle_pd( c_21_30, c_20_31, 0x2 );
 
-			d_00_10 = _mm_load_pd( &C[0+ldc*0] );
-			d_20_30 = _mm_load_pd( &C[2+ldc*0] );
-			d_01_11 = _mm_load_pd( &C[0+ldc*1] );
-			d_21_31 = _mm_load_pd( &C[2+ldc*1] );
+			d_0 = _mm_load_pd( &C[0+ldc*0] );
+			d_2 = _mm_load_pd( &C[2+ldc*0] );
+			d_1 = _mm_load_pd( &C[0+ldc*1] );
+			d_3 = _mm_load_pd( &C[2+ldc*1] );
 		
 			if(alg==1) // AB = A * B'
 				{
-				d_00_10 = _mm_add_pd( d_00_10, c_00_10 ); 
-				d_01_11 = _mm_add_pd( d_01_11, c_01_11 ); 
-				d_20_30 = _mm_add_pd( d_20_30, c_20_30 ); 
-				d_21_31 = _mm_add_pd( d_21_31, c_21_31 );
+				d_0 = _mm_add_pd( d_0, c_0 ); 
+				d_1 = _mm_add_pd( d_1, c_1 ); 
+				d_2 = _mm_add_pd( d_2, c_2 ); 
+				d_3 = _mm_add_pd( d_3, c_3 );
 				}
 			else // AB = - A * B'
 				{
-				d_00_10 = _mm_sub_pd( d_00_10, c_00_10 ); 
-				d_01_11 = _mm_sub_pd( d_01_11, c_01_11 ); 
-				d_20_30 = _mm_sub_pd( d_20_30, c_20_30 ); 
-				d_21_31 = _mm_sub_pd( d_21_31, c_21_31 ); 
+				d_0 = _mm_sub_pd( d_0, c_0 ); 
+				d_1 = _mm_sub_pd( d_1, c_1 ); 
+				d_2 = _mm_sub_pd( d_2, c_2 ); 
+				d_3 = _mm_sub_pd( d_3, c_3 ); 
 				}
 
 			if(td==0) // AB + C
 				{
-				_mm_store_pd( &D[0+ldc*0], d_00_10 );
-				_mm_store_pd( &D[2+ldc*0], d_20_30 );
-				_mm_store_pd( &D[0+ldc*1], d_01_11 );
-				_mm_store_pd( &D[2+ldc*1], d_21_31 );
+				goto store_n;
 				}
 			else // t(AB + C)
 				{
-				d_00_01 = _mm_unpacklo_pd( d_00_10, d_01_11 );
-				d_10_11 = _mm_unpackhi_pd( d_00_10, d_01_11 );
-				d_20_21 = _mm_unpacklo_pd( d_20_30, d_21_31 );
-				d_30_31 = _mm_unpackhi_pd( d_20_30, d_21_31 );
+				t_0 = d_0;
+				d_0 = _mm_unpacklo_pd( d_0, d_1 );
+				d_1 = _mm_unpackhi_pd( t_0, d_1 );
+				t_0 = d_2;
+				d_2 = _mm_unpacklo_pd( d_2, d_3 );
+				d_3 = _mm_unpackhi_pd( t_0, d_3 );
 
-				_mm_store_pd( &D[0+ldc*0], d_00_01 );
-				_mm_store_pd( &D[0+ldc*1], d_10_11 );
-				_mm_store_pd( &D[0+ldc*2], d_20_21 );
-				_mm_store_pd( &D[0+ldc*3], d_30_31 );
+				goto store_t;
 				}
 			}
 		else // t(C)
 			{
-			c_00_01 = _mm_unpacklo_pd( c_00_11, c_01_10 );
-			c_10_11 = _mm_unpackhi_pd( c_01_10, c_00_11 );
-			c_20_21 = _mm_unpacklo_pd( c_20_31, c_21_30 );
-			c_30_31 = _mm_unpackhi_pd( c_21_30, c_20_31 );
+			c_0 = _mm_unpacklo_pd( c_00_11, c_01_10 );
+			c_1 = _mm_unpackhi_pd( c_01_10, c_00_11 );
+			c_2 = _mm_unpacklo_pd( c_20_31, c_21_30 );
+			c_3 = _mm_unpackhi_pd( c_21_30, c_20_31 );
 
-			d_00_10 = _mm_load_pd( &C[0+ldc*0] );
-			d_01_11 = _mm_load_pd( &C[0+ldc*1] );
-			d_02_12 = _mm_load_pd( &C[0+ldc*2] );
-			d_03_13 = _mm_load_pd( &C[0+ldc*3] );
+			d_0 = _mm_load_pd( &C[0+ldc*0] );
+			d_1 = _mm_load_pd( &C[0+ldc*1] );
+			d_2 = _mm_load_pd( &C[0+ldc*2] );
+			d_3 = _mm_load_pd( &C[0+ldc*3] );
 
 			if(alg==1) // AB = A * B'
 				{
-				d_00_10 = _mm_add_pd( d_00_10, c_00_01 );
-				d_01_11 = _mm_add_pd( d_01_11, c_10_11 );
-				d_02_12 = _mm_add_pd( d_02_12, c_20_21 );
-				d_03_13 = _mm_add_pd( d_03_13, c_30_31 );
+				d_0 = _mm_add_pd( d_0, c_0 );
+				d_1 = _mm_add_pd( d_1, c_1 );
+				d_2 = _mm_add_pd( d_2, c_2 );
+				d_3 = _mm_add_pd( d_3, c_3 );
 				}
 			else // AB = - A * B'
 				{
-				d_00_10 = _mm_sub_pd( d_00_10, c_00_01 );
-				d_01_11 = _mm_sub_pd( d_01_11, c_10_11 );
-				d_02_12 = _mm_sub_pd( d_02_12, c_20_21 );
-				d_03_13 = _mm_sub_pd( d_03_13, c_30_31 );
+				d_0 = _mm_sub_pd( d_0, c_0 );
+				d_1 = _mm_sub_pd( d_1, c_1 );
+				d_2 = _mm_sub_pd( d_2, c_2 );
+				d_3 = _mm_sub_pd( d_3, c_3 );
 				}
 
 			if(td==0) // t( t(AB) + C )
 				{
-				d_00_01 = _mm_unpacklo_pd( d_00_10, d_01_11 );
-				d_10_11 = _mm_unpackhi_pd( d_00_10, d_01_11 );
-				d_02_03 = _mm_unpacklo_pd( d_02_12, d_03_13 );
-				d_12_13 = _mm_unpackhi_pd( d_02_12, d_03_13 );
+				t_0 = d_0;
+				d_0 = _mm_unpacklo_pd( d_0, d_1 );
+				d_1 = _mm_unpackhi_pd( t_0, d_1 );
+				t_0 = d_2;
+				d_2 = _mm_unpacklo_pd( d_2, d_3 );
+				d_3 = _mm_unpackhi_pd( t_0, d_3 );
 
-				_mm_store_pd( &D[0+ldc*0], d_00_01 );
-				_mm_store_pd( &D[2+ldc*0], d_02_03 );
-				_mm_store_pd( &D[0+ldc*1], d_10_11 );
-				_mm_store_pd( &D[2+ldc*1], d_12_13 );
+				goto store_n;
 				}
 			else // t(AB) + C
 				{
-				_mm_store_pd( &D[0+ldc*0], d_00_10 );
-				_mm_store_pd( &D[0+ldc*1], d_01_11 );
-				_mm_store_pd( &D[0+ldc*2], d_02_12 );
-				_mm_store_pd( &D[0+ldc*3], d_03_13 );
+				goto store_t;
 				}
 			}
 		}
+
+	// store (3 - 4) x (1 - 2)
+	store_n:
+	if(km>=4)
+		{
+		_mm_store_pd( &D[0+ldc*0], d_0 );
+		_mm_store_pd( &D[2+ldc*0], d_2 );
+
+		if(kn>=2)
+			{
+			_mm_store_pd( &D[0+ldc*1], d_1 );
+			_mm_store_pd( &D[2+ldc*1], d_3 );
+			}
+		}
+	else // km==3
+		{
+		_mm_store_pd( &D[0+ldc*0], d_0 );
+		_mm_store_sd( &D[2+ldc*0], d_2 );
+
+		if(kn>=2)
+			{
+			_mm_store_pd( &D[0+ldc*1], d_1 );
+			_mm_store_sd( &D[2+ldc*1], d_3 );
+			}
+		}
+	return;
+
+	store_t:
+	if(kn>=2)
+		{
+		_mm_store_pd( &D[0+ldc*0], d_0 );
+		_mm_store_pd( &D[0+ldc*1], d_1 );
+		_mm_store_pd( &D[0+ldc*2], d_2 );
+		if(km>=4)
+			_mm_store_pd( &D[0+ldc*3], d_3 );
+		}
+	else	
+		{
+		_mm_store_sd( &D[0+ldc*0], d_0 );
+		_mm_store_sd( &D[0+ldc*1], d_1 );
+		_mm_store_sd( &D[0+ldc*2], d_2 );
+		if(km>=4)
+			_mm_store_sd( &D[0+ldc*3], d_3 );
+		}
+	return;
+
+	}
+
+
+
+// 4x2 with data packed in 4
+void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
+	{
+
+	kernel_dgemm_nt_4x2_vs_lib4(4, 2, kmax, A, B, C, D, alg, tc, td);
 
 	}
 
 
 
 // 2x4 with data packed in 4
-void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
+void kernel_dgemm_nt_2x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
 	if(kmax<=0)
@@ -843,143 +1605,184 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double 
 		}
 
 	__m128d
-		c_00_10, c_01_11, c_02_12, c_03_13,
-		c_00_01, c_10_11, c_02_03, c_12_13,
-		d_20_21, d_30_31,
-		d_00_01, d_10_11, d_02_03, d_12_13,
-		d_00_10, d_01_11, d_02_12, d_03_13;
+		t_0,
+		c_0, c_1, c_2, c_3,
+		d_0, d_1, d_2, d_3;
 
 	if(alg==0) // D = A * B' , there is no tc
 		{
 		if(td==0)
 			{
-			c_00_10 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
-			c_01_11 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
-			c_02_12 = _mm_shuffle_pd( c_02_13, c_03_12, 0x2 );
-			c_03_13 = _mm_shuffle_pd( c_03_12, c_02_13, 0x2 );
+			d_0 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
+			d_1 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
+			d_2 = _mm_shuffle_pd( c_02_13, c_03_12, 0x2 );
+			d_3 = _mm_shuffle_pd( c_03_12, c_02_13, 0x2 );
 
-			_mm_store_pd( &D[0+ldc*0], c_00_10 );
-			_mm_store_pd( &D[0+ldc*1], c_01_11 );
-			_mm_store_pd( &D[0+ldc*2], c_02_12 );
-			_mm_store_pd( &D[0+ldc*3], c_03_13 );
+			goto store_n;
 			}
 		else
 			{
-			c_00_01 = _mm_unpacklo_pd( c_00_11, c_01_10 );
-			c_10_11 = _mm_unpackhi_pd( c_01_10, c_00_11 );
-			c_02_03 = _mm_unpacklo_pd( c_02_13, c_03_12 );
-			c_12_13 = _mm_unpackhi_pd( c_03_12, c_02_13 );
+			d_0 = _mm_unpacklo_pd( c_00_11, c_01_10 );
+			d_1 = _mm_unpackhi_pd( c_01_10, c_00_11 );
+			d_2 = _mm_unpacklo_pd( c_02_13, c_03_12 );
+			d_3 = _mm_unpackhi_pd( c_03_12, c_02_13 );
 
-			_mm_store_pd( &D[0+ldc*0], c_00_01 );
-			_mm_store_pd( &D[2+ldc*0], c_02_03 );
-			_mm_store_pd( &D[0+ldc*1], c_10_11 );
-			_mm_store_pd( &D[2+ldc*1], c_12_13 );
+			goto store_t;
 			}
 		}
 	else
 		{
 		if(tc==0) // C
 			{
-			c_00_10 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
-			c_01_11 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
-			c_02_12 = _mm_shuffle_pd( c_02_13, c_03_12, 0x2 );
-			c_03_13 = _mm_shuffle_pd( c_03_12, c_02_13, 0x2 );
+			c_0 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
+			c_1 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
+			c_2 = _mm_shuffle_pd( c_02_13, c_03_12, 0x2 );
+			c_3 = _mm_shuffle_pd( c_03_12, c_02_13, 0x2 );
 
-			d_00_10 = _mm_load_pd(&C[0+ldc*0]);
-			d_01_11 = _mm_load_pd(&C[0+ldc*1]);
-			d_02_12 = _mm_load_pd(&C[0+ldc*2]);
-			d_03_13 = _mm_load_pd(&C[0+ldc*3]);
+			d_0 = _mm_load_pd(&C[0+ldc*0]);
+			d_1 = _mm_load_pd(&C[0+ldc*1]);
+			d_2 = _mm_load_pd(&C[0+ldc*2]);
+			d_3 = _mm_load_pd(&C[0+ldc*3]);
 		
 			if(alg==1) // AB = A * B'
 				{
-				d_00_10 = _mm_add_pd( d_00_10, c_00_10 ); 
-				d_01_11 = _mm_add_pd( d_01_11, c_01_11 ); 
-				d_02_12 = _mm_add_pd( d_02_12, c_02_12 ); 
-				d_03_13 = _mm_add_pd( d_03_13, c_03_13 ); 
+				d_0 = _mm_add_pd( d_0, c_0 ); 
+				d_1 = _mm_add_pd( d_1, c_1 ); 
+				d_2 = _mm_add_pd( d_2, c_2 ); 
+				d_3 = _mm_add_pd( d_3, c_3 ); 
 				}
 			else // AB = - A * B'
 				{
-				d_00_10 = _mm_sub_pd( d_00_10, c_00_10 ); 
-				d_01_11 = _mm_sub_pd( d_01_11, c_01_11 ); 
-				d_02_12 = _mm_sub_pd( d_02_12, c_02_12 ); 
-				d_03_13 = _mm_sub_pd( d_03_13, c_03_13 ); 
+				d_0 = _mm_sub_pd( d_0, c_0 ); 
+				d_1 = _mm_sub_pd( d_1, c_1 ); 
+				d_2 = _mm_sub_pd( d_2, c_2 ); 
+				d_3 = _mm_sub_pd( d_3, c_3 ); 
 				}
 
 			if(td==0) // AB + C
 				{
-				_mm_store_pd( &D[0+ldc*0], d_00_10 );
-				_mm_store_pd( &D[0+ldc*1], d_01_11 );
-				_mm_store_pd( &D[0+ldc*2], d_02_12 );
-				_mm_store_pd( &D[0+ldc*3], d_03_13 );
+				goto store_n;
 				}
 			else // t(AB + C)
 				{
-				d_00_01 = _mm_unpacklo_pd( d_00_10, d_01_11 );
-				d_10_11 = _mm_unpackhi_pd( d_00_10, d_01_11 );
-				d_02_03 = _mm_unpacklo_pd( d_02_12, d_03_13 );
-				d_12_13 = _mm_unpackhi_pd( d_02_12, d_03_13 );
+				t_0 = d_0;
+				d_0 = _mm_unpacklo_pd( d_0, d_1 );
+				d_1 = _mm_unpackhi_pd( t_0, d_1 );
+				t_0 = d_2;
+				d_2 = _mm_unpacklo_pd( d_2, d_3 );
+				d_3 = _mm_unpackhi_pd( t_0, d_3 );
 
-				_mm_store_pd( &D[0+ldc*0], d_00_01 );
-				_mm_store_pd( &D[2+ldc*0], d_02_03 );
-				_mm_store_pd( &D[0+ldc*1], d_10_11 );
-				_mm_store_pd( &D[2+ldc*1], d_12_13 );
+				goto store_t;
 				}
 			}
 		else // t(C)
 			{
-			c_00_01 = _mm_unpacklo_pd( c_00_11, c_01_10 );
-			c_10_11 = _mm_unpackhi_pd( c_01_10, c_00_11 );
-			c_02_03 = _mm_unpacklo_pd( c_02_13, c_03_12 );
-			c_12_13 = _mm_unpackhi_pd( c_03_12, c_02_13 );
+			c_0 = _mm_unpacklo_pd( c_00_11, c_01_10 );
+			c_1 = _mm_unpackhi_pd( c_01_10, c_00_11 );
+			c_2 = _mm_unpacklo_pd( c_02_13, c_03_12 );
+			c_3 = _mm_unpackhi_pd( c_03_12, c_02_13 );
 
-			d_00_10 = _mm_load_pd( &C[0+ldc*0] );
-			d_01_11 = _mm_load_pd( &C[0+ldc*1] );
-			d_02_12 = _mm_load_pd( &C[2+ldc*0] );
-			d_03_13 = _mm_load_pd( &C[2+ldc*1] );
+			d_0 = _mm_load_pd( &C[0+ldc*0] );
+			d_1 = _mm_load_pd( &C[0+ldc*1] );
+			d_2 = _mm_load_pd( &C[2+ldc*0] );
+			d_3 = _mm_load_pd( &C[2+ldc*1] );
 
 			if(alg==1) // AB = A * B'
 				{
-				d_00_10 = _mm_add_pd( d_00_10, c_00_01 );
-				d_01_11 = _mm_add_pd( d_01_11, c_10_11 );
-				d_02_12 = _mm_add_pd( d_02_12, c_02_03 );
-				d_03_13 = _mm_add_pd( d_03_13, c_12_13 );
+				d_0 = _mm_add_pd( d_0, c_0 );
+				d_1 = _mm_add_pd( d_1, c_1 );
+				d_2 = _mm_add_pd( d_2, c_2 );
+				d_3 = _mm_add_pd( d_3, c_3 );
 				}
 			else // AB = - A * B'
 				{
-				d_00_10 = _mm_sub_pd( d_00_10, c_00_01 );
-				d_01_11 = _mm_sub_pd( d_01_11, c_10_11 );
-				d_02_12 = _mm_sub_pd( d_02_12, c_02_03 );
-				d_03_13 = _mm_sub_pd( d_03_13, c_12_13 );
+				d_0 = _mm_sub_pd( d_0, c_0 );
+				d_1 = _mm_sub_pd( d_1, c_1 );
+				d_2 = _mm_sub_pd( d_2, c_2 );
+				d_3 = _mm_sub_pd( d_3, c_3 );
 				}
 
 			if(td==0) // t( t(AB) + C )
 				{
-				d_00_01 = _mm_unpacklo_pd( d_00_10, d_01_11 );
-				d_10_11 = _mm_unpackhi_pd( d_00_10, d_01_11 );
-				d_20_21 = _mm_unpacklo_pd( d_02_12, d_03_13 );
-				d_30_31 = _mm_unpackhi_pd( d_02_12, d_03_13 );
+				t_0 = d_0;
+				d_0 = _mm_unpacklo_pd( d_0, d_1 );
+				d_1 = _mm_unpackhi_pd( t_0, d_1 );
+				t_0 = d_2;
+				d_2 = _mm_unpacklo_pd( d_2, d_3 );
+				d_3 = _mm_unpackhi_pd( t_0, d_3 );
 
-				_mm_store_pd( &D[0+ldc*0], d_00_01 );
-				_mm_store_pd( &D[0+ldc*1], d_10_11 );
-				_mm_store_pd( &D[0+ldc*2], d_20_21 );
-				_mm_store_pd( &D[0+ldc*3], d_30_31 );
+				goto store_n;
 				}
 			else // t(AB) + C
 				{
-				_mm_store_pd( &D[0+ldc*0], d_00_10 );
-				_mm_store_pd( &D[2+ldc*0], d_02_12 );
-				_mm_store_pd( &D[0+ldc*1], d_01_11 );
-				_mm_store_pd( &D[2+ldc*1], d_03_13 );
+				goto store_t;
 				}
 			}
 		}
+
+	// store (1 - 2) x (3 - 4)
+	store_n:
+	if(km>=2)
+		{
+		_mm_store_pd( &D[0+ldc*0], d_0 );
+		_mm_store_pd( &D[0+ldc*1], d_1 );
+		_mm_store_pd( &D[0+ldc*2], d_2 );
+
+		if(kn>=4)
+			_mm_store_pd( &D[0+ldc*3], d_3 );
+		}
+	else
+		{
+		_mm_store_sd( &D[0+ldc*0], d_0 );
+		_mm_store_sd( &D[0+ldc*1], d_1 );
+		_mm_store_sd( &D[0+ldc*2], d_2 );
+
+		if(kn>=4)
+			_mm_store_sd( &D[0+ldc*3], d_3 );
+		}
+	return;
+
+	store_t:
+	if(kn>=4)
+		{
+		_mm_store_pd( &D[0+ldc*0], d_0 );
+		_mm_store_pd( &D[2+ldc*0], d_2 );
+
+		if(km>=2)
+			{
+			_mm_store_pd( &D[0+ldc*1], d_1 );
+			_mm_store_pd( &D[2+ldc*1], d_3 );
+			}
+		}
+	else // kn==3
+		{
+		_mm_store_pd( &D[0+ldc*0], d_0 );
+		_mm_store_sd( &D[2+ldc*0], d_2 );
+
+		if(km>=2)
+			{
+			_mm_store_pd( &D[0+ldc*1], d_1 );
+			_mm_store_sd( &D[2+ldc*1], d_3 );
+			}
+		}
+	return;
 
 	}
 
 
 
+// 2x4 with data packed in 4
+void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
+	{
+
+	kernel_dgemm_nt_2x4_vs_lib4(2, 4, kmax, A, B, C, D, alg, tc, td);
+
+	}
+	
+
+
 // 2x2 with data packed in 4
-void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
+void kernel_dgemm_nt_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
 	if(kmax<=0)
@@ -1074,6 +1877,9 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 		}
 
 	__m128d
+		t_0,
+		c_0, c_1,
+		d_0, d_1,
 		c_00_10, c_01_11,
 		c_00_01, c_10_11,
 		d_00_11, d_01_10,
@@ -1084,94 +1890,130 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 		{
 		if(td==0)
 			{
-			c_00_10 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
-			c_01_11 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
+			d_0 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
+			d_1 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
 
-			_mm_store_pd( &D[0+ldc*0], c_00_10 );
-			_mm_store_pd( &D[0+ldc*1], c_01_11 );
+			goto store_n;
 			}
 		else
 			{
-			c_00_01 = _mm_unpacklo_pd( c_00_11, c_01_10 );
-			c_10_11 = _mm_unpackhi_pd( c_01_10, c_00_11 );
+			d_0 = _mm_unpacklo_pd( c_00_11, c_01_10 );
+			d_1 = _mm_unpackhi_pd( c_01_10, c_00_11 );
 
-			_mm_store_pd( &D[0+ldc*0], c_00_01 );
-			_mm_store_pd( &D[0+ldc*1], c_10_11 );
+			goto store_t;
 			}
 		}
 	else 
 		{
 		if(tc==0) // C
 			{
-			c_00_10 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
-			c_01_11 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
+			c_0 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
+			c_1 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
 
-			d_00_10 = _mm_load_pd( &C[0+ldc*0] );
-			d_01_11 = _mm_load_pd( &C[0+ldc*1] );
+			d_0 = _mm_load_pd( &C[0+ldc*0] );
+			d_1 = _mm_load_pd( &C[0+ldc*1] );
 		
 			if(alg==1) // AB = A * B'
 				{
-				d_00_10 = _mm_add_pd( d_00_10, c_00_10 );
-				d_01_11 = _mm_add_pd( d_01_11, c_01_11 );
+				d_0 = _mm_add_pd( d_0, c_0 );
+				d_1 = _mm_add_pd( d_1, c_1 );
 				}
 			else // AB = - A * B'
 				{
-				d_00_10 = _mm_sub_pd( d_00_10, c_00_10 );
-				d_01_11 = _mm_sub_pd( d_01_11, c_01_11 );
+				d_0 = _mm_sub_pd( d_0, c_0 );
+				d_1 = _mm_sub_pd( d_1, c_1 );
 				}
 
 			if(td==0) // AB + C
 				{
-				_mm_store_pd( &D[0+ldc*0], d_00_10 );
-				_mm_store_pd( &D[0+ldc*1], d_01_11 );
+				goto store_n;
 				}
 			else // t(AB + C)
 				{
-				d_00_01 = _mm_unpacklo_pd( d_00_10, d_01_11 );
-				d_10_11 = _mm_unpackhi_pd( d_00_10, d_01_11 );
+				t_0 = d_0;
+				d_0 = _mm_unpacklo_pd( d_0, d_1 );
+				d_1 = _mm_unpackhi_pd( t_0, d_1 );
 
-				_mm_store_pd( &D[0+ldc*0], d_00_01 );
-				_mm_store_pd( &D[0+ldc*1], d_10_11 );
+				goto store_t;
 				}
 			}
 		else // t(C)
 			{
-			c_00_01 = _mm_unpacklo_pd( c_00_11, c_01_10 );
-			c_10_11 = _mm_unpackhi_pd( c_01_10, c_00_11 );
+			c_0 = _mm_unpacklo_pd( c_00_11, c_01_10 );
+			c_1 = _mm_unpackhi_pd( c_01_10, c_00_11 );
 
-			d_00_10 = _mm_load_pd( &C[0+ldc*0] );
-			d_01_11 = _mm_load_pd( &C[0+ldc*1] );
+			d_0 = _mm_load_pd( &C[0+ldc*0] );
+			d_1 = _mm_load_pd( &C[0+ldc*1] );
 
 			if(alg==1) // AB = A * B'
 				{
-				d_00_10 = _mm_add_pd( d_00_10, c_00_01 );
-				d_01_11 = _mm_add_pd( d_01_11, c_10_11 );
+				d_0 = _mm_add_pd( d_0, c_0 );
+				d_1 = _mm_add_pd( d_1, c_1 );
 				}
 			else // AB = - A * B'
 				{
-				d_00_10 = _mm_sub_pd( d_00_10, c_00_01 );
-				d_01_11 = _mm_sub_pd( d_01_11, c_10_11 );
+				d_0 = _mm_sub_pd( d_0, c_0 );
+				d_1 = _mm_sub_pd( d_1, c_1 );
 				}
 
 			if(td==0) // t( t(AB) + C )
 				{
-				d_00_01 = _mm_unpacklo_pd( d_00_10, d_01_11 );
-				d_10_11 = _mm_unpackhi_pd( d_00_10, d_01_11 );
+				t_0 = d_0;
+				d_0 = _mm_unpacklo_pd( d_0, d_1 );
+				d_1 = _mm_unpackhi_pd( t_0, d_1 );
 
-				_mm_store_pd( &D[0+ldc*0], d_00_01 );
-				_mm_store_pd( &D[0+ldc*1], d_10_11 );
+				goto store_n;
 				}
 			else // t(AB) + C
 				{
-				_mm_store_pd( &D[0+ldc*0], d_00_10 );
-				_mm_store_pd( &D[0+ldc*1], d_01_11 );
+				goto store_t;
 				}
 			}
 		}
+	
+	store_n:
+	if(km>=2)
+		{
+		_mm_store_pd( &D[0+ldc*0], d_0 );
+		if(kn>=2)
+			_mm_store_pd( &D[0+ldc*1], d_1 );
+		}
+	else
+		{
+		_mm_store_sd( &D[0+ldc*0], d_0 );
+		if(kn>=2)
+			_mm_store_sd( &D[0+ldc*1], d_1 );
+		}
+	return;
+
+	store_t:
+	if(kn>=2)
+		{
+		_mm_store_pd( &D[0+ldc*0], d_0 );
+		if(km>=2)
+			_mm_store_pd( &D[0+ldc*1], d_1 );
+		}
+	else
+		{
+		_mm_store_sd( &D[0+ldc*0], d_0 );
+		if(km>=2)
+			_mm_store_sd( &D[0+ldc*1], d_1 );
+		}
+	return;
 	}
 
 
 
+// 2x2 with data packed in 4
+void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
+	{
+
+	kernel_dgemm_nt_2x2_vs_lib4(2, 2, kmax, A, B, C, D, alg, tc, td);
+
+	}
+
+
+	
 // normal-normal, 4x4 with data packed in 4
 void kernel_dgemm_nn_4x4_lib4(int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td)
 	{
