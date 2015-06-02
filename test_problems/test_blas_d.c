@@ -302,7 +302,7 @@ int main()
 			{
 
 			dtrtr_l_lib(n, 0, pA, cnd, pC, cnd); // triangualr matrix transpose
-			//dgetr_lib(n, 0, n, 0, pA, cnd, pC, cnd); // general matrix transpose
+			//dgetr_lib(n, n, 0, pA, cnd, 0, pC, cnd); // general matrix transpose
 
 			}
 	
@@ -367,7 +367,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dsymv_lib(n, n, pA, cnd, x, y, 0);
+			dsymv_lib(n, n, pA, cnd, x, y, y, 0);
 
 			}
 	
@@ -376,7 +376,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dmvmv_lib(n, n, pA, cnd, x, y, x2, y2, 0);
+			dmvmv_lib(n, n, pA, cnd, x, y, y, x2, y2, y2, 0);
 
 			}
 	

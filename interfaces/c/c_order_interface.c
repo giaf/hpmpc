@@ -2930,9 +2930,9 @@ int c_order_riccati_mhe_if( char prec, int alg,
 				//d_print_pmat(nx, nx, bs, hpQA[ii], cnx);
 				//d_print_mat(1, nx, q_temp, 1);
 				if(nx>=nw)
-					dsymv_lib(ny, ny, hpQRAG[ii], cnwx1, hy[ii], q_temp, -1);
+					dsymv_lib(ny, ny, hpQRAG[ii], cnwx1, hy[ii], q_temp, q_temp, -1);
 				else
-					dsymv_lib(ny, ny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, hy[ii], q_temp, -1);
+					dsymv_lib(ny, ny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, hy[ii], q_temp, q_temp, -1);
 				//d_print_mat(1, nx, q_temp, 1);
 				if(alg==0)
 					{
@@ -2949,7 +2949,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 			for(jj=0; jj<ny; jj++) q_temp[jj] = - qf[jj];
 			//d_print_pmat(nx, nx, bs, hpQA[ii], cnx);
 			//d_print_mat(1, nx, q_temp, 1);
-			dsymv_lib(ny, ny, hpQRAG[N], cnx, hy[N], q_temp, -1);
+			dsymv_lib(ny, ny, hpQRAG[N], cnx, hy[N], q_temp, q_temp, -1);
 			//d_print_mat(1, nx, q_temp, 1);
 			if(alg==0)
 				{

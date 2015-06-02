@@ -25,7 +25,7 @@
 
 
 
-void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg)
 	{
 	
 	if(kmax<=0) 
@@ -142,7 +142,7 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 /*		y_n_0 += a_03 * x_n_3;*/
 /*		y_t_3 += a_03 * x_t_0;*/
 		
-		y_n[0] = y_n_0;
+		z_n[0] = y_n_0;
 
 
 		y_n_0 = y_n[1];
@@ -162,7 +162,7 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 /*		y_n_0 += a_03 * x_n_3;*/
 /*		y_t_3 += a_03 * x_t_0;*/
 		
-		y_n[1] = y_n_0;
+		z_n[1] = y_n_0;
 
 		
 		y_n_0 = y_n[2];
@@ -182,7 +182,7 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 /*		y_n_0 += a_03 * x_n_3;*/
 /*		y_t_3 += a_03 * x_t_0;*/
 		
-		y_n[2] = y_n_0;
+		z_n[2] = y_n_0;
 
 
 		y_n_0 = y_n[3];
@@ -202,12 +202,13 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 /*		y_n_0 += a_03 * x_n_3;*/
 		y_t_3 += a_03 * x_t_0;
 		
-		y_n[3] = y_n_0;
+		z_n[3] = y_n_0;
 
 
 
 		A += 4;
 		y_n += 4;
+		z_n += 4;
 		x_t += 4;
 		k += 4;
 
@@ -234,7 +235,7 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_03 * x_n_3;
 		y_t_3 += a_03 * x_t_0;
 		
-		y_n[0] = y_n_0;
+		z_n[0] = y_n_0;
 
 
 		y_n_0 = y_n[1];
@@ -254,7 +255,7 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_03 * x_n_3;
 		y_t_3 += a_03 * x_t_0;
 		
-		y_n[1] = y_n_0;
+		z_n[1] = y_n_0;
 
 		
 		y_n_0 = y_n[2];
@@ -274,7 +275,7 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_03 * x_n_3;
 		y_t_3 += a_03 * x_t_0;
 		
-		y_n[2] = y_n_0;
+		z_n[2] = y_n_0;
 
 
 		y_n_0 = y_n[3];
@@ -294,11 +295,12 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_03 * x_n_3;
 		y_t_3 += a_03 * x_t_0;
 		
-		y_n[3] = y_n_0;
+		z_n[3] = y_n_0;
 
 		
 		A += sda*bs;
 		y_n += 4;
+		z_n += 4;
 		x_t += 4;
 
 		}
@@ -323,34 +325,36 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_03 * x_n_3;
 		y_t_3 += a_03 * x_t_0;
 		
-		y_n[0] = y_n_0;
+		z_n[0] = y_n_0;
 
 	
 		A += 1;
 		y_n += 1;
+		z_n += 1;
 		x_t += 1;
 		
 		}
 
 	if(alg==1)
 		{
-		y_t[0] += y_t_0;
-		y_t[1] += y_t_1;
-		y_t[2] += y_t_2;
-		y_t[3] += y_t_3;
+		z_t[0] = y_t[0] + y_t_0;
+		z_t[1] = y_t[1] + y_t_1;
+		z_t[2] = y_t[2] + y_t_2;
+		z_t[3] = y_t[3] + y_t_3;
 		}
 	else // alg==-1
 		{
-		y_t[0] -= y_t_0;
-		y_t[1] -= y_t_1;
-		y_t[2] -= y_t_2;
-		y_t[3] -= y_t_3;
+		z_t[0] = y_t[0] - y_t_0;
+		z_t[1] = y_t[1] - y_t_1;
+		z_t[2] = y_t[2] - y_t_2;
+		z_t[3] = y_t[3] - y_t_3;
 		}
 	
 	}
 	
 	
-void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+
+void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg)
 	{
 	
 	if(kmax<=0) 
@@ -395,7 +399,7 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		
 		y_t_0 += a_00 * x_t_0;
 		
-		y_n[0] = y_n_0;
+		z_n[0] = y_n_0;
 
 
 		y_n_0 = y_n[1];
@@ -408,7 +412,7 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_t_0 += a_00 * x_t_0;
 		y_t_1 += a_01 * x_t_0;
 		
-		y_n[1] = y_n_0;
+		z_n[1] = y_n_0;
 
 		
 		y_n_0 = y_n[2];
@@ -424,7 +428,7 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_t_1 += a_01 * x_t_0;
 		y_t_2 += a_02 * x_t_0;
 		
-		y_n[2] = y_n_0;
+		z_n[2] = y_n_0;
 
 		if(kmax==3)
 			goto STORE_3;
@@ -444,7 +448,7 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_02 * x_n_2;
 		y_t_2 += a_02 * x_t_0;
 		
-		y_n[3] = y_n_0;
+		z_n[3] = y_n_0;
 
 		if(kmax==4)
 			goto STORE_3;
@@ -453,6 +457,7 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 
 		A += 4;
 		y_n += 4;
+		z_n += 4;
 		x_t += 4;
 		k += 4;
 
@@ -476,7 +481,7 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_02 * x_n_2;
 		y_t_2 += a_02 * x_t_0;
 		
-		y_n[0] = y_n_0;
+		z_n[0] = y_n_0;
 
 
 		y_n_0 = y_n[1];
@@ -493,7 +498,7 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_02 * x_n_2;
 		y_t_2 += a_02 * x_t_0;
 		
-		y_n[1] = y_n_0;
+		z_n[1] = y_n_0;
 
 		
 		y_n_0 = y_n[2];
@@ -510,7 +515,7 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_02 * x_n_2;
 		y_t_2 += a_02 * x_t_0;
 		
-		y_n[2] = y_n_0;
+		z_n[2] = y_n_0;
 
 
 		y_n_0 = y_n[3];
@@ -527,11 +532,12 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_02 * x_n_2;
 		y_t_2 += a_02 * x_t_0;
 		
-		y_n[3] = y_n_0;
+		z_n[3] = y_n_0;
 
 		
 		A += sda*bs;
 		y_n += 4;
+		z_n += 4;
 		x_t += 4;
 
 		}
@@ -553,11 +559,12 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_02 * x_n_2;
 		y_t_2 += a_02 * x_t_0;
 		
-		y_n[0] = y_n_0;
+		z_n[0] = y_n_0;
 
 	
 		A += 1;
 		y_n += 1;
+		z_n += 1;
 		x_t += 1;
 		
 		}
@@ -566,22 +573,22 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 
 	if(alg==1)
 		{
-		y_t[0] += y_t_0;
-		y_t[1] += y_t_1;
-		y_t[2] += y_t_2;
+		z_t[0] = y_t[0] + y_t_0;
+		z_t[1] = y_t[1] + y_t_1;
+		z_t[2] = y_t[2] + y_t_2;
 		}
 	else // alg==-1
 		{
-		y_t[0] -= y_t_0;
-		y_t[1] -= y_t_1;
-		y_t[2] -= y_t_2;
+		z_t[0] = y_t[0] - y_t_0;
+		z_t[1] = y_t[1] - y_t_1;
+		z_t[2] = y_t[2] - y_t_2;
 		}
 	
 	}
 	
 	
 	
-void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg)
 	{
 	
 	if(kmax<=0) 
@@ -623,7 +630,7 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		
 		y_t_0 += a_00 * x_t_0;
 		
-		y_n[0] = y_n_0;
+		z_n[0] = y_n_0;
 
 
 		y_n_0 = y_n[1];
@@ -636,7 +643,7 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_t_0 += a_00 * x_t_0;
 		y_t_1 += a_01 * x_t_0;
 		
-		y_n[1] = y_n_0;
+		z_n[1] = y_n_0;
 
 		if(kmax==2)
 			goto STORE_2;
@@ -653,7 +660,7 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_01 * x_n_1;
 		y_t_1 += a_01 * x_t_0;
 		
-		y_n[2] = y_n_0;
+		z_n[2] = y_n_0;
 
 		if(kmax==3)
 			goto STORE_2;
@@ -670,7 +677,7 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_01 * x_n_1;
 		y_t_1 += a_01 * x_t_0;
 		
-		y_n[3] = y_n_0;
+		z_n[3] = y_n_0;
 
 		if(kmax==4)
 			goto STORE_2;
@@ -678,6 +685,7 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 
 		A += 4;
 		y_n += 4;
+		z_n += 4;
 		x_t += 4;
 		k += 4;
 
@@ -698,7 +706,7 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_01 * x_n_1;
 		y_t_1 += a_01 * x_t_0;
 		
-		y_n[0] = y_n_0;
+		z_n[0] = y_n_0;
 
 
 		y_n_0 = y_n[1];
@@ -712,7 +720,7 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_01 * x_n_1;
 		y_t_1 += a_01 * x_t_0;
 		
-		y_n[1] = y_n_0;
+		z_n[1] = y_n_0;
 
 		
 		y_n_0 = y_n[2];
@@ -726,7 +734,7 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_01 * x_n_1;
 		y_t_1 += a_01 * x_t_0;
 		
-		y_n[2] = y_n_0;
+		z_n[2] = y_n_0;
 
 
 		y_n_0 = y_n[3];
@@ -740,11 +748,12 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_01 * x_n_1;
 		y_t_1 += a_01 * x_t_0;
 		
-		y_n[3] = y_n_0;
+		z_n[3] = y_n_0;
 
 		
 		A += sda*bs;
 		y_n += 4;
+		z_n += 4;
 		x_t += 4;
 
 		}
@@ -763,11 +772,12 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_01 * x_n_1;
 		y_t_1 += a_01 * x_t_0;
 		
-		y_n[0] = y_n_0;
+		z_n[0] = y_n_0;
 
 	
 		A += 1;
 		y_n += 1;
+		z_n += 1;
 		x_t += 1;
 		
 		}
@@ -776,20 +786,20 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 
 	if(alg==1)
 		{
-		y_t[0] += y_t_0;
-		y_t[1] += y_t_1;
+		z_t[0] = y_t[0] + y_t_0;
+		z_t[1] = y_t[1] + y_t_1;
 		}
 	else // alg==-1
 		{
-		y_t[0] -= y_t_0;
-		y_t[1] -= y_t_1;
+		z_t[0] = y_t[0] - y_t_0;
+		z_t[1] = y_t[1] - y_t_1;
 		}
 	
 	}
 	
 	
 	
-void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int tri, int alg)
+void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg)
 	{
 	
 	if(kmax<=0) 
@@ -839,7 +849,7 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_00 * x_n_0;
 		y_t_0 += a_00 * x_t_0;
 		
-		y_n[1] = y_n_0;
+		z_n[1] = y_n_0;
 
 		if(kmax==2)
 			goto STORE_1;
@@ -853,7 +863,7 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_00 * x_n_0;
 		y_t_0 += a_00 * x_t_0;
 		
-		y_n[2] = y_n_0;
+		z_n[2] = y_n_0;
 
 		if(kmax==3)
 			goto STORE_1;
@@ -867,7 +877,7 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_00 * x_n_0;
 		y_t_0 += a_00 * x_t_0;
 		
-		y_n[3] = y_n_0;
+		z_n[3] = y_n_0;
 
 		if(kmax==4)
 			goto STORE_1;
@@ -875,6 +885,7 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 
 		A += 4;
 		y_n += 4;
+		z_n += 4;
 		x_t += 4;
 		k += 4;
 
@@ -892,7 +903,7 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_00 * x_n_0;
 		y_t_0 += a_00 * x_t_0;
 		
-		y_n[0] = y_n_0;
+		z_n[0] = y_n_0;
 
 
 		y_n_0 = y_n[1];
@@ -903,7 +914,7 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_00 * x_n_0;
 		y_t_0 += a_00 * x_t_0;
 		
-		y_n[1] = y_n_0;
+		z_n[1] = y_n_0;
 
 		
 		y_n_0 = y_n[2];
@@ -914,7 +925,7 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_00 * x_n_0;
 		y_t_0 += a_00 * x_t_0;
 		
-		y_n[2] = y_n_0;
+		z_n[2] = y_n_0;
 
 
 		y_n_0 = y_n[3];
@@ -925,11 +936,12 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_00 * x_n_0;
 		y_t_0 += a_00 * x_t_0;
 		
-		y_n[3] = y_n_0;
+		z_n[3] = y_n_0;
 
 		
 		A += sda*bs;
 		y_n += 4;
+		z_n += 4;
 		x_t += 4;
 
 		}
@@ -945,11 +957,12 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		y_n_0 += a_00 * x_n_0;
 		y_t_0 += a_00 * x_t_0;
 		
-		y_n[0] = y_n_0;
+		z_n[0] = y_n_0;
 
 	
 		A += 1;
 		y_n += 1;
+		z_n += 1;
 		x_t += 1;
 		
 		}
@@ -958,11 +971,11 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 
 	if(alg==1)
 		{
-		y_t[0] += y_t_0;
+		z_t[0] = y_t[0] + y_t_0;
 		}
 	else // alg==-1
 		{
-		y_t[0] -= y_t_0;
+		z_t[0] -= y_t[0] - y_t_0;
 		}
 	
 	}

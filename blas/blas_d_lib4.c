@@ -2685,7 +2685,7 @@ void dtrmv_u_t_lib(int m, double *pA, int sda, double *x, double *y, int alg)
 
 
 // it moves vertically across block // TODO allow rectangular matrices
-void dsymv_lib(int m, int n, double *pA, int sda, double *x, double *y, int alg)
+void dsymv_lib(int m, int n, double *pA, int sda, double *x, double *y, double *z, int alg)
 	{
 	
 	const int bs = 4;
@@ -2698,28 +2698,28 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, double *y, int alg)
 	if(alg==0)
 		{
 		for(j=0; j<m; j++)
-			y[j] = 0.0;
+			z[j] = 0.0;
 		alg = 1;
 		}
 	
 	j=0;
 	for(; j<n-3; j+=4)
 		{
-		kernel_dsymv_4_lib4(m-j, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+		kernel_dsymv_4_lib4(m-j, pA+j*sda+j*bs, sda, x+j, y+j, z+j, x+j, y+j, z+j, 1, alg);
 		}
 	if(j<n)
 		{
 		if(n-j==1)
 			{
-			kernel_dsymv_1_lib4(m-j, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+			kernel_dsymv_1_lib4(m-j, pA+j*sda+j*bs, sda, x+j, y+j, z+j, x+j, y+j, z+j, 1, alg);
 			}
 		else if(n-j==2)
 			{
-			kernel_dsymv_2_lib4(m-j, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+			kernel_dsymv_2_lib4(m-j, pA+j*sda+j*bs, sda, x+j, y+j, z+j, x+j, y+j, z+j, 1, alg);
 			}
 		else // if(n-j==3)
 			{
-			kernel_dsymv_3_lib4(m-j, pA+j*sda+j*bs, sda, x+j, y+j, x+j, y+j, 1, alg);
+			kernel_dsymv_3_lib4(m-j, pA+j*sda+j*bs, sda, x+j, y+j, z+j, x+j, y+j, z+j, 1, alg);
 			}
 		}
 
@@ -2728,7 +2728,7 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, double *y, int alg)
 
 
 // it moves vertically across block
-void dmvmv_lib(int m, int n, double *pA, int sda, double *x_n, double *y_n, double *x_t, double *y_t, int alg)
+void dmvmv_lib(int m, int n, double *pA, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int alg)
 	{
 	
 	const int bs = 4;
@@ -2738,24 +2738,24 @@ void dmvmv_lib(int m, int n, double *pA, int sda, double *x_n, double *y_n, doub
 	if(alg==0)
 		{
 		for(j=0; j<m; j++)
-			y_n[j] = 0.0;
+			z_n[j] = 0.0;
 		for(j=0; j<n; j++)
-			y_t[j] = 0.0;
+			z_t[j] = 0.0;
 		alg = 1;
 		}
 	
 	j=0;
 	for(; j<n-3; j+=4)
 		{
-		kernel_dsymv_4_lib4(m, pA+j*bs, sda, x_n+j, y_n, x_t, y_t+j, 0, alg);
+		kernel_dsymv_4_lib4(m, pA+j*bs, sda, x_n+j, y_n, z_n, x_t, y_t+j, z_t+j, 0, alg);
 		}
 	for(; j<n-1; j+=2)
 		{
-		kernel_dsymv_2_lib4(m, pA+j*bs, sda, x_n+j, y_n, x_t, y_t+j, 0, alg);
+		kernel_dsymv_2_lib4(m, pA+j*bs, sda, x_n+j, y_n, z_n, x_t, y_t+j, z_t+j, 0, alg);
 		}
 	for(; j<n; j++)
 		{
-		kernel_dsymv_1_lib4(m, pA+j*bs, sda, x_n+j, y_n, x_t, y_t+j, 0, alg);
+		kernel_dsymv_1_lib4(m, pA+j*bs, sda, x_n+j, y_n, z_n, x_t, y_t+j, z_t+j, 0, alg);
 		}
 
 	}
