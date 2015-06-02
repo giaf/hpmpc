@@ -1847,7 +1847,7 @@ int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, dou
 		//d_print_mat(1, nz, y_temp, 1);
 	
 		// compute y + R*r
-		dsymv_lib(ny, ny, hpR[ii], cny, hr[ii], y_temp, -1);
+		dsymv_lib(ny, ny, hpR[ii], cny, hr[ii], y_temp, y_temp, -1);
 		//d_print_mat(1, nz, y_temp, 1);
 
 		// compute y + R*r - C*xp
@@ -1885,7 +1885,7 @@ int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, dou
 		//d_print_mat(1, nw, w_temp, 1);
 	
 		// compute Q*q
-		dsymv_lib(nw, nw, hpQ[ii], cnw, hq[ii], hw[ii], -1);
+		dsymv_lib(nw, nw, hpQ[ii], cnw, hq[ii], hw[ii], hw[ii], -1);
 		//d_print_mat(1, nw, w_temp, 1);
 
 		// xp += G*w
@@ -1905,7 +1905,7 @@ int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, dou
 	//d_print_mat(1, nz, y_temp, 1);
 	
 	// compute y + R*r
-	dsymv_lib(ny, ny, hpR[N], cny, hr[N], y_temp, -1);
+	dsymv_lib(ny, ny, hpR[N], cny, hr[N], y_temp, y_temp, -1);
 	//d_print_mat(1, nz, y_temp, 1);
 
 	// compute y + R*r - C*xp
@@ -1987,7 +1987,7 @@ int d_ric_trs_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, dou
 
 			// w = w - Q*G'*lam
 			//d_print_pmat(nw, nw, bs, hpQ[N-ii-1], cnw);
-			dsymv_lib(nw, nw, hpQ[N-ii-1], cnw, w_temp, hw[N-ii-1], -1);
+			dsymv_lib(nw, nw, hpQ[N-ii-1], cnw, w_temp, hw[N-ii-1], hw[N-ii-1], -1);
 			//d_print_mat(nw, 1, hw[N-ii-1], 1);
 
 			// A'*lam
@@ -2070,7 +2070,7 @@ void d_ric_trs_mhe_end(int nx, int nw, int ny, int N, double **hpA, double **hpG
 		//d_print_mat(1, nz, y_temp, 1);
 	
 		// compute y + R*r
-		dsymv_lib(ny, ny, hpR[ii], cny, hr[ii], y_temp, -1);
+		dsymv_lib(ny, ny, hpR[ii], cny, hr[ii], y_temp, y_temp, -1);
 		//d_print_mat(1, nz, y_temp, 1);
 
 		// compute y + R*r - C*xp
@@ -2097,7 +2097,7 @@ void d_ric_trs_mhe_end(int nx, int nw, int ny, int N, double **hpA, double **hpG
 		//d_print_mat(1, nw, w_temp, 1);
 	
 		// compute Q*q
-		dsymv_lib(nw, nw, hpQ[ii], cnw, hq[ii], w_temp, -1);
+		dsymv_lib(nw, nw, hpQ[ii], cnw, hq[ii], w_temp, w_temp, -1);
 		//d_print_mat(1, nw, w_temp, 1);
 
 		// xp += G*w_temp
@@ -2124,7 +2124,7 @@ void d_ric_trs_mhe_end(int nx, int nw, int ny, int N, double **hpA, double **hpG
 	//d_print_mat(1, nz, y_temp, 1);
 	
 	// compute y + R*r
-	dsymv_lib(ny, ny, hpR[N], cny, hr[N], y_temp, -1);
+	dsymv_lib(ny, ny, hpR[N], cny, hr[N], y_temp, y_temp, -1);
 	//d_print_mat(1, nz, y_temp, 1);
 
 	// compute y + R*r - C*xp

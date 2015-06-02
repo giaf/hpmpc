@@ -315,7 +315,9 @@ int main()
 		int cnz = (nx+nu+1+ncl-1)/ncl*ncl;
 		int cnx = (nx+ncl-1)/ncl*ncl;
 		int cnu = (nu+ncl-1)/ncl*ncl;
-		int cNnu = ((N-1)*nu+cnu+ncl-1)/ncl*ncl;
+		//int cNnu = ((N-1)*nu+cnu+ncl-1)/ncl*ncl;
+		int cNnu = (N*nu+ncl-1)/ncl*ncl;
+		int cNnx = (N*nx+ncl-1)/ncl*ncl;
 
 /************************************************
 * dynamical system
@@ -380,6 +382,10 @@ int main()
 		d_cvt_mat2pmat(nx, nx, 0, bs, Q, nx, pQ, cnx);
 		//d_print_pmat(nx, nx, bs, pQ, cnx);
 
+		double *dQ; d_zeros_align(&dQ, pnx, 1);
+		for(ii=0; ii<nx; ii++) dQ[ii] = Q[ii*(nx+1)];
+		//d_print_mat(1, nx, dQ, 1);
+
 		double *pR; d_zeros_align(&pR, pnu, cnu);
 		d_cvt_mat2pmat(nu, nu, 0, bs, R, nu, pR, cnu);
 		//d_print_pmat(nu, nu, bs, pR, cnu);
@@ -397,34 +403,55 @@ int main()
 		double *(hpBt[N]);
 		double *(hpGamma_u[N]);
 		double *(hpGamma_u_Q[N]);
+		double *(hpGamma_u_Q_A[N]);
 		double *(hpGamma_0[N]);
 		double *(hpGamma_0_Q[N]);
 		double *(hpQ[N+1]);
+		double *(hdQ[N+1]);
 		double *(hpR[N]);
 		double *(hpS[N]);
 		double *(hpL[N+1]);
 		double *pH_R;
 		double *pH_Q;
+		double *pH_S;
 		double *work;
+		double *pGamma_u;
+		double *pGamma_u_Q;
+		double *pGamma_u_Q_A;
+		double *pGamma_0;
+		double *pGamma_0_Q;
 
 		d_zeros_align(&pH_R, pNnu, cNnu);
 		d_zeros_align(&pH_Q, pnx, cnx);
+		d_zeros_align(&pH_S, pnx, cNnu);
 		d_zeros_align(&work, pnx, 1);
+		d_zeros_align(&pGamma_u, pNnu, cNnx);
+		d_zeros_align(&pGamma_u_Q, pNnu, cNnx);
+		d_zeros_align(&pGamma_u_Q_A, pNnu, cNnx);
+		d_zeros_align(&pGamma_0, pnx, cNnx);
+		d_zeros_align(&pGamma_0_Q, pnx, cNnx);
 		for(ii=0; ii<N; ii++)
 			{
 			hpA[ii] = pA;
 			hpAt[ii] = pAt;
 			hpBt[ii] = pBt;
-			d_zeros_align(&hpGamma_u[ii], ((ii+1)*nu+bs-1)/bs*bs, cnx);
-			d_zeros_align(&hpGamma_u_Q[ii], ((ii+1)*nu+bs-1)/bs*bs, cnx);
-			d_zeros_align(&hpGamma_0[ii], pnx, cnx);
-			d_zeros_align(&hpGamma_0_Q[ii], pnx, cnx);
+			//d_zeros_align(&hpGamma_u[ii], ((ii+1)*nu+bs-1)/bs*bs, cnx);
+			//d_zeros_align(&hpGamma_u_Q[ii], ((ii+1)*nu+bs-1)/bs*bs, cnx);
+			hpGamma_u[ii] = pGamma_u+ii*nx*bs;
+			hpGamma_u_Q[ii] = pGamma_u_Q+ii*nx*bs;
+			hpGamma_u_Q_A[ii] = pGamma_u_Q_A+ii*nx*bs;
+			//d_zeros_align(&hpGamma_0[ii], pnx, cnx);
+			//d_zeros_align(&hpGamma_0_Q[ii], pnx, cnx);
+			hpGamma_0[ii] = pGamma_0+ii*nx*bs;
+			hpGamma_0_Q[ii] = pGamma_0_Q+ii*nx*bs;
 			hpQ[ii] = pQ;
+			hdQ[ii] = dQ;
 			hpR[ii] = pR;
 			hpS[ii] = pS;
 			d_zeros_align(&hpL[ii], pnx, cnx);;
 			}
 		hpQ[N] = pQ;
+		hdQ[N] = dQ;
 		d_zeros_align(&hpL[N], pnx, cnx);;
 
 /************************************************
@@ -435,36 +462,46 @@ int main()
 
 		gettimeofday(&tv0, NULL); // start
 
-		nrep = 1;
+		nrep = 100000;
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			d_cond_R(N, nx, nu, hpA, hpAt, hpBt, hpQ, hpS, hpR, 1, hpGamma_u, hpGamma_u_Q, pH_R);
-
-			d_cond_Q(N, nx, nu, hpA, hpQ, hpL, 1, hpGamma_0, hpGamma_0_Q, pH_Q, work);
+			//d_cond_Q(N, nx, nu, hpA, 0, hpQ, hpL, 1, hpGamma_0, hpGamma_0_Q, pH_Q, work);
+			d_cond_Q(N, nx, nu, hpA, 1, hdQ, hpL, 1, hpGamma_0, hpGamma_0_Q, pH_Q, work);
 			
+			//d_cond_R(N, nx, nu, hpA, hpAt, hpBt, 0, hpQ, 0, hpS, hpR, 1, hpGamma_u, hpGamma_u_Q, pH_R);
+			d_cond_R(N, nx, nu, 0, hpA, hpAt, hpBt, 1, hdQ, 0, hpS, hpR, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R);
+
+			d_cond_S(N, nx, nu, 0, hpS, hpGamma_0, hpGamma_u_Q, pH_S);
+
 			}
 
 		gettimeofday(&tv1, NULL); // start
 
 		double time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
+#if 1
 		for(ii=0; ii<N; ii++)	
-			d_print_pmat(nx, nx, bs, hpGamma_0[ii], cnx);
+			d_print_pmat(nx, nx, bs, hpGamma_0[ii], cNnx);
 
 		for(ii=0; ii<N; ii++)	
-			d_print_pmat(nx, nx, bs, hpGamma_0_Q[ii], cnx);
+			d_print_pmat(nx, nx, bs, hpGamma_0_Q[ii], cNnx);
 
 		d_print_pmat(nx, nx, bs, pH_Q, cnx);
+#endif
 
-#if 0
+#if 1
 		for(ii=0; ii<N; ii++)	
-			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u[ii], cnx);
+			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u[ii], cNnx);
 
 		for(ii=0; ii<N; ii++)	
-			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u_Q[ii], cnx);
+			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u_Q[ii], cNnx);
 
 		d_print_pmat(N*nu, N*nu, bs, pH_R, cNnu);
+#endif
+
+#if 1
+		d_print_pmat(nx, N*nu, bs, pH_S, cNnu);
 #endif
 
 		printf("\ntime = %e seconds\n", time);
@@ -482,18 +519,25 @@ int main()
 		free(pAt);
 		free(pBt);
 		free(pQ);
+		free(dQ);
 		free(pR);
 		free(pS);
 		free(pH_R);
 		free(pH_Q);
+		free(pH_S);
 		free(work);
+		free(pGamma_u);
+		free(pGamma_u_Q);
+		free(pGamma_u_Q_A);
+		free(pGamma_0);
+		free(pGamma_0_Q);
 
 		for(ii=0; ii<N; ii++)
 			{
-			free(hpGamma_u[ii]);
-			free(hpGamma_u_Q[ii]);
-			free(hpGamma_0[ii]);
-			free(hpGamma_0_Q[ii]);
+			//free(hpGamma_u[ii]);
+			//free(hpGamma_u_Q[ii]);
+			//free(hpGamma_0[ii]);
+			//free(hpGamma_0_Q[ii]);
 			free(hpL[ii]);
 			}
 		free(hpL[N]);

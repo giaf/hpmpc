@@ -103,6 +103,27 @@ void d_update_row_pmat_sparse(int kmax, int *idx, double *pQ, double *r)
 
 
 
+void d_add_diag_pmat(int kmax, double *pQ, int sda, double *d)
+	{
+
+	int jj, ll;
+
+	for(jj=0; jj<kmax-3; jj+=4)
+		{
+		pQ[jj*sda+(jj+0)*4+0] += d[jj+0];
+		pQ[jj*sda+(jj+1)*4+1] += d[jj+1];
+		pQ[jj*sda+(jj+2)*4+2] += d[jj+2];
+		pQ[jj*sda+(jj+3)*4+3] += d[jj+3];
+		}
+	for(ll=0; ll<kmax-jj; ll++)
+		{
+		pQ[jj*sda+(jj+ll)*4+ll] += d[jj+ll];
+		}
+	
+	}
+
+
+
 void d_add_row_pmat(int kmax, double *pA, double *pC)
 	{
 
