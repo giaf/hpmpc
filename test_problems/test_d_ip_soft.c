@@ -241,11 +241,11 @@ int main()
 
 	/* packed into contiguous memory */
 	double *pBAbt; d_zeros_align(&pBAbt, pnz, cnx);
-/*	d_cvt_mat2pmat(nz, nx, 0, bs, BAbt, pnz, pBAbt, cnx);*/
-/*	d_cvt_tran_mat2pmat(nx, nz, 0, bs, BAb, nx, pBAbt, cnx);*/
+/*	d_cvt_mat2pmat(nz, nx, BAbt, pnz, 0, pBAbt, cnx);*/
+/*	d_cvt_tran_mat2pmat(nx, nz, BAb, nx, 0, pBAbt, cnx);*/
 
-	d_cvt_tran_mat2pmat(nx, nu, 0, bs, B, nx, pBAbt, cnx);
-	d_cvt_tran_mat2pmat(nx, nx, nu, bs, A, nx, pBAbt+nu/bs*cnx*bs+nu%bs, cnx);
+	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt, cnx);
+	d_cvt_tran_mat2pmat(nx, nx, A, nx, nu, pBAbt+nu/bs*cnx*bs+nu%bs, cnx);
 	for (jj = 0; jj<nx; jj++)
 		pBAbt[(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[jj];
 
@@ -277,7 +277,7 @@ int main()
 	
 	/* packed into contiguous memory */
 	double *pQ; d_zeros_align(&pQ, pnz, cnz);
-	d_cvt_mat2pmat(nz, nz, 0, bs, Q, nz, pQ, cnz);
+	d_cvt_mat2pmat(nz, nz, Q, nz, 0, pQ, cnz);
 
 	// cost function of the soft constrained slack variables
 	double *Z; d_zeros_align(&Z, anb, 1);
@@ -441,8 +441,8 @@ int main()
 	const int cnls = cnzs<cnx+ncl ? cnx+ncl : cnzs;
 	const int anzs = nal*((nzs+nal-1)/nal);
 	double *pBAbts; d_zeros_align(&pBAbts, pnzs, cnx);
-	d_cvt_tran_mat2pmat(nx, nu, 0, bs, B, nx, pBAbts, cnx);
-	d_cvt_tran_mat2pmat(nx, nx, nus, bs, A, nx, pBAbts+nus/bs*cnx*bs+nus%bs, cnx);
+	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbts, cnx);
+	d_cvt_tran_mat2pmat(nx, nx, A, nx, nus, pBAbts+nus/bs*cnx*bs+nus%bs, cnx);
 	for(jj=0; jj<nx; jj++)
 		pBAbts[(nx+nus)/bs*cnx*bs+(nx+nus)%bs+jj*bs] = b[jj];
 	//d_print_pmat (nzs, nx, bs, pBAbts, cnx);
@@ -472,8 +472,8 @@ int main()
 		Ds[jj+(nu+nx+jj)*ngs] = - 1.0;
 		}
 	double *pDCts; d_zeros_align(&pDCts, pnzs, cngs);
-	d_cvt_tran_mat2pmat(ngs, nus, 0, bs, Ds, ngs, pDCts, cngs);
-	d_cvt_tran_mat2pmat(ngs, nx, nus, bs, Cs, ngs, pDCts+nus/bs*cngs*bs+nus%bs, cngs);
+	d_cvt_tran_mat2pmat(ngs, nus, Ds, ngs, 0, pDCts, cngs);
+	d_cvt_tran_mat2pmat(ngs, nx, Cs, ngs, nus, pDCts+nus/bs*cngs*bs+nus%bs, cngs);
 	//d_print_pmat(nus+nx, ngs, bs, pDCts, cngs);
 	double *Qs; d_zeros(&Qs, nzs, nzs);
 	d_copy_mat(nu, nu, Q, nz, Qs, nzs);
@@ -487,7 +487,7 @@ int main()
 		Qs[nus+nx+(nu+nx+jj)*nzs] = z[2*nh+2*jj+1]; // TODO change when updated IP !!!!!
 		}
 	double *pQs; d_zeros_align(&pQs, pnzs, cnzs);
-	d_cvt_mat2pmat(nzs, nzs, 0, bs, Qs, nzs, pQs, cnzs);
+	d_cvt_mat2pmat(nzs, nzs, Qs, nzs, 0, pQs, cnzs);
 	//d_print_pmat(nzs, nzs, bs, pQs, cnzs);
 	double *(hpQs[N+1]);
 	double *(huxs[N+1]);

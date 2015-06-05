@@ -329,8 +329,8 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
         // dynamic system
         for(ii=0; ii<N; ii++)
 	        {
-            d_cvt_tran_mat2pmat(nx, nu, 0, bs, B+ii*nu*nx, nx, hpBAbt[ii], cnx);
-            d_cvt_tran_mat2pmat(nx, nx, nu, bs, A+ii*nx*nx, nx, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
+            d_cvt_tran_mat2pmat(nx, nu, B+ii*nu*nx, nx, 0, hpBAbt[ii], cnx);
+            d_cvt_tran_mat2pmat(nx, nx, A+ii*nx*nx, nx, nu, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
             for (jj = 0; jj<nx; jj++)
                 hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
 	        }
@@ -345,15 +345,15 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
 			{
 			for(ii=0; ii<N; ii++)
 				{
-				d_cvt_tran_mat2pmat(ng, nu, 0, bs, D+ii*nu*ng, ng, hpDCt[ii], cng);
-				d_cvt_tran_mat2pmat(ng, nx, nu, bs, C+ii*nx*ng, ng, hpDCt[ii]+nu/bs*cng*bs+nu%bs, cng);
+				d_cvt_tran_mat2pmat(ng, nu, D+ii*nu*ng, ng, 0, hpDCt[ii], cng);
+				d_cvt_tran_mat2pmat(ng, nx, C+ii*nx*ng, ng, nu, hpDCt[ii]+nu/bs*cng*bs+nu%bs, cng);
 				}
 			}
 		if(ngN>0)
 			{
 			//for(ii=0; ii<pnu*cngN; ii++) hpDCt[N][ii] = 0.0; // make sure D is zero !!!!!
 			//d_cvt_tran_mat2pmat(ngN, nx, nu, bs, Cf, ngN, hpDCt[N]+nu/bs*cngN*bs+nu%bs, cngN);
-			d_cvt_tran_mat2pmat(ngN, nx, 0, bs, Cf, ngN, hpDCt[N], cngN);
+			d_cvt_tran_mat2pmat(ngN, nx, Cf, ngN, 0, hpDCt[N], cngN);
 			}
 		//d_print_mat(ngN, nx, Cf, ngN);
 		//d_print_pmat(nx+nu, ng, bs, hpDCt[0], cng);
@@ -373,9 +373,9 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
         // cost function
         for(jj=0; jj<N; jj++)
 	        {
-            d_cvt_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
-            d_cvt_tran_mat2pmat(nu, nx, nu, bs, S+jj*nx*nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
-            d_cvt_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+            d_cvt_mat2pmat(nu, nu, R+jj*nu*nu, nu, 0, hpQ[jj], cnz);
+            d_cvt_tran_mat2pmat(nu, nx, S+jj*nx*nu, nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
+            d_cvt_mat2pmat(nx, nx, Q+jj*nx*nx, nx, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
             for(ii=0; ii<nu; ii++)
                 hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
             for(ii=0; ii<nx; ii++)
@@ -383,7 +383,7 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
 	        }
 
 		cnz0 = (nxx[N]+1+ncl-1)/ncl*ncl;
-        d_cvt_mat2pmat(nx, nx, 0, bs, Qf, nx, hpQ[N], cnz0);
+        d_cvt_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnz0);
         for(jj=0; jj<nx; jj++)
             hpQ[N][nx/bs*cnz0*bs+nx%bs+jj*bs] = qf[jj];
 
@@ -919,8 +919,8 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
         // dynamic system
         for(ii=0; ii<N; ii++)
 	        {
-            d_cvt_tran_mat2pmat(nx, nu, 0, bs, B+ii*nu*nx, nx, hpBAbt[ii], cnx);
-            d_cvt_tran_mat2pmat(nx, nx, nu, bs, A+ii*nx*nx, nx, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
+            d_cvt_tran_mat2pmat(nx, nu, B+ii*nu*nx, nx, 0, hpBAbt[ii], cnx);
+            d_cvt_tran_mat2pmat(nx, nx, A+ii*nx*nx, nx, nu, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
             for (jj = 0; jj<nx; jj++)
                 hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
 	        }
@@ -935,14 +935,14 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
 			{
 			for(ii=0; ii<N; ii++)
 				{
-				d_cvt_tran_mat2pmat(ng, nu, 0, bs, D+ii*nu*ng, ng, hpDCt[ii], cng);
-				d_cvt_tran_mat2pmat(ng, nx, nu, bs, C+ii*nx*ng, ng, hpDCt[ii]+nu/bs*cng*bs+nu%bs, cng);
+				d_cvt_tran_mat2pmat(ng, nu, D+ii*nu*ng, ng, 0, hpDCt[ii], cng);
+				d_cvt_tran_mat2pmat(ng, nx, C+ii*nx*ng, ng, nu, hpDCt[ii]+nu/bs*cng*bs+nu%bs, cng);
 				}
 			}
 		if(ngN>0)
 			{
 			for(ii=0; ii<pnu*cngN; ii++) hpDCt[N][ii] = 0.0; // make sure D is zero !!!!!
-			d_cvt_tran_mat2pmat(ngN, nx, nu, bs, Cf, ngN, hpDCt[N]+nu/bs*cngN*bs+nu%bs, cngN);
+			d_cvt_tran_mat2pmat(ngN, nx, Cf, ngN, nu, hpDCt[N]+nu/bs*cngN*bs+nu%bs, cngN);
 			}
 		//d_print_mat(ngN, nx, Cf, ngN);
 		//d_print_pmat(nx+nu, ng, bs, hpDCt[0], cng);
@@ -962,9 +962,9 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
         // cost function
         for(jj=0; jj<N; jj++)
 	        {
-            d_cvt_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
-            d_cvt_tran_mat2pmat(nu, nx, nu, bs, S+jj*nx*nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
-            d_cvt_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+            d_cvt_mat2pmat(nu, nu, R+jj*nu*nu, nu, 0, hpQ[jj], cnz);
+            d_cvt_tran_mat2pmat(nu, nx, S+jj*nx*nu, nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
+            d_cvt_mat2pmat(nx, nx, Q+jj*nx*nx, nx, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
             for(ii=0; ii<nu; ii++)
                 hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
             for(ii=0; ii<nx; ii++)
@@ -977,7 +977,7 @@ int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, ch
                     hpQ[N][ii*cnz+i+jj*bs] = 0.0;
         for(jj=0; jj<nu; jj++)
             hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
-        d_cvt_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+        d_cvt_mat2pmat(nx, nx, Qf, nx, nu, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
         for(jj=0; jj<nx; jj++)
             hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
 
@@ -1621,8 +1621,8 @@ int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec,
         // dynamic system
         for(ii=0; ii<N; ii++)
 	        {
-            d_cvt_tran_mat2pmat(nx, nu, 0, bs, B+ii*nu*nx, nx, hpBAbt[ii], cnx);
-            d_cvt_tran_mat2pmat(nx, nx, nu, bs, A+ii*nx*nx, nx, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
+            d_cvt_tran_mat2pmat(nx, nu, B+ii*nu*nx, nx, 0, hpBAbt[ii], cnx);
+            d_cvt_tran_mat2pmat(nx, nx, A+ii*nx*nx, nx, nu, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
             for (jj = 0; jj<nx; jj++)
                 hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
 	        }
@@ -1631,11 +1631,11 @@ int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec,
 		double mu0 = 1.0;
         for(jj=0; jj<N; jj++)
 	        {
-            d_cvt_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
+            d_cvt_mat2pmat(nu, nu, R+jj*nu*nu, nu, 0, hpQ[jj], cnz);
 			for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, R[jj*nu*nu+ii*nu+ll]);
-            d_cvt_tran_mat2pmat(nu, nx, nu, bs, S+jj*nx*nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
+            d_cvt_tran_mat2pmat(nu, nx, S+jj*nx*nu, nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
 			for(ii=0; ii<nx*nu; ii++) mu0 = fmax(mu0, S[jj*nu*nx+ii]);
-            d_cvt_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+            d_cvt_mat2pmat(nx, nx, Q+jj*nx*nx, nx, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
 			for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Q[jj*nx*nx+ii*nx+ll]);
             for(ii=0; ii<nu; ii++)
 				{
@@ -1655,7 +1655,7 @@ int fortran_order_ip_soft_mpc( int k_max, double mu_tol, const char prec,
                     hpQ[N][ii*cnz+i+jj*bs] = 0.0;
         for(jj=0; jj<nu; jj++)
             hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
-        d_cvt_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+        d_cvt_mat2pmat(nx, nx, Qf, nx, nu, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
 		for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Qf[ii*nx+ll]);
         for(jj=0; jj<nx; jj++)
 			{
@@ -2126,8 +2126,8 @@ int fortran_order_riccati_mpc( const char prec,
 		// dynamic system
 		for(ii=0; ii<N; ii++)
 			{
-			d_cvt_tran_mat2pmat(nx, nu, 0, bs, B+ii*nu*nx, nx, hpBAbt[ii], cnx);
-			d_cvt_tran_mat2pmat(nx, nx, nu, bs, A+ii*nx*nx, nx, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
+			d_cvt_tran_mat2pmat(nx, nu, B+ii*nu*nx, nx, 0, hpBAbt[ii], cnx);
+			d_cvt_tran_mat2pmat(nx, nx, A+ii*nx*nx, nx, nu, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
 			for (jj = 0; jj<nx; jj++)
 				hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
 			}
@@ -2135,9 +2135,9 @@ int fortran_order_riccati_mpc( const char prec,
 		// cost function
 		for(jj=0; jj<N; jj++)
 			{
-			d_cvt_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
-			d_cvt_tran_mat2pmat(nu, nx, nu, bs, S+jj*nx*nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
-			d_cvt_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+			d_cvt_mat2pmat(nu, nu, R+jj*nu*nu, nu, 0, hpQ[jj], cnz);
+			d_cvt_tran_mat2pmat(nu, nx, S+jj*nx*nu, nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
+			d_cvt_mat2pmat(nx, nx, Q+jj*nx*nx, nx, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
 			for(ii=0; ii<nu; ii++)
 				hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
 			for(ii=0; ii<nx; ii++)
@@ -2150,7 +2150,7 @@ int fortran_order_riccati_mpc( const char prec,
 					hpQ[N][ii*cnz+i+jj*bs] = 0.0;
 		for(jj=0; jj<nu; jj++)
 			hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
-		d_cvt_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+		d_cvt_mat2pmat(nx, nx, Qf, nx, nu, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
 		for(jj=0; jj<nx; jj++)
 			hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
 
@@ -2522,7 +2522,7 @@ int fortran_order_riccati_mhe( const char prec, const int smooth,
 		// stage 0
 		// covariances
 		//d_print_mat(nx, nx, L0, nx);
-		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLp[0]+(nx+nw+pad)*bs, cnj);
+		d_cvt_mat2pmat(nx, nx, L0, nx, 0, hpLp[0]+(nx+nw+pad)*bs, cnj);
 		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[0], cnj);
 		// estimates 
 		for(jj=0; jj<nx; jj++) hxp[0][jj] = x0[jj];
@@ -2533,13 +2533,13 @@ int fortran_order_riccati_mhe( const char prec, const int smooth,
 			//printf("\nii = %d\n", ii);
 			// dynamic system
 			//d_print_mat(nx, nx, A+ii*nx*nx, nx);
-			d_cvt_mat2pmat(nx, nx, 0, bs, A+ii*nx*nx, nx, hpA[ii], cnx);
-			d_cvt_mat2pmat(nx, nw, 0, bs, G+ii*nx*nw, nx, hpG[ii], cnw);
-			d_cvt_mat2pmat(ny, nx, 0, bs, C+ii*ny*nx, ny, hpC[ii], cnx);
+			d_cvt_mat2pmat(nx, nx, A+ii*nx*nx, nx, 0, hpA[ii], cnx);
+			d_cvt_mat2pmat(nx, nw, G+ii*nx*nw, nx, 0, hpG[ii], cnw);
+			d_cvt_mat2pmat(ny, nx, C+ii*ny*nx, ny, 0, hpC[ii], cnx);
 			for(jj=0; jj<nx; jj++) hf[ii][jj] = f[ii*nx+jj];
 			// cost function
-			d_cvt_mat2pmat(nw, nw, 0, bs, Q+ii*nw*nw, nw, hpQ[ii], cnw);
-			d_cvt_mat2pmat(ny, ny, 0, bs, R+ii*ny*ny, ny, hpR[ii], cny);
+			d_cvt_mat2pmat(nw, nw, Q+ii*nw*nw, nw, 0, hpQ[ii], cnw);
+			d_cvt_mat2pmat(ny, ny, R+ii*ny*ny, ny, 0, hpR[ii], cny);
 			for(jj=0; jj<nw; jj++) hq[ii][jj] = q[ii*nw+jj];
 			for(jj=0; jj<ny; jj++) hr[ii][jj] = r[ii*ny+jj];
 			// measurements
@@ -2547,9 +2547,9 @@ int fortran_order_riccati_mhe( const char prec, const int smooth,
 			}
 		// stage N
 		// dynamic system
-		d_cvt_mat2pmat(ny, nx, 0, bs, C+N*ny*nx, ny, hpC[N], cnx);
+		d_cvt_mat2pmat(ny, nx, C+N*ny*nx, ny, 0, hpC[N], cnx);
 		// cost function
-		d_cvt_mat2pmat(ny, ny, 0, bs, R+N*ny*ny, ny, hpR[N], cny);
+		d_cvt_mat2pmat(ny, ny, R+N*ny*ny, ny, 0, hpR[N], cny);
 		for(jj=0; jj<ny; jj++) hr[N][jj] = r[N*ny+jj];
 		// measurements
 		for(jj=0; jj<ny; jj++) hy[N][jj] = y[N*ny+jj];
@@ -2609,7 +2609,7 @@ int fortran_order_riccati_mhe( const char prec, const int smooth,
 
 		// copy back estimate and covariance at first stage (Extended Kalma Filter update of initial condition)
 		for(jj=0; jj<nx; jj++) x0[jj] = hxp[1][jj];
-		d_cvt_pmat2mat(nx, nx, 0, bs, hpLp[1]+(nx+nw+pad)*bs, cnj, L0, nx);
+		d_cvt_pmat2mat(nx, nx, 0, hpLp[1]+(nx+nw+pad)*bs, cnj, L0, nx);
 
 
 		// copy back estimates at all stages 0,1,...,N
@@ -2628,7 +2628,7 @@ int fortran_order_riccati_mhe( const char prec, const int smooth,
 				lam[ii*nx+jj] = hlam[ii][jj];
 
 		// copy back covariance at last stage
-		d_cvt_pmat2mat(nx, nx, ny, bs, hpLe[N]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, Le, nx);
+		d_cvt_pmat2mat(nx, nx, ny, hpLe[N]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, Le, nx);
 
 
 		
@@ -2754,74 +2754,74 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 				{
 				if(alg==2)
 					{
-					d_cvt_mat2pmat(nx, nx, 0, bs, Q+ii*nx*nx, nx, hpQRAG[ii], cnwx1);
+					d_cvt_mat2pmat(nx, nx, Q+ii*nx*nx, nx, 0, hpQRAG[ii], cnwx1);
 					}
 				else
 					{
 					for(jj=0; jj<pnx; jj+=4) // loop on panels 
 						for(ll=0; ll<nx*bs; ll++) // loop within panels
 							hpQRAG[ii][ll+jj*bs*cnwx1] = 0.0;
-					d_cvt_mat2pmat(ny, ny, 0, bs, Q+ii*ny*ny, ny, hpQRAG[ii], cnwx1);
+					d_cvt_mat2pmat(ny, ny, Q+ii*ny*ny, ny, 0, hpQRAG[ii], cnwx1);
 					if(alg==0)
 						{
 						hpCt[ii] = ptr;
 						ptr += pnx*cny;
-						d_cvt_tran_mat2pmat(ny, nx, 0, bs, C+ii*ny*nx, ny, hpCt[ii], cny);
+						d_cvt_tran_mat2pmat(ny, nx, C+ii*ny*nx, ny, 0, hpCt[ii], cny);
 						dpotrf_lib(ny, ny, hpQRAG[ii], cnwx1, Q_temp, cny, diag);
 						dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
 						dtrmm_l_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
 						dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQRAG[ii], cnwx1, hpQRAG[ii], cnwx1, 0);
 						}
 					}
-				d_cvt_mat2pmat(nx, nx, 0, bs, A+ii*nx*nx, nx, hpQRAG[ii]+pnx*cnwx1, cnwx1);
-				d_cvt_mat2pmat(nw, nw, 0, bs, R+ii*nw*nw, nw, hpQRAG[ii]+(pnx-pnw)*cnwx1+nx*bs, cnwx1);
-				d_cvt_mat2pmat(nx, nw, 0, bs, G+ii*nw*nx, nx, hpQRAG[ii]+pnx*cnwx1+nx*bs, cnwx1);
+				d_cvt_mat2pmat(nx, nx, A+ii*nx*nx, nx, 0, hpQRAG[ii]+pnx*cnwx1, cnwx1);
+				d_cvt_mat2pmat(nw, nw, R+ii*nw*nw, nw, 0, hpQRAG[ii]+(pnx-pnw)*cnwx1+nx*bs, cnwx1);
+				d_cvt_mat2pmat(nx, nw, G+ii*nw*nx, nx, 0, hpQRAG[ii]+pnx*cnwx1+nx*bs, cnwx1);
 				//d_print_pmat(pnwx1, cnwx1, bs, hpQRAG[ii], cnwx1);
 				if(nx>pnx-nx)
-					d_cvt_mat2pmat(pnx-nx, nx, nx, bs, A+ii*nx*nx+(nx-pnx+nx), nx, hpQRAG[ii]+nx/bs*bs*cnwx1+nx%bs, cnwx1);
+					d_cvt_mat2pmat(pnx-nx, nx, A+ii*nx*nx+(nx-pnx+nx), nx, nx, hpQRAG[ii]+nx/bs*bs*cnwx1+nx%bs, cnwx1);
 				else
-					d_cvt_mat2pmat(nx, nx, nx, bs, A+ii*nx*nx, nx, hpQRAG[ii]+nx/bs*bs*cnwx1+nx%bs, cnwx1);
+					d_cvt_mat2pmat(nx, nx, A+ii*nx*nx, nx, nx, hpQRAG[ii]+nx/bs*bs*cnwx1+nx%bs, cnwx1);
 				if(nx>pnw-nw)
-					d_cvt_mat2pmat(pnw-nw, nw, nw, bs, G+ii*nw*nx+(nx-pnw+nw), nx, hpQRAG[ii]+(pnx-pnw+nw/bs*bs)*cnwx1+nw%bs+nx*bs, cnwx1);
+					d_cvt_mat2pmat(pnw-nw, nw, G+ii*nw*nx+(nx-pnw+nw), nx, nw, hpQRAG[ii]+(pnx-pnw+nw/bs*bs)*cnwx1+nw%bs+nx*bs, cnwx1);
 				else
-					d_cvt_mat2pmat(nx, nw, nw, bs, G+ii*nw*nx, nx, hpQRAG[ii]+(pnx-pnw+nw/bs*bs)*cnwx1+nw%bs+nx*bs, cnwx1);
+					d_cvt_mat2pmat(nx, nw, G+ii*nw*nx, nx, nw, hpQRAG[ii]+(pnx-pnw+nw/bs*bs)*cnwx1+nw%bs+nx*bs, cnwx1);
 				//d_print_pmat(pnwx1, ncnwx1, bs, hpQRAG[ii], cnwx1);
 				}
 			else
 				{
 				if(alg==2)
 					{
-					d_cvt_mat2pmat(nx, nx, 0, bs, Q+ii*nx*nx, nx, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1);
+					d_cvt_mat2pmat(nx, nx, Q+ii*nx*nx, nx, 0, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1);
 					}
 				else
 					{
 					for(jj=0; jj<pnx; jj+=4) // loop on panels 
 						for(ll=0; ll<nx*bs; ll++) // loop within panels
 							hpQRAG[ii][ll+jj*bs*cnwx1] = 0.0;
-					d_cvt_mat2pmat(ny, ny, 0, bs, Q+ii*ny*ny, ny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1);
+					d_cvt_mat2pmat(ny, ny, Q+ii*ny*ny, ny, 0, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1);
 					if(alg==0)
 						{
 						hpCt[ii] = ptr;
 						ptr += pnx*cny;
-						d_cvt_tran_mat2pmat(ny, nx, 0, bs, C+ii*ny*nx, ny, hpCt[ii], cny);
+						d_cvt_tran_mat2pmat(ny, nx, C+ii*ny*nx, ny, 0, hpCt[ii], cny);
 						dpotrf_lib(ny, ny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, Q_temp, cny, diag);
 						dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
 						dtrmm_l_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
 						dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, 0);
 						}
 					}
-				d_cvt_mat2pmat(nx, nx, 0, bs, A+ii*nx*nx, nx, hpQRAG[ii]+pnw*cnwx1, cnwx1);
-				d_cvt_mat2pmat(nw, nw, 0, bs, R+ii*nw*nw, nw, hpQRAG[ii]+nx*bs, cnwx1);
-				d_cvt_mat2pmat(nx, nw, 0, bs, G+ii*nw*nx, nx, hpQRAG[ii]+pnw*cnwx1+nx*bs, cnwx1);
+				d_cvt_mat2pmat(nx, nx, A+ii*nx*nx, nx, 0, hpQRAG[ii]+pnw*cnwx1, cnwx1);
+				d_cvt_mat2pmat(nw, nw, R+ii*nw*nw, nw, 0, hpQRAG[ii]+nx*bs, cnwx1);
+				d_cvt_mat2pmat(nx, nw, G+ii*nw*nx, nx, 0, hpQRAG[ii]+pnw*cnwx1+nx*bs, cnwx1);
 				//d_print_pmat(pnwx1, cnwx1, bs, hpQRAG[ii], cnwx1);
 				if(nx>pnx-nx)
-					d_cvt_mat2pmat(pnx-nx, nx, nx, bs, A+ii*nx*nx+(nx-pnx+nx), nx, hpQRAG[ii]+(pnw-pnx+nx/bs*bs)*cnwx1+nx%bs, cnwx1);
+					d_cvt_mat2pmat(pnx-nx, nx, A+ii*nx*nx+(nx-pnx+nx), nx, nx, hpQRAG[ii]+(pnw-pnx+nx/bs*bs)*cnwx1+nx%bs, cnwx1);
 				else
-					d_cvt_mat2pmat(nx, nx, nx, bs, A+ii*nx*nx, nx, hpQRAG[ii]+(pnw-pnx+nx/bs*bs)*cnwx1+nx%bs, cnwx1);
+					d_cvt_mat2pmat(nx, nx, A+ii*nx*nx, nx, nx, hpQRAG[ii]+(pnw-pnx+nx/bs*bs)*cnwx1+nx%bs, cnwx1);
 				if(nx>pnw-nw)
-					d_cvt_mat2pmat(pnw-nw, nw, nw, bs, G+ii*nw*nx+(nx-pnw+nw), nx, hpQRAG[ii]+nw/bs*bs*cnwx1+nw%bs+nx*bs, cnwx1);
+					d_cvt_mat2pmat(pnw-nw, nw, G+ii*nw*nx+(nx-pnw+nw), nx, nw, hpQRAG[ii]+nw/bs*bs*cnwx1+nw%bs+nx*bs, cnwx1);
 				else
-					d_cvt_mat2pmat(nx, nw, nw, bs, G+ii*nw*nx, nx, hpQRAG[ii]+nw/bs*bs*cnwx1+nw%bs+nx*bs, cnwx1);
+					d_cvt_mat2pmat(nx, nw, G+ii*nw*nx, nx, nw, hpQRAG[ii]+nw/bs*bs*cnwx1+nw%bs+nx*bs, cnwx1);
 				//d_print_pmat(pnwx1, cnwx1, bs, hpQRAG[ii], cnwx1);
 				}
 			}
@@ -2829,17 +2829,17 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 		ptr += (pnx+pndN)*cnx;
 		if(alg==2)
 			{
-			d_cvt_mat2pmat(nx, nx, 0, bs, Qf, nx, hpQRAG[N], cnx);
+			d_cvt_mat2pmat(nx, nx, Qf, nx, 0, hpQRAG[N], cnx);
 			}
 		else // if(alg==0 || alg==1)
 			{
 			for(jj=0; jj<pnx*cnx; jj++) hpQRAG[N][jj] = 0.0;
-			d_cvt_mat2pmat(ny, ny, 0, bs, Qf, ny, hpQRAG[N], cnx);
+			d_cvt_mat2pmat(ny, ny, Qf, ny, 0, hpQRAG[N], cnx);
 			if(alg==0)
 				{
 				hpCt[N] = ptr;
 				ptr += pnx*cny;
-				d_cvt_tran_mat2pmat(ny, nx, 0, bs, C+N*ny*nx, ny, hpCt[N], cny);
+				d_cvt_tran_mat2pmat(ny, nx, C+N*ny*nx, ny, 0, hpCt[N], cny);
 				dpotrf_lib(ny, ny, hpQRAG[N], cnx, Q_temp, cny, diag);
 				dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
 				dtrmm_l_lib(nx, ny, hpCt[N], cny, Q_temp, cny, Ct_temp, cny);
@@ -2850,12 +2850,12 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 
 		if(ndN>0)
 			{
-			d_cvt_mat2pmat(ndN, nx, 0, bs, D, ndN, hpQRAG[N]+pnx*cnx, cnx);
+			d_cvt_mat2pmat(ndN, nx, D, ndN, 0, hpQRAG[N]+pnx*cnx, cnx);
 			//d_print_pmat(pnx+pndN, cnx, bs, pQD, cnx);
 			if(ndN>pnx-nx)
-				d_cvt_mat2pmat(pnx-nx, nx, nx, bs, D+(ndN-pnx+nx), ndN, hpQRAG[N]+nx/bs*bs*cnx+nx%bs, cnx);
+				d_cvt_mat2pmat(pnx-nx, nx, D+(ndN-pnx+nx), ndN, nx, hpQRAG[N]+nx/bs*bs*cnx+nx%bs, cnx);
 			else
-				d_cvt_mat2pmat(ndN, nx, nx, bs, D, ndN, hpQRAG[N]+nx/bs*bs*cnx+nx%bs, cnx);
+				d_cvt_mat2pmat(ndN, nx, D, ndN, nx, hpQRAG[N]+nx/bs*bs*cnx+nx%bs, cnx);
 			//d_print_pmat(pnx+pndN, cnx, bs, pQD, cnx);
 			Ld = ptr;
 			ptr += pndN*cndN;
@@ -2876,7 +2876,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 			hpLe[ii] = ptr;
 			ptr += pnx*cnx;
 			}
-		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLe[0], cnx);
+		d_cvt_mat2pmat(nx, nx, L0, nx, 0, hpLe[0], cnx);
 		//d_print_pmat(nx, nx, bs, hpALe[0], cnx2);
 
 
@@ -3041,7 +3041,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 
 		double *pL0_inv2; d_zeros_align(&pL0_inv2, pnx, cnx);
 		//dtrinv_lib(nx, pL0, cnx, pL0_inv2, cnx);
-		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, pL0_inv2, cnx); // XXX
+		d_cvt_mat2pmat(nx, nx, L0, nx, 0, pL0_inv2, cnx); // XXX
 
 		double *p0; d_zeros_align(&p0, anx, 1);
 		double *x_temp; d_zeros_align(&x_temp, anx, 1);
@@ -3070,7 +3070,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 		for(jj=0; jj<nx; jj++) x0[jj] = hxp[1][jj];
 
 		// save L0 for next step
-		d_cvt_pmat2mat(nx, nx, 0, bs, hpLe[1], cnx, L0, nx);
+		d_cvt_pmat2mat(nx, nx, 0, hpLe[1], cnx, L0, nx);
 
 
 		// copy back estimates at all stages 0,1,...,N
@@ -3091,7 +3091,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 			lam[N*nx+jj] = hlam[N][jj];
 
 		// copy back cholesky factor of information matrix at last stage
-		d_cvt_pmat2mat(nx, nx, 0, bs, hpLAG[N], cnx, Le, nx);
+		d_cvt_pmat2mat(nx, nx, 0, hpLAG[N], cnx, Le, nx);
 		for(jj=0; jj<nx; jj++) Le[jj*(nx+1)] = 1.0/Le[jj*(nx+1)];
 
 
@@ -3241,8 +3241,8 @@ int fortran_order_admm_box_mpc( int k_max, double tol,
         // dynamic system
         for(ii=0; ii<N; ii++)
 	        {
-            d_cvt_tran_mat2pmat(nx, nu, 0, bs, B+ii*nu*nx, nx, hpBAbt[ii], cnx);
-            d_cvt_tran_mat2pmat(nx, nx, nu, bs, A+ii*nx*nx, nx, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
+            d_cvt_tran_mat2pmat(nx, nu, B+ii*nu*nx, nx, 0, hpBAbt[ii], cnx);
+            d_cvt_tran_mat2pmat(nx, nx, A+ii*nx*nx, nx, nu, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
             for (jj = 0; jj<nx; jj++)
                 hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
 	        }
@@ -3254,9 +3254,9 @@ int fortran_order_admm_box_mpc( int k_max, double tol,
         // cost function
         for(jj=0; jj<N; jj++)
 	        {
-            d_cvt_tran_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
-            d_cvt_tran_mat2pmat(nu, nx, nu, bs, S+jj*nx*nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
-            d_cvt_tran_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+            d_cvt_tran_mat2pmat(nu, nu, R+jj*nu*nu, nu, 0, hpQ[jj], cnz);
+            d_cvt_tran_mat2pmat(nu, nx, S+jj*nx*nu, nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
+            d_cvt_tran_mat2pmat(nx, nx, Q+jj*nx*nx, nx, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
             for(ii=0; ii<nu; ii++)
                 hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
             for(ii=0; ii<nx; ii++)
@@ -3269,7 +3269,7 @@ int fortran_order_admm_box_mpc( int k_max, double tol,
                     hpQ[N][ii*cnz+i+jj*bs] = 0.0;
         for(jj=0; jj<nu; jj++)
             hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
-        d_cvt_tran_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+        d_cvt_tran_mat2pmat(nx, nx, Qf, nx, nu, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
         for(jj=0; jj<nx; jj++)
             hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
 
@@ -3699,8 +3699,8 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
         // dynamic system
         for(ii=0; ii<N; ii++)
 	        {
-            d_cvt_tran_mat2pmat(nx, nu, 0, bs, B+ii*nu*nx, nx, hpBAbt[ii], cnx);
-            d_cvt_tran_mat2pmat(nx, nx, nu, bs, A+ii*nx*nx, nx, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
+            d_cvt_tran_mat2pmat(nx, nu, B+ii*nu*nx, nx, 0, hpBAbt[ii], cnx);
+            d_cvt_tran_mat2pmat(nx, nx, A+ii*nx*nx, nx, nu, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
             for (jj = 0; jj<nx; jj++)
                 hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
 	        }
@@ -3712,9 +3712,9 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
         // cost function
         for(jj=0; jj<N; jj++)
 	        {
-            d_cvt_tran_mat2pmat(nu, nu, 0, bs, R+jj*nu*nu, nu, hpQ[jj], cnz);
-            d_cvt_tran_mat2pmat(nu, nx, nu, bs, S+jj*nx*nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
-            d_cvt_tran_mat2pmat(nx, nx, nu, bs, Q+jj*nx*nx, nx, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+            d_cvt_tran_mat2pmat(nu, nu, R+jj*nu*nu, nu, 0, hpQ[jj], cnz);
+            d_cvt_tran_mat2pmat(nu, nx, S+jj*nx*nu, nu, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
+            d_cvt_tran_mat2pmat(nx, nx, Q+jj*nx*nx, nx, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
             for(ii=0; ii<nu; ii++)
                 hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
             for(ii=0; ii<nx; ii++)
@@ -3727,7 +3727,7 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
                     hpQ[N][ii*cnz+i+jj*bs] = 0.0;
         for(jj=0; jj<nu; jj++)
             hpQ[N][jj/bs*cnz*bs+jj%bs+jj*bs] = 1.0;
-        d_cvt_tran_mat2pmat(nx, nx, nu, bs, Qf, nx, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+        d_cvt_tran_mat2pmat(nx, nx, Qf, nx, nu, hpQ[N]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
         for(jj=0; jj<nx; jj++)
             hpQ[N][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+jj)*bs] = qf[jj];
 

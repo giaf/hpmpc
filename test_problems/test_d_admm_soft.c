@@ -229,11 +229,11 @@ int main()
 
 	/* packed into contiguous memory */
 	double *pBAbt; d_zeros_align(&pBAbt, pnz, cnx);
-/*	d_cvt_mat2pmat(nz, nx, 0, bs, BAbt, pnz, pBAbt, cnx);*/
-/*	d_cvt_tran_mat2pmat(nx, nz, 0, bs, BAb, nx, pBAbt, cnx);*/
+/*	d_cvt_mat2pmat(nz, nx, BAbt, pnz, 0, pBAbt, cnx);*/
+/*	d_cvt_tran_mat2pmat(nx, nz, BAb, nx, 0, pBAbt, cnx);*/
 
-	d_cvt_tran_mat2pmat(nx, nu, 0, bs, B, nx, pBAbt, cnx);
-	d_cvt_tran_mat2pmat(nx, nx, nu, bs, A, nx, pBAbt+nu/bs*cnx*bs+nu%bs, cnx);
+	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt, cnx);
+	d_cvt_tran_mat2pmat(nx, nx, A, nx, nu, pBAbt+nu/bs*cnx*bs+nu%bs, cnx);
 	for (jj = 0; jj<nx; jj++)
 		pBAbt[(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[jj];
 
@@ -274,7 +274,7 @@ int main()
 	
 	/* packed into contiguous memory */
 	double *pQ; d_zeros_align(&pQ, pnz, cnz);
-	d_cvt_mat2pmat(nz, nz, 0, bs, Q, pnz, pQ, cnz);
+	d_cvt_mat2pmat(nz, nz, Q, pnz, 0, pQ, cnz);
 
 /************************************************
 * cost function of soft constraints

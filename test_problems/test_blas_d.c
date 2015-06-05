@@ -232,12 +232,12 @@ int main()
 		double *y2; d_zeros_align(&y2, pnd, 1);
 		double *diag; d_zeros_align(&diag, pnd, 1);
 	
-		d_cvt_mat2pmat(n, n, 0, bsd, A, n, pA, cnd);
-		d_cvt_mat2pmat(n, n, 0, bsd, B, n, pB, cnd);
-		d_cvt_mat2pmat(n, n, 0, bsd, B, n, pD, cnd);
-		d_cvt_mat2pmat(n, n, 0, bsd, A, n, pE, cnd2);
-		d_cvt_mat2pmat(n, n, 0, bsd, M, n, pM, cnd);
-/*		d_cvt_mat2pmat(n, n, 0, bsd, B, n, pE+n*bsd, pnd);*/
+		d_cvt_mat2pmat(n, n, A, n, 0, pA, cnd);
+		d_cvt_mat2pmat(n, n, B, n, 0, pB, cnd);
+		d_cvt_mat2pmat(n, n, B, n, 0, pD, cnd);
+		d_cvt_mat2pmat(n, n, A, n, 0, pE, cnd2);
+		d_cvt_mat2pmat(n, n, M, n, 0, pM, cnd);
+/*		d_cvt_mat2pmat(n, n, B, n, 0, pE+n*bsd, pnd);*/
 		
 /*		d_print_pmat(n, 2*n, bsd, pE, 2*pnd);*/
 /*		exit(2);*/

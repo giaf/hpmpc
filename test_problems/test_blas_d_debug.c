@@ -103,14 +103,14 @@ int main()
 	double *pE; d_zeros_align(&pE, pn, cn2);
 	double *diag; d_zeros_align(&diag, pn, 1);
 	
-	d_cvt_mat2pmat(n, n, 0, bs, A, n, pA, cn);
-	d_cvt_mat2pmat(n, n, 0, bs, B, n, pB, cn);
+	d_cvt_mat2pmat(n, n, A, n, 0, pA, cn);
+	d_cvt_mat2pmat(n, n, B, n, 0, pB, cn);
 /*	s_cvt_mat2pmat(n, n, 0, bss, sA, n, spA, pns);*/
 /*	s_cvt_mat2pmat(n, n, 0, bss, sB, n, spB, pns);*/
-	s_cvt_mat2pmat(n, n, 0, bs, B, n, pD, cn);
-	d_cvt_mat2pmat(n, n, 0, bs, A, n, pE, cn2);
+	d_cvt_mat2pmat(n, n, B, n, 0, pD, cn);
+	d_cvt_mat2pmat(n, n, A, n, 0, pE, cn2);
 
-#if 1
+#if 0
 	d_copy_pmat_general(8, 9, 3, pA+3, cn, 0, pC+0, cn);
 	d_print_pmat(n, n, bs, pA, cn);
 	d_print_pmat(n, n, bs, pC, cn);
@@ -137,11 +137,12 @@ int main()
 //	double *y; d_zeros_align(&y, pn, 1);
 //	x[3] = 1.0;
 
-/*	d_cvt_mat2pmat(n, n, 0, bs, C, n, pC, pn);*/
-/*	d_cvt_mat2pmat(n, n, bs-n%bs, bs, C, n, pC+((bs-n%bs))%bs*(bs+1), pn);*/
+/*	d_cvt_mat2pmat(n, n, C, n, 0, pC, pn);*/
+/*	d_cvt_mat2pmat(n, n, C, n, bs-n%bs, pC+((bs-n%bs))%bs*(bs+1), pn);*/
 	d_print_pmat(pn, pn, bs, pA, cn);
 	d_print_pmat(pn, pn, bs, pB, cn);
 	d_print_pmat(pn, pn, bs, pC, cn);
+	d_print_pmat(pn, pn, bs, pD, cn);
 	//d_print_pmat(pn, pn, bs, pD, cn);
 	d_print_mat(1, n, x, 1);
 	d_print_mat(1, n, y, 1);
@@ -151,16 +152,18 @@ int main()
 	gettimeofday(&tv0, NULL); // start
 	
 /*	d_print_pmat(n, n, bs, pC, pn);*/
+	
+	nrep = 1;
 
 	for(rep=0; rep<nrep; rep++)
 		{
 
-//		dgemm_nt_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0, 0, 0);
+		dgemm_nt_lib(1, 2, n, pC, cn, pB, cn, pA, cn, pD, cn, 1, 0, 1);
 //		dgemm_nn_lib(n, n, n, pB, cn, pA, cn, pC, cn, pD, cn, 0, 0, 0);
 //		dsyrk_nt_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
 //		dsyrk_nn_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
 //		dgemm_diag_left_lib(n, n, x, pA, cn, pC, cn, pD, cn, 0);
-		dsyrk_diag_left_right_lib(n, x, x, pA, cn, pC, cn, pD, cn, 0);
+//		dsyrk_diag_left_right_lib(n, x, x, pA, cn, pC, cn, pD, cn, 0);
 //		dtrmm_l_lib(n, n, pA, cn, pB, cn, pD, cn);
 //		dgemm_nt_lib(13, n, n, pA, pn, pB, pn, pC, pn, 0);
 /*		dgemm_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/

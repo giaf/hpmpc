@@ -255,11 +255,11 @@ int main()
 
 	/* packed into contiguous memory */
 	double *pBAbt; d_zeros_align(&pBAbt, pnz, cnx);
-/*	d_cvt_mat2pmat(nz, nx, 0, bs, BAbt, pnz, pBAbt, cnx);*/
-/*	d_cvt_tran_mat2pmat(nx, nz, 0, bs, BAb, nx, pBAbt, cnx);*/
+/*	d_cvt_mat2pmat(nz, nx, BAbt, pnz, 0, pBAbt, cnx);*/
+/*	d_cvt_tran_mat2pmat(nx, nz, BAb, nx, 0, pBAbt, cnx);*/
 
-	d_cvt_tran_mat2pmat(nx, nu, 0, bs, B, nx, pBAbt, cnx);
-	d_cvt_tran_mat2pmat(nx, nx, nu, bs, A, nx, pBAbt+nu/bs*cnx*bs+nu%bs, cnx);
+	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt, cnx);
+	d_cvt_tran_mat2pmat(nx, nx, A, nx, nu, pBAbt+nu/bs*cnx*bs+nu%bs, cnx);
 	for (jj = 0; jj<nx; jj++)
 		pBAbt[(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[jj];
 
@@ -323,14 +323,14 @@ int main()
 
 	// first stage
 	double *pDCt0; d_zeros_align(&pDCt0, pnz, cng);
-	d_cvt_tran_mat2pmat(ng, nu, 0, bs, D, ng, pDCt0, cng);
+	d_cvt_tran_mat2pmat(ng, nu, D, ng, 0, pDCt0, cng);
 	// middle stages
 	double *pDCtn; d_zeros_align(&pDCtn, pnz, cng);
-	d_cvt_tran_mat2pmat(ng, nu, 0, bs, D, ng, pDCtn, cng);
-	d_cvt_tran_mat2pmat(ng, nx, nu, bs, C, ng, pDCtn+nu/bs*cng*bs+nu%bs, cng);
+	d_cvt_tran_mat2pmat(ng, nu, D, ng, 0, pDCtn, cng);
+	d_cvt_tran_mat2pmat(ng, nx, C, ng, nu, pDCtn+nu/bs*cng*bs+nu%bs, cng);
 	// last stages
 	double *pDCtN; d_zeros_align(&pDCtN, pnz, cngN);
-	d_cvt_tran_mat2pmat(ngN, nx, nu, bs, CN, ngN, pDCtN+nu/bs*cngN*bs+nu%bs, cngN);
+	d_cvt_tran_mat2pmat(ngN, nx, CN, ngN, nu, pDCtN+nu/bs*cngN*bs+nu%bs, cngN);
 	//d_print_pmat(nu+nx, ng, bs, pDCt0, cng);
 	//d_print_pmat(nu+nx, ng, bs, pDCtn, cng);
 	//d_print_pmat(nu+nx, ngN, bs, pDCtN, cngN);
@@ -378,7 +378,7 @@ int main()
 	
 	/* packed into contiguous memory */
 	double *pQ; d_zeros_align(&pQ, pnz, cnz);
-	d_cvt_mat2pmat(nz, nz, 0, bs, Q, nz, pQ, cnz);
+	d_cvt_mat2pmat(nz, nz, Q, nz, 0, pQ, cnz);
 
 	// linear part copied on another vector
 	double *q; d_zeros_align(&q, anz, 1);

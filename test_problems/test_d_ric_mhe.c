@@ -411,17 +411,17 @@ int main()
 	
 		/* packed into contiguous memory */
 		double *pA; d_zeros_align(&pA, pnx, cnx);
-		d_cvt_mat2pmat(nx, nx, 0, bs, A, nx, pA, cnx);
+		d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
 
 		double *pG; d_zeros_align(&pG, pnx, cnw);
-		d_cvt_mat2pmat(nx, nw, 0, bs, B, nx, pG, cnw);
+		d_cvt_mat2pmat(nx, nw, B, nx, 0, pG, cnw);
 		
 		double *pC; d_zeros_align(&pC, pny, cnx);
-		d_cvt_mat2pmat(ny, nx, 0, bs, C, ny, pC, cnx);
+		d_cvt_mat2pmat(ny, nx, C, ny, 0, pC, cnx);
 		
 		double *pCA; d_zeros_align(&pCA, pnz, cnx);
-		d_cvt_mat2pmat(ny, nx, 0, bs, C, ny, pCA, cnx);
-		d_cvt_mat2pmat(nx, nx, ny, bs, A, nx, pCA+(ny/bs)*bs+ny%bs, cnx);
+		d_cvt_mat2pmat(ny, nx, C, ny, 0, pCA, cnx);
+		d_cvt_mat2pmat(nx, nx, A, nx, ny, pCA+(ny/bs)*bs+ny%bs, cnx);
 
 //		d_print_pmat(nx, nx, bs, pA, cnx);
 //		d_print_pmat(nx, nw, bs, pG, cnw);
@@ -462,10 +462,10 @@ int main()
 
 		/* packed into contiguous memory */
 		double *pR; d_zeros_align(&pR, pnw, cnw);
-		d_cvt_mat2pmat(nw, nw, 0, bs, R, nw, pR, cnw);
+		d_cvt_mat2pmat(nw, nw, R, nw, 0, pR, cnw);
 
 		double *pQ; d_zeros_align(&pQ, pny, cny);
-		d_cvt_mat2pmat(ny, ny, 0, bs, Q, ny, pQ, cny);
+		d_cvt_mat2pmat(ny, ny, Q, ny, 0, pQ, cny);
 
 //		d_print_pmat(nw, nw, bs, pQ, cnw);
 //		d_print_pmat(ny, ny, bs, pR, cny);
@@ -475,13 +475,13 @@ int main()
 ************************************************/	
 		
 		double *pRG; d_zeros_align(&pRG, pnwx, cnw);
-		d_cvt_mat2pmat(nw, nw, 0, bs, R, nw, pRG, cnw);
-		d_cvt_mat2pmat(nx, nw, nw, bs, B, nx, pRG+(nw/bs)*bs*cnw+nw%bs, cnw);
+		d_cvt_mat2pmat(nw, nw, R, nw, 0, pRG, cnw);
+		d_cvt_mat2pmat(nx, nw, B, nx, nw, pRG+(nw/bs)*bs*cnw+nw%bs, cnw);
 		//d_print_pmat(nw+nx, nw, bs, pRG, cnw);
 
 		double *pQA; d_zeros_align(&pQA, pnx2, cnx);
-		d_cvt_mat2pmat(ny, ny, 0, bs, Q, ny, pQA, cnx);
-		d_cvt_mat2pmat(nx, nx, nx, bs, A, nx, pQA+(nx/bs)*bs*cnx+nx%bs, cnx);
+		d_cvt_mat2pmat(ny, ny, Q, ny, 0, pQA, cnx);
+		d_cvt_mat2pmat(nx, nx, A, nx, nx, pQA+(nx/bs)*bs*cnx+nx%bs, cnx);
 		//d_print_pmat(2*nx, cnx, bs, pQA, cnx);
 		//exit(1);
 
@@ -586,8 +586,8 @@ int main()
 		//d[1] = 0;
 		const int pnxdN = bs*((nx+ndN+bs-1)/bs);
 		double *pCtQC; d_zeros_align(&pCtQC, pnxdN, cnx);
-		d_cvt_mat2pmat(ny, ny, 0, bs, Q, ny, pCtQC, cnx);
-		d_cvt_mat2pmat(ndN, nx, nx, bs, D, ndN, pCtQC+nx/bs*bs*cnx+nx%bs, cnx);
+		d_cvt_mat2pmat(ny, ny, Q, ny, 0, pCtQC, cnx);
+		d_cvt_mat2pmat(ndN, nx, D, ndN, nx, pCtQC+nx/bs*bs*cnx+nx%bs, cnx);
 		//d_print_pmat(nx+ndN, nx, bs, pCtRC, cnx);
 		hpQA[N] = pCtQC; // there is not A_N
 		d_zeros_align(&hpALe[N], pnxdN, cnx2); // there is not A_N: pnx not pnx2
@@ -609,16 +609,16 @@ int main()
 		hq_res[N] = p_hq_res+N*anx;
 
 		// initialize hpLp[0] with the cholesky factorization of /Pi_p
-		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLp[0]+(nx+nw+pad)*bs, cnl);
+		d_cvt_mat2pmat(nx, nx, L0, nx, 0, hpLp[0]+(nx+nw+pad)*bs, cnl);
 		for(ii=0; ii<nx; ii++) hdLp[0][ii] = 1.0/L0[ii*(nx+1)];
-		d_cvt_mat2pmat(nx, nx, ny, bs, L0, nx, hpLp2[0]+(ny/bs)*bs+ny%bs+(nx+pad2+ny)*bs, cnl2);
+		d_cvt_mat2pmat(nx, nx, L0, nx, ny, hpLp2[0]+(ny/bs)*bs+ny%bs+(nx+pad2+ny)*bs, cnl2);
 		dtrtr_l_lib(nx, ny, hpLp2[0]+(ny/bs)*bs*cnl2+ny%bs+(nx+pad2+ny)*bs, cnl2, hpLp2[0]+(nx+pad2+ncl)*bs, cnl2);	
 		//d_print_pmat(nx, cnl, bs, hpLp[0], cnl);
 		//d_print_pmat(nz, cnl2, bs, hpLp2[0], cnl2);
 
 		// buffer for L0
 		double *pL0; d_zeros_align(&pL0, pnx, cnx);
-		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, pL0, cnx);
+		d_cvt_mat2pmat(nx, nx, L0, nx, 0, pL0, cnx);
 		// invert L0 in hpALe[0]
 		dtrinv_lib(nx, pL0, cnx, hpALe[0], cnx2);
 		double *pL0_inv; d_zeros_align(&pL0_inv, pnx, cnx);
@@ -685,47 +685,47 @@ int main()
 
 		if(nx>=nw)
 			{
-			d_cvt_mat2pmat(ny, ny, 0, bs, Q, ny, pQRAG, cnwx1);
-			d_cvt_mat2pmat(nx, nx, 0, bs, A, nx, pQRAG+pnx*cnwx1, cnwx1);
-			d_cvt_mat2pmat(nw, nw, 0, bs, R, nw, pQRAG+(pnx-pnw)*cnwx1+nx*bs, cnwx1);
-			d_cvt_mat2pmat(nx, nw, 0, bs, B, nx, pQRAG+pnx*cnwx1+nx*bs, cnwx1);
+			d_cvt_mat2pmat(ny, ny, Q, ny, 0, pQRAG, cnwx1);
+			d_cvt_mat2pmat(nx, nx, A, nx, 0, pQRAG+pnx*cnwx1, cnwx1);
+			d_cvt_mat2pmat(nw, nw, R, nw, 0, pQRAG+(pnx-pnw)*cnwx1+nx*bs, cnwx1);
+			d_cvt_mat2pmat(nx, nw, B, nx, 0, pQRAG+pnx*cnwx1+nx*bs, cnwx1);
 			//d_print_pmat(nrows, ncols, bs, pQRAG, ncols);
 			if(nx>pnx-nx)
-				d_cvt_mat2pmat(pnx-nx, nx, nx, bs, A+(nx-pnx+nx), nx, pQRAG+nx/bs*bs*cnwx1+nx%bs, cnwx1);
+				d_cvt_mat2pmat(pnx-nx, nx, A+(nx-pnx+nx), nx, nx, pQRAG+nx/bs*bs*cnwx1+nx%bs, cnwx1);
 			else
-				d_cvt_mat2pmat(nx, nx, nx, bs, A, nx, pQRAG+nx/bs*bs*cnwx1+nx%bs, cnwx1);
+				d_cvt_mat2pmat(nx, nx, A, nx, nx, pQRAG+nx/bs*bs*cnwx1+nx%bs, cnwx1);
 			if(nx>pnw-nw)
-				d_cvt_mat2pmat(pnw-nw, nw, nw, bs, B+(nx-pnw+nw), nx, pQRAG+(pnx-pnw+nw/bs*bs)*cnwx1+nw%bs+nx*bs, cnwx1);
+				d_cvt_mat2pmat(pnw-nw, nw, B+(nx-pnw+nw), nx, nw, pQRAG+(pnx-pnw+nw/bs*bs)*cnwx1+nw%bs+nx*bs, cnwx1);
 			else
-				d_cvt_mat2pmat(nx, nw, nw, bs, B, nx, pQRAG+(pnx-pnw+nw/bs*bs)*cnwx1+nw%bs+nx*bs, cnwx1);
+				d_cvt_mat2pmat(nx, nw, B, nx, nw, pQRAG+(pnx-pnw+nw/bs*bs)*cnwx1+nw%bs+nx*bs, cnwx1);
 			//d_print_pmat(nrows, ncols, bs, pQRAG, ncols);
 			}
 		else
 			{
-			d_cvt_mat2pmat(ny, ny, 0, bs, Q, ny, pQRAG+(pnw-pnx)*cnwx1, cnwx1);
-			d_cvt_mat2pmat(nx, nx, 0, bs, A, nx, pQRAG+pnw*cnwx1, cnwx1);
-			d_cvt_mat2pmat(nw, nw, 0, bs, R, nw, pQRAG+nx*bs, cnwx1);
-			d_cvt_mat2pmat(nx, nw, 0, bs, B, nx, pQRAG+pnw*cnwx1+nx*bs, cnwx1);
+			d_cvt_mat2pmat(ny, ny, Q, ny, 0, pQRAG+(pnw-pnx)*cnwx1, cnwx1);
+			d_cvt_mat2pmat(nx, nx, A, nx, 0, pQRAG+pnw*cnwx1, cnwx1);
+			d_cvt_mat2pmat(nw, nw, R, nw, 0, pQRAG+nx*bs, cnwx1);
+			d_cvt_mat2pmat(nx, nw, B, nx, 0, pQRAG+pnw*cnwx1+nx*bs, cnwx1);
 			//d_print_pmat(nrows, ncols, bs, pQRAG, ncols);
 			if(nx>pnx-nx)
-				d_cvt_mat2pmat(pnx-nx, nx, nx, bs, A+(nx-pnx+nx), nx, pQRAG+(pnw-pnx+nx/bs*bs)*cnwx1+nx%bs, cnwx1);
+				d_cvt_mat2pmat(pnx-nx, nx, A+(nx-pnx+nx), nx, nx, pQRAG+(pnw-pnx+nx/bs*bs)*cnwx1+nx%bs, cnwx1);
 			else
-				d_cvt_mat2pmat(nx, nx, nx, bs, A, nx, pQRAG+(pnw-pnx+nx/bs*bs)*cnwx1+nx%bs, cnwx1);
+				d_cvt_mat2pmat(nx, nx, A, nx, nx, pQRAG+(pnw-pnx+nx/bs*bs)*cnwx1+nx%bs, cnwx1);
 			if(nx>pnw-nw)
-				d_cvt_mat2pmat(pnw-nw, nw, nw, bs, B+(nx-pnw+nw), nx, pQRAG+nw/bs*bs*cnwx1+nw%bs+nx*bs, cnwx1);
+				d_cvt_mat2pmat(pnw-nw, nw, B+(nx-pnw+nw), nx, nw, pQRAG+nw/bs*bs*cnwx1+nw%bs+nx*bs, cnwx1);
 			else
-				d_cvt_mat2pmat(nx, nw, nw, bs, B, nx, pQRAG+nw/bs*bs*cnwx1+nw%bs+nx*bs, cnwx1);
+				d_cvt_mat2pmat(nx, nw, B, nx, nw, pQRAG+nw/bs*bs*cnwx1+nw%bs+nx*bs, cnwx1);
 			//d_print_pmat(nrows, ncols, bs, pQRAG, ncols);
 			}
 
 		double *pQD; d_zeros_align(&pQD, pnx+pndN, cnx);
-		d_cvt_mat2pmat(ny, ny, 0, bs, Q, ny, pQD, cnx);
-		d_cvt_mat2pmat(ndN, nx, 0, bs, D, ndN, pQD+pnx*cnx, cnx);
+		d_cvt_mat2pmat(ny, ny, Q, ny, 0, pQD, cnx);
+		d_cvt_mat2pmat(ndN, nx, D, ndN, 0, pQD+pnx*cnx, cnx);
 		//d_print_pmat(pnx+pndN, cnx, bs, pQD, cnx);
 		if(ndN>pnx-nx)
-			d_cvt_mat2pmat(pnx-nx, nx, nx, bs, D+(ndN-pnx+nx), ndN, pQD+nx/bs*bs*cnx+nx%bs, cnx);
+			d_cvt_mat2pmat(pnx-nx, nx, D+(ndN-pnx+nx), ndN, nx, pQD+nx/bs*bs*cnx+nx%bs, cnx);
 		else
-			d_cvt_mat2pmat(ndN, nx, nx, bs, D, ndN, pQD+nx/bs*bs*cnx+nx%bs, cnx);
+			d_cvt_mat2pmat(ndN, nx, D, ndN, nx, pQD+nx/bs*bs*cnx+nx%bs, cnx);
 		//d_print_pmat(pnx+pndN, cnx, bs, pQD, cnx);
 		//exit(1);
 
@@ -745,7 +745,7 @@ int main()
 		hpQRAG[N] = pQD;
 		d_zeros_align(&hpLAG[N], pnx+pndN, cnx);
 		d_zeros_align(&hpLe2[N], pnx, cnx);
-		d_cvt_mat2pmat(nx, nx, 0, bs, L0, nx, hpLe2[0], cnx);
+		d_cvt_mat2pmat(nx, nx, L0, nx, 0, hpLe2[0], cnx);
 		//d_print_pmat(nx, nx, bs, hpLe2[0], cnx);
 
 

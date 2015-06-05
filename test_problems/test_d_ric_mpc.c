@@ -382,7 +382,7 @@ int main()
 	
 	/* packed into contiguous memory */
 		double *pBAbt; d_zeros_align(&pBAbt, pnz, cnx);
-		d_cvt_mat2pmat(nz, nx, 0, bs, BAbt, pnz, pBAbt, cnx);
+		d_cvt_mat2pmat(nz, nx, BAbt, pnz, 0, pBAbt, cnx);
 
 //	d_print_pmat(nz, nx, bs, pBAbt, cnx);
 
@@ -402,7 +402,7 @@ int main()
 
 		/* packed into contiguous memory */
 		double *pQ; d_zeros_align(&pQ, pnz, cnz);
-		d_cvt_mat2pmat(nz, nz, 0, bs, Q, pnz, pQ, cnz);
+		d_cvt_mat2pmat(nz, nz, Q, pnz, 0, pQ, cnz);
 
 //	d_print_pmat(nz, nz, bs, pQ, cnz);
 
@@ -540,8 +540,8 @@ int main()
 		double *ptrB = BBB;
 		for(ii=0; ii<N; ii++)
 			{
-			d_cvt_mat2pmat(nuu[ii], nuu[ii], 0, bs, eye_nu0, nuu[ii], hpBt[ii], cnxx[ii]);
-			d_cvt_tran_mat2pmat(nxx[ii+1]-nuu[ii], nuu[ii], 0, bs, ptrB, nxx[ii+1]-nuu[ii], hpBt[ii]+nuu[ii]*bs, cnxx[ii]);
+			d_cvt_mat2pmat(nuu[ii], nuu[ii], eye_nu0, nuu[ii], 0, hpBt[ii], cnxx[ii]);
+			d_cvt_tran_mat2pmat(nxx[ii+1]-nuu[ii], nuu[ii], ptrB, nxx[ii+1]-nuu[ii], 0, hpBt[ii]+nuu[ii]*bs, cnxx[ii]);
 			ptrB += nxx[ii+1] - nuu[ii];
 			}
 		free(eye_nu0);
@@ -968,7 +968,7 @@ int main()
 			for(jj=0; jj<nxx[ii+1]; jj++) BAb_temp[nuu[ii]*nx+jj*(nx+1)] = 1.0;
 			//for(jj=0; jj<nxx[ii+1]; jj++) BAb_temp[(nuu[ii]+nxx[ii+1])*nx+jj] = 1.0;
 			//d_print_mat(nx, nu+nx+1, BAb_temp, nx);
-			d_cvt_tran_mat2pmat(nx, nx+nu+1, 0, bs, BAb_temp, nx, hpBAbt2[ii], cnx);
+			d_cvt_tran_mat2pmat(nx, nx+nu+1, BAb_temp, nx, 0, hpBAbt2[ii], cnx);
 			//d_print_pmat(nx+nu+1, nx, bs, hpBAbt2[ii], cnx);
 			}
 
@@ -982,7 +982,7 @@ int main()
 			for(jj=0; jj<nz*nz; jj++) RSQ[jj] = 0.0;
 			for(jj=nu; jj<2*nu; jj++) RSQ[jj*(nz+1)] = 1.0;
 			for(jj=nu+nxx[ii]-nx0; jj<nu+nxx[ii]; jj++) RSQ[jj*(nz+1)] = 1.0;
-			d_cvt_mat2pmat(nz, nz, 0, bs, RSQ, nz, hpRSQ[ii], cnz);
+			d_cvt_mat2pmat(nz, nz, RSQ, nz, 0, hpRSQ[ii], cnz);
 			//d_print_pmat(nz, nz, bs, hpRSQ[ii], cnz);
 			}
 

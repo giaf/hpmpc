@@ -994,7 +994,7 @@ void d_align_pmat(int row, int col, int offset, int bs_dummy, double *A, int sda
 
 
 /* converts a matrix into a packed matrix */
-void d_cvt_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, int lda, double *pA, int sda)
+void d_cvt_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA, int sda)
 	{
 	
 	const int bs = 4;
@@ -1075,7 +1075,7 @@ void d_cvt_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, int l
 
 /* converts a matrix into a packed matrix */
 // row and col of the source matrix, offsett in the destination matrix
-void d_cvt_tran_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, int lda, double *pA, int sda)
+void d_cvt_tran_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA, int sda)
 	{
 	
 	const int bs = 4;
@@ -1165,7 +1165,7 @@ void d_cvt_tran_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, 
 
 
 /* converts a packed matrix into a matrix */
-void d_cvt_pmat2mat(int row, int col, int offset, int bs_dummy, double *pA, int sda, double *A, int lda)
+void d_cvt_pmat2mat(int row, int col, int offset, double *pA, int sda, double *A, int lda)
 	{
 	
 	const int bs = 4;
@@ -1213,7 +1213,7 @@ void d_cvt_pmat2mat(int row, int col, int offset, int bs_dummy, double *pA, int 
 
 
 /* converts a packed matrix into a matrix */
-void d_cvt_tran_pmat2mat(int row, int col, int offset, int bs_dummy, double *pA, int sda, double *A, int lda)
+void d_cvt_tran_pmat2mat(int row, int col, int offset, double *pA, int sda, double *A, int lda)
 	{
 	
 	const int bs = 4;

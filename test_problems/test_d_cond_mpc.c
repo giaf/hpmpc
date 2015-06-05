@@ -348,15 +348,15 @@ int main()
 //		exit(1);
 
 		double *pA; d_zeros_align(&pA, pnx, cnx);
-		d_cvt_mat2pmat(nx, nx, 0, bs, A, nx, pA, cnx);
+		d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
 		//d_print_pmat(nx, nx, bs, pA, cnx);
 
 		double *pAt; d_zeros_align(&pAt, pnx, cnx);
-		d_cvt_tran_mat2pmat(nx, nx, 0, bs, A, nx, pAt, cnx);
+		d_cvt_tran_mat2pmat(nx, nx, A, nx, 0, pAt, cnx);
 		//d_print_pmat(nx, nx, bs, pA, cnx);
 
 		double *pBt; d_zeros_align(&pBt, pnu, cnx);
-		d_cvt_tran_mat2pmat(nx, nu, 0, bs, B, nx, pBt, cnx);
+		d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBt, cnx);
 		//d_print_pmat(nu, nx, bs, pBt, cnx);
 
 /************************************************
@@ -379,7 +379,7 @@ int main()
 		//d_print_mat(nu, nx, S, nu);
 
 		double *pQ; d_zeros_align(&pQ, pnx, cnx);
-		d_cvt_mat2pmat(nx, nx, 0, bs, Q, nx, pQ, cnx);
+		d_cvt_mat2pmat(nx, nx, Q, nx, 0, pQ, cnx);
 		//d_print_pmat(nx, nx, bs, pQ, cnx);
 
 		double *dQ; d_zeros_align(&dQ, pnx, 1);
@@ -387,11 +387,11 @@ int main()
 		//d_print_mat(1, nx, dQ, 1);
 
 		double *pR; d_zeros_align(&pR, pnu, cnu);
-		d_cvt_mat2pmat(nu, nu, 0, bs, R, nu, pR, cnu);
+		d_cvt_mat2pmat(nu, nu, R, nu, 0, pR, cnu);
 		//d_print_pmat(nu, nu, bs, pR, cnu);
 
 		double *pS; d_zeros_align(&pS, pnu, cnx);
-		d_cvt_mat2pmat(nu, nx, 0, bs, S, nu, pS, cnx);
+		d_cvt_mat2pmat(nu, nx, S, nu, 0, pS, cnx);
 		//d_print_pmat(nu, nx, bs, pS, cnx);
 
 /************************************************
