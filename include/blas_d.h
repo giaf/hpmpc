@@ -41,9 +41,10 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, double *y, double *
 void dmvmv_lib(int m, int n, double *pA, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int alg);
 void dtrsv_dgemv_n_lib(int n, int m, double *pA, int sda, double *x); // TODO make definition consistent with dpotrf (e.g. swap m and n)
 void dtrsv_dgemv_t_lib(int n, int m, double *pA, int sda, double *x);
+void dgecp_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
+void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
 void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc);
 void dtrtr_u_lib(int m, double *pA, int sda, double *pC, int sdc);
-void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
 void dsyttmm_lu_lib(int m, double *pA, int sda, double *pC, int sdc);
 void dsyttmm_ul_lib(int m, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, int alg);
 void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);

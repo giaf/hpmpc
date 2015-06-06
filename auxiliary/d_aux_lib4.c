@@ -180,6 +180,7 @@ void d_copy_pmat(int row, int col, int bs_dummy, double *A, int sda, double *B, 
 
 
 
+#if 0
 // copies a packed matrix into a packed matrix
 void d_copy_pmat_general(int m, int n, int offset_A, double *A, int sda, int offset_B, double *B, int sdb)
 	{
@@ -478,6 +479,7 @@ void d_copy_pmat_general(int m, int n, int offset_A, double *A, int sda, int off
 		}
 
 	}
+#endif
 
 
 

@@ -31,7 +31,6 @@ void d_eye(double **pA, int row);
 void d_rep_mat(int reps, int row, int col, double *A, int lda, double *B, int ldb);
 void d_copy_mat(int row, int col, double *A, int lda, double *B, int ldb);
 void d_copy_pmat(int row, int col, int bs, double *A, int sda, double *B, int sdb);
-void d_copy_pmat_general(int m, int n, int offset_A, double *A, int sda, int offset_B, double *B, int sdb);
 void d_copy_pmat_l(int row, int bs, double *A, int sda, double *B, int sdb);
 void d_copy_pmat_panel(int row, int col, int offset, double *A, double *B, int sdb);
 void d_align_pmat_panel(int row, int col, int offset, double *A, int sda, double *B);

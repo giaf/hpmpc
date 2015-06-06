@@ -51,32 +51,6 @@ OBJS = d_aux_lib4.o s_aux_lib4.o
 endif
 
 obj: $(OBJS)
-ifeq ($(TARGET), X64_AVX2)
-	make -C avx obj
-endif
-ifeq ($(TARGET), X64_AVX)
-	make -C avx obj
-endif
-ifeq ($(TARGET), X64_SSE3)
-	make -C c99 obj
-endif
-ifeq ($(TARGET), C99_4X4)
-	make -C c99 obj
-endif
-ifeq ($(TARGET), C99_4X4_PREFETCH)
-	make -C c99 obj
-endif
-ifeq ($(TARGET), CORTEX_A15)
-	make -C c99 obj
-endif
-ifeq ($(TARGET), CORTEX_A9)
-	make -C c99 obj
-endif
-ifeq ($(TARGET), CORTEX_A7)
-	make -C c99 obj
-endif
 
 clean:
 	rm -f *.o
-	make -C avx clean
-	make -C c99 clean

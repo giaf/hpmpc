@@ -117,7 +117,7 @@ void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, dou
 	// Gamma_u
 	if(compute_Gamma_u)
 		{
-		d_copy_pmat_general(nu, nx, 0, pBt[0], cnx, 0, pGamma_u[0], cNnx);
+		dgecp_lib(nu, nx, 0, pBt[0], cnx, 0, pGamma_u[0], cNnx);
 		for(ii=1; ii<N; ii++)
 			{
 			offset = ii*nu;
@@ -126,7 +126,7 @@ void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, dou
 #else
 			dgemm_nt_lib(ii*nu, nx, nx, pGamma_u[ii-1], cNnx, pA[ii], cnx, pGamma_u[ii], cNnx, pGamma_u[ii], cNnx, 0, 0, 0); // Gamma_u * A^T
 #endif
-			d_copy_pmat_general(nu, nx, 0, pBt[ii], cnx, offset, pGamma_u[ii]+offset/bs*bs*cNnx+offset%bs, cNnx);
+			dgecp_lib(nu, nx, 0, pBt[ii], cnx, offset, pGamma_u[ii]+offset/bs*bs*cNnx+offset%bs, cNnx);
 			}
 		}
 		
@@ -154,7 +154,7 @@ void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, dou
 		{
 
 		// Gamma_u_Q * bar_A
-		d_copy_pmat_general(N*nu, nx, 0, pGamma_u_Q[N-1], cNnx, 0, pGamma_u_Q_A[N-1], cNnx);
+		dgecp_lib(N*nu, nx, 0, pGamma_u_Q[N-1], cNnx, 0, pGamma_u_Q_A[N-1], cNnx);
 		for(ii=N-1; ii>0; ii--)
 			{
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
@@ -189,7 +189,7 @@ void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, dou
 		// R
 		for(ii=0; ii<N; ii++)
 			{
-			d_copy_pmat_general(nu, nu, 0, pR[ii], cnu, ii*nu, pH_R+(ii*nu)/bs*bs*cNnu+(ii*nu)%bs+ii*nu*bs, cNnu);
+			dgecp_lib(nu, nu, 0, pR[ii], cnu, ii*nu, pH_R+(ii*nu)/bs*bs*cNnu+(ii*nu)%bs+ii*nu*bs, cNnu);
 			}
 
 		// Gamma_u_Q_A * B
@@ -234,7 +234,7 @@ void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, dou
 		// R
 		for(ii=0; ii<N; ii++)
 			{
-			d_copy_pmat_general(nu, nu, 0, pR[ii], cnu, ii*nu, pH_R+(ii*nu)/bs*bs*cNnu+(ii*nu)%bs+ii*nu*bs, cNnu);
+			dgecp_lib(nu, nu, 0, pR[ii], cnu, ii*nu, pH_R+(ii*nu)/bs*bs*cNnu+(ii*nu)%bs+ii*nu*bs, cNnu);
 			}
 
 		for(ii=0; ii<N; ii++)
