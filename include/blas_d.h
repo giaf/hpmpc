@@ -58,3 +58,4 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 void dgemm_diag_right_lib(int m, int n, double *pA, int sda, double *dB, double *pC, int sdc, double *pD, int sdd, int alg);
 void dgemm_diag_left_lib(int m, int n, double *dA, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg);
 void dsyrk_diag_left_right_lib(int m, double *Al, double *Ar, double *B, int sdb, double *C, int sdc, double *D, int sdd, int alg);
+void dgemv_diag_lib(int m, double *dA, double *x, double *y, double *z, int alg);

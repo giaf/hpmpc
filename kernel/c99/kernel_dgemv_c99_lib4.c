@@ -462,6 +462,154 @@ void kernel_dgemv_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, d
 	
 	
 	
+void kernel_dgemv_n_8_vs_lib4(int km, int kmax, double *A0, int sda, double *x, double *y, double *z, int alg)
+	{
+	
+	if(kmax<=0) 
+		return;
+	
+	double *A1 = A0 + 4*sda;
+
+	const int lda = 4;
+	
+	int k;
+
+	double
+		x_0, x_1, x_2, x_3,
+		y_0=0, y_1=0, y_2=0, y_3=0,
+		y_4=0, y_5=0, y_6=0, y_7=0;
+	
+	k=0;
+	for(; k<kmax-3; k+=4)
+		{
+
+		x_0 = x[0];
+		x_1 = x[1];
+		x_2 = x[2];
+		x_3 = x[3];
+
+		y_0 += A0[0+lda*0] * x_0;
+		y_1 += A0[1+lda*0] * x_0;
+		y_2 += A0[2+lda*0] * x_0;
+		y_3 += A0[3+lda*0] * x_0;
+		y_4 += A1[0+lda*0] * x_0;
+		y_5 += A1[1+lda*0] * x_0;
+		y_6 += A1[2+lda*0] * x_0;
+		y_7 += A1[3+lda*0] * x_0;
+
+		y_0 += A0[0+lda*1] * x_1;
+		y_1 += A0[1+lda*1] * x_1;
+		y_2 += A0[2+lda*1] * x_1;
+		y_3 += A0[3+lda*1] * x_1;
+		y_4 += A1[0+lda*1] * x_1;
+		y_5 += A1[1+lda*1] * x_1;
+		y_6 += A1[2+lda*1] * x_1;
+		y_7 += A1[3+lda*1] * x_1;
+
+		y_0 += A0[0+lda*2] * x_2;
+		y_1 += A0[1+lda*2] * x_2;
+		y_2 += A0[2+lda*2] * x_2;
+		y_3 += A0[3+lda*2] * x_2;
+		y_4 += A1[0+lda*2] * x_2;
+		y_5 += A1[1+lda*2] * x_2;
+		y_6 += A1[2+lda*2] * x_2;
+		y_7 += A1[3+lda*2] * x_2;
+
+		y_0 += A0[0+lda*3] * x_3;
+		y_1 += A0[1+lda*3] * x_3;
+		y_2 += A0[2+lda*3] * x_3;
+		y_3 += A0[3+lda*3] * x_3;
+		y_4 += A1[0+lda*3] * x_3;
+		y_5 += A1[1+lda*3] * x_3;
+		y_6 += A1[2+lda*3] * x_3;
+		y_7 += A1[3+lda*3] * x_3;
+		
+		A0 += 4*lda;
+		A1 += 4*lda;
+		x += 4;
+
+		}
+
+	for(; k<kmax; k++)
+		{
+
+		x_0 = x[0];
+
+		y_0 += A0[0+lda*0] * x_0;
+		y_1 += A0[1+lda*0] * x_0;
+		y_2 += A0[2+lda*0] * x_0;
+		y_3 += A0[3+lda*0] * x_0;
+		y_4 += A1[0+lda*0] * x_0;
+		y_5 += A1[1+lda*0] * x_0;
+		y_6 += A1[2+lda*0] * x_0;
+		y_7 += A1[3+lda*0] * x_0;
+		
+		A0 += 1*lda;
+		A1 += 1*lda;
+		x += 1;
+
+		}
+
+	if(alg==0)
+		{
+		goto store;
+		}
+	else if(alg==1)
+		{
+		y_0 += y[0];
+		y_1 += y[1];
+		y_2 += y[2];
+		y_3 += y[3];
+		y_4 += y[4];
+		y_5 += y[5];
+		y_6 += y[6];
+		y_7 += y[7];
+
+		goto store;
+		}
+	else // alg==-1
+		{
+		y_0 -= y[0];
+		y_1 -= y[1];
+		y_2 -= y[2];
+		y_3 -= y[3];
+		y_4 -= y[4];
+		y_5 -= y[5];
+		y_6 -= y[6];
+		y_7 -= y[7];
+
+		goto store;
+		}
+	
+	store:
+	y[0] = y_0;
+	y[1] = y_1;
+	y[2] = y_2;
+	y[3] = y_3;
+	if(km>=8)
+		{
+		y[4] = y_4;
+		y[5] = y_5;
+		y[6] = y_6;
+		y[7] = y_7;
+		}
+	else
+		{
+		y[4] = y_4;
+		if(km>=6)
+			{
+			y[5] = y_5;
+			if(km>6)
+				{
+				y[6] = y_6;
+				}
+			}
+		}
+
+	}
+	
+	
+	
 void kernel_dgemv_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y, double *z, int alg)
 	{
 	
@@ -588,7 +736,7 @@ void kernel_dgemv_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y, 
 	
 	
 	
-void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, double *z, int alg)
+void kernel_dgemv_n_4_vs_lib4(int km, int kmax, double *A, double *x, double *y, double *z, int alg)
 	{
 
 	if(kmax<=0) 
@@ -653,30 +801,64 @@ void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, double *z,
 
 	if(alg==0)
 		{
+		goto store;
+		}
+	else if(alg==1)
+		{
+		y_0 += y[0];
+		y_1 += y[1];
+		y_2 += y[2];
+		y_3 += y[3];
+
+		goto store;
+		}
+	else // alg==-1
+		{
+		y_0 -= y[0];
+		y_1 -= y[1];
+		y_2 -= y[2];
+		y_3 -= y[3];
+
+		goto store;
+		}
+
+	store:
+	if(km>=4)
+		{
 		y[0] = y_0;
 		y[1] = y_1;
 		y[2] = y_2;
 		y[3] = y_3;
 		}
-	else if(alg==1)
+	else
 		{
-		z[0] = y[0] + y_0;
-		z[1] = y[1] + y_1;
-		z[2] = y[2] + y_2;
-		z[3] = y[3] + y_3;
-		}
-	else // alg==-1
-		{
-		z[0] = y[0] - y_0;
-		z[1] = y[1] - y_1;
-		z[2] = y[2] - y_2;
-		z[3] = y[3] - y_3;
+		y[0] = y_0;
+		if(km>=2)
+			{
+			y[1] = y_1;
+			if(km>2)
+				{
+				y[2] = y_2;
+				}
+			}
 		}
 
 	}
 	
 	
 	
+void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, double *z, int alg)
+	{
+
+	if(kmax<=0) 
+		return;
+	
+	kernel_dgemv_n_4_vs_lib4(4, kmax, A, x, y, z, alg);
+
+	}
+
+
+
 void kernel_dgemv_n_2_lib4(int kmax, double *A, double *x, double *y, double *z, int alg)
 	{
 
@@ -812,4 +994,100 @@ void kernel_dgemv_n_1_lib4(int kmax, double *A, double *x, double *y, double *z,
 	
 	
 	
+void kernel_dgemv_diag_lib4(int kmax, double *dA, double *x, double *y, double *z, int alg)
+	{
 
+	if(kmax<=0)
+		return;
+	
+	int k;
+
+	if(alg==0)
+		{
+		k = 0;
+		for( ; k<kmax-3; k+=4)
+			{
+
+			z[0] = dA[0] * x[0];
+			z[1] = dA[1] * x[1];
+			z[2] = dA[2] * x[2];
+			z[3] = dA[3] * x[3];
+
+			dA += 4;
+			x  += 4;
+			z  += 4;
+
+			}
+		for( ; k<kmax; k++)
+			{
+
+			z[0] = dA[0] * x[0];
+
+			dA += 1;
+			x  += 1;
+			z  += 1;
+
+			}
+		}
+	else if(alg==1)
+		{
+		k = 0;
+		for( ; k<kmax-3; k+=4)
+			{
+
+			z[0] = y[0] + dA[0] * x[0];
+			z[1] = y[1] + dA[1] * x[1];
+			z[2] = y[2] + dA[2] * x[2];
+			z[3] = y[3] + dA[3] * x[3];
+
+			dA += 4;
+			x  += 4;
+			y  += 4;
+			z  += 4;
+
+			}
+		for( ; k<kmax; k++)
+			{
+
+			z[0] = y[0] + dA[0] * x[0];
+
+			dA += 1;
+			x  += 1;
+			y  += 1;
+			z  += 1;
+
+			}
+		}
+	else //if(alg==-1)
+		{
+		k = 0;
+		for( ; k<kmax-3; k+=4)
+			{
+
+			z[0] = y[0] - dA[0] * x[0];
+			z[1] = y[1] - dA[1] * x[1];
+			z[2] = y[2] - dA[2] * x[2];
+			z[3] = y[3] - dA[3] * x[3];
+
+			dA += 4;
+			x  += 4;
+			y  += 4;
+			z  += 4;
+
+			}
+		for( ; k<kmax; k++)
+			{
+
+			z[0] = y[0] - dA[0] * x[0];
+
+			dA += 1;
+			x  += 1;
+			y  += 1;
+			z  += 1;
+
+			}
+
+		}
+	
+	}
+			

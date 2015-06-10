@@ -107,6 +107,9 @@ void kernel_dgemv_t_4_lib4(int kmax, double *A, int sda, double *x, double *y, d
 void kernel_dgemv_t_3_lib4(int kmax, double *A, int sda, double *x, double *y, double *z, int alg);
 void kernel_dgemv_t_2_lib4(int kmax, double *A, int sda, double *x, double *y, double *z, int alg);
 void kernel_dgemv_t_1_lib4(int kmax, double *A, int sda, double *x, double *y, double *z, int alg);
+void kernel_dgemv_n_12_vs_lib4(int km, int kmax, double *A0, int sda, double *x, double *y, double *z, int alg);
+void kernel_dgemv_n_8_vs_lib4(int km, int kmax, double *A0, int sda, double *x, double *y, double *z, int alg);
+void kernel_dgemv_n_4_vs_lib4(int km, int kmax, double *A, double *x, double *y, double *z, int alg);
 void kernel_dgemv_n_12_lib4(int kmax, double *A0, int sda, double *x, double *y, double *z, int alg);
 void kernel_dgemv_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y, double *z, int alg);
 void kernel_dgemv_n_4_lib4(int kmax, double *A, double *x, double *y, double *z, int alg);
@@ -174,6 +177,7 @@ void kernel_dsyrk_diag_left_right_4_lib4(int kmax, double *Al, double *Ar, doubl
 void kernel_dsyrk_diag_left_right_3_lib4(int kmax, double *Al, double *Ar, double *B, double *C, double *D, int alg);
 void kernel_dsyrk_diag_left_right_2_lib4(int kmax, double *Al, double *Ar, double *B, double *C, double *D, int alg);
 void kernel_dsyrk_diag_left_right_1_lib4(int kmax, double *Al, double *Ar, double *B, double *C, double *D, int alg);
+void kernel_dgemv_diag_lib4(int kmax, double *dA, double *x, double *y, double *z, int alg);
 
 // corner
 void corner_dtrmm_l_nt_12x3_lib4(double *A0, int sda, double *B, double *C0, int sdc);

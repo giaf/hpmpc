@@ -55,10 +55,14 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 	static double d_mask[4]  = {0.5, 1.5, 2.5, 3.5};
 
 	__m256d
+		v_mask,
 		zeros, temp,
 		a_00, a_01, a_02, a_03,
 		x_n_0, x_n_1, x_n_2, x_n_3, y_n_0, y_n_1,
 		x_t_0, y_t_0, y_t_1, y_t_2, y_t_3, x_t_1;
+	
+	__m256i
+		i_mask;
 
 #if 0
 	__m128d

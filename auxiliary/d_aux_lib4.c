@@ -135,7 +135,15 @@ void d_copy_mat(int row, int col, double *A, int lda, double *B, int ldb)
 	
 	for(j=0; j<col; j++)
 		{
-		for(i=0; i<row; i++)
+		i = 0;
+		for(; i<row-3; i+=4)
+			{
+			B[i+0+j*ldb] = A[i+0+j*lda];
+			B[i+1+j*ldb] = A[i+1+j*lda];
+			B[i+2+j*ldb] = A[i+2+j*lda];
+			B[i+3+j*ldb] = A[i+3+j*lda];
+			}
+		for(; i<row; i++)
 			{
 			B[i+j*ldb] = A[i+j*lda];
 			}
