@@ -378,6 +378,14 @@ int main()
 			S[ii*(nu+1)] = 0.0;
 		//d_print_mat(nu, nx, S, nu);
 
+		double *q; d_zeros(&q, nx, 1);
+		for(ii=0; ii<nx; ii++)
+			q[ii] = 0.0;
+
+		double *r; d_zeros(&r, nu, 1);
+		for(ii=0; ii<nu; ii++)
+			r[ii] = 0.0;
+
 		double *pQ; d_zeros_align(&pQ, pnx, cnx);
 		d_cvt_mat2pmat(nx, nx, Q, nx, 0, pQ, cnx);
 		//d_print_pmat(nx, nx, bs, pQ, cnx);
@@ -401,19 +409,26 @@ int main()
 		double *(hpA[N]);
 		double *(hpAt[N]);
 		double *(hpBt[N]);
+		double *(hb[N]);
 		double *(hpGamma_u[N]);
 		double *(hpGamma_u_Q[N]);
 		double *(hpGamma_u_Q_A[N]);
 		double *(hpGamma_0[N]);
 		double *(hpGamma_0_Q[N]);
+		double *(hGamma_b[N]);
+		double *(hGamma_b_q[N]);
 		double *(hpQ[N+1]);
 		double *(hdQ[N+1]);
 		double *(hpR[N]);
 		double *(hpS[N]);
+		double *(hq[N+1]);
+		double *(hr[N]);
 		double *(hpL[N+1]);
 		double *pH_R;
 		double *pH_Q;
 		double *pH_S;
+		double *H_q;
+		double *H_r;
 		double *work;
 		double *pGamma_u;
 		double *pGamma_u_Q;
@@ -424,6 +439,8 @@ int main()
 		d_zeros_align(&pH_R, pNnu, cNnu);
 		d_zeros_align(&pH_Q, pnx, cnx);
 		d_zeros_align(&pH_S, pnx, cNnu);
+		d_zeros_align(&H_q, pnx, 1);
+		d_zeros_align(&H_r, pNnu, 1);
 		d_zeros_align(&work, pnx, 1);
 		d_zeros_align(&pGamma_u, pNnu, cNnx);
 		d_zeros_align(&pGamma_u_Q, pNnu, cNnx);
@@ -435,6 +452,7 @@ int main()
 			hpA[ii] = pA;
 			hpAt[ii] = pAt;
 			hpBt[ii] = pBt;
+			hb[ii] = b;
 			//d_zeros_align(&hpGamma_u[ii], ((ii+1)*nu+bs-1)/bs*bs, cnx);
 			//d_zeros_align(&hpGamma_u_Q[ii], ((ii+1)*nu+bs-1)/bs*bs, cnx);
 			hpGamma_u[ii] = pGamma_u+ii*nx*bs;
@@ -444,14 +462,19 @@ int main()
 			//d_zeros_align(&hpGamma_0_Q[ii], pnx, cnx);
 			hpGamma_0[ii] = pGamma_0+ii*nx*bs;
 			hpGamma_0_Q[ii] = pGamma_0_Q+ii*nx*bs;
+			d_zeros_align(&hGamma_b[ii], pnx, 1);
+			d_zeros_align(&hGamma_b_q[ii], pnx, 1);
 			hpQ[ii] = pQ;
 			hdQ[ii] = dQ;
 			hpR[ii] = pR;
 			hpS[ii] = pS;
+			hq[ii] = q;
+			hr[ii] = r;
 			d_zeros_align(&hpL[ii], pnx, cnx);;
 			}
 		hpQ[N] = pQ;
 		hdQ[N] = dQ;
+		hq[N] = q;
 		d_zeros_align(&hpL[N], pnx, cnx);;
 
 /************************************************
@@ -474,6 +497,11 @@ int main()
 
 			d_cond_S(N, nx, nu, 0, hpS, hpGamma_0, hpGamma_u_Q, pH_S);
 
+			//d_cond_q(N, nx, nu, hpA, hb, 0, hpQ, hq, hpGamma_0, 1, hGamma_b, 1, hGamma_b_q, H_q);
+			d_cond_q(N, nx, nu, hpA, hb, 1, hdQ, hq, hpGamma_0, 1, hGamma_b, 1, hGamma_b_q, H_q);
+
+			d_cond_r(N, nx, nu, hpA, hb, 0, hpQ, 1, hpS, hq, hr, hpGamma_u, 0, hGamma_b, 0, hGamma_b_q, H_r);
+
 			}
 
 		gettimeofday(&tv1, NULL); // start
@@ -481,27 +509,35 @@ int main()
 		double time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
 #if 1
-		for(ii=0; ii<N; ii++)	
-			d_print_pmat(nx, nx, bs, hpGamma_0[ii], cNnx);
+//		for(ii=0; ii<N; ii++)	
+//			d_print_pmat(nx, nx, bs, hpGamma_0[ii], cNnx);
 
-		for(ii=0; ii<N; ii++)	
-			d_print_pmat(nx, nx, bs, hpGamma_0_Q[ii], cNnx);
+//		for(ii=0; ii<N; ii++)	
+//			d_print_pmat(nx, nx, bs, hpGamma_0_Q[ii], cNnx);
 
 		d_print_pmat(nx, nx, bs, pH_Q, cnx);
 #endif
 
 #if 1
-		for(ii=0; ii<N; ii++)	
-			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u[ii], cNnx);
+//		for(ii=0; ii<N; ii++)	
+//			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u[ii], cNnx);
 
-		for(ii=0; ii<N; ii++)	
-			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u_Q[ii], cNnx);
+//		for(ii=0; ii<N; ii++)	
+//			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u_Q[ii], cNnx);
 
 		d_print_pmat(N*nu, N*nu, bs, pH_R, cNnu);
 #endif
 
 #if 1
 		d_print_pmat(nx, N*nu, bs, pH_S, cNnu);
+#endif
+
+#if 1
+		d_print_mat(1, nx, H_q, 1);
+#endif
+
+#if 1
+		d_print_mat(1, N*nu, H_r, 1);
 #endif
 
 		printf("\ntime = %e seconds\n", time);
@@ -522,9 +558,13 @@ int main()
 		free(dQ);
 		free(pR);
 		free(pS);
+		free(q);
+		free(r);
 		free(pH_R);
 		free(pH_Q);
 		free(pH_S);
+		free(H_q);
+		free(H_r);
 		free(work);
 		free(pGamma_u);
 		free(pGamma_u_Q);
@@ -538,6 +578,8 @@ int main()
 			//free(hpGamma_u_Q[ii]);
 			//free(hpGamma_0[ii]);
 			//free(hpGamma_0_Q[ii]);
+			free(hGamma_b[ii]);
+			free(hGamma_b_q[ii]);
 			free(hpL[ii]);
 			}
 		free(hpL[N]);

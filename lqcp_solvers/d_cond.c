@@ -286,7 +286,7 @@ void d_cond_S(int N, int nx, int nu, int nzero_S, double **pS, double **pGamma_0
 
 
 
-void d_cond_q(int N, int nx, int nu, double **pA, double **b,  double **pQ, double **q, double **Gamma_0, int compute_Gamma_b, double **Gamma_b, double **Gamma_b_q, double *h_q)
+void d_cond_q(int N, int nx, int nu, double **pA, double **b, int diag_Q, double **pQ, double **q, double **pGamma_0, int compute_Gamma_b, double **Gamma_b, int compute_Gamma_b_q, double **Gamma_b_q, double *H_q)
 	{
 
 	const int bs = D_MR;
@@ -309,20 +309,98 @@ void d_cond_q(int N, int nx, int nu, double **pA, double **b,  double **pQ, doub
 			}
 		}
 	
-	// Gamma_b * Q + q // TODO diagonal Q !!!!!!!!!!!!!
-	for(ii=0; ii<N; ii++)
+	// Gamma_b * Q + q
+	if(compute_Gamma_b_q)
 		{
-		dgemv_n_lib(nx, nx, pQ[ii+1], cnx, Gamma_b[ii], q[ii+1], Gamma_b_q[ii], 1); // TODO make dsymv 4 ways !!!!!!!!!!!!!!!!!!!
+		if(diag_Q)
+			{
+			for(ii=0; ii<N; ii++)
+				{
+				dgemv_diag_lib(nx, pQ[ii+1], Gamma_b[ii], q[ii+1], Gamma_b_q[ii], 1);
+				}
+			}
+		else
+			{
+			for(ii=0; ii<N; ii++)
+				{
+				//dgemv_n_lib(nx, nx, pQ[ii+1], cnx, Gamma_b[ii], q[ii+1], Gamma_b_q[ii], 1);
+				dsymv_lib(nx, nx, pQ[ii+1], cnx, Gamma_b[ii], q[ii+1], Gamma_b_q[ii], 1);
+				}
+			}
 		}
-	
-	//
-	d_copy_mat(nx, 1, q[0], 1, h_q, 1);
+		
+	// Gamma_0' * Gamma_b_q
+	d_copy_mat(nx, 1, q[0], 1, H_q, 1);
 	for(ii=0; ii<N; ii++)
 		{
-		dgemv_n_lib(nx, nx, Gamma_0[ii], cNnx, Gamma_b_q[ii], h_q, h_q, 1);
+		dgemv_t_lib(nx, nx, pGamma_0[ii], cNnx, Gamma_b_q[ii], H_q, H_q, 1);
 		}
 	
 	}
 
 
 
+void d_cond_r(int N, int nx, int nu, double **pA, double **b, int diag_Q, double **pQ, int nzero_S, double **pS, double **q, double **r, double **pGamma_u, int compute_Gamma_b, double **Gamma_b, int compute_Gamma_b_q, double **Gamma_b_q, double *H_r)
+	{
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int cnx = (nx+ncl-1)/ncl*ncl;
+	int cNnx = (N*nx+ncl-1)/ncl*ncl;
+
+	int ii;
+
+	// Gamma_b
+	if(compute_Gamma_b)
+		{
+		d_copy_mat(nx, 1, b[0], 1, Gamma_b[0], 1);
+		for(ii=1; ii<N; ii++)
+			{
+			dgemv_n_lib(nx, nx, pA[ii], cnx, Gamma_b[ii-1], b[ii], Gamma_b[ii], 1);
+			}
+		}
+
+	// barS * Gamma_b
+	if(nzero_S)
+		{
+		for(ii=0; ii<N; ii++)
+			{
+			dgemv_n_lib(nu, nx, pS[ii], cnx, Gamma_b[ii], r[ii], H_r+ii*nu, 1);
+			}
+		}
+	else
+		{
+		for(ii=0; ii<N; ii++)
+			{
+			d_copy_mat(nu, 1, r[ii], 1, H_r+ii*nu, 1);
+			}
+		}
+	
+	// Gamma_b * Q + q
+	if(compute_Gamma_b_q)
+		{
+		if(diag_Q)
+			{
+			for(ii=0; ii<N; ii++)
+				{
+				dgemv_diag_lib(nx, pQ[ii+1], Gamma_b[ii], q[ii+1], Gamma_b_q[ii], 1);
+				}
+			}
+		else
+			{
+			for(ii=0; ii<N; ii++)
+				{
+				//dgemv_n_lib(nx, nx, pQ[ii+1], cnx, Gamma_b[ii], q[ii+1], Gamma_b_q[ii], 1);
+				dsymv_lib(nx, nx, pQ[ii+1], cnx, Gamma_b[ii], q[ii+1], Gamma_b_q[ii], 1);
+				}
+			}
+		}
+
+	// Gamma_u * Gamma_b_q
+	for(ii=0; ii<N; ii++)
+		{
+		dgemv_n_lib((ii+1)*nu, nx, pGamma_u[ii], cNnx, Gamma_b_q[ii], H_r, H_r, 1);
+		}
+		
+	}

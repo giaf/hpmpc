@@ -47,3 +47,11 @@ void d_ric_trs_mhe_end(int nx, int nw, int ny, int N, double **hpA, double **hpG
 int d_ric_trf_mhe_if(int nx, int nw, int ndN, int N, double **hpQRAG, int diag_R, double **hpLe, double **hpLAG, double *Ld, double *work);
 void d_ric_trs_mhe_if(int nx, int nw, int ndN, int N, double **hpLe, double **hpLAG, double *Ld, double **hr, double **hq, double **hf, double **hxp, double **hx, double **hw, double **hlam, double *work);
 void d_res_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpRG, double *L0_inv, double **hq, double **hr, double **hf, double *p0, double **hx, double **hw, double **hlam, double **hrq, double **hrr, double **hrf, double *work);
+
+// condensing
+
+void d_cond_Q(int N, int nx, int nu, double **pA, int diag_Q, double **pQ, double **pL, int compute_Gamma_0, double **pGamma_0, double **pGamma_0_Q, double *pH_Q, double *work);
+void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, double **pBt, int diag_Q, double **pQ, int nzero_S, double **pS, double **pR, int compute_Gamma_u, double **pGamma_u, double **pGamma_u_Q, double **pGamma_u_Q_A, double *pH_R);
+void d_cond_S(int N, int nx, int nu, int nzero_S, double **pS, double **pGamma_0, double **pGamma_u_Q, double *pH_S);
+void d_cond_q(int N, int nx, int nu, double **pA, double **b, int diag_Q, double **pQ, double **q, double **pGamma_0, int compute_Gamma_b, double **Gamma_b, int compute_Gamma_b_q, double **Gamma_b_q, double *H_q);
+void d_cond_r(int N, int nx, int nu, double **pA, double **b, int diag_Q, double **pQ, int nzero_S, double **pS, double **q, double **r, double **pGamma_u, int compute_Gamma_b, double **Gamma_b, int compute_Gamma_b_q, double **Gamma_b_q, double *H_r);

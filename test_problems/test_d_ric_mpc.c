@@ -358,8 +358,8 @@ int main()
 //	d_print_mat(nx, 1, b, nx);
 //	d_print_mat(nx, 1, x0, nx);
 		
-		for(ii=0; ii<nx*nx; ii++) A[ii] = 0.0;
-		for(ii=0; ii<nx; ii++) A[ii*(nx+1)] = 1.0;
+		//for(ii=0; ii<nx*nx; ii++) A[ii] = 0.0;
+		//for(ii=0; ii<nx; ii++) A[ii*(nx+1)] = 1.0;
 	
 	/* packed */
 		double *BAb; d_zeros(&BAb, nx, nz);
@@ -1330,7 +1330,7 @@ int main()
 
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_sv_mpc_tv(nx_v, nu_v, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, nb_v, ng_v, dummy, dummy, dummy, 0);
+			d_ric_sv_mpc_tv(N, nx_v, nu_v, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy, 0);
 			}
 
 		gettimeofday(&tv6, NULL); // start
