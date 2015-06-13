@@ -55,3 +55,6 @@ void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, dou
 void d_cond_S(int N, int nx, int nu, int nzero_S, double **pS, double **pGamma_0, double **pGamma_u_Q, double *pH_S);
 void d_cond_q(int N, int nx, int nu, double **pA, double **b, int diag_Q, double **pQ, double **q, double **pGamma_0, int compute_Gamma_b, double **Gamma_b, int compute_Gamma_b_q, double **Gamma_b_q, double *H_q);
 void d_cond_r(int N, int nx, int nu, double **pA, double **b, int diag_Q, double **pQ, int nzero_S, double **pS, double **q, double **r, double **pGamma_u, int compute_Gamma_b, double **Gamma_b, int compute_Gamma_b_q, double **Gamma_b_q, double *H_r);
+void d_cond_A(int N, int nx, int nu, double **pA, int compute_Gamma_0, double **pGamma_0, double *pH_A);
+void d_cond_B(int N, int nx, int nu, double **pA, double **pB, int compute_Gamma_u, double **pGamma_u, double *pH_B);
+void d_cond_b(int N, int nx, int nu, double **pA, double **b, int compute_Gamma_b, double **Gamma_b, double *H_b);

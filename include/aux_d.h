@@ -29,6 +29,7 @@ void d_ones(double **pA, int row, int col);
 void d_ones_align(double **pA, int row, int col);
 void d_eye(double **pA, int row);
 void d_rep_mat(int reps, int row, int col, double *A, int lda, double *B, int ldb);
+void dax_mat(int row, int col, double alpha, double *A, int lda, double *B, int ldb);
 void d_copy_mat(int row, int col, double *A, int lda, double *B, int ldb);
 void d_copy_pmat(int row, int col, int bs, double *A, int sda, double *B, int sdb);
 void d_copy_pmat_l(int row, int bs, double *A, int sda, double *B, int sdb);

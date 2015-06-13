@@ -37,6 +37,7 @@
 #include "test_param.h"
 #include "../problem_size.h"
 #include "../include/aux_d.h"
+#include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_solvers.h"
 #include "../include/block_size.h"
@@ -289,7 +290,7 @@ int main()
 			{
 			nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 			nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-			N  = 5;//NN; // horizon lenght
+			N  = NN; // horizon lenght
 			nrep = NREP;
 			//nx = 25;
 			//nu = 1;
@@ -327,8 +328,8 @@ int main()
 
 		double *B; d_zeros(&B, nx, nu); // inputs matrix
 
-		double *b; d_zeros(&b, nx, 1); // states offset
-		double *x0; d_zeros(&x0, nx, 1); // initial state
+		double *b; d_zeros_align(&b, pnx, 1); // states offset
+		double *x0; d_zeros_align(&x0, pnx, 1); // initial state
 
 		double Ts = 0.5; // sampling time
 		mass_spring_system(Ts, nx, nu, N, A, B, b, x0);
@@ -340,10 +341,10 @@ int main()
 			x0[jj] = 0;
 		x0[0] = 3.5;
 		x0[1] = 3.5;
-	
-//		d_print_mat(nx, nx, A, nx);
-//		d_print_mat(nx, nu, B, nx);
-//		d_print_mat(nx, 1, b, nx);
+
+		d_print_mat(nx, nx, A, nx);
+		d_print_mat(nx, nu, B, nx);
+		d_print_mat(nx, 1, b, nx);
 //		d_print_mat(nx, 1, x0, nx);
 //		exit(1);
 
@@ -355,22 +356,29 @@ int main()
 		d_cvt_tran_mat2pmat(nx, nx, A, nx, 0, pAt, cnx);
 		//d_print_pmat(nx, nx, bs, pA, cnx);
 
+		double *pB; d_zeros_align(&pB, pnx, cnu);
+		d_cvt_mat2pmat(nx, nu, B, nx, 0, pB, cnu);
+		//d_print_pmat(nx, nu, bs, pB, cnu);
+
 		double *pBt; d_zeros_align(&pBt, pnu, cnx);
 		d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBt, cnx);
 		//d_print_pmat(nu, nx, bs, pBt, cnx);
 
+		double *b0; d_zeros_align(&b0, pnx, 1);
+		dgemv_n_lib(nx, nx, pA, cnx, x0, b, b0, 1);
+	
 /************************************************
 * cost function
 ************************************************/
 
 		double *Q; d_zeros(&Q, nx, nx);
 		for(ii=0; ii<nx; ii++)
-			Q[ii*(nx+1)] = 2.0;
+			Q[ii*(nx+1)] = 1.0;
 		//d_print_mat(nx, nx, Q, nx);
 
 		double *R; d_zeros(&R, nu, nu);
 		for(ii=0; ii<nu; ii++)
-			R[ii*(nu+1)] = 1.0;
+			R[ii*(nu+1)] = 2.0;
 		//d_print_mat(nu, nu, R, nu);
 
 		double *S; d_zeros(&S, nu, nx);
@@ -380,11 +388,11 @@ int main()
 
 		double *q; d_zeros(&q, nx, 1);
 		for(ii=0; ii<nx; ii++)
-			q[ii] = 0.0;
+			q[ii] = 0.5;
 
 		double *r; d_zeros(&r, nu, 1);
 		for(ii=0; ii<nu; ii++)
-			r[ii] = 0.0;
+			r[ii] = 0.2;
 
 		double *pQ; d_zeros_align(&pQ, pnx, cnx);
 		d_cvt_mat2pmat(nx, nx, Q, nx, 0, pQ, cnx);
@@ -424,29 +432,43 @@ int main()
 		double *(hq[N+1]);
 		double *(hr[N]);
 		double *(hpL[N+1]);
+		double *(hx[N+1]);
+		double *(hu[N]);
+		double *pH_A;
+		double *pH_B;
+		double *H_b;
 		double *pH_R;
 		double *pH_Q;
 		double *pH_S;
 		double *H_q;
 		double *H_r;
+		double *pL_R;
+		double *H_u;
 		double *work;
 		double *pGamma_u;
 		double *pGamma_u_Q;
 		double *pGamma_u_Q_A;
 		double *pGamma_0;
 		double *pGamma_0_Q;
+		double *diag;
 
+		d_zeros_align(&pH_A, pnx, cnx);
+		d_zeros_align(&pH_B, pnx, cNnu);
+		d_zeros_align(&H_b, pnx, 1);
 		d_zeros_align(&pH_R, pNnu, cNnu);
 		d_zeros_align(&pH_Q, pnx, cnx);
 		d_zeros_align(&pH_S, pnx, cNnu);
 		d_zeros_align(&H_q, pnx, 1);
 		d_zeros_align(&H_r, pNnu, 1);
+		d_zeros_align(&pL_R, pNnu, cNnu);
+		d_zeros_align(&H_u, pNnu, 1);
 		d_zeros_align(&work, pnx, 1);
 		d_zeros_align(&pGamma_u, pNnu, cNnx);
 		d_zeros_align(&pGamma_u_Q, pNnu, cNnx);
 		d_zeros_align(&pGamma_u_Q_A, pNnu, cNnx);
 		d_zeros_align(&pGamma_0, pnx, cNnx);
 		d_zeros_align(&pGamma_0_Q, pnx, cNnx);
+		d_zeros_align(&diag, cNnu, 1);
 		for(ii=0; ii<N; ii++)
 			{
 			hpA[ii] = pA;
@@ -471,11 +493,15 @@ int main()
 			hq[ii] = q;
 			hr[ii] = r;
 			d_zeros_align(&hpL[ii], pnx, cnx);;
+			d_zeros_align(&hx[ii], pnx, 1);
+			d_zeros_align(&hu[ii], pnu, 1);
 			}
 		hpQ[N] = pQ;
 		hdQ[N] = dQ;
 		hq[N] = q;
 		d_zeros_align(&hpL[N], pnx, cnx);;
+		d_zeros_align(&hx[N], pnx, 1);
+		hb[0] = b0; // embed x0 !!!!!
 
 /************************************************
 * condensing
@@ -493,7 +519,7 @@ int main()
 			d_cond_Q(N, nx, nu, hpA, 1, hdQ, hpL, 1, hpGamma_0, hpGamma_0_Q, pH_Q, work);
 			
 			//d_cond_R(N, nx, nu, hpA, hpAt, hpBt, 0, hpQ, 0, hpS, hpR, 1, hpGamma_u, hpGamma_u_Q, pH_R);
-			d_cond_R(N, nx, nu, 0, hpA, hpAt, hpBt, 1, hdQ, 0, hpS, hpR, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R);
+			d_cond_R(N, nx, nu, 1, hpA, hpAt, hpBt, 1, hdQ, 0, hpS, hpR, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R);
 
 			d_cond_S(N, nx, nu, 0, hpS, hpGamma_0, hpGamma_u_Q, pH_S);
 
@@ -502,11 +528,17 @@ int main()
 
 			d_cond_r(N, nx, nu, hpA, hb, 0, hpQ, 1, hpS, hq, hr, hpGamma_u, 0, hGamma_b, 0, hGamma_b_q, H_r);
 
+			d_cond_A(N, nx, nu, hpA, 0, hpGamma_0, pH_A);
+
+			d_cond_B(N, nx, nu, hpA, hpBt, 0, hpGamma_u, pH_B);
+
+			d_cond_b(N, nx, nu, hpA, hb, 0, hGamma_b, H_b);
+
 			}
 
 		gettimeofday(&tv1, NULL); // start
 
-		double time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+		double time_cond = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
 #if 1
 //		for(ii=0; ii<N; ii++)	
@@ -515,6 +547,7 @@ int main()
 //		for(ii=0; ii<N; ii++)	
 //			d_print_pmat(nx, nx, bs, hpGamma_0_Q[ii], cNnx);
 
+		printf("\nH_Q\n");
 		d_print_pmat(nx, nx, bs, pH_Q, cnx);
 #endif
 
@@ -525,22 +558,94 @@ int main()
 //		for(ii=0; ii<N; ii++)	
 //			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u_Q[ii], cNnx);
 
+		printf("\nH_R\n");
 		d_print_pmat(N*nu, N*nu, bs, pH_R, cNnu);
 #endif
 
 #if 1
+		printf("\nH_S\n");
 		d_print_pmat(nx, N*nu, bs, pH_S, cNnu);
 #endif
 
 #if 1
+		printf("\nH_q\n");
 		d_print_mat(1, nx, H_q, 1);
 #endif
 
 #if 1
+		printf("\nH_r\n");
 		d_print_mat(1, N*nu, H_r, 1);
 #endif
 
-		printf("\ntime = %e seconds\n", time);
+#if 1
+		printf("\nH_A\n");
+		d_print_pmat(nx, nx, bs, pH_A, cnx);
+#endif
+
+#if 1
+		printf("\nH_B\n");
+		d_print_pmat(nx, N*nu, bs, pH_B, cNnu);
+#endif
+
+#if 1
+		printf("\nH_b\n");
+		d_print_mat(1, nx, H_b, 1);
+#endif
+
+		gettimeofday(&tv0, NULL); // start
+
+		nrep = 100000;
+		for(rep=0; rep<nrep; rep++)
+			{
+
+			// Cholesky factorization and solution
+			dpotrf_lib(N*nu, N*nu, pH_R, cNnu, pL_R, cNnu, diag);
+
+			dax_mat(N*nu, 1, -1.0, H_r, 1, H_u, 1);
+
+#if 0
+			for(ii=0; ii<N*nu; ii++)
+				pL_R[ii/bs*bs*cNnu+ii%bs+ii*bs] = diag[ii];
+
+			dtrsv_n_lib(N*nu, N*nu, 1, pL_R, cNnu, H_u);
+			dtrsv_t_lib(N*nu, N*nu, 1, pL_R, cNnu, H_u);
+#else
+			dtrsv_n_lib(N*nu, N*nu, 0, pL_R, cNnu, H_u);
+			dtrsv_t_lib(N*nu, N*nu, 0, pL_R, cNnu, H_u);
+#endif
+			
+			for(jj=0; jj<N; jj++)
+				{
+				dgemv_n_lib(nx, nx, pA, cnx, hx[jj], hb[jj], hx[jj+1], 1);
+				d_copy_mat(nu, 1, H_u+jj*nu, 1, hu[jj], 1);
+				dgemv_n_lib(nx, nu, pB, cnu, hu[jj], hx[jj+1], hx[jj+1], 1);
+				}
+
+			}
+
+		gettimeofday(&tv1, NULL); // start
+
+		double time_fact_sol = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+#if 1
+		d_print_pmat(N*nu, N*nu, bs, pL_R, cNnu);
+#endif
+
+#if 1
+		d_print_mat(1, N*nu, H_u, 1);
+#endif
+
+#if 1
+		for(jj=0; jj<N; jj++)
+			d_print_mat(1, nu, hu[jj], 1);
+
+		for(jj=0; jj<=N; jj++)
+			d_print_mat(1, nx, hx[jj], 1);
+#endif
+
+		printf("\ntime condensing = %e seconds\n", time_cond);
+		printf("\ntime factorization & solution = %e seconds\n", time_fact_sol);
+		printf("\n\n");
 
 /************************************************
 * return
@@ -553,6 +658,7 @@ int main()
 		free(Q);
 		free(pA);
 		free(pAt);
+		free(pB);
 		free(pBt);
 		free(pQ);
 		free(dQ);
@@ -560,17 +666,23 @@ int main()
 		free(pS);
 		free(q);
 		free(r);
+		free(pH_A);
+		free(pH_B);
+		free(H_b);
 		free(pH_R);
 		free(pH_Q);
 		free(pH_S);
 		free(H_q);
 		free(H_r);
+		free(pL_R);
+		free(H_u);
 		free(work);
 		free(pGamma_u);
 		free(pGamma_u_Q);
 		free(pGamma_u_Q_A);
 		free(pGamma_0);
 		free(pGamma_0_Q);
+		free(diag);
 
 		for(ii=0; ii<N; ii++)
 			{

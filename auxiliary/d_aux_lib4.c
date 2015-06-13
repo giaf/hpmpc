@@ -127,6 +127,32 @@ void d_rep_mat(int reps, int row, int col, double *A, int lda, double *B, int ld
 
 
 
+/* copies and scales a matrix */
+void dax_mat(int row, int col, double alpha, double *A, int lda, double *B, int ldb)
+	{
+	
+	int i, j;
+	
+	for(j=0; j<col; j++)
+		{
+		i = 0;
+		for(; i<row-3; i+=4)
+			{
+			B[i+0+j*ldb] = alpha*A[i+0+j*lda];
+			B[i+1+j*ldb] = alpha*A[i+1+j*lda];
+			B[i+2+j*ldb] = alpha*A[i+2+j*lda];
+			B[i+3+j*ldb] = alpha*A[i+3+j*lda];
+			}
+		for(; i<row; i++)
+			{
+			B[i+j*ldb] = alpha*A[i+j*lda];
+			}
+		}
+	
+	}
+
+
+
 /* copies a matrix */
 void d_copy_mat(int row, int col, double *A, int lda, double *B, int ldb)
 	{

@@ -404,3 +404,93 @@ void d_cond_r(int N, int nx, int nu, double **pA, double **b, int diag_Q, double
 		}
 		
 	}
+
+
+void d_cond_A(int N, int nx, int nu, double **pA, int compute_Gamma_0, double **pGamma_0, double *pH_A)
+	{
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int cnx = (nx+ncl-1)/ncl*ncl;
+	int cNnx = (N*nx+ncl-1)/ncl*ncl;
+
+	int ii, jj;
+
+	if(compute_Gamma_0)
+		{
+		dgetr_lib(nx, nx, 0, pA[0], cnx, 0, pGamma_0[0], cNnx);
+		for(ii=1; ii<N; ii++)
+			{
+			dgemm_nt_lib(nx, nx, nx, pGamma_0[ii-1], cNnx, pA[ii], cnx, pGamma_0[ii], cNnx, pGamma_0[ii], cNnx, 0, 0, 0);
+			}
+		}
+	
+	dgetr_lib(nx, nx, 0, pGamma_0[N-1], cNnx, 0, pH_A, cnx);
+
+	}
+
+
+
+void d_cond_B(int N, int nx, int nu, double **pA, double **pBt, int compute_Gamma_u, double **pGamma_u, double *pH_B)
+	{
+	
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int cnx = (nx+ncl-1)/ncl*ncl;
+	int cnu = (nu+ncl-1)/ncl*ncl;
+	int cNnu = (N*nu+ncl-1)/ncl*ncl;
+	int cNnx = (N*nx+ncl-1)/ncl*ncl;
+
+	int ii, jj, offset, i_temp;
+
+	// Gamma_u
+	if(compute_Gamma_u)
+		{
+		dgecp_lib(nu, nx, 0, pBt[0], cnx, 0, pGamma_u[0], cNnx);
+		for(ii=1; ii<N; ii++)
+			{
+			offset = ii*nu;
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
+			dgemm_nt_lib(nx, ii*nu, nx, pA[ii], cnx, pGamma_u[ii-1], cNnx, pGamma_u[ii], cNnx, pGamma_u[ii], cNnx, 0, 0, 1); // (A * Gamma_u^T)^T
+#else
+			dgemm_nt_lib(ii*nu, nx, nx, pGamma_u[ii-1], cNnx, pA[ii], cnx, pGamma_u[ii], cNnx, pGamma_u[ii], cNnx, 0, 0, 0); // Gamma_u * A^T
+#endif
+			dgecp_lib(nu, nx, 0, pBt[ii], cnx, offset, pGamma_u[ii]+offset/bs*bs*cNnx+offset%bs, cNnx);
+			}
+		}
+	
+	dgetr_lib(N*nu, nx, 0, pGamma_u[N-1], cNnx, 0, pH_B, cNnu);
+
+	}
+
+
+
+void d_cond_b(int N, int nx, int nu, double **pA, double **b, int compute_Gamma_b, double **Gamma_b, double *H_b)
+	{
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int cnx = (nx+ncl-1)/ncl*ncl;
+	int cnu = (nu+ncl-1)/ncl*ncl;
+	int cNnu = (N*nu+ncl-1)/ncl*ncl;
+	int cNnx = (N*nx+ncl-1)/ncl*ncl;
+
+	int ii;
+
+	// Gamma_b
+	if(compute_Gamma_b)
+		{
+		d_copy_mat(nx, 1, b[0], 1, Gamma_b[0], 1);
+		for(ii=1; ii<N; ii++)
+			{
+			dgemv_n_lib(nx, nx, pA[ii], cnx, Gamma_b[ii-1], b[ii], Gamma_b[ii], 1);
+			}
+		}
+	
+	d_copy_mat(nx, 1, Gamma_b[N-1], 1, H_b, 1);
+	
+	}
+	
