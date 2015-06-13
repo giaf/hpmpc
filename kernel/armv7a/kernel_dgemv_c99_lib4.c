@@ -673,14 +673,14 @@ void kernel_dgemv_n_8_vs_lib4(int km, int kmax, double *A0, int sda, double *x, 
 		}
 	else // alg==-1
 		{
-		y_0 -= y[0];
-		y_1 -= y[1];
-		y_2 -= y[2];
-		y_3 -= y[3];
-		y_4 -= y[4];
-		y_5 -= y[5];
-		y_6 -= y[6];
-		y_7 -= y[7];
+		y_0 = y[0] - y_0;
+		y_1 = y[1] - y_1;
+		y_2 = y[2] - y_2;
+		y_3 = y[3] - y_3;
+		y_4 = y[4] - y_4;
+		y_5 = y[5] - y_5;
+		y_6 = y[6] - y_6;
+		y_7 = y[7] - y_7;
 
 		goto store;
 		}
@@ -961,10 +961,10 @@ void kernel_dgemv_n_4_vs_lib4(int km, int kmax, double *A, double *x, double *y,
 		}
 	else // alg==-1
 		{
-		y_0 -= y[0];
-		y_1 -= y[1];
-		y_2 -= y[2];
-		y_3 -= y[3];
+		y_0 = y[0] - y_0;
+		y_1 = y[1] - y_1;
+		y_2 = y[2] - y_2;
+		y_3 = y[3] - y_3;
 
 		goto store;
 		}

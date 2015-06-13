@@ -33,7 +33,7 @@
 
 
 // it moves horizontally inside a block
-void kernel_dtrsv_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y)
+void kernel_dtrsv_n_8_lib4(int kmax, int inverted_diag, double *A0, int sda, double *x, double *y)
 	{
 	
 	double *A1 = A0 + 4*sda;
@@ -165,130 +165,254 @@ void kernel_dtrsv_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y)
 	// solve
 
 	__m128d
-		zeros,
+		zeros, ones,
 		a_00, a_10, a_11, a_20_30, a_21_31,
 		z_0, z_1,
 		z_0_1, z_2_3, tmp0, tmp1;
 	
 	zeros = _mm_setzero_pd();
 	
-	// A_00
-	z_2_3 = _mm256_extractf128_pd( z_0_1_2_3, 0x1 );
-	z_0_1 = _mm256_castpd256_pd128( z_0_1_2_3 );
+	if(inverted_diag)
+		{
+		// A_00
+		z_2_3 = _mm256_extractf128_pd( z_0_1_2_3, 0x1 );
+		z_0_1 = _mm256_castpd256_pd128( z_0_1_2_3 );
 
-	a_00 = _mm_load_sd( &A0[0+lda*0] );
-	a_10 = _mm_load_sd( &A0[1+lda*0] );
-	a_11 = _mm_load_sd( &A0[1+lda*1] );
+		a_00 = _mm_load_sd( &A0[0+lda*0] );
+		a_10 = _mm_load_sd( &A0[1+lda*0] );
+		a_11 = _mm_load_sd( &A0[1+lda*1] );
 
-	z_0   = _mm_shuffle_pd( z_0_1, zeros, 0x0 );
-	z_1   = _mm_shuffle_pd( z_0_1, zeros, 0x1 );
-	z_0   = _mm_mul_sd( a_00, z_0 );
-	a_20_30 = _mm_load_pd( &A0[2+lda*0] );
-	a_21_31 = _mm_load_pd( &A0[2+lda*1] );
-	tmp0  = _mm_mul_sd( a_10, z_0 );
-	_mm_store_sd( &y[0], z_0 );
-	z_0   = _mm_movedup_pd( z_0 );
-	z_1   = _mm_sub_pd( z_1, tmp0 );
-	tmp0  = _mm_mul_pd( a_20_30, z_0 );
-	z_1   = _mm_mul_sd( a_11, z_1 );
-	z_2_3 = _mm_sub_pd( z_2_3, tmp0 );
-	_mm_store_sd( &y[1], z_1 );
-	z_1   = _mm_movedup_pd( z_1 );
-	tmp1  = _mm_mul_pd( a_21_31, z_1 );
-	z_2_3 = _mm_sub_pd( z_2_3, tmp1 );
-	
-	a_40_50_60_70 = _mm256_load_pd( &A1[0+lda*0] );
-	a_41_51_61_71 = _mm256_load_pd( &A1[0+lda*1] );
-	x_0   = _mm256_castpd128_pd256( z_0 );
-	x_1   = _mm256_castpd128_pd256( z_1 );
-	x_0   = _mm256_permute2f128_pd( x_0, x_0, 0x0 );
-	x_1   = _mm256_permute2f128_pd( x_1, x_1, 0x0 );
-	temp0 = _mm256_mul_pd( a_40_50_60_70, x_0 );
-	temp1 = _mm256_mul_pd( a_41_51_61_71, x_1 );
-	z_4_5_6_7 = _mm256_sub_pd( z_4_5_6_7, temp0 );
-	z_4_5_6_7 = _mm256_sub_pd( z_4_5_6_7, temp1 );
-	
-	
+		z_0   = _mm_shuffle_pd( z_0_1, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_0_1, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		a_20_30 = _mm_load_pd( &A0[2+lda*0] );
+		a_21_31 = _mm_load_pd( &A0[2+lda*1] );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[0], z_0 );
+		z_0   = _mm_movedup_pd( z_0 );
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		tmp0  = _mm_mul_pd( a_20_30, z_0 );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp0 );
+		_mm_store_sd( &y[1], z_1 );
+		z_1   = _mm_movedup_pd( z_1 );
+		tmp1  = _mm_mul_pd( a_21_31, z_1 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp1 );
+		
+		a_40_50_60_70 = _mm256_load_pd( &A1[0+lda*0] );
+		a_41_51_61_71 = _mm256_load_pd( &A1[0+lda*1] );
+		x_0   = _mm256_castpd128_pd256( z_0 );
+		x_1   = _mm256_castpd128_pd256( z_1 );
+		x_0   = _mm256_permute2f128_pd( x_0, x_0, 0x0 );
+		x_1   = _mm256_permute2f128_pd( x_1, x_1, 0x0 );
+		temp0 = _mm256_mul_pd( a_40_50_60_70, x_0 );
+		temp1 = _mm256_mul_pd( a_41_51_61_71, x_1 );
+		z_4_5_6_7 = _mm256_sub_pd( z_4_5_6_7, temp0 );
+		z_4_5_6_7 = _mm256_sub_pd( z_4_5_6_7, temp1 );
+		
+		
 
-	// A_11
-	a_00 = _mm_load_sd( &A0[2+lda*2] );
-	a_10 = _mm_load_sd( &A0[3+lda*2] );
-	a_11 = _mm_load_sd( &A0[3+lda*3] );
+		// A_11
+		a_00 = _mm_load_sd( &A0[2+lda*2] );
+		a_10 = _mm_load_sd( &A0[3+lda*2] );
+		a_11 = _mm_load_sd( &A0[3+lda*3] );
 
-	z_0   = _mm_shuffle_pd( z_2_3, zeros, 0x0 );
-	z_1   = _mm_shuffle_pd( z_2_3, zeros, 0x1 );
-	z_0   = _mm_mul_sd( a_00, z_0 );
-	tmp0  = _mm_mul_sd( a_10, z_0 );
-	_mm_store_sd( &y[2], z_0 );
-	z_0   = _mm_movedup_pd( z_0 );
-	z_1   = _mm_sub_pd( z_1, tmp0 );
-	z_1   = _mm_mul_sd( a_11, z_1 );
-	_mm_store_sd( &y[3], z_1 );
-	z_1   = _mm_movedup_pd( z_1 );
+		z_0   = _mm_shuffle_pd( z_2_3, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_2_3, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[2], z_0 );
+		z_0   = _mm_movedup_pd( z_0 );
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		_mm_store_sd( &y[3], z_1 );
+		z_1   = _mm_movedup_pd( z_1 );
 
-	a_40_50_60_70 = _mm256_load_pd( &A1[0+lda*2] );
-	a_41_51_61_71 = _mm256_load_pd( &A1[0+lda*3] );
-	x_0   = _mm256_castpd128_pd256( z_0 );
-	x_1   = _mm256_castpd128_pd256( z_1 );
-	x_0   = _mm256_permute2f128_pd( x_0, x_0, 0x0 );
-	x_1   = _mm256_permute2f128_pd( x_1, x_1, 0x0 );
-	temp0 = _mm256_mul_pd( a_40_50_60_70, x_0 );
-	temp1 = _mm256_mul_pd( a_41_51_61_71, x_1 );
-	z_4_5_6_7 = _mm256_sub_pd( z_4_5_6_7, temp0 );
-	z_4_5_6_7 = _mm256_sub_pd( z_4_5_6_7, temp1 );
-
-
-
-	// A_22
-	z_2_3 = _mm256_extractf128_pd( z_4_5_6_7, 0x1 );
-	z_0_1 = _mm256_castpd256_pd128( z_4_5_6_7 );
-
-	a_00 = _mm_load_sd( &A1[0+lda*4] );
-	a_10 = _mm_load_sd( &A1[1+lda*4] );
-	a_11 = _mm_load_sd( &A1[1+lda*5] );
-
-	z_0   = _mm_shuffle_pd( z_0_1, zeros, 0x0 );
-	z_1   = _mm_shuffle_pd( z_0_1, zeros, 0x1 );
-	z_0   = _mm_mul_sd( a_00, z_0 );
-	a_20_30 = _mm_load_pd( &A1[2+lda*4] );
-	a_21_31 = _mm_load_pd( &A1[2+lda*5] );
-	tmp0  = _mm_mul_sd( a_10, z_0 );
-	_mm_store_sd( &y[4], z_0 );
-	z_0   = _mm_movedup_pd( z_0 );
-	z_1   = _mm_sub_pd( z_1, tmp0 );
-	tmp0  = _mm_mul_pd( a_20_30, z_0 );
-	z_1   = _mm_mul_sd( a_11, z_1 );
-	z_2_3 = _mm_sub_pd( z_2_3, tmp0 );
-	_mm_store_sd( &y[5], z_1 );
-	z_1   = _mm_movedup_pd( z_1 );
-	tmp1  = _mm_mul_pd( a_21_31, z_1 );
-	z_2_3 = _mm_sub_pd( z_2_3, tmp1 );
+		a_40_50_60_70 = _mm256_load_pd( &A1[0+lda*2] );
+		a_41_51_61_71 = _mm256_load_pd( &A1[0+lda*3] );
+		x_0   = _mm256_castpd128_pd256( z_0 );
+		x_1   = _mm256_castpd128_pd256( z_1 );
+		x_0   = _mm256_permute2f128_pd( x_0, x_0, 0x0 );
+		x_1   = _mm256_permute2f128_pd( x_1, x_1, 0x0 );
+		temp0 = _mm256_mul_pd( a_40_50_60_70, x_0 );
+		temp1 = _mm256_mul_pd( a_41_51_61_71, x_1 );
+		z_4_5_6_7 = _mm256_sub_pd( z_4_5_6_7, temp0 );
+		z_4_5_6_7 = _mm256_sub_pd( z_4_5_6_7, temp1 );
 
 
 
-	// A_33
-	a_00 = _mm_load_sd( &A1[2+lda*6] );
-	a_10 = _mm_load_sd( &A1[3+lda*6] );
-	a_11 = _mm_load_sd( &A1[3+lda*7] );
+		// A_22
+		z_2_3 = _mm256_extractf128_pd( z_4_5_6_7, 0x1 );
+		z_0_1 = _mm256_castpd256_pd128( z_4_5_6_7 );
 
-	z_0   = _mm_shuffle_pd( z_2_3, zeros, 0x0 );
-	z_1   = _mm_shuffle_pd( z_2_3, zeros, 0x1 );
-	z_0   = _mm_mul_sd( a_00, z_0 );
-	tmp0  = _mm_mul_sd( a_10, z_0 );
-	_mm_store_sd( &y[6], z_0 );
-/*	z_0   = _mm_movedup_pd( z_0 );*/
-	z_1   = _mm_sub_pd( z_1, tmp0 );
-	z_1   = _mm_mul_sd( a_11, z_1 );
-	_mm_store_sd( &y[7], z_1 );
-/*	z_1   = _mm_movedup_pd( z_1 );*/
+		a_00 = _mm_load_sd( &A1[0+lda*4] );
+		a_10 = _mm_load_sd( &A1[1+lda*4] );
+		a_11 = _mm_load_sd( &A1[1+lda*5] );
 
+		z_0   = _mm_shuffle_pd( z_0_1, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_0_1, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		a_20_30 = _mm_load_pd( &A1[2+lda*4] );
+		a_21_31 = _mm_load_pd( &A1[2+lda*5] );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[4], z_0 );
+		z_0   = _mm_movedup_pd( z_0 );
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		tmp0  = _mm_mul_pd( a_20_30, z_0 );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp0 );
+		_mm_store_sd( &y[5], z_1 );
+		z_1   = _mm_movedup_pd( z_1 );
+		tmp1  = _mm_mul_pd( a_21_31, z_1 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp1 );
+
+
+
+		// A_33
+		a_00 = _mm_load_sd( &A1[2+lda*6] );
+		a_10 = _mm_load_sd( &A1[3+lda*6] );
+		a_11 = _mm_load_sd( &A1[3+lda*7] );
+
+		z_0   = _mm_shuffle_pd( z_2_3, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_2_3, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[6], z_0 );
+	/*	z_0   = _mm_movedup_pd( z_0 );*/
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		_mm_store_sd( &y[7], z_1 );
+	/*	z_1   = _mm_movedup_pd( z_1 );*/
+		}
+	else
+		{
+		ones  = _mm_set_pd( 1.0, 1.0 );
+
+		// A_00
+		z_2_3 = _mm256_extractf128_pd( z_0_1_2_3, 0x1 );
+		z_0_1 = _mm256_castpd256_pd128( z_0_1_2_3 );
+
+		a_00 = _mm_load_sd( &A0[0+lda*0] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		a_10 = _mm_load_sd( &A0[1+lda*0] );
+		a_11 = _mm_load_sd( &A0[1+lda*1] );
+		a_11 = _mm_div_sd( ones, a_11 );
+
+		z_0   = _mm_shuffle_pd( z_0_1, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_0_1, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		a_20_30 = _mm_load_pd( &A0[2+lda*0] );
+		a_21_31 = _mm_load_pd( &A0[2+lda*1] );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[0], z_0 );
+		z_0   = _mm_movedup_pd( z_0 );
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		tmp0  = _mm_mul_pd( a_20_30, z_0 );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp0 );
+		_mm_store_sd( &y[1], z_1 );
+		z_1   = _mm_movedup_pd( z_1 );
+		tmp1  = _mm_mul_pd( a_21_31, z_1 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp1 );
+		
+		a_40_50_60_70 = _mm256_load_pd( &A1[0+lda*0] );
+		a_41_51_61_71 = _mm256_load_pd( &A1[0+lda*1] );
+		x_0   = _mm256_castpd128_pd256( z_0 );
+		x_1   = _mm256_castpd128_pd256( z_1 );
+		x_0   = _mm256_permute2f128_pd( x_0, x_0, 0x0 );
+		x_1   = _mm256_permute2f128_pd( x_1, x_1, 0x0 );
+		temp0 = _mm256_mul_pd( a_40_50_60_70, x_0 );
+		temp1 = _mm256_mul_pd( a_41_51_61_71, x_1 );
+		z_4_5_6_7 = _mm256_sub_pd( z_4_5_6_7, temp0 );
+		z_4_5_6_7 = _mm256_sub_pd( z_4_5_6_7, temp1 );
+		
+		
+
+		// A_11
+		a_00 = _mm_load_sd( &A0[2+lda*2] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		a_10 = _mm_load_sd( &A0[3+lda*2] );
+		a_11 = _mm_load_sd( &A0[3+lda*3] );
+		a_11 = _mm_div_sd( ones, a_11 );
+
+		z_0   = _mm_shuffle_pd( z_2_3, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_2_3, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[2], z_0 );
+		z_0   = _mm_movedup_pd( z_0 );
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		_mm_store_sd( &y[3], z_1 );
+		z_1   = _mm_movedup_pd( z_1 );
+
+		a_40_50_60_70 = _mm256_load_pd( &A1[0+lda*2] );
+		a_41_51_61_71 = _mm256_load_pd( &A1[0+lda*3] );
+		x_0   = _mm256_castpd128_pd256( z_0 );
+		x_1   = _mm256_castpd128_pd256( z_1 );
+		x_0   = _mm256_permute2f128_pd( x_0, x_0, 0x0 );
+		x_1   = _mm256_permute2f128_pd( x_1, x_1, 0x0 );
+		temp0 = _mm256_mul_pd( a_40_50_60_70, x_0 );
+		temp1 = _mm256_mul_pd( a_41_51_61_71, x_1 );
+		z_4_5_6_7 = _mm256_sub_pd( z_4_5_6_7, temp0 );
+		z_4_5_6_7 = _mm256_sub_pd( z_4_5_6_7, temp1 );
+
+
+
+		// A_22
+		z_2_3 = _mm256_extractf128_pd( z_4_5_6_7, 0x1 );
+		z_0_1 = _mm256_castpd256_pd128( z_4_5_6_7 );
+
+		a_00 = _mm_load_sd( &A1[0+lda*4] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		a_10 = _mm_load_sd( &A1[1+lda*4] );
+		a_11 = _mm_load_sd( &A1[1+lda*5] );
+		a_11 = _mm_div_sd( ones, a_11 );
+
+		z_0   = _mm_shuffle_pd( z_0_1, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_0_1, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		a_20_30 = _mm_load_pd( &A1[2+lda*4] );
+		a_21_31 = _mm_load_pd( &A1[2+lda*5] );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[4], z_0 );
+		z_0   = _mm_movedup_pd( z_0 );
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		tmp0  = _mm_mul_pd( a_20_30, z_0 );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp0 );
+		_mm_store_sd( &y[5], z_1 );
+		z_1   = _mm_movedup_pd( z_1 );
+		tmp1  = _mm_mul_pd( a_21_31, z_1 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp1 );
+
+
+
+		// A_33
+		a_00 = _mm_load_sd( &A1[2+lda*6] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		a_10 = _mm_load_sd( &A1[3+lda*6] );
+		a_11 = _mm_load_sd( &A1[3+lda*7] );
+		a_11 = _mm_div_sd( ones, a_11 );
+
+		z_0   = _mm_shuffle_pd( z_2_3, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_2_3, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[6], z_0 );
+	/*	z_0   = _mm_movedup_pd( z_0 );*/
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		_mm_store_sd( &y[7], z_1 );
+	/*	z_1   = _mm_movedup_pd( z_1 );*/
+		}
 
 	}
 
 
 
 // it moves horizontally inside a block ( assume ksv>0 !!! )
-void kernel_dtrsv_n_4_lib4(int kmax, int ksv, double *A, double *x, double *y)
+void kernel_dtrsv_n_4_lib4(int kmax, int inverted_diag, double *A, double *x, double *y)
 	{
 
 /*	if(kmax<=0) */
@@ -350,7 +474,7 @@ void kernel_dtrsv_n_4_lib4(int kmax, int ksv, double *A, double *x, double *y)
 	// solve
 
 	__m128d
-		zeros,
+		zeros, ones,
 		a_00, a_10, a_11, a_20_30, a_21_31,
 		z_0, z_1,
 		z_0_1, z_2_3, tmp0, tmp1;
@@ -360,70 +484,346 @@ void kernel_dtrsv_n_4_lib4(int kmax, int ksv, double *A, double *x, double *y)
 	z_2_3 = _mm256_extractf128_pd( z_0_1_2_3, 0x1 );
 	z_0_1 = _mm256_castpd256_pd128( z_0_1_2_3 );
 
-	// a_00
-	a_00 = _mm_load_sd( &A[0+lda*0] );
-	a_10 = _mm_load_sd( &A[1+lda*0] );
-	z_0   = _mm_shuffle_pd( z_0_1, zeros, 0x0 );
-	z_1   = _mm_shuffle_pd( z_0_1, zeros, 0x1 );
-	z_0   = _mm_mul_sd( a_00, z_0 );
-	a_20_30 = _mm_load_pd( &A[2+lda*0] );
-	a_21_31 = _mm_load_pd( &A[2+lda*1] );
-	tmp0  = _mm_mul_sd( a_10, z_0 );
-	_mm_store_sd( &y[0], z_0 );
-	z_0   = _mm_movedup_pd( z_0 );
-	z_1   = _mm_sub_pd( z_1, tmp0 );
-	tmp0  = _mm_mul_pd( a_20_30, z_0 );
-	z_2_3 = _mm_sub_pd( z_2_3, tmp0 );
-	if(ksv==1)
+	if(inverted_diag)
 		{
+		// a_00
+		a_00 = _mm_load_sd( &A[0+lda*0] );
+		a_10 = _mm_load_sd( &A[1+lda*0] );
+		z_0   = _mm_shuffle_pd( z_0_1, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_0_1, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		a_20_30 = _mm_load_pd( &A[2+lda*0] );
+		a_21_31 = _mm_load_pd( &A[2+lda*1] );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[0], z_0 );
+		z_0   = _mm_movedup_pd( z_0 );
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		tmp0  = _mm_mul_pd( a_20_30, z_0 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp0 );
+		
+		// a_11
+		a_11 = _mm_load_sd( &A[1+lda*1] );
+		z_1   = _mm_mul_sd( a_11, z_1 );
 		_mm_store_sd( &y[1], z_1 );
-		_mm_store_pd( &y[2], z_2_3 );
-		return;
-		}
-	
-	// a_11
-	a_11 = _mm_load_sd( &A[1+lda*1] );
-	z_1   = _mm_mul_sd( a_11, z_1 );
-	_mm_store_sd( &y[1], z_1 );
-	z_1   = _mm_movedup_pd( z_1 );
-	tmp1  = _mm_mul_pd( a_21_31, z_1 );
-	z_2_3 = _mm_sub_pd( z_2_3, tmp1 );
-	if(ksv==2)
-		{
-		_mm_store_pd( &y[2], z_2_3 );
-		return;
-		}
+		z_1   = _mm_movedup_pd( z_1 );
+		tmp1  = _mm_mul_pd( a_21_31, z_1 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp1 );
 
-	// a_22
-	a_00 = _mm_load_sd( &A[2+lda*2] );
-	a_10 = _mm_load_sd( &A[3+lda*2] );
-	z_0   = _mm_shuffle_pd( z_2_3, zeros, 0x0 );
-	z_1   = _mm_shuffle_pd( z_2_3, zeros, 0x1 );
-	z_0   = _mm_mul_sd( a_00, z_0 );
-	tmp0  = _mm_mul_sd( a_10, z_0 );
-	_mm_store_sd( &y[2], z_0 );
-/*	z_0   = _mm_movedup_pd( z_0 );*/
-	z_1   = _mm_sub_pd( z_1, tmp0 );
-	if(ksv==3)
-		{
+		// a_22
+		a_00 = _mm_load_sd( &A[2+lda*2] );
+		a_10 = _mm_load_sd( &A[3+lda*2] );
+		z_0   = _mm_shuffle_pd( z_2_3, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_2_3, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[2], z_0 );
+	/*	z_0   = _mm_movedup_pd( z_0 );*/
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+
+		// a_33
+		a_11 = _mm_load_sd( &A[3+lda*3] );
+		z_1   = _mm_mul_sd( a_11, z_1 );
 		_mm_store_sd( &y[3], z_1 );
-		return;
+	/*	z_1   = _mm_movedup_pd( z_1 );*/
 		}
+	else
+		{
+		ones  = _mm_set_pd( 1.0, 1.0 );
 
-	// a_33
-	a_11 = _mm_load_sd( &A[3+lda*3] );
-	z_1   = _mm_mul_sd( a_11, z_1 );
-	_mm_store_sd( &y[3], z_1 );
-/*	z_1   = _mm_movedup_pd( z_1 );*/
-	
+		// a_00
+		a_00 = _mm_load_sd( &A[0+lda*0] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		a_10 = _mm_load_sd( &A[1+lda*0] );
+		z_0   = _mm_shuffle_pd( z_0_1, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_0_1, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		a_20_30 = _mm_load_pd( &A[2+lda*0] );
+		a_21_31 = _mm_load_pd( &A[2+lda*1] );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[0], z_0 );
+		z_0   = _mm_movedup_pd( z_0 );
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		tmp0  = _mm_mul_pd( a_20_30, z_0 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp0 );
+		
+		// a_11
+		a_11 = _mm_load_sd( &A[1+lda*1] );
+		a_11 = _mm_div_sd( ones, a_11 );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		_mm_store_sd( &y[1], z_1 );
+		z_1   = _mm_movedup_pd( z_1 );
+		tmp1  = _mm_mul_pd( a_21_31, z_1 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp1 );
+
+		// a_22
+		a_00 = _mm_load_sd( &A[2+lda*2] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		a_10 = _mm_load_sd( &A[3+lda*2] );
+		z_0   = _mm_shuffle_pd( z_2_3, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_2_3, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[2], z_0 );
+	/*	z_0   = _mm_movedup_pd( z_0 );*/
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+
+		// a_33
+		a_11 = _mm_load_sd( &A[3+lda*3] );
+		a_11 = _mm_div_sd( ones, a_11 );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		_mm_store_sd( &y[3], z_1 );
+	/*	z_1   = _mm_movedup_pd( z_1 );*/
+		}
 		
 
 	}
 
 
 
+// it moves horizontally inside a block ( assume ksv>0 !!! )
+void kernel_dtrsv_n_4_vs_lib4(int km, int kn, int kmax, int inverted_diag, double *A, double *x, double *y)
+	{
+
+/*	if(kmax<=0) */
+/*		return;*/
+	
+	const int lda = 4;
+	
+	int k;
+
+	__m256d
+		ax_temp,
+		a_00_10_20_30, a_01_11_21_31, a_02_12_22_32, a_03_13_23_33,
+		x_0, x_1, x_2, x_3,
+		y_0_1_2_3, y_0_1_2_3_b, y_0_1_2_3_c, y_0_1_2_3_d, z_0_1_2_3;
+	
+	y_0_1_2_3   = _mm256_setzero_pd();	
+	y_0_1_2_3_b = _mm256_setzero_pd();	
+	y_0_1_2_3_c = _mm256_setzero_pd();	
+	y_0_1_2_3_d = _mm256_setzero_pd();	
+
+	k=0;
+	for(; k<kmax-3; k+=4)
+		{
+
+		x_0 = _mm256_broadcast_sd( &x[0] );
+		x_1 = _mm256_broadcast_sd( &x[1] );
+
+		a_00_10_20_30 = _mm256_load_pd( &A[0+lda*0] );
+		a_01_11_21_31 = _mm256_load_pd( &A[0+lda*1] );
+
+		x_2 = _mm256_broadcast_sd( &x[2] );
+		x_3 = _mm256_broadcast_sd( &x[3] );
+
+		a_02_12_22_32 = _mm256_load_pd( &A[0+lda*2] );
+		a_03_13_23_33 = _mm256_load_pd( &A[0+lda*3] );
+
+		ax_temp = _mm256_mul_pd( a_00_10_20_30, x_0 );
+		y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, ax_temp );
+		ax_temp = _mm256_mul_pd( a_01_11_21_31, x_1 );
+		y_0_1_2_3_b = _mm256_add_pd( y_0_1_2_3_b, ax_temp );
+
+		ax_temp = _mm256_mul_pd( a_02_12_22_32, x_2 );
+		y_0_1_2_3_c = _mm256_add_pd( y_0_1_2_3_c, ax_temp );
+		ax_temp = _mm256_mul_pd( a_03_13_23_33, x_3 );
+		y_0_1_2_3_d = _mm256_add_pd( y_0_1_2_3_d, ax_temp );
+		
+		A += 4*lda;
+		x += 4;
+
+		}
+	
+	y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, y_0_1_2_3_c );
+	y_0_1_2_3_b = _mm256_add_pd( y_0_1_2_3_b, y_0_1_2_3_d );
+	y_0_1_2_3 = _mm256_add_pd( y_0_1_2_3, y_0_1_2_3_b );
+
+	z_0_1_2_3 = _mm256_loadu_pd( &y[0] );
+	z_0_1_2_3 = _mm256_sub_pd ( z_0_1_2_3, y_0_1_2_3 );
+	
+	// solve
+
+	__m128d
+		zeros, ones,
+		a_00, a_10, a_11, a_20_30, a_21_31,
+		z_0, z_1,
+		z_0_1, z_2_3, tmp0, tmp1;
+	
+	zeros = _mm_setzero_pd();
+	
+	z_2_3 = _mm256_extractf128_pd( z_0_1_2_3, 0x1 );
+	z_0_1 = _mm256_castpd256_pd128( z_0_1_2_3 );
+
+	if(inverted_diag)
+		{
+		// a_00
+		a_00 = _mm_load_sd( &A[0+lda*0] );
+		a_10 = _mm_load_sd( &A[1+lda*0] );
+		z_0   = _mm_shuffle_pd( z_0_1, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_0_1, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		a_20_30 = _mm_load_pd( &A[2+lda*0] );
+		a_21_31 = _mm_load_pd( &A[2+lda*1] );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[0], z_0 );
+		z_0   = _mm_movedup_pd( z_0 );
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		tmp0  = _mm_mul_pd( a_20_30, z_0 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp0 );
+		if(kn==1)
+			{
+			if(km==1)
+				return;
+			if(km<3) // km==2
+				{
+				_mm_store_sd( &y[1], z_1 );
+				}
+			else if(km==3)
+				{
+				_mm_store_sd( &y[1], z_1 );
+				_mm_store_sd( &y[2], z_2_3 );
+				}
+			else // km>=4
+				{
+				_mm_store_sd( &y[1], z_1 );
+				_mm_store_pd( &y[2], z_2_3 );
+				}
+			return;
+			}
+		
+		// a_11
+		a_11 = _mm_load_sd( &A[1+lda*1] );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		_mm_store_sd( &y[1], z_1 );
+		z_1   = _mm_movedup_pd( z_1 );
+		tmp1  = _mm_mul_pd( a_21_31, z_1 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp1 );
+		if(kn==2)
+			{
+			if(km==2)
+				return;
+			if(km==3)
+				_mm_store_sd( &y[2], z_2_3 );
+			else // km>=4
+				_mm_store_pd( &y[2], z_2_3 );
+			return;
+			}
+
+		// a_22
+		a_00 = _mm_load_sd( &A[2+lda*2] );
+		a_10 = _mm_load_sd( &A[3+lda*2] );
+		z_0   = _mm_shuffle_pd( z_2_3, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_2_3, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[2], z_0 );
+	/*	z_0   = _mm_movedup_pd( z_0 );*/
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		if(kn==3)
+			{
+			if(km==3)
+				return;
+			_mm_store_sd( &y[3], z_1 );
+			return;
+			}
+
+		// a_33
+		a_11 = _mm_load_sd( &A[3+lda*3] );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		_mm_store_sd( &y[3], z_1 );
+	/*	z_1   = _mm_movedup_pd( z_1 );*/
+		}
+	else
+		{
+		ones  = _mm_set_pd( 1.0, 1.0 );
+
+		// a_00
+		a_00 = _mm_load_sd( &A[0+lda*0] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		a_10 = _mm_load_sd( &A[1+lda*0] );
+		z_0   = _mm_shuffle_pd( z_0_1, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_0_1, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		a_20_30 = _mm_load_pd( &A[2+lda*0] );
+		a_21_31 = _mm_load_pd( &A[2+lda*1] );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[0], z_0 );
+		z_0   = _mm_movedup_pd( z_0 );
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		tmp0  = _mm_mul_pd( a_20_30, z_0 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp0 );
+		if(kn==1)
+			{
+			if(km==1)
+				return;
+			if(km<3) // km==2
+				{
+				_mm_store_sd( &y[1], z_1 );
+				}
+			else if(km==3)
+				{
+				_mm_store_sd( &y[1], z_1 );
+				_mm_store_sd( &y[2], z_2_3 );
+				}
+			else // km>=4
+				{
+				_mm_store_sd( &y[1], z_1 );
+				_mm_store_pd( &y[2], z_2_3 );
+				}
+			return;
+			}
+		
+		// a_11
+		a_11 = _mm_load_sd( &A[1+lda*1] );
+		a_11 = _mm_div_sd( ones, a_11 );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		_mm_store_sd( &y[1], z_1 );
+		z_1   = _mm_movedup_pd( z_1 );
+		tmp1  = _mm_mul_pd( a_21_31, z_1 );
+		z_2_3 = _mm_sub_pd( z_2_3, tmp1 );
+		if(kn==2)
+			{
+			if(km==2)
+				return;
+			if(km==3)
+				_mm_store_sd( &y[2], z_2_3 );
+			else // km>=4
+				_mm_store_pd( &y[2], z_2_3 );
+			return;
+			}
+
+		// a_22
+		a_00 = _mm_load_sd( &A[2+lda*2] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		a_10 = _mm_load_sd( &A[3+lda*2] );
+		z_0   = _mm_shuffle_pd( z_2_3, zeros, 0x0 );
+		z_1   = _mm_shuffle_pd( z_2_3, zeros, 0x1 );
+		z_0   = _mm_mul_sd( a_00, z_0 );
+		tmp0  = _mm_mul_sd( a_10, z_0 );
+		_mm_store_sd( &y[2], z_0 );
+	/*	z_0   = _mm_movedup_pd( z_0 );*/
+		z_1   = _mm_sub_pd( z_1, tmp0 );
+		if(kn==3)
+			{
+			if(km==3)
+				return;
+			_mm_store_sd( &y[3], z_1 );
+			return;
+			}
+
+		// a_33
+		a_11 = _mm_load_sd( &A[3+lda*3] );
+		a_11 = _mm_div_sd( ones, a_11 );
+		z_1   = _mm_mul_sd( a_11, z_1 );
+		_mm_store_sd( &y[3], z_1 );
+	/*	z_1   = _mm_movedup_pd( z_1 );*/
+		}
+
+	}
+
+
+
 // it moves vertically across blocks
-void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
+void kernel_dtrsv_t_4_lib4(int kmax, int inverted_diag, double *A, int sda, double *x)
 	{
 
 	if(kmax<=0) 
@@ -453,6 +853,7 @@ void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
 	
 	__m128d
 /*		tmp,*/
+		ones, 
 		a_00, a_10, a_11, a_20_30, a_21_31,
 		y_2_3,
 		z_0, z_1, z_2, z_3,
@@ -600,57 +1001,113 @@ void kernel_dtrsv_t_4_lib4(int kmax, double *A, int sda, double *x)
 		y_3 = _mm_setzero_pd();
 		}
 		
-	// bottom trinagle
-	z_3  = _mm_load_sd( &x[3] );
-	y_3  = _mm_hadd_pd( y_3, y_3 );
-	a_11 = _mm_load_sd( &A[3+lda*3] );
-	y_3  = _mm_sub_sd( z_3, y_3 );
-	y_3  = _mm_mul_sd( y_3, a_11 );
-	_mm_store_sd( &x[3], y_3 );
+	if(inverted_diag)
+		{
+		// bottom trinagle
+		z_3  = _mm_load_sd( &x[3] );
+		y_3  = _mm_hadd_pd( y_3, y_3 );
+		a_11 = _mm_load_sd( &A[3+lda*3] );
+		y_3  = _mm_sub_sd( z_3, y_3 );
+		y_3  = _mm_mul_sd( y_3, a_11 );
+		_mm_store_sd( &x[3], y_3 );
 
-	a_10 = _mm_load_sd( &A[3+lda*2] );
-	a_10 = _mm_mul_sd( a_10, y_3 );
-	z_2  = _mm_load_sd( &x[2] );
-	y_2  = _mm_hadd_pd( y_2, y_2 );
-	z_2  = _mm_sub_sd( z_2, a_10 );
-	a_00 = _mm_load_sd( &A[2+lda*2] );
-	y_2  = _mm_sub_sd( z_2, y_2 );
-	y_2  = _mm_mul_sd( y_2, a_00 );
-	_mm_store_sd( &x[2], y_2 );
+		a_10 = _mm_load_sd( &A[3+lda*2] );
+		a_10 = _mm_mul_sd( a_10, y_3 );
+		z_2  = _mm_load_sd( &x[2] );
+		y_2  = _mm_hadd_pd( y_2, y_2 );
+		z_2  = _mm_sub_sd( z_2, a_10 );
+		a_00 = _mm_load_sd( &A[2+lda*2] );
+		y_2  = _mm_sub_sd( z_2, y_2 );
+		y_2  = _mm_mul_sd( y_2, a_00 );
+		_mm_store_sd( &x[2], y_2 );
 
-	// square
-	y_2_3   = _mm_shuffle_pd( y_2, y_3, 0x0 );
-	a_20_30 = _mm_load_pd( &A[2+lda*0] );
-	a_21_31 = _mm_load_pd( &A[2+lda*1] );
-	a_20_30 = _mm_mul_pd( a_20_30, y_2_3 );
-	a_21_31 = _mm_mul_pd( a_21_31, y_2_3 );
-	y_0     = _mm_add_pd( y_0, a_20_30 );
-	y_1     = _mm_add_pd( y_1, a_21_31 );
-		
-	// top trinagle
-	z_1  = _mm_load_sd( &x[1] );
-	y_1  = _mm_hadd_pd( y_1, y_1 );
-	a_11 = _mm_load_sd( &A[1+lda*1] );
-	y_1  = _mm_sub_sd( z_1, y_1 );
-	y_1  = _mm_mul_sd( y_1, a_11 );
-	_mm_store_sd( &x[1], y_1 );
+		// square
+		y_2_3   = _mm_shuffle_pd( y_2, y_3, 0x0 );
+		a_20_30 = _mm_load_pd( &A[2+lda*0] );
+		a_21_31 = _mm_load_pd( &A[2+lda*1] );
+		a_20_30 = _mm_mul_pd( a_20_30, y_2_3 );
+		a_21_31 = _mm_mul_pd( a_21_31, y_2_3 );
+		y_0     = _mm_add_pd( y_0, a_20_30 );
+		y_1     = _mm_add_pd( y_1, a_21_31 );
+			
+		// top trinagle
+		z_1  = _mm_load_sd( &x[1] );
+		y_1  = _mm_hadd_pd( y_1, y_1 );
+		a_11 = _mm_load_sd( &A[1+lda*1] );
+		y_1  = _mm_sub_sd( z_1, y_1 );
+		y_1  = _mm_mul_sd( y_1, a_11 );
+		_mm_store_sd( &x[1], y_1 );
 
-	a_10 = _mm_load_sd( &A[1+lda*0] );
-	a_10 = _mm_mul_sd( a_10, y_1 );
-	z_0  = _mm_load_sd( &x[0] );
-	y_0  = _mm_hadd_pd( y_0, y_0 );
-	z_0  = _mm_sub_sd( z_0, a_10 );
-	a_00 = _mm_load_sd( &A[0+lda*0] );
-	y_0  = _mm_sub_sd( z_0, y_0 );
-	y_0  = _mm_mul_sd( y_0, a_00 );
-	_mm_store_sd( &x[0], y_0 );
+		a_10 = _mm_load_sd( &A[1+lda*0] );
+		a_10 = _mm_mul_sd( a_10, y_1 );
+		z_0  = _mm_load_sd( &x[0] );
+		y_0  = _mm_hadd_pd( y_0, y_0 );
+		z_0  = _mm_sub_sd( z_0, a_10 );
+		a_00 = _mm_load_sd( &A[0+lda*0] );
+		y_0  = _mm_sub_sd( z_0, y_0 );
+		y_0  = _mm_mul_sd( y_0, a_00 );
+		_mm_store_sd( &x[0], y_0 );
+		}
+	else
+		{
+		ones = _mm_set_pd( 1.0, 1.0 );
+
+		// bottom trinagle
+		z_3  = _mm_load_sd( &x[3] );
+		y_3  = _mm_hadd_pd( y_3, y_3 );
+		a_11 = _mm_load_sd( &A[3+lda*3] );
+		a_11 = _mm_div_sd( ones, a_11 );
+		y_3  = _mm_sub_sd( z_3, y_3 );
+		y_3  = _mm_mul_sd( y_3, a_11 );
+		_mm_store_sd( &x[3], y_3 );
+
+		a_10 = _mm_load_sd( &A[3+lda*2] );
+		a_10 = _mm_mul_sd( a_10, y_3 );
+		z_2  = _mm_load_sd( &x[2] );
+		y_2  = _mm_hadd_pd( y_2, y_2 );
+		z_2  = _mm_sub_sd( z_2, a_10 );
+		a_00 = _mm_load_sd( &A[2+lda*2] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		y_2  = _mm_sub_sd( z_2, y_2 );
+		y_2  = _mm_mul_sd( y_2, a_00 );
+		_mm_store_sd( &x[2], y_2 );
+
+		// square
+		y_2_3   = _mm_shuffle_pd( y_2, y_3, 0x0 );
+		a_20_30 = _mm_load_pd( &A[2+lda*0] );
+		a_21_31 = _mm_load_pd( &A[2+lda*1] );
+		a_20_30 = _mm_mul_pd( a_20_30, y_2_3 );
+		a_21_31 = _mm_mul_pd( a_21_31, y_2_3 );
+		y_0     = _mm_add_pd( y_0, a_20_30 );
+		y_1     = _mm_add_pd( y_1, a_21_31 );
+			
+		// top trinagle
+		z_1  = _mm_load_sd( &x[1] );
+		y_1  = _mm_hadd_pd( y_1, y_1 );
+		a_11 = _mm_load_sd( &A[1+lda*1] );
+		a_11 = _mm_div_sd( ones, a_11 );
+		y_1  = _mm_sub_sd( z_1, y_1 );
+		y_1  = _mm_mul_sd( y_1, a_11 );
+		_mm_store_sd( &x[1], y_1 );
+
+		a_10 = _mm_load_sd( &A[1+lda*0] );
+		a_10 = _mm_mul_sd( a_10, y_1 );
+		z_0  = _mm_load_sd( &x[0] );
+		y_0  = _mm_hadd_pd( y_0, y_0 );
+		z_0  = _mm_sub_sd( z_0, a_10 );
+		a_00 = _mm_load_sd( &A[0+lda*0] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		y_0  = _mm_sub_sd( z_0, y_0 );
+		y_0  = _mm_mul_sd( y_0, a_00 );
+		_mm_store_sd( &x[0], y_0 );
+		}
 
 	}
 
 
 
 // it moves vertically across blocks
-void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
+void kernel_dtrsv_t_3_lib4(int kmax, int inverted_diag, double *A, int sda, double *x)
 	{
 
 	if(kmax<=0) 
@@ -680,6 +1137,7 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 	
 	__m128d
 		tmp,
+		ones, 
 		a_00, a_01, a_02, a_10, a_11, a_20, a_21,
 		x_0,
 		y_2_3,
@@ -856,46 +1314,90 @@ void kernel_dtrsv_t_3_lib4(int kmax, double *A, int sda, double *x)
 	A = tA;
 	x = tx;
 	
-	// bottom trinagle
-	z_2  = _mm_load_sd( &x[2] );
-	y_2  = _mm_hadd_pd( y_2, y_2 );
-	a_00 = _mm_load_sd( &A[2+lda*2] );
-	y_2  = _mm_sub_sd( z_2, y_2 );
-	y_2  = _mm_mul_sd( y_2, a_00 );
-	_mm_store_sd( &x[2], y_2 );
+	if(inverted_diag)
+		{
+		// bottom trinagle
+		z_2  = _mm_load_sd( &x[2] );
+		y_2  = _mm_hadd_pd( y_2, y_2 );
+		a_00 = _mm_load_sd( &A[2+lda*2] );
+		y_2  = _mm_sub_sd( z_2, y_2 );
+		y_2  = _mm_mul_sd( y_2, a_00 );
+		_mm_store_sd( &x[2], y_2 );
 
-	// square
-	a_20 = _mm_load_sd( &A[2+lda*0] );
-	a_21 = _mm_load_sd( &A[2+lda*1] );
-	a_20 = _mm_mul_sd( a_20, y_2 );
-	a_21 = _mm_mul_sd( a_21, y_2 );
-	y_0  = _mm_add_sd( y_0, a_20 );
-	y_1  = _mm_add_sd( y_1, a_21 );
-		
-	// top trinagle
-	z_1  = _mm_load_sd( &x[1] );
-	y_1  = _mm_hadd_pd( y_1, y_1 );
-	a_11 = _mm_load_sd( &A[1+lda*1] );
-	y_1  = _mm_sub_sd( z_1, y_1 );
-	y_1  = _mm_mul_sd( y_1, a_11 );
-	_mm_store_sd( &x[1], y_1 );
+		// square
+		a_20 = _mm_load_sd( &A[2+lda*0] );
+		a_21 = _mm_load_sd( &A[2+lda*1] );
+		a_20 = _mm_mul_sd( a_20, y_2 );
+		a_21 = _mm_mul_sd( a_21, y_2 );
+		y_0  = _mm_add_sd( y_0, a_20 );
+		y_1  = _mm_add_sd( y_1, a_21 );
+			
+		// top trinagle
+		z_1  = _mm_load_sd( &x[1] );
+		y_1  = _mm_hadd_pd( y_1, y_1 );
+		a_11 = _mm_load_sd( &A[1+lda*1] );
+		y_1  = _mm_sub_sd( z_1, y_1 );
+		y_1  = _mm_mul_sd( y_1, a_11 );
+		_mm_store_sd( &x[1], y_1 );
 
-	a_10 = _mm_load_sd( &A[1+lda*0] );
-	a_10 = _mm_mul_sd( a_10, y_1 );
-	z_0  = _mm_load_sd( &x[0] );
-	y_0  = _mm_hadd_pd( y_0, y_0 );
-	z_0  = _mm_sub_sd( z_0, a_10 );
-	a_00 = _mm_load_sd( &A[0+lda*0] );
-	y_0  = _mm_sub_sd( z_0, y_0 );
-	y_0  = _mm_mul_sd( y_0, a_00 );
-	_mm_store_sd( &x[0], y_0 );
+		a_10 = _mm_load_sd( &A[1+lda*0] );
+		a_10 = _mm_mul_sd( a_10, y_1 );
+		z_0  = _mm_load_sd( &x[0] );
+		y_0  = _mm_hadd_pd( y_0, y_0 );
+		z_0  = _mm_sub_sd( z_0, a_10 );
+		a_00 = _mm_load_sd( &A[0+lda*0] );
+		y_0  = _mm_sub_sd( z_0, y_0 );
+		y_0  = _mm_mul_sd( y_0, a_00 );
+		_mm_store_sd( &x[0], y_0 );
+		}
+	else
+		{
+		ones = _mm_set_pd( 1.0, 1.0 );
+
+		// bottom trinagle
+		z_2  = _mm_load_sd( &x[2] );
+		y_2  = _mm_hadd_pd( y_2, y_2 );
+		a_00 = _mm_load_sd( &A[2+lda*2] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		y_2  = _mm_sub_sd( z_2, y_2 );
+		y_2  = _mm_mul_sd( y_2, a_00 );
+		_mm_store_sd( &x[2], y_2 );
+
+		// square
+		a_20 = _mm_load_sd( &A[2+lda*0] );
+		a_21 = _mm_load_sd( &A[2+lda*1] );
+		a_20 = _mm_mul_sd( a_20, y_2 );
+		a_21 = _mm_mul_sd( a_21, y_2 );
+		y_0  = _mm_add_sd( y_0, a_20 );
+		y_1  = _mm_add_sd( y_1, a_21 );
+			
+		// top trinagle
+		z_1  = _mm_load_sd( &x[1] );
+		y_1  = _mm_hadd_pd( y_1, y_1 );
+		a_11 = _mm_load_sd( &A[1+lda*1] );
+		a_11 = _mm_div_sd( ones, a_11 );
+		y_1  = _mm_sub_sd( z_1, y_1 );
+		y_1  = _mm_mul_sd( y_1, a_11 );
+		_mm_store_sd( &x[1], y_1 );
+
+		a_10 = _mm_load_sd( &A[1+lda*0] );
+		a_10 = _mm_mul_sd( a_10, y_1 );
+		z_0  = _mm_load_sd( &x[0] );
+		y_0  = _mm_hadd_pd( y_0, y_0 );
+		z_0  = _mm_sub_sd( z_0, a_10 );
+		a_00 = _mm_load_sd( &A[0+lda*0] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		y_0  = _mm_sub_sd( z_0, y_0 );
+		y_0  = _mm_mul_sd( y_0, a_00 );
+		_mm_store_sd( &x[0], y_0 );
+		}
 
 	}
 
 
 
 // it moves vertically across blocks (A is supposed to be aligned)
-void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
+void kernel_dtrsv_t_2_lib4(int kmax, int inverted_diag, double *A, int sda, double *x)
 	{
 
 	if(kmax<=0) 
@@ -925,6 +1427,7 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 	
 	__m128d
 		tmp,
+		ones,
 		a_00, a_01, a_10, a_11,
 		x_0,
 		z_0, z_1,
@@ -1081,30 +1584,56 @@ void kernel_dtrsv_t_2_lib4(int kmax, double *A, int sda, double *x)
 		
 	//
 	
-	// bottom trinagle
-	z_1  = _mm_load_sd( &x[1] );
-	y_1  = _mm_hadd_pd( y_1, y_1 );
-	a_11 = _mm_load_sd( &A[1+lda*1] );
-	y_1  = _mm_sub_sd( z_1, y_1 );
-	y_1  = _mm_mul_sd( y_1, a_11 );
-	_mm_store_sd( &x[1], y_1 );
+	if(inverted_diag)
+		{
+		// bottom trinagle
+		z_1  = _mm_load_sd( &x[1] );
+		y_1  = _mm_hadd_pd( y_1, y_1 );
+		a_11 = _mm_load_sd( &A[1+lda*1] );
+		y_1  = _mm_sub_sd( z_1, y_1 );
+		y_1  = _mm_mul_sd( y_1, a_11 );
+		_mm_store_sd( &x[1], y_1 );
 
-	a_10 = _mm_load_sd( &A[1+lda*0] );
-	a_10 = _mm_mul_sd( a_10, y_1 );
-	z_0  = _mm_load_sd( &x[0] );
-	y_0  = _mm_hadd_pd( y_0, y_0 );
-	z_0  = _mm_sub_sd( z_0, a_10 );
-	a_00 = _mm_load_sd( &A[0+lda*0] );
-	y_0  = _mm_sub_sd( z_0, y_0 );
-	y_0  = _mm_mul_sd( y_0, a_00 );
-	_mm_store_sd( &x[0], y_0 );
+		a_10 = _mm_load_sd( &A[1+lda*0] );
+		a_10 = _mm_mul_sd( a_10, y_1 );
+		z_0  = _mm_load_sd( &x[0] );
+		y_0  = _mm_hadd_pd( y_0, y_0 );
+		z_0  = _mm_sub_sd( z_0, a_10 );
+		a_00 = _mm_load_sd( &A[0+lda*0] );
+		y_0  = _mm_sub_sd( z_0, y_0 );
+		y_0  = _mm_mul_sd( y_0, a_00 );
+		_mm_store_sd( &x[0], y_0 );
+		}
+	else
+		{
+		ones = _mm_set_pd( 1.0, 1.0 );
+		// bottom trinagle
+		z_1  = _mm_load_sd( &x[1] );
+		y_1  = _mm_hadd_pd( y_1, y_1 );
+		a_11 = _mm_load_sd( &A[1+lda*1] );
+		a_11 = _mm_div_sd( ones, a_11 );
+		y_1  = _mm_sub_sd( z_1, y_1 );
+		y_1  = _mm_mul_sd( y_1, a_11 );
+		_mm_store_sd( &x[1], y_1 );
+
+		a_10 = _mm_load_sd( &A[1+lda*0] );
+		a_10 = _mm_mul_sd( a_10, y_1 );
+		z_0  = _mm_load_sd( &x[0] );
+		y_0  = _mm_hadd_pd( y_0, y_0 );
+		z_0  = _mm_sub_sd( z_0, a_10 );
+		a_00 = _mm_load_sd( &A[0+lda*0] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		y_0  = _mm_sub_sd( z_0, y_0 );
+		y_0  = _mm_mul_sd( y_0, a_00 );
+		_mm_store_sd( &x[0], y_0 );
+		}
 
 	}
 
 
 
 // it moves vertically across blocks
-void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
+void kernel_dtrsv_t_1_lib4(int kmax, int inverted_diag, double *A, int sda, double *x)
 	{
 
 	if(kmax<=0) 
@@ -1133,6 +1662,7 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 		y_00;
 	
 	__m128d
+		ones,
 		tmp,
 		a_00,
 		x_0,
@@ -1265,13 +1795,27 @@ void kernel_dtrsv_t_1_lib4(int kmax, double *A, int sda, double *x)
 	A = tA;
 	x = tx;
 	
-	// bottom trinagle
-	z_0  = _mm_load_sd( &x[0] );
-	y_0  = _mm_hadd_pd( y_0, y_0 );
-	a_00 = _mm_load_sd( &A[0+lda*0] );
-	y_0  = _mm_sub_sd( z_0, y_0 );
-	y_0  = _mm_mul_sd( y_0, a_00 );
-	_mm_store_sd( &x[0], y_0 );
+	if(inverted_diag)
+		{
+		// bottom trinagle
+		z_0  = _mm_load_sd( &x[0] );
+		y_0  = _mm_hadd_pd( y_0, y_0 );
+		a_00 = _mm_load_sd( &A[0+lda*0] );
+		y_0  = _mm_sub_sd( z_0, y_0 );
+		y_0  = _mm_mul_sd( y_0, a_00 );
+		_mm_store_sd( &x[0], y_0 );
+		}
+	else
+		{
+		// bottom trinagle
+		z_0  = _mm_load_sd( &x[0] );
+		y_0  = _mm_hadd_pd( y_0, y_0 );
+		a_00 = _mm_load_sd( &A[0+lda*0] );
+		a_00 = _mm_div_sd( ones, a_00 );
+		y_0  = _mm_sub_sd( z_0, y_0 );
+		y_0  = _mm_mul_sd( y_0, a_00 );
+		_mm_store_sd( &x[0], y_0 );
+		}
 
 	}
 

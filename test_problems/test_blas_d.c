@@ -349,7 +349,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dtrsv_dgemv_n_lib(n, 2*n, pF, cnd, x);
+			dtrsv_n_lib(2*n, n, 1, pF, cnd, x);
 
 			}
 	
@@ -358,7 +358,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dtrsv_dgemv_t_lib(n, 2*n, pF, cnd, x);
+			dtrsv_t_lib(2*n, n, 1, pF, cnd, x);
 
 			}
 	
