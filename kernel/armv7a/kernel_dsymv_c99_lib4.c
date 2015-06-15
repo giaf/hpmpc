@@ -975,7 +975,7 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		}
 	else // alg==-1
 		{
-		z_t[0] -= y_t[0] - y_t_0;
+		z_t[0] = y_t[0] - y_t_0;
 		}
 	
 	}
