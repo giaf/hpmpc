@@ -1343,6 +1343,7 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, i
 		_mm256_maskstore_pd( &ptr_pl[ii], i_mask, v_tmp1 );
 
 		ii += 4;
+		if(nb<ii) ii=nb;
 
 		}
 
