@@ -83,6 +83,9 @@ void dgemm_kernel_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, i
 void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg, int tc, int td)
 	{
 
+	if(m<=0 || n<=0)
+		return;
+
 	const int bs = 4;
 
 	int i, j;
@@ -684,6 +687,9 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg, int tc, int td)
 	{
 
+	if(m<=0 || n<=0)
+		return;
+
 	const int bs = 4;
 
 	int i, j, jj;
@@ -1104,6 +1110,9 @@ void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 /* and B is upper triangular                         */
 void dtrmm_l_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
 	{
+
+	if(m<=0 || n<=0)
+		return;
 	
 	const int bs = 4;
 	
@@ -1185,6 +1194,9 @@ void dtrmm_l_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double 
 /* and B is lower triangular                         */
 void dtrmm_u_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
 	{
+
+	if(m<=0 || n<=0)
+		return;
 	
 	const int bs = 4;
 	
@@ -1250,7 +1262,7 @@ void dtrmm_u_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double 
 void dsyrk_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg)
 	{
 
-	if(k<=0 || m<=0 || n<=0)
+	if(m<=0 || n<=0)
 		return;
 
 	const int bs = 4;
@@ -1484,6 +1496,10 @@ void dsyrk_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 
 void dsyrk_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg)
 	{
+
+	if(m<=0 || n<=0)
+		return;
+
 	const int bs = 4;
 	
 	int i, j;
@@ -1707,6 +1723,10 @@ void dsyrk_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 
 void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *diag)
 	{
+
+	if(m<=0 || n<=0)
+		return;
+
 	const int bs = 4;
 	
 	int i, j;
@@ -2085,9 +2105,12 @@ void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *
 
 
 
-// TODO invert k and n !!!!!!!!!!! DONE
 void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, double *diag, int alg, int fast_rsqrt)
 	{
+
+	if(m<=0 || n<=0)
+		return;
+
 	const int bs = 4;
 	const int d_ncl = D_NCL;
 	const int k0 = (d_ncl-k%d_ncl)%d_ncl;
@@ -2584,6 +2607,9 @@ void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, double *y, double
 void dtrmv_u_n_lib(int m, double *pA, int sda, double *x, double *y, int alg)
 	{
 
+	if(m<=0)
+		return;
+
 	const int bs = 4;
 	
 	int j;
@@ -2636,6 +2662,9 @@ void dtrmv_u_n_lib(int m, double *pA, int sda, double *x, double *y, int alg)
 void dtrmv_u_t_lib(int m, double *pA, int sda, double *x, double *y, int alg)
 	{
 
+	if(m<=0)
+		return;
+
 	const int bs = 4;
 	
 	int j;
@@ -2682,6 +2711,9 @@ void dtrmv_u_t_lib(int m, double *pA, int sda, double *x, double *y, int alg)
 void dsymv_lib(int m, int n, double *pA, int sda, double *x, double *y, double *z, int alg)
 	{
 
+	if(m<=0 || n<=0)
+		return;
+
 	// TODO better way to do 4-ways ???
 	
 	const int bs = 4;
@@ -2699,8 +2731,9 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, double *y, double *
 		}
 	else
 		{
-		for(j=0; j<m; j++)
-			z[j] = y[j];
+		if(y!=z)
+			for(j=0; j<m; j++)
+				z[j] = y[j];
 		}
 	
 	j=0;
@@ -2732,6 +2765,9 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, double *y, double *
 void dmvmv_lib(int m, int n, double *pA, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int alg)
 	{
 
+	if(m<=0 || n<=0)
+		return;
+
 	// TODO better way to do 4-ways ???
 	
 	const int bs = 4;
@@ -2748,10 +2784,12 @@ void dmvmv_lib(int m, int n, double *pA, int sda, double *x_n, double *y_n, doub
 		}
 	else
 		{
-		for(j=0; j<m; j++)
-			z_n[j] = y_n[j];
-		for(j=0; j<n; j++)
-			z_t[j] = y_t[j];
+		if(y_n!=z_n)
+			for(j=0; j<m; j++)
+				z_n[j] = y_n[j];
+		if(y_t!=z_t)
+			for(j=0; j<n; j++)
+				z_t[j] = y_t[j];
 		}
 	
 	j=0;
@@ -2864,6 +2902,9 @@ void dtrsv_n_lib(int m, int n, int inverted_diag, double *pA, int sda, double *x
 
 void dtrsv_t_lib(int m, int n, int inverted_diag, double *pA, int sda, double *x)
 	{
+
+	if(m<=0 || n<=0)
+		return;
 	
 	const int bs = 4;
 	
@@ -2899,6 +2940,9 @@ void dtrsv_t_lib(int m, int n, int inverted_diag, double *pA, int sda, double *x
 // transpose & align lower triangular matrix
 void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
 	{
+
+	if(m<=0)
+		return;
 	
 	const int bs = 4;
 	
@@ -3248,6 +3292,9 @@ void dgecp_lib(int m, int n, int offsetA, double *A, int sda, int offsetB, doubl
 void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc)
 	{
 
+	if(m<=0 || n<=0)
+		return;
+
 	const int bs = 4;
 
 	int mna = (bs-offsetA%bs)%bs;
@@ -3308,6 +3355,9 @@ void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, doub
 void dtrtr_u_lib(int m, double *pA, int sda, double *pC, int sdc)
 	{
 
+	if(m<=0)
+		return;
+
 	const int bs = 4;
 
 	int ii;
@@ -3349,6 +3399,9 @@ void dtrtr_u_lib(int m, double *pA, int sda, double *pC, int sdc)
 void dsyttmm_lu_lib(int m, double *pA, int sda, double *pC, int sdc)
 	{
 
+	if(m<=0)
+		return;
+
 	const int bs = 4;
 
 	int ii, jj;
@@ -3385,6 +3438,9 @@ void dsyttmm_lu_lib(int m, double *pA, int sda, double *pC, int sdc)
 //#if defined(TARGET_C99_4X4)
 void dsyttmm_ul_lib(int m, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, int alg)
 	{
+
+	if(m<=0)
+		return;
 
 	const int bs = 4;
 
@@ -3588,6 +3644,9 @@ void dsyttmm_ul_lib(int m, double *pA, int sda, double *pC, int sdc, double *pD,
 void dttmm_ll_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
 	{
 
+	if(m<=0)
+		return;
+
 	const int bs = 4;
 
 	int ii, jj;
@@ -3613,6 +3672,9 @@ void dttmm_ll_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 //#if defined(TARGET_C99_4X4)
 void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc)
 	{
+
+	if(m<=0)
+		return;
 
 	const int bs = 4;
 
@@ -3648,6 +3710,9 @@ void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, i
 //#if defined(TARGET_C99_4X4)
 void dgema_lib(int m, int n, int offset, double *pA, int sda, double *pC, int sdc)
 	{
+
+	if(m<=0 || n<=0)
+		return;
 
 	const int bs = 4;
 
@@ -3689,6 +3754,9 @@ void dgema_lib(int m, int n, int offset, double *pA, int sda, double *pC, int sd
 //#if defined(TARGET_C99_4X4)
 void dtrma_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
 	{
+
+	if(m<=0)
+		return;
 
 	const int bs = 4;
 
@@ -3754,6 +3822,9 @@ void dtrinv_lib_old(int m, double *pA, int sda, double *pC, int sdc)
 void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
 	{
 
+	if(m<=0)
+		return;
+
 	const int bs = 4;
 
 	static double fact[10] = {};
@@ -3818,6 +3889,10 @@ void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
 
 void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, double *pE, int sde, double *diag, int alg)
 	{
+
+	if(m<=0 || n<=0)
+		return;
+
 	const int bs = 4;
 	const int d_ncl = D_NCL;
 	//const int k0 = (d_ncl-k%d_ncl)%d_ncl;
@@ -3991,6 +4066,9 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 // TODO add m2 !!!
 void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, double *diag, int alg)
 	{
+
+	if(m<=0 || n<=0)
+		return;
 
 	//printf("\n m = %d, n = %d, k = %d\n", m, n, k);
 		

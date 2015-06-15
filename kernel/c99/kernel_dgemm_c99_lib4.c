@@ -29,8 +29,8 @@
 void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	const int bs = 4;
 
@@ -413,8 +413,8 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 void kernel_dgemm_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	const int bs = 4;
 
@@ -823,8 +823,8 @@ void kernel_dgemm_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 void kernel_dgemm_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	const int bs = 4;
 
@@ -1111,8 +1111,8 @@ void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 void kernel_dgemm_nt_2x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	const int bs = 4;
 
@@ -1409,8 +1409,8 @@ void kernel_dgemm_nt_2x4_lib4(int kmax, double *A, double *B, double *C, double 
 void kernel_dgemm_nt_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	const int bs = 4;
 
@@ -1627,8 +1627,8 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 void kernel_dgemm_nn_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	const int bs = 4;
 
@@ -2046,8 +2046,8 @@ void kernel_dgemm_nn_4x4_lib4(int kmax, double *A, double *B, int sdb, double *C
 void kernel_dgemm_nn_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	const int bs = 4;
 
@@ -2333,8 +2333,8 @@ void kernel_dgemm_nn_4x2_lib4(int kmax, double *A, double *B, int sdb, double *C
 void kernel_dgemm_nn_2x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	const int bs = 4;
 
@@ -2630,8 +2630,8 @@ void kernel_dgemm_nn_2x4_lib4(int kmax, double *A, double *B, int sdb, double *C
 void kernel_dgemm_nn_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	const int bs = 4;
 

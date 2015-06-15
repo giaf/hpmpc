@@ -38,8 +38,8 @@
 void kernel_dsyrk_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	double *A1 = A0 + 4*sda;
 	double *C1 = C0 + 4*sdc;
@@ -377,8 +377,8 @@ void kernel_dsyrk_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *
 void kernel_dsyrk_nt_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	double *A1 = A0 + 4*sda;
 	double *C1 = C0 + 4*sdc;
@@ -593,8 +593,8 @@ void kernel_dsyrk_nt_8x2_lib4(int kmax, double *A0, int sda, double *B, double *
 void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	const int bs = 4;
 	const int ldc = bs;
@@ -825,8 +825,8 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	const int bs = 4;
 	const int ldc = bs;
@@ -990,8 +990,8 @@ void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 	
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 	
 	const int bs = 4;
 	const int ldc = bs;
@@ -1155,8 +1155,8 @@ void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 void kernel_dsyrk_nn_4x4_lib4(int kmax, double *A, double *B, int sdb, double *C, double *D, int alg)
 	{
 
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 
 	const int bs = 4;
 
@@ -1403,8 +1403,8 @@ void kernel_dsyrk_nn_4x4_lib4(int kmax, double *A, double *B, int sdb, double *C
 void kernel_dsyrk_nn_4x2_lib4(int kmax, double *A, double *B, int sdb, double *C, double *D, int alg)
 	{
 
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 
 	const int bs = 4;
 
@@ -1590,8 +1590,8 @@ void kernel_dsyrk_nn_4x2_lib4(int kmax, double *A, double *B, int sdb, double *C
 void kernel_dsyrk_nn_2x2_lib4(int kmax, double *A, double *B, int sdb, double *C, double *D, int alg)
 	{
 
-	if(kmax<=0)
-		return;
+//	if(kmax<=0)
+//		return;
 
 	const int bs = 4;
 
