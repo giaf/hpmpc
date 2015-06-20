@@ -153,6 +153,53 @@ void dax_mat(int row, int col, double alpha, double *A, int lda, double *B, int 
 
 
 
+void d_set_pmat(int row, int col, double alpha, int offset, double *pA, int sda)
+	{
+
+	const int bs = 4;
+
+	int ii, jj;
+
+	int na = (bs-offset%bs)%bs;
+	na = row<na ? row : na;
+
+	ii = 0;
+	if(na>0)
+		{
+		for(; ii<na; ii++)
+			{
+			for(jj=0; jj<col; jj++)
+				{
+				pA[jj*bs] = alpha;
+				}
+			pA += 1;
+			}
+		pA += bs*(sda-1);
+		}
+	for( ; ii<row-3; ii+=4)
+		{
+		for(jj=0; jj<col; jj++)
+			{
+			pA[0+jj*bs] = alpha;
+			pA[1+jj*bs] = alpha;
+			pA[2+jj*bs] = alpha;
+			pA[3+jj*bs] = alpha;
+			}
+		pA += bs*sda;
+		}
+	for(; ii<row; ii++)
+		{
+		for(jj=0; jj<col; jj++)
+			{
+			pA[jj*bs] = alpha;
+			}
+		pA += 1;
+		}
+	
+	}
+		
+
+
 /* copies a matrix */
 void d_copy_mat(int row, int col, double *A, int lda, double *B, int ldb)
 	{
@@ -1351,7 +1398,7 @@ void d_print_pmat(int row, int col, int bs, double *A, int sda)
 				printf("%9.5f ", *(A+i+j*bs+ii*sda));
 //				printf("%11.7f ", *(A+i+j*bs+ii*sda));
 //				printf("%13.9f ", *(A+i+j*bs+ii*sda));
-//				printf("%19.15f ", *(A+i+j*lda));
+//				printf("%19.15f ", *(A+i+j*bs+ii*sda));
 //				printf("%e\t", *(A+i+j*lda));
 				}
 			printf("\n");
