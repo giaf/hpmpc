@@ -35,7 +35,7 @@
 
 
 // normal-transposed, 8x4 with data packed in 4
-void kernel_dsyrk_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
+void kernel_dsyrk_nt_8x4_vs_lib4(int km, __m256i mask_m, int kn, int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
 	
 //	if(kmax<=0)
@@ -241,8 +241,6 @@ void kernel_dsyrk_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *
 	if(kmax%2==1)
 		{
 		
-/*printf("\nk0 = ciao %d\n", (d_ncl-kmax%d_ncl)%d_ncl);*/
-
 		ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
 		b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 		ab_tmp1       = _mm256_mul_pd( a_4567, b_0123 );
@@ -266,9 +264,9 @@ void kernel_dsyrk_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *
 		c_02_13_20_31 = _mm256_add_pd( c_02_13_20_31, ab_tmp0 );
 		c_42_53_60_71 = _mm256_add_pd( c_42_53_60_71, ab_tmp1 );
 		
-		A0 += 4; // keep it !!!
-		A1 += 4; // keep it !!!
-		B  += 4; // keep it !!!
+//		A0 += 4; // keep it !!!
+//		A1 += 4; // keep it !!!
+//		B  += 4; // keep it !!!
 
 		}
 
@@ -300,22 +298,7 @@ void kernel_dsyrk_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *
 		
 	if(alg==0) // C = A * B'
 		{
-		d_01_11_21_31 = _mm256_load_pd( &D0[0+ldc*1] );
-		d_02_12_22_32 = _mm256_load_pd( &D0[0+ldc*2] );
-		d_03_13_23_33 = _mm256_load_pd( &D0[0+ldc*3] );
-
-		c_01_11_21_31 = _mm256_blend_pd( c_01_11_21_31, d_01_11_21_31, 0x1 );
-		c_02_12_22_32 = _mm256_blend_pd( c_02_12_22_32, d_02_12_22_32, 0x3 );
-		c_03_13_23_33 = _mm256_blend_pd( c_03_13_23_33, d_03_13_23_33, 0x7 );
-
-		_mm256_store_pd( &D0[0+ldc*0], c_00_10_20_30 );
-		_mm256_store_pd( &D0[0+ldc*1], c_01_11_21_31 );
-		_mm256_store_pd( &D0[0+ldc*2], c_02_12_22_32 );
-		_mm256_store_pd( &D0[0+ldc*3], c_03_13_23_33 );
-		_mm256_store_pd( &D1[0+ldc*0], c_40_50_60_70 );
-		_mm256_store_pd( &D1[0+ldc*1], c_41_51_61_71 );
-		_mm256_store_pd( &D1[0+ldc*2], c_42_52_62_72 );
-		_mm256_store_pd( &D1[0+ldc*3], c_43_53_63_73 );
+		goto store;
 		}
 	else 
 		{
@@ -330,43 +313,50 @@ void kernel_dsyrk_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *
 		
 		if(alg==1) // C += A * B'
 			{
-			d_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
-			d_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
-			d_02_12_22_32 = _mm256_add_pd( d_02_12_22_32, c_02_12_22_32 );
-			d_03_13_23_33 = _mm256_add_pd( d_03_13_23_33, c_03_13_23_33 );
-			d_40_50_60_70 = _mm256_add_pd( d_40_50_60_70, c_40_50_60_70 );
-			d_41_51_61_71 = _mm256_add_pd( d_41_51_61_71, c_41_51_61_71 );
-			d_42_52_62_72 = _mm256_add_pd( d_42_52_62_72, c_42_52_62_72 );
-			d_43_53_63_73 = _mm256_add_pd( d_43_53_63_73, c_43_53_63_73 );
+			c_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
+			c_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
+			c_02_12_22_32 = _mm256_add_pd( d_02_12_22_32, c_02_12_22_32 );
+			c_03_13_23_33 = _mm256_add_pd( d_03_13_23_33, c_03_13_23_33 );
+			c_40_50_60_70 = _mm256_add_pd( d_40_50_60_70, c_40_50_60_70 );
+			c_41_51_61_71 = _mm256_add_pd( d_41_51_61_71, c_41_51_61_71 );
+			c_42_52_62_72 = _mm256_add_pd( d_42_52_62_72, c_42_52_62_72 );
+			c_43_53_63_73 = _mm256_add_pd( d_43_53_63_73, c_43_53_63_73 );
 			}
 		else // C -= A * B'
 			{
-			d_00_10_20_30 = _mm256_sub_pd( d_00_10_20_30, c_00_10_20_30 );
-			d_01_11_21_31 = _mm256_sub_pd( d_01_11_21_31, c_01_11_21_31 );
-			d_02_12_22_32 = _mm256_sub_pd( d_02_12_22_32, c_02_12_22_32 );
-			d_03_13_23_33 = _mm256_sub_pd( d_03_13_23_33, c_03_13_23_33 );
-			d_40_50_60_70 = _mm256_sub_pd( d_40_50_60_70, c_40_50_60_70 );
-			d_41_51_61_71 = _mm256_sub_pd( d_41_51_61_71, c_41_51_61_71 );
-			d_42_52_62_72 = _mm256_sub_pd( d_42_52_62_72, c_42_52_62_72 );
-			d_43_53_63_73 = _mm256_sub_pd( d_43_53_63_73, c_43_53_63_73 );
+			c_00_10_20_30 = _mm256_sub_pd( d_00_10_20_30, c_00_10_20_30 );
+			c_01_11_21_31 = _mm256_sub_pd( d_01_11_21_31, c_01_11_21_31 );
+			c_02_12_22_32 = _mm256_sub_pd( d_02_12_22_32, c_02_12_22_32 );
+			c_03_13_23_33 = _mm256_sub_pd( d_03_13_23_33, c_03_13_23_33 );
+			c_40_50_60_70 = _mm256_sub_pd( d_40_50_60_70, c_40_50_60_70 );
+			c_41_51_61_71 = _mm256_sub_pd( d_41_51_61_71, c_41_51_61_71 );
+			c_42_52_62_72 = _mm256_sub_pd( d_42_52_62_72, c_42_52_62_72 );
+			c_43_53_63_73 = _mm256_sub_pd( d_43_53_63_73, c_43_53_63_73 );
 			}
 
-		c_01_11_21_31 = _mm256_load_pd( &D0[0+ldc*1] );
-		c_02_12_22_32 = _mm256_load_pd( &D0[0+ldc*2] );
-		c_03_13_23_33 = _mm256_load_pd( &D0[0+ldc*3] );
+		goto store;
+		}
 
-		d_01_11_21_31 = _mm256_blend_pd( d_01_11_21_31, c_01_11_21_31, 0x1 );
-		d_02_12_22_32 = _mm256_blend_pd( d_02_12_22_32, c_02_12_22_32, 0x3 );
-		d_03_13_23_33 = _mm256_blend_pd( d_03_13_23_33, c_03_13_23_33, 0x7 );
+	// store (5 - 8) x (3 - 4)
+	store:
+	d_01_11_21_31 = _mm256_load_pd( &D0[0+ldc*1] );
+	d_02_12_22_32 = _mm256_load_pd( &D0[0+ldc*2] );
 
-		_mm256_store_pd( &D0[0+ldc*0], d_00_10_20_30 );
-		_mm256_store_pd( &D0[0+ldc*1], d_01_11_21_31 );
-		_mm256_store_pd( &D0[0+ldc*2], d_02_12_22_32 );
-		_mm256_store_pd( &D0[0+ldc*3], d_03_13_23_33 );
-		_mm256_store_pd( &D1[0+ldc*0], d_40_50_60_70 );
-		_mm256_store_pd( &D1[0+ldc*1], d_41_51_61_71 );
-		_mm256_store_pd( &D1[0+ldc*2], d_42_52_62_72 );
-		_mm256_store_pd( &D1[0+ldc*3], d_43_53_63_73 );
+	c_01_11_21_31 = _mm256_blend_pd( c_01_11_21_31, d_01_11_21_31, 0x1 );
+	c_02_12_22_32 = _mm256_blend_pd( c_02_12_22_32, d_02_12_22_32, 0x3 );
+
+	_mm256_store_pd( &D0[0+ldc*0], c_00_10_20_30 );
+	_mm256_store_pd( &D0[0+ldc*1], c_01_11_21_31 );
+	_mm256_store_pd( &D0[0+ldc*2], c_02_12_22_32 );
+	_mm256_maskstore_pd( &D1[0+ldc*0], mask_m, c_40_50_60_70 );
+	_mm256_maskstore_pd( &D1[0+ldc*1], mask_m, c_41_51_61_71 );
+	_mm256_maskstore_pd( &D1[0+ldc*2], mask_m, c_42_52_62_72 );
+	if(kn>=4)
+		{
+		d_03_13_23_33 = _mm256_load_pd( &D0[0+ldc*3] );
+		c_03_13_23_33 = _mm256_blend_pd( c_03_13_23_33, d_03_13_23_33, 0x7 );
+		_mm256_store_pd( &D0[0+ldc*3], c_03_13_23_33 );
+		_mm256_maskstore_pd( &D1[0+ldc*3], mask_m, c_43_53_63_73 );
 		}
 
 	}
@@ -374,7 +364,7 @@ void kernel_dsyrk_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *
 
 
 // normal-transposed, 8x2 with data packed in 4
-void kernel_dsyrk_nt_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
+void kernel_dsyrk_nt_8x2_vs_lib4(int km, __m256i mask_m, int kn, int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
 	
 //	if(kmax<=0)
@@ -544,14 +534,7 @@ void kernel_dsyrk_nt_8x2_lib4(int kmax, double *A0, int sda, double *B, double *
 		
 	if(alg==0) // C = A * B'
 		{
-		d_01_11_21_31 = _mm256_load_pd( &D0[0+ldc*1] );
-
-		c_01_11_21_31 = _mm256_blend_pd( c_01_11_21_31, d_01_11_21_31, 0x1 );
-
-		_mm256_store_pd( &D0[0+ldc*0], c_00_10_20_30 );
-		_mm256_store_pd( &D0[0+ldc*1], c_01_11_21_31 );
-		_mm256_store_pd( &D1[0+ldc*0], c_40_50_60_70 );
-		_mm256_store_pd( &D1[0+ldc*1], c_41_51_61_71 );
+		goto store;
 		}
 	else 
 		{
@@ -562,27 +545,33 @@ void kernel_dsyrk_nt_8x2_lib4(int kmax, double *A0, int sda, double *B, double *
 		
 		if(alg==1) // C += A * B'
 			{
-			d_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
-			d_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
-			d_40_50_60_70 = _mm256_add_pd( d_40_50_60_70, c_40_50_60_70 );
-			d_41_51_61_71 = _mm256_add_pd( d_41_51_61_71, c_41_51_61_71 );
+			c_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
+			c_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
+			c_40_50_60_70 = _mm256_add_pd( d_40_50_60_70, c_40_50_60_70 );
+			c_41_51_61_71 = _mm256_add_pd( d_41_51_61_71, c_41_51_61_71 );
 			}
 		else // C -= A * B'
 			{
-			d_00_10_20_30 = _mm256_sub_pd( d_00_10_20_30, c_00_10_20_30 );
-			d_01_11_21_31 = _mm256_sub_pd( d_01_11_21_31, c_01_11_21_31 );
-			d_40_50_60_70 = _mm256_sub_pd( d_40_50_60_70, c_40_50_60_70 );
-			d_41_51_61_71 = _mm256_sub_pd( d_41_51_61_71, c_41_51_61_71 );
+			c_00_10_20_30 = _mm256_sub_pd( d_00_10_20_30, c_00_10_20_30 );
+			c_01_11_21_31 = _mm256_sub_pd( d_01_11_21_31, c_01_11_21_31 );
+			c_40_50_60_70 = _mm256_sub_pd( d_40_50_60_70, c_40_50_60_70 );
+			c_41_51_61_71 = _mm256_sub_pd( d_41_51_61_71, c_41_51_61_71 );
 			}
 
-		c_01_11_21_31 = _mm256_load_pd( &D0[0+ldc*1] );
+		goto store;
+		}
+	
+	// store (5 - 8) x (1 - 2)
+	store:
+	_mm256_store_pd( &D0[0+ldc*0], c_00_10_20_30 );
+	_mm256_maskstore_pd( &D1[0+ldc*0], mask_m, c_40_50_60_70 );
+	if(kn>=2)
+		{
+		d_01_11_21_31 = _mm256_load_pd( &D0[0+ldc*1] );
+		c_01_11_21_31 = _mm256_blend_pd( c_01_11_21_31, d_01_11_21_31, 0x1 );
 
-		d_01_11_21_31 = _mm256_blend_pd( d_01_11_21_31, c_01_11_21_31, 0x1 );
-
-		_mm256_store_pd( &D0[0+ldc*0], d_00_10_20_30 );
-		_mm256_store_pd( &D0[0+ldc*1], d_01_11_21_31 );
-		_mm256_store_pd( &D1[0+ldc*0], d_40_50_60_70 );
-		_mm256_store_pd( &D1[0+ldc*1], d_41_51_61_71 );
+		_mm256_store_pd( &D0[0+ldc*1], c_01_11_21_31 );
+		_mm256_maskstore_pd( &D1[0+ldc*1], mask_m, c_41_51_61_71 );
 		}
 
 	}
@@ -590,7 +579,7 @@ void kernel_dsyrk_nt_8x2_lib4(int kmax, double *A0, int sda, double *B, double *
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_4x4_vs_lib4(int km, __m256i mask_m, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 	
 //	if(kmax<=0)
@@ -768,18 +757,7 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		
 	if(alg==0) // C = A * B'
 		{
-		d_01_11_21_31 = _mm256_load_pd( &D[0+ldc*1] );
-		d_02_12_22_32 = _mm256_load_pd( &D[0+ldc*2] );
-		d_03_13_23_33 = _mm256_load_pd( &D[0+ldc*3] );
-
-		c_01_11_21_31 = _mm256_blend_pd( c_01_11_21_31, d_01_11_21_31, 0x1 );
-		c_02_12_22_32 = _mm256_blend_pd( c_02_12_22_32, d_02_12_22_32, 0x3 );
-		c_03_13_23_33 = _mm256_blend_pd( c_03_13_23_33, d_03_13_23_33, 0x7 );
-
-		_mm256_store_pd( &D[0+ldc*0], c_00_10_20_30 );
-		_mm256_store_pd( &D[0+ldc*1], c_01_11_21_31 );
-		_mm256_store_pd( &D[0+ldc*2], c_02_12_22_32 );
-		_mm256_store_pd( &D[0+ldc*3], c_03_13_23_33 );
+		goto store;
 		}
 	else 
 		{
@@ -790,31 +768,40 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		
 		if(alg==1) // C += A * B'
 			{
-			d_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
-			d_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
-			d_02_12_22_32 = _mm256_add_pd( d_02_12_22_32, c_02_12_22_32 );
-			d_03_13_23_33 = _mm256_add_pd( d_03_13_23_33, c_03_13_23_33 );
+			c_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
+			c_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
+			c_02_12_22_32 = _mm256_add_pd( d_02_12_22_32, c_02_12_22_32 );
+			c_03_13_23_33 = _mm256_add_pd( d_03_13_23_33, c_03_13_23_33 );
 			}
 		else // C -= A * B'
 			{
-			d_00_10_20_30 = _mm256_sub_pd( d_00_10_20_30, c_00_10_20_30 );
-			d_01_11_21_31 = _mm256_sub_pd( d_01_11_21_31, c_01_11_21_31 );
-			d_02_12_22_32 = _mm256_sub_pd( d_02_12_22_32, c_02_12_22_32 );
-			d_03_13_23_33 = _mm256_sub_pd( d_03_13_23_33, c_03_13_23_33 );
+			c_00_10_20_30 = _mm256_sub_pd( d_00_10_20_30, c_00_10_20_30 );
+			c_01_11_21_31 = _mm256_sub_pd( d_01_11_21_31, c_01_11_21_31 );
+			c_02_12_22_32 = _mm256_sub_pd( d_02_12_22_32, c_02_12_22_32 );
+			c_03_13_23_33 = _mm256_sub_pd( d_03_13_23_33, c_03_13_23_33 );
 			}
 
-		c_01_11_21_31 = _mm256_load_pd( &D[0+ldc*1] );
-		c_02_12_22_32 = _mm256_load_pd( &D[0+ldc*2] );
-		c_03_13_23_33 = _mm256_load_pd( &D[0+ldc*3] );
+		goto store;
+		}
+	
+	// store (1 - 4) x (3 - 4)
+	store:
+	d_01_11_21_31 = _mm256_load_pd( &D[0+ldc*1] );
+	d_02_12_22_32 = _mm256_load_pd( &D[0+ldc*2] );
 
-		d_01_11_21_31 = _mm256_blend_pd( d_01_11_21_31, c_01_11_21_31, 0x1 );
-		d_02_12_22_32 = _mm256_blend_pd( d_02_12_22_32, c_02_12_22_32, 0x3 );
-		d_03_13_23_33 = _mm256_blend_pd( d_03_13_23_33, c_03_13_23_33, 0x7 );
+	c_01_11_21_31 = _mm256_blend_pd( c_01_11_21_31, d_01_11_21_31, 0x1 );
+	c_02_12_22_32 = _mm256_blend_pd( c_02_12_22_32, d_02_12_22_32, 0x3 );
 
-		_mm256_store_pd( &D[0+ldc*0], d_00_10_20_30 );
-		_mm256_store_pd( &D[0+ldc*1], d_01_11_21_31 );
-		_mm256_store_pd( &D[0+ldc*2], d_02_12_22_32 );
-		_mm256_store_pd( &D[0+ldc*3], d_03_13_23_33 );
+	_mm256_maskstore_pd( &D[0+ldc*0], mask_m, c_00_10_20_30 );
+	_mm256_maskstore_pd( &D[0+ldc*1], mask_m, c_01_11_21_31 );
+	_mm256_maskstore_pd( &D[0+ldc*2], mask_m, c_02_12_22_32 );
+
+	if(kn>=4)
+		{
+		d_03_13_23_33 = _mm256_load_pd( &D[0+ldc*3] );
+		c_03_13_23_33 = _mm256_blend_pd( c_03_13_23_33, d_03_13_23_33, 0x7 );
+
+		_mm256_maskstore_pd( &D[0+ldc*3], mask_m, c_03_13_23_33 );
 		}
 
 	}
@@ -822,7 +809,7 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 
 
 // normal-transposed, 4x2 with data packed in 4
-void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_4x2_vs_lib4(int km, __m256i mask_m, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 	
 //	if(kmax<=0)
@@ -950,12 +937,7 @@ void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 		
 	if(alg==0) // C = A * B'
 		{
-		d_01_11_21_31 = _mm256_load_pd( &D[0+ldc*1] );
-
-		c_01_11_21_31 = _mm256_blend_pd( c_01_11_21_31, d_01_11_21_31, 0x1 );
-
-		_mm256_store_pd( &D[0+ldc*0], c_00_10_20_30 );
-		_mm256_store_pd( &D[0+ldc*1], c_01_11_21_31 );
+		goto store;
 		}
 	else 
 		{
@@ -964,23 +946,30 @@ void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 		
 		if(alg==1) // C += A * B'
 			{
-			d_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
-			d_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
+			c_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
+			c_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
 			}
 		else // C -= A * B'
 			{
-			d_00_10_20_30 = _mm256_sub_pd( d_00_10_20_30, c_00_10_20_30 );
-			d_01_11_21_31 = _mm256_sub_pd( d_01_11_21_31, c_01_11_21_31 );
+			c_00_10_20_30 = _mm256_sub_pd( d_00_10_20_30, c_00_10_20_30 );
+			c_01_11_21_31 = _mm256_sub_pd( d_01_11_21_31, c_01_11_21_31 );
 			}
 
-		c_01_11_21_31 = _mm256_load_pd( &D[0+ldc*1] );
-
-		d_01_11_21_31 = _mm256_blend_pd( d_01_11_21_31, c_01_11_21_31, 0x1 );
-
-		_mm256_store_pd( &D[0+ldc*0], d_00_10_20_30 );
-		_mm256_store_pd( &D[0+ldc*1], d_01_11_21_31 );
+		goto store;
 		}
 
+	// store (1 - 4) x (1 - 2)
+	store:
+	_mm256_maskstore_pd( &D[0+ldc*0], mask_m, c_00_10_20_30 );
+
+	if(kn>=2)
+		{
+		d_01_11_21_31 = _mm256_load_pd( &D[0+ldc*1] );
+
+		c_01_11_21_31 = _mm256_blend_pd( c_01_11_21_31, d_01_11_21_31, 0x1 );
+
+		_mm256_maskstore_pd( &D[0+ldc*1], mask_m, c_01_11_21_31 );
+		}
 
 	}
 

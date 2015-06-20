@@ -29,7 +29,7 @@
 
 
 
-void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 
 //	if(kmax<=0)
@@ -195,19 +195,7 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 	
 	if(alg==0) // C = A * B'
 		{
-		D[0+bs*0] = c_00;
-		D[1+bs*0] = c_10;
-		D[2+bs*0] = c_20;
-		D[3+bs*0] = c_30;
-
-		D[1+bs*1] = c_11;
-		D[2+bs*1] = c_21;
-		D[3+bs*1] = c_31;
-
-		D[2+bs*2] = c_22;
-		D[3+bs*2] = c_32;
-
-		D[3+bs*3] = c_33;
+		goto store;
 		}
 	else 
 		{
@@ -227,57 +215,75 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		
 		if(alg==1) // C += A * B'
 			{
-			d_00 += c_00;
-			d_10 += c_10;
-			d_20 += c_20;
-			d_30 += c_30;
+			c_00 = d_00 + c_00;
+			c_10 = d_10 + c_10;
+			c_20 = d_20 + c_20;
+			c_30 = d_30 + c_30;
 
-			d_11 += c_11;
-			d_21 += c_21;
-			d_31 += c_31;
+			c_11 = d_11 + c_11;
+			c_21 = d_21 + c_21;
+			c_31 = d_31 + c_31;
 
-			d_22 += c_22;
-			d_32 += c_32;
+			c_22 = d_22 + c_22;
+			c_32 = d_32 + c_32;
 
-			d_33 += c_33;
+			c_33 = d_33 + c_33;
 			}
 		else // C -= A * B'
 			{
-			d_00 -= c_00;
-			d_10 -= c_10;
-			d_20 -= c_20;
-			d_30 -= c_30;
+			c_00 = d_00 - c_00;
+			c_10 = d_10 - c_10;
+			c_20 = d_20 - c_20;
+			c_30 = d_30 - c_30;
 
-			d_11 -= c_11;
-			d_21 -= c_21;
-			d_31 -= c_31;
+			c_11 = d_11 - c_11;
+			c_21 = d_21 - c_21;
+			c_31 = d_31 - c_31;
 
-			d_22 -= c_22;
-			d_32 -= c_32;
+			c_22 = d_22 - c_22;
+			c_32 = d_32 - c_32;
 
-			d_33 -= c_33;
+			c_33 = d_33 - c_33;
 			}
 
-		D[0+bs*0] = d_00;
-		D[1+bs*0] = d_10;
-		D[2+bs*0] = d_20;
-		D[3+bs*0] = d_30;
-
-		D[1+bs*1] = d_11;
-		D[2+bs*1] = d_21;
-		D[3+bs*1] = d_31;
-
-		D[2+bs*2] = d_22;
-		D[3+bs*2] = d_32;
-
-		D[3+bs*3] = d_33;
+		goto store;
 		}
 	
+	store:
+	if(km>=4)
+		{
+		D[0+bs*0] = c_00;
+		D[1+bs*0] = c_10;
+		D[2+bs*0] = c_20;
+		D[3+bs*0] = c_30;
+
+		D[1+bs*1] = c_11;
+		D[2+bs*1] = c_21;
+		D[3+bs*1] = c_31;
+
+		D[2+bs*2] = c_22;
+		D[3+bs*2] = c_32;
+
+		if(kn>=4)
+			D[3+bs*3] = c_33;
+		}
+	else
+		{
+		D[0+bs*0] = c_00;
+		D[1+bs*0] = c_10;
+		D[2+bs*0] = c_20;
+
+		D[1+bs*1] = c_11;
+		D[2+bs*1] = c_21;
+
+		D[2+bs*2] = c_22;
+		}
+
 	}
 
 
 
-void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 
 //	if(kmax<=0)
@@ -407,14 +413,7 @@ void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 	
 	if(alg==0) // C = A * B'
 		{
-		D[0+bs*0] = c_00;
-		D[1+bs*0] = c_10;
-		D[2+bs*0] = c_20;
-		D[3+bs*0] = c_30;
-
-		D[1+bs*1] = c_11;
-		D[2+bs*1] = c_21;
-		D[3+bs*1] = c_31;
+		goto store;
 		}
 	else 
 		{
@@ -429,42 +428,63 @@ void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 		
 		if(alg==1) // C += A * B'
 			{
-			d_00 += c_00;
-			d_10 += c_10;
-			d_20 += c_20;
-			d_30 += c_30;
+			c_00 = d_00 + c_00;
+			c_10 = d_10 + c_10;
+			c_20 = d_20 + c_20;
+			c_30 = d_30 + c_30;
 
-			d_11 += c_11;
-			d_21 += c_21;
-			d_31 += c_31;
+			c_11 = d_11 + c_11;
+			c_21 = d_21 + c_21;
+			c_31 = d_31 + c_31;
 			}
 		else // C -= A * B'
 			{
-			d_00 -= c_00;
-			d_10 -= c_10;
-			d_20 -= c_20;
-			d_30 -= c_30;
+			c_00 = d_00 - c_00;
+			c_10 = d_10 - c_10;
+			c_20 = d_20 - c_20;
+			c_30 = d_30 - c_30;
 
-			d_11 -= c_11;
-			d_21 -= c_21;
-			d_31 -= c_31;
+			c_11 = d_11 - c_11;
+			c_21 = d_21 - c_21;
+			c_31 = d_31 - c_31;
 			}
 
-		D[0+bs*0] = d_00;
-		D[1+bs*0] = d_10;
-		D[2+bs*0] = d_20;
-		D[3+bs*0] = d_30;
+		goto store;
+		}
 
-		D[1+bs*1] = d_11;
-		D[2+bs*1] = d_21;
-		D[3+bs*1] = d_31;
+	store:
+	if(km>=4)
+		{
+		D[0+bs*0] = c_00;
+		D[1+bs*0] = c_10;
+		D[2+bs*0] = c_20;
+		D[3+bs*0] = c_30;
+
+		if(kn>=2)
+			{
+			D[1+bs*1] = c_11;
+			D[2+bs*1] = c_21;
+			D[3+bs*1] = c_31;
+			}
+		}
+	else
+		{
+		D[0+bs*0] = c_00;
+		D[1+bs*0] = c_10;
+		D[2+bs*0] = c_20;
+
+		if(kn>=2)
+			{
+			D[1+bs*1] = c_11;
+			D[2+bs*1] = c_21;
+			}
 		}
 
 	}
 
 
 
-void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 
 //	if(kmax<=0)
@@ -561,10 +581,7 @@ void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 	
 	if(alg==0) // C = A * B'
 		{
-		D[0+bs*0] = c_00;
-		D[1+bs*0] = c_10;
-
-		D[1+bs*1] = c_11;
+		goto store;
 		}
 	else 
 		{
@@ -575,23 +592,34 @@ void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 		
 		if(alg==1) // C += A * B'
 			{
-			d_00 += c_00;
-			d_10 += c_10;
+			c_00 = d_00 + c_00;
+			c_10 = d_10 + c_10;
 
-			d_11 += c_11;
+			c_11 = d_11 + c_11;
 			}
 		else // C -= A * B'
 			{
-			d_00 -= c_00;
-			d_10 -= c_10;
+			c_00 = d_00 - c_00;
+			c_10 = d_10 - c_10;
 
-			d_11 -= c_11;
+			c_11 = d_11 - c_11;
 			}
 
-		D[0+bs*0] = d_00;
-		D[1+bs*0] = d_10;
+		goto store;
+		}
 
-		D[1+bs*1] = d_11;
+	store:
+	if(km>=2)
+		{
+		D[0+bs*0] = c_00;
+		D[1+bs*0] = c_10;
+
+		if(kn>=2)
+			D[1+bs*1] = c_11;
+		}
+	else
+		{
+		D[0+bs*0] = c_00;
 		}
 
 	}

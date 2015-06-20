@@ -32,7 +32,7 @@
 // normal-transposed, 4x4 with data packed in 4
 // prefetch optimized for Cortex-A9 (cache line is 32 bytes, while A15 is 64 bytes)
 /*void kernel_dgemm_pp_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)*/
-void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 	
 //	if(kmax<=0)
@@ -380,27 +380,64 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 //		"faddd  d14, d14, d30            \n\t"
 		"faddd  d15, d15, d31            \n\t"
 		"                                \n\t"
+		"                                \n\t"
 		".D0:                            \n\t" // alg==0
+		"                                \n\t"
+//		"mov    r3, %7                   \n\t" // km
+//		"cmp    r3, #4                   \n\t"
+		"cmp    %7, #4                   \n\t"
+		"blt    .DKM3                    \n\t" // if km<4, jump
 		"                                \n\t"
 		"fstd   d0, [%6, #0]             \n\t" // store result
 		"fstd   d1, [%6, #8]             \n\t"
 		"fstd   d2, [%6, #16]            \n\t"
 		"fstd   d3, [%6, #24]            \n\t"
 		"                                \n\t"
+//		"mov    r3, %8                   \n\t" // km
+		"                                \n\t"
 //		"fstd   d4, [%6, #32]            \n\t"
 		"fstd   d5, [%6, #40]            \n\t"
 		"fstd   d6, [%6, #48]            \n\t"
 		"fstd   d7, [%6, #56]            \n\t"
+		"                                \n\t"
+//		"cmp    r3, #4                   \n\t"
+		"cmp    %8, #4                   \n\t"
 		"                                \n\t"
 //		"fstd   d8, [%6, #64]            \n\t"
 //		"fstd   d9, [%6, #72]            \n\t"
 		"fstd   d10, [%6, #80]           \n\t"
 		"fstd   d11, [%6, #88]           \n\t"
 		"                                \n\t"
+		"blt    .DEND                    \n\t" // if kn<4, jump
+		"                                \n\t"
 //		"fstd   d12, [%6, #96]           \n\t"
 //		"fstd   d13, [%6, #104]          \n\t"
 //		"fstd   d14, [%6, #112]          \n\t"
 		"fstd   d15, [%6, #120]          \n\t"
+		"                                \n\t"
+		"b      .DEND                    \n\t" // return
+		"                                \n\t"
+		".DKM3:                          \n\t"
+		"                                \n\t"
+		"fstd   d0, [%6, #0]             \n\t" // store result
+		"fstd   d1, [%6, #8]             \n\t"
+		"fstd   d2, [%6, #16]            \n\t"
+//		"fstd   d3, [%6, #24]            \n\t"
+		"                                \n\t"
+//		"fstd   d4, [%6, #32]            \n\t"
+		"fstd   d5, [%6, #40]            \n\t"
+		"fstd   d6, [%6, #48]            \n\t"
+//		"fstd   d7, [%6, #56]            \n\t"
+		"                                \n\t"
+//		"fstd   d8, [%6, #64]            \n\t"
+//		"fstd   d9, [%6, #72]            \n\t"
+		"fstd   d10, [%6, #80]           \n\t"
+//		"fstd   d11, [%6, #88]           \n\t"
+		"                                \n\t"
+//		"fstd   d12, [%6, #96]           \n\t"
+//		"fstd   d13, [%6, #104]          \n\t"
+//		"fstd   d14, [%6, #112]          \n\t"
+//		"fstd   d15, [%6, #120]          \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		".DEND:                          \n\t"
@@ -414,7 +451,9 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		  "r" (B),			// %3
 		  "r" (C),			// %4
 		  "r" (alg),		// %5
-		  "r" (D)			// %6
+		  "r" (D),			// %6
+		  "r" (km),			// %7
+		  "r" (kn)			// %8
 		: // register clobber list
 		  "r3",
 		  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
@@ -427,15 +466,13 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 
 
 
-void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 
 //	if(kmax<=0)
 //		return;
 	
 	const int bs = 4;
-	const int lda = bs;
-	const int ldc = bs;
 
 	int k;
 
@@ -450,31 +487,13 @@ void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 	for(k=0; k<kmax-3; k+=4)
 		{
 		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		a_2 = A[2+lda*0];
-		a_3 = A[3+lda*0];
+		a_0 = A[0+bs*0];
+		a_1 = A[1+bs*0];
+		a_2 = A[2+bs*0];
+		a_3 = A[3+bs*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-		c_20 += a_2 * b_0;
-		c_30 += a_3 * b_0;
-
-		c_11 += a_1 * b_1;
-		c_21 += a_2 * b_1;
-		c_31 += a_3 * b_1;
-
-
-		a_0 = A[0+lda*1];
-		a_1 = A[1+lda*1];
-		a_2 = A[2+lda*1];
-		a_3 = A[3+lda*1];
-		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
+		b_0 = B[0+bs*0];
+		b_1 = B[1+bs*0];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -486,13 +505,13 @@ void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 		c_31 += a_3 * b_1;
 
 
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
-		a_2 = A[2+lda*2];
-		a_3 = A[3+lda*2];
+		a_0 = A[0+bs*1];
+		a_1 = A[1+bs*1];
+		a_2 = A[2+bs*1];
+		a_3 = A[3+bs*1];
 		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
+		b_0 = B[0+bs*1];
+		b_1 = B[1+bs*1];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -504,13 +523,31 @@ void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 		c_31 += a_3 * b_1;
 
 
-		a_0 = A[0+lda*3];
-		a_1 = A[1+lda*3];
-		a_2 = A[2+lda*3];
-		a_3 = A[3+lda*3];
+		a_0 = A[0+bs*2];
+		a_1 = A[1+bs*2];
+		a_2 = A[2+bs*2];
+		a_3 = A[3+bs*2];
 		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
+		b_0 = B[0+bs*2];
+		b_1 = B[1+bs*2];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+		c_20 += a_2 * b_0;
+		c_30 += a_3 * b_0;
+
+		c_11 += a_1 * b_1;
+		c_21 += a_2 * b_1;
+		c_31 += a_3 * b_1;
+
+
+		a_0 = A[0+bs*3];
+		a_1 = A[1+bs*3];
+		a_2 = A[2+bs*3];
+		a_3 = A[3+bs*3];
+		
+		b_0 = B[0+bs*3];
+		b_1 = B[1+bs*3];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -529,13 +566,13 @@ void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 	for(; k<kmax; k++)
 		{
 		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
-		a_2 = A[2+lda*0];
-		a_3 = A[3+lda*0];
+		a_0 = A[0+bs*0];
+		a_1 = A[1+bs*0];
+		a_2 = A[2+bs*0];
+		a_3 = A[3+bs*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
+		b_0 = B[0+bs*0];
+		b_1 = B[1+bs*0];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -559,72 +596,84 @@ void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 	
 	if(alg==0) // C = A * B'
 		{
-		C[0+ldc*0] = c_00;
-		C[1+ldc*0] = c_10;
-		C[2+ldc*0] = c_20;
-		C[3+ldc*0] = c_30;
-
-		C[1+ldc*1] = c_11;
-		C[2+ldc*1] = c_21;
-		C[3+ldc*1] = c_31;
+		goto store;
 		}
 	else 
 		{
-		d_00 = D[0+ldc*0];
-		d_10 = D[1+ldc*0];
-		d_20 = D[2+ldc*0];
-		d_30 = D[3+ldc*0];
+		d_00 = C[0+bs*0];
+		d_10 = C[1+bs*0];
+		d_20 = C[2+bs*0];
+		d_30 = C[3+bs*0];
 		
-		d_11 = D[1+ldc*1];
-		d_21 = D[2+ldc*1];
-		d_31 = D[3+ldc*1];
+		d_11 = C[1+bs*1];
+		d_21 = C[2+bs*1];
+		d_31 = C[3+bs*1];
 		
 		if(alg==1) // C += A * B'
 			{
-			d_00 += c_00;
-			d_10 += c_10;
-			d_20 += c_20;
-			d_30 += c_30;
+			c_00 = d_00 + c_00;
+			c_10 = d_10 + c_10;
+			c_20 = d_20 + c_20;
+			c_30 = d_30 + c_30;
 
-			d_11 += c_11;
-			d_21 += c_21;
-			d_31 += c_31;
+			c_11 = d_11 + c_11;
+			c_21 = d_21 + c_21;
+			c_31 = d_31 + c_31;
 			}
 		else // C -= A * B'
 			{
-			d_00 -= c_00;
-			d_10 -= c_10;
-			d_20 -= c_20;
-			d_30 -= c_30;
+			c_00 = d_00 - c_00;
+			c_10 = d_10 - c_10;
+			c_20 = d_20 - c_20;
+			c_30 = d_30 - c_30;
 
-			d_11 -= c_11;
-			d_21 -= c_21;
-			d_31 -= c_31;
+			c_11 = d_11 - c_11;
+			c_21 = d_21 - c_21;
+			c_31 = d_31 - c_31;
 			}
 
-		C[0+ldc*0] = c_00;
-		C[1+ldc*0] = c_10;
-		C[2+ldc*0] = c_20;
-		C[3+ldc*0] = c_30;
+		goto store;
+		}
 
-		C[1+ldc*1] = c_11;
-		C[2+ldc*1] = c_21;
-		C[3+ldc*1] = c_31;
+	store:
+	if(km>=4)
+		{
+		D[0+bs*0] = c_00;
+		D[1+bs*0] = c_10;
+		D[2+bs*0] = c_20;
+		D[3+bs*0] = c_30;
+
+		if(kn>=2)
+			{
+			D[1+bs*1] = c_11;
+			D[2+bs*1] = c_21;
+			D[3+bs*1] = c_31;
+			}
+		}
+	else
+		{
+		D[0+bs*0] = c_00;
+		D[1+bs*0] = c_10;
+		D[2+bs*0] = c_20;
+
+		if(kn>=2)
+			{
+			D[1+bs*1] = c_11;
+			D[2+bs*1] = c_21;
+			}
 		}
 
 	}
 
 
 
-void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 
 //	if(kmax<=0)
 //		return;
 	
 	const int bs = 4;
-	const int lda = bs;
-	const int ldc = bs;
 
 	int k;
 
@@ -637,23 +686,11 @@ void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 	for(k=0; k<kmax-3; k+=4)
 		{
 		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
+		a_0 = A[0+bs*0];
+		a_1 = A[1+bs*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
-		
-		c_00 += a_0 * b_0;
-		c_10 += a_1 * b_0;
-
-		c_11 += a_1 * b_1;
-
-
-		a_0 = A[0+lda*1];
-		a_1 = A[1+lda*1];
-		
-		b_0 = B[0+lda*1];
-		b_1 = B[1+lda*1];
+		b_0 = B[0+bs*0];
+		b_1 = B[1+bs*0];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -661,11 +698,11 @@ void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 		c_11 += a_1 * b_1;
 
 
-		a_0 = A[0+lda*2];
-		a_1 = A[1+lda*2];
+		a_0 = A[0+bs*1];
+		a_1 = A[1+bs*1];
 		
-		b_0 = B[0+lda*2];
-		b_1 = B[1+lda*2];
+		b_0 = B[0+bs*1];
+		b_1 = B[1+bs*1];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -673,11 +710,23 @@ void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 		c_11 += a_1 * b_1;
 
 
-		a_0 = A[0+lda*3];
-		a_1 = A[1+lda*3];
+		a_0 = A[0+bs*2];
+		a_1 = A[1+bs*2];
 		
-		b_0 = B[0+lda*3];
-		b_1 = B[1+lda*3];
+		b_0 = B[0+bs*2];
+		b_1 = B[1+bs*2];
+		
+		c_00 += a_0 * b_0;
+		c_10 += a_1 * b_0;
+
+		c_11 += a_1 * b_1;
+
+
+		a_0 = A[0+bs*3];
+		a_1 = A[1+bs*3];
+		
+		b_0 = B[0+bs*3];
+		b_1 = B[1+bs*3];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -692,11 +741,11 @@ void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 	for(; k<kmax; k++)
 		{
 		
-		a_0 = A[0+lda*0];
-		a_1 = A[1+lda*0];
+		a_0 = A[0+bs*0];
+		a_1 = A[1+bs*0];
 		
-		b_0 = B[0+lda*0];
-		b_1 = B[1+lda*0];
+		b_0 = B[0+bs*0];
+		b_1 = B[1+bs*0];
 		
 		c_00 += a_0 * b_0;
 		c_10 += a_1 * b_0;
@@ -715,37 +764,45 @@ void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 	
 	if(alg==0) // C = A * B'
 		{
-		C[0+ldc*0] = c_00;
-		C[1+ldc*0] = c_10;
-
-		C[1+ldc*1] = c_11;
+		goto store;
 		}
 	else 
 		{
-		d_00 = D[0+ldc*0];
-		d_10 = D[1+ldc*0];
+		d_00 = C[0+bs*0];
+		d_10 = C[1+bs*0];
 		
-		d_11 = D[1+ldc*1];
+		d_11 = C[1+bs*1];
 		
 		if(alg==1) // C += A * B'
 			{
-			d_00 += c_00;
-			d_10 += c_10;
+			c_00 = d_00 + c_00;
+			c_10 = d_10 + c_10;
 
-			d_11 += c_11;
+			c_11 = d_11 + c_11;
 			}
 		else // C -= A * B'
 			{
-			d_00 -= c_00;
-			d_10 -= c_10;
+			c_00 = d_00 - c_00;
+			c_10 = d_10 - c_10;
 
-			d_11 -= c_11;
+			c_11 = d_11 - c_11;
 			}
 
-		C[0+ldc*0] = c_00;
-		C[1+ldc*0] = c_10;
+		goto store;
+		}
 
-		C[1+ldc*1] = c_11;
+	store:
+	if(km>=2)
+		{
+		D[0+bs*0] = c_00;
+		D[1+bs*0] = c_10;
+
+		if(kn>=2)
+			D[1+bs*1] = c_11;
+		}
+	else
+		{
+		D[0+bs*0] = c_00;
 		}
 
 	}

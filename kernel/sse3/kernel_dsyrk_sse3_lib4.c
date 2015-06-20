@@ -43,7 +43,7 @@
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 	
 //	if(kmax<=0)
@@ -320,6 +320,7 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"                                \n\t"
 		"je     .S1                      \n\t" // if alg==1, jump
 		"                                \n\t"
+		"movl   %7, %%ecx                \n\t" // km
 		"                                \n\t"// alg==-1
 		"subpd  %%xmm9,  %%xmm0           \n\t"
 		"subpd  %%xmm8,  %%xmm1           \n\t"
@@ -330,11 +331,20 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"subpd  %%xmm15, %%xmm6           \n\t"
 		"subpd  %%xmm14, %%xmm7           \n\t"
 		"                                \n\t"
+		"cmpl	$4, %%ecx                \n\t"
+		"                                \n\t"
 		"movsd	40(%%rbx), %%xmm10       \n\t"
 		"movsd	120(%%rbx), %%xmm11      \n\t"
 		"movsd	%%xmm10, %%xmm1          \n\t"
 		"movsd	%%xmm11, %%xmm7          \n\t"
+//		"movsd	40(%%rbx), %%xmm1        \n\t"
+//		"movsd	120(%%rbx), %%xmm7       \n\t"
 		"                                \n\t"
+		"jl      .SKM3                   \n\t" // if alg==1, jump
+		"                                \n\t"
+		"movl   %8, %%ecx                \n\t" // km
+		"cmpl	$4, %%ecx                \n\t"
+		"                                \n\t"// alg==-1
 		"movaps  %%xmm0, (%%rbx)         \n\t"
 		"movaps  %%xmm1, 32(%%rbx)       \n\t"
 //		"movaps  %%xmm2, 64(%%rbx)       \n\t"
@@ -342,7 +352,23 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"movaps  %%xmm4, 16(%%rbx)       \n\t"
 		"movaps  %%xmm5, 48(%%rbx)       \n\t"
 		"movaps  %%xmm6, 80(%%rbx)       \n\t"
+		"                                \n\t"
+		"jl      .SDONE                  \n\t" // if alg==1, jump
+		"                                \n\t"
 		"movaps  %%xmm7, 112(%%rbx)      \n\t"
+		"                                \n\t"
+		"jmp    .SDONE                   \n\t" // jump to end
+		"                                \n\t"
+		".SKM3:                          \n\t" // alg==1
+		"                                \n\t"
+		"movaps  %%xmm0, (%%rbx)         \n\t"
+		"movaps  %%xmm1, 32(%%rbx)       \n\t"
+//		"movaps  %%xmm2, 64(%%rbx)       \n\t"
+//		"movaps  %%xmm3, 96(%%rbx)       \n\t"
+		"movsd   %%xmm4, 16(%%rbx)       \n\t"
+		"movsd   %%xmm5, 48(%%rbx)       \n\t"
+		"movsd   %%xmm6, 80(%%rbx)       \n\t"
+//		"movaps  %%xmm7, 112(%%rbx)      \n\t"
 		"                                \n\t"
 		"jmp    .SDONE                   \n\t" // jump to end
 		"                                \n\t"
@@ -361,11 +387,21 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"                                \n\t"
 		".S0:                            \n\t" // alg==0
 		"                                \n\t"
-		"movsd	40(%%rbx), %%xmm10       \n\t"
-		"movsd	120(%%rbx), %%xmm11      \n\t"
+		"movl   %7, %%ecx                \n\t" // km
+		"cmpl	$4, %%ecx                \n\t"
+		"                                \n\t"// alg==-1
+		"movsd	32(%%rbx), %%xmm10       \n\t"
+		"movsd	112(%%rbx), %%xmm11      \n\t"
 		"movsd	%%xmm10, %%xmm8          \n\t"
 		"movsd	%%xmm11, %%xmm14         \n\t"
+//		"movsd	40(%%rbx), %%xmm8        \n\t"
+//		"movsd	120(%%rbx), %%xmm14      \n\t"
 		"                                \n\t"
+		"jl      .SKM30                  \n\t" // if alg==1, jump
+		"                                \n\t"
+		"movl   %8, %%ecx                \n\t" // km
+		"cmpl	$4, %%ecx                \n\t"
+		"                                \n\t"// alg==-1
 		"movaps	%%xmm9,  (%%rbx)         \n\t"
 		"movaps	%%xmm8,  32(%%rbx)       \n\t"
 //		"movaps	%%xmm11, 64(%%rbx)       \n\t"
@@ -373,7 +409,24 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		"movaps	%%xmm13, 16(%%rbx)       \n\t"
 		"movaps	%%xmm12, 48(%%rbx)       \n\t"
 		"movaps	%%xmm15, 80(%%rbx)       \n\t"
+		"                                \n\t"
+		"jl      .SDONE                  \n\t" // if alg==1, jump
+		"                                \n\t"
 		"movaps	%%xmm14, 112(%%rbx)      \n\t"
+		"                                \n\t"
+		"jmp    .SDONE                   \n\t" // jump to end
+		"                                \n\t"
+		".SKM30:                         \n\t" // alg==1
+		"                                \n\t"
+		"movaps	%%xmm9,  (%%rbx)         \n\t"
+		"movaps	%%xmm8,  32(%%rbx)       \n\t"
+//		"movaps	%%xmm11, 64(%%rbx)       \n\t"
+//		"movaps	%%xmm10, 96(%%rbx)       \n\t"
+		"movsd 	%%xmm13, 16(%%rbx)       \n\t"
+		"movsd 	%%xmm12, 48(%%rbx)       \n\t"
+		"movsd 	%%xmm15, 80(%%rbx)       \n\t"
+//		"movaps	%%xmm14, 112(%%rbx)      \n\t"
+		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
@@ -389,7 +442,9 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 		  "m" (B),			// %3
 		  "m" (C),			// %4
 		  "m" (alg),		// %5
-		  "m" (D)			// %6
+		  "m" (D),			// %6
+		  "m" (km),			// %7
+		  "m" (kn)			// %8
 		: // register clobber list
 		  "rax", "rbx", "rsi", //"rdx", //"rdi", "r8", "r9", "r10", "r11",
 		  "xmm0", "xmm1", "xmm2", "xmm3",
@@ -402,7 +457,7 @@ void kernel_dsyrk_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 
 
 
-void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 	
 //	if(kmax<=0)
@@ -543,23 +598,23 @@ void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 /*	c_20_30 = _mm_blend_pd(c_20_31, c_21_30, 2);*/
 /*	c_21_31 = _mm_blend_pd(c_21_30, c_20_31, 2);*/
 
-	c_00_10 = _mm_shuffle_pd(c_00_11, c_01_10, 2);
-	c_01_11 = _mm_shuffle_pd(c_01_10, c_00_11, 2);
-	c_20_30 = _mm_shuffle_pd(c_20_31, c_21_30, 2);
-	c_21_31 = _mm_shuffle_pd(c_21_30, c_20_31, 2);
 
 	if(alg==0) // C = A * B'
 		{
-		tmp0 = _mm_load_pd( &D[0+ldc*1] );
-		c_01_11 = _mm_move_sd( c_01_11, tmp0 );
+		d_00_10 = _mm_shuffle_pd(c_00_11, c_01_10, 2);
+		d_01_11 = _mm_shuffle_pd(c_01_10, c_00_11, 2);
+		d_20_30 = _mm_shuffle_pd(c_20_31, c_21_30, 2);
+		d_21_31 = _mm_shuffle_pd(c_21_30, c_20_31, 2);
 
-		_mm_store_pd( &D[0+ldc*0], c_00_10 );
-		_mm_store_pd( &D[2+ldc*0], c_20_30 );
-		_mm_store_pd( &D[0+ldc*1], c_01_11 );
-		_mm_store_pd( &D[2+ldc*1], c_21_31 );
+		goto store;
 		}
 	else
 		{
+		c_00_10 = _mm_shuffle_pd(c_00_11, c_01_10, 2);
+		c_01_11 = _mm_shuffle_pd(c_01_10, c_00_11, 2);
+		c_20_30 = _mm_shuffle_pd(c_20_31, c_21_30, 2);
+		c_21_31 = _mm_shuffle_pd(c_21_30, c_20_31, 2);
+
 		d_00_10 = _mm_load_pd( &C[0+ldc*0] );
 		d_20_30 = _mm_load_pd( &C[2+ldc*0] );
 		d_01_11 = _mm_load_pd( &C[0+ldc*1] );
@@ -580,13 +635,34 @@ void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 			d_21_31 = _mm_sub_pd( d_21_31, c_21_31 ); 
 			}
 
-		tmp0 = _mm_load_pd( &D[0+ldc*1] );
-		d_01_11 = _mm_move_sd( d_01_11, tmp0 );
+		goto store;
+		}
 
+	store:
+	tmp0 = _mm_load_pd( &D[0+ldc*1] );
+	d_01_11 = _mm_move_sd( d_01_11, tmp0 );
+
+	if(km>=4)
+		{
 		_mm_store_pd( &D[0+ldc*0], d_00_10 );
 		_mm_store_pd( &D[2+ldc*0], d_20_30 );
-		_mm_store_pd( &D[0+ldc*1], d_01_11 );
-		_mm_store_pd( &D[2+ldc*1], d_21_31 );
+		
+		if(kn>=2)
+			{
+			_mm_store_pd( &D[0+ldc*1], d_01_11 );
+			_mm_store_pd( &D[2+ldc*1], d_21_31 );
+			}
+		}
+	else
+		{
+		_mm_store_pd( &D[0+ldc*0], d_00_10 );
+		_mm_store_sd( &D[2+ldc*0], d_20_30 );
+		
+		if(kn>=2)
+			{
+			_mm_store_pd( &D[0+ldc*1], d_01_11 );
+			_mm_store_sd( &D[2+ldc*1], d_21_31 );
+			}
 		}
 
 	}
@@ -595,7 +671,7 @@ void kernel_dsyrk_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double 
 
 
 
-void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 	
 //	if(kmax<=0)
@@ -697,19 +773,18 @@ void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 /*	c_00_10 = _mm_blend_pd(c_00_11, c_01_10, 2);*/
 /*	c_01_11 = _mm_blend_pd(c_01_10, c_00_11, 2);*/
 
-	c_00_10 = _mm_shuffle_pd(c_00_11, c_01_10, 2);
-	c_01_11 = _mm_shuffle_pd(c_01_10, c_00_11, 2);
-
 	if(alg==0) // C = A * B'
 		{
-		tmp0 = _mm_load_pd( &D[0+ldc*1] );
-		c_01_11 = _mm_move_sd( c_01_11, tmp0 );
+		d_00_10 = _mm_shuffle_pd(c_00_11, c_01_10, 2);
+		d_01_11 = _mm_shuffle_pd(c_01_10, c_00_11, 2);
 
-		_mm_store_pd(&D[0+ldc*0], c_00_10);
-		_mm_store_pd(&D[0+ldc*1], c_01_11);
+		goto store;
 		}
 	else
 		{
+		c_00_10 = _mm_shuffle_pd(c_00_11, c_01_10, 2);
+		c_01_11 = _mm_shuffle_pd(c_01_10, c_00_11, 2);
+
 		d_00_10 = _mm_load_pd(&C[0+ldc*0]);
 		d_01_11 = _mm_load_pd(&C[0+ldc*1]);
 		
@@ -724,11 +799,23 @@ void kernel_dsyrk_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 			d_01_11 = _mm_sub_pd( d_01_11, c_01_11 ); 
 			}
 
-		tmp0 = _mm_load_pd( &D[0+ldc*1] );
-		d_01_11 = _mm_move_sd( d_01_11, tmp0 );
+		goto store;
+		}
 
+	store:
+	tmp0 = _mm_load_pd( &D[0+ldc*1] );
+	d_01_11 = _mm_move_sd( d_01_11, tmp0 );
+
+	if(km>=2)
+		{
 		_mm_store_pd(&D[0+ldc*0], d_00_10);
-		_mm_store_pd(&D[0+ldc*1], d_01_11);
+
+		if(kn>=2)
+			_mm_store_pd(&D[0+ldc*1], d_01_11);
+		}
+	else
+		{
+		_mm_store_sd(&D[0+ldc*0], d_00_10);
 		}
 
 	}

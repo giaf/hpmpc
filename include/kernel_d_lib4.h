@@ -78,13 +78,18 @@ void kernel_dtrmm_u_nt_2x4_lib4(int kmax, double *A, double *B, double *C);
 void kernel_dtrmm_u_nt_2x2_lib4(int kmax, double *A, double *B, double *C);
 void kernel_dtrmm_l_u_nt_8x4_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg);
 void kernel_dtrmm_l_u_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg);
-void kernel_dsyrk_nt_12x4_lib4(int kadd, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg);
-void kernel_dsyrk_nt_8x8_lib4(int kadd, double *A0, int sda, double *B0, int sdb, double *C0, int sdc, double *D0, int sdd, int alg);
-void kernel_dsyrk_nt_8x4_lib4(int kadd, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg);
-void kernel_dsyrk_nt_8x2_lib4(int kadd, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg);
-void kernel_dsyrk_nt_4x4_lib4(int kadd, double *A, double *B, double *C, double *D, int alg);
-void kernel_dsyrk_nt_4x2_lib4(int kadd, double *A, double *B, double *C, double *D, int alg);
-void kernel_dsyrk_nt_2x2_lib4(int kadd, double *A, double *B, double *C, double *D, int alg);
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+void kernel_dsyrk_nt_12x4_vs_lib4(int km, __m256i mask_m, int kn, int kadd, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg);
+void kernel_dsyrk_nt_8x8_vs_lib4(int km, __m256i mask_m, int kn, int kadd, double *A0, int sda, double *B0, int sdb, double *C0, int sdc, double *D0, int sdd, int alg);
+void kernel_dsyrk_nt_8x4_vs_lib4(int km, __m256i mask_m, int kn, int kadd, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg);
+void kernel_dsyrk_nt_8x2_vs_lib4(int km, __m256i mask_m, int kn, int kadd, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg);
+void kernel_dsyrk_nt_4x4_vs_lib4(int km, __m256i mask_m, int kn, int kadd, double *A, double *B, double *C, double *D, int alg);
+void kernel_dsyrk_nt_4x2_vs_lib4(int km, __m256i mask_m, int kn, int kadd, double *A, double *B, double *C, double *D, int alg);
+#else
+void kernel_dsyrk_nt_4x4_vs_lib4(int km, int kn, int kadd, double *A, double *B, double *C, double *D, int alg);
+void kernel_dsyrk_nt_4x2_vs_lib4(int km, int kn, int kadd, double *A, double *B, double *C, double *D, int alg);
+void kernel_dsyrk_nt_2x2_vs_lib4(int km, int kn, int kadd, double *A, double *B, double *C, double *D, int alg);
+#endif
 void kernel_dsyrk_nn_4x4_lib4(int kadd, double *A, double *B, int sdb, double *C, double *D, int alg);
 void kernel_dsyrk_nn_4x2_lib4(int kadd, double *A, double *B, int sdb, double *C, double *D, int alg);
 void kernel_dsyrk_nn_2x2_lib4(int kadd, double *A, double *B, int sdb, double *C, double *D, int alg);
