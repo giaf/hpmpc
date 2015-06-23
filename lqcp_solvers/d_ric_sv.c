@@ -125,7 +125,7 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 		//d_update_row_pmat(nu0+nx0, hpQ[N]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs, hQl[N]);
 		d_update_row_pmat_sparse(nb0, idxb[N], hpQ[N]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs, hQl[N]);
 		}
-	if(nu0+nx0+1<128)
+	if(nz0<128)
 		{
 		dsyrk_dpotrf_lib(nz0, nu0+nx0, ng0, work, cng0, hpQ[N], cnz0, hpL[N], cnl0, diag, 1, fast_rsqrt);
 		}
@@ -223,6 +223,7 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 		}
 
 	// first stage 
+	nu1 = nu0;
 	nx1 = nx0;
 	cnx1 = cnx0;
 	cnl1 = cnl0;
@@ -311,7 +312,6 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 		cnl1 = cnz1<cnx1+ncl ? cnx1+ncl : cnz1;
 		pnx1  = (nx1+ncl-1)/ncl*ncl;
 		for(jj=0; jj<nu0; jj++) hux[nn][jj] = - hpL[nn][(nu0+nx0)/bs*bs*cnl0+(nu0+nx0)%bs+bs*jj];
-		// TODO change m and n !!!!!
 		dtrsv_t_lib(nu0+nx0, nu0, 1, hpL[nn], cnl0, &hux[nn][0]);
 		for(jj=0; jj<nx1; jj++) hux[nn+1][nu1+jj] = hpBAbt[nn][(nu0+nx0)/bs*bs*cnx1+(nu0+nx0)%bs+bs*jj];
 		dgemv_t_lib(nx0+nu0, nx1, hpBAbt[nn], cnx1, &hux[nn][0], &hux[nn+1][nu1], &hux[nn+1][nu1], 1);
