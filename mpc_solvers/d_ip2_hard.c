@@ -342,7 +342,7 @@ exit(1);
 		fast_rsqrt = 0;
 #endif
 		//printf("\n%d %f\n", fast_rsqrt, mu);
-		d_ric_sv_mpc_tv(N, nx, nu, pBAbt, pQ, dux, pL, work, diag, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2, fast_rsqrt);
+		d_ric_sv_mpc_tv(N, nx, nu, pBAbt, pQ, dux, pL, work, diag, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2, fast_rsqrt);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -428,7 +428,7 @@ exit(1);
 
 
 		// solve the system
-		d_ric_trs_mpc_tv(N, nx, nu, pBAbt, pL, q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
+		d_ric_trs_mpc_tv(N, nx, nu, pBAbt, pL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
 
 #if 0
 printf("\ndux\n");
@@ -797,7 +797,7 @@ exit(1);
 		fast_rsqrt = 0;
 #endif
 		//printf("\n%d %f\n", fast_rsqrt, mu);
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx, fast_rsqrt);
+		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, 1, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx, fast_rsqrt);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -900,7 +900,7 @@ exit(1);
 
 
 		// solve the system
-		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work, 1, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, qx);
+		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work, 0, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, qx);
 
 #if 0
 printf("\ndux\n");

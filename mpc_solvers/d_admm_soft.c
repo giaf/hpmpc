@@ -327,7 +327,7 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 		const int update_hessian = 1;
 	
 		// initial factorization
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, ux_u, pL, work1, diag, compute_mult, pi, 0, 0, 0, dummy, dummy, dummy, 0);
+		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, ux_u, pL, work1, diag, 1, Pb, compute_mult, pi, 0, 0, 0, dummy, dummy, dummy, 0);
 
 
 
@@ -539,7 +539,7 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 
 
 		// Riccati solver		
-		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, ux_u, work1, compute_Pb, Pb, compute_mult, pi, 0, 0, 0, dummy, dummy);
+		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, ux_u, work1, 0, Pb, compute_mult, pi, 0, 0, 0, dummy, dummy);
 		compute_Pb = 0;
 
 /*for(jj=0; jj<=N; jj++)*/

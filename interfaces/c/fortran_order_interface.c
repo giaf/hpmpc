@@ -2165,7 +2165,7 @@ int fortran_order_riccati_mpc( const char prec,
 		double **dummy;
 
 		// call Riccati solver
-		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, compute_mult, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
+		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, 0, dummy, compute_mult, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
 
 
 

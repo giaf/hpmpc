@@ -999,7 +999,7 @@ int main()
 			hux[0][nu+jj+1] =  0.0;
 			}
 
-		d_ric_sv_mpc(nx, nu, N, hpBAbt2, hpRSQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
+		d_ric_sv_mpc(nx, nu, N, hpBAbt2, hpRSQ, 0, dummy, dummy, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
 		//for(ii=0; ii<=N; ii++)
 		//	d_print_pmat(pnz, cnl-3, bs, hpL[ii], cnl);
 		//d_print_pmat(pnz, nu, bs, hpL[0], cnl);
@@ -1055,7 +1055,7 @@ int main()
 
 		for(ii=0; ii<nrep; ii++)
 			{
-			d_ric_sv_mpc(nx, nu, N, hpBAbt2, hpRSQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
+			d_ric_sv_mpc(nx, nu, N, hpBAbt2, hpRSQ, 0, dummy, dummy, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
 			}
 
 		gettimeofday(&tv21, NULL); // start
@@ -1095,10 +1095,7 @@ int main()
 
 	
 		// call the solver
-//		if(FREE_X0==0)
-			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
-//		else
-//			d_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
 
 		if(PRINTRES==1 && ll_max==1)
 			{
@@ -1241,10 +1238,7 @@ int main()
 		// factorize & solve
 		for(rep=0; rep<nrep; rep++)
 			{
-//			if(FREE_X0==0)
-				d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
-//			else
-//				d_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
@@ -1316,10 +1310,7 @@ int main()
 		// factorize & solve (fast rsqrt)
 		for(rep=0; rep<nrep; rep++)
 			{
-//			if(FREE_X0==0)
-				d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 2);
-//			else
-//				d_ric_sv_mhe_old(nx, nu, N, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi);
+			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 2);
 			}
 			
 		gettimeofday(&tv5, NULL); // start
@@ -1330,7 +1321,7 @@ int main()
 
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_sv_mpc_tv(N, nx_v, nu_v, hpBAbt, hpQ, hux, hpL, work, diag, COMPUTE_MULT, hpi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy, 0);
+			d_ric_sv_mpc_tv(N, nx_v, nu_v, hpBAbt, hpQ, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy, 0);
 			}
 
 		gettimeofday(&tv6, NULL); // start

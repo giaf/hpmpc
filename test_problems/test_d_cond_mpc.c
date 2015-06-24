@@ -896,7 +896,7 @@ int main()
 #if 0
 			d_ric_sv_mpc(nx, N1*nu, N2, pH_BAbt, pH_RSQrq, 0, dummy, dummy, H_ux, pH_L, work1, diag_tv, 0, dummy, 0, 0, 0, dummy, dummy, dummy, 0);
 #else
-			d_ric_sv_mpc_tv(N2, nx_v, nu_v, pH_BAbt, pH_RSQrq, H_ux, pH_L, work_tv, diag_tv, 0, H_pi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy, 0);
+			d_ric_sv_mpc_tv(N2, nx_v, nu_v, pH_BAbt, pH_RSQrq, H_ux, pH_L, work_tv, diag_tv, 0, dummy, 0, H_pi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy, 0);
 #endif
 
 			}
@@ -951,7 +951,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpRSQrq, 0, dummy, dummy, hux, hpL2, work2, diag2, 0, dummy, 0, 0, 0, dummy, dummy, dummy, 0);
+			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpRSQrq, 0, dummy, dummy, hux, hpL2, work2, diag2, 0, dummy, 0, dummy, 0, 0, 0, dummy, dummy, dummy, 0);
 
 			}
 

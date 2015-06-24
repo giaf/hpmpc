@@ -234,6 +234,8 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 	int fast_rsqrt = 0;
 
+	double **dummy;
+
 
 
 	// IP loop		
@@ -262,7 +264,7 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 		fast_rsqrt = 0;
 #endif
 		//printf("\n%d %f\n", fast_rsqrt, mu);
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx, 0);
+		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, 0, dummy, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx, 0);
 
 
 
