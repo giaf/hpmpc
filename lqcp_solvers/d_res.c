@@ -47,21 +47,24 @@ void d_res_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double
 	ii = 0;
 	nu0 = nu[ii];
 	nu1 = nu[ii+1];
-	nx0 = nx[ii]; // nx1;
+	nx0 = nx[ii];
 	nx1 = nx[ii+1];
 	cnx1  = (nx1+ncl-1)/ncl*ncl;
 	cnz0  = (nu0+nx0+1+ncl-1)/ncl*ncl;
 	
 	for(jj=0; jj<nu0; jj++) 
 		hrq[ii][jj] = - hq[ii][jj];
-	for(jj=0; jj<nu0%bs; jj++) 
-		{ 
-		temp[jj] = hux[ii][nu0/bs*bs+jj]; 
-		hux[ii][nu0/bs*bs+jj] = 0.0; 
+	if(nx0>0)
+		{
+		for(jj=0; jj<nu0%bs; jj++) 
+			{ 
+			temp[jj] = hux[ii][nu0/bs*bs+jj]; 
+			hux[ii][nu0/bs*bs+jj] = 0.0; 
+			}
+		dgemv_t_lib(nx0+nu0%bs, nu0, hpQ[ii]+nu0/bs*bs*cnz0, cnz0, hux[ii]+nu0/bs*bs, hrq[ii], hrq[ii], -1);
+		for(jj=0; jj<nu0%bs; jj++) 
+			hux[ii][nu0/bs*bs+jj] = temp[jj];
 		}
-	dgemv_t_lib(nx0+nu0%bs, nu0, hpQ[ii]+nu0/bs*bs*cnz0, cnz0, hux[ii]+nu0/bs*bs, hrq[ii], hrq[ii], -1);
-	for(jj=0; jj<nu0%bs; jj++) 
-		hux[ii][nu0/bs*bs+jj] = temp[jj];
 	dsymv_lib(nu0, nu0, hpQ[ii], cnz0, hux[ii], hrq[ii], hrq[ii], -1);
 	dgemv_n_lib(nu0, nx1, hpBAbt[ii], cnx1, hpi[ii+1], hrq[ii], hrq[ii], -1);
 	

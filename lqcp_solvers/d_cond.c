@@ -720,8 +720,43 @@ void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hp
 
 
 
+	// first stage
 	nn = 0;
-	for(jj=0; jj<N2; jj++)
+	jj = 0;
+
+	T1 = jj<R1 ? M1 : N1;
+
+	nx2[jj] = 0;
+	nu2[jj] = T1*nu;
+
+
+	// condense dynamic system
+	//d_cond_A(T1, nx, nu, hpA+nn, 1, hpGamma_0, hpA2[jj]);
+
+	d_cond_B(T1, nx, nu, hpA+nn, hpBt+nn, 1, hpGamma_u, hpB2[jj]);
+
+	d_cond_b(T1, nx, nu, hpA+nn, hb+nn, 1, hGamma_b, hb2[jj]);
+
+
+	// condense cost function
+	//d_cond_Q(T1, nx, nu, hpA+nn, diag_Q, 0, hpQ+nn, hpL, 0, hpGamma_0, hpGamma_0_Q, hpQ2[jj], work);
+	
+	d_cond_R(T1, nx, nu, N2_cond, hpA+nn, hpAt+nn, hpBt+nn, diag_Q, 0, hpQ+nn, hpL, nzero_S, hpS+nn, hpR+nn, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
+
+	//d_cond_St(T1, nx, nu, nzero_S, hpS+nn, 0, hpGamma_0, use_Gamma_0_Q, hpGamma_0_Q, hpGamma_u_Q, hpSt2[jj]);
+
+	//d_cond_q(T1, nx, nu, hpA+nn, hb+nn, diag_Q, 0, hpQ+nn, hq+nn, hpGamma_0, 0, hGamma_b, 1, hGamma_b_q, hq2[jj]);
+
+	d_cond_r(T1, nx, nu, hpA+nn, hb+nn, diag_Q, 0, hpQ+nn, nzero_S, hpS+nn, hq+nn, hr+nn, hpGamma_u, 0, hGamma_b, 1, hGamma_b_q, hr2[jj]);
+
+
+	// increment stage counter
+	nn += T1;
+	jj++;
+
+
+	// general stages
+	for(; jj<N2; jj++)
 		{
 
 		T1 = jj<R1 ? M1 : N1;

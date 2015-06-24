@@ -25,6 +25,7 @@
 
 // work space size
 int d_ric_sv_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, int *ng);
+int d_cond_lqcp_work_space(int N, int nx, int nu, int N2);
 
 // MPC
 void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *work, double *diag, int compute_pi, double **hpi, int *nb, int **idxb, double **hQd, double **hQl, int *ng, double **hpDCt, double **Qx, double **qx, int fast_rsqrt);
@@ -59,5 +60,4 @@ void d_cond_r(int N, int nx, int nu, double **pA, double **b, int diag_Q, int nz
 void d_cond_A(int N, int nx, int nu, double **pA, int compute_Gamma_0, double **pGamma_0, double *pH_A);
 void d_cond_B(int N, int nx, int nu, double **pA, double **pB, int compute_Gamma_u, double **pGamma_u, double *pH_B);
 void d_cond_b(int N, int nx, int nu, double **pA, double **b, int compute_Gamma_b, double **Gamma_b, double *H_b);
-int d_cond_lqcp_work_space(int N, int nx, int nu, int N2);
 void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hpBt, double **hb, double **hpR, int nzero_S, double **hpS, int diag_Q, double **hpQ, double **hr, double **hq, int N2, int *nx2, int *nu2, double **hpA2, double **hpB2, double **hb2, double **hpR2, double **hpSt2, double **hpQ2, double **hr2, double **hq2, double *work_double, int N2_cond);

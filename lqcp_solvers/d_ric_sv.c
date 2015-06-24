@@ -239,7 +239,7 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 
 
 	dtrmm_l_lib(nz0, nx1, hpBAbt[0], cnx1, hpL[1]+ncl*bs, cnl1, work, cnxg0);
-	d_add_row_pmat(nx0, hpL[1]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs);
+	d_add_row_pmat(nx1, hpL[1]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs);
 	if(ng0>0)
 		{
 		cng0 = (ng0+ncl-1)/ncl*ncl;
