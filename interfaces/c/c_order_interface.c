@@ -2760,7 +2760,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 						d_cvt_mat2pmat(nx, ny, C+ii*ny*nx, nx, 0, hpCt[ii], cny);
 						dpotrf_lib(ny, ny, hpQRAG[ii], cnwx1, Q_temp, cny, diag);
 						dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
-						dtrmm_l_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
+						dtrmm_nt_u_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
 						dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQRAG[ii], cnwx1, hpQRAG[ii], cnwx1, 0);
 						}
 					}
@@ -2797,7 +2797,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 						d_cvt_mat2pmat(nx, ny, C+ii*ny*nx, nx, 0, hpCt[ii], cny);
 						dpotrf_lib(ny, ny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, Q_temp, cny, diag);
 						dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
-						dtrmm_l_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
+						dtrmm_nt_u_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
 						dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, 0);
 						}
 					}
@@ -2833,7 +2833,7 @@ int c_order_riccati_mhe_if( char prec, int alg,
 				d_cvt_mat2pmat(nx, ny, C+N*ny*nx, nx, 0, hpCt[N], cny);
 				dpotrf_lib(ny, ny, hpQRAG[N], cnx, Q_temp, cny, diag);
 				dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
-				dtrmm_l_lib(nx, ny, hpCt[N], cny, Q_temp, cny, Ct_temp, cny);
+				dtrmm_nt_u_lib(nx, ny, hpCt[N], cny, Q_temp, cny, Ct_temp, cny);
 				dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQRAG[N], cnx, hpQRAG[N], cnx, 0);
 				}
 			}
