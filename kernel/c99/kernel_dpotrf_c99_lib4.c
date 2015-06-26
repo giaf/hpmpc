@@ -29,7 +29,7 @@
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
+void kernel_dsyrk_dpotrf_nt_4x4_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
 	{
 
 	const int bs = 4;
@@ -545,7 +545,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
+void kernel_dsyrk_dpotrf_nt_4x2_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
 	{
 
 	const int bs = 4;
@@ -944,7 +944,7 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 
 
 
-void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
+void kernel_dsyrk_dpotrf_nt_2x2_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
 	{
 
 	const int bs = 4;
@@ -1197,7 +1197,7 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 
 #if 0
 // A is upper triangular and it coincides with B
-void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, double *D, double *fact, int alg, int fast_rsqrt)
+void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int km, int kn, int kadd, int ksub, double *A, double *C, double *D, double *fact, int alg, int fast_rsqrt)
 	{
 
 	const int bs = 4;
@@ -1652,7 +1652,7 @@ void kernel_dtsyrk_dpotrf_nt_4x4_lib4(int kadd, int ksub, double *A, double *C, 
 
 
 // A is upper triangular and it coincides with B
-void kernel_dtsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *C, double *D, double *fact, int alg, int fast_rsqrt)
+void kernel_dtsyrk_dpotrf_nt_4x2_lib4(int km, int kn, int kadd, int ksub, double *A, double *C, double *D, double *fact, int alg, int fast_rsqrt)
 	{
 
 	const int bs = 4;
@@ -2005,7 +2005,7 @@ void kernel_dtsyrk_dpotrf_nt_4x2_lib4(int kadd, int ksub, double *A, double *C, 
 
 
 // A is upper triangular and it coincides with B
-void kernel_dtsyrk_dpotrf_nt_2x2_lib4(int kadd, int ksub, double *A, double *C, double *D, double *fact, int alg, int fast_rsqrt)
+void kernel_dtsyrk_dpotrf_nt_2x2_lib4(int km, int kn, int kadd, int ksub, double *A, double *C, double *D, double *fact, int alg, int fast_rsqrt)
 	{
 
 	const int bs = 4;

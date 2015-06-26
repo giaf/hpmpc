@@ -39,7 +39,7 @@
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
+void kernel_dsyrk_dpotrf_nt_4x4_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
 	{
 	
 	int ki_add = kadd/4;
@@ -868,7 +868,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, do
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
+void kernel_dsyrk_dpotrf_nt_4x2_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
 	{
 
 	const int bs = 4;
@@ -1269,7 +1269,7 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, do
 
 
 
-void kernel_dsyrk_dpotrf_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
+void kernel_dsyrk_dpotrf_nt_2x2_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
 	{
 
 	const int bs = 4;

@@ -160,7 +160,7 @@ int main()
 
 //		dgemm_nt_lib(1, 2, n, pC, cn, pB, cn, pA, cn, pD, cn, 1, 0, 1);
 //		dgemm_nn_lib(n, n, n, pB, cn, pA, cn, pC, cn, pD, cn, 0, 0, 0);
-		dsyrk_nt_lib(9, 9, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
+//		dsyrk_nt_lib(9, 9, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
 //		dsyrk_nn_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
 //		dgemm_diag_left_lib(n, n, x, pA, cn, pC, cn, pD, cn, 0);
 //		dsyrk_diag_left_right_lib(n, x, x, pA, cn, pC, cn, pD, cn, 0);
@@ -169,7 +169,7 @@ int main()
 /*		dgemm_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
 /*		dtrmm_lib(n, n, pA, pn, pB, pn, pC, pn);*/
 /*		dtrtr_l_lib(10, 5, pA+1, pn, pC, pn);*/
-//		dsyrk_dpotrf_lib(n, n, n, pE, cn2, pD, cn, diag);
+		dsyrk_dpotrf_lib(1, 1, n, pA, cn, pB, cn, pD, cn, diag, 1, 0);
 //		dttmm_ll_lib(n, pA, pn, pA, pn, pC, pn);
 //		dttmm_uu_lib(n, pA, pn, pA, pn, pC, pn);
 //		dtrmm_u_lib(n, n, pA, pn, pB, pn, pC, pn);
