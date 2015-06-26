@@ -292,7 +292,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dtrmm_l_lib(n, n, pA, cnd, pB, cnd, pC, cnd);
+			dtrmm_nt_u_lib(n, n, pA, cnd, pB, cnd, pC, cnd);
 
 			}
 	

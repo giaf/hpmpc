@@ -95,13 +95,13 @@ void d_cond_Q(int N, int nx, int nu, double **pA, int diag_Q, int nzero_Q_N, dou
 
 		dpotrf_lib(nx, nx, pQ[1], cnx, pL[1], cnx, work);
 		dtrtr_l_lib(nx, 0, pL[1], cnx, pL[1], cnx);
-		dtrmm_l_lib(nx, nx, pGamma_0[0], cnx, pL[1], cnx, pGamma_0_Q[0], cnx);
+		dtrmm_nt_u_lib(nx, nx, pGamma_0[0], cnx, pL[1], cnx, pGamma_0_Q[0], cnx);
 		dsyrk_nt_lib(nx, nx, nx, pGamma_0_Q[0], cnx, pGamma_0_Q[0], cnx, pQ[0], cnx, pH_Q, cnx, 1);
 		for(ii=1; ii<N1; ii++)
 			{
 			dpotrf_lib(nx, nx, pQ[ii+1], cnx, pL[ii+1], cnx, work);
 			dtrtr_l_lib(nx, 0, pL[ii+1], cnx, pL[ii+1], cnx);
-			dtrmm_l_lib(nx, nx, pGamma_0[ii], cnx, pL[ii+1], cnx, pGamma_0_Q[ii], cnx);
+			dtrmm_nt_u_lib(nx, nx, pGamma_0[ii], cnx, pL[ii+1], cnx, pGamma_0_Q[ii], cnx);
 			dsyrk_nt_lib(nx, nx, nx, pGamma_0_Q[ii], cnx, pGamma_0_Q[ii], cnx, pH_Q, cnx, pH_Q, cnx, 1);
 			}
 #else
@@ -250,7 +250,7 @@ void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, dou
 			for(ii=0; ii<N1; ii++)
 				{
 #if 1
-				dtrmm_l_lib((ii+1)*nu, nx, pGamma_u[ii], cnx, pL[ii+1], cnx, pGamma_u_Q[ii], cnx);
+				dtrmm_nt_u_lib((ii+1)*nu, nx, pGamma_u[ii], cnx, pL[ii+1], cnx, pGamma_u_Q[ii], cnx);
 #else
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
 				dgemm_nt_lib(nx, (ii+1)*nu, nx, pQ[ii+1], cnx, pGamma_u[ii], cnx, pGamma_u_Q[ii], cnx, pGamma_u_Q[ii], cnx, 0, 0, 1); // (A * Gamma_u^T)^T
