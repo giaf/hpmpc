@@ -582,26 +582,26 @@ void kernel_dgemv_n_8_vs_lib4(int km, int kmax, double *A0, int sda, double *x, 
 		}
 	
 	store:
-	y[0] = y_0;
-	y[1] = y_1;
-	y[2] = y_2;
-	y[3] = y_3;
+	z[0] = y_0;
+	z[1] = y_1;
+	z[2] = y_2;
+	z[3] = y_3;
 	if(km>=8)
 		{
-		y[4] = y_4;
-		y[5] = y_5;
-		y[6] = y_6;
-		y[7] = y_7;
+		z[4] = y_4;
+		z[5] = y_5;
+		z[6] = y_6;
+		z[7] = y_7;
 		}
 	else
 		{
-		y[4] = y_4;
+		z[4] = y_4;
 		if(km>=6)
 			{
-			y[5] = y_5;
+			z[5] = y_5;
 			if(km>6)
 				{
-				y[6] = y_6;
+				z[6] = y_6;
 				}
 			}
 		}
@@ -700,14 +700,14 @@ void kernel_dgemv_n_8_lib4(int kmax, double *A0, int sda, double *x, double *y, 
 
 	if(alg==0)
 		{
-		y[0] = y_0;
-		y[1] = y_1;
-		y[2] = y_2;
-		y[3] = y_3;
-		y[4] = y_4;
-		y[5] = y_5;
-		y[6] = y_6;
-		y[7] = y_7;
+		z[0] = y_0;
+		z[1] = y_1;
+		z[2] = y_2;
+		z[3] = y_3;
+		z[4] = y_4;
+		z[5] = y_5;
+		z[6] = y_6;
+		z[7] = y_7;
 		}
 	else if(alg==1)
 		{
@@ -825,20 +825,20 @@ void kernel_dgemv_n_4_vs_lib4(int km, int kmax, double *A, double *x, double *y,
 	store:
 	if(km>=4)
 		{
-		y[0] = y_0;
-		y[1] = y_1;
-		y[2] = y_2;
-		y[3] = y_3;
+		z[0] = y_0;
+		z[1] = y_1;
+		z[2] = y_2;
+		z[3] = y_3;
 		}
 	else
 		{
-		y[0] = y_0;
+		z[0] = y_0;
 		if(km>=2)
 			{
-			y[1] = y_1;
+			z[1] = y_1;
 			if(km>2)
 				{
-				y[2] = y_2;
+				z[2] = y_2;
 				}
 			}
 		}
