@@ -39,9 +39,9 @@
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dsyrk_dpotrf_nt_4x4_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
+void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
 	{
-	
+
 	int ki_add = kadd/4;
 	int kl_add = kadd%4;
 	int ki_sub = ksub/4;
@@ -704,6 +704,10 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int km, int kn, int tri, int kadd, int ksub
 		"movq   %7, %%rax                \n\t" // load address of fact
 		"movq   %6, %%rbx                \n\t" // load address of D
 		"                                \n\t"
+		"movl   %12, %%ecx               \n\t" // load km
+		"movl   %13, %%edx               \n\t" // load kn
+		"                                \n\t"
+		"                                \n\t"
 		"                                \n\t"
 		"movsd   .DTHR(%%rip), %%xmm7    \n\t" // 1e-15
 		"movsd   .DONE(%%rip), %%xmm6    \n\t" // 1.0
@@ -716,12 +720,18 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int km, int kn, int tri, int kadd, int ksub
 		"sqrtsd  %%xmm0, %%xmm0          \n\t"
 		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
 		"divsd   %%xmm0, %%xmm5          \n\t" // 1.0/a_00
+		"cmpl      $4,  %%ecx            \n\t"
 		"movsd   %%xmm5, (%%rax)         \n\t" // fact[0]
 		"movddup %%xmm5, %%xmm5          \n\t"
 		"mulpd   %%xmm5, %%xmm9          \n\t"
 		"mulpd   %%xmm5, %%xmm13         \n\t"
 		"movaps	 %%xmm9,  (%%rbx)        \n\t"
+		"jge    .STORE_0_4               \n\t"
+		"movsd	 %%xmm13, 16(%%rbx)      \n\t"
+		"jmp    .STORE_0_4_END           \n\t"
+		".STORE_0_4:                     \n\t"
 		"movaps	 %%xmm13, 16(%%rbx)      \n\t"
+		".STORE_0_4_END:                 \n\t"
 		"                                \n\t"
 		".DA11:                          \n\t"
 		"movaps  %%xmm9, %%xmm0          \n\t"
@@ -739,12 +749,18 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int km, int kn, int tri, int kadd, int ksub
 		"sqrtsd  %%xmm0, %%xmm0          \n\t"
 		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
 		"divsd   %%xmm0, %%xmm5          \n\t" // 1.0/a_11
+		"cmpl      $4,  %%ecx            \n\t"
 		"movsd   %%xmm5, 16(%%rax)       \n\t" // fact[2]
 		"movddup %%xmm5, %%xmm5          \n\t"
 		"mulpd   %%xmm5, %%xmm8          \n\t"
 		"mulpd   %%xmm5, %%xmm12         \n\t"
 		"movhpd	 %%xmm8,  40(%%rbx)      \n\t"
+		"jge    .STORE_1_4               \n\t"
+		"movsd	 %%xmm12, 48(%%rbx)      \n\t"
+		"jmp    .STORE_1_4_END           \n\t"
+		".STORE_1_4:                     \n\t"
 		"movaps	 %%xmm12, 48(%%rbx)      \n\t"
+		".STORE_1_4_END:                 \n\t"
 		"                                \n\t"
 		".DA22:                          \n\t"
 		"movddup %%xmm13, %%xmm0         \n\t" // a_20
@@ -761,10 +777,18 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int km, int kn, int tri, int kadd, int ksub
 		"sqrtsd  %%xmm0, %%xmm0          \n\t"
 		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
 		"divsd   %%xmm0, %%xmm5          \n\t" // 1.0/a_11
+		"cmpl      $4,  %%ecx            \n\t"
 		"movsd   %%xmm5, 40(%%rax)       \n\t" // fact[5]
 		"movddup %%xmm5, %%xmm5          \n\t"
 		"mulpd   %%xmm5, %%xmm15         \n\t"
+		"jge    .STORE_2_4               \n\t"
+		"movsd	 %%xmm15, 80(%%rbx)      \n\t"
+		"jmp    .STORE_2_4_END           \n\t"
+		".STORE_2_4:                     \n\t"
 		"movaps	 %%xmm15, 80(%%rbx)      \n\t"
+		".STORE_2_4_END:                 \n\t"
+		"                                \n\t"
+		"cmpl      $4,  %%edx            \n\t"
 		"                                \n\t"
 		".DA33:                          \n\t"
 		"movaps  %%xmm13, %%xmm0         \n\t"
@@ -776,6 +800,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int km, int kn, int tri, int kadd, int ksub
 		"movsd   %%xmm0, 48(%%rax)       \n\t" // fact[6]
 		"movsd   %%xmm1, 56(%%rax)       \n\t" // fact[7]
 		"movsd   %%xmm2, 64(%%rax)       \n\t" // fact[8]
+		"jl      .DEND                   \n\t"
 		"mulpd   %%xmm13, %%xmm0         \n\t"
 		"mulpd   %%xmm12, %%xmm1         \n\t"
 		"mulpd   %%xmm15, %%xmm2         \n\t"
@@ -855,7 +880,9 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int km, int kn, int tri, int kadd, int ksub
 		  "m" (alg),		// %8
 		  "m" (Am),			// %9
 		  "m" (Bm),			// %10
-		  "m" (tri)			// %11
+		  "m" (tri),		// %11
+		  "m" (km),			// %12
+		  "m" (kn)			// %13
 		: // register clobber list
 		  "rax", "rbx", "rcx", "rdx", "rsi", //"rdx", //"rdi", "r8", "r9", "r10", "r11",
 		  "xmm0", "xmm1", "xmm2", "xmm3",
@@ -868,7 +895,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4(int km, int kn, int tri, int kadd, int ksub
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x2_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
+void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
 	{
 
 	const int bs = 4;
@@ -1223,6 +1250,7 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int km, int kn, int tri, int kadd, int ksub
 		c_00 = sqrt(c_00);
 		D[0+bs*0] = c_00;
 		c_00 = 1.0/c_00;
+		fact[0] = c_00;
 		c_10 *= c_00;
 		c_20 *= c_00;
 		c_30 *= c_00;
@@ -1231,10 +1259,20 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int km, int kn, int tri, int kadd, int ksub
 		{
 		c_00 = 0.0;
 		D[0+bs*0] = c_00;
+		fact[0] = c_00;
 		}
 	D[1+bs*0] = c_10;
+	fact[1] = c_10;
 	D[2+bs*0] = c_20;
-	D[3+bs*0] = c_30;
+	fact[3] = c_20;
+	if(km>=4)
+		{
+		D[3+bs*0] = c_30;
+		fact[6] = c_30;
+		}
+	
+	if(kn==1)
+		return;
 	
 	// second column
 	c_11 -= c_10*c_10;
@@ -1245,6 +1283,7 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int km, int kn, int tri, int kadd, int ksub
 		c_11 = sqrt(c_11);
 		D[1+bs*1] = c_11;
 		c_11 = 1.0/c_11;
+		fact[2] = c_11;
 		c_21 *= c_11;
 		c_31 *= c_11;
 		}
@@ -1252,24 +1291,21 @@ void kernel_dsyrk_dpotrf_nt_4x2_lib4(int km, int kn, int tri, int kadd, int ksub
 		{
 		c_11 = 0.0;
 		D[1+bs*1] = c_11;
+		fact[2] = c_11;
 		}
 	D[2+bs*1] = c_21;
-	D[3+bs*1] = c_31;
-
-	// save factorized matrix with reciprocal of diagonal
-	fact[0] = c_00;
-	fact[1] = c_10;
-	fact[2] = c_11;
-	fact[3] = c_20;
 	fact[4] = c_21;
-	fact[6] = c_30;
-	fact[7] = c_31;
+	if(km>=4)
+		{
+		D[3+bs*1] = c_31;
+		fact[7] = c_31;
+		}
 
 	}
 
 
 
-void kernel_dsyrk_dpotrf_nt_2x2_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
+void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg, int fast_rsqrt)
 	{
 
 	const int bs = 4;
@@ -1488,14 +1524,23 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int km, int kn, int tri, int kadd, int ksub
 		c_00 = sqrt(c_00);
 		D[0+bs*0] = c_00;
 		c_00 = 1.0/c_00;
+		fact[0] = c_00;
 		c_10 *= c_00;
 		}
 	else
 		{
 		c_00 = 0.0;
 		D[0+bs*0] = c_00;
+		fact[0] = c_00;
 		}
-	D[1+bs*0] = c_10;
+	if(km>=2)
+		{
+		D[1+bs*0] = c_10;
+		fact[1] = c_10;
+		}
+
+	if(kn==1)
+		return;
 	
 	// second column
 	c_11 -= c_10*c_10;
@@ -1504,17 +1549,14 @@ void kernel_dsyrk_dpotrf_nt_2x2_lib4(int km, int kn, int tri, int kadd, int ksub
 		c_11 = sqrt(c_11);
 		D[1+bs*1] = c_11;
 		c_11 = 1.0/c_11;
+		fact[2] = c_11;
 		}
 	else
 		{
 		c_11 = 0.0;
 		D[1+bs*1] = c_11;
+		fact[2] = c_11;
 		}
-
-	// save factorized matrix with reciprocal of diagonal
-	fact[0] = c_00;
-	fact[1] = c_10;
-	fact[2] = c_11;
 
 	}
 

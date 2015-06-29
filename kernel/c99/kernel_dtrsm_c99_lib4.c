@@ -27,7 +27,7 @@
 
 
 
-void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
+void kernel_dgemm_dtrsm_nt_4x4_vs_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -585,7 +585,8 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	D[0+bs*0] = c_00;
 	D[1+bs*0] = c_10;
 	D[2+bs*0] = c_20;
-	D[3+bs*0] = c_30;
+	if(km>=4)
+		D[3+bs*0] = c_30;
 
 	a_10 = fact[1];
 	a_11 = fact[2];
@@ -600,7 +601,8 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	D[0+bs*1] = c_01;
 	D[1+bs*1] = c_11;
 	D[2+bs*1] = c_21;
-	D[3+bs*1] = c_31;
+	if(km>=4)
+		D[3+bs*1] = c_31;
 
 	a_20 = fact[3];
 	a_21 = fact[4];
@@ -620,7 +622,11 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	D[0+bs*2] = c_02;
 	D[1+bs*2] = c_12;
 	D[2+bs*2] = c_22;
-	D[3+bs*2] = c_32;
+	if(km>=4)
+		D[3+bs*2] = c_32;
+
+	if(kn==3)
+		return;
 
 	a_30 = fact[6];
 	a_31 = fact[7];
@@ -645,13 +651,14 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	D[0+bs*3] = c_03;
 	D[1+bs*3] = c_13;
 	D[2+bs*3] = c_23;
-	D[3+bs*3] = c_33;
+	if(km>=4)
+		D[3+bs*3] = c_33;
 
 	}
 	
 	
 	
-void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
+void kernel_dgemm_dtrsm_nt_4x2_vs_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -1030,7 +1037,11 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	D[0+bs*0] = c_00;
 	D[1+bs*0] = c_10;
 	D[2+bs*0] = c_20;
-	D[3+bs*0] = c_30;
+	if(km>=4)
+		D[3+bs*0] = c_30;
+
+	if(kn==1)
+		return;
 
 	a_10 = fact[1];
 	a_11 = fact[2];
@@ -1045,13 +1056,14 @@ void kernel_dgemm_dtrsm_nt_4x2_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	D[0+bs*1] = c_01;
 	D[1+bs*1] = c_11;
 	D[2+bs*1] = c_21;
-	D[3+bs*1] = c_31;
+	if(km>=4)
+		D[3+bs*1] = c_31;
 
 	}
 	
 	
 	
-void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
+void kernel_dgemm_dtrsm_nt_2x4_vs_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -1384,7 +1396,8 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	c_00 *= a_00;
 	c_10 *= a_00;
 	D[0+bs*0] = c_00;
-	D[1+bs*0] = c_10;
+	if(km>=4)
+		D[1+bs*0] = c_10;
 
 	a_10 = fact[1];
 	a_11 = fact[2];
@@ -1393,7 +1406,8 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	c_01 *= a_11;
 	c_11 *= a_11;
 	D[0+bs*1] = c_01;
-	D[1+bs*1] = c_11;
+	if(km>=4)
+		D[1+bs*1] = c_11;
 
 	a_20 = fact[3];
 	a_21 = fact[4];
@@ -1405,7 +1419,11 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	c_02 *= a_22;
 	c_12 *= a_22;
 	D[0+bs*2] = c_02;
-	D[1+bs*2] = c_12;
+	if(km>=4)
+		D[1+bs*2] = c_12;
+
+	if(kn==3)
+		return;
 
 	a_30 = fact[6];
 	a_31 = fact[7];
@@ -1420,13 +1438,14 @@ void kernel_dgemm_dtrsm_nt_2x4_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	c_03 *= a_33;
 	c_13 *= a_33;
 	D[0+bs*3] = c_03;
-	D[1+bs*3] = c_13;
+	if(km>=4)
+		D[1+bs*3] = c_13;
 
 	}
 	
 	
 	
-void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
+void kernel_dgemm_dtrsm_nt_2x2_vs_lib4(int km, int kn, int tri, int kadd, int ksub, double *Ap, double *Bp, double *Am, double *Bm, double *C, double *D, double *fact, int alg)
 	{
 
 	const int bs = 4;
@@ -1662,7 +1681,11 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	c_00 *= a_00;
 	c_10 *= a_00;
 	D[0+bs*0] = c_00;
-	D[1+bs*0] = c_10;
+	if(km>=2)
+		D[1+bs*0] = c_10;
+
+	if(kn==1)
+		return;
 
 	a_10 = fact[1];
 	a_11 = fact[2];
@@ -1671,7 +1694,8 @@ void kernel_dgemm_dtrsm_nt_2x2_lib4(int tri, int kadd, int ksub, double *Ap, dou
 	c_01 *= a_11;
 	c_11 *= a_11;
 	D[0+bs*1] = c_01;
-	D[1+bs*1] = c_11;
+	if(km>=2)
+		D[1+bs*1] = c_11;
 
 	}
 	

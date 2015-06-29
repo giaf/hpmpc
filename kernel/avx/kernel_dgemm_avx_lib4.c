@@ -740,8 +740,6 @@ void kernel_dgemm_nt_10x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda,
 
 
 
-// normal-transposed, 8x4 with data packed in 4
-//void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg, int tc, int td)
 	{
 	
@@ -1476,8 +1474,6 @@ void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *
 
 
 
-// normal-transposed, 8x4 with data packed in 4
-//void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 void kernel_dgemm_nt_8x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg, int tc, int td)
 	{
 	
