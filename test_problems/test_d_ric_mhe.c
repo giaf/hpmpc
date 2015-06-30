@@ -663,9 +663,9 @@ int main()
 			{
 			for(jj=0; jj<ny; jj++) y_temp[jj] = - q[jj];
 			//d_print_mat(1, ny, y_temp, 1);
-			dsymv_lib(ny, ny, hpQ[ii], cny, hy[ii], y_temp, -1);
+			dsymv_lib(ny, ny, hpQ[ii], cny, hy[ii], y_temp, y_temp, -1);
 			//d_print_mat(1, ny, y_temp, 1);
-			dgemv_t_lib(ny, nx, hpC[ii], cnx, y_temp, hqq[ii], 0);
+			dgemv_t_lib(ny, nx, hpC[ii], cnx, y_temp, hqq[ii], hqq[ii], 0);
 			//d_print_mat(1, nx, hrr[ii], 1);
 			//if(ii==9)
 			//exit(1);

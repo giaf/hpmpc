@@ -35,7 +35,7 @@
 
 
 // normal-transposed, 8x4 with data packed in 4
-void kernel_dsyrk_nt_8x4_vs_lib4(int km, __m256i mask_m, int kn, int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
+void kernel_dsyrk_nt_8x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
 	
 //	if(kmax<=0)
@@ -48,6 +48,10 @@ void kernel_dsyrk_nt_8x4_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 	const int bs = 4;
 	const int ldc = bs;
 	
+	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
+
+	double d_temp;
+	
 	int k;
 	
 	__m256d
@@ -56,6 +60,9 @@ void kernel_dsyrk_nt_8x4_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 		ab_tmp0, ab_tmp1, // temporary results
 		c_00_11_22_33, c_01_10_23_32, c_03_12_21_30, c_02_13_20_31,
 		c_40_51_62_73, c_41_50_63_72, c_43_52_61_70, c_42_53_60_71;
+	
+	__m256i
+		mask_m;
 	
 	// prefetch
 	a_0123        = _mm256_load_pd( &A0[0] );
@@ -339,6 +346,9 @@ void kernel_dsyrk_nt_8x4_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 
 	// store (5 - 8) x (3 - 4)
 	store:
+	d_temp = km - 4.0;
+	mask_m = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
+
 	d_01_11_21_31 = _mm256_load_pd( &D0[0+ldc*1] );
 	d_02_12_22_32 = _mm256_load_pd( &D0[0+ldc*2] );
 
@@ -364,7 +374,7 @@ void kernel_dsyrk_nt_8x4_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 
 
 // normal-transposed, 8x2 with data packed in 4
-void kernel_dsyrk_nt_8x2_vs_lib4(int km, __m256i mask_m, int kn, int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
+void kernel_dsyrk_nt_8x2_vs_lib4(int km, int kn, int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
 	{
 	
 //	if(kmax<=0)
@@ -377,6 +387,10 @@ void kernel_dsyrk_nt_8x2_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 	const int bs = 4;
 	const int ldc = bs;
 	
+	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
+
+	double d_temp;
+	
 	int k;
 	
 	__m256d
@@ -385,6 +399,9 @@ void kernel_dsyrk_nt_8x2_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 		ab_tmp0, ab_tmp1, // temporary results
 		c_00_11_20_31, c_01_10_21_30,
 		c_40_51_60_71, c_41_50_61_70;
+	
+	__m256i
+		mask_m;
 	
 	// prefetch
 	a_0123 = _mm256_load_pd( &A0[0] );
@@ -563,6 +580,9 @@ void kernel_dsyrk_nt_8x2_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 	
 	// store (5 - 8) x (1 - 2)
 	store:
+	d_temp = km - 4.0;
+	mask_m = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
+
 	_mm256_store_pd( &D0[0+ldc*0], c_00_10_20_30 );
 	_mm256_maskstore_pd( &D1[0+ldc*0], mask_m, c_40_50_60_70 );
 	if(kn>=2)
@@ -579,7 +599,7 @@ void kernel_dsyrk_nt_8x2_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 
 
 // normal-transposed, 4x4 with data packed in 4
-void kernel_dsyrk_nt_4x4_vs_lib4(int km, __m256i mask_m, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 	
 //	if(kmax<=0)
@@ -588,6 +608,10 @@ void kernel_dsyrk_nt_4x4_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 	const int bs = 4;
 	const int ldc = bs;
 	
+	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
+
+	double d_temp;
+	
 	int k;
 	
 	__m256d
@@ -595,6 +619,9 @@ void kernel_dsyrk_nt_4x4_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 		b_0123, b_1032, b_3210, b_2301,
 		ab_temp, // temporary results
 		c_00_11_22_33, c_01_10_23_32, c_03_12_21_30, c_02_13_20_31;
+	
+	__m256i
+		mask_m;
 	
 	// prefetch
 	a_0123        = _mm256_load_pd( &A[0] );
@@ -786,6 +813,9 @@ void kernel_dsyrk_nt_4x4_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 	
 	// store (1 - 4) x (3 - 4)
 	store:
+	d_temp = km - 0.0;
+	mask_m = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
+
 	d_01_11_21_31 = _mm256_load_pd( &D[0+ldc*1] );
 	d_02_12_22_32 = _mm256_load_pd( &D[0+ldc*2] );
 
@@ -809,7 +839,7 @@ void kernel_dsyrk_nt_4x4_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 
 
 // normal-transposed, 4x2 with data packed in 4
-void kernel_dsyrk_nt_4x2_vs_lib4(int km, __m256i mask_m, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
+void kernel_dsyrk_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
 	
 //	if(kmax<=0)
@@ -818,6 +848,10 @@ void kernel_dsyrk_nt_4x2_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 	const int bs = 4;
 	const int ldc = bs;
 	
+	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
+
+	double d_temp;
+	
 	int k;
 	
 	__m256d
@@ -825,6 +859,9 @@ void kernel_dsyrk_nt_4x2_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 		b_0101, b_1010,
 		ab_temp, // temporary results
 		c_00_11_20_31, c_01_10_21_30, C_00_11_20_31, C_01_10_21_30;
+	
+	__m256i
+		mask_m;
 	
 	// prefetch
 	a_0123 = _mm256_load_pd( &A[0] );
@@ -960,6 +997,9 @@ void kernel_dsyrk_nt_4x2_vs_lib4(int km, __m256i mask_m, int kn, int kmax, doubl
 
 	// store (1 - 4) x (1 - 2)
 	store:
+	d_temp = km - 0.0;
+	mask_m = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
+
 	_mm256_maskstore_pd( &D[0+ldc*0], mask_m, c_00_10_20_30 );
 
 	if(kn>=2)

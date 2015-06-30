@@ -162,6 +162,7 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 			dsyrk_nt_lib(nz0, nu0+nx0, nx1+ng0, work, cnxg0, work, cnxg0, hpQ[N-nn-1], cnz0, hpL[N-nn-1], cnl0, 1);
 			dpotrf_lib(nz0, nu0+nx0, hpL[N-nn-1], cnl0, hpL[N-nn-1], cnl0, diag);
 			}
+		for(ii=0; ii<nu0; ii++) if(diag[ii]==0) diag[ii] = 1.0; // TODO needed ?????
 		d_update_diag_pmat(nu0, hpL[N-nn-1], cnl0, diag); // copy reciprocal of diagonal
 		dtrtr_l_lib(nx0, nu0, hpL[N-nn-1]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, hpL[N-nn-1]+ncl*bs, cnl0);	
 		}
@@ -202,6 +203,7 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 		d_update_row_pmat_sparse(nb0, idxb[0], hpQ[0]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs, hQl[0]);
 		}
 	dsyrk_dpotrf_lib(nz0, nu0, nx1+ng0, work, cnxg0, hpQ[0], cnz0, hpL[0], cnl0, diag, 1, fast_rsqrt);
+	for(ii=0; ii<nu0; ii++) if(diag[ii]==0) diag[ii] = 1.0; // TODO needed ?????
 	d_update_diag_pmat(nu0, hpL[0], cnl0, diag); // copy reciprocal of diagonal
 
 
@@ -477,6 +479,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 	exit(1);
 #endif
 
+		for(ii=0; ii<nu; ii++) if(diag[ii]==0) diag[ii] = 1.0; // TODO needed ?????
 		for(jj=0; jj<nu; jj++) hpL[N-nn-1][(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 		dtrtr_l_lib(nx, nu, hpL[N-nn-1]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-nn-1]+(ncl)*bs, cnl);	
 		}
@@ -502,6 +505,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		d_update_row_pmat(nu, hpQ[0]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[0]);
 		}
 	dsyrk_dpotrf_lib(nz, ((nu+2-1)/2)*2, nx+ng, work, cnxg, hpQ[0], cnz, hpL[0], cnl, diag, 1, fast_rsqrt);
+	for(ii=0; ii<nu; ii++) if(diag[ii]==0) diag[ii] = 1.0; // TODO needed ?????
 	for(jj=0; jj<nu; jj++) hpL[0][(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 
 

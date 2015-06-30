@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bs);
 	
-	int n = 12;
+	int n = 16;
 	int nrep = 1;
 	
 	double *A; d_zeros(&A, n, n);
@@ -139,10 +139,10 @@ int main()
 
 /*	d_cvt_mat2pmat(n, n, C, n, 0, pC, pn);*/
 /*	d_cvt_mat2pmat(n, n, C, n, bs-n%bs, pC+((bs-n%bs))%bs*(bs+1), pn);*/
-	d_print_pmat(pn, pn, bs, pA, cn);
-	d_print_pmat(pn, pn, bs, pB, cn);
-	d_print_pmat(pn, pn, bs, pC, cn);
-	d_print_pmat(pn, pn, bs, pD, cn);
+	d_print_pmat(pn, cn, bs, pA, cn);
+	d_print_pmat(pn, cn, bs, pB, cn);
+	d_print_pmat(pn, cn, bs, pC, cn);
+	d_print_pmat(pn, cn, bs, pD, cn);
 	//d_print_pmat(pn, pn, bs, pD, cn);
 	d_print_mat(1, n, x, 1);
 	d_print_mat(1, n, y, 1);
@@ -158,7 +158,7 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-//		dgemm_nt_lib(1, 2, n, pC, cn, pB, cn, pA, cn, pD, cn, 1, 0, 1);
+//		dgemm_nt_lib(10, 10, n, pA, cn, pB, cn, pC, cn, pD, cn, 0, 0, 1);
 //		dgemm_nn_lib(n, n, n, pB, cn, pA, cn, pC, cn, pD, cn, 0, 0, 0);
 //		dsyrk_nt_lib(9, 9, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
 //		dsyrk_nn_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
@@ -169,7 +169,7 @@ int main()
 /*		dgemm_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
 /*		dtrmm_lib(n, n, pA, pn, pB, pn, pC, pn);*/
 /*		dtrtr_l_lib(10, 5, pA+1, pn, pC, pn);*/
-		dsyrk_dpotrf_lib(1, 1, n, pA, cn, pB, cn, pD, cn, diag, 1, 0);
+		dsyrk_dpotrf_lib(6, 6, n, pA, cn, pB, cn, pD, cn, diag, 1, 0);
 //		dttmm_ll_lib(n, pA, pn, pA, pn, pC, pn);
 //		dttmm_uu_lib(n, pA, pn, pA, pn, pC, pn);
 //		dtrmm_u_lib(n, n, pA, pn, pB, pn, pC, pn);
@@ -215,7 +215,7 @@ int main()
 	if(n<=20)
 		{
 //		d_print_pmat(pn, pn, bs, pC, pn);
-		d_print_pmat(pn, pn, bs, pD, cn);
+		d_print_pmat(pn, cn, bs, pD, cn);
 //		d_print_pmat(n, n, bs, pB, pn);
 /*		d_print_pmat(n, n, bs, pA, pn);*/
 /*		d_print_mat(n, n, B, n);*/

@@ -431,7 +431,7 @@ int main()
 * matrix series
 ************************************************/
 
-		int N2 = 3;
+		int N2 = 4;
 		int N1 = (N+N2-1)/N2;
 		int cN1nu = (N1*nu+ncl-1)/ncl*ncl;
 		int cN1nx = (N1*nx+ncl-1)/ncl*ncl;
@@ -565,7 +565,7 @@ int main()
 
 			//d_cond_q(N, nx, nu, hpA, hb, 1, 1, hdQ, hq, hpGamma_0, 1, hGamma_b, 1, hGamma_b_q, H_q[0]);
 
-			d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, 1, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]);
+			d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, 0, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]);
 
 			//d_cond_A(N, nx, nu, hpA, 0, hpGamma_0, pH_A[0]);
 
@@ -612,8 +612,17 @@ int main()
 #endif
 
 #if 1
+//		printf("\nGamma_b\n");
+//		for(ii=0; ii<N; ii++)	
+//			d_print_mat(1, nx, hGamma_b[ii], 1);
+
+//		printf("\nGamma_b_q\n");
+//		for(ii=0; ii<N; ii++)	
+//			d_print_mat(1, nx, hGamma_b_q[ii], 1);
+
 		printf("\nH_r\n");
 		d_print_mat(1, N*nu, H_r[0], 1);
+//		exit(1);
 #endif
 
 #if 0
