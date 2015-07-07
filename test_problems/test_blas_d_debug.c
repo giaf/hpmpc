@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bs);
 	
-	int n = 16;
+	int n = 12;
 	int nrep = 1;
 	
 	double *A; d_zeros(&A, n, n);
@@ -158,18 +158,18 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-//		dgemm_nt_lib(10, 10, n, pA, cn, pB, cn, pC, cn, pD, cn, 0, 0, 1);
+//		dgemm_nt_lib(n, n, 3, pA, cn, pB, cn, pC, cn, pD, cn, 0, 0, 1);
 //		dgemm_nn_lib(n, n, n, pB, cn, pA, cn, pC, cn, pD, cn, 0, 0, 0);
+//		dsyrk_dpotrf_lib(15, 15, n, pA, cn, pB, cn, pD, cn, diag, 1, 0);
 //		dsyrk_nt_lib(9, 9, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
 //		dsyrk_nn_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
 //		dgemm_diag_left_lib(n, n, x, pA, cn, pC, cn, pD, cn, 0);
 //		dsyrk_diag_left_right_lib(n, x, x, pA, cn, pC, cn, pD, cn, 0);
-//		dtrmm_l_lib(n, n, pA, cn, pB, cn, pD, cn);
+		dtrmm_nt_u_lib(5, 5, pA, cn, pB, cn, pD, cn);
 //		dgemm_nt_lib(13, n, n, pA, pn, pB, pn, pC, pn, 0);
 /*		dgemm_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
 /*		dtrmm_lib(n, n, pA, pn, pB, pn, pC, pn);*/
 /*		dtrtr_l_lib(10, 5, pA+1, pn, pC, pn);*/
-		dsyrk_dpotrf_lib(6, 6, n, pA, cn, pB, cn, pD, cn, diag, 1, 0);
 //		dttmm_ll_lib(n, pA, pn, pA, pn, pC, pn);
 //		dttmm_uu_lib(n, pA, pn, pA, pn, pC, pn);
 //		dtrmm_u_lib(n, n, pA, pn, pB, pn, pC, pn);
@@ -212,7 +212,7 @@ int main()
 	
 	printf("\nn\tGflops\t\t%%\n%d\t%f\t%f\n\n", n, Gflops, 100.0*Gflops/Gflops_max);
 
-	if(n<=20)
+	if(n<=24)
 		{
 //		d_print_pmat(pn, pn, bs, pC, pn);
 		d_print_pmat(pn, cn, bs, pD, cn);

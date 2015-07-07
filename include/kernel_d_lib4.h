@@ -58,6 +58,10 @@ void kernel_dgemm_nn_2x2_lib4(int kmax, double *A, double *B, int sdb, double *C
 void kernel_dtrmm_nt_u_12x4_lib4(int kadd, double *A0, int sda, double *B, double *D0, int sdd);
 void kernel_dtrmm_nt_u_8x4_lib4(int kadd, double *A0, int sda, double *B, double *D0, int sdd);
 void kernel_dtrmm_nt_u_4x4_lib4(int kadd, double *A, double *B, double *D);
+void kernel_dtrmm_nt_u_10x4_vs_lib4(int km, int kadd, double *A0, int sda, double *B, double *D0, int sdd);
+void kernel_dtrmm_nt_u_8x4_vs_lib4(int km, int kadd, double *A0, int sda, double *B, double *D0, int sdd);
+void kernel_dtrmm_nt_u_6x4_vs_lib4(int km, int kadd, double *A0, int sda, double *B, double *D0, int sdd);
+void kernel_dtrmm_nt_u_4x4_vs_lib4(int km, int kadd, double *A, double *B, double *D);
 void kernel_dtrmm_nt_l_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc);
 void kernel_dtrmm_nt_l_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc);
 void kernel_dtrmm_nt_l_4x4_lib4(int kmax, double *A, double *B, double *C);
@@ -187,6 +191,12 @@ void corner_dtrmm_nt_u_8x1_lib4(double *A0, int sda, double *B, double *C0, int 
 void corner_dtrmm_nt_u_4x3_lib4(double *A, double *B, double *C);
 void corner_dtrmm_nt_u_4x2_lib4(double *A, double *B, double *C);
 void corner_dtrmm_nt_u_4x1_lib4(double *A, double *B, double *C);
+void corner_dtrmm_nt_u_8x3_vs_lib4(int km, double *A0, int sda, double *B, double *C0, int sdc);
+void corner_dtrmm_nt_u_8x2_vs_lib4(int km, double *A0, int sda, double *B, double *C0, int sdc);
+void corner_dtrmm_nt_u_8x1_vs_lib4(int km, double *A0, int sda, double *B, double *C0, int sdc);
+void corner_dtrmm_nt_u_4x3_vs_lib4(int km, double *A, double *B, double *C);
+void corner_dtrmm_nt_u_4x2_vs_lib4(int km, double *A, double *B, double *C);
+void corner_dtrmm_nt_u_4x1_vs_lib4(int km, double *A, double *B, double *C);
 void corner_dtrtr_l_3_lib4(int kna, double *A, int sda, double *C);
 void corner_dtrtr_l_2_lib4(int kna, double *A, int sda, double *C);
 void corner_dttmm_ll_nt_4x4_lib4(double *A, double *B, double *C);
