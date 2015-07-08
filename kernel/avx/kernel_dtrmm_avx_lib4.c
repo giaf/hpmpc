@@ -2668,7 +2668,7 @@ void kernel_dtrmm_nt_u_6x4_vs_lib4(int km, int kmax, double *A0, int sda, double
 		}
 
 
-	if(km>=10)
+	if(km>=6)
 		mask_m = _mm_set_epi64x( -1, -1 );
 	else
 		mask_m = _mm_set_epi64x(  1, -1 );

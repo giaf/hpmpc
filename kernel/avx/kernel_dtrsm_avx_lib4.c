@@ -4529,7 +4529,7 @@ void kernel_dgemm_dtrsm_nt_4x2_vs_lib4(int km, int kn, int tri, int kadd, int ks
 	__m256d
 		a_00, a_10, a_11;
 	
-	d_temp = km - 4.0;
+	d_temp = km - 0.0;
 	mask_m = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
 
 	a_00 = _mm256_broadcast_sd( &fact[0] );

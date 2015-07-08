@@ -7538,6 +7538,7 @@ void kernel_dgemm_nt_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 		if(kn>=2)
 			_mm_store_sd( &D[0+ldc*1], d_1 );
 		}
+	return;
 
 	store_t:
 	if(kn>=2)
@@ -7552,6 +7553,7 @@ void kernel_dgemm_nt_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 		if(km>=2)
 			_mm_store_sd( &D[0+ldc*1], d_1 );
 		}
+	return;
 
 	}
 

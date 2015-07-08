@@ -4059,16 +4059,16 @@ void dtrtr_u_lib(int m, double *pA, int sda, double *pC, int sdc)
 		else if(m-ii==2)
 			{
 			pC[ii*sdc+(ii+0)*bs+0] = pA[ii*sda+(ii+0)*bs+0];
-			pC[ii*sdc+(ii+1)*bs+0] = pA[ii*sda+(ii+0)*bs+1];
+			pC[ii*sdc+(ii+0)*bs+1] = pA[ii*sda+(ii+1)*bs+0];
 			pC[ii*sdc+(ii+1)*bs+1] = pA[ii*sda+(ii+1)*bs+1];
 			}
 		else // if(m-ii==3)
 			{
 			pC[ii*sdc+(ii+0)*bs+0] = pA[ii*sda+(ii+0)*bs+0];
-			pC[ii*sdc+(ii+1)*bs+0] = pA[ii*sda+(ii+0)*bs+1];
-			pC[ii*sdc+(ii+2)*bs+0] = pA[ii*sda+(ii+0)*bs+2];
+			pC[ii*sdc+(ii+0)*bs+1] = pA[ii*sda+(ii+1)*bs+0];
+			pC[ii*sdc+(ii+0)*bs+2] = pA[ii*sda+(ii+2)*bs+0];
 			pC[ii*sdc+(ii+1)*bs+1] = pA[ii*sda+(ii+1)*bs+1];
-			pC[ii*sdc+(ii+2)*bs+1] = pA[ii*sda+(ii+1)*bs+2];
+			pC[ii*sdc+(ii+1)*bs+2] = pA[ii*sda+(ii+2)*bs+1];
 			pC[ii*sdc+(ii+2)*bs+2] = pA[ii*sda+(ii+2)*bs+2];
 			}
 
