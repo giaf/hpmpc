@@ -123,7 +123,8 @@ void d_cond_Q(int N, int nx, int nu, double **pA, int diag_Q, int nzero_Q_N, dou
 
 
 
-void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, double **pBt, int diag_Q, int nzero_Q_N, double **pQ, double **pL, int nzero_S, double **pS, double **pR, int compute_Gamma_u, double **pGamma_u, double **pGamma_u_Q, double **pGamma_u_Q_A, double *pH_R)
+//void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, double **pBt, int diag_Q, int nzero_Q_N, double **pQ, int use_L, double **pL, int nzero_S, double **pS, double **pR, int compute_Gamma_u, double **pGamma_u, double **pGamma_u_Q, double **pGamma_u_Q_A, double *pH_R)
+void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, double **pBt, int diag_Q, int nzero_Q_N, double **pQ, int use_L, double **pL, int nzero_S, double **pS, double **pR, double *pD, double *pM, int compute_Gamma_u, double **pGamma_u, double **pGamma_u_Q, double **pGamma_u_Q_A, double *pH_R)
 	{
 
 	const int bs = D_MR;
@@ -182,30 +183,73 @@ void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, dou
 		if(nzero_Q_N==0)
 			d_set_pmat(N*nu, nx, 0.0, 0, pGamma_u_Q[N-1], cnx);
 
-		if(nzero_Q_N==0)
-			d_set_pmat(N*nu, nx, 0.0, 0, pGamma_u_Q_A[N-1], cnx);
-		
-		// Gamma_u_Q * bar_A
-		dgecp_lib(N1*nu, nx, 0, pGamma_u_Q[N1-1], cnx, 0, pGamma_u_Q_A[N1-1], cnx);
-		for(ii=N1-1; ii>0; ii--)
-			{
-#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
-			dgemm_nt_lib(nx, ii*nu, nx, pAt[ii], cnx, pGamma_u_Q_A[ii], cnx, pGamma_u_Q[ii-1], cnx, pGamma_u_Q_A[ii-1], cnx, 1, 1, 1);
-#else
-			dgemm_nt_lib(ii*nu, nx, nx, pGamma_u_Q_A[ii], cnx, pAt[ii], cnx, pGamma_u_Q[ii-1], cnx, pGamma_u_Q_A[ii-1], cnx, 1, 0, 0);
-#endif
-			}
-
 		if(nzero_S)
 			{
-			// Gamma_u * bar_S
+
+
+			// copy S
 			for(ii=1; ii<N; ii++)
 				{
-				dgemm_nt_lib(ii*nu, nu, nx, pGamma_u[ii-1], cnx, pS[ii], cnx, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 0, 0, 0);
+				dgecp_lib(nu, nx, 0, pS[ii], cnx, (ii)*nu, pGamma_u_Q[ii-1]+(ii)*nu/bs*bs*cnx+(ii)*nu%bs, cnx);
 				}
+
+			if(nzero_Q_N==0)
+				d_set_pmat(N*nu, nx, 0.0, 0, pGamma_u_Q_A[N-1], cnx);
+			
+			// Gamma_u_Q * bar_A^{-1}
+			dgecp_lib(N1*nu, nx, 0, pGamma_u_Q[N1-1], cnx, 0, pGamma_u_Q_A[N1-1], cnx);
+			for(ii=N1-1; ii>0; ii--)
+				{
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
+				dgemm_nt_lib(nx, (ii+1)*nu, nx, pAt[ii], cnx, pGamma_u_Q_A[ii], cnx, pGamma_u_Q[ii-1], cnx, pGamma_u_Q_A[ii-1], cnx, 1, 1, 1);
+#else
+				dgemm_nt_lib((ii+1)*nu, nx, nx, pGamma_u_Q_A[ii], cnx, pAt[ii], cnx, pGamma_u_Q[ii-1], cnx, pGamma_u_Q_A[ii-1], cnx, 1, 0, 0);
+#endif
+				}
+
+			// Gamma_u * M
+			for(ii=1; ii<N; ii++)
+				{
+				dgecp_lib(nu, nx, ii*nu, pGamma_u_Q_A[ii-1]+(ii*nu)/bs*bs*cnx+ii*nu%bs, cnx, 0, pM, cnx);
+				dgemm_nt_lib((ii)*nu, nu, nx, pGamma_u[ii-1], cnx, pM, cnx, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 0, 0, 0);
+				}
+
+			// R
+			for(ii=0; ii<N; ii++)
+				{
+				dgecp_lib(nu, nx, ii*nu, pGamma_u_Q_A[ii]+(ii*nu)/bs*bs*cnx+(ii*nu)%bs, cnx, 0, pM, cnx);
+				dgemm_nt_lib(nu, nu, nx, pM, cnx, pBt[ii], cnx, pR[ii], cnu, pD, cnu, 1, 0, 0);
+				dgecp_lib(nu, nu, 0, pD, cnu, ii*nu, pH_R+(ii*nu)/bs*bs*cNnu+(ii*nu)%bs+ii*nu*bs, cNnu);
+				}
+
 			}
-		else // TODO use d_set_pmat
+		else
 			{
+
+			if(nzero_Q_N==0)
+				d_set_pmat(N*nu, nx, 0.0, 0, pGamma_u_Q_A[N-1], cnx);
+			
+			// Gamma_u_Q * bar_A
+			dgecp_lib(N1*nu, nx, 0, pGamma_u_Q[N1-1], cnx, 0, pGamma_u_Q_A[N1-1], cnx);
+			for(ii=N1-1; ii>0; ii--)
+				{
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
+				dgemm_nt_lib(nx, ii*nu, nx, pAt[ii], cnx, pGamma_u_Q_A[ii], cnx, pGamma_u_Q[ii-1], cnx, pGamma_u_Q_A[ii-1], cnx, 1, 1, 1);
+#else
+				dgemm_nt_lib(ii*nu, nx, nx, pGamma_u_Q_A[ii], cnx, pAt[ii], cnx, pGamma_u_Q[ii-1], cnx, pGamma_u_Q_A[ii-1], cnx, 1, 0, 0);
+#endif
+				}
+
+//			if(nzero_S)
+//				{
+//				// Gamma_u * bar_S
+//				for(ii=1; ii<N; ii++)
+//					{
+//					dgemm_nt_lib(ii*nu, nu, nx, pGamma_u[ii-1], cnx, pS[ii], cnx, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 0, 0, 0);
+//					}
+//				}
+//			else // TODO use d_set_pmat
+//				{
 			for(ii=0; ii<N*nu; ii+=4)
 				{
 				for(jj=ii; jj<N*nu; jj++)
@@ -216,18 +260,20 @@ void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, dou
 					pH_R[ii*cNnu+jj*bs+3] = 0.0;
 					}
 				}
-			}
-		
-		// R
-		for(ii=0; ii<N; ii++)
-			{
-			dgecp_lib(nu, nu, 0, pR[ii], cnu, ii*nu, pH_R+(ii*nu)/bs*bs*cNnu+(ii*nu)%bs+ii*nu*bs, cNnu);
-			}
+//				}
+			
+			// R
+			for(ii=0; ii<N; ii++)
+				{
+				dgecp_lib(nu, nu, 0, pR[ii], cnu, ii*nu, pH_R+(ii*nu)/bs*bs*cNnu+(ii*nu)%bs+ii*nu*bs, cNnu);
+				}
 
-		// Gamma_u_Q_A * B
-		for(ii=0; ii<N1; ii++)
-			{
-			dgemm_nt_lib((ii+1)*nu, nu, nx, pGamma_u_Q_A[ii], cnx, pBt[ii], cnx, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 1, 0, 0);
+			// Gamma_u_Q_A * B
+			for(ii=0; ii<N1; ii++)
+				{
+				dgemm_nt_lib((ii+1)*nu, nu, nx, pGamma_u_Q_A[ii], cnx, pBt[ii], cnx, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 1, 0, 0);
+				}
+
 			}
 
 		// transpose H in the lower triangular
@@ -249,15 +295,18 @@ void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, dou
 			{
 			for(ii=0; ii<N1; ii++)
 				{
-#if 1
-				dtrmm_nt_u_lib((ii+1)*nu, nx, pGamma_u[ii], cnx, pL[ii+1], cnx, pGamma_u_Q[ii], cnx);
-#else
+				if(use_L)
+					{
+					dtrmm_nt_u_lib((ii+1)*nu, nx, pGamma_u[ii], cnx, pL[ii+1], cnx, pGamma_u_Q[ii], cnx);
+					}
+				else
+					{
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
-				dgemm_nt_lib(nx, (ii+1)*nu, nx, pQ[ii+1], cnx, pGamma_u[ii], cnx, pGamma_u_Q[ii], cnx, pGamma_u_Q[ii], cnx, 0, 0, 1); // (A * Gamma_u^T)^T
+					dgemm_nt_lib(nx, (ii+1)*nu, nx, pQ[ii+1], cnx, pGamma_u[ii], cnx, pGamma_u_Q[ii], cnx, pGamma_u_Q[ii], cnx, 0, 0, 1); // (A * Gamma_u^T)^T
 #else
-				dgemm_nt_lib((ii+1)*nu, nx, nx, pGamma_u[ii], cnx, pQ[ii+1], cnx, pGamma_u_Q[ii], cnx, pGamma_u_Q[ii], cnx, 0, 0, 0); // Gamma_u * A^T
+					dgemm_nt_lib((ii+1)*nu, nx, nx, pGamma_u[ii], cnx, pQ[ii+1], cnx, pGamma_u_Q[ii], cnx, pGamma_u_Q[ii], cnx, 0, 0, 0); // Gamma_u * A^T
 #endif
-#endif
+					}
 				}
 			}
 		if(nzero_Q_N==0)
@@ -303,8 +352,16 @@ void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, dou
 			}
 		else
 			{
-			for(ii=0; ii<N1; ii++)
-				dsyrk_nt_lib((N1-ii)*nu, (N1-ii)*nu, nx, pGamma_u_Q[N1-1-ii], cnx, pGamma_u_Q[N1-1-ii], cnx, pH_R, cNnu, pH_R, cNnu, 1); 
+			if(use_L)
+				{
+				for(ii=0; ii<N1; ii++)
+					dsyrk_nt_lib((N1-ii)*nu, (N1-ii)*nu, nx, pGamma_u_Q[N1-1-ii], cnx, pGamma_u_Q[N1-1-ii], cnx, pH_R, cNnu, pH_R, cNnu, 1); 
+				}
+			else
+				{
+				for(ii=0; ii<N1; ii++)
+					dsyrk_nt_lib((N1-ii)*nu, (N1-ii)*nu, nx, pGamma_u_Q[N1-1-ii], cnx, pGamma_u[N1-1-ii], cnx, pH_R, cNnu, pH_R, cNnu, 1); 
+				}
 			}
 
 		}
@@ -466,16 +523,17 @@ void d_cond_r(int N, int nx, int nu, double **pA, double **b, int diag_Q, int nz
 		}
 
 	// barS * Gamma_b
+	d_copy_mat(nu, 1, r[0], 1, H_r, 1);
 	if(nzero_S)
 		{
-		for(ii=0; ii<N; ii++)
+		for(ii=1; ii<N; ii++)
 			{
-			dgemv_n_lib(nu, nx, pS[ii], cnx, Gamma_b[ii], r[ii], H_r+ii*nu, 1);
+			dgemv_n_lib(nu, nx, pS[ii], cnx, Gamma_b[ii-1], r[ii], H_r+ii*nu, 1);
 			}
 		}
 	else
 		{
-		for(ii=0; ii<N; ii++)
+		for(ii=1; ii<N; ii++)
 			{
 			d_copy_mat(nu, 1, r[ii], 1, H_r+ii*nu, 1);
 			}
@@ -608,7 +666,9 @@ int d_cond_lqcp_work_space(int N, int nx, int nu, int N2)
 	const int ncl = D_NCL;
 
 	int pnx = (nx+bs-1)/bs*bs;
+	int pnu = (nu+bs-1)/bs*bs;
 	int cnx = (nx+ncl-1)/ncl*ncl;
+	int cnu = (nu+ncl-1)/ncl*ncl;
 
 	// find problem size
 	int N1 = N/N2; // floor
@@ -621,9 +681,9 @@ int d_cond_lqcp_work_space(int N, int nx, int nu, int N2)
 
 	for(jj=0; jj<M1; jj++)
 		{
-		work_space_size += 3*pnx*cnx + 3*((jj+1)*nu+bs-1)/bs*bs*cnx + 2*pnx;
+		work_space_size += 3*pnx*cnx + 3*((jj+2)*nu+bs-1)/bs*bs*cnx + 2*pnx;
 		}
-	work_space_size += pnx*cnx + pnx;
+	work_space_size += pnx*cnx + pnx + pnu*cnu + pnu*cnx;
 
 	return work_space_size;
 
@@ -638,7 +698,9 @@ void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hp
 	const int ncl = D_NCL;
 
 	int pnx = (nx+bs-1)/bs*bs;
+	int pnu = (nu+bs-1)/bs*bs;
 	int cnx = (nx+ncl-1)/ncl*ncl;
+	int cnu = (nu+ncl-1)/ncl*ncl;
 
 	// find problem size
 	int N1 = N/N2; // floor
@@ -659,6 +721,8 @@ void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hp
 	double *(hGamma_b[M1]);
 	double *(hGamma_b_q[M1]);
 	double *(hpL[M1+1]);
+	double *pD;
+	double *pM;
 	double *work;
 
 	double *ptr;
@@ -682,17 +746,23 @@ void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hp
 		ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
 		}
 
-	for(jj=0; jj<M1; jj++)
+	for(jj=0; jj<M1-1; jj++)
 		{
 		hpGamma_u_Q[jj] = ptr;
-		ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
+		ptr += ((jj+2)*nu+bs-1)/bs*bs*cnx;
 		}
+	jj = M1-1;
+	hpGamma_u_Q[jj] = ptr;
+	ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
 
-	for(jj=0; jj<M1; jj++)
+	for(jj=0; jj<M1-1; jj++)
 		{
 		hpGamma_u_Q_A[jj] = ptr;
-		ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
+		ptr += ((jj+2)*nu+bs-1)/bs*bs*cnx;
 		}
+	jj = M1-1;
+	hpGamma_u_Q_A[jj] = ptr;
+	ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
 	
 	for(jj=0; jj<=M1; jj++)
 		{
@@ -715,6 +785,12 @@ void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hp
 		ptr += pnx;
 		}
 	
+	pD = ptr;
+	ptr += pnu*cnu;
+
+	pM = ptr;
+	ptr += pnu*cnx;
+
 	work = ptr;
 	ptr += pnx;
 
@@ -741,7 +817,7 @@ void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hp
 	// condense cost function
 	//d_cond_Q(T1, nx, nu, hpA+nn, diag_Q, 0, hpQ+nn, hpL, 0, hpGamma_0, hpGamma_0_Q, hpQ2[jj], work);
 	
-	d_cond_R(T1, nx, nu, N2_cond, hpA+nn, hpAt+nn, hpBt+nn, diag_Q, 0, hpQ+nn, hpL, nzero_S, hpS+nn, hpR+nn, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
+	d_cond_R(T1, nx, nu, N2_cond, hpA+nn, hpAt+nn, hpBt+nn, diag_Q, 0, hpQ+nn, 0, hpL, nzero_S, hpS+nn, hpR+nn, pD, pM, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
 
 	//d_cond_St(T1, nx, nu, nzero_S, hpS+nn, 0, hpGamma_0, use_Gamma_0_Q, hpGamma_0_Q, hpGamma_u_Q, hpSt2[jj]);
 
@@ -776,7 +852,7 @@ void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hp
 		// condense cost function
 		d_cond_Q(T1, nx, nu, hpA+nn, diag_Q, 0, hpQ+nn, hpL, 0, hpGamma_0, hpGamma_0_Q, hpQ2[jj], work);
 		
-		d_cond_R(T1, nx, nu, N2_cond, hpA+nn, hpAt+nn, hpBt+nn, diag_Q, 0, hpQ+nn, hpL, nzero_S, hpS+nn, hpR+nn, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
+		d_cond_R(T1, nx, nu, N2_cond, hpA+nn, hpAt+nn, hpBt+nn, diag_Q, 0, hpQ+nn, 1, hpL, nzero_S, hpS+nn, hpR+nn, pD, pM, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
 
 		d_cond_St(T1, nx, nu, nzero_S, hpS+nn, 0, hpGamma_0, use_Gamma_0_Q, hpGamma_0_Q, hpGamma_u_Q, hpSt2[jj]);
 
@@ -792,3 +868,122 @@ void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hp
 	
 	}
 #endif
+
+
+
+void d_cond_fact_R(int N, int nx, int nu, double **pA, double **pAt, double **pBt, int diag_Q, double **pQ, int nzero_S, double **pS, double **pR, double *pQs, double *pM, double *pD, int compute_Gamma_u, double **pGamma_u, double **pGamma_w, double *diag, double *pH_R)
+	{
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int cnx = (nx+ncl-1)/ncl*ncl;
+	int pnu = (nu+bs-1)/bs*bs;
+	int cnu = (nu+ncl-1)/ncl*ncl;
+	int cNnu = (N*nu+ncl-1)/ncl*ncl;
+	//int cNnx = (N*nx+ncl-1)/ncl*ncl;
+
+	int ii, jj, offset, i_temp;
+
+
+	// Gamma_u
+	if(compute_Gamma_u)
+		{
+		dgecp_lib(nu, nx, 0, pBt[0], cnx, 0, pGamma_u[0], cnx);
+		for(ii=1; ii<N; ii++)
+			{
+			offset = ii*nu;
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
+			dgemm_nt_lib(nx, ii*nu, nx, pA[ii], cnx, pGamma_u[ii-1], cnx, pGamma_u[ii], cnx, pGamma_u[ii], cnx, 0, 0, 1); // (A * Gamma_u^T)^T
+#else
+			dgemm_nt_lib(ii*nu, nx, nx, pGamma_u[ii-1], cnx, pA[ii], cnx, pGamma_u[ii], cnx, pGamma_u[ii], cnx, 0, 0, 0); // Gamma_u * A^T
+#endif
+			dgecp_lib(nu, nx, 0, pBt[ii], cnx, offset, pGamma_u[ii]+offset/bs*bs*cnx+offset%bs, cnx);
+			}
+		}
+	
+
+	// last stage
+	dgecp_lib(nx, nx, 0, pQ[N], cnx, 0, pQs, cnx);
+	if(diag_Q)
+		{
+		dgemm_diag_right_lib(N*nu, nx, pGamma_u[N-1], cnx, pQs, pGamma_w[N-1], cnx, pGamma_w[N-1], cnx, 0);
+		}
+	else
+		{
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
+		dgemm_nt_lib(nx, N*nu, nx, pQs, cnx, pGamma_u[N-1], cnx, pGamma_w[N-1], cnx, pGamma_w[N-1], cnx, 0, 0, 1);
+#else
+		dgemm_nt_lib(N*nu, nx, nx, pGamma_u[N-1], cnx, pQs, cnx, pGamma_w[N-1], cnx, pGamma_w[N-1], cnx, 0, 0, 0);
+#endif
+		}
+
+//	d_print_pmat(nx, nx, bs, pQ[N], cnx);
+//	d_print_pmat(N*nu, nx, bs, pGamma_u[N-1], cnx);
+//	d_print_pmat(N*nu, nx, bs, pGamma_w[N-1], cnx);
+
+
+	// middle stages
+	for(ii=N-1; ii>0; ii--)
+		{
+
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
+		dgemm_nt_lib(nx, (ii+1)*nu, nx, pAt[ii], cnx, pGamma_w[ii], cnx, pGamma_w[ii-1], cnx, pGamma_w[ii-1], cnx, 0, 1, 1);
+#else
+		dgemm_nt_lib((ii+1)*nu, nx, nx, pGamma_w[ii], cnx, pAt[ii], cnx, pGamma_w[ii-1], cnx, pGamma_w[ii-1], cnx, 0, 0, 0);
+#endif
+		//dgecp_lib(nu, nx, 0, pS[ii], cnx, (ii)*nu, pGamma_w[ii-1]+(ii)*nu/bs*bs*cnx+(ii)*nu%bs, cnx); TODO add routine
+		if(nzero_S)
+			dgead_lib(nu, nx, 1.0, 0, pS[ii], cnx, (ii)*nu, pGamma_w[ii-1]+(ii)*nu/bs*bs*cnx+(ii)*nu%bs, cnx); // TODO add routine
+//		d_print_pmat((ii+1)*nu, nx, bs, pGamma_w[ii-1], cnx);
+//		d_print_pmat(nx, nx, bs, pAt[ii], cnx);
+//		d_print_pmat(nu, nx, bs, pBt[ii], cnx);
+
+		dgecp_lib(nu, nx, ii*nu, pGamma_w[ii]+(ii*nu)/bs*bs*cnx+(ii*nu)%bs, cnx, 0, pM, cnx);
+		dgemm_nt_lib(nu, nu, nx, pM, cnx, pBt[ii], cnx, pR[ii], cnu, pD, cnu, 1, 0, 0);
+		dgetr_lib(nu, nx, ii*nu, pGamma_w[ii-1]+(ii*nu)/bs*bs*cnx+ii*nu%bs, cnx, 0, pD+pnu*cnu, cnu); // tr?? cp??
+
+//		d_print_pmat(pnu+nx, nu, bs, pD, cnu);
+		dpotrf_lib(pnu+nx, nu, pD, cnu, pD, cnu, diag); // TODO copy last part in the hole
+//		d_print_pmat(pnu+nx, nu, bs, pD, cnu);
+//		dgetr_lib(nu, nu, 0, pD, cnu, ii*nu, pH_R+(ii*nu)/bs*bs*cNnu+(ii*nu)%bs+ii*nu*bs, cNnu);
+		dgecp_lib(nu, nu, 0, pD, cnu, (N-1-ii)*nu, pH_R+((N-1-ii)*nu)/bs*bs*cNnu+((N-1-ii)*nu)%bs+(N-1-ii)*nu*bs, cNnu);
+//		return;
+	
+//		dgemm_nn_lib((ii)*nu, nu, nx, pGamma_u[ii-1], cnx, pD+pnu*cnu, cnu, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 0, 0, 0); // nn ???
+		dgemm_nn_lib((ii)*nu, nu, nx, pGamma_u[ii-1], cnx, pD+pnu*cnu, cnu, pH_R+(N-1)*nu*bs, cNnu, pH_R+(N-1)*nu*bs, cNnu, 0, 0, 0); // nn ???
+		for(jj=0; jj<ii; jj++)
+			{
+			dgecp_lib(nu, nu, jj*nu, pH_R+(jj*nu)/bs*bs*cNnu+(jj*nu)%bs+(N-1)*nu*bs, cNnu, (N-1-jj)*nu, pH_R+((N-1-jj)*nu)/bs*bs*cNnu+((N-1-jj)*nu)%bs+(N-1-ii)*nu*bs, cNnu);
+			}
+
+		dsyrk_nt_lib(nx, nx, nu, pD+pnu*cnu, cnu, pD+pnu*cnu, cnu, pQ[ii], cnx, pQs, cnx, -1);
+		dtrtr_l_lib(nx, 0, pQs, cnx, pQs, cnx);	
+//		d_print_pmat(nx, nu, bs, pD+pnu*cnu, cnu);
+//		d_print_pmat(nx, nx, bs, pQs, cnx);
+//		return;
+//		d_print_pmat(ii*nu, nx, bs, pGamma_u[ii-1], cnx);
+//		d_print_pmat(ii*nu, nx, bs, pGamma_w[ii-1], cnx);
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
+		dgemm_nt_lib(nx, ii*nu, nx, pQs, cnx, pGamma_u[ii-1], cnx, pGamma_w[ii-1], cnx, pGamma_w[ii-1], cnx, 1, 1, 1);
+#else
+		dgemm_nt_lib(ii*nu, nx, nx, pGamma_u[ii-1], cnx, pQs, cnx, pGamma_w[ii-1], cnx, pGamma_w[ii-1], cnx, 1, 0, 0);
+#endif
+//		d_print_pmat(ii*nu, nx, bs, pGamma_w[ii-1], cnx);
+//		return;
+//if(ii==N-2)
+//return;
+
+		}
+
+	dgecp_lib(nu, nx, ii*nu, pGamma_w[0], cnx, 0, pM, cnx);
+	dgemm_nt_lib(nu, nu, nx, pM, cnx, pBt[0], cnx, pR[0], cnu, pD, cnu, 1, 0, 0);
+	dpotrf_lib(nu, nu, pD, cnu, pD, cnu, diag);
+//	dgetr_lib(nu, nu, 0, pD, cnu, 0, pH_R, cNnu);
+	dgecp_lib(nu, nu, 0, pD, cnu, (N-1)*nu, pH_R+((N-1)*nu)/bs*bs*cNnu+((N-1)*nu)%bs+(N-1)*nu*bs, cNnu);
+
+	}
+
+
+
+	

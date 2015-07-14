@@ -53,7 +53,8 @@ void d_res_mhe_if(int nx, int nw, int ndN, int N, double **hpQA, double **hpRG, 
 // condensing
 
 void d_cond_Q(int N, int nx, int nu, double **pA, int diag_Q, int nzero_Q_N, double **pQ, double **pL, int compute_Gamma_0, double **pGamma_0, double **pGamma_0_Q, double *pH_Q, double *work);
-void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, double **pBt, int diag_Q, int nzero_Q_N, double **pQ, double **pL, int nzero_S, double **pS, double **pR, int compute_Gamma_u, double **pGamma_u, double **pGamma_u_Q, double **pGamma_u_Q_A, double *pH_R);
+//void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, double **pBt, int diag_Q, int nzero_Q_N, double **pQ, int use_L, double **pL, int nzero_S, double **pS, double **pR, int compute_Gamma_u, double **pGamma_u, double **pGamma_u_Q, double **pGamma_u_Q_A, double *pH_R);
+void d_cond_R(int N, int nx, int nu, int N2_cond, double **pA, double **pAt, double **pBt, int diag_Q, int nzero_Q_N, double **pQ, int use_L, double **pL, int nzero_S, double **pS, double **pR, double *pD, double *pM, int compute_Gamma_u, double **pGamma_u, double **pGamma_u_Q, double **pGamma_u_Q_A, double *pH_R);
 void d_cond_St(int N, int nx, int nu, int nzero_S, double **pS, int nzero_Q_N, double **pGamma_0, int use_pGamma_0_Q, double **pGamma_0_Q, double **pGamma_u_Q, double *pH_St);
 void d_cond_q(int N, int nx, int nu, double **pA, double **b, int diag_Q, int nzero_Q_N, double **pQ, double **q, double **pGamma_0, int compute_Gamma_b, double **Gamma_b, int compute_Gamma_b_q, double **Gamma_b_q, double *H_q);
 void d_cond_r(int N, int nx, int nu, double **pA, double **b, int diag_Q, int nzero_Q_N, double **pQ, int nzero_S, double **pS, double **q, double **r, double **pGamma_u, int compute_Gamma_b, double **Gamma_b, int compute_Gamma_b_q, double **Gamma_b_q, double *H_r);
@@ -61,3 +62,4 @@ void d_cond_A(int N, int nx, int nu, double **pA, int compute_Gamma_0, double **
 void d_cond_B(int N, int nx, int nu, double **pA, double **pB, int compute_Gamma_u, double **pGamma_u, double *pH_B);
 void d_cond_b(int N, int nx, int nu, double **pA, double **b, int compute_Gamma_b, double **Gamma_b, double *H_b);
 void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hpBt, double **hb, double **hpR, int nzero_S, double **hpS, int diag_Q, double **hpQ, double **hr, double **hq, int N2, int *nx2, int *nu2, double **hpA2, double **hpB2, double **hb2, double **hpR2, double **hpSt2, double **hpQ2, double **hr2, double **hq2, double *work_double, int N2_cond);
+void d_cond_fact_R(int N, int nx, int nu, double **pA, double **pAt, double **pBt, int diag_Q, double **pQ, int nzero_S, double **pS, double **pR, double *pQs, double *pM, double *pD, int compute_Gamma_u, double **pGamma_u, double **pGamma_w, double *diag, double *pH_R);

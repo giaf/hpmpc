@@ -42,6 +42,7 @@ void dmvmv_lib(int m, int n, double *pA, int sda, double *x_n, double *y_n, doub
 void dtrsv_n_lib(int m, int n, int inverted_diag, double *pA, int sda, double *x); // TODO make definition consistent with dpotrf (e.g. swap m and n)
 void dtrsv_t_lib(int m, int n, int inverted_diag, double *pA, int sda, double *x);
 void dgecp_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
+void dgead_lib(int m, int n, double alpha, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
 void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
 void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc);
 void dtrtr_u_lib(int m, double *pA, int sda, double *pC, int sdc);

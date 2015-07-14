@@ -3971,6 +3971,307 @@ void dgecp_lib(int m, int n, int offsetA, double *A, int sda, int offsetB, doubl
 
 
 
+// scaled and adds a packed matrix into a packed matrix: B = B + alpha*A
+void dgead_lib(int m, int n, double alpha, int offsetA, double *A, int sda, int offsetB, double *B, int sdb)
+	{
+
+	if(m<=0 || n<=0)
+		return;
+
+	const int bs = D_MR;
+
+	int mna, ii;
+
+	int offA = offsetA%bs;
+	int offB = offsetB%bs;
+
+	// A at the beginning of the block
+	A -= offA;
+
+	// A at the beginning of the block
+	B -= offB;
+
+	// same alignment
+	if(offA==offB)
+		{
+		ii = 0;
+		// clean up at the beginning
+		mna = (4-offB)%bs;
+		if(mna>0)
+			{
+			if(m<mna) // mna<=3  ==>  m = { 1, 2 }
+				{
+				if(m==1)
+					{
+					kernel_add_align_panel_1_0_lib4(n, alpha, A+offA, B+offB);
+					return;
+					}
+				else //if(m==2 && mna==3)
+					{
+					kernel_add_align_panel_2_0_lib4(n, alpha, A+offA, B+offB);
+					return;
+					}
+				}
+			if(mna==1)
+				{
+				kernel_add_align_panel_1_0_lib4(n, alpha, A+offA, B+offB);
+				A += 4*sda;
+				B += 4*sdb;
+				ii += 1;
+				}
+			else if(mna==2)
+				{
+				kernel_add_align_panel_2_0_lib4(n, alpha, A+offA, B+offB);
+				A += 4*sda;
+				B += 4*sdb;
+				ii += 2;
+				}
+			else // if(mna==3)
+				{
+				kernel_add_align_panel_3_0_lib4(n, alpha, A+offA, B+offB);
+				A += 4*sda;
+				B += 4*sdb;
+				ii += 3;
+				}
+			}
+		// main loop
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+		for(; ii<m-7; ii+=8)
+			{
+			kernel_add_align_panel_8_0_lib4(n, alpha, A, sda, B, sdb);
+			A += 8*sda;
+			B += 8*sdb;
+			}
+#endif
+		for(; ii<m-3; ii+=4)
+			{
+			kernel_add_align_panel_4_0_lib4(n, alpha, A, B);
+			A += 4*sda;
+			B += 4*sdb;
+			}
+		// clean up at the end
+		if(ii<m)
+			{
+			if(m-ii==1)
+				kernel_add_align_panel_1_0_lib4(n, alpha, A, B);
+			else if(m-ii==2)
+				kernel_add_align_panel_2_0_lib4(n, alpha, A, B);
+			else // if(m-ii==3)
+				kernel_add_align_panel_3_0_lib4(n, alpha, A, B);
+			}
+		}
+	// skip one element of A
+	else if(offA==(offB+1)%bs)
+		{
+		ii = 0;
+		// clean up at the beginning
+		mna = (4-offB)%bs;
+		if(mna>0)
+			{
+			if(m<mna) // mna<=3  ==>  m = { 1, 2 }
+				{
+				if(m==1)
+					{
+					kernel_add_align_panel_1_0_lib4(n, alpha, A+offA, B+offB);
+					return;
+					}
+				else //if(m==2 && mna==3)
+					{
+					kernel_add_align_panel_2_0_lib4(n, alpha, A+offA, B+offB);
+					return;
+					}
+				}
+			if(mna==1)
+				{
+				kernel_add_align_panel_1_0_lib4(n, alpha, A+offA, B+offB);
+				//A += 4*sda;
+				B += 4*sdb;
+				ii += 1;
+				}
+			else if(mna==2)
+				{
+				kernel_add_align_panel_2_3_lib4(n, alpha, A, sda, B+2);
+				A += 4*sda;
+				B += 4*sdb;
+				ii += 2;
+				}
+			else // if(mna==3)
+				{
+				kernel_add_align_panel_3_2_lib4(n, alpha, A, sda, B+1);
+				A += 4*sda;
+				B += 4*sdb;
+				ii += 3;
+				}
+			}
+		// main loop
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+		for( ; ii<m-7; ii+=8)
+			{
+			kernel_add_align_panel_8_1_lib4(n, alpha, A, sda, B, sdb);
+			A += 8*sda;
+			B += 8*sdb;
+			}
+#endif
+		for( ; ii<m-3; ii+=4)
+			{
+			kernel_add_align_panel_4_1_lib4(n, alpha, A, sda, B);
+			A += 4*sda;
+			B += 4*sdb;
+			}
+		// clean up at the end
+		if(ii<m)
+			{
+			if(m-ii==1)
+				kernel_add_align_panel_1_0_lib4(n, alpha, A+1, B);
+			else if(m-ii==2)
+				kernel_add_align_panel_2_0_lib4(n, alpha, A+1, B);
+			else // if(m-ii==3)
+				kernel_add_align_panel_3_0_lib4(n, alpha, A+1, B);
+			}
+		}
+	// skip 2 elements of A
+	else if(offA==(offB+2)%bs)
+		{
+		ii = 0;
+		// clean up at the beginning
+		mna = (4-offB)%bs;
+		if(mna>0)
+			{
+			if(m<mna)
+				{
+				if(m==1)
+					{
+					kernel_add_align_panel_1_0_lib4(n, alpha, A+offA, B+offB);
+					return;
+					}
+				else // if(m==2 && mna==3)
+					{
+					kernel_add_align_panel_2_3_lib4(n, alpha, A, sda, B+1);
+					return;
+					}
+				}
+			if(mna==1)
+				{
+				kernel_add_align_panel_1_0_lib4(n, alpha, A+1, B+3);
+				// A += 4*sda;
+				B += 4*sdb;
+				ii += 1;
+				}
+			else if(mna==2)
+				{
+				kernel_add_align_panel_2_0_lib4(n, alpha, A, B+2);
+				// A += 4*sda;
+				B += 4*sdb;
+				ii += 2;
+				}
+			else // if(mna==3)
+				{
+				kernel_add_align_panel_3_3_lib4(n, alpha, A, sda, B+1);
+				A += 4*sda;
+				B += 4*sdb;
+				ii += 3;
+				}
+			}
+		// main loop
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+		for(; ii<m-7; ii+=8)
+			{
+			kernel_add_align_panel_8_2_lib4(n, alpha, A, sda, B, sdb);
+			A += 8*sda;
+			B += 8*sdb;
+			}
+#endif
+		for(; ii<m-3; ii+=4)
+			{
+			kernel_add_align_panel_4_2_lib4(n, alpha, A, sda, B);
+			A += 4*sda;
+			B += 4*sdb;
+			}
+		// clean up at the end
+		if(ii<m)
+			{
+			if(m-ii==1)
+				kernel_add_align_panel_1_0_lib4(n, alpha, A+2, B);
+			else if(m-ii==2)
+				kernel_add_align_panel_2_0_lib4(n, alpha, A+2, B);
+			else // if(m-ii==3)
+				kernel_add_align_panel_3_2_lib4(n, alpha, A, sda, B);
+			}
+		}
+	// skip 3 elements of A
+	else // if(offA==(offB+3)%bs)
+		{
+		ii = 0;
+		// clean up at the beginning
+		mna = (4-offB)%bs;
+		if(mna>0)
+			{
+			if(m<mna)
+				{
+				if(m==1)
+					{
+					kernel_add_align_panel_1_0_lib4(n, alpha, A+offA, B+offB);
+					return;
+					}
+				else // if(m==2 && mna==3)
+					{
+					kernel_add_align_panel_2_0_lib4(n, alpha, A+offA, B+offB);
+					return;
+					}
+				}
+			if(mna==1)
+				{
+				kernel_add_align_panel_1_0_lib4(n, alpha, A+offA, B+offB);
+				// A += 4*sda;
+				B += 4*sdb;
+				ii += 1;
+				}
+			else if(mna==2)
+				{
+				kernel_add_align_panel_2_0_lib4(n, alpha, A+offA, B+offB);
+				// A += 4*sda;
+				B += 4*sdb;
+				ii += 2;
+				}
+			else // if(mna==3)
+				{
+				kernel_add_align_panel_3_0_lib4(n, alpha, A+offA, B+offB);
+				// A += 4*sda;
+				B += 4*sdb;
+				ii += 3;
+				}
+			}
+		// main loop
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+		for(; ii<m-7; ii+=8)
+			{
+			kernel_add_align_panel_8_3_lib4(n, alpha, A, sda, B, sdb);
+			A += 8*sda;
+			B += 8*sdb;
+			}
+#endif
+		for(; ii<m-3; ii+=4)
+			{
+			kernel_add_align_panel_4_3_lib4(n, alpha, A, sda, B);
+			A += 4*sda;
+			B += 4*sdb;
+			}
+		// clean up at the end
+		if(ii<m)
+			{
+			if(m-ii==1)
+				kernel_add_align_panel_1_0_lib4(n, alpha, A+3, B);
+			else if(m-ii==2)
+				kernel_add_align_panel_2_3_lib4(n, alpha, A, sda, B);
+			else // if(m-ii==3)
+				kernel_add_align_panel_3_3_lib4(n, alpha, A, sda, B);
+			}
+		}
+
+	}
+
+
+
 //#if defined(TARGET_C99_4X4)
 // transpose & align general matrix; m and n are referred to the original matrix
 void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc)
