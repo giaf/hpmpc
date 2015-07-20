@@ -47,6 +47,9 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 #if defined(CORTEX_A15) || defined(CORTEX_A9) || defined(CORTEX_A7)
 void kernel_dgemm_nt_4x4_nn_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td);
 #endif
+void kernel_dgemm_nn_8x4_lib4(int kmax, double *A, int sda, double *B, int sdb, double *C, int sdc, double *D, int sdd, int alg, int tc, int td);
+void kernel_dgemm_nn_8x4_vs_lib4(int km, int kn, int kmax, double *A, int sda, double *B, int sdb, double *C, int sdc, double *D, int sdd, int alg, int tc, int td);
+void kernel_dgemm_nn_8x2_vs_lib4(int km, int kn, int kmax, double *A, int sda, double *B, int sdb, double *C, int sdc, double *D, int sdd, int alg, int tc, int td);
 void kernel_dgemm_nn_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td);
 void kernel_dgemm_nn_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td);
 void kernel_dgemm_nn_2x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td);

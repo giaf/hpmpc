@@ -1264,8 +1264,8 @@ int main()
 	int nn[] = {4, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300};
 	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 4000, 4000, 2000, 2000, 1000, 1000, 400, 400, 400, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
 
-	int NNN[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50};
-	int NNrep[] = {2000, 2000, 2000, 2000, 1000, 1000, 1000, 1000, 1000, 400, 400, 400, 400, 400, 100, 100, 100, 100, 100, 100};
+	int NNN[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100};
+	int NNrep[] = {2000, 2000, 2000, 2000, 1000, 1000, 1000, 1000, 1000, 400, 400, 400, 400, 400, 100, 100, 100, 100, 100, 100, 20, 20, 10, 10, 10};
 	
 	int vnx[] = {8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 512, 1024};
 	int vnrep[] = {100, 100, 100, 100, 100, 100, 50, 50, 50, 20, 10, 10};
@@ -1277,7 +1277,7 @@ int main()
 
 	int ll;
 //	int ll_max = 77;
-	int ll_max = 20;
+	int ll_max = 25;
 //	int ll_max = 1;
 	for(ll=0; ll<ll_max; ll++)
 		{
@@ -1560,7 +1560,7 @@ int main()
 
 			//d_cond_Q(N, nx, nu, hpA, 1, 0, hdQ, hpL, 1, hpGamma_0, hpGamma_0_Q, pH_Q[0], work);
 			
-			d_cond_R(N, nx, nu, 1, hpA, hpAt, hpBt, 1, 1, hdQ, 0, hpL, 0, hpS, hpR, pD, pM, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
+			d_cond_R(N, nx, nu, 1, hpA, hpAt, hpBt, 0, 1, hpQ, 0, hpL, 1, hpS, hpR, pD, pM, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
 
 			//d_cond_St(N, nx, nu, 0, hpS, 1, hpGamma_0, 0, hpGamma_0_Q, hpGamma_u_Q, pH_St[0]);
 
@@ -1655,7 +1655,7 @@ int main()
 			{
 
 			//d_cond_R(N, nx, nu, 1, hpA, hpAt, hpBt, 0, 1, hpQ, 0, hpL, 1, hpS, hpR, pD, pM, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
-			d_cond_fact_R(N, nx, nu, hpA, hpAt, hpBt, 0, hpQ, 0, hpS, hpR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag, pL_R);
+			d_cond_fact_R(N, nx, nu, hpA, hpAt, hpBt, 1, hpQ, 1, hpS, hpR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag, pL_R);
 
 			// d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, 0, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]); TODO
 
