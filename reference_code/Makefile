@@ -25,7 +25,7 @@
 
 include ../Makefile.rule
 
-OBJS = d_ric_sv_blas.o
+OBJS = dsyrk_dpotrf_versions.o d_ric_sv_blas.o
 
 obj: $(OBJS)
 

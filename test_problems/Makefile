@@ -35,12 +35,14 @@ ifeq ($(REF_BLAS), BLIS)
 LIBS = -lblis -lm -fopenmp
 endif
 ifeq ($(REF_BLAS), NETLIB)
-LIBS = -lm -llapack_netlib -lblas_netlib -lgfortran
+LIBS = -llapack_netlib -lblas_netlib -lgfortran -lm
 endif
 
 #OBJS_TEST = test_blas_d_debug.o
 #OBJS_TEST = test_blas_s_debug.o
 #OBJS_TEST = test_blas_d.o
+#OBJS_TEST = test_blas_dsyrk_dpotrf.o
+#OBJS_TEST = test_blas_d_low_rank.o
 #OBJS_TEST = test_blas_s.o
 #OBJS_TEST = tools.o test_d_ric_mpc.o
 #OBJS_TEST = tools.o test_s_ric_mpc.o
@@ -66,6 +68,7 @@ clean:
 test_blas_d_debug.o: test_blas_d_debug.c test_param.h ../problem_size.h
 test_blas_s_debug.o: test_blas_s_debug.c test_param.h ../problem_size.h
 test_blas_d.o: test_blas_d.c test_param.h ../problem_size.h
+test_blas_dsyrk_dpotrf.o: test_blas_dsyrk_dpotrf.c test_param.h ../problem_size.h
 test_blas_s.o: test_blas_s.c test_param.h ../problem_size.h
 test_d_ric_mpc.o: test_d_ric_mpc.c test_param.h ../problem_size.h
 test_s_ric_mpc.o: test_s_ric_mpc.c test_param.h ../problem_size.h
