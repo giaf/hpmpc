@@ -4391,7 +4391,9 @@ void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, doub
 	const int bs = 4;
 
 	int mna = (bs-offsetA%bs)%bs;
+	mna = m<mna ? m : mna;
 	int nna = (bs-offsetC%bs)%bs;
+	nna = n<nna ? n : nna;
 	
 	int ii;
 
@@ -4403,7 +4405,7 @@ void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, doub
 			kernel_dgetr_1_lib4(n, nna, pA, pC, sdc);
 		else if(mna==2)
 			kernel_dgetr_2_lib4(n, nna, pA, pC, sdc);
-		else //if(mna==2)
+		else //if(mna==3)
 			kernel_dgetr_3_lib4(n, nna, pA, pC, sdc);
 		ii += mna;
 		pA += mna + bs*(sda-1);
