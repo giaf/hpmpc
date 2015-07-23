@@ -144,7 +144,8 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 			dtrmv_u_t_lib(nx1, hpL[N-nn]+ncl*bs, cnl1, diag, hPb[N-nn-1], 0); // L*(L'*b)
 			}
 		//d_add_row_pmat(nx1, hpL[N-nn]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs);
-		drowad_lib(nx1, 1.0, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs, hpL[N-nn]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs);
+		//drowad_lib(nx1, 1.0, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs, hpL[N-nn]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs);
+		dgead_lib(1, nx1, 1.0, nu1+nx1, hpL[N-nn]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs,cnl1, nu0+nx0, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs, cnxg0);
 		if(ng0>0)
 			{
 			cng0 = (ng0+ncl-1)/ncl*ncl;
@@ -198,7 +199,8 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 		dtrmv_u_t_lib(nx1, hpL[1]+ncl*bs, cnl1, diag, hPb[0], 0); // L*(L'*b)
 		}
 	//d_add_row_pmat(nx1, hpL[1]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs);
-	drowad_lib(nx1, 1.0, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs, hpL[1]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs);
+	//drowad_lib(nx1, 1.0, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs, hpL[1]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs);
+	dgead_lib(1, nx1, 1.0, nu1+nx1, hpL[1]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs, cnl1, nu0+nx0, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs, cnxg0);
 	if(ng0>0)
 		{
 		cng0 = (ng0+ncl-1)/ncl*ncl;
