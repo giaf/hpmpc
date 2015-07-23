@@ -27,6 +27,7 @@
 
 
 
+#if 0
 void d_update_diag_pmat(int kmax, double *pQ, int sda, double *d)
 	{
 
@@ -142,6 +143,7 @@ void d_add_row_pmat(int kmax, double *pA, double *pC)
 		}
 	
 	}
+#endif
 
 
 

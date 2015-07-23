@@ -111,9 +111,9 @@ static_library: target
 	make -C lqcp_solvers obj
 	make -C mpc_solvers obj
 	make -C interfaces obj
-ifneq ($(REF_BLAS), 0)
+#ifneq ($(REF_BLAS), 0)
 	make -C reference_code obj
-endif
+#endif
 	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS) $(REFERENCE_CODE)
 	@echo
 	@echo " libhpmpc.a static library build complete."
@@ -126,9 +126,9 @@ shared_library: target
 	make -C lqcp_solvers obj
 	make -C mpc_solvers obj
 	make -C interfaces obj
-ifneq ($(REF_BLAS), 0)
+#ifneq ($(REF_BLAS), 0)
 	make -C reference_code obj
-endif
+#endif
 	gcc -shared -o libhpmpc.so $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS) $(REFERENCE_CODE)
 	@echo
 	@echo " libhpmpc.so shared library build complete."

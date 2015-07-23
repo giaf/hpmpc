@@ -24,11 +24,11 @@
 **************************************************************************************************/
 
 
-void d_update_diag_pmat(int kmax, double *pQ, int sda, double *d);
-void d_update_diag_pmat_sparse(int kmax, int *idx, double *pQ, int sda, double *d);
-void d_update_row_pmat(int kmax, double *pQ, double *r);
-void d_update_row_pmat_sparse(int kmax, int *idx, double *pQ, double *r);
+//void d_update_diag_pmat(int kmax, double *pQ, int sda, double *d);
+//void d_update_diag_pmat_sparse(int kmax, int *idx, double *pQ, int sda, double *d);
+//void d_update_row_pmat(int kmax, double *pQ, double *r);
+//void d_update_row_pmat_sparse(int kmax, int *idx, double *pQ, double *r);
 void d_update_vector_sparse(int kmax, int *idx, double *q, double *v);
-void d_add_row_pmat(int kmax, double *pA, double *pC);
-void d_add_diag_pmat(int kmax, double *pA, int sda, double *d);
+//void d_add_row_pmat(int kmax, double *pA, double *pC);
+//void d_add_diag_pmat(int kmax, double *pA, int sda, double *d);
 void dpotrf_diag_lib(int m, int n, double *C, int sdc, double *D, int sdd);
