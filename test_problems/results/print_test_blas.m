@@ -30,33 +30,92 @@ test_blas
 graphics_toolkit('gnuplot')
 
 f1 = figure()
+
+if 0
+
 plot(B(:,1), B(:,2), 'k-.', 'LineWidth', 2)
 hold on
 plot(B(:,1), B(:,4), 'b-x', 'LineWidth', 2)
-plot(B(:,1), B(:,6), 'r-o', 'LineWidth', 2)
-plot(B(:,1), B(:,8), 'g-*', 'LineWidth', 2)
-plot(B(:,1), B(:,10), 'r-^', 'LineWidth', 2)
-plot(B(:,1), B(:,12), 'm-^', 'LineWidth', 2)
-plot(B(:,1), B(:,14), 'c-d', 'LineWidth', 2)
-plot(B(:,1), B(:,16), 'k-s', 'LineWidth', 2)
-plot(B(:,1), B(:,18), 'c-s', 'LineWidth', 2)
-plot(B(:,1), B(:,20), 'k-d', 'LineWidth', 2)
-plot(B(:,1), B(:,22), 'g-^', 'LineWidth', 2)
+%plot(B(:,1), B(:,6), 'r-o', 'LineWidth', 2)
+%plot(B(:,1), B(:,8), 'g-*', 'LineWidth', 2)
+%plot(B(:,1), B(:,10), 'r-^', 'LineWidth', 2)
+%plot(B(:,1), B(:,12), 'm-^', 'LineWidth', 2)
+%plot(B(:,1), B(:,14), 'c-d', 'LineWidth', 2)
+%plot(B(:,1), B(:,16), 'k-s', 'LineWidth', 2)
+%plot(B(:,1), B(:,18), 'c-s', 'LineWidth', 2)
+%plot(B(:,1), B(:,20), 'k-d', 'LineWidth', 2)
+%plot(B(:,1), B(:,22), 'g-^', 'LineWidth', 2)
 %plot(B(:,1), B(:,24), 'm-*', 'LineWidth', 2)
 %plot(B(:,1), B(:,26), 'b-o', 'LineWidth', 2)
-plot(B(:,1), B(:,28), 'k-x', 'LineWidth', 2)
-plot(B(:,1), B(:,30), 'k-o', 'LineWidth', 2)
-plot(B(:,1), B(:,32), 'k-*', 'LineWidth', 2)
-plot(B(:,1), B(:,34), 'k-^', 'LineWidth', 2)
+%plot(B(:,1), B(:,28), 'k-x', 'LineWidth', 2)
+%plot(B(:,1), B(:,30), 'k-o', 'LineWidth', 2)
+%plot(B(:,1), B(:,32), 'k-*', 'LineWidth', 2)
+%plot(B(:,1), B(:,34), 'k-^', 'LineWidth', 2)
 hold off
 
 title(['test HPMPC BLAS'])
 xlabel('matrix size n')
 ylabel('Gflops')
 axis([0 B(end,1) 0 A(1)*A(2)])
-legend('gemm\_kernel', 'gemm', 'syrk\_potrf', 'trmm', 'trtr', 'gemv\_n', 'gemv\_t','trmv\_n', 'trmv\_t','trsv\_n', 'trsv\_t','symv', 'mvmv', 'Location', 'SouthEast')
+legend('gemm\_nn', 'gemm\_nt', 'syrk\_potrf', 'trmm', 'trtr', 'gemv\_n', 'gemv\_t','trmv\_n', 'trmv\_t','trsv\_n', 'trsv\_t','symv', 'mvmv', 'Location', 'SouthEast')
 
-W = 6; H = 5;
+else
+
+if 1
+
+%plot(B(:,3), B(:,5), 'b-x', 'LineWidth', 2)
+loglog(B(:,3), B(:,5), 'b-x', 'LineWidth', 2)
+%loglog(B(:,3), B(:,8), 'k-.', 'LineWidth', 2)
+hold on
+%plot(B(:,3), B(:,6), 'r-o', 'LineWidth', 2)
+%loglog(B(:,3), B(:,5), 'b-x', 'LineWidth', 2)
+%loglog(B(:,3), B(:,6), 'g-^', 'LineWidth', 2)
+loglog(B(:,3), B(:,7), 'r-o', 'LineWidth', 2)
+loglog(B(:,3), B(:,8), 'g-^', 'LineWidth', 2)
+%loglog(B(:,3), B(:,9), 'b-x', 'LineWidth', 2)
+%loglog(B(:,3), B(:,10), 'r-o', 'LineWidth', 2)
+%loglog(B(:,3), B(:,11), 'g-^', 'LineWidth', 2)
+%loglog(B(:,3), B(:,12), 'm-d', 'LineWidth', 2)
+%loglog(B(:,3), B(:,8), 'k-.', 'LineWidth', 2)
+hold off
+
+%title(['condensing - n_x=12, x_u=5 - dense cost function'])
+title(['condensing & factorization - n_x=16, x_u=8 - diagonal cost function'])
+xlabel('N')
+ylabel('time [s]')
+%axis([1 100 1e-7 1e-3])
+legend('N^3 n_x^2 alg', 'N^2 n_x^2 alg', 'N^2 n_x^3 alg', 'Location', 'SouthEast')
+%legend('N^3 fact', 'N^3 cond + N^3 fact', 'N^2 cond + N^3 fact', 'N^2 n_x^2 cond \& fact', 'N^2 n_x^3 cond \& fact', 'Location', 'SouthEast')
+
+else
+
+%plot(B(:,3), B(:,5), 'b-x', 'LineWidth', 2)
+%loglog(B(:,3), B(:,5), 'b-x', 'LineWidth', 2)
+loglog(B(:,3), B(:,9), 'k-.', 'LineWidth', 2)
+hold on
+%plot(B(:,3), B(:,6), 'r-o', 'LineWidth', 2)
+%loglog(B(:,3), B(:,6), 'g-^', 'LineWidth', 2)
+%loglog(B(:,3), B(:,7), 'r-o', 'LineWidth', 2)
+loglog(B(:,3), B(:,10), 'b-x', 'LineWidth', 2)
+loglog(B(:,3), B(:,11), 'r-o', 'LineWidth', 2)
+loglog(B(:,3), B(:,12), 'g-^', 'LineWidth', 2)
+loglog(B(:,3), B(:,13), 'm-d', 'LineWidth', 2)
+loglog(B(:,3), B(:,9), 'k-.', 'LineWidth', 2)
+hold off
+
+%title(['condensing - n_x=12, x_u=5 - dense cost function'])
+title(['condensing & factorization - n_x=16, x_u=8 - dense cost function'])
+xlabel('N')
+ylabel('time [s]')
+%axis([1 100 1e-7 1e-3])
+%legend('N^3 case (1)', 'N^3 case (2)', 'N^2 case (1)', 'Location', 'SouthEast')
+legend('N^3 fact', 'N^3 cond + N^3 fact', 'N^2 cond + N^3 fact', 'N^2 n_x^2 cond \& fact', 'N^2 n_x^3 cond \& fact', 'Location', 'SouthEast')
+
+end
+
+end
+
+W = 4; H = 3;
 set(f1,'PaperUnits','inches')
 set(f1,'PaperOrientation','portrait');
 set(f1,'PaperSize',[H,W])
