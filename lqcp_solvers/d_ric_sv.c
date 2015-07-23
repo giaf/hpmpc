@@ -90,12 +90,15 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 		pnb0 = (nb0+bs-1)/bs*bs;
 		// copy and scale DCt
 		dgemm_diag_right_lib(nu0+nx0, ng0, hpDCt[N], cng0, Qx[N]+2*pnb0, work, cng0, work, cng0, 0);
-		d_update_row_pmat(ng0, &work[(nu0+nx0)/bs*cng0*bs+(nu0+nx0)%bs], qx[N]+2*pnb0);
+		//d_update_row_pmat(ng0, &work[(nu0+nx0)/bs*cng0*bs+(nu0+nx0)%bs], qx[N]+2*pnb0);
+		drowin_lib(ng0, qx[N]+2*pnb0, &work[(nu0+nx0)/bs*cng0*bs+(nu0+nx0)%bs]);
 		}
 	if(nb0>0)
 		{
-		d_update_diag_pmat_sparse(nb0, idxb[N], hpQ[N], cnz0, hQd[N]);
-		d_update_row_pmat_sparse(nb0, idxb[N], hpQ[N]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs, hQl[N]);
+		//d_update_diag_pmat_sparse(nb0, idxb[N], hpQ[N], cnz0, hQd[N]);
+		ddiain_libsp(nb0, idxb[N], hQd[N], hpQ[N], cnz0);
+		//d_update_row_pmat_sparse(nb0, idxb[N], hpQ[N]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs, hQl[N]);
+		drowin_libsp(nb0, idxb[N], hQl[N], hpQ[N]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs);
 		}
 	if(nz0<128)
 		{
@@ -140,18 +143,22 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 			for(jj=0; jj<nx1; jj++) diag[jj] = work[(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs+jj*bs];
 			dtrmv_u_t_lib(nx1, hpL[N-nn]+ncl*bs, cnl1, diag, hPb[N-nn-1], 0); // L*(L'*b)
 			}
-		d_add_row_pmat(nx1, hpL[N-nn]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs);
+		//d_add_row_pmat(nx1, hpL[N-nn]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs);
+		drowad_lib(nx1, 1.0, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs, hpL[N-nn]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs);
 		if(ng0>0)
 			{
 			cng0 = (ng0+ncl-1)/ncl*ncl;
 			pnb0 = (nb0+bs-1)/bs*bs;
 			dgemm_diag_right_lib(nu0+nx0, ng0, hpDCt[N-nn-1], cng0, Qx[N-nn-1]+2*pnb0, work+nx1*bs, cnxg0, work+nx1*bs, cnxg0, 0);
-			d_update_row_pmat(ng0, &work[(nu0+nx0)/bs*cnxg0*bs+(nu0+nx0)%bs+nx1*bs], qx[N-nn-1]+2*pnb0);
+			//d_update_row_pmat(ng0, &work[(nu0+nx0)/bs*cnxg0*bs+(nu0+nx0)%bs+nx1*bs], qx[N-nn-1]+2*pnb0);
+			drowin_lib(ng0, qx[N-nn-1]+2*pnb0, &work[(nu0+nx0)/bs*cnxg0*bs+(nu0+nx0)%bs+nx1*bs]);
 			}
 		if(nb0>0)
 			{
-			d_update_diag_pmat_sparse(nb0, idxb[N-nn-1], hpQ[N-nn-1], cnz0, hQd[N-nn-1]);
-			d_update_row_pmat_sparse(nb0, idxb[N-nn-1], hpQ[N-nn-1]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs, hQl[N-nn-1]);
+			//d_update_diag_pmat_sparse(nb0, idxb[N-nn-1], hpQ[N-nn-1], cnz0, hQd[N-nn-1]);
+			ddiain_libsp(nb0, idxb[N-nn-1], hQd[N-nn-1], hpQ[N-nn-1], cnz0);
+			//d_update_row_pmat_sparse(nb0, idxb[N-nn-1], hpQ[N-nn-1]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs, hQl[N-nn-1]);
+			drowin_libsp(nb0, idxb[N-nn-1], hQl[N-nn-1], hpQ[N-nn-1]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs);
 			}
 		if(nz0<128)
 			{
@@ -163,7 +170,8 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 			dpotrf_lib(nz0, nu0+nx0, hpL[N-nn-1], cnl0, hpL[N-nn-1], cnl0, diag);
 			}
 		for(ii=0; ii<nu0; ii++) if(diag[ii]==0) diag[ii] = 1.0; // TODO needed ?????
-		d_update_diag_pmat(nu0, hpL[N-nn-1], cnl0, diag); // copy reciprocal of diagonal
+		//d_update_diag_pmat(nu0, hpL[N-nn-1], cnl0, diag); // copy reciprocal of diagonal
+		ddiain_lib(nu0, diag, 0, hpL[N-nn-1], cnl0); // copy reciprocal of diagonal
 		dtrtr_l_lib(nx0, nu0, hpL[N-nn-1]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, hpL[N-nn-1]+ncl*bs, cnl0);	
 		}
 
@@ -189,22 +197,27 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 		for(jj=0; jj<nx1; jj++) diag[jj] = work[(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs+jj*bs];
 		dtrmv_u_t_lib(nx1, hpL[1]+ncl*bs, cnl1, diag, hPb[0], 0); // L*(L'*b)
 		}
-	d_add_row_pmat(nx1, hpL[1]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs);
+	//d_add_row_pmat(nx1, hpL[1]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs);
+	drowad_lib(nx1, 1.0, work+(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs, hpL[1]+(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+nu1*bs);
 	if(ng0>0)
 		{
 		cng0 = (ng0+ncl-1)/ncl*ncl;
 		pnb0 = (nb0+bs-1)/bs*bs;
 		dgemm_diag_right_lib(nu0+nx0, ng0, hpDCt[0], cng0, Qx[0]+2*pnb0, work+nx1*bs, cnxg0, work+nx1*bs, cnxg0, 0);
-		d_update_row_pmat(ng0, &work[(nu0+nx0)/bs*cnxg0*bs+(nu0+nx0)%bs+nx1*bs], qx[0]+2*pnb0);
+		//d_update_row_pmat(ng0, &work[(nu0+nx0)/bs*cnxg0*bs+(nu0+nx0)%bs+nx1*bs], qx[0]+2*pnb0);
+		drowin_lib(ng0, qx[0]+2*pnb0, &work[(nu0+nx0)/bs*cnxg0*bs+(nu0+nx0)%bs+nx1*bs]);
 		}
 	if(nb0>0)
 		{
-		d_update_diag_pmat_sparse(nb0, idxb[0], hpQ[0], cnz0, hQd[0]);
-		d_update_row_pmat_sparse(nb0, idxb[0], hpQ[0]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs, hQl[0]);
+		//d_update_diag_pmat_sparse(nb0, idxb[0], hpQ[0], cnz0, hQd[0]);
+		ddiain_libsp(nb0, idxb[0], hQd[0], hpQ[0], cnz0);
+		//d_update_row_pmat_sparse(nb0, idxb[0], hpQ[0]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs, hQl[0]);
+		drowin_libsp(nb0, idxb[0], hQl[0], hpQ[0]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs);
 		}
 	dsyrk_dpotrf_lib(nz0, nu0, nx1+ng0, work, cnxg0, hpQ[0], cnz0, hpL[0], cnl0, diag, 1, fast_rsqrt);
 	for(ii=0; ii<nu0; ii++) if(diag[ii]==0) diag[ii] = 1.0; // TODO needed ?????
-	d_update_diag_pmat(nu0, hpL[0], cnl0, diag); // copy reciprocal of diagonal
+	//d_update_diag_pmat(nu0, hpL[0], cnl0, diag); // copy reciprocal of diagonal
+	ddiain_lib(nu0, diag, 0, hpL[0], cnl0); // copy reciprocal of diagonal
 
 
 
@@ -405,8 +418,10 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		}
 	if(update_hessian)
 		{
-		d_update_diag_pmat(nu%bs+nx, hpQ[N]+nu0*cnz+nu0*bs, cnz, hQd[N]+nu0);
-		d_update_row_pmat(nu%bs+nx, hpQ[N]+nu0*bs+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N]+nu0);
+		//d_update_diag_pmat(nu%bs+nx, hpQ[N]+nu0*cnz+nu0*bs, cnz, hQd[N]+nu0);
+		ddiain_lib(nu%bs+nx, hQd[N]+nu0, 0, hpQ[N]+nu0*cnz+nu0*bs, cnz);
+		//d_update_row_pmat(nu%bs+nx, hpQ[N]+nu0*bs+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N]+nu0);
+		drowin_lib(nu%bs+nx, hQl[N]+nu0, hpQ[N]+nu0*bs+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs);
 		}
 	if(nx+nu%bs+1<128)
 		{
@@ -453,8 +468,10 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 			}
 		if(update_hessian)
 			{
-			d_update_diag_pmat(nx+nu, hpQ[N-nn-1], cnz, hQd[N-nn-1]);
-			d_update_row_pmat(nx+nu, hpQ[N-nn-1]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N-nn-1]);
+			//d_update_diag_pmat(nx+nu, hpQ[N-nn-1], cnz, hQd[N-nn-1]);
+			ddiain_lib(nx+nu, hQd[N-nn-1], 0, hpQ[N-nn-1], cnz);
+			//d_update_row_pmat(nx+nu, hpQ[N-nn-1]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N-nn-1]);
+			drowin_lib(nx+nu, hQl[N-nn-1], hpQ[N-nn-1]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs);
 			}
 		if(nz<128)
 			{
@@ -501,8 +518,10 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		}
 	if(update_hessian)
 		{
-		d_update_diag_pmat(nu, hpQ[0], cnz, hQd[0]);
-		d_update_row_pmat(nu, hpQ[0]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[0]);
+		//d_update_diag_pmat(nu, hpQ[0], cnz, hQd[0]);
+		ddiain_lib(nu, hQd[0], 0, hpQ[0], cnz);
+		//d_update_row_pmat(nu, hpQ[0]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[0]);
+		drowin_lib(nu, hQl[0], hpQ[0]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs);
 		}
 	dsyrk_dpotrf_lib(nz, ((nu+2-1)/2)*2, nx+ng, work, cnxg, hpQ[0], cnz, hpL[0], cnl, diag, 1, fast_rsqrt);
 	for(ii=0; ii<nu; ii++) if(diag[ii]==0) diag[ii] = 1.0; // TODO needed ?????
