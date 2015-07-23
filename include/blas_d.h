@@ -60,3 +60,17 @@ void dgemm_diag_right_lib(int m, int n, double *pA, int sda, double *dB, double 
 void dgemm_diag_left_lib(int m, int n, double *dA, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg);
 void dsyrk_diag_left_right_lib(int m, double *Al, double *Ar, double *B, int sdb, double *C, int sdc, double *D, int sdd, int alg);
 void dgemv_diag_lib(int m, double *dA, double *x, double *y, double *z, int alg);
+
+// auxiliary routines
+void ddiain_lib(int kmax, double *x, int offset, double *pD, int sdd);
+void ddiaad_lib(int kmax, double alpha, double *x, int offset, double *pD, int sdd);
+void ddiain_libsp(int kmax, int *idx, double *x, double *pD, int sdd);
+void ddiaad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int sdd);
+void drowin_lib(int kmax, double *x, double *pD);
+void drowad_lib(int kmax, double alpha, double *x, double *pD);
+void drowin_libsp(int kmax, int *idx, double *x, double *pD);
+void drowad_libsp(int kmax, double alpha, int *idx, double *x, double *pD);
+void dcolin_lib(int kmax, double *x, int offset, double *pD, int sdd);
+void dcolad_lib(int kmax, double alpha, double *x, int offset, double *pD, int sdd);
+void dcolin_libsp(int kmax, int *idx, double *x, double *pD, int sdd);
+void dcolad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int sdd);
