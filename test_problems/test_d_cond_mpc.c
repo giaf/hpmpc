@@ -130,7 +130,7 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	}
 
 
-#if 1 // build & debug
+#if 0 // build & debug
 
 int main()
 	{
@@ -1504,7 +1504,7 @@ int main()
 
 	int ll;
 //	int ll_max = 77;
-	int ll_max = 27;//27;//25;
+	int ll_max = 25;//27;//25;
 //	int ll_max = 1;
 	for(ll=0; ll<ll_max; ll++)
 		{
@@ -1522,7 +1522,7 @@ int main()
 			}
 		else
 			{
-#if 0
+#if 1
 			nx = NX; //nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
 			nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 			N  = NNN[ll]; //10; // horizon lenght
@@ -1864,7 +1864,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			d_cond_R(N, nx, nu, 0, hpA, hpAt, hpBt, hpBAt, 1, 1, hdQ, 0, hpL, hpS, hdR, hdRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
+			d_cond_R(N, nx, nu, 0, hpA, hpAt, hpBt, hpBAt, 0, 1, hpQ, 0, hpL, hpS, hpR, hpRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
 
 			// d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, 0, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]); TODO
 
@@ -1880,7 +1880,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			d_cond_R(N, nx, nu, 0, hpA, hpAt, hpBt, hpBAt, 1, 1, hdQ, 1, hpL, hpS, hdR, hdRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
+			d_cond_R(N, nx, nu, 0, hpA, hpAt, hpBt, hpBAt, 0, 1, hpQ, 1, hpL, hpS, hpR, hpRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
 
 			// d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, 0, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]); TODO
 
@@ -1896,7 +1896,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			d_cond_R(N, nx, nu, 1, hpA, hpAt, hpBt, hpBAt, 1, 1, hdQ, 0, hpL, hpS, hdR, hdRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
+			d_cond_R(N, nx, nu, 1, hpA, hpAt, hpBt, hpBAt, 0, 1, hpQ, 0, hpL, hpS, hpR, hpRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
 
 			// d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, 0, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]); TODO
 
@@ -1912,7 +1912,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			d_cond_R(N, nx, nu, 2, hpA, hpAt, hpBt, hpBAt, 1, 1, hdQ, 0, hpL, hpS, hdR, hdRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
+			d_cond_R(N, nx, nu, 2, hpA, hpAt, hpBt, hpBAt, 0, 1, hpQ, 0, hpL, hpS, hpR, hpRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
 
 			// d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, 0, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]); TODO
 
@@ -1976,7 +1976,7 @@ int main()
 			{
 
 			//d_cond_R(N, nx, nu, 1, hpA, hpAt, hpBt, 0, 1, hpQ, 0, hpL, 1, hpS, hpR, pD, pM, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
-			d_cond_fact_R(N, nx, nu, 1, hpA, hpAt, hpBt, 1, hpQ, hpS, hpR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag_ric, hpBAt, hpRSQ, pL, pBAtL, pL_R);
+			d_cond_fact_R(N, nx, nu, 1, hpA, hpAt, hpBt, 0, hpQ, hpS, hpR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag_ric, hpBAt, hpRSQ, pL, pBAtL, pL_R);
 
 			// d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, 0, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]); TODO
 
@@ -1993,7 +1993,7 @@ int main()
 			{
 
 			//d_cond_R(N, nx, nu, 1, hpA, hpAt, hpBt, 0, 1, hpQ, 0, hpL, 1, hpS, hpR, pD, pM, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
-			d_cond_fact_R(N, nx, nu, 0, hpA, hpAt, hpBt, 1, hpQ, hpS, hpR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag_ric, hpBAt, hpRSQ, pL, pBAtL, pL_R);
+			d_cond_fact_R(N, nx, nu, 0, hpA, hpAt, hpBt, 0, hpQ, hpS, hpR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag_ric, hpBAt, hpRSQ, pL, pBAtL, pL_R);
 
 			// d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, 0, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]); TODO
 

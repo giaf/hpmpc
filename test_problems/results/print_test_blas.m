@@ -61,17 +61,17 @@ legend('gemm\_nn', 'gemm\_nt', 'syrk\_potrf', 'trmm', 'trtr', 'gemv\_n', 'gemv\_
 
 else
 
-if 1
+if 0
 
 %plot(B(:,3), B(:,5), 'b-x', 'LineWidth', 2)
-loglog(B(:,3), B(:,5), 'b-x', 'LineWidth', 2)
+loglog(B(:,1), B(:,5), 'b-x', 'LineWidth', 2)
 %loglog(B(:,3), B(:,8), 'k-.', 'LineWidth', 2)
 hold on
 %plot(B(:,3), B(:,6), 'r-o', 'LineWidth', 2)
 %loglog(B(:,3), B(:,5), 'b-x', 'LineWidth', 2)
 %loglog(B(:,3), B(:,6), 'g-^', 'LineWidth', 2)
-loglog(B(:,3), B(:,7), 'r-o', 'LineWidth', 2)
-loglog(B(:,3), B(:,8), 'g-^', 'LineWidth', 2)
+loglog(B(:,1), B(:,7), 'r-o', 'LineWidth', 2)
+loglog(B(:,1), B(:,8), 'g-^', 'LineWidth', 2)
 %loglog(B(:,3), B(:,9), 'b-x', 'LineWidth', 2)
 %loglog(B(:,3), B(:,10), 'r-o', 'LineWidth', 2)
 %loglog(B(:,3), B(:,11), 'g-^', 'LineWidth', 2)
@@ -80,36 +80,75 @@ loglog(B(:,3), B(:,8), 'g-^', 'LineWidth', 2)
 hold off
 
 %title(['condensing - n_x=12, x_u=5 - dense cost function'])
-title(['condensing & factorization - n_x=16, x_u=8 - diagonal cost function'])
-xlabel('N')
+%title(['Hessian condensing - n_x=16, x_u=8 - dense cost function'])
+title(['Hessian condensing - N=30, x_u=2 - diagonal cost function'])
+%xlabel('N')
+xlabel('n_x')
 ylabel('time [s]')
-%axis([1 100 1e-7 1e-3])
+%axis([1 100 1e-7 1e-1])
 legend('N^3 n_x^2 alg', 'N^2 n_x^2 alg', 'N^2 n_x^3 alg', 'Location', 'SouthEast')
 %legend('N^3 fact', 'N^3 cond + N^3 fact', 'N^2 cond + N^3 fact', 'N^2 n_x^2 cond \& fact', 'N^2 n_x^3 cond \& fact', 'Location', 'SouthEast')
 
 else
 
+if 0
+
 %plot(B(:,3), B(:,5), 'b-x', 'LineWidth', 2)
 %loglog(B(:,3), B(:,5), 'b-x', 'LineWidth', 2)
-loglog(B(:,3), B(:,9), 'k-.', 'LineWidth', 2)
+loglog(B(:,1), B(:,9), 'r-o', 'LineWidth', 2)
 hold on
 %plot(B(:,3), B(:,6), 'r-o', 'LineWidth', 2)
 %loglog(B(:,3), B(:,6), 'g-^', 'LineWidth', 2)
 %loglog(B(:,3), B(:,7), 'r-o', 'LineWidth', 2)
-loglog(B(:,3), B(:,10), 'b-x', 'LineWidth', 2)
-loglog(B(:,3), B(:,11), 'r-o', 'LineWidth', 2)
-loglog(B(:,3), B(:,12), 'g-^', 'LineWidth', 2)
-loglog(B(:,3), B(:,13), 'm-d', 'LineWidth', 2)
-loglog(B(:,3), B(:,9), 'k-.', 'LineWidth', 2)
+loglog(B(:,1), B(:,10), 'b-x', 'LineWidth', 2)
+%loglog(B(:,3), B(:,11), 'r-o', 'LineWidth', 2)
+%loglog(B(:,3), B(:,12), 'g-^', 'LineWidth', 2)
+%loglog(B(:,3), B(:,13), 'm-d', 'LineWidth', 2)
+%loglog(B(:,3), B(:,9), 'k-.', 'LineWidth', 2)
 hold off
 
 %title(['condensing - n_x=12, x_u=5 - dense cost function'])
-title(['condensing & factorization - n_x=16, x_u=8 - dense cost function'])
-xlabel('N')
+%title(['condensing & factorization - n_x=16, x_u=8 - dense cost function'])
+%title(['Hessian factorization - n_x=16, x_u=8'])
+title(['Hessian factorization - N=30, x_u=2'])
+%xlabel('N')
+xlabel('n_x')
 ylabel('time [s]')
 %axis([1 100 1e-7 1e-3])
 %legend('N^3 case (1)', 'N^3 case (2)', 'N^2 case (1)', 'Location', 'SouthEast')
-legend('N^3 fact', 'N^3 cond + N^3 fact', 'N^2 cond + N^3 fact', 'N^2 n_x^2 cond \& fact', 'N^2 n_x^3 cond \& fact', 'Location', 'SouthEast')
+%legend('N^3 fact', 'N^3 cond + N^3 fact', 'N^2 cond + N^3 fact', 'N^2 n_x^2 cond \& fact', 'N^2 n_x^3 cond \& fact', 'Location', 'SouthEast')
+legend('N^3 fact', 'N fact', 'Location', 'SouthEast')
+
+else
+
+%plot(B(:,3), B(:,5), 'b-x', 'LineWidth', 2)
+%loglog(B(:,3), B(:,5), 'b-x', 'LineWidth', 2)
+loglog(B(:,3), B(:,5)+B(:,10), 'b-x', 'LineWidth', 2)
+hold on
+%plot(B(:,3), B(:,6), 'r-o', 'LineWidth', 2)
+%loglog(B(:,3), B(:,6), 'g-^', 'LineWidth', 2)
+%loglog(B(:,3), B(:,7), 'r-o', 'LineWidth', 2)
+%loglog(B(:,1), B(:,10), 'b-x', 'LineWidth', 2)
+%loglog(B(:,3), B(:,11), 'r-o', 'LineWidth', 2)
+%loglog(B(:,3), B(:,12), 'g-^', 'LineWidth', 2)
+loglog(B(:,3), B(:,13), 'r-o', 'LineWidth', 2)
+loglog(B(:,3), B(:,14), 'g-^', 'LineWidth', 2)
+%loglog(B(:,3), B(:,9), 'k-.', 'LineWidth', 2)
+hold off
+
+%title(['condensing - n_x=12, x_u=5 - dense cost function'])
+%title(['condensing & factorization - n_x=16, x_u=8 - dense cost function'])
+title(['Hessian cond fact - n_x=16, x_u=8 - dense cost function'])
+%title(['Hessian cond fact - N=30, x_u=2 - diagonal cost function'])
+xlabel('N')
+%xlabel('n_x')
+ylabel('time [s]')
+%axis([1 100 1e-7 1e-3])
+%legend('N^3 case (1)', 'N^3 case (2)', 'N^2 case (1)', 'Location', 'SouthEast')
+%legend('N^3 fact', 'N^3 cond + N^3 fact', 'N^2 cond + N^3 fact', 'N^2 n_x^2 cond \& fact', 'N^2 n_x^3 cond \& fact', 'Location', 'SouthEast')
+legend('N^3 n_x^2 alg', 'N^2 n_x^2 alg', 'N^2 n_x^3 alg', 'Location', 'SouthEast')
+
+end
 
 end
 
