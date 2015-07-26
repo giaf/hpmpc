@@ -23,6 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#include <math.h>
+
 #include "../include/kernel_d_lib4.h"
 #include "../include/block_size.h"
 
@@ -3809,6 +3811,43 @@ void ddiain_lib(int kmax, double *x, int offset, double *pD, int sdd)
 	for(ll=0; ll<kmax-jj; ll++)
 		{
 		pD[jj*sdd+(jj+ll)*bs+ll] = x[jj+ll];
+		}
+	
+	}
+
+
+
+// insert sqrt of vector to diagonal 
+void ddiain_sqrt_lib(int kmax, double *x, int offset, double *pD, int sdd)
+	{
+
+	const int bs = 4;
+
+	int kna = (bs-offset%bs)%bs;
+	kna = kmax<kna ? kmax : kna;
+
+	int jj, ll;
+
+	if(kna>0)
+		{
+		for(ll=0; ll<kna; ll++)
+			{
+			pD[ll+bs*ll] = sqrt(x[ll]);
+			}
+		pD += kna + bs*(sdd-1) + kna*bs;
+		x  += kna;
+		kmax -= kna;
+		}
+	for(jj=0; jj<kmax-3; jj+=4)
+		{
+		pD[jj*sdd+(jj+0)*bs+0] = sqrt(x[jj+0]);
+		pD[jj*sdd+(jj+1)*bs+1] = sqrt(x[jj+1]);
+		pD[jj*sdd+(jj+2)*bs+2] = sqrt(x[jj+2]);
+		pD[jj*sdd+(jj+3)*bs+3] = sqrt(x[jj+3]);
+		}
+	for(ll=0; ll<kmax-jj; ll++)
+		{
+		pD[jj*sdd+(jj+ll)*bs+ll] = sqrt(x[jj+ll]);
 		}
 	
 	}

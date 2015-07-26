@@ -130,7 +130,7 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	}
 
 
-#if 0 // build & debug
+#if 1 // build & debug
 
 int main()
 	{
@@ -855,7 +855,7 @@ int main()
 			{
 
 			// Cholesky factorization and solution
-			d_cond_fact_R(N, nx, nu, 1, hpA, hpAt, hpBt, 0, hpQ, 0, hpS, hpR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag_ric, hpBAt, hpRSQ, pL, pBAtL, pL_R);
+			d_cond_fact_R(N, nx, nu, 1, hpA, hpAt, hpBt, 1, hdQ, hpS, hdR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag_ric, hpBAt, hpRSQ, pL, pBAtL, pL_R);
 
 //			dax_mat(N*nu, 1, -1.0, H_r[0], 1, H_u, 1);
 
@@ -915,7 +915,7 @@ int main()
 			{
 
 			// Cholesky factorization and solution
-			d_cond_fact_R(N, nx, nu, 0, hpA, hpAt, hpBt, 0, hpQ, 0, hpS, hpR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag_ric, hpBAt, hpRSQ, pL, pBAtL, pL_R);
+			d_cond_fact_R(N, nx, nu, 0, hpA, hpAt, hpBt, 1, hdQ, hpS, hdR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag_ric, hpBAt, hdRSQ, pL, pBAtL, pL_R);
 
 //			dax_mat(N*nu, 1, -1.0, H_r[0], 1, H_u, 1);
 
@@ -1489,7 +1489,7 @@ int main()
 	const int nal = bs*ncl; // number of doubles per cache line
 	
 	int nn[] = {4, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300};
-	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 4000, 4000, 2000, 2000, 1000, 1000, 400, 400, 400, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+	int nnrep[] = {4000, 4000, 4000, 4000, 4000, 2000, 2000, 2000, 1000, 1000, 1000, 400, 400, 400, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
 
 	int NNN[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100};
 	int NNrep[] = {2000, 2000, 2000, 2000, 1000, 1000, 1000, 1000, 1000, 400, 400, 400, 400, 400, 100, 100, 100, 100, 100, 100, 20, 20, 10, 10, 10};
@@ -1504,7 +1504,7 @@ int main()
 
 	int ll;
 //	int ll_max = 77;
-	int ll_max = 25;
+	int ll_max = 27;//27;//25;
 //	int ll_max = 1;
 	for(ll=0; ll<ll_max; ll++)
 		{
@@ -1522,10 +1522,17 @@ int main()
 			}
 		else
 			{
+#if 0
 			nx = NX; //nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
 			nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 			N  = NNN[ll]; //10; // horizon lenght
 			nrep = 10*NNrep[ll];
+#else
+			nx = nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
+			nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+			N  = NN; //10; // horizon lenght
+			nrep = nnrep[ll];
+#endif
 			}
 
 
@@ -1933,13 +1940,43 @@ int main()
 		double time_N3_fact = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
 
+		// initilize pD with identity
+		d_set_pmat(pnu+pnx, cnu, 0.0, 0, pD, cnu);
+		for(ii=0; ii<nu; ii++) pLam[ii/bs*bs*cnu+ii%bs+ii*bs] = 1.0;
+
+		// initialize pQs with zero
+		d_set_pmat(pnx, cnx, 0.0, 0, pQs, cnx);
+
 		gettimeofday(&tv0, NULL); // start
 
 		for(rep=0; rep<nrep; rep++)
 			{
 
 			//d_cond_R(N, nx, nu, 1, hpA, hpAt, hpBt, 0, 1, hpQ, 0, hpL, 1, hpS, hpR, pD, pM, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
-			d_cond_fact_R(N, nx, nu, 1, hpA, hpAt, hpBt, 1, hpQ, 1, hpS, hpR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag_ric, hpBAt, hpRSQ, pL, pBAtL, pL_R);
+			//dpotrf_lib(N*nu, N*nu, pH_R[0], cNnu, pL_R, cNnu, diag);
+			for(ii=0; ii<N; ii++)
+				{
+				dpotrf_lib(nu+nx, nu, pD, cnu, pD, cnu, diag);
+				dsyrk_nt_lib(nx, nx, nu, pD+pnu*cnu, cnu, pD+pnu*cnu, cnu, pQs, cnx, pQs, cnx, 0);
+				}
+			dpotrf_lib(nu, nu, pD, cnu, pD, cnu, diag);
+
+			// d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, 0, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]); TODO
+
+			}
+
+		gettimeofday(&tv1, NULL); // start
+
+		double time_N_fact = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+
+		gettimeofday(&tv0, NULL); // start
+
+		for(rep=0; rep<nrep; rep++)
+			{
+
+			//d_cond_R(N, nx, nu, 1, hpA, hpAt, hpBt, 0, 1, hpQ, 0, hpL, 1, hpS, hpR, pD, pM, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
+			d_cond_fact_R(N, nx, nu, 1, hpA, hpAt, hpBt, 1, hpQ, hpS, hpR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag_ric, hpBAt, hpRSQ, pL, pBAtL, pL_R);
 
 			// d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, 0, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]); TODO
 
@@ -1956,7 +1993,7 @@ int main()
 			{
 
 			//d_cond_R(N, nx, nu, 1, hpA, hpAt, hpBt, 0, 1, hpQ, 0, hpL, 1, hpS, hpR, pD, pM, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
-			d_cond_fact_R(N, nx, nu, 0, hpA, hpAt, hpBt, 1, hpQ, 1, hpS, hpR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag_ric, hpBAt, hpRSQ, pL, pBAtL, pL_R);
+			d_cond_fact_R(N, nx, nu, 0, hpA, hpAt, hpBt, 1, hpQ, hpS, hpR, pQs, pM, pD, 1, hpGamma_u, hpGamma_u_Q, diag_ric, hpBAt, hpRSQ, pL, pBAtL, pL_R);
 
 			// d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, 0, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]); TODO
 
@@ -2373,8 +2410,8 @@ int main()
 //		printf("\ntime full riccati = %e seconds\n", time_ric);
 //		printf("\n\n");
 
-		printf("\n%d %d %d %d %e %e %e %e %e %e %e %e %e\n", nx, nu, N, nrep, time_N3_cond, time_N3_cond_L, time_N2_cond, time_N2_nx3_cond, time_N3_fact, time_N3_cond+time_N3_fact, time_N2_cond+time_N3_fact, time_N2_cond_fact, time_N2_nx3_cond_fact);
-		fprintf(f, "\n%d %d %d %d %e %e %e %e %e %e %e %e %e\n", nx, nu, N, nrep, time_N3_cond, time_N3_cond_L, time_N2_cond, time_N2_nx3_cond, time_N3_fact, time_N3_cond+time_N3_fact, time_N2_cond+time_N3_fact, time_N2_cond_fact, time_N2_nx3_cond_fact);
+		printf("\n%d %d %d %d %e %e %e %e %e %e %e %e %e %e\n", nx, nu, N, nrep, time_N3_cond, time_N3_cond_L, time_N2_cond, time_N2_nx3_cond, time_N3_fact, time_N_fact, time_N3_cond+time_N3_fact, time_N2_cond+time_N3_fact, time_N2_cond_fact, time_N2_nx3_cond_fact);
+		fprintf(f, "\n%d %d %d %d %e %e %e %e %e %e %e %e %e %e\n", nx, nu, N, nrep, time_N3_cond, time_N3_cond_L, time_N2_cond, time_N2_nx3_cond, time_N3_fact, time_N_fact, time_N3_cond+time_N3_fact, time_N2_cond+time_N3_fact, time_N2_cond_fact, time_N2_nx3_cond_fact);
 
 /************************************************
 * return
