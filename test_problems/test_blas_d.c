@@ -275,6 +275,7 @@ int main()
 			{
 
 			//dgemm_kernel_nt_lib(n, n, n, pA, cnd, pB, cnd, pC, cnd, pC, cnd, 0, 0, 0);
+			dgemm_nn_lib(n, n, n, pA, cnd, pB, cnd, pC, cnd, pC, cnd, 0, 0, 0);
 
 			}
 

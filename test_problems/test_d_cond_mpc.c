@@ -130,7 +130,7 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	}
 
 
-#if 0 // build & debug
+#if 1 // build & debug
 
 int main()
 	{
@@ -848,6 +848,9 @@ int main()
 		for(ii=0; ii<pNnu*cNnu; ii++)
 			pL_R[ii] = 0;
 
+		for(ii=0; ii<(N*nu+bs-1)/bs*bs*cnx; ii++)
+			hpGamma_u[N-1][ii] = 0.0;
+
 		gettimeofday(&tv0, NULL); // start
 
 		nrep = 100000;
@@ -907,6 +910,9 @@ int main()
 		// clear matrix
 		for(ii=0; ii<pNnu*cNnu; ii++)
 			pL_R[ii] = 0;
+
+		for(ii=0; ii<(N*nu+bs-1)/bs*bs*cnx; ii++)
+			hpGamma_u[N-1][ii] = 0.0;
 
 		gettimeofday(&tv0, NULL); // start
 
