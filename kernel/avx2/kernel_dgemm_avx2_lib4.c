@@ -2725,7 +2725,7 @@ void kernel_dgemm_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 		else // AB = t( A * B' )
 			{
 			e_0 = _mm256_unpacklo_pd( c_00_11_20_31, c_01_10_21_30 );
-			e_1 = _mm256_unpackhi_pd( c_00_11_20_31, c_01_10_21_30 );
+			e_1 = _mm256_unpackhi_pd( c_01_10_21_30, c_00_11_20_31 );
 
 			u_2 = _mm256_extractf128_pd( e_0, 0x1 );
 			u_0 = _mm256_castpd256_pd128( e_0 );
