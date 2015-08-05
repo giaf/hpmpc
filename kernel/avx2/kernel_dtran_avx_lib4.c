@@ -1146,7 +1146,7 @@ void kernel_dtrtr_l_8_lib4(int kmax, int kna, double *A, int sda, double *C0, in
 // read across panels, write along panels
 void kernel_dtrtr_l_4_lib4(int kmax, int kna, double *A, int sda, double *C) // TODO 8 ???
 	{
-	
+
 	// kmax is at least 4 !!!
 	
 	int k;
@@ -1276,6 +1276,17 @@ void kernel_dtrtr_l_4_lib4(int kmax, int kna, double *A, int sda, double *C) // 
 		}
 	else if(kna==2)
 		{
+/*
+
+  x
+  x x
+
+  x x x
+  x x x x
+? x x x x
+? x x x x
+
+*/
 
 		// top 2x2 triangle
 		u0 = _mm_load_sd( &A[0+bs*0] ); // 00
@@ -1302,7 +1313,7 @@ void kernel_dtrtr_l_4_lib4(int kmax, int kna, double *A, int sda, double *C) // 
 		//_mm256_store_pd( &C[0+bs*0], v4 );
 		//_mm_store_pd( &C[0+bs*0], _mm256_castpd256_pd128( v4 ) );
 		//_mm_storel_pd( &C[2+bs*0], _mm256_extractf128_pd( v4, 0x1 ) );
-		mask = _mm256_set_epi64x( -1, -1, -1, 1 );
+		mask = _mm256_set_epi64x( 1, -1, -1, -1 );
 		_mm256_maskstore_pd( &C[0+bs*0], mask, v4 );
 		_mm256_store_pd( &C[0+bs*1], v5 );
 		if(kmax==4)
