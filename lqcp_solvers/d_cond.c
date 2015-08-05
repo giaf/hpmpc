@@ -796,7 +796,7 @@ void d_cond_b(int N, int nx, int nu, double **pA, double **b, int compute_Gamma_
 
 
 #if 1
-int d_cond_lqcp_work_space(int N, int nx, int nu, int N2)
+int d_cond_lqcp_work_space(int N, int nx, int nu, int N2, int alg)
 	{
 
 	const int bs = D_MR;
@@ -828,7 +828,7 @@ int d_cond_lqcp_work_space(int N, int nx, int nu, int N2)
 
 
 
-void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hpBt, double **hb, int diag_hessian, double **hpQ, double **hpS, double **hpR, double **hr, double **hq, int N2, int *nx2, int *nu2, double **hpA2, double **hpB2, double **hb2, double **hpR2, double **hpSt2, double **hpQ2, double **hr2, double **hq2, double *work_double, int N2_cond)
+void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, double **hpBt, double **hb, int diag_hessian, double **hpQ, double **hpS, double **hpR, double **hr, double **hq, int N2, int *nx2, int *nu2, double **hpA2, double **hpB2, double **hb2, double **hpR2, double **hpSt2, double **hpQ2, double **hr2, double **hq2, double *work_double)
 	{
 
 	const int bs = D_MR;
@@ -847,7 +847,7 @@ void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hp
 
 	int ii, jj, nn;
 	int use_Gamma_0_Q = 0;
-	if(N2_cond==0 && diag_hessian==0)
+	if(alg==0 && diag_hessian==0)
 		use_Gamma_0_Q = 1;
 
 	double *(hpGamma_0[M1]);
@@ -957,7 +957,7 @@ void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hp
 	// condense cost function
 	//d_cond_Q(T1, nx, nu, hpA+nn, diag_Q, 0, hpQ+nn, hpL, 0, hpGamma_0, hpGamma_0_Q, hpQ2[jj], work);
 	
-	d_cond_R(T1, nx, nu, N2_cond, hpA+nn, hpAt+nn, hpBt+nn, pdummy, diag_hessian, 0, hpQ+nn, 0, hpL, hpS+nn, hpR+nn, pdummy, pD, pM, dummy, dummy, dummy, dummy, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
+	d_cond_R(T1, nx, nu, alg, hpA+nn, hpAt+nn, hpBt+nn, pdummy, diag_hessian, 0, hpQ+nn, 0, hpL, hpS+nn, hpR+nn, pdummy, pD, pM, dummy, dummy, dummy, dummy, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
 
 	//d_cond_St(T1, nx, nu, nzero_S, hpS+nn, 0, hpGamma_0, use_Gamma_0_Q, hpGamma_0_Q, hpGamma_u_Q, hpSt2[jj]);
 
@@ -972,7 +972,7 @@ void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hp
 
 
 	// general stages
-	for(; jj4N2; jj++)
+	for(; jj<N2; jj++)
 		{
 
 		T1 = jj<R1 ? M1 : N1;
@@ -992,7 +992,7 @@ void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hp
 		// condense cost function
 		d_cond_Q(T1, nx, nu, hpA+nn, diag_hessian, 0, hpQ+nn, hpL, 0, hpGamma_0, hpGamma_0_Q, hpQ2[jj], work);
 		
-		d_cond_R(T1, nx, nu, N2_cond, hpA+nn, hpAt+nn, hpBt+nn, pdummy, diag_hessian, 0, hpQ+nn, 1, hpL, hpS+nn, hpR+nn, pdummy, pD, pM, dummy, dummy, dummy, dummy, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
+		d_cond_R(T1, nx, nu, alg, hpA+nn, hpAt+nn, hpBt+nn, pdummy, diag_hessian, 0, hpQ+nn, 1, hpL, hpS+nn, hpR+nn, pdummy, pD, pM, dummy, dummy, dummy, dummy, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
 
 		d_cond_St(T1, nx, nu, diag_hessian, hpS+nn, 0, hpGamma_0, use_Gamma_0_Q, hpGamma_0_Q, hpGamma_u_Q, hpSt2[jj]);
 

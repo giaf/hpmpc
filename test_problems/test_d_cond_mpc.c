@@ -970,12 +970,15 @@ int main()
 
 
 
+		int diag_hessian = 1;
+		int N2_cond = 0;
+
 		double *pZ; d_zeros_align(&pZ, pnx, cnx);
 		double *ptr_temp;
 
 		//printf("\n%d\n", d_cond_lqcp_work_space(N, nx, nu, N2) );
 		//exit(1);
-		double *work_space_part_cond; d_zeros_align(&work_space_part_cond, d_cond_lqcp_work_space(N, nx, nu, N2), 1);
+		double *work_space_part_cond; d_zeros_align(&work_space_part_cond, d_cond_lqcp_work_space(N, nx, nu, N2, N2_cond), 1);
 
 		nx_v = (int *) malloc((N2+1)*sizeof(int));
 		for(ii=0; ii<=N2; ii++) nx_v[ii] = nx;
@@ -986,9 +989,6 @@ int main()
 		nu_v[N2] = 0;
 #endif
 		
-		int diag_hessian = 1;
-		int N2_cond = 0;
-
 		d_set_pmat(pNnu, cNnu, 0.0, bs, pH_R[0], cNnu); // TODO remove !!!!!
 
 
@@ -999,7 +999,7 @@ int main()
 			{
 
 #if 1
-			d_cond_lqcp(N, nx, nu, hpA, hpAt, hpBt, hb, diag_hessian, hdQ, hpS, hdR, hr, hq, N2, nx_v, nu_v, pH_A, pH_B, H_b, pH_R, pH_St, pH_Q, H_r, H_q, work_space_part_cond, N2_cond);
+			d_cond_lqcp(N, nx, nu, N2_cond, hpA, hpAt, hpBt, hb, diag_hessian, hdQ, hpS, hdR, hr, hq, N2, nx_v, nu_v, pH_A, pH_B, H_b, pH_R, pH_St, pH_Q, H_r, H_q, work_space_part_cond);
 #else
 			for(jj=0; jj<N2; jj++)
 				{
