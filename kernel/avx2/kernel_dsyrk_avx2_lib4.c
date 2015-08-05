@@ -1660,8 +1660,8 @@ void kernel_dsyrk_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 /*		a_0123        = _mm256_load_pd( &A[4] ); // prefetch*/
 		c_01_10_21_30 = _mm256_add_pd( c_01_10_21_30, ab_temp );
 		
-		A += 4; // keep it !!!
-		B += 4; // keep it !!!
+//		A += 4; // keep it !!!
+//		B += 4; // keep it !!!
 
 		}
 		
@@ -1686,13 +1686,13 @@ void kernel_dsyrk_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 		
 		if(alg==1) // C += A * B'
 			{
-			d_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
-			d_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
+			c_00_10_20_30 = _mm256_add_pd( d_00_10_20_30, c_00_10_20_30 );
+			c_01_11_21_31 = _mm256_add_pd( d_01_11_21_31, c_01_11_21_31 );
 			}
 		else // C -= A * B'
 			{
-			d_00_10_20_30 = _mm256_sub_pd( d_00_10_20_30, c_00_10_20_30 );
-			d_01_11_21_31 = _mm256_sub_pd( d_01_11_21_31, c_01_11_21_31 );
+			c_00_10_20_30 = _mm256_sub_pd( d_00_10_20_30, c_00_10_20_30 );
+			c_01_11_21_31 = _mm256_sub_pd( d_01_11_21_31, c_01_11_21_31 );
 			}
 
 		goto store;
@@ -1702,7 +1702,7 @@ void kernel_dsyrk_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 	d_temp = km - 0.0;
 	mask_m = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
 
-	_mm256_maskstore_pd( &D[0+ldc*1], mask_m, c_01_11_21_31 );
+	_mm256_maskstore_pd( &D[0+ldc*0], mask_m, c_00_10_20_30 );
 
 	if(kn>=2)
 		{
@@ -1710,9 +1710,9 @@ void kernel_dsyrk_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 
 		c_01_11_21_31 = _mm256_blend_pd( c_01_11_21_31, d_01_11_21_31, 0x1 );
 
-		_mm256_maskstore_pd( &D[0+ldc*0], mask_m, c_00_10_20_30 );
+		_mm256_maskstore_pd( &D[0+ldc*1], mask_m, c_01_11_21_31 );
 		}
-
+	
 	}
 
 
