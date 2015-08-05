@@ -314,7 +314,7 @@ void d_cond_R(int N, int nx, int nu, int alg, double **pA, double **pAt, double 
 #else
 
 			// Gamma_u * M
-			for(ii=1; ii<N; ii++)
+			for(ii=1; ii<N1; ii++)
 				{
 				dgecp_lib(nu, nx, ii*nu, pGamma_u_Q_A[ii-1]+(ii*nu)/bs*bs*cnx+ii*nu%bs, cnx, 0, pM, cnx);
 				dgemm_nt_lib((ii)*nu, nu, nx, pGamma_u[ii-1], cnx, pM, cnx, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 0, 0, 0);
@@ -370,7 +370,7 @@ void d_cond_R(int N, int nx, int nu, int alg, double **pA, double **pAt, double 
 				}
 
 			// Gamma_u * M
-			for(ii=1; ii<N; ii++)
+			for(ii=1; ii<N1; ii++)
 				{
 				dgecp_lib(nu, nx, ii*nu, pGamma_u_Q_A[ii-1]+(ii*nu)/bs*bs*cnx+ii*nu%bs, cnx, 0, pM, cnx);
 				dgemm_nt_lib((ii)*nu, nu, nx, pGamma_u[ii-1], cnx, pM, cnx, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 0, 0, 0);
@@ -972,7 +972,7 @@ void d_cond_lqcp(int N, int nx, int nu, double **hpA, double **hpAt, double **hp
 
 
 	// general stages
-	for(; jj<N2; jj++)
+	for(; jj4N2; jj++)
 		{
 
 		T1 = jj<R1 ? M1 : N1;

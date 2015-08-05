@@ -459,7 +459,7 @@ int main()
 * matrix series
 ************************************************/
 
-		int N2 = 4;
+		int N2 = 20;
 		int N1 = (N+N2-1)/N2;
 		int cN1nu = (N1*nu+ncl-1)/ncl*ncl;
 		int cN1nx = (N1*nx+ncl-1)/ncl*ncl;
@@ -597,7 +597,7 @@ int main()
 
 		gettimeofday(&tv0, NULL); // start
 
-		nrep = 100000;
+//		nrep = 100000;
 		for(rep=0; rep<nrep; rep++)
 			{
 
@@ -634,7 +634,7 @@ int main()
 		d_print_pmat(nx, nx, bs, pH_Q[0], cnx);
 #endif
 
-#if 1
+#if 0
 //		for(ii=0; ii<N; ii++)	
 //			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u[ii], cNnx);
 
@@ -656,7 +656,7 @@ int main()
 		d_print_mat(1, nx, H_q[0], 1);
 #endif
 
-#if 1
+#if 0
 //		printf("\nGamma_b\n");
 //		for(ii=0; ii<N; ii++)	
 //			d_print_mat(1, nx, hGamma_b[ii], 1);
@@ -695,7 +695,7 @@ int main()
 
 		gettimeofday(&tv0, NULL); // start
 
-		nrep = 100000;
+//		nrep = 100000;
 		for(rep=0; rep<nrep; rep++)
 			{
 
@@ -721,7 +721,7 @@ int main()
 
 		double time_cond_N2_nx2 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
-#if 1
+#if 0
 //		for(ii=0; ii<N; ii++)	
 //			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u[ii], cNnx);
 
@@ -741,7 +741,7 @@ int main()
 
 		gettimeofday(&tv0, NULL); // start
 
-		nrep = 100000;
+//		nrep = 100000;
 		for(rep=0; rep<nrep; rep++)
 			{
 
@@ -767,7 +767,7 @@ int main()
 
 		double time_cond_N2_nx3 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
-#if 1
+#if 0
 //		for(ii=0; ii<N; ii++)	
 //			d_print_pmat(nu*(ii+1), nx, bs, hpGamma_u[ii], cNnx);
 
@@ -783,7 +783,7 @@ int main()
 
 		gettimeofday(&tv0, NULL); // start
 
-		nrep = 100000;
+//		nrep = 100000;
 		for(rep=0; rep<nrep; rep++)
 			{
 
@@ -816,7 +816,7 @@ int main()
 
 		double time_fact_sol = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
-#if 1
+#if 0
 		printf("\nN^3 cholesky factorization of Hessiam\n");
 		d_print_pmat(N*nu, N*nu, bs, pL_R, cNnu);
 #endif
@@ -837,7 +837,7 @@ int main()
 
 		dpotrf_lib(N*nu, N*nu, pL_R, cNnu, pL_R, cNnu, diag);
 
-#if 1
+#if 0
 		printf("\nN^3 cholesky factorization of reversed Hessiam\n");
 		d_print_pmat(N*nu, N*nu, bs, pL_R, cNnu);
 		//exit(1);
@@ -853,7 +853,7 @@ int main()
 
 		gettimeofday(&tv0, NULL); // start
 
-		nrep = 100000;
+//		nrep = 100000;
 		for(rep=0; rep<nrep; rep++)
 			{
 
@@ -887,7 +887,7 @@ int main()
 		double time_fact_sol_N2 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
 
-#if 1
+#if 0
 		printf("\nN^2 n_x^2 condensing and cholesky factorization of reversed Hessiam\n");
 		d_print_pmat(N*nu, N*nu, bs, pL_R, cNnu);
 //		exit(1);
@@ -916,7 +916,7 @@ int main()
 
 		gettimeofday(&tv0, NULL); // start
 
-		nrep = 100000;
+//		nrep = 100000;
 		for(rep=0; rep<nrep; rep++)
 			{
 
@@ -950,7 +950,7 @@ int main()
 		double time_fact_sol_N2_nx3 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
 
-#if 1
+#if 0
 		printf("\nN^2 n_x^3 condensing and cholesky factorization of reversed Hessiam\n");
 		d_print_pmat(N*nu, N*nu, bs, pL_R, cNnu);
 //		exit(1);
@@ -986,21 +986,20 @@ int main()
 		nu_v[N2] = 0;
 #endif
 		
-		int nzero_S = 0;
-		int diag_Q = 1;
-		int N2_cond = 1;
+		int diag_hessian = 1;
+		int N2_cond = 0;
 
 		d_set_pmat(pNnu, cNnu, 0.0, bs, pH_R[0], cNnu); // TODO remove !!!!!
 
 
 		gettimeofday(&tv0, NULL); // start
 
-		nrep = 100000;
+//		nrep = 100000;
 		for(rep=0; rep<nrep; rep++)
 			{
 
 #if 1
-			d_cond_lqcp(N, nx, nu, hpA, hpAt, hpBt, hb, diag_Q, hdQ, hpS, hdR, hr, hq, N2, nx_v, nu_v, pH_A, pH_B, H_b, pH_R, pH_St, pH_Q, H_r, H_q, work_space_part_cond, N2_cond);
+			d_cond_lqcp(N, nx, nu, hpA, hpAt, hpBt, hb, diag_hessian, hdQ, hpS, hdR, hr, hq, N2, nx_v, nu_v, pH_A, pH_B, H_b, pH_R, pH_St, pH_Q, H_r, H_q, work_space_part_cond, N2_cond);
 #else
 			for(jj=0; jj<N2; jj++)
 				{
@@ -1038,7 +1037,7 @@ int main()
 
 		double time_part_cond = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		
-#if 1
+#if 0
 		for(jj=0; jj<N2+1; jj++)
 			d_print_pmat(nx, nx, bs, pH_Q[jj], cnx);
 
@@ -1118,7 +1117,7 @@ int main()
 			dgetr_lib(nx1, nu0, 0, pH_B[ii], cnu0, 0, pH_BAbt[ii], cnx1);
 			dgetr_lib(nx1, nx0, 0, pH_A[ii], cnx0, nu0, pH_BAbt[ii]+nu0/bs*bs*cnx1+nu0%bs, cnx1);
 			dgetr_lib(nx1, 1, 0, H_b[ii], 1, nu0+nx0, pH_BAbt[ii]+(nu0+nx0)/bs*bs*cnx1+(nu0+nx0)%bs, cnx1);
-			d_print_pmat(nx0+nu0+1, nx1, bs, pH_BAbt[ii], cnx1);
+//			d_print_pmat(nx0+nu0+1, nx1, bs, pH_BAbt[ii], cnx1);
 			}
 
 		for(ii=0; ii<=N2; ii++)
@@ -1133,17 +1132,15 @@ int main()
 			dgecp_lib(nx0, nx0, 0, pH_Q[ii], cnx0, nu0, pH_RSQrq[ii]+(nu0)/bs*bs*cnz0+(nu0)%bs+(nu0)*bs, cnz0);
 			dgetr_lib(nu0, 1, 0, H_r[ii], 1, nu0+nx0, pH_RSQrq[ii]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs, cnz0);
 			dgetr_lib(nx0, 1, 0, H_q[ii], 1, nu0+nx0, pH_RSQrq[ii]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs+(nu0)*bs, cnz0);
-			d_print_pmat(nx0+nu0+1, nx0+nu0+1, bs, pH_RSQrq[ii], cnz0);
+//			d_print_pmat(nx0+nu0+1, nx0+nu0+1, bs, pH_RSQrq[ii], cnz0);
 			}
-#if 0
 		ii = N2;
 		nx0 = nx_v[ii];
 		cnx0 = (nx0+ncl-1)/ncl*ncl;
 		cnz0 = (nx0+1+ncl-1)/ncl*ncl;
 		dgecp_lib(nx0, nx0, 0, pH_Q[N2], cnx0, 0, pH_RSQrq[N2], cnz0);
 		dgetr_lib(nx0, 1, 0, H_q[N2], 1, nx0, pH_RSQrq[N2]+nx0/bs*bs*cnz0+nx0%bs, cnz0);
-		d_print_pmat(nx0+1, nx0+1, bs, pH_RSQrq[N2], cnz0);
-#endif
+//		d_print_pmat(nx0+1, nx0+1, bs, pH_RSQrq[N2], cnz0);
 
 
 
@@ -1160,7 +1157,7 @@ int main()
 		double *work_tv; d_zeros_align(&work_tv, d_ric_sv_mpc_tv_work_space_size_double(N2, nx_v, nu_v, nb_v, ng_v), 1);
 		double *diag_tv; d_zeros_align(&diag_tv, (nz_m+bs-1)/bs*bs, 1);
 
-#if 1
+#if 0
 		for(ii=0; ii<=N2; ii++)
 			printf("\n%d\t%d\n", nu_v[ii], nx_v[ii]);
 		//exit(1);
@@ -1171,14 +1168,14 @@ int main()
 
 		gettimeofday(&tv0, NULL); // start
 
-		nrep = 100000;
+//		nrep = 100000;
 		for(rep=0; rep<nrep; rep++)
 			{
 
 #if 0
 			d_ric_sv_mpc(nx, N1*nu, N2, pH_BAbt, pH_RSQrq, 0, dummy, dummy, H_ux, pH_L, work1, diag_tv, 0, dummy, 0, 0, 0, dummy, dummy, dummy, 0);
 #else
-			d_ric_sv_mpc_tv(N2, nx_v, nu_v, pH_BAbt, pH_RSQrq, H_ux, pH_L, work_tv, diag_tv, 0, dummy, 0, H_pi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy, 0);
+			d_ric_sv_mpc_tv(N2, nx_v, nu_v, pH_BAbt, pH_RSQrq, H_ux, pH_L, work_tv, diag_tv, 0, dummy, 1, H_pi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy, 0);
 #endif
 
 			}
@@ -1187,6 +1184,7 @@ int main()
 
 		double time_part_cond_ric = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		
+#if 0
 		printf("\nux\n");
 		for(jj=0; jj<=N2; jj++)
 			d_print_mat(1, nu_v[jj]+nx_v[jj], H_ux[jj], 1);
@@ -1194,11 +1192,14 @@ int main()
 		printf("\npi\n");
 		for(jj=1; jj<=N2; jj++)
 			d_print_mat(1, nx_v[jj], H_pi[jj], 1);
+#endif
 
+#if 1
 		printf("\nu\n");
 		for(jj=0; jj<N2; jj++)
 			for(ii=0; ii<nu_v[jj]/nu; ii++)
 				d_print_mat(1, nu, H_ux[jj]+ii*nu, 1);
+#endif
 
 #if 0
 		printf("\nrq\n");
@@ -1229,7 +1230,7 @@ int main()
 
 		gettimeofday(&tv0, NULL); // start
 
-		nrep = 100000;
+//		nrep = 100000;
 		for(rep=0; rep<nrep; rep++)
 			{
 
@@ -1237,14 +1238,16 @@ int main()
 
 			}
 
-		printf("\nux\n");
-		for(ii=0; ii<=N; ii++)
-			d_print_mat(1, nu+nx, hux[ii], 1);
-
 		gettimeofday(&tv1, NULL); // start
 
 		double time_ric = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 	
+#if 1
+		printf("\nux\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nu+nx, hux[ii], 1);
+#endif
+
 		printf("\ntime condensing = %e seconds\n", time_cond);
 		printf("\ntime factorization  = %e seconds\n", time_fact_sol);
 		printf("\ntime factorization N2 = %e seconds\n", time_fact_sol_N2);
