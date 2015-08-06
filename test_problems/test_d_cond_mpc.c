@@ -459,7 +459,7 @@ int main()
 * matrix series
 ************************************************/
 
-		int N2 = 20;
+		int N2 = 2;
 		int N1 = (N+N2-1)/N2;
 		int cN1nu = (N1*nu+ncl-1)/ncl*ncl;
 		int cN1nx = (N1*nx+ncl-1)/ncl*ncl;
@@ -1117,7 +1117,7 @@ int main()
 			dgetr_lib(nx1, nu0, 0, pH_B[ii], cnu0, 0, pH_BAbt[ii], cnx1);
 			dgetr_lib(nx1, nx0, 0, pH_A[ii], cnx0, nu0, pH_BAbt[ii]+nu0/bs*bs*cnx1+nu0%bs, cnx1);
 			dgetr_lib(nx1, 1, 0, H_b[ii], 1, nu0+nx0, pH_BAbt[ii]+(nu0+nx0)/bs*bs*cnx1+(nu0+nx0)%bs, cnx1);
-//			d_print_pmat(nx0+nu0+1, nx1, bs, pH_BAbt[ii], cnx1);
+			d_print_pmat(nx0+nu0+1, nx1, bs, pH_BAbt[ii], cnx1);
 			}
 
 		for(ii=0; ii<=N2; ii++)
@@ -1132,7 +1132,7 @@ int main()
 			dgecp_lib(nx0, nx0, 0, pH_Q[ii], cnx0, nu0, pH_RSQrq[ii]+(nu0)/bs*bs*cnz0+(nu0)%bs+(nu0)*bs, cnz0);
 			dgetr_lib(nu0, 1, 0, H_r[ii], 1, nu0+nx0, pH_RSQrq[ii]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs, cnz0);
 			dgetr_lib(nx0, 1, 0, H_q[ii], 1, nu0+nx0, pH_RSQrq[ii]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs+(nu0)*bs, cnz0);
-//			d_print_pmat(nx0+nu0+1, nx0+nu0+1, bs, pH_RSQrq[ii], cnz0);
+			d_print_pmat(nx0+nu0+1, nx0+nu0+1, bs, pH_RSQrq[ii], cnz0);
 			}
 		ii = N2;
 		nx0 = nx_v[ii];
@@ -1140,7 +1140,27 @@ int main()
 		cnz0 = (nx0+1+ncl-1)/ncl*ncl;
 		dgecp_lib(nx0, nx0, 0, pH_Q[N2], cnx0, 0, pH_RSQrq[N2], cnz0);
 		dgetr_lib(nx0, 1, 0, H_q[N2], 1, nx0, pH_RSQrq[N2]+nx0/bs*bs*cnz0+nx0%bs, cnz0);
-//		d_print_pmat(nx0+1, nx0+1, bs, pH_RSQrq[N2], cnz0);
+		d_print_pmat(nx0+1, nx0+1, bs, pH_RSQrq[N2], cnz0);
+
+
+		// partial condensing algorithm
+		printf("\npatrial condensing algorithm\n");
+		d_cond_A((N+N2-1)/N2, nx, nu, hpA, 1, hpGamma_0, pH_A[0]);
+//		for(ii=0; ii<N; ii++) d_print_pmat(nx, nx, bs, hpGamma_0[ii], cnx);
+//		d_print_pmat(nx, nx, bs, pH_A[0], cnx);
+		d_cond_B((N+N2-1)/N2, nx, nu, hpA, hpBt, 1, hpGamma_u, pH_B[0]);
+//		for(ii=0; ii<N; ii++) d_print_pmat((ii+1)*nu, nx, bs, hpGamma_u[ii], cnx);
+//		d_print_pmat(nx, N*nu, bs, pH_B[0], cNnu);
+
+		d_set_pmat(N*nu, N*nu, 0.0, 0, pH_R[0], cNnu);
+		d_set_pmat(nx, N*nu, 0.0, 0, pH_St[0], cNnu);
+		d_set_pmat(nx, nx, 0.0, 0, pH_Q[0], cnx);
+		d_part_cond_RSQ((N+N2-1)/N2, nx, nu, hpBAt, 0, hpRSQ, hpGamma_0, hpGamma_u, pM, pLam, diag_ric, pBAtL, pH_R[0], pH_St[0], pH_Q[0]);
+		printf("\nhola\n");
+		d_print_pmat((N+N2-1)/N2, (N+N2-1)/N2, bs, pH_R[0], 4);
+		d_print_pmat(nx, (N+N2-1)/N2, bs, pH_St[0], 4);
+		d_print_pmat(nx, nx, bs, pH_Q[0], cnx);
+		exit(1);
 
 
 
