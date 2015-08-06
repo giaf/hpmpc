@@ -973,10 +973,13 @@ int d_cond_lqcp_work_space(int N, int nx, int nu, int N2, int alg)
 	const int bs = D_MR;
 	const int ncl = D_NCL;
 
+	int nz = nu+nx;
 	int pnx = (nx+bs-1)/bs*bs;
 	int pnu = (nu+bs-1)/bs*bs;
+	int pnz = (nz+bs-1)/bs*bs;
 	int cnx = (nx+ncl-1)/ncl*ncl;
 	int cnu = (nu+ncl-1)/ncl*ncl;
+	int cnz = (nz+ncl-1)/ncl*ncl;
 
 	// find problem size
 	int N1 = N/N2; // floor
@@ -987,19 +990,31 @@ int d_cond_lqcp_work_space(int N, int nx, int nu, int N2, int alg)
 
 	int jj;
 
-	for(jj=0; jj<M1; jj++)
+	if(alg==0 || alg==1)
 		{
-		work_space_size += 3*pnx*cnx + 3*((jj+2)*nu+bs-1)/bs*bs*cnx + 2*pnx;
+		for(jj=0; jj<M1; jj++)
+			{
+			work_space_size += 3*pnx*cnx + 3*((jj+2)*nu+bs-1)/bs*bs*cnx + 2*pnx;
+			}
+		work_space_size += pnx*cnx + pnx + pnu*cnu + pnu*cnx;
+		return work_space_size;
 		}
-	work_space_size += pnx*cnx + pnx + pnu*cnu + pnu*cnx;
 
-	return work_space_size;
+	if(alg==2)
+		{
+		for(jj=0; jj<M1; jj++)
+			{
+			work_space_size += 1*pnx*cnx + 1*((jj+2)*nu+bs-1)/bs*bs*cnx + 2*pnx;
+			}
+		work_space_size += pnx + pnz*cnz + pnz*cnx + pnu*cnx;
+		return work_space_size;
+		}
 
 	}
 
 
 
-void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, double **hpBt, double **hb, int diag_hessian, double **hpQ, double **hpS, double **hpR, double **hr, double **hq, int N2, int *nx2, int *nu2, double **hpA2, double **hpB2, double **hb2, double **hpR2, double **hpSt2, double **hpQ2, double **hr2, double **hq2, double *work_double)
+void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, double **hpBt, double **hb, double **hpBAt, int diag_hessian, double **hpQ, double **hpS, double **hpR, double **hr, double **hq, double **hpRSQ, int N2, int *nx2, int *nu2, double **hpA2, double **hpB2, double **hb2, double **hpR2, double **hpSt2, double **hpQ2, double **hr2, double **hq2, double *work_double)
 	{
 
 	const int bs = D_MR;
@@ -1017,97 +1032,98 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 	int T1;
 
 	int ii, jj, nn;
-	int use_Gamma_0_Q = 0;
-	if(alg==0 && diag_hessian==0)
-		use_Gamma_0_Q = 1;
-
-	double *(hpGamma_0[M1]);
-	double *(hpGamma_0_Q[M1]);
-	double *(hpGamma_u[M1]);
-	double *(hpGamma_u_Q[M1]);
-	double *(hpGamma_u_Q_A[M1]);
-	double *(hGamma_b[M1]);
-	double *(hGamma_b_q[M1]);
-	double *(hpL[M1+1]);
-	double *pD;
-	double *pM;
-	double *work;
-
-	double *ptr;
-	ptr = work_double;
-
-	for(jj=0; jj<M1; jj++)
-		{
-		hpGamma_0[jj] = ptr;
-		ptr += pnx*cnx;
-		}
-
-	for(jj=0; jj<M1; jj++)
-		{
-		hpGamma_0_Q[jj] = ptr;
-		ptr += pnx*cnx;
-		}
-
-	for(jj=0; jj<M1; jj++)
-		{
-		hpGamma_u[jj] = ptr;
-		ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
-		}
-
-	for(jj=0; jj<M1-1; jj++)
-		{
-		hpGamma_u_Q[jj] = ptr;
-		ptr += ((jj+2)*nu+bs-1)/bs*bs*cnx;
-		}
-	jj = M1-1;
-	hpGamma_u_Q[jj] = ptr;
-	ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
-
-	for(jj=0; jj<M1-1; jj++)
-		{
-		hpGamma_u_Q_A[jj] = ptr;
-		ptr += ((jj+2)*nu+bs-1)/bs*bs*cnx;
-		}
-	jj = M1-1;
-	hpGamma_u_Q_A[jj] = ptr;
-	ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
-	
-	for(jj=0; jj<=M1; jj++)
-		{
-		hpL[jj] = ptr;
-		if(diag_hessian)
-			ptr += pnx;
-		else
-			ptr += pnx*cnx;
-		}
-
-	for(jj=0; jj<M1; jj++)
-		{
-		hGamma_b[jj] = ptr;
-		ptr += pnx;
-		}
-
-	for(jj=0; jj<M1; jj++)
-		{
-		hGamma_b_q[jj] = ptr;
-		ptr += pnx;
-		}
-	
-	pD = ptr;
-	ptr += pnu*cnu;
-
-	pM = ptr;
-	ptr += pnu*cnx;
-
-	work = ptr;
-	ptr += pnx;
-
-	double *dummy;
-	double **pdummy;
-
 
 	if(alg==0 || alg==1) // using N^3 n_x^2 or N^2 n_x^2 condensing algorithm
 		{
+
+		int use_Gamma_x_Q = 0;
+		if(alg==0 && diag_hessian==0)
+			use_Gamma_x_Q = 1;
+
+		double *(hpGamma_x[M1]);
+		double *(hpGamma_x_Q[M1]);
+		double *(hpGamma_u[M1]);
+		double *(hpGamma_u_Q[M1]);
+		double *(hpGamma_u_Q_A[M1]);
+		double *(hGamma_b[M1]);
+		double *(hGamma_b_q[M1]);
+		double *(hpL[M1+1]);
+		double *pD;
+		double *pM;
+		double *work;
+
+		double *ptr;
+		ptr = work_double;
+
+		for(jj=0; jj<M1; jj++)
+			{
+			hpGamma_x[jj] = ptr;
+			ptr += pnx*cnx;
+			}
+
+		for(jj=0; jj<M1; jj++)
+			{
+			hpGamma_x_Q[jj] = ptr;
+			ptr += pnx*cnx;
+			}
+
+		for(jj=0; jj<M1; jj++)
+			{
+			hpGamma_u[jj] = ptr;
+			ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
+			}
+
+		for(jj=0; jj<M1-1; jj++)
+			{
+			hpGamma_u_Q[jj] = ptr;
+			ptr += ((jj+2)*nu+bs-1)/bs*bs*cnx;
+			}
+		jj = M1-1;
+		hpGamma_u_Q[jj] = ptr;
+		ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
+
+		for(jj=0; jj<M1-1; jj++)
+			{
+			hpGamma_u_Q_A[jj] = ptr;
+			ptr += ((jj+2)*nu+bs-1)/bs*bs*cnx;
+			}
+		jj = M1-1;
+		hpGamma_u_Q_A[jj] = ptr;
+		ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
+		
+		for(jj=0; jj<=M1; jj++)
+			{
+			hpL[jj] = ptr;
+			if(diag_hessian)
+				ptr += pnx;
+			else
+				ptr += pnx*cnx;
+			}
+
+		for(jj=0; jj<M1; jj++)
+			{
+			hGamma_b[jj] = ptr;
+			ptr += pnx;
+			}
+
+		for(jj=0; jj<M1; jj++)
+			{
+			hGamma_b_q[jj] = ptr;
+			ptr += pnx;
+			}
+		
+		pD = ptr;
+		ptr += pnu*cnu;
+
+		pM = ptr;
+		ptr += pnu*cnx;
+
+		work = ptr;
+		ptr += pnx;
+
+		double *dummy;
+		double **pdummy;
+
 
 		// first stage
 		nn = 0;
@@ -1120,7 +1136,7 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 
 
 		// condense dynamic system
-		//d_cond_A(T1, nx, nu, hpA+nn, 1, hpGamma_0, hpA2[jj]);
+		//d_cond_A(T1, nx, nu, hpA+nn, 1, hpGamma_x, hpA2[jj]);
 
 		d_cond_B(T1, nx, nu, hpA+nn, hpBt+nn, 1, hpGamma_u, hpB2[jj]);
 
@@ -1128,13 +1144,13 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 
 
 		// condense cost function
-		//d_cond_Q(T1, nx, nu, hpA+nn, diag_Q, 0, hpQ+nn, hpL, 0, hpGamma_0, hpGamma_0_Q, hpQ2[jj], work);
+		//d_cond_Q(T1, nx, nu, hpA+nn, diag_Q, 0, hpQ+nn, hpL, 0, hpGamma_x, hpGamma_x_Q, hpQ2[jj], work);
 		
 		d_cond_R(T1, nx, nu, alg, hpA+nn, hpAt+nn, hpBt+nn, pdummy, diag_hessian, 0, hpQ+nn, 0, hpL, hpS+nn, hpR+nn, pdummy, pD, pM, dummy, dummy, dummy, dummy, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
 
-		//d_cond_St(T1, nx, nu, nzero_S, hpS+nn, 0, hpGamma_0, use_Gamma_0_Q, hpGamma_0_Q, hpGamma_u_Q, hpSt2[jj]);
+		//d_cond_St(T1, nx, nu, nzero_S, hpS+nn, 0, hpGamma_x, use_Gamma_x_Q, hpGamma_x_Q, hpGamma_u_Q, hpSt2[jj]);
 
-		//d_cond_q(T1, nx, nu, hpA+nn, hb+nn, diag_Q, 0, hpQ+nn, hq+nn, hpGamma_0, 0, hGamma_b, 1, hGamma_b_q, hq2[jj]);
+		//d_cond_q(T1, nx, nu, hpA+nn, hb+nn, diag_Q, 0, hpQ+nn, hq+nn, hpGamma_x, 0, hGamma_b, 1, hGamma_b_q, hq2[jj]);
 
 		d_cond_r(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hpS+nn, hq+nn, hr+nn, hpGamma_u, 0, hGamma_b, 1, hGamma_b_q, hr2[jj]);
 
@@ -1155,7 +1171,7 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 
 
 			// condense dynamic system
-			d_cond_A(T1, nx, nu, hpA+nn, 1, hpGamma_0, hpA2[jj]);
+			d_cond_A(T1, nx, nu, hpA+nn, 1, hpGamma_x, hpA2[jj]);
 
 			d_cond_B(T1, nx, nu, hpA+nn, hpBt+nn, 1, hpGamma_u, hpB2[jj]);
 
@@ -1163,13 +1179,13 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 
 
 			// condense cost function
-			d_cond_Q(T1, nx, nu, hpA+nn, diag_hessian, 0, hpQ+nn, hpL, 0, hpGamma_0, hpGamma_0_Q, hpQ2[jj], work);
+			d_cond_Q(T1, nx, nu, hpA+nn, diag_hessian, 0, hpQ+nn, hpL, 0, hpGamma_x, hpGamma_x_Q, hpQ2[jj], work);
 			
 			d_cond_R(T1, nx, nu, alg, hpA+nn, hpAt+nn, hpBt+nn, pdummy, diag_hessian, 0, hpQ+nn, 1, hpL, hpS+nn, hpR+nn, pdummy, pD, pM, dummy, dummy, dummy, dummy, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
 
-			d_cond_St(T1, nx, nu, diag_hessian, hpS+nn, 0, hpGamma_0, use_Gamma_0_Q, hpGamma_0_Q, hpGamma_u_Q, hpSt2[jj]);
+			d_cond_St(T1, nx, nu, diag_hessian, hpS+nn, 0, hpGamma_x, use_Gamma_x_Q, hpGamma_x_Q, hpGamma_u_Q, hpSt2[jj]);
 
-			d_cond_q(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hq+nn, hpGamma_0, 0, hGamma_b, 1, hGamma_b_q, hq2[jj]);
+			d_cond_q(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hq+nn, hpGamma_x, 0, hGamma_b, 1, hGamma_b_q, hq2[jj]);
 
 			d_cond_r(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hpS+nn, hq+nn, hr+nn, hpGamma_u, 0, hGamma_b, 0, hGamma_b_q, hr2[jj]);
 
@@ -1185,12 +1201,91 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 	if(alg==2) // using N^2 n_x^3 condensing algorithm
 		{
 
+#if 1
+
+		int nz = nu+nx;
+		int pnz = (nz+bs-1)/bs*bs;
+		int cnz = (nz+ncl-1)/ncl*ncl;
+
+		double *(hpGamma_x[M1]);
+		double *(hpGamma_u[M1]);
+		double *(hpGamma_u_Q[M1]); // TODO remove !!!!!
+		double *(hpGamma_u_Q_A[M1]); // TODO remove !!!!!
+		double *(hGamma_b[M1]);
+		double *(hGamma_b_q[M1]);
+		double *pBAtL;
+		double *pLam;
+		double *pM;
+		double *diag;
+
+		double *ptr;
+		ptr = work_double;
+
+		for(jj=0; jj<M1; jj++)
+			{
+			hpGamma_x[jj] = ptr;
+			ptr += pnx*cnx;
+			}
+
+		for(jj=0; jj<M1; jj++)
+			{
+			hpGamma_u[jj] = ptr;
+			ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
+			}
+
 #if 0
+		for(jj=0; jj<M1-1; jj++)
+			{
+			hpGamma_u_Q[jj] = ptr;
+			ptr += ((jj+2)*nu+bs-1)/bs*bs*cnx;
+			}
+		jj = M1-1;
+		hpGamma_u_Q[jj] = ptr;
+		ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
+
+		for(jj=0; jj<M1-1; jj++)
+			{
+			hpGamma_u_Q_A[jj] = ptr;
+			ptr += ((jj+2)*nu+bs-1)/bs*bs*cnx;
+			}
+		jj = M1-1;
+		hpGamma_u_Q_A[jj] = ptr;
+		ptr += ((jj+1)*nu+bs-1)/bs*bs*cnx;
+#endif
+
+		pBAtL = ptr;
+		ptr += pnz*cnx;
+
+		pLam = ptr;
+		ptr += pnz*cnz;
+
+		pM = ptr;
+		ptr += pnu*cnx;
+
+		for(jj=0; jj<M1; jj++)
+			{
+			hGamma_b[jj] = ptr;
+			ptr += pnx;
+			}
+
+		for(jj=0; jj<M1; jj++)
+			{
+			hGamma_b_q[jj] = ptr;
+			ptr += pnx;
+			}
+		
+		diag = ptr;
+		ptr += pnx;
+
+		double *dummy;
+		double **pdummy;
+
 
 		// first stage
 		nn = 0;
 		jj = 0;
 
+#if 0
 		T1 = jj<R1 ? M1 : N1;
 
 		nx2[jj] = 0;
@@ -1198,7 +1293,7 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 
 
 		// condense dynamic system
-		//d_cond_A(T1, nx, nu, hpA+nn, 1, hpGamma_0, hpA2[jj]);
+		//d_cond_A(T1, nx, nu, hpA+nn, 1, hpGamma_x, hpA2[jj]);
 
 		d_cond_B(T1, nx, nu, hpA+nn, hpBt+nn, 1, hpGamma_u, hpB2[jj]);
 
@@ -1206,13 +1301,13 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 
 
 		// condense cost function
-		//d_cond_Q(T1, nx, nu, hpA+nn, diag_Q, 0, hpQ+nn, hpL, 0, hpGamma_0, hpGamma_0_Q, hpQ2[jj], work);
+		//d_cond_Q(T1, nx, nu, hpA+nn, diag_Q, 0, hpQ+nn, hpL, 0, hpGamma_x, hpGamma_x_Q, hpQ2[jj], diag);
 		
-		d_cond_R(T1, nx, nu, alg, hpA+nn, hpAt+nn, hpBt+nn, pdummy, diag_hessian, 0, hpQ+nn, 0, hpL, hpS+nn, hpR+nn, pdummy, pD, pM, dummy, dummy, dummy, dummy, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
+		d_cond_R(T1, nx, nu, 0, hpA+nn, hpAt+nn, hpBt+nn, pdummy, diag_hessian, 0, hpQ+nn, 0, pdummy, hpS+nn, hpR+nn, pdummy, pLam, pM, dummy, dummy, dummy, dummy, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
 
-		//d_cond_St(T1, nx, nu, nzero_S, hpS+nn, 0, hpGamma_0, use_Gamma_0_Q, hpGamma_0_Q, hpGamma_u_Q, hpSt2[jj]);
+		//d_cond_St(T1, nx, nu, nzero_S, hpS+nn, 0, hpGamma_x, use_Gamma_x_Q, hpGamma_x_Q, hpGamma_u_Q, hpSt2[jj]);
 
-		//d_cond_q(T1, nx, nu, hpA+nn, hb+nn, diag_Q, 0, hpQ+nn, hq+nn, hpGamma_0, 0, hGamma_b, 1, hGamma_b_q, hq2[jj]);
+		//d_cond_q(T1, nx, nu, hpA+nn, hb+nn, diag_Q, 0, hpQ+nn, hq+nn, hpGamma_x, 0, hGamma_b, 1, hGamma_b_q, hq2[jj]);
 
 		d_cond_r(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hpS+nn, hq+nn, hr+nn, hpGamma_u, 0, hGamma_b, 1, hGamma_b_q, hr2[jj]);
 
@@ -1220,6 +1315,7 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 		// increment stage counter
 		nn += T1;
 		jj++;
+#endif
 
 
 		// general stages
@@ -1233,7 +1329,7 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 
 
 			// condense dynamic system
-			d_cond_A(T1, nx, nu, hpA+nn, 1, hpGamma_0, hpA2[jj]);
+			d_cond_A(T1, nx, nu, hpA+nn, 1, hpGamma_x, hpA2[jj]);
 
 			d_cond_B(T1, nx, nu, hpA+nn, hpBt+nn, 1, hpGamma_u, hpB2[jj]);
 
@@ -1241,13 +1337,15 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 
 
 			// condense cost function
-			d_cond_Q(T1, nx, nu, hpA+nn, diag_hessian, 0, hpQ+nn, hpL, 0, hpGamma_0, hpGamma_0_Q, hpQ2[jj], work);
+			//d_cond_Q(T1, nx, nu, hpA+nn, diag_hessian, 0, hpQ+nn, hpL, 0, hpGamma_x, hpGamma_x_Q, hpQ2[jj], diag);
 			
-			d_cond_R(T1, nx, nu, alg, hpA+nn, hpAt+nn, hpBt+nn, pdummy, diag_hessian, 0, hpQ+nn, 1, hpL, hpS+nn, hpR+nn, pdummy, pD, pM, dummy, dummy, dummy, dummy, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
+			//d_cond_R(T1, nx, nu, alg, hpA+nn, hpAt+nn, hpBt+nn, pdummy, diag_hessian, 0, hpQ+nn, 1, hpL, hpS+nn, hpR+nn, pdummy, pD, pM, dummy, dummy, dummy, dummy, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
 
-			d_cond_St(T1, nx, nu, diag_hessian, hpS+nn, 0, hpGamma_0, use_Gamma_0_Q, hpGamma_0_Q, hpGamma_u_Q, hpSt2[jj]);
+			//d_cond_St(T1, nx, nu, diag_hessian, hpS+nn, 0, hpGamma_x, use_Gamma_x_Q, hpGamma_x_Q, hpGamma_u_Q, hpSt2[jj]);
 
-			d_cond_q(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hq+nn, hpGamma_0, 0, hGamma_b, 1, hGamma_b_q, hq2[jj]);
+			d_part_cond_RSQ(T1, nx, nu, hpBAt+nn, diag_hessian, hpRSQ+nn, hpGamma_x, hpGamma_u, pM, pLam, diag, pBAtL, hpR2[jj], hpSt2[jj], hpQ2[jj]);
+
+			d_cond_q(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hq+nn, hpGamma_x, 0, hGamma_b, 1, hGamma_b_q, hq2[jj]);
 
 			d_cond_r(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hpS+nn, hq+nn, hr+nn, hpGamma_u, 0, hGamma_b, 0, hGamma_b_q, hr2[jj]);
 

@@ -459,7 +459,7 @@ int main()
 * matrix series
 ************************************************/
 
-		int N2 = 2;
+		int N2 = 5;
 		int N1 = (N+N2-1)/N2;
 		int cN1nu = (N1*nu+ncl-1)/ncl*ncl;
 		int cN1nx = (N1*nx+ncl-1)/ncl*ncl;
@@ -970,15 +970,14 @@ int main()
 
 
 
-		int diag_hessian = 1;
-		int N2_cond = 0;
+		int alg;
+		int diag_hessian = 0;
 
 		double *pZ; d_zeros_align(&pZ, pnx, cnx);
 		double *ptr_temp;
 
 		//printf("\n%d\n", d_cond_lqcp_work_space(N, nx, nu, N2) );
 		//exit(1);
-		double *work_space_part_cond; d_zeros_align(&work_space_part_cond, d_cond_lqcp_work_space(N, nx, nu, N2, N2_cond), 1);
 
 		nx_v = (int *) malloc((N2+1)*sizeof(int));
 		for(ii=0; ii<=N2; ii++) nx_v[ii] = nx;
@@ -992,51 +991,60 @@ int main()
 		d_set_pmat(pNnu, cNnu, 0.0, bs, pH_R[0], cNnu); // TODO remove !!!!!
 
 
+		alg = 0;
+		double *work_space_part_cond; d_zeros_align(&work_space_part_cond, d_cond_lqcp_work_space(N, nx, nu, N2, alg), 1);
+
 		gettimeofday(&tv0, NULL); // start
 
 //		nrep = 100000;
 		for(rep=0; rep<nrep; rep++)
 			{
 
-#if 1
-			d_cond_lqcp(N, nx, nu, N2_cond, hpA, hpAt, hpBt, hb, diag_hessian, hdQ, hpS, hdR, hr, hq, N2, nx_v, nu_v, pH_A, pH_B, H_b, pH_R, pH_St, pH_Q, H_r, H_q, work_space_part_cond);
-#else
-			for(jj=0; jj<N2; jj++)
-				{
-
-				//ptr_temp = hdQ[jj+N1];
-				//hdQ[jj+N1] = pZ;
-
-				d_cond_A(N1, nx, nu, hpA+jj, 1, hpGamma_0, pH_A[jj]);
-
-				d_cond_B(N1, nx, nu, hpA+jj, hpBt+jj, 1, hpGamma_u, pH_B[jj]);
-
-				d_cond_b(N1, nx, nu, hpA+jj, hb+jj, 1, hGamma_b, H_b[jj]);
-
-				//d_cond_Q(N1, nx, nu, hpA+jj, 0, 0, hpQ+jj, hpL+jj, 0, hpGamma_0, hpGamma_0_Q, pH_Q[jj], work);
-				d_cond_Q(N1, nx, nu, hpA+jj, 1, 0, hdQ+jj, hpL+jj, 0, hpGamma_0, hpGamma_0_Q, pH_Q[jj], work);
-				
-				//d_cond_R(N1, nx, nu, 0, hpA+jj, hpAt+jj, hpBt+jj, 0, 0, hpQ+jj, 1, hpL+jj, 0, hpS+jj, hpR+jj, pD, pM, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[jj]);
-				d_cond_R(N1, nx, nu, 0, hpA+jj, hpAt+jj, hpBt+jj, 1, 0, hdQ+jj, hpL+jj, 0, hpS+jj, hpR+jj, pD, pM, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[jj]);
-
-				//d_cond_St(N1, nx, nu, 0, hpS+jj, 0, hpGamma_0, 1, hpGamma_0_Q, hpGamma_u_Q, pH_St[jj]);
-				d_cond_St(N1, nx, nu, 0, hpS+jj, 0, hpGamma_0, 0, hpGamma_0_Q, hpGamma_u_Q, pH_St[jj]);
-
-				d_cond_q(N1, nx, nu, hpA+jj, hb+jj, 1, 0, hdQ+jj, hq+jj, hpGamma_0, 0, hGamma_b, 1, hGamma_b_q, H_q[jj]);
-
-				d_cond_r(N1, nx, nu, hpA+jj, hb+jj, 1, 0, hdQ+jj, 1, hpS+jj, hq+jj, hr+jj, hpGamma_u, 0, hGamma_b, 0, hGamma_b_q, H_r[jj]);
-
-				//hdQ[jj+N1] = ptr_temp;
-
-				}
-#endif
+			d_cond_lqcp(N, nx, nu, alg, hpA, hpAt, hpBt, hb, hpBAt, diag_hessian, hpQ, hpS, hpR, hr, hq, hpRSQ, N2, nx_v, nu_v, pH_A, pH_B, H_b, pH_R, pH_St, pH_Q, H_r, H_q, work_space_part_cond);
 
 			}
 
 		gettimeofday(&tv1, NULL); // start
 
-		double time_part_cond = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+		double time_part_cond_0 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+
+
+		alg = 1;
+		gettimeofday(&tv0, NULL); // start
+
+//		nrep = 100000;
+		for(rep=0; rep<nrep; rep++)
+			{
+
+			d_cond_lqcp(N, nx, nu, alg, hpA, hpAt, hpBt, hb, hpBAt, diag_hessian, hpQ, hpS, hpR, hr, hq, hpRSQ, N2, nx_v, nu_v, pH_A, pH_B, H_b, pH_R, pH_St, pH_Q, H_r, H_q, work_space_part_cond);
+
+			}
+
+		gettimeofday(&tv1, NULL); // start
+
+		double time_part_cond_1 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		
+
+
+		alg = 2;
+		free(work_space_part_cond);
+		work_space_part_cond; d_zeros_align(&work_space_part_cond, d_cond_lqcp_work_space(N, nx, nu, N2, alg), 1);
+
+		gettimeofday(&tv0, NULL); // start
+
+//		nrep = 100000;
+		for(rep=0; rep<nrep; rep++)
+			{
+
+			d_cond_lqcp(N, nx, nu, alg, hpA, hpAt, hpBt, hb, hpBAt, diag_hessian, hpQ, hpS, hpR, hr, hq, hpRSQ, N2, nx_v, nu_v, pH_A, pH_B, H_b, pH_R, pH_St, pH_Q, H_r, H_q, work_space_part_cond);
+
+			}
+
+		gettimeofday(&tv1, NULL); // start
+
+		double time_part_cond_2 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
 #if 0
 		for(jj=0; jj<N2+1; jj++)
 			d_print_pmat(nx, nx, bs, pH_Q[jj], cnx);
@@ -1117,7 +1125,7 @@ int main()
 			dgetr_lib(nx1, nu0, 0, pH_B[ii], cnu0, 0, pH_BAbt[ii], cnx1);
 			dgetr_lib(nx1, nx0, 0, pH_A[ii], cnx0, nu0, pH_BAbt[ii]+nu0/bs*bs*cnx1+nu0%bs, cnx1);
 			dgetr_lib(nx1, 1, 0, H_b[ii], 1, nu0+nx0, pH_BAbt[ii]+(nu0+nx0)/bs*bs*cnx1+(nu0+nx0)%bs, cnx1);
-			d_print_pmat(nx0+nu0+1, nx1, bs, pH_BAbt[ii], cnx1);
+//			d_print_pmat(nx0+nu0+1, nx1, bs, pH_BAbt[ii], cnx1);
 			}
 
 		for(ii=0; ii<=N2; ii++)
@@ -1132,7 +1140,7 @@ int main()
 			dgecp_lib(nx0, nx0, 0, pH_Q[ii], cnx0, nu0, pH_RSQrq[ii]+(nu0)/bs*bs*cnz0+(nu0)%bs+(nu0)*bs, cnz0);
 			dgetr_lib(nu0, 1, 0, H_r[ii], 1, nu0+nx0, pH_RSQrq[ii]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs, cnz0);
 			dgetr_lib(nx0, 1, 0, H_q[ii], 1, nu0+nx0, pH_RSQrq[ii]+(nu0+nx0)/bs*bs*cnz0+(nu0+nx0)%bs+(nu0)*bs, cnz0);
-			d_print_pmat(nx0+nu0+1, nx0+nu0+1, bs, pH_RSQrq[ii], cnz0);
+//			d_print_pmat(nx0+nu0+1, nx0+nu0+1, bs, pH_RSQrq[ii], cnz0);
 			}
 		ii = N2;
 		nx0 = nx_v[ii];
@@ -1140,9 +1148,10 @@ int main()
 		cnz0 = (nx0+1+ncl-1)/ncl*ncl;
 		dgecp_lib(nx0, nx0, 0, pH_Q[N2], cnx0, 0, pH_RSQrq[N2], cnz0);
 		dgetr_lib(nx0, 1, 0, H_q[N2], 1, nx0, pH_RSQrq[N2]+nx0/bs*bs*cnz0+nx0%bs, cnz0);
-		d_print_pmat(nx0+1, nx0+1, bs, pH_RSQrq[N2], cnz0);
+//		d_print_pmat(nx0+1, nx0+1, bs, pH_RSQrq[N2], cnz0);
 
 
+#if 0
 		// partial condensing algorithm
 		printf("\npatrial condensing algorithm\n");
 		d_cond_A((N+N2-1)/N2, nx, nu, hpA, 1, hpGamma_0, pH_A[0]);
@@ -1161,6 +1170,7 @@ int main()
 		d_print_pmat(nx, (N+N2-1)/N2, bs, pH_St[0], 4);
 		d_print_pmat(nx, nx, bs, pH_Q[0], cnx);
 		exit(1);
+#endif
 
 
 
@@ -1272,7 +1282,9 @@ int main()
 		printf("\ntime factorization  = %e seconds\n", time_fact_sol);
 		printf("\ntime factorization N2 = %e seconds\n", time_fact_sol_N2);
 		printf("\ntime factorization N2 nx3 = %e seconds\n", time_fact_sol_N2_nx3);
-		printf("\ntime partial condensing = %e seconds\n", time_part_cond);
+		printf("\ntime partial condensing 0 = %e seconds\n", time_part_cond_0);
+		printf("\ntime partial condensing 1 = %e seconds\n", time_part_cond_1);
+		printf("\ntime partial condensing 2 = %e seconds\n", time_part_cond_2);
 		printf("\ntime partial condensing riccati = %e seconds\n", time_part_cond_ric);
 		printf("\ntime full riccati = %e seconds\n", time_ric);
 		printf("\n\n");
