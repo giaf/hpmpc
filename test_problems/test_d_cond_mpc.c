@@ -1155,7 +1155,7 @@ int main()
 		d_set_pmat(N*nu, N*nu, 0.0, 0, pH_R[0], cNnu);
 		d_set_pmat(nx, N*nu, 0.0, 0, pH_St[0], cNnu);
 		d_set_pmat(nx, nx, 0.0, 0, pH_Q[0], cnx);
-		d_part_cond_RSQ((N+N2-1)/N2, nx, nu, hpBAt, 0, hpRSQ, hpGamma_0, hpGamma_u, pM, pLam, diag_ric, pBAtL, pH_R[0], pH_St[0], pH_Q[0]);
+		d_part_cond_RSQ((N+N2-1)/N2, nx, nu, hpBAt, 1, hdRSQ, hpGamma_0, hpGamma_u, pM, pLam, diag_ric, pBAtL, pH_R[0], pH_St[0], pH_Q[0]);
 		printf("\nhola\n");
 		d_print_pmat((N+N2-1)/N2, (N+N2-1)/N2, bs, pH_R[0], 4);
 		d_print_pmat(nx, (N+N2-1)/N2, bs, pH_St[0], 4);

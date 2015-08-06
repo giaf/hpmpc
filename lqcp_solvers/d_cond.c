@@ -960,8 +960,6 @@ void d_part_cond_RSQ(int N, int nx, int nu, double **pBAt, int diag_hessian, dou
 	// transpose H in the lower triangular
 	dtrtr_u_lib(N*nu, pH_R, cNnu, pH_R, cNnu);
 
-d_print_pmat(N*nu, N*nu, bs, pH_R, cNnu);
-
 	return;
 
 	
