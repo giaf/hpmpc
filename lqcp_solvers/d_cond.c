@@ -797,6 +797,392 @@ void d_cond_b(int N, int nx, int nu, double **pA, double **b, int compute_Gamma_
 	
 
 
+void d_part_cond_RQrq(int N, int nx, int nu, double **pBAt, double **b, int diag_hessian, double **pRSQ, double **rq, double **pGamma_x, double **pGamma_u, double **pGamma_b, double *pM, double *pLam, double *diag, double *pBAtL, double *pH_R, double *pH_St, double *pH_Q, double *H_r, double *H_q)
+	{
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int cnx = (nx+ncl-1)/ncl*ncl;
+	int cnu = (nu+ncl-1)/ncl*ncl;
+	int cNnu = (N*nu+ncl-1)/ncl*ncl;
+	//int cNnx = (N*nx+ncl-1)/ncl*ncl;
+
+	int ii, jj, kk, offset, i_temp;
+
+
+	int nz = nx+nu;
+	int cnz = (nz+ncl-1)/ncl*ncl;
+
+	if(diag_hessian)
+		{
+
+		// final stage N1 = N-1
+		ii = N;
+
+		d_copy_mat(nx, 1, rq[ii-1]+nu, 1, H_q, 1);
+
+		d_copy_mat(nu, 1, rq[ii-1], 1, H_r+(ii-1)*nu, 1);
+
+		d_set_pmat(nu, nu, 0.0, 0, pLam, cnz);
+		ddiain_lib(nu, pRSQ[ii-1], 0, pLam, cnz);
+
+		dgecp_lib(nu, nu, 0, pLam, cnz, (ii-1)*nu, pH_R+((ii-1)*nu)/bs*bs*cNnu+((ii-1)*nu)%bs+(ii-1)*nu*bs, cNnu);
+		d_set_pmat((ii-1)*nu, nu, 0.0, 0, pH_R+(ii-1)*nu*bs, cNnu);
+
+//		d_set_pmat(nx, nu, 0.0, 0, pH_St+(ii-1)*bs, cNnu);
+
+		d_set_pmat(nx, nx, 0.0, 0, pH_Q, cnx);
+		ddiain_lib(nx, pRSQ[ii-1]+nu, 0, pH_Q, cnx);
+
+		// second final stage N1-1
+		ii = N-1;
+		if(ii>0) // at least another stage
+			{
+
+			dsymv_lib(nx, nx, pH_Q, cnx, b[ii-1], H_q, H_q, 1);
+			dgemv_n_lib(nz, nx, pBAt[ii-1], cnx, H_q, rq[ii-1], pLam, 1);
+			d_copy_mat(nu, 1, pLam, 1, H_r+(ii-1)*nu, 1);
+			d_copy_mat(nx, 1, pLam+nu, 1, H_q, 1);
+
+			for(jj=0; jj<nx-3; jj+=4)
+				{
+				pH_Q[jj*cnx+0+(jj+0)*bs] = sqrt(pH_Q[jj*cnx+0+(jj+0)*bs]);
+				pH_Q[jj*cnx+1+(jj+1)*bs] = sqrt(pH_Q[jj*cnx+1+(jj+1)*bs]);
+				pH_Q[jj*cnx+2+(jj+2)*bs] = sqrt(pH_Q[jj*cnx+2+(jj+2)*bs]);
+				pH_Q[jj*cnx+3+(jj+3)*bs] = sqrt(pH_Q[jj*cnx+3+(jj+3)*bs]);
+				}
+			for(kk=0; kk<nx-jj; kk++)
+				{
+				pH_Q[jj*cnx+kk+(jj+kk)*bs] = sqrt(pH_Q[jj*cnx+kk+(jj+kk)*bs]);
+				}
+
+			dtrmm_nt_u_lib(nz, nx, pBAt[ii-1], cnx, pH_Q, cnx, pBAtL, cnx);
+			dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, pLam, cnz, pLam, cnz, 0);
+			ddiaad_lib(nz, 1.0, pRSQ[ii-1], 0, pLam, cnz);
+			dtrtr_l_lib(nu, 0, pLam, cnz, pLam, cnz);	
+
+			dgecp_lib(nu, nu, 0, pLam, cnz, (ii-1)*nu, pH_R+((ii-1)*nu)/bs*bs*cNnu+((ii-1)*nu)%bs+(ii-1)*nu*bs, cNnu);
+
+			if(ii>1)
+				{
+				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
+				dgemv_n_lib(nu, nx, pM, cnx, pGamma_b[ii-2], H_r+(ii-1)*nu, H_r+(ii-1)*nu, 1);
+				dgemm_nt_lib((ii-1)*nu, nu, nx, pGamma_u[ii-2], cnx, pM, cnx, pH_R+(ii-1)*nu*bs, cNnu, pH_R+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+//				dgemm_nt_lib(nx, nu, nx, pGamma_x[ii-2], cnx, pM, cnx, pH_St+(ii-1)*nu*bs, cNnu, pH_St+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+				}
+			else
+				{
+//				dgecp_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pH_St, cNnu);
+				}
+
+			dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_Q, cnx);
+
+			// decrease index
+			ii--;
+
+			}
+		// first stages 
+		for(; ii>0; ii--)
+			{	
+
+			dsymv_lib(nx, nx, pH_Q, cnx, b[ii-1], H_q, H_q, 1);
+			dgemv_n_lib(nz, nx, pBAt[ii-1], cnx, H_q, rq[ii-1], pLam, 1);
+			d_copy_mat(nu, 1, pLam, 1, H_r+(ii-1)*nu, 1);
+			d_copy_mat(nx, 1, pLam+nu, 1, H_q, 1);
+
+			dpotrf_lib(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
+			dtrtr_l_lib(nx, 0, pH_Q, cnx, pH_Q, cnx);	
+
+			dtrmm_nt_u_lib(nz, nx, pBAt[ii-1], cnx, pH_Q, cnx, pBAtL, cnx);
+			dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, pLam, cnz, pLam, cnz, 0);
+			ddiaad_lib(nz, 1.0, pRSQ[ii-1], 0, pLam, cnz);
+			dtrtr_l_lib(nu, 0, pLam, cnz, pLam, cnz);	
+
+			dgecp_lib(nu, nu, 0, pLam, cnz, (ii-1)*nu, pH_R+((ii-1)*nu)/bs*bs*cNnu+((ii-1)*nu)%bs+(ii-1)*nu*bs, cNnu);
+
+			if(ii>1)
+				{
+				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
+				dgemv_n_lib(nu, nx, pM, cnx, pGamma_b[ii-2], H_r+(ii-1)*nu, H_r+(ii-1)*nu, 1);
+				dgemm_nt_lib((ii-1)*nu, nu, nx, pGamma_u[ii-2], cnx, pM, cnx, pH_R+(ii-1)*nu*bs, cNnu, pH_R+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+//				dgemm_nt_lib(nx, nu, nx, pGamma_x[ii-2], cnx, pM, cnx, pH_St+(ii-1)*nu*bs, cNnu, pH_St+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+				}
+			else
+				{
+//				dgecp_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pH_St, cNnu);
+				}
+
+			dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_Q, cnx);
+
+			}
+
+		}
+	else // dense hessian
+		{
+
+		// final stage N1 = N-1
+		ii = N;
+
+		d_copy_mat(nx, 1, rq[ii-1]+nu, 1, H_q, 1);
+
+		dgecp_lib(nu, nu, 0, pRSQ[ii-1], cnz, (ii-1)*nu, pH_R+((ii-1)*nu)/bs*bs*cNnu+((ii-1)*nu)%bs+(ii-1)*nu*bs, cNnu);
+
+		if(ii>1)
+			{
+			dgetr_lib(nx, nu, nu, pRSQ[ii-1]+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
+			dgemv_n_lib(nu, nx, pM, cnx, pGamma_b[ii-2], rq[ii-1], H_r+(ii-1)*nu, 1);
+			dgemm_nt_lib((ii-1)*nu, nu, nx, pGamma_u[ii-2], cnx, pM, cnx, pH_R+(ii-1)*nu*bs, cNnu, pH_R+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+//			dgemm_nt_lib(nx, nu, nx, pGamma_x[ii-2], cnx, pM, cnx, pH_St+(ii-1)*nu*bs, cNnu, pH_St+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+			}
+		else
+			{
+			d_copy_mat(nu, 1, rq[ii-1], 1, H_r+(ii-1)*nu, 1);
+//			dgecp_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pH_St, cNnu);
+			}
+
+		dgecp_lib(nx, nx, nu, pRSQ[ii-1]+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_Q, cnx);
+
+		// first stages 
+		for(ii=N-1; ii>0; ii--)
+			{	
+
+			dsymv_lib(nx, nx, pH_Q, cnx, b[ii-1], H_q, H_q, 1);
+			dgemv_n_lib(nz, nx, pBAt[ii-1], cnx, H_q, rq[ii-1], pLam, 1);
+			d_copy_mat(nu, 1, pLam, 1, H_r+(ii-1)*nu, 1);
+			d_copy_mat(nx, 1, pLam+nu, 1, H_q, 1);
+
+			dpotrf_lib(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
+			dtrtr_l_lib(nx, 0, pH_Q, cnx, pH_Q, cnx);	
+
+			dtrmm_nt_u_lib(nz, nx, pBAt[ii-1], cnx, pH_Q, cnx, pBAtL, cnx);
+			drowad_lib(nx, 1.0, H_q, pBAtL+(nu+nx)/bs*bs*cnx+(nu+nx)%bs);
+			dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, pRSQ[ii-1], cnz, pLam, cnz, 1);
+			dtrtr_l_lib(nu, 0, pLam, cnz, pLam, cnz);	
+
+			dgecp_lib(nu, nu, 0, pLam, cnz, (ii-1)*nu, pH_R+((ii-1)*nu)/bs*bs*cNnu+((ii-1)*nu)%bs+(ii-1)*nu*bs, cNnu);
+
+			if(ii>1)
+				{
+				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
+				dgemv_n_lib(nu, nx, pM, cnx, pGamma_b[ii-2], H_r+(ii-1)*nu, H_r+(ii-1)*nu, 1);
+				dgemm_nt_lib((ii-1)*nu, nu, nx, pGamma_u[ii-2], cnx, pM, cnx, pH_R+(ii-1)*nu*bs, cNnu, pH_R+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+//				dgemm_nt_lib(nx, nu, nx, pGamma_x[ii-2], cnx, pM, cnx, pH_St+(ii-1)*nu*bs, cNnu, pH_St+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+				}
+			else
+				{
+//				dgecp_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pH_St, cNnu);
+				}
+
+			dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_Q, cnx);
+
+			}
+
+		}
+
+	// transpose H in the lower triangular
+	dtrtr_u_lib(N*nu, pH_R, cNnu, pH_R, cNnu);
+
+	return;
+
+	
+	}
+
+
+
+void d_part_cond_RSQrq(int N, int nx, int nu, double **pBAt, double **b, int diag_hessian, double **pRSQ, double **rq, double **pGamma_x, double **pGamma_u, double **pGamma_b, double *pM, double *pLam, double *diag, double *pBAtL, double *pH_R, double *pH_St, double *pH_Q, double *H_r, double *H_q)
+	{
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int cnx = (nx+ncl-1)/ncl*ncl;
+	int cnu = (nu+ncl-1)/ncl*ncl;
+	int cNnu = (N*nu+ncl-1)/ncl*ncl;
+	//int cNnx = (N*nx+ncl-1)/ncl*ncl;
+
+	int ii, jj, kk, offset, i_temp;
+
+
+	int nz = nx+nu;
+	int cnz = (nz+ncl-1)/ncl*ncl;
+
+	if(diag_hessian)
+		{
+
+		// final stage N1 = N-1
+		ii = N;
+
+		d_copy_mat(nx, 1, rq[ii-1]+nu, 1, H_q, 1);
+
+		d_copy_mat(nu, 1, rq[ii-1], 1, H_r+(ii-1)*nu, 1);
+
+		d_set_pmat(nu, nu, 0.0, 0, pLam, cnz);
+		ddiain_lib(nu, pRSQ[ii-1], 0, pLam, cnz);
+
+		dgecp_lib(nu, nu, 0, pLam, cnz, (ii-1)*nu, pH_R+((ii-1)*nu)/bs*bs*cNnu+((ii-1)*nu)%bs+(ii-1)*nu*bs, cNnu);
+		d_set_pmat((ii-1)*nu, nu, 0.0, 0, pH_R+(ii-1)*nu*bs, cNnu);
+
+		d_set_pmat(nx, nu, 0.0, 0, pH_St+(ii-1)*bs, cNnu);
+
+		d_set_pmat(nx, nx, 0.0, 0, pH_Q, cnx);
+		ddiain_lib(nx, pRSQ[ii-1]+nu, 0, pH_Q, cnx);
+
+		// second final stage N1-1
+		ii = N-1;
+		if(ii>0) // at least another stage
+			{
+
+			dsymv_lib(nx, nx, pH_Q, cnx, b[ii-1], H_q, H_q, 1);
+			dgemv_n_lib(nz, nx, pBAt[ii-1], cnx, H_q, rq[ii-1], pLam, 1);
+			d_copy_mat(nu, 1, pLam, 1, H_r+(ii-1)*nu, 1);
+			d_copy_mat(nx, 1, pLam+nu, 1, H_q, 1);
+
+			for(jj=0; jj<nx-3; jj+=4)
+				{
+				pH_Q[jj*cnx+0+(jj+0)*bs] = sqrt(pH_Q[jj*cnx+0+(jj+0)*bs]);
+				pH_Q[jj*cnx+1+(jj+1)*bs] = sqrt(pH_Q[jj*cnx+1+(jj+1)*bs]);
+				pH_Q[jj*cnx+2+(jj+2)*bs] = sqrt(pH_Q[jj*cnx+2+(jj+2)*bs]);
+				pH_Q[jj*cnx+3+(jj+3)*bs] = sqrt(pH_Q[jj*cnx+3+(jj+3)*bs]);
+				}
+			for(kk=0; kk<nx-jj; kk++)
+				{
+				pH_Q[jj*cnx+kk+(jj+kk)*bs] = sqrt(pH_Q[jj*cnx+kk+(jj+kk)*bs]);
+				}
+
+			dtrmm_nt_u_lib(nz, nx, pBAt[ii-1], cnx, pH_Q, cnx, pBAtL, cnx);
+			dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, pLam, cnz, pLam, cnz, 0);
+			ddiaad_lib(nz, 1.0, pRSQ[ii-1], 0, pLam, cnz);
+			dtrtr_l_lib(nu, 0, pLam, cnz, pLam, cnz);	
+
+			dgecp_lib(nu, nu, 0, pLam, cnz, (ii-1)*nu, pH_R+((ii-1)*nu)/bs*bs*cNnu+((ii-1)*nu)%bs+(ii-1)*nu*bs, cNnu);
+
+			if(ii>1)
+				{
+				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
+				dgemv_n_lib(nu, nx, pM, cnx, pGamma_b[ii-2], H_r+(ii-1)*nu, H_r+(ii-1)*nu, 1);
+				dgemm_nt_lib((ii-1)*nu, nu, nx, pGamma_u[ii-2], cnx, pM, cnx, pH_R+(ii-1)*nu*bs, cNnu, pH_R+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+				dgemm_nt_lib(nx, nu, nx, pGamma_x[ii-2], cnx, pM, cnx, pH_St+(ii-1)*nu*bs, cNnu, pH_St+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+				}
+			else
+				{
+				dgecp_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pH_St, cNnu);
+				}
+
+			dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_Q, cnx);
+
+			// decrease index
+			ii--;
+
+			}
+		// first stages 
+		for(; ii>0; ii--)
+			{	
+
+			dsymv_lib(nx, nx, pH_Q, cnx, b[ii-1], H_q, H_q, 1);
+			dgemv_n_lib(nz, nx, pBAt[ii-1], cnx, H_q, rq[ii-1], pLam, 1);
+			d_copy_mat(nu, 1, pLam, 1, H_r+(ii-1)*nu, 1);
+			d_copy_mat(nx, 1, pLam+nu, 1, H_q, 1);
+
+			dpotrf_lib(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
+			dtrtr_l_lib(nx, 0, pH_Q, cnx, pH_Q, cnx);	
+
+			dtrmm_nt_u_lib(nz, nx, pBAt[ii-1], cnx, pH_Q, cnx, pBAtL, cnx);
+			dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, pLam, cnz, pLam, cnz, 0);
+			ddiaad_lib(nz, 1.0, pRSQ[ii-1], 0, pLam, cnz);
+			dtrtr_l_lib(nu, 0, pLam, cnz, pLam, cnz);	
+
+			dgecp_lib(nu, nu, 0, pLam, cnz, (ii-1)*nu, pH_R+((ii-1)*nu)/bs*bs*cNnu+((ii-1)*nu)%bs+(ii-1)*nu*bs, cNnu);
+
+			if(ii>1)
+				{
+				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
+				dgemv_n_lib(nu, nx, pM, cnx, pGamma_b[ii-2], H_r+(ii-1)*nu, H_r+(ii-1)*nu, 1);
+				dgemm_nt_lib((ii-1)*nu, nu, nx, pGamma_u[ii-2], cnx, pM, cnx, pH_R+(ii-1)*nu*bs, cNnu, pH_R+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+				dgemm_nt_lib(nx, nu, nx, pGamma_x[ii-2], cnx, pM, cnx, pH_St+(ii-1)*nu*bs, cNnu, pH_St+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+				}
+			else
+				{
+				dgecp_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pH_St, cNnu);
+				}
+
+			dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_Q, cnx);
+
+			}
+
+		}
+	else // dense hessian
+		{
+
+		// final stage N1 = N-1
+		ii = N;
+
+		d_copy_mat(nx, 1, rq[ii-1]+nu, 1, H_q, 1);
+
+		dgecp_lib(nu, nu, 0, pRSQ[ii-1], cnz, (ii-1)*nu, pH_R+((ii-1)*nu)/bs*bs*cNnu+((ii-1)*nu)%bs+(ii-1)*nu*bs, cNnu);
+
+		if(ii>1)
+			{
+			dgetr_lib(nx, nu, nu, pRSQ[ii-1]+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
+			dgemv_n_lib(nu, nx, pM, cnx, pGamma_b[ii-2], rq[ii-1], H_r+(ii-1)*nu, 1);
+			dgemm_nt_lib((ii-1)*nu, nu, nx, pGamma_u[ii-2], cnx, pM, cnx, pH_R+(ii-1)*nu*bs, cNnu, pH_R+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+			dgemm_nt_lib(nx, nu, nx, pGamma_x[ii-2], cnx, pM, cnx, pH_St+(ii-1)*nu*bs, cNnu, pH_St+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+			}
+		else
+			{
+			d_copy_mat(nu, 1, rq[ii-1], 1, H_r+(ii-1)*nu, 1);
+			dgecp_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pH_St, cNnu);
+			}
+
+		dgecp_lib(nx, nx, nu, pRSQ[ii-1]+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_Q, cnx);
+
+		// first stages 
+		for(ii=N-1; ii>0; ii--)
+			{	
+
+			dsymv_lib(nx, nx, pH_Q, cnx, b[ii-1], H_q, H_q, 1);
+			dgemv_n_lib(nz, nx, pBAt[ii-1], cnx, H_q, rq[ii-1], pLam, 1);
+			d_copy_mat(nu, 1, pLam, 1, H_r+(ii-1)*nu, 1);
+			d_copy_mat(nx, 1, pLam+nu, 1, H_q, 1);
+
+			dpotrf_lib(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
+			dtrtr_l_lib(nx, 0, pH_Q, cnx, pH_Q, cnx);	
+
+			dtrmm_nt_u_lib(nz, nx, pBAt[ii-1], cnx, pH_Q, cnx, pBAtL, cnx);
+			drowad_lib(nx, 1.0, H_q, pBAtL+(nu+nx)/bs*bs*cnx+(nu+nx)%bs);
+			dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, pRSQ[ii-1], cnz, pLam, cnz, 1);
+			dtrtr_l_lib(nu, 0, pLam, cnz, pLam, cnz);	
+
+			dgecp_lib(nu, nu, 0, pLam, cnz, (ii-1)*nu, pH_R+((ii-1)*nu)/bs*bs*cNnu+((ii-1)*nu)%bs+(ii-1)*nu*bs, cNnu);
+
+			if(ii>1)
+				{
+				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
+				dgemv_n_lib(nu, nx, pM, cnx, pGamma_b[ii-2], H_r+(ii-1)*nu, H_r+(ii-1)*nu, 1);
+				dgemm_nt_lib((ii-1)*nu, nu, nx, pGamma_u[ii-2], cnx, pM, cnx, pH_R+(ii-1)*nu*bs, cNnu, pH_R+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+				dgemm_nt_lib(nx, nu, nx, pGamma_x[ii-2], cnx, pM, cnx, pH_St+(ii-1)*nu*bs, cNnu, pH_St+(ii-1)*nu*bs, cNnu, 0, 0, 0);
+				}
+			else
+				{
+				dgecp_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pH_St, cNnu);
+				}
+
+			dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_Q, cnx);
+
+			}
+
+		}
+
+	// transpose H in the lower triangular
+	dtrtr_u_lib(N*nu, pH_R, cNnu, pH_R, cNnu);
+
+	return;
+
+	
+	}
+
+
+
 void d_part_cond_RSQ(int N, int nx, int nu, double **pBAt, int diag_hessian, double **pRSQ, double **pGamma_x, double **pGamma_u, double *pM, double *pLam, double *diag, double *pBAtL, double *pH_R, double *pH_St, double *pH_Q)
 	{
 
@@ -1014,7 +1400,7 @@ int d_cond_lqcp_work_space(int N, int nx, int nu, int N2, int alg)
 
 
 
-void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, double **hpBt, double **hb, double **hpBAt, int diag_hessian, double **hpQ, double **hpS, double **hpR, double **hr, double **hq, double **hpRSQ, int N2, int *nx2, int *nu2, double **hpA2, double **hpB2, double **hb2, double **hpR2, double **hpSt2, double **hpQ2, double **hr2, double **hq2, double *work_double)
+void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, double **hpBt, double **hb, double **hpBAt, int diag_hessian, double **hpQ, double **hpS, double **hpR, double **hr, double **hq, double **hpRSQ, double **hrq, int N2, int *nx2, int *nu2, double **hpA2, double **hpB2, double **hb2, double **hpR2, double **hpSt2, double **hpQ2, double **hr2, double **hq2, double *work_double)
 	{
 
 	const int bs = D_MR;
@@ -1285,7 +1671,7 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 		nn = 0;
 		jj = 0;
 
-#if 0
+#if 1
 		T1 = jj<R1 ? M1 : N1;
 
 		nx2[jj] = 0;
@@ -1303,14 +1689,15 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 		// condense cost function
 		//d_cond_Q(T1, nx, nu, hpA+nn, diag_Q, 0, hpQ+nn, hpL, 0, hpGamma_x, hpGamma_x_Q, hpQ2[jj], diag);
 		
-		d_cond_R(T1, nx, nu, 0, hpA+nn, hpAt+nn, hpBt+nn, pdummy, diag_hessian, 0, hpQ+nn, 0, pdummy, hpS+nn, hpR+nn, pdummy, pLam, pM, dummy, dummy, dummy, dummy, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
+		//d_cond_R(T1, nx, nu, 0, hpA+nn, hpAt+nn, hpBt+nn, pdummy, diag_hessian, 0, hpQ+nn, 0, pdummy, hpS+nn, hpR+nn, pdummy, pLam, pM, dummy, dummy, dummy, dummy, 0, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, hpR2[jj]);
 
 		//d_cond_St(T1, nx, nu, nzero_S, hpS+nn, 0, hpGamma_x, use_Gamma_x_Q, hpGamma_x_Q, hpGamma_u_Q, hpSt2[jj]);
 
 		//d_cond_q(T1, nx, nu, hpA+nn, hb+nn, diag_Q, 0, hpQ+nn, hq+nn, hpGamma_x, 0, hGamma_b, 1, hGamma_b_q, hq2[jj]);
 
-		d_cond_r(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hpS+nn, hq+nn, hr+nn, hpGamma_u, 0, hGamma_b, 1, hGamma_b_q, hr2[jj]);
+		//d_cond_r(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hpS+nn, hq+nn, hr+nn, hpGamma_u, 0, hGamma_b, 1, hGamma_b_q, hr2[jj]);
 
+		d_part_cond_RQrq(T1, nx, nu, hpBAt+nn, hb+nn, diag_hessian, hpRSQ+nn, hrq+nn, hpGamma_x, hpGamma_u, hGamma_b, pM, pLam, diag, pBAtL, hpR2[jj], hpSt2[jj], hpQ2[jj], hr2[jj], hq2[jj]); // XXX no S !!!!!
 
 		// increment stage counter
 		nn += T1;
@@ -1343,11 +1730,11 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 
 			//d_cond_St(T1, nx, nu, diag_hessian, hpS+nn, 0, hpGamma_x, use_Gamma_x_Q, hpGamma_x_Q, hpGamma_u_Q, hpSt2[jj]);
 
-			d_part_cond_RSQ(T1, nx, nu, hpBAt+nn, diag_hessian, hpRSQ+nn, hpGamma_x, hpGamma_u, pM, pLam, diag, pBAtL, hpR2[jj], hpSt2[jj], hpQ2[jj]);
+			//d_cond_q(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hq+nn, hpGamma_x, 0, hGamma_b, 1, hGamma_b_q, hq2[jj]);
 
-			d_cond_q(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hq+nn, hpGamma_x, 0, hGamma_b, 1, hGamma_b_q, hq2[jj]);
+			//d_cond_r(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hpS+nn, hq+nn, hr+nn, hpGamma_u, 0, hGamma_b, 0, hGamma_b_q, hr2[jj]);
 
-			d_cond_r(T1, nx, nu, hpA+nn, hb+nn, diag_hessian, 0, hpQ+nn, hpS+nn, hq+nn, hr+nn, hpGamma_u, 0, hGamma_b, 0, hGamma_b_q, hr2[jj]);
+			d_part_cond_RSQrq(T1, nx, nu, hpBAt+nn, hb+nn, diag_hessian, hpRSQ+nn, hrq+nn, hpGamma_x, hpGamma_u, hGamma_b, pM, pLam, diag, pBAtL, hpR2[jj], hpSt2[jj], hpQ2[jj], hr2[jj], hq2[jj]);
 
 
 			// increment stage counter
