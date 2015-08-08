@@ -128,6 +128,31 @@ void d_rep_mat(int reps, int row, int col, double *A, int lda, double *B, int ld
 
 
 /* copies and scales a matrix */
+void dadd_mat(int row, int col, double alpha, double *A, int lda, double *B, int ldb)
+	{
+	
+	int i, j;
+	
+	for(j=0; j<col; j++)
+		{
+		i = 0;
+		for(; i<row-3; i+=4)
+			{
+			B[i+0+j*ldb] += alpha*A[i+0+j*lda];
+			B[i+1+j*ldb] += alpha*A[i+1+j*lda];
+			B[i+2+j*ldb] += alpha*A[i+2+j*lda];
+			B[i+3+j*ldb] += alpha*A[i+3+j*lda];
+			}
+		for(; i<row; i++)
+			{
+			B[i+j*ldb] += alpha*A[i+j*lda];
+			}
+		}
+	
+	}
+
+
+
 void dax_mat(int row, int col, double alpha, double *A, int lda, double *B, int ldb)
 	{
 	
@@ -146,6 +171,31 @@ void dax_mat(int row, int col, double alpha, double *A, int lda, double *B, int 
 		for(; i<row; i++)
 			{
 			B[i+j*ldb] = alpha*A[i+j*lda];
+			}
+		}
+	
+	}
+
+
+
+void d_set_mat(int row, int col, double alpha, double *A, int lda)
+	{
+	
+	int i, j;
+	
+	for(j=0; j<col; j++)
+		{
+		i = 0;
+		for(; i<row-3; i+=4)
+			{
+			A[i+0+j*lda] = alpha;
+			A[i+1+j*lda] = alpha;
+			A[i+2+j*lda] = alpha;
+			A[i+3+j*lda] = alpha;
+			}
+		for(; i<row; i++)
+			{
+			A[i+j*lda] = alpha;
 			}
 		}
 	
@@ -192,6 +242,78 @@ void d_set_pmat(int row, int col, double alpha, int offset, double *pA, int sda)
 		for(jj=0; jj<col; jj++)
 			{
 			pA[jj*bs] = alpha;
+			}
+		pA += 1;
+		}
+	
+	}
+		
+
+
+void d_scale_mat(int row, int col, double alpha, double *A, int lda)
+	{
+	
+	int i, j;
+	
+	for(j=0; j<col; j++)
+		{
+		i = 0;
+		for(; i<row-3; i+=4)
+			{
+			A[i+0+j*lda] *= alpha;
+			A[i+1+j*lda] *= alpha;
+			A[i+2+j*lda] *= alpha;
+			A[i+3+j*lda] *= alpha;
+			}
+		for(; i<row; i++)
+			{
+			A[i+j*lda] *= alpha;
+			}
+		}
+	
+	}
+
+
+
+void d_scale_pmat(int row, int col, double alpha, int offset, double *pA, int sda)
+	{
+
+	const int bs = 4;
+
+	int ii, jj;
+
+	int na = (bs-offset%bs)%bs;
+	na = row<na ? row : na;
+
+	ii = 0;
+	if(na>0)
+		{
+		for(; ii<na; ii++)
+			{
+			for(jj=0; jj<col; jj++)
+				{
+				pA[jj*bs] *= alpha;
+				}
+			pA += 1;
+			}
+		pA += bs*(sda-1);
+		}
+	for( ; ii<row-3; ii+=4)
+		{
+		for(jj=0; jj<col; jj++)
+			{
+			pA[0+jj*bs] *= alpha;
+			pA[1+jj*bs] *= alpha;
+			pA[2+jj*bs] *= alpha;
+			pA[3+jj*bs] *= alpha;
+			}
+		pA += bs*sda;
+		}
+	for(; ii<row; ii++)
+		{
+		for(jj=0; jj<col; jj++)
+			{
+			pA[jj*bs] *= alpha;
 			}
 		pA += 1;
 		}
