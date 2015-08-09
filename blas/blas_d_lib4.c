@@ -38,10 +38,6 @@ void dgemm_kernel_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, i
 
 	int i, j, jj;
 	
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
-	__m256i mask;
-#endif
-
 	i = 0;
 #if defined(TARGET_X64_AVX2)
 	for(; i<m-8; i+=12)
@@ -1806,14 +1802,6 @@ void dsyrk_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 	
 	int i, j;
 	
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
-	double d_temp;
-
-	__m256i mask;
-
-	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
-#endif
-
 /*	int n = m;*/
 	
 	i = 0;
@@ -2006,8 +1994,6 @@ void dsyrk_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 		}
 	if(i<m)
 		{
-		d_temp = m-i-0.0;
-		mask = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
 		j = 0;
 		for(; j<i && j<n-2; j+=4)
 			{

@@ -1396,7 +1396,7 @@ void kernel_dgemm_dtrsm_nt_2x4_vs_lib4(int km, int kn, int tri, int kadd, int ks
 	c_00 *= a_00;
 	c_10 *= a_00;
 	D[0+bs*0] = c_00;
-	if(km>=4)
+	if(km>=2)
 		D[1+bs*0] = c_10;
 
 	a_10 = fact[1];
@@ -1406,7 +1406,7 @@ void kernel_dgemm_dtrsm_nt_2x4_vs_lib4(int km, int kn, int tri, int kadd, int ks
 	c_01 *= a_11;
 	c_11 *= a_11;
 	D[0+bs*1] = c_01;
-	if(km>=4)
+	if(km>=2)
 		D[1+bs*1] = c_11;
 
 	a_20 = fact[3];
@@ -1419,7 +1419,7 @@ void kernel_dgemm_dtrsm_nt_2x4_vs_lib4(int km, int kn, int tri, int kadd, int ks
 	c_02 *= a_22;
 	c_12 *= a_22;
 	D[0+bs*2] = c_02;
-	if(km>=4)
+	if(km>=2)
 		D[1+bs*2] = c_12;
 
 	if(kn==3)
@@ -1438,7 +1438,7 @@ void kernel_dgemm_dtrsm_nt_2x4_vs_lib4(int km, int kn, int tri, int kadd, int ks
 	c_03 *= a_33;
 	c_13 *= a_33;
 	D[0+bs*3] = c_03;
-	if(km>=4)
+	if(km>=2)
 		D[1+bs*3] = c_13;
 
 	}

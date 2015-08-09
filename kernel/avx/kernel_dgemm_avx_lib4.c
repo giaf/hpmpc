@@ -6714,6 +6714,16 @@ void kernel_dgemm_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 
 
 
+void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
+	{
+
+
+	kernel_dgemm_nt_4x4_vs_lib4(4, 4, kmax, A, B, C, D, alg, tc, td);
+
+	}
+
+
+
 void kernel_dgemm_nt_4x3_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 	
@@ -7183,6 +7193,16 @@ void kernel_dgemm_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 		}
 	return;
 
+
+	}
+
+
+
+void kernel_dgemm_nt_4x2_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
+	{
+
+
+	kernel_dgemm_nt_4x2_vs_lib4(4, 2, kmax, A, B, C, D, alg, tc, td);
 
 	}
 

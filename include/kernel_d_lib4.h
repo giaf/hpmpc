@@ -23,14 +23,14 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
-#include <mmintrin.h>
-#include <xmmintrin.h>  // SSE
-#include <emmintrin.h>  // SSE2
-#include <pmmintrin.h>  // SSE3
-#include <smmintrin.h>  // SSE4
-#include <immintrin.h>  // AVX
-#endif
+//#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+//#include <mmintrin.h>
+//#include <xmmintrin.h>  // SSE
+//#include <emmintrin.h>  // SSE2
+//#include <pmmintrin.h>  // SSE3
+//#include <smmintrin.h>  // SSE4
+//#include <immintrin.h>  // AVX
+//#endif
 
 // kernel
 void kernel_dgemm_nt_12x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg, int tc, int td);
