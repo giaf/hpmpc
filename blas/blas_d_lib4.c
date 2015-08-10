@@ -3840,6 +3840,43 @@ void ddiain_sqrt_lib(int kmax, double *x, int offset, double *pD, int sdd)
 
 
 
+// extract diagonal to vector 
+void ddiaex_lib(int kmax, int offset, double *pD, int sdd, double *x)
+	{
+
+	const int bs = 4;
+
+	int kna = (bs-offset%bs)%bs;
+	kna = kmax<kna ? kmax : kna;
+
+	int jj, ll;
+
+	if(kna>0)
+		{
+		for(ll=0; ll<kna; ll++)
+			{
+			x[ll] = pD[ll+bs*ll];
+			}
+		pD += kna + bs*(sdd-1) + kna*bs;
+		x  += kna;
+		kmax -= kna;
+		}
+	for(jj=0; jj<kmax-3; jj+=4)
+		{
+		x[jj+0] = pD[jj*sdd+(jj+0)*bs+0];
+		x[jj+1] = pD[jj*sdd+(jj+1)*bs+1];
+		x[jj+2] = pD[jj*sdd+(jj+2)*bs+2];
+		x[jj+3] = pD[jj*sdd+(jj+3)*bs+3];
+		}
+	for(ll=0; ll<kmax-jj; ll++)
+		{
+		x[jj+ll] = pD[jj*sdd+(jj+ll)*bs+ll];
+		}
+	
+	}
+
+
+
 // add scaled vector to diagonal 
 void ddiaad_lib(int kmax, double alpha, double *x, int offset, double *pD, int sdd)
 	{

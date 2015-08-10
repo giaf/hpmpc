@@ -64,6 +64,7 @@ void dgemv_diag_lib(int m, double *dA, double *x, double *y, double *z, int alg)
 // auxiliary routines
 void ddiain_lib(int kmax, double *x, int offset, double *pD, int sdd);
 void ddiain_sqrt_lib(int kmax, double *x, int offset, double *pD, int sdd);
+void ddiaex_lib(int kmax, int offset, double *pD, int sdd, double *x);
 void ddiaad_lib(int kmax, double alpha, double *x, int offset, double *pD, int sdd);
 void ddiain_libsp(int kmax, int *idx, double *x, double *pD, int sdd);
 void ddiaad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int sdd);
