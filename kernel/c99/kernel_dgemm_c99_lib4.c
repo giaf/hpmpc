@@ -2959,21 +2959,21 @@ void kernel_dgemm_diag_right_4_lib4(int kmax, double *A, int sda, double *B, dou
 
 			a_0 = A[0+bs*1];
 			
-			c_0 = a_0 * b_0;
+			c_0 = a_0 * b_1;
 
 			D[0+bs*1] = c_0;
 		
 
 			a_0 = A[0+bs*2];
 			
-			c_0 = a_0 * b_0;
+			c_0 = a_0 * b_2;
 
 			D[0+bs*2] = c_0;
 		
 
 			a_0 = A[0+bs*3];
 			
-			c_0 = a_0 * b_0;
+			c_0 = a_0 * b_3;
 
 			D[0+bs*3] = c_0;
 		
@@ -3201,14 +3201,14 @@ void kernel_dgemm_diag_right_3_lib4(int kmax, double *A, int sda, double *B, dou
 
 			a_0 = A[0+bs*1];
 			
-			c_0 = a_0 * b_0;
+			c_0 = a_0 * b_1;
 
 			D[0+bs*1] = c_0;
 		
 
 			a_0 = A[0+bs*2];
 			
-			c_0 = a_0 * b_0;
+			c_0 = a_0 * b_2;
 
 			D[0+bs*2] = c_0;
 		
@@ -3395,7 +3395,7 @@ void kernel_dgemm_diag_right_2_lib4(int kmax, double *A, int sda, double *B, dou
 
 			a_0 = A[0+bs*1];
 			
-			c_0 = a_0 * b_0;
+			c_0 = a_0 * b_1;
 
 			D[0+bs*1] = c_0;
 		

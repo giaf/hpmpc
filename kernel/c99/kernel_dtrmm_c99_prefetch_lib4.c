@@ -25,7 +25,7 @@
 
 
 
-void kernel_dtrmm_l_nt_4x4_lib4(int kadd, double *A, double *B, double *C)
+void kernel_dtrmm_nt_u_4x4_lib4(int kadd, double *A, double *B, double *C)
 	{
 
 	const int bs = 4;
@@ -341,7 +341,7 @@ void kernel_dtrmm_l_nt_4x4_lib4(int kadd, double *A, double *B, double *C)
 
 
 
-void corner_dtrmm_l_nt_4x3_lib4(double *A, double *B, double *C)
+void corner_dtrmm_nt_u_4x3_lib4(double *A, double *B, double *C)
 	{
 
 	const int bs = 4;
@@ -434,7 +434,7 @@ void corner_dtrmm_l_nt_4x3_lib4(double *A, double *B, double *C)
 
 
 
-void corner_dtrmm_l_nt_4x2_lib4(double *A, double *B, double *C)
+void corner_dtrmm_nt_u_4x2_lib4(double *A, double *B, double *C)
 	{
 
 	const int bs = 4;
@@ -497,7 +497,7 @@ void corner_dtrmm_l_nt_4x2_lib4(double *A, double *B, double *C)
 
 
 
-void corner_dtrmm_l_nt_4x1_lib4(double *A, double *B, double *C)
+void corner_dtrmm_nt_u_4x1_lib4(double *A, double *B, double *C)
 	{
 
 	const int bs = 4;
@@ -536,7 +536,7 @@ void corner_dtrmm_l_nt_4x1_lib4(double *A, double *B, double *C)
 
 
 
-void kernel_dtrmm_u_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
+void kernel_dtrmm_nt_l_4x4_lib4(int kmax, double *A, double *B, double *C)
 	{
 	
 	const int lda = 4;
@@ -799,7 +799,7 @@ void kernel_dtrmm_u_nt_4x4_lib4(int kmax, double *A, double *B, double *C)
 
 
 
-void kernel_dtrmm_u_nt_2x4_lib4(int kmax, double *A, double *B, double *C)
+void kernel_dtrmm_nt_l_2x4_lib4(int kmax, double *A, double *B, double *C)
 	{
 	
 	const int lda = 4;
@@ -984,7 +984,7 @@ void kernel_dtrmm_u_nt_2x4_lib4(int kmax, double *A, double *B, double *C)
 
 
 
-void kernel_dtrmm_u_nt_4x2_lib4(int kmax, double *A, double *B, double *C)
+void kernel_dtrmm_nt_l_4x2_lib4(int kmax, double *A, double *B, double *C)
 	{
 	
 	const int lda = 4;
@@ -1133,7 +1133,7 @@ void kernel_dtrmm_u_nt_4x2_lib4(int kmax, double *A, double *B, double *C)
 
 
 
-void kernel_dtrmm_u_nt_2x2_lib4(int kmax, double *A, double *B, double *C)
+void kernel_dtrmm_nt_l_2x2_lib4(int kmax, double *A, double *B, double *C)
 	{
 	
 	const int lda = 4;
@@ -1532,7 +1532,6 @@ void kernel_dtrmm_l_u_nt_4x4_lib4(int kmax, double *A, double *B, double *C, dou
 
 		}
 	
-
 	double
 		d_00, d_01, d_02, d_03,
 		d_10, d_11, d_12, d_13,
@@ -1650,6 +1649,7 @@ void kernel_dtrmm_l_u_nt_4x4_lib4(int kmax, double *A, double *B, double *C, dou
 		D[3+ldc*3] = d_33;
 
 		}
+
 	
 	}
 
