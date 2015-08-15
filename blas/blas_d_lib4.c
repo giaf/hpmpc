@@ -3974,6 +3974,30 @@ void drowin_lib(int kmax, double *x, double *pD)
 
 
 
+// extract row to vector
+void drowex_lib(int kmax, double *pD, double *x)
+	{
+	
+	const int bs = 4;
+
+	int jj, ll;
+
+	for(jj=0; jj<kmax-3; jj+=4)
+		{
+		x[jj+0] = pD[(jj+0)*bs];
+		x[jj+1] = pD[(jj+1)*bs];
+		x[jj+2] = pD[(jj+2)*bs];
+		x[jj+3] = pD[(jj+3)*bs];
+		}
+	for(; jj<kmax; jj++)
+		{
+		x[jj] = pD[(jj)*bs];
+		}
+	
+	}
+
+
+
 // add scaled vector to row 
 void drowad_lib(int kmax, double alpha, double *x, double *pD)
 	{

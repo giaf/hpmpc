@@ -1327,6 +1327,8 @@ void kernel_add_align_panel_8_3_lib4(int kmax, double alpha, double *A0, int sda
 	
 	int k;
 
+	alpha_0 = _mm256_broadcast_sd( &alpha );
+
 	for(k=0; k<kmax-3; k+=4)
 		{
 

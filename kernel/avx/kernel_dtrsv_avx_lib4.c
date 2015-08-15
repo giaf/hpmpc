@@ -1808,6 +1808,7 @@ void kernel_dtrsv_t_1_lib4(int kmax, int inverted_diag, double *A, int sda, doub
 	else
 		{
 		// bottom trinagle
+		ones = _mm_set_pd( 1.0, 1.0 );
 		z_0  = _mm_load_sd( &x[0] );
 		y_0  = _mm_hadd_pd( y_0, y_0 );
 		a_00 = _mm_load_sd( &A[0+lda*0] );

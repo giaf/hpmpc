@@ -69,6 +69,7 @@ void ddiaad_lib(int kmax, double alpha, double *x, int offset, double *pD, int s
 void ddiain_libsp(int kmax, int *idx, double *x, double *pD, int sdd);
 void ddiaad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int sdd);
 void drowin_lib(int kmax, double *x, double *pD);
+void drowex_lib(int kmax, double *pD, double *x);
 void drowad_lib(int kmax, double alpha, double *x, double *pD);
 void drowin_libsp(int kmax, int *idx, double *x, double *pD);
 void drowad_libsp(int kmax, double alpha, int *idx, double *x, double *pD);
