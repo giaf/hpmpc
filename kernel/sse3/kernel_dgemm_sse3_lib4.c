@@ -39,6 +39,131 @@ void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double 
 //	if(kmax<=0)
 //		return;
 	
+	if(kmax<=0)
+		{
+
+		const int bs = 4;
+
+		double
+			c_00=0, c_01=0, c_02=0, c_03=0,
+			c_10=0, c_11=0, c_12=0, c_13=0,
+			c_20=0, c_21=0, c_22=0, c_23=0,
+			c_30=0, c_31=0, c_32=0, c_33=0;
+		
+		if(alg==0) // D = A * B' , there is no tc
+			{
+			if(td==0) // not transpose D
+				{
+				goto store_n;
+				}
+			else // transpose D
+				{
+				goto store_t;
+				}
+			}
+		else // D = C +/- A * B'
+			{
+			if(tc==0) // not transpose C
+				{
+				c_00 = C[0+bs*0];
+				c_10 = C[1+bs*0];
+				c_20 = C[2+bs*0];
+				c_30 = C[3+bs*0];
+				
+				c_01 = C[0+bs*1];
+				c_11 = C[1+bs*1];
+				c_21 = C[2+bs*1];
+				c_31 = C[3+bs*1];
+				
+				c_02 = C[0+bs*2];
+				c_12 = C[1+bs*2];
+				c_22 = C[2+bs*2];
+				c_32 = C[3+bs*2];
+				
+				c_03 = C[0+bs*3];
+				c_13 = C[1+bs*3];
+				c_23 = C[2+bs*3];
+				c_33 = C[3+bs*3];
+				}
+			else // transpose C
+				{
+				c_00 = C[0+bs*0];
+				c_01 = C[1+bs*0];
+				c_02 = C[2+bs*0];
+				c_03 = C[3+bs*0];
+				
+				c_10 = C[0+bs*1];
+				c_11 = C[1+bs*1];
+				c_12 = C[2+bs*1];
+				c_13 = C[3+bs*1];
+				
+				c_20 = C[0+bs*2];
+				c_21 = C[1+bs*2];
+				c_22 = C[2+bs*2];
+				c_23 = C[3+bs*2];
+				
+				c_30 = C[0+bs*3];
+				c_31 = C[1+bs*3];
+				c_32 = C[2+bs*3];
+				c_33 = C[3+bs*3];
+				}
+			
+			if(td==0) // not transpose D
+				{
+				goto store_n;
+				}
+			else // transpose D
+				{
+				goto store_t;
+				}
+			}
+		
+		store_n:
+		D[0+bs*0] = c_00;
+		D[1+bs*0] = c_10;
+		D[2+bs*0] = c_20;
+		D[3+bs*0] = c_30;
+
+		D[0+bs*1] = c_01;
+		D[1+bs*1] = c_11;
+		D[2+bs*1] = c_21;
+		D[3+bs*1] = c_31;
+
+		D[0+bs*2] = c_02;
+		D[1+bs*2] = c_12;
+		D[2+bs*2] = c_22;
+		D[3+bs*2] = c_32;
+
+		D[0+bs*3] = c_03;
+		D[1+bs*3] = c_13;
+		D[2+bs*3] = c_23;
+		D[3+bs*3] = c_33;
+		return;
+
+		store_t:
+		D[0+bs*0] = c_00;
+		D[1+bs*0] = c_01;
+		D[2+bs*0] = c_02;
+		D[3+bs*0] = c_03;
+		
+		D[0+bs*1] = c_10;
+		D[1+bs*1] = c_11;
+		D[2+bs*1] = c_12;
+		D[3+bs*1] = c_13;
+
+		D[0+bs*2] = c_20;
+		D[1+bs*2] = c_21;
+		D[2+bs*2] = c_22;
+		D[3+bs*2] = c_23;
+
+		D[0+bs*3] = c_30;
+		D[1+bs*3] = c_31;
+		D[2+bs*3] = c_32;
+		D[3+bs*3] = c_33;
+		return;
+
+		}
+
 	int k_iter = kmax / 4;
 	int k_left = kmax % 4;
 
@@ -582,6 +707,185 @@ void kernel_dgemm_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 //	if(kmax<=0)
 //		return;
 	
+	if(kmax<=0)
+		{
+
+		const int bs = 4;
+
+		double
+			c_00=0, c_01=0, c_02=0, c_03=0,
+			c_10=0, c_11=0, c_12=0, c_13=0,
+			c_20=0, c_21=0, c_22=0, c_23=0,
+			c_30=0, c_31=0, c_32=0, c_33=0;
+		
+		if(alg==0) // D = A * B' , there is no tc
+			{
+			if(td==0) // not transpose D
+				{
+				goto store_n;
+				}
+			else // transpose D
+				{
+				goto store_t;
+				}
+			}
+		else // D = C +/- A * B'
+			{
+			if(tc==0) // not transpose C
+				{
+				c_00 = C[0+bs*0];
+				c_10 = C[1+bs*0];
+				c_20 = C[2+bs*0];
+				c_30 = C[3+bs*0];
+				
+				c_01 = C[0+bs*1];
+				c_11 = C[1+bs*1];
+				c_21 = C[2+bs*1];
+				c_31 = C[3+bs*1];
+				
+				c_02 = C[0+bs*2];
+				c_12 = C[1+bs*2];
+				c_22 = C[2+bs*2];
+				c_32 = C[3+bs*2];
+				
+				c_03 = C[0+bs*3];
+				c_13 = C[1+bs*3];
+				c_23 = C[2+bs*3];
+				c_33 = C[3+bs*3];
+				}
+			else // transpose C
+				{
+				c_00 = C[0+bs*0];
+				c_01 = C[1+bs*0];
+				c_02 = C[2+bs*0];
+				c_03 = C[3+bs*0];
+				
+				c_10 = C[0+bs*1];
+				c_11 = C[1+bs*1];
+				c_12 = C[2+bs*1];
+				c_13 = C[3+bs*1];
+				
+				c_20 = C[0+bs*2];
+				c_21 = C[1+bs*2];
+				c_22 = C[2+bs*2];
+				c_23 = C[3+bs*2];
+				
+				c_30 = C[0+bs*3];
+				c_31 = C[1+bs*3];
+				c_32 = C[2+bs*3];
+				c_33 = C[3+bs*3];
+				}
+			
+			if(td==0) // not transpose D
+				{
+				goto store_n;
+				}
+			else // transpose D
+				{
+				goto store_t;
+				}
+			}
+		
+		store_n:
+		if(km>=4)
+			{
+			D[0+bs*0] = c_00;
+			D[1+bs*0] = c_10;
+			D[2+bs*0] = c_20;
+			D[3+bs*0] = c_30;
+
+			D[0+bs*1] = c_01;
+			D[1+bs*1] = c_11;
+			D[2+bs*1] = c_21;
+			D[3+bs*1] = c_31;
+
+			D[0+bs*2] = c_02;
+			D[1+bs*2] = c_12;
+			D[2+bs*2] = c_22;
+			D[3+bs*2] = c_32;
+
+			if(kn>=4)
+				{
+				D[0+bs*3] = c_03;
+				D[1+bs*3] = c_13;
+				D[2+bs*3] = c_23;
+				D[3+bs*3] = c_33;
+				}
+			}
+		else // km==3
+			{
+			D[0+bs*0] = c_00;
+			D[1+bs*0] = c_10;
+			D[2+bs*0] = c_20;
+
+			D[0+bs*1] = c_01;
+			D[1+bs*1] = c_11;
+			D[2+bs*1] = c_21;
+
+			D[0+bs*2] = c_02;
+			D[1+bs*2] = c_12;
+			D[2+bs*2] = c_22;
+
+			if(kn>=4)
+				{
+				D[0+bs*3] = c_03;
+				D[1+bs*3] = c_13;
+				D[2+bs*3] = c_23;
+				}
+			}
+		return;
+
+		store_t:
+		if(kn>=4)
+			{
+			D[0+bs*0] = c_00;
+			D[1+bs*0] = c_01;
+			D[2+bs*0] = c_02;
+			D[3+bs*0] = c_03;
+			
+			D[0+bs*1] = c_10;
+			D[1+bs*1] = c_11;
+			D[2+bs*1] = c_12;
+			D[3+bs*1] = c_13;
+
+			D[0+bs*2] = c_20;
+			D[1+bs*2] = c_21;
+			D[2+bs*2] = c_22;
+			D[3+bs*2] = c_23;
+
+			if(km>=4)
+				{
+				D[0+bs*3] = c_30;
+				D[1+bs*3] = c_31;
+				D[2+bs*3] = c_32;
+				D[3+bs*3] = c_33;
+				}
+			}
+		else // kn==3
+			{
+			D[0+bs*0] = c_00;
+			D[1+bs*0] = c_01;
+			D[2+bs*0] = c_02;
+			
+			D[0+bs*1] = c_10;
+			D[1+bs*1] = c_11;
+			D[2+bs*1] = c_12;
+
+			D[0+bs*2] = c_20;
+			D[1+bs*2] = c_21;
+			D[2+bs*2] = c_22;
+
+			if(km>=4)
+				{
+				D[0+bs*3] = c_30;
+				D[1+bs*3] = c_31;
+				D[2+bs*3] = c_32;
+				}
+			}
+		return;
+
+		}
+
 	int k_iter = kmax / 4;
 	int k_left = kmax % 4;
 

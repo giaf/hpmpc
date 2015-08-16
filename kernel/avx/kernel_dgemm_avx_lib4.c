@@ -61,10 +61,19 @@ void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double 
 		c_40_51_62_73, c_41_50_63_72, c_43_52_61_70, c_42_53_60_71,
 		c_80_91_a2_b3, c_81_90_a3_b2, c_83_92_a1_b0, c_82_93_a0_b1;
 	
-	// prefetch
-	a_0123 = _mm256_load_pd( &A0[0] );
-	a_4567 = _mm256_load_pd( &A1[0] );
-	b_0123 = _mm256_load_pd( &B[0] );
+	__m256d
+		c_00, c_01, c_03, c_02,
+		c_40, c_41, c_43, c_42,
+		c_80, c_81, c_83, c_82;
+
+	__m256d
+		e_0, e_1, e_2, e_3,
+		c_0, c_1, c_2, c_3,
+		c_4, c_5, c_6, c_7,
+		c_8, c_9, c_a, c_b,
+		d_0, d_1, d_2, d_3,
+		d_4, d_5, d_6, d_7,
+		d_8, d_9, d_a, d_b;
 
 	// zero registers
 	c_00_11_22_33 = _mm256_setzero_pd();
@@ -79,6 +88,14 @@ void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double 
 	c_81_90_a3_b2 = _mm256_setzero_pd();
 	c_83_92_a1_b0 = _mm256_setzero_pd();
 	c_82_93_a0_b1 = _mm256_setzero_pd();
+
+	if(kmax<=0)
+		goto add;
+
+	// prefetch
+	a_0123 = _mm256_load_pd( &A0[0] );
+	a_4567 = _mm256_load_pd( &A1[0] );
+	b_0123 = _mm256_load_pd( &B[0] );
 
 	for(k=0; k<kmax-3; k+=4)
 		{
@@ -390,11 +407,8 @@ void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double 
 	
 		}
 	
-	__m256d
-		c_00, c_01, c_03, c_02,
-		c_40, c_41, c_43, c_42,
-		c_80, c_81, c_83, c_82;
-
+	add:
+	
 	c_00 = c_00_11_22_33;
 	c_01 = c_01_10_23_32;
 	c_02 = c_02_13_20_31;
@@ -407,15 +421,6 @@ void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double 
 	c_81 = c_81_90_a3_b2;
 	c_82 = c_82_93_a0_b1;
 	c_83 = c_83_92_a1_b0;
-
-	__m256d
-		e_0, e_1, e_2, e_3,
-		c_0, c_1, c_2, c_3,
-		c_4, c_5, c_6, c_7,
-		c_8, c_9, c_a, c_b,
-		d_0, d_1, d_2, d_3,
-		d_4, d_5, d_6, d_7,
-		d_8, d_9, d_a, d_b;
 
 	if(alg==0) // D = A * B'
 		{
@@ -836,13 +841,22 @@ void kernel_dgemm_nt_12x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda,
 		c_40_51_62_73, c_41_50_63_72, c_43_52_61_70, c_42_53_60_71,
 		c_80_91_a2_b3, c_81_90_a3_b2, c_83_92_a1_b0, c_82_93_a0_b1;
 	
+	__m256d
+		c_00, c_01, c_03, c_02,
+		c_40, c_41, c_43, c_42,
+		c_80, c_81, c_83, c_82;
+
+	__m256d
+		e_0, e_1, e_2, e_3,
+		c_0, c_1, c_2, c_3,
+		c_4, c_5, c_6, c_7,
+		c_8, c_9, c_a, c_b,
+		d_0, d_1, d_2, d_3,
+		d_4, d_5, d_6, d_7,
+		d_8, d_9, d_a, d_b;
+
 	__m256i 
 		mask_n, mask_m;
-
-	// prefetch
-	a_0123 = _mm256_load_pd( &A0[0] );
-	a_4567 = _mm256_load_pd( &A1[0] );
-	b_0123 = _mm256_load_pd( &B[0] );
 
 	// zero registers
 	c_00_11_22_33 = _mm256_setzero_pd();
@@ -857,6 +871,14 @@ void kernel_dgemm_nt_12x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda,
 	c_81_90_a3_b2 = _mm256_setzero_pd();
 	c_83_92_a1_b0 = _mm256_setzero_pd();
 	c_82_93_a0_b1 = _mm256_setzero_pd();
+
+	if(kmax<=0)
+		goto add;
+
+	// prefetch
+	a_0123 = _mm256_load_pd( &A0[0] );
+	a_4567 = _mm256_load_pd( &A1[0] );
+	b_0123 = _mm256_load_pd( &B[0] );
 
 	for(k=0; k<kmax-3; k+=4)
 		{
@@ -1168,11 +1190,8 @@ void kernel_dgemm_nt_12x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda,
 	
 		}
 	
-	__m256d
-		c_00, c_01, c_03, c_02,
-		c_40, c_41, c_43, c_42,
-		c_80, c_81, c_83, c_82;
-
+	add:
+	
 	c_00 = c_00_11_22_33;
 	c_01 = c_01_10_23_32;
 	c_02 = c_02_13_20_31;
@@ -1185,15 +1204,6 @@ void kernel_dgemm_nt_12x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda,
 	c_81 = c_81_90_a3_b2;
 	c_82 = c_82_93_a0_b1;
 	c_83 = c_83_92_a1_b0;
-
-	__m256d
-		e_0, e_1, e_2, e_3,
-		c_0, c_1, c_2, c_3,
-		c_4, c_5, c_6, c_7,
-		c_8, c_9, c_a, c_b,
-		d_0, d_1, d_2, d_3,
-		d_4, d_5, d_6, d_7,
-		d_8, d_9, d_a, d_b;
 
 	if(alg==0) // D = A * B'
 		{
@@ -1638,13 +1648,20 @@ void kernel_dgemm_nt_10x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda,
 		c_40_51_62_73, c_41_50_63_72, c_43_52_61_70, c_42_53_60_71,
 		c_80_91_82_93, c_81_90_83_92;
 	
-	__m256i mask_n;
+	__m128d
+		u_8, u_9, u_a, u_b,
+		v_8, v_9, v_a, v_b;
 
-	// prefetch
-	a_0123 = _mm256_load_pd( &A0[0] );
-	a_4567 = _mm256_load_pd( &A1[0] );
-	a_8989 = _mm256_broadcast_pd( (__m128d *) &A2[0] );
-	b_0123 = _mm256_load_pd( &B[0] );
+	__m256d
+		c_0, c_1, c_2, c_3,
+		c_4, c_5, c_6, c_7,
+		c_8, c_9,
+		d_0, d_1, d_2, d_3,
+		d_4, d_5, d_6, d_7,
+		d_8, d_9,
+		t_0, t_1, t_2, t_3;
+
+	__m256i mask_n;
 
 	// zero registers
 	c_00_11_22_33 = _mm256_setzero_pd();
@@ -1657,6 +1674,15 @@ void kernel_dgemm_nt_10x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda,
 	c_42_53_60_71 = _mm256_setzero_pd();
 	c_80_91_82_93 = _mm256_setzero_pd();
 	c_81_90_83_92 = _mm256_setzero_pd();
+
+	if(kmax<=0)
+		goto add;
+
+	// prefetch
+	a_0123 = _mm256_load_pd( &A0[0] );
+	a_4567 = _mm256_load_pd( &A1[0] );
+	a_8989 = _mm256_broadcast_pd( (__m128d *) &A2[0] );
+	b_0123 = _mm256_load_pd( &B[0] );
 
 	for(k=0; k<kmax-3; k+=4)
 		{
@@ -1912,19 +1938,8 @@ void kernel_dgemm_nt_10x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda,
 		c_43_52_61_70 = _mm256_add_pd( c_43_52_61_70, ab_tmp0 );
 		
 		}
-
-	__m128d
-		u_8, u_9, u_a, u_b,
-		v_8, v_9, v_a, v_b;
-
-	__m256d
-		c_0, c_1, c_2, c_3,
-		c_4, c_5, c_6, c_7,
-		c_8, c_9,
-		d_0, d_1, d_2, d_3,
-		d_4, d_5, d_6, d_7,
-		d_8, d_9,
-		t_0, t_1, t_2, t_3;
+	
+	add:
 
 	if(alg==0) // D = A * B' , there is no tc
 		{
@@ -2364,6 +2379,9 @@ void kernel_dgemm_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *
 	d_5 = _mm256_setzero_pd();
 	d_6 = _mm256_setzero_pd();
 	d_7 = _mm256_setzero_pd();
+
+	if(kmax<=0)
+		goto add_n; // it is the same for add_t;
 
 	// low-rank update
 	if(kmax<=low_rank)
@@ -4410,6 +4428,9 @@ void kernel_dgemm_nt_8x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 	d_7 = _mm256_setzero_pd();
 	d_6 = _mm256_setzero_pd();
 
+	if(kmax<=0)
+		goto add_n; // it is the same for add_t
+
 	// low-rank update
 	if(kmax<=low_rank)
 		{
@@ -5424,12 +5445,18 @@ void kernel_dgemm_nt_6x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 		c_00_11_22_33, c_01_10_23_32, c_03_12_21_30, c_02_13_20_31,
 		c_40_51_42_53, c_41_50_43_52;
 	
-	__m256i mask_n;
+	__m128d
+		u_4, u_5, u_6, u_7,
+		v_4, v_5, v_6, v_7;
 
-	// prefetch
-	a_0123 = _mm256_load_pd( &A0[0] );
-	a_4545 = _mm256_broadcast_pd( (__m128d *) &A1[0] );
-	b_0123 = _mm256_load_pd( &B[0] );
+	__m256d
+		c_0, c_1, c_2, c_3,
+		c_4, c_5, c_6, c_7,
+		d_0, d_1, d_2, d_3,
+		d_4, d_5, d_6, d_7,
+		t_0, t_1, t_2, t_3;
+
+	__m256i mask_n;
 
 	// zero registers
 	c_00_11_22_33 = _mm256_setzero_pd();
@@ -5438,6 +5465,14 @@ void kernel_dgemm_nt_6x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 	c_02_13_20_31 = _mm256_setzero_pd();
 	c_40_51_42_53 = _mm256_setzero_pd();
 	c_41_50_43_52 = _mm256_setzero_pd();
+
+	if(kmax<=0)
+		goto add;
+
+	// prefetch
+	a_0123 = _mm256_load_pd( &A0[0] );
+	a_4545 = _mm256_broadcast_pd( (__m128d *) &A1[0] );
+	b_0123 = _mm256_load_pd( &B[0] );
 
 	for(k=0; k<kmax-3; k+=4) // TODO prefetch A0 and A1 using 2 extra registers ????????????????
 		{
@@ -5604,16 +5639,7 @@ void kernel_dgemm_nt_6x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 		
 		}
 
-	__m128d
-		u_4, u_5, u_6, u_7,
-		v_4, v_5, v_6, v_7;
-
-	__m256d
-		c_0, c_1, c_2, c_3,
-		c_4, c_5, c_6, c_7,
-		d_0, d_1, d_2, d_3,
-		d_4, d_5, d_6, d_7,
-		t_0, t_1, t_2, t_3;
+	add:
 
 	if(alg==0) // D = A * B' , there is no tc
 		{
@@ -5907,10 +5933,26 @@ void kernel_dgemm_nt_8x2_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 		c_00_11_20_31, c_01_10_21_30,
 		c_40_51_60_71, c_41_50_61_70;
 	
-	// prefetch
-	a_0123 = _mm256_load_pd( &A0[0] );
-	a_4567 = _mm256_load_pd( &A1[0] );
-	b_0101 = _mm256_broadcast_pd( (__m128d *) &B[0] );
+	__m128d
+		u_0, u_1, u_2, u_3,
+		u_4, u_5, u_6, u_7,
+		v_0, v_1, v_2, v_3,
+		v_4, v_5, v_6, v_7,
+		d_00_10, d_01_11, d_02_12, d_03_13,
+		d_04_14, d_05_15, d_06_16, d_07_17,
+		c_00_01, c_10_11, c_20_21, c_30_31,
+		c_40_41, c_50_51, c_60_61, c_70_71;
+
+	__m256d
+		t_0, t_1, t_4, t_5,
+		c_0, c_1, c_4, c_5,
+		d_0, d_1, d_4, d_5,
+		c_00_01_20_21, c_10_11_30_31,
+		c_40_41_60_61, c_50_51_70_71,
+		c_00_10_20_30, c_01_11_21_31,
+		c_40_50_60_70, c_41_51_61_71,
+		d_00_10_20_30, d_01_11_21_31,
+		d_40_50_60_70, d_41_51_61_71;
 
 	// zero registers
 	c_00_11_20_31 = _mm256_setzero_pd();
@@ -5918,6 +5960,13 @@ void kernel_dgemm_nt_8x2_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 	c_40_51_60_71 = _mm256_setzero_pd();
 	c_41_50_61_70 = _mm256_setzero_pd();
 
+	if(kmax<=0)
+		goto add;
+
+	// prefetch
+	a_0123 = _mm256_load_pd( &A0[0] );
+	a_4567 = _mm256_load_pd( &A1[0] );
+	b_0101 = _mm256_broadcast_pd( (__m128d *) &B[0] );
 
 	for(k=0; k<kmax-3; k+=4)
 		{
@@ -6042,27 +6091,7 @@ void kernel_dgemm_nt_8x2_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 		
 		}
 
-	__m128d
-		u_0, u_1, u_2, u_3,
-		u_4, u_5, u_6, u_7,
-		v_0, v_1, v_2, v_3,
-		v_4, v_5, v_6, v_7,
-		d_00_10, d_01_11, d_02_12, d_03_13,
-		d_04_14, d_05_15, d_06_16, d_07_17,
-		c_00_01, c_10_11, c_20_21, c_30_31,
-		c_40_41, c_50_51, c_60_61, c_70_71;
-
-	__m256d
-		t_0, t_1, t_4, t_5,
-		c_0, c_1, c_4, c_5,
-		d_0, d_1, d_4, d_5,
-		c_00_01_20_21, c_10_11_30_31,
-		c_40_41_60_61, c_50_51_70_71,
-		c_00_10_20_30, c_01_11_21_31,
-		c_40_50_60_70, c_41_51_61_71,
-		d_00_10_20_30, d_01_11_21_31,
-		d_40_50_60_70, d_41_51_61_71;
-
+	add:
 
 	if(alg==0) // D = A * B' , there is no tc
 		{
@@ -6315,12 +6344,13 @@ void kernel_dgemm_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 		ab_temp, // temporary results
 		c_00_11_22_33, c_01_10_23_32, c_03_12_21_30, c_02_13_20_31;
 	
+	__m256d
+		c_0, c_1, c_2, c_3,
+		d_0, d_1, d_2, d_3,
+		t_0, t_1, t_2, t_3;
+
 	__m256i 
 		mask_m, mask_n;
-
-	// prefetch
-	a_0123 = _mm256_load_pd( &A[0] );
-	b_0123 = _mm256_load_pd( &B[0] );
 
 	// zero registers
 	c_00_11_22_33 = _mm256_setzero_pd();
@@ -6328,6 +6358,12 @@ void kernel_dgemm_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 	c_03_12_21_30 = _mm256_setzero_pd();
 	c_02_13_20_31 = _mm256_setzero_pd();
 
+	if(kmax<=0)
+		goto add;
+
+	// prefetch
+	a_0123 = _mm256_load_pd( &A[0] );
+	b_0123 = _mm256_load_pd( &B[0] );
 
 	for(k=0; k<kmax-3; k+=4)
 		{
@@ -6522,10 +6558,7 @@ void kernel_dgemm_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 		
 		}
 
-	__m256d
-		c_0, c_1, c_2, c_3,
-		d_0, d_1, d_2, d_3,
-		t_0, t_1, t_2, t_3;
+	add:
 
 	if(alg==0) // D = A * B' , there is no tc
 		{
@@ -6741,17 +6774,19 @@ void kernel_dgemm_nt_4x3_lib4(int kmax, double *A, double *B, double *C, double 
 		c_00, c_01, c_02,
 		d_00, d_01, d_02;
 	
-	// prefetch
-	a_0123 = _mm256_load_pd( &A[0] );
-	b_0    = _mm256_broadcast_pd( (__m128d *) &B[0] );
-	b_2    = _mm256_broadcast_sd( &B[2] );
-	b_1    = _mm256_shuffle_pd( b_0, b_0, 0x5 );
-
 	// zero registers
 	c_00 = _mm256_setzero_pd();
 	c_01 = _mm256_setzero_pd();
 	c_02 = _mm256_setzero_pd();
 
+	if(kmax<=0)
+		goto add;
+
+	// prefetch
+	a_0123 = _mm256_load_pd( &A[0] );
+	b_0    = _mm256_broadcast_pd( (__m128d *) &B[0] );
+	b_2    = _mm256_broadcast_sd( &B[2] );
+	b_1    = _mm256_shuffle_pd( b_0, b_0, 0x5 );
 
 	for(k=0; k<kmax-3; k+=4)
 		{
@@ -6852,6 +6887,8 @@ void kernel_dgemm_nt_4x3_lib4(int kmax, double *A, double *B, double *C, double 
 
 		}
 
+	add:
+
 	d_00 = _mm256_blend_pd( c_00, c_01, 0xa );
 	d_01 = _mm256_blend_pd( c_00, c_01, 0x5 );
 	d_02 = c_02;
@@ -6913,19 +6950,31 @@ void kernel_dgemm_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 		ab_temp, // temporary results
 		c_00_11_20_31, c_01_10_21_30, C_00_11_20_31, C_01_10_21_30;
 	
+	__m128d
+		u_0, u_1, u_2, u_3,
+		v_0, v_1, v_2, v_3;
+
+	__m256d
+		c_0, c_1,
+		d_0, d_1,
+		t_0, t_1;
+	
+
 	__m256i
 		mask_m;
 	
-	// prefetch
-	a_0123 = _mm256_load_pd( &A[0] );
-	b_0101 = _mm256_broadcast_pd( (__m128d *) &B[0] );
-
 	// zero registers
 	c_00_11_20_31 = _mm256_setzero_pd();
 	c_01_10_21_30 = _mm256_setzero_pd();
 	C_00_11_20_31 = _mm256_setzero_pd();
 	C_01_10_21_30 = _mm256_setzero_pd();
 
+	if(kmax<=0)
+		goto add;
+
+	// prefetch
+	a_0123 = _mm256_load_pd( &A[0] );
+	b_0101 = _mm256_broadcast_pd( (__m128d *) &B[0] );
 
 	for(k=0; k<kmax-3; k+=4)
 		{
@@ -7016,15 +7065,7 @@ void kernel_dgemm_nt_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 		
 		}
 
-	__m128d
-		u_0, u_1, u_2, u_3,
-		v_0, v_1, v_2, v_3;
-
-	__m256d
-		c_0, c_1,
-		d_0, d_1,
-		t_0, t_1;
-	
+	add:
 
 	if(alg==0) // D = A * B' , there is no tc
 		{
@@ -7224,16 +7265,18 @@ void kernel_dgemm_nt_4x1_lib4(int kmax, double *A, double *B, double *C, double 
 		ab_temp, // temporary results
 		c_00, C_00, D_00, d_00;
 	
-	// prefetch
-	a_0123 = _mm256_load_pd( &A[0] );
-	b_0    = _mm256_broadcast_sd( &B[0] );
-
 	// zero registers
 	c_00 = _mm256_setzero_pd();
 	C_00 = _mm256_setzero_pd();
 	d_00 = _mm256_setzero_pd();
 	D_00 = _mm256_setzero_pd();
 
+	if(kmax<=0)
+		goto add;
+
+	// prefetch
+	a_0123 = _mm256_load_pd( &A[0] );
+	b_0    = _mm256_broadcast_sd( &B[0] );
 
 	for(k=0; k<kmax-3; k+=4)
 		{
@@ -7296,6 +7339,7 @@ void kernel_dgemm_nt_4x1_lib4(int kmax, double *A, double *B, double *C, double 
 		
 		}
 
+	add:
 
 	if(alg==0) // D = A * B' , there is no tc
 		{
@@ -7342,9 +7386,15 @@ void kernel_dgemm_nt_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 		ab_temp, // temporary results
 		c_00_11, c_01_10, C_00_11, C_01_10;
 	
-	// prefetch
-	a_01 = _mm_load_pd( &A[0] );
-	b_01 = _mm_load_pd( &B[0] );
+	__m128d
+		t_0,
+		c_0, c_1,
+		d_0, d_1,
+		c_00_10, c_01_11,
+		c_00_01, c_10_11,
+		d_00_11, d_01_10,
+		d_00_10, d_01_11,
+		d_00_01, d_10_11;
 
 	// zero registers
 	c_00_11 = _mm_setzero_pd();
@@ -7352,6 +7402,12 @@ void kernel_dgemm_nt_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 	C_00_11 = _mm_setzero_pd();
 	C_01_10 = _mm_setzero_pd();
 
+	if(kmax<=0)
+		goto add;
+
+	// prefetch
+	a_01 = _mm_load_pd( &A[0] );
+	b_01 = _mm_load_pd( &B[0] );
 
 	for(k=0; k<kmax-3; k+=4)
 		{
@@ -7442,15 +7498,7 @@ void kernel_dgemm_nt_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 		
 		}
 
-	__m128d
-		t_0,
-		c_0, c_1,
-		d_0, d_1,
-		c_00_10, c_01_11,
-		c_00_01, c_10_11,
-		d_00_11, d_01_10,
-		d_00_10, d_01_11,
-		d_00_01, d_10_11;
+	add:
 
 	if(alg==0) // D = A * B' , there is no tc
 		{
@@ -7605,6 +7653,11 @@ void kernel_dgemm_nn_8x4_lib4(int kmax, double *A0, int sda, double *B, int sdb,
 		d_0, d_1, d_2, d_3,
 		d_4, d_5, d_6, d_7;
 	
+	__m256d
+		c_0, c_1, c_2, c_3,
+		c_4, c_5, c_6, c_7,
+		t_0, t_1, t_2, t_3;
+	
 	d_0 = _mm256_setzero_pd();
 	d_1 = _mm256_setzero_pd();
 	d_2 = _mm256_setzero_pd();
@@ -7613,6 +7666,9 @@ void kernel_dgemm_nn_8x4_lib4(int kmax, double *A0, int sda, double *B, int sdb,
 	d_5 = _mm256_setzero_pd();
 	d_6 = _mm256_setzero_pd();
 	d_7 = _mm256_setzero_pd();
+
+	if(kmax<=0)
+		goto add;
 
 	// prefetch
 	a_0 = _mm256_load_pd( &A0[0+bs*0] );
@@ -7758,11 +7814,8 @@ void kernel_dgemm_nn_8x4_lib4(int kmax, double *A0, int sda, double *B, int sdb,
 
 		}
 	
-	__m256d
-		c_0, c_1, c_2, c_3,
-		c_4, c_5, c_6, c_7,
-		t_0, t_1, t_2, t_3;
-	
+	add:
+
 	if(alg==0) // D = A * B , there is no tc
 		{
 		if(td==0)
@@ -8009,6 +8062,11 @@ void kernel_dgemm_nn_8x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 		d_0, d_1, d_2, d_3,
 		d_4, d_5, d_6, d_7;
 	
+	__m256d
+		c_0, c_1, c_2, c_3,
+		c_4, c_5, c_6, c_7,
+		t_0, t_1, t_2, t_3;
+
 	__m256i 
 		mask_m, mask_n;
 
@@ -8020,6 +8078,9 @@ void kernel_dgemm_nn_8x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 	d_5 = _mm256_setzero_pd();
 	d_6 = _mm256_setzero_pd();
 	d_7 = _mm256_setzero_pd();
+
+	if(kmax<=0)
+		goto add;
 
 	// prefetch
 	a_0 = _mm256_load_pd( &A0[0+bs*0] );
@@ -8165,11 +8226,8 @@ void kernel_dgemm_nn_8x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 
 		}
 	
-	__m256d
-		c_0, c_1, c_2, c_3,
-		c_4, c_5, c_6, c_7,
-		t_0, t_1, t_2, t_3;
-	
+	add:
+
 	if(alg==0) // D = A * B , there is no tc
 		{
 		if(td==0)

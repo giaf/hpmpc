@@ -33,6 +33,72 @@ void kernel_dgemm_nt_4x4_nn_lib4(int kmax, double *A, double *B, double *C, doub
 //	if(kmax<=0)
 //		return;
 	
+	if(kmax<=0)
+		{
+
+		const int bs = 4;
+
+		double
+			c_00=0, c_01=0, c_02=0, c_03=0,
+			c_10=0, c_11=0, c_12=0, c_13=0, 
+			c_20=0, c_21=0, c_22=0, c_23=0, 
+			c_30=0, c_31=0, c_32=0, c_33=0;
+		
+		if(alg==0) // C = A * B'
+			{
+			goto store;
+			}
+		else 
+			{
+			c_00 = C[0+bs*0];
+			c_10 = C[1+bs*0];
+			c_20 = C[2+bs*0];
+			c_30 = C[3+bs*0];
+			
+			c_01 = C[0+bs*1];
+			c_11 = C[1+bs*1];
+			c_21 = C[2+bs*1];
+			c_31 = C[3+bs*1];
+			
+			c_02 = C[0+bs*2];
+			c_12 = C[1+bs*2];
+			c_22 = C[2+bs*2];
+			c_32 = C[3+bs*2];
+			
+			c_03 = C[0+bs*3];
+			c_13 = C[1+bs*3];
+			c_23 = C[2+bs*3];
+			c_33 = C[3+bs*3];
+			
+			goto store;
+			}
+		
+		store:
+		D[0+bs*0] = c_00;
+		D[1+bs*0] = c_10;
+		D[2+bs*0] = c_20;
+		D[3+bs*0] = c_30;
+
+		D[0+bs*1] = c_01;
+		D[1+bs*1] = c_11;
+		D[2+bs*1] = c_21;
+		D[3+bs*1] = c_31;
+
+		D[0+bs*2] = c_02;
+		D[1+bs*2] = c_12;
+		D[2+bs*2] = c_22;
+		D[3+bs*2] = c_32;
+
+		D[0+bs*3] = c_03;
+		D[1+bs*3] = c_13;
+		D[2+bs*3] = c_23;
+		D[3+bs*3] = c_33;
+
+		return;
+
+		}
+
+
 	__builtin_prefetch( A );
 	__builtin_prefetch( B );
 #if defined(TARGET_CORTEX_A9)

@@ -49,6 +49,75 @@ void kernel_dsyrk_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 //	if(kmax<=0)
 //		return;
 	
+	if(kmax<=0) // add & store
+		{
+
+		const int bs = 4;
+
+		double
+			c_00=0, 
+			c_10=0, c_11=0, 
+			c_20=0, c_21=0, c_22=0, 
+			c_30=0, c_31=0, c_32=0, c_33=0;
+		
+		if(alg==0) // C = A * B'
+			{
+			goto store;
+			}
+		else 
+			{
+			c_00 = C[0+bs*0];
+			c_10 = C[1+bs*0];
+			c_20 = C[2+bs*0];
+			c_30 = C[3+bs*0];
+			
+			c_11 = C[1+bs*1];
+			c_21 = C[2+bs*1];
+			c_31 = C[3+bs*1];
+			
+			c_22 = C[2+bs*2];
+			c_32 = C[3+bs*2];
+			
+			c_33 = C[3+bs*3];
+			
+			goto store;
+			}
+		
+		store:
+		if(km>=4)
+			{
+			D[0+bs*0] = c_00;
+			D[1+bs*0] = c_10;
+			D[2+bs*0] = c_20;
+			D[3+bs*0] = c_30;
+
+			D[1+bs*1] = c_11;
+			D[2+bs*1] = c_21;
+			D[3+bs*1] = c_31;
+
+			D[2+bs*2] = c_22;
+			D[3+bs*2] = c_32;
+
+			if(kn>=4)
+				D[3+bs*3] = c_33;
+			}
+		else
+			{
+			D[0+bs*0] = c_00;
+			D[1+bs*0] = c_10;
+			D[2+bs*0] = c_20;
+
+			D[1+bs*1] = c_11;
+			D[2+bs*1] = c_21;
+
+			D[2+bs*2] = c_22;
+			}
+
+		return;
+
+		}
+
+	
 	int k_iter = kmax / 4;
 	int k_left = kmax % 4;
 
@@ -453,7 +522,10 @@ void kernel_dsyrk_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 		  "xmm12", "xmm13", "xmm14", "xmm15",
 		  "memory"
 	);
-}
+
+	return;
+
+	}
 
 
 
