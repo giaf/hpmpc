@@ -95,9 +95,17 @@ LQCP_CODEGEN_OBJS = ./codegen/d_ric_sv_codegen.o ./codegen/d_res_codegen.o ./cod
 MPC_OBJS = $(MPC_AUX_OBJS) ./mpc_solvers/d_ip_hard.o ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d_ip_soft.o ./mpc_solvers/d_ip2_soft.o ./mpc_solvers/d_res_ip_soft.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/d_admm_soft.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o ./mpc_solvers/s_admm_soft.o
 INTERFACE_OBJS = ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/fortran_order_interface.o
 ifeq ($(REF_BLAS), 0)
+ifeq ($(TARGET), X64_AVX)
 REFERENCE_CODE = ./reference_code/dsyrk_dpotrf_versions.o
 else
+REFERENCE_CODE = 
+endif
+else
+ifeq ($(TARGET), X64_AVX)
 REFERENCE_CODE = ./reference_code/dsyrk_dpotrf_versions.o ./reference_code/d_ric_sv_blas.o
+else
+REFERENCE_CODE = ./reference_code/d_ric_sv_blas.o
+endif
 endif
 
 all: clean static_library test_problem run

@@ -999,7 +999,7 @@ int main()
 			hux[0][nu+jj+1] =  0.0;
 			}
 
-		d_ric_sv_mpc(nx, nu, N, hpBAbt2, hpRSQ, 0, dummy, dummy, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
+		d_back_ric_sv(N, nx, nu, hpBAbt2, hpRSQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 		//for(ii=0; ii<=N; ii++)
 		//	d_print_pmat(pnz, cnl-3, bs, hpL[ii], cnl);
 		//d_print_pmat(pnz, nu, bs, hpL[0], cnl);
@@ -1055,7 +1055,7 @@ int main()
 
 		for(ii=0; ii<nrep; ii++)
 			{
-			d_ric_sv_mpc(nx, nu, N, hpBAbt2, hpRSQ, 0, dummy, dummy, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
+			d_back_ric_sv(N, nx, nu, hpBAbt2, hpRSQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 			}
 
 		gettimeofday(&tv21, NULL); // start
@@ -1095,7 +1095,7 @@ int main()
 
 	
 		// call the solver
-		d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
+		d_back_ric_sv(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 
 		if(PRINTRES==1 && ll_max==1)
 			{
@@ -1238,7 +1238,7 @@ int main()
 		// factorize & solve
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 0);
+			d_back_ric_sv(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
@@ -1310,7 +1310,7 @@ int main()
 		// factorize & solve (fast rsqrt)
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_sv_mpc(nx, nu, N, hpBAbt, hpQ, 0, dummy, dummy, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy, 2);
+			d_back_ric_sv(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 			}
 			
 		gettimeofday(&tv5, NULL); // start

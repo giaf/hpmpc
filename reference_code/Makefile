@@ -25,7 +25,11 @@
 
 include ../Makefile.rule
 
+ifeq ($(TARGET), X64_AVX)
 OBJS = dsyrk_dpotrf_versions.o d_ric_sv_blas.o
+else
+OBJS = d_ric_sv_blas.o
+endif
 
 obj: $(OBJS)
 

@@ -797,7 +797,7 @@ exit(1);
 		fast_rsqrt = 0;
 #endif
 		//printf("\n%d %f\n", fast_rsqrt, mu);
-		d_ric_sv_mpc(nx, nu, N, pBAbt, pQ, update_hessian, pd, pl, dux, pL, work, diag, 1, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx, fast_rsqrt);
+		d_back_ric_sv(N, nx, nu, pBAbt, pQ, update_hessian, pd, pl, 1, dux, pL, work, diag, 1, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx);
 
 #if 0
 for(ii=0; ii<=N; ii++)

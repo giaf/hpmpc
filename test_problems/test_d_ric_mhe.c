@@ -318,7 +318,7 @@ int main()
 			nx = 12;//nn[ll];
 			nw = 5;//nn[ll];
 			ny = 3;
-			ndN = 2;
+			ndN = 0; //2;
 			diag_R = 0;
 			#else
 			N = 10; //Ns-1; // NN;
@@ -666,10 +666,11 @@ int main()
 			dsymv_lib(ny, ny, hpQ[ii], cny, hy[ii], y_temp, y_temp, -1);
 			//d_print_mat(1, ny, y_temp, 1);
 			dgemv_t_lib(ny, nx, hpC[ii], cnx, y_temp, hqq[ii], hqq[ii], 0);
-			//d_print_mat(1, nx, hrr[ii], 1);
+			//d_print_mat(1, nx, hqq[ii], 1);
 			//if(ii==9)
 			//exit(1);
 			}
+		//exit(1);
 
 
 
@@ -991,12 +992,11 @@ int main()
 		// estimation
 		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpR, hpQ, hpLe, hr, hq, hf, hxp, hxe, hw, hy, 0, hlam, work);
 
-		if(0 && PRINTRES)
-			{
-			// print solution
-			printf("\nx_e\n");
-			d_print_mat(nx, N+1, hxe[0], anx);
-			}
+#if 0
+		// print solution
+		printf("\nx_e\n");
+		d_print_mat(nx, N+1, hxe[0], anx);
+#endif
 	
 		// smooth estimation
 		d_ric_trs_mhe(nx, nw, ny, N, hpA, hpG, hpC, hpLp, hdLp, hpR, hpQ, hpLe, hr, hq, hf, hxp, hxe, hw, hy, 1, hlam, work);
@@ -1006,11 +1006,13 @@ int main()
 		//d_print_pmat(nx, nx, bs, hpLe[N-1]+ncl*bs, cnf);
 		//d_print_pmat(nx, nx, bs, hpLe[N]+ncl*bs, cnf);
 
-//		printf("\nx_s\n");
+#if 1
+		printf("\nx_s\n");
 		//d_print_mat(nx, N+1, hxp[0], anx);
-//		d_print_mat(nx, N+1, hxe[0], anx);
+		d_print_mat(nw, N, hw[0], anw);
+		d_print_mat(nx, N+1, hxe[0], anx);
 		//d_print_mat(nx, N, hlam[0], anx);
-		//d_print_mat(nw, N, hw[0], anw);
+#endif
 
 		// information filter - factorization
 		//d_ric_trf_mhe_if(nx, nw, ndN, N, hpQA, hpRG, diag_R, hpALe, hpGLr, Ld, work3);
@@ -1028,12 +1030,14 @@ int main()
 		//d_print_pmat(nx, nx, bs, hpALe[N]+cnx*bs, cnx2);
 		//d_print_pmat(nx, nx, bs, hpRA[N], cnx);
 
-//		printf("\nx_s_if\n");
+#if 1
+		printf("\nx_s_if\n");
 		//d_print_mat(nx, N+1, hxp[0], anx);
-//		d_print_mat(nx, N+1, hxe[0], anx);
+		d_print_mat(nw, N, hw[0], anw);
+		d_print_mat(nx, N+1, hxe[0], anx);
 		//d_print_mat(nx, N, hlam[0], anx);
-		//d_print_mat(nw, N, hw[0], anw);
 		//exit(1);
+#endif
 
 		//d_print_pmat(nw, nw, bs, hpQ[0], cnw);
 		//d_print_pmat(nx, nw, bs, hpG[0], cnw);
@@ -1041,6 +1045,69 @@ int main()
 		//d_print_mat(nw, 1, hw[0], nw);
 		//d_print_mat(nx, 1, hlam[0], nx);
 		//exit(3);
+
+#if 1
+		int nZ = nw+nx+1;
+		int pnZ = (nw+nx+1+bs-1)/bs*bs;
+		int cnZ = (nw+nx+1+ncl-1)/ncl*ncl;
+
+		int cnL = cnZ>cnx+ncl ? cnZ : cnx+ncl;
+
+		double *(hpRSQrq[N+1]); 
+		for(ii=0; ii<=N; ii++)
+			{
+			d_zeros_align(&hpRSQrq[ii], pnZ, cnZ);
+			d_cvt_mat2pmat(nw, nw, R, nw, 0, hpRSQrq[ii], cnZ);
+			d_cvt_mat2pmat(ny, ny, Q, ny, nw, hpRSQrq[ii]+nw/bs*bs*cnZ+nw%bs+nw*bs, cnZ);
+			d_cvt_mat2pmat(1, nw, r, 1, nw+nx, hpRSQrq[ii]+(nw+nx)/bs*bs*cnZ+(nw+nx)%bs, cnZ);
+			d_cvt_mat2pmat(1, nx, hqq[ii], 1, nw+nx, hpRSQrq[ii]+(nw+nx)/bs*bs*cnZ+(nw+nx)%bs+nw*bs, cnZ);
+			//d_print_pmat(nZ, nZ, bs, hpRSQrq[ii], cnZ);
+			}
+
+		double *pP0; d_zeros_align(&pP0, pnx, cnx);
+		d_cvt_mat2pmat(nx, nx, L0, nx, 0, pP0, cnx);
+		//d_print_pmat(nx, nx, bs, pP0, cnx);
+		dgead_lib(nx, nx, 1.0, 0, pP0, cnx, nw, hpRSQrq[0]+nw/bs*bs*cnZ+nw%bs+nw*bs, cnZ); 
+		//d_print_pmat(nZ, nZ, bs, hpRSQrq[0], cnZ);
+
+		double *pBAbt; d_zeros_align(&pBAbt, pnZ, cnx);
+		d_cvt_tran_mat2pmat(nx, nw, B, nx, 0, pBAbt, cnx);
+		d_cvt_tran_mat2pmat(nx, nx, A, nx, nw, pBAbt+nw/bs*bs*cnx+nw%bs, cnx);
+		d_cvt_mat2pmat(1, nx, f, 1, nw+nx, pBAbt+(nw+nx)/bs*bs*cnx+(nw+nx)%bs, cnx);
+		//d_print_pmat(nZ, nx, bs, pBAbt, cnx);
+
+		double *(hpBAbt[N]);
+		for(ii=0; ii<N; ii++)
+			{
+			hpBAbt[ii] = pBAbt;
+			}
+
+		double *(hpLam[N+1]);
+		for(ii=0; ii<=N; ii++)
+			{
+			d_zeros_align(&hpLam[ii], pnZ, cnL);
+			}
+
+		double *work_ric; d_zeros_align(&work_ric, pnZ, cnx);
+		double *diag_ric; d_zeros_align(&diag_ric, pnZ, 1);
+
+		double *hux_mat; d_zeros_align(&hux_mat, pnZ, N+1);
+		double *(hux[N+1]);
+		for(ii=0; ii<=N; ii++)
+			{
+			hux[ii] = hux_mat+ii*pnZ;
+			}
+
+		double **pdummy;
+
+		d_back_ric_sv(N, nx, nw, hpBAbt, hpRSQrq, 0, pdummy, pdummy, 0, hux, hpLam, work_ric, diag_ric, 0, pdummy, 0, pdummy, 0, 0, 0, pdummy, pdummy, pdummy);
+
+		d_print_mat(nw, N+1, hux_mat, pnZ);
+		d_print_mat(nx, N+1, hux_mat+nw, pnZ);
+
+		exit(1);
+
+#endif
 
 		// compute residuals
 		double *p0; d_zeros_align(&p0, anx, 1);

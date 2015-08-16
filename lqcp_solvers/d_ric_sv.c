@@ -380,7 +380,7 @@ void d_ric_trs_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpL, do
 
 
 /* version tailored for mpc (x0 fixed) */
-void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int update_hessian, double **hQd, double **hQl, double **hux, double **hpL, double *work, double *diag, int compute_Pb, double **hPb, int compute_pi, double **hpi, int nb, int ng, int ngN, double **hpDCt, double **Qx, double **qx, int fast_rsqrt)
+void d_back_ric_sv(int N, int nx, int nu, double **hpBAbt, double **hpQ, int update_hessian, double **hQd, double **hQl, int fixed_x0, double **hux, double **hpL, double *work, double *diag, int compute_Pb, double **hPb, int compute_pi, double **hpi, int nb, int ng, int ngN, double **hpDCt, double **Qx, double **qx)
 	{
 	
 	const int bs = D_MR; //d_get_mr();
@@ -427,7 +427,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		}
 	if(nx+nu%bs+1<128)
 		{
-		dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, ngN, work+(nu/bs)*bs*cngN, cngN, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, diag, 1, fast_rsqrt);
+		dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, ngN, work+(nu/bs)*bs*cngN, cngN, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, diag, 1, 0);
 		}
 	else
 		{
@@ -477,7 +477,7 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 			}
 		if(nz<128)
 			{
-			dsyrk_dpotrf_lib(nz, nu+nx, nx+ng, work, cnxg, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, diag, 1, fast_rsqrt);
+			dsyrk_dpotrf_lib(nz, nu+nx, nx+ng, work, cnxg, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, diag, 1, 0);
 			}
 		else
 			{
@@ -501,47 +501,119 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 		for(ii=0; ii<nu; ii++) if(diag[ii]==0) diag[ii] = 1.0; // TODO needed ?????
 		for(jj=0; jj<nu; jj++) hpL[N-nn-1][(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 		dtrtr_l_lib(nx, nu, hpL[N-nn-1]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-nn-1]+(ncl)*bs, cnl);	
+
 		}
 
-	// first stage 
-	dtrmm_nt_u_lib(nz, nx, hpBAbt[0], cnx, hpL[1]+(ncl)*bs, cnl, work, cnxg);
-	if(compute_Pb)
+	if(fixed_x0==1) // mpc
 		{
-		for(jj=0; jj<nx; jj++) diag[jj] = work[((nx+nu)/bs)*bs*cnxg+(nx+nu)%bs+(jj)*bs];
-		dtrmv_u_t_lib(nx, hpL[1]+(ncl)*bs, cnl, diag, hPb[0], 0); // L*(L'*b)
+
+		// first stage 
+		dtrmm_nt_u_lib(nz, nx, hpBAbt[0], cnx, hpL[1]+(ncl)*bs, cnl, work, cnxg);
+		if(compute_Pb)
+			{
+			for(jj=0; jj<nx; jj++) diag[jj] = work[((nx+nu)/bs)*bs*cnxg+(nx+nu)%bs+(jj)*bs];
+			dtrmv_u_t_lib(nx, hpL[1]+(ncl)*bs, cnl, diag, hPb[0], 0); // L*(L'*b)
+			}
+		for(jj=0; jj<nx; jj++) work[((nx+nu)/bs)*bs*cnxg+(nx+nu)%bs+(jj)*bs] += hpL[1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nu+jj)*bs];
+		if(ng>0)
+			{
+			dgemv_n_lib(nx+nu, ng, hpDCt[0], cng, qx[0]+2*pnb, hQl[0], hQl[0], 1);
+			dgemm_diag_right_lib(nx+nu, ng, hpDCt[0], cng, Qx[0]+2*pnb, work+nx*bs, cnxg, work+nx*bs, cnxg, 0);
+			for(jj=0; jj<ng; jj++)
+				work[(nu+nx)/bs*cnxg*bs+(nu+nx)%bs+(nx+jj)*bs] = 0.0;
+			}
+		if(update_hessian)
+			{
+			//d_update_diag_pmat(nu, hpQ[0], cnz, hQd[0]);
+			ddiain_lib(nu, hQd[0], 0, hpQ[0], cnz);
+			//d_update_row_pmat(nu, hpQ[0]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[0]);
+			drowin_lib(nu, hQl[0], hpQ[0]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs);
+			}
+		dsyrk_dpotrf_lib(nz, ((nu+2-1)/2)*2, nx+ng, work, cnxg, hpQ[0], cnz, hpL[0], cnl, diag, 1, 0);
+		for(ii=0; ii<nu; ii++) if(diag[ii]==0) diag[ii] = 1.0; // TODO needed ?????
+		for(jj=0; jj<nu; jj++) hpL[0][(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
+
+
+		// forward substitution 
+		// first stage
+		nn = 0;
+		for(jj=0; jj<nu; jj++) hux[0][jj] = - hpL[0][((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*jj];
+		dtrsv_t_lib(nx+nu, nu, 1, hpL[0], cnl, &hux[0][0]);
+		for(jj=0; jj<nx; jj++) hux[1][nu+jj] = hpBAbt[0][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
+		dgemv_t_lib(nx+nu, nx, hpBAbt[0], cnx, &hux[0][0], &hux[1][nu], &hux[1][nu], 1);
+		if(compute_pi)
+			{
+			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[1][nu+jj]; // copy x into aligned memory
+			for(jj=0; jj<nx; jj++) work[jj] = hpL[1][((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*(nu+jj)]; // work space
+			dtrmv_u_n_lib(nx, hpL[1]+(ncl)*bs, cnl, &work[anz], &work[0], 1);
+			dtrmv_u_t_lib(nx, hpL[1]+(ncl)*bs, cnl, &work[0], &hpi[1][0], 0); // L*(L'*b) + p
+			}
+
 		}
-	for(jj=0; jj<nx; jj++) work[((nx+nu)/bs)*bs*cnxg+(nx+nu)%bs+(jj)*bs] += hpL[1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nu+jj)*bs];
-	if(ng>0)
+	else // mhe
 		{
-		dgemv_n_lib(nx+nu, ng, hpDCt[0], cng, qx[0]+2*pnb, hQl[0], hQl[0], 1);
-		dgemm_diag_right_lib(nx+nu, ng, hpDCt[0], cng, Qx[0]+2*pnb, work+nx*bs, cnxg, work+nx*bs, cnxg, 0);
-		for(jj=0; jj<ng; jj++)
-			work[(nu+nx)/bs*cnxg*bs+(nu+nx)%bs+(nx+jj)*bs] = 0.0;
+
+		// first stage 
+		dtrmm_nt_u_lib(nz, nx, hpBAbt[0], cnx, hpL[1]+(ncl)*bs, cnl, work, cnxg);
+		if(compute_Pb)
+			{
+			for(jj=0; jj<nx; jj++) diag[jj] = work[((nx+nu)/bs)*bs*cnxg+(nx+nu)%bs+(jj)*bs];
+			dtrmv_u_t_lib(nx, hpL[1]+(ncl)*bs, cnl, diag, hPb[0], 0); // L*(L'*b)
+			}
+		for(jj=0; jj<nx; jj++) work[((nx+nu)/bs)*bs*cnxg+(nx+nu)%bs+(jj)*bs] += hpL[1][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nu+jj)*bs];
+		if(ng>0)
+			{
+			dgemv_n_lib(nx+nu, ng, hpDCt[0], cng, qx[0]+2*pnb, hQl[0], hQl[0], 1);
+			dgemm_diag_right_lib(nx+nu, ng, hpDCt[0], cng, Qx[0]+2*pnb, work+nx*bs, cnxg, work+nx*bs, cnxg, 0);
+			for(jj=0; jj<ng; jj++)
+				work[(nu+nx)/bs*cnxg*bs+(nu+nx)%bs+(nx+jj)*bs] = 0.0;
+			}
+		if(update_hessian)
+			{
+			//d_update_diag_pmat(nx+nu, hpQ[N-nn-1], cnz, hQd[N-nn-1]);
+			ddiain_lib(nx+nu, hQd[0], 0, hpQ[0], cnz);
+			//d_update_row_pmat(nx+nu, hpQ[N-nn-1]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[N-nn-1]);
+			drowin_lib(nx+nu, hQl[0], hpQ[0]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs);
+			}
+		if(nz<128)
+			{
+			dsyrk_dpotrf_lib(nz, nu+nx, nx+ng, work, cnxg, hpQ[0], cnz, hpL[0], cnl, diag, 1, 0);
+			}
+		else
+			{
+			dsyrk_nt_lib(nz, nu+nx, nx+ng, work, cnxg, work, cnxg, hpQ[0], cnz, hpL[0], cnl, 1);
+			dpotrf_lib(nz, nu+nx, hpL[0], cnl, hpL[0], cnl, diag);
+			}
+
+		for(ii=0; ii<nu; ii++) if(diag[ii]==0) diag[ii] = 1.0; // TODO needed ?????
+		dtrtr_l_lib(nx, nu, hpL[0]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[0]+(ncl)*bs, cnl);	
+
+		for(jj=0; jj<nu+nx; jj++) hpL[0][(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
+
+
+
+		// forward substitution 
+		// first stage
+		nn = 0;
+		drowex_lib(nu+nx, hpL[0]+(nx+nu)/bs*bs*cnl+(nu+nx)%bs, hux[0]);
+		d_scale_mat(nu+nx, 1, -1.0, hux[0], 1);
+		dtrsv_t_lib(nx+nu, nu+nx, 1, hpL[0], cnl, &hux[0][0]);
+		for(jj=0; jj<nx; jj++) hux[nn+1][nu+jj] = hpBAbt[nn][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
+		dgemv_t_lib(nx+nu, nx, hpBAbt[nn], cnx, &hux[nn][0], &hux[nn+1][nu], &hux[nn+1][nu], 1);
+		if(compute_pi)
+			{
+			for(jj=0; jj<nx; jj++) work[anz+jj] = hux[nn+1][nu+jj]; // copy x into aligned memory
+			for(jj=0; jj<nx; jj++) work[jj] = hpL[nn+1][((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*(nu+jj)]; // work space
+			dtrmv_u_n_lib(nx, hpL[nn+1]+(ncl)*bs, cnl, &work[anz], &work[0], 1);
+			dtrmv_u_t_lib(nx, hpL[nn+1]+(ncl)*bs, cnl, &work[0], &hpi[nn+1][0], 0); // L*(L'*b) + p
+			}
+
 		}
-	if(update_hessian)
-		{
-		//d_update_diag_pmat(nu, hpQ[0], cnz, hQd[0]);
-		ddiain_lib(nu, hQd[0], 0, hpQ[0], cnz);
-		//d_update_row_pmat(nu, hpQ[0]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, hQl[0]);
-		drowin_lib(nu, hQl[0], hpQ[0]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs);
-		}
-	dsyrk_dpotrf_lib(nz, ((nu+2-1)/2)*2, nx+ng, work, cnxg, hpQ[0], cnz, hpL[0], cnl, diag, 1, fast_rsqrt);
-	for(ii=0; ii<nu; ii++) if(diag[ii]==0) diag[ii] = 1.0; // TODO needed ?????
-	for(jj=0; jj<nu; jj++) hpL[0][(jj/bs)*bs*cnl+jj%bs+jj*bs] = diag[jj]; // copy reciprocal of diagonal
 
 
-#if 0
-	d_print_pmat(nz, nz, bs, hpL[0], cnl);
-	d_print_pmat(nz, nz, bs, hpL[1], cnl);
-	d_print_pmat(nz, nz, bs, hpL[2], cnl);
-	d_print_pmat(nz, nz, bs, hpL[3], cnl);
-	d_print_pmat(nz, nz, bs, hpL[N-1], cnl);
-	d_print_pmat(nz, nz, bs, hpL[N], cnl);
-	//exit(1);
-#endif
 
-	// forward substitution 
-	for(nn=0; nn<N; nn++)
+	// final stages
+	for(nn=1; nn<N; nn++)
 		{
 		for(jj=0; jj<nu; jj++) hux[nn][jj] = - hpL[nn][((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*jj];
 		dtrsv_t_lib(nx+nu, nu, 1, hpL[nn], cnl, &hux[nn][0]);
@@ -556,6 +628,16 @@ void d_ric_sv_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, int upda
 			}
 		}
 	
+#if 0
+	d_print_pmat(nz, nz, bs, hpL[0], cnl);
+	d_print_pmat(nz, nz, bs, hpL[1], cnl);
+	d_print_pmat(nz, nz, bs, hpL[2], cnl);
+	d_print_pmat(nz, nz, bs, hpL[3], cnl);
+	d_print_pmat(nz, nz, bs, hpL[N-1], cnl);
+	d_print_pmat(nz, nz, bs, hpL[N], cnl);
+	//exit(1);
+#endif
+
 	
 	}
 
