@@ -77,3 +77,9 @@ void dcolin_lib(int kmax, double *x, int offset, double *pD, int sdd);
 void dcolad_lib(int kmax, double alpha, double *x, int offset, double *pD, int sdd);
 void dcolin_libsp(int kmax, int *idx, double *x, double *pD, int sdd);
 void dcolad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int sdd);
+
+
+
+
+// new routines
+void dpotrf_lib_new(int m, int n, double *pC, int sdc, int use_diag_C, double *diag_C, double *pD, int sdd, double *inv_diag_D);
