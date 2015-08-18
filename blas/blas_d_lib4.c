@@ -2340,7 +2340,7 @@ void dsyrk_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 
 
 
-#if defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
 void dpotrf_lib_new(int m, int n, double *pC, int sdc, int use_diag_C, double *diag_C, double *pD, int sdd, double *inv_diag_D)
 	{
 
@@ -2365,7 +2365,7 @@ void dpotrf_lib_new(int m, int n, double *pC, int sdc, int use_diag_C, double *d
 		j = 0;
 		for(; j<i && j<n-3; j+=4)
 			{
-			kernel_dgemm_dtrsm_nt_8x4_lib4_new(0, dummy, 0, dummy, j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
 			}
 		if(j<i) // dtrsm
 			{
@@ -2387,7 +2387,7 @@ void dpotrf_lib_new(int m, int n, double *pC, int sdc, int use_diag_C, double *d
 			{
 			if(j<n-6)
 				{
-				kernel_dsyrk_dpotrf_nt_8x4_lib4_new(0, dummy, 0, dummy, j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, use_diag_C, &diag_C[j], &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+				kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, use_diag_C, &diag_C[j], &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
 				kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(m-i-4, n-j-4, 0, 0, dummy, dummy, j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], use_diag_C, &diag_C[j+4], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
 				}
 			else if(j<n-2)
@@ -2476,7 +2476,7 @@ void dpotrf_lib_new(int m, int n, double *pC, int sdc, int use_diag_C, double *d
 		j = 0;
 		for(; j<i && j<n-2; j+=4)
 			{
-			kernel_dgemm_dtrsm_nt_4x4_lib4_new(0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			kernel_dtrsm_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
 			}
 		if(j<i) // dtrsm
 			{
@@ -2498,7 +2498,7 @@ void dpotrf_lib_new(int m, int n, double *pC, int sdc, int use_diag_C, double *d
 			{
 			if(j<n-3)
 				{
-				kernel_dsyrk_dpotrf_nt_4x4_lib4_new(0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], use_diag_C, &diag_C[j], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+				kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], use_diag_C, &diag_C[j], &pD[j*bs+i*sdd], &inv_diag_D[j]);
 				}
 			else if(j<n)
 				{
@@ -2574,11 +2574,11 @@ void dpotrf_lib_new(int m, int n, double *pC, int sdc, int use_diag_C, double *d
 		i = j;
 		if(i<m-7)
 			{
-			kernel_dsyrk_dpotrf_nt_8x4_lib4_new(0, dummy, 0, dummy, j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, use_diag_C, &diag_C[j], &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+			kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, use_diag_C, &diag_C[j], &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
 			i += 8;
 			for(; i<m-7; i+=8)
 				{
-				kernel_dgemm_dtrsm_nt_8x4_lib4_new(0, dummy, 0, dummy, j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+				kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
 				}
 			if(i<m-4)
 				{
@@ -2656,11 +2656,11 @@ void dpotrf_lib_new(int m, int n, double *pC, int sdc, int use_diag_C, double *d
 	for(; j<n-3; j+=4) // then i<m-3 !!!
 		{
 		i = j;
-		kernel_dsyrk_dpotrf_nt_4x4_lib4_new(0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], use_diag_C, &diag_C[j], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], use_diag_C, &diag_C[j], &pD[j*bs+i*sdd], &inv_diag_D[j]);
 		i += 4;
 		for(; i<m-3; i+=4)
 			{
-			kernel_dgemm_dtrsm_nt_4x4_lib4_new(0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			kernel_dtrsm_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
 			}
 		if(i<m-2)
 			{
