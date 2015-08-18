@@ -295,11 +295,8 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			//dsyrk_dpotrf_lib(n, n, n, pE, cnd2, pD, cnd, diag, 1);
 			dsyrk_dpotrf_lib(n, n, n, pA, cnd, pD, cnd, pC, cnd, diag, 1, 0);
-			//d_print_pmat(pnd, cnd2, bsd, pE, cnd2);
-			//exit(1);
-			//break;
+			//dsyrk_dpotrf_lib_new(n, n, n, pA, cnd, pA, cnd, 1, pD, cnd, 0, dummy, pC, cnd, diag);
 
 			}
 	
