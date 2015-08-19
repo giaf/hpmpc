@@ -23,6 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#include <math.h>
+
 #include "../include/block_size.h"
 #include "../include/kernel_d_lib4.h"
 
@@ -95,6 +97,88 @@ void dax_mat(int row, int col, double alpha, double *A, int lda, double *B, int 
 			B[i+j*ldb] = alpha*A[i+j*lda];
 			}
 		}
+	
+	}
+
+
+
+float d_max_mat(int row, int col, double *A, int lda)
+	{
+
+	if(row<=0 || col<=0 )
+		return 0.0;
+	
+	int i, j;
+
+	static float max_vec[4];
+
+	max_vec[0] = A[0];
+	max_vec[1] = A[0];
+	max_vec[2] = A[0];
+	max_vec[3] = A[0];
+	
+	for(j=0; j<col; j++)
+		{
+		i = 0;
+		for(; i<row-3; i+=4)
+			{
+			max_vec[0] = fmax( max_vec[0], A[i+0+j*lda] );
+			max_vec[1] = fmax( max_vec[1], A[i+1+j*lda] );
+			max_vec[2] = fmax( max_vec[2], A[i+2+j*lda] );
+			max_vec[3] = fmax( max_vec[3], A[i+3+j*lda] );
+			}
+		for(; i<row; i++)
+			{
+			max_vec[0] = fmax( max_vec[0], A[i+j*lda] );
+			}
+		}
+	
+	max_vec[0] = fmax( max_vec[0], max_vec[2] );
+	max_vec[1] = fmax( max_vec[1], max_vec[3] );
+	max_vec[0] = fmax( max_vec[0], max_vec[1] );
+
+	return max_vec[0];
+	
+	}
+
+
+
+float d_min_mat(int row, int col, double *A, int lda)
+	{
+
+	if(row<=0 || col<=0 )
+		return 0.0;
+	
+	int i, j;
+
+	static float min_vec[4];
+
+	min_vec[0] = A[0];
+	min_vec[1] = A[0];
+	min_vec[2] = A[0];
+	min_vec[3] = A[0];
+	
+	for(j=0; j<col; j++)
+		{
+		i = 0;
+		for(; i<row-3; i+=4)
+			{
+			min_vec[0] = fmin( min_vec[0], A[i+0+j*lda] );
+			min_vec[1] = fmin( min_vec[1], A[i+1+j*lda] );
+			min_vec[2] = fmin( min_vec[2], A[i+2+j*lda] );
+			min_vec[3] = fmin( min_vec[3], A[i+3+j*lda] );
+			}
+		for(; i<row; i++)
+			{
+			min_vec[0] = fmin( min_vec[0], A[i+j*lda] );
+			}
+		}
+	
+	min_vec[0] = fmin( min_vec[0], min_vec[2] );
+	min_vec[1] = fmin( min_vec[1], min_vec[3] );
+	min_vec[0] = fmin( min_vec[0], min_vec[1] );
+
+	return min_vec[0];
 	
 	}
 

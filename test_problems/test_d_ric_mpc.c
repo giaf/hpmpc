@@ -322,9 +322,11 @@ int main()
 		int anx = nal*((nx+nal-1)/nal);
 		int pnz = bs*((nz+bs-1)/bs);
 		int pnx = bs*((nx+bs-1)/bs);
+		int pnx1 = bs*((nx+1+bs-1)/bs);
 		int pnu = bs*((nu+bs-1)/bs);
 		int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 		int cnx = ncl*((nx+ncl-1)/ncl);
+		int cnx1 = ncl*((nx+1+ncl-1)/ncl);
 		int cnu = ncl*((nu+ncl-1)/ncl);
 
 //		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
@@ -404,10 +406,14 @@ int main()
 		double *pQ; d_zeros_align(&pQ, pnz, cnz);
 		d_cvt_mat2pmat(nz, nz, Q, pnz, 0, pQ, cnz);
 
+		double *pQ_N; d_zeros_align(&pQ_N, pnx1, cnx1);
+		d_cvt_mat2pmat(nx+1, nx+1, Q+nu*(pnz+1), pnz, 0, pQ_N, cnx1);
+
 //	d_print_pmat(nz, nz, bs, pQ, cnz);
 
 	/* matrices series */
 		double *(hpQ[N+1]);
+		double *(hpQ_tv[N+1]);
 		double *(hpL[N+1]);
 		double *(hl[N+1]);
 		double *(hq[N+1]);
@@ -423,6 +429,7 @@ int main()
 				{
 				hpBAbt[jj] = pBAbt; // LTI
 				hpQ[jj] = pQ;
+				hpQ_tv[jj] = pQ;
 				}
 			else // LTV
 				{
@@ -430,6 +437,8 @@ int main()
 				for(ii=0; ii<pnz*cnx; ii++) hpBAbt[jj][ii] = pBAbt[ii];
 				d_zeros_align(&hpQ[jj], pnz, cnz);
 				for(ii=0; ii<pnz*cnz; ii++) hpQ[jj][ii] = pQ[ii];
+				d_zeros_align(&hpQ_tv[jj], pnz, cnz);
+				for(ii=0; ii<pnz*cnz; ii++) hpQ_tv[jj][ii] = pQ[ii];
 				}
 			d_zeros_align(&hq[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hpL[jj], pnz, cnl);
@@ -443,11 +452,14 @@ int main()
 		if(LTI==1)
 			{
 			hpQ[N] = pQ;
+			hpQ_tv[N] = pQ_N;
 			}
 		else
 			{
 			d_zeros_align(&hpQ[N], pnz, cnz);
 			for(ii=0; ii<pnz*cnz; ii++) hpQ[N][ii] = pQ[ii]; // LTV
+			d_zeros_align(&hpQ_tv[N], pnx1, cnx1);
+			for(ii=0; ii<pnx1*cnx1; ii++) hpQ_tv[N][ii] = pQ_N[ii]; // LTV
 			}
 		d_zeros_align(&hpL[N], pnz, cnl);
 		d_zeros_align(&hl[N], pnz, 1);
@@ -1108,7 +1120,7 @@ int main()
 				d_print_mat(1, nu+nx, hux[ii], 1);
 //			exit(1);
 			}
-		if(0 && PRINTRES==1 && COMPUTE_MULT==1 && ll_max==1)
+		if(PRINTRES==1 && COMPUTE_MULT==1 && ll_max==1)
 			{
 			// print result 
 			printf("\n\npi\n\n");
@@ -1118,7 +1130,7 @@ int main()
 
 #if 0
 		// call the solver
-		d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, hl, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
+		d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ_tv, 0, dummy, dummy, 1, hux, hpL, hl, work, diag, 0, hPb, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 
 		if(PRINTRES==1 && ll_max==1)
 			{
@@ -1126,7 +1138,6 @@ int main()
 			printf("\n\nsv\n\n");
 			for(ii=0; ii<N; ii++)
 				d_print_mat(1, nu+nx, hux[ii], 1);
-			exit(1);
 			}
 		if(PRINTRES==1 && COMPUTE_MULT==1 && ll_max==1)
 			{
@@ -1135,6 +1146,7 @@ int main()
 			for(ii=0; ii<N; ii++)
 				d_print_mat(1, nx, hpi[ii+1], 1);
 			}
+			exit(1);
 #endif
 
 		// restore linear part of cost function 
@@ -1334,8 +1346,8 @@ int main()
 		// factorize & solve (fast rsqrt)
 		for(rep=0; rep<nrep; rep++)
 			{
-			//d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, hl, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
-			d_back_ric_sv(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
+			d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ_tv, 0, dummy, dummy, 1, hux, hpL, hl, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
+			//d_back_ric_sv(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 			}
 			
 		gettimeofday(&tv5, NULL); // start
@@ -1418,6 +1430,7 @@ int main()
 			if(LTI!=1)
 				{
 				free(hpQ[jj]);
+				free(hpQ_tv[jj]);
 				free(hq[jj]);
 				free(hpBAbt[jj]);
 				}
@@ -1432,6 +1445,7 @@ int main()
 		if(LTI!=1)
 			{
 			free(hpQ[N]);
+			free(hpQ_tv[N]);
 			free(hq[N]);
 			}
 		free(hpL[N]);

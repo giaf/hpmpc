@@ -31,6 +31,8 @@ void d_eye(double **pA, int row);
 void d_rep_mat(int reps, int row, int col, double *A, int lda, double *B, int ldb);
 void dadd_mat(int row, int col, double alpha, double *A, int lda, double *B, int ldb);
 void dax_mat(int row, int col, double alpha, double *A, int lda, double *B, int ldb);
+float d_max_mat(int row, int col, double *A, int lda);
+float d_min_mat(int row, int col, double *A, int lda);
 void d_set_mat(int row, int col, double alpha, double *A, int lda);
 void d_set_pmat(int row, int col, double alpha, int offset, double *pA, int sda);
 void d_scale_mat(int row, int col, double alpha, double *A, int lda);
