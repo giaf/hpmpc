@@ -84,3 +84,5 @@ void dcolad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int s
 // new routines
 void dpotrf_lib_new(int m, int n, double *pC, int sdc, int use_diag_C, double *diag_C, double *pD, int sdd, double *inv_diag_D);
 void dsyrk_dpotrf_lib_new(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, int use_diag_C, double *diag_C, double *pD, int sdd, double *inv_diag_D);
+void dtrsv_n_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x);
+void dtrsv_t_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x);

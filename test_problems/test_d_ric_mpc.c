@@ -409,6 +409,7 @@ int main()
 	/* matrices series */
 		double *(hpQ[N+1]);
 		double *(hpL[N+1]);
+		double *(hl[N+1]);
 		double *(hq[N+1]);
 		double *(hux[N+1]);
 		double *(hpi[N+1]);
@@ -432,6 +433,7 @@ int main()
 				}
 			d_zeros_align(&hq[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hpL[jj], pnz, cnl);
+			d_zeros_align(&hl[jj], pnz, 1);
 			d_zeros_align(&hux[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hpi[jj], pnx, 1);
 			d_zeros_align(&hrb[jj], pnx, 1);
@@ -448,6 +450,7 @@ int main()
 			for(ii=0; ii<pnz*cnz; ii++) hpQ[N][ii] = pQ[ii]; // LTV
 			}
 		d_zeros_align(&hpL[N], pnz, cnl);
+		d_zeros_align(&hl[N], pnz, 1);
 		d_zeros_align(&hq[N], pnz, 1); // it has to be pnz !!!
 		d_zeros_align(&hux[N], pnz, 1); // it has to be pnz !!!
 		d_zeros_align(&hpi[N], pnx, 1);
@@ -1103,6 +1106,26 @@ int main()
 			printf("\n\nsv\n\n");
 			for(ii=0; ii<N; ii++)
 				d_print_mat(1, nu+nx, hux[ii], 1);
+//			exit(1);
+			}
+		if(0 && PRINTRES==1 && COMPUTE_MULT==1 && ll_max==1)
+			{
+			// print result 
+			printf("\n\npi\n\n");
+			for(ii=0; ii<N; ii++)
+				d_print_mat(1, nx, hpi[ii+1], 1);
+			}
+
+#if 0
+		// call the solver
+		d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, hl, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
+
+		if(PRINTRES==1 && ll_max==1)
+			{
+			/* print result */
+			printf("\n\nsv\n\n");
+			for(ii=0; ii<N; ii++)
+				d_print_mat(1, nu+nx, hux[ii], 1);
 			exit(1);
 			}
 		if(PRINTRES==1 && COMPUTE_MULT==1 && ll_max==1)
@@ -1112,6 +1135,7 @@ int main()
 			for(ii=0; ii<N; ii++)
 				d_print_mat(1, nx, hpi[ii+1], 1);
 			}
+#endif
 
 		// restore linear part of cost function 
 		for(ii=0; ii<N; ii++)
@@ -1310,6 +1334,7 @@ int main()
 		// factorize & solve (fast rsqrt)
 		for(rep=0; rep<nrep; rep++)
 			{
+			//d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, hl, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 			d_back_ric_sv(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 			}
 			
@@ -1397,6 +1422,7 @@ int main()
 				free(hpBAbt[jj]);
 				}
 			free(hpL[jj]);
+			free(hl[jj]);
 			free(hux[jj]);
 			free(hpi[jj]);
 			free(hrq[jj]);
@@ -1409,6 +1435,7 @@ int main()
 			free(hq[N]);
 			}
 		free(hpL[N]);
+		free(hl[N]);
 		free(hux[N]);
 		free(hpi[N]);
 		free(hrq[N]);

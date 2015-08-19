@@ -261,3 +261,10 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 void kernel_dgemm_dtrsm_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, double *D, double *E, int use_inv_diag_E, double *inv_diag_E);
 void kernel_dgemm_dtrsm_nt_2x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap0, double *Bp, int ksub, double *Am0, double *Bm, int alg, double *C0, double *D0, double *E, int use_inv_diag_E, double *inv_diag_E);
 void kernel_dgemm_dtrsm_nt_2x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, double *D, double *E, int use_inv_diag_E, double *inv_diag_E);
+void kernel_dtrsv_n_8_lib4_new(int kmax, double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y);
+void kernel_dtrsv_n_4_lib4_new(int kmax, double *A, int use_inv_diag_A, double *inv_diag_A, double *x, double *y);
+void kernel_dtrsv_n_4_vs_lib4_new(int km, int kn, int kmax, double *A, int use_inv_diag_A, double *inv_diag_A, double *x, double *y);
+void kernel_dtrsv_t_4_lib4_new(int kmax, double *A, int sda, int use_inv_diag_A, double *inv_diag_A, double *x);
+void kernel_dtrsv_t_3_lib4_new(int kmax, double *A, int sda, int use_inv_diag_A, double *inv_diag_A, double *x);
+void kernel_dtrsv_t_2_lib4_new(int kmax, double *A, int sda, int use_inv_diag_A, double *inv_diag_A, double *x);
+void kernel_dtrsv_t_1_lib4_new(int kmax, double *A, int sda, int use_inv_diag_A, double *inv_diag_A, double *x);
