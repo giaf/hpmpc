@@ -471,7 +471,7 @@ int main()
 		// starting guess
 		for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
 	
-		double *diag; d_zeros_align(&diag, pnz, 1);
+		double *diag; d_zeros_align(&diag, pnz, 2);
 		
 		//double *work; d_zeros_align(&work, 2*anz, 1);
 		double *work; d_zeros_align(&work, pnz, cnx);
@@ -1130,7 +1130,7 @@ int main()
 
 #if 0
 		// call the solver
-		d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ_tv, 0, dummy, dummy, 1, hux, hpL, hl, work, diag, 0, hPb, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
+		d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, hl, work, diag, 0, hPb, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 
 		if(PRINTRES==1 && ll_max==1)
 			{
@@ -1346,8 +1346,8 @@ int main()
 		// factorize & solve (fast rsqrt)
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ_tv, 0, dummy, dummy, 1, hux, hpL, hl, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
-			//d_back_ric_sv(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
+			//d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, hl, work, diag, 0, hPb, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
+			d_back_ric_sv(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 			}
 			
 		gettimeofday(&tv5, NULL); // start

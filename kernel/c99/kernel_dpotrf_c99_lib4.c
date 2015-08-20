@@ -30,7 +30,7 @@
 
 
 // new kernels
-void kernel_dpotrf_nt_4x4_lib4_new(int ksub, double *Am, double *Bm, int alg, double *C, int use_diag_C, double *diag_C, double *D, double *inv_diag_D)
+void kernel_dpotrf_nt_4x4_lib4_new(int ksub, double *Am, double *Bm, int alg, double *C, double *D, double *inv_diag_D)
 	{
 
 	const int bs = 4;
@@ -155,50 +155,21 @@ void kernel_dpotrf_nt_4x4_lib4_new(int ksub, double *Am, double *Bm, int alg, do
 
 		}
 
-	if(alg==0)
+	if(alg!=0)
 		{
-		if(use_diag_C)
-			{
-			c_00 += diag_C[0];
-			c_11 += diag_C[1];
-			c_22 += diag_C[2];
-			c_33 += diag_C[3];
-			}
-		}
-	else // alg==1
-		{
-		if(use_diag_C)
-			{
-			c_00 += diag_C[0];
-			c_10 += C[1+bs*0];
-			c_20 += C[2+bs*0];
-			c_30 += C[3+bs*0];
+		c_00 += C[0+bs*0];
+		c_10 += C[1+bs*0];
+		c_20 += C[2+bs*0];
+		c_30 += C[3+bs*0];
 
-			c_11 += diag_C[1];
-			c_21 += C[2+bs*1];
-			c_31 += C[3+bs*1];
+		c_11 += C[1+bs*1];
+		c_21 += C[2+bs*1];
+		c_31 += C[3+bs*1];
 
-			c_22 += diag_C[2];
-			c_32 += C[3+bs*2];
+		c_22 += C[2+bs*2];
+		c_32 += C[3+bs*2];
 
-			c_33 += diag_C[3];
-			}
-		else
-			{
-			c_00 += C[0+bs*0];
-			c_10 += C[1+bs*0];
-			c_20 += C[2+bs*0];
-			c_30 += C[3+bs*0];
-
-			c_11 += C[1+bs*1];
-			c_21 += C[2+bs*1];
-			c_31 += C[3+bs*1];
-
-			c_22 += C[2+bs*2];
-			c_32 += C[3+bs*2];
-
-			c_33 += C[3+bs*3];
-			}
+		c_33 += C[3+bs*3];
 		}
 	
 	// first column
@@ -293,7 +264,7 @@ void kernel_dpotrf_nt_4x4_lib4_new(int ksub, double *Am, double *Bm, int alg, do
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x4_lib4_new(int kadd, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, int use_diag_C, double *diag_C, double *D, double *inv_diag_D)
+void kernel_dsyrk_dpotrf_nt_4x4_lib4_new(int kadd, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, double *D, double *inv_diag_D)
 	{
 
 	const int bs = 4;
@@ -563,50 +534,21 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4_new(int kadd, double *Ap, double *Bp, int k
 
 		}
 
-	if(alg==0)
+	if(alg!=0)
 		{
-		if(use_diag_C)
-			{
-			c_00 += diag_C[0];
-			c_11 += diag_C[1];
-			c_22 += diag_C[2];
-			c_33 += diag_C[3];
-			}
-		}
-	else // alg==1
-		{
-		if(use_diag_C)
-			{
-			c_00 += diag_C[0];
-			c_10 += C[1+bs*0];
-			c_20 += C[2+bs*0];
-			c_30 += C[3+bs*0];
+		c_00 += C[0+bs*0];
+		c_10 += C[1+bs*0];
+		c_20 += C[2+bs*0];
+		c_30 += C[3+bs*0];
 
-			c_11 += diag_C[1];
-			c_21 += C[2+bs*1];
-			c_31 += C[3+bs*1];
+		c_11 += C[1+bs*1];
+		c_21 += C[2+bs*1];
+		c_31 += C[3+bs*1];
 
-			c_22 += diag_C[2];
-			c_32 += C[3+bs*2];
+		c_22 += C[2+bs*2];
+		c_32 += C[3+bs*2];
 
-			c_33 += diag_C[3];
-			}
-		else
-			{
-			c_00 += C[0+bs*0];
-			c_10 += C[1+bs*0];
-			c_20 += C[2+bs*0];
-			c_30 += C[3+bs*0];
-
-			c_11 += C[1+bs*1];
-			c_21 += C[2+bs*1];
-			c_31 += C[3+bs*1];
-
-			c_22 += C[2+bs*2];
-			c_32 += C[3+bs*2];
-
-			c_33 += C[3+bs*3];
-			}
+		c_33 += C[3+bs*3];
 		}
 	
 	// first column
@@ -701,7 +643,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_lib4_new(int kadd, double *Ap, double *Bp, int k
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, int use_diag_C, double *diag_C, double *D, double *inv_diag_D)
+void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, double *D, double *inv_diag_D)
 	{
 
 	const int bs = 4;
@@ -1109,50 +1051,21 @@ void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 		}
 
-	if(alg==0)
+	if(alg!=0)
 		{
-		if(use_diag_C)
-			{
-			c_00 += diag_C[0];
-			c_11 += diag_C[1];
-			c_22 += diag_C[2];
-			c_33 += diag_C[3];
-			}
-		}
-	else // alg==1
-		{
-		if(use_diag_C)
-			{
-			c_00 += diag_C[0];
-			c_10 += C[1+bs*0];
-			c_20 += C[2+bs*0];
-			c_30 += C[3+bs*0];
+		c_00 += C[0+bs*0];
+		c_10 += C[1+bs*0];
+		c_20 += C[2+bs*0];
+		c_30 += C[3+bs*0];
 
-			c_11 += diag_C[1];
-			c_21 += C[2+bs*1];
-			c_31 += C[3+bs*1];
+		c_11 += C[1+bs*1];
+		c_21 += C[2+bs*1];
+		c_31 += C[3+bs*1];
 
-			c_22 += diag_C[2];
-			c_32 += C[3+bs*2];
+		c_22 += C[2+bs*2];
+		c_32 += C[3+bs*2];
 
-			c_33 += diag_C[3];
-			}
-		else
-			{
-			c_00 += C[0+bs*0];
-			c_10 += C[1+bs*0];
-			c_20 += C[2+bs*0];
-			c_30 += C[3+bs*0];
-
-			c_11 += C[1+bs*1];
-			c_21 += C[2+bs*1];
-			c_31 += C[3+bs*1];
-
-			c_22 += C[2+bs*2];
-			c_32 += C[3+bs*2];
-
-			c_33 += C[3+bs*3];
-			}
+		c_33 += C[3+bs*3];
 		}
 	
 	// first column
@@ -1259,7 +1172,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, int use_diag_C, double *diag_C, double *D, double *inv_diag_D)
+void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, double *D, double *inv_diag_D)
 	{
 
 	const int bs = 4;
@@ -1591,38 +1504,16 @@ void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 		}
 
-	if(alg==0)
+	if(alg!=0)
 		{
-		if(use_diag_C)
-			{
-			c_00 += diag_C[0];
-			c_11 += diag_C[1];
-			}
-		}
-	else // alg==1
-		{
-		if(use_diag_C)
-			{
-			c_00 += diag_C[0];
-			c_10 += C[1+bs*0];
-			c_20 += C[2+bs*0];
-			c_30 += C[3+bs*0];
+		c_00 += C[0+bs*0];
+		c_10 += C[1+bs*0];
+		c_20 += C[2+bs*0];
+		c_30 += C[3+bs*0];
 
-			c_11 += diag_C[1];
-			c_21 += C[2+bs*1];
-			c_31 += C[3+bs*1];
-			}
-		else
-			{
-			c_00 += C[0+bs*0];
-			c_10 += C[1+bs*0];
-			c_20 += C[2+bs*0];
-			c_30 += C[3+bs*0];
-
-			c_11 += C[1+bs*1];
-			c_21 += C[2+bs*1];
-			c_31 += C[3+bs*1];
-			}
+		c_11 += C[1+bs*1];
+		c_21 += C[2+bs*1];
+		c_31 += C[3+bs*1];
 		}
 	
 	// first column
@@ -1685,7 +1576,7 @@ void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 	}
 
 
-void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, int use_diag_C, double *diag_C, double *D, double *inv_diag_D)
+void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, double *D, double *inv_diag_D)
 	{
 
 	const int bs = 4;
@@ -1949,30 +1840,12 @@ void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 		}
 
-	if(alg==0)
+	if(alg!=0)
 		{
-		if(use_diag_C)
-			{
-			c_00 += diag_C[0];
-			c_11 += diag_C[1];
-			}
-		}
-	else // alg==1
-		{
-		if(use_diag_C)
-			{
-			c_00 += diag_C[0];
-			c_10 += C[1+bs*0];
+		c_00 += C[0+bs*0];
+		c_10 += C[1+bs*0];
 
-			c_11 += diag_C[1];
-			}
-		else
-			{
-			c_00 += C[0+bs*0];
-			c_10 += C[1+bs*0];
-
-			c_11 += C[1+bs*1];
-			}
+		c_11 += C[1+bs*1];
 		}
 	
 	// first column

@@ -36,7 +36,7 @@
 // new kernels
 
 // TODO fix tri_A==1 in another routine !!!!!
-void kernel_dpotrf_nt_8x4_lib4_new(int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, int use_diag_C, double *diag_C, double *D0, int sdd, double *inv_diag_D)
+void kernel_dpotrf_nt_8x4_lib4_new(int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *inv_diag_D)
 	{
 	
 	double *Am1 = Am0 + 4*sdam;
@@ -212,66 +212,17 @@ void kernel_dpotrf_nt_8x4_lib4_new(int ksub, double *Am0, int sdam, double *Bm, 
 	d_43 = _mm256_blend_pd( e_1, e_3, 0x3 );
 
 
-	if(alg==0)
+	if(alg!=0)
 		{
-		if(use_diag_C)
-			{
 
-			zeros = _mm256_setzero_pd();
-
-			e_1  = _mm256_broadcast_sd( &diag_C[0] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x1 );
-			d_00 = _mm256_add_pd( d_00, e_1 );
-			
-			e_1  = _mm256_broadcast_sd( &diag_C[1] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x2 );
-			d_01 = _mm256_add_pd( d_01, e_1 );
-			
-			e_1  = _mm256_broadcast_sd( &diag_C[2] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x4 );
-			d_02 = _mm256_add_pd( d_02, e_1 );
-			
-			e_1  = _mm256_broadcast_sd( &diag_C[3] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x8 );
-			d_03 = _mm256_add_pd( d_03, e_1 );
-			}
-
-		}
-	else // alg==1
-		{
-		if(use_diag_C)
-			{
-			e_0  = _mm256_load_pd( &C0[0+bs*0] );
-			e_1  = _mm256_broadcast_sd( &diag_C[0] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x1 );
-			d_00 = _mm256_add_pd( d_00, e_0 );
-			
-			e_0  = _mm256_load_pd( &C0[0+bs*1] );
-			e_1  = _mm256_broadcast_sd( &diag_C[1] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x2 );
-			d_01 = _mm256_add_pd( d_01, e_0 );
-			
-			e_0  = _mm256_load_pd( &C0[0+bs*2] );
-			e_1  = _mm256_broadcast_sd( &diag_C[2] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x4 );
-			d_02 = _mm256_add_pd( d_02, e_0 );
-			
-			e_0  = _mm256_load_pd( &C0[0+bs*3] );
-			e_1  = _mm256_broadcast_sd( &diag_C[3] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x8 );
-			d_03 = _mm256_add_pd( d_03, e_0 );
-			}
-		else
-			{
-			e_0  = _mm256_load_pd( &C0[0+bs*0] );
-			d_00 = _mm256_add_pd( d_00, e_0 );
-			e_0  = _mm256_load_pd( &C0[0+bs*1] );
-			d_01 = _mm256_add_pd( d_01, e_0 );
-			e_0  = _mm256_load_pd( &C0[0+bs*2] );
-			d_02 = _mm256_add_pd( d_02, e_0 );
-			e_0  = _mm256_load_pd( &C0[0+bs*3] );
-			d_03 = _mm256_add_pd( d_03, e_0 );
-			}
+		e_0  = _mm256_load_pd( &C0[0+bs*0] );
+		d_00 = _mm256_add_pd( d_00, e_0 );
+		e_0  = _mm256_load_pd( &C0[0+bs*1] );
+		d_01 = _mm256_add_pd( d_01, e_0 );
+		e_0  = _mm256_load_pd( &C0[0+bs*2] );
+		d_02 = _mm256_add_pd( d_02, e_0 );
+		e_0  = _mm256_load_pd( &C0[0+bs*3] );
+		d_03 = _mm256_add_pd( d_03, e_0 );
 
 		e_0  = _mm256_load_pd( &C1[0+bs*0] );
 		d_40 = _mm256_add_pd( d_40, e_0 );
@@ -447,7 +398,7 @@ void kernel_dpotrf_nt_8x4_lib4_new(int ksub, double *Am0, int sdam, double *Bm, 
 
 
 
-void kernel_dsyrk_dpotrf_nt_8x4_lib4_new(int kadd, double *Ap0, int sdap, double *Bp, int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, int use_diag_C, double *diag_C, double *D0, int sdd, double *inv_diag_D)
+void kernel_dsyrk_dpotrf_nt_8x4_lib4_new(int kadd, double *Ap0, int sdap, double *Bp, int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *inv_diag_D)
 	{
 	
 	double *Ap1 = Ap0 + 4*sdap;
@@ -832,66 +783,17 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4_new(int kadd, double *Ap0, int sdap, double
 	d_43 = _mm256_blend_pd( e_1, e_3, 0x3 );
 
 
-	if(alg==0)
+	if(alg!=0)
 		{
-		if(use_diag_C)
-			{
 
-			zeros = _mm256_setzero_pd();
-
-			e_1  = _mm256_broadcast_sd( &diag_C[0] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x1 );
-			d_00 = _mm256_add_pd( d_00, e_1 );
-			
-			e_1  = _mm256_broadcast_sd( &diag_C[1] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x2 );
-			d_01 = _mm256_add_pd( d_01, e_1 );
-			
-			e_1  = _mm256_broadcast_sd( &diag_C[2] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x4 );
-			d_02 = _mm256_add_pd( d_02, e_1 );
-			
-			e_1  = _mm256_broadcast_sd( &diag_C[3] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x8 );
-			d_03 = _mm256_add_pd( d_03, e_1 );
-			}
-
-		}
-	else // alg==1
-		{
-		if(use_diag_C)
-			{
-			e_0  = _mm256_load_pd( &C0[0+bs*0] );
-			e_1  = _mm256_broadcast_sd( &diag_C[0] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x1 );
-			d_00 = _mm256_add_pd( d_00, e_0 );
-			
-			e_0  = _mm256_load_pd( &C0[0+bs*1] );
-			e_1  = _mm256_broadcast_sd( &diag_C[1] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x2 );
-			d_01 = _mm256_add_pd( d_01, e_0 );
-			
-			e_0  = _mm256_load_pd( &C0[0+bs*2] );
-			e_1  = _mm256_broadcast_sd( &diag_C[2] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x4 );
-			d_02 = _mm256_add_pd( d_02, e_0 );
-			
-			e_0  = _mm256_load_pd( &C0[0+bs*3] );
-			e_1  = _mm256_broadcast_sd( &diag_C[3] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x8 );
-			d_03 = _mm256_add_pd( d_03, e_0 );
-			}
-		else
-			{
-			e_0  = _mm256_load_pd( &C0[0+bs*0] );
-			d_00 = _mm256_add_pd( d_00, e_0 );
-			e_0  = _mm256_load_pd( &C0[0+bs*1] );
-			d_01 = _mm256_add_pd( d_01, e_0 );
-			e_0  = _mm256_load_pd( &C0[0+bs*2] );
-			d_02 = _mm256_add_pd( d_02, e_0 );
-			e_0  = _mm256_load_pd( &C0[0+bs*3] );
-			d_03 = _mm256_add_pd( d_03, e_0 );
-			}
+		e_0  = _mm256_load_pd( &C0[0+bs*0] );
+		d_00 = _mm256_add_pd( d_00, e_0 );
+		e_0  = _mm256_load_pd( &C0[0+bs*1] );
+		d_01 = _mm256_add_pd( d_01, e_0 );
+		e_0  = _mm256_load_pd( &C0[0+bs*2] );
+		d_02 = _mm256_add_pd( d_02, e_0 );
+		e_0  = _mm256_load_pd( &C0[0+bs*3] );
+		d_03 = _mm256_add_pd( d_03, e_0 );
 
 		e_0  = _mm256_load_pd( &C1[0+bs*0] );
 		d_40 = _mm256_add_pd( d_40, e_0 );
@@ -1067,7 +969,7 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4_new(int kadd, double *Ap0, int sdap, double
 
 
 
-void kernel_dsyrk_dpotrf_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap0, int sdap, double *Bp, int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, int use_diag_C, double *diag_C, double *D0, int sdd, double *inv_diag_D)
+void kernel_dsyrk_dpotrf_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap0, int sdap, double *Bp, int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *inv_diag_D)
 	{
 	
 	double *Ap1 = Ap0 + 4*sdap;
@@ -1746,66 +1648,17 @@ void kernel_dsyrk_dpotrf_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 	d_43 = _mm256_blend_pd( e_1, e_3, 0x3 );
 
 
-	if(alg==0)
+	if(alg!=0)
 		{
-		if(use_diag_C)
-			{
 
-			zeros = _mm256_setzero_pd();
-
-			e_1  = _mm256_broadcast_sd( &diag_C[0] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x1 );
-			d_00 = _mm256_add_pd( d_00, e_1 );
-			
-			e_1  = _mm256_broadcast_sd( &diag_C[1] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x2 );
-			d_01 = _mm256_add_pd( d_01, e_1 );
-			
-			e_1  = _mm256_broadcast_sd( &diag_C[2] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x4 );
-			d_02 = _mm256_add_pd( d_02, e_1 );
-			
-			e_1  = _mm256_broadcast_sd( &diag_C[3] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x8 );
-			d_03 = _mm256_add_pd( d_03, e_1 );
-			}
-
-		}
-	else // alg==1
-		{
-		if(use_diag_C)
-			{
-			e_0  = _mm256_load_pd( &C0[0+bs*0] );
-			e_1  = _mm256_broadcast_sd( &diag_C[0] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x1 );
-			d_00 = _mm256_add_pd( d_00, e_0 );
-			
-			e_0  = _mm256_load_pd( &C0[0+bs*1] );
-			e_1  = _mm256_broadcast_sd( &diag_C[1] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x2 );
-			d_01 = _mm256_add_pd( d_01, e_0 );
-			
-			e_0  = _mm256_load_pd( &C0[0+bs*2] );
-			e_1  = _mm256_broadcast_sd( &diag_C[2] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x4 );
-			d_02 = _mm256_add_pd( d_02, e_0 );
-			
-			e_0  = _mm256_load_pd( &C0[0+bs*3] );
-			e_1  = _mm256_broadcast_sd( &diag_C[3] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x8 );
-			d_03 = _mm256_add_pd( d_03, e_0 );
-			}
-		else
-			{
-			e_0  = _mm256_load_pd( &C0[0+bs*0] );
-			d_00 = _mm256_add_pd( d_00, e_0 );
-			e_0  = _mm256_load_pd( &C0[0+bs*1] );
-			d_01 = _mm256_add_pd( d_01, e_0 );
-			e_0  = _mm256_load_pd( &C0[0+bs*2] );
-			d_02 = _mm256_add_pd( d_02, e_0 );
-			e_0  = _mm256_load_pd( &C0[0+bs*3] );
-			d_03 = _mm256_add_pd( d_03, e_0 );
-			}
+		e_0  = _mm256_load_pd( &C0[0+bs*0] );
+		d_00 = _mm256_add_pd( d_00, e_0 );
+		e_0  = _mm256_load_pd( &C0[0+bs*1] );
+		d_01 = _mm256_add_pd( d_01, e_0 );
+		e_0  = _mm256_load_pd( &C0[0+bs*2] );
+		d_02 = _mm256_add_pd( d_02, e_0 );
+		e_0  = _mm256_load_pd( &C0[0+bs*3] );
+		d_03 = _mm256_add_pd( d_03, e_0 );
 
 		e_0  = _mm256_load_pd( &C1[0+bs*0] );
 		d_40 = _mm256_add_pd( d_40, e_0 );
@@ -1994,7 +1847,7 @@ void kernel_dsyrk_dpotrf_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap0, double *Bp, int ksub, double *Am0, double *Bm, int alg, double *C0, int use_diag_C, double *diag_C, double *D0, double *inv_diag_D)
+void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap0, double *Bp, int ksub, double *Am0, double *Bm, int alg, double *C0, double *D0, double *inv_diag_D)
 	{
 	
 	const int bs = 4;
@@ -2475,66 +2328,17 @@ void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 	d_01 = _mm256_blend_pd( e_1, e_3, 0xc );
 	d_03 = _mm256_blend_pd( e_1, e_3, 0x3 );
 
-	if(alg==0)
+	if(alg!=0)
 		{
-		if(use_diag_C)
-			{
 
-			zeros = _mm256_setzero_pd();
-
-			e_1  = _mm256_broadcast_sd( &diag_C[0] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x1 );
-			d_00 = _mm256_add_pd( d_00, e_1 );
-			
-			e_1  = _mm256_broadcast_sd( &diag_C[1] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x2 );
-			d_01 = _mm256_add_pd( d_01, e_1 );
-			
-			e_1  = _mm256_broadcast_sd( &diag_C[2] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x4 );
-			d_02 = _mm256_add_pd( d_02, e_1 );
-			
-			e_1  = _mm256_broadcast_sd( &diag_C[3] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x8 );
-			d_03 = _mm256_add_pd( d_03, e_1 );
-			}
-
-		}
-	else // alg==1
-		{
-		if(use_diag_C)
-			{
-			e_0  = _mm256_load_pd( &C0[0+bs*0] );
-			e_1  = _mm256_broadcast_sd( &diag_C[0] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x1 );
-			d_00 = _mm256_add_pd( d_00, e_0 );
-			
-			e_0  = _mm256_load_pd( &C0[0+bs*1] );
-			e_1  = _mm256_broadcast_sd( &diag_C[1] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x2 );
-			d_01 = _mm256_add_pd( d_01, e_0 );
-			
-			e_0  = _mm256_load_pd( &C0[0+bs*2] );
-			e_1  = _mm256_broadcast_sd( &diag_C[2] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x4 );
-			d_02 = _mm256_add_pd( d_02, e_0 );
-			
-			e_0  = _mm256_load_pd( &C0[0+bs*3] );
-			e_1  = _mm256_broadcast_sd( &diag_C[3] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x8 );
-			d_03 = _mm256_add_pd( d_03, e_0 );
-			}
-		else
-			{
-			e_0  = _mm256_load_pd( &C0[0+bs*0] );
-			d_00 = _mm256_add_pd( d_00, e_0 );
-			e_0  = _mm256_load_pd( &C0[0+bs*1] );
-			d_01 = _mm256_add_pd( d_01, e_0 );
-			e_0  = _mm256_load_pd( &C0[0+bs*2] );
-			d_02 = _mm256_add_pd( d_02, e_0 );
-			e_0  = _mm256_load_pd( &C0[0+bs*3] );
-			d_03 = _mm256_add_pd( d_03, e_0 );
-			}
+		e_0  = _mm256_load_pd( &C0[0+bs*0] );
+		d_00 = _mm256_add_pd( d_00, e_0 );
+		e_0  = _mm256_load_pd( &C0[0+bs*1] );
+		d_01 = _mm256_add_pd( d_01, e_0 );
+		e_0  = _mm256_load_pd( &C0[0+bs*2] );
+		d_02 = _mm256_add_pd( d_02, e_0 );
+		e_0  = _mm256_load_pd( &C0[0+bs*3] );
+		d_03 = _mm256_add_pd( d_03, e_0 );
 
 		}
 		
@@ -2696,7 +2500,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 
 
-void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, int use_diag_C, double *diag_C, double *D, double *inv_diag_D)
+void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, double *D, double *inv_diag_D)
 	{
 	
 	const int bs = 4;
@@ -3003,44 +2807,13 @@ void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 	d_00 = _mm256_blend_pd( d_0, d_1, 0xa );
 	d_01 = _mm256_blend_pd( d_0, d_1, 0x5 );
 
-	if(alg==0)
+	if(alg!=0)
 		{
-		if(use_diag_C)
-			{
 
-			zeros = _mm256_setzero_pd();
-
-			e_1  = _mm256_broadcast_sd( &diag_C[0] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x1 );
-			d_00 = _mm256_add_pd( d_00, e_1 );
-			
-			e_1  = _mm256_broadcast_sd( &diag_C[1] );
-			e_1  = _mm256_blend_pd( zeros, e_1, 0x2 );
-			d_01 = _mm256_add_pd( d_01, e_1 );
-			}
-
-		}
-	else // alg==1
-		{
-		if(use_diag_C)
-			{
-			e_0  = _mm256_load_pd( &C[0+bs*0] );
-			e_1  = _mm256_broadcast_sd( &diag_C[0] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x1 );
-			d_00 = _mm256_add_pd( d_00, e_0 );
-			
-			e_0  = _mm256_load_pd( &C[0+bs*1] );
-			e_1  = _mm256_broadcast_sd( &diag_C[1] );
-			e_0  = _mm256_blend_pd( e_0, e_1, 0x2 );
-			d_01 = _mm256_add_pd( d_01, e_0 );
-			}
-		else
-			{
-			e_0  = _mm256_load_pd( &C[0+bs*0] );
-			d_00 = _mm256_add_pd( d_00, e_0 );
-			e_0  = _mm256_load_pd( &C[0+bs*1] );
-			d_01 = _mm256_add_pd( d_01, e_0 );
-			}
+		e_0  = _mm256_load_pd( &C[0+bs*0] );
+		d_00 = _mm256_add_pd( d_00, e_0 );
+		e_0  = _mm256_load_pd( &C[0+bs*1] );
+		d_01 = _mm256_add_pd( d_01, e_0 );
 
 		}
 		
@@ -3119,7 +2892,7 @@ void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 
 
-void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, int use_diag_C, double *diag_C, double *D, double *inv_diag_D)
+void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, double *D, double *inv_diag_D)
 	{
 
 	const int bs = 4;
@@ -3345,44 +3118,13 @@ void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 	d_00 = _mm_blend_pd( d_0, d_1, 0x2 );
 	d_01 = _mm_blend_pd( d_0, d_1, 0x1 );
 
-	if(alg==0)
+	if(alg!=0)
 		{
-		if(use_diag_C)
-			{
 
-			zeros = _mm_setzero_pd();
-
-			e_1  = _mm_loaddup_pd( &diag_C[0] );
-			e_1  = _mm_blend_pd( zeros, e_1, 0x1 );
-			d_00 = _mm_add_pd( d_00, e_1 );
-			
-			e_1  = _mm_loaddup_pd( &diag_C[1] );
-			e_1  = _mm_blend_pd( zeros, e_1, 0x2 );
-			d_01 = _mm_add_pd( d_01, e_1 );
-			}
-
-		}
-	else // alg==1
-		{
-		if(use_diag_C)
-			{
-			e_0  = _mm_load_pd( &C[0+bs*0] );
-			e_1  = _mm_loaddup_pd( &diag_C[0] );
-			e_0  = _mm_blend_pd( e_0, e_1, 0x1 );
-			d_00 = _mm_add_pd( d_00, e_0 );
-			
-			e_0  = _mm_load_pd( &C[0+bs*1] );
-			e_1  = _mm_loaddup_pd( &diag_C[1] );
-			e_0  = _mm_blend_pd( e_0, e_1, 0x2 );
-			d_01 = _mm_add_pd( d_01, e_0 );
-			}
-		else
-			{
-			e_0  = _mm_load_pd( &C[0+bs*0] );
-			d_00 = _mm_add_pd( d_00, e_0 );
-			e_0  = _mm_load_pd( &C[0+bs*1] );
-			d_01 = _mm_add_pd( d_01, e_0 );
-			}
+		e_0  = _mm_load_pd( &C[0+bs*0] );
+		d_00 = _mm_add_pd( d_00, e_0 );
+		e_0  = _mm_load_pd( &C[0+bs*1] );
+		d_01 = _mm_add_pd( d_01, e_0 );
 
 		}
 		
