@@ -1000,28 +1000,44 @@ void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 		if(td==0) // not transpose D
 			{
 			i = 0;
-#if 0 //defined(TARGET_X64_AVX2)
-			for(; i<m-8; i+=12)
+#if defined(TARGET_X64_AVX2) ||  defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX2)
+			for(; i<m-11; i+=12)
 				{
 				j = 0;
-				for(; j<n-2; j+=4)
+				for(; j<n-3; j+=4)
 					{
-					kernel_dgemm_nt_12x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, tc, td);
+					kernel_dgemm_nn_12x4_lib4(k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, 0, 0);
 					}
-				jj = 0;
-		/*		for(; jj<n-j-1; jj+=2)*/
-				for(; jj<n-j; jj+=2)
+				if(j<n)
 					{
-					kernel_dgemm_nt_8x2_lib4(k, &pA[i*sda], sda, &pB[jj+j*sdb], &pC[(j+jj)*bs+i*sdc], sdc, &pD[(j+jj)*bs+i*sdd], sdd, alg, tc, td);
-					kernel_dgemm_nt_4x2_lib4(k, &pA[(i+8)*sda], &pB[jj+j*sdb], &pC[(j+jj)*bs+(i+8)*sdc], &pD[(j+jj)*bs+(i+8)*sdd], alg, tc, td);
+					if(n-j==3)
+						{
+						kernel_dgemm_nn_12x4_vs_lib4(12, 3, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, 0, 0);
+						}
+					else // n-j==1 || n-j==2
+						{
+						kernel_dgemm_nn_8x2_vs_lib4(8, n-j, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, 0, 0);
+						kernel_dgemm_nn_4x2_vs_lib4(4, n-j, k, &pA[(i+8)*sda], &pB[j*bs], sdb, &pC[j*bs+(i+8)*sdc], &pD[j*bs+(i+8)*sdd], alg, 0, 0);
+						}
 					}
-		/*		for(; jj<n-j; jj++)*/
-		/*			{*/
-		/*			kernel_dgemm_nt_8x1_lib4(k, &pA[0+i*sda], sda, &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], sdc, alg);*/
-		/*			}*/
 				}
-#endif
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+			if(m-i<5)
+				{
+				if(m-i==0)
+					return;
+				else
+					goto left_00_4;
+				}
+			else
+				{
+				if(m-i<9)
+					goto left_00_8;
+				else
+					goto left_00_12;
+				}
+
+#elif defined(TARGET_X64_AVX)
 			for(; i<m-7; i+=8)
 				{
 				j = 0;
@@ -1050,6 +1066,27 @@ void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 				else
 					goto left_00_8;
 				}
+#endif
+
+			// common return if i==m
+			return;
+
+			// clean up loops definitions
+
+#if defined(TARGET_X64_AVX2)
+			left_00_12:
+			j = 0;
+			for(; j<n-2; j+=4)
+				{
+				kernel_dgemm_nn_12x4_vs_lib4(m-i, n-j, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, 0, 0);
+				}
+			if(j<n)
+				{
+				kernel_dgemm_nn_8x2_vs_lib4(m-i, n-j, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, 0, 0);
+				kernel_dgemm_nn_4x2_vs_lib4(m-i-8, n-j, k, &pA[(i+8)*sda], &pB[j*bs], sdb, &pC[j*bs+(i+8)*sdc], &pD[j*bs+(i+8)*sdd], alg, 0, 0);
+				}
+			return;
+#endif
 
 			left_00_8:
 			j = 0;
@@ -1074,6 +1111,7 @@ void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 				kernel_dgemm_nn_4x2_vs_lib4(m-i, n-j, k, &pA[i*sda], &pB[j*bs], sdb, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], alg, 0, 0);
 				}
 			return;
+
 
 #else
 			for(; i<m-3; i+=4)
@@ -1127,28 +1165,44 @@ void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 		else // tc==0, td==1
 			{
 			i = 0;
-#if 0 // defined(TARGET_X64_AVX2)
-			for(; i<m-8; i+=12)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX2)
+			for(; i<m-11; i+=12)
 				{
 				j = 0;
-				for(; j<n-2; j+=4)
+				for(; j<n-3; j+=4)
 					{
-					kernel_dgemm_nt_12x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pC[j*bs+i*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, tc, td);
+					kernel_dgemm_nn_12x4_lib4(k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[j*bs+i*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 0, 1);
 					}
-				jj = 0;
-		/*		for(; jj<n-j-1; jj+=2)*/
-				for(; jj<n-j; jj+=2)
+				if(j<n)
 					{
-					kernel_dgemm_nt_8x2_lib4(k, &pA[i*sda], sda, &pB[jj+j*sdb], &pC[(j+jj)*bs+i*sdc], sdc, &pD[i*bs+(j+jj)*sdd], sdd, alg, tc, td);
-					kernel_dgemm_nt_4x2_lib4(k, &pA[(i+8)*sda], &pB[jj+j*sdb], &pC[(j+jj)*bs+(i+8)*sdc], &pD[(i+8)*bs+(j+jj)*sdd], alg, tc, td);
+					if(n-j==3)
+						{
+						kernel_dgemm_nn_12x4_vs_lib4(12, 3, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[j*bs+i*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 0, 1);
+						}
+					else // n-j==1 || n-j==2
+						{
+						kernel_dgemm_nn_8x2_vs_lib4(8, n-j, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[j*bs+i*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 0, 1);
+						kernel_dgemm_nn_4x2_vs_lib4(4, n-j, k, &pA[(i+8)*sda], &pB[j*bs], sdb, &pC[j*bs+(i+8)*sdc], &pD[(i+8)*bs+j*sdd], alg, 0, 1);
+						}
 					}
-		/*		for(; jj<n-j; jj++)*/
-		/*			{*/
-		/*			kernel_dgemm_nt_8x1_lib4(k, &pA[0+i*sda], sda, &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], sdc, alg);*/
-		/*			}*/
 				}
-#endif
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+			if(m-i<5)
+				{
+				if(m-i==0)
+					return;
+				else
+					goto left_10_4;
+				}
+			else
+				{
+				if(m-i<9)
+					goto left_10_8;
+				else
+					goto left_10_12;
+				}
+
+#elif defined(TARGET_X64_AVX)
 			for(; i<m-7; i+=8)
 				{
 				j = 0;
@@ -1177,6 +1231,27 @@ void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 				else
 					goto left_01_8;
 				}
+
+#endif
+
+			// common return if i==m
+			return;
+
+			// clean up loops definitions
+#if defined(TARGET_X64_AVX2)
+			left_01_12:
+			j = 0;
+			for(; j<n-2; j+=4)
+				{
+				kernel_dgemm_nn_12x4_vs_lib4(m-i, n-j, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[j*bs+i*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 0, 1);
+				}
+			if(j<n)
+				{
+				kernel_dgemm_nn_8x2_vs_lib4(m-i, n-j, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[j*bs+i*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 0, 1);
+				kernel_dgemm_nn_4x2_vs_lib4(m-i-8, n-j, k, &pA[(i+8)*sda], &pB[j*bs], sdb, &pC[j*bs+(i+8)*sdc], &pD[(i+8)*bs+j*sdd], alg, 0, 1);
+				}
+			return;
+#endif
 
 			left_01_8:
 			j = 0;
@@ -1257,28 +1332,44 @@ void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 		if(td==0) // not transpose D
 			{
 			i = 0;
-#if 0 // defined(TARGET_X64_AVX2)
-			for(; i<m-8; i+=12)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX2)
+			for(; i<m-11; i+=12)
 				{
 				j = 0;
-				for(; j<n-2; j+=4)
+				for(; j<n-3; j+=4)
 					{
-					kernel_dgemm_nt_12x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pC[i*bs+j*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, tc, td);
+					kernel_dgemm_nn_12x4_lib4(k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[i*bs+j*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, 1, 0);
 					}
-				jj = 0;
-		/*		for(; jj<n-j-1; jj+=2)*/
-				for(; jj<n-j; jj+=2)
+				if(j<n)
 					{
-					kernel_dgemm_nt_8x2_lib4(k, &pA[i*sda], sda, &pB[jj+j*sdb], &pC[i*bs+(j+jj)*sdc], sdc, &pD[(j+jj)*bs+i*sdd], sdd, alg, tc, td);
-					kernel_dgemm_nt_4x2_lib4(k, &pA[(i+8)*sda], &pB[jj+j*sdb], &pC[(i+8)*bs+(j+jj)*sdc], &pD[(j+jj)*bs+(i+8)*sdd], alg, tc, td);
+					if(n-j==3)
+						{
+						kernel_dgemm_nn_12x4_vs_lib4(12, 3, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[i*bs+j*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, 1, 0);
+						}
+					else // n-j==1 || n-j==2
+						{
+						kernel_dgemm_nn_8x2_vs_lib4(8, n-j, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[i*bs+j*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, 1, 0);
+						kernel_dgemm_nn_4x2_vs_lib4(4, n-j, k, &pA[(i+8)*sda], &pB[j*bs], sdb, &pC[(i+8)*bs+j*sdc], &pD[j*bs+(i+8)*sdd], alg, 1, 0);
+						}
 					}
-		/*		for(; jj<n-j; jj++)*/
-		/*			{*/
-		/*			kernel_dgemm_nt_8x1_lib4(k, &pA[0+i*sda], sda, &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], sdc, alg);*/
-		/*			}*/
 				}
-#endif
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+			if(m-i<5)
+				{
+				if(m-i==0)
+					return;
+				else
+					goto left_01_4;
+				}
+			else
+				{
+				if(m-i<9)
+					goto left_01_8;
+				else
+					goto left_01_12;
+				}
+
+#elif defined(TARGET_X64_AVX)
 			for(; i<m-7; i+=8)
 				{
 				j = 0;
@@ -1307,6 +1398,28 @@ void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 				else
 					goto left_10_8;
 				}
+
+#endif
+
+			// common return if i==m
+			return;
+
+			// clean up loops definitions
+
+#if defined(TARGET_X64_AVX2)
+			left_10_12:
+			j = 0;
+			for(; j<n-2; j+=4)
+				{
+				kernel_dgemm_nn_12x4_vs_lib4(m-i, n-j, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[i*bs+j*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, 1, 0);
+				}
+			if(j<n)
+				{
+				kernel_dgemm_nn_8x2_vs_lib4(m-i, n-j, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[i*bs+j*sdc], sdc, &pD[j*bs+i*sdd], sdd, alg, 1, 0);
+				kernel_dgemm_nn_4x2_vs_lib4(m-i-8, n-j, k, &pA[(i+8)*sda], &pB[j*bs], sdb, &pC[(i+8)*bs+j*sdc], &pD[j*bs+(i+8)*sdd], alg, 1, 0);
+				}
+			return;
+#endif
 
 			left_10_8:
 			j = 0;
@@ -1384,28 +1497,44 @@ void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 		else // td==1
 			{
 			i = 0;
-#if 0 // defined(TARGET_X64_AVX2)
-			for(; i<m-8; i+=12)
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX2)
+			for(; i<m-11; i+=12)
 				{
 				j = 0;
-				for(; j<n-2; j+=4)
+				for(; j<n-3; j+=4)
 					{
-					kernel_dgemm_nt_12x4_lib4(k, &pA[i*sda], sda, &pB[j*sdb], &pC[i*bs+j*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, tc, td);
+					kernel_dgemm_nn_12x4_lib4(k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[i*bs+j*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 1, 1);
 					}
-				jj = 0;
-		/*		for(; jj<n-j-1; jj+=2)*/
-				for(; jj<n-j; jj+=2)
+				if(j<n)
 					{
-					kernel_dgemm_nt_8x2_lib4(k, &pA[i*sda], sda, &pB[jj+j*sdb], &pC[i*bs+(j+jj)*sdc], sdc, &pD[i*bs+(j+jj)*sdd], sdd, alg, tc, td);
-					kernel_dgemm_nt_4x2_lib4(k, &pA[(i+8)*sda], &pB[jj+j*sdb], &pC[(i+8)*bs+(j+jj)*sdc], &pD[(i+8)*bs+(j+jj)*sdd], alg, tc, td);
+					if(n-j==3)
+						{
+						kernel_dgemm_nn_12x4_vs_lib4(12, 3, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[i*bs+j*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 1, 1);
+						}
+					else // n-j==1 || n-j==2
+						{
+						kernel_dgemm_nn_8x2_vs_lib4(8, n-j, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[i*bs+j*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 1, 1);
+						kernel_dgemm_nn_4x2_vs_lib4(4, n-j, k, &pA[(i+8)*sda], &pB[j*bs], sdb, &pC[(i+8)*bs+j*sdc], &pD[(i+8)*bs+j*sdd], alg, 1, 1);
+						}
 					}
-		/*		for(; jj<n-j; jj++)*/
-		/*			{*/
-		/*			kernel_dgemm_nt_8x1_lib4(k, &pA[0+i*sda], sda, &pB[jj+j*sdb], &pC[0+(j+jj)*bs+i*sdc], sdc, alg);*/
-		/*			}*/
 				}
-#endif
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+			if(m-i<5)
+				{
+				if(m-i==0)
+					return;
+				else
+					goto left_11_4;
+				}
+			else
+				{
+				if(m-i<9)
+					goto left_11_8;
+				else
+					goto left_11_12;
+				}
+
+#elif defined(TARGET_X64_AVX)
 			for(; i<m-7; i+=8)
 				{
 				j = 0;
@@ -1434,6 +1563,28 @@ void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 				else
 					goto left_11_8;
 				}
+
+#endif
+
+			// common return if i==m
+			return;
+
+			// clean up loops definitions
+
+#if defined(TARGET_X64_AVX2)
+			left_11_12:
+			j = 0;
+			for(; j<n-2; j+=4)
+				{
+				kernel_dgemm_nn_12x4_vs_lib4(m-i, n-j, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[i*bs+j*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 1, 1);
+				}
+			if(j<n)
+				{
+				kernel_dgemm_nn_8x2_vs_lib4(m-i, n-j, k, &pA[i*sda], sda, &pB[j*bs], sdb, &pC[i*bs+j*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 1, 1);
+				kernel_dgemm_nn_4x2_vs_lib4(m-i-8, n-j, k, &pA[(i+8)*sda], &pB[j*bs], sdb, &pC[(i+8)*bs+j*sdc], &pD[(i+8)*bs+j*sdd], alg, 1, 1);
+				}
+			return;
+#endif
 
 			left_11_8:
 			j = 0;
