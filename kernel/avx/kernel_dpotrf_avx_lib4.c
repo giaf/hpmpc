@@ -1056,6 +1056,7 @@ void kernel_dsyrk_dpotrf_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 				// k = 2
 				a_0123  = _mm256_blend_pd( zeros, a_0123, 0x7 );
+				b_0123  = _mm256_blend_pd( zeros, b_0123, 0x7 ); // XXX
 				ab_tmp0 = _mm256_mul_pd( a_0123, b_0123 );
 				b_1032  = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 				b_0123  = _mm256_load_pd( &Bp[12] ); // prefetch
@@ -1923,6 +1924,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 				// k = 2
 				a_0123  = _mm256_blend_pd( zeros, a_0123, 0x7 );
+				b_0123  = _mm256_blend_pd( zeros, b_0123, 0x7 ); // XXX
 				ab_tmp0 = _mm256_mul_pd( a_0123, b_0123 );
 				b_1032  = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 				b_0123  = _mm256_load_pd( &Bp[12] ); // prefetch
@@ -6662,6 +6664,7 @@ void kernel_dsyrk_dpotrf_nt_8x4_vs_lib4(int km, int kn, int tri, int kadd, int k
 
 				// k = 2
 				a_0123        = _mm256_blend_pd( ab_tmp1, a_0123, 0x7 );
+				b_0123        = _mm256_blend_pd( ab_tmp1, b_0123, 0x7 ); // XXX
 				ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
 				b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 				b_0123        = _mm256_load_pd( &Bp[12] ); // prefetch
@@ -8898,6 +8901,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4(int km, int kn, int tri, int kadd, int k
 
 				// k = 2
 				a_0123        = _mm256_blend_pd(zeros, a_0123, 0x7 );
+				b_0123        = _mm256_blend_pd(zeros, b_0123, 0x7 ); // XXX
 				ab_temp       = _mm256_mul_pd( a_0123, b_0123 );
 				c_00_11_22_33 = _mm256_add_pd( c_00_11_22_33, ab_temp );
 				b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );

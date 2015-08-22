@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bs);
 	
-	int n = 12;
+	int n = 24;
 	int nrep = 1;
 	
 	double *A; d_zeros(&A, n, n);
@@ -160,10 +160,10 @@ int main()
 
 //		dgemm_nn_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0, 0, 0);
 //		dgemm_nn_lib(n, n, n, pB, cn, pA, cn, pC, cn, pD, cn, 0, 0, 0);
-		dsyrk_dpotrf_lib(8, 2, n, pA, cn, pB, cn, pD, cn, diag, 1, 0);
-//		dsyrk_dpotrf_lib_new(n, n, n, pA, cn, pA, cn, 1, pB, cn, 0, y, pD, cn, diag);
+//		dsyrk_dpotrf_lib(8, 2, n, pA, cn, pB, cn, pD, cn, diag, 1, 0);
+		dsyrk_dpotrf_lib_new(n, n, n, pA, cn, pA, cn, 1, pB, cn, pD, cn, diag);
 //		dsyrk_nt_lib(n, n, n, pA, cn, pA, cn, pB, cn, pD, cn, 1);
-//		dpotrf_lib_new(n, 3, pD, cn, 0, y, pD, cn, x);
+//		dpotrf_lib_new(n, n, pD, cn, pD, cn, x);
 //		dsyrk_nn_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
 //		dgemm_diag_left_lib(n, n, x, pA, cn, pC, cn, pD, cn, 0);
 //		dsyrk_diag_left_right_lib(n, x, x, pA, cn, pC, cn, pD, cn, 0);

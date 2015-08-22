@@ -243,18 +243,27 @@ void kernel_add_align_panel_1_0_lib4(int kmax, double alpha, double *A, double *
 
 
 // new kernels
+void kernel_dpotrf_nt_12x4_lib4_new(int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *inv_diag_D);
+void kernel_dpotrf_nt_8x8_lib4_new(int ksub, double *Am0, int sdam, double *Bm, int sdbm, int alg, double *C0, int sdc, double *D0, int sdd, double *inv_diag_D);
 void kernel_dpotrf_nt_8x4_lib4_new(int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *inv_diag_D);
 void kernel_dpotrf_nt_4x4_lib4_new(int ksub, double *Am0, double *Bm, int alg, double *C0, double *D0, double *inv_diag_D);
+void kernel_dsyrk_dpotrf_nt_12x4_lib4_new(int kadd, double *Ap0, int sdap, double *Bp, int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *inv_diag_D);
+void kernel_dsyrk_dpotrf_nt_8x8_lib4_new(int kadd, double *Ap0, int sdap, double *Bp, int sdbp, int ksub, double *Am0, int sdam, double *Bm, int sdbm, int alg, double *C0, int sdc, double *D0, int sdd, double *inv_diag_D);
 void kernel_dsyrk_dpotrf_nt_8x4_lib4_new(int kadd, double *Ap0, int sdap, double *Bp, int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *inv_diag_D);
 void kernel_dsyrk_dpotrf_nt_4x4_lib4_new(int kadd, double *Ap0, double *Bp, int ksub, double *Am0, double *Bm, int alg, double *C0, double *D0, double *inv_diag_D);
+void kernel_dsyrk_dpotrf_nt_12x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap0, int sdap, double *Bp, int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *inv_diag_D);
+void kernel_dsyrk_dpotrf_nt_8x8_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap0, int sdap, double *Bp, int sdbp, int ksub, double *Am0, int sdam, double *Bm, int sdbm, int alg, double *C0, int sdc, double *D0, int sdd, double *inv_diag_D);
 void kernel_dsyrk_dpotrf_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap0, int sdap, double *Bp, int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *inv_diag_D);
 void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap0, double *Bp, int ksub, double *Am0, double *Bm, int alg, double *C0, double *D0, double *inv_diag_D);
 void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, double *D, double *inv_diag_D);
 void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap, double *Bp, int ksub, double *Am, double *Bm, int alg, double *C, double *D, double *inv_diag_D);
+void kernel_dtrsm_nt_12x4_lib4_new(int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *E, int use_inv_diag_E, double *inv_diag_E);
 void kernel_dtrsm_nt_8x4_lib4_new(int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *E, int use_inv_diag_E, double *inv_diag_E);
 void kernel_dtrsm_nt_4x4_lib4_new(int ksub, double *Am0, double *Bm, int alg, double *C0, double *D0, double *E, int use_inv_diag_E, double *inv_diag_E);
+void kernel_dgemm_dtrsm_nt_12x4_lib4_new(int kadd, double *Ap0, int sdap, double *Bp, int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *E, int use_inv_diag_E, double *inv_diag_E);
 void kernel_dgemm_dtrsm_nt_8x4_lib4_new(int kadd, double *Ap0, int sdap, double *Bp, int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *E, int use_inv_diag_E, double *inv_diag_E);
 void kernel_dgemm_dtrsm_nt_4x4_lib4_new(int kadd, double *Ap0, double *Bp, int ksub, double *Am0, double *Bm, int alg, double *C0, double *D0, double *E, int use_inv_diag_E, double *inv_diag_E);
+void kernel_dgemm_dtrsm_nt_12x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap0, int sdap, double *Bp, int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *E, int use_inv_diag_E, double *inv_diag_E);
 void kernel_dgemm_dtrsm_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap0, int sdap, double *Bp, int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *E, int use_inv_diag_E, double *inv_diag_E);
 void kernel_dgemm_dtrsm_nt_8x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap0, int sdap, double *Bp, int ksub, double *Am0, int sdam, double *Bm, int alg, double *C0, int sdc, double *D0, int sdd, double *E, int use_inv_diag_E, double *inv_diag_E);
 void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, double *Ap0, double *Bp, int ksub, double *Am0, double *Bm, int alg, double *C0, double *D0, double *E, int use_inv_diag_E, double *inv_diag_E);
