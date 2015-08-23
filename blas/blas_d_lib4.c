@@ -2491,7 +2491,6 @@ void dsyrk_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 
 
 
-#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_C99_4X4)
 void dpotrf_lib_new(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D)
 	{
 
@@ -2791,7 +2790,7 @@ void dpotrf_lib_new(int m, int n, double *pC, int sdc, double *pD, int sdd, doub
 			}
 		}
 #endif
-#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 	for(; i<m-3; i+=4)
 		{
 		j = 0;
@@ -2972,7 +2971,7 @@ void dpotrf_lib_new(int m, int n, double *pC, int sdc, double *pD, int sdd, doub
 		}
 
 #endif
-#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 	j = 0;
 	for(; j<n-3; j+=4) // then i<m-3 !!!
 		{
@@ -3039,7 +3038,6 @@ void dpotrf_lib_new(int m, int n, double *pC, int sdc, double *pD, int sdd, doub
 #endif
 
 	}
-#endif
 
 
 
@@ -3427,7 +3425,6 @@ void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *
 
 
 
-#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_C99_4X4)
 void dsyrk_dpotrf_lib_new(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D)
 	{
 
@@ -3727,7 +3724,7 @@ void dsyrk_dpotrf_lib_new(int m, int n, int k, double *pA, int sda, double *pB, 
 			}
 		}
 #endif
-#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 	for(; i<m-3; i+=4)
 		{
 		j = 0;
@@ -4001,7 +3998,7 @@ void dsyrk_dpotrf_lib_new(int m, int n, int k, double *pA, int sda, double *pB, 
 		}
 
 #endif
-#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3)
+#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 	j = 0;
 	for(; j<n-3; j+=4) // then i<m-3 !!!
 		{
@@ -4068,7 +4065,6 @@ void dsyrk_dpotrf_lib_new(int m, int n, int k, double *pA, int sda, double *pB, 
 #endif
 
 	}
-#endif
 
 
 
@@ -4938,7 +4934,6 @@ void dmvmv_lib(int m, int n, double *pA, int sda, double *x_n, double *y_n, doub
 
 
 
-#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_C99_4X4)
 void dtrsv_n_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x)
 	{
 
@@ -5001,7 +4996,6 @@ void dtrsv_n_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, doub
 		}
 
 	}
-#endif
 
 
 
@@ -5095,7 +5089,6 @@ void dtrsv_n_lib(int m, int n, int inverted_diag, double *pA, int sda, double *x
 
 
 
-#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_C99_4X4)
 void dtrsv_t_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x)
 	{
 
@@ -5130,7 +5123,6 @@ void dtrsv_t_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, doub
 		}
 
 	}
-#endif
 
 
 
