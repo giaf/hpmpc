@@ -3168,7 +3168,15 @@ void kernel_dgemm_nn_12x4_lib4(int kmax, double *A0, int sda, double *B, int sdb
 	double *D1 = D0 + 4*sdd;
 	double *D2 = D0 + 8*sdd;
 
+	__builtin_prefetch( B+0 );
+	__builtin_prefetch( B+8 );
+
 	const int bs = 4;
+
+	const int B_next = bs*sdb;
+
+	__builtin_prefetch( B+B_next+0 );
+	__builtin_prefetch( B+B_next+8 );
 
 	int k;
 
@@ -3195,6 +3203,8 @@ void kernel_dgemm_nn_12x4_lib4(int kmax, double *A0, int sda, double *B, int sdb
 
 	for(k=0; k<kmax-3; k+=4)
 		{
+
+		__builtin_prefetch( B+2*B_next+0 );
 
 		a_0 = _mm256_load_pd( &A0[0+bs*0] );
 		a_4 = _mm256_load_pd( &A1[0+bs*0] );
@@ -3237,6 +3247,8 @@ void kernel_dgemm_nn_12x4_lib4(int kmax, double *A0, int sda, double *B, int sdb
 		d_7 = _mm256_fmadd_pd( a_4, b_0, d_7 );
 		d_b = _mm256_fmadd_pd( a_8, b_0, d_b );
 
+
+		__builtin_prefetch( B+2*B_next+8 );
 
 		a_0 = _mm256_load_pd( &A0[0+bs*2] );
 		a_4 = _mm256_load_pd( &A1[0+bs*2] );
@@ -3665,7 +3677,15 @@ void kernel_dgemm_nn_12x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda,
 	double *D1 = D0 + 4*sdd;
 	double *D2 = D0 + 8*sdd;
 
+	__builtin_prefetch( B+0 );
+	__builtin_prefetch( B+8 );
+
 	const int bs = 4;
+
+	const int B_next = bs*sdb;
+
+	__builtin_prefetch( B+B_next+0 );
+	__builtin_prefetch( B+B_next+8 );
 
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
 
@@ -3699,6 +3719,8 @@ void kernel_dgemm_nn_12x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda,
 
 	for(k=0; k<kmax-3; k+=4)
 		{
+
+		__builtin_prefetch( B+2*B_next+0 );
 
 		a_0 = _mm256_load_pd( &A0[0+bs*0] );
 		a_4 = _mm256_load_pd( &A1[0+bs*0] );
@@ -3741,6 +3763,8 @@ void kernel_dgemm_nn_12x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda,
 		d_7 = _mm256_fmadd_pd( a_4, b_0, d_7 );
 		d_b = _mm256_fmadd_pd( a_8, b_0, d_b );
 
+
+		__builtin_prefetch( B+2*B_next+8 );
 
 		a_0 = _mm256_load_pd( &A0[0+bs*2] );
 		a_4 = _mm256_load_pd( &A1[0+bs*2] );
@@ -4192,7 +4216,15 @@ void kernel_dgemm_nn_8x4_lib4(int kmax, double *A0, int sda, double *B, int sdb,
 	double *C1 = C0 + 4*sdc;
 	double *D1 = D0 + 4*sdd;
 
+	__builtin_prefetch( B+0 );
+	__builtin_prefetch( B+8 );
+
 	const int bs = 4;
+
+	const int B_next = bs*sdb;
+
+	__builtin_prefetch( B+B_next+0 );
+	__builtin_prefetch( B+B_next+8 );
 
 	int k;
 
@@ -4214,6 +4246,8 @@ void kernel_dgemm_nn_8x4_lib4(int kmax, double *A0, int sda, double *B, int sdb,
 
 	for(k=0; k<kmax-3; k+=4)
 		{
+
+		__builtin_prefetch( B+2*B_next+0 );
 
 		a_0 = _mm256_load_pd( &A0[0+bs*0] );
 		a_4 = _mm256_load_pd( &A1[0+bs*0] );
@@ -4246,6 +4280,8 @@ void kernel_dgemm_nn_8x4_lib4(int kmax, double *A0, int sda, double *B, int sdb,
 		d_3 = _mm256_fmadd_pd( a_0, b_0, d_3 );
 		d_7 = _mm256_fmadd_pd( a_4, b_0, d_7 );
 
+
+		__builtin_prefetch( B+2*B_next+8 );
 
 		a_0 = _mm256_load_pd( &A0[0+bs*2] );
 		a_4 = _mm256_load_pd( &A1[0+bs*2] );
@@ -4537,7 +4573,15 @@ void kernel_dgemm_nn_8x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 	double *C1 = C0 + 4*sdc;
 	double *D1 = D0 + 4*sdd;
 
+	__builtin_prefetch( B+0 );
+	__builtin_prefetch( B+8 );
+
 	const int bs = 4;
+
+	const int B_next = bs*sdb;
+
+	__builtin_prefetch( B+B_next+0 );
+	__builtin_prefetch( B+B_next+8 );
 
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
 
@@ -4566,6 +4610,8 @@ void kernel_dgemm_nn_8x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 
 	for(k=0; k<kmax-3; k+=4)
 		{
+
+		__builtin_prefetch( B+2*B_next+0 );
 
 		a_0 = _mm256_load_pd( &A0[0+bs*0] );
 		a_4 = _mm256_load_pd( &A1[0+bs*0] );
@@ -4598,6 +4644,8 @@ void kernel_dgemm_nn_8x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 		d_3 = _mm256_fmadd_pd( a_0, b_0, d_3 );
 		d_7 = _mm256_fmadd_pd( a_4, b_0, d_7 );
 
+
+		__builtin_prefetch( B+2*B_next+8 );
 
 		a_0 = _mm256_load_pd( &A0[0+bs*2] );
 		a_4 = _mm256_load_pd( &A1[0+bs*2] );
