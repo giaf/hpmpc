@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bs);
 	
-	int n = 12;
+	int n = 24;
 	int nrep = 1;
 	
 	double *A; d_zeros(&A, n, n);

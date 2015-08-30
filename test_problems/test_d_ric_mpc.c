@@ -1146,6 +1146,29 @@ int main()
 			for(ii=0; ii<N; ii++)
 				d_print_mat(1, nx, hpi[ii+1], 1);
 			}
+#if 1
+		// restore linear part
+		for(ii=0; ii<=N; ii++)
+			drowex_lib(nu+nx, hpQ[ii]+(nu+nx)/bs*bs*cnz+(nu+nx)%bs, hq[ii]);
+			
+		// call the solver
+		d_back_ric_trs_new(N, nx, nu, hpBAbt, hq, 1, hux, hpL, hl, diag, 1, hPb, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy);
+
+		if(PRINTRES==1 && ll_max==1)
+			{
+			/* print result */
+			printf("\n\nsv\n\n");
+			for(ii=0; ii<N; ii++)
+				d_print_mat(1, nu+nx, hux[ii], 1);
+			}
+		if(PRINTRES==1 && COMPUTE_MULT==1 && ll_max==1)
+			{
+			// print result 
+			printf("\n\npi\n\n");
+			for(ii=0; ii<N; ii++)
+				d_print_mat(1, nx, hpi[ii+1], 1);
+			}
+#endif
 			exit(1);
 #endif
 
