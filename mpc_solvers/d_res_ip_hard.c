@@ -77,7 +77,7 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 		}
 	if(ng0>0)
 		{
-		dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], hrd[ii]+2*pnb, hrd[ii]+2*pnb, 0);
+		dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], 0, hrd[ii]+2*pnb, hrd[ii]+2*pnb);
 		for(jj=0; jj<ng0; jj++)
 			{
 			hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+jj];
@@ -95,21 +95,21 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 		temp[jj] = hux[ii][nu0/bs*bs+jj]; 
 		hux[ii][nu0/bs*bs+jj] = 0.0; 
 		}
-	dgemv_t_lib(nx0+nu0%bs, nu0, hpQ[ii]+nu0/bs*bs*cnz0, cnz0, hux[ii]+nu0/bs*bs, hrq[ii], hrq[ii], -1);
+	dgemv_t_lib(nx0+nu0%bs, nu0, hpQ[ii]+nu0/bs*bs*cnz0, cnz0, hux[ii]+nu0/bs*bs, -1, hrq[ii], hrq[ii]);
 	for(jj=0; jj<nu0%bs; jj++) 
 		hux[ii][nu0/bs*bs+jj] = temp[jj];
-	dsymv_lib(nu0, nu0, hpQ[ii], cnz0, hux[ii], hrq[ii], hrq[ii], -1);
-	dgemv_n_lib(nu0, nx1, hpBAbt[ii], cnx1, hpi[ii+1], hrq[ii], hrq[ii], -1);
+	dsymv_lib(nu0, nu0, hpQ[ii], cnz0, hux[ii], -1, hrq[ii], hrq[ii]);
+	dgemv_n_lib(nu0, nx1, hpBAbt[ii], cnx1, hpi[ii+1], -1, hrq[ii], hrq[ii]);
 	if(ng0>0)
 		{
 		// TODO work space + one dgemv call
-		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, hrq[ii], hrq[ii], 1);
-		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, hrq[ii], hrq[ii], -1);
+		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, 1, hrq[ii], hrq[ii]);
+		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, -1, hrq[ii], hrq[ii]);
 		}
 	
 	for(jj=0; jj<nx1; jj++) 
 		hrb[ii][jj] = hux[ii+1][nu1+jj] - hpBAbt[ii][(nu0+nx0)/bs*bs*cnx1+(nu0+nx0)%bs+bs*jj];
-	dgemv_t_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hux[ii], hrb[ii], hrb[ii], -1);
+	dgemv_t_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hux[ii], -1, hrb[ii], hrb[ii]);
 
 
 
@@ -142,7 +142,7 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 			}
 		if(ng0>0)
 			{
-			dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], hrd[ii]+2*pnb, hrd[ii]+2*pnb, 0);
+			dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], 0, hrd[ii]+2*pnb, hrd[ii]+2*pnb);
 			for(jj=0; jj<ng0; jj++)
 				{
 				hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+jj];
@@ -157,17 +157,17 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 			hrq[ii][nu0+jj] = - hq[ii][nu0+jj] + hpi[ii][jj];
 		for(jj=0; jj<nb0; jj++) 
 			hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
-		dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnz0, hux[ii], hrq[ii], hrq[ii], -1);
+		dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnz0, hux[ii], -1, hrq[ii], hrq[ii]);
 		if(ng0>0)
 			{
 			// TODO work space + one dgemv call
-			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, hrq[ii], hrq[ii], 1);
-			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, hrq[ii], hrq[ii], -1);
+			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, 1, hrq[ii], hrq[ii]);
+			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, -1, hrq[ii], hrq[ii]);
 			}
 
 		for(jj=0; jj<nx1; jj++) 
 			hrb[ii][jj] = hux[ii+1][nu1+jj] - hpBAbt[ii][(nu0+nx0)/bs*bs*cnx1+(nu0+nx0)%bs+bs*jj];
-		dmvmv_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii+1], hrq[ii], hrq[ii], hux[ii], hrb[ii], hrb[ii], -1);
+		dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii+1], hux[ii], -1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
 
 		}
 	
@@ -197,7 +197,7 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 		}
 	if(ng0>0)
 		{
-		dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], hrd[ii]+2*pnb, hrd[ii]+2*pnb, 0);
+		dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], 0, hrd[ii]+2*pnb, hrd[ii]+2*pnb);
 		for(jj=0; jj<ng0; jj++)
 			{
 			hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+jj];
@@ -210,12 +210,12 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 		hrq[ii][nu0+jj] = hpi[ii][jj] - hq[ii][nu0+jj];
 	for(jj=0; jj<nb0; jj++) 
 		hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
-	dsymv_lib(nx0+nu0%bs, nx0+nu0%bs, hpQ[ii]+nu0/bs*bs*cnz0+nu0/bs*bs*bs, cnz0, hux[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs, -1);
+	dsymv_lib(nx0+nu0%bs, nx0+nu0%bs, hpQ[ii]+nu0/bs*bs*cnz0+nu0/bs*bs*bs, cnz0, hux[ii]+nu0/bs*bs, -1, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs);
 	if(ng0>0)
 		{
 		// TODO work space + one dgemv call
-		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, hrq[ii], hrq[ii], 1);
-		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, hrq[ii], hrq[ii], -1);
+		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, 1, hrq[ii], hrq[ii]);
+		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, -1, hrq[ii], hrq[ii]);
 		}
 	
 
@@ -282,15 +282,15 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, int ngN, double **
 		hux[0][(nu/bs)*bs+jj] = 0.0; 
 		}
 	//dgemv_t_lib(nx, nu, hpQ[0]+(nu/bs)*bs*cnz+nu%bs, cnz, hux[0]+nu, hrq[0], -1); // TODO fix !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	dgemv_t_lib(nx+nu%bs, nu, hpQ[0]+(nu/bs)*bs*cnz, cnz, hux[0]+nu/bs*bs, hrq[0], hrq[0], -1);
+	dgemv_t_lib(nx+nu%bs, nu, hpQ[0]+(nu/bs)*bs*cnz, cnz, hux[0]+nu/bs*bs, -1, hrq[0], hrq[0]);
 	for(jj=0; jj<nu%bs; jj++) 
 		hux[0][(nu/bs)*bs+jj] = temp[jj];
-	dsymv_lib(nu, nu, hpQ[0], cnz, hux[0], hrq[0], hrq[0], -1);
-	dgemv_n_lib(nu, nx, hpBAbt[0], cnx, hpi[1], hrq[0], hrq[0], -1);
+	dsymv_lib(nu, nu, hpQ[0], cnz, hux[0], -1, hrq[0], hrq[0]);
+	dgemv_n_lib(nu, nx, hpBAbt[0], cnx, hpi[1], -1, hrq[0], hrq[0]);
 
 	for(jj=0; jj<nx; jj++) 
 		hrb[0][jj] = hux[1][nu+jj] - hpBAbt[0][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
-	dgemv_t_lib(nxu, nx, hpBAbt[0], cnx, hux[0], hrb[0], hrb[0], -1);
+	dgemv_t_lib(nxu, nx, hpBAbt[0], cnx, hux[0], -1, hrb[0], hrb[0]);
 
 
 
@@ -315,11 +315,11 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, int ngN, double **
 			hrq[ii][nu+jj] = hpi[ii][jj] - hq[ii][nu+jj] + hlam[ii][nu+jj] - hlam[ii][pnb+nu+jj];
 		for(; jj<nx; jj++) 
 			hrq[ii][nu+jj] = hpi[ii][jj] - hq[ii][nu+jj];
-		dsymv_lib(nxu, nxu, hpQ[ii], cnz, hux[ii], hrq[ii], hrq[ii], -1);
+		dsymv_lib(nxu, nxu, hpQ[ii], cnz, hux[ii], -1, hrq[ii], hrq[ii]);
 
 		for(jj=0; jj<nx; jj++) 
 			hrb[ii][jj] = hux[ii+1][nu+jj] - hpBAbt[ii][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
-		dmvmv_lib(nxu, nx, hpBAbt[ii], cnx, hpi[ii+1], hrq[ii], hrq[ii], hux[ii], hrb[ii], hrb[ii], -1);
+		dgemv_nt_lib(nxu, nx, hpBAbt[ii], cnx, hpi[ii+1], hux[ii], -1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
 
 		}
 	
@@ -339,7 +339,7 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, int ngN, double **
 		hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj] + hlam[N][nu+jj] - hlam[N][pnb+nu+jj];
 	for(; jj<nx; jj++) 
 		hrq[N][nu+jj] = hpi[N][jj] - hq[N][nu+jj];
-	dsymv_lib(nx+nu%bs, nx+nu%bs, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hux[N]+(nu/bs)*bs, hrq[N]+(nu/bs)*bs, hrq[N]+(nu/bs)*bs, -1);
+	dsymv_lib(nx+nu%bs, nx+nu%bs, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hux[N]+(nu/bs)*bs, -1, hrq[N]+(nu/bs)*bs, hrq[N]+(nu/bs)*bs);
 	
 
 
@@ -352,7 +352,7 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, int ngN, double **
 			for(jj=0 ; jj<ng; jj++) 
 				mu[0] += hlam[ii][2*pnb+jj] * ht[ii][2*pnb+jj] + hlam[ii][2*pnb+png+jj] * ht[ii][2*pnb+png+jj];
 
-			dgemv_t_lib(nx+nu, ng, hpDCt[ii], cng, hux[ii], hrd[ii]+2*pnb, hrd[ii]+2*pnb, 0);
+			dgemv_t_lib(nx+nu, ng, hpDCt[ii], cng, hux[ii], 0, hrd[ii]+2*pnb, hrd[ii]+2*pnb);
 			for(jj=0; jj<ng; jj++)
 				{
 				hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+jj];
@@ -361,8 +361,8 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, int ngN, double **
 				}
 
 			// TODO work space + one dgemv call
-			dgemv_n_lib(nx+nu, ng, hpDCt[ii], cng, hlam[ii]+2*pnb, hrq[ii], hrq[ii], 1);
-			dgemv_n_lib(nx+nu, ng, hpDCt[ii], cng, hlam[ii]+2*pnb+png, hrq[ii], hrq[ii], -1);
+			dgemv_n_lib(nx+nu, ng, hpDCt[ii], cng, hlam[ii]+2*pnb, 1, hrq[ii], hrq[ii]);
+			dgemv_n_lib(nx+nu, ng, hpDCt[ii], cng, hlam[ii]+2*pnb+png, -1, hrq[ii], hrq[ii]);
 				
 			}
 		}
@@ -371,7 +371,7 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, int ngN, double **
 		for(jj=0 ; jj<ngN; jj++) 
 			mu[0] += hlam[N][2*pnb+jj] * ht[N][2*pnb+jj] + hlam[N][2*pnb+pngN+jj] * ht[N][2*pnb+pngN+jj];
 
-		dgemv_t_lib(nx+nu, ngN, hpDCt[N], cngN, hux[N], hrd[N]+2*pnb, hrd[N]+2*pnb, 0);
+		dgemv_t_lib(nx+nu, ngN, hpDCt[N], cngN, hux[N], 0, hrd[N]+2*pnb, hrd[N]+2*pnb);
 		for(jj=0; jj<ngN; jj++)
 			{
 			hrd[N][2*pnb+pngN+jj] = - hrd[N][2*pnb+jj];
@@ -380,8 +380,8 @@ void d_res_ip_hard_mpc(int nx, int nu, int N, int nb, int ng, int ngN, double **
 			}
 
 		// TODO work space + one dgemv call
-		dgemv_n_lib(nx+nu, ngN, hpDCt[N], cngN, hlam[N]+2*pnb, hrq[N], hrq[N], 1);
-		dgemv_n_lib(nx+nu, ngN, hpDCt[N], cngN, hlam[N]+2*pnb+pngN, hrq[N], hrq[N], -1);
+		dgemv_n_lib(nx+nu, ngN, hpDCt[N], cngN, hlam[N]+2*pnb, 1, hrq[N], hrq[N]);
+		dgemv_n_lib(nx+nu, ngN, hpDCt[N], cngN, hlam[N]+2*pnb+pngN, -1, hrq[N], hrq[N]);
 			
 		}
 
@@ -421,7 +421,7 @@ void d_res_ip_box_mhe_old(int nx, int nu, int N, int nb, double **hpBAbt, double
 	for(jj=0; jj<nu+nx; jj++) hrq[0][jj] = - hq[0][jj] + hlam[0][2*jj+0] - hlam[0][2*jj+1];
 	dsymv_lib(nxu, nxu, hpQ[0], cnz, hux[0], hrq[0], hrq[0], -1);
 	for(jj=0; jj<nx; jj++) hrb[0][jj] = hux[1][nu+jj] - hpBAbt[0][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
-	dmvmv_lib(nxu, nx, hpBAbt[0], cnx, hpi[1], hrq[0], hrq[0], hux[0], hrb[0], hrb[0], -1);
+	dgemv_nt_lib(nxu, nx, hpBAbt[0], cnx, hpi[1], hrq[0], hrq[0], hux[0], hrb[0], hrb[0], -1);
 
 	// middle blocks
 	for(ii=1; ii<N; ii++)
@@ -432,7 +432,7 @@ void d_res_ip_box_mhe_old(int nx, int nu, int N, int nb, double **hpBAbt, double
 		for(jj=0; jj<nx; jj++) hrq[ii][nu+jj] = hpi[ii][jj] - hq[ii][nu+jj] + hlam[ii][2*nu+2*jj+0] - hlam[ii][2*nu+2*jj+1];
 		dsymv_lib(nxu, nxu, hpQ[ii], cnz, hux[ii], hrq[ii], hrq[ii], -1);
 		for(jj=0; jj<nx; jj++) hrb[ii][jj] = hux[ii+1][nu+jj] - hpBAbt[ii][(nxu/bs)*bs*cnx+nxu%bs+bs*jj];
-		dmvmv_lib(nxu, nx, hpBAbt[ii], cnx, hpi[ii+1], hrq[ii], hrq[ii], hux[ii], hrb[ii], hrb[ii], -1);
+		dgemv_nt_lib(nxu, nx, hpBAbt[ii], cnx, hpi[ii+1], hrq[ii], hrq[ii], hux[ii], hrb[ii], hrb[ii], -1);
 		}
 	
 /*exit(3);*/
@@ -491,13 +491,13 @@ void d_res_ip_diag_mpc(int N, int *nx, int *nu, int *nb, int **idxb, double **hd
 	for(jj=0; jj<nu0; jj++) hres_rq[ii][jj] = - hrq[ii][jj];
 	for(jj=0; jj<nb0; jj++) hres_rq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
 	for(jj=0; jj<nx0; jj++) work[jj] = hux[ii][nu0+jj];
-	dgemv_t_lib(nx0, nu0, hpSt[ii], cnu0, work, hres_rq[ii], hres_rq[ii], -1);
-	dsymv_lib(nu0, nu0, hpR[ii], cnu0, hux[ii], hres_rq[ii], hres_rq[ii], -1);
-	dgemv_n_lib(nu0, nx1, hpBt[ii], cnx1, hpi[ii+1], hres_rq[ii], hres_rq[ii], -1);
+	dgemv_t_lib(nx0, nu0, hpSt[ii], cnu0, work, -1, hres_rq[ii], hres_rq[ii]);
+	dsymv_lib(nu0, nu0, hpR[ii], cnu0, hux[ii], -1, hres_rq[ii], hres_rq[ii]);
+	dgemv_n_lib(nu0, nx1, hpBt[ii], cnx1, hpi[ii+1], -1, hres_rq[ii], hres_rq[ii]);
 
 	for(jj=0; jj<nx1; jj++) hres_b[ii][jj] = hux[ii+1][nu1+jj] - hb[ii][jj];
 	for(jj=0; jj<nxm; jj++) hres_b[ii][jj] -= hdA[ii][jj] * work[jj];
-	dgemv_t_lib(nu0, nx1, hpBt[ii], cnx1, hux[ii], hres_b[ii], hres_b[ii], -1);
+	dgemv_t_lib(nu0, nx1, hpBt[ii], cnx1, hux[ii], -1, hres_b[ii], hres_b[ii]);
 
 
 	// middle stages
@@ -528,18 +528,18 @@ void d_res_ip_diag_mpc(int N, int *nx, int *nu, int *nb, int **idxb, double **hd
 		for(jj=0; jj<nb0; jj++) hres_rq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
 
 		for(jj=0; jj<nx0; jj++) work[jj] = hux[ii][nu0+jj];
-		dgemv_t_lib(nx0, nu0, hpSt[ii], cnu0, work, hres_rq[ii], hres_rq[ii], -1);
-		dsymv_lib(nu0, nu0, hpR[ii], cnu0, hux[ii], hres_rq[ii], hres_rq[ii], -1);
-		dgemv_n_lib(nu0, nx1, hpBt[ii], cnx1, hpi[ii+1], hres_rq[ii], hres_rq[ii], -1);
+		dgemv_t_lib(nx0, nu0, hpSt[ii], cnu0, work, -1, hres_rq[ii], hres_rq[ii]);
+		dsymv_lib(nu0, nu0, hpR[ii], cnu0, hux[ii], -1, hres_rq[ii], hres_rq[ii]);
+		dgemv_n_lib(nu0, nx1, hpBt[ii], cnx1, hpi[ii+1], -1, hres_rq[ii], hres_rq[ii]);
 
 		for(jj=0; jj<nx0; jj++) hres_rq[ii][nu0+jj] += hpi[ii][jj];
 		for(jj=0; jj<nxm; jj++) hres_rq[ii][nu0+jj] -= hdA[ii][jj] * hpi[ii+1][jj];
-		dgemv_n_lib(nx0, nu0, hpSt[ii], cnu0, hux[ii], hres_rq[ii]+nu0, hres_rq[ii]+nu0, -1);
-		dsymv_lib(nx0, nx0, hpQ[ii], cnx0, work, hres_rq[ii]+nu0, hres_rq[ii]+nu0, -1);
+		dgemv_n_lib(nx0, nu0, hpSt[ii], cnu0, hux[ii], -1, hres_rq[ii]+nu0, hres_rq[ii]+nu0);
+		dsymv_lib(nx0, nx0, hpQ[ii], cnx0, work, -1, hres_rq[ii]+nu0, hres_rq[ii]+nu0);
 
 		for(jj=0; jj<nx1; jj++) hres_b[ii][jj] = hux[ii+1][nu1+jj] - hb[ii][jj];
 		for(jj=0; jj<nxm; jj++) hres_b[ii][jj] -= hdA[ii][jj] * work[jj];
-		dgemv_t_lib(nu0, nx1, hpBt[ii], cnx1, hux[ii], hres_b[ii], hres_b[ii], -1);
+		dgemv_t_lib(nu0, nx1, hpBt[ii], cnx1, hux[ii], -1, hres_b[ii], hres_b[ii]);
 
 		}
 
@@ -564,7 +564,7 @@ void d_res_ip_diag_mpc(int N, int *nx, int *nu, int *nb, int **idxb, double **hd
 	for(jj=0; jj<nx0; jj++) hres_rq[ii][jj] = hpi[ii][jj] - hrq[ii][jj]; 
 	for(jj=0; jj<nb0; jj++) hres_rq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
 	for(jj=0; jj<nx0; jj++) work[jj] = hux[ii][nu0+jj];
-	dsymv_lib(nx0, nx0, hpQ[ii], cnx0, work, hres_rq[ii]+nu0, hres_rq[ii]+nu0, -1);
+	dsymv_lib(nx0, nx0, hpQ[ii], cnx0, work, -1, hres_rq[ii]+nu0, hres_rq[ii]+nu0);
 
 	// normalize mu
 	mu[0] /= 2.0*nb_tot;

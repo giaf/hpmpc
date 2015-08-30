@@ -123,7 +123,7 @@ void d_init_var_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 			ptr_t   = t[jj];
 			ptr_lam = lam[jj];
 			ptr_db  = db[jj];
-			dgemv_t_lib(nu[jj]+nx[jj], ng0, pDCt[jj], cng, ux[jj], ptr_t+2*pnb, ptr_t+2*pnb, 0);
+			dgemv_t_lib(nu[jj]+nx[jj], ng0, pDCt[jj], cng, ux[jj], 0, ptr_t+2*pnb, ptr_t+2*pnb);
 			for(ll=2*pnb; ll<2*pnb+ng0; ll++)
 				{
 				ptr_t[ll+png] = - ptr_t[ll];
@@ -397,7 +397,7 @@ void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, double 
 			ptr_lam = lam[jj];
 			ptr_db  = db[jj];
 
-			dgemv_t_lib(nx+nu, ng, pDCt[jj], cng, ux[jj], ptr_t+2*pnb, ptr_t+2*pnb, 0);
+			dgemv_t_lib(nx+nu, ng, pDCt[jj], cng, ux[jj], 0, ptr_t+2*pnb, ptr_t+2*pnb);
 
 			for(ll=2*pnb; ll<2*pnb+ng; ll++)
 				{
@@ -417,7 +417,7 @@ void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, double 
 		ptr_lam = lam[N];
 		ptr_db  = db[N];
 
-		dgemv_t_lib(nx+nu, ngN, pDCt[N], cngN, ux[N], ptr_t+2*pnb, ptr_t+2*pnb, 0);
+		dgemv_t_lib(nx+nu, ngN, pDCt[N], cngN, ux[N], 0, ptr_t+2*pnb, ptr_t+2*pnb);
 
 		for(ll=2*pnb; ll<2*pnb+ngN; ll++)
 			{
@@ -3879,7 +3879,7 @@ void d_compute_alpha_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			png = (ng0+bs-1)/bs*bs;
 			cng = (ng0+ncl-1)/ncl*ncl;
 
-			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, ptr_dt+2*pnb, ptr_dt+2*pnb, 0);
+			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt+2*pnb, ptr_dt+2*pnb);
 
 			for(ll=2*pnb; ll<2*pnb+ng0-3; ll+=4)
 				{
@@ -4692,7 +4692,7 @@ void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, do
 			ptr_lam  = lam[jj];
 			ptr_dlam = dlam[jj];
 
-			dgemv_t_lib(nx+nu, ng, pDCt[jj], cng, ptr_dux, ptr_dt+2*pnb, ptr_dt+2*pnb, 0);
+			dgemv_t_lib(nx+nu, ng, pDCt[jj], cng, ptr_dux, 0, ptr_dt+2*pnb, ptr_dt+2*pnb);
 
 			for(ll=2*pnb; ll<2*pnb+ng-3; ll+=4)
 				{
@@ -4835,7 +4835,7 @@ void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, do
 		ptr_lam  = lam[N];
 		ptr_dlam = dlam[N];
 
-		dgemv_t_lib(nx+nu, ngN, pDCt[N], cngN, ptr_dux, ptr_dt+2*pnb, ptr_dt+2*pnb, 0);
+		dgemv_t_lib(nx+nu, ngN, pDCt[N], cngN, ptr_dux, 0, ptr_dt+2*pnb, ptr_dt+2*pnb);
 
 		for(ll=2*pnb; ll<2*pnb+ngN-3; ll+=4)
 			{

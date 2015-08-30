@@ -31,7 +31,7 @@
 
 
 // test for the performance of the dgemm kernel
-void dgemm_kernel_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg, int tc, int td)
+void dgemm_kernel_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, int tc, int td)
 	{
 
 	const int bs = 4;
@@ -86,7 +86,7 @@ void dgemm_kernel_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, i
 /* C += A * B' (alg== 1)                             */
 /* C -= A * B' (alg==-1)                             */
 /* where A, B and C are packed with block size 4     */
-void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg, int tc, int td)
+void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, int tc, int td)
 	{
 
 	if(m<=0 || n<=0)
@@ -985,7 +985,7 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 /* C += A * B (alg== 1)                             */
 /* C -= A * B (alg==-1)                             */
 /* where A, B and C are packed with block size 4     */
-void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg, int tc, int td)
+void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, int tc, int td)
 	{
 
 	if(m<=0 || n<=0)
@@ -1792,7 +1792,7 @@ void dtrmm_nt_l_lib(int m, int n, double *pA, int sda, double *pB, int sdb, doub
 
 
 
-void dsyrk_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg)
+void dsyrk_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd)
 	{
 
 	if(m<=0 || n<=0)
@@ -2113,7 +2113,7 @@ void dsyrk_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 
 
 
-void dsyrk_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg)
+void dsyrk_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd)
 	{
 
 	if(m<=0 || n<=0)
@@ -3486,7 +3486,7 @@ void dsyrk_dpotrf_lib_new(int m, int n, int k, double *pA, int sda, double *pB, 
 
 
 
-void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, double *diag, int alg, int fast_rsqrt)
+void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, int alg, double *pC, int sdc, double *pD, int sdd, double *diag, int fast_rsqrt)
 	{
 
 	if(m<=0 || n<=0)
@@ -4045,7 +4045,7 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int 
 
 
 // TODO modify kernels instead
-void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, double *z, int alg) // pA has to be aligned !!!
+void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y, double *z) // pA has to be aligned !!!
 	{
 
 	// early return
@@ -4106,7 +4106,7 @@ void dgemv_n_lib(int m, int n, double *pA, int sda, double *x, double *y, double
 
 
 
-void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, double *y, double *z, int alg)
+void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y, double *z)
 	{
 	
 	// early return
@@ -4146,7 +4146,7 @@ void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, double *y, double
 
 
 
-void dtrmv_u_n_lib(int m, double *pA, int sda, double *x, double *y, int alg)
+void dtrmv_u_n_lib(int m, double *pA, int sda, double *x, int alg, double *y)
 	{
 
 	if(m<=0)
@@ -4201,7 +4201,7 @@ void dtrmv_u_n_lib(int m, double *pA, int sda, double *x, double *y, int alg)
 
 
 
-void dtrmv_u_t_lib(int m, double *pA, int sda, double *x, double *y, int alg)
+void dtrmv_u_t_lib(int m, double *pA, int sda, double *x, int alg, double *y)
 	{
 
 	if(m<=0)
@@ -4250,7 +4250,7 @@ void dtrmv_u_t_lib(int m, double *pA, int sda, double *x, double *y, int alg)
 
 
 // it moves vertically across block // TODO allow rectangular matrices
-void dsymv_lib(int m, int n, double *pA, int sda, double *x, double *y, double *z, int alg)
+void dsymv_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y, double *z)
 	{
 
 	if(m<=0 || n<=0)
@@ -4304,7 +4304,7 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, double *y, double *
 
 
 // it moves vertically across block
-void dmvmv_lib(int m, int n, double *pA, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int alg)
+void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, int alg, double *y_n, double *y_t, double *z_n, double *z_t)
 	{
 
 	if(m<=0 || n<=0)
@@ -5789,7 +5789,7 @@ void dsyttmm_lu_lib(int m, double *pA, int sda, double *pC, int sdc)
 
 
 //#if defined(TARGET_C99_4X4)
-void dsyttmm_ul_lib(int m, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, int alg)
+void dsyttmm_ul_lib(int m, double *pA, int sda, int alg, double *pC, int sdc, double *pD, int sdd)
 	{
 
 	if(m<=0)
@@ -6240,7 +6240,7 @@ void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
 
 
 
-void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, double *pE, int sde, double *diag, int alg)
+void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, int alg, double *pC, int sdc, double *pD, int sdd, double *pE, int sde, double *diag)
 	{
 
 	if(m<=0 || n<=0)
@@ -6417,7 +6417,7 @@ void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, double *p
 
 
 // TODO add m2 !!!
-void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *pD, int sdd, double *diag, int alg)
+void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, int alg, double *pC, int sdc, double *pD, int sdd, double *diag)
 	{
 
 	if(m<=0 || n<=0)
@@ -6661,7 +6661,7 @@ void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int
 
 
 
-void dgemm_diag_left_lib(int m, int n, double *dA, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg)
+void dgemm_diag_left_lib(int m, int n, double *dA, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd)
 	{
 
 	if(m<=0 || n<=0)
@@ -6690,7 +6690,7 @@ void dgemm_diag_left_lib(int m, int n, double *dA, double *pB, int sdb, double *
 
 
 
-void dgemm_diag_right_lib(int m, int n, double *pA, int sda, double *dB, double *pC, int sdc, double *pD, int sdd, int alg)
+void dgemm_diag_right_lib(int m, int n, double *pA, int sda, double *dB, int alg, double *pC, int sdc, double *pD, int sdd)
 	{
 
 	if(m<=0 || n<=0)
@@ -6719,7 +6719,7 @@ void dgemm_diag_right_lib(int m, int n, double *pA, int sda, double *dB, double 
 
 
 
-void dsyrk_diag_left_right_lib(int m, double *dAl, double *dAr, double *pB, int sdb, double *pC, int sdc, double *pD, int sdd, int alg)
+void dsyrk_diag_left_right_lib(int m, double *dAl, double *dAr, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd)
 	{
 
 	if(m<=0)
@@ -6747,7 +6747,7 @@ void dsyrk_diag_left_right_lib(int m, double *dAl, double *dAr, double *pB, int 
 			
 
 
-void dgemv_diag_lib(int m, double *dA, double *x, double *y, double *z, int alg)
+void dgemv_diag_lib(int m, double *dA, double *x, int alg, double *y, double *z)
 	{
 
 	if(m<=0)

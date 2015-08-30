@@ -2770,7 +2770,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 						dpotrf_lib(ny, ny, hpQRAG[ii], cnwx1, Q_temp, cny, diag);
 						dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
 						dtrmm_nt_u_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
-						dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQRAG[ii], cnwx1, hpQRAG[ii], cnwx1, 0);
+						dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, 0, hpQRAG[ii], cnwx1, hpQRAG[ii], cnwx1);
 						}
 					}
 				d_cvt_mat2pmat(nx, nx, A+ii*nx*nx, nx, 0, hpQRAG[ii]+pnx*cnwx1, cnwx1);
@@ -2807,7 +2807,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 						dpotrf_lib(ny, ny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, Q_temp, cny, diag);
 						dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
 						dtrmm_nt_u_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
-						dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, 0);
+						dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, 0, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1);
 						}
 					}
 				d_cvt_mat2pmat(nx, nx, A+ii*nx*nx, nx, 0, hpQRAG[ii]+pnw*cnwx1, cnwx1);
@@ -2843,7 +2843,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 				dpotrf_lib(ny, ny, hpQRAG[N], cnx, Q_temp, cny, diag);
 				dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
 				dtrmm_nt_u_lib(nx, ny, hpCt[N], cny, Q_temp, cny, Ct_temp, cny);
-				dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, hpQRAG[N], cnx, hpQRAG[N], cnx, 0);
+				dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, 0, hpQRAG[N], cnx, hpQRAG[N], cnx);
 				}
 			}
 
@@ -2939,13 +2939,13 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 				//d_print_pmat(nx, nx, bs, hpQA[ii], cnx);
 				//d_print_mat(1, nx, q_temp, 1);
 				if(nx>=nw)
-					dsymv_lib(ny, ny, hpQRAG[ii], cnwx1, hy[ii], q_temp, q_temp, -1);
+					dsymv_lib(ny, ny, hpQRAG[ii], cnwx1, hy[ii], -1, q_temp, q_temp);
 				else
-					dsymv_lib(ny, ny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, hy[ii], q_temp, q_temp, -1);
+					dsymv_lib(ny, ny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, hy[ii], -1, q_temp, q_temp);
 				//d_print_mat(1, nx, q_temp, 1);
 				if(alg==0)
 					{
-					dgemv_n_lib(nx, ny, hpCt[ii], cny, q_temp, hq[ii], hq[ii], 0);
+					dgemv_n_lib(nx, ny, hpCt[ii], cny, q_temp, 0, hq[ii], hq[ii]);
 					}
 				else
 					{
@@ -2958,11 +2958,11 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 			for(jj=0; jj<ny; jj++) q_temp[jj] = - qf[jj];
 			//d_print_pmat(nx, nx, bs, hpQA[ii], cnx);
 			//d_print_mat(1, nx, q_temp, 1);
-			dsymv_lib(ny, ny, hpQRAG[N], cnx, hy[N], q_temp, q_temp, -1);
+			dsymv_lib(ny, ny, hpQRAG[N], cnx, hy[N], -1, q_temp, q_temp);
 			//d_print_mat(1, nx, q_temp, 1);
 			if(alg==0)
 				{
-				dgemv_n_lib(nx, ny, hpCt[N], cny, q_temp, hq[N], hq[N], 0);
+				dgemv_n_lib(nx, ny, hpCt[N], cny, q_temp, 0, hq[N], hq[N]);
 				}
 			else
 				{

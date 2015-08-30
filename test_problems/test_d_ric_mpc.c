@@ -1346,8 +1346,8 @@ int main()
 		// factorize & solve (fast rsqrt)
 		for(rep=0; rep<nrep; rep++)
 			{
-			//d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, hl, work, diag, 0, hPb, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
-			d_back_ric_sv(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
+			d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, hl, work, diag, 0, hPb, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
+			//d_back_ric_sv(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 			}
 			
 		gettimeofday(&tv5, NULL); // start
