@@ -4855,7 +4855,7 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y,
 		}
 	else
 		{
-		if(y!=z)
+		if(y!=z) // not same vector in memory
 			for(j=0; j<m; j++)
 				z[j] = y[j];
 		}
@@ -4903,7 +4903,7 @@ void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, i
 		for(j=0; j<m; j++)
 			z_n[j] = 0.0;
 		for(j=0; j<n; j++)
-			z_t[j] = 0.0;
+			z_t[j] = 0.0; // TODO the t part can work as in dgemv_t, i.e. move this in the kernel !!!!!
 		alg = 1;
 		}
 	else
@@ -4913,7 +4913,7 @@ void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, i
 				z_n[j] = y_n[j];
 		if(y_t!=z_t)
 			for(j=0; j<n; j++)
-				z_t[j] = y_t[j];
+				z_t[j] = y_t[j]; // TODO the t part can work as in dgemv_t, i.e. move this in the kernel !!!!!
 		}
 	
 	j=0;
