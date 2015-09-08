@@ -4934,7 +4934,7 @@ void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, i
 
 
 
-void dtrsv_n_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x)
+void dtrsv_n_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y)
 	{
 
 	if(m<=0 || n<=0)
@@ -4946,12 +4946,12 @@ void dtrsv_n_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, doub
 	
 	const int bs = 4;
 	
-	int j;
+	int i, j;
 	
-	double *y;
-
 	// blocks of 4 (pA is supposed to be properly aligned)
-	y  = x;
+	if(x!=y)
+		for(i=0; i<n; i++)
+			y[i] = x[i];
 
 	j = 0;
 	for(; j<n-7; j+=8)
@@ -5016,7 +5016,7 @@ void dtrsv_n_lib(int m, int n, int inverted_diag, double *pA, int sda, double *x
 	double *y;
 
 	// blocks of 4 (pA is supposed to be properly aligned)
-	y  = x;
+	y = x;
 
 	j = 0;
 	for(; j<n-7; j+=8)
@@ -5089,37 +5089,42 @@ void dtrsv_n_lib(int m, int n, int inverted_diag, double *pA, int sda, double *x
 
 
 
-void dtrsv_t_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x)
+void dtrsv_t_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y)
 	{
 
 	if(m<=0 || n<=0)
 		return;
 	
+	if(n>m)
+		n = m;
+	
 	const int bs = 4;
 	
-	int j;
+	int i, j;
 	
-/*	double *y;*/
-	
+	if(x!=y)
+		for(i=0; i<n; i++)
+			y[i] = x[i];
+			
 	j=0;
 	if(n%4==1)
 		{
-		kernel_dtrsv_t_1_lib4_new(m-n+j+1, pA+(n/bs)*bs*sda+(n-1)*bs, sda, use_inv_diag_A, inv_diag_A+n-j-1, x+n-j-1);
+		kernel_dtrsv_t_1_lib4_new(m-n+j+1, pA+(n/bs)*bs*sda+(n-1)*bs, sda, use_inv_diag_A, inv_diag_A+n-j-1, y+n-j-1);
 		j++;
 		}
 	else if(n%4==2)
 		{
-		kernel_dtrsv_t_2_lib4_new(m-n+j+2, pA+(n/bs)*bs*sda+(n-j-2)*bs, sda, use_inv_diag_A, inv_diag_A+n-j-2, x+n-j-2);
+		kernel_dtrsv_t_2_lib4_new(m-n+j+2, pA+(n/bs)*bs*sda+(n-j-2)*bs, sda, use_inv_diag_A, inv_diag_A+n-j-2, y+n-j-2);
 		j+=2;
 		}
 	else if(n%4==3)
 		{
-		kernel_dtrsv_t_3_lib4_new(m-n+j+3, pA+(n/bs)*bs*sda+(n-j-3)*bs, sda, use_inv_diag_A, inv_diag_A+n-j-3, x+n-j-3);
+		kernel_dtrsv_t_3_lib4_new(m-n+j+3, pA+(n/bs)*bs*sda+(n-j-3)*bs, sda, use_inv_diag_A, inv_diag_A+n-j-3, y+n-j-3);
 		j+=3;
 		}
 	for(; j<n-3; j+=4)
 		{
-		kernel_dtrsv_t_4_lib4_new(m-n+j+4, pA+((n-j-4)/bs)*bs*sda+(n-j-4)*bs, sda, use_inv_diag_A, inv_diag_A+n-j-4, x+n-j-4);
+		kernel_dtrsv_t_4_lib4_new(m-n+j+4, pA+((n-j-4)/bs)*bs*sda+(n-j-4)*bs, sda, use_inv_diag_A, inv_diag_A+n-j-4, y+n-j-4);
 		}
 
 	}

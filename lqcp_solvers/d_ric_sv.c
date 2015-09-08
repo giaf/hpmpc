@@ -495,7 +495,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 		// first stage
 		nn = 0;
 		for(jj=0; jj<nu; jj++) hux[0][jj] = - hpL[0][((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*jj];
-		dtrsv_t_lib_new(nx+nu, nu, hpL[0], cnl, 1, hdL[0], &hux[0][0]);
+		dtrsv_t_lib_new(nx+nu, nu, hpL[0], cnl, 1, hdL[0], &hux[0][0], &hux[0][0]);
 		for(jj=0; jj<nx; jj++) hux[1][nu+jj] = hpBAbt[0][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
 		dgemv_t_lib(nx+nu, nx, hpBAbt[0], cnx, &hux[0][0], 1, &hux[1][nu], &hux[1][nu]);
 		if(compute_pi)
@@ -541,7 +541,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 		nn = 0;
 		drowex_lib(nu+nx, hpL[0]+(nx+nu)/bs*bs*cnl+(nu+nx)%bs, hux[0]);
 		d_scale_mat(nu+nx, 1, -1.0, hux[0], 1);
-		dtrsv_t_lib_new(nx+nu, nu+nx, hpL[0], cnl, 1, hdL[0], &hux[0][0]);
+		dtrsv_t_lib_new(nx+nu, nu+nx, hpL[0], cnl, 1, hdL[0], &hux[0][0], &hux[0][0]);
 		for(jj=0; jj<nx; jj++) hux[1][nu+jj] = hpBAbt[0][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
 		dgemv_t_lib(nx+nu, nx, hpBAbt[0], cnx, &hux[0][0], 1, &hux[1][nu], &hux[1][nu]);
 		if(compute_pi)
@@ -560,7 +560,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 	for(nn=1; nn<N; nn++)
 		{
 		for(jj=0; jj<nu; jj++) hux[nn][jj] = - hpL[nn][((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*jj];
-		dtrsv_t_lib_new(nx+nu, nu, hpL[nn], cnl, 1, hdL[nn], &hux[nn][0]);
+		dtrsv_t_lib_new(nx+nu, nu, hpL[nn], cnl, 1, hdL[nn], &hux[nn][0], &hux[nn][0]);
 		for(jj=0; jj<nx; jj++) hux[nn+1][nu+jj] = hpBAbt[nn][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
 		dgemv_t_lib(nx+nu, nx, hpBAbt[nn], cnx, &hux[nn][0], 1, &hux[nn+1][nu], &hux[nn+1][nu]);
 		if(compute_pi)
@@ -695,7 +695,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 				for(jj=0; jj<nx; jj++) work[jj] = hPb[N-nn-1][jj] + hpL[N-nn][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nu+jj)*bs];
 				drowex_lib(nu+nx, hpQ[N-nn-1]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, work+pnz);
 				dgemv_n_lib(nx+nu, nx, hpBAbt[N-nn-1], cnx, work, work+pnz, work+pnz, 1);
-				dtrsv_n_lib_new(nu+nx, nu, hpL[N-nn-1], cnl, 1, hdL[N-nn-1], work+pnz);
+				dtrsv_n_lib_new(nu+nx, nu, hpL[N-nn-1], cnl, 1, hdL[N-nn-1], work+pnz, work+pnz);
 				drowin_lib(nx, work+pnz+nu, hpL[N-nn-1]+(nu+nx)/bs*bs*cnl+(nu+nx)%bs+nu*bs);
 				}
 
@@ -740,7 +740,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 				for(jj=0; jj<nx; jj++) work[jj] = hPb[N-nn-1][jj] + hpL[N-nn][((nx+nu)/bs)*bs*cnl+(nx+nu)%bs+(nu+jj)*bs];
 				drowex_lib(nu+nx, hpQ[N-nn-1]+((nx+nu)/bs)*bs*cnz+(nx+nu)%bs, work+pnz);
 				dgemv_n_lib(nx+nu, nx, hpBAbt[N-nn-1], cnx, work, work+pnz, work+pnz, 1);
-				dtrsv_n_lib_new(nu+nx, nu, hpL[N-nn-1], cnl, 1, hdL[N-nn-1], work+pnz);
+				dtrsv_n_lib_new(nu+nx, nu, hpL[N-nn-1], cnl, 1, hdL[N-nn-1], work+pnz, work+pnz);
 				drowin_lib(nx, work+pnz+nu, hpL[N-nn-1]+(nu+nx)/bs*bs*cnl+(nu+nx)%bs+nu*bs);
 				}
 
@@ -833,7 +833,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 		// first stage
 		nn = 0;
 		for(jj=0; jj<nu; jj++) hux[0][jj] = - hpL[0][((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*jj];
-		dtrsv_t_lib_new(nx+nu, nu, hpL[0], cnl, 1, hdL[0], &hux[0][0]);
+		dtrsv_t_lib_new(nx+nu, nu, hpL[0], cnl, 1, hdL[0], &hux[0][0], &hux[0][0]);
 		for(jj=0; jj<nx; jj++) hux[1][nu+jj] = hpBAbt[0][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
 		dgemv_t_lib(nx+nu, nx, hpBAbt[0], cnx, &hux[0][0], &hux[1][nu], &hux[1][nu], 1);
 		if(compute_pi)
@@ -892,7 +892,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 		nn = 0;
 		drowex_lib(nu+nx, hpL[0]+(nx+nu)/bs*bs*cnl+(nu+nx)%bs, hux[0]);
 		d_scale_mat(nu+nx, 1, -1.0, hux[0], 1);
-		dtrsv_t_lib_new(nx+nu, nu+nx, hpL[0], cnl, 1, hdL[0], &hux[0][0]);
+		dtrsv_t_lib_new(nx+nu, nu+nx, hpL[0], cnl, 1, hdL[0], &hux[0][0], &hux[0][0]);
 		for(jj=0; jj<nx; jj++) hux[1][nu+jj] = hpBAbt[0][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
 		dgemv_t_lib(nx+nu, nx, hpBAbt[0], cnx, &hux[0][0], &hux[1][nu], &hux[1][nu], 1);
 		if(compute_pi)
@@ -911,7 +911,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 	for(nn=1; nn<N; nn++)
 		{
 		for(jj=0; jj<nu; jj++) hux[nn][jj] = - hpL[nn][((nu+nx)/bs)*bs*cnl+(nu+nx)%bs+bs*jj];
-		dtrsv_t_lib_new(nx+nu, nu, hpL[nn], cnl, 1, hdL[nn], &hux[nn][0]);
+		dtrsv_t_lib_new(nx+nu, nu, hpL[nn], cnl, 1, hdL[nn], &hux[nn][0], &hux[nn][0]);
 		for(jj=0; jj<nx; jj++) hux[nn+1][nu+jj] = hpBAbt[nn][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
 		dgemv_t_lib(nx+nu, nx, hpBAbt[nn], cnx, &hux[nn][0], &hux[nn+1][nu], &hux[nn+1][nu], 1);
 		if(compute_pi)
@@ -1116,7 +1116,7 @@ void d_back_ric_trs_new(int N, int nx, int nu, double **hpBAbt, double **hq, int
 			}
 		for(jj=0; jj<nx; jj++) work[jj] = hPb[N-nn-1][jj] + hq[N-nn][nu+jj]; // add p
 		dgemv_n_lib(nx+nu, nx, hpBAbt[N-nn-1], cnx, work, 1, hq[N-nn-1], hq[N-nn-1]);
-		dtrsv_n_lib_new(nu+nx, nu, hpL[N-nn-1], cnl, 1, hdL[N-nn-1], hq[N-nn-1]);
+		dtrsv_n_lib_new(nu+nx, nu, hpL[N-nn-1], cnl, 1, hdL[N-nn-1], hq[N-nn-1], hq[N-nn-1]);
 		}
 
 
@@ -1139,14 +1139,14 @@ void d_back_ric_trs_new(int N, int nx, int nu, double **hpBAbt, double **hq, int
 			}
 		for(jj=0; jj<nx; jj++) work[jj] = hPb[0][jj] + hq[1][nu+jj]; // add p
 		dgemv_n_lib(nx+nu, nx, hpBAbt[0], cnx, work, 1, hq[0], hq[0]);
-		dtrsv_n_lib_new(nu+nx, nu, hpL[0], cnl, 1, hdL[0], hq[0]);
+		dtrsv_n_lib_new(nu+nx, nu, hpL[0], cnl, 1, hdL[0], hq[0], hq[0]);
 
 
 		// forward substitution 
 		// first stage
 		nn = 0;
 		for(jj=0; jj<nu; jj++) hux[0][jj] = - hq[0][jj];
-		dtrsv_t_lib_new(nx+nu, nu, hpL[0], cnl, 1, hdL[0], &hux[0][0]);
+		dtrsv_t_lib_new(nx+nu, nu, hpL[0], cnl, 1, hdL[0], &hux[0][0], &hux[0][0]);
 		for(jj=0; jj<nx; jj++) hux[1][nu+jj] = hpBAbt[0][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
 		dgemv_t_lib(nx+nu, nx, hpBAbt[0], cnx, &hux[0][0], 1, &hux[1][nu], &hux[1][nu]);
 		if(compute_pi)
@@ -1175,7 +1175,7 @@ void d_back_ric_trs_new(int N, int nx, int nu, double **hpBAbt, double **hq, int
 			}
 		for(jj=0; jj<nx; jj++) work[jj] = hPb[0][jj] + hq[1][nu+jj]; // add p
 		dgemv_n_lib(nx+nu, nx, hpBAbt[0], cnx, work, 1, hq[0], hq[0]);
-		dtrsv_n_lib_new(nu+nx, nu+nx, hpL[0], cnl, 1, hdL[0], hq[0]);
+		dtrsv_n_lib_new(nu+nx, nu+nx, hpL[0], cnl, 1, hdL[0], hq[0], hq[0]);
 
 
 
@@ -1184,7 +1184,7 @@ void d_back_ric_trs_new(int N, int nx, int nu, double **hpBAbt, double **hq, int
 		// first stage
 		nn = 0;
 		for(jj=0; jj<nu+nx; jj++) hux[0][jj] = - hq[0][jj];
-		dtrsv_t_lib_new(nx+nu, nu+nx, hpL[0], cnl, 1, hdL[0], &hux[0][0]);
+		dtrsv_t_lib_new(nx+nu, nu+nx, hpL[0], cnl, 1, hdL[0], &hux[0][0], &hux[0][0]);
 		for(jj=0; jj<nx; jj++) hux[1][nu+jj] = hpBAbt[0][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
 		dgemv_t_lib(nx+nu, nx, hpBAbt[0], cnx, &hux[0][0], 1, &hux[1][nu], &hux[1][nu]);
 		if(compute_pi)
@@ -1203,7 +1203,7 @@ void d_back_ric_trs_new(int N, int nx, int nu, double **hpBAbt, double **hq, int
 	for(nn=1; nn<N; nn++)
 		{
 		for(jj=0; jj<nu; jj++) hux[nn][jj] = - hq[nn][jj];
-		dtrsv_t_lib_new(nx+nu, nu, hpL[nn], cnl, 1, hdL[nn], &hux[nn][0]);
+		dtrsv_t_lib_new(nx+nu, nu, hpL[nn], cnl, 1, hdL[nn], &hux[nn][0], &hux[nn][0]);
 		for(jj=0; jj<nx; jj++) hux[nn+1][nu+jj] = hpBAbt[nn][((nu+nx)/bs)*bs*cnx+(nu+nx)%bs+bs*jj];
 		dgemv_t_lib(nx+nu, nx, hpBAbt[nn], cnx, &hux[nn][0], 1, &hux[nn+1][nu], &hux[nn+1][nu]);
 		if(compute_pi)
