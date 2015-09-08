@@ -61,11 +61,11 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	const int nxu = nx+nu;
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
+	const int pnb = bs*((2*nb+bs-1)/bs); // cache aligned number of box constraints
 	const int cnz = ncl*((nz+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 	const int anz = nal*((nz+nal-1)/nal);
 	const int anx = nal*((nx+nal-1)/nal);
-	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box constraints
 
 //	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 //	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
@@ -144,18 +144,18 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	for(jj=0; jj<=N; jj++)
 		{
 		dlam[jj] = ptr;
-		dt[jj]   = ptr + 2*anb;;
-		ptr += 4*anb;
+		dt[jj]   = ptr + 2*pnb;;
+		ptr += 4*pnb;
 		}
 	for(jj=0; jj<=N; jj++)
 		{
 		lamt[jj] = ptr;
-		ptr += 2*anb;
+		ptr += 2*pnb;
 		}
 	for(jj=0; jj<=N; jj++)
 		{
 		t_inv[jj] = ptr;
-		ptr += 2*anb;
+		ptr += 2*pnb;
 		}
 
 	// backup of P*b
@@ -169,8 +169,8 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	for(jj=0; jj<=N; jj++)
 		{
 		Zl[jj] = ptr;
-		zl[jj] = ptr + anb;;
-		ptr += 2*anb;
+		zl[jj] = ptr + pnb;;
+		ptr += 2*pnb;
 		}
 
 
@@ -243,7 +243,7 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 			for(ll=0; ll<2*nb; ll++)
 				{
 				dlam[jj][ll] = 0.0;
-				dlam[jj][anb+ll] = 0.0;
+				dlam[jj][pnb+ll] = 0.0;
 				}
 
 		alpha = 1.0;

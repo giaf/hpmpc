@@ -185,12 +185,11 @@ int main()
 	const int nz = nx+nu+1;
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
+	const int pnb = bs*((2*nb+bs-1)/bs); // packed number of box constraints
 	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
-	const int pnb = bs*((2*nb+bs-1)/bs); // packed number of box constraints
 	const int anz = nal*((nz+nal-1)/nal);
 	const int anx = nal*((nx+nal-1)/nal);
-	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box constraints
 
 //	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
 //	const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
@@ -280,10 +279,10 @@ int main()
 	d_cvt_mat2pmat(nz, nz, Q, nz, 0, pQ, cnz);
 
 	// cost function of the soft constrained slack variables
-	double *Z; d_zeros_align(&Z, anb, 1);
+	double *Z; d_zeros_align(&Z, pnb, 1);
 	for(ii=0; ii<2*ns; ii++) Z[2*nh+ii] = 0.0;
 	//for(ii=0; ii<nx; ii++) Z[2*nu+2*ii+0] = 100.0;
-	double *z; d_zeros_align(&z, anb, 1);
+	double *z; d_zeros_align(&z, pnb, 1);
 	for(ii=0; ii<2*ns; ii++) z[2*nh+ii] = 100.0;
 
 	// maximum element in cost functions
@@ -332,26 +331,26 @@ int main()
 		hz[jj] = z;
 		d_zeros_align(&hux[jj], anz, 1);
 		d_zeros_align(&hpi[jj], anx, 1);
-		d_zeros_align(&hlam[jj],2*anb, 1); // TODO pnb
-		d_zeros_align(&ht[jj], 2*anb, 1); // TODO pnb
+		d_zeros_align(&hlam[jj],2*pnb, 1); // TODO pnb
+		d_zeros_align(&ht[jj], 2*pnb, 1); // TODO pnb
 		hpBAbt[jj] = pBAbt;
 		hdb[jj] = db;
 		d_zeros_align(&hrb[jj], anx, 1);
 		d_zeros_align(&hrq[jj], anz, 1);
-		d_zeros_align(&hrd[jj], anb, 1); // TODO pnb
-		d_zeros_align(&hrz[jj], anb, 1); // TODO pnb
+		d_zeros_align(&hrd[jj], pnb, 1); // TODO pnb
+		d_zeros_align(&hrz[jj], pnb, 1); // TODO pnb
 		}
 	d_zeros_align(&hq[N], anz, 1);
 	hZ[N] = Z;
 	hz[N] = z;
 	d_zeros_align(&hux[N], anz, 1);
 	d_zeros_align(&hpi[N], anx, 1);
-	d_zeros_align(&hlam[N], 2*anb, 1); // TODO pnb
-	d_zeros_align(&ht[N], 2*anb, 1); // TODO pnb
+	d_zeros_align(&hlam[N], 2*pnb, 1); // TODO pnb
+	d_zeros_align(&ht[N], 2*pnb, 1); // TODO pnb
 	hdb[N] = db;
 	d_zeros_align(&hrq[N], anz, 1);
-	d_zeros_align(&hrd[N], anb, 1); // TODO pnb
-	d_zeros_align(&hrz[N], anb, 1); // TODO pnb
+	d_zeros_align(&hrd[N], pnb, 1); // TODO pnb
+	d_zeros_align(&hrz[N], pnb, 1); // TODO pnb
 	
 	// starting guess
 	for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
@@ -360,9 +359,9 @@ int main()
 * riccati-like iteration
 ************************************************/
 
-//	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 10*anb + 2*anx) + 3*anz, 1); // work space
-	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 10*anb + 2*anx) + anz + pnz*cnx, 1); // work space
-/*	for(jj=0; jj<( (N+1)*(pnz*cnl + 4*anz + 4*anb + 2*anx) + 3*anz ); jj++) work[jj] = -1.0;*/
+//	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 10*pnb + 2*anx) + 3*anz, 1); // work space
+	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 10*pnb + 2*anx) + anz + pnz*cnx, 1); // work space
+/*	for(jj=0; jj<( (N+1)*(pnz*cnl + 4*anz + 4*pnb + 2*anx) + 3*anz ); jj++) work[jj] = -1.0;*/
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/

@@ -143,7 +143,7 @@ void d_init_var_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, double 
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box constraints
+	//const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box constraints
 	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of box constraints
 	//const int ang = nal*((ng+nal-1)/nal); // cache aligned number of general constraints
 	const int png  = bs*((ng+bs-1)/bs); // cache aligned number of general constraints
@@ -439,7 +439,7 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double **ux, dou
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
+	const int pnb = bs*((2*nb+bs-1)/bs); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
 
 	int jj, ll, ii;
 	
@@ -661,8 +661,8 @@ void d_init_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double **ux, dou
 		for(jj=0; jj<=N; jj++)
 			for(ll=2*nh; ll<2*nb; ll++)
 				{
-				t[jj][anb+ll] = 1.0;
-				lam[jj][anb+ll] = mu0; // /t[jj][anb+ll]; // TODO restore division if needed
+				t[jj][pnb+ll] = 1.0;
+				lam[jj][pnb+ll] = mu0; // /t[jj][pnb+ll]; // TODO restore division if needed
 				}
 
 		// initialize pi
@@ -924,7 +924,7 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, i
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
+	//const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box and soft constraints
 	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of box constraints
 	const int png  = bs*((ng+bs-1)/bs); // simd aligned number of general constraints
 	const int pngN = bs*((ngN+bs-1)/bs); // simd aligned number of general constraints at last stage
@@ -1336,7 +1336,7 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
+	const int pnb = bs*((2*nb+bs-1)/bs); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
 
 	//const int k0 = nbu;
 	//const int k1 = (nu/bs)*bs;
@@ -1544,24 +1544,24 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 			{
 			ptr_tinv[0] = 1.0/ptr_t[0];
 			ptr_tinv[1] = 1.0/ptr_t[1];
-			ptr_tinv[anb+0] = 1.0/ptr_t[anb+0];
-			ptr_tinv[anb+1] = 1.0/ptr_t[anb+1];
+			ptr_tinv[pnb+0] = 1.0/ptr_t[pnb+0];
+			ptr_tinv[pnb+1] = 1.0/ptr_t[pnb+1];
 			ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
 			ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
-			ptr_lamt[anb+0] = ptr_lam[anb+0]*ptr_tinv[anb+0];
-			ptr_lamt[anb+1] = ptr_lam[anb+1]*ptr_tinv[anb+1];
+			ptr_lamt[pnb+0] = ptr_lam[pnb+0]*ptr_tinv[pnb+0];
+			ptr_lamt[pnb+1] = ptr_lam[pnb+1]*ptr_tinv[pnb+1];
 			ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
 			ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
-			ptr_dlam[anb+0] = ptr_tinv[anb+0]*sigma_mu; // !!!!!
-			ptr_dlam[anb+1] = ptr_tinv[anb+1]*sigma_mu; // !!!!!
+			ptr_dlam[pnb+0] = ptr_tinv[pnb+0]*sigma_mu; // !!!!!
+			ptr_dlam[pnb+1] = ptr_tinv[pnb+1]*sigma_mu; // !!!!!
 			Qx[0] = ptr_lamt[0];
 			Qx[1] = ptr_lamt[1];
 			qx[0] = ptr_lam[0] + ptr_dlam[0] + ptr_lamt[0]*ptr_db[0];
 			qx[1] = ptr_lam[1] + ptr_dlam[1] + ptr_lamt[1]*ptr_db[1];
-			ptr_Zl[0] = 1.0 / (ptr_Z[0] + Qx[0] + ptr_lamt[anb+0]); // inverted of updated diagonal !!!
-			ptr_Zl[1] = 1.0 / (ptr_Z[1] + Qx[1] + ptr_lamt[anb+1]); // inverted of updated diagonal !!!
-			ptr_zl[0] = - ptr_z[0] + qx[0] + ptr_lam[anb+0] + ptr_dlam[anb+0];
-			ptr_zl[1] = - ptr_z[1] + qx[1] + ptr_lam[anb+1] + ptr_dlam[anb+1];
+			ptr_Zl[0] = 1.0 / (ptr_Z[0] + Qx[0] + ptr_lamt[pnb+0]); // inverted of updated diagonal !!!
+			ptr_Zl[1] = 1.0 / (ptr_Z[1] + Qx[1] + ptr_lamt[pnb+1]); // inverted of updated diagonal !!!
+			ptr_zl[0] = - ptr_z[0] + qx[0] + ptr_lam[pnb+0] + ptr_dlam[pnb+0];
+			ptr_zl[1] = - ptr_z[1] + qx[1] + ptr_lam[pnb+1] + ptr_dlam[pnb+1];
 			qx[0] = qx[0] - Qx[0]*ptr_zl[0]*ptr_Zl[0]; // update this before Qx !!!!!!!!!!!
 			qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
 			Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
@@ -1571,24 +1571,24 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 
 			ptr_tinv[2] = 1.0/ptr_t[2];
 			ptr_tinv[3] = 1.0/ptr_t[3];
-			ptr_tinv[anb+2] = 1.0/ptr_t[anb+2];
-			ptr_tinv[anb+3] = 1.0/ptr_t[anb+3];
+			ptr_tinv[pnb+2] = 1.0/ptr_t[pnb+2];
+			ptr_tinv[pnb+3] = 1.0/ptr_t[pnb+3];
 			ptr_lamt[2] = ptr_lam[2]*ptr_tinv[2];
 			ptr_lamt[3] = ptr_lam[3]*ptr_tinv[3];
-			ptr_lamt[anb+2] = ptr_lam[anb+2]*ptr_tinv[anb+2];
-			ptr_lamt[anb+3] = ptr_lam[anb+3]*ptr_tinv[anb+3];
+			ptr_lamt[pnb+2] = ptr_lam[pnb+2]*ptr_tinv[pnb+2];
+			ptr_lamt[pnb+3] = ptr_lam[pnb+3]*ptr_tinv[pnb+3];
 			ptr_dlam[2] = ptr_tinv[2]*sigma_mu; // !!!!!
 			ptr_dlam[3] = ptr_tinv[3]*sigma_mu; // !!!!!
-			ptr_dlam[anb+2] = ptr_tinv[anb+2]*sigma_mu; // !!!!!
-			ptr_dlam[anb+3] = ptr_tinv[anb+3]*sigma_mu; // !!!!!
+			ptr_dlam[pnb+2] = ptr_tinv[pnb+2]*sigma_mu; // !!!!!
+			ptr_dlam[pnb+3] = ptr_tinv[pnb+3]*sigma_mu; // !!!!!
 			Qx[2] = ptr_lamt[2];
 			Qx[3] = ptr_lamt[3];
 			qx[2] = ptr_lam[2] + ptr_dlam[2] + ptr_lamt[2]*ptr_db[2];
 			qx[3] = ptr_lam[3] + ptr_dlam[3] + ptr_lamt[3]*ptr_db[3];
-			ptr_Zl[2] = 1.0 / (ptr_Z[2] + Qx[2] + ptr_lamt[anb+2]); // inverted of updated diagonal !!!
-			ptr_Zl[3] = 1.0 / (ptr_Z[3] + Qx[3] + ptr_lamt[anb+3]); // inverted of updated diagonal !!!
-			ptr_zl[2] = - ptr_z[2] + qx[2] + ptr_lam[anb+2] + ptr_dlam[anb+2];
-			ptr_zl[3] = - ptr_z[3] + qx[3] + ptr_lam[anb+3] + ptr_dlam[anb+3];
+			ptr_Zl[2] = 1.0 / (ptr_Z[2] + Qx[2] + ptr_lamt[pnb+2]); // inverted of updated diagonal !!!
+			ptr_Zl[3] = 1.0 / (ptr_Z[3] + Qx[3] + ptr_lamt[pnb+3]); // inverted of updated diagonal !!!
+			ptr_zl[2] = - ptr_z[2] + qx[2] + ptr_lam[pnb+2] + ptr_dlam[pnb+2];
+			ptr_zl[3] = - ptr_z[3] + qx[3] + ptr_lam[pnb+3] + ptr_dlam[pnb+3];
 			qx[2] = qx[2] - Qx[2]*ptr_zl[2]*ptr_Zl[2]; // update this before Qx !!!!!!!!!!!
 			qx[3] = qx[3] - Qx[3]*ptr_zl[3]*ptr_Zl[3]; // update this before Qx !!!!!!!!!!!
 			Qx[2] = Qx[2] - Qx[2]*Qx[2]*ptr_Zl[2];
@@ -1598,24 +1598,24 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 
 			ptr_tinv[4] = 1.0/ptr_t[4];
 			ptr_tinv[5] = 1.0/ptr_t[5];
-			ptr_tinv[anb+4] = 1.0/ptr_t[anb+4];
-			ptr_tinv[anb+5] = 1.0/ptr_t[anb+5];
+			ptr_tinv[pnb+4] = 1.0/ptr_t[pnb+4];
+			ptr_tinv[pnb+5] = 1.0/ptr_t[pnb+5];
 			ptr_lamt[4] = ptr_lam[4]*ptr_tinv[4];
 			ptr_lamt[5] = ptr_lam[5]*ptr_tinv[5];
-			ptr_lamt[anb+4] = ptr_lam[anb+4]*ptr_tinv[anb+4];
-			ptr_lamt[anb+5] = ptr_lam[anb+5]*ptr_tinv[anb+5];
+			ptr_lamt[pnb+4] = ptr_lam[pnb+4]*ptr_tinv[pnb+4];
+			ptr_lamt[pnb+5] = ptr_lam[pnb+5]*ptr_tinv[pnb+5];
 			ptr_dlam[4] = ptr_tinv[4]*sigma_mu; // !!!!!
 			ptr_dlam[5] = ptr_tinv[5]*sigma_mu; // !!!!!
-			ptr_dlam[anb+4] = ptr_tinv[anb+4]*sigma_mu; // !!!!!
-			ptr_dlam[anb+5] = ptr_tinv[anb+5]*sigma_mu; // !!!!!
+			ptr_dlam[pnb+4] = ptr_tinv[pnb+4]*sigma_mu; // !!!!!
+			ptr_dlam[pnb+5] = ptr_tinv[pnb+5]*sigma_mu; // !!!!!
 			Qx[4] = ptr_lamt[4];
 			Qx[5] = ptr_lamt[5];
 			qx[4] = ptr_lam[4] + ptr_dlam[4] + ptr_lamt[4]*ptr_db[4];
 			qx[5] = ptr_lam[5] + ptr_dlam[5] + ptr_lamt[5]*ptr_db[5];
-			ptr_Zl[4] = 1.0 / (ptr_Z[4] + Qx[4] + ptr_lamt[anb+4]); // inverted of updated diagonal !!!
-			ptr_Zl[5] = 1.0 / (ptr_Z[5] + Qx[5] + ptr_lamt[anb+5]); // inverted of updated diagonal !!!
-			ptr_zl[4] = - ptr_z[4] + qx[4] + ptr_lam[anb+4] + ptr_dlam[anb+4];
-			ptr_zl[5] = - ptr_z[5] + qx[5] + ptr_lam[anb+5] + ptr_dlam[anb+5];
+			ptr_Zl[4] = 1.0 / (ptr_Z[4] + Qx[4] + ptr_lamt[pnb+4]); // inverted of updated diagonal !!!
+			ptr_Zl[5] = 1.0 / (ptr_Z[5] + Qx[5] + ptr_lamt[pnb+5]); // inverted of updated diagonal !!!
+			ptr_zl[4] = - ptr_z[4] + qx[4] + ptr_lam[pnb+4] + ptr_dlam[pnb+4];
+			ptr_zl[5] = - ptr_z[5] + qx[5] + ptr_lam[pnb+5] + ptr_dlam[pnb+5];
 			qx[4] = qx[4] - Qx[4]*ptr_zl[4]*ptr_Zl[4]; // update this before Qx !!!!!!!!!!!
 			qx[5] = qx[5] - Qx[5]*ptr_zl[5]*ptr_Zl[5]; // update this before Qx !!!!!!!!!!!
 			Qx[4] = Qx[4] - Qx[4]*Qx[4]*ptr_Zl[4];
@@ -1625,24 +1625,24 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 
 			ptr_tinv[6] = 1.0/ptr_t[6];
 			ptr_tinv[7] = 1.0/ptr_t[7];
-			ptr_tinv[anb+6] = 1.0/ptr_t[anb+6];
-			ptr_tinv[anb+7] = 1.0/ptr_t[anb+7];
+			ptr_tinv[pnb+6] = 1.0/ptr_t[pnb+6];
+			ptr_tinv[pnb+7] = 1.0/ptr_t[pnb+7];
 			ptr_lamt[6] = ptr_lam[6]*ptr_tinv[6];
 			ptr_lamt[7] = ptr_lam[7]*ptr_tinv[7];
-			ptr_lamt[anb+6] = ptr_lam[anb+6]*ptr_tinv[anb+6];
-			ptr_lamt[anb+7] = ptr_lam[anb+7]*ptr_tinv[anb+7];
+			ptr_lamt[pnb+6] = ptr_lam[pnb+6]*ptr_tinv[pnb+6];
+			ptr_lamt[pnb+7] = ptr_lam[pnb+7]*ptr_tinv[pnb+7];
 			ptr_dlam[6] = ptr_tinv[6]*sigma_mu; // !!!!!
 			ptr_dlam[7] = ptr_tinv[7]*sigma_mu; // !!!!!
-			ptr_dlam[anb+6] = ptr_tinv[anb+6]*sigma_mu; // !!!!!
-			ptr_dlam[anb+7] = ptr_tinv[anb+7]*sigma_mu; // !!!!!
+			ptr_dlam[pnb+6] = ptr_tinv[pnb+6]*sigma_mu; // !!!!!
+			ptr_dlam[pnb+7] = ptr_tinv[pnb+7]*sigma_mu; // !!!!!
 			Qx[6] = ptr_lamt[6];
 			Qx[7] = ptr_lamt[7];
 			qx[6] = ptr_lam[6] + ptr_dlam[6] + ptr_lamt[6]*ptr_db[6];
 			qx[7] = ptr_lam[7] + ptr_dlam[7] + ptr_lamt[7]*ptr_db[7];
-			ptr_Zl[6] = 1.0 / (ptr_Z[6] + Qx[6] + ptr_lamt[anb+6]); // inverted of updated diagonal !!!
-			ptr_Zl[7] = 1.0 / (ptr_Z[7] + Qx[7] + ptr_lamt[anb+7]); // inverted of updated diagonal !!!
-			ptr_zl[6] = - ptr_z[6] + qx[6] + ptr_lam[anb+6] + ptr_dlam[anb+6];
-			ptr_zl[7] = - ptr_z[7] + qx[7] + ptr_lam[anb+7] + ptr_dlam[anb+7];
+			ptr_Zl[6] = 1.0 / (ptr_Z[6] + Qx[6] + ptr_lamt[pnb+6]); // inverted of updated diagonal !!!
+			ptr_Zl[7] = 1.0 / (ptr_Z[7] + Qx[7] + ptr_lamt[pnb+7]); // inverted of updated diagonal !!!
+			ptr_zl[6] = - ptr_z[6] + qx[6] + ptr_lam[pnb+6] + ptr_dlam[pnb+6];
+			ptr_zl[7] = - ptr_z[7] + qx[7] + ptr_lam[pnb+7] + ptr_dlam[pnb+7];
 			qx[6] = qx[6] - Qx[6]*ptr_zl[6]*ptr_Zl[6]; // update this before Qx !!!!!!!!!!!
 			qx[7] = qx[7] - Qx[7]*ptr_zl[7]*ptr_Zl[7]; // update this before Qx !!!!!!!!!!!
 			Qx[6] = Qx[6] - Qx[6]*Qx[6]*ptr_Zl[6];
@@ -1666,24 +1666,24 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 			{
 			ptr_tinv[0] = 1.0/ptr_t[0];
 			ptr_tinv[1] = 1.0/ptr_t[1];
-			ptr_tinv[anb+0] = 1.0/ptr_t[anb+0];
-			ptr_tinv[anb+1] = 1.0/ptr_t[anb+1];
+			ptr_tinv[pnb+0] = 1.0/ptr_t[pnb+0];
+			ptr_tinv[pnb+1] = 1.0/ptr_t[pnb+1];
 			ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
 			ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
-			ptr_lamt[anb+0] = ptr_lam[anb+0]*ptr_tinv[anb+0];
-			ptr_lamt[anb+1] = ptr_lam[anb+1]*ptr_tinv[anb+1];
+			ptr_lamt[pnb+0] = ptr_lam[pnb+0]*ptr_tinv[pnb+0];
+			ptr_lamt[pnb+1] = ptr_lam[pnb+1]*ptr_tinv[pnb+1];
 			ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
 			ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
-			ptr_dlam[anb+0] = ptr_tinv[anb+0]*sigma_mu; // !!!!!
-			ptr_dlam[anb+1] = ptr_tinv[anb+1]*sigma_mu; // !!!!!
+			ptr_dlam[pnb+0] = ptr_tinv[pnb+0]*sigma_mu; // !!!!!
+			ptr_dlam[pnb+1] = ptr_tinv[pnb+1]*sigma_mu; // !!!!!
 			Qx[0] = ptr_lamt[0];
 			Qx[1] = ptr_lamt[1];
 			qx[0] = ptr_lam[0] + ptr_dlam[0] + ptr_lamt[0]*ptr_db[0];
 			qx[1] = ptr_lam[1] + ptr_dlam[1] + ptr_lamt[1]*ptr_db[1];
-			ptr_Zl[0] = 1.0 / (ptr_Z[0] + Qx[0] + ptr_lamt[anb+0]); // inverted of updated diagonal !!!
-			ptr_Zl[1] = 1.0 / (ptr_Z[1] + Qx[1] + ptr_lamt[anb+1]); // inverted of updated diagonal !!!
-			ptr_zl[0] = - ptr_z[0] + qx[0] + ptr_lam[anb+0] + ptr_dlam[anb+0];
-			ptr_zl[1] = - ptr_z[1] + qx[1] + ptr_lam[anb+1] + ptr_dlam[anb+1];
+			ptr_Zl[0] = 1.0 / (ptr_Z[0] + Qx[0] + ptr_lamt[pnb+0]); // inverted of updated diagonal !!!
+			ptr_Zl[1] = 1.0 / (ptr_Z[1] + Qx[1] + ptr_lamt[pnb+1]); // inverted of updated diagonal !!!
+			ptr_zl[0] = - ptr_z[0] + qx[0] + ptr_lam[pnb+0] + ptr_dlam[pnb+0];
+			ptr_zl[1] = - ptr_z[1] + qx[1] + ptr_lam[pnb+1] + ptr_dlam[pnb+1];
 			qx[0] = qx[0] - Qx[0]*ptr_zl[0]*ptr_Zl[0]; // update this before Qx !!!!!!!!!!!
 			qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
 			Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
@@ -1808,24 +1808,24 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 		{
 		ptr_tinv[0] = 1.0/ptr_t[0];
 		ptr_tinv[1] = 1.0/ptr_t[1];
-		ptr_tinv[anb+0] = 1.0/ptr_t[anb+0];
-		ptr_tinv[anb+1] = 1.0/ptr_t[anb+1];
+		ptr_tinv[pnb+0] = 1.0/ptr_t[pnb+0];
+		ptr_tinv[pnb+1] = 1.0/ptr_t[pnb+1];
 		ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
 		ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
-		ptr_lamt[anb+0] = ptr_lam[anb+0]*ptr_tinv[anb+0];
-		ptr_lamt[anb+1] = ptr_lam[anb+1]*ptr_tinv[anb+1];
+		ptr_lamt[pnb+0] = ptr_lam[pnb+0]*ptr_tinv[pnb+0];
+		ptr_lamt[pnb+1] = ptr_lam[pnb+1]*ptr_tinv[pnb+1];
 		ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
 		ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
-		ptr_dlam[anb+0] = ptr_tinv[anb+0]*sigma_mu; // !!!!!
-		ptr_dlam[anb+1] = ptr_tinv[anb+1]*sigma_mu; // !!!!!
+		ptr_dlam[pnb+0] = ptr_tinv[pnb+0]*sigma_mu; // !!!!!
+		ptr_dlam[pnb+1] = ptr_tinv[pnb+1]*sigma_mu; // !!!!!
 		Qx[0] = ptr_lamt[0];
 		Qx[1] = ptr_lamt[1];
 		qx[0] = ptr_lam[0] + ptr_dlam[0] + ptr_lamt[0]*ptr_db[0];
 		qx[1] = ptr_lam[1] + ptr_dlam[1] + ptr_lamt[1]*ptr_db[1];
-		ptr_Zl[0] = 1.0 / (ptr_Z[0] + Qx[0] + ptr_lamt[anb+0]); // inverted of updated diagonal !!!
-		ptr_Zl[1] = 1.0 / (ptr_Z[1] + Qx[1] + ptr_lamt[anb+1]); // inverted of updated diagonal !!!
-		ptr_zl[0] = - ptr_z[0] + qx[0] + ptr_lam[anb+0] + ptr_dlam[anb+0];
-		ptr_zl[1] = - ptr_z[1] + qx[1] + ptr_lam[anb+1] + ptr_dlam[anb+1];
+		ptr_Zl[0] = 1.0 / (ptr_Z[0] + Qx[0] + ptr_lamt[pnb+0]); // inverted of updated diagonal !!!
+		ptr_Zl[1] = 1.0 / (ptr_Z[1] + Qx[1] + ptr_lamt[pnb+1]); // inverted of updated diagonal !!!
+		ptr_zl[0] = - ptr_z[0] + qx[0] + ptr_lam[pnb+0] + ptr_dlam[pnb+0];
+		ptr_zl[1] = - ptr_z[1] + qx[1] + ptr_lam[pnb+1] + ptr_dlam[pnb+1];
 		qx[0] = qx[0] - Qx[0]*ptr_zl[0]*ptr_Zl[0]; // update this before Qx !!!!!!!!!!!
 		qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
 		Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
@@ -1835,24 +1835,24 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 
 		ptr_tinv[2] = 1.0/ptr_t[2];
 		ptr_tinv[3] = 1.0/ptr_t[3];
-		ptr_tinv[anb+2] = 1.0/ptr_t[anb+2];
-		ptr_tinv[anb+3] = 1.0/ptr_t[anb+3];
+		ptr_tinv[pnb+2] = 1.0/ptr_t[pnb+2];
+		ptr_tinv[pnb+3] = 1.0/ptr_t[pnb+3];
 		ptr_lamt[2] = ptr_lam[2]*ptr_tinv[2];
 		ptr_lamt[3] = ptr_lam[3]*ptr_tinv[3];
-		ptr_lamt[anb+2] = ptr_lam[anb+2]*ptr_tinv[anb+2];
-		ptr_lamt[anb+3] = ptr_lam[anb+3]*ptr_tinv[anb+3];
+		ptr_lamt[pnb+2] = ptr_lam[pnb+2]*ptr_tinv[pnb+2];
+		ptr_lamt[pnb+3] = ptr_lam[pnb+3]*ptr_tinv[pnb+3];
 		ptr_dlam[2] = ptr_tinv[2]*sigma_mu; // !!!!!
 		ptr_dlam[3] = ptr_tinv[3]*sigma_mu; // !!!!!
-		ptr_dlam[anb+2] = ptr_tinv[anb+2]*sigma_mu; // !!!!!
-		ptr_dlam[anb+3] = ptr_tinv[anb+3]*sigma_mu; // !!!!!
+		ptr_dlam[pnb+2] = ptr_tinv[pnb+2]*sigma_mu; // !!!!!
+		ptr_dlam[pnb+3] = ptr_tinv[pnb+3]*sigma_mu; // !!!!!
 		Qx[2] = ptr_lamt[2];
 		Qx[3] = ptr_lamt[3];
 		qx[2] = ptr_lam[2] + ptr_dlam[2] + ptr_lamt[2]*ptr_db[2];
 		qx[3] = ptr_lam[3] + ptr_dlam[3] + ptr_lamt[3]*ptr_db[3];
-		ptr_Zl[2] = 1.0 / (ptr_Z[2] + Qx[2] + ptr_lamt[anb+2]); // inverted of updated diagonal !!!
-		ptr_Zl[3] = 1.0 / (ptr_Z[3] + Qx[3] + ptr_lamt[anb+3]); // inverted of updated diagonal !!!
-		ptr_zl[2] = - ptr_z[2] + qx[2] + ptr_lam[anb+2] + ptr_dlam[anb+2];
-		ptr_zl[3] = - ptr_z[3] + qx[3] + ptr_lam[anb+3] + ptr_dlam[anb+3];
+		ptr_Zl[2] = 1.0 / (ptr_Z[2] + Qx[2] + ptr_lamt[pnb+2]); // inverted of updated diagonal !!!
+		ptr_Zl[3] = 1.0 / (ptr_Z[3] + Qx[3] + ptr_lamt[pnb+3]); // inverted of updated diagonal !!!
+		ptr_zl[2] = - ptr_z[2] + qx[2] + ptr_lam[pnb+2] + ptr_dlam[pnb+2];
+		ptr_zl[3] = - ptr_z[3] + qx[3] + ptr_lam[pnb+3] + ptr_dlam[pnb+3];
 		qx[2] = qx[2] - Qx[2]*ptr_zl[2]*ptr_Zl[2]; // update this before Qx !!!!!!!!!!!
 		qx[3] = qx[3] - Qx[3]*ptr_zl[3]*ptr_Zl[3]; // update this before Qx !!!!!!!!!!!
 		Qx[2] = Qx[2] - Qx[2]*Qx[2]*ptr_Zl[2];
@@ -1862,24 +1862,24 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 
 		ptr_tinv[4] = 1.0/ptr_t[4];
 		ptr_tinv[5] = 1.0/ptr_t[5];
-		ptr_tinv[anb+4] = 1.0/ptr_t[anb+4];
-		ptr_tinv[anb+5] = 1.0/ptr_t[anb+5];
+		ptr_tinv[pnb+4] = 1.0/ptr_t[pnb+4];
+		ptr_tinv[pnb+5] = 1.0/ptr_t[pnb+5];
 		ptr_lamt[4] = ptr_lam[4]*ptr_tinv[4];
 		ptr_lamt[5] = ptr_lam[5]*ptr_tinv[5];
-		ptr_lamt[anb+4] = ptr_lam[anb+4]*ptr_tinv[anb+4];
-		ptr_lamt[anb+5] = ptr_lam[anb+5]*ptr_tinv[anb+5];
+		ptr_lamt[pnb+4] = ptr_lam[pnb+4]*ptr_tinv[pnb+4];
+		ptr_lamt[pnb+5] = ptr_lam[pnb+5]*ptr_tinv[pnb+5];
 		ptr_dlam[4] = ptr_tinv[4]*sigma_mu; // !!!!!
 		ptr_dlam[5] = ptr_tinv[5]*sigma_mu; // !!!!!
-		ptr_dlam[anb+4] = ptr_tinv[anb+4]*sigma_mu; // !!!!!
-		ptr_dlam[anb+5] = ptr_tinv[anb+5]*sigma_mu; // !!!!!
+		ptr_dlam[pnb+4] = ptr_tinv[pnb+4]*sigma_mu; // !!!!!
+		ptr_dlam[pnb+5] = ptr_tinv[pnb+5]*sigma_mu; // !!!!!
 		Qx[4] = ptr_lamt[4];
 		Qx[5] = ptr_lamt[5];
 		qx[4] = ptr_lam[4] + ptr_dlam[4] + ptr_lamt[4]*ptr_db[4];
 		qx[5] = ptr_lam[5] + ptr_dlam[5] + ptr_lamt[5]*ptr_db[5];
-		ptr_Zl[4] = 1.0 / (ptr_Z[4] + Qx[4] + ptr_lamt[anb+4]); // inverted of updated diagonal !!!
-		ptr_Zl[5] = 1.0 / (ptr_Z[5] + Qx[5] + ptr_lamt[anb+5]); // inverted of updated diagonal !!!
-		ptr_zl[4] = - ptr_z[4] + qx[4] + ptr_lam[anb+4] + ptr_dlam[anb+4];
-		ptr_zl[5] = - ptr_z[5] + qx[5] + ptr_lam[anb+5] + ptr_dlam[anb+5];
+		ptr_Zl[4] = 1.0 / (ptr_Z[4] + Qx[4] + ptr_lamt[pnb+4]); // inverted of updated diagonal !!!
+		ptr_Zl[5] = 1.0 / (ptr_Z[5] + Qx[5] + ptr_lamt[pnb+5]); // inverted of updated diagonal !!!
+		ptr_zl[4] = - ptr_z[4] + qx[4] + ptr_lam[pnb+4] + ptr_dlam[pnb+4];
+		ptr_zl[5] = - ptr_z[5] + qx[5] + ptr_lam[pnb+5] + ptr_dlam[pnb+5];
 		qx[4] = qx[4] - Qx[4]*ptr_zl[4]*ptr_Zl[4]; // update this before Qx !!!!!!!!!!!
 		qx[5] = qx[5] - Qx[5]*ptr_zl[5]*ptr_Zl[5]; // update this before Qx !!!!!!!!!!!
 		Qx[4] = Qx[4] - Qx[4]*Qx[4]*ptr_Zl[4];
@@ -1889,24 +1889,24 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 
 		ptr_tinv[6] = 1.0/ptr_t[6];
 		ptr_tinv[7] = 1.0/ptr_t[7];
-		ptr_tinv[anb+6] = 1.0/ptr_t[anb+6];
-		ptr_tinv[anb+7] = 1.0/ptr_t[anb+7];
+		ptr_tinv[pnb+6] = 1.0/ptr_t[pnb+6];
+		ptr_tinv[pnb+7] = 1.0/ptr_t[pnb+7];
 		ptr_lamt[6] = ptr_lam[6]*ptr_tinv[6];
 		ptr_lamt[7] = ptr_lam[7]*ptr_tinv[7];
-		ptr_lamt[anb+6] = ptr_lam[anb+6]*ptr_tinv[anb+6];
-		ptr_lamt[anb+7] = ptr_lam[anb+7]*ptr_tinv[anb+7];
+		ptr_lamt[pnb+6] = ptr_lam[pnb+6]*ptr_tinv[pnb+6];
+		ptr_lamt[pnb+7] = ptr_lam[pnb+7]*ptr_tinv[pnb+7];
 		ptr_dlam[6] = ptr_tinv[6]*sigma_mu; // !!!!!
 		ptr_dlam[7] = ptr_tinv[7]*sigma_mu; // !!!!!
-		ptr_dlam[anb+6] = ptr_tinv[anb+6]*sigma_mu; // !!!!!
-		ptr_dlam[anb+7] = ptr_tinv[anb+7]*sigma_mu; // !!!!!
+		ptr_dlam[pnb+6] = ptr_tinv[pnb+6]*sigma_mu; // !!!!!
+		ptr_dlam[pnb+7] = ptr_tinv[pnb+7]*sigma_mu; // !!!!!
 		Qx[6] = ptr_lamt[6];
 		Qx[7] = ptr_lamt[7];
 		qx[6] = ptr_lam[6] + ptr_dlam[6] + ptr_lamt[6]*ptr_db[6];
 		qx[7] = ptr_lam[7] + ptr_dlam[7] + ptr_lamt[7]*ptr_db[7];
-		ptr_Zl[6] = 1.0 / (ptr_Z[6] + Qx[6] + ptr_lamt[anb+6]); // inverted of updated diagonal !!!
-		ptr_Zl[7] = 1.0 / (ptr_Z[7] + Qx[7] + ptr_lamt[anb+7]); // inverted of updated diagonal !!!
-		ptr_zl[6] = - ptr_z[6] + qx[6] + ptr_lam[anb+6] + ptr_dlam[anb+6];
-		ptr_zl[7] = - ptr_z[7] + qx[7] + ptr_lam[anb+7] + ptr_dlam[anb+7];
+		ptr_Zl[6] = 1.0 / (ptr_Z[6] + Qx[6] + ptr_lamt[pnb+6]); // inverted of updated diagonal !!!
+		ptr_Zl[7] = 1.0 / (ptr_Z[7] + Qx[7] + ptr_lamt[pnb+7]); // inverted of updated diagonal !!!
+		ptr_zl[6] = - ptr_z[6] + qx[6] + ptr_lam[pnb+6] + ptr_dlam[pnb+6];
+		ptr_zl[7] = - ptr_z[7] + qx[7] + ptr_lam[pnb+7] + ptr_dlam[pnb+7];
 		qx[6] = qx[6] - Qx[6]*ptr_zl[6]*ptr_Zl[6]; // update this before Qx !!!!!!!!!!!
 		qx[7] = qx[7] - Qx[7]*ptr_zl[7]*ptr_Zl[7]; // update this before Qx !!!!!!!!!!!
 		Qx[6] = Qx[6] - Qx[6]*Qx[6]*ptr_Zl[6];
@@ -1930,24 +1930,24 @@ void d_update_hessian_soft_mpc(int N, int nx, int nu, int nh, int ns, int cnz, d
 		{
 		ptr_tinv[0] = 1.0/ptr_t[0];
 		ptr_tinv[1] = 1.0/ptr_t[1];
-		ptr_tinv[anb+0] = 1.0/ptr_t[anb+0];
-		ptr_tinv[anb+1] = 1.0/ptr_t[anb+1];
+		ptr_tinv[pnb+0] = 1.0/ptr_t[pnb+0];
+		ptr_tinv[pnb+1] = 1.0/ptr_t[pnb+1];
 		ptr_lamt[0] = ptr_lam[0]*ptr_tinv[0];
 		ptr_lamt[1] = ptr_lam[1]*ptr_tinv[1];
-		ptr_lamt[anb+0] = ptr_lam[anb+0]*ptr_tinv[anb+0];
-		ptr_lamt[anb+1] = ptr_lam[anb+1]*ptr_tinv[anb+1];
+		ptr_lamt[pnb+0] = ptr_lam[pnb+0]*ptr_tinv[pnb+0];
+		ptr_lamt[pnb+1] = ptr_lam[pnb+1]*ptr_tinv[pnb+1];
 		ptr_dlam[0] = ptr_tinv[0]*sigma_mu; // !!!!!
 		ptr_dlam[1] = ptr_tinv[1]*sigma_mu; // !!!!!
-		ptr_dlam[anb+0] = ptr_tinv[anb+0]*sigma_mu; // !!!!!
-		ptr_dlam[anb+1] = ptr_tinv[anb+1]*sigma_mu; // !!!!!
+		ptr_dlam[pnb+0] = ptr_tinv[pnb+0]*sigma_mu; // !!!!!
+		ptr_dlam[pnb+1] = ptr_tinv[pnb+1]*sigma_mu; // !!!!!
 		Qx[0] = ptr_lamt[0];
 		Qx[1] = ptr_lamt[1];
 		qx[0] = ptr_lam[0] + ptr_dlam[0] + ptr_lamt[0]*ptr_db[0];
 		qx[1] = ptr_lam[1] + ptr_dlam[1] + ptr_lamt[1]*ptr_db[1];
-		ptr_Zl[0] = 1.0 / (ptr_Z[0] + Qx[0] + ptr_lamt[anb+0]); // inverted of updated diagonal !!!
-		ptr_Zl[1] = 1.0 / (ptr_Z[1] + Qx[1] + ptr_lamt[anb+1]); // inverted of updated diagonal !!!
-		ptr_zl[0] = - ptr_z[0] + qx[0] + ptr_lam[anb+0] + ptr_dlam[anb+0];
-		ptr_zl[1] = - ptr_z[1] + qx[1] + ptr_lam[anb+1] + ptr_dlam[anb+1];
+		ptr_Zl[0] = 1.0 / (ptr_Z[0] + Qx[0] + ptr_lamt[pnb+0]); // inverted of updated diagonal !!!
+		ptr_Zl[1] = 1.0 / (ptr_Z[1] + Qx[1] + ptr_lamt[pnb+1]); // inverted of updated diagonal !!!
+		ptr_zl[0] = - ptr_z[0] + qx[0] + ptr_lam[pnb+0] + ptr_dlam[pnb+0];
+		ptr_zl[1] = - ptr_z[1] + qx[1] + ptr_lam[pnb+1] + ptr_dlam[pnb+1];
 		qx[0] = qx[0] - Qx[0]*ptr_zl[0]*ptr_Zl[0]; // update this before Qx !!!!!!!!!!!
 		qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
 		Qx[0] = Qx[0] - Qx[0]*Qx[0]*ptr_Zl[0];
@@ -2134,7 +2134,7 @@ void d_update_gradient_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, 
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
+	//const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box and soft constraints
 	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
 	const int png  = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
 	const int pngN = bs*((ngN+bs-1)/bs); // simd aligned number of box and soft constraints at last stage
@@ -2248,7 +2248,7 @@ void d_update_gradient_soft_mpc(int N, int nx, int nu, int nh, int ns, double si
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
+	const int pnb = bs*((2*nb+bs-1)/bs); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
 
 	int ii, jj;
 	
@@ -2279,22 +2279,22 @@ void d_update_gradient_soft_mpc(int N, int nx, int nu, int nh, int ns, double si
 			{
 			dlam[jj][ii+0] = t_inv[jj][ii+0]*(sigma_mu - dlam[jj][ii+0]*dt[jj][ii+0]); // !!!!!
 			dlam[jj][ii+1] = t_inv[jj][ii+1]*(sigma_mu - dlam[jj][ii+1]*dt[jj][ii+1]); // !!!!!
-			dlam[jj][anb+ii+0] = t_inv[jj][anb+ii+0]*(sigma_mu - dlam[jj][anb+ii+0]*dt[jj][anb+ii+0]); // !!!!!
-			dlam[jj][anb+ii+1] = t_inv[jj][anb+ii+1]*(sigma_mu - dlam[jj][anb+ii+1]*dt[jj][anb+ii+1]); // !!!!!
+			dlam[jj][pnb+ii+0] = t_inv[jj][pnb+ii+0]*(sigma_mu - dlam[jj][pnb+ii+0]*dt[jj][pnb+ii+0]); // !!!!!
+			dlam[jj][pnb+ii+1] = t_inv[jj][pnb+ii+1]*(sigma_mu - dlam[jj][pnb+ii+1]*dt[jj][pnb+ii+1]); // !!!!!
 			Qx[0] = lamt[jj][ii+0];
 			Qx[1] = lamt[jj][ii+1];
 			//qx[0] = ptr_lam[0] + ptr_dlam[0] + ptr_lamt[0]*ptr_db[0];
 			//qx[1] = ptr_lam[1] + ptr_dlam[1] + ptr_lamt[1]*ptr_db[1];
 			qx[0] = dlam[jj][ii+0];
 			qx[1] = dlam[jj][ii+1];
-			//ptr_zl[0] = ptr_z[0] + qx[0] + ptr_lam[anb+0] + ptr_dlam[anb+0];
-			//ptr_zl[1] = ptr_z[1] + qx[1] + ptr_lam[anb+1] + ptr_dlam[anb+1];
-			zl[jj][ii+0] += qx[0] + dlam[jj][anb+ii+0];
-			zl[jj][ii+1] += qx[1] + dlam[jj][anb+ii+1];
+			//ptr_zl[0] = ptr_z[0] + qx[0] + ptr_lam[pnb+0] + ptr_dlam[pnb+0];
+			//ptr_zl[1] = ptr_z[1] + qx[1] + ptr_lam[pnb+1] + ptr_dlam[pnb+1];
+			zl[jj][ii+0] += qx[0] + dlam[jj][pnb+ii+0];
+			zl[jj][ii+1] += qx[1] + dlam[jj][pnb+ii+1];
 			//qx[0] = qx[0] - Qx[0]*ptr_zl[0]*ptr_Zl[0]; // update this before Qx !!!!!!!!!!!
 			//qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
-			qx[0] = qx[0] - Qx[0]*(qx[0] + dlam[jj][anb+ii+0])*Zl[jj][ii+0]; // update this before Qx !!!!!!!!!!!
-			qx[1] = qx[1] - Qx[1]*(qx[1] + dlam[jj][anb+ii+1])*Zl[jj][ii+1]; // update this before Qx !!!!!!!!!!!
+			qx[0] = qx[0] - Qx[0]*(qx[0] + dlam[jj][pnb+ii+0])*Zl[jj][ii+0]; // update this before Qx !!!!!!!!!!!
+			qx[1] = qx[1] - Qx[1]*(qx[1] + dlam[jj][pnb+ii+1])*Zl[jj][ii+1]; // update this before Qx !!!!!!!!!!!
 			pl2[jj][ii/2] += qx[1] - qx[0];
 			}
 		}
@@ -2312,22 +2312,22 @@ void d_update_gradient_soft_mpc(int N, int nx, int nu, int nh, int ns, double si
 		{
 		dlam[N][ii+0] = t_inv[N][ii+0]*(sigma_mu - dlam[N][ii+0]*dt[N][ii+0]); // !!!!!
 		dlam[N][ii+1] = t_inv[N][ii+1]*(sigma_mu - dlam[N][ii+1]*dt[N][ii+1]); // !!!!!
-		dlam[N][anb+ii+0] = t_inv[N][anb+ii+0]*(sigma_mu - dlam[N][anb+ii+0]*dt[N][anb+ii+0]); // !!!!!
-		dlam[N][anb+ii+1] = t_inv[N][anb+ii+1]*(sigma_mu - dlam[N][anb+ii+1]*dt[N][anb+ii+1]); // !!!!!
+		dlam[N][pnb+ii+0] = t_inv[N][pnb+ii+0]*(sigma_mu - dlam[N][pnb+ii+0]*dt[N][pnb+ii+0]); // !!!!!
+		dlam[N][pnb+ii+1] = t_inv[N][pnb+ii+1]*(sigma_mu - dlam[N][pnb+ii+1]*dt[N][pnb+ii+1]); // !!!!!
 		Qx[0] = lamt[N][ii+0];
 		Qx[1] = lamt[N][ii+1];
 		//qx[0] = ptr_lam[0] + ptr_dlam[0] + ptr_lamt[0]*ptr_db[0];
 		//qx[1] = ptr_lam[1] + ptr_dlam[1] + ptr_lamt[1]*ptr_db[1];
 		qx[0] = dlam[N][ii+0];
 		qx[1] = dlam[N][ii+1];
-		//ptr_zl[0] = ptr_z[0] + qx[0] + ptr_lam[anb+0] + ptr_dlam[anb+0];
-		//ptr_zl[1] = ptr_z[1] + qx[1] + ptr_lam[anb+1] + ptr_dlam[anb+1];
-		zl[N][ii+0] += qx[0] + dlam[N][anb+ii+0];
-		zl[N][ii+1] += qx[1] + dlam[N][anb+ii+1];
+		//ptr_zl[0] = ptr_z[0] + qx[0] + ptr_lam[pnb+0] + ptr_dlam[pnb+0];
+		//ptr_zl[1] = ptr_z[1] + qx[1] + ptr_lam[pnb+1] + ptr_dlam[pnb+1];
+		zl[N][ii+0] += qx[0] + dlam[N][pnb+ii+0];
+		zl[N][ii+1] += qx[1] + dlam[N][pnb+ii+1];
 		//qx[0] = qx[0] - Qx[0]*ptr_zl[0]*ptr_Zl[0]; // update this before Qx !!!!!!!!!!!
 		//qx[1] = qx[1] - Qx[1]*ptr_zl[1]*ptr_Zl[1]; // update this before Qx !!!!!!!!!!!
-		qx[0] = qx[0] - Qx[0]*(qx[0] + dlam[N][anb+ii+0])*Zl[N][ii+0]; // update this before Qx !!!!!!!!!!!
-		qx[1] = qx[1] - Qx[1]*(qx[1] + dlam[N][anb+ii+1])*Zl[N][ii+1]; // update this before Qx !!!!!!!!!!!
+		qx[0] = qx[0] - Qx[0]*(qx[0] + dlam[N][pnb+ii+0])*Zl[N][ii+0]; // update this before Qx !!!!!!!!!!!
+		qx[1] = qx[1] - Qx[1]*(qx[1] + dlam[N][pnb+ii+1])*Zl[N][ii+1]; // update this before Qx !!!!!!!!!!!
 		pl2[N][ii/2] += qx[1] - qx[0];
 		}
 
@@ -2498,7 +2498,7 @@ void d_compute_alpha_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, do
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
+	//const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box and soft constraints
 	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
 	const int png  = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
 	const int pngN = bs*((ngN+bs-1)/bs); // simd aligned number of box and soft constraints at last stage
@@ -2743,7 +2743,7 @@ void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
+	const int pnb = bs*((2*nb+bs-1)/bs); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
 
 	
 	double alpha = ptr_alpha[0];
@@ -2818,16 +2818,16 @@ void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr
 		for(; ll<nb; ll++)
 			{
 
-			dt[jj][anb+2*ll+0] = ( zl[jj][2*ll+0] - lamt[jj][2*ll+0]*dux[jj][ll] ) * Zl[jj][2*ll+0];
-			dt[jj][anb+2*ll+1] = ( zl[jj][2*ll+1] + lamt[jj][2*ll+1]*dux[jj][ll] ) * Zl[jj][2*ll+1];
-			dt[jj][2*ll+0] = dt[jj][anb+2*ll+0] + dux[jj][ll] - db[jj][2*ll+0] - t[jj][2*ll+0];
-			dt[jj][2*ll+1] = dt[jj][anb+2*ll+1] - dux[jj][ll] - db[jj][2*ll+1] - t[jj][2*ll+1];
-			dt[jj][anb+2*ll+0] -= t[jj][anb+2*ll+0];
-			dt[jj][anb+2*ll+1] -= t[jj][anb+2*ll+1];
+			dt[jj][pnb+2*ll+0] = ( zl[jj][2*ll+0] - lamt[jj][2*ll+0]*dux[jj][ll] ) * Zl[jj][2*ll+0];
+			dt[jj][pnb+2*ll+1] = ( zl[jj][2*ll+1] + lamt[jj][2*ll+1]*dux[jj][ll] ) * Zl[jj][2*ll+1];
+			dt[jj][2*ll+0] = dt[jj][pnb+2*ll+0] + dux[jj][ll] - db[jj][2*ll+0] - t[jj][2*ll+0];
+			dt[jj][2*ll+1] = dt[jj][pnb+2*ll+1] - dux[jj][ll] - db[jj][2*ll+1] - t[jj][2*ll+1];
+			dt[jj][pnb+2*ll+0] -= t[jj][pnb+2*ll+0];
+			dt[jj][pnb+2*ll+1] -= t[jj][pnb+2*ll+1];
 			dlam[jj][2*ll+0] -= lamt[jj][2*ll+0] * dt[jj][2*ll+0] + lam[jj][2*ll+0];
 			dlam[jj][2*ll+1] -= lamt[jj][2*ll+1] * dt[jj][2*ll+1] + lam[jj][2*ll+1];
-			dlam[jj][anb+2*ll+0] -= lamt[jj][anb+2*ll+0] * dt[jj][anb+2*ll+0] + lam[jj][anb+2*ll+0];
-			dlam[jj][anb+2*ll+1] -= lamt[jj][anb+2*ll+1] * dt[jj][anb+2*ll+1] + lam[jj][anb+2*ll+1];
+			dlam[jj][pnb+2*ll+0] -= lamt[jj][pnb+2*ll+0] * dt[jj][pnb+2*ll+0] + lam[jj][pnb+2*ll+0];
+			dlam[jj][pnb+2*ll+1] -= lamt[jj][pnb+2*ll+1] * dt[jj][pnb+2*ll+1] + lam[jj][pnb+2*ll+1];
 			if( -alpha*dlam[jj][2*ll+0]>lam[jj][2*ll+0] )
 				{
 				alpha = - lam[jj][2*ll+0] / dlam[jj][2*ll+0];
@@ -2844,21 +2844,21 @@ void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr
 				{
 				alpha = - t[jj][2*ll+1] / dt[jj][2*ll+1];
 				}
-			if( -alpha*dlam[jj][anb+2*ll+0]>lam[jj][anb+2*ll+0] )
+			if( -alpha*dlam[jj][pnb+2*ll+0]>lam[jj][pnb+2*ll+0] )
 				{
-				alpha = - lam[jj][anb+2*ll+0] / dlam[jj][anb+2*ll+0];
+				alpha = - lam[jj][pnb+2*ll+0] / dlam[jj][pnb+2*ll+0];
 				}
-			if( -alpha*dlam[jj][anb+2*ll+1]>lam[jj][anb+2*ll+1] )
+			if( -alpha*dlam[jj][pnb+2*ll+1]>lam[jj][pnb+2*ll+1] )
 				{
-				alpha = - lam[jj][anb+2*ll+1] / dlam[jj][anb+2*ll+1];
+				alpha = - lam[jj][pnb+2*ll+1] / dlam[jj][pnb+2*ll+1];
 				}
-			if( -alpha*dt[jj][anb+2*ll+0]>t[jj][anb+2*ll+0] )
+			if( -alpha*dt[jj][pnb+2*ll+0]>t[jj][pnb+2*ll+0] )
 				{
-				alpha = - t[jj][anb+2*ll+0] / dt[jj][anb+2*ll+0];
+				alpha = - t[jj][pnb+2*ll+0] / dt[jj][pnb+2*ll+0];
 				}
-			if( -alpha*dt[jj][anb+2*ll+1]>t[jj][anb+2*ll+1] )
+			if( -alpha*dt[jj][pnb+2*ll+1]>t[jj][pnb+2*ll+1] )
 				{
-				alpha = - t[jj][anb+2*ll+1] / dt[jj][anb+2*ll+1];
+				alpha = - t[jj][pnb+2*ll+1] / dt[jj][pnb+2*ll+1];
 				}
 
 			}
@@ -2898,16 +2898,16 @@ void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr
 	for(; ll<nb; ll++)
 		{
 
-		dt[N][anb+2*ll+0] = ( zl[N][2*ll+0] - lamt[N][2*ll+0]*dux[N][ll] ) * Zl[N][2*ll+0];
-		dt[N][anb+2*ll+1] = ( zl[N][2*ll+1] + lamt[N][2*ll+1]*dux[N][ll] ) * Zl[N][2*ll+1];
-		dt[N][2*ll+0] = dt[N][anb+2*ll+0] + dux[N][ll] - db[N][2*ll+0] - t[N][2*ll+0];
-		dt[N][2*ll+1] = dt[N][anb+2*ll+1] - dux[N][ll] - db[N][2*ll+1] - t[N][2*ll+1];
-		dt[N][anb+2*ll+0] -= t[N][anb+2*ll+0];
-		dt[N][anb+2*ll+1] -= t[N][anb+2*ll+1];
+		dt[N][pnb+2*ll+0] = ( zl[N][2*ll+0] - lamt[N][2*ll+0]*dux[N][ll] ) * Zl[N][2*ll+0];
+		dt[N][pnb+2*ll+1] = ( zl[N][2*ll+1] + lamt[N][2*ll+1]*dux[N][ll] ) * Zl[N][2*ll+1];
+		dt[N][2*ll+0] = dt[N][pnb+2*ll+0] + dux[N][ll] - db[N][2*ll+0] - t[N][2*ll+0];
+		dt[N][2*ll+1] = dt[N][pnb+2*ll+1] - dux[N][ll] - db[N][2*ll+1] - t[N][2*ll+1];
+		dt[N][pnb+2*ll+0] -= t[N][pnb+2*ll+0];
+		dt[N][pnb+2*ll+1] -= t[N][pnb+2*ll+1];
 		dlam[N][2*ll+0] -= lamt[N][2*ll+0] * dt[N][2*ll+0] + lam[N][2*ll+0];
 		dlam[N][2*ll+1] -= lamt[N][2*ll+1] * dt[N][2*ll+1] + lam[N][2*ll+1];
-		dlam[N][anb+2*ll+0] -= lamt[N][anb+2*ll+0] * dt[N][anb+2*ll+0] + lam[N][anb+2*ll+0];
-		dlam[N][anb+2*ll+1] -= lamt[N][anb+2*ll+1] * dt[N][anb+2*ll+1] + lam[N][anb+2*ll+1];
+		dlam[N][pnb+2*ll+0] -= lamt[N][pnb+2*ll+0] * dt[N][pnb+2*ll+0] + lam[N][pnb+2*ll+0];
+		dlam[N][pnb+2*ll+1] -= lamt[N][pnb+2*ll+1] * dt[N][pnb+2*ll+1] + lam[N][pnb+2*ll+1];
 		if( -alpha*dlam[N][2*ll+0]>lam[N][2*ll+0] )
 			{
 			alpha = - lam[N][2*ll+0] / dlam[N][2*ll+0];
@@ -2924,21 +2924,21 @@ void d_compute_alpha_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr
 			{
 			alpha = - t[N][2*ll+1] / dt[N][2*ll+1];
 			}
-		if( -alpha*dlam[N][anb+2*ll+0]>lam[N][anb+2*ll+0] )
+		if( -alpha*dlam[N][pnb+2*ll+0]>lam[N][pnb+2*ll+0] )
 			{
-			alpha = - lam[N][anb+2*ll+0] / dlam[N][anb+2*ll+0];
+			alpha = - lam[N][pnb+2*ll+0] / dlam[N][pnb+2*ll+0];
 			}
-		if( -alpha*dlam[N][anb+2*ll+1]>lam[N][anb+2*ll+1] )
+		if( -alpha*dlam[N][pnb+2*ll+1]>lam[N][pnb+2*ll+1] )
 			{
-			alpha = - lam[N][anb+2*ll+1] / dlam[N][anb+2*ll+1];
+			alpha = - lam[N][pnb+2*ll+1] / dlam[N][pnb+2*ll+1];
 			}
-		if( -alpha*dt[N][anb+2*ll+0]>t[N][anb+2*ll+0] )
+		if( -alpha*dt[N][pnb+2*ll+0]>t[N][pnb+2*ll+0] )
 			{
-			alpha = - t[N][anb+2*ll+0] / dt[N][anb+2*ll+0];
+			alpha = - t[N][pnb+2*ll+0] / dt[N][pnb+2*ll+0];
 			}
-		if( -alpha*dt[N][anb+2*ll+1]>t[N][anb+2*ll+1] )
+		if( -alpha*dt[N][pnb+2*ll+1]>t[N][pnb+2*ll+1] )
 			{
-			alpha = - t[N][anb+2*ll+1] / dt[N][anb+2*ll+1];
+			alpha = - t[N][pnb+2*ll+1] / dt[N][pnb+2*ll+1];
 			}
 
 
@@ -3125,7 +3125,7 @@ void d_update_var_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, doubl
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
+	//const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box and soft constraints
 	const int pnb  = bs*((nb+bs-1)/bs); // cache aligned number of box and soft constraints
 	const int png  = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
 	const int pngN = bs*((ngN+bs-1)/bs); // simd aligned number of box and soft constraints at last stage
@@ -3283,7 +3283,7 @@ void d_update_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr_mu
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
+	const int pnb = bs*((2*nb+bs-1)/bs); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
 
 	int jj, ll;
 	
@@ -3332,11 +3332,11 @@ void d_update_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr_mu
 			lam[jj][ll+1] += alpha*dlam[jj][ll+1];
 			t[jj][ll+0] += alpha*dt[jj][ll+0];
 			t[jj][ll+1] += alpha*dt[jj][ll+1];
-			lam[jj][anb+ll+0] += alpha*dlam[jj][anb+ll+0];
-			lam[jj][anb+ll+1] += alpha*dlam[jj][anb+ll+1];
-			t[jj][anb+ll+0] += alpha*dt[jj][anb+ll+0];
-			t[jj][anb+ll+1] += alpha*dt[jj][anb+ll+1];
-			mu += lam[jj][ll+0] * t[jj][ll+0] + lam[jj][ll+1] * t[jj][ll+1] + lam[jj][anb+ll+0] * t[jj][anb+ll+0] + lam[jj][anb+ll+1] * t[jj][anb+ll+1];
+			lam[jj][pnb+ll+0] += alpha*dlam[jj][pnb+ll+0];
+			lam[jj][pnb+ll+1] += alpha*dlam[jj][pnb+ll+1];
+			t[jj][pnb+ll+0] += alpha*dt[jj][pnb+ll+0];
+			t[jj][pnb+ll+1] += alpha*dt[jj][pnb+ll+1];
+			mu += lam[jj][ll+0] * t[jj][ll+0] + lam[jj][ll+1] * t[jj][ll+1] + lam[jj][pnb+ll+0] * t[jj][pnb+ll+0] + lam[jj][pnb+ll+1] * t[jj][pnb+ll+1];
 			}
 		}
 
@@ -3364,11 +3364,11 @@ void d_update_var_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr_mu
 		lam[N][ll+1] += alpha*dlam[N][ll+1];
 		t[N][ll+0] += alpha*dt[N][ll+0];
 		t[N][ll+1] += alpha*dt[N][ll+1];
-		lam[N][anb+ll+0] += alpha*dlam[N][anb+ll+0];
-		lam[N][anb+ll+1] += alpha*dlam[N][anb+ll+1];
-		t[N][anb+ll+0] += alpha*dt[N][anb+ll+0];
-		t[N][anb+ll+1] += alpha*dt[N][anb+ll+1];
-		mu += lam[N][ll+0] * t[N][ll+0] + lam[N][ll+1] * t[N][ll+1] + lam[N][anb+ll+0] * t[N][anb+ll+0] + lam[N][anb+ll+1] * t[N][anb+ll+1];
+		lam[N][pnb+ll+0] += alpha*dlam[N][pnb+ll+0];
+		lam[N][pnb+ll+1] += alpha*dlam[N][pnb+ll+1];
+		t[N][pnb+ll+0] += alpha*dt[N][pnb+ll+0];
+		t[N][pnb+ll+1] += alpha*dt[N][pnb+ll+1];
+		mu += lam[N][ll+0] * t[N][ll+0] + lam[N][ll+1] * t[N][ll+1] + lam[N][pnb+ll+0] * t[N][pnb+ll+0] + lam[N][pnb+ll+1] * t[N][pnb+ll+1];
 		}
 	mu *= mu_scal;
 
@@ -3521,7 +3521,7 @@ void d_compute_mu_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, doubl
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box and soft constraints
+	//const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box and soft constraints
 	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of box and soft constraints
 	const int png  = bs*((ng+bs-1)/bs); // simd aligned number of box and soft constraints
 	const int pngN = bs*((ngN+bs-1)/bs); // simd aligned number of box and soft constraints at last stage
@@ -3631,7 +3631,7 @@ void d_compute_mu_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr_mu
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
+	const int pnb = bs*((2*nb+bs-1)/bs); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
 
 	int jj, ll;
 	
@@ -3648,14 +3648,14 @@ void d_compute_mu_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr_mu
 		{
 		for(ll=0; ll<2*nb; ll+=2)
 			mu += (lam[jj][ll+0] + alpha*dlam[jj][ll+0]) * (t[jj][ll+0] + alpha*dt[jj][ll+0]) + (lam[jj][ll+1] + alpha*dlam[jj][ll+1]) * (t[jj][ll+1] + alpha*dt[jj][ll+1]);
-		for(ll=anb+2*nh; ll<anb+2*nb; ll+=2)
+		for(ll=pnb+2*nh; ll<pnb+2*nb; ll+=2)
 			mu += (lam[jj][ll+0] + alpha*dlam[jj][ll+0]) * (t[jj][ll+0] + alpha*dt[jj][ll+0]) + (lam[jj][ll+1] + alpha*dlam[jj][ll+1]) * (t[jj][ll+1] + alpha*dt[jj][ll+1]);
 		}	
 
 	// last stage: bounds on x only
 	for(ll=2*nu; ll<2*nb; ll+=2)
 		mu += (lam[N][ll+0] + alpha*dlam[N][ll+0]) * (t[N][ll+0] + alpha*dt[N][ll+0]) + (lam[N][ll+1] + alpha*dlam[N][ll+1]) * (t[N][ll+1] + alpha*dt[N][ll+1]);
-	for(ll=anb+2*nh; ll<anb+2*nb; ll+=2)
+	for(ll=pnb+2*nh; ll<pnb+2*nb; ll+=2)
 		mu += (lam[N][ll+0] + alpha*dlam[N][ll+0]) * (t[N][ll+0] + alpha*dt[N][ll+0]) + (lam[N][ll+1] + alpha*dlam[N][ll+1]) * (t[N][ll+1] + alpha*dt[N][ll+1]);
 
 	mu *= mu_scal;
