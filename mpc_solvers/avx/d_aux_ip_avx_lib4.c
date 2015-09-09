@@ -1018,7 +1018,7 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, i
 
 	const int bs = D_MR;
 	const int ncl = D_NCL;
-	const int nal = bs*ncl; // number of doubles per cache line
+//	const int nal = bs*ncl; // number of doubles per cache line
 
 	//const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
 	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of box constraints
@@ -1268,6 +1268,958 @@ void d_update_hessian_hard_mpc(int N, int nx, int nu, int nb, int ng, int ngN, i
 			ii += ii_left;
 
 			}
+		for( ; ii<nu+nx; ii++)
+			{
+			ptr_pd[ii] = ptr_bd[ii];
+			ptr_pl[ii] = ptr_bl[ii];
+			}
+			
+		}
+
+	// last stage
+	jj = N;
+
+	ptr_t     = t[jj];
+	ptr_lam   = lam[jj];
+	ptr_lamt  = lamt[jj];
+	ptr_dlam  = dlam[jj];
+	ptr_t_inv = t_inv[jj];
+	ptr_db    = db[jj];
+	ptr_bd    = bd[jj];
+	ptr_bl    = bl[jj];
+	ptr_pd    = pd[jj];
+	ptr_pl    = pl[jj];
+
+	ii = (nu/4)*4;
+
+	ii_start = nu%4; // number of not store at the beginning
+	if(nb>nu && ii_start!=0)
+		{
+
+		v_mask  = _mm256_loadu_pd( d_mask );
+		v_tmp0  = _mm256_broadcast_sd( &ii_start );
+		v_tmp0  = _mm256_sub_pd( v_tmp0, v_mask );
+		ii_left = nb - ii;
+		v_left  = _mm256_broadcast_sd( &ii_left );
+		v_left  = _mm256_sub_pd( v_mask, v_left );
+		v_left  = _mm256_and_pd( v_left, v_tmp0 );
+		i_mask  = _mm256_castpd_si256( v_left );
+
+		v_tmp0  = _mm256_load_pd( &ptr_t[ii+0] );
+		v_tmp1  = _mm256_load_pd( &ptr_t[ii+pnb] );
+		v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+		v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+		_mm256_maskstore_pd( &ptr_t_inv[ii+0], i_mask, v_tmp0 ); // store t_inv
+		_mm256_maskstore_pd( &ptr_t_inv[ii+pnb], i_mask, v_tmp1 ); // store t_inv
+		v_lam0  = _mm256_load_pd( &ptr_lam[ii+0] );
+		v_lam1  = _mm256_load_pd( &ptr_lam[ii+pnb] );
+		v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+		v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+		_mm256_maskstore_pd( &ptr_lamt[ii+0], i_mask, v_lamt0 );
+		_mm256_maskstore_pd( &ptr_lamt[ii+pnb], i_mask, v_lamt1 );
+		v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+		v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+		_mm256_maskstore_pd( &ptr_dlam[ii+0], i_mask, v_dlam0 );
+		_mm256_maskstore_pd( &ptr_dlam[ii+pnb], i_mask, v_dlam1 );
+
+		v_Qx0   = v_lamt0;
+		v_Qx1   = v_lamt1;
+		v_qx0   = _mm256_load_pd( &ptr_db[ii] );
+		v_qx1   = _mm256_load_pd( &ptr_db[pnb+ii] );
+		v_qx0   = _mm256_mul_pd( v_qx0, v_lamt0 );
+		v_qx1   = _mm256_mul_pd( v_qx1, v_lamt1 );
+		v_lam0  = _mm256_add_pd( v_lam0, v_dlam0 );
+		v_lam1  = _mm256_add_pd( v_lam1, v_dlam1 );
+		v_qx0   = _mm256_add_pd( v_qx0, v_lam0 );
+		v_qx1   = _mm256_add_pd( v_qx1, v_lam1 );
+
+		v_Qx0   = _mm256_add_pd( v_Qx0, v_Qx1 );
+		v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+		v_tmp0  = _mm256_load_pd( &ptr_bd[ii] );
+		v_tmp1  = _mm256_load_pd( &ptr_bl[ii] );
+		v_tmp0  = _mm256_add_pd( v_Qx0, v_tmp0 );
+		v_tmp1  = _mm256_add_pd( v_tmp1, v_qx0 );
+		_mm256_maskstore_pd( &ptr_pd[ii], i_mask, v_tmp0 );
+		_mm256_maskstore_pd( &ptr_pl[ii], i_mask, v_tmp1 );
+
+		ii += 4;
+		if(nb<ii) ii=nb;
+
+		}
+
+	for(; ii<nb-3; ii+=4)
+		{
+		
+		v_tmp0  = _mm256_load_pd( &ptr_t[ii+0] );
+		v_tmp1  = _mm256_load_pd( &ptr_t[ii+pnb] );
+		v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+		v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+		v_lam0  = _mm256_load_pd( &ptr_lam[ii+0] );
+		v_lam1  = _mm256_load_pd( &ptr_lam[ii+pnb] );
+		v_qx0   = _mm256_load_pd( &ptr_db[ii] );
+		v_qx1   = _mm256_load_pd( &ptr_db[pnb+ii] );
+		_mm256_store_pd( &ptr_t_inv[ii+0], v_tmp0 ); // store t_inv
+		_mm256_store_pd( &ptr_t_inv[ii+pnb], v_tmp1 ); // store t_inv
+		v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+		v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+		v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+		v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+		_mm256_store_pd( &ptr_lamt[ii+0], v_lamt0 );
+		_mm256_store_pd( &ptr_lamt[ii+pnb], v_lamt1 );
+		v_qx0   = _mm256_mul_pd( v_qx0, v_lamt0 );
+		v_qx1   = _mm256_mul_pd( v_qx1, v_lamt1 );
+		v_lam0  = _mm256_add_pd( v_lam0, v_dlam0 );
+		v_lam1  = _mm256_add_pd( v_lam1, v_dlam1 );
+		_mm256_store_pd( &ptr_dlam[ii+0], v_dlam0 );
+		_mm256_store_pd( &ptr_dlam[ii+pnb], v_dlam1 );
+		v_qx0   = _mm256_add_pd( v_qx0, v_lam0 );
+		v_qx1   = _mm256_add_pd( v_qx1, v_lam1 );
+
+		v_lamt0 = _mm256_add_pd( v_lamt0, v_lamt1 );
+		v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+		v_tmp0  = _mm256_load_pd( &ptr_bd[ii] );
+		v_tmp1  = _mm256_load_pd( &ptr_bl[ii] );
+		v_tmp0  = _mm256_add_pd( v_lamt0, v_tmp0 );
+		v_tmp1  = _mm256_add_pd( v_tmp1, v_qx0 );
+		_mm256_store_pd( &ptr_pd[ii], v_tmp0 );
+		_mm256_store_pd( &ptr_pl[ii], v_tmp1 );
+
+		}
+	if(ii<nb)
+		{
+
+		ii_left = nb-ii;
+		v_left= _mm256_broadcast_sd( &ii_left );
+		v_mask= _mm256_loadu_pd( d_mask );
+		i_mask= _mm256_castpd_si256( _mm256_sub_pd( v_mask, v_left ) );
+
+		v_tmp0  = _mm256_load_pd( &ptr_t[ii+0] );
+		v_tmp1  = _mm256_load_pd( &ptr_t[ii+pnb] );
+		v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+		v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+		_mm256_maskstore_pd( &ptr_t_inv[ii+0], i_mask, v_tmp0 ); // store t_inv
+		_mm256_maskstore_pd( &ptr_t_inv[ii+pnb], i_mask, v_tmp1 ); // store t_inv
+		v_lam0  = _mm256_load_pd( &ptr_lam[ii+0] );
+		v_lam1  = _mm256_load_pd( &ptr_lam[ii+pnb] );
+		v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+		v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+		_mm256_maskstore_pd( &ptr_lamt[ii+0], i_mask, v_lamt0 );
+		_mm256_maskstore_pd( &ptr_lamt[ii+pnb], i_mask, v_lamt1 );
+		v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+		v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+		_mm256_maskstore_pd( &ptr_dlam[ii+0], i_mask, v_dlam0 );
+		_mm256_maskstore_pd( &ptr_dlam[ii+pnb], i_mask, v_dlam1 );
+
+		v_Qx0   = v_lamt0;
+		v_Qx1   = v_lamt1;
+		v_qx0   = _mm256_load_pd( &ptr_db[ii] );
+		v_qx1   = _mm256_load_pd( &ptr_db[pnb+ii] );
+		v_qx0   = _mm256_mul_pd( v_qx0, v_lamt0 );
+		v_qx1   = _mm256_mul_pd( v_qx1, v_lamt1 );
+		v_lam0  = _mm256_add_pd( v_lam0, v_dlam0 );
+		v_lam1  = _mm256_add_pd( v_lam1, v_dlam1 );
+		v_qx0   = _mm256_add_pd( v_qx0, v_lam0 );
+		v_qx1   = _mm256_add_pd( v_qx1, v_lam1 );
+
+		v_Qx0   = _mm256_add_pd( v_Qx0, v_Qx1 );
+		v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+		v_tmp0  = _mm256_load_pd( &bd[jj][ii] );
+		v_tmp1  = _mm256_load_pd( &bl[jj][ii] );
+		v_tmp0  = _mm256_add_pd( v_Qx0, v_tmp0 );
+		v_tmp1  = _mm256_add_pd( v_tmp1, v_qx0 );
+		_mm256_maskstore_pd( &pd[jj][ii], i_mask, v_tmp0 );
+		_mm256_maskstore_pd( &pl[jj][ii], i_mask, v_tmp1 );
+
+		ii += ii_left;
+
+		}
+	for( ; ii<nu+nx; ii++)
+		{
+		ptr_pd[ii] = ptr_bd[ii];
+		ptr_pl[ii] = ptr_bl[ii];
+		}
+
+	// general constraints
+	if(ng>0)
+		{
+
+		for(jj=0; jj<N; jj++)
+			{
+
+			ptr_t     = t[jj];
+			ptr_lam   = lam[jj];
+			ptr_lamt  = lamt[jj];
+			ptr_dlam  = dlam[jj];
+			ptr_t_inv = t_inv[jj];
+			ptr_db    = db[jj];
+			ptr_bd    = bd[jj];
+			ptr_bl    = bl[jj];
+			ptr_pd    = pd[jj];
+			ptr_pl    = pl[jj];
+			ptr_Qx    = Qx[jj];
+			ptr_qx    = qx[jj];
+
+			for(ii=2*pnb; ii<2*pnb+ng-3; ii+=4)
+				{
+				
+				v_tmp0  = _mm256_load_pd( &ptr_t[ii+0] );
+				v_tmp1  = _mm256_load_pd( &ptr_t[ii+png] );
+				v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+				v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+				_mm256_store_pd( &ptr_t_inv[ii+0], v_tmp0 );
+				_mm256_store_pd( &ptr_t_inv[ii+png], v_tmp1 );
+				v_lam0  = _mm256_load_pd( &ptr_lam[ii+0] );
+				v_lam1  = _mm256_load_pd( &ptr_lam[ii+png] );
+				v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+				v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+				_mm256_store_pd( &ptr_lamt[ii+0], v_lamt0 );
+				_mm256_store_pd( &ptr_lamt[ii+png], v_lamt1 );
+				v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+				v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+				_mm256_store_pd( &ptr_dlam[ii+0], v_dlam0 );
+				_mm256_store_pd( &ptr_dlam[ii+png], v_dlam1 );
+
+				v_Qx0   = _mm256_add_pd( v_lamt0, v_lamt1 );
+				v_Qx0   = _mm256_sqrt_pd( v_Qx0 );
+				_mm256_store_pd( &ptr_Qx[ii+0], v_Qx0 );
+	 			v_qx0   = _mm256_load_pd( &ptr_db[ii+0] );
+				v_qx1   = _mm256_load_pd( &ptr_db[ii+png] );
+				v_qx0   = _mm256_mul_pd( v_qx0, v_lamt0 );
+				v_qx1   = _mm256_mul_pd( v_qx1, v_lamt1 );
+				v_lam0  = _mm256_add_pd( v_lam0, v_dlam0 );
+				v_lam1  = _mm256_add_pd( v_lam1, v_dlam1 );
+				v_qx0   = _mm256_add_pd( v_qx0, v_lam0 );
+				v_qx1   = _mm256_add_pd( v_qx1, v_lam1 );
+				v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+				_mm256_store_pd( &ptr_qx[ii+0], v_qx0 );
+				//_mm256_store_pd( &ptr_qx[ii+png], v_qx1 );
+
+				}
+			if(ii<2*pnb+ng)
+				{
+
+				ii_left = 2*pnb + ng - ii;
+				v_left  = _mm256_broadcast_sd( &ii_left );
+				v_mask  = _mm256_loadu_pd( d_mask );
+				i_mask  = _mm256_castpd_si256( _mm256_sub_pd( v_mask, v_left ) );
+
+				v_tmp0  = _mm256_load_pd( &ptr_t[ii+0] );
+				v_tmp1  = _mm256_load_pd( &ptr_t[ii+png] );
+				v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+				v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+				_mm256_maskstore_pd( &ptr_t_inv[ii+0], i_mask, v_tmp0 );
+				_mm256_maskstore_pd( &ptr_t_inv[ii+png], i_mask, v_tmp1 );
+				v_lam0  = _mm256_load_pd( &ptr_lam[ii+0] );
+				v_lam1  = _mm256_load_pd( &ptr_lam[ii+png] );
+				v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+				v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+				_mm256_maskstore_pd( &ptr_lamt[ii+0], i_mask, v_lamt0 );
+				_mm256_maskstore_pd( &ptr_lamt[ii+png], i_mask, v_lamt1 );
+				v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+				v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+				_mm256_maskstore_pd( &ptr_dlam[ii+0], i_mask, v_dlam0 );
+				_mm256_maskstore_pd( &ptr_dlam[ii+png], i_mask, v_dlam1 );
+
+				v_Qx0   = _mm256_add_pd( v_lamt0, v_lamt1 );
+				v_Qx0   = _mm256_sqrt_pd( v_Qx0 );
+				_mm256_maskstore_pd( &ptr_Qx[ii+0], i_mask, v_Qx0 );
+				v_qx0   = _mm256_load_pd( &ptr_db[ii] );
+				v_qx1   = _mm256_load_pd( &ptr_db[png+ii] );
+				v_qx0   = _mm256_mul_pd( v_qx0, v_lamt0 );
+				v_qx1   = _mm256_mul_pd( v_qx1, v_lamt1 );
+				v_lam0  = _mm256_add_pd( v_lam0, v_dlam0 );
+				v_lam1  = _mm256_add_pd( v_lam1, v_dlam1 );
+				v_qx0   = _mm256_add_pd( v_qx0, v_lam0 );
+				v_qx1   = _mm256_add_pd( v_qx1, v_lam1 );
+				v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+				_mm256_maskstore_pd( &ptr_qx[ii+0], i_mask, v_qx0 );
+				//_mm256_maskstore_pd( &ptr_qx[ii+png], i_mask, v_qx1 );
+
+				ii += ii_left;
+
+				}
+
+			}
+
+		}
+	if(ngN>0)
+		{
+
+		ptr_t     = t[N];
+		ptr_lam   = lam[N];
+		ptr_lamt  = lamt[N];
+		ptr_dlam  = dlam[N];
+		ptr_t_inv = t_inv[N];
+		ptr_db    = db[N];
+		ptr_bd    = bd[N];
+		ptr_bl    = bl[N];
+		ptr_pd    = pd[N];
+		ptr_pl    = pl[N];
+		ptr_Qx    = Qx[N];
+		ptr_qx    = qx[N];
+
+		for(ii=2*pnb; ii<2*pnb+ngN-3; ii+=4)
+			{
+			
+			v_tmp0  = _mm256_load_pd( &ptr_t[ii+0] );
+			v_tmp1  = _mm256_load_pd( &ptr_t[ii+pngN] );
+			v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+			v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+			_mm256_store_pd( &ptr_t_inv[ii+0], v_tmp0 );
+			_mm256_store_pd( &ptr_t_inv[ii+pngN], v_tmp1 );
+			v_lam0  = _mm256_load_pd( &ptr_lam[ii+0] );
+			v_lam1  = _mm256_load_pd( &ptr_lam[ii+pngN] );
+			v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+			v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+			_mm256_store_pd( &ptr_lamt[ii+0], v_lamt0 );
+			_mm256_store_pd( &ptr_lamt[ii+pngN], v_lamt1 );
+			v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+			v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+			_mm256_store_pd( &ptr_dlam[ii+0], v_dlam0 );
+			_mm256_store_pd( &ptr_dlam[ii+pngN], v_dlam1 );
+
+			v_Qx0   = _mm256_add_pd( v_lamt0, v_lamt1 );
+			v_Qx0   = _mm256_sqrt_pd( v_Qx0 );
+			_mm256_store_pd( &ptr_Qx[ii+0], v_Qx0 );
+			v_qx0   = _mm256_load_pd( &ptr_db[ii+0] );
+			v_qx1   = _mm256_load_pd( &ptr_db[ii+pngN] );
+			v_qx0   = _mm256_mul_pd( v_qx0, v_lamt0 );
+			v_qx1   = _mm256_mul_pd( v_qx1, v_lamt1 );
+			v_lam0  = _mm256_add_pd( v_lam0, v_dlam0 );
+			v_lam1  = _mm256_add_pd( v_lam1, v_dlam1 );
+			v_qx0   = _mm256_add_pd( v_qx0, v_lam0 );
+			v_qx1   = _mm256_add_pd( v_qx1, v_lam1 );
+			v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+			_mm256_store_pd( &ptr_qx[ii+0], v_qx0 );
+			//_mm256_store_pd( &ptr_qx[ii+pngN], v_qx1 );
+
+			}
+		if(ii<2*pnb+ngN)
+			{
+
+			ii_left = 2*pnb + ngN - ii;
+			v_left  = _mm256_broadcast_sd( &ii_left );
+			v_mask  = _mm256_loadu_pd( d_mask );
+			i_mask  = _mm256_castpd_si256( _mm256_sub_pd( v_mask, v_left ) );
+
+			v_tmp0  = _mm256_load_pd( &ptr_t[ii+0] );
+			v_tmp1  = _mm256_load_pd( &ptr_t[ii+pngN] );
+			v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+			v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+			_mm256_maskstore_pd( &ptr_t_inv[ii+0], i_mask, v_tmp0 );
+			_mm256_maskstore_pd( &ptr_t_inv[ii+pngN], i_mask, v_tmp1 );
+			v_lam0  = _mm256_load_pd( &ptr_lam[ii+0] );
+			v_lam1  = _mm256_load_pd( &ptr_lam[ii+pngN] );
+			v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+			v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+			_mm256_maskstore_pd( &ptr_lamt[ii+0], i_mask, v_lamt0 );
+			_mm256_maskstore_pd( &ptr_lamt[ii+pngN], i_mask, v_lamt1 );
+			v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+			v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+			_mm256_maskstore_pd( &ptr_dlam[ii+0], i_mask, v_dlam0 );
+			_mm256_maskstore_pd( &ptr_dlam[ii+pngN], i_mask, v_dlam1 );
+
+			v_Qx0   = _mm256_add_pd( v_lamt0, v_lamt1 );
+			v_Qx0   = _mm256_sqrt_pd( v_Qx0 );
+			_mm256_maskstore_pd( &ptr_Qx[ii+0], i_mask, v_Qx0 );
+			v_qx0   = _mm256_load_pd( &ptr_db[ii] );
+			v_qx1   = _mm256_load_pd( &ptr_db[pngN+ii] );
+			v_qx0   = _mm256_mul_pd( v_qx0, v_lamt0 );
+			v_qx1   = _mm256_mul_pd( v_qx1, v_lamt1 );
+			v_lam0  = _mm256_add_pd( v_lam0, v_dlam0 );
+			v_lam1  = _mm256_add_pd( v_lam1, v_dlam1 );
+			v_qx0   = _mm256_add_pd( v_qx0, v_lam0 );
+			v_qx1   = _mm256_add_pd( v_qx1, v_lam1 );
+			v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+			_mm256_maskstore_pd( &ptr_qx[ii+0], i_mask, v_qx0 );
+			//_mm256_maskstore_pd( &ptr_qx[ii+pngN], i_mask, v_qx1 );
+
+			ii += ii_left;
+
+			}
+
+		}
+
+	
+	return;
+
+	}
+
+
+
+void d_update_hessian_soft_mpc_new(int N, int nx, int nu, int nb, int ng, int ngN, int ns, int cnz, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **Qx, double **qx, double **bd, double **bl, double **pd, double **pl, double **db, double **Z, double **z, double **Zl, double **zl)
+	{
+
+	int nh = nb - ns; // out of the nb constraints, the first nh are hard and the last ns are softened
+
+	const int nbu = nu<nb ? nu : nb ;
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+//	const int nal = bs*ncl; // number of doubles per cache line
+
+	//const int pnb = bs*((nb+bs-1)/bs); // cache aligned number of box and soft constraints // !!!!! doubled to include soft constraints !!!!!
+	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of box constraints
+	const int png  = bs*((ng+bs-1)/bs); // simd aligned number of general constraints
+	const int pngN = bs*((ngN+bs-1)/bs); // simd aligned number of general constraints
+	//printf("\n%d %d\n", nb, ng);
+	
+	__m256d
+		zeros,
+		v_ones, v_sigma_mu, v_mask, v_left,
+		v_tmp, v_lam, v_lamt, v_dlam, v_db,
+		v_tmp0, v_tmp1, v_tmp2, v_tmp3, 
+		v_lam0, v_lam1, v_lam2, v_lam3,
+		v_lamt0, v_lamt1, v_lamt2, v_lamt3,
+		v_dlam0, v_dlam1, v_dlam2, v_dlam3,
+		v_Qx0, v_Qx1, v_Qx2, v_Qx3, 
+		v_qx0, v_qx1, v_qx2, v_qx3,
+		v_Zl0, v_Zl1, v_zl0, v_zl1,
+		v_bd0, v_bd2,
+		v_db0, v_db2;
+			
+	__m128d // TODO remove
+		u_tmp0, u_tmp1,
+		u_Qx0, u_Qx1, u_qx0, u_qx1,
+		u_lamt0, u_bd, u_bl, u_lam0, u_dlam0, u_db0,
+		u_lamt1, u_lam1, u_dlam1, u_db1;
+	
+	__m256i
+		i_mask;
+	
+	v_ones = _mm256_set_pd( 1.0, 1.0, 1.0, 1.0 );
+	v_sigma_mu = _mm256_set_pd( sigma_mu, sigma_mu, sigma_mu, sigma_mu );
+	
+	double 
+		*ptr_pd, *ptr_pl, *ptr_bd, *ptr_bl, *ptr_db, *ptr_Qx, *ptr_qx,
+		*ptr_t, *ptr_lam, *ptr_lamt, *ptr_dlam, *ptr_t_inv, *ptr_Z, *ptr_z, *ptr_Zl, *ptr_zl;
+	
+	int ii, jj, ll, bs0;
+	double ii_left, ii_start;
+	
+	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
+
+	// first stage
+	jj = 0;
+	
+	ptr_t     = t[jj];
+	ptr_lam   = lam[jj];
+	ptr_lamt  = lamt[jj];
+	ptr_dlam  = dlam[jj];
+	ptr_t_inv = t_inv[jj];
+	ptr_db    = db[jj];
+	ptr_bd    = bd[jj];
+	ptr_bl    = bl[jj];
+	ptr_pd    = pd[jj];
+	ptr_pl    = pl[jj];
+
+	ii = 0;
+	for(; ii<nbu-3; ii+=4)
+		{
+		
+		v_tmp0  = _mm256_load_pd( &ptr_t[ii+0] );
+		v_tmp1  = _mm256_load_pd( &ptr_t[ii+pnb] );
+		v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+		v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+		_mm256_store_pd( &ptr_t_inv[ii+0], v_tmp0 );
+		_mm256_store_pd( &ptr_t_inv[ii+pnb], v_tmp1 );
+		v_lam0  = _mm256_load_pd( &ptr_lam[ii+0] );
+		v_lam1  = _mm256_load_pd( &ptr_lam[ii+pnb] );
+		v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+		v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+		_mm256_store_pd( &ptr_lamt[ii+0], v_lamt0 );
+		_mm256_store_pd( &ptr_lamt[ii+pnb], v_lamt1 );
+		v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+		v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+		_mm256_store_pd( &ptr_dlam[ii+0], v_dlam0 );
+		_mm256_store_pd( &ptr_dlam[ii+pnb], v_dlam1 );
+
+		v_Qx0   = v_lamt0;
+		v_Qx1   = v_lamt1;
+		v_qx0   = _mm256_load_pd( &ptr_db[ii] );
+		v_qx1   = _mm256_load_pd( &ptr_db[pnb+ii] );
+		v_qx0   = _mm256_mul_pd( v_qx0, v_lamt0 );
+		v_qx1   = _mm256_mul_pd( v_qx1, v_lamt1 );
+		v_lam0  = _mm256_add_pd( v_lam0, v_dlam0 );
+		v_lam1  = _mm256_add_pd( v_lam1, v_dlam1 );
+		v_qx0   = _mm256_add_pd( v_qx0, v_lam0 );
+		v_qx1   = _mm256_add_pd( v_qx1, v_lam1 );
+
+		v_Qx0 = _mm256_add_pd( v_Qx0, v_Qx1 );
+		v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+		v_tmp0  = _mm256_load_pd( &ptr_bd[ii] );
+		v_tmp1  = _mm256_load_pd( &ptr_bl[ii] );
+		v_tmp0  = _mm256_add_pd( v_Qx0, v_tmp0 );
+		v_tmp1  = _mm256_add_pd( v_tmp1, v_qx0 );
+		_mm256_store_pd( &ptr_pd[ii], v_tmp0 );
+		_mm256_store_pd( &ptr_pl[ii], v_tmp1 );
+
+		}
+	if(ii<nbu)
+		{
+
+		ii_left = nbu-ii;
+		v_left= _mm256_broadcast_sd( &ii_left );
+		v_mask= _mm256_loadu_pd( d_mask );
+		i_mask= _mm256_castpd_si256( _mm256_sub_pd( v_mask, v_left ) );
+
+		v_tmp0  = _mm256_load_pd( &ptr_t[ii+0] );
+		v_tmp1  = _mm256_load_pd( &ptr_t[ii+pnb] );
+		v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+		v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+		_mm256_maskstore_pd( &ptr_t_inv[ii+0], i_mask, v_tmp0 );
+		_mm256_maskstore_pd( &ptr_t_inv[ii+pnb], i_mask, v_tmp1 );
+		v_lam0  = _mm256_load_pd( &ptr_lam[ii+0] );
+		v_lam1  = _mm256_load_pd( &ptr_lam[ii+pnb] );
+		v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+		v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+		_mm256_maskstore_pd( &ptr_lamt[ii+0], i_mask, v_lamt0 );
+		_mm256_maskstore_pd( &ptr_lamt[ii+pnb], i_mask, v_lamt1 );
+		v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+		v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+		_mm256_maskstore_pd( &ptr_dlam[ii+0], i_mask, v_dlam0 );
+		_mm256_maskstore_pd( &ptr_dlam[ii+pnb], i_mask, v_dlam1 );
+
+		v_Qx0   = v_lamt0;
+		v_Qx1   = v_lamt1;
+		v_qx0   = _mm256_load_pd( &ptr_db[ii] );
+		v_qx1   = _mm256_load_pd( &ptr_db[pnb+ii] );
+		v_qx0   = _mm256_mul_pd( v_qx0, v_lamt0 );
+		v_qx1   = _mm256_mul_pd( v_qx1, v_lamt1 );
+		v_lam0  = _mm256_add_pd( v_lam0, v_dlam0 );
+		v_lam1  = _mm256_add_pd( v_lam1, v_dlam1 );
+		v_qx0   = _mm256_add_pd( v_qx0, v_lam0 );
+		v_qx1   = _mm256_add_pd( v_qx1, v_lam1 );
+
+		v_Qx0   = _mm256_add_pd( v_Qx0, v_Qx1 );
+		v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+		v_tmp0  = _mm256_load_pd( &bd[jj][ii] );
+		v_tmp1  = _mm256_load_pd( &bl[jj][ii] );
+		v_tmp0  = _mm256_add_pd( v_Qx0, v_tmp0 );
+		v_tmp1  = _mm256_add_pd( v_tmp1, v_qx0 );
+		_mm256_maskstore_pd( &pd[jj][ii], i_mask, v_tmp0 );
+		_mm256_maskstore_pd( &pl[jj][ii], i_mask, v_tmp1 );
+
+		ii += ii_left;
+
+		}
+	for( ; ii<nu; ii++)
+		{
+		ptr_pd[ii] = ptr_bd[ii];
+		ptr_pl[ii] = ptr_bl[ii];
+		}
+	
+	// middle stages
+	for(jj=1; jj<N; jj++)
+		{
+		
+		ptr_t     = t[jj];
+		ptr_lam   = lam[jj];
+		ptr_lamt  = lamt[jj];
+		ptr_dlam  = dlam[jj];
+		ptr_t_inv = t_inv[jj];
+		ptr_db    = db[jj];
+		ptr_bd    = bd[jj];
+		ptr_bl    = bl[jj];
+		ptr_pd    = pd[jj];
+		ptr_pl    = pl[jj];
+		ptr_Z     = Z[jj];
+		ptr_z     = z[jj];
+		ptr_Zl    = Zl[jj];
+		ptr_zl    = zl[jj];
+
+		ii = 0;
+		for(; ii<nh-3; ii+=4)
+			{
+		
+			v_tmp0  = _mm256_load_pd( &ptr_t[ii+0] );
+			v_tmp1  = _mm256_load_pd( &ptr_t[ii+pnb] );
+			v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+			v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+			_mm256_store_pd( &ptr_t_inv[ii+0], v_tmp0 );
+			_mm256_store_pd( &ptr_t_inv[ii+pnb], v_tmp1 );
+			v_lam0  = _mm256_load_pd( &ptr_lam[ii+0] );
+			v_lam1  = _mm256_load_pd( &ptr_lam[ii+pnb] );
+			v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+			v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+			_mm256_store_pd( &ptr_lamt[ii+0], v_lamt0 );
+			_mm256_store_pd( &ptr_lamt[ii+pnb], v_lamt1 );
+			v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+			v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+			_mm256_store_pd( &ptr_dlam[ii+0], v_dlam0 );
+			_mm256_store_pd( &ptr_dlam[ii+pnb], v_dlam1 );
+
+			v_Qx0   = v_lamt0;
+			v_Qx1   = v_lamt1;
+			v_qx0   = _mm256_load_pd( &ptr_db[ii] );
+			v_qx1   = _mm256_load_pd( &ptr_db[pnb+ii] );
+			v_qx0   = _mm256_mul_pd( v_qx0, v_lamt0 );
+			v_qx1   = _mm256_mul_pd( v_qx1, v_lamt1 );
+			v_lam0  = _mm256_add_pd( v_lam0, v_dlam0 );
+			v_lam1  = _mm256_add_pd( v_lam1, v_dlam1 );
+			v_qx0   = _mm256_add_pd( v_qx0, v_lam0 );
+			v_qx1   = _mm256_add_pd( v_qx1, v_lam1 );
+
+			v_Qx0   = _mm256_add_pd( v_Qx0, v_Qx1 );
+			v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+			v_tmp0  = _mm256_load_pd( &bd[jj][ii] );
+			v_tmp1  = _mm256_load_pd( &bl[jj][ii] );
+			v_tmp0  = _mm256_add_pd( v_Qx0, v_tmp0 );
+			v_tmp1  = _mm256_add_pd( v_tmp1, v_qx0 );
+			_mm256_store_pd( &pd[jj][ii], v_tmp0 );
+			_mm256_store_pd( &pl[jj][ii], v_tmp1 );
+
+			}
+		if(ns==0) // there are not soft constraints
+			{
+			if(ii<nh) // clean up
+				{
+
+				ii_left = nb-ii;
+				v_left= _mm256_broadcast_sd( &ii_left );
+				v_mask= _mm256_loadu_pd( d_mask );
+				i_mask= _mm256_castpd_si256( _mm256_sub_pd( v_mask, v_left ) );
+
+				v_tmp0  = _mm256_load_pd( &ptr_t[ii+0] );
+				v_tmp1  = _mm256_load_pd( &ptr_t[ii+pnb] );
+				v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+				v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+				_mm256_maskstore_pd( &ptr_t_inv[ii+0], i_mask, v_tmp0 );
+				_mm256_maskstore_pd( &ptr_t_inv[ii+pnb], i_mask, v_tmp1 );
+				v_lam0  = _mm256_load_pd( &ptr_lam[ii+0] );
+				v_lam1  = _mm256_load_pd( &ptr_lam[ii+pnb] );
+				v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+				v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+				_mm256_maskstore_pd( &ptr_lamt[ii+0], i_mask, v_lamt0 );
+				_mm256_maskstore_pd( &ptr_lamt[ii+pnb], i_mask, v_lamt1 );
+				v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+				v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+				_mm256_maskstore_pd( &ptr_dlam[ii+0], i_mask, v_dlam0 );
+				_mm256_maskstore_pd( &ptr_dlam[ii+pnb], i_mask, v_dlam1 );
+
+				v_Qx0   = v_lamt0;
+				v_Qx1   = v_lamt1;
+				v_qx0   = _mm256_load_pd( &ptr_db[ii] );
+				v_qx1   = _mm256_load_pd( &ptr_db[pnb+ii] );
+				v_qx0   = _mm256_mul_pd( v_qx0, v_lamt0 );
+				v_qx1   = _mm256_mul_pd( v_qx1, v_lamt1 );
+				v_lam0  = _mm256_add_pd( v_lam0, v_dlam0 );
+				v_lam1  = _mm256_add_pd( v_lam1, v_dlam1 );
+				v_qx0   = _mm256_add_pd( v_qx0, v_lam0 );
+				v_qx1   = _mm256_add_pd( v_qx1, v_lam1 );
+
+				v_Qx0   = _mm256_add_pd( v_Qx0, v_Qx1 );
+				v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+				v_tmp0  = _mm256_load_pd( &bd[jj][ii] );
+				v_tmp1  = _mm256_load_pd( &bl[jj][ii] );
+				v_tmp0  = _mm256_add_pd( v_Qx0, v_tmp0 );
+				v_tmp1  = _mm256_add_pd( v_tmp1, v_qx0 );
+				_mm256_maskstore_pd( &pd[jj][ii], i_mask, v_tmp0 );
+				_mm256_maskstore_pd( &pl[jj][ii], i_mask, v_tmp1 );
+
+				ii += ii_left;
+
+				}
+			}
+		else // there are soft constraints
+			{
+			// clean up hard constraints
+			if(ii<nh) // clean up
+				{
+
+				ii_left = nb-ii;
+				v_left  = _mm256_broadcast_sd( &ii_left );
+				v_mask  = _mm256_loadu_pd( d_mask );
+				i_mask  = _mm256_castpd_si256( _mm256_sub_pd( v_mask, v_left ) );
+
+				ii_left = nh-ii;
+				v_left  = _mm256_broadcast_sd( &ii_left );
+				v_mask  = _mm256_loadu_pd( d_mask );
+				v_mask  = _mm256_sub_pd( v_mask, v_left );
+
+				v_tmp0  = _mm256_load_pd( &ptr_t[ii] );
+				v_tmp1  = _mm256_load_pd( &ptr_t[pnb+ii] );
+				v_tmp2  = _mm256_load_pd( &ptr_t[2*pnb+2*png+ii] );
+				v_tmp3  = _mm256_load_pd( &ptr_t[2*pnb+2*png+pnb+ii] );
+				v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+				v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+				v_tmp2  = _mm256_div_pd( v_ones, v_tmp2 );
+				v_tmp3  = _mm256_div_pd( v_ones, v_tmp3 );
+				_mm256_maskstore_pd( &ptr_t_inv[ii], i_mask, v_tmp0 );
+				_mm256_maskstore_pd( &ptr_t_inv[pnb+ii], i_mask, v_tmp1 );
+				_mm256_maskstore_pd( &ptr_t_inv[2*pnb+2*png+ii], i_mask, v_tmp2 );
+				_mm256_maskstore_pd( &ptr_t_inv[2*pnb+2*png+pnb+ii], i_mask, v_tmp3 );
+				v_lam0  = _mm256_load_pd( &ptr_lam[ii] );
+				v_lam1  = _mm256_load_pd( &ptr_lam[pnb+ii] );
+				v_lam2  = _mm256_load_pd( &ptr_lam[2*pnb+2*png+ii] );
+				v_lam3  = _mm256_load_pd( &ptr_lam[2*pnb+2*png+pnb+ii] );
+				v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+				v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+				v_lamt2 = _mm256_mul_pd( v_tmp2, v_lam2 );
+				v_lamt3 = _mm256_mul_pd( v_tmp3, v_lam3 );
+				_mm256_maskstore_pd( &ptr_lamt[ii], i_mask, v_lamt0 );
+				_mm256_maskstore_pd( &ptr_lamt[pnb+ii], i_mask, v_lamt1 );
+				_mm256_maskstore_pd( &ptr_lamt[2*pnb+2*png+ii], i_mask, v_lamt2 );
+				_mm256_maskstore_pd( &ptr_lamt[2*pnb+2*png+pnb+ii], i_mask, v_lamt3 );
+				v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+				v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+				v_dlam2 = _mm256_mul_pd( v_tmp2, v_sigma_mu );
+				v_dlam3 = _mm256_mul_pd( v_tmp3, v_sigma_mu );
+				_mm256_maskstore_pd( &ptr_dlam[ii], i_mask, v_dlam0 );
+				_mm256_maskstore_pd( &ptr_dlam[pnb+ii], i_mask, v_dlam1 );
+				_mm256_maskstore_pd( &ptr_dlam[2*pnb+2*png+ii], i_mask, v_dlam2 );
+				_mm256_maskstore_pd( &ptr_dlam[2*pnb+2*png+pnb+ii], i_mask, v_dlam3 );
+
+				v_Qx0 = v_lamt0;
+				v_Qx1 = v_lamt1;
+				v_qx0  = _mm256_load_pd( &db[jj][ii] );
+				v_qx1  = _mm256_load_pd( &db[jj][pnb+ii] );
+				v_qx0  = _mm256_mul_pd( v_qx0, v_lamt0 );
+				v_qx1  = _mm256_mul_pd( v_qx1, v_lamt1 );
+				v_lam0 = _mm256_add_pd( v_lam0, v_dlam0 );
+				v_lam1 = _mm256_add_pd( v_lam1, v_dlam1 );
+				v_qx0  = _mm256_add_pd( v_qx0, v_lam0 );
+				v_qx1  = _mm256_add_pd( v_qx1, v_lam1 );
+
+				v_Zl0  = _mm256_load_pd( &ptr_Z[ii] );
+				v_Zl1  = _mm256_load_pd( &ptr_Z[pnb+ii] );
+				v_zl0  = _mm256_load_pd( &ptr_z[ii] );
+				v_zl1  = _mm256_load_pd( &ptr_z[pnb+ii] );
+				v_Zl0  = _mm256_add_pd( v_Zl0, v_Qx0 );
+				v_Zl1  = _mm256_add_pd( v_Zl1, v_Qx1 );
+				v_Zl0  = _mm256_add_pd( v_Zl0, v_lamt2 );
+				v_Zl1  = _mm256_add_pd( v_Zl1, v_lamt3 );
+				v_Zl0  = _mm256_div_pd( v_ones, v_Zl0 );
+				v_Zl1  = _mm256_div_pd( v_ones, v_Zl1 );
+				v_zl0  = _mm256_sub_pd( v_qx0, v_zl0 );
+				v_zl1  = _mm256_sub_pd( v_qx1, v_zl1 );
+				v_zl0  = _mm256_add_pd( v_zl0, v_lam2 );
+				v_zl1  = _mm256_add_pd( v_zl1, v_lam3 );
+				v_zl0  = _mm256_add_pd( v_zl0, v_dlam2 );
+				v_zl1  = _mm256_add_pd( v_zl1, v_dlam3 );
+				zeros = _mm256_setzero_pd();
+				v_Zl0 = _mm256_blendv_pd( zeros, v_Zl0, v_mask ); // blend with zero
+				v_Zl1 = _mm256_blendv_pd( zeros, v_Zl1, v_mask );
+				v_zl0 = _mm256_blendv_pd( zeros, v_zl0, v_mask );
+				v_zl1 = _mm256_blendv_pd( zeros, v_zl1, v_mask );
+				_mm256_maskstore_pd( &ptr_Zl[ii], i_mask, v_Zl0 );
+				_mm256_maskstore_pd( &ptr_Zl[pnb+ii], i_mask, v_Zl1 );
+				_mm256_maskstore_pd( &ptr_zl[ii], i_mask, v_zl0 );
+				_mm256_maskstore_pd( &ptr_zl[pnb+ii], i_mask, v_zl1 );
+				v_tmp0 = _mm256_mul_pd( v_Qx0, v_Zl0 );
+				v_tmp1 = _mm256_mul_pd( v_Qx1, v_Zl1 );
+				v_tmp2 = _mm256_mul_pd( v_tmp0, v_zl0 );
+				v_tmp3 = _mm256_mul_pd( v_tmp1, v_zl1 );
+				v_qx0  = _mm256_sub_pd( v_qx0, v_tmp2 );
+				v_qx1  = _mm256_sub_pd( v_qx1, v_tmp3 );
+				v_tmp0 = _mm256_mul_pd( v_Qx0, v_tmp0 );
+				v_tmp1 = _mm256_mul_pd( v_Qx1, v_tmp1 );
+				v_Qx0  = _mm256_sub_pd( v_Qx0, v_tmp0 );
+				v_Qx1  = _mm256_sub_pd( v_Qx1, v_tmp1 );
+
+				v_Qx0   = _mm256_add_pd( v_Qx0, v_Qx1 );
+				v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+				v_tmp0  = _mm256_load_pd( &bd[jj][ii] );
+				v_tmp1  = _mm256_load_pd( &bl[jj][ii] );
+				v_tmp0  = _mm256_add_pd( v_Qx0, v_tmp0 );
+				v_tmp1  = _mm256_add_pd( v_tmp1, v_qx0 );
+				_mm256_maskstore_pd( &pd[jj][ii], i_mask, v_tmp0 );
+				_mm256_maskstore_pd( &pl[jj][ii], i_mask, v_tmp1 );
+
+				ii_left = nb-ii;
+				ii_left = ii_left>4 ? 4 : ii_left;
+				ii += ii_left;
+
+				}
+
+			// soft constraints main loop
+			for(; ii<nb-3; ii+=4)
+				{
+
+				v_tmp0  = _mm256_load_pd( &ptr_t[ii] );
+				v_tmp1  = _mm256_load_pd( &ptr_t[pnb+ii] );
+				v_tmp2  = _mm256_load_pd( &ptr_t[2*pnb+2*png+ii] );
+				v_tmp3  = _mm256_load_pd( &ptr_t[2*pnb+2*png+pnb+ii] );
+				v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+				v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+				v_tmp2  = _mm256_div_pd( v_ones, v_tmp2 );
+				v_tmp3  = _mm256_div_pd( v_ones, v_tmp3 );
+				_mm256_store_pd( &ptr_t_inv[ii], v_tmp0 );
+				_mm256_store_pd( &ptr_t_inv[pnb+ii], v_tmp1 );
+				_mm256_store_pd( &ptr_t_inv[2*pnb+2*png+ii], v_tmp2 );
+				_mm256_store_pd( &ptr_t_inv[2*pnb+2*png+pnb+ii], v_tmp3 );
+				v_lam0  = _mm256_load_pd( &ptr_lam[ii] );
+				v_lam1  = _mm256_load_pd( &ptr_lam[pnb+ii] );
+				v_lam2  = _mm256_load_pd( &ptr_lam[2*pnb+2*png+ii] );
+				v_lam3  = _mm256_load_pd( &ptr_lam[2*pnb+2*png+pnb+ii] );
+				v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+				v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+				v_lamt2 = _mm256_mul_pd( v_tmp2, v_lam2 );
+				v_lamt3 = _mm256_mul_pd( v_tmp3, v_lam3 );
+				_mm256_store_pd( &ptr_lamt[ii], v_lamt0 );
+				_mm256_store_pd( &ptr_lamt[pnb+ii], v_lamt1 );
+				_mm256_store_pd( &ptr_lamt[2*pnb+2*png+ii], v_lamt2 );
+				_mm256_store_pd( &ptr_lamt[2*pnb+2*png+pnb+ii], v_lamt3 );
+				v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+				v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+				v_dlam2 = _mm256_mul_pd( v_tmp2, v_sigma_mu );
+				v_dlam3 = _mm256_mul_pd( v_tmp3, v_sigma_mu );
+				_mm256_store_pd( &ptr_dlam[ii], v_dlam0 );
+				_mm256_store_pd( &ptr_dlam[pnb+ii], v_dlam1 );
+				_mm256_store_pd( &ptr_dlam[2*pnb+2*png+ii], v_dlam2 );
+				_mm256_store_pd( &ptr_dlam[2*pnb+2*png+pnb+ii], v_dlam3 );
+
+				v_Qx0 = v_lamt0;
+				v_Qx1 = v_lamt1;
+				v_qx0  = _mm256_load_pd( &db[jj][ii] );
+				v_qx1  = _mm256_load_pd( &db[jj][pnb+ii] );
+				v_qx0  = _mm256_mul_pd( v_qx0, v_lamt0 );
+				v_qx1  = _mm256_mul_pd( v_qx1, v_lamt1 );
+				v_lam0 = _mm256_add_pd( v_lam0, v_dlam0 );
+				v_lam1 = _mm256_add_pd( v_lam1, v_dlam1 );
+				v_qx0  = _mm256_add_pd( v_qx0, v_lam0 );
+				v_qx1  = _mm256_add_pd( v_qx1, v_lam1 );
+
+				v_Zl0  = _mm256_load_pd( &ptr_Z[ii] );
+				v_Zl1  = _mm256_load_pd( &ptr_Z[pnb+ii] );
+				v_zl0  = _mm256_load_pd( &ptr_z[ii] );
+				v_zl1  = _mm256_load_pd( &ptr_z[pnb+ii] );
+				v_Zl0  = _mm256_add_pd( v_Zl0, v_Qx0 );
+				v_Zl1  = _mm256_add_pd( v_Zl1, v_Qx1 );
+				v_Zl0  = _mm256_add_pd( v_Zl0, v_lamt2 );
+				v_Zl1  = _mm256_add_pd( v_Zl1, v_lamt3 );
+				v_Zl0  = _mm256_div_pd( v_ones, v_Zl0 );
+				v_Zl1  = _mm256_div_pd( v_ones, v_Zl1 );
+				v_zl0  = _mm256_sub_pd( v_qx0, v_zl0 );
+				v_zl1  = _mm256_sub_pd( v_qx1, v_zl1 );
+				v_zl0  = _mm256_add_pd( v_zl0, v_lam2 );
+				v_zl1  = _mm256_add_pd( v_zl1, v_lam3 );
+				v_zl0  = _mm256_add_pd( v_zl0, v_dlam2 );
+				v_zl1  = _mm256_add_pd( v_zl1, v_dlam3 );
+				_mm256_store_pd( &ptr_Zl[ii], v_Zl0 );
+				_mm256_store_pd( &ptr_Zl[pnb+ii], v_Zl1 );
+				_mm256_store_pd( &ptr_zl[ii], v_zl0 );
+				_mm256_store_pd( &ptr_zl[pnb+ii], v_zl1 );
+				v_tmp0 = _mm256_mul_pd( v_Qx0, v_Zl0 );
+				v_tmp1 = _mm256_mul_pd( v_Qx1, v_Zl1 );
+				v_tmp2 = _mm256_mul_pd( v_tmp0, v_zl0 );
+				v_tmp3 = _mm256_mul_pd( v_tmp1, v_zl1 );
+				v_qx0  = _mm256_sub_pd( v_qx0, v_tmp2 );
+				v_qx1  = _mm256_sub_pd( v_qx1, v_tmp3 );
+				v_tmp0 = _mm256_mul_pd( v_Qx0, v_tmp0 );
+				v_tmp1 = _mm256_mul_pd( v_Qx1, v_tmp1 );
+				v_Qx0  = _mm256_sub_pd( v_Qx0, v_tmp0 );
+				v_Qx1  = _mm256_sub_pd( v_Qx1, v_tmp1 );
+
+				v_Qx0   = _mm256_add_pd( v_Qx0, v_Qx1 );
+				v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+				v_tmp0  = _mm256_load_pd( &bd[jj][ii] );
+				v_tmp1  = _mm256_load_pd( &bl[jj][ii] );
+				v_tmp0  = _mm256_add_pd( v_Qx0, v_tmp0 );
+				v_tmp1  = _mm256_add_pd( v_tmp1, v_qx0 );
+				_mm256_store_pd( &pd[jj][ii], v_tmp0 );
+				_mm256_store_pd( &pl[jj][ii], v_tmp1 );
+
+				}
+			// clean up soft constraints
+			if(ii<nb) // clean up
+				{
+
+				ii_left = nb-ii;
+				v_left= _mm256_broadcast_sd( &ii_left );
+				v_mask= _mm256_loadu_pd( d_mask );
+				i_mask= _mm256_castpd_si256( _mm256_sub_pd( v_mask, v_left ) );
+
+				v_tmp0  = _mm256_load_pd( &ptr_t[ii] );
+				v_tmp1  = _mm256_load_pd( &ptr_t[pnb+ii] );
+				v_tmp2  = _mm256_load_pd( &ptr_t[2*pnb+2*png+ii] );
+				v_tmp3  = _mm256_load_pd( &ptr_t[2*pnb+2*png+pnb+ii] );
+				v_tmp0  = _mm256_div_pd( v_ones, v_tmp0 );
+				v_tmp1  = _mm256_div_pd( v_ones, v_tmp1 );
+				v_tmp2  = _mm256_div_pd( v_ones, v_tmp2 );
+				v_tmp3  = _mm256_div_pd( v_ones, v_tmp3 );
+				_mm256_maskstore_pd( &ptr_t_inv[ii], i_mask, v_tmp0 );
+				_mm256_maskstore_pd( &ptr_t_inv[pnb+ii], i_mask, v_tmp1 );
+				_mm256_maskstore_pd( &ptr_t_inv[2*pnb+2*png+ii], i_mask, v_tmp2 );
+				_mm256_maskstore_pd( &ptr_t_inv[2*pnb+2*png+pnb+ii], i_mask, v_tmp3 );
+				v_lam0  = _mm256_load_pd( &ptr_lam[ii] );
+				v_lam1  = _mm256_load_pd( &ptr_lam[pnb+ii] );
+				v_lam2  = _mm256_load_pd( &ptr_lam[2*pnb+2*png+ii] );
+				v_lam3  = _mm256_load_pd( &ptr_lam[2*pnb+2*png+pnb+ii] );
+				v_lamt0 = _mm256_mul_pd( v_tmp0, v_lam0 );
+				v_lamt1 = _mm256_mul_pd( v_tmp1, v_lam1 );
+				v_lamt2 = _mm256_mul_pd( v_tmp2, v_lam2 );
+				v_lamt3 = _mm256_mul_pd( v_tmp3, v_lam3 );
+				_mm256_maskstore_pd( &ptr_lamt[ii], i_mask, v_lamt0 );
+				_mm256_maskstore_pd( &ptr_lamt[pnb+ii], i_mask, v_lamt1 );
+				_mm256_maskstore_pd( &ptr_lamt[2*pnb+2*png+ii], i_mask, v_lamt2 );
+				_mm256_maskstore_pd( &ptr_lamt[2*pnb+2*png+pnb+ii], i_mask, v_lamt3 );
+				v_dlam0 = _mm256_mul_pd( v_tmp0, v_sigma_mu );
+				v_dlam1 = _mm256_mul_pd( v_tmp1, v_sigma_mu );
+				v_dlam2 = _mm256_mul_pd( v_tmp2, v_sigma_mu );
+				v_dlam3 = _mm256_mul_pd( v_tmp3, v_sigma_mu );
+				_mm256_maskstore_pd( &ptr_dlam[ii], i_mask, v_dlam0 );
+				_mm256_maskstore_pd( &ptr_dlam[pnb+ii], i_mask, v_dlam1 );
+				_mm256_maskstore_pd( &ptr_dlam[2*pnb+2*png+ii], i_mask, v_dlam2 );
+				_mm256_maskstore_pd( &ptr_dlam[2*pnb+2*png+pnb+ii], i_mask, v_dlam3 );
+
+				v_Qx0 = v_lamt0;
+				v_Qx1 = v_lamt1;
+				v_qx0  = _mm256_load_pd( &db[jj][ii] );
+				v_qx1  = _mm256_load_pd( &db[jj][pnb+ii] );
+				v_qx0  = _mm256_mul_pd( v_qx0, v_lamt0 );
+				v_qx1  = _mm256_mul_pd( v_qx1, v_lamt1 );
+				v_lam0 = _mm256_add_pd( v_lam0, v_dlam0 );
+				v_lam1 = _mm256_add_pd( v_lam1, v_dlam1 );
+				v_qx0  = _mm256_add_pd( v_qx0, v_lam0 );
+				v_qx1  = _mm256_add_pd( v_qx1, v_lam1 );
+
+				v_Zl0  = _mm256_load_pd( &ptr_Z[ii] );
+				v_Zl1  = _mm256_load_pd( &ptr_Z[pnb+ii] );
+				v_zl0  = _mm256_load_pd( &ptr_z[ii] );
+				v_zl1  = _mm256_load_pd( &ptr_z[pnb+ii] );
+				v_Zl0  = _mm256_add_pd( v_Zl0, v_Qx0 );
+				v_Zl1  = _mm256_add_pd( v_Zl1, v_Qx1 );
+				v_Zl0  = _mm256_add_pd( v_Zl0, v_lamt2 );
+				v_Zl1  = _mm256_add_pd( v_Zl1, v_lamt3 );
+				v_Zl0  = _mm256_div_pd( v_ones, v_Zl0 );
+				v_Zl1  = _mm256_div_pd( v_ones, v_Zl1 );
+				v_zl0  = _mm256_sub_pd( v_qx0, v_zl0 );
+				v_zl1  = _mm256_sub_pd( v_qx1, v_zl1 );
+				v_zl0  = _mm256_add_pd( v_zl0, v_lam2 );
+				v_zl1  = _mm256_add_pd( v_zl1, v_lam3 );
+				v_zl0  = _mm256_add_pd( v_zl0, v_dlam2 );
+				v_zl1  = _mm256_add_pd( v_zl1, v_dlam3 );
+				_mm256_maskstore_pd( &ptr_Zl[ii], i_mask, v_Zl0 );
+				_mm256_maskstore_pd( &ptr_Zl[pnb+ii], i_mask, v_Zl1 );
+				_mm256_maskstore_pd( &ptr_zl[ii], i_mask, v_zl0 );
+				_mm256_maskstore_pd( &ptr_zl[pnb+ii], i_mask, v_zl1 );
+				v_tmp0 = _mm256_mul_pd( v_Qx0, v_Zl0 );
+				v_tmp1 = _mm256_mul_pd( v_Qx1, v_Zl1 );
+				v_tmp2 = _mm256_mul_pd( v_tmp0, v_zl0 );
+				v_tmp3 = _mm256_mul_pd( v_tmp1, v_zl1 );
+				v_qx0  = _mm256_sub_pd( v_qx0, v_tmp2 );
+				v_qx1  = _mm256_sub_pd( v_qx1, v_tmp3 );
+				v_tmp0 = _mm256_mul_pd( v_Qx0, v_tmp0 );
+				v_tmp1 = _mm256_mul_pd( v_Qx1, v_tmp1 );
+				v_Qx0  = _mm256_sub_pd( v_Qx0, v_tmp0 );
+				v_Qx1  = _mm256_sub_pd( v_Qx1, v_tmp1 );
+
+				v_Qx0   = _mm256_add_pd( v_Qx0, v_Qx1 );
+				v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
+				v_tmp0  = _mm256_load_pd( &bd[jj][ii] );
+				v_tmp1  = _mm256_load_pd( &bl[jj][ii] );
+				v_tmp0  = _mm256_add_pd( v_Qx0, v_tmp0 );
+				v_tmp1  = _mm256_add_pd( v_tmp1, v_qx0 );
+				_mm256_maskstore_pd( &pd[jj][ii], i_mask, v_tmp0 );
+				_mm256_maskstore_pd( &pl[jj][ii], i_mask, v_tmp1 );
+
+				ii = nb;
+
+				}
+
+			}
+		// clean up not constrained variables
 		for( ; ii<nu+nx; ii++)
 			{
 			ptr_pd[ii] = ptr_bd[ii];
