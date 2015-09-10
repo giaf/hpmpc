@@ -43,7 +43,6 @@ void d_init_var_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
-	const int nal = bs*ncl; // number of doubles per cache line
 
 	int jj, ll, ii;
 
@@ -147,7 +146,6 @@ void d_init_var_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
-	const int nal = bs*ncl; // number of doubles per cache line
 
 	int jj, ll, ii;
 
@@ -1519,10 +1517,8 @@ void d_update_hessian_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int
 		ptr_zl    = zl[jj];
 
 		// box constraints
-
 		nb0 = nb[jj];
 		pnb  = (nb0+bs-1)/bs*bs; // simd aligned number of box constraints
-		 0; // constraint counter
 
 		for(ii=0; ii<nb0-3; ii+=4)
 			{
@@ -1713,7 +1709,6 @@ void d_update_hessian_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int
 		ptr_db    += 2*png;
 
 		// box soft constraints
-
 		ns0 = ns[jj];
 		pns  = (ns0+bs-1)/bs*bs; // simd aligned number of box constraints
 
@@ -6386,9 +6381,9 @@ void d_compute_alpha_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			png = (ng0+bs-1)/bs*bs;
 			cng = (ng0+ncl-1)/ncl*ncl;
 
-			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt+2*pnb, ptr_dt+2*pnb);
+			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
 
-			for(ll=2*pnb; ll<2*pnb+ng0-3; ll+=4)
+			for(ll=0; ll<ng0-3; ll+=4)
 				{
 				v_dt0   = _mm256_load_pd( &ptr_dt[0*png+ll] );
 				v_dt1   = _mm256_xor_pd( v_dt0, v_sign );
@@ -6434,10 +6429,10 @@ void d_compute_alpha_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 				t_alpha1 = _mm256_min_ps( t_alpha1, t_tmp1 );
 
 				}
-			if(ll<2*pnb+ng0)
+			if(ll<ng0)
 				{
 
-				ll_left = 2*pnb + ng0 - ll;
+				ll_left = ng0 - ll;
 				v_left  = _mm256_broadcast_sd( &ll_left );
 				v_mask  = _mm256_loadu_pd( d_mask );
 				v_mask  = _mm256_sub_pd( v_mask, v_left );
@@ -6471,7 +6466,7 @@ void d_compute_alpha_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 				_mm256_maskstore_pd( &ptr_dlam[0*png+ll], i_mask, v_dlam0 );
 				_mm256_maskstore_pd( &ptr_dlam[1*png+ll], i_mask, v_dlam1 );
 
-				if(ll<2*pnb+ng0-2) // 3 left
+				if(ll<ng0-2) // 3 left
 					{
 
 					t_dlam   = _mm256_permute2f128_ps( _mm256_castps128_ps256( _mm256_cvtpd_ps( v_dlam0 ) ), _mm256_castps128_ps256( _mm256_cvtpd_ps( v_dlam1 ) ), 0x20 );
@@ -6792,7 +6787,7 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			png = (ng0+bs-1)/bs*bs;
 			cng = (ng0+ncl-1)/ncl*ncl;
 
-			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt+2*pnb, ptr_dt+2*pnb);
+			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
 
 			for(ll=0; ll<ng0-3; ll+=4)
 				{
@@ -6877,7 +6872,7 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 				_mm256_maskstore_pd( &ptr_dlam[0*png+ll], i_mask, v_dlam0 );
 				_mm256_maskstore_pd( &ptr_dlam[1*png+ll], i_mask, v_dlam1 );
 
-				if(ll<2*pnb+ng0-2) // 3 left
+				if(ll<ng0-2) // 3 left
 					{
 
 					t_dlam   = _mm256_permute2f128_ps( _mm256_castps128_ps256( _mm256_cvtpd_ps( v_dlam0 ) ), _mm256_castps128_ps256( _mm256_cvtpd_ps( v_dlam1 ) ), 0x20 );
