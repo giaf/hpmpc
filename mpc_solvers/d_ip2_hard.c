@@ -39,11 +39,10 @@ int d_ip2_hard_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 
 	const int bs = D_MR;
 	const int ncl = D_NCL;
-	const int nal = bs*ncl;
 
 	int ii;
 
-	int pnz, pnb, png, cnx, cnz, anx, anz;
+	int pnx, pnz, pnb, png, cnx, cnz;
 
 	int size = 0;
 	int pnzM = 0;
@@ -57,9 +56,9 @@ int d_ip2_hard_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 		png = (ng[ii]+bs-1)/bs*bs;
 		cnx = (nx[ii]+ncl-1)/ncl*ncl;
 		cnz = (nx[ii]+nu[ii]+1+ncl-1)/ncl*ncl;
-		anx = (nx[ii]+nal-1)/nal*nal;
-		anz = (nx[ii]+nu[ii]+1+nal-1)/nal*nal;
-		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*anx + 3*anz + 15*pnb + 11*png;
+		pnx = (nx[ii]+bs-1)/bs*bs;
+		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
+		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*pnx + 3*pnz + 15*pnb + 11*png;
 		}
 	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
 
@@ -68,19 +67,8 @@ int d_ip2_hard_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 
 
 
-int d_ip2_hard_mpc_tv_work_space_size_int(int N, int *nx, int *nu, int *nb, int *ng)
-	{
-
-	int size = 7*(N+1);
-
-	return size;
-
-	}
-
-
-
 /* primal-dual interior-point method, hard constraints, time variant matrices, time variant size (mpc version) */
-int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory, int *int_work_memory)
+int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
 	{
 	
 	// indeces
@@ -89,30 +77,25 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
-	const int nal = bs*ncl; // number of doubles per cache line
 
 
 
 	// matrices size
-	// work_space_int_size_per_stage = 7
 	int idx;
 	int nxM = 0;
 	int nzM = 0;
 	int ngM = 0;
-	int *ptr_int, *anx, *anz, *pnz, *pnb, *png, *cnx, *cnz;
-	ptr_int = int_work_memory; // no alignmenr requirements
-	anx = ptr_int; ptr_int += N+1;
-	anz = ptr_int; ptr_int += N+1;
-	pnz = ptr_int; ptr_int += N+1;
-	pnb = ptr_int; ptr_int += N+1;
-	png = ptr_int; ptr_int += N+1;
-	cnx = ptr_int; ptr_int += N+1;
-	cnz = ptr_int; ptr_int += N+1;
+
+	int pnx[N+1];
+	int pnz[N+1];
+	int pnb[N+1];
+	int png[N+1];
+	int cnx[N+1];
+	int cnz[N+1];
 
 	for(jj=0; jj<=N; jj++)
 		{
-		anx[jj] = (nx[jj]+nal-1)/nal*nal;
-		anz[jj] = (nu[jj]+nx[jj]+1+nal-1)/nal*nal;
+		pnx[jj] = (nx[jj]+bs-1)/bs*bs;
 		pnz[jj] = (nu[jj]+nx[jj]+1+bs-1)/bs*bs;
 		pnb[jj] = (nb[jj]+bs-1)/bs*bs;
 		png[jj] = (ng[jj]+bs-1)/bs*bs;
@@ -126,7 +109,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 
 	// initialize work space
-	// work_space_double_size_per_stage = pnz*cnl + 2*anz + 2*anx + 14*pnb + 10*png
+	// work_space_double_size_per_stage = pnz*cnl + 2*pnz + 2*pnx + 14*pnb + 10*png
 	// work_space_double_size_const_max = pnz*cnxg + pnz
 	double *ptr;
 	ptr = double_work_memory; // supposed to be aligned to cache line boundaries
@@ -161,7 +144,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	for(jj=0; jj<=N; jj++)
 		{
 		l[jj] = ptr;
-		ptr += anz[jj];
+		ptr += pnz[jj];
 		}
 
 	work = ptr;
@@ -172,28 +155,28 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	for(jj=0; jj<=N; jj++)
 		{
 		dux[jj] = ptr;
-		ptr += anz[jj];
+		ptr += pnz[jj];
 		}
 
 	// equality constr multipliers
 	for(jj=0; jj<=N; jj++)
 		{
 		dpi[jj] = ptr;
-		ptr += anx[jj];
+		ptr += pnx[jj];
 		}
 	
 	// backup of P*b
 	for(jj=0; jj<N; jj++)
 		{
 		Pb[jj] = ptr;
-		ptr += anx[jj+1];
+		ptr += pnx[jj+1];
 		}
 
 	// linear part of cost function
 	for(jj=0; jj<=N; jj++)
 		{
 		q[jj] = ptr;
-		ptr += anz[jj];
+		ptr += pnz[jj];
 		for(ll=0; ll<nu[jj]+nx[jj]; ll++) q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnz[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
 		}
 

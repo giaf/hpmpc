@@ -59,7 +59,7 @@ int hpmpc_ip_hard_mpc_dp_work_space_tv(int N, int nx, int nu, int nb, int ng, in
 	//const int anb = 2*nal*((nb+nal-1)/nal);
 
 //	int work_space_size = (8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 6*anz + 3*anx + 7*anb) + 3*anz);
-	int work_space_size = (8 + (N+1)*(12 + nb + pnz*cnx + pnz*cnz + pnz*cnl + pnz*cng + 6*anz + 4*anx + 23*pnb + 19*png) + pnz*(cngN-cng) + 19*(pngN-png) + anz + (cngN<cnxg ? pnz*cnxg : pnz*cngN) );
+	int work_space_size = (8 + (N+1)*(nb + pnz*cnx + pnz*cnz + pnz*cnl + pnz*cng + 6*anz + 4*anx + 23*pnb + 19*png) + pnz*(cngN-cng) + 19*(pngN-png) + anz + (cngN<cnxg ? pnz*cnxg : pnz*cngN) );
 
 	return work_space_size;
 	}

@@ -148,22 +148,14 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 
 
 		// time-variant quantities
-		int *ptr_int, *nxx, *nuu, *nbb, *ngg;
-		int **ptr_ptr_int, **idxb;
-		int *work_int;
+		int *ptr_int;
 		ptr_int = (int *) work0;
-		nxx = ptr_int;
-		ptr_int += N+1;
-		nuu = ptr_int;
-		ptr_int += N+1;
-		nbb = ptr_int;
-		ptr_int += N+1;
-		ptr_ptr_int = (int **) ptr_int;
-		idxb = ptr_ptr_int;
-		ptr_ptr_int += N+1;
-		ptr_int = (int *) ptr_ptr_int;
-		ngg = ptr_int;
-		ptr_int += N+1;
+
+		int nxx[N+1];
+		int nuu[N+1];
+		int nbb[N+1];
+		int ngg[N+1];
+		int *(idxb[N+1]);
 
 		nxx[0] = nx;
 		nuu[0] = nu;
@@ -189,9 +181,6 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 		ptr_int += nbb[N];
 		for(jj=0; jj<nbb[N]; jj++) idxb[N][jj] = nuu[N]+jj;
 		ngg[N] = ngN;
-
-		work_int = ptr_int;
-		ptr_int += 7*(N+1);
 
 		work0 = (double *) ptr_int;
 
@@ -510,7 +499,7 @@ exit(1);
 	    //    hpmpc_status = d_ip_hard_mpc(kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, ng, ngN, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 	    //else
 	    //    hpmpc_status = d_ip2_hard_mpc(kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, nx, nu, N, nb, ng, ngN, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
-	        hpmpc_status = d_ip2_hard_mpc_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work, work_int);
+	        hpmpc_status = d_ip2_hard_mpc_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 
 #if 0
 for(ii=0; ii<=N; ii++)
