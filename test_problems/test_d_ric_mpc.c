@@ -1384,7 +1384,7 @@ int main()
 
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_sv_mpc_tv(N, nx_v, nu_v, hpBAbt, hpQ, hux, hpL, hdL, work, diag, 0, dummy, COMPUTE_MULT, hpi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy);
+			d_back_ric_sv_tv(N, nx_v, nu_v, hpBAbt, hpQ, hux, hpL, hdL, work, diag, 0, dummy, COMPUTE_MULT, hpi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy);
 			}
 
 		gettimeofday(&tv6, NULL); // start

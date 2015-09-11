@@ -29,7 +29,7 @@
 
 
 
-void d_res_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb)
+void d_back_ric_res_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb)
 	{
 
 	const int bs = D_MR;

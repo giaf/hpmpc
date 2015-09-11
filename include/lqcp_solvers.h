@@ -28,9 +28,9 @@ int d_ric_sv_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, int
 int d_cond_lqcp_work_space(int N, int nx, int nu, int N2, int alg);
 
 // MPC
-void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hux, double **hpL, double **hdL, double *work, double *diag, int compute_Pb, double **hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hQd, double **hQl, int *ng, double **hpDCt, double **Qx, double **qx);
-void d_ric_trs_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpL, double **hdL, double **hq, double **hl, double **hux, double *work, int compute_Pb, double ** hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hql, int *ng, double **hpDCt, double **qx);
-void d_res_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb);
+void d_back_ric_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hux, double **hpL, double **hdL, double *work, double *diag, int compute_Pb, double **hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hQd, double **hQl, int *ng, double **hpDCt, double **Qx, double **qx);
+void d_back_ric_trs_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpL, double **hdL, double **hq, double **hl, double **hux, double *work, int compute_Pb, double ** hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hql, int *ng, double **hpDCt, double **qx);
+void d_back_ric_res_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb);
 void d_back_ric_sv(int N, int nx, int nu, double **hpBAbt, double **hpQ, int update_hessian, double **hQd, double **hQl, int fixed_x0, double **hux, double **hpL, double *work, double *diag, int compute_Pb, double **hPb, int compute_pi, double **hpi, int nb, int ng, int ngN, double **hDCt, double **Qx, double **qx);
 void d_ric_trs_mpc(int nx, int nu, int N, double **hpBAbt, double **hpL, double **hq, double **hux, double *work, int compute_Pb, double ** hPb, int compute_pi, double **hpi, int nb, int ng, int ngN, double **hpDCt, double **qx);
 void d_res_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb);

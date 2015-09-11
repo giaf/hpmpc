@@ -330,7 +330,7 @@ exit(1);
 
 
 		// compute the search direction: factorize and solve the KKT system
-		d_ric_sv_mpc_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, diag, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
+		d_back_ric_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, diag, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -416,7 +416,7 @@ exit(1);
 
 
 		// solve the system
-		d_ric_trs_mpc_tv(N, nx, nu, pBAbt, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
+		d_back_ric_trs_tv(N, nx, nu, pBAbt, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
 
 #if 0
 printf("\ndux\n");
