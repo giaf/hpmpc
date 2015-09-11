@@ -36,7 +36,7 @@
 
 
 
-int d_ip2_soft_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, int *ng)
+int d_ip2_soft_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, int *ng, int *ns)
 	{
 
 	const int bs = D_MR;
@@ -44,7 +44,7 @@ int d_ip2_soft_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 
 	int ii;
 
-	int pnx, pnz, pnb, png, cnx, cnz;
+	int pnx, pnz, pnb, png, pns, cnx, cnz;
 
 	int size = 0;
 	int pnzM = 0;
@@ -56,11 +56,12 @@ int d_ip2_soft_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 		if(pnz>pnzM) pnzM = pnz;
 		pnb = (nb[ii]+bs-1)/bs*bs;
 		png = (ng[ii]+bs-1)/bs*bs;
+		pns = (ns[ii]+bs-1)/bs*bs;
 		cnx = (nx[ii]+ncl-1)/ncl*ncl;
 		cnz = (nx[ii]+nu[ii]+1+ncl-1)/ncl*ncl;
 		pnx = (nx[ii]+bs-1)/bs*bs;
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
-		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*pnx + 3*pnz + 15*pnb + 11*png;
+		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*pnx + 4*pnz + 12*pnb + 11*png + 24*pns;
 		}
 	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
 
@@ -69,21 +70,10 @@ int d_ip2_soft_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 
 
 
-int d_ip2_soft_mpc_tv_work_space_size_int(int N, int *nx, int *nu, int *nb, int *ng)
-	{
-
-	int size = 7*(N+1);
-
-	return size;
-
-	}
-
-
-
 /* primal-dual interior-point method, hard constraints, time variant matrices, time variant size (mpc version) */
 int d_ip2_soft_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, int *ns, double **pBAbt, double **pQ, double **Z, double **z, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
 	{
-	
+
 	// indeces
 	int jj, ll, ii, bs0;
 
@@ -131,6 +121,7 @@ int d_ip2_soft_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	ptr = double_work_memory; // supposed to be aligned to cache line boundaries
 
 	double *(pL[N+1]);
+	double *(dL[N+1]);
 	double *(l[N+1]);
 	double *work;
 	double *(q[N+1]);
@@ -157,6 +148,12 @@ int d_ip2_soft_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		pL[jj] = ptr;
 		ptr += pnz[jj] * ( cnx[jj]+ncl>cnz[jj] ? cnx[jj]+ncl : cnz[jj] ); // pnz*cnl
+		}
+
+	for(jj=0; jj<=N; jj++)
+		{
+		dL[jj] = ptr;
+		ptr += pnz[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
@@ -333,9 +330,7 @@ exit(1);
 
 
 		// compute the search direction: factorize and solve the KKT system
-		fast_rsqrt = 0;
-		//printf("\n%d %f\n", fast_rsqrt, mu);
-		d_ric_sv_mpc_tv(N, nx, nu, pBAbt, pQ, dux, pL, work, diag, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2, fast_rsqrt);
+		d_ric_sv_mpc_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, diag, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -421,7 +416,7 @@ exit(1);
 
 
 		// solve the system
-		d_ric_trs_mpc_tv(N, nx, nu, pBAbt, pL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
+		d_ric_trs_mpc_tv(N, nx, nu, pBAbt, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
 
 #if 0
 printf("\ndux\n");

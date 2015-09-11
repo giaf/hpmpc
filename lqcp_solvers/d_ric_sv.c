@@ -58,8 +58,10 @@ int d_ric_sv_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, int
 
 
 /* version tailored for mpc (x0 fixed) ; version supporting time-variant nx, nu, nb, ng */
-void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hux, double **hpL, double *work, double *diag, int compute_Pb, double **hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hQd, double **hQl, int *ng, double **hpDCt, double **Qx, double **qx, int fast_rsqrt)
+void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hux, double **hpL, double **hdL, double *work, double *diag, int compute_Pb, double **hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hQd, double **hQl, int *ng, double **hpDCt, double **Qx, double **qx)
 	{
+
+	int fast_rsqrt = 0; // TODO remove !!!!
 	
 	const int bs = D_MR;
 	const int ncl = D_NCL;
@@ -119,7 +121,8 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 
 
 	// middle stages 
-	for(nn=0; nn<N-1; nn++)
+//	for(nn=0; nn<N-1; nn++)
+	for(nn=0; nn<N; nn++)
 		{	
 		nu1 = nu0;
 		nx1 = nx0;
@@ -174,6 +177,7 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 		dtrtr_l_lib(nx0, nu0, hpL[N-nn-1]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, hpL[N-nn-1]+ncl*bs, cnl0);	
 		}
 
+#if 0
 	// first stage 
 	nu1 = nu0;
 	nx1 = nx0;
@@ -217,6 +221,7 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 	for(ii=0; ii<nu0; ii++) if(diag[ii]==0) diag[ii] = 1.0; // TODO needed ?????
 	//d_update_diag_pmat(nu0, hpL[0], cnl0, diag); // copy reciprocal of diagonal
 	ddiain_lib(nu0, diag, 0, hpL[0], cnl0); // copy reciprocal of diagonal
+#endif
 
 
 
@@ -227,7 +232,35 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 	cnx1 = (nx1+ncl-1)/ncl*ncl;
 	cnz1 = (nu1+nx1+1+ncl-1)/ncl*ncl;
 	cnl1 = cnz1<cnx1+ncl ? cnx1+ncl : cnz1;
+#if 1
+	// explitic first stage
+	nn = 0;
+	nu0 = nu1;
+	nx0 = nx1;
+	nu1 = nu[nn+1];
+	nx1 = nx[nn+1];
+	cnx0 = cnx1;
+	cnz0 = cnz1;
+	cnl0 = cnl1;
+	cnx1 = (nx1+ncl-1)/ncl*ncl;
+	cnz1 = (nu1+nx1+1+ncl-1)/ncl*ncl;
+	cnl1 = cnz1<cnx1+ncl ? cnx1+ncl : cnz1;
+	pnx1  = (nx1+ncl-1)/ncl*ncl;
+	for(jj=0; jj<nu0+nx0; jj++) hux[nn][jj] = - hpL[nn][(nu0+nx0)/bs*bs*cnl0+(nu0+nx0)%bs+bs*jj];
+	dtrsv_t_lib(nu0+nx0, nu0+nx0, 1, hpL[nn], cnl0, &hux[nn][0]);
+	for(jj=0; jj<nx1; jj++) hux[nn+1][nu1+jj] = hpBAbt[nn][(nu0+nx0)/bs*bs*cnx1+(nu0+nx0)%bs+bs*jj];
+	dgemv_t_lib(nx0+nu0, nx1, hpBAbt[nn], cnx1, &hux[nn][0], 1, &hux[nn+1][nu1], &hux[nn+1][nu1]);
+	if(compute_pi)
+		{
+		for(jj=0; jj<nx1; jj++) work[pnx1+jj] = hux[nn+1][nu1+jj]; // copy x into aligned memory
+		for(jj=0; jj<nx1; jj++) work[jj] = hpL[nn+1][(nu1+nx1)/bs*bs*cnl1+(nu1+nx1)%bs+bs*(nu1+jj)]; // work space
+		dtrmv_u_n_lib(nx1, hpL[nn+1]+(ncl)*bs, cnl1, &work[pnx1], 1, &work[0]);
+		dtrmv_u_t_lib(nx1, hpL[nn+1]+(ncl)*bs, cnl1, &work[0], 0, &hpi[nn+1][0]); // L*(L'*b) + p
+		}
+	for(nn=1; nn<N; nn++)
+#else
 	for(nn=0; nn<N; nn++)
+#endif
 		{
 		nu0 = nu1;
 		nx0 = nx1;
@@ -258,7 +291,7 @@ void d_ric_sv_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, dou
 
 
 
-void d_ric_trs_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpL, double **hq, double **hl, double **hux, double *work, int compute_Pb, double ** hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hql, int *ng, double **hpDCt, double **qx)
+void d_ric_trs_mpc_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpL, double **hdL, double **hq, double **hl, double **hux, double *work, int compute_Pb, double ** hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hql, int *ng, double **hpDCt, double **qx)
 	{
 	
 	const int bs  = D_MR; //d_get_mr();

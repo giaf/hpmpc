@@ -25,6 +25,7 @@
 
 // work space size
 int d_ip2_hard_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, int *ng);
+int d_ip2_soft_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, int *ng, int *ns);
 
 // box-constrained MPC IP
 int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory);
@@ -37,6 +38,7 @@ int s_ip2_box_mpc(int *kk, int k_max, float mu_tol, float alpha_min, int warm_st
 void s_res_ip_box_mpc(int nx, int nu, int N, int nb, float **hpBAbt, float **hpQ, float **hq, float **hux, float **hdb, float **hpi, float **hlam, float **ht, float **hrq, float **hrb, float **hrd, float *mu);
 
 // soft-constrained MPC IP
+int d_ip2_soft_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, int *ns, double **pBAbt, double **pQ, double **Z, double **z, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory);
 int d_ip_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nh, int ns, double **pBAbt, double **pQ, double **Z, double **z, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory);
 int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nh, int ns, double **pBAbt, double **pQ, double **Z, double **z, double **db, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory);
 void d_res_ip_soft_mpc(int nx, int nu, int N, int nh, int ns, double **hpBAbt, double **hpQ, double **hq, double **hZ, double **hz, double **hux, double **hdb, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double **hrz, double *mu);

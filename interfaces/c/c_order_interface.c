@@ -119,6 +119,8 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 		const int png  = bs*((ng+bs-1)/bs);
 		const int pngN = bs*((ngN+bs-1)/bs);
 		const int cnz  = ncl*((nx+nu+1+ncl-1)/ncl);
+		const int cnz0 = ncl*((nu+1+ncl-1)/ncl);
+		const int cnzN = ncl*((nx+1+ncl-1)/ncl);
 		const int cnx  = ncl*((nx+ncl-1)/ncl);
 		const int cng  = ncl*((ng+ncl-1)/ncl);
 		const int cngN = ncl*((ngN+ncl-1)/ncl);
@@ -129,7 +131,6 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 		int pnb0;
 		int png0;
-		int cnz0;
 
 		//const int anb = nal*((2*nb+nal-1)/nal);
 
@@ -157,7 +158,7 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 		int ngg[N+1];
 		int *(idxb[N+1]);
 
-		nxx[0] = nx;
+		nxx[0] = 0;
 		nuu[0] = nu;
 		nbb[0] = nbu;
 		idxb[0] = ptr_int;
@@ -314,6 +315,18 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 
 		//printf("\n%d %d %d %d %d\n", N, nx, nu, nb, ng);
 
+		// first stage
+		// compute A_0 * x_0 + b_0
+		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
+		d_cvt_tran_mat2pmat(nx, nx, A, nx, 0, hpBAbt[0], cnx);
+		dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b, hpi[1]);
+
+		ii = 0;
+		d_cvt_mat2pmat(nu, nx, B, nu, 0, hpBAbt[0], cnx);
+		for (jj = 0; jj<nx; jj++)
+			hpBAbt[0][(nu)/bs*cnx*bs+(nu)%bs+jj*bs] = hpi[1][jj];
+
+		// middle stages
         // dynamic system
         for(ii=0; ii<N; ii++)
 	        {
@@ -331,7 +344,11 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 		// general constraints
 		if(ng>0)
 			{
-			for(ii=0; ii<N; ii++)
+			// first stage
+			ii=0;
+			d_cvt_mat2pmat(nu, ng, D, nu, 0, hpDCt[0], cng);
+			// middle stages
+			for(ii=1; ii<N; ii++)
 				{
 				d_cvt_mat2pmat(nu, ng, D+ii*nu*ng, nu, 0, hpDCt[ii], cng);
 				d_cvt_mat2pmat(nx, ng, C+ii*nx*ng, nx, nu, hpDCt[ii]+nu/bs*cng*bs+nu%bs, cng);
@@ -359,7 +376,18 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 		//exit(1);
 
         // cost function
-        for(jj=0; jj<N; jj++)
+		// first stage
+		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
+		d_cvt_mat2pmat(nx, nu, S, nx, 0, hpQ[0], cnx);
+		dgemv_n_lib(nu, nx, hpQ[0], cnx, hux[1], 1, r, hpi[1]);
+
+		jj = 0;
+		d_cvt_tran_mat2pmat(nu, nu, R, nu, 0, hpQ[0], cnz0);
+		for(ii=0; ii<nu; ii++)
+			hpQ[0][(nu)/bs*cnz0*bs+(nu)%bs+ii*bs] = hpi[1][ii];
+
+		// middle stages
+        for(jj=1; jj<N; jj++)
 	        {
             d_cvt_tran_mat2pmat(nu, nu, R+jj*nu*nu, nu, 0, hpQ[jj], cnz);
             d_cvt_mat2pmat(nx, nu, S+jj*nx*nu, nx, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
@@ -370,15 +398,18 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
                 hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+ii)*bs] = q[ii+nx*jj];
 	        }
 
-		cnz0 = (nxx[N]+1+ncl-1)/ncl*ncl;
-        d_cvt_tran_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnz0);
+		// last stage
+        d_cvt_tran_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnzN);
         for(jj=0; jj<nx; jj++)
-            hpQ[N][nx/bs*cnz0*bs+nx%bs+jj*bs] = qf[jj];
+            hpQ[N][nx/bs*cnzN*bs+nx%bs+jj*bs] = qf[jj];
 
 		// estimate mu0 if not user-provided
 		if(mu0<=0)
 			{
-			for(jj=0; jj<N; jj++)
+			jj=0;
+			for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, R[jj*nu*nu+ii*nu+ll]);
+			for(ii=0; ii<nu; ii++) mu0 = fmax(mu0, r[jj*nu+ii]);
+			for(jj=1; jj<N; jj++)
 				{
 				for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, R[jj*nu*nu+ii*nu+ll]);
 				for(ii=0; ii<nx*nu; ii++) mu0 = fmax(mu0, S[jj*nu*nx+ii]);
@@ -411,7 +442,7 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 					for(ll=0; ll<nx; ll++)
 						{
 						// update linear term
-						hpBAbt[jj][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+ll*bs] += hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs]*lb[ii+nb*jj];
+						hpBAbt[jj][(nxx[jj]+nuu[jj])/bs*cnx*bs+(nxx[jj]+nuu[jj])%bs+ll*bs] += hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs]*lb[ii+nb*jj];
 						// zero corresponding B column
 						hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs] = 0;
 						}
@@ -477,7 +508,7 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
             for(ii=0; ii<nu; ii++)
                 hux[jj][ii] = u[ii+nu*jj];
 
-        for(jj=0; jj<=N; jj++)
+        for(jj=1; jj<=N; jj++)
             for(ii=0; ii<nx; ii++)
                 hux[jj][nuu[jj]+ii] = x[ii+nx*jj];
 
@@ -514,7 +545,7 @@ exit(1);
             for(ii=0; ii<nu; ii++)
                 u[ii+nu*jj] = hux[jj][ii];
 
-        for(jj=0; jj<=N; jj++)
+        for(jj=1; jj<=N; jj++)
             for(ii=0; ii<nx; ii++)
                 x[ii+nx*jj] = hux[jj][nuu[jj]+ii];
 
@@ -539,10 +570,10 @@ exit(1);
 			// restore linear part of cost function 
 			for(ii=0; ii<N; ii++)
 				{
-				for(jj=0; jj<nu; jj++) 
+				for(jj=0; jj<nuu[ii]; jj++) 
 					hq[ii][jj]    = r[jj+nu*ii];
-				for(jj=0; jj<nx; jj++) 
-					hq[ii][nu+jj] = q[jj+nx*ii];
+				for(jj=0; jj<nxx[ii]; jj++) 
+					hq[ii][nuu[ii]+jj] = q[jj+nx*ii];
 				}
 			for(jj=0; jj<nx; jj++) 
 				hq[N][jj] = qf[jj];

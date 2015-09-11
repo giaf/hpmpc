@@ -58,7 +58,7 @@ int d_ip2_hard_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 		cnz = (nx[ii]+nu[ii]+1+ncl-1)/ncl*ncl;
 		pnx = (nx[ii]+bs-1)/bs*bs;
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
-		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*pnx + 3*pnz + 15*pnb + 11*png;
+		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*pnx + 4*pnz + 15*pnb + 11*png;
 		}
 	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
 
@@ -115,6 +115,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	ptr = double_work_memory; // supposed to be aligned to cache line boundaries
 
 	double *(pL[N+1]);
+	double *(dL[N+1]);
 	double *(l[N+1]);
 	double *work;
 	double *(q[N+1]);
@@ -139,6 +140,12 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		pL[jj] = ptr;
 		ptr += pnz[jj] * ( cnx[jj]+ncl>cnz[jj] ? cnx[jj]+ncl : cnz[jj] ); // pnz*cnl
+		}
+
+	for(jj=0; jj<=N; jj++)
+		{
+		dL[jj] = ptr;
+		ptr += pnz[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
@@ -311,21 +318,7 @@ exit(1);
 
 
 		// compute the search direction: factorize and solve the KKT system
-#if defined(FAST_RSQRT)
-		if(mu>1e-2)
-			fast_rsqrt = 2;
-		else
-			{
-			if(mu>1e-4)
-				fast_rsqrt = 1;
-			else
-				fast_rsqrt = 0;
-			}
-#else
-		fast_rsqrt = 0;
-#endif
-		//printf("\n%d %f\n", fast_rsqrt, mu);
-		d_ric_sv_mpc_tv(N, nx, nu, pBAbt, pQ, dux, pL, work, diag, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2, fast_rsqrt);
+		d_ric_sv_mpc_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, diag, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -411,7 +404,7 @@ exit(1);
 
 
 		// solve the system
-		d_ric_trs_mpc_tv(N, nx, nu, pBAbt, pL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
+		d_ric_trs_mpc_tv(N, nx, nu, pBAbt, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
 
 #if 0
 printf("\ndux\n");

@@ -279,8 +279,8 @@ int main()
 	int *nx_v, *nu_v, *nb_v, *ng_v;
 
 	int ll;
-	int ll_max = 77;
-//	int ll_max = 1;
+//	int ll_max = 77;
+	int ll_max = 1;
 	for(ll=0; ll<ll_max; ll++)
 		{
 		
@@ -348,7 +348,7 @@ int main()
 		mass_spring_system(Ts, nx, nu, N, A, B, b, x0);
 	
 		for(jj=0; jj<nx; jj++)
-			b[jj] = 0.1;
+			b[jj] = 0.0;
 	
 		for(jj=0; jj<nx; jj++)
 			x0[jj] = 0;
@@ -397,7 +397,7 @@ int main()
 		double *Q; d_zeros_align(&Q, pnz, pnz);
 		for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
 		for(; ii<nu+ncx; ii++) Q[ii*(pnz+1)] = 1.0;
-		for(ii=0; ii<nu+ncx; ii++) Q[nx+nu+ii*pnz] = 1.0;
+		for(ii=0; ii<nu+ncx; ii++) Q[nx+nu+ii*pnz] = 0.0;
 /*		Q[(nx+nu)*(pnz+1)] = 1e35; // large enough (not needed any longer) */
 		double *q; d_zeros_align(&q, pnz, 1);
 		for(ii=0; ii<nu+ncx; ii++) q[ii] = Q[nx+nu+ii*pnz];
@@ -415,6 +415,7 @@ int main()
 		double *(hpQ[N+1]);
 		double *(hpQ_tv[N+1]);
 		double *(hpL[N+1]);
+		double *(hdL[N+1]);
 		double *(hl[N+1]);
 		double *(hq[N+1]);
 		double *(hux[N+1]);
@@ -442,6 +443,7 @@ int main()
 				}
 			d_zeros_align(&hq[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hpL[jj], pnz, cnl);
+			d_zeros_align(&hdL[jj], pnz, 1);
 			d_zeros_align(&hl[jj], pnz, 1);
 			d_zeros_align(&hux[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hpi[jj], pnx, 1);
@@ -462,6 +464,7 @@ int main()
 			for(ii=0; ii<pnx1*cnx1; ii++) hpQ_tv[N][ii] = pQ_N[ii]; // LTV
 			}
 		d_zeros_align(&hpL[N], pnz, cnl);
+		d_zeros_align(&hdL[N], pnz, 1);
 		d_zeros_align(&hl[N], pnz, 1);
 		d_zeros_align(&hq[N], pnz, 1); // it has to be pnz !!!
 		d_zeros_align(&hux[N], pnz, 1); // it has to be pnz !!!
@@ -1381,7 +1384,7 @@ int main()
 
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_ric_sv_mpc_tv(N, nx_v, nu_v, hpBAbt, hpQ, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy, 0);
+			d_ric_sv_mpc_tv(N, nx_v, nu_v, hpBAbt, hpQ, hux, hpL, hdL, work, diag, 0, dummy, COMPUTE_MULT, hpi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy);
 			}
 
 		gettimeofday(&tv6, NULL); // start
@@ -1458,6 +1461,7 @@ int main()
 				free(hpBAbt[jj]);
 				}
 			free(hpL[jj]);
+			free(hdL[jj]);
 			free(hl[jj]);
 			free(hux[jj]);
 			free(hpi[jj]);
@@ -1472,6 +1476,7 @@ int main()
 			free(hq[N]);
 			}
 		free(hpL[N]);
+		free(hdL[N]);
 		free(hl[N]);
 		free(hux[N]);
 		free(hpi[N]);
