@@ -211,10 +211,14 @@ void d_init_var_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 		pns  = (ns0+bs-1)/bs*bs; // simd aligned number of box soft constraints
 		for(ll=0; ll<ns[jj]; ll++)
 			{
-			t[jj][2*pnb+2*png+ll] = 1.0;
-			t[jj][2*pnb+2*png+pns+ll] = 1.0;
-			lam[jj][2*pnb+2*png+ll] = mu0; // /t[jj][pnb+ll]; // TODO restore division if needed
-			lam[jj][2*pnb+2*png+pns+ll] = mu0; // /t[jj][pnb+ll]; // TODO restore division if needed
+			t[jj][2*pnb+2*png+0*pns+ll] = 1.0;
+			t[jj][2*pnb+2*png+1*pns+ll] = 1.0;
+			t[jj][2*pnb+2*png+2*pns+ll] = 1.0;
+			t[jj][2*pnb+2*png+3*pns+ll] = 1.0;
+			lam[jj][2*pnb+2*png+0*pns+ll] = mu0; // /t[jj][pnb+ll]; // TODO restore division if needed
+			lam[jj][2*pnb+2*png+1*pns+ll] = mu0; // /t[jj][pnb+ll]; // TODO restore division if needed
+			lam[jj][2*pnb+2*png+2*pns+ll] = mu0; // /t[jj][pnb+ll]; // TODO restore division if needed
+			lam[jj][2*pnb+2*png+3*pns+ll] = mu0; // /t[jj][pnb+ll]; // TODO restore division if needed
 			}
 		}
 
@@ -2630,6 +2634,7 @@ void d_update_gradient_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, in
 		ptr_dlam  += 2*pnb;
 		ptr_dt    += 2*pnb;
 		ptr_lamt  += 2*pnb;
+		ptr_t_inv += 2*pnb;
 
 		// general constraints
 		ng0 = ng[jj];
@@ -2645,6 +2650,7 @@ void d_update_gradient_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, in
 		ptr_dlam  += 2*png;
 		ptr_dt    += 2*png;
 		ptr_lamt  += 2*png;
+		ptr_t_inv += 2*png;
 
 		// box soft constraitns
 		ns0 = ns[jj];
@@ -3072,6 +3078,8 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 		ptr_lam  = lam[jj];
 		ptr_dlam = dlam[jj];
 		ptr_idxb = idxb[jj];
+		ptr_Zl   = Zl[jj];
+		ptr_zl   = zl[jj];
 
 		// box constraints
 		nb0 = nb[jj];
@@ -3105,7 +3113,6 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			}
 
 		ptr_db   += 2*pnb;
-		ptr_dux  += 2*pnb;
 		ptr_t    += 2*pnb;
 		ptr_dt   += 2*pnb;
 		ptr_lamt += 2*pnb;
@@ -3114,6 +3121,7 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 
 		// general constraints
 		ng0 = ng[jj];
+		png = 0;
 
 		if(ng0>0)
 			{
@@ -3154,7 +3162,6 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			}
 
 		ptr_db   += 2*png;
-		ptr_dux  += 2*png;
 		ptr_t    += 2*png;
 		ptr_dt   += 2*png;
 		ptr_lamt += 2*png;
@@ -3168,10 +3175,10 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 		// box constraints
 		for(ll=0; ll<ns0; ll++)
 			{
-			ptr_dt[2*pns+ll] = ( ptr_zl[0*pns+ll] - ptr_lamt[0*pns+ll]*ptr_dux[ll] ) * ptr_Zl[0*pns+ll];
-			ptr_dt[3*pns+ll] = ( ptr_zl[1*pns+ll] + ptr_lamt[1*pns+ll]*ptr_dux[ll] ) * ptr_Zl[1*pns+ll];
-			ptr_dt[0*pns+ll] = ptr_dt[2*pns+ll] + ptr_dux[ll] - ptr_db[0*pns+ll] - ptr_t[0*pns+ll];
-			ptr_dt[1*pns+ll] = ptr_dt[3*pns+ll] - ptr_dux[ll] - ptr_db[1*pns+ll] - ptr_t[1*pns+ll];
+			ptr_dt[2*pns+ll] = ( ptr_zl[0*pns+ll] - ptr_lamt[0*pns+ll]*ptr_dux[ptr_idxb[nb0+ll]] ) * ptr_Zl[0*pns+ll];
+			ptr_dt[3*pns+ll] = ( ptr_zl[1*pns+ll] + ptr_lamt[1*pns+ll]*ptr_dux[ptr_idxb[nb0+ll]] ) * ptr_Zl[1*pns+ll];
+			ptr_dt[0*pns+ll] = ptr_dt[2*pns+ll] + ptr_dux[ptr_idxb[nb0+ll]] - ptr_db[0*pns+ll] - ptr_t[0*pns+ll];
+			ptr_dt[1*pns+ll] = ptr_dt[3*pns+ll] - ptr_dux[ptr_idxb[nb0+ll]] - ptr_db[1*pns+ll] - ptr_t[1*pns+ll];
 			ptr_dt[2*pns+ll] -= ptr_t[2*pns+ll];
 			ptr_dt[3*pns+ll] -= ptr_t[3*pns+ll];
 			ptr_dlam[0*pns+ll] -= ptr_lamt[0*pns+ll] * ptr_dt[0*pns+ll] + ptr_lam[0*pns+ll];
@@ -3214,7 +3221,7 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			}
 
 		}		
-
+	
 	// store alpha
 	ptr_alpha[0] = alpha;
 
@@ -4395,12 +4402,10 @@ void d_compute_mu_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 		
 		nb0 = nb[jj];
 		pnb = (nb0+bs-1)/bs*bs;
-		ng0 = ng[jj];
-		png = (ng0+bs-1)/bs*bs;
 		
 		ptr_t    = t[jj];
-		ptr_lam  = lam[jj];
 		ptr_dt   = dt[jj];
+		ptr_lam  = lam[jj];
 		ptr_dlam = dlam[jj];
 
 		// box constraints
@@ -4415,6 +4420,8 @@ void d_compute_mu_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 		ptr_dlam += 2*pnb;
 
 		// general constraints
+		ng0 = ng[jj];
+		png = (ng0+bs-1)/bs*bs;
 		for(ll=0; ll<ng0; ll++)
 			{
 			mu += (ptr_lam[ll+0] + alpha*ptr_dlam[ll+0]) * (ptr_t[ll+0] + alpha*ptr_dt[ll+0]) + (ptr_lam[ll+png] + alpha*ptr_dlam[ll+png]) * (ptr_t[ll+png] + alpha*ptr_dt[ll+png]);
@@ -4577,6 +4584,7 @@ void d_compute_mu_soft_mpc(int N, int nx, int nu, int nh, int ns, double *ptr_mu
 		{
 		mu += (lam[0][ll+0] + alpha*dlam[0][ll+0]) * (t[0][ll+0] + alpha*dt[0][ll+0]) + (lam[0][ll+1] + alpha*dlam[0][ll+1]) * (t[0][ll+1] + alpha*dt[0][ll+1]);
 		}
+
 
 	// middle stages: bounds on both u and x
 	for(jj=1; jj<N; jj++)

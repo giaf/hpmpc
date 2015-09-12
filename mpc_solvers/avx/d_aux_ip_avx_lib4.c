@@ -206,7 +206,7 @@ void d_init_var_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 			lam[jj][pnb+ll] = mu0/t[jj][pnb+ll];
 			}
 		}
-
+	
 
 	// inizialize t_theta and lam_theta (cold start only for the moment)
 	for(jj=0; jj<=N; jj++)
@@ -219,10 +219,14 @@ void d_init_var_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 		pns  = (ns0+bs-1)/bs*bs; // simd aligned number of box soft constraints
 		for(ll=0; ll<ns[jj]; ll++)
 			{
-			t[jj][2*pnb+2*png+ll] = 1.0;
-			t[jj][2*pnb+2*png+pns+ll] = 1.0;
-			lam[jj][2*pnb+2*png+ll] = mu0; // /t[jj][pnb+ll]; // TODO restore division if needed
-			lam[jj][2*pnb+2*png+pns+ll] = mu0; // /t[jj][pnb+ll]; // TODO restore division if needed
+			t[jj][2*pnb+2*png+0*pns+ll] = 1.0;
+			t[jj][2*pnb+2*png+1*pns+ll] = 1.0;
+			t[jj][2*pnb+2*png+2*pns+ll] = 1.0;
+			t[jj][2*pnb+2*png+3*pns+ll] = 1.0;
+			lam[jj][2*pnb+2*png+0*pns+ll] = mu0; // /t[jj][pnb+ll]; // TODO restore division if needed
+			lam[jj][2*pnb+2*png+1*pns+ll] = mu0; // /t[jj][pnb+ll]; // TODO restore division if needed
+			lam[jj][2*pnb+2*png+2*pns+ll] = mu0; // /t[jj][pnb+ll]; // TODO restore division if needed
+			lam[jj][2*pnb+2*png+3*pns+ll] = mu0; // /t[jj][pnb+ll]; // TODO restore division if needed
 			}
 		}
 
@@ -1460,7 +1464,6 @@ void d_update_hessian_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
-//	const int nal = bs*ncl; // number of doubles per cache line
 
 	__m256d
 		v_ones, v_sigma_mu, v_mask, v_left,
@@ -1792,12 +1795,12 @@ void d_update_hessian_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int
 
 			v_Qx0   = _mm256_add_pd( v_Qx0, v_Qx1 );
 			v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
-			v_tmp0  = _mm256_load_pd( &ptr_bd[nb0+ii] );
-			v_tmp1  = _mm256_load_pd( &ptr_bl[nb0+ii] );
+			v_tmp0  = _mm256_loadu_pd( &ptr_bd[nb0+ii] );
+			v_tmp1  = _mm256_loadu_pd( &ptr_bl[nb0+ii] );
 			v_tmp0  = _mm256_add_pd( v_Qx0, v_tmp0 );
 			v_tmp1  = _mm256_add_pd( v_tmp1, v_qx0 );
-			_mm256_store_pd( &ptr_pd[nb0+ii], v_tmp0 );
-			_mm256_store_pd( &ptr_pl[nb0+ii], v_tmp1 );
+			_mm256_storeu_pd( &ptr_pd[nb0+ii], v_tmp0 );
+			_mm256_storeu_pd( &ptr_pl[nb0+ii], v_tmp1 );
 
 			}
 		if(ii<ns0)
@@ -1885,8 +1888,8 @@ void d_update_hessian_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int
 
 			v_Qx0   = _mm256_add_pd( v_Qx0, v_Qx1 );
 			v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
-			v_tmp0  = _mm256_load_pd( &ptr_bd[nb0+ii] );
-			v_tmp1  = _mm256_load_pd( &ptr_bl[nb0+ii] );
+			v_tmp0  = _mm256_loadu_pd( &ptr_bd[nb0+ii] );
+			v_tmp1  = _mm256_loadu_pd( &ptr_bl[nb0+ii] );
 			v_tmp0  = _mm256_add_pd( v_Qx0, v_tmp0 );
 			v_tmp1  = _mm256_add_pd( v_tmp1, v_qx0 );
 			_mm256_maskstore_pd( &ptr_pd[nb0+ii], i_mask, v_tmp0 );
@@ -5692,6 +5695,7 @@ void d_update_gradient_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, in
 		ptr_dlam  += 2*pnb;
 		ptr_dt    += 2*pnb;
 		ptr_lamt  += 2*pnb;
+		ptr_t_inv += 2*pnb;
 
 		// general constraints
 		ng0 = ng[jj];
@@ -5707,6 +5711,7 @@ void d_update_gradient_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, in
 		ptr_dlam  += 2*png;
 		ptr_dt    += 2*png;
 		ptr_lamt  += 2*png;
+		ptr_t_inv += 2*png;
 
 		// box soft constraitns
 		ns0 = ns[jj];
@@ -6768,16 +6773,16 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 				}
 			}
 
-		// general constraints
-		ng0 = ng[jj];
-
 		ptr_db   += 2*pnb;
-		ptr_dux  += 2*pnb;
 		ptr_t    += 2*pnb;
 		ptr_dt   += 2*pnb;
 		ptr_lamt += 2*pnb;
 		ptr_lam  += 2*pnb;
 		ptr_dlam += 2*pnb;
+
+		// general constraints
+		ng0 = ng[jj];
+		png = 0;
 
 		if(ng0>0)
 			{
@@ -6920,7 +6925,6 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			}
 
 		ptr_db   += 2*png;
-		ptr_dux  += 2*png;
 		ptr_t    += 2*png;
 		ptr_dt   += 2*png;
 		ptr_lamt += 2*png;
@@ -6946,8 +6950,8 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			v_temp1 = _mm256_mul_pd( v_lamt1, v_dux );
 			v_dt2   = _mm256_load_pd( &ptr_zl[0*pns+ll] );
 			v_dt3   = _mm256_load_pd( &ptr_zl[1*pns+ll] );
-			v_dt2   = _mm256_add_pd ( v_dt2, v_temp0 );
-			v_dt3   = _mm256_sub_pd ( v_dt3, v_temp1 );
+			v_dt2   = _mm256_sub_pd ( v_dt2, v_temp0 );
+			v_dt3   = _mm256_add_pd ( v_dt3, v_temp1 );
 			v_temp0 = _mm256_load_pd( &ptr_Zl[0*pns+ll] );
 			v_temp1 = _mm256_load_pd( &ptr_Zl[1*pns+ll] );
 			v_dt2   = _mm256_mul_pd ( v_dt2, v_temp0 );
@@ -6964,12 +6968,16 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			v_dt1   = _mm256_sub_pd( v_dt1, v_t1 );
 			_mm256_store_pd( &ptr_dt[0*pns+ll], v_dt0 );
 			_mm256_store_pd( &ptr_dt[1*pns+ll], v_dt1 );
-			v_t2    = _mm256_load_pd( &ptr_t[0*pns+ll] );
-			v_t3    = _mm256_load_pd( &ptr_t[1*pns+ll] );
+			v_t2    = _mm256_load_pd( &ptr_t[2*pns+ll] );
+			v_t3    = _mm256_load_pd( &ptr_t[3*pns+ll] );
 			v_dt2   = _mm256_sub_pd( v_dt2, v_t2 );
 			v_dt3   = _mm256_sub_pd( v_dt3, v_t3 );
-			_mm256_store_pd( &ptr_dt[0*pns+ll], v_dt2 );
-			_mm256_store_pd( &ptr_dt[1*pns+ll], v_dt3 );
+			_mm256_store_pd( &ptr_dt[2*pns+ll], v_dt2 );
+			_mm256_store_pd( &ptr_dt[3*pns+ll], v_dt3 );
+//			printf("\n%f %f %f %f\n", ptr_dt[0*pns+ll+0], ptr_dt[1*pns+ll+0], ptr_dt[2*pns+ll+0], ptr_dt[3*pns+ll+0]);
+//			printf("\n%f %f %f %f\n", ptr_dt[0*pns+ll+1], ptr_dt[1*pns+ll+1], ptr_dt[2*pns+ll+1], ptr_dt[3*pns+ll+1]);
+//			printf("\n%f %f %f %f\n", ptr_dt[0*pns+ll+2], ptr_dt[1*pns+ll+2], ptr_dt[2*pns+ll+2], ptr_dt[3*pns+ll+2]);
+//			printf("\n%f %f %f %f\n", ptr_dt[0*pns+ll+3], ptr_dt[1*pns+ll+3], ptr_dt[2*pns+ll+3], ptr_dt[3*pns+ll+3]);
 
 			v_lamt0 = _mm256_load_pd( &ptr_lamt[0*pns+ll] );
 			v_lamt1 = _mm256_load_pd( &ptr_lamt[1*pns+ll] );
@@ -7051,8 +7059,8 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			v_temp1 = _mm256_mul_pd( v_lamt1, v_dux );
 			v_dt2   = _mm256_load_pd( &ptr_zl[0*pns+ll] );
 			v_dt3   = _mm256_load_pd( &ptr_zl[1*pns+ll] );
-			v_dt2   = _mm256_add_pd ( v_dt2, v_temp0 );
-			v_dt3   = _mm256_sub_pd ( v_dt3, v_temp1 );
+			v_dt2   = _mm256_sub_pd ( v_dt2, v_temp0 );
+			v_dt3   = _mm256_add_pd ( v_dt3, v_temp1 );
 			v_temp0 = _mm256_load_pd( &ptr_Zl[0*pns+ll] );
 			v_temp1 = _mm256_load_pd( &ptr_Zl[1*pns+ll] );
 			v_dt2   = _mm256_mul_pd ( v_dt2, v_temp0 );
@@ -7069,12 +7077,12 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			v_dt1   = _mm256_sub_pd( v_dt1, v_t1 );
 			_mm256_maskstore_pd( &ptr_dt[0*pns+ll], i_mask, v_dt0 );
 			_mm256_maskstore_pd( &ptr_dt[1*pns+ll], i_mask, v_dt1 );
-			v_t2    = _mm256_load_pd( &ptr_t[0*pns+ll] );
-			v_t3    = _mm256_load_pd( &ptr_t[1*pns+ll] );
+			v_t2    = _mm256_load_pd( &ptr_t[2*pns+ll] );
+			v_t3    = _mm256_load_pd( &ptr_t[3*pns+ll] );
 			v_dt2   = _mm256_sub_pd( v_dt2, v_t2 );
 			v_dt3   = _mm256_sub_pd( v_dt3, v_t3 );
-			_mm256_maskstore_pd( &ptr_dt[0*pns+ll], i_mask, v_dt2 );
-			_mm256_maskstore_pd( &ptr_dt[1*pns+ll], i_mask, v_dt3 );
+			_mm256_maskstore_pd( &ptr_dt[2*pns+ll], i_mask, v_dt2 );
+			_mm256_maskstore_pd( &ptr_dt[3*pns+ll], i_mask, v_dt3 );
 
 			v_lamt0 = _mm256_load_pd( &ptr_lamt[0*pns+ll] );
 			v_lamt1 = _mm256_load_pd( &ptr_lamt[1*pns+ll] );
@@ -7178,7 +7186,6 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 
 				}
 			}
-
 
 		}		
 
@@ -10845,7 +10852,7 @@ void d_update_var_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 		// box soft constraints
 		ns0 = ns[jj];
 		pns  = bs*((ns0+bs-1)/bs); // cache aligned number of box soft constraints
-		for(ll=0; ll<nb0-3; ll+=4)
+		for(ll=0; ll<ns0-3; ll+=4)
 			{
 			v_t0    = _mm256_load_pd( &ptr_t[0*pns+ll] );
 			v_t1    = _mm256_load_pd( &ptr_t[1*pns+ll] );
@@ -10914,9 +10921,9 @@ void d_update_var_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 			v_mu1   = _mm256_add_pd( v_mu1, v_lam3 );
 #endif
 			}
-		if(ll<nb0)
+		if(ll<ns0)
 			{
-			ll_left = nb0-ll;
+			ll_left = ns0-ll;
 			v_left  = _mm256_broadcast_sd( &ll_left );
 			v_mask  = _mm256_loadu_pd( d_mask );
 			v_mask  = _mm256_sub_pd( v_mask, v_left );
@@ -13168,7 +13175,7 @@ void d_compute_mu_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 		// box soft constraints
 		ns0 = ns[jj];
 		pns  = bs*((ns0+bs-1)/bs); // cache aligned number of box soft constraints
-		for(ll=0; ll<nb0-3; ll+=4)
+		for(ll=0; ll<ns0-3; ll+=4)
 			{
 			v_t0    = _mm256_load_pd( &ptr_t[0*pns+ll] );
 			v_t1    = _mm256_load_pd( &ptr_t[1*pns+ll] );
@@ -13226,9 +13233,9 @@ void d_compute_mu_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 			v_mu1   = _mm256_add_pd( v_mu1, v_lam3 );
 #endif
 			}
-		if(ll<nb0)
+		if(ll<ns0)
 			{
-			ll_left = nb0-ll;
+			ll_left = ns0-ll;
 			v_left  = _mm256_broadcast_sd( &ll_left );
 			v_mask  = _mm256_loadu_pd( d_mask );
 			v_mask  = _mm256_sub_pd( v_mask, v_left );

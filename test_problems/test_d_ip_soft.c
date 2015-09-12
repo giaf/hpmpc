@@ -33,6 +33,7 @@
 
 #include "../include/aux_d.h"
 #include "../include/aux_s.h"
+#include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_solvers.h"
 #include "../problem_size.h"
@@ -185,6 +186,7 @@ int main()
 	const int nz = nx+nu+1;
 	const int pnz = bs*((nz+bs-1)/bs);
 	const int pnx = bs*((nx+bs-1)/bs);
+	const int pnu = bs*((nu+bs-1)/bs);
 	const int pnb = bs*((2*nb+bs-1)/bs); // packed number of box constraints
 	const int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 	const int cnx = ncl*((nx+ncl-1)/ncl);
@@ -270,8 +272,9 @@ int main()
 
 	double *Q; d_zeros(&Q, nz, nz);
 	for(ii=0; ii<nu; ii++) Q[ii*(nz+1)] = 2.0;
-	for(; ii<pnz; ii++) Q[ii*(nz+1)] = 0.0;
-	for(ii=0; ii<nz; ii++) Q[nx+nu+ii*nz] = 0.0;
+	for(; ii<nz; ii++) Q[ii*(nz+1)] = 0.0;
+	for(ii=0; ii<nu; ii++) Q[nx+nu+ii*nz] = 0.2;
+	for(; ii<nz; ii++) Q[nx+nu+ii*nz] = 0.1;
 /*	Q[(nx+nu)*(pnz+1)] = 1e35; // large enough (not needed any longer) */
 	
 	/* packed into contiguous memory */
@@ -417,13 +420,51 @@ int main()
 //			hpmpc_status = d_ip2_box_mhe_old(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 //		}
 
+#if 0
+	if(PRINTSTAT==1)
+		{
+
+		printf("\n");
+		printf("\n");
+		printf(" Print IP statistics of the last run (soft-constraints solver)\n");
+		printf("\n");
+
+		for(jj=0; jj<kk; jj++)
+			printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, stat[5*jj], stat[5*jj+1], stat[5*jj+2], stat[5*jj+2], stat[5*jj+3], stat[5*jj+4], stat[5*jj+4]);
+		printf("\n");
+		
+		}
+
+	if(PRINTRES==1)
+		{
+
+		printf("\n");
+		printf("\n");
+		printf(" Print solution\n");
+		printf("\n");
+
+		printf("\nu = \n\n");
+		for(ii=0; ii<N; ii++)
+			d_print_mat(1, nu, hux[ii], 1);
+		
+		printf("\nx = \n\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nx, hux[ii]+nu, 1);
+		
+		printf("\nlam = \n\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, 2*nb, hlam[ii], 1);
+		
+		}
+#endif
+
 
 
 	int kk_avg = 0;
 	int kks_avg = 0;
 
 	/* timing */
-	struct timeval tv0, tv1, tv2, tv3;
+	struct timeval tv0, tv1, tv2, tv3, tv4, tv5;
 
 	// use general constraint to solve the soft-box-constrainted problem
 	#if 1 
@@ -637,22 +678,6 @@ int main()
 	
 
 
-	double times = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
-	double time = (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
-	
-/*	printf("\nnx\tnu\tN\tkernel\n\n");*/
-/*	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);*/
-	
-	printf("\n");
-	printf(" Average number of iterations over %d runs: %5.1f (soft-constraints solver)\n", nrep, kk_avg / (double) nrep);
-	printf(" Average number of iterations over %d runs: %5.1f (general-constraints solver)\n", nrep, kks_avg / (double) nrep);
-	printf("\n");
-	printf(" Average solution time over %d runs: %5.2e seconds (soft-constraints solver)\n", nrep, time);
-	printf(" Average solution time over %d runs: %5.2e seconds (general-constraints solver)\n", nrep, times);
-	printf("\n");
-
-
-
 	// restore linear part of cost function 
 	for(ii=0; ii<N; ii++)
 		{
@@ -753,6 +778,509 @@ int main()
 /*	printf("\nnx\tnu\tN\tkernel\n\n");*/
 /*	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);*/
 	
+
+
+/**************************************************************************************************
+*
+*	time-variant nx and nu, sparse box and soft constraints format
+*
+**************************************************************************************************/
+
+	// problem size
+	int nx_tv[N+1];
+	int nu_tv[N+1];
+	int nb_tv[N+1];
+	int ng_tv[N+1];
+	int ns_tv[N+1];
+	int nz_tv[N+1]; // vector of zeros
+
+	// first stage
+	nx_tv[0] = 0;
+	nu_tv[0] = nu;
+	nb_tv[0] = nu;
+	ng_tv[0] = 0;
+	ns_tv[0] = 0;
+	nz_tv[0] = 0;
+
+	// middle stages
+	for(ii=1; ii<N; ii++)
+		{
+		nx_tv[ii] = nx;
+		nu_tv[ii] = nu;
+		nb_tv[ii] = nu;
+		ng_tv[ii] = 0;
+		ns_tv[ii] = nx;
+		nz_tv[ii] = 0;
+		}
+	
+	// last stage
+	nx_tv[N] = nx;
+	nu_tv[N] = 0;
+	nb_tv[N] = 0;
+	ng_tv[N] = 0;
+	ns_tv[N] = nx;
+	nz_tv[N] = 0;
+
+
+	// matrix sizes
+	int pnz_tv[N+1];
+	int pnx_tv[N+1];
+	int pnb_tv[N+1];
+	int png_tv[N+1];
+	int pns_tv[N+1];
+	int cnz_tv[N+1];
+	int cnx_tv[N+1];
+	int cnl_tv[N+1];
+
+	for(ii=0; ii<=N; ii++)
+		{
+		pnz_tv[ii] = (nu_tv[ii]+nx_tv[ii]+1+bs-1)/bs*bs;
+		pnx_tv[ii] = (nx_tv[ii]+bs-1)/bs*bs;
+		pnb_tv[ii] = (nb_tv[ii]+bs-1)/bs*bs;
+		png_tv[ii] = (ng_tv[ii]+bs-1)/bs*bs;
+		pns_tv[ii] = (ns_tv[ii]+bs-1)/bs*bs;
+		cnz_tv[ii] = (nu_tv[ii]+nx_tv[ii]+1+ncl-1)/ncl*ncl;
+		cnx_tv[ii] = (nx_tv[ii]+ncl-1)/ncl*ncl;
+		cnl_tv[ii] = cnz_tv[ii]<cnx_tv[ii]+ncl ? cnx_tv[ii]+ncl : cnz_tv[ii];
+		}
+	
+//	for(ii=0; ii<=N; ii++)
+//		printf("\n%d\t%d\t%d\t%d\t%d\t%d\t%d\n", pnz_tv[ii], pnx_tv[ii], pnb_tv[ii], pns_tv[ii], cnz_tv[ii], cnx_tv[ii], cnl_tv[ii]);
+
+
+
+	// state-space matrices
+	//d_print_mat(nx, nx, A, nx);
+	//d_print_mat(nx, nu, B, nx);
+	//for(ii=0; ii<nx; ii++) b[ii] = 1.0;
+	//d_print_mat(nx, 1, b, nx);
+	//d_print_mat(nx, 1, x0, nx);
+
+	// compute b0
+	double *pA; d_zeros_align(&pA, pnx, cnx);
+	d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
+	double *b0; d_zeros_align(&b0, pnx, 1);
+	dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
+	//d_print_pmat(nx, nx, bs, pA, cnx);
+	//d_print_mat(nx, 1, b0, nx);
+
+	double *pBAbt0; d_zeros_align(&pBAbt0, pnz_tv[0], cnx_tv[1]);
+	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt0, cnx_tv[1]);
+	d_cvt_tran_mat2pmat(nx, 1, b0, nx, nu, pBAbt0+nu/bs*bs*cnx_tv[1]+nu%bs, cnx_tv[1]);
+	//d_print_pmat(nu_tv[0]+nx_tv[0]+1, nx_tv[1], bs, pBAbt0, cnx_tv[1]);
+
+	double *pBAbt1; d_zeros_align(&pBAbt1, pnz_tv[1], cnx_tv[2]);
+	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt1, cnx_tv[2]);
+	d_cvt_tran_mat2pmat(nx, nx, A, nx, nu, pBAbt1+nu/bs*bs*cnx_tv[2]+nu%bs, cnx_tv[2]);
+	d_cvt_tran_mat2pmat(nx, 1, b, nx, nu+nx, pBAbt1+(nu+nx)/bs*bs*cnx_tv[2]+(nu+nx)%bs, cnx_tv[2]);
+//	d_print_pmat(nu_tv[1]+nx_tv[1]+1, nx_tv[2], bs, pBAbt1, cnx_tv[2]);
+	
+	double *(hpBAbt_tv[N]);
+	hpBAbt_tv[0] = pBAbt0;
+	for(ii=1; ii<N; ii++)
+		hpBAbt_tv[ii] = pBAbt1;
+	
+
+	// cost function matrices
+	//for(ii=nu; ii<nu+nx; ii++) Q[ii*(nz+1)] = 1.0; // TODO remove !!!!
+	//d_print_mat(nz, nz, Q, nz);
+
+	double *q; d_zeros_align(&q, pnz, 1);
+	for(ii=0; ii<nu; ii++) q[ii] = Q[nu+nx+ii*nz];
+	//d_print_mat(nu, 1, q, nu);
+
+	double *pS; d_zeros_align(&pS, pnu, cnx);
+	d_cvt_tran_mat2pmat(nx, nu, Q+nu, nz, 0, pS, cnx);
+	//d_print_pmat(nu, nx, bs, pS, cnx);
+
+	double *q0; d_zeros_align(&q0, pnz_tv[0], 1);
+	dgemv_n_lib(nu, nx, pS, cnx, x0, 1, q, q0);
+	//d_print_mat(nu, 1, q0, nu);
+
+	double *pQ0; d_zeros_align(&pQ0, pnz_tv[0], cnz_tv[0]);
+	d_cvt_mat2pmat(nu, nu, Q, nz, 0, pQ0, cnz_tv[0]);
+	d_cvt_tran_mat2pmat(nu, 1, q0, nu, nu, pQ0+nu/bs*bs*cnz_tv[0]+nu%bs, cnz_tv[0]);
+	//d_print_pmat(nu_tv[0]+nx_tv[0]+1, nu_tv[0]+nx_tv[0]+1, bs, pQ0, pnz_tv[0]);
+	
+	double *pQ1; d_zeros_align(&pQ1, pnz_tv[1], cnz_tv[1]);
+	d_cvt_mat2pmat(nz, nz, Q, nz, 0, pQ1, cnz_tv[1]);
+	//d_print_pmat(nu_tv[1]+nx_tv[1]+1, nu_tv[1]+nx_tv[1]+1, bs, pQ1, pnz_tv[1]);
+
+	double *pQN; d_zeros_align(&pQN, pnz_tv[N], cnz_tv[N]);
+	d_cvt_mat2pmat(nx+1, nx+1, Q+nu*(nz+1), nz, 0, pQN, cnz_tv[N]);
+	//d_print_pmat(nu_tv[N]+nx_tv[N]+1, nu_tv[N]+nx_tv[N]+1, bs, pQN, cnz_tv[N]);
+
+	double *(hpQ_tv[N+1]);
+	hpQ_tv[0] = pQ0;
+	for(ii=1; ii<N; ii++)
+		hpQ_tv[ii] = pQ1;
+	hpQ_tv[N] = pQN;
+	
+
+
+	double *(hpL_tv[N+1]);
+	for(ii=0; ii<=N; ii++)
+		d_zeros_align(&hpL_tv[ii], pnz_tv[ii], cnl_tv[ii]);
+
+	double *(hdL_tv[N+1]);
+	for(ii=0; ii<=N; ii++)
+		d_zeros_align(&hdL_tv[ii], pnz_tv[ii], 1);
+
+
+
+	double *hux_tv[N+1];
+	for(ii=0; ii<=N; ii++)
+		d_zeros_align(&hux_tv[ii], (nu_tv[ii]+nx_tv[ii]+bs-1)/bs*bs, 1);
+	
+	double *hpi_tv[N+1];
+	for(ii=0; ii<=N; ii++)
+		d_zeros_align(&hpi_tv[ii], pnx_tv[ii], 1);
+	
+
+	// dummy variables
+	int **pdummyi;
+	double **pdummyd;
+	
+
+#if 0
+	// work space
+	double *ric_tv_work; d_zeros_align(&ric_tv_work, d_ric_sv_mpc_tv_work_space_size_double(N, nx_tv, nu_tv, nz_tv, nz_tv), 1);
+	double *ric_tv_diag; d_zeros_align(&ric_tv_diag, pnz, 1);
+
+	// call the Riccati solver
+	d_back_ric_sv_tv(N, nx_tv, nu_tv, hpBAbt_tv, hpQ_tv, hux_tv, hpL_tv, hdL_tv, ric_tv_work, ric_tv_diag, 0, pdummyd, 1, hpi_tv, nz_tv, pdummyi, pdummyd, pdummyd, nz_tv, pdummyd, pdummyd, pdummyd);
+
+	// print solution
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, nu_tv[ii]+nx_tv[ii], hux_tv[ii], 1);
+#endif
+	
+
+	// constraints
+	int *idxb0 = (int *) malloc((nb_tv[0]+ns_tv[0])*sizeof(int));
+	double *db0; d_zeros_align(&db0, 2*pnb_tv[0]+2*pns_tv[0], 1);
+	int nbu0;
+	nbu0 = nu_tv[0]<nb_tv[0] ? nu_tv[0] : nb_tv[0];
+	idx = 0;
+	for(jj=0; jj<nbu0; jj++)
+		{
+		idxb0[idx] = idx;
+		db0[0*pnb_tv[0]+jj] = - 0.5; // umin_hard
+		db0[1*pnb_tv[0]+jj] = - 0.5; // umax_hard
+		idx++;
+		}
+
+	int *idxb1 = (int *) malloc((nb_tv[1]+ns_tv[1])*sizeof(int));
+	double *db1; d_zeros_align(&db1, 2*pnb_tv[1]+2*pns_tv[1], 1);
+	nbu0 = nu_tv[1]<nb_tv[1] ? nu_tv[1] : nb_tv[1];
+	idx = 0;
+	for(jj=0; jj<nbu0; jj++)
+		{
+		idxb1[idx] = idx;
+		db1[0*pnb_tv[1]+jj] = - 0.5; // umin_hard
+		db1[1*pnb_tv[1]+jj] = - 0.5; // umax_hard
+		idx++;
+		}
+	for(jj=nu_tv[1]; jj<nb_tv[1]; jj++)
+		{
+		idxb1[idx] = idx;
+		db1[0*pnb_tv[1]+jj] = - 4.0; // xmin_hard
+		db1[1*pnb_tv[1]+jj] = - 4.0; // xmax_hard
+		idx++;
+		}
+	for(jj=0; jj<ns_tv[1]; jj++)
+		{
+		idxb1[idx] = idx;
+		db1[2*pnb_tv[1]+0*pns_tv[1]+jj] = - 1.0; // xmin_soft
+		db1[2*pnb_tv[1]+1*pns_tv[1]+jj] = - 1.0; // xmax soft
+		idx++;
+		}
+
+	int *idxbN = (int *) malloc((nb_tv[N]+ns_tv[N])*sizeof(int));
+	double *dbN; d_zeros_align(&dbN, 2*pnb_tv[N]+2*pns_tv[N], 1);
+	idx = 0;
+	for(jj=nu_tv[N]; jj<nb_tv[N]; jj++)
+		{
+		idxbN[idx] = idx;
+		dbN[0*pnb_tv[N]+jj] = - 4.0; // xmin_hard
+		dbN[1*pnb_tv[N]+jj] = - 4.0; // xmax_hard
+		idx++;
+		}
+	for(jj=0; jj<ns_tv[N]; jj++)
+		{
+		idxbN[idx] = idx;
+		dbN[2*pnb_tv[N]+0*pns_tv[N]+jj] = - 1.0; // xmin_soft
+		dbN[2*pnb_tv[N]+1*pns_tv[N]+jj] = - 1.0; // xmax soft
+		idx++;
+		}
+	
+	int *(idxb_tv[N+1]);
+	double *(hdb_tv[N+1]);
+	idxb_tv[0] = idxb0;
+	hdb_tv[0] = db0;
+	for(ii=1; ii<N; ii++)
+		{
+		idxb_tv[ii] = idxb1;
+		hdb_tv[ii] = db1;
+		}
+	idxb_tv[N] = idxbN;
+	hdb_tv[N] = dbN;
+
+#if 0
+	for(ii=0; ii<=N; ii++)
+		{
+		for(jj=0; jj<nb_tv[ii]+ns_tv[ii]; jj++)
+			printf("\t%d", idxb_tv[ii][jj]);
+		printf("\n");
+		}
+#endif
+	
+
+	// cost function of the soft contraint slack variables
+	double *Z1; d_zeros_align(&Z1, 2*pns_tv[1], 1);
+	for(ii=0; ii<ns_tv[1]; ii++)
+		{
+		Z1[0*pns_tv[1]+ii] = 0.0;
+		Z1[1*pns_tv[1]+ii] = 0.0;
+		}
+	double *z1; d_zeros_align(&z1, 2*pns_tv[1], 1);
+	for(ii=0; ii<ns_tv[1]; ii++)
+		{
+		z1[0*pns_tv[1]+ii] = 100.0;
+		z1[1*pns_tv[1]+ii] = 100.0;
+		}
+	
+	double *(hZ_tv[N+1]);
+	double *(hz_tv[N+1]);
+	for(ii=0; ii<=N; ii++)
+		{
+		hZ_tv[ii] = Z1;
+		hz_tv[ii] = z1;
+		}
+
+	// maximum element in cost functions
+	mu0 = 1.0;
+	for(ii=0; ii<nu+nx; ii++)
+		for(jj=0; jj<nu+nx; jj++)
+			mu0 = fmax(mu0, Q[jj+nz*ii]);
+	for(ii=0; ii<ns; ii++)
+		{
+		mu0 = fmax(mu0, Z[0*pns_tv[1]+ii]);
+		mu0 = fmax(mu0, Z[1*pns_tv[1]+ii]);
+		mu0 = fmax(mu0, z[0*pns_tv[1]+ii]);
+		mu0 = fmax(mu0, z[1*pns_tv[1]+ii]);
+		}
+	//printf("\n mu0 = %f\n", mu0);
+
+	// lagrangian multipliers and slack variables
+	double *(hlam_tv[N+1]);
+	double *(ht_tv[N+1]);
+	for(ii=0; ii<=N; ii++)
+		{
+		d_zeros_align(&hlam_tv[ii], 2*pnb_tv[ii]+2*png_tv[ii]+4*pns_tv[ii], 1);
+		d_zeros_align(&ht_tv[ii], 2*pnb_tv[ii]+2*png_tv[ii]+4*pns_tv[ii], 1);
+		}
+
+
+
+	// ip soft work space
+	double *ip_soft_tv_work; d_zeros_align(&ip_soft_tv_work, d_ip2_soft_mpc_tv_work_space_size_double(N, nx_tv, nu_tv, nb_tv, ng_tv, ns_tv), 1);
+
+	// call the ip soft solver
+	d_ip2_soft_mpc_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, N, nx_tv, nu_tv, nb_tv, idxb_tv, ng_tv, ns_tv, hpBAbt_tv, hpQ_tv, hZ_tv, hz_tv, pdummyd, hdb_tv, hux_tv, 1, hpi_tv, hlam_tv, ht_tv, ip_soft_tv_work);
+
+
+
+	int kk_avg_tv = 0;
+
+	gettimeofday(&tv4, NULL); // start
+
+
+
+	for(rep=0; rep<nrep; rep++)
+		{
+
+		idx = rep%10;
+//		x0[0] = xx0[2*idx];
+//		x0[1] = xx0[2*idx+1];
+
+		// initialize states and inputs
+//		for(ii=0; ii<=N; ii++)
+//			for(jj=0; jj<nx+nu; jj++)
+//				hux[ii][jj] = 0;
+
+		x0[0] = xx0[2*idx];
+		x0[1] = xx0[2*idx+1];
+
+		// update initial state embedded in b and r
+		dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
+		d_cvt_tran_mat2pmat(nx, 1, b0, nx, nu, pBAbt0+nu/bs*bs*cnx_tv[1]+nu%bs, cnx_tv[1]);
+		dgemv_n_lib(nu, nx, pS, cnx, x0, 1, q, q0);
+		d_cvt_tran_mat2pmat(nu, 1, q0, nu, nu, pQ0+nu/bs*bs*cnz_tv[0]+nu%bs, cnz_tv[0]);
+
+		// call the IP solver
+		d_ip2_soft_mpc_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, N, nx_tv, nu_tv, nb_tv, idxb_tv, ng_tv, ns_tv, hpBAbt_tv, hpQ_tv, hZ_tv, hz_tv, pdummyd, hdb_tv, hux_tv, 1, hpi_tv, hlam_tv, ht_tv, ip_soft_tv_work);
+
+		kk_avg_tv += kk;
+
+		}
+	
+	gettimeofday(&tv5, NULL); // stop
+	
+
+	
+	double *(hrq_tv[N+1]);
+	double *(hrb_tv[N]);
+	double *(hrd_tv[N+1]);
+	double *(hrz_tv[N+1]);
+	double *(hq_tv[N+1]);
+
+	for(ii=0; ii<N; ii++)
+		{
+		d_zeros_align(&hrq_tv[ii], pnz_tv[ii], 1);
+		d_zeros_align(&hrb_tv[ii], pnx_tv[ii+1], 1);
+		d_zeros_align(&hrd_tv[ii], 2*pnb_tv[ii]+2*png_tv[ii]+2*pns_tv[ii], 1);
+		d_zeros_align(&hrz_tv[ii], 2*pns_tv[ii], 1);
+		d_zeros_align(&hq_tv[ii], pnz_tv[ii], 1);
+		}
+	d_zeros_align(&hrq_tv[N], pnz_tv[N], 1);
+	d_zeros_align(&hrd_tv[N], 2*pnb_tv[N]+2*png_tv[N]+2*pns_tv[N], 1);
+	d_zeros_align(&hrz_tv[N], 2*pns_tv[N], 1);
+	d_zeros_align(&hq_tv[N], pnz_tv[N], 1);
+
+
+	// restore linear part of cost function 
+	for(ii=0; ii<=N; ii++)
+		{
+		drowex_lib(nu_tv[ii]+nx_tv[ii], hpQ_tv[ii]+(nu_tv[ii]+nx_tv[ii])/bs*bs*cnz_tv[ii]+(nu_tv[ii]+nx_tv[ii])%bs, hq_tv[ii]);
+		}
+
+
+
+	// residuals computation
+//	d_res_ip_soft_mpc(nx, nu, N, nh, ns, hpBAbt, hpQ, hq, hZ, hz, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, hrz, &mu);
+	d_res_ip_soft_mpc_tv(N, nx_tv, nu_tv, nb_tv, idxb_tv, ng_tv, ns_tv, hpBAbt_tv, hpQ_tv, hq_tv, hZ_tv, hz_tv, hux_tv, pdummyd, hdb_tv, hpi_tv, hlam_tv, ht_tv, hrq_tv, hrb_tv, hrd_tv, hrz_tv, &mu);
+
+
+
+
+	if(PRINTSTAT==1)
+		{
+
+		printf("\n");
+		printf("\n");
+		printf(" Print IP statistics of the last run (soft-constraints time-variant solver)\n");
+		printf("\n");
+
+		for(jj=0; jj<kk; jj++)
+			printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, stat[5*jj], stat[5*jj+1], stat[5*jj+2], stat[5*jj+2], stat[5*jj+3], stat[5*jj+4], stat[5*jj+4]);
+		printf("\n");
+		
+		}
+
+	if(PRINTRES==1)
+		{
+
+		printf("\n");
+		printf("\n");
+		printf(" Print solution\n");
+		printf("\n");
+
+		// print solution
+		printf("\nhux_tv = \n\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nu_tv[ii]+nx_tv[ii], hux_tv[ii], 1);
+		
+		}
+
+	if(PRINTRES==1 && COMPUTE_MULT==1)
+		{
+		// print result 
+		// print result 
+		printf("\n");
+		printf("\n");
+		printf(" Print residuals\n\n");
+		printf("\n");
+		printf("\n");
+		printf("rq = \n\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nu_tv[ii]+nx_tv[ii], hrq_tv[ii], 1);
+		printf("\n");
+		printf("\n");
+		printf("rz = \n\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, 2*pns_tv[ii], hrz_tv[ii], 1);
+		printf("\n");
+		printf("\n");
+		printf("rb = \n\n");
+		for(ii=0; ii<N; ii++)
+			d_print_mat(1, nx_tv[ii], hrb_tv[ii], 1);
+		printf("\n");
+		printf("\n");
+		printf("rd = \n\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, 2*pnb_tv[ii]+2*png_tv[ii]+2*pns_tv[ii], hrd_tv[ii], 1);
+		printf("\n");
+		printf("\n");
+		printf("mu = %e\n\n", mu);
+		
+		}
+
+
+
+	// free memory
+	free(pA);
+	free(b0);
+	free(pBAbt0);
+	free(pBAbt1);
+	free(pQ0);
+	free(pQ1);
+	free(pQN);
+	free(idxb0);
+	free(idxb1);
+	free(idxbN);
+	free(db0);
+	free(db1);
+	free(dbN);
+	free(Z1);
+	free(z1);
+	for(ii=0; ii<=N; ii++) free(hpL_tv[ii]);
+	for(ii=0; ii<=N; ii++) free(hdL_tv[ii]);
+	for(ii=0; ii<=N; ii++) free(hux_tv[ii]);
+	for(ii=0; ii<=N; ii++) free(hpi_tv[ii]);
+	for(ii=0; ii<=N; ii++) free(hlam_tv[ii]);
+	for(ii=0; ii<=N; ii++) free(ht_tv[ii]);
+	for(ii=0; ii<=N; ii++) free(hrq_tv[ii]);
+	for(ii=0; ii<N; ii++) free(hrb_tv[ii]);
+	for(ii=0; ii<=N; ii++) free(hrd_tv[ii]);
+	for(ii=0; ii<=N; ii++) free(hrz_tv[ii]);
+	for(ii=0; ii<=N; ii++) free(hq_tv[ii]);
+
+
+
+/**************************************************************************************************
+*	printing timings
+**************************************************************************************************/
+
+	double times = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+	double time = (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
+	double time_tv = (tv5.tv_sec-tv4.tv_sec)/(nrep+0.0)+(tv5.tv_usec-tv4.tv_usec)/(nrep*1e6);
+	
+/*	printf("\nnx\tnu\tN\tkernel\n\n");*/
+/*	printf("\n%d\t%d\t%d\t%e\n\n", nx, nu, N, time);*/
+	
+	printf("\n");
+	printf(" Average number of iterations over %d runs: %5.1f (soft-constraints solver)\n", nrep, kk_avg / (double) nrep);
+	printf(" Average number of iterations over %d runs: %5.1f (general-constraints solver)\n", nrep, kks_avg / (double) nrep);
+	printf(" Average number of iterations over %d runs: %5.1f (soft-constraints time-variant solver)\n", nrep, kk_avg_tv / (double) nrep);
+	printf("\n");
+	printf(" Average solution time over %d runs: %5.2e seconds (soft-constraints solver)\n", nrep, time);
+	printf(" Average solution time over %d runs: %5.2e seconds (general-constraints solver)\n", nrep, times);
+	printf(" Average solution time over %d runs: %5.2e seconds (soft-constraints time-variant solver)\n", nrep, time_tv);
+	printf("\n");
+
+
+
 /************************************************
 * free memory and return
 ************************************************/

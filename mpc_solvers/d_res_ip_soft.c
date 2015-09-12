@@ -29,6 +29,241 @@
 
 
 
+void d_res_ip_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, int *ns, double **hpBAbt, double **hpQ, double **hq, double **hZ, double **hz, double **hux, double **hpDCt, double **hd, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double **hrz, double *mu)
+	{
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	static double temp[D_MR] = {};
+
+	int ii, jj;
+	
+	int nu0, nu1, cnz0, nx0, nx1, nxm, cnx0, cnx1, nb0, pnb, ng0, png, cng, ns0, pns, nb_tot;
+
+
+	// initialize mu
+	nb_tot = 0;
+	mu[0] = 0;
+
+
+
+#if 0
+	// first block
+	ii = 0;
+	nu0 = nu[ii];
+	nu1 = nu[ii+1];
+	nx0 = nx[ii]; // nx1;
+	nx1 = nx[ii+1];
+	cnx1  = (nx1+ncl-1)/ncl*ncl;
+	cnz0  = (nu0+nx0+1+ncl-1)/ncl*ncl;
+	nb0 = nb[ii];
+	pnb = (nb0+bs-1)/bs*bs;
+	ng0 = ng[ii];
+	png = (ng0+bs-1)/bs*bs;
+	cng = (ng0+ncl-1)/ncl*ncl;
+	nb_tot += nb0 + ng0;
+
+	for(jj=0; jj<nb0; jj++)
+		mu[0] += hlam[ii][jj] * ht[ii][jj] + hlam[ii][pnb+jj] * ht[ii][pnb+jj];
+	for(jj=0; jj<ng0; jj++) 
+		mu[0] += hlam[ii][2*pnb+jj] * ht[ii][2*pnb+jj] + hlam[ii][2*pnb+png+jj] * ht[ii][2*pnb+png+jj];
+
+	
+	for(jj=0; jj<nb0; jj++)
+		{
+		hrd[ii][jj]     =   hux[ii][idxb[ii][jj]] - hd[ii][jj]     - ht[ii][jj];
+		hrd[ii][pnb+jj] = - hux[ii][idxb[ii][jj]] - hd[ii][pnb+jj] - ht[ii][pnb+jj];
+		}
+	if(ng0>0)
+		{
+		dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], 0, hrd[ii]+2*pnb, hrd[ii]+2*pnb);
+		for(jj=0; jj<ng0; jj++)
+			{
+			hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+jj];
+			hrd[ii][2*pnb+jj] += - hd[ii][2*pnb+jj] - ht[ii][2*pnb+jj];
+			hrd[ii][2*pnb+png+jj] += - hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
+			}
+		}
+
+	for(jj=0; jj<nu0; jj++) 
+		hrq[ii][jj] = - hq[ii][jj];
+	for(jj=0; jj<nb0; jj++) 
+		hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
+	for(jj=0; jj<nu0%bs; jj++) 
+		{ 
+		temp[jj] = hux[ii][nu0/bs*bs+jj]; 
+		hux[ii][nu0/bs*bs+jj] = 0.0; 
+		}
+	dgemv_t_lib(nx0+nu0%bs, nu0, hpQ[ii]+nu0/bs*bs*cnz0, cnz0, hux[ii]+nu0/bs*bs, -1, hrq[ii], hrq[ii]);
+	for(jj=0; jj<nu0%bs; jj++) 
+		hux[ii][nu0/bs*bs+jj] = temp[jj];
+	dsymv_lib(nu0, nu0, hpQ[ii], cnz0, hux[ii], -1, hrq[ii], hrq[ii]);
+	dgemv_n_lib(nu0, nx1, hpBAbt[ii], cnx1, hpi[ii+1], -1, hrq[ii], hrq[ii]);
+	if(ng0>0)
+		{
+		// TODO work space + one dgemv call
+		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, 1, hrq[ii], hrq[ii]);
+		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, -1, hrq[ii], hrq[ii]);
+		}
+	
+	for(jj=0; jj<nx1; jj++) 
+		hrb[ii][jj] = hux[ii+1][nu1+jj] - hpBAbt[ii][(nu0+nx0)/bs*bs*cnx1+(nu0+nx0)%bs+bs*jj];
+	dgemv_t_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hux[ii], -1, hrb[ii], hrb[ii]);
+#endif
+
+
+
+	nu1 = nu[0];
+	nx1 = nx[0];
+	cnx1  = (nx1+ncl-1)/ncl*ncl;
+	// first blocks
+	for(ii=0; ii<N; ii++)
+		{
+		nu0 = nu1;
+		nu1 = nu[ii+1];
+		nx0 = nx1;
+		nx1 = nx[ii+1];
+		cnx0 = cnx1;
+		cnx1  = (nx1+ncl-1)/ncl*ncl;
+		cnz0  = (nu0+nx0+1+ncl-1)/ncl*ncl;
+		nb0 = nb[ii];
+		pnb = (nb0+bs-1)/bs*bs;
+		ng0 = ng[ii];
+		png = (ng0+bs-1)/bs*bs;
+		cng = (ng0+ncl-1)/ncl*ncl;
+		ns0 = ns[ii];
+		pns = (ns0+bs-1)/bs*bs;
+		nb_tot += nb0 + ng0 + ns0;
+
+		for(jj=0; jj<nb0; jj++)
+			mu[0] += hlam[ii][jj] * ht[ii][jj] + hlam[ii][pnb+jj] * ht[ii][pnb+jj];
+		for(jj=0; jj<ng0; jj++) 
+			mu[0] += hlam[ii][2*pnb+jj] * ht[ii][2*pnb+jj] + hlam[ii][2*pnb+png+jj] * ht[ii][2*pnb+png+jj];
+		for(jj=0; jj<ns0; jj++) 
+			mu[0] += hlam[ii][2*pnb+2*png+0*pns+jj] * ht[ii][2*pnb+2*png+0*pns+jj] + hlam[ii][2*pnb+2*png+1*pns+jj] * ht[ii][2*pnb+2*png+1*pns+jj] + hlam[ii][2*pnb+2*png+2*pns+jj] * ht[ii][2*pnb+2*png+2*pns+jj] + hlam[ii][2*pnb+2*png+3*pns+jj] * ht[ii][2*pnb+2*png+3*pns+jj];
+
+		for(jj=0; jj<nb0; jj++)
+			{
+			hrd[ii][jj]     =   hux[ii][idxb[ii][jj]] - hd[ii][jj]     - ht[ii][jj];
+			hrd[ii][pnb+jj] = - hux[ii][idxb[ii][jj]] - hd[ii][pnb+jj] - ht[ii][pnb+jj];
+			}
+		if(ng0>0)
+			{
+			dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], 0, hrd[ii]+2*pnb, hrd[ii]+2*pnb);
+			for(jj=0; jj<ng0; jj++)
+				{
+				hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+jj];
+				hrd[ii][2*pnb+jj] += - hd[ii][2*pnb+jj] - ht[ii][2*pnb+jj];
+				hrd[ii][2*pnb+png+jj] += - hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
+				}
+			}
+		for(jj=0; jj<ns0; jj++)
+			{
+			hrd[ii][2*pnb+2*png+0*pns+jj] = ht[ii][2*pnb+2*png+2*pns+jj] + hux[ii][idxb[ii][nu0+jj]] - hd[ii][2*pnb+2*png+0*pns+jj] - ht[ii][2*pnb+2*png+0*pns+jj];
+			hrd[ii][2*pnb+2*png+1*pns+jj] = ht[ii][2*pnb+2*png+3*pns+jj] - hux[ii][idxb[ii][nu0+jj]] - hd[ii][2*pnb+2*png+1*pns+jj] - ht[ii][2*pnb+2*png+1*pns+jj];
+			}
+
+		for(jj=0; jj<nu0; jj++) 
+			hrq[ii][jj] = - hq[ii][jj];
+		for(jj=0; jj<nx0; jj++) 
+			hrq[ii][nu0+jj] = - hq[ii][nu0+jj] + hpi[ii][jj];
+		dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnz0, hux[ii], -1, hrq[ii], hrq[ii]);
+		for(jj=0; jj<nb0; jj++) 
+			hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
+		if(ng0>0)
+			{
+			// TODO work space + one dgemv call
+			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, 1, hrq[ii], hrq[ii]);
+			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, -1, hrq[ii], hrq[ii]);
+			}
+		for(jj=0; jj<ns0; jj++) 
+			hrq[ii][idxb[ii][nu0+jj]] += hlam[ii][2*pnb+2*png+0*pns+jj] - hlam[ii][2*pnb+2*png+1*pns+jj];
+		for(jj=0; jj<nx1; jj++) 
+			hrb[ii][jj] = hux[ii+1][nu1+jj] - hpBAbt[ii][(nu0+nx0)/bs*bs*cnx1+(nu0+nx0)%bs+bs*jj];
+		dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii+1], hux[ii], -1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+
+		for(jj=0; jj<ns0; jj++) 
+			{ 
+			hrz[ii][0*pns+jj] = hz[ii][0*pns+jj] + hZ[ii][0*pns+jj]*ht[ii][2*pnb+2*png+2*pns+jj] - hlam[ii][2*pnb+2*png+0*pns+jj] - hlam[ii][2*pnb+2*png+2*pns+jj]; 
+			hrz[ii][1*pns+jj] = hz[ii][1*pns+jj] + hZ[ii][1*pns+jj]*ht[ii][2*pnb+2*png+3*pns+jj] - hlam[ii][2*pnb+2*png+1*pns+jj] - hlam[ii][2*pnb+2*png+3*pns+jj]; 
+			}
+
+		}
+	
+
+	// last block
+	ii = N;
+	nu0 = nu1;
+	nx0 = nx1;
+	cnz0  = (nu0+nx0+1+ncl-1)/ncl*ncl;
+	nb0 = nb[ii];
+	pnb = (nb0+bs-1)/bs*bs;
+	ng0 = ng[ii];
+	png = (ng0+bs-1)/bs*bs;
+	cng = (ng0+ncl-1)/ncl*ncl;
+	ns0 = ns[ii];
+	pns = (ns0+bs-1)/bs*bs;
+	nb_tot += nb0 + ng0 + ns0;
+
+	for(jj=0; jj<nb0; jj++)
+		mu[0] += hlam[ii][jj] * ht[ii][jj] + hlam[ii][pnb+jj] * ht[ii][pnb+jj];
+	for(jj=0; jj<ng0; jj++) 
+		mu[0] += hlam[ii][2*pnb+jj] * ht[ii][2*pnb+jj] + hlam[ii][2*pnb+png+jj] * ht[ii][2*pnb+png+jj];
+	for(jj=0; jj<ns0; jj++) 
+		mu[0] += hlam[ii][2*pnb+2*png+0*pns+jj] * ht[ii][2*pnb+2*png+0*pns+jj] + hlam[ii][2*pnb+2*png+1*pns+jj] * ht[ii][2*pnb+2*png+1*pns+jj] + hlam[ii][2*pnb+2*png+2*pns+jj] * ht[ii][2*pnb+2*png+2*pns+jj] + hlam[ii][2*pnb+2*png+3*pns+jj] * ht[ii][2*pnb+2*png+3*pns+jj];
+
+	for(jj=0; jj<nb0; jj++)
+		{
+		hrd[ii][jj]     =   hux[ii][idxb[ii][jj]] - hd[ii][jj]     - ht[ii][jj];
+		hrd[ii][pnb+jj] = - hux[ii][idxb[ii][jj]] - hd[ii][pnb+jj] - ht[ii][pnb+jj];
+		}
+	if(ng0>0)
+		{
+		dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], 0, hrd[ii]+2*pnb, hrd[ii]+2*pnb);
+		for(jj=0; jj<ng0; jj++)
+			{
+			hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+jj];
+			hrd[ii][2*pnb+jj] += - hd[ii][2*pnb+jj] - ht[ii][2*pnb+jj];
+			hrd[ii][2*pnb+png+jj] += - hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
+			}
+		}
+	for(jj=0; jj<ns0; jj++)
+		{
+		hrd[ii][2*pnb+2*png+0*pns+jj] = ht[ii][2*pnb+2*png+2*pns+jj] + hux[ii][idxb[ii][nu0+jj]] - hd[ii][2*pnb+2*png+0*pns+jj] - ht[ii][2*pnb+2*png+0*pns+jj];
+		hrd[ii][2*pnb+2*png+1*pns+jj] = ht[ii][2*pnb+2*png+3*pns+jj] - hux[ii][idxb[ii][nu0+jj]] - hd[ii][2*pnb+2*png+1*pns+jj] - ht[ii][2*pnb+2*png+1*pns+jj];
+		}
+
+
+	for(jj=0; jj<nx0; jj++) 
+		hrq[ii][nu0+jj] = hpi[ii][jj] - hq[ii][nu0+jj];
+	for(jj=0; jj<nb0; jj++) 
+		hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
+	dsymv_lib(nx0+nu0%bs, nx0+nu0%bs, hpQ[ii]+nu0/bs*bs*cnz0+nu0/bs*bs*bs, cnz0, hux[ii]+nu0/bs*bs, -1, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs);
+	if(ng0>0)
+		{
+		// TODO work space + one dgemv call
+		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, 1, hrq[ii], hrq[ii]);
+		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, -1, hrq[ii], hrq[ii]);
+		}
+	for(jj=0; jj<ns0; jj++) 
+		hrq[ii][idxb[ii][nu0+jj]] += - hlam[ii][2*pnb+2*png+2*pns+jj] + hlam[ii][2*pnb+2*png+3*pns+jj];
+	
+	for(jj=0; jj<ns0; jj++) 
+		{ 
+		hrz[ii][0*pns+jj] = hz[ii][0*pns+jj] + hZ[ii][0*pns+jj]*ht[ii][2*pnb+2*png+2*pns+jj] - hlam[ii][2*pnb+2*png+0*pns+jj] - hlam[ii][2*pnb+2*png+2*pns+jj]; 
+		hrz[ii][1*pns+jj] = hz[ii][1*pns+jj] + hZ[ii][1*pns+jj]*ht[ii][2*pnb+2*png+3*pns+jj] - hlam[ii][2*pnb+2*png+1*pns+jj] - hlam[ii][2*pnb+2*png+3*pns+jj]; 
+		}
+
+
+
+	// normalize mu
+	mu[0] /= 2.0*nb_tot;
+
+	}
+
+
+
 void d_res_ip_soft_mpc(int nx, int nu, int N, int nh, int ns, double **hpBAbt, double **hpQ, double **hq, double **hZ, double **hz, double **hux, double **hdb, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double **hrz, double *mu)
 	{
 

@@ -82,9 +82,11 @@ int d_ip2_soft_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	const int ncl = D_NCL;
 
 
+	int nbs[N+1];
+	for(ii=0; ii<=N; ii++)
+		nbs[ii] = nb[ii] + ns[ii];
 
 	// matrices size
-	// work_space_int_size_per_stage = 7
 	int idx;
 	int nxM = 0;
 	int nzM = 0;
@@ -270,6 +272,15 @@ int d_ip2_soft_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	// initialize ux & t>0 (slack variable)
 	d_init_var_soft_mpc_tv(N, nx, nu, nb, idxb, ng, ns, ux, pi, pDCt, d, t, lam, mu0, warm_start);
 
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii]+2*pns[ii], d[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii]+4*pns[ii], t[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii]+4*pns[ii], lam[ii], 1);
+exit(1);
+#endif
 
 
 	// initialize pi
@@ -300,9 +311,6 @@ int d_ip2_soft_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	// update hessian in Riccati routine
 	const int update_hessian = 1;
 
-	int fast_rsqrt = 0;
-
-
 
 	// IP loop		
 	while( *kk<k_max && mu>mu_tol && alpha>=alpha_min )
@@ -315,22 +323,26 @@ int d_ip2_soft_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii], pd[ii], 1);
+	d_print_mat(1, 2*pns[ii], Zl[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii], pl[ii], 1);
+	d_print_mat(1, 2*pns[ii], zl[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, ng[ii], Qx[ii], 1);
+	d_print_mat(1, nb[ii]+ns[ii], pd[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, ng[ii], qx[ii], 1);
-for(ii=0; ii<=N; ii++)
-	d_print_mat(1, ng[ii], qx2[ii], 1);
-if(*kk==1)
+	d_print_mat(1, nb[ii]+ns[ii], pl[ii], 1);
+//for(ii=0; ii<=N; ii++)
+//	d_print_mat(1, ng[ii], Qx[ii], 1);
+//for(ii=0; ii<=N; ii++)
+//	d_print_mat(1, ng[ii], qx[ii], 1);
+//for(ii=0; ii<=N; ii++)
+//	d_print_mat(1, ng[ii], qx2[ii], 1);
+//if(*kk==1)
 exit(1);
 #endif
 
 
 		// compute the search direction: factorize and solve the KKT system
-		d_back_ric_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, diag, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
+		d_back_ric_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, diag, 1, Pb, compute_mult, dpi, nbs, idxb, pd, pl, ng, pDCt, Qx, qx2);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -340,13 +352,13 @@ for(ii=0; ii<=N; ii++)
 #if 0
 for(ii=0; ii<=N; ii++)
 	d_print_pmat(pnz[ii], cnz[ii], bs, pL[ii], cnz[ii]);
-//exit(1);
+exit(1);
 #endif
 #if 0
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
-if(*kk==1)
+//if(*kk==1)
 exit(1);
 #endif
 
@@ -357,13 +369,21 @@ exit(1);
 		alpha = 1.0;
 		d_compute_alpha_soft_mpc_tv(N, nx, nu, nb, idxb, ng, ns, &alpha, t, dt, lam, dlam, lamt, dux, pDCt, d, Zl, zl);
 
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii]+4*pns[ii], dt[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii]+4*pns[ii], dlam[ii], 1);
+printf("\nalpha = %f\n", alpha);
+exit(1);
+#endif
+
 		
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+1] = alpha;
 			
 		alpha *= 0.995;
-		//printf("\nalpha = %f\n", alpha);
 
 
 
@@ -371,7 +391,12 @@ exit(1);
 		d_compute_mu_soft_mpc_tv(N, nx, nu, nb, ng, ns, &mu_aff, mu_scal, alpha, lam, dlam, t, dt);
 
 		stat[5*(*kk)+2] = mu_aff;
-		//printf("\nmu = %f\n", mu_aff);
+
+#if 0
+printf("\nmu = %f\n", mu_aff);
+printf("\nmu_scal = %f\n", mu_scal);
+exit(1);
+#endif
 
 
 
@@ -400,10 +425,10 @@ for(ii=0; ii<=N; ii++)
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii], pl[ii], 1);
-for(ii=0; ii<=N; ii++)
-	d_print_mat(1, ng[ii], qx[ii], 1);
-if(*kk==1)
+	d_print_mat(1, nb[ii]+ns[ii], pl[ii], 1);
+//for(ii=0; ii<=N; ii++)
+//	d_print_mat(1, ng[ii], qx[ii], 1);
+//if(*kk==1)
 exit(1);
 #endif
 
@@ -416,13 +441,13 @@ exit(1);
 
 
 		// solve the system
-		d_back_ric_trs_tv(N, nx, nu, pBAbt, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
+		d_back_ric_trs_tv(N, nx, nu, pBAbt, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nbs, idxb, pl, ng, pDCt, qx);
 
 #if 0
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
-if(*kk==1)
+//if(*kk==1)
 exit(1);
 #endif
 
@@ -648,6 +673,16 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	// initialize ux & t>0 (slack variable)
 	d_init_var_soft_mpc(N, nx, nu, nh, ns, ux, pi, db, t, lam, mu0, warm_start);
 
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb, db[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb, t[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb, lam[ii], 1);
+exit(1);
+#endif
+
 
 
 	// initialize pi
@@ -690,11 +725,35 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 		// update hessian
 		d_update_hessian_soft_mpc(N, nx, nu, nh, ns, cnz, 0.0, t, t_inv, lam, lamt, dlam, bd, bl, pd, pl, db, Z, z, Zl, zl);
 
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, pnb, Zl[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, pnb, zl[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu+nx, pd[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu+nx, pl[ii], 1);
+//for(ii=0; ii<=N; ii++)
+//	d_print_mat(1, ng[ii], Qx[ii], 1);
+//for(ii=0; ii<=N; ii++)
+//	d_print_mat(1, ng[ii], qx[ii], 1);
+//for(ii=0; ii<=N; ii++)
+//	d_print_mat(1, ng[ii], qx2[ii], 1);
+//if(*kk==1)
+exit(1);
+#endif
+
 
 
 		// compute the search direction: factorize and solve the KKT system
 		d_back_ric_sv(N, nx, nu, pBAbt, pQ, update_hessian, pd, pl, 1, dux, pL, work, diag, 1, Pb, compute_mult, dpi, 0, 0, 0, dummy, dummy, dummy);
 
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu+nx, dux[ii], 1);
+exit(1);
+#endif
 
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
@@ -708,6 +767,15 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 		alpha = 1.0;
 		d_compute_alpha_soft_mpc(N, nbu, nu, nh, ns, &alpha, t, dt, lam, dlam, lamt, dux, db, Zl, zl);
 		
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb, dt[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb, dlam[ii], 1);
+printf("\nalpha = %f\n", alpha);
+exit(1);
+#endif
+
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+1] = alpha;
@@ -721,6 +789,12 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 		
 		stat[5*(*kk)+2] = mu_aff;
 
+#if 0
+printf("\nmu = %f\n", mu_aff);
+printf("\nmu_scal = %f\n", mu_scal);
+exit(1);
+#endif
+
 
 
 		// compute sigma
@@ -733,6 +807,15 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 		// update Jacobian
 		d_update_gradient_soft_mpc(N, nx, nu, nh, ns, sigma*mu, dt, dlam, t_inv, lamt, pl, Zl, zl);
+
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu+nx, pl[ii], 1);
+//for(ii=0; ii<=N; ii++)
+//	d_print_mat(1, ng[ii], qx[ii], 1);
+//if(*kk==1)
+exit(1);
+#endif
 
 
 
@@ -748,6 +831,11 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work, 0, Pb, compute_mult, dpi, 0, 0, 0, dummy, dummy);
 
 
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu+nx, dux[ii], 1);
+exit(1);
+#endif
 
 		// compute t & dlam & dt & alpha
 		alpha = 1.0;
