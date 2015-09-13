@@ -1266,7 +1266,6 @@ void d_update_hessian_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 
 		// box constraints
 		nb0 = nb[jj];
-		pnb = 0;
 		if(nb0>0)
 			{
 
@@ -1368,7 +1367,6 @@ void d_update_hessian_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 
 		// general constraints
 		ng0 = ng[jj];
-		png = 0;
 		if(ng0>0)
 			{
 
@@ -1522,7 +1520,6 @@ void d_update_hessian_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int
 
 		// box constraints
 		nb0 = nb[jj];
-		pnb = 0;
 		if(nb0>0)
 			{
 			pnb  = (nb0+bs-1)/bs*bs; // simd aligned number of box constraints
@@ -1623,7 +1620,6 @@ void d_update_hessian_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int
 
 		// general constraints
 		ng0 = ng[jj];
-		png = 0;
 		if(ng0>0)
 			{
 
@@ -1724,7 +1720,6 @@ void d_update_hessian_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int
 
 		// box soft constraints
 		ns0 = ns[jj];
-		pns = 0;
 		if(ns0>0)
 			{
 
@@ -1826,7 +1821,7 @@ void d_update_hessian_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, int
 			if(ii<ns0)
 				{
 
-				ii_left = 2*pnb + 2*png + ns0 - ii;
+				ii_left = ns0 - ii;
 				v_left  = _mm256_broadcast_sd( &ii_left );
 				v_mask  = _mm256_loadu_pd( d_mask );
 				i_mask  = _mm256_castpd_si256( _mm256_sub_pd( v_mask, v_left ) );
@@ -5642,7 +5637,6 @@ void d_update_gradient_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, do
 
 		// box constraints
 		nb0 = nb[jj];
-		pnb = 0;
 		if(nb0>0)
 			{
 
@@ -5663,7 +5657,6 @@ void d_update_gradient_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, do
 
 		// general constraints
 		ng0 = ng[jj];
-		png = 0;
 		if(ng0>0)
 			{
 
@@ -5715,7 +5708,6 @@ void d_update_gradient_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, in
 
 		// box constraints
 		nb0 = nb[jj];
-		pnb = 0;
 		if(nb0>0)
 			{
 
@@ -5737,7 +5729,6 @@ void d_update_gradient_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, in
 
 		// general constraints
 		ng0 = ng[jj];
-		png = 0;
 		if(ng0>0)
 			{
 
@@ -5761,7 +5752,6 @@ void d_update_gradient_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int *ng, in
 
 		// box soft constraitns
 		ns0 = ns[jj];
-		pns = 0;
 		if(ns0>0)
 			{
 
@@ -6280,7 +6270,6 @@ void d_compute_alpha_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 
 		// box constraints
 		nb0 = nb[jj];
-		pnb = 0;
 		if(nb0>0)
 			{
 
@@ -6438,7 +6427,6 @@ void d_compute_alpha_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 
 		// general constraints
 		ng0 = ng[jj];
-		png = 0;
 		if(ng0>0)
 			{
 
@@ -6690,7 +6678,6 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 
 		// box constraints
 		nb0 = nb[jj];
-		pnb = 0;
 		if(nb0>0)
 			{
 
@@ -6847,7 +6834,6 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 
 		// general constraints
 		ng0 = ng[jj];
-		png = 0;
 		if(ng0>0)
 			{
 
@@ -6997,7 +6983,6 @@ void d_compute_alpha_soft_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 
 		// box soft constraints
 		ns0 = ns[jj];
-		pns = 0;
 		if(ns0>0)
 			{
 
