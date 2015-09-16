@@ -30,17 +30,17 @@ void dtrmm_nt_u_lib(int m, int n, double *pA, int sda, double *pB, int sdb, doub
 void dtrmm_nt_l_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
 void dsyrk_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd);
 void dsyrk_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd);
-void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *diag);
+void dpotrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D);
 //void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *diag, int alg);
-void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, int alg, double *pC, int sdc, double *pD, int sdd, double *diag, int fast_rsqrt);
+void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D);
 void dgemv_n_lib(int n, int m, double *pA, int sda, double *x, int alg, double *y, double *z);
 void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y, double *z);
 void dtrmv_u_n_lib(int m, double *pA, int sda, double *x, int alg, double *y);
 void dtrmv_u_t_lib(int m, double *pA, int sda, double *x, int alg, double *y);
 void dsymv_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y, double *z);
 void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, int alg, double *y_n, double *y_t, double *z_n, double *z_t);
-void dtrsv_n_lib(int m, int n, int inverted_diag, double *pA, int sda, double *x); // TODO make definition consistent with dpotrf (e.g. swap m and n)
-void dtrsv_t_lib(int m, int n, int inverted_diag, double *pA, int sda, double *x);
+void dtrsv_n_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y);
+void dtrsv_t_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y);
 void dgecp_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
 void dgead_lib(int m, int n, double alpha, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
 void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
@@ -82,7 +82,7 @@ void dcolad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int s
 
 
 // new routines
-void dpotrf_lib_new(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D);
-void dsyrk_dpotrf_lib_new(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D);
-void dtrsv_n_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y);
-void dtrsv_t_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y);
+void dpotrf_lib_old(int m, int n, double *pD, int sdd, double *pC, int sdc, double *diag);
+void dsyrk_dpotrf_lib_old(int m, int n, int k, double *pA, int sda, int alg, double *pC, int sdc, double *pD, int sdd, double *diag, int fast_rsqrt);
+void dtrsv_n_lib_old(int m, int n, int inverted_diag, double *pA, int sda, double *x);
+void dtrsv_t_lib_old(int m, int n, int inverted_diag, double *pA, int sda, double *x);

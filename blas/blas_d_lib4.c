@@ -2491,7 +2491,7 @@ void dsyrk_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 
 
 
-void dpotrf_lib_new(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D)
+void dpotrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D)
 	{
 
 	if(m<=0 || n<=0)
@@ -3041,7 +3041,7 @@ void dpotrf_lib_new(int m, int n, double *pC, int sdc, double *pD, int sdd, doub
 
 
 
-void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *diag)
+void dpotrf_lib_old(int m, int n, double *pD, int sdd, double *pC, int sdc, double *diag)
 	{
 
 	if(m<=0 || n<=0)
@@ -3425,7 +3425,7 @@ void dpotrf_lib(int m, int n, double *pD, int sdd, double *pC, int sdc, double *
 
 
 
-void dsyrk_dpotrf_lib_new(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D)
+void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D)
 	{
 
 	if(m<=0 || n<=0)
@@ -4068,7 +4068,7 @@ void dsyrk_dpotrf_lib_new(int m, int n, int k, double *pA, int sda, double *pB, 
 
 
 
-void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, int alg, double *pC, int sdc, double *pD, int sdd, double *diag, int fast_rsqrt)
+void dsyrk_dpotrf_lib_old(int m, int n, int k, double *pA, int sda, int alg, double *pC, int sdc, double *pD, int sdd, double *diag, int fast_rsqrt)
 	{
 
 	if(m<=0 || n<=0)
@@ -4934,7 +4934,7 @@ void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, i
 
 
 
-void dtrsv_n_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y)
+void dtrsv_n_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y)
 	{
 
 	if(m<=0 || n<=0)
@@ -4999,7 +4999,7 @@ void dtrsv_n_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, doub
 
 
 
-void dtrsv_n_lib(int m, int n, int inverted_diag, double *pA, int sda, double *x)
+void dtrsv_n_lib_old(int m, int n, int inverted_diag, double *pA, int sda, double *x)
 	{
 
 	if(m<=0 || n<=0)
@@ -5089,7 +5089,7 @@ void dtrsv_n_lib(int m, int n, int inverted_diag, double *pA, int sda, double *x
 
 
 
-void dtrsv_t_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y)
+void dtrsv_t_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y)
 	{
 
 	if(m<=0 || n<=0)
@@ -5132,7 +5132,7 @@ void dtrsv_t_lib_new(int m, int n, double *pA, int sda, int use_inv_diag_A, doub
 
 
 // transpose & align lower triangular matrix
-void dtrsv_t_lib(int m, int n, int inverted_diag, double *pA, int sda, double *x)
+void dtrsv_t_lib_old(int m, int n, int inverted_diag, double *pA, int sda, double *x)
 	{
 
 	if(m<=0 || n<=0)

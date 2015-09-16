@@ -94,13 +94,13 @@ void d_cond_Q(int N, int nx, int nu, double **pA, int diag_Q, int nzero_Q_N, dou
 		{
 #if 1
 
-		dpotrf_lib(nx, nx, pQ[1], cnx, pL[1], cnx, work);
+		dpotrf_lib_old(nx, nx, pQ[1], cnx, pL[1], cnx, work);
 		dtrtr_l_lib(nx, 0, pL[1], cnx, pL[1], cnx);
 		dtrmm_nt_u_lib(nx, nx, pGamma_0[0], cnx, pL[1], cnx, pGamma_0_Q[0], cnx);
 		dsyrk_nt_lib(nx, nx, nx, pGamma_0_Q[0], cnx, pGamma_0_Q[0], cnx, 1, pQ[0], cnx, pH_Q, cnx);
 		for(ii=1; ii<N1; ii++)
 			{
-			dpotrf_lib(nx, nx, pQ[ii+1], cnx, pL[ii+1], cnx, work);
+			dpotrf_lib_old(nx, nx, pQ[ii+1], cnx, pL[ii+1], cnx, work);
 			dtrtr_l_lib(nx, 0, pL[ii+1], cnx, pL[ii+1], cnx);
 			dtrmm_nt_u_lib(nx, nx, pGamma_0[ii], cnx, pL[ii+1], cnx, pGamma_0_Q[ii], cnx);
 			dsyrk_nt_lib(nx, nx, nx, pGamma_0_Q[ii], cnx, pGamma_0_Q[ii], cnx, 1, pH_Q, cnx, pH_Q, cnx);
@@ -446,7 +446,7 @@ void d_cond_R(int N, int nx, int nu, int alg, double **pA, double **pAt, double 
 				dgemm_nt_lib((ii)*nu, nu, nx, pGamma_u[ii-1], cnx, pM, cnx, 0, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 0, 0);
 
 				dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pP, cnx);
-				dpotrf_lib(nx, nx, pP, cnx, pP, cnx, diag);
+				dpotrf_lib_old(nx, nx, pP, cnx, pP, cnx, diag);
 				dtrtr_l_lib(nx, 0, pP, cnx, pP, cnx);	
 
 				}
@@ -465,7 +465,7 @@ void d_cond_R(int N, int nx, int nu, int alg, double **pA, double **pAt, double 
 
 			// final stage 
 			dgecp_lib(nx, nx, nu, pRSQ[N]+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pP, cnx);
-			dpotrf_lib(nx, nx, pP, cnx, pP, cnx, diag);
+			dpotrf_lib_old(nx, nx, pP, cnx, pP, cnx, diag);
 			dtrtr_l_lib(nx, 0, pP, cnx, pP, cnx);	
 
 			// middle stages 
@@ -480,7 +480,7 @@ void d_cond_R(int N, int nx, int nu, int alg, double **pA, double **pAt, double 
 				dgemm_nt_lib((ii)*nu, nu, nx, pGamma_u[ii-1], cnx, pM, cnx, 0, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 0, 0);
 
 				dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pP, cnx);
-				dpotrf_lib(nx, nx, pP, cnx, pP, cnx, diag);
+				dpotrf_lib_old(nx, nx, pP, cnx, pP, cnx, diag);
 				dtrtr_l_lib(nx, 0, pP, cnx, pP, cnx);	
 
 				}
@@ -891,7 +891,7 @@ void d_part_cond_RQrq(int N, int nx, int nu, double **pBAt, double **b, int diag
 			d_copy_mat(nu, 1, pLam, 1, H_r+(ii-1)*nu, 1);
 			d_copy_mat(nx, 1, pLam+nu, 1, H_q, 1);
 
-			dpotrf_lib(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
+			dpotrf_lib_old(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
 			dtrtr_l_lib(nx, 0, pH_Q, cnx, pH_Q, cnx);	
 
 			dtrmm_nt_u_lib(nz, nx, pBAt[ii-1], cnx, pH_Q, cnx, pBAtL, cnx);
@@ -952,7 +952,7 @@ void d_part_cond_RQrq(int N, int nx, int nu, double **pBAt, double **b, int diag
 			d_copy_mat(nu, 1, pLam, 1, H_r+(ii-1)*nu, 1);
 			d_copy_mat(nx, 1, pLam+nu, 1, H_q, 1);
 
-			dpotrf_lib(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
+			dpotrf_lib_old(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
 			dtrtr_l_lib(nx, 0, pH_Q, cnx, pH_Q, cnx);	
 
 			dtrmm_nt_u_lib(nz, nx, pBAt[ii-1], cnx, pH_Q, cnx, pBAtL, cnx);
@@ -1084,7 +1084,7 @@ void d_part_cond_RSQrq(int N, int nx, int nu, double **pBAt, double **b, int dia
 			d_copy_mat(nu, 1, pLam, 1, H_r+(ii-1)*nu, 1);
 			d_copy_mat(nx, 1, pLam+nu, 1, H_q, 1);
 
-			dpotrf_lib(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
+			dpotrf_lib_old(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
 			dtrtr_l_lib(nx, 0, pH_Q, cnx, pH_Q, cnx);	
 
 			dtrmm_nt_u_lib(nz, nx, pBAt[ii-1], cnx, pH_Q, cnx, pBAtL, cnx);
@@ -1145,7 +1145,7 @@ void d_part_cond_RSQrq(int N, int nx, int nu, double **pBAt, double **b, int dia
 			d_copy_mat(nu, 1, pLam, 1, H_r+(ii-1)*nu, 1);
 			d_copy_mat(nx, 1, pLam+nu, 1, H_q, 1);
 
-			dpotrf_lib(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
+			dpotrf_lib_old(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
 			dtrtr_l_lib(nx, 0, pH_Q, cnx, pH_Q, cnx);	
 
 			dtrmm_nt_u_lib(nz, nx, pBAt[ii-1], cnx, pH_Q, cnx, pBAtL, cnx);
@@ -1253,7 +1253,7 @@ void d_part_cond_RSQ(int N, int nx, int nu, double **pBAt, int diag_hessian, dou
 				}
 
 			dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_Q, cnx);
-//			dpotrf_lib(nx, nx, pP, cnx, pP, cnx, diag);
+//			dpotrf_lib_old(nx, nx, pP, cnx, pP, cnx, diag);
 //			dtrtr_l_lib(nx, 0, pP, cnx, pP, cnx);	
 
 			// decrease index
@@ -1263,7 +1263,7 @@ void d_part_cond_RSQ(int N, int nx, int nu, double **pBAt, int diag_hessian, dou
 		// first stages 
 		for(; ii>0; ii--)
 			{	
-			dpotrf_lib(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
+			dpotrf_lib_old(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
 			dtrtr_l_lib(nx, 0, pH_Q, cnx, pH_Q, cnx);	
 
 			dtrmm_nt_u_lib(nz, nx, pBAt[ii], cnx, pH_Q, cnx, pBAtL, cnx);
@@ -1285,7 +1285,7 @@ void d_part_cond_RSQ(int N, int nx, int nu, double **pBAt, int diag_hessian, dou
 				}
 
 			dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_Q, cnx);
-//			dpotrf_lib(nx, nx, pP, cnx, pP, cnx, diag);
+//			dpotrf_lib_old(nx, nx, pP, cnx, pP, cnx, diag);
 //			dtrtr_l_lib(nx, 0, pP, cnx, pP, cnx);	
 
 			}
@@ -1315,7 +1315,7 @@ void d_part_cond_RSQ(int N, int nx, int nu, double **pBAt, int diag_hessian, dou
 		// first stages 
 		for(ii=N-1; ii>0; ii--)
 			{	
-			dpotrf_lib(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
+			dpotrf_lib_old(nx, nx, pH_Q, cnx, pH_Q, cnx, diag);
 			dtrtr_l_lib(nx, 0, pH_Q, cnx, pH_Q, cnx);	
 
 			dtrmm_nt_u_lib(nz, nx, pBAt[ii], cnx, pH_Q, cnx, pBAtL, cnx);
@@ -1336,7 +1336,7 @@ void d_part_cond_RSQ(int N, int nx, int nu, double **pBAt, int diag_hessian, dou
 				}
 
 			dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_Q, cnx);
-//			dpotrf_lib(nx, nx, pP, cnx, pP, cnx, diag);
+//			dpotrf_lib_old(nx, nx, pP, cnx, pP, cnx, diag);
 //			dtrtr_l_lib(nx, 0, pP, cnx, pP, cnx);	
 
 			}
@@ -1814,7 +1814,7 @@ void d_cond_fact_R(int N, int nx, int nu, int nx2_fact, double **pA, double **pA
 				ddiaad_lib(nu, 1.0, pR[ii], 0, pD, cnu);
 				dgetr_lib(nu, nx, ii*nu, pGamma_w[ii-1]+(ii*nu)/bs*bs*cnx+ii*nu%bs, cnx, 0, pD+pnu*cnu, cnu); // tr?? cp??
 
-				dpotrf_lib(pnu+nx, nu, pD, cnu, pD, cnu, diag); // TODO copy last part in the hole
+				dpotrf_lib_old(pnu+nx, nu, pD, cnu, pD, cnu, diag); // TODO copy last part in the hole
 				dgecp_lib(nu, nu, 0, pD, cnu, (N-1-ii)*nu, pH_R+((N-1-ii)*nu)/bs*bs*cNnu+((N-1-ii)*nu)%bs+(N-1-ii)*nu*bs, cNnu);
 			
 				dgemm_nn_lib((ii)*nu, nu, nx, pGamma_u[ii-1], cnx, pD+pnu*cnu, cnu, 0, pH_R+(N-1)*nu*bs, cNnu, pH_R+(N-1)*nu*bs, cNnu, 0, 0);
@@ -1838,7 +1838,7 @@ void d_cond_fact_R(int N, int nx, int nu, int nx2_fact, double **pA, double **pA
 			dgecp_lib(nu, nx, ii*nu, pGamma_w[0], cnx, 0, pM, cnx);
 			dgemm_nt_lib(nu, nu, nx, pM, cnx, pBt[0], cnx, 0, pD, cnu, pD, cnu, 0, 0);
 			ddiaad_lib(nu, 1.0, pR[0], 0, pD, cnu);
-			dpotrf_lib(nu, nu, pD, cnu, pD, cnu, diag);
+			dpotrf_lib_old(nu, nu, pD, cnu, pD, cnu, diag);
 			dgecp_lib(nu, nu, 0, pD, cnu, (N-1)*nu, pH_R+((N-1)*nu)/bs*bs*cNnu+((N-1)*nu)%bs+(N-1)*nu*bs, cNnu);
 
 			}
@@ -1869,7 +1869,7 @@ void d_cond_fact_R(int N, int nx, int nu, int nx2_fact, double **pA, double **pA
 				dgemm_nt_lib(nu, nu, nx, pM, cnx, pBt[ii], cnx, 1, pR[ii], cnu, pD, cnu, 0, 0);
 				dgetr_lib(nu, nx, ii*nu, pGamma_w[ii-1]+(ii*nu)/bs*bs*cnx+ii*nu%bs, cnx, 0, pD+pnu*cnu, cnu); // tr?? cp??
 
-				dpotrf_lib(pnu+nx, nu, pD, cnu, pD, cnu, diag); // TODO copy last part in the hole
+				dpotrf_lib_old(pnu+nx, nu, pD, cnu, pD, cnu, diag); // TODO copy last part in the hole
 				dgecp_lib(nu, nu, 0, pD, cnu, (N-1-ii)*nu, pH_R+((N-1-ii)*nu)/bs*bs*cNnu+((N-1-ii)*nu)%bs+(N-1-ii)*nu*bs, cNnu);
 			
 				dgemm_nn_lib((ii)*nu, nu, nx, pGamma_u[ii-1], cnx, pD+pnu*cnu, cnu, 0, pH_R+(N-1)*nu*bs, cNnu, pH_R+(N-1)*nu*bs, cNnu, 0, 0);
@@ -1890,7 +1890,7 @@ void d_cond_fact_R(int N, int nx, int nu, int nx2_fact, double **pA, double **pA
 
 			dgecp_lib(nu, nx, ii*nu, pGamma_w[0], cnx, 0, pM, cnx);
 			dgemm_nt_lib(nu, nu, nx, pM, cnx, pBt[0], cnx, 1, pR[0], cnu, pD, cnu, 0, 0);
-			dpotrf_lib(nu, nu, pD, cnu, pD, cnu, diag);
+			dpotrf_lib_old(nu, nu, pD, cnu, pD, cnu, diag);
 			dgecp_lib(nu, nu, 0, pD, cnu, (N-1)*nu, pH_R+((N-1)*nu)/bs*bs*cNnu+((N-1)*nu)%bs+(N-1)*nu*bs, cNnu);
 
 			}
@@ -1932,13 +1932,13 @@ void d_cond_fact_R(int N, int nx, int nu, int nx2_fact, double **pA, double **pA
 					{
 					d_set_pmat(nz, nz, 0.0, 0, pL, cnl);
 					ddiain_lib(nz, pRSQ[ii], 0, pL, cnl);
-					dsyrk_dpotrf_lib(nz, nz, nx, pBAtL, cnx, 1, pL, cnl, pL, cnl, diag, 0);
+					dsyrk_dpotrf_lib_old(nz, nz, nx, pBAtL, cnx, 1, pL, cnl, pL, cnl, diag, 0);
 					}
 				else
 					{
 					dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, 0, pL, cnl, pL, cnl);
 					ddiaad_lib(nz, 1.0, pRSQ[ii], 0, pL, cnl);
-					dpotrf_lib(nz, nz, pL, cnl, pL, cnl, diag);
+					dpotrf_lib_old(nz, nz, pL, cnl, pL, cnl, diag);
 					}
 
 				dgecp_lib(nu, nu, 0, pL, cnl, (N-1-ii)*nu, pH_R+((N-1-ii)*nu)/bs*bs*cNnu+((N-1-ii)*nu)%bs+(N-1-ii)*nu*bs, cNnu);
@@ -1956,7 +1956,7 @@ void d_cond_fact_R(int N, int nx, int nu, int nx2_fact, double **pA, double **pA
 			dtrmm_nt_u_lib(nu, nx, pBAt[0], cnx, pL+(ncl)*bs, cnl, pBAtL, cnx);
 			d_set_pmat(nu, nu, 0.0, 0, pL, cnl);
 			ddiain_lib(nu, pRSQ[0], 0, pL, cnl);
-			dsyrk_dpotrf_lib(nu, nu, nx, pBAtL, cnx, 1, pL, cnl, pL, cnl, diag, 0);
+			dsyrk_dpotrf_lib_old(nu, nu, nx, pBAtL, cnx, 1, pL, cnl, pL, cnl, diag, 0);
 
 			dgecp_lib(nu, nu, 0, pL, cnl, (N-1)*nu, pH_R+((N-1)*nu)/bs*bs*cNnu+((N-1)*nu)%bs+(N-1)*nu*bs, cNnu);
 
@@ -1966,7 +1966,7 @@ void d_cond_fact_R(int N, int nx, int nu, int nx2_fact, double **pA, double **pA
 
 			// final stage 
 			dgecp_lib(nx, nx, nu, pRSQ[N]+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pL, cnl);
-			dpotrf_lib(nx, nx, pL, cnl, pL, cnl, diag);
+			dpotrf_lib_old(nx, nx, pL, cnl, pL, cnl, diag);
 
 			dtrtr_l_lib(nx, 0, pL, cnl, pL+(ncl)*bs, cnl);	
 
@@ -1976,12 +1976,12 @@ void d_cond_fact_R(int N, int nx, int nu, int nx2_fact, double **pA, double **pA
 				dtrmm_nt_u_lib(nz, nx, pBAt[ii], cnx, pL+(ncl)*bs, cnl, pBAtL, cnx);
 				if(nz<128)
 					{
-					dsyrk_dpotrf_lib(nz, nz, nx, pBAtL, cnx, 1, pRSQ[ii], cnz, pL, cnl, diag, 0);
+					dsyrk_dpotrf_lib_old(nz, nz, nx, pBAtL, cnx, 1, pRSQ[ii], cnz, pL, cnl, diag, 0);
 					}
 				else
 					{
 					dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, 1, pRSQ[ii], cnz, pL, cnl);
-					dpotrf_lib(nz, nz, pL, cnl, pL, cnl, diag);
+					dpotrf_lib_old(nz, nz, pL, cnl, pL, cnl, diag);
 					}
 
 				dgecp_lib(nu, nu, 0, pL, cnl, (N-1-ii)*nu, pH_R+((N-1-ii)*nu)/bs*bs*cNnu+((N-1-ii)*nu)%bs+(N-1-ii)*nu*bs, cNnu);
@@ -1997,7 +1997,7 @@ void d_cond_fact_R(int N, int nx, int nu, int nx2_fact, double **pA, double **pA
 
 			// first stage 
 			dtrmm_nt_u_lib(nz, nx, pBAt[0], cnx, pL+(ncl)*bs, cnl, pBAtL, cnx);
-			dsyrk_dpotrf_lib(nz, nu, nx, pBAtL, cnx, 1, pRSQ[0], cnz, pL, cnl, diag, 0);
+			dsyrk_dpotrf_lib_old(nz, nu, nx, pBAtL, cnx, 1, pRSQ[0], cnz, pL, cnl, diag, 0);
 
 			dgecp_lib(nu, nu, 0, pL, cnl, (N-1)*nu, pH_R+((N-1)*nu)/bs*bs*cNnu+((N-1)*nu)%bs+(N-1)*nu*bs, cNnu);
 

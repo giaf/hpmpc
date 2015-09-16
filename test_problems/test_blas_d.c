@@ -295,8 +295,8 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			//dsyrk_dpotrf_lib(n, n, n, pA, cnd, 1, pD, cnd, pC, cnd, diag, 0);
-			dsyrk_dpotrf_lib_new(n, n, n, pA, cnd, pA, cnd, 1, pD, cnd, pC, cnd, diag);
+			//dsyrk_dpotrf_lib_old(n, n, n, pA, cnd, 1, pD, cnd, pC, cnd, diag, 0);
+			dsyrk_dpotrf_lib(n, n, n, pA, cnd, pA, cnd, 1, pD, cnd, pC, cnd, diag);
 
 			}
 	
@@ -362,7 +362,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dtrsv_n_lib(2*n, n, 1, pF, cnd, x);
+			dtrsv_n_lib_old(2*n, n, 1, pF, cnd, x);
 
 			}
 	
@@ -371,7 +371,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dtrsv_t_lib(2*n, n, 1, pF, cnd, x);
+			dtrsv_t_lib_old(2*n, n, 1, pF, cnd, x);
 
 			}
 	
@@ -399,8 +399,8 @@ int main()
 			{
 
 			dsyrk_nt_lib(n, n, n, pE, cnd2, pE, cnd2, 1, pD, cnd, pE+(n+pad)*bsd, cnd2);
-			//dpotrf_lib(n, n, pE+(n+pad)*bsd, cnd2, pE+(n+pad)*bsd, cnd2, diag);
-			dpotrf_lib_new(n, n, pE+(n+pad)*bsd, cnd2, pE+(n+pad)*bsd, cnd2, diag);
+			//dpotrf_lib_old(n, n, pE+(n+pad)*bsd, cnd2, pE+(n+pad)*bsd, cnd2, diag);
+			dpotrf_lib(n, n, pE+(n+pad)*bsd, cnd2, pE+(n+pad)*bsd, cnd2, diag);
 			//d_print_pmat(pnd, cnd2, bsd, pE, cnd2);
 			//exit(1);
 			//break;
