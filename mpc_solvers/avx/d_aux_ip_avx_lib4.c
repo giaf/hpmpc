@@ -6416,7 +6416,6 @@ void d_compute_alpha_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 				}
 
 			ptr_db   += 2*pnb;
-			ptr_dux  += 2*pnb;
 			ptr_t    += 2*pnb;
 			ptr_dt   += 2*pnb;
 			ptr_lamt += 2*pnb;
