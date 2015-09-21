@@ -118,6 +118,7 @@ void d_back_ric_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, do
 		cnxg0 = (nx1+ng0+ncl-1)/ncl*ncl;
 
 		dtrmm_nt_u_lib(nz0, nx1, hpBAbt[N-nn-1], cnx1, hpL[N-nn]+ncl*bs, cnl1, work, cnxg0);
+
 		if(compute_Pb)
 			{
 			for(jj=0; jj<nx1; jj++) diag[jj] = work[(nu0+nx0)/bs*bs*cnxg0+(nu0+nx0)%bs+jj*bs];
@@ -381,7 +382,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 		{
 		dgemv_n_lib(nu+nx, ngN, hpDCt[N], cngN, qx[N]+2*pnb, 1, hQl[N], hQl[N]);
 		dgemm_diag_right_lib(nu+nx, ngN, hpDCt[N], cngN, Qx[N]+2*pnb, 0, pLBAbtDCt, cngN, pLBAbtDCt, cngN);
-		for(jj=0; jj<ngN; jj++) pLBAbtDCt[nx/bs*cngN*bs+nx%bs+jj*bs] = 0.0;
+		for(jj=0; jj<ngN; jj++) pLBAbtDCt[(nu+nx)/bs*bs*cngN+(nu+nx)%bs+jj*bs] = 0.0;
 		}
 	if(update_hessian)
 		{
@@ -400,6 +401,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 		{	
 
 		dtrmm_nt_u_lib(nz, nx, hpBAbt[N-nn-1], cnx, hpL[N-nn]+(ncl)*bs, cnl, pLBAbtDCt, cnxg);
+
 		if(compute_Pb==1)
 			{
 			for(jj=0; jj<nx; jj++) work[jj] = pLBAbtDCt[((nx+nu)/bs)*bs*cnxg+(nx+nu)%bs+(jj)*bs]; // backup in work !!!
