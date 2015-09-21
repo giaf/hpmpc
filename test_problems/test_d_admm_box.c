@@ -335,7 +335,7 @@ int main()
 ************************************************/
 
 //	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 2*anx) + 3*anz, 1); // work space
-	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 2*anx) + anz + pnz*cnx, 1); // work space
+	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + pnz + 5*anz + 2*anx) + anz + pnz*cnx, 1); // work space
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
 /*	double sp_thr = SP_THR; // threshold to switch between double and single precision*/

@@ -509,8 +509,6 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 //	const int cng  = ncl*((ng+ncl-1)/ncl);
 	const int cngN = ncl*((ngN+ncl-1)/ncl);
 	const int cnxg = ncl*((ng+nx+ncl-1)/ncl);
-	const int anz  = nal*((nz+nal-1)/nal);
-	const int anx  = nal*((nx+nal-1)/nal);
 //	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box constraints
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of two-sided box constraints !!!!!!!!!!!!!!!!!!
 
@@ -544,13 +542,14 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 	double *(dux[N+1]);
 	double *(dpi[N+1]);
+	double *(dL[N+1]);
 	double *(pL[N+1]);
 	double *(pd[N+1]); // pointer to diagonal of Hessian
 	double *(pl[N+1]); // pointer to linear part of Hessian
 	double *(bd[N+1]); // backup diagonal of Hessian
 	double *(bl[N+1]); // backup linear part of Hessian
-	double *work;
-	double *diag;
+	double *work0;
+	double *work1;
 	double *(dlam[N+1]);
 	double *(dt[N+1]);
 	double *(lamt[N+1]);
@@ -565,24 +564,24 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	for(jj=0; jj<=N; jj++)
 		{
 		dux[jj] = ptr;
-		ptr += anz;
+		ptr += pnz;
 		}
 
 	// equality constr multipliers
 	for(jj=0; jj<=N; jj++)
 		{
 		dpi[jj] = ptr;
-		ptr += anx;
+		ptr += pnx;
 		}
 	
 	// Hessian
 	for(jj=0; jj<=N; jj++)
 		{
-		pd[jj] = ptr; //pQ[jj];
-		pl[jj] = ptr + anz; //pQ[jj] + ((nu+nx)/bs)*bs*cnz + (nu+nx)%bs;
-		bd[jj] = ptr + 2*anz;
-		bl[jj] = ptr + 3*anz;
-		ptr += 4*anz;
+		pd[jj] = ptr;
+		pl[jj] = ptr + pnz;
+		bd[jj] = ptr + 2*pnz;
+		bl[jj] = ptr + 3*pnz;
+		ptr += 4*pnz;
 		// backup
 		for(ll=0; ll<nx+nu; ll++)
 			{
@@ -595,18 +594,18 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	for(jj=0; jj<=N; jj++)
 		{
 		pL[jj] = ptr;
-		ptr += pnz*cnl;
+		dL[jj] = ptr + pnz*cnl;
+		ptr += pnz*cnl + pnz;
 		}
 	
-	work = ptr;
-	//ptr += 2*anz;
+	work0 = ptr;
 	if(cngN<=cnxg)
 		ptr += pnz*cnxg;
 	else
 		ptr += pnz*cngN;
 
-	diag = ptr;
-	ptr += anz;
+	work1 = ptr;
+	ptr += pnz;
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space (assume # box constraints <= 2*(nx+nu) < 2*pnz)
 	for(jj=0; jj<N; jj++)
@@ -649,7 +648,7 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	for(jj=0; jj<N; jj++)
 		{
 		Pb[jj] = ptr;
-		ptr += anx;
+		ptr += pnx;
 		}
 
 
@@ -773,7 +772,8 @@ exit(1);
 		fast_rsqrt = 0;
 #endif
 		//printf("\n%d %f\n", fast_rsqrt, mu);
-		d_back_ric_sv(N, nx, nu, pBAbt, pQ, update_hessian, pd, pl, 1, dux, pL, work, diag, 1, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx);
+		//d_back_ric_sv(N, nx, nu, pBAbt, pQ, update_hessian, pd, pl, 1, dux, pL, work, diag, 1, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx);
+		d_back_ric_sv_new(N, nx, nu, pBAbt, pQ, update_hessian, pd, pl, 1, dux, pL, dL, work0, work1, 1, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -876,7 +876,7 @@ exit(1);
 
 
 		// solve the system
-		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work, 0, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, qx);
+		d_back_ric_trs_new(N, nx, nu, pBAbt, pl, 1, dux, pL, dL, work0, 0, Pb, compute_mult, dpi, nb, ng, ngN, pDCt, qx);
 
 #if 0
 printf("\ndux\n");
@@ -986,8 +986,6 @@ int d_ip2_diag_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 //	const int pnb  = bs*((nb+bs-1)/bs); // simd aligned number of two-sided box constraints !!!!!!!!!!!!!!!!!!
 //	const int cnz  = ncl*((nz+ncl-1)/ncl);
 //	const int cnx  = ncl*((nx+ncl-1)/ncl);
-//	const int anz  = nal*((nz+nal-1)/nal);
-//	const int anx  = nal*((nx+nal-1)/nal);
 //	const int anb = nal*((2*nb+nal-1)/nal); // cache aligned number of box constraints
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of two-sided box constraints !!!!!!!!!!!!!!!!!!
 
@@ -1016,10 +1014,8 @@ int d_ip2_diag_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	double *ptr;
 	ptr = work_memory;
 
-	int *ptr_int, *anu, *anx, *pnu, *pnx, *pnb, *cnu, *cnx;
+	int *ptr_int, *pnu, *pnx, *pnb, *cnu, *cnx;
 	ptr_int = (int *) ptr;
-	anu = ptr_int; ptr_int += (N+1);
-	anx = ptr_int; ptr_int += (N+1);
 	pnu = ptr_int; ptr_int += (N+1);
 	pnx = ptr_int; ptr_int += (N+1);
 	pnb = ptr_int; ptr_int += (N+1);
@@ -1028,8 +1024,6 @@ int d_ip2_diag_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 	for(jj=0; jj<=N; jj++)
 		{
-		anu[jj] = (nu[jj]+nal-1)/nal*nal;
-		anx[jj] = (nx[jj]+nal-1)/nal*nal;
 		pnu[jj] = (nu[jj]+bs-1)/bs*bs;
 		pnx[jj] = (nx[jj]+bs-1)/bs*bs;
 		pnb[jj] = (nb[jj]+bs-1)/bs*bs;
@@ -1094,21 +1088,21 @@ int d_ip2_diag_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	for(jj=0; jj<=N; jj++)
 		{
 		dux[jj] = ptr;
-		ptr += anu[jj]+anx[jj];
+		ptr += pnu[jj]+pnx[jj];
 		}
 
 	// equality constr multipliers
 	for(jj=0; jj<=N; jj++)
 		{
 		dpi[jj] = ptr;
-		ptr += anx[jj];
+		ptr += pnx[jj];
 		}
 	
 	// backup of P*b
 	for(jj=0; jj<N; jj++)
 		{
 		Pb[jj] = ptr;
-		ptr += anx[jj+1];
+		ptr += pnx[jj+1];
 		}
 
 	// Hessian

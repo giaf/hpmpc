@@ -563,13 +563,14 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 	double *(dux[N+1]);
 	double *(dpi[N+1]);
+	double *(dL[N+1]);
 	double *(pL[N+1]);
 	double *(pd[N+1]); // pointer to diagonal of Hessian
 	double *(pl[N+1]); // pointer to linear part of Hessian
 	double *(bd[N+1]); // backup diagonal of Hessian
 	double *(bl[N+1]); // backup linear part of Hessian
-	double *work;
-	double *diag;
+	double *work0;
+	double *work1;
 	double *(dlam[N+1]);
 	double *(dt[N+1]);
 	double *(lamt[N+1]);
@@ -614,14 +615,15 @@ int d_ip2_soft_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	for(jj=0; jj<=N; jj++)
 		{
 		pL[jj] = ptr;
-		ptr += pnz*cnl;
+		dL[jj] = ptr + pnz*cnl;
+		ptr += pnz*cnl + pnz;
 		}
 	
-	work = ptr;
+	work0 = ptr;
 //	ptr += 2*anz;
 	ptr += pnz*cnx;
 
-	diag = ptr;
+	work1 = ptr;
 	ptr += anz;
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space (assume # box constraints <= 2*(nx+nu) < 2*pnz)
@@ -747,7 +749,7 @@ exit(1);
 
 
 		// compute the search direction: factorize and solve the KKT system
-		d_back_ric_sv(N, nx, nu, pBAbt, pQ, update_hessian, pd, pl, 1, dux, pL, work, diag, 1, Pb, compute_mult, dpi, 0, 0, 0, dummy, dummy, dummy);
+		d_back_ric_sv_new(N, nx, nu, pBAbt, pQ, update_hessian, pd, pl, 1, dux, pL, dL, work0, work1, 1, Pb, compute_mult, dpi, 0, 0, 0, dummy, dummy, dummy);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -828,7 +830,8 @@ exit(1);
 
 
 		// solve the system
-		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work, 0, Pb, compute_mult, dpi, 0, 0, 0, dummy, dummy);
+		//d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, dux, work0, 0, Pb, compute_mult, dpi, 0, 0, 0, dummy, dummy);
+		d_back_ric_trs_new(N, nx, nu, pBAbt, pl, 1, dux, pL, dL, work0, 0, Pb, compute_mult, dpi, 0, 0, 0, dummy, dummy);
 
 
 #if 0

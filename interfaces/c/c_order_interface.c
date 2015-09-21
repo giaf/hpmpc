@@ -2057,7 +2057,7 @@ int c_order_riccati_mpc( const char prec,
                          double *Q, double *Qf, double *S, double *R, 
                          double *q, double *qf, double *r, 
                          double *x, double *u, double *pi, 
-                         double *work0 )
+                         double *work_space )
 	{
 
 	//char prec = PREC;
@@ -2089,19 +2089,20 @@ int c_order_riccati_mpc( const char prec,
 
 		/* align work space */
 		size_t align = 64;
-		size_t addr = (size_t) work0;
+		size_t addr = (size_t) work_space;
 		size_t offset = addr % 64;
-		double *ptr = work0 + offset / 8;
+		double *ptr = work_space + offset / 8;
 
 		/* array or pointers */
 		double *(hpBAbt[N]);
 		double *(hpQ[N + 1]);
 		double *(hpL[N + 1]);
+		double *(hdL[N + 1]);
 		double *(hpl[N + 1]);
 		double *(hux[N + 1]);
 		double *(hpi[N + 1]);
-		double *diag;
-		double *work;
+		double *work1;
+		double *work0;
 
 		// dynamic system
 		for(ii=0; ii<N; ii++)
@@ -2121,7 +2122,8 @@ int c_order_riccati_mpc( const char prec,
 		for(jj=0; jj<=N; jj++)
 			{
 			hpL[jj] = ptr;
-			ptr += pnz*cnl;
+			hdL[jj] = ptr + pnz*cnl;
+			ptr += pnz*cnl + pnz;
 			}
 
 		// work space (vectors)
@@ -2146,11 +2148,11 @@ int c_order_riccati_mpc( const char prec,
 			}
 
 		// inverted diagonal
-		diag = ptr;
+		work1 = ptr;
 		ptr += anz;
 
 		// work space
-		work = ptr;
+		work0 = ptr;
 		ptr += 2*anz;
 
 
@@ -2199,7 +2201,7 @@ int c_order_riccati_mpc( const char prec,
 		double **dummy;
 
 		// call Riccati solver
-		d_back_ric_sv(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, compute_mult, hpi, 0, 0, 0, dummy, dummy, dummy);
+		d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, hdL, work0, work1, 0, dummy, compute_mult, hpi, 0, 0, 0, dummy, dummy, dummy);
 
 
 
@@ -2248,9 +2250,9 @@ int c_order_riccati_mpc( const char prec,
 
 		/* align work space */
 		size_t align = 64; // max cache line size for all supported architectures
-		size_t addr = (size_t) work0;
+		size_t addr = (size_t) work_space;
 		size_t offset = addr % 64;
-		float *ptr = ((float *) work0) + offset / 8;
+		float *ptr = ((float *) work_space) + offset / 8;
 
 		/* array or pointers */
 		float *(hpBAbt[N]);

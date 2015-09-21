@@ -79,14 +79,15 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 	double *(ux_r[N+1]);
 /*	double *(ux_v[N+1]);*/
 /*	double *(ux_w[N+1]);*/
+	double *(dL[N+1]);
 	double *(pL[N+1]);
 	double *(pd[N+1]);
 	double *(pl[N+1]);
 	double *(bd[N+1]);
 	double *(bl[N+1]);
 	double *(bb[N]);
+	double *work0;
 	double *work1;
-	double *diag;
 	double *(Zi[N+1]); // inverse of Hessian of soft constraints slack variables
 /*	double *(s_u[N+1]); // soft constraints slack variable*/
 /*	double *(s_v[N+1]); // soft constraints slack variable*/
@@ -119,7 +120,8 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 	for(jj=0; jj<=N; jj++)
 		{
 		pL[jj] = ptr;
-		ptr += pnz*cnl;
+		dL[jj] = ptr + pnz*cnl;
+		ptr += pnz*cnl + pnz; 
 		}
 
 	// work space (vectors)
@@ -131,11 +133,11 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 		}
 
 	// work space
-	work1 = ptr;
+	work0 = ptr;
 //	ptr += 2*anz;
 	ptr += pnz*cnx;
 
-	diag = ptr;
+	work1 = ptr;
 	ptr += anz;
 
 	// backup Hessian space
@@ -327,7 +329,7 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 		const int update_hessian = 1;
 	
 		// initial factorization
-		d_back_ric_sv(N, nx, nu, pBAbt, pQ, update_hessian, pd, pl, 1, ux_u, pL, work1, diag, 1, Pb, compute_mult, pi, 0, 0, 0, dummy, dummy, dummy);
+		d_back_ric_sv_new(N, nx, nu, pBAbt, pQ, update_hessian, pd, pl, 1, ux_u, pL, dL, work0, work1, 1, Pb, compute_mult, pi, 0, 0, 0, dummy, dummy, dummy);
 
 
 
@@ -539,7 +541,8 @@ void d_admm_soft_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_st
 
 
 		// Riccati solver		
-		d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, ux_u, work1, 0, Pb, compute_mult, pi, 0, 0, 0, dummy, dummy);
+		//d_ric_trs_mpc(nx, nu, N, pBAbt, pL, pl, ux_u, work0, 0, Pb, compute_mult, pi, 0, 0, 0, dummy, dummy);
+		d_back_ric_trs_new(N, nx, nu, pBAbt, pl, 1, ux_u, pL, dL, work0, 0, Pb, compute_mult, pi, 0, 0, 0, dummy, dummy);
 		compute_Pb = 0;
 
 /*for(jj=0; jj<=N; jj++)*/

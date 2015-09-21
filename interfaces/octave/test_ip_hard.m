@@ -149,7 +149,7 @@ if(ngN>0)
 			ugN(ii) =   0;
 		end
 	else
-		for ii=1:ng
+		for ii=1:ngN
 			lgN(ii) =   0;
 			ugN(ii) =   0;
 		end

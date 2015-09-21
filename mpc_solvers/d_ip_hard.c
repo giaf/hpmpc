@@ -67,8 +67,6 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	const int cnx = ncl*((nx+ncl-1)/ncl);
 	const int cngN = ncl*((ngN+ncl-1)/ncl);
 	const int cnxg= ncl*((ng+nx+ncl-1)/ncl);
-	const int anz = nal*((nz+nal-1)/nal);
-	const int anx = nal*((nx+nal-1)/nal);
 	//const int anb = nal*((nb+nal-1)/nal); // cache aligned number of box constraints
 
 //	const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
@@ -82,13 +80,14 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 
 	double *(dux[N+1]);
 	double *(dpi[N+1]);
+	double *(dL[N+1]);
 	double *(pL[N+1]);
 	double *(pd[N+1]); // pointer to diagonal of Hessian
 	double *(pl[N+1]); // pointer to linear part of Hessian
 	double *(bd[N+1]); // backup diagonal of Hessian
 	double *(bl[N+1]); // backup linear part of Hessian
-	double *work;
-	double *diag;
+	double *work0;
+	double *work1;
 	double *(dlam[N+1]);
 	double *(dt[N+1]);
 	double *(lamt[N+1]);
@@ -102,25 +101,25 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	for(jj=0; jj<=N; jj++)
 		{
 		dux[jj] = ptr;
-		ptr += anz;
+		ptr += pnz;
 		}
 
 	// equality constr multipliers
 	for(jj=0; jj<=N; jj++)
 		{
 		dpi[jj] = ptr;
-		ptr += anx;
+		ptr += pnx;
 		}
 	
 	// Hessian
 	for(jj=0; jj<=N; jj++)
 		{
 		// TODO
-		pd[jj] = ptr; //pQ[jj]; // ptr
-		pl[jj] = ptr + anz; //pQ[jj] + ((nu+nx)/bs)*bs*cnz + (nu+nx)%bs; // ptr+anz
-		bd[jj] = ptr + 2*anz; // ptr+2*anz
-		bl[jj] = ptr + 3*anz; // ptr+3*anz
-		ptr += 4*anz; // + 2*anz
+		pd[jj] = ptr;
+		pl[jj] = ptr + pnz;
+		bd[jj] = ptr + 2*pnz;
+		bl[jj] = ptr + 3*pnz;
+		ptr += 4*pnz;
 		// backup of diagonal of Hessian and Jacobian
 		for(ll=0; ll<nx+nu; ll++)
 			{
@@ -136,18 +135,18 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	for(jj=0; jj<=N; jj++)
 		{
 		pL[jj] = ptr;
-		ptr += pnz*cnl;
+		dL[jj] = ptr + pnz*cnl;
+		ptr += pnz*cnl + pnz;
 		}
 	
-	work = ptr;
-//	ptr += 2*anz;
+	work0 = ptr;
 	if(cngN<=cnxg)
 		ptr += pnz*cnxg;
 	else
 		ptr += pnz*cngN;
 
-	diag = ptr;
-	ptr += anz;
+	work1 = ptr;
+	ptr += pnz;
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space (assume # box constraints <= 2*(nx+nu) < 2*pnz)
 	for(jj=0; jj<N; jj++)
@@ -264,7 +263,8 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 		fast_rsqrt = 0;
 #endif
 		//printf("\n%d %f\n", fast_rsqrt, mu);
-		d_back_ric_sv(N, nx, nu, pBAbt, pQ, update_hessian, pd, pl, 1, dux, pL, work, diag, 0, dummy, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx);
+		//d_back_ric_sv(N, nx, nu, pBAbt, pQ, update_hessian, pd, pl, 1, dux, pL, work, diag, 0, dummy, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx);
+		d_back_ric_sv_new(N, nx, nu, pBAbt, pQ, update_hessian, pd, pl, 1, dux, pL, dL, work0, work1, 0, dummy, compute_mult, dpi, nb, ng, ngN, pDCt, Qx, qx);
 
 
 
