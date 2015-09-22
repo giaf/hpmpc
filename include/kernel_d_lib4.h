@@ -279,3 +279,21 @@ void kernel_dtrsv_t_4_lib4_new(int kmax, double *A, int sda, int use_inv_diag_A,
 void kernel_dtrsv_t_3_lib4_new(int kmax, double *A, int sda, int use_inv_diag_A, double *inv_diag_A, double *x);
 void kernel_dtrsv_t_2_lib4_new(int kmax, double *A, int sda, int use_inv_diag_A, double *inv_diag_A, double *x);
 void kernel_dtrsv_t_1_lib4_new(int kmax, double *A, int sda, int use_inv_diag_A, double *inv_diag_A, double *x);
+
+
+void corner_dtrinv_8x8_lib4_new(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc);
+void corner_dtrinv_7x7_lib4_new(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc);
+void corner_dtrinv_6x6_lib4_new(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc);
+void corner_dtrinv_5x5_lib4_new(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc);
+void corner_dtrinv_4x4_lib4_new(double *A0, int use_inv_diag_A, double *inv_diag_A, double *C0);
+void corner_dtrinv_3x3_lib4_new(double *A0, int use_inv_diag_A, double *inv_diag_A, double *C0);
+void corner_dtrinv_2x2_lib4_new(double *A0, int use_inv_diag_A, double *inv_diag_A, double *C0);
+void corner_dtrinv_1x1_lib4_new(double *A0, int use_inv_diag_A, double *inv_diag_A, double *C0);
+void kernel_dtrinv_8x4_lib4_new(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
+void kernel_dtrinv_8x3_lib4_new(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
+void kernel_dtrinv_8x2_lib4_new(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
+void kernel_dtrinv_8x1_lib4_new(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
+void kernel_dtrinv_4x4_lib4_new(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E);
+void kernel_dtrinv_4x3_lib4_new(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E);
+void kernel_dtrinv_4x2_lib4_new(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E);
+void kernel_dtrinv_4x1_lib4_new(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E);

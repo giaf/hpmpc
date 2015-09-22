@@ -46,7 +46,7 @@ int main()
 	
 	printf("\nbs = %d\n\n", bs);
 	
-	int n = 24;
+	int n = 12;
 	int nrep = 1;
 	
 	double *A; d_zeros(&A, n, n);
@@ -163,7 +163,8 @@ int main()
 //		dsyrk_dpotrf_lib(8, 2, n, pA, cn, pB, cn, pD, cn, diag, 1, 0);
 //		dsyrk_dpotrf_lib_new(11, n, n, pA, cn, pA, cn, 1, pB, cn, pD, cn, diag);
 		dsyrk_nt_lib(n, n, n, pA, cn, pA, cn, 1, pB, cn, pD, cn);
-		dpotrf_lib_new(n, n, pD, cn, pD, cn, x);
+		dpotrf_lib(n, n, pD, cn, pD, cn, x);
+		dtrinv_lib_new(n, pD, cn, 1, x, pL, cn);
 //		dsyrk_nn_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
 //		dgemm_diag_left_lib(n, n, x, pA, cn, pC, cn, pD, cn, 0);
 //		dsyrk_diag_left_right_lib(n, x, x, pA, cn, pC, cn, pD, cn, 0);
@@ -218,6 +219,7 @@ int main()
 		{
 //		d_print_pmat(pn, pn, bs, pC, pn);
 		d_print_pmat(pn, cn, bs, pD, cn);
+		d_print_pmat(pn, cn, bs, pL, cn);
 //		d_print_pmat(n, n, bs, pB, pn);
 /*		d_print_pmat(n, n, bs, pA, pn);*/
 /*		d_print_mat(n, n, B, n);*/

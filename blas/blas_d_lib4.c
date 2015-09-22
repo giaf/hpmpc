@@ -6755,6 +6755,152 @@ void dtrinv_lib_old(int m, double *pA, int sda, double *pC, int sdc)
 
 
 
+void dtrinv_lib_new(int m, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *pC, int sdc)
+	{
+
+	if(m<=0)
+		return;
+	
+	const int bs = 4;
+
+	int ii, jj;
+
+	int n = m; // just to distinguish between rows and colscan be removed
+
+	ii = 0;
+#if defined(TARGET_X64_AVX)
+	for( ; ii<m-7; ii+=8)
+		{
+		jj = ii;
+		corner_dtrinv_8x8_lib4_new(&pA[jj*sda+jj*bs], sda, use_inv_diag_A, &inv_diag_A[jj], &pC[jj*sdc+jj*bs], sdc);
+		jj += 8;
+		for( ; jj<n-3; jj+=4)
+			{
+			kernel_dtrinv_8x4_lib4_new(jj-ii, &pC[ii*sdc+ii*bs], sdc, &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], sdc, &pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj]);
+			}
+		if(n-jj>1)
+			{
+			if(n-jj==3) // 3
+				{
+				kernel_dtrinv_8x3_lib4_new(jj-ii, &pC[ii*sdc+ii*bs], sdc, &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], sdc, &pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj]);
+				}
+			else // 2
+				{
+				kernel_dtrinv_8x2_lib4_new(jj-ii, &pC[ii*sdc+ii*bs], sdc, &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], sdc, &pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj]);
+				}
+			}
+		else
+			{
+			if(n-jj==1)
+				{
+				kernel_dtrinv_8x1_lib4_new(jj-ii, &pC[ii*sdc+ii*bs], sdc, &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], sdc, &pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj]);
+				}
+			}
+		}
+	jj = ii;
+	if(m-ii>3)
+		{
+		if(m-ii>5)
+			{
+			if(m-ii==7) // 7
+				{
+				corner_dtrinv_7x7_lib4_new(&pA[jj*sda+jj*bs], sda, use_inv_diag_A, &inv_diag_A[jj], &pC[jj*sdc+jj*bs], sdc);
+				}
+			else // 6
+				{
+				corner_dtrinv_6x6_lib4_new(&pA[jj*sda+jj*bs], sda, use_inv_diag_A, &inv_diag_A[jj], &pC[jj*sdc+jj*bs], sdc);
+				}
+			}
+		else
+			{
+			if(m-ii==5) // 5
+				{
+				corner_dtrinv_5x5_lib4_new(&pA[jj*sda+jj*bs], sda, use_inv_diag_A, &inv_diag_A[jj], &pC[jj*sdc+jj*bs], sdc);
+				}
+			else // 4
+				{
+				corner_dtrinv_4x4_lib4_new(&pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj], &pC[jj*sdc+jj*bs]);
+				}
+			}
+		}
+	else
+		{
+		if(m-ii>1)
+			{
+			if(m-ii==3) // 3
+				{
+				corner_dtrinv_3x3_lib4_new(&pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj], &pC[jj*sdc+jj*bs]);
+				}
+			else // 2
+				{
+				corner_dtrinv_2x2_lib4_new(&pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj], &pC[jj*sdc+jj*bs]);
+				}
+			}
+		else
+			{
+			if(m-ii==1) // 1
+				{
+				corner_dtrinv_1x1_lib4_new(&pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj], &pC[jj*sdc+jj*bs]);
+				}
+			}
+		}
+#endif
+#if defined(TARGET_C99_4X4)
+	for( ; ii<m-3; ii+=4)
+		{
+		jj = ii;
+		corner_dtrinv_4x4_lib4_new(&pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj], &pC[jj*sdc+jj*bs]);
+		jj += 4;
+		for( ; jj<n-3; jj+=4)
+			{
+			kernel_dtrinv_4x4_lib4_new(jj-ii, &pC[ii*sdc+ii*bs], &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], &pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj]);
+			}
+		if(n-jj>1)
+			{
+			if(n-jj==3) // 3
+				{
+				kernel_dtrinv_4x3_lib4_new(jj-ii, &pC[ii*sdc+ii*bs], &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], &pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj]);
+				}
+			else // 2
+				{
+				kernel_dtrinv_4x2_lib4_new(jj-ii, &pC[ii*sdc+ii*bs], &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], &pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj]);
+				}
+			}
+		else
+			{
+			if(n-jj==1)
+				{
+				kernel_dtrinv_4x1_lib4_new(jj-ii, &pC[ii*sdc+ii*bs], &pA[jj*sda+ii*bs], &pC[ii*sdc+jj*bs], &pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj]);
+				}
+			}
+		}
+	jj = ii;
+	if(m-ii>1)
+		{
+		if(m-ii==3) // 3
+			{
+			corner_dtrinv_3x3_lib4_new(&pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj], &pC[jj*sdc+jj*bs]);
+			}
+		else // 2
+			{
+			corner_dtrinv_2x2_lib4_new(&pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj], &pC[jj*sdc+jj*bs]);
+			}
+		}
+	else
+		{
+		if(m-ii==1) // 1
+			{
+			corner_dtrinv_1x1_lib4_new(&pA[jj*sda+jj*bs], use_inv_diag_A, &inv_diag_A[jj], &pC[jj*sdc+jj*bs]);
+			}
+		}
+#endif
+	
+	return;
+
+	}
+
+
+
 void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc)
 	{
 
