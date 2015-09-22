@@ -6768,7 +6768,7 @@ void dtrinv_lib_new(int m, double *pA, int sda, int use_inv_diag_A, double *inv_
 	int n = m; // just to distinguish between rows and colscan be removed
 
 	ii = 0;
-#if defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	for( ; ii<m-7; ii+=8)
 		{
 		jj = ii;
@@ -6845,7 +6845,7 @@ void dtrinv_lib_new(int m, double *pA, int sda, int use_inv_diag_A, double *inv_
 			}
 		}
 #endif
-#if defined(TARGET_C99_4X4)
+#if defined(TARGET_X64_SSE3) || defined(TARGET_C99_4X4) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
 	for( ; ii<m-3; ii+=4)
 		{
 		jj = ii;
