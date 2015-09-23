@@ -101,6 +101,7 @@ int main()
 /*	float *spC; s_zeros_align(&spC, pns, pns);*/
 	double *pD; d_zeros_align(&pD, pn, cn);
 	double *pE; d_zeros_align(&pE, pn, cn2);
+	double *pF; d_zeros_align(&pF, pn, cn);
 	double *diag; d_zeros_align(&diag, pn, 1);
 	
 	d_cvt_mat2pmat(n, n, A, n, 0, pA, cn);
@@ -165,6 +166,7 @@ int main()
 		dsyrk_nt_lib(n, n, n, pA, cn, pA, cn, 1, pB, cn, pD, cn);
 		dpotrf_lib(n, n, pD, cn, pD, cn, x);
 		dtrtri_lib(n, pD, cn, 1, x, pL, cn);
+		dlauum_lib(7, pL, cn, pL, cn, 0, pF, cn, pF, cn);
 //		dsyrk_nn_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
 //		dgemm_diag_left_lib(n, n, x, pA, cn, pC, cn, pD, cn, 0);
 //		dsyrk_diag_left_right_lib(n, x, x, pA, cn, pC, cn, pD, cn, 0);
@@ -220,6 +222,7 @@ int main()
 //		d_print_pmat(pn, pn, bs, pC, pn);
 		d_print_pmat(pn, cn, bs, pD, cn);
 		d_print_pmat(pn, cn, bs, pL, cn);
+		d_print_pmat(pn, cn, bs, pF, cn);
 //		d_print_pmat(n, n, bs, pB, pn);
 /*		d_print_pmat(n, n, bs, pA, pn);*/
 /*		d_print_mat(n, n, B, n);*/

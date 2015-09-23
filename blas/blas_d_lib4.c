@@ -6371,6 +6371,87 @@ void dsyttmm_lu_lib(int m, double *pA, int sda, double *pC, int sdc)
 
 
 
+void dlauum_lib(int m, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd)
+	{
+
+	if(m<=0)
+		return;
+
+	const int bs = 4;
+
+	int ii, jj;
+	
+	ii = 0;
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+	for( ; ii<m-7; ii+=8)
+		{
+		// off-diagonal blocks
+		for(jj=0; jj<ii; jj+=4)
+			{
+			kernel_dtrmm_l_u_nt_8x4_lib4(m-ii, pA+ii*sda+ii*bs, sda, pB+jj*sdb+ii*bs, pC+ii*sdc+jj*bs, sdc, pD+ii*sdd+jj*bs, sdd, alg);
+			}
+		// diagonal block
+		kernel_dlauum_nt_8x4_lib4(m-ii, pA+ii*sda+ii*bs, sda, pB+ii*sdb+ii*bs, alg, pC+ii*sdc+ii*bs, sdc, pD+ii*sdd+ii*bs, sdd);
+		kernel_dlauum_nt_4x4_lib4(m-ii-4, pA+(ii+4)*sda+(ii+4)*bs, pB+(ii+4)*sdb+(ii+4)*bs, alg, pC+(ii+4)*sdc+(ii+4)*bs, pD+(ii+4)*sdd+(ii+4)*bs);
+		}
+#endif
+	for( ; ii<m-3; ii+=4)
+		{
+		// off-diagonal blocks
+		for(jj=0; jj<ii; jj+=4)
+			{
+			kernel_dtrmm_l_u_nt_4x4_lib4(m-ii, pA+ii*sda+ii*bs, pB+jj*sdb+ii*bs, pC+ii*sdc+jj*bs, pD+ii*sdd+jj*bs, alg);
+			}
+		// diagonal block
+		kernel_dlauum_nt_4x4_lib4(m-ii, pA+ii*sda+ii*bs, pB+ii*sdb+ii*bs, alg, pC+ii*sdc+ii*bs, pD+ii*sdd+ii*bs);
+		}
+	
+	if(m-ii>1)
+		{
+		if(m-ii==3) // 3
+			{
+			// off-diagonal blocks
+			for(jj=0; jj<ii; jj+=4)
+				{
+				//kernel_dtrmm_l_u_nt_4x4_vs_lib4(3, 3, pA+ii*sda+ii*bs, pB+jj*sdb+ii*bs, pC+ii*sdc+jj*bs, pD+ii*sdd+jj*bs, alg);
+				corner_dtrmm_l_u_nt_3x4_lib4(pA+ii*sda+ii*bs, pB+jj*sdb+ii*bs, alg, pC+ii*sdc+jj*bs, pD+ii*sdd+jj*bs);
+				}
+			// diagonal block
+			corner_dlauum_nt_3x3_lib4(pA+ii*sda+ii*bs, pB+ii*sdb+ii*bs, alg, pC+ii*sdc+ii*bs, pD+ii*sdd+ii*bs);
+			}
+		else // 2
+			{
+			// off-diagonal blocks
+			for(jj=0; jj<ii; jj+=4)
+				{
+				//kernel_dtrmm_l_u_nt_4x4_vs_lib4(2, 2, pA+ii*sda+ii*bs, pB+jj*sdb+ii*bs, pC+ii*sdc+jj*bs, pD+ii*sdd+jj*bs, alg);
+				corner_dtrmm_l_u_nt_2x4_lib4(pA+ii*sda+ii*bs, pB+jj*sdb+ii*bs, alg, pC+ii*sdc+jj*bs, pD+ii*sdd+jj*bs);
+				}
+			// diagonal block
+			corner_dlauum_nt_2x2_lib4(pA+ii*sda+ii*bs, pB+ii*sdb+ii*bs, alg, pC+ii*sdc+ii*bs, pD+ii*sdd+ii*bs);
+			}
+		}
+	else
+		{
+		if(m-ii==1) // 1
+			{
+			// off-diagonal blocks
+			for(jj=0; jj<ii; jj+=4)
+				{
+				//kernel_dtrmm_l_u_nt_4x4_vs_lib4(1, 1, pA+ii*sda+ii*bs, pB+jj*sdb+ii*bs, pC+ii*sdc+jj*bs, pD+ii*sdd+jj*bs, alg);
+				corner_dtrmm_l_u_nt_1x4_lib4(pA+ii*sda+ii*bs, pB+jj*sdb+ii*bs, alg, pC+ii*sdc+jj*bs, pD+ii*sdd+jj*bs);
+				}
+			// diagonal block
+			corner_dlauum_nt_1x1_lib4(pA+ii*sda+ii*bs, pB+ii*sdb+ii*bs, alg, pC+ii*sdc+ii*bs, pD+ii*sdd+ii*bs);
+			}
+		}
+
+	return;
+
+	}
+
+
+
 //#if defined(TARGET_C99_4X4)
 void dsyttmm_ul_lib(int m, double *pA, int sda, int alg, double *pC, int sdc, double *pD, int sdd)
 	{

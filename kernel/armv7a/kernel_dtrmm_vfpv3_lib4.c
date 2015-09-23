@@ -1752,3 +1752,278 @@ void kernel_dtrmm_l_u_nt_4x4_lib4(int kmax, double *A, double *B, double *C, dou
 
 
 
+// rank 3 update
+void corner_dtrmm_l_u_nt_3x4_lib4(double *A, double *B, int alg, double *C, double *D)
+	{
+
+	const int bs = 4;
+
+	double
+		a_0, a_1, a_2,
+		b_0,
+		d_0, d_4, d_8, d_c,
+		d_1, d_5, d_9, d_d,
+		d_2, d_6, d_a, d_e;
+	
+
+	// k = 0
+	a_0 = A[0];
+	a_1 = A[1];
+	a_2 = A[2];
+
+	b_0 = B[0];
+	d_0 = a_0*b_0;
+	d_1 = a_1*b_0;
+	d_2 = a_2*b_0;
+	b_0 = B[1];
+	d_4 = a_0*b_0;
+	d_5 = a_1*b_0;
+	d_6 = a_2*b_0;
+	b_0 = B[2];
+	d_8 = a_0*b_0;
+	d_9 = a_1*b_0;
+	d_a = a_2*b_0;
+	b_0 = B[3];
+	d_c = a_0*b_0;
+	d_d = a_1*b_0;
+	d_e = a_2*b_0;
+
+
+	// k = 1
+	a_0 = A[4];
+	a_1 = A[5];
+	a_2 = A[6];
+
+	b_0 = B[4];
+	d_0 += a_0*b_0;
+	d_1 += a_1*b_0;
+	d_2 += a_2*b_0;
+	b_0 = B[5];
+	d_4 += a_0*b_0;
+	d_5 += a_1*b_0;
+	d_6 += a_2*b_0;
+	b_0 = B[6];
+	d_8 += a_0*b_0;
+	d_9 += a_1*b_0;
+	d_a += a_2*b_0;
+	b_0 = B[7];
+	d_c += a_0*b_0;
+	d_d += a_1*b_0;
+	d_e += a_2*b_0;
+
+
+	// k = 2
+	a_0 = A[8];
+	a_1 = A[9];
+	a_2 = A[10];
+
+	b_0 = B[8];
+	d_0 += a_0*b_0;
+	d_1 += a_1*b_0;
+	d_2 += a_2*b_0;
+	b_0 = B[9];
+	d_4 += a_0*b_0;
+	d_5 += a_1*b_0;
+	d_6 += a_2*b_0;
+	b_0 = B[10];
+	d_8 += a_0*b_0;
+	d_9 += a_1*b_0;
+	d_a += a_2*b_0;
+	b_0 = B[11];
+	d_c += a_0*b_0;
+	d_d += a_1*b_0;
+	d_e += a_2*b_0;
+
+
+
+	if(alg!=0)
+		{
+		if(alg==1)
+			{
+			d_0 = C[0+bs*0] + d_0;
+			d_1 = C[1+bs*0] + d_1;
+			d_2 = C[2+bs*0] + d_2;
+			d_4 = C[0+bs*1] + d_4;
+			d_5 = C[1+bs*1] + d_5;
+			d_6 = C[2+bs*1] + d_6;
+			d_8 = C[0+bs*2] + d_8;
+			d_9 = C[1+bs*2] + d_9;
+			d_a = C[2+bs*2] + d_a;
+			d_c = C[0+bs*3] + d_c;
+			d_d = C[1+bs*3] + d_d;
+			d_e = C[2+bs*3] + d_e;
+			}
+		else
+			{
+			d_0 = C[0+bs*0] - d_0;
+			d_1 = C[1+bs*0] - d_1;
+			d_2 = C[2+bs*0] - d_2;
+			d_4 = C[0+bs*1] - d_4;
+			d_5 = C[1+bs*1] - d_5;
+			d_6 = C[2+bs*1] - d_6;
+			d_8 = C[0+bs*2] - d_8;
+			d_9 = C[1+bs*2] - d_9;
+			d_a = C[2+bs*2] - d_a;
+			d_c = C[0+bs*3] - d_c;
+			d_d = C[1+bs*3] - d_d;
+			d_e = C[2+bs*3] - d_e;
+			}
+		}
+	
+	D[0+bs*0] = d_0;
+	D[1+bs*0] = d_1;
+	D[2+bs*0] = d_2;
+	D[0+bs*1] = d_4;
+	D[1+bs*1] = d_5;
+	D[2+bs*1] = d_6;
+	D[0+bs*2] = d_8;
+	D[1+bs*2] = d_9;
+	D[2+bs*2] = d_a;
+	D[0+bs*3] = d_c;
+	D[1+bs*3] = d_d;
+	D[2+bs*3] = d_e;
+
+	}
+
+
+
+// rank 2 update
+void corner_dtrmm_l_u_nt_2x4_lib4(double *A, double *B, int alg, double *C, double *D)
+	{
+
+	const int bs = 4;
+
+	double
+		a_0, a_1,
+		b_0,
+		d_0, d_4, d_8, d_c,
+		d_1, d_5, d_9, d_d;
+	
+
+	// k = 0
+	a_0 = A[0];
+	a_1 = A[1];
+
+	b_0 = B[0];
+	d_0 = a_0*b_0;
+	d_1 = a_1*b_0;
+	b_0 = B[1];
+	d_4 = a_0*b_0;
+	d_5 = a_1*b_0;
+	b_0 = B[2];
+	d_8 = a_0*b_0;
+	d_9 = a_1*b_0;
+	b_0 = B[3];
+	d_c = a_0*b_0;
+	d_d = a_1*b_0;
+
+
+	// k = 0
+	a_0 = A[4];
+	a_1 = A[5];
+
+	b_0 = B[4];
+	d_0 += a_0*b_0;
+	d_1 += a_1*b_0;
+	b_0 = B[5];
+	d_4 += a_0*b_0;
+	d_5 += a_1*b_0;
+	b_0 = B[6];
+	d_8 += a_0*b_0;
+	d_9 += a_1*b_0;
+	b_0 = B[7];
+	d_c += a_0*b_0;
+	d_d += a_1*b_0;
+
+
+	if(alg!=0)
+		{
+		if(alg==1)
+			{
+			d_0 = C[0+bs*0] + d_0;
+			d_1 = C[1+bs*0] + d_1;
+			d_4 = C[0+bs*1] + d_4;
+			d_5 = C[1+bs*1] + d_5;
+			d_8 = C[0+bs*2] + d_8;
+			d_9 = C[1+bs*2] + d_9;
+			d_c = C[0+bs*3] + d_c;
+			d_d = C[1+bs*3] + d_d;
+			}
+		else
+			{
+			d_0 = C[0+bs*0] - d_0;
+			d_1 = C[1+bs*0] - d_1;
+			d_4 = C[0+bs*1] - d_4;
+			d_5 = C[1+bs*1] - d_5;
+			d_8 = C[0+bs*2] - d_8;
+			d_9 = C[1+bs*2] - d_9;
+			d_c = C[0+bs*3] - d_c;
+			d_d = C[1+bs*3] - d_d;
+			}
+		}
+	
+	D[0+bs*0] = d_0;
+	D[1+bs*0] = d_1;
+	D[0+bs*1] = d_4;
+	D[1+bs*1] = d_5;
+	D[0+bs*2] = d_8;
+	D[1+bs*2] = d_9;
+	D[0+bs*3] = d_c;
+	D[1+bs*3] = d_d;
+
+	}
+
+
+
+// rank 1 update
+void corner_dtrmm_l_u_nt_1x4_lib4(double *A, double *B, int alg, double *C, double *D)
+	{
+
+	const int bs = 4;
+
+	double
+		a_0,
+		b_0,
+		d_0, d_1, d_2, d_3;
+	
+
+	a_0 = A[0];
+
+	b_0 = B[0];
+	d_0 = a_0*b_0;
+	b_0 = B[1];
+	d_1 = a_0*b_0;
+	b_0 = B[2];
+	d_2 = a_0*b_0;
+	b_0 = B[3];
+	d_3 = a_0*b_0;
+
+
+	if(alg!=0)
+		{
+		if(alg==1)
+			{
+			d_0 = C[0+bs*0] + d_0;
+			d_1 = C[0+bs*1] + d_1;
+			d_2 = C[0+bs*2] + d_2;
+			d_3 = C[0+bs*3] + d_3;
+			}
+		else
+			{
+			d_0 = C[0+bs*0] - d_0;
+			d_1 = C[0+bs*1] - d_1;
+			d_2 = C[0+bs*2] - d_2;
+			d_3 = C[0+bs*3] - d_3;
+			}
+		}
+	
+	D[0+bs*0] = d_0;
+	D[0+bs*1] = d_1;
+	D[0+bs*2] = d_2;
+	D[0+bs*3] = d_3;
+
+	}
+
+
+
+
