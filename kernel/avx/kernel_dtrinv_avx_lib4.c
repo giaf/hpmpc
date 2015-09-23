@@ -32,7 +32,7 @@
 
 
 
-void corner_dtrinv_8x8_lib4_new(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc)
+void corner_dtrtri_8x8_lib4(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc)
 	{
 
 	double *A1 = A0 + 4*sda;
@@ -269,7 +269,7 @@ void corner_dtrinv_8x8_lib4_new(double *A0, int sda, int use_inv_diag_A, double 
 
 
 
-void corner_dtrinv_7x7_lib4_new(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc)
+void corner_dtrtri_7x7_lib4(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc)
 	{
 
 	double *A1 = A0 + 4*sda;
@@ -506,7 +506,7 @@ void corner_dtrinv_7x7_lib4_new(double *A0, int sda, int use_inv_diag_A, double 
 
 
 
-void corner_dtrinv_6x6_lib4_new(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc)
+void corner_dtrtri_6x6_lib4(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc)
 	{
 
 	double *A1 = A0 + 4*sda;
@@ -743,7 +743,7 @@ void corner_dtrinv_6x6_lib4_new(double *A0, int sda, int use_inv_diag_A, double 
 
 
 
-void corner_dtrinv_5x5_lib4_new(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc)
+void corner_dtrtri_5x5_lib4(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc)
 	{
 
 	double *A1 = A0 + 4*sda;
@@ -980,7 +980,7 @@ void corner_dtrinv_5x5_lib4_new(double *A0, int sda, int use_inv_diag_A, double 
 
 
 
-void corner_dtrinv_4x4_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
+void corner_dtrtri_4x4_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
 	{
 
 	const int bs = 4;
@@ -1064,7 +1064,7 @@ void corner_dtrinv_4x4_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_
 
 
 
-void corner_dtrinv_3x3_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
+void corner_dtrtri_3x3_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
 	{
 
 	const int bs = 4;
@@ -1148,7 +1148,7 @@ void corner_dtrinv_3x3_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_
 
 
 
-void corner_dtrinv_2x2_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
+void corner_dtrtri_2x2_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
 	{
 
 	const int bs = 4;
@@ -1183,7 +1183,7 @@ void corner_dtrinv_2x2_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_
 
 
 
-void corner_dtrinv_1x1_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
+void corner_dtrtri_1x1_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
 	{
 
 	const int bs = 4;
@@ -1218,7 +1218,7 @@ void corner_dtrinv_1x1_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_
 
 
 
-void kernel_dtrinv_8x4_lib4_new(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E)
+void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E)
 	{
 
 	double *A1 = A0 + 4*sda;
@@ -1649,7 +1649,7 @@ void kernel_dtrinv_8x4_lib4_new(int kmax, double *A0, int sda, double *B, double
 
 
 
-void kernel_dtrinv_8x3_lib4_new(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E)
+void kernel_dtrtri_8x3_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E)
 	{
 
 	double *A1 = A0 + 4*sda;
@@ -2080,7 +2080,7 @@ void kernel_dtrinv_8x3_lib4_new(int kmax, double *A0, int sda, double *B, double
 
 
 
-void kernel_dtrinv_8x2_lib4_new(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E)
+void kernel_dtrtri_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E)
 	{
 
 	double *A1 = A0 + 4*sda;
@@ -2357,7 +2357,7 @@ void kernel_dtrinv_8x2_lib4_new(int kmax, double *A0, int sda, double *B, double
 
 
 
-void kernel_dtrinv_8x1_lib4_new(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E)
+void kernel_dtrtri_8x1_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E)
 	{
 
 	double *A1 = A0 + 4*sda;
@@ -2635,7 +2635,7 @@ void kernel_dtrinv_8x1_lib4_new(int kmax, double *A0, int sda, double *B, double
 
 
 #if 0
-void kernel_dtrinv_4x4_lib4_new(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E)
+void kernel_dtrtri_4x4_lib4(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E)
 	{
 
 	const int bs = 4;
@@ -2873,7 +2873,7 @@ void kernel_dtrinv_4x4_lib4_new(int kmax, double *A, double *B, double *C, doubl
 	
 	
 	
-void kernel_dtrinv_4x2_lib4_new(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E)
+void kernel_dtrtri_4x2_lib4(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E)
 	{
 
 	const int bs = 4;

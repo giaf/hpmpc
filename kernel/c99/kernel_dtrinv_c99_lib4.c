@@ -25,7 +25,7 @@
 
 
 
-void corner_dtrinv_4x4_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
+void corner_dtrtri_4x4_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
 	{
 
 	const int bs = 4;
@@ -94,7 +94,7 @@ void corner_dtrinv_4x4_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_
 
 
 
-void corner_dtrinv_3x3_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
+void corner_dtrtri_3x3_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
 	{
 
 	const int bs = 4;
@@ -148,7 +148,7 @@ void corner_dtrinv_3x3_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_
 
 
 
-void corner_dtrinv_2x2_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
+void corner_dtrtri_2x2_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
 	{
 
 	const int bs = 4;
@@ -183,7 +183,7 @@ void corner_dtrinv_2x2_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_
 
 
 
-void corner_dtrinv_1x1_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
+void corner_dtrtri_1x1_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, double *C)
 	{
 
 	const int bs = 4;
@@ -218,7 +218,7 @@ void corner_dtrinv_1x1_lib4_new(double *A, int use_inv_diag_A, double *inv_diag_
 
 
 
-void kernel_dtrinv_4x4_lib4_new(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E)
+void kernel_dtrtri_4x4_lib4(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E)
 	{
 
 	const int bs = 4;
@@ -560,7 +560,7 @@ void kernel_dtrinv_4x4_lib4_new(int kmax, double *A, double *B, double *C, doubl
 	
 	
 	
-void kernel_dtrinv_4x3_lib4_new(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E)
+void kernel_dtrtri_4x3_lib4(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E)
 	{
 
 	const int bs = 4;
@@ -833,7 +833,7 @@ void kernel_dtrinv_4x3_lib4_new(int kmax, double *A, double *B, double *C, doubl
 	
 	
 	
-void kernel_dtrinv_4x2_lib4_new(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E)
+void kernel_dtrtri_4x2_lib4(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E)
 	{
 
 	const int bs = 4;
@@ -1044,7 +1044,7 @@ void kernel_dtrinv_4x2_lib4_new(int kmax, double *A, double *B, double *C, doubl
 	
 	
 	
-void kernel_dtrinv_4x1_lib4_new(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E)
+void kernel_dtrtri_4x1_lib4(int kmax, double *A, double *B, double *C, double *E, int use_inv_diag_E, double *inv_diag_E)
 	{
 
 	const int bs = 4;

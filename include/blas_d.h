@@ -86,4 +86,4 @@ void dpotrf_lib_old(int m, int n, double *pD, int sdd, double *pC, int sdc, doub
 void dsyrk_dpotrf_lib_old(int m, int n, int k, double *pA, int sda, int alg, double *pC, int sdc, double *pD, int sdd, double *diag, int fast_rsqrt);
 void dtrsv_n_lib_old(int m, int n, int inverted_diag, double *pA, int sda, double *x);
 void dtrsv_t_lib_old(int m, int n, int inverted_diag, double *pA, int sda, double *x);
-void dtrinv_lib_new(int m, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *pC, int sdc);
+void dtrtri_lib(int m, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *pC, int sdc);

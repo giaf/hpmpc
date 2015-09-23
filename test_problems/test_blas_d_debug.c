@@ -164,7 +164,7 @@ int main()
 //		dsyrk_dpotrf_lib_new(11, n, n, pA, cn, pA, cn, 1, pB, cn, pD, cn, diag);
 		dsyrk_nt_lib(n, n, n, pA, cn, pA, cn, 1, pB, cn, pD, cn);
 		dpotrf_lib(n, n, pD, cn, pD, cn, x);
-		dtrinv_lib_new(n, pD, cn, 1, x, pL, cn);
+		dtrtri_lib(n, pD, cn, 1, x, pL, cn);
 //		dsyrk_nn_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
 //		dgemm_diag_left_lib(n, n, x, pA, cn, pC, cn, pD, cn, 0);
 //		dsyrk_diag_left_right_lib(n, x, x, pA, cn, pC, cn, pD, cn, 0);
