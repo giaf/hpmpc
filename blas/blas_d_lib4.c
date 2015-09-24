@@ -5218,6 +5218,42 @@ void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
 
 
 
+// regularize diagonal 
+void ddiareg_lib(int kmax, double reg, int offset, double *pD, int sdd)
+	{
+
+	const int bs = 4;
+
+	int kna = (bs-offset%bs)%bs;
+	kna = kmax<kna ? kmax : kna;
+
+	int jj, ll;
+
+	if(kna>0)
+		{
+		for(ll=0; ll<kna; ll++)
+			{
+			pD[ll+bs*ll] += reg;
+			}
+		pD += kna + bs*(sdd-1) + kna*bs;
+		kmax -= kna;
+		}
+	for(jj=0; jj<kmax-3; jj+=4)
+		{
+		pD[jj*sdd+(jj+0)*bs+0] += reg;
+		pD[jj*sdd+(jj+1)*bs+1] += reg;
+		pD[jj*sdd+(jj+2)*bs+2] += reg;
+		pD[jj*sdd+(jj+3)*bs+3] += reg;
+		}
+	for(ll=0; ll<kmax-jj; ll++)
+		{
+		pD[jj*sdd+(jj+ll)*bs+ll] += reg;
+		}
+	
+	}
+
+
+
 // insert vector to diagonal 
 void ddiain_lib(int kmax, double *x, int offset, double *pD, int sdd)
 	{

@@ -62,6 +62,7 @@ void dsyrk_diag_left_right_lib(int m, double *Al, double *Ar, double *B, int sdb
 void dgemv_diag_lib(int m, double *dA, double *x, int alg, double *y, double *z);
 
 // auxiliary routines
+void ddiareg_lib(int kmax, double reg, int offset, double *pD, int sdd);
 void ddiain_lib(int kmax, double *x, int offset, double *pD, int sdd);
 void ddiain_sqrt_lib(int kmax, double *x, int offset, double *pD, int sdd);
 void ddiaex_lib(int kmax, int offset, double *pD, int sdd, double *x);
