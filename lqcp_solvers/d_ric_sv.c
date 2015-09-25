@@ -1624,6 +1624,110 @@ pne0 = (ne0+bs-1)/bs*bs;
 
 
 
+void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **hqb, double **hpLA, double **hdLA, double **hpLe, double **hxupi, double *tmp)
+	{
+
+	const int bs = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+
+	int ii, jj, ll;	
+
+	int nv0, ne0, ne1, nve0, pnv0, pnv1, pne0, pne1, cnv0, cne0, cne1;
+
+	// forward recursion
+
+	nv0  = nv[0];
+	ne0  = ne[0];
+	nve0 = nv0 + ne0;
+	pnv0 = (nv0+bs-1)/bs*bs;
+	pne0 = (ne0+bs-1)/bs*bs;
+	cnv0 = (nv0+ncl-1)/ncl*ncl;
+	cne0 = (ne0+ncl-1)/ncl*ncl;
+
+	d_copy_mat(nve0, 1, hqb[ii], 1, hxupi[ii], 1);
+
+	for(ii=0; ii<N; ii++)
+		{
+
+		dtrsv_n_lib(nve0, nv0, hpLA[ii], cnv0, 1, hdLA[ii], hxupi[ii], hxupi[ii]);
+
+		if(ne0>pnv0-nv0)
+			for(jj=0; jj<pnv0-nv0; jj++) hxupi[ii][nve0+jj] = hxupi[ii][nv0+jj];
+		else
+			for(jj=0; jj<ne0; jj++) hxupi[ii][pnv0+jj] = hxupi[ii][nv0+jj];
+
+		ne1  = ne0;
+		pnv1 = pnv0;
+		pne1 = pne0;
+		cne1 = cne0;
+		nv0  = nv[ii+1];
+		ne0  = ne[ii+1];
+		nve0 = nv0 + ne0;
+		pnv0 = (nv0+bs-1)/bs*bs;
+		pne0 = (ne0+bs-1)/bs*bs;
+		cnv0 = (nv0+ncl-1)/ncl*ncl;
+		cne0 = (ne0+ncl-1)/ncl*ncl;
+
+		d_copy_mat(nve0, 1, hqb[ii+1], 1, hxupi[ii+1], 1);
+
+		dtrmv_u_t_lib(ne1, hpLe[ii+1], cne1, hxupi[ii]+pnv1, 0, tmp);
+		dtrmv_u_n_lib(ne1, hpLe[ii+1], cne1, tmp, -1, hxupi[ii+1]);
+
+		}
+	
+	dtrsv_n_lib(nve0, nv0, hpLA[N], cnv0, 1, hdLA[N], hxupi[N], hxupi[N]);
+	if(ne0>pnv0-nv0)
+		for(jj=0; jj<pnv0-nv0; jj++) hxupi[N][nve0+jj] = hxupi[N][nv0+jj];
+	else
+		for(jj=0; jj<ne0; jj++) hxupi[N][pnv0] = hxupi[N][nv0];
+
+
+	
+	// backward recursion
+	for(jj=0; jj<nve0; jj++) hxupi[N][jj] = - hxupi[N][jj]; // TODO works if ne0>0 ???
+
+	dtrsv_t_lib(nve0, nv0, hpLA[N], cnv0, 1, hdLA[N], hxupi[N], hxupi[N]);
+	if(ne0>pnv0-nv0)
+		for(jj=0; jj<pnv0-nv0; jj++) hxupi[N][nve0+jj] = hxupi[N][nv0+jj];
+	else
+		for(jj=0; jj<ne0; jj++) hxupi[N][pnv0] = hxupi[N][nv0];
+
+	for(ii=0; ii<N; ii++)
+		{
+		
+		ne1  = ne0;
+		pnv1 = pnv0;
+		pne1 = pne0;
+		cne1 = cne0;
+		nv0  = nv[N-ii-1];
+		ne0  = ne[N-ii-1];
+		nve0 = nv0 + ne0;
+		pnv0 = (nv0+bs-1)/bs*bs;
+		pne0 = (ne0+bs-1)/bs*bs;
+		cnv0 = (nv0+ncl-1)/ncl*ncl;
+		cne0 = (ne0+ncl-1)/ncl*ncl;
+
+		for(jj=0; jj<ne0; jj++) tmp[pne0+jj] = hxupi[N-ii-1][pnv0+jj] - hxupi[N-ii][jj];
+
+		dtrmv_u_t_lib(ne0, hpLe[N-ii], cne0, tmp+pne0, 0, tmp);
+		dtrmv_u_n_lib(ne0, hpLe[N-ii], cne0, tmp, 0, hxupi[N-ii-1]+pnv0);
+
+		if(ne0>pnv0-nv0)
+			for(jj=0; jj<pnv0-nv0; jj++) hxupi[N-ii-1][nv0+jj] = hxupi[N-ii-1][nve0+jj];
+		else
+			for(jj=0; jj<ne0; jj++) hxupi[N-ii-1][nv0+jj] = hxupi[N-ii-1][pnv0+jj];
+
+		for(jj=0; jj<nv0; jj++) hxupi[N-ii-1][jj] = - hxupi[N-ii-1][jj];
+		dtrsv_t_lib(nve0, nv0, hpLA[N-ii-1], cnv0, 1, hdLA[N-ii-1], hxupi[N-ii-1], hxupi[N-ii-1]);
+
+		}
+	
+	return;
+
+	}
+
+
+
 int d_forward_schur_trf(int N, int nx, int nu, int nd, int diag_hessian, double **hpQA, double **hpLA, double **hdLA, double **hpLe, double *work)
 	{
 

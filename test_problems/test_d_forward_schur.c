@@ -349,7 +349,7 @@ int main()
 		double *B; d_zeros(&B, nx, nu); // inputs matrix
 
 		double *b; d_zeros(&b, nx, 1); // states offset
-		double *x0; d_zeros(&x0, nx, 1); // initial state
+		double *x0; d_zeros_align(&x0, pnx, 1); // initial state
 
 		double Ts = 0.5; // sampling time
 		mass_spring_system(Ts, nx, nu, N, A, B, b, x0);
@@ -427,6 +427,22 @@ int main()
 			}
 //		d_print_pmat(pnv_tv[N]+pne_tv[N], cnv_tv[N], bs, pQAN, cnv_tv[N]);
 
+		double *qb0; d_zeros_align(&qb0, pnv_tv[0]+pne_tv[0], 1);
+		double *pA; d_zeros_align(&pA, pnx, cnx);
+		d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
+//		d_print_pmat(nx, nx, bs, pA, cnx);
+		dgemv_n_lib(nx, nx, pA, cnx, x0, 0, qb0+pnv_tv[0], qb0+pnv_tv[0]);
+//		d_print_mat(1, pnv_tv[0]+pne_tv[0], qb0, 1);
+		if(pnv_tv[0]-nv_tv[0]<ne_tv[0])
+			for(jj=0; jj<pnv_tv[0]-nv_tv[0]; jj++) qb0[nv_tv[0]+jj] = qb0[nv_tv[0]+ne_tv[0]+jj];
+		else
+			for(jj=0; jj<ne_tv[0]; jj++) qb0[nv_tv[0]+jj] = qb0[pnv_tv[0]+jj];
+//		d_print_mat(1, pnv_tv[0]+pne_tv[0], qb0, 1);
+
+		double *qb1; d_zeros_align(&qb1, pnv_tv[1]+pne_tv[1], 1);
+
+		double *qbN; d_zeros_align(&qbN, pnv_tv[N]+pne_tv[N], 1);
+
 
 
 		double *(hpQA[N+1]);
@@ -450,25 +466,33 @@ int main()
 
 
 		double *(hpQA_tv[N+1]);
+		double *(hqb_tv[N+1]);
 		double *(hpLA_tv[N+1]);
 		double *(hdLA_tv[N+1]);
 		double *(hpLe_tv[N+1]);
+		double *(hxupi_tv[N+1]);
 		
 		hpQA_tv[0] = pQA0;
+		hqb_tv[0] = qb0;
 		d_zeros_align(&hpLA_tv[0], pnv_tv[0]+pne_tv[0], cnv_tv[0]);
 		d_zeros_align(&hdLA_tv[0], pnv_tv[0], 1);
 		d_zeros_align(&hpLe_tv[0], pne_tv[0], cne_tv[0]);
+		d_zeros_align(&hxupi_tv[0], pnv_tv[0]+pne_tv[0], 1);
 		for(ii=1; ii<N; ii++)
 			{
 			hpQA_tv[ii] = pQA1;
+			hqb_tv[ii] = qb1;
 			d_zeros_align(&hpLA_tv[ii], pnv_tv[ii]+pne_tv[ii], cnv_tv[ii]);
 			d_zeros_align(&hdLA_tv[ii], pnv_tv[ii], 1);
 			d_zeros_align(&hpLe_tv[ii], pne_tv[ii], cne_tv[ii]);
+			d_zeros_align(&hxupi_tv[ii], pnv_tv[ii]+pne_tv[ii], 1);
 			}
 		hpQA_tv[N] = pQAN;
+		hqb_tv[N] = qbN;
 		d_zeros_align(&hpLA_tv[N], pnv_tv[N]+pne_tv[N], cnv_tv[N]);
 		d_zeros_align(&hdLA_tv[N], pnv_tv[N], 1);
 		d_zeros_align(&hpLe_tv[N], pne_tv[N], cne_tv[N]);
+		d_zeros_align(&hxupi_tv[N], pnv_tv[N]+pne_tv[N], 1);
 
 
 
@@ -498,13 +522,22 @@ int main()
 
 		double *work_tv; d_zeros_align(&work_tv, cnx*pnx+pnx, 1);
 
-		info = d_forward_schur_trf_tv(N, nv_tv, ne_tv, 1e-6, 0, hpQA_tv, hpLA_tv, hdLA_tv, hpLe_tv, work_tv);	
+		info = d_forward_schur_trf_tv(N, nv_tv, ne_tv, 1e-9, 0, hpQA_tv, hpLA_tv, hdLA_tv, hpLe_tv, work_tv);	
 		printf("\nreturn value = %d\n\n", info);
 
 		for(ii=0; ii<=N; ii++)
 			{
 			d_print_pmat(pnv_tv[ii]+pne_tv[ii], cnv_tv[ii], bs, hpLA_tv[ii], cnv_tv[ii]);
 			d_print_pmat(pne_tv[ii], cne_tv[ii], bs, hpLe_tv[ii], cne_tv[ii]);
+			}
+
+		double *tmp_tv; d_zeros_align(&tmp_tv, pnx, 1);
+
+		d_forward_schur_trs_tv(N, nv_tv, ne_tv, 0, hqb_tv, hpLA_tv, hdLA_tv, hpLe_tv, hxupi_tv, tmp_tv);	
+
+		for(ii=0; ii<=N; ii++)
+			{
+			d_print_mat(1, pnv_tv[ii]+pne_tv[ii], hxupi_tv[ii], 1);
 			}
 
 		} // increase size

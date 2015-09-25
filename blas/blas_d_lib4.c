@@ -4948,9 +4948,8 @@ void dtrsv_n_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *
 	
 	int i, j;
 	
-	// blocks of 4 (pA is supposed to be properly aligned)
 	if(x!=y)
-		for(i=0; i<n; i++)
+		for(i=0; i<m; i++)
 			y[i] = x[i];
 
 	j = 0;
@@ -5103,7 +5102,7 @@ void dtrsv_t_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *
 	int i, j;
 	
 	if(x!=y)
-		for(i=0; i<n; i++)
+		for(i=0; i<m; i++)
 			y[i] = x[i];
 			
 	j=0;
