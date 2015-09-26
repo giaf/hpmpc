@@ -37,6 +37,7 @@
 #include "test_param.h"
 #include "../problem_size.h"
 #include "../include/aux_d.h"
+#include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_solvers.h"
 #include "../include/block_size.h"
@@ -303,6 +304,8 @@ int main()
 			nrep = 2*nnrep[ll];
 			}
 
+		int nd = 2;
+
 		int nxu = nx+nu;
 
 		int pnx  = (nx+bs-1)/bs*bs;
@@ -323,7 +326,7 @@ int main()
 			ne_tv[ii] = nx;
 			}
 		nv_tv[N] = nx;
-		ne_tv[N] = 0;
+		ne_tv[N] = nd;
 
 		int pnv_tv[N+1];
 		int pne_tv[N+1];
@@ -365,6 +368,9 @@ int main()
 		double *AB; d_zeros(&AB, nx, nx+nu);
 		for(ii=0; ii<nx*nx; ii++) AB[ii] = A[ii];
 		for(ii=0; ii<nx*nu; ii++) AB[nx*nx+ii] = B[ii];
+
+		double *C; d_zeros(&C, nd, nx);
+		for(ii=0; ii<nd; ii++) C[ii*(nd+1)] = 1.0;
 	
 /************************************************
 * cost function
@@ -416,9 +422,9 @@ int main()
 
 		double *pQAN; d_zeros_align(&pQAN, pnv_tv[N]+pne_tv[N], cnv_tv[N]);
 		d_cvt_mat2pmat(nv_tv[N], nv_tv[N], Q, nxu, 0, pQAN, cnv_tv[N]);
-		if(nv_tv[N]>0)
+		if(ne_tv[N]>0)
 			{
-			d_cvt_mat2pmat(ne_tv[N], nv_tv[N], AB, nx, 0, pQAN+pnv_tv[N]*cnv_tv[N], cnv_tv[N]);
+			d_cvt_mat2pmat(ne_tv[N], nv_tv[N], C, nd, 0, pQAN+pnv_tv[N]*cnv_tv[N], cnv_tv[N]);
 			// copy the bottom of AB in the empty space !!!!!
 			if(pnv_tv[N]-nv_tv[N]<ne_tv[N])
 				dgecp_lib(pnv_tv[N]-nv_tv[N], nv_tv[N], nv_tv[N]+ne_tv[N], pQAN+(nv_tv[N]+ne_tv[N])/bs*bs*cnv_tv[N]+(nv_tv[N]+ne_tv[N])%bs, cnv_tv[N], nv_tv[N], pQAN+nv_tv[N]/bs*bs*cnv_tv[N]+nv_tv[N]%bs, cnv_tv[N]);
@@ -442,6 +448,8 @@ int main()
 		double *qb1; d_zeros_align(&qb1, pnv_tv[1]+pne_tv[1], 1);
 
 		double *qbN; d_zeros_align(&qbN, pnv_tv[N]+pne_tv[N], 1);
+		qbN[pnv_tv[N]+0] =  1.0;
+		qbN[pnv_tv[N]+1] = -2.0;
 
 
 
@@ -503,6 +511,7 @@ int main()
 * call time-invariant solver
 ************************************************/	
 
+#if 0
 		double *work; d_zeros_align(&work, cnx*pnx+pnx, 1);
 
 		info = d_forward_schur_trf(N, nx, nu, 0, 0, hpQA, hpLA, hdLA, hpLe, work);	
@@ -514,6 +523,7 @@ int main()
 			d_print_pmat(pnxu+pnx, cnxu, bs, hpLA[ii], cnxu);
 			d_print_pmat(pnx, cnx, bs, hpLe[ii], cnx);
 			}
+#endif
 
 
 /************************************************
