@@ -363,7 +363,7 @@ int main()
 ************************************************/
 
 //	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 10*pnb + 2*anx) + 3*anz, 1); // work space
-	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + 5*anz + 10*pnb + 2*anx) + anz + pnz*cnx, 1); // work space
+	double *work; d_zeros_align(&work, (N+1)*(pnz*cnl + pnz + 5*anz + 10*pnb + 2*anx) + anz + pnz*cnx, 1); // work space
 /*	for(jj=0; jj<( (N+1)*(pnz*cnl + 4*anz + 4*pnb + 2*anx) + 3*anz ); jj++) work[jj] = -1.0;*/
 	int kk = 0; // acutal number of iterations
 /*	char prec = PREC; // double/single precision*/
@@ -555,7 +555,7 @@ int main()
 	d_zeros_align(&hpis[N], pnx, 1);
 	d_zeros_align(&hlams[N] ,2*pnbs+2*pngs, 1);
 	d_zeros_align(&hts[N], 2*pnbs+2*pngs, 1);
-	double *works; d_zeros_align(&works, (N+1)*(pnzs*cnls + 5*anzs + 10*(pnbs+pngs) + 2*anx) + anzs + pnzs*cnxgs, 1); // work space 
+	double *works; d_zeros_align(&works, (N+1)*(pnzs*cnls + pnzs + 5*anzs + 10*(pnbs+pngs) + 2*anx) + anzs + pnzs*cnxgs, 1); // work space 
 
 	gettimeofday(&tv0, NULL); // start
 
