@@ -302,7 +302,8 @@ void d_res_ip_soft_mpc(int nx, int nu, int N, int nh, int ns, double **hpBAbt, d
 		}
 	for(jj=0; jj<nu; jj++) hrq[0][jj] = - hq[0][jj] + hlam[0][2*jj+0] - hlam[0][2*jj+1];
 	for(jj=0; jj<nu%bs; jj++) { temp[jj] = hux[0][(nu/bs)*bs+jj]; hux[0][(nu/bs)*bs+jj] = 0.0; }
-	dgemv_t_lib(nx, nu, hpQ[0]+(nu/bs)*bs*cnz+nu%bs, cnz, hux[0]+nu, -1, hrq[0], hrq[0]);
+	//dgemv_t_lib(nx, nu, hpQ[0]+(nu/bs)*bs*cnz+nu%bs, cnz, hux[0]+nu, -1, hrq[0], hrq[0]);
+	dgemv_t_lib(nx+nu%bs, nu, hpQ[0]+(nu/bs)*bs*cnz, cnz, hux[0]+nu/bs*bs, -1, hrq[0], hrq[0]);
 	for(jj=0; jj<nu%bs; jj++) hux[0][(nu/bs)*bs+jj] = temp[jj];
 	dsymv_lib(nu, nu, hpQ[0], cnz, hux[0], -1, hrq[0], hrq[0]);
 	dgemv_n_lib(nu, nx, hpBAbt[0], cnx, hpi[1], -1, hrq[0], hrq[0]);
