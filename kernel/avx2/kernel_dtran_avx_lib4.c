@@ -1080,7 +1080,7 @@ void kernel_dtrtr_l_8_lib4(int kmax, int kna, double *A, int sda, double *C0, in
 		_mm_store_pd( &C1[2+bs*0], u0 );
 
 		}
-	else if(kmax==2)
+	else if(kmax-k==2)
 		{
 		
 		v0 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[0+bs*0] ) ), _mm_load_pd( &A[0+bs*2]) , 0x1 );
@@ -1102,7 +1102,7 @@ void kernel_dtrtr_l_8_lib4(int kmax, int kna, double *A, int sda, double *C0, in
 		_mm256_store_pd( &C1[0+bs*1], vd );
 
 		}
-	else // if(kmax==3)
+	else // if(kmax-k==3)
 		{
 
 		v0 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[0+bs*0] ) ), _mm_load_pd( &A[0+bs*2]) , 0x1 );
@@ -1535,7 +1535,7 @@ void kernel_dtrtr_l_4_lib4(int kmax, int kna, double *A, int sda, double *C) // 
 		_mm_store_pd( &C[2+bs*0], u0 );
 
 		}
-	else if(kmax==2)
+	else if(kmax-k==2)
 		{
 		
 #if 1
@@ -1566,7 +1566,7 @@ void kernel_dtrtr_l_4_lib4(int kmax, int kna, double *A, int sda, double *C) // 
 #endif
 
 		}
-	else // if(kmax==3)
+	else // if(kmax-k==3)
 		{
 
 #if 1
