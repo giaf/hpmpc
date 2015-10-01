@@ -3706,13 +3706,13 @@ void kernel_dgemv_diag_lib4(int kmax, double *dA, double *x, double *y, double *
 		for( ; k<kmax-7; k+=8)
 			{
 
-			a0 = _mm256_load_pd( &dA[0] );
-			x0 = _mm256_load_pd( &x[0] );
+			a0 = _mm256_loadu_pd( &dA[0] );
+			x0 = _mm256_loadu_pd( &x[0] );
 			z0 = _mm256_mul_pd( a0, x0 );
 			_mm256_storeu_pd( &z[0], z0 );
 
-			a0 = _mm256_load_pd( &dA[4] );
-			x0 = _mm256_load_pd( &x[4] );
+			a0 = _mm256_loadu_pd( &dA[4] );
+			x0 = _mm256_loadu_pd( &x[4] );
 			z0 = _mm256_mul_pd( a0, x0 );
 			_mm256_storeu_pd( &z[4], z0 );
 
@@ -3724,8 +3724,8 @@ void kernel_dgemv_diag_lib4(int kmax, double *dA, double *x, double *y, double *
 		for( ; k<kmax-3; k+=4)
 			{
 
-			a0 = _mm256_load_pd( &dA[0] );
-			x0 = _mm256_load_pd( &x[0] );
+			a0 = _mm256_loadu_pd( &dA[0] );
+			x0 = _mm256_loadu_pd( &x[0] );
 			z0 = _mm256_mul_pd( a0, x0 );
 			_mm256_storeu_pd( &z[0], z0 );
 
@@ -3754,15 +3754,15 @@ void kernel_dgemv_diag_lib4(int kmax, double *dA, double *x, double *y, double *
 		for( ; k<kmax-7; k+=8)
 			{
 
-			a0 = _mm256_load_pd( &dA[0] );
-			x0 = _mm256_load_pd( &x[0] );
+			a0 = _mm256_loadu_pd( &dA[0] );
+			x0 = _mm256_loadu_pd( &x[0] );
 			z0 = _mm256_mul_pd( a0, x0 );
 			y0 = _mm256_loadu_pd( &y[0] );
 			z0 = _mm256_add_pd( y0, z0 );
 			_mm256_storeu_pd( &z[0], z0 );
 
-			a0 = _mm256_load_pd( &dA[4] );
-			x0 = _mm256_load_pd( &x[4] );
+			a0 = _mm256_loadu_pd( &dA[4] );
+			x0 = _mm256_loadu_pd( &x[4] );
 			z0 = _mm256_mul_pd( a0, x0 );
 			y0 = _mm256_loadu_pd( &y[4] );
 			z0 = _mm256_add_pd( y0, z0 );
@@ -3777,8 +3777,8 @@ void kernel_dgemv_diag_lib4(int kmax, double *dA, double *x, double *y, double *
 		for( ; k<kmax-3; k+=4)
 			{
 
-			a0 = _mm256_load_pd( &dA[0] );
-			x0 = _mm256_load_pd( &x[0] );
+			a0 = _mm256_loadu_pd( &dA[0] );
+			x0 = _mm256_loadu_pd( &x[0] );
 			z0 = _mm256_mul_pd( a0, x0 );
 			y0 = _mm256_loadu_pd( &y[0] );
 			z0 = _mm256_add_pd( y0, z0 );
@@ -3813,15 +3813,15 @@ void kernel_dgemv_diag_lib4(int kmax, double *dA, double *x, double *y, double *
 		for( ; k<kmax-7; k+=8)
 			{
 
-			a0 = _mm256_load_pd( &dA[0] );
-			x0 = _mm256_load_pd( &x[0] );
+			a0 = _mm256_loadu_pd( &dA[0] );
+			x0 = _mm256_loadu_pd( &x[0] );
 			z0 = _mm256_mul_pd( a0, x0 );
 			y0 = _mm256_loadu_pd( &y[0] );
 			z0 = _mm256_sub_pd( y0, z0 );
 			_mm256_storeu_pd( &z[0], z0 );
 
-			a0 = _mm256_load_pd( &dA[4] );
-			x0 = _mm256_load_pd( &x[4] );
+			a0 = _mm256_loadu_pd( &dA[4] );
+			x0 = _mm256_loadu_pd( &x[4] );
 			z0 = _mm256_mul_pd( a0, x0 );
 			y0 = _mm256_loadu_pd( &y[4] );
 			z0 = _mm256_sub_pd( y0, z0 );
@@ -3836,8 +3836,8 @@ void kernel_dgemv_diag_lib4(int kmax, double *dA, double *x, double *y, double *
 		for( ; k<kmax-3; k+=4)
 			{
 
-			a0 = _mm256_load_pd( &dA[0] );
-			x0 = _mm256_load_pd( &x[0] );
+			a0 = _mm256_loadu_pd( &dA[0] );
+			x0 = _mm256_loadu_pd( &x[0] );
 			z0 = _mm256_mul_pd( a0, x0 );
 			y0 = _mm256_loadu_pd( &y[0] );
 			z0 = _mm256_sub_pd( y0, z0 );
