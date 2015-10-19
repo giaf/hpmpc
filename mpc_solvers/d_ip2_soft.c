@@ -405,19 +405,19 @@ exit(1);
 		sigma = sigma*sigma*sigma;
 //		if(sigma<sigma_min)
 //			sigma = sigma_min;
-//printf("\n%f %f %f %f\n", mu_aff, mu, sigma, mu_scal);
+//printf("\n%f %f %f %f\n", alpha, mu_aff, mu, sigma);
 //exit(1);
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*pnb[ii], dt[ii], 1);
+	d_print_mat(1, 2*pnb[ii]+2*png[ii]+4*pns[ii], dt[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*pnb[ii], dlam[ii], 1);
+	d_print_mat(1, 2*pnb[ii]+2*png[ii]+4*pns[ii], dlam[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*pnb[ii], t_inv[ii], 1);
+	d_print_mat(1, 2*pnb[ii]+2*png[ii]+4*pns[ii], t_inv[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii], pl[ii], 1);
-//exit(1);
+	d_print_mat(1, nb[ii]+ns[ii], pl[ii], 1);
+exit(1);
 #endif
 
 
