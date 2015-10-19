@@ -773,7 +773,7 @@ void kernel_dtrtr_l_8_lib4(int kmax, int kna, double *A, int sda, double *C0, in
 
 */
 
-		mask = _mm256_set_epi64x( -1, -1, -1, 1 );
+		mask = _mm256_set_epi64x( 1, -1, -1, -1 );
 
 		// top 2x2 triangle
 		u0 = _mm_load_sd( &A[0+bs*0] ); // 00
