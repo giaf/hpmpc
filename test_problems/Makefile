@@ -45,6 +45,7 @@ endif
 #OBJS_TEST = test_blas_d_low_rank.o
 #OBJS_TEST = test_blas_s.o
 #OBJS_TEST = tools.o test_d_ric_mpc.o
+#OBJS_TEST = tools.o test_d_forward_schur.o
 #OBJS_TEST = tools.o test_s_ric_mpc.o
 #OBJS_TEST = tools.o test_d_ric_mhe.o
 #OBJS_TEST = tools.o test_d_cond_mpc.o
@@ -71,6 +72,7 @@ test_blas_d.o: test_blas_d.c test_param.h ../problem_size.h
 test_blas_dsyrk_dpotrf.o: test_blas_dsyrk_dpotrf.c test_param.h ../problem_size.h
 test_blas_s.o: test_blas_s.c test_param.h ../problem_size.h
 test_d_ric_mpc.o: test_d_ric_mpc.c test_param.h ../problem_size.h
+test_d_forward_schur.o: test_d_forward_schur.c test_param.h ../problem_size.h
 test_s_ric_mpc.o: test_s_ric_mpc.c test_param.h ../problem_size.h
 test_d_ric_mhe.o: test_d_ric_mhe.c test_param.h ../problem_size.h
 test_d_cond_mpc.o: test_d_cond_mpc.c test_param.h ../problem_size.h
