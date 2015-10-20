@@ -1507,9 +1507,13 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 	const int bs = D_MR;
 	const int ncl = D_NCL;
 
+	int ii, jj, ll;	
 
-	int pneM = (ne[1]+bs-1)/bs*bs; // TODO do with actual max !!!!!
-	int cneM = (ne[1]+ncl-1)/ncl*ncl; // TODO do with actual max !!!!!
+
+	int neM = 0;
+	for(ii=0; ii<=N; ii++) if(ne[ii]>neM) neM = ne[ii];
+	int pneM = (neM+bs-1)/bs*bs;
+	int cneM = (neM+ncl-1)/ncl*ncl;
 
 	double *hpLe_tmp = work; 
 	work += pneM*cneM;
@@ -1517,26 +1521,33 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 	work += pneM;
 
 
-
 	float diag_min;
 	diag_min = 1.0;
 
-	int ii, jj, ll;	
 
 	int nv0, ne0, ne1, nve0, pnv0, pne0, cnv0, cne0, cne1;
 
 
 	// first stage
+	ii = 0;
 	nv0 = nv[0];
 	ne0 = ne[0];
 	nve0 = nv0 + ne0;
 	pnv0 = (nv0+bs-1)/bs*bs;
-pne0 = (ne0+bs-1)/bs*bs;
+	pne0 = (ne0+bs-1)/bs*bs;
 	cnv0 = (nv0+ncl-1)/ncl*ncl;
 	cne0 = (ne0+ncl-1)/ncl*ncl;
 
-	dgecp_lib(nve0, nv0, 0, hpQA[0], cnv0, 0, hpLA[0], cnv0);
+	dgecp_lib(pnv0+pne0, nv0, 0, hpQA[0], cnv0, 0, hpLA[0], cnv0); // copy entire panels
 
+	// copy the lower part of A in the padd space
+	if(ne0>pnv0-nv0)
+		dgecp_lib(pnv0-nv0, nv0, nve0, hpLA[0]+nve0/bs*bs*cnv0+nve0%bs, cnv0, nv0, hpLA[0]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+	else
+		dgecp_lib(ne0, nv0, 0, hpLA[0]+pnv0*cnv0, cnv0, nv0, hpLA[0]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+
+
+	// middle stages
 	for(ii=0; ii<N; ii++)
 		{
 
@@ -1551,7 +1562,7 @@ pne0 = (ne0+bs-1)/bs*bs;
 
 		// copy back the lower part of A
 		if(ne0>pnv0-nv0)
-			dgecp_lib(pnv0-nv0, nv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0);
+			dgecp_lib(pnv0-nv0, nv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0);
 		else
 			dgecp_lib(ne0, nv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0);
 
@@ -1570,11 +1581,17 @@ pne0 = (ne0+bs-1)/bs*bs;
 		ne0  = ne[ii+1];
 		nve0 = nv0 + ne0;
 		pnv0 = (nv0+bs-1)/bs*bs;
-pne0 = (ne0+bs-1)/bs*bs;
+		pne0 = (ne0+bs-1)/bs*bs;
 		cnv0 = (nv0+ncl-1)/ncl*ncl;
 		cne0 = (ne0+ncl-1)/ncl*ncl;
 
-		dgecp_lib(nve0, nv0, 0, hpQA[ii+1], cnv0, 0, hpLA[ii+1], cnv0);
+		dgecp_lib(pnv0+pne0, nv0, 0, hpQA[ii+1], cnv0, 0, hpLA[ii+1], cnv0); // copy entire panels
+
+		// copy the lower part of A in the padd space
+		if(ne0>pnv0-nv0)
+			dgecp_lib(pnv0-nv0, nv0, nve0, hpLA[ii+1]+nve0/bs*bs*cnv0+nve0%bs, cnv0, nv0, hpLA[ii+1]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+		else
+			dgecp_lib(ne0, nv0, 0, hpLA[ii+1]+pnv0*cnv0, cnv0, nv0, hpLA[ii+1]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
 
 		dlauum_lib(ne1, hpLe[ii], cne1, hpLe[ii], cne1, 1, hpLA[ii+1], cnv0, hpLA[ii+1], cnv0);
 
@@ -1583,6 +1600,9 @@ pne0 = (ne0+bs-1)/bs*bs;
 			return ii+1;
 
 		}
+
+
+	// last stage
 
 	// regularize 
 	ddiareg_lib(nv0, reg, 0, hpLA[N], cnv0);
@@ -1596,7 +1616,7 @@ pne0 = (ne0+bs-1)/bs*bs;
 		{
 		// copy back the lower part of A
 		if(ne0>pnv0-nv0)
-			dgecp_lib(pnv0-nv0, nv0, nv0, hpLA[N]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[N]+nve0/bs*bs*cnv0+nve0%bs, cnv0);
+			dgecp_lib(pnv0-nv0, nv0, nv0, hpLA[N]+nv0/bs*bs*cnv0+nv0%bs, cnv0, nve0, hpLA[N]+nve0/bs*bs*cnv0+nve0%bs, cnv0);
 		else
 			dgecp_lib(ne0, nv0, nv0, hpLA[N]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[N]+pnv0*cnv0, cnv0);
 
@@ -1632,6 +1652,8 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 
 	// forward recursion
 
+	// first stage
+	ii = 0;
 	nv0  = nv[0];
 	ne0  = ne[0];
 	nve0 = nv0 + ne0;
@@ -1640,13 +1662,22 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 	cnv0 = (nv0+ncl-1)/ncl*ncl;
 	cne0 = (ne0+ncl-1)/ncl*ncl;
 
-	d_copy_mat(nve0, 1, hqb[ii], 1, hxupi[ii], 1);
+	d_copy_mat(pnv0+ne0, 1, hqb[ii], 1, hxupi[ii], 1);
 
+	// copy in the pad space
+	if(ne0>pnv0-nv0)
+		for(jj=0; jj<pnv0-nv0; jj++) hxupi[ii][nv0+jj] = hxupi[ii][nve0+jj];
+	else
+		for(jj=0; jj<ne0; jj++) hxupi[ii][nv0+jj] = hxupi[ii][pnv0+jj];
+	
+
+	// middle stages
 	for(ii=0; ii<N; ii++)
 		{
 
 		dtrsv_n_lib(nve0, nv0, hpLA[ii], cnv0, 1, hdLA[ii], hxupi[ii], hxupi[ii]);
 
+		// copy back
 		if(ne0>pnv0-nv0)
 			for(jj=0; jj<pnv0-nv0; jj++) hxupi[ii][nve0+jj] = hxupi[ii][nv0+jj];
 		else
@@ -1664,13 +1695,21 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 		cnv0 = (nv0+ncl-1)/ncl*ncl;
 		cne0 = (ne0+ncl-1)/ncl*ncl;
 
-		d_copy_mat(nve0, 1, hqb[ii+1], 1, hxupi[ii+1], 1);
+		d_copy_mat(pnv0+ne0, 1, hqb[ii+1], 1, hxupi[ii+1], 1);
+
+		// copy in the pad space
+		if(ne0>pnv0-nv0)
+			for(jj=0; jj<pnv0-nv0; jj++) hxupi[ii+1][nv0+jj] = hxupi[ii+1][nve0+jj];
+		else
+			for(jj=0; jj<ne0; jj++) hxupi[ii+1][nv0+jj] = hxupi[ii+1][pnv0+jj];
 
 		dtrmv_u_t_lib(ne1, hpLe[ii], cne1, hxupi[ii]+pnv1, 0, tmp);
 		dtrmv_u_n_lib(ne1, hpLe[ii], cne1, tmp, -1, hxupi[ii+1]);
 
 		}
 	
+
+	// last stage
 	dtrsv_n_lib(nve0, nv0, hpLA[N], cnv0, 1, hdLA[N], hxupi[N], hxupi[N]);
 
 	if(ne0>pnv0-nv0)
@@ -1684,6 +1723,8 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 
 	
 	// backward recursion
+
+	// last stage
 	for(jj=0; jj<nv0; jj++) hxupi[N][jj] = - hxupi[N][jj];
 
 	dtrsv_t_lib(nve0, nv0, hpLA[N], cnv0, 1, hdLA[N], hxupi[N], hxupi[N]);
@@ -1692,6 +1733,7 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 	else
 		for(jj=0; jj<ne0; jj++) hxupi[N][pnv0] = hxupi[N][nv0];
 
+	// middle stages
 	for(ii=0; ii<N; ii++)
 		{
 		
