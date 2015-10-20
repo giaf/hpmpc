@@ -1527,6 +1527,8 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 
 	int nv0, ne0, ne1, nve0, pnv0, pne0, cnv0, cne0, cne1;
 
+	int nx0, nu0, ncp;
+
 
 	// first stage
 	ii = 0;
@@ -1538,18 +1540,27 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 	cnv0 = (nv0+ncl-1)/ncl*ncl;
 	cne0 = (ne0+ncl-1)/ncl*ncl;
 
-	dgecp_lib(pnv0+pne0, nv0, 0, hpQA[0], cnv0, 0, hpLA[0], cnv0); // copy entire panels
-
-	// copy the lower part of A in the padd space
-	if(ne0>pnv0-nv0)
-		dgecp_lib(pnv0-nv0, nv0, nve0, hpLA[0]+nve0/bs*bs*cnv0+nve0%bs, cnv0, nv0, hpLA[0]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
-	else
-		dgecp_lib(ne0, nv0, 0, hpLA[0]+pnv0*cnv0, cnv0, nv0, hpLA[0]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
-
-
-	// middle stages
-	for(ii=0; ii<N; ii++)
+	if(diag_hessian)
 		{
+
+		d_set_pmat(pnv0, nv0, 0.0, 0, hpLA[ii], cnv0);
+		for(jj=0; jj<nv0; jj++) hdLA[ii][jj] = sqrt(hpQA[ii][jj]+reg);
+		ddiain_lib(nv0, hdLA[ii], 0, hpLA[ii], cnv0);
+		for(jj=0; jj<nv0; jj++) hdLA[ii][jj] = 1.0/hdLA[ii][jj];
+
+		dgemm_diag_right_lib(ne0, nv0, hpQA[ii]+pnv0, cnv0, hdLA[ii], 0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0);
+
+		}
+	else
+		{
+
+		dgecp_lib(pnv0+pne0, nv0, 0, hpQA[ii], cnv0, 0, hpLA[ii], cnv0); // copy entire panels
+
+		// copy the lower part of A in the padd space
+		if(ne0>pnv0-nv0)
+			dgecp_lib(pnv0-nv0, nv0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+		else
+			dgecp_lib(ne0, nv0, 0, hpLA[ii]+pnv0*cnv0, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
 
 		// regularize 
 		ddiareg_lib(nv0, reg, 0, hpLA[ii], cnv0);
@@ -1566,6 +1577,128 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 		else
 			dgecp_lib(ne0, nv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0);
 
+		}
+		
+	d_set_pmat(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
+	ddiareg_lib(ne0, reg, 0, hpLe_tmp, cne0);
+	dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
+
+	for(jj=0; jj<ne0; jj++) 
+		diag_min = fmin(diag_min, hdLe_tmp[jj]);
+
+	dtrtri_lib(ne0, hpLe_tmp, cne0, 1, hdLe_tmp, hpLe[ii], cne0);
+
+
+
+	// middle stages
+	for(ii=1; ii<N; ii++)
+		{
+
+		ne1  = ne0;
+		cne1 = cne0;
+		nv0  = nv[ii];
+		ne0  = ne[ii];
+		nve0 = nv0 + ne0;
+		pnv0 = (nv0+bs-1)/bs*bs;
+		pne0 = (ne0+bs-1)/bs*bs;
+		cnv0 = (nv0+ncl-1)/ncl*ncl;
+		cne0 = (ne0+ncl-1)/ncl*ncl;
+
+		if(diag_hessian)
+			{
+
+			nx0 = ne1;
+			nu0 = nv0 - nx0;
+
+			dlauum_lib(ne1, hpLe[ii-1], cne1, hpLe[ii-1], cne1, 0, hpLA[ii], cnv0, hpLA[ii], cnv0);
+
+			ddiaad_lib(nx0, 1.0, hpQA[ii], 0, hpLA[ii], cnv0);
+
+			ddiareg_lib(nx0, reg, 0, hpLA[ii], cnv0);
+
+//			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
+
+			// copy the lower part of A in the padd space
+//			printf("\n%d %d %d\n", ne0, pnv0, nx0);
+			if(ne0>pnv0-nx0)
+				{
+				ncp = ne0-pnv0+nx0;
+				dgecp_lib(ncp, nx0, 0, hpQA[ii]+pnv0, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0);
+				dgecp_lib(pnv0-nx0, nx0, ncp, hpQA[ii]+pnv0+ncp/bs*bs*cnv0+ncp%bs, cnv0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0);
+//				d_print_pmat(pne0, cnv0, bs, hpQA[ii]+pnv0, cnv0);
+//				d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
+//				exit(2);
+				}
+			else // copy all A in the pad space
+				{
+				dgecp_lib(ne0, nx0, 0, hpQA[ii]+pnv0, cnv0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0);
+				}
+
+//			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
+
+			// assume that A is aligned to a panel boundary, and that the lower part of A is copied between Q and A
+			dpotrf_lib(2*nx0, nx0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
+
+			for(jj=0; jj<nx0; jj++) 
+				diag_min = fmin(diag_min, hdLA[ii][jj]);
+
+//			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
+
+			// copy back the lower part of A
+			if(ne0>pnv0-nx0)
+				dgecp_lib(pnv0-nx0, nx0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0, 2*nx0, hpLA[ii]+2*nx0/bs*bs*cnv0+2*nx0%bs, cnv0);
+			else
+				dgecp_lib(ne0, nx0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0);
+
+//			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
+
+			d_set_pmat(nu0, nu0, 0.0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs+nx0*bs, cnv0);
+			for(jj=0; jj<nu0; jj++) hdLA[ii][nx0+jj] = sqrt(hpQA[ii][nx0+jj]+reg);
+			ddiain_lib(nu0, hdLA[ii]+nx0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs+nx0*bs, cnv0);
+			for(jj=0; jj<nu0; jj++) hdLA[ii][nx0+jj] = 1.0/hdLA[ii][nx0+jj];
+			
+//			d_print_mat(1, nv0, hdLA[ii], 1);
+
+			dgemm_diag_right_lib(ne0, nu0, hpQA[ii]+pnv0+nx0*bs, cnv0, hdLA[ii]+nx0, 0, hpLA[ii]+pnv0*cnv0+nx0*bs, cnv0, hpLA[ii]+pnv0*cnv0+nx0*bs, cnv0);
+
+//			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
+
+//			exit(1);
+
+			}
+		else
+			{
+
+			dgecp_lib(pnv0+ne0, nv0, 0, hpQA[ii], cnv0, 0, hpLA[ii], cnv0); // copy entire panels
+
+			// copy the lower part of A in the padd space
+			if(ne0>pnv0-nv0)
+				dgecp_lib(pnv0-nv0, nv0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+			else
+				dgecp_lib(ne0, nv0, 0, hpLA[ii]+pnv0*cnv0, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+
+			dlauum_lib(ne1, hpLe[ii-1], cne1, hpLe[ii-1], cne1, 1, hpLA[ii], cnv0, hpLA[ii], cnv0);
+
+			// regularize 
+			ddiareg_lib(nv0, reg, 0, hpLA[ii], cnv0);
+
+			// assume that A is aligned to a panel boundary, and that the lower part of A is copied between Q and A
+			dpotrf_lib(nve0, nv0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
+
+			for(jj=0; jj<nv0; jj++) 
+				diag_min = fmin(diag_min, hdLA[ii][jj]);
+
+			// copy back the lower part of A
+			if(ne0>pnv0-nv0)
+				dgecp_lib(pnv0-nv0, nv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0);
+			else
+				dgecp_lib(ne0, nv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0);
+
+//			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
+//			exit(1);
+
+			}
+
 		d_set_pmat(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
 		ddiareg_lib(ne0, reg, 0, hpLe_tmp, cne0);
 		dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
@@ -1575,25 +1708,6 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 
 		dtrtri_lib(ne0, hpLe_tmp, cne0, 1, hdLe_tmp, hpLe[ii], cne0);
 
-		ne1  = ne0;
-		cne1 = cne0;
-		nv0  = nv[ii+1];
-		ne0  = ne[ii+1];
-		nve0 = nv0 + ne0;
-		pnv0 = (nv0+bs-1)/bs*bs;
-		pne0 = (ne0+bs-1)/bs*bs;
-		cnv0 = (nv0+ncl-1)/ncl*ncl;
-		cne0 = (ne0+ncl-1)/ncl*ncl;
-
-		dgecp_lib(pnv0+pne0, nv0, 0, hpQA[ii+1], cnv0, 0, hpLA[ii+1], cnv0); // copy entire panels
-
-		// copy the lower part of A in the padd space
-		if(ne0>pnv0-nv0)
-			dgecp_lib(pnv0-nv0, nv0, nve0, hpLA[ii+1]+nve0/bs*bs*cnv0+nve0%bs, cnv0, nv0, hpLA[ii+1]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
-		else
-			dgecp_lib(ne0, nv0, 0, hpLA[ii+1]+pnv0*cnv0, cnv0, nv0, hpLA[ii+1]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
-
-		dlauum_lib(ne1, hpLe[ii], cne1, hpLe[ii], cne1, 1, hpLA[ii+1], cnv0, hpLA[ii+1], cnv0);
 
 
 		if(diag_min==0.0)
@@ -1603,6 +1717,42 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 
 
 	// last stage
+	ii = N;
+	ne1  = ne0;
+	cne1 = cne0;
+	nv0  = nv[ii];
+	ne0  = ne[ii];
+	nve0 = nv0 + ne0;
+	pnv0 = (nv0+bs-1)/bs*bs;
+	pne0 = (ne0+bs-1)/bs*bs;
+	cnv0 = (nv0+ncl-1)/ncl*ncl;
+	cne0 = (ne0+ncl-1)/ncl*ncl;
+
+
+	if(diag_hessian)
+		{
+
+		dlauum_lib(ne1, hpLe[ii-1], cne1, hpLe[ii-1], cne1, 0, hpLA[ii], cnv0, hpLA[ii], cnv0);
+
+		ddiaad_lib(nv0, 1.0, hpQA[ii], 0, hpLA[ii], cnv0);
+
+		dgecp_lib(ne0, nv0, 0, hpQA[ii]+pnv0, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0); // copy entire panels
+
+		}
+	else
+		{
+
+		dgecp_lib(pnv0+pne0, nv0, 0, hpQA[ii], cnv0, 0, hpLA[ii], cnv0); // copy entire panels
+
+		dlauum_lib(ne1, hpLe[ii-1], cne1, hpLe[ii-1], cne1, 1, hpLA[ii], cnv0, hpLA[ii], cnv0);
+
+		}
+
+	// copy the lower part of A in the padd space
+	if(ne0>pnv0-nv0)
+		dgecp_lib(pnv0-nv0, nv0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+	else
+		dgecp_lib(ne0, nv0, 0, hpLA[ii]+pnv0*cnv0, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
 
 	// regularize 
 	ddiareg_lib(nv0, reg, 0, hpLA[N], cnv0);
@@ -1633,6 +1783,9 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 
 	if(diag_min==0.0)
 		return ii+1;
+	
+//	d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
+//	exit(1);
 
 	return 0;
 
@@ -1650,6 +1803,10 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 
 	int nv0, ne0, ne1, nve0, pnv0, pnv1, pne0, pne1, cnv0, cne0, cne1;
 
+
+	int nx0, nu0;
+
+
 	// forward recursion
 
 	// first stage
@@ -1664,17 +1821,26 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 
 	d_copy_mat(pnv0+ne0, 1, hqb[ii], 1, hxupi[ii], 1);
 
-	// copy in the pad space
-	if(ne0>pnv0-nv0)
-		for(jj=0; jj<pnv0-nv0; jj++) hxupi[ii][nv0+jj] = hxupi[ii][nve0+jj];
-	else
-		for(jj=0; jj<ne0; jj++) hxupi[ii][nv0+jj] = hxupi[ii][pnv0+jj];
-	
-
-	// middle stages
-	for(ii=0; ii<N; ii++)
+	if(diag_hessian)
 		{
 
+//		d_print_pmat(nve0, nv0, bs, hpLA[ii], cnv0);
+//		d_print_mat(1, pnv0+pne0, hxupi[ii], 1);
+
+		//dtrsv_n_lib(nv0, nv0, hpLA[ii], cnv0, 1, hdLA[ii], hxupi[ii], hxupi[ii]);
+		dgemv_diag_lib(nv0, hdLA[ii], hxupi[ii], 0, hxupi[ii], hxupi[ii]); 
+		dgemv_n_lib(ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hxupi[ii], -1, hxupi[ii]+pnv0, hxupi[ii]+pnv0);
+
+		}
+	else
+		{
+
+		// copy in the pad space
+		if(ne0>pnv0-nv0)
+			for(jj=0; jj<pnv0-nv0; jj++) hxupi[ii][nv0+jj] = hxupi[ii][nve0+jj];
+		else
+			for(jj=0; jj<ne0; jj++) hxupi[ii][nv0+jj] = hxupi[ii][pnv0+jj];
+		
 		dtrsv_n_lib(nve0, nv0, hpLA[ii], cnv0, 1, hdLA[ii], hxupi[ii], hxupi[ii]);
 
 		// copy back
@@ -1683,87 +1849,198 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 		else
 			for(jj=0; jj<ne0; jj++) hxupi[ii][pnv0+jj] = hxupi[ii][nv0+jj];
 
+		}
+	
+
+
+	// middle stages
+	for(ii=1; ii<=N; ii++)
+		{
+
 		ne1  = ne0;
 		pnv1 = pnv0;
 		pne1 = pne0;
 		cne1 = cne0;
-		nv0  = nv[ii+1];
-		ne0  = ne[ii+1];
+		nv0  = nv[ii];
+		ne0  = ne[ii];
 		nve0 = nv0 + ne0;
 		pnv0 = (nv0+bs-1)/bs*bs;
 		pne0 = (ne0+bs-1)/bs*bs;
 		cnv0 = (nv0+ncl-1)/ncl*ncl;
 		cne0 = (ne0+ncl-1)/ncl*ncl;
 
-		d_copy_mat(pnv0+ne0, 1, hqb[ii+1], 1, hxupi[ii+1], 1);
+		d_copy_mat(pnv0+ne0, 1, hqb[ii], 1, hxupi[ii], 1);
 
-		// copy in the pad space
-		if(ne0>pnv0-nv0)
-			for(jj=0; jj<pnv0-nv0; jj++) hxupi[ii+1][nv0+jj] = hxupi[ii+1][nve0+jj];
+		dtrmv_u_t_lib(ne1, hpLe[ii-1], cne1, hxupi[ii-1]+pnv1, 0, tmp);
+		dtrmv_u_n_lib(ne1, hpLe[ii-1], cne1, tmp, -1, hxupi[ii]);
+
+		if(diag_hessian)
+			{
+
+			nx0 = ne1;
+			nu0 = nv0 - nx0;
+			
+			dtrsv_n_lib(nx0, nx0, hpLA[ii], cnv0, 1, hdLA[ii], hxupi[ii], hxupi[ii]);
+			dgemv_diag_lib(nu0, hdLA[ii]+nx0, hxupi[ii]+nx0, 0, hxupi[ii]+nx0, hxupi[ii]+nx0); 
+			dgemv_n_lib(ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hxupi[ii], -1, hxupi[ii]+pnv0, hxupi[ii]+pnv0);
+
+			}
 		else
-			for(jj=0; jj<ne0; jj++) hxupi[ii+1][nv0+jj] = hxupi[ii+1][pnv0+jj];
+			{
 
-		dtrmv_u_t_lib(ne1, hpLe[ii], cne1, hxupi[ii]+pnv1, 0, tmp);
-		dtrmv_u_n_lib(ne1, hpLe[ii], cne1, tmp, -1, hxupi[ii+1]);
+			// copy in the pad space
+			if(ne0>pnv0-nv0)
+				for(jj=0; jj<pnv0-nv0; jj++) hxupi[ii][nv0+jj] = hxupi[ii][nve0+jj];
+			else
+				for(jj=0; jj<ne0; jj++) hxupi[ii][nv0+jj] = hxupi[ii][pnv0+jj];
+
+			dtrsv_n_lib(nve0, nv0, hpLA[ii], cnv0, 1, hdLA[ii], hxupi[ii], hxupi[ii]);
+
+			// copy back
+			if(ne0>pnv0-nv0)
+				for(jj=0; jj<pnv0-nv0; jj++) hxupi[ii][nve0+jj] = hxupi[ii][nv0+jj];
+			else
+				for(jj=0; jj<ne0; jj++) hxupi[ii][pnv0+jj] = hxupi[ii][nv0+jj];
+
+			}
+
+//		d_print_mat(1, pnv0+pne0, hxupi[ii], 1);
+//		exit(1);
 
 		}
 	
 
 	// last stage
-	dtrsv_n_lib(nve0, nv0, hpLA[N], cnv0, 1, hdLA[N], hxupi[N], hxupi[N]);
-
-	if(ne0>pnv0-nv0)
-		for(jj=0; jj<pnv0-nv0; jj++) hxupi[N][nve0+jj] = hxupi[N][nv0+jj];
-	else
-		for(jj=0; jj<ne0; jj++) hxupi[N][pnv0] = hxupi[N][nv0];
-
+	ii = N;
 	dtrmv_u_t_lib(ne0, hpLe[N], cne0, hxupi[ii]+pnv0, 0, tmp);
-	dtrmv_u_n_lib(ne0, hpLe[N], cne0, tmp, 0, hxupi[ii]+pnv0);
-
 
 	
 	// backward recursion
+	dtrmv_u_n_lib(ne0, hpLe[N], cne0, tmp, 0, hxupi[ii]+pnv0);
 
 	// last stage
 	for(jj=0; jj<nv0; jj++) hxupi[N][jj] = - hxupi[N][jj];
 
-	dtrsv_t_lib(nve0, nv0, hpLA[N], cnv0, 1, hdLA[N], hxupi[N], hxupi[N]);
-	if(ne0>pnv0-nv0)
-		for(jj=0; jj<pnv0-nv0; jj++) hxupi[N][nve0+jj] = hxupi[N][nv0+jj];
+//	d_print_mat(1, pnv0+pne0, hxupi[ii], 1);
+
+	if(diag_hessian)
+		{
+
+		dgemv_t_lib(ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hxupi[N]+pnv0, -1, hxupi[N], hxupi[N]);
+		dtrsv_t_lib(nv0, nv0, hpLA[N], cnv0, 1, hdLA[N], hxupi[N], hxupi[N]);
+
+		}
 	else
-		for(jj=0; jj<ne0; jj++) hxupi[N][pnv0] = hxupi[N][nv0];
+		{
+
+		dtrsv_t_lib(nve0, nv0, hpLA[N], cnv0, 1, hdLA[N], hxupi[N], hxupi[N]);
+
+		if(ne0>pnv0-nv0)
+			for(jj=0; jj<pnv0-nv0; jj++) hxupi[N][nve0+jj] = hxupi[N][nv0+jj];
+		else
+			for(jj=0; jj<ne0; jj++) hxupi[N][pnv0] = hxupi[N][nv0];
+
+		}
+	
+//	d_print_mat(1, pnv0+pne0, hxupi[ii], 1);
+//	exit(1);
+
+//	ne1 = ne[N-1];
 
 	// middle stages
-	for(ii=0; ii<N; ii++)
+	for(ii=1; ii<N; ii++)
 		{
 		
-		ne1  = ne0;
-		pnv1 = pnv0;
-		pne1 = pne0;
-		cne1 = cne0;
-		nv0  = nv[N-ii-1];
-		ne0  = ne[N-ii-1];
+		ne0  = ne1;
+		ne1  = ne[N-ii-1];//ne0;
+//		pnv1 = pnv0;
+//		pne1 = pne0;
+//		cne1 = cne0;
+		nv0  = nv[N-ii];
+//		ne0  = ne[N-ii];
 		nve0 = nv0 + ne0;
 		pnv0 = (nv0+bs-1)/bs*bs;
 		pne0 = (ne0+bs-1)/bs*bs;
 		cnv0 = (nv0+ncl-1)/ncl*ncl;
 		cne0 = (ne0+ncl-1)/ncl*ncl;
 
-		for(jj=0; jj<ne0; jj++) tmp[pne0+jj] = hxupi[N-ii-1][pnv0+jj] - hxupi[N-ii][jj];
+		for(jj=0; jj<ne0; jj++) tmp[pne0+jj] = hxupi[N-ii][pnv0+jj] - hxupi[N-ii+1][jj];
 
-		dtrmv_u_t_lib(ne0, hpLe[N-ii-1], cne0, tmp+pne0, 0, tmp);
-		dtrmv_u_n_lib(ne0, hpLe[N-ii-1], cne0, tmp, 0, hxupi[N-ii-1]+pnv0);
+		dtrmv_u_t_lib(ne0, hpLe[N-ii], cne0, tmp+pne0, 0, tmp);
+		dtrmv_u_n_lib(ne0, hpLe[N-ii], cne0, tmp, 0, hxupi[N-ii]+pnv0);
 
-		if(ne0>pnv0-nv0)
-			for(jj=0; jj<pnv0-nv0; jj++) hxupi[N-ii-1][nv0+jj] = hxupi[N-ii-1][nve0+jj];
+		for(jj=0; jj<nv0; jj++) hxupi[N-ii][jj] = - hxupi[N-ii][jj];
+
+		if(diag_hessian)
+			{
+
+			nx0 = ne1;
+			nu0 = nv0 - nx0;
+
+			dgemv_t_lib(ne0, nv0, hpLA[N-ii]+pnv0*cnv0, cnv0, hxupi[N-ii]+pnv0, -1, hxupi[N-ii], hxupi[N-ii]);
+			dtrsv_t_lib(nx0, nx0, hpLA[N-ii], cnv0, 1, hdLA[N-ii], hxupi[N-ii], hxupi[N-ii]);
+			dgemv_diag_lib(nu0, hdLA[N-ii]+nx0, hxupi[N-ii]+nx0, 0, hxupi[N-ii]+nx0, hxupi[N-ii]+nx0); 
+
+			}
 		else
-			for(jj=0; jj<ne0; jj++) hxupi[N-ii-1][nv0+jj] = hxupi[N-ii-1][pnv0+jj];
+			{
 
-		for(jj=0; jj<nv0; jj++) hxupi[N-ii-1][jj] = - hxupi[N-ii-1][jj];
-		dtrsv_t_lib(nve0, nv0, hpLA[N-ii-1], cnv0, 1, hdLA[N-ii-1], hxupi[N-ii-1], hxupi[N-ii-1]);
+			if(ne0>pnv0-nv0)
+				for(jj=0; jj<pnv0-nv0; jj++) hxupi[N-ii][nv0+jj] = hxupi[N-ii][nve0+jj];
+			else
+				for(jj=0; jj<ne0; jj++) hxupi[N-ii][nv0+jj] = hxupi[N-ii][pnv0+jj];
+
+			dtrsv_t_lib(nve0, nv0, hpLA[N-ii], cnv0, 1, hdLA[N-ii], hxupi[N-ii], hxupi[N-ii]);
+
+			}
 
 		}
 	
+	// first stage
+	ii = N;
+	ne0  = ne1;
+	ne1  = ne[N-ii-1];//ne0;
+//	pnv1 = pnv0;
+//	pne1 = pne0;
+//	cne1 = cne0;
+	nv0  = nv[N-ii];
+//	ne0  = ne[N-ii];
+	nve0 = nv0 + ne0;
+	pnv0 = (nv0+bs-1)/bs*bs;
+	pne0 = (ne0+bs-1)/bs*bs;
+	cnv0 = (nv0+ncl-1)/ncl*ncl;
+	cne0 = (ne0+ncl-1)/ncl*ncl;
+
+	for(jj=0; jj<ne0; jj++) tmp[pne0+jj] = hxupi[N-ii][pnv0+jj] - hxupi[N-ii+1][jj];
+
+	dtrmv_u_t_lib(ne0, hpLe[N-ii], cne0, tmp+pne0, 0, tmp);
+	dtrmv_u_n_lib(ne0, hpLe[N-ii], cne0, tmp, 0, hxupi[N-ii]+pnv0);
+
+	for(jj=0; jj<nv0; jj++) hxupi[N-ii][jj] = - hxupi[N-ii][jj];
+
+	if(diag_hessian)
+		{
+
+		dgemv_t_lib(ne0, nv0, hpLA[N-ii]+pnv0*cnv0, cnv0, hxupi[N-ii]+pnv0, -1, hxupi[N-ii], hxupi[N-ii]);
+		dgemv_diag_lib(nv0, hdLA[N-ii], hxupi[N-ii], 0, hxupi[N-ii], hxupi[N-ii]); 
+
+		}
+	else
+		{
+
+		if(ne0>pnv0-nv0)
+			for(jj=0; jj<pnv0-nv0; jj++) hxupi[N-ii][nv0+jj] = hxupi[N-ii][nve0+jj];
+		else
+			for(jj=0; jj<ne0; jj++) hxupi[N-ii][nv0+jj] = hxupi[N-ii][pnv0+jj];
+
+		dtrsv_t_lib(nve0, nv0, hpLA[N-ii], cnv0, 1, hdLA[N-ii], hxupi[N-ii], hxupi[N-ii]);
+
+		}
+
+	
+//	d_print_mat(1, pnv0+pne0, hxupi[N-ii], 1);
+//	exit(1);
+
 	return;
 
 	}
