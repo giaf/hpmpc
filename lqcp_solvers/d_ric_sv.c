@@ -1770,6 +1770,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 		else
 			dgecp_lib(ne0, nv0, nv0, hpLA[N]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[N]+pnv0*cnv0, cnv0);
 
+#if 1
 		d_set_pmat(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
 		ddiareg_lib(ne0, reg, 0, hpLe_tmp, cne0);
 		dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
@@ -1778,6 +1779,11 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 			diag_min = fmin(diag_min, hdLe_tmp[jj]);
 
 		dtrtri_lib(ne0, hpLe_tmp, cne0, 1, hdLe_tmp, hpLe[N], cne0);
+#else
+		d_set_pmat(ne0, ne0, 0.0, 0, hpLe[N], cne0);
+		ddiareg_lib(ne0, reg, 0, hpLe[N], cne0);
+		dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, 1, hpLe[N], cne0, hpLe[N], cne0, hdLe_tmp);
+#endif
 		
 		}
 
@@ -1912,11 +1918,20 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 
 	// last stage
 	ii = N;
+#if 1
 	dtrmv_u_t_lib(ne0, hpLe[N], cne0, hxupi[ii]+pnv0, 0, tmp);
+#else
+	double *dummy;
+	dtrsv_n_lib(ne0, ne0, hpLe[N], cne0, 0, dummy, hxupi[ii]+pnv0, tmp);
+#endif
 
 	
 	// backward recursion
+#if 1
 	dtrmv_u_n_lib(ne0, hpLe[N], cne0, tmp, 0, hxupi[ii]+pnv0);
+#else
+	dtrsv_t_lib(ne0, ne0, hpLe[N], cne0, 0, dummy, tmp, hxupi[ii]+pnv0);
+#endif
 
 	// last stage
 	for(jj=0; jj<nv0; jj++) hxupi[N][jj] = - hxupi[N][jj];

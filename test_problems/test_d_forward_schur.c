@@ -148,7 +148,7 @@ int main()
 	printf("\n");
 	printf("\n");
 
-	printf("Riccati solver performance test - double precision\n");
+	printf("Forward Schur-complement solver performance test - double precision\n");
 	printf("\n");
 
 	// maximum frequency of the processor
@@ -240,8 +240,8 @@ int main()
 
 	printf("\n");
 	printf("Tested solvers:\n");
-	printf("-sv : Riccati factorization and system solution (prediction step in IP methods)\n");
-	printf("-trs: system solution after a previous call to Riccati factorization (correction step in IP methods)\n");
+	printf("-trf: factorization routine\n");
+	printf("-trs: solution routine\n");
 	printf("\n");
 	if(LTI==1)
 		printf("\nTest for linear time-invariant systems\n");
@@ -280,8 +280,11 @@ int main()
 	int info;
 
 	int ll;
+#if 0
 	int ll_max = 77;
-//	int ll_max = 1;
+#else
+	int ll_max = 1;
+#endif
 	for(ll=0; ll<ll_max; ll++)
 		{
 		
@@ -484,6 +487,8 @@ int main()
 //		d_print_mat(1, pnv_tv[0]+pne_tv[0], qb0, 1);
 
 		double *qb1; d_zeros_align(&qb1, pnv_tv[1]+pne_tv[1], 1);
+		for(ii=0; ii<nv_tv[1]; ii++) qb1[ii] = 0.0;
+		for(ii=0; ii<ne_tv[1]; ii++) qb1[pnv_tv[1]+ii] = 0.0;
 
 		double *qbN; d_zeros_align(&qbN, pnv_tv[N]+pne_tv[N], 1);
 		if(ne_tv[N]>0)
@@ -538,6 +543,13 @@ int main()
 		double *tmp_tv; d_zeros_align(&tmp_tv, 2*pneM, 1);
 
 
+		double *hres_tv[N+1];
+		for(ii=0; ii<=N; ii++)
+			{
+			d_zeros_align(&hres_tv[ii], pnv_tv[ii]+pne_tv[ii], 1);
+			}
+
+
 
 
 /************************************************
@@ -566,7 +578,7 @@ int main()
 		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6;
 
 
-		int diag_hessian = 1;
+		int diag_hessian = 0;
 
 
 		gettimeofday(&tv0, NULL); // start
@@ -574,9 +586,9 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 			if(diag_hessian)
-				info = d_forward_schur_trf_tv(N, nv_tv, ne_tv, 1e-9, 1, hdQpA_tv, hpLA_tv, hdLA_tv, hpLe_tv, work_tv);	
+				info = d_forward_schur_trf_tv(N, nv_tv, ne_tv, 1e-8, 1, hdQpA_tv, hpLA_tv, hdLA_tv, hpLe_tv, work_tv);	
 			else // dense hessian
-				info = d_forward_schur_trf_tv(N, nv_tv, ne_tv, 1e-9, 0, hpQA_tv, hpLA_tv, hdLA_tv, hpLe_tv, work_tv);	
+				info = d_forward_schur_trf_tv(N, nv_tv, ne_tv, 1e-8, 0, hpQA_tv, hpLA_tv, hdLA_tv, hpLe_tv, work_tv);	
 			}
 
 		gettimeofday(&tv1, NULL); // start
@@ -605,32 +617,47 @@ int main()
 		gettimeofday(&tv3, NULL); // start
 			
 
-#if 0
-#if 0
-		for(ii=0; ii<=N; ii++)
+		if(ll_max==1)
 			{
-			d_print_mat(1, pnv_tv[ii]+pne_tv[ii], hxupi_tv[ii], 1);
-			}
+#if 0
+			for(ii=0; ii<=N; ii++)
+				{
+				d_print_mat(1, pnv_tv[ii]+pne_tv[ii], hxupi_tv[ii], 1);
+				}
 #else
-		printf("\nxu\n");
-		for(ii=0; ii<=N; ii++)
-			{
-			d_print_mat(1, nv_tv[ii], hxupi_tv[ii], 1);
-			}
-		printf("\npi\n");
-		for(ii=0; ii<=N; ii++)
-			{
-			d_print_mat(1, ne_tv[ii], hxupi_tv[ii]+pnv_tv[ii], 1);
-			}
+			printf("\nxu\n");
+			for(ii=0; ii<=N; ii++)
+				{
+				d_print_mat(1, nv_tv[ii], hxupi_tv[ii], 1);
+				}
+			printf("\npi\n");
+			for(ii=0; ii<=N; ii++)
+				{
+				d_print_mat(1, ne_tv[ii], hxupi_tv[ii]+pnv_tv[ii], 1);
+				}
 #endif
-#endif
+			}
+
+
+		// compute residuals
+#if 0
+
+		d_forward_schur_res_tv(N, nv_tv, ne_tv, diag_hessian, hpQA_tv, hqb_tv, hxupi_tv, hres_tv);
+
+		printf("\nresiduals\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nv_tv[ii], hres_tv[ii], 1);
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, ne_tv[ii], hres_tv[ii]+pnv_tv[ii], 1);
+
+#endif 
 
 		float time_trf = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		float flops_trf;
 		if(diag_hessian)
-			flops_trf = N*(10.0/3.0*nx*nx*nx + 1.0*nx*nx*nu + 1.0*nx*nu*nu + 1.0/3.0*nu*nu*nu) + 2.0/3.0*nx*nx*nx + 1.0*nx*nx*nd + 1.0*nx*nd*nd + 1.0/3.0*nd*nd*nd;
+			flops_trf = N*(10.0/3.0*nx*nx*nx + 4.0*nx*nx*nu + 2.0*nx*nu*nu + 1.0/3.0*nu*nu*nu) + 1.0/3.0*nx*nx*nx + 1.0*nx*nx*nd + 1.0*nx*nd*nd + 1.0/3.0*nd*nd*nd;
 		else
-			flops_trf = N*(10.0/3.0*nx*nx*nx + 1.0*nx*nx*nu) + 2.0/3.0*nx*nx*nx + 1.0*nx*nx*nd + 1.0*nx*nd*nd + 1.0/3.0*nd*nd*nd;
+			flops_trf = N*(10.0/3.0*nx*nx*nx + 1.0*nx*nx*nu) + 1.0/3.0*nx*nx*nx + 1.0*nx*nx*nd + 1.0*nx*nd*nd + 1.0/3.0*nd*nd*nd;
 		float Gflops_trf = 1e-9*flops_trf/time_trf;
 
 		float time_trs = (float) (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
@@ -671,6 +698,7 @@ int main()
 			free(hdLA_tv[ii]);
 			free(hpLe_tv[ii]);
 			free(hxupi_tv[ii]);
+			free(hres_tv[ii]);
 			}
 
 		} // increase size

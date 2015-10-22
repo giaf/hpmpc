@@ -73,3 +73,4 @@ void d_back_ric_trf_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, in
 void d_back_ric_trs_new(int N, int nx, int nu, double **hpBAbt, double **hq, int fixed_x0, double **hux, double **hpL, double **hdL, double *work, int compute_Pb, double **hPb, int compute_pi, double **hpi, int nb, int ng, int ngN, double **hpDCt, double **qx);
 int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian, double **hpQA, double **hpLA, double **hdLA, double **hpLe, double *work);
 void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **hqb, double **hpLA, double **hdLA, double **hpLe, double **hxupi, double *tmp);
+void d_forward_schur_res_tv(int N, int *nv, int *ne, int diag_hessian, double **hpQA, double **hqb, double **hxupi, double **hr);

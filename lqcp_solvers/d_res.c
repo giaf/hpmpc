@@ -113,6 +113,46 @@ void d_back_ric_res_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, d
 
 
 
+void d_forward_schur_res_tv(int N, int *nv, int *ne, int diag_hessian, double **hpQA, double **hqb, double **hxupi, double **hr)
+	{
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int ii, jj, pnv0, cnv0, pnv1;
+
+	// first stage
+	ii = 0;
+	pnv0 = (nv[ii]+bs-1)/bs*bs;
+	cnv0 = (nv[ii]+ncl-1)/ncl*ncl;
+	dgemv_nt_lib(ne[ii], nv[ii], hpQA[ii]+pnv0*cnv0, cnv0, hxupi[ii], hxupi[ii]+pnv0, 1, hqb[ii]+pnv0, hqb[ii], hr[ii]+pnv0, hr[ii]);
+	dsymv_lib(nv[ii], nv[ii], hpQA[ii], cnv0, hxupi[ii], 1, hr[ii], hr[ii]);
+	for(jj=0; jj<ne[ii]; jj++) hr[ii][pnv0+jj] -= hxupi[ii+1][jj];
+
+	// middle stages
+	for(ii=1; ii<N; ii++)
+		{
+		pnv1 = pnv0;
+		pnv0 = (nv[ii]+bs-1)/bs*bs;
+		cnv0 = (nv[ii]+ncl-1)/ncl*ncl;
+		dgemv_nt_lib(ne[ii], nv[ii], hpQA[ii]+pnv0*cnv0, cnv0, hxupi[ii], hxupi[ii]+pnv0, 1, hqb[ii]+pnv0, hqb[ii], hr[ii]+pnv0, hr[ii]);
+		dsymv_lib(nv[ii], nv[ii], hpQA[ii], cnv0, hxupi[ii], 1, hr[ii], hr[ii]);
+		for(jj=0; jj<ne[ii-1]; jj++) hr[ii][jj] -= hxupi[ii-1][pnv1+jj];
+		for(jj=0; jj<ne[ii]; jj++) hr[ii][pnv0+jj] -= hxupi[ii+1][jj];
+		}
+
+	// middle stages
+	pnv1 = pnv0;
+	pnv0 = (nv[ii]+bs-1)/bs*bs;
+	cnv0 = (nv[ii]+ncl-1)/ncl*ncl;
+	dgemv_nt_lib(ne[ii], nv[ii], hpQA[ii]+pnv0*cnv0, cnv0, hxupi[ii], hxupi[ii]+pnv0, 1, hqb[ii]+pnv0, hqb[ii], hr[ii]+pnv0, hr[ii]);
+	dsymv_lib(nv[ii], nv[ii], hpQA[ii], cnv0, hxupi[ii], 1, hr[ii], hr[ii]);
+	for(jj=0; jj<ne[ii-1]; jj++) hr[ii][jj] -= hxupi[ii-1][pnv1+jj];
+
+	}
+
+
+
 void d_res_mpc(int nx, int nu, int N, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb)
 	{
 
