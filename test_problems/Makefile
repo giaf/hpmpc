@@ -37,10 +37,13 @@ endif
 ifeq ($(REF_BLAS), NETLIB)
 LIBS = -llapack_netlib -lblas_netlib -lgfortran -lm
 endif
+ifeq ($(REF_BLAS), MKL)
+LIBS = -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_gf_lp64.a /opt/intel/mkl/lib/intel64/libmkl_core.a /opt/intel/mkl/lib/intel64/libmkl_sequential.a -Wl,--end-group -ldl -lpthread -lm
+endif
 
 #OBJS_TEST = test_blas_d_debug.o
 #OBJS_TEST = test_blas_s_debug.o
-#OBJS_TEST = test_blas_d.o
+OBJS_TEST = test_blas_d.o
 #OBJS_TEST = test_blas_dsyrk_dpotrf.o
 #OBJS_TEST = test_blas_d_low_rank.o
 #OBJS_TEST = test_blas_s.o
@@ -49,7 +52,7 @@ endif
 #OBJS_TEST = tools.o test_s_ric_mpc.o
 #OBJS_TEST = tools.o test_d_ric_mhe.o
 #OBJS_TEST = tools.o test_d_cond_mpc.o
-OBJS_TEST = tools.o test_d_ip_hard.o
+#OBJS_TEST = tools.o test_d_ip_hard.o
 #OBJS_TEST = tools.o test_s_ip_box.o
 #OBJS_TEST = tools.o test_d_ip_soft.o
 #OBJS_TEST = tools.o test_d_ip_diag_box.o

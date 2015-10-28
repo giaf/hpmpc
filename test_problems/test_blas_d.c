@@ -411,7 +411,7 @@ int main()
 	
 		for(rep=0; rep<nrep; rep++)
 			{
-#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_NETLIB)
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_NETLIB) || defined(REF_BLAS_MKL)
 			dgemm_(&c_n, &c_n, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
 #endif
 #if defined(REF_BLAS_BLIS)
@@ -423,7 +423,7 @@ int main()
 
 		for(rep=0; rep<nrep; rep++)
 			{
-#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_NETLIB)
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_NETLIB) || defined(REF_BLAS_MKL)
 			dgemv_(&c_n, &n, &n, &d_1, A, &n, x2, &i_1, &d_0, y, &i_1);
 #endif
 #if defined(REF_BLAS_BLIS)
@@ -435,7 +435,7 @@ int main()
 
 		for(rep=0; rep<nrep; rep++)
 			{
-#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_NETLIB)
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_NETLIB) || defined(REF_BLAS_MKL)
 			dgemv_(&c_t, &n, &n, &d_1, A, &n, x2, &i_1, &d_0, y, &i_1);
 #endif
 #if defined(REF_BLAS_BLIS)
