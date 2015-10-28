@@ -52,11 +52,11 @@ DEBUG = #-Wall -pedantic -Wfloat-equal #-pg
 LDFLAGS =
 
 # Reference code linking to standard BLAS and LAPACK
-#REF_BLAS = 0
+REF_BLAS = 0
 #REF_BLAS = OPENBLAS
 #REF_BLAS = BLIS
 #REF_BLAS = NETLIB
-REF_BLAS = MKL
+#REF_BLAS = MKL
 ifeq ($(REF_BLAS), 0)
 REF_BLAS_FLAGS = 
 endif
