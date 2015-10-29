@@ -301,7 +301,7 @@ int main()
 		else
 			{
 			nx = nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
-			nu = 2; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+			nu = nx/2; //2; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 			N  = 10; // horizon lenght
 			nrep = 2*nnrep[ll];
 			}
@@ -654,19 +654,41 @@ int main()
 
 		float time_trf = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		float flops_trf;
-		if(diag_hessian)
+		if(diag_hessian==0)
+			{
 			flops_trf = N*(10.0/3.0*nx*nx*nx + 4.0*nx*nx*nu + 2.0*nx*nu*nu + 1.0/3.0*nu*nu*nu) + 1.0/3.0*nx*nx*nx + 1.0*nx*nx*nd + 1.0*nx*nd*nd + 1.0/3.0*nd*nd*nd;
+			if(nv_tv[0]==nu)
+				flops_trf -= 4.0/3.0*nx*nx*nx + 3.0*nx*nx*nu + 1.0*nx*nu*nu;
+			}
 		else
-			flops_trf = N*(10.0/3.0*nx*nx*nx + 1.0*nx*nx*nu) + 1.0/3.0*nx*nx*nx + 1.0*nx*nx*nd + 1.0*nx*nd*nd + 1.0/3.0*nd*nd*nd;
+			{
+			flops_trf = N*(10.0/3.0*nx*nx*nx + 1.0*nx*nx*nu) - 1.0*nx*nx*nx + 1.0*nx*nx*nd + 1.0*nx*nd*nd + 1.0/3.0*nd*nd*nd;
+			if(nv_tv[0]==nu)
+				flops_trf -= 1.0*nx*nx*nx;
+			}
 		float Gflops_trf = 1e-9*flops_trf/time_trf;
 
 		float time_trs = (float) (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
+		float flops_trs;
+		if(diag_hessian==0)
+			{
+			flops_trs = N*(10.0*nx*nx + 8.0*nx*nu + 2.0*nu*nu) + 2.0*nx*nx + 4.0*nx*nd + 2.0*nd*nd;
+			if(nv_tv[0]==nu)
+				flops_trs -= 6.0*nx*nx + 4.0*nx*nu;
+			}
+		else
+			{
+			flops_trs = N*(10.0*nx*nx + 4.0*nx*nu) + 4.0*nx*nd + 2.0*nd*nd;
+			if(nv_tv[0]==nu)
+				flops_trs -= 4.0*nx*nx;
+			}
+		float Gflops_trs = 1e-9*flops_trs/time_trs;
 
 		float Gflops_max = flops_max * GHz_max;
 
 		if(ll==0)
-			printf("\nnx\tnu\tN\ttrf_time\tGlops\t\t%%\t\ttrs_time\tGlops\t\t%%\n");
-		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_trf, Gflops_trf, 100.0*Gflops_trf/Gflops_max, time_trs, 0.0, 0.0);
+			printf("\nnx\tnu\tnd\tN\ttrf_time\tGlops\t\t%%\t\ttrs_time\tGlops\t\t%%\n");
+		printf("%d\t%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, nd, N, time_trf, Gflops_trf, 100.0*Gflops_trf/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max);
 
 /************************************************
 * free memory
