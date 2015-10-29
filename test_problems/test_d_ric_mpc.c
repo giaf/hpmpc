@@ -37,6 +37,7 @@
 #include "test_param.h"
 #include "../problem_size.h"
 #include "../include/aux_d.h"
+#include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_solvers.h"
 #include "../include/block_size.h"
@@ -279,8 +280,11 @@ int main()
 	int *nx_v, *nu_v, *nb_v, *ng_v;
 
 	int ll;
-//	int ll_max = 77;
+#if 1
+	int ll_max = 77;
+#else
 	int ll_max = 1;
+#endif
 	for(ll=0; ll<ll_max; ll++)
 		{
 		
@@ -298,22 +302,31 @@ int main()
 		else
 			{
 			nx = nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
-			nu = 2; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+			nu = nx/2; //2; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 			N  = 10; // horizon lenght
 			nrep = 2*nnrep[ll];
 			}
 
+
+
+		// define time-varian problem size
 		nx_v = (int *) malloc((N+1)*sizeof(int));
-		for(ii=0; ii<=N; ii++) nx_v[ii] = nx;
+		nx_v[0] = 0;
+		for(ii=1; ii<N; ii++) nx_v[ii] = nx;
+		nx_v[N] = nx;
 
 		nu_v = (int *) malloc((N+1)*sizeof(int));
-		for(ii=0; ii<=N; ii++) nu_v[ii] = nu;
+		nu_v[0] = nu;
+		for(ii=1; ii<N; ii++) nu_v[ii] = nu;
+		nu_v[N] = 0;
 
 		nb_v = (int *) malloc((N+1)*sizeof(int));
 		for(ii=0; ii<=N; ii++) nb_v[ii] = 0;
 
 		ng_v = (int *) malloc((N+1)*sizeof(int));
 		for(ii=0; ii<=N; ii++) ng_v[ii] = 0;
+
+
 
 		int rep;
 	
@@ -324,6 +337,7 @@ int main()
 		int pnx = bs*((nx+bs-1)/bs);
 		int pnx1 = bs*((nx+1+bs-1)/bs);
 		int pnu = bs*((nu+bs-1)/bs);
+		int pnu1 = bs*((nu+1+bs-1)/bs);
 		int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
 		int cnx = ncl*((nx+ncl-1)/ncl);
 		int cnx1 = ncl*((nx+1+ncl-1)/ncl);
@@ -388,6 +402,24 @@ int main()
 
 //	d_print_pmat(nz, nx, bs, pBAbt, cnx);
 
+		// matrices for size-variant solver
+		double *pBAbt0; d_zeros_align(&pBAbt0, pnu1, cnx);
+		d_cvt_mat2pmat(nu, nx, BAbt, pnz, 0, pBAbt0, cnx);
+		d_cvt_mat2pmat(1, nx, BAbt+nu+nx, pnz, nu, pBAbt0+nu/bs*bs*cnx+nu%bs, cnx);
+		double *pA; d_zeros_align(&pA, pnx, cnx);
+		d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
+		double *b0; d_zeros_align(&b0, pnx, 1);
+		dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
+		d_copy_mat(1, nx, b0, 1, pBAbt0+nu/bs*bs*cnx+nu%bs, bs);
+		double *pBAbt1; d_zeros_align(&pBAbt1, pnz, cnx);
+		d_cvt_mat2pmat(nz, nx, BAbt, pnz, 0, pBAbt1, cnx);
+
+//		d_print_pmat(nu+1, nx, bs, pBAbt0, cnx);
+//		d_print_pmat(nu+nx+1, nx, bs, pBAbt1, cnx);
+//		d_print_pmat(nx, nx, bs, pA, cnx);
+//		d_print_mat(1, nx, b0, 1);
+//		exit(2);
+		
 /************************************************
 * cost function
 ************************************************/	
@@ -397,7 +429,8 @@ int main()
 		double *Q; d_zeros_align(&Q, pnz, pnz);
 		for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
 		for(; ii<nu+ncx; ii++) Q[ii*(pnz+1)] = 1.0;
-		for(ii=0; ii<nu+ncx; ii++) Q[nx+nu+ii*pnz] = 0.0;
+		for(ii=0; ii<nu; ii++) Q[nx+nu+ii*pnz] = 0.0;
+		for(; ii<nu+ncx; ii++) Q[nx+nu+ii*pnz] = 0.0;
 /*		Q[(nx+nu)*(pnz+1)] = 1e35; // large enough (not needed any longer) */
 		double *q; d_zeros_align(&q, pnz, 1);
 		for(ii=0; ii<nu+ncx; ii++) q[ii] = Q[nx+nu+ii*pnz];
@@ -406,8 +439,27 @@ int main()
 		double *pQ; d_zeros_align(&pQ, pnz, cnz);
 		d_cvt_mat2pmat(nz, nz, Q, pnz, 0, pQ, cnz);
 
-		double *pQ_N; d_zeros_align(&pQ_N, pnx1, cnx1);
-		d_cvt_mat2pmat(nx+1, nx+1, Q+nu*(pnz+1), pnz, 0, pQ_N, cnx1);
+		// matrices for size-variant solver
+//		int cnu = (nu+ncl-1)/ncl*ncl;
+//		int cnx = (nx+ncl-1)/ncl*ncl;
+		int cnux = (nu+nx+ncl-1)/ncl*ncl;
+		int pnux = (nu+nx+bs-1)/bs*bs;
+		double *pQ0; d_zeros_align(&pQ0, pnu1, cnu);
+		d_cvt_mat2pmat(nu, nu, Q, pnz, 0, pQ0, cnu);
+		d_cvt_mat2pmat(1, nu, Q+nu+nx, pnz, nu, pQ0+nu/bs*bs*cnu+nu%bs, cnu);
+		double *pQ1; d_zeros_align(&pQ1, pnz, cnux);
+		d_cvt_mat2pmat(nu+nx+1, nu+nx, Q, pnz, 0, pQ1, cnux);
+		double *pQN; d_zeros_align(&pQN, pnx1, cnx);
+		d_cvt_mat2pmat(nx, nx, Q+nu*(pnz+1), pnz, 0, pQN, cnx);
+		d_cvt_mat2pmat(1, nx, Q+nu*(pnz+1)+nx, pnz, nx, pQN+nx/bs*bs*cnx+nx%bs, cnx);
+
+		double *q1; d_zeros_align(&q1, pnux, 1);
+
+//		d_print_pmat(nu+1, nu, bs, pQ0, cnu);
+//		d_print_pmat(nu+nx+1, nu+nx, bs, pQ1, cnux);
+//		d_print_pmat(nx+1, nx, bs, pQN, cnx);
+//		exit(2);
+
 
 //	d_print_pmat(nz, nz, bs, pQ, cnz);
 
@@ -418,9 +470,12 @@ int main()
 		double *(hdL[N+1]);
 		double *(hl[N+1]);
 		double *(hq[N+1]);
+		double *(hq_tv[N+1]);
 		double *(hux[N+1]);
 		double *(hpi[N+1]);
 		double *(hpBAbt[N]);
+		double *(hpBAbt_tv[N]);
+		double *(hb_tv[N]);
 		double *(hrb[N]);
 		double *(hrq[N+1]);
 		double *(hPb[N]);
@@ -430,7 +485,7 @@ int main()
 				{
 				hpBAbt[jj] = pBAbt; // LTI
 				hpQ[jj] = pQ;
-				hpQ_tv[jj] = pQ;
+//				hpQ_tv[jj] = pQ;
 				}
 			else // LTV
 				{
@@ -438,8 +493,8 @@ int main()
 				for(ii=0; ii<pnz*cnx; ii++) hpBAbt[jj][ii] = pBAbt[ii];
 				d_zeros_align(&hpQ[jj], pnz, cnz);
 				for(ii=0; ii<pnz*cnz; ii++) hpQ[jj][ii] = pQ[ii];
-				d_zeros_align(&hpQ_tv[jj], pnz, cnz);
-				for(ii=0; ii<pnz*cnz; ii++) hpQ_tv[jj][ii] = pQ[ii];
+//				d_zeros_align(&hpQ_tv[jj], pnz, cnz);
+//				for(ii=0; ii<pnz*cnz; ii++) hpQ_tv[jj][ii] = pQ[ii];
 				}
 			d_zeros_align(&hq[jj], pnz, 1); // it has to be pnz !!!
 			d_zeros_align(&hpL[jj], pnz, cnl);
@@ -454,14 +509,14 @@ int main()
 		if(LTI==1)
 			{
 			hpQ[N] = pQ;
-			hpQ_tv[N] = pQ_N;
+//			hpQ_tv[N] = pQ_N;
 			}
 		else
 			{
 			d_zeros_align(&hpQ[N], pnz, cnz);
 			for(ii=0; ii<pnz*cnz; ii++) hpQ[N][ii] = pQ[ii]; // LTV
 			d_zeros_align(&hpQ_tv[N], pnx1, cnx1);
-			for(ii=0; ii<pnx1*cnx1; ii++) hpQ_tv[N][ii] = pQ_N[ii]; // LTV
+//			for(ii=0; ii<pnx1*cnx1; ii++) hpQ_tv[N][ii] = pQ_N[ii]; // LTV
 			}
 		d_zeros_align(&hpL[N], pnz, cnl);
 		d_zeros_align(&hdL[N], pnz, 1);
@@ -470,6 +525,27 @@ int main()
 		d_zeros_align(&hux[N], pnz, 1); // it has to be pnz !!!
 		d_zeros_align(&hpi[N], pnx, 1);
 		d_zeros_align(&hrq[N], pnz, 1);
+		// size-variant matrices
+		if(LTI==1)
+			{
+			hpQ_tv[0] = pQ0;
+			hq_tv[0] = q1;
+			hpBAbt_tv[0] = pBAbt0;
+			hb_tv[0] = b0;
+			for(ii=1; ii<N; ii++)
+				{
+				hpQ_tv[ii] = pQ1;
+				hpBAbt_tv[ii] = pBAbt1;
+				hb_tv[ii] = b;
+				hq_tv[ii] = q1;
+				}
+			hpQ_tv[N] = pQN;
+			hq_tv[N] = q1;
+			}
+		else
+			{
+			// TODO
+			}
 	
 		// starting guess
 		for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
@@ -1293,7 +1369,7 @@ int main()
 
 
 		// timing 
-		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6;
+		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6, tv7;
 
 		// double precision
 		gettimeofday(&tv0, NULL); // start
@@ -1301,7 +1377,7 @@ int main()
 		// factorize & solve
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, hdL, work0, work1, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
+//			d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, hdL, work0, work1, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 			}
 			
 		gettimeofday(&tv1, NULL); // start
@@ -1326,7 +1402,7 @@ int main()
 			// call the solver 
 //			if(FREE_X0==0)
 				//d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work1, 1, hPb, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy);
-				d_back_ric_trs_new(N, nx, nu, hpBAbt, hq, 1, hux, hpL, hdL, work1, 1, hPb, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy);
+//				d_back_ric_trs_new(N, nx, nu, hpBAbt, hq, 1, hux, hpL, hdL, work1, 1, hPb, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy);
 //			else
 //				d_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 1, hPb, COMPUTE_MULT, hpi);
 			}
@@ -1337,7 +1413,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 //			if(FREE_X0==0)
-				d_res_mpc(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
+//				d_res_mpc(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 //			else
 //				d_res_mhe_old(nx, nu, N, hpBAbt, hpQ, hq, hux, hpi, hrq, hrb);
 			}
@@ -1364,7 +1440,7 @@ int main()
 			// call the solver 
 //			if(FREE_X0==0)
 				//d_ric_trs_mpc(nx, nu, N, hpBAbt, hpL, hq, hux, work1, 0, hPb, 0, hpi, 0, 0, 0, dummy, dummy);
-				d_back_ric_trs_new(N, nx, nu, hpBAbt, hq, 1, hux, hpL, hdL, work1, 0, hPb, 0, hpi, 0, 0, 0, dummy, dummy);
+//				d_back_ric_trs_new(N, nx, nu, hpBAbt, hq, 1, hux, hpL, hdL, work1, 0, hPb, 0, hpi, 0, 0, 0, dummy, dummy);
 //			else
 //				d_ric_trs_mhe_old(nx, nu, N, hpBAbt, hpL, hq, hux, work, 0, hPb, 0, hpi);
 			}
@@ -1375,7 +1451,7 @@ int main()
 		// factorize & solve (fast rsqrt)
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, hdL, work0, work1, 0, hPb, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
+//			d_back_ric_sv_new(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, hdL, work0, work1, 0, hPb, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 			//d_back_ric_sv(N, nx, nu, hpBAbt, hpQ, 0, dummy, dummy, 1, hux, hpL, work, diag, 0, dummy, COMPUTE_MULT, hpi, 0, 0, 0, dummy, dummy, dummy);
 			}
 			
@@ -1387,11 +1463,33 @@ int main()
 
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_back_ric_sv_tv(N, nx_v, nu_v, hpBAbt, hpQ, hux, hpL, hdL, work0, work1, 0, dummy, COMPUTE_MULT, hpi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy);
+//			d_back_ric_sv_tv(N, nx_v, nu_v, hpBAbt_tv, hpQ_tv, hux, hpL, hdL, work0, work1, 0, dummy, COMPUTE_MULT, hpi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy);
+			d_back_ric_trf_tv(N, nx_v, nu_v, hpBAbt_tv, hpQ_tv, hpL, hdL, work0, work1, nb_v, 0, dummy, ng_v, dummy, dummy);
 			}
 
 		gettimeofday(&tv6, NULL); // start
 
+		for(rep=0; rep<nrep; rep++)
+			{
+			d_back_ric_trs_tv(N, nx_v, nu_v, hpBAbt_tv, hb_tv, hpL, hdL, hq_tv, hl, hux, work1, 1, hPb, 1, hpi, nb_v, 0, dummy, ng_v, dummy, dummy);
+			}
+
+		gettimeofday(&tv7, NULL); // start
+
+//		for(ii=0; ii<=N; ii++)
+//			printf("\n%d %d\n", nu_v[ii], nx_v[ii]);
+
+		if(PRINTRES==1 && ll_max==1)
+			{
+			/* print result */
+			printf("\n\nsv\n\n");
+			for(ii=0; ii<=N; ii++)
+				d_print_mat(1, nu_v[ii]+nx_v[ii], hux[ii], 1);
+			printf("\n");
+			for(ii=1; ii<=N; ii++)
+				d_print_mat(1, nx, hpi[ii], 1);
+//			exit(1);
+			}
 #endif
 
 
@@ -1421,17 +1519,23 @@ int main()
 		float time_sv_fast = (float) (tv5.tv_sec-tv4.tv_sec)/(nrep+0.0)+(tv5.tv_usec-tv4.tv_usec)/(nrep*1e6);
 		float Gflops_sv_fast = 1e-9*flop_sv/time_sv_fast;
 
-		float time_sv_tv = (float) (tv6.tv_sec-tv5.tv_sec)/(nrep+0.0)+(tv6.tv_usec-tv5.tv_usec)/(nrep*1e6);
-		float Gflops_sv_tv = 1e-9*flop_sv/time_sv_tv;
+		float flop_trf_tv = (1.0/3.0*nx*nx*nx) + (N-1)*(7.0/3.0*nx*nx*nx+4.0*nx*nx*nu+2.0*nx*nu*nu+1.0/3.0*nu*nu*nu) + (1.0*nx*nx*nu+1.0*nx*nu*nu+1.0/3.0*nu*nu*nu);
+		float time_trf_tv = (float) (tv6.tv_sec-tv5.tv_sec)/(nrep+0.0)+(tv6.tv_usec-tv5.tv_usec)/(nrep*1e6);
+		float Gflops_trf_tv = 1e-9*flop_trf_tv/time_trf_tv;
+	
+		float flop_trs_tv = (N)*(10*nx*nx+8.0*nx*nu+2.0*nu*nu);
+		float time_trs_tv = (float) (tv7.tv_sec-tv6.tv_sec)/(nrep+0.0)+(tv7.tv_usec-tv6.tv_usec)/(nrep*1e6);
+		float Gflops_trs_tv = 1e-9*flop_trs_tv/time_trs_tv;
 	
 		if(ll==0)
 			{
 			printf("\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
 //			fprintf(f, "\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
 			}
-		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max, time_sv_fast, Gflops_sv_fast, 100.0*Gflops_sv_fast/Gflops_max, time_sv_tv, Gflops_sv_tv, 100.0*Gflops_sv_tv/Gflops_max);
-		fprintf(f, "%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max, time_sv_fast, Gflops_sv_fast, 100.0*Gflops_sv_fast/Gflops_max, time_sv_tv, Gflops_sv_tv, 100.0*Gflops_sv_tv/Gflops_max);
+//		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max, time_sv_fast, Gflops_sv_fast, 100.0*Gflops_sv_fast/Gflops_max, time_sv_tv, Gflops_sv_tv, 100.0*Gflops_sv_tv/Gflops_max);
+//		fprintf(f, "%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max, time_sv_fast, Gflops_sv_fast, 100.0*Gflops_sv_fast/Gflops_max, time_sv_tv, Gflops_sv_tv, 100.0*Gflops_sv_tv/Gflops_max);
 	
+		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_trf_tv, Gflops_trf_tv, 100.0*Gflops_trf_tv/Gflops_max, time_trs_tv, Gflops_trs_tv, 100.0*Gflops_trs_tv/Gflops_max);
 
 /************************************************
 * return
@@ -1443,15 +1547,23 @@ int main()
 		free(ng_v);
 
 		free(A);
+		free(pA);
 		free(B);
 		free(b);
+		free(b0);
 		free(x0);
 		free(BAb);
 		free(BAbt);
 		free(pBAbt);
+		free(pBAbt0);
+		free(pBAbt1);
 		free(Q);
 		free(pQ);
+		free(pQ0);
+		free(pQ1);
+		free(pQN);
 		free(q);
+		free(q1);
 		free(work0);
 		free(work1);
 		for(jj=0; jj<N; jj++)
@@ -1459,7 +1571,6 @@ int main()
 			if(LTI!=1)
 				{
 				free(hpQ[jj]);
-				free(hpQ_tv[jj]);
 				free(hq[jj]);
 				free(hpBAbt[jj]);
 				}
@@ -1475,7 +1586,6 @@ int main()
 		if(LTI!=1)
 			{
 			free(hpQ[N]);
-			free(hpQ_tv[N]);
 			free(hq[N]);
 			}
 		free(hpL[N]);

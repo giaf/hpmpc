@@ -280,7 +280,7 @@ int main()
 	int info;
 
 	int ll;
-#if 0
+#if 1
 	int ll_max = 77;
 #else
 	int ll_max = 1;
@@ -306,7 +306,7 @@ int main()
 			nrep = 2*nnrep[ll];
 			}
 
-		int nd = 2;
+		int nd = 0;
 
 		int nxu = nx+nu;
 
