@@ -1948,12 +1948,17 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 	else
 		{
 
+		if(ne0>pnv0-nv0)
+			for(jj=0; jj<pnv0-nv0; jj++) hxupi[N][nv0+jj] = hxupi[N][nve0+jj];
+		else
+			for(jj=0; jj<ne0; jj++) hxupi[N][nv0+jj] = hxupi[N][pnv0+jj];
+
 		dtrsv_t_lib(nve0, nv0, hpLA[N], cnv0, 1, hdLA[N], hxupi[N], hxupi[N]);
 
-		if(ne0>pnv0-nv0)
-			for(jj=0; jj<pnv0-nv0; jj++) hxupi[N][nve0+jj] = hxupi[N][nv0+jj];
-		else
-			for(jj=0; jj<ne0; jj++) hxupi[N][pnv0] = hxupi[N][nv0];
+//		if(ne0>pnv0-nv0)
+//			for(jj=0; jj<pnv0-nv0; jj++) hxupi[N][nve0+jj] = hxupi[N][nv0+jj];
+//		else
+//			for(jj=0; jj<ne0; jj++) hxupi[N][pnv0+jj] = hxupi[N][nv0+jj];
 
 		}
 	
