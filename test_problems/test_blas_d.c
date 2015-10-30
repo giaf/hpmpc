@@ -209,6 +209,7 @@ int main()
 		double *M; d_zeros(&M, n, n);
 
 		char c_n = 'n';
+		char c_l = 'l';
 		char c_t = 't';
 		int i_1 = 1;
 #if defined(REF_BLAS_BLIS)
@@ -271,6 +272,7 @@ int main()
 			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 1, pC, cnd, pC, cnd, 1, 1);
 			}
 
+#if 1
 		gettimeofday(&tvm1, NULL); // start
 	
 		for(rep=0; rep<nrep; rep++)
@@ -520,6 +522,54 @@ int main()
 		printf("%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_dgemm_kernel, 100.0*Gflops_dgemm_kernel/Gflops_max, Gflops_dgemm, 100.0*Gflops_dgemm/Gflops_max, Gflops_dsyrk_dpotrf, 100.0*Gflops_dsyrk_dpotrf/Gflops_max, Gflops_dtrmm, 100.0*Gflops_dtrmm/Gflops_max, Gflops_dtrtr, 100.0*Gflops_dtrtr/Gflops_max, Gflops_dgemv_n, 100.0*Gflops_dgemv_n/Gflops_max, Gflops_dgemv_t, 100.0*Gflops_dgemv_t/Gflops_max, Gflops_dtrmv_n, 100.0*Gflops_dtrmv_n/Gflops_max, Gflops_dtrmv_t, 100.0*Gflops_dtrmv_t/Gflops_max, Gflops_dtrsv_n, 100.0*Gflops_dtrsv_n/Gflops_max, Gflops_dtrsv_t, 100.0*Gflops_dtrsv_t/Gflops_max, Gflops_dsymv, 100.0*Gflops_dsymv/Gflops_max, Gflops_dgemv_nt, 100.0*Gflops_dgemv_nt/Gflops_max, Gflops_dsyrk_dpotrf2, 100.0*Gflops_dsyrk_dpotrf2/Gflops_max, Gflops_dgemm_blas, 100.0*Gflops_dgemm_blas/Gflops_max, Gflops_dgemv_n_blas, 100.0*Gflops_dgemv_n_blas/Gflops_max, Gflops_dgemv_t_blas, 100.0*Gflops_dgemv_t_blas/Gflops_max);
 
 	fprintf(f, "%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_dgemm_kernel, 100.0*Gflops_dgemm_kernel/Gflops_max, Gflops_dgemm, 100.0*Gflops_dgemm/Gflops_max, Gflops_dsyrk_dpotrf, 100.0*Gflops_dsyrk_dpotrf/Gflops_max, Gflops_dtrmm, 100.0*Gflops_dtrmm/Gflops_max, Gflops_dtrtr, 100.0*Gflops_dtrtr/Gflops_max, Gflops_dgemv_n, 100.0*Gflops_dgemv_n/Gflops_max, Gflops_dgemv_t, 100.0*Gflops_dgemv_t/Gflops_max, Gflops_dtrmv_n, 100.0*Gflops_dtrmv_n/Gflops_max, Gflops_dtrmv_t, 100.0*Gflops_dtrmv_t/Gflops_max, Gflops_dtrsv_n, 100.0*Gflops_dtrsv_n/Gflops_max, Gflops_dtrsv_t, 100.0*Gflops_dtrsv_t/Gflops_max, Gflops_dsymv, 100.0*Gflops_dsymv/Gflops_max, Gflops_dgemv_nt, 100.0*Gflops_dgemv_nt/Gflops_max, Gflops_dsyrk_dpotrf2, 100.0*Gflops_dsyrk_dpotrf2/Gflops_max, Gflops_dgemm_blas, 100.0*Gflops_dgemm_blas/Gflops_max, Gflops_dgemv_n_blas, 100.0*Gflops_dgemv_n_blas/Gflops_max, Gflops_dgemv_t_blas, 100.0*Gflops_dgemv_t_blas/Gflops_max);
+
+#else
+
+		gettimeofday(&tv0, NULL); // stop
+
+		for(rep=0; rep<nrep; rep++)
+			{
+
+//			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
+//			dgemm_nn_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
+			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 0, pC, cnd, pC, cnd);
+
+			}
+	
+		gettimeofday(&tv1, NULL); // stop
+
+		for(rep=0; rep<nrep; rep++)
+			{
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_NETLIB) || defined(REF_BLAS_MKL)
+//			dgemm_(&c_n, &c_t, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
+//			dgemm_(&c_n, &c_n, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
+			dsyrk_(&c_l, &c_n, &n, &n, &d_1, A, &n, &d_0, C, &n);
+#endif
+#if defined(REF_BLAS_BLIS)
+//			dgemm_(&c_n, &c_t, &n77, &n77, &n77, &d_1, A, &n77, B, &n77, &d_0, C, &n77);
+//			dgemm_(&c_n, &c_n, &n77, &n77, &n77, &d_1, A, &n77, B, &n77, &d_0, C, &n77);
+			dsyrk_(&c_l, &c_n77, &n77, &n77, &d_1, A, &n77, &d_0, C, &n77);
+#endif
+			}
+
+		gettimeofday(&tv2, NULL); // stop
+
+
+		float Gflops_max = flops_max * GHz_max;
+
+//		float flop_operation = 2.0*n*n*n; // dgemm
+		float flop_operation = 1.0*n*n*n; // dsyrk
+
+		float time_hpmpc = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+		float time_blas  = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
+
+		float Gflops_hpmpc = 1e-9*flop_operation/time_hpmpc;
+		float Gflops_blas  = 1e-9*flop_operation/time_blas;
+
+
+		printf("%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_hpmpc, 100.0*Gflops_hpmpc/Gflops_max, Gflops_blas, 100.0*Gflops_blas/Gflops_max);
+
+#endif
 
 		free(A);
 		free(B);
