@@ -1523,7 +1523,7 @@ int main()
 		float time_trf_tv = (float) (tv6.tv_sec-tv5.tv_sec)/(nrep+0.0)+(tv6.tv_usec-tv5.tv_usec)/(nrep*1e6);
 		float Gflops_trf_tv = 1e-9*flop_trf_tv/time_trf_tv;
 	
-		float flop_trs_tv = (N)*(10*nx*nx+8.0*nx*nu+2.0*nu*nu);
+		float flop_trs_tv = (N)*(8*nx*nx+8.0*nx*nu+2.0*nu*nu);
 		float time_trs_tv = (float) (tv7.tv_sec-tv6.tv_sec)/(nrep+0.0)+(tv7.tv_usec-tv6.tv_usec)/(nrep*1e6);
 		float Gflops_trs_tv = 1e-9*flop_trs_tv/time_trs_tv;
 	
