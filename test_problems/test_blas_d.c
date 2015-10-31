@@ -210,7 +210,9 @@ int main()
 
 		char c_n = 'n';
 		char c_l = 'l';
+		char c_r = 'r';
 		char c_t = 't';
+		char c_u = 'u';
 		int i_1 = 1;
 #if defined(REF_BLAS_BLIS)
 		f77_int i77_1 = i_1;
@@ -262,6 +264,8 @@ int main()
 		for(i=0; i<pnd; i++) x2[i] = 1;
 
 		double *dummy;
+
+		int info;
 
 		/* timing */
 		struct timeval tvm1, tv0, tv1, tv2, tv3, tv4, tv5, tv6, tv7, tv8, tv9, tv10, tv11, tv12, tv13, tv14, tv15, tv16;
@@ -532,7 +536,10 @@ int main()
 
 //			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
 //			dgemm_nn_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
-			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 0, pC, cnd, pC, cnd);
+//			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 0, pC, cnd, pC, cnd);
+//			dtrmm_nt_u_lib(n, n, pA, cnd, pB, cnd, pC, cnd);
+//			dpotrf_lib(n, n, pB, cnd, pC, cnd, x);
+			dtrtri_lib(n, pB, cnd, 1, x, pC, cnd);
 
 			}
 	
@@ -543,12 +550,18 @@ int main()
 #if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_NETLIB) || defined(REF_BLAS_MKL)
 //			dgemm_(&c_n, &c_t, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
 //			dgemm_(&c_n, &c_n, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
-			dsyrk_(&c_l, &c_n, &n, &n, &d_1, A, &n, &d_0, C, &n);
+//			dsyrk_(&c_l, &c_n, &n, &n, &d_1, A, &n, &d_0, C, &n);
+//			dtrmm_(&c_r, &c_u, &c_t, &c_n, &n, &n, &d_1, A, &n, C, &n);
+//			dpotrf_(&c_l, &n, B, &n, &info);
+			dtrtri_(&c_l, &c_n, &n, B, &n, &info);
 #endif
 #if defined(REF_BLAS_BLIS)
 //			dgemm_(&c_n, &c_t, &n77, &n77, &n77, &d_1, A, &n77, B, &n77, &d_0, C, &n77);
 //			dgemm_(&c_n, &c_n, &n77, &n77, &n77, &d_1, A, &n77, B, &n77, &d_0, C, &n77);
-			dsyrk_(&c_l, &c_n77, &n77, &n77, &d_1, A, &n77, &d_0, C, &n77);
+//			dsyrk_(&c_l, &c_n, &n77, &n77, &d_1, A, &n77, &d_0, C, &n77);
+//			dtrmm_(&c_r, &c_u, &c_t, &c_n, &n77, &n77, &d_1, A, &n77, C, &n77);
+//			dpotrf_(&c_l, &n77, B, &n77, &info);
+			dtrtri_(&c_l, &c_n, &n77, B, &n77, &info);
 #endif
 			}
 
@@ -558,7 +571,8 @@ int main()
 		float Gflops_max = flops_max * GHz_max;
 
 //		float flop_operation = 2.0*n*n*n; // dgemm
-		float flop_operation = 1.0*n*n*n; // dsyrk
+//		float flop_operation = 1.0*n*n*n; // dsyrk dtrmm
+		float flop_operation = 1.0/3.0*n*n*n; // dpotrf dtrtri
 
 		float time_hpmpc = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		float time_blas  = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
