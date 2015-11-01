@@ -78,7 +78,7 @@ void d_cond_Q(int N, int nx, int nu, double **pA, int diag_Q, int nzero_Q_N, dou
 			}
 		else
 			{
-			d_set_pmat(nx, nx, 0.0, 0, pH_Q, cnx);
+			dgeset_lib(nx, nx, 0.0, 0, pH_Q, cnx);
 			}
 		for(ii=1; ii<N1; ii++)
 			{
@@ -175,9 +175,9 @@ void d_cond_R(int N, int nx, int nu, int alg, double **pA, double **pAt, double 
 				}
 
 			if(nzero_Q_N==0)
-				d_set_pmat(N*nu, nx, 0.0, 0, pGamma_u_Q[N-1], cnx);
+				dgeset_lib(N*nu, nx, 0.0, 0, pGamma_u_Q[N-1], cnx);
 
-			d_set_pmat(N*nu, N*nu, 0.0, 0, pH_R, cNnu);
+			dgeset_lib(N*nu, N*nu, 0.0, 0, pH_R, cNnu);
 
 			// dR
 			for(ii=0; ii<N; ii++)
@@ -210,7 +210,7 @@ void d_cond_R(int N, int nx, int nu, int alg, double **pA, double **pAt, double 
 				}
 
 			if(nzero_Q_N==0)
-				d_set_pmat(N*nu, nx, 0.0, 0, pGamma_u_Q[N-1], cnx);
+				dgeset_lib(N*nu, nx, 0.0, 0, pGamma_u_Q[N-1], cnx);
 
 			// Gamma_u * bar_S
 			for(ii=1; ii<N; ii++)
@@ -272,15 +272,15 @@ void d_cond_R(int N, int nx, int nu, int alg, double **pA, double **pAt, double 
 
 			if(nzero_Q_N==0)
 				{
-				d_set_pmat(N*nu, nx, 0.0, 0, pGamma_u_Q[N-1], cnx);
-				d_set_pmat(N*nu, nx, 0.0, 0, pGamma_u_Q_A[N-1], cnx);
+				dgeset_lib(N*nu, nx, 0.0, 0, pGamma_u_Q[N-1], cnx);
+				dgeset_lib(N*nu, nx, 0.0, 0, pGamma_u_Q_A[N-1], cnx);
 				}
 			
 			// zero S
 			for(ii=1; ii<N; ii++)
 				{
 				//dgecp_lib(nu, nx, 0, pS[ii], cnx, (ii)*nu, pGamma_u_Q[ii-1]+(ii)*nu/bs*bs*cnx+(ii)*nu%bs, cnx);
-				d_set_pmat(nu, nx, 0.0, (ii)*nu, pGamma_u_Q[ii-1]+(ii)*nu/bs*bs*cnx+(ii)*nu%bs, cnx);
+				dgeset_lib(nu, nx, 0.0, (ii)*nu, pGamma_u_Q[ii-1]+(ii)*nu/bs*bs*cnx+(ii)*nu%bs, cnx);
 				}
 
 			// Gamma_u_Q * bar_A
@@ -297,7 +297,7 @@ void d_cond_R(int N, int nx, int nu, int alg, double **pA, double **pAt, double 
 				}
 
 #if 0
-			d_set_pmat(N*nu, N*nu, 0.0, 0, pH_R, cNnu);
+			dgeset_lib(N*nu, N*nu, 0.0, 0, pH_R, cNnu);
 			
 			// R
 			for(ii=0; ii<N; ii++)
@@ -345,8 +345,8 @@ void d_cond_R(int N, int nx, int nu, int alg, double **pA, double **pAt, double 
 
 			if(nzero_Q_N==0)
 				{
-				d_set_pmat(N*nu, nx, 0.0, 0, pGamma_u_Q[N-1], cnx);
-				d_set_pmat(N*nu, nx, 0.0, 0, pGamma_u_Q_A[N-1], cnx);
+				dgeset_lib(N*nu, nx, 0.0, 0, pGamma_u_Q[N-1], cnx);
+				dgeset_lib(N*nu, nx, 0.0, 0, pGamma_u_Q_A[N-1], cnx);
 				}
 
 			// copy S
@@ -356,7 +356,7 @@ void d_cond_R(int N, int nx, int nu, int alg, double **pA, double **pAt, double 
 				}
 
 //			if(nzero_Q_N==0)
-//				d_set_pmat(N*nu, nx, 0.0, 0, pGamma_u_Q_A[N-1], cnx);
+//				dgeset_lib(N*nu, nx, 0.0, 0, pGamma_u_Q_A[N-1], cnx);
 			
 			// Gamma_u_Q * bar_A^{-1}
 			dgecp_lib(N1*nu, nx, 0, pGamma_u_Q[N1-1], cnx, 0, pGamma_u_Q_A[N1-1], cnx);
@@ -420,7 +420,7 @@ void d_cond_R(int N, int nx, int nu, int alg, double **pA, double **pAt, double 
 			{
 
 			// final stage 
-			d_set_pmat(nx, nx, 0.0, 0, pP, cnx);
+			dgeset_lib(nx, nx, 0.0, 0, pP, cnx);
 			for(jj=0; jj<nx-3; jj+=4)
 				{
 				pP[jj*cnx+0+(jj+0)*bs] = sqrt(pRSQ[N][nu+jj+0]);
@@ -554,7 +554,7 @@ void d_cond_St(int N, int nx, int nu, int nzero_S, double **pS, int nzero_Q_N, d
 			{
 			dgemm_nt_lib(nx, N1*nu, nx, pGamma_0_Q[N1-1], cnx, pGamma_u_Q[N1-1], cnx, 0, pH_St, cNnu, pH_St, cNnu, 0, 0);
 			if(nzero_Q_N==0)
-				d_set_pmat(nx, nu, 0.0, 0, pH_St+N1*nu*bs, cNnu);
+				dgeset_lib(nx, nu, 0.0, 0, pH_St+N1*nu*bs, cNnu);
 			for(ii=0; ii<N1-1; ii++)
 				{
 				dgemm_nt_lib(nx, (ii+1)*nu, nx, pGamma_0_Q[ii], cnx, pGamma_u_Q[ii], cnx, 1, pH_St, cNnu, pH_St, cNnu, 0, 0);
@@ -564,7 +564,7 @@ void d_cond_St(int N, int nx, int nu, int nzero_S, double **pS, int nzero_Q_N, d
 			{
 			dgemm_nt_lib(nx, N1*nu, nx, pGamma_0[N1-1], cnx, pGamma_u_Q[N1-1], cnx, 0, pH_St, cNnu, pH_St, cNnu, 0, 0);
 			if(nzero_Q_N==0)
-				d_set_pmat(nx, nu, 0.0, 0, pH_St+N1*nu*bs, cNnu);
+				dgeset_lib(nx, nu, 0.0, 0, pH_St+N1*nu*bs, cNnu);
 			for(ii=0; ii<N1-1; ii++)
 				{
 				dgemm_nt_lib(nx, (ii+1)*nu, nx, pGamma_0[ii], cnx, pGamma_u_Q[ii], cnx, 1, pH_St, cNnu, pH_St, cNnu, 0, 0);
@@ -824,15 +824,15 @@ void d_part_cond_RQrq(int N, int nx, int nu, double **pBAt, double **b, int diag
 
 		d_copy_mat(nu, 1, rq[ii-1], 1, H_r+(ii-1)*nu, 1);
 
-		d_set_pmat(nu, nu, 0.0, 0, pLam, cnz);
+		dgeset_lib(nu, nu, 0.0, 0, pLam, cnz);
 		ddiain_lib(nu, pRSQ[ii-1], 0, pLam, cnz);
 
 		dgecp_lib(nu, nu, 0, pLam, cnz, (ii-1)*nu, pH_R+((ii-1)*nu)/bs*bs*cNnu+((ii-1)*nu)%bs+(ii-1)*nu*bs, cNnu);
-		d_set_pmat((ii-1)*nu, nu, 0.0, 0, pH_R+(ii-1)*nu*bs, cNnu);
+		dgeset_lib((ii-1)*nu, nu, 0.0, 0, pH_R+(ii-1)*nu*bs, cNnu);
 
-//		d_set_pmat(nx, nu, 0.0, 0, pH_St+(ii-1)*bs, cNnu);
+//		dgeset_lib(nx, nu, 0.0, 0, pH_St+(ii-1)*bs, cNnu);
 
-		d_set_pmat(nx, nx, 0.0, 0, pH_Q, cnx);
+		dgeset_lib(nx, nx, 0.0, 0, pH_Q, cnx);
 		ddiain_lib(nx, pRSQ[ii-1]+nu, 0, pH_Q, cnx);
 
 		// second final stage N1-1
@@ -1017,15 +1017,15 @@ void d_part_cond_RSQrq(int N, int nx, int nu, double **pBAt, double **b, int dia
 
 		d_copy_mat(nu, 1, rq[ii-1], 1, H_r+(ii-1)*nu, 1);
 
-		d_set_pmat(nu, nu, 0.0, 0, pLam, cnz);
+		dgeset_lib(nu, nu, 0.0, 0, pLam, cnz);
 		ddiain_lib(nu, pRSQ[ii-1], 0, pLam, cnz);
 
 		dgecp_lib(nu, nu, 0, pLam, cnz, (ii-1)*nu, pH_R+((ii-1)*nu)/bs*bs*cNnu+((ii-1)*nu)%bs+(ii-1)*nu*bs, cNnu);
-		d_set_pmat((ii-1)*nu, nu, 0.0, 0, pH_R+(ii-1)*nu*bs, cNnu);
+		dgeset_lib((ii-1)*nu, nu, 0.0, 0, pH_R+(ii-1)*nu*bs, cNnu);
 
-		d_set_pmat(nx, nu, 0.0, 0, pH_St+(ii-1)*bs, cNnu);
+		dgeset_lib(nx, nu, 0.0, 0, pH_St+(ii-1)*bs, cNnu);
 
-		d_set_pmat(nx, nx, 0.0, 0, pH_Q, cnx);
+		dgeset_lib(nx, nx, 0.0, 0, pH_Q, cnx);
 		ddiain_lib(nx, pRSQ[ii-1]+nu, 0, pH_Q, cnx);
 
 		// second final stage N1-1
@@ -1206,15 +1206,15 @@ void d_part_cond_RSQ(int N, int nx, int nu, double **pBAt, int diag_hessian, dou
 		// final stage N1 = N-1
 		ii = N;
 
-		d_set_pmat(nu, nu, 0.0, 0, pLam, cnz);
+		dgeset_lib(nu, nu, 0.0, 0, pLam, cnz);
 		ddiain_lib(nu, pRSQ[N], 0, pLam, cnz);
 
 		dgecp_lib(nu, nu, 0, pLam, cnz, (N-1)*nu, pH_R+((N-1)*nu)/bs*bs*cNnu+((N-1)*nu)%bs+(N-1)*nu*bs, cNnu);
-		d_set_pmat((N-1)*nu, nu, 0.0, 0, pH_R+(N-1)*nu*bs, cNnu);
+		dgeset_lib((N-1)*nu, nu, 0.0, 0, pH_R+(N-1)*nu*bs, cNnu);
 
-		d_set_pmat(nx, nu, 0.0, 0, pH_St+(N-1)*bs, cNnu);
+		dgeset_lib(nx, nu, 0.0, 0, pH_St+(N-1)*bs, cNnu);
 
-		d_set_pmat(nx, nx, 0.0, 0, pH_Q, cnx);
+		dgeset_lib(nx, nx, 0.0, 0, pH_Q, cnx);
 		ddiain_lib(nx, pRSQ[N-1]+nu, 0, pH_Q, cnx);
 
 		// second final stage N1-1
@@ -1823,7 +1823,7 @@ void d_cond_fact_R(int N, int nx, int nu, int nx2_fact, double **pA, double **pA
 					dgecp_lib(nu, nu, jj*nu, pH_R+(jj*nu)/bs*bs*cNnu+(jj*nu)%bs+(N-1)*nu*bs, cNnu, (N-1-jj)*nu, pH_R+((N-1-jj)*nu)/bs*bs*cNnu+((N-1-jj)*nu)%bs+(N-1-ii)*nu*bs, cNnu);
 					}
 
-				d_set_pmat(nx, nx, 0.0, 0, pQs, cnx);
+				dgeset_lib(nx, nx, 0.0, 0, pQs, cnx);
 				ddiain_lib(nx, pQ[ii], 0, pQs, cnx);
 				dsyrk_nt_lib(nx, nx, nu, pD+pnu*cnu, cnu, pD+pnu*cnu, cnu, -1, pQs, cnx, pQs, cnx);
 				dtrtr_l_lib(nx, 0, pQs, cnx, pQs, cnx);	
@@ -1919,7 +1919,7 @@ void d_cond_fact_R(int N, int nx, int nu, int nx2_fact, double **pA, double **pA
 			{
 
 			// final stage 
-			d_set_pmat(nx, nx, 0.0, 0, pL, cnl);
+			dgeset_lib(nx, nx, 0.0, 0, pL, cnl);
 			ddiain_sqrt_lib(nx, pRSQ[N]+nu, 0, pL, cnl);
 
 			dtrtr_l_lib(nx, 0, pL, cnl, pL+(ncl)*bs, cnl);	
@@ -1930,7 +1930,7 @@ void d_cond_fact_R(int N, int nx, int nu, int nx2_fact, double **pA, double **pA
 				dtrmm_nt_u_lib(nz, nx, pBAt[ii], cnx, pL+(ncl)*bs, cnl, pBAtL, cnx);
 				if(nz<128)
 					{
-					d_set_pmat(nz, nz, 0.0, 0, pL, cnl);
+					dgeset_lib(nz, nz, 0.0, 0, pL, cnl);
 					ddiain_lib(nz, pRSQ[ii], 0, pL, cnl);
 					dsyrk_dpotrf_lib_old(nz, nz, nx, pBAtL, cnx, 1, pL, cnl, pL, cnl, diag, 0);
 					}
@@ -1954,7 +1954,7 @@ void d_cond_fact_R(int N, int nx, int nu, int nx2_fact, double **pA, double **pA
 
 			// first stage 
 			dtrmm_nt_u_lib(nu, nx, pBAt[0], cnx, pL+(ncl)*bs, cnl, pBAtL, cnx);
-			d_set_pmat(nu, nu, 0.0, 0, pL, cnl);
+			dgeset_lib(nu, nu, 0.0, 0, pL, cnl);
 			ddiain_lib(nu, pRSQ[0], 0, pL, cnl);
 			dsyrk_dpotrf_lib_old(nu, nu, nx, pBAtL, cnx, 1, pL, cnl, pL, cnl, diag, 0);
 

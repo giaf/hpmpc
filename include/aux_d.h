@@ -34,7 +34,7 @@ void dax_mat(int row, int col, double alpha, double *A, int lda, double *B, int 
 float d_max_mat(int row, int col, double *A, int lda);
 float d_min_mat(int row, int col, double *A, int lda);
 void d_set_mat(int row, int col, double alpha, double *A, int lda);
-void d_set_pmat(int row, int col, double alpha, int offset, double *pA, int sda);
+//void d_set_pmat(int row, int col, double alpha, int offset, double *pA, int sda);
 void d_scale_mat(int row, int col, double alpha, double *A, int lda);
 void d_scale_pmat(int row, int col, double alpha, int offset, double *pA, int sda);
 void d_copy_mat(int row, int col, double *A, int lda, double *B, int ldb);
@@ -51,3 +51,7 @@ void d_cvt_tran_pmat2mat(int row, int col, int offset, double *pA, int sda, doub
 void d_print_mat(int row, int col, double *A, int lda);
 void d_print_pmat(int row, int col, int bs, double *A, int sda);
 
+
+// (new) routines for pmat (they are in _lib form)
+void dgeset_lib(int row, int col, double alpha, int offset, double *pA, int sda);
+void dtrset_lib(int row, double alpha, int offset, double *pA, int sda);

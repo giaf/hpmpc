@@ -18,7 +18,7 @@
 * You should have received a copy of the GNU Lesser General Public                                *
 * License along with HPMPC; if not, write to the Free Software                                    *
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA                  *
-*                                                                                                 *
+                                                                                                 *
 * Author: Gianluca Frison, giaf (at) dtu.dk                                                       *
 *                                                                                                 *
 **************************************************************************************************/
@@ -2233,6 +2233,83 @@ void kernel_add_align_panel_1_0_lib4(int kmax, double alpha, double *A, double *
 
 	}
 
+
+
+void kernel_dgeset_4_lib4(int kmax, double alpha, double *A)
+	{
+
+	int k;
+
+	__m256d 
+		a0;
+
+	a0 = _mm256_broadcast_sd( &alpha );
+
+	for(k=0; k<kmax-3; k+=4)
+		{
+
+		_mm256_store_pd( &A[0], a0 );
+		_mm256_store_pd( &A[4], a0 );
+		_mm256_store_pd( &A[8], a0 );
+		_mm256_store_pd( &A[12], a0 );
+
+		A += 16;
+
+		}	
+	for(; k<kmax; k++)
+		{
+
+		_mm256_store_pd( &A[0], a0 );
+
+		A += 4;
+
+		}
+	
+	}
+
+
+// A lower triangular
+void kernel_dtrset_4_lib4(int kmax, double alpha, double *A)
+	{
+
+	int k;
+
+	__m256d 
+		a0;
+
+	a0 = _mm256_broadcast_sd( &alpha );
+
+	for(k=0; k<kmax-3; k+=4)
+		{
+
+		_mm256_store_pd( &A[0], a0 );
+		_mm256_store_pd( &A[4], a0 );
+		_mm256_store_pd( &A[8], a0 );
+		_mm256_store_pd( &A[12], a0 );
+
+		A += 16;
+
+		}	
+	for(; k<kmax; k++)
+		{
+
+		_mm256_store_pd( &A[0], a0 );
+
+		A += 4;
+
+		}
+	
+	// final 4x4 triangle
+	_mm256_store_pd( &A[0], a0 );
+
+	_mm_store_sd( &A[5], _mm256_castpd256_pd128( a0 ) );
+	_mm_store_pd( &A[6], _mm256_castpd256_pd128( a0 ) );
+	
+	_mm_store_pd( &A[10], _mm256_castpd256_pd128( a0 ) );
+
+	_mm_store_sd( &A[15], _mm256_castpd256_pd128( a0 ) );
+
+	}
 
 
 

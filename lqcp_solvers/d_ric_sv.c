@@ -490,7 +490,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 
 	// factorization and backward substitution 
 
-//d_set_pmat(nz, nz, 0.0, 0, hpL[N], cnl);
+//dgeset_lib(nz, nz, 0.0, 0, hpL[N], cnl);
 
 	// final stage 
 	if(ngN>0)
@@ -687,7 +687,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 
 	// factorization and backward substitution 
 
-//d_set_pmat(nz, nz, 0.0, 0, hpL[N], cnl);
+//dgeset_lib(nz, nz, 0.0, 0, hpL[N], cnl);
 
 	// final stage 
 	if(ngN>0)
@@ -1065,7 +1065,7 @@ void d_back_ric_trf_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, in
 
 	// factorization and backward substitution 
 
-//d_set_pmat(nz, nz, 0.0, 0, hpL[N], cnl);
+//dgeset_lib(nz, nz, 0.0, 0, hpL[N], cnl);
 
 	// final stage 
 	if(ngN>0)
@@ -1658,7 +1658,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 	if(diag_hessian)
 		{
 
-		d_set_pmat(pnv0, nv0, 0.0, 0, hpLA[ii], cnv0);
+		dgeset_lib(pnv0, nv0, 0.0, 0, hpLA[ii], cnv0);
 		for(jj=0; jj<nv0; jj++) hdLA[ii][jj] = sqrt(hpQA[ii][jj]+reg);
 		ddiain_lib(nv0, hdLA[ii], 0, hpLA[ii], cnv0);
 		for(jj=0; jj<nv0; jj++) hdLA[ii][jj] = 1.0/hdLA[ii][jj];
@@ -1694,7 +1694,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 
 		}
 		
-	d_set_pmat(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
+	dgeset_lib(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
 	ddiareg_lib(ne0, reg, 0, hpLe_tmp, cne0);
 	dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
 
@@ -1767,7 +1767,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 
 //			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
 
-			d_set_pmat(nu0, nu0, 0.0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs+nx0*bs, cnv0);
+			dgeset_lib(nu0, nu0, 0.0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs+nx0*bs, cnv0);
 			for(jj=0; jj<nu0; jj++) hdLA[ii][nx0+jj] = sqrt(hpQA[ii][nx0+jj]+reg);
 			ddiain_lib(nu0, hdLA[ii]+nx0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs+nx0*bs, cnv0);
 			for(jj=0; jj<nu0; jj++) hdLA[ii][nx0+jj] = 1.0/hdLA[ii][nx0+jj];
@@ -1814,7 +1814,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 
 			}
 
-		d_set_pmat(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
+		dgeset_lib(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
 		ddiareg_lib(ne0, reg, 0, hpLe_tmp, cne0);
 		dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
 
@@ -1886,7 +1886,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 			dgecp_lib(ne0, nv0, nv0, hpLA[N]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[N]+pnv0*cnv0, cnv0);
 
 #if 1
-		d_set_pmat(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
+		dgeset_lib(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
 		ddiareg_lib(ne0, reg, 0, hpLe_tmp, cne0);
 		dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
 
@@ -1895,7 +1895,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 
 		dtrtri_lib(ne0, hpLe_tmp, cne0, 1, hdLe_tmp, hpLe[N], cne0);
 #else
-		d_set_pmat(ne0, ne0, 0.0, 0, hpLe[N], cne0);
+		dgeset_lib(ne0, ne0, 0.0, 0, hpLe[N], cne0);
 		ddiareg_lib(ne0, reg, 0, hpLe[N], cne0);
 		dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, 1, hpLe[N], cne0, hpLe[N], cne0, hdLe_tmp);
 #endif

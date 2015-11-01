@@ -307,3 +307,8 @@ void corner_dtrmm_l_u_nt_4x4_lib4(double *A, double *B, int alg, double *C, doub
 void corner_dtrmm_l_u_nt_3x4_lib4(double *A, double *B, int alg, double *C, double *D);
 void corner_dtrmm_l_u_nt_2x4_lib4(double *A, double *B, int alg, double *C, double *D);
 void corner_dtrmm_l_u_nt_1x4_lib4(double *A, double *B, int alg, double *C, double *D);
+
+
+// kernels for aux routines
+void kernel_dgeset_4_lib4(int kmax, double alpha, double *A);
+void kernel_dtrset_4_lib4(int kmax, double alpha, double *A);

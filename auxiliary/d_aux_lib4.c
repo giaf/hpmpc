@@ -209,7 +209,7 @@ void d_set_mat(int row, int col, double alpha, double *A, int lda)
 
 
 
-void d_set_pmat(int row, int col, double alpha, int offset, double *pA, int sda)
+void dgeset_lib(int row, int col, double alpha, int offset, double *pA, int sda)
 	{
 
 	const int bs = 4;
@@ -234,6 +234,9 @@ void d_set_pmat(int row, int col, double alpha, int offset, double *pA, int sda)
 		}
 	for( ; ii<row-3; ii+=4)
 		{
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+		kernel_dgeset_4_lib4(col, alpha, pA);
+#else
 		for(jj=0; jj<col; jj++)
 			{
 			pA[0+jj*bs] = alpha;
@@ -241,11 +244,75 @@ void d_set_pmat(int row, int col, double alpha, int offset, double *pA, int sda)
 			pA[2+jj*bs] = alpha;
 			pA[3+jj*bs] = alpha;
 			}
+#endif
 		pA += bs*sda;
 		}
 	for(; ii<row; ii++)
 		{
 		for(jj=0; jj<col; jj++)
+			{
+			pA[jj*bs] = alpha;
+			}
+		pA += 1;
+		}
+	
+	}
+		
+
+
+void dtrset_lib(int row, double alpha, int offset, double *pA, int sda)
+	{
+
+	const int bs = 4;
+
+	int ii, jj;
+
+	int col = row;
+
+	int na = (bs-offset%bs)%bs;
+	na = row<na ? row : na;
+
+	ii = 0;
+	if(na>0)
+		{
+		for(; ii<na; ii++)
+			{
+			for(jj=0; jj<=ii; jj++)
+				{
+				pA[jj*bs] = alpha;
+				}
+			pA += 1;
+			}
+		pA += bs*(sda-1);
+		}
+	for( ; ii<row-3; ii+=4)
+		{
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+		kernel_dtrset_4_lib4(ii, alpha, pA);
+#else
+		for(jj=0; jj<ii; jj++)
+			{
+			pA[0+jj*bs] = alpha;
+			pA[1+jj*bs] = alpha;
+			pA[2+jj*bs] = alpha;
+			pA[3+jj*bs] = alpha;
+			}
+		pA[0+(jj+0)*bs] = alpha;
+		pA[1+(jj+0)*bs] = alpha;
+		pA[2+(jj+0)*bs] = alpha;
+		pA[3+(jj+0)*bs] = alpha;
+		pA[1+(jj+1)*bs] = alpha;
+		pA[2+(jj+1)*bs] = alpha;
+		pA[3+(jj+1)*bs] = alpha;
+		pA[2+(jj+2)*bs] = alpha;
+		pA[3+(jj+2)*bs] = alpha;
+		pA[3+(jj+3)*bs] = alpha;
+#endif
+		pA += bs*sda;
+		}
+	for(; ii<row; ii++)
+		{
+		for(jj=0; jj<ii+1; jj++)
 			{
 			pA[jj*bs] = alpha;
 			}
