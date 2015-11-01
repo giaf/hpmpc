@@ -42,7 +42,7 @@ int d_ip2_hard_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 
 	int ii;
 
-	int pnx, pnz, pnb, png, cnx, cnz;
+	int pnx, pnz, pnb, png, cnx, cnux; //cnz;
 
 	int size = 0;
 	int pnzM = 0;
@@ -55,10 +55,12 @@ int d_ip2_hard_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 		pnb = (nb[ii]+bs-1)/bs*bs;
 		png = (ng[ii]+bs-1)/bs*bs;
 		cnx = (nx[ii]+ncl-1)/ncl*ncl;
-		cnz = (nx[ii]+nu[ii]+1+ncl-1)/ncl*ncl;
+		cnux = (nu[ii]+nx[ii]+ncl-1)/ncl*ncl;
+//		cnz = (nx[ii]+nu[ii]+1+ncl-1)/ncl*ncl;
 		pnx = (nx[ii]+bs-1)/bs*bs;
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
-		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*pnx + 4*pnz + 15*pnb + 11*png;
+//		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 3*pnx + 4*pnz + 15*pnb + 11*png; // TODO use cnux in cnl computation !!!!!
+		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 3*pnx + 4*pnz + 15*pnb + 11*png; // TODO use cnux in cnl computation !!!!!
 		}
 	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
 
@@ -91,7 +93,8 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	int pnb[N+1];
 	int png[N+1];
 	int cnx[N+1];
-	int cnz[N+1];
+//	int cnz[N+1];
+	int cnux[N+1];
 
 	for(jj=0; jj<=N; jj++)
 		{
@@ -100,7 +103,8 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		pnb[jj] = (nb[jj]+bs-1)/bs*bs;
 		png[jj] = (ng[jj]+bs-1)/bs*bs;
 		cnx[jj] = (nx[jj]+ncl-1)/ncl*ncl;
-		cnz[jj] = (nu[jj]+nx[jj]+1+ncl-1)/ncl*ncl;
+//		cnz[jj] = (nu[jj]+nx[jj]+1+ncl-1)/ncl*ncl;
+		cnux[jj] = (nu[jj]+nx[jj]+ncl-1)/ncl*ncl;
 		if(nx[jj]>nxM) nxM = nx[jj];
 		if(nu[jj]+nx[jj]+1>nzM) nzM = nu[jj]+nx[jj]+1;
 		if(ng[jj]>ngM) ngM = ng[jj];
@@ -118,6 +122,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	double *(dL[N+1]);
 	double *(l[N+1]);
 	double *work;
+	double *(b[N]);
 	double *(q[N+1]);
 	double *(dux[N+1]);
 	double *(dpi[N+1]);
@@ -139,7 +144,8 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	for(jj=0; jj<=N; jj++)
 		{
 		pL[jj] = ptr;
-		ptr += pnz[jj] * ( cnx[jj]+ncl>cnz[jj] ? cnx[jj]+ncl : cnz[jj] ); // pnz*cnl
+//		ptr += pnz[jj] * ( cnx[jj]+ncl>cnz[jj] ? cnx[jj]+ncl : cnz[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
+		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
 		}
 
 	for(jj=0; jj<=N; jj++)
@@ -154,10 +160,18 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		ptr += pnz[jj];
 		}
 
+	// work space
 	work = ptr;
 	ptr += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl); // pnzM*cnxgM
 
-	
+	// b as vector
+	for(jj=0; jj<N; jj++)
+		{
+		b[jj] = ptr;
+		ptr += pnx[jj+1];
+		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*pnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
+		}
+
 	// inputs and states
 	for(jj=0; jj<=N; jj++)
 		{
@@ -184,7 +198,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		q[jj] = ptr;
 		ptr += pnz[jj];
-		for(ll=0; ll<nu[jj]+nx[jj]; ll++) q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnz[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
+		for(ll=0; ll<nu[jj]+nx[jj]; ll++) q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
 		}
 
 	// Hessian backup
@@ -199,7 +213,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		for(ll=0; ll<nb[jj]; ll++)
 			{
 			idx = idxb[jj][ll];
-			bd[jj][ll] = pQ[jj][idx/bs*bs*cnz[jj]+idx%bs+idx*bs];
+			bd[jj][ll] = pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs];
 			bl[jj][ll] = q[jj][idx];
 			}
 		}
@@ -404,7 +418,7 @@ exit(1);
 
 
 		// solve the system
-		d_back_ric_trs_tv(N, nx, nu, pBAbt, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
+		d_back_ric_trs_tv(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
 
 #if 0
 printf("\ndux\n");
@@ -457,8 +471,8 @@ exit(1);
 		for(ll=0; ll<nb[jj]; ll++)
 			{
 			idx = idxb[jj][ll];
-			pQ[jj][idx/bs*bs*cnz[jj]+idx%bs+idx*bs] = bd[jj][ll];
-			pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnz[jj]+(nu[jj]+nx[jj])%bs+idx*bs] = bl[jj][ll];
+			pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs] = bd[jj][ll];
+			pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+idx*bs] = bl[jj][ll];
 			}
 		}
 

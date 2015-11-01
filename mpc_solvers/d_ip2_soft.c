@@ -61,7 +61,7 @@ int d_ip2_soft_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 		cnz = (nx[ii]+nu[ii]+1+ncl-1)/ncl*ncl;
 		pnx = (nx[ii]+bs-1)/bs*bs;
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
-		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 2*pnx + 4*pnz + 12*pnb + 11*png + 24*pns;
+		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 3*pnx + 4*pnz + 12*pnb + 11*png + 24*pns;
 		}
 	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
 
@@ -126,6 +126,7 @@ int d_ip2_soft_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	double *(dL[N+1]);
 	double *(l[N+1]);
 	double *work;
+	double *(b[N]);
 	double *(q[N+1]);
 	double *(dux[N+1]);
 	double *(dpi[N+1]);
@@ -167,6 +168,13 @@ int d_ip2_soft_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	work = ptr;
 	ptr += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl); // pnzM*cnxgM
 
+	// b as vector
+	for(jj=0; jj<N; jj++)
+		{
+		b[jj] = ptr;
+		ptr += pnx[jj+1];
+		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*pnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
+		}
 	
 	// inputs and states
 	for(jj=0; jj<=N; jj++)
@@ -441,7 +449,7 @@ exit(1);
 
 
 		// solve the system
-		d_back_ric_trs_tv(N, nx, nu, pBAbt, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nbs, idxb, pl, ng, pDCt, qx);
+		d_back_ric_trs_tv(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nbs, idxb, pl, ng, pDCt, qx);
 
 #if 0
 printf("\ndux\n");

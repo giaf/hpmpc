@@ -34,13 +34,13 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 
 	const int bs = D_MR;
 	const int ncl = D_NCL;
-	const int nal = bs*ncl; // number of doubles per cache line
+//	const int nal = bs*ncl; // number of doubles per cache line
 
 	static double temp[D_MR] = {};
 
 	int ii, jj;
 	
-	int nu0, nu1, cnz0, nx0, nx1, nxm, cnx0, cnx1, nb0, pnb, ng0, png, cng, nb_tot;
+	int nu0, nu1, cnux0, nx0, nx1, nxm, cnx0, cnx1, nb0, pnb, ng0, png, cng, nb_tot;
 
 
 	// initialize mu
@@ -56,7 +56,7 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 	nx0 = nx[ii]; // nx1;
 	nx1 = nx[ii+1];
 	cnx1  = (nx1+ncl-1)/ncl*ncl;
-	cnz0  = (nu0+nx0+1+ncl-1)/ncl*ncl;
+	cnux0 = (nu0+nx0+ncl-1)/ncl*ncl;
 	nb0 = nb[ii];
 	pnb = (nb0+bs-1)/bs*bs;
 	ng0 = ng[ii];
@@ -95,10 +95,10 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 		temp[jj] = hux[ii][nu0/bs*bs+jj]; 
 		hux[ii][nu0/bs*bs+jj] = 0.0; 
 		}
-	dgemv_t_lib(nx0+nu0%bs, nu0, hpQ[ii]+nu0/bs*bs*cnz0, cnz0, hux[ii]+nu0/bs*bs, -1, hrq[ii], hrq[ii]);
+	dgemv_t_lib(nx0+nu0%bs, nu0, hpQ[ii]+nu0/bs*bs*cnux0, cnux0, hux[ii]+nu0/bs*bs, -1, hrq[ii], hrq[ii]);
 	for(jj=0; jj<nu0%bs; jj++) 
 		hux[ii][nu0/bs*bs+jj] = temp[jj];
-	dsymv_lib(nu0, nu0, hpQ[ii], cnz0, hux[ii], -1, hrq[ii], hrq[ii]);
+	dsymv_lib(nu0, nu0, hpQ[ii], cnux0, hux[ii], -1, hrq[ii], hrq[ii]);
 	dgemv_n_lib(nu0, nx1, hpBAbt[ii], cnx1, hpi[ii+1], -1, hrq[ii], hrq[ii]);
 	if(ng0>0)
 		{
@@ -122,7 +122,7 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 		nx1 = nx[ii+1];
 		cnx0 = cnx1;
 		cnx1  = (nx1+ncl-1)/ncl*ncl;
-		cnz0  = (nu0+nx0+1+ncl-1)/ncl*ncl;
+		cnux0  = (nu0+nx0+ncl-1)/ncl*ncl;
 		nb0 = nb[ii];
 		pnb = (nb0+bs-1)/bs*bs;
 		ng0 = ng[ii];
@@ -157,7 +157,7 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 			hrq[ii][nu0+jj] = - hq[ii][nu0+jj] + hpi[ii][jj];
 		for(jj=0; jj<nb0; jj++) 
 			hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
-		dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnz0, hux[ii], -1, hrq[ii], hrq[ii]);
+		dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnux0, hux[ii], -1, hrq[ii], hrq[ii]);
 		if(ng0>0)
 			{
 			// TODO work space + one dgemv call
@@ -177,7 +177,7 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 	ii = N;
 	nu0 = nu1;
 	nx0 = nx1;
-	cnz0  = (nu0+nx0+1+ncl-1)/ncl*ncl;
+	cnux0  = (nu0+nx0+ncl-1)/ncl*ncl;
 	nb0 = nb[ii];
 	pnb = (nb0+bs-1)/bs*bs;
 	ng0 = ng[ii];
@@ -210,7 +210,7 @@ void d_res_ip_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 		hrq[ii][nu0+jj] = hpi[ii][jj] - hq[ii][nu0+jj];
 	for(jj=0; jj<nb0; jj++) 
 		hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
-	dsymv_lib(nx0+nu0%bs, nx0+nu0%bs, hpQ[ii]+nu0/bs*bs*cnz0+nu0/bs*bs*bs, cnz0, hux[ii]+nu0/bs*bs, -1, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs);
+	dsymv_lib(nx0+nu0%bs, nx0+nu0%bs, hpQ[ii]+nu0/bs*bs*cnux0+nu0/bs*bs*bs, cnux0, hux[ii]+nu0/bs*bs, -1, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs);
 	if(ng0>0)
 		{
 		// TODO work space + one dgemv call

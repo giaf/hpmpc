@@ -97,6 +97,8 @@ void d_back_ric_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, do
 		}
 
 	dsyrk_dpotrf_lib(nz0, nux0, ng0, work, cng0, work, cng0, 1, hpQ[N], cnux0, hpL[N], cnl0, hdL[N]);
+//	d_print_pmat(nz0, nux0, bs, hpL[N], cnl0);
+//	exit(2);
 
 	dtrtr_l_lib(nx0, nu0, hpL[N]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, hpL[N]+ncl*bs, cnl0);	
 
@@ -146,8 +148,10 @@ void d_back_ric_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, do
 
 		dtrtr_l_lib(nx0, nu0, hpL[N-nn-1]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, hpL[N-nn-1]+ncl*bs, cnl0);	
 
+//	d_print_pmat(nz0, nux0, bs, hpL[N-nn-1], cnl0);
 		}
 
+//	exit(2);
 
 
 	// forward substitution 

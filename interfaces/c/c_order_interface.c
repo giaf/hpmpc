@@ -118,17 +118,14 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 		const int pnb  = bs*((nb+bs-1)/bs);
 		const int png  = bs*((ng+bs-1)/bs);
 		const int pngN = bs*((ngN+bs-1)/bs);
-		const int cnz  = ncl*((nx+nu+1+ncl-1)/ncl);
-		const int cnz0 = ncl*((nu+1+ncl-1)/ncl);
-		const int cnzN = ncl*((nx+1+ncl-1)/ncl);
+		const int cnux = ncl*((nx+nu+ncl-1)/ncl);
+		const int cnu  = ncl*((nu+ncl-1)/ncl);
 		const int cnx  = ncl*((nx+ncl-1)/ncl);
 		const int cng  = ncl*((ng+ncl-1)/ncl);
 		const int cngN = ncl*((ngN+ncl-1)/ncl);
 		const int anz  = nal*((nz+nal-1)/nal);
 		const int anx  = nal*((nx+nal-1)/nal);
 
-		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-		const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
 		int pnb0;
 		int png0;
 
@@ -237,7 +234,7 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
         for(ii=0; ii<=N; ii++) // time variant and copied again internally in the IP !!!
 	        {
             hpQ[ii] = ptr;
-            ptr += pnz*cnz;
+            ptr += pnz*cnux;
 	        }
 
         for(ii=0; ii<=N; ii++)
@@ -382,26 +379,26 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 		dgemv_n_lib(nu, nx, hpQ[0], cnx, hux[1], 1, r, hpi[1]);
 
 		jj = 0;
-		d_cvt_tran_mat2pmat(nu, nu, R, nu, 0, hpQ[0], cnz0);
+		d_cvt_tran_mat2pmat(nu, nu, R, nu, 0, hpQ[0], cnu);
 		for(ii=0; ii<nu; ii++)
-			hpQ[0][(nu)/bs*cnz0*bs+(nu)%bs+ii*bs] = hpi[1][ii];
+			hpQ[0][(nu)/bs*cnu*bs+(nu)%bs+ii*bs] = hpi[1][ii];
 
 		// middle stages
         for(jj=1; jj<N; jj++)
 	        {
-            d_cvt_tran_mat2pmat(nu, nu, R+jj*nu*nu, nu, 0, hpQ[jj], cnz);
-            d_cvt_mat2pmat(nx, nu, S+jj*nx*nu, nx, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs, cnz);
-            d_cvt_tran_mat2pmat(nx, nx, Q+jj*nx*nx, nx, nu, hpQ[jj]+nu/bs*cnz*bs+nu%bs+nu*bs, cnz);
+            d_cvt_tran_mat2pmat(nu, nu, R+jj*nu*nu, nu, 0, hpQ[jj], cnux);
+            d_cvt_mat2pmat(nx, nu, S+jj*nx*nu, nx, nu, hpQ[jj]+nu/bs*cnux*bs+nu%bs, cnux);
+            d_cvt_tran_mat2pmat(nx, nx, Q+jj*nx*nx, nx, nu, hpQ[jj]+nu/bs*cnux*bs+nu%bs+nu*bs, cnux);
             for(ii=0; ii<nu; ii++)
-                hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
+                hpQ[jj][(nx+nu)/bs*cnux*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
             for(ii=0; ii<nx; ii++)
-                hpQ[jj][(nx+nu)/bs*cnz*bs+(nx+nu)%bs+(nu+ii)*bs] = q[ii+nx*jj];
+                hpQ[jj][(nx+nu)/bs*cnux*bs+(nx+nu)%bs+(nu+ii)*bs] = q[ii+nx*jj];
 	        }
 
 		// last stage
-        d_cvt_tran_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnzN);
+        d_cvt_tran_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnx);
         for(jj=0; jj<nx; jj++)
-            hpQ[N][nx/bs*cnzN*bs+nx%bs+jj*bs] = qf[jj];
+            hpQ[N][nx/bs*cnx*bs+nx%bs+jj*bs] = qf[jj];
 
 		// estimate mu0 if not user-provided
 		if(mu0<=0)
@@ -421,9 +418,9 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 			for(jj=0; jj<nx; jj++) mu0 = fmax(mu0, qf[ii]);
 			}
 
-		//d_print_pmat(nz, nz, bs, hpQ[0], cnz);
-		//d_print_pmat(nz, nz, bs, hpQ[1], cnz);
-		//d_print_pmat(nz, nz, bs, hpQ[N], cnz);
+		//d_print_pmat(nz, nz, bs, hpQ[0], cnu);
+		//d_print_pmat(nz, nz, bs, hpQ[1], cnux);
+		//d_print_pmat(nz, nz, bs, hpQ[N], cnx);
 		//exit(1);
 
 		// input constraints
