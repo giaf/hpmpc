@@ -28,10 +28,12 @@
 #include <emmintrin.h>  // SSE2
 #include <pmmintrin.h>  // SSE3
 #include <smmintrin.h>  // SSE4
+#ifdef CUSTOM_GCC
+#include "/opt/gcc/lib/gcc/x86_64-unknown-linux-gnu/5.2.0/include/immintrin.h"
+#else 
 #include <immintrin.h>  // AVX
+#endif
 #include <math.h>  // TODO remove !!!
-
-#include "../../include/block_size.h"
 
 
 
@@ -4876,7 +4878,6 @@ void kernel_dsyrk_dpotrf_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 	double *D1  = D0  + 4*sdd;
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	static __m256i mask_bkp[4];
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
@@ -5652,7 +5653,6 @@ void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 	{
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	static __m256i mask_bkp[4];
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
@@ -6176,7 +6176,6 @@ void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 	{
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	static __m256i mask_bkp[4];
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
@@ -6585,7 +6584,6 @@ void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	int k;
 	
@@ -6885,7 +6883,6 @@ void kernel_dsyrk_dpotrf_nt_12x4_vs_lib4(int km, int kn, int tri, int kadd, int 
 	double *D2 = D0 + 8*sdd;
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	static __m256i mask_bkp[4];
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
@@ -8199,7 +8196,6 @@ void kernel_dsyrk_dpotrf_nt_8x8_vs_lib4(int km, int kn, int tri, int kadd, int k
 	double *D1 = D0 + 4*sdd;
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	static __m256i mask_bkp[4];
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
@@ -9824,7 +9820,6 @@ void kernel_dsyrk_dpotrf_nt_8x4_vs_lib4(int km, int kn, int tri, int kadd, int k
 	double *D1  = D0  + 4*sdd;
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	static __m256i mask_bkp[4];
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
@@ -10947,7 +10942,6 @@ void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4(int km, int kn, int tri, int kadd, int k
 	{
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	static __m256i mask_bkp[4];
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
@@ -11743,7 +11737,6 @@ void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4(int km, int kn, int tri, int kadd, int k
 	{
 	
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	static __m256i mask_bkp[4];
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
@@ -12274,7 +12267,6 @@ void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4(int km, int kn, int tri, int kadd, int k
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 	
 	int k;
 	

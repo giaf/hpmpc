@@ -33,8 +33,8 @@
 # CORTEX_A9  : machine with ARMv7a processor with VPFv3 (D32 versions) and NEON, code optimized for ARM Cortex A9.
 # CORTEX_A7  : machine with ARMv7a processor with VPFv3 (D32 versions) and NEON, code optimized for ARM Cortex A7.
 # C99_4X4    : c99 reference code, performing better on a machine with at least 32 scalar registers.
-#TARGET = X64_AVX2
-TARGET = X64_AVX
+TARGET = X64_AVX2
+#TARGET = X64_AVX
 #TARGET = X64_SSE3
 #TARGET = CORTEX_A15
 #TARGET = CORTEX_A9
@@ -44,16 +44,20 @@ TARGET = X64_AVX
 
 # C Compiler
 CC = gcc
+#CC = /opt/gcc/bin/gcc # custom gcc
 #CC = clang
 
 # Common optimization/debugging flags
 COMMON_FLAGS = -O2 -std=c99 -fPIC
+ifeq ($(CC), /opt/gcc/bin/gcc )
+COMMON_FLAGS += -DCUSTOM_GCC
+endif
 DEBUG = #-Wall -pedantic -Wfloat-equal #-pg
 LDFLAGS =
 
 # Reference code linking to standard BLAS and LAPACK
-REF_BLAS = 0
-#REF_BLAS = OPENBLAS
+#REF_BLAS = 0
+REF_BLAS = OPENBLAS
 #REF_BLAS = BLIS
 #REF_BLAS = NETLIB
 #REF_BLAS = MKL

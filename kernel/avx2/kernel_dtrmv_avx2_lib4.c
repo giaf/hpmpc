@@ -28,8 +28,12 @@
 #include <emmintrin.h>  // SSE2
 #include <pmmintrin.h>  // SSE3
 #include <smmintrin.h>  // SSE4
+#ifdef CUSTOM_GCC
+#include "/opt/gcc/lib/gcc/x86_64-unknown-linux-gnu/5.2.0/include/immintrin.h"
+#else 
 #include <immintrin.h>  // AVX
-
+#endif
+ 
 
 
 // it moves vertically across panels

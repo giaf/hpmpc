@@ -12,12 +12,12 @@
 *                                                                                                 *
 * HPMPC is distributed in the hope that it will be useful,                                        *
 * but WITHOUT ANY WARRANTY; without even the implied warranty of                                  *
-* MERCHANTAA_00_invILITY or FITNESS FOR A PARTICULAR PURPOSE.                                            *
+* MERCHANTAA_00_invILITY or FITNESS FOR A PARTICULAR PURPOSE.                                     *
 * See the GNU Lesser General Public License for more details.                                     *
 *                                                                                                 *
 * You should have received a copy of the GNU Lesser General Public                                *
 * License along with HPMPC; if not, write to the Free Software                                    *
-* Foundation, Inc., 51 Franklin Street, Fifth Floor, A_00_invoston, MA  02110-1301  USA                  *
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, A_00_invoston, MA  02110-1301  USA           *
 *                                                                                                 *
 * Author: Gianluca Frison, giaf (at) dtu.dk                                                       *
 *                                                                                                 *
@@ -28,7 +28,270 @@
 #include <emmintrin.h>  // SSE2
 #include <pmmintrin.h>  // SSE3
 #include <smmintrin.h>  // SSE4
+#ifdef CUSTOM_GCC
+#include "/opt/gcc/lib/gcc/x86_64-unknown-linux-gnu/5.2.0/include/immintrin.h"
+#else 
 #include <immintrin.h>  // AVX
+#endif
+
+
+
+
+//void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E)
+void corner_dtrtri_12x4_lib4(double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E)	{
+
+	double *A1 = A0 + 4*sda;
+	double *A2 = A1 + 4*sda;
+	double *C1 = C0 + 4*sdc;
+	double *C2 = C1 + 4*sdc;
+	
+	const int bs = 4;
+	
+	int k;
+	
+	__m256d
+		zeros, ab_temp,
+		a_0, a_4, a_8,
+		b_0,
+		d_0, d_1, d_2, d_3,
+		d_4, d_5, d_6, d_7,
+		d_8, d_9, d_a, d_b;
+	
+	// zero registers
+	zeros = _mm256_setzero_pd();
+	d_0 = _mm256_setzero_pd();
+	d_1 = _mm256_setzero_pd();
+	d_2 = _mm256_setzero_pd();
+	d_3 = _mm256_setzero_pd();
+	d_4 = _mm256_setzero_pd();
+	d_5 = _mm256_setzero_pd();
+	d_6 = _mm256_setzero_pd();
+	d_7 = _mm256_setzero_pd();
+	d_8 = _mm256_setzero_pd();
+	d_9 = _mm256_setzero_pd();
+	d_a = _mm256_setzero_pd();
+	d_b = _mm256_setzero_pd();
+
+
+	a_0 = _mm256_load_pd( &A0[0] );
+	a_0 = _mm256_blend_pd( zeros, a_0, 0x1 );
+	b_0 = _mm256_broadcast_sd( &B[0] );
+	d_0 = _mm256_fnmadd_pd( a_0, b_0, d_0 );
+	b_0 = _mm256_broadcast_sd( &B[1] );
+	d_1 = _mm256_fnmadd_pd( a_0, b_0, d_1 );
+	b_0 = _mm256_broadcast_sd( &B[2] );
+	d_2 = _mm256_fnmadd_pd( a_0, b_0, d_2 );
+	b_0 = _mm256_broadcast_sd( &B[3] );
+	d_3 = _mm256_fnmadd_pd( a_0, b_0, d_3 );
+
+
+	a_0 = _mm256_load_pd( &A0[4] );
+	a_0 = _mm256_blend_pd( zeros, a_0, 0x3 );
+	b_0 = _mm256_broadcast_sd( &B[4] );
+	d_0 = _mm256_fnmadd_pd( a_0, b_0, d_0 );
+	b_0 = _mm256_broadcast_sd( &B[5] );
+	d_1 = _mm256_fnmadd_pd( a_0, b_0, d_1 );
+	b_0 = _mm256_broadcast_sd( &B[6] );
+	d_2 = _mm256_fnmadd_pd( a_0, b_0, d_2 );
+	b_0 = _mm256_broadcast_sd( &B[7] );
+	d_3 = _mm256_fnmadd_pd( a_0, b_0, d_3 );
+
+
+	a_0 = _mm256_load_pd( &A0[8] );
+	a_0 = _mm256_blend_pd( zeros, a_0, 0x7 );
+	b_0 = _mm256_broadcast_sd( &B[8] );
+	d_0 = _mm256_fnmadd_pd( a_0, b_0, d_0 );
+	b_0 = _mm256_broadcast_sd( &B[9] );
+	d_1 = _mm256_fnmadd_pd( a_0, b_0, d_1 );
+	b_0 = _mm256_broadcast_sd( &B[10] );
+	d_2 = _mm256_fnmadd_pd( a_0, b_0, d_2 );
+	b_0 = _mm256_broadcast_sd( &B[11] );
+	d_3 = _mm256_fnmadd_pd( a_0, b_0, d_3 );
+
+
+	a_0 = _mm256_load_pd( &A0[12] );
+	b_0 = _mm256_broadcast_sd( &B[12] );
+	d_0 = _mm256_fnmadd_pd( a_0, b_0, d_0 );
+	b_0 = _mm256_broadcast_sd( &B[13] );
+	d_1 = _mm256_fnmadd_pd( a_0, b_0, d_1 );
+	b_0 = _mm256_broadcast_sd( &B[14] );
+	d_2 = _mm256_fnmadd_pd( a_0, b_0, d_2 );
+	b_0 = _mm256_broadcast_sd( &B[15] );
+	d_3 = _mm256_fnmadd_pd( a_0, b_0, d_3 );
+
+	
+	A0 += 16;
+	A1 += 16;
+	A2 += 16;
+	B  += 16;
+
+
+	a_0 = _mm256_load_pd( &A0[0] );
+	a_4 = _mm256_load_pd( &A1[0] );
+	a_4 = _mm256_blend_pd( zeros, a_4, 0x1 );
+	b_0 = _mm256_broadcast_sd( &B[0] );
+	d_0 = _mm256_fnmadd_pd( a_0, b_0, d_0 );
+	d_4 = _mm256_fnmadd_pd( a_4, b_0, d_4 );
+	b_0 = _mm256_broadcast_sd( &B[1] );
+	d_1 = _mm256_fnmadd_pd( a_0, b_0, d_1 );
+	d_5 = _mm256_fnmadd_pd( a_4, b_0, d_5 );
+	b_0 = _mm256_broadcast_sd( &B[2] );
+	d_2 = _mm256_fnmadd_pd( a_0, b_0, d_2 );
+	d_6 = _mm256_fnmadd_pd( a_4, b_0, d_6 );
+	b_0 = _mm256_broadcast_sd( &B[3] );
+	d_3 = _mm256_fnmadd_pd( a_0, b_0, d_3 );
+	d_7 = _mm256_fnmadd_pd( a_4, b_0, d_7 );
+
+
+	a_0 = _mm256_load_pd( &A0[4] );
+	a_4 = _mm256_load_pd( &A1[4] );
+	a_4 = _mm256_blend_pd( zeros, a_4, 0x3 );
+	b_0 = _mm256_broadcast_sd( &B[4] );
+	d_0 = _mm256_fnmadd_pd( a_0, b_0, d_0 );
+	d_4 = _mm256_fnmadd_pd( a_4, b_0, d_4 );
+	b_0 = _mm256_broadcast_sd( &B[5] );
+	d_1 = _mm256_fnmadd_pd( a_0, b_0, d_1 );
+	d_5 = _mm256_fnmadd_pd( a_4, b_0, d_5 );
+	b_0 = _mm256_broadcast_sd( &B[6] );
+	d_2 = _mm256_fnmadd_pd( a_0, b_0, d_2 );
+	d_6 = _mm256_fnmadd_pd( a_4, b_0, d_6 );
+	b_0 = _mm256_broadcast_sd( &B[7] );
+	d_3 = _mm256_fnmadd_pd( a_0, b_0, d_3 );
+	d_7 = _mm256_fnmadd_pd( a_4, b_0, d_7 );
+
+
+	a_0 = _mm256_load_pd( &A0[8] );
+	a_4 = _mm256_load_pd( &A1[8] );
+	a_4 = _mm256_blend_pd( zeros, a_4, 0x7 );
+	b_0 = _mm256_broadcast_sd( &B[8] );
+	d_0 = _mm256_fnmadd_pd( a_0, b_0, d_0 );
+	d_4 = _mm256_fnmadd_pd( a_4, b_0, d_4 );
+	b_0 = _mm256_broadcast_sd( &B[9] );
+	d_1 = _mm256_fnmadd_pd( a_0, b_0, d_1 );
+	d_5 = _mm256_fnmadd_pd( a_4, b_0, d_5 );
+	b_0 = _mm256_broadcast_sd( &B[10] );
+	d_2 = _mm256_fnmadd_pd( a_0, b_0, d_2 );
+	d_6 = _mm256_fnmadd_pd( a_4, b_0, d_6 );
+	b_0 = _mm256_broadcast_sd( &B[11] );
+	d_3 = _mm256_fnmadd_pd( a_0, b_0, d_3 );
+	d_7 = _mm256_fnmadd_pd( a_4, b_0, d_7 );
+
+
+	a_0 = _mm256_load_pd( &A0[12] );
+	a_4 = _mm256_load_pd( &A1[12] );
+	b_0 = _mm256_broadcast_sd( &B[12] );
+	d_0 = _mm256_fnmadd_pd( a_0, b_0, d_0 );
+	d_4 = _mm256_fnmadd_pd( a_4, b_0, d_4 );
+	b_0 = _mm256_broadcast_sd( &B[13] );
+	d_1 = _mm256_fnmadd_pd( a_0, b_0, d_1 );
+	d_5 = _mm256_fnmadd_pd( a_4, b_0, d_5 );
+	b_0 = _mm256_broadcast_sd( &B[14] );
+	d_2 = _mm256_fnmadd_pd( a_0, b_0, d_2 );
+	d_6 = _mm256_fnmadd_pd( a_4, b_0, d_6 );
+	b_0 = _mm256_broadcast_sd( &B[15] );
+	d_3 = _mm256_fnmadd_pd( a_0, b_0, d_3 );
+	d_7 = _mm256_fnmadd_pd( a_4, b_0, d_7 );
+
+
+	A0 += 16;
+	A1 += 16;
+	A2 += 16;
+	B  += 16;
+
+
+	__m256d
+		ones,
+		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33;
+	
+
+	if(use_inv_diag_E)
+		{
+		a_00 = _mm256_broadcast_sd( &inv_diag_E[0] );
+		a_11 = _mm256_broadcast_sd( &inv_diag_E[1] );
+		a_22 = _mm256_broadcast_sd( &inv_diag_E[2] );
+		a_33 = _mm256_broadcast_sd( &inv_diag_E[3] );
+		}
+	else
+		{
+		ones = _mm256_set_pd( 1.0, 1.0, 1.0, 1.0 );
+		a_00 = _mm256_broadcast_sd( &E[0+bs*0] );
+		a_11 = _mm256_broadcast_sd( &E[1+bs*1] );
+		a_22 = _mm256_broadcast_sd( &E[2+bs*2] );
+		a_33 = _mm256_broadcast_sd( &E[3+bs*3] );
+		a_00 = _mm256_div_pd( ones, a_00 ); // TODO sd + broadcast
+		a_11 = _mm256_div_pd( ones, a_11 ); // TODO sd + broadcast
+		a_22 = _mm256_div_pd( ones, a_22 ); // TODO sd + broadcast
+		a_33 = _mm256_div_pd( ones, a_33 ); // TODO sd + broadcast
+		}
+	
+	d_8  = _mm256_set_pd( 0.0, 0.0, 0.0, 1.0 );
+	d_0  = _mm256_mul_pd( d_0, a_00 );
+	d_4  = _mm256_mul_pd( d_4, a_00 );
+	d_8  = _mm256_mul_pd( d_8, a_00 );
+	_mm256_store_pd( &C0[0+bs*0], d_0 );
+	_mm256_store_pd( &C1[0+bs*0], d_4 );
+//	_mm256_store_pd( &C2[0+bs*0], d_8 );
+	ab_temp = _mm256_load_pd( &C2[0+bs*0] );
+	ab_temp = _mm256_blend_pd( ab_temp, d_8, 0x1 );
+	_mm256_store_pd( &C2[0+bs*0], ab_temp );
+
+	d_9  = _mm256_set_pd( 0.0, 0.0, 1.0, 0.0 );
+	a_10 = _mm256_broadcast_sd( &E[1+bs*0] );
+	d_1 = _mm256_fnmadd_pd( d_0, a_10, d_1 );
+	d_5 = _mm256_fnmadd_pd( d_4, a_10, d_5 );
+	d_9 = _mm256_fnmadd_pd( d_8, a_10, d_9 );
+	d_1 = _mm256_mul_pd( d_1, a_11 );
+	d_5 = _mm256_mul_pd( d_5, a_11 );
+	d_9 = _mm256_mul_pd( d_9, a_11 );
+	_mm256_store_pd( &C0[0+bs*1], d_1 );
+	_mm256_store_pd( &C1[0+bs*1], d_5 );
+//	_mm256_store_pd( &C2[0+bs*1], d_9 );
+	ab_temp = _mm256_load_pd( &C2[0+bs*1] );
+	ab_temp = _mm256_blend_pd( ab_temp, d_9, 0x3 );
+	_mm256_store_pd( &C2[0+bs*1], ab_temp );
+
+	d_a = _mm256_set_pd( 0.0, 1.0, 0.0, 0.0 );
+	a_20 = _mm256_broadcast_sd( &E[2+bs*0] );
+	a_21 = _mm256_broadcast_sd( &E[2+bs*1] );
+	d_2 = _mm256_fnmadd_pd( d_0, a_20, d_2 );
+	d_6 = _mm256_fnmadd_pd( d_4, a_20, d_6 );
+	d_a = _mm256_fnmadd_pd( d_8, a_20, d_a );
+	d_2 = _mm256_fnmadd_pd( d_1, a_21, d_2 );
+	d_6 = _mm256_fnmadd_pd( d_5, a_21, d_6 );
+	d_a = _mm256_fnmadd_pd( d_9, a_21, d_a );
+	d_2 = _mm256_mul_pd( d_2, a_22 );
+	d_6 = _mm256_mul_pd( d_6, a_22 );
+	d_a = _mm256_mul_pd( d_a, a_22 );
+	_mm256_store_pd( &C0[0+bs*2], d_2 );
+	_mm256_store_pd( &C1[0+bs*2], d_6 );
+//	_mm256_store_pd( &C2[0+bs*2], d_a );
+	ab_temp = _mm256_load_pd( &C2[0+bs*2] );
+	ab_temp = _mm256_blend_pd( ab_temp, d_a, 0x7 );
+	_mm256_store_pd( &C2[0+bs*2], ab_temp );
+
+	d_b = _mm256_set_pd( 1.0, 0.0, 0.0, 0.0 );
+	a_30 = _mm256_broadcast_sd( &E[3+bs*0] );
+	a_31 = _mm256_broadcast_sd( &E[3+bs*1] );
+	a_32 = _mm256_broadcast_sd( &E[3+bs*2] );
+	d_3 = _mm256_fnmadd_pd( d_0, a_30, d_3 );
+	d_7 = _mm256_fnmadd_pd( d_4, a_30, d_7 );
+	d_b = _mm256_fnmadd_pd( d_8, a_30, d_b );
+	d_3 = _mm256_fnmadd_pd( d_1, a_31, d_3 );
+	d_7 = _mm256_fnmadd_pd( d_5, a_31, d_7 );
+	d_b = _mm256_fnmadd_pd( d_9, a_31, d_b );
+	d_3 = _mm256_fnmadd_pd( d_2, a_32, d_3 );
+	d_7 = _mm256_fnmadd_pd( d_6, a_32, d_7 );
+	d_b = _mm256_fnmadd_pd( d_a, a_32, d_b );
+	d_3 = _mm256_mul_pd( d_3, a_33 );
+	d_7 = _mm256_mul_pd( d_7, a_33 );
+	d_b = _mm256_mul_pd( d_b, a_33 );
+	_mm256_store_pd( &C0[0+bs*3], d_3 );
+	_mm256_store_pd( &C1[0+bs*3], d_7 );
+	_mm256_store_pd( &C2[0+bs*3], d_b );
+
+
+
+	}
 
 
 
@@ -46,9 +309,10 @@ void corner_dtrtri_8x8_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 		b_0,
 		d_0, d_1, d_2, d_3,
 		d_4, d_5, d_6, d_7,
-		ones, ab_temp,
+		ones, ab_temp, zeros,
 		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33;
 	
+	zeros = _mm256_setzero_pd();
 	ones = _mm256_set_pd( 1.0, 1.0, 1.0, 1.0 );
 
 	// top-left triangle
@@ -72,8 +336,9 @@ void corner_dtrtri_8x8_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 		a_33 = _mm256_div_pd( ones, a_33 );
 		}
 	
-	d_0 = _mm256_set_pd( 0.0, 0.0, 0.0, 1.0 );
-	d_0 = _mm256_mul_pd( d_0, a_00 );
+//	d_0 = _mm256_set_pd( 0.0, 0.0, 0.0, 1.0 );
+//	d_0 = _mm256_mul_pd( d_0, a_00 );
+	d_0 = _mm256_blend_pd( zeros, a_00, 0x1 );
 	//_mm256_store_pd( &C[0+bs*0], d_0 );
 	ab_temp = _mm256_load_pd( &C0[0+bs*0] );
 	ab_temp = _mm256_blend_pd( ab_temp, d_0, 0x1 );
@@ -81,8 +346,7 @@ void corner_dtrtri_8x8_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 
 	d_1 = _mm256_set_pd( 0.0, 0.0, 1.0, 0.0 );
 	a_10 = _mm256_broadcast_sd( &A0[1+bs*0] );
-	ab_temp = _mm256_mul_pd( d_0, a_10 );
-	d_1 = _mm256_sub_pd( d_1, ab_temp );
+	d_1 = _mm256_fnmadd_pd( d_0, a_10, d_1 );
 	d_1 = _mm256_mul_pd( d_1, a_11 );
 	//_mm256_store_pd( &C[0+bs*1], d_1 );
 	ab_temp = _mm256_load_pd( &C0[0+bs*1] );
@@ -92,10 +356,8 @@ void corner_dtrtri_8x8_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	d_2 = _mm256_set_pd( 0.0, 1.0, 0.0, 0.0 );
 	a_20 = _mm256_broadcast_sd( &A0[2+bs*0] );
 	a_21 = _mm256_broadcast_sd( &A0[2+bs*1] );
-	ab_temp = _mm256_mul_pd( d_0, a_20 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_21 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
+	d_2 = _mm256_fnmadd_pd( d_0, a_20, d_2 );
+	d_2 = _mm256_fnmadd_pd( d_1, a_21, d_2 );
 	d_2 = _mm256_mul_pd( d_2, a_22 );
 	//_mm256_store_pd( &C[0+bs*2], d_2 );
 	ab_temp = _mm256_load_pd( &C0[0+bs*2] );
@@ -106,12 +368,9 @@ void corner_dtrtri_8x8_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	a_30 = _mm256_broadcast_sd( &A0[3+bs*0] );
 	a_31 = _mm256_broadcast_sd( &A0[3+bs*1] );
 	a_32 = _mm256_broadcast_sd( &A0[3+bs*2] );
-	ab_temp = _mm256_mul_pd( d_0, a_30 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_31 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
-	ab_temp = _mm256_mul_pd( d_2, a_32 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
+	d_3 = _mm256_fnmadd_pd( d_0, a_30, d_3 );
+	d_3 = _mm256_fnmadd_pd( d_1, a_31, d_3 );
+	d_3 = _mm256_fnmadd_pd( d_2, a_32, d_3 );
 	d_3 = _mm256_mul_pd( d_3, a_33 );
 	_mm256_store_pd( &C0[0+bs*3], d_3 );
 
@@ -125,62 +384,46 @@ void corner_dtrtri_8x8_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	d_7 = _mm256_setzero_pd();
 
 	b_0     = _mm256_broadcast_sd( &A1[0] );
-	ab_temp = _mm256_mul_pd( d_0, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_0, b_0, d_4 );
 	b_0     = _mm256_broadcast_sd( &A1[1] );
-	ab_temp = _mm256_mul_pd( d_0, b_0 );
-	d_5     = _mm256_sub_pd( d_5, ab_temp );
+	d_5     = _mm256_fnmadd_pd( d_0, b_0, d_5 );
 	b_0     = _mm256_broadcast_sd( &A1[2] );
-	ab_temp = _mm256_mul_pd( d_0, b_0 );
-	d_6     = _mm256_sub_pd( d_6, ab_temp );
+	d_6     = _mm256_fnmadd_pd( d_0, b_0, d_6 );
 	b_0     = _mm256_broadcast_sd( &A1[3] );
-	ab_temp = _mm256_mul_pd( d_0, b_0 );
-	d_7     = _mm256_sub_pd( d_7, ab_temp );
+	d_7     = _mm256_fnmadd_pd( d_0, b_0, d_7 );
 
 
 	b_0     = _mm256_broadcast_sd( &A1[4] );
-	ab_temp = _mm256_mul_pd( d_1, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_1, b_0, d_4 );
 	b_0     = _mm256_broadcast_sd( &A1[5] );
-	ab_temp = _mm256_mul_pd( d_1, b_0 );
-	d_5     = _mm256_sub_pd( d_5, ab_temp );
+	d_5     = _mm256_fnmadd_pd( d_1, b_0, d_5 );
 	b_0     = _mm256_broadcast_sd( &A1[6] );
-	ab_temp = _mm256_mul_pd( d_1, b_0 );
-	d_6     = _mm256_sub_pd( d_6, ab_temp );
+	d_6     = _mm256_fnmadd_pd( d_1, b_0, d_6 );
 	b_0     = _mm256_broadcast_sd( &A1[7] );
-	ab_temp = _mm256_mul_pd( d_1, b_0 );
-	d_7     = _mm256_sub_pd( d_7, ab_temp );
+	d_7     = _mm256_fnmadd_pd( d_1, b_0, d_7 );
 
 
 	b_0     = _mm256_broadcast_sd( &A1[8] );
-	ab_temp = _mm256_mul_pd( d_2, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_2, b_0, d_4 );
 	b_0     = _mm256_broadcast_sd( &A1[9] );
-	ab_temp = _mm256_mul_pd( d_2, b_0 );
-	d_5     = _mm256_sub_pd( d_5, ab_temp );
+	d_5     = _mm256_fnmadd_pd( d_2, b_0, d_5 );
 	b_0     = _mm256_broadcast_sd( &A1[10] );
-	ab_temp = _mm256_mul_pd( d_2, b_0 );
-	d_6     = _mm256_sub_pd( d_6, ab_temp );
+	d_6     = _mm256_fnmadd_pd( d_2, b_0, d_6 );
 	b_0     = _mm256_broadcast_sd( &A1[11] );
-	ab_temp = _mm256_mul_pd( d_2, b_0 );
-	d_7     = _mm256_sub_pd( d_7, ab_temp );
+	d_7     = _mm256_fnmadd_pd( d_2, b_0, d_7 );
 
 
 	b_0     = _mm256_broadcast_sd( &A1[12] );
-	ab_temp = _mm256_mul_pd( d_3, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_3, b_0, d_4 );
 	b_0     = _mm256_broadcast_sd( &A1[13] );
-	ab_temp = _mm256_mul_pd( d_3, b_0 );
-	d_5     = _mm256_sub_pd( d_5, ab_temp );
+	d_5     = _mm256_fnmadd_pd( d_3, b_0, d_5 );
 	b_0     = _mm256_broadcast_sd( &A1[14] );
-	ab_temp = _mm256_mul_pd( d_3, b_0 );
-	d_6     = _mm256_sub_pd( d_6, ab_temp );
+	d_6     = _mm256_fnmadd_pd( d_3, b_0, d_6 );
 	b_0     = _mm256_broadcast_sd( &A1[15] );
-	ab_temp = _mm256_mul_pd( d_3, b_0 );
-	d_7     = _mm256_sub_pd( d_7, ab_temp );
+	d_7     = _mm256_fnmadd_pd( d_3, b_0, d_7 );
 
 
-	// solution of top-left square & bottom-right triangle
+	// solution of top-right square & bottom-right triangle
 
 	if(use_inv_diag_A)
 		{
@@ -212,10 +455,8 @@ void corner_dtrtri_8x8_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 
 	a_10 = _mm256_broadcast_sd( &A1[1+bs*4] );
 	d_1  = _mm256_set_pd( 0.0, 0.0, 1.0, 0.0 );
-	ab_temp = _mm256_mul_pd( d_4, a_10 );
-	d_5 = _mm256_sub_pd( d_5, ab_temp );
-	ab_temp = _mm256_mul_pd( d_0, a_10 );
-	d_1 = _mm256_sub_pd( d_1, ab_temp );
+	d_5 = _mm256_fnmadd_pd( d_4, a_10, d_5 );
+	d_1 = _mm256_fnmadd_pd( d_0, a_10, d_1 );
 	d_5 = _mm256_mul_pd( d_5, a_11 );
 	d_1 = _mm256_mul_pd( d_1, a_11 );
 	_mm256_store_pd( &C0[0+bs*5], d_5 );
@@ -227,14 +468,10 @@ void corner_dtrtri_8x8_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	d_2 = _mm256_set_pd( 0.0, 1.0, 0.0, 0.0 );
 	a_20 = _mm256_broadcast_sd( &A1[2+bs*4] );
 	a_21 = _mm256_broadcast_sd( &A1[2+bs*5] );
-	ab_temp = _mm256_mul_pd( d_4, a_20 );
-	d_6 = _mm256_sub_pd( d_6, ab_temp );
-	ab_temp = _mm256_mul_pd( d_0, a_20 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
-	ab_temp = _mm256_mul_pd( d_5, a_21 );
-	d_6 = _mm256_sub_pd( d_6, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_21 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
+	d_6 = _mm256_fnmadd_pd( d_4, a_20, d_6 );
+	d_2 = _mm256_fnmadd_pd( d_0, a_20, d_2 );
+	d_6 = _mm256_fnmadd_pd( d_5, a_21, d_6 );
+	d_2 = _mm256_fnmadd_pd( d_1, a_21, d_2 );
 	d_6 = _mm256_mul_pd( d_6, a_22 );
 	d_2 = _mm256_mul_pd( d_2, a_22 );
 	_mm256_store_pd( &C0[0+bs*6], d_6 );
@@ -247,18 +484,12 @@ void corner_dtrtri_8x8_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	a_30 = _mm256_broadcast_sd( &A1[3+bs*4] );
 	a_31 = _mm256_broadcast_sd( &A1[3+bs*5] );
 	a_32 = _mm256_broadcast_sd( &A1[3+bs*6] );
-	ab_temp = _mm256_mul_pd( d_4, a_30 );
-	d_7 = _mm256_sub_pd( d_7, ab_temp );
-	ab_temp = _mm256_mul_pd( d_0, a_30 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
-	ab_temp = _mm256_mul_pd( d_5, a_31 );
-	d_7 = _mm256_sub_pd( d_7, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_31 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
-	ab_temp = _mm256_mul_pd( d_6, a_32 );
-	d_7 = _mm256_sub_pd( d_7, ab_temp );
-	ab_temp = _mm256_mul_pd( d_2, a_32 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
+	d_7 = _mm256_fnmadd_pd( d_4, a_30, d_7 );
+	d_3 = _mm256_fnmadd_pd( d_0, a_30, d_3 );
+	d_7 = _mm256_fnmadd_pd( d_5, a_31, d_7 );
+	d_3 = _mm256_fnmadd_pd( d_1, a_31, d_3 );
+	d_7 = _mm256_fnmadd_pd( d_6, a_32, d_7 );
+	d_3 = _mm256_fnmadd_pd( d_2, a_32, d_3 );
 	d_7 = _mm256_mul_pd( d_7, a_33 );
 	d_3 = _mm256_mul_pd( d_3, a_33 );
 	_mm256_store_pd( &C0[0+bs*7], d_7 );
@@ -283,9 +514,10 @@ void corner_dtrtri_7x7_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 		b_0,
 		d_0, d_1, d_2, d_3,
 		d_4, d_5, d_6, d_7,
-		ones, ab_temp,
+		ones, ab_temp, zeros,
 		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33;
 	
+	zeros = _mm256_setzero_pd();
 	ones = _mm256_set_pd( 1.0, 1.0, 1.0, 1.0 );
 
 	// top-left triangle
@@ -309,8 +541,9 @@ void corner_dtrtri_7x7_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 		a_33 = _mm256_div_pd( ones, a_33 );
 		}
 	
-	d_0 = _mm256_set_pd( 0.0, 0.0, 0.0, 1.0 );
-	d_0 = _mm256_mul_pd( d_0, a_00 );
+//	d_0 = _mm256_set_pd( 0.0, 0.0, 0.0, 1.0 );
+//	d_0 = _mm256_mul_pd( d_0, a_00 );
+	d_0 = _mm256_blend_pd( zeros, a_00, 0x1 );
 	//_mm256_store_pd( &C[0+bs*0], d_0 );
 	ab_temp = _mm256_load_pd( &C0[0+bs*0] );
 	ab_temp = _mm256_blend_pd( ab_temp, d_0, 0x1 );
@@ -318,8 +551,7 @@ void corner_dtrtri_7x7_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 
 	d_1 = _mm256_set_pd( 0.0, 0.0, 1.0, 0.0 );
 	a_10 = _mm256_broadcast_sd( &A0[1+bs*0] );
-	ab_temp = _mm256_mul_pd( d_0, a_10 );
-	d_1 = _mm256_sub_pd( d_1, ab_temp );
+	d_1 = _mm256_fnmadd_pd( d_0, a_10, d_1 );
 	d_1 = _mm256_mul_pd( d_1, a_11 );
 	//_mm256_store_pd( &C[0+bs*1], d_1 );
 	ab_temp = _mm256_load_pd( &C0[0+bs*1] );
@@ -329,10 +561,8 @@ void corner_dtrtri_7x7_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	d_2 = _mm256_set_pd( 0.0, 1.0, 0.0, 0.0 );
 	a_20 = _mm256_broadcast_sd( &A0[2+bs*0] );
 	a_21 = _mm256_broadcast_sd( &A0[2+bs*1] );
-	ab_temp = _mm256_mul_pd( d_0, a_20 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_21 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
+	d_2 = _mm256_fnmadd_pd( d_0, a_20, d_2 );
+	d_2 = _mm256_fnmadd_pd( d_1, a_21, d_2 );
 	d_2 = _mm256_mul_pd( d_2, a_22 );
 	//_mm256_store_pd( &C[0+bs*2], d_2 );
 	ab_temp = _mm256_load_pd( &C0[0+bs*2] );
@@ -343,12 +573,9 @@ void corner_dtrtri_7x7_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	a_30 = _mm256_broadcast_sd( &A0[3+bs*0] );
 	a_31 = _mm256_broadcast_sd( &A0[3+bs*1] );
 	a_32 = _mm256_broadcast_sd( &A0[3+bs*2] );
-	ab_temp = _mm256_mul_pd( d_0, a_30 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_31 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
-	ab_temp = _mm256_mul_pd( d_2, a_32 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
+	d_3 = _mm256_fnmadd_pd( d_0, a_30, d_3 );
+	d_3 = _mm256_fnmadd_pd( d_1, a_31, d_3 );
+	d_3 = _mm256_fnmadd_pd( d_2, a_32, d_3 );
 	d_3 = _mm256_mul_pd( d_3, a_33 );
 	_mm256_store_pd( &C0[0+bs*3], d_3 );
 
@@ -362,59 +589,43 @@ void corner_dtrtri_7x7_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 //	d_7 = _mm256_setzero_pd();
 
 	b_0     = _mm256_broadcast_sd( &A1[0] );
-	ab_temp = _mm256_mul_pd( d_0, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_0, b_0, d_4 );
 	b_0     = _mm256_broadcast_sd( &A1[1] );
-	ab_temp = _mm256_mul_pd( d_0, b_0 );
-	d_5     = _mm256_sub_pd( d_5, ab_temp );
+	d_5     = _mm256_fnmadd_pd( d_0, b_0, d_5 );
 	b_0     = _mm256_broadcast_sd( &A1[2] );
-	ab_temp = _mm256_mul_pd( d_0, b_0 );
-	d_6     = _mm256_sub_pd( d_6, ab_temp );
+	d_6     = _mm256_fnmadd_pd( d_0, b_0, d_6 );
 //	b_0     = _mm256_broadcast_sd( &A1[3] );
-//	ab_temp = _mm256_mul_pd( d_0, b_0 );
-//	d_7     = _mm256_sub_pd( d_7, ab_temp );
+//	d_7     = _mm256_fnmadd_pd( d_0, b_0, d_7 );
 
 
 	b_0     = _mm256_broadcast_sd( &A1[4] );
-	ab_temp = _mm256_mul_pd( d_1, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_1, b_0, d_4 );
 	b_0     = _mm256_broadcast_sd( &A1[5] );
-	ab_temp = _mm256_mul_pd( d_1, b_0 );
-	d_5     = _mm256_sub_pd( d_5, ab_temp );
+	d_5     = _mm256_fnmadd_pd( d_1, b_0, d_5 );
 	b_0     = _mm256_broadcast_sd( &A1[6] );
-	ab_temp = _mm256_mul_pd( d_1, b_0 );
-	d_6     = _mm256_sub_pd( d_6, ab_temp );
+	d_6     = _mm256_fnmadd_pd( d_1, b_0, d_6 );
 //	b_0     = _mm256_broadcast_sd( &A1[7] );
-//	ab_temp = _mm256_mul_pd( d_1, b_0 );
-//	d_7     = _mm256_sub_pd( d_7, ab_temp );
+//	d_7     = _mm256_fnmadd_pd( d_1, b_0, d_7 );
 
 
 	b_0     = _mm256_broadcast_sd( &A1[8] );
-	ab_temp = _mm256_mul_pd( d_2, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_2, b_0, d_4 );
 	b_0     = _mm256_broadcast_sd( &A1[9] );
-	ab_temp = _mm256_mul_pd( d_2, b_0 );
-	d_5     = _mm256_sub_pd( d_5, ab_temp );
+	d_5     = _mm256_fnmadd_pd( d_2, b_0, d_5 );
 	b_0     = _mm256_broadcast_sd( &A1[10] );
-	ab_temp = _mm256_mul_pd( d_2, b_0 );
-	d_6     = _mm256_sub_pd( d_6, ab_temp );
+	d_6     = _mm256_fnmadd_pd( d_2, b_0, d_6 );
 //	b_0     = _mm256_broadcast_sd( &A1[11] );
-//	ab_temp = _mm256_mul_pd( d_2, b_0 );
-//	d_7     = _mm256_sub_pd( d_7, ab_temp );
+//	d_7     = _mm256_fnmadd_pd( d_2, b_0, d_7 );
 
 
 	b_0     = _mm256_broadcast_sd( &A1[12] );
-	ab_temp = _mm256_mul_pd( d_3, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_3, b_0, d_4 );
 	b_0     = _mm256_broadcast_sd( &A1[13] );
-	ab_temp = _mm256_mul_pd( d_3, b_0 );
-	d_5     = _mm256_sub_pd( d_5, ab_temp );
+	d_5     = _mm256_fnmadd_pd( d_3, b_0, d_5 );
 	b_0     = _mm256_broadcast_sd( &A1[14] );
-	ab_temp = _mm256_mul_pd( d_3, b_0 );
-	d_6     = _mm256_sub_pd( d_6, ab_temp );
+	d_6     = _mm256_fnmadd_pd( d_3, b_0, d_6 );
 //	b_0     = _mm256_broadcast_sd( &A1[15] );
-//	ab_temp = _mm256_mul_pd( d_3, b_0 );
-//	d_7     = _mm256_sub_pd( d_7, ab_temp );
+//	d_7     = _mm256_fnmadd_pd( d_3, b_0, d_7 );
 
 
 	// solution of top-left square & bottom-right triangle
@@ -449,10 +660,8 @@ void corner_dtrtri_7x7_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 
 	a_10 = _mm256_broadcast_sd( &A1[1+bs*4] );
 	d_1  = _mm256_set_pd( 0.0, 0.0, 1.0, 0.0 );
-	ab_temp = _mm256_mul_pd( d_4, a_10 );
-	d_5 = _mm256_sub_pd( d_5, ab_temp );
-	ab_temp = _mm256_mul_pd( d_0, a_10 );
-	d_1 = _mm256_sub_pd( d_1, ab_temp );
+	d_5 = _mm256_fnmadd_pd( d_4, a_10, d_5 );
+	d_1 = _mm256_fnmadd_pd( d_0, a_10, d_1 );
 	d_5 = _mm256_mul_pd( d_5, a_11 );
 	d_1 = _mm256_mul_pd( d_1, a_11 );
 	_mm256_store_pd( &C0[0+bs*5], d_5 );
@@ -464,14 +673,10 @@ void corner_dtrtri_7x7_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	d_2 = _mm256_set_pd( 0.0, 1.0, 0.0, 0.0 );
 	a_20 = _mm256_broadcast_sd( &A1[2+bs*4] );
 	a_21 = _mm256_broadcast_sd( &A1[2+bs*5] );
-	ab_temp = _mm256_mul_pd( d_4, a_20 );
-	d_6 = _mm256_sub_pd( d_6, ab_temp );
-	ab_temp = _mm256_mul_pd( d_0, a_20 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
-	ab_temp = _mm256_mul_pd( d_5, a_21 );
-	d_6 = _mm256_sub_pd( d_6, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_21 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
+	d_6 = _mm256_fnmadd_pd( d_4, a_20, d_6 );
+	d_2 = _mm256_fnmadd_pd( d_0, a_20, d_2 );
+	d_6 = _mm256_fnmadd_pd( d_5, a_21, d_6 );
+	d_2 = _mm256_fnmadd_pd( d_1, a_21, d_2 );
 	d_6 = _mm256_mul_pd( d_6, a_22 );
 	d_2 = _mm256_mul_pd( d_2, a_22 );
 	_mm256_store_pd( &C0[0+bs*6], d_6 );
@@ -484,18 +689,12 @@ void corner_dtrtri_7x7_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 //	a_30 = _mm256_broadcast_sd( &A1[3+bs*4] );
 //	a_31 = _mm256_broadcast_sd( &A1[3+bs*5] );
 //	a_32 = _mm256_broadcast_sd( &A1[3+bs*6] );
-//	ab_temp = _mm256_mul_pd( d_4, a_30 );
-//	d_7 = _mm256_sub_pd( d_7, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_0, a_30 );
-//	d_3 = _mm256_sub_pd( d_3, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_5, a_31 );
-//	d_7 = _mm256_sub_pd( d_7, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_1, a_31 );
-//	d_3 = _mm256_sub_pd( d_3, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_6, a_32 );
-//	d_7 = _mm256_sub_pd( d_7, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_2, a_32 );
-//	d_3 = _mm256_sub_pd( d_3, ab_temp );
+//	d_7 = _mm256_fnmadd_pd( d_4, a_30, d_7 );
+//	d_3 = _mm256_fnmadd_pd( d_0, a_30, d_3 );
+//	d_7 = _mm256_fnmadd_pd( d_5, a_31, d_7 );
+//	d_3 = _mm256_fnmadd_pd( d_1, a_31, d_3 );
+//	d_7 = _mm256_fnmadd_pd( d_6, a_32, d_7 );
+//	d_3 = _mm256_fnmadd_pd( d_2, a_32, d_3 );
 //	d_7 = _mm256_mul_pd( d_7, a_33 );
 //	d_3 = _mm256_mul_pd( d_3, a_33 );
 //	_mm256_store_pd( &C0[0+bs*7], d_7 );
@@ -520,9 +719,10 @@ void corner_dtrtri_6x6_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 		b_0,
 		d_0, d_1, d_2, d_3,
 		d_4, d_5, d_6, d_7,
-		ones, ab_temp,
+		ones, ab_temp, zeros,
 		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33;
 	
+	zeros = _mm256_setzero_pd();
 	ones = _mm256_set_pd( 1.0, 1.0, 1.0, 1.0 );
 
 	// top-left triangle
@@ -546,8 +746,9 @@ void corner_dtrtri_6x6_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 		a_33 = _mm256_div_pd( ones, a_33 );
 		}
 	
-	d_0 = _mm256_set_pd( 0.0, 0.0, 0.0, 1.0 );
-	d_0 = _mm256_mul_pd( d_0, a_00 );
+//	d_0 = _mm256_set_pd( 0.0, 0.0, 0.0, 1.0 );
+//	d_0 = _mm256_mul_pd( d_0, a_00 );
+	d_0 = _mm256_blend_pd( zeros, a_00, 0x1 );
 	//_mm256_store_pd( &C[0+bs*0], d_0 );
 	ab_temp = _mm256_load_pd( &C0[0+bs*0] );
 	ab_temp = _mm256_blend_pd( ab_temp, d_0, 0x1 );
@@ -555,8 +756,7 @@ void corner_dtrtri_6x6_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 
 	d_1 = _mm256_set_pd( 0.0, 0.0, 1.0, 0.0 );
 	a_10 = _mm256_broadcast_sd( &A0[1+bs*0] );
-	ab_temp = _mm256_mul_pd( d_0, a_10 );
-	d_1 = _mm256_sub_pd( d_1, ab_temp );
+	d_1 = _mm256_fnmadd_pd( d_0, a_10, d_1 );
 	d_1 = _mm256_mul_pd( d_1, a_11 );
 	//_mm256_store_pd( &C[0+bs*1], d_1 );
 	ab_temp = _mm256_load_pd( &C0[0+bs*1] );
@@ -566,10 +766,8 @@ void corner_dtrtri_6x6_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	d_2 = _mm256_set_pd( 0.0, 1.0, 0.0, 0.0 );
 	a_20 = _mm256_broadcast_sd( &A0[2+bs*0] );
 	a_21 = _mm256_broadcast_sd( &A0[2+bs*1] );
-	ab_temp = _mm256_mul_pd( d_0, a_20 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_21 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
+	d_2 = _mm256_fnmadd_pd( d_0, a_20, d_2 );
+	d_2 = _mm256_fnmadd_pd( d_1, a_21, d_2 );
 	d_2 = _mm256_mul_pd( d_2, a_22 );
 	//_mm256_store_pd( &C[0+bs*2], d_2 );
 	ab_temp = _mm256_load_pd( &C0[0+bs*2] );
@@ -580,12 +778,9 @@ void corner_dtrtri_6x6_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	a_30 = _mm256_broadcast_sd( &A0[3+bs*0] );
 	a_31 = _mm256_broadcast_sd( &A0[3+bs*1] );
 	a_32 = _mm256_broadcast_sd( &A0[3+bs*2] );
-	ab_temp = _mm256_mul_pd( d_0, a_30 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_31 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
-	ab_temp = _mm256_mul_pd( d_2, a_32 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
+	d_3 = _mm256_fnmadd_pd( d_0, a_30, d_3 );
+	d_3 = _mm256_fnmadd_pd( d_1, a_31, d_3 );
+	d_3 = _mm256_fnmadd_pd( d_2, a_32, d_3 );
 	d_3 = _mm256_mul_pd( d_3, a_33 );
 	_mm256_store_pd( &C0[0+bs*3], d_3 );
 
@@ -599,59 +794,43 @@ void corner_dtrtri_6x6_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 //	d_7 = _mm256_setzero_pd();
 
 	b_0     = _mm256_broadcast_sd( &A1[0] );
-	ab_temp = _mm256_mul_pd( d_0, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_0, b_0, d_4 );
 	b_0     = _mm256_broadcast_sd( &A1[1] );
-	ab_temp = _mm256_mul_pd( d_0, b_0 );
-	d_5     = _mm256_sub_pd( d_5, ab_temp );
+	d_5     = _mm256_fnmadd_pd( d_0, b_0, d_5 );
 //	b_0     = _mm256_broadcast_sd( &A1[2] );
-//	ab_temp = _mm256_mul_pd( d_0, b_0 );
-//	d_6     = _mm256_sub_pd( d_6, ab_temp );
+//	d_6     = _mm256_fnmadd_pd( d_0, b_0, d_6 );
 //	b_0     = _mm256_broadcast_sd( &A1[3] );
-//	ab_temp = _mm256_mul_pd( d_0, b_0 );
-//	d_7     = _mm256_sub_pd( d_7, ab_temp );
+//	d_7     = _mm256_fnmadd_pd( d_0, b_0, d_7 );
 
 
 	b_0     = _mm256_broadcast_sd( &A1[4] );
-	ab_temp = _mm256_mul_pd( d_1, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_1, b_0, d_4 );
 	b_0     = _mm256_broadcast_sd( &A1[5] );
-	ab_temp = _mm256_mul_pd( d_1, b_0 );
-	d_5     = _mm256_sub_pd( d_5, ab_temp );
+	d_5     = _mm256_fnmadd_pd( d_1, b_0, d_5 );
 //	b_0     = _mm256_broadcast_sd( &A1[6] );
-//	ab_temp = _mm256_mul_pd( d_1, b_0 );
-//	d_6     = _mm256_sub_pd( d_6, ab_temp );
+//	d_6     = _mm256_fnmadd_pd( d_1, b_0, d_6 );
 //	b_0     = _mm256_broadcast_sd( &A1[7] );
-//	ab_temp = _mm256_mul_pd( d_1, b_0 );
-//	d_7     = _mm256_sub_pd( d_7, ab_temp );
+//	d_7     = _mm256_fnmadd_pd( d_1, b_0, d_7 );
 
 
 	b_0     = _mm256_broadcast_sd( &A1[8] );
-	ab_temp = _mm256_mul_pd( d_2, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_2, b_0, d_4 );
 	b_0     = _mm256_broadcast_sd( &A1[9] );
-	ab_temp = _mm256_mul_pd( d_2, b_0 );
-	d_5     = _mm256_sub_pd( d_5, ab_temp );
+	d_5     = _mm256_fnmadd_pd( d_2, b_0, d_5 );
 //	b_0     = _mm256_broadcast_sd( &A1[10] );
-//	ab_temp = _mm256_mul_pd( d_2, b_0 );
-//	d_6     = _mm256_sub_pd( d_6, ab_temp );
+//	d_6     = _mm256_fnmadd_pd( d_2, b_0, d_6 );
 //	b_0     = _mm256_broadcast_sd( &A1[11] );
-//	ab_temp = _mm256_mul_pd( d_2, b_0 );
-//	d_7     = _mm256_sub_pd( d_7, ab_temp );
+//	d_7     = _mm256_fnmadd_pd( d_2, b_0, d_7 );
 
 
 	b_0     = _mm256_broadcast_sd( &A1[12] );
-	ab_temp = _mm256_mul_pd( d_3, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_3, b_0, d_4 );
 	b_0     = _mm256_broadcast_sd( &A1[13] );
-	ab_temp = _mm256_mul_pd( d_3, b_0 );
-	d_5     = _mm256_sub_pd( d_5, ab_temp );
+	d_5     = _mm256_fnmadd_pd( d_3, b_0, d_5 );
 //	b_0     = _mm256_broadcast_sd( &A1[14] );
-//	ab_temp = _mm256_mul_pd( d_3, b_0 );
-//	d_6     = _mm256_sub_pd( d_6, ab_temp );
+//	d_6     = _mm256_fnmadd_pd( d_3, b_0, d_6 );
 //	b_0     = _mm256_broadcast_sd( &A1[15] );
-//	ab_temp = _mm256_mul_pd( d_3, b_0 );
-//	d_7     = _mm256_sub_pd( d_7, ab_temp );
+//	d_7     = _mm256_fnmadd_pd( d_3, b_0, d_7 );
 
 
 	// solution of top-left square & bottom-right triangle
@@ -679,21 +858,19 @@ void corner_dtrtri_6x6_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	d_0  = _mm256_mul_pd( d_0, a_00 );
 	d_4  = _mm256_mul_pd( d_4, a_00 );
 	_mm256_store_pd( &C0[0+bs*4], d_4 );
-	//_mm256_store_pd( &C1[0+bs*4], d_0 );
+//	_mm256_store_pd( &C1[0+bs*4], d_0 );
 	ab_temp = _mm256_load_pd( &C1[0+bs*4] );
 	ab_temp = _mm256_blend_pd( ab_temp, d_0, 0x1 );
 	_mm256_store_pd( &C1[0+bs*4], ab_temp );
 
 	a_10 = _mm256_broadcast_sd( &A1[1+bs*4] );
 	d_1  = _mm256_set_pd( 0.0, 0.0, 1.0, 0.0 );
-	ab_temp = _mm256_mul_pd( d_4, a_10 );
-	d_5 = _mm256_sub_pd( d_5, ab_temp );
-	ab_temp = _mm256_mul_pd( d_0, a_10 );
-	d_1 = _mm256_sub_pd( d_1, ab_temp );
+	d_5 = _mm256_fnmadd_pd( d_4, a_10, d_5 );
+	d_1 = _mm256_fnmadd_pd( d_0, a_10, d_1 );
 	d_5 = _mm256_mul_pd( d_5, a_11 );
 	d_1 = _mm256_mul_pd( d_1, a_11 );
 	_mm256_store_pd( &C0[0+bs*5], d_5 );
-	//_mm256_store_pd( &C1[0+bs*5], d_1 );
+//	_mm256_store_pd( &C1[0+bs*5], d_1 );
 	ab_temp = _mm256_load_pd( &C1[0+bs*5] );
 	ab_temp = _mm256_blend_pd( ab_temp, d_1, 0x3 );
 	_mm256_store_pd( &C1[0+bs*5], ab_temp );
@@ -701,18 +878,13 @@ void corner_dtrtri_6x6_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 //	d_2 = _mm256_set_pd( 0.0, 1.0, 0.0, 0.0 );
 //	a_20 = _mm256_broadcast_sd( &A1[2+bs*4] );
 //	a_21 = _mm256_broadcast_sd( &A1[2+bs*5] );
-//	ab_temp = _mm256_mul_pd( d_4, a_20 );
-//	d_6 = _mm256_sub_pd( d_6, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_0, a_20 );
-//	d_2 = _mm256_sub_pd( d_2, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_5, a_21 );
-//	d_6 = _mm256_sub_pd( d_6, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_1, a_21 );
-//	d_2 = _mm256_sub_pd( d_2, ab_temp );
+//	d_6 = _mm256_fnmadd_pd( d_4, a_20, d_6 );
+//	d_2 = _mm256_fnmadd_pd( d_0, a_20, d_2 );
+//	d_6 = _mm256_fnmadd_pd( d_5, a_21, d_6 );
+//	d_2 = _mm256_fnmadd_pd( d_1, a_21, d_2 );
 //	d_6 = _mm256_mul_pd( d_6, a_22 );
 //	d_2 = _mm256_mul_pd( d_2, a_22 );
 //	_mm256_store_pd( &C0[0+bs*6], d_6 );
-//	//_mm256_store_pd( &C1[0+bs*6], d_2 );
 //	ab_temp = _mm256_load_pd( &C1[0+bs*6] );
 //	ab_temp = _mm256_blend_pd( ab_temp, d_2, 0x7 );
 //	_mm256_store_pd( &C1[0+bs*6], ab_temp );
@@ -721,18 +893,12 @@ void corner_dtrtri_6x6_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 //	a_30 = _mm256_broadcast_sd( &A1[3+bs*4] );
 //	a_31 = _mm256_broadcast_sd( &A1[3+bs*5] );
 //	a_32 = _mm256_broadcast_sd( &A1[3+bs*6] );
-//	ab_temp = _mm256_mul_pd( d_4, a_30 );
-//	d_7 = _mm256_sub_pd( d_7, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_0, a_30 );
-//	d_3 = _mm256_sub_pd( d_3, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_5, a_31 );
-//	d_7 = _mm256_sub_pd( d_7, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_1, a_31 );
-//	d_3 = _mm256_sub_pd( d_3, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_6, a_32 );
-//	d_7 = _mm256_sub_pd( d_7, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_2, a_32 );
-//	d_3 = _mm256_sub_pd( d_3, ab_temp );
+//	d_7 = _mm256_fnmadd_pd( d_4, a_30, d_7 );
+//	d_3 = _mm256_fnmadd_pd( d_0, a_30, d_3 );
+//	d_7 = _mm256_fnmadd_pd( d_5, a_31, d_7 );
+//	d_3 = _mm256_fnmadd_pd( d_1, a_31, d_3 );
+//	d_7 = _mm256_fnmadd_pd( d_6, a_32, d_7 );
+//	d_3 = _mm256_fnmadd_pd( d_2, a_32, d_3 );
 //	d_7 = _mm256_mul_pd( d_7, a_33 );
 //	d_3 = _mm256_mul_pd( d_3, a_33 );
 //	_mm256_store_pd( &C0[0+bs*7], d_7 );
@@ -757,9 +923,10 @@ void corner_dtrtri_5x5_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 		b_0,
 		d_0, d_1, d_2, d_3,
 		d_4, d_5, d_6, d_7,
-		ones, ab_temp,
+		ones, ab_temp, zeros,
 		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33;
 	
+	zeros = _mm256_setzero_pd();
 	ones = _mm256_set_pd( 1.0, 1.0, 1.0, 1.0 );
 
 	// top-left triangle
@@ -783,8 +950,9 @@ void corner_dtrtri_5x5_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 		a_33 = _mm256_div_pd( ones, a_33 );
 		}
 	
-	d_0 = _mm256_set_pd( 0.0, 0.0, 0.0, 1.0 );
-	d_0 = _mm256_mul_pd( d_0, a_00 );
+//	d_0 = _mm256_set_pd( 0.0, 0.0, 0.0, 1.0 );
+//	d_0 = _mm256_mul_pd( d_0, a_00 );
+	d_0 = _mm256_blend_pd( zeros, a_00, 0x1 );
 	//_mm256_store_pd( &C[0+bs*0], d_0 );
 	ab_temp = _mm256_load_pd( &C0[0+bs*0] );
 	ab_temp = _mm256_blend_pd( ab_temp, d_0, 0x1 );
@@ -792,8 +960,7 @@ void corner_dtrtri_5x5_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 
 	d_1 = _mm256_set_pd( 0.0, 0.0, 1.0, 0.0 );
 	a_10 = _mm256_broadcast_sd( &A0[1+bs*0] );
-	ab_temp = _mm256_mul_pd( d_0, a_10 );
-	d_1 = _mm256_sub_pd( d_1, ab_temp );
+	d_1 = _mm256_fnmadd_pd( d_0, a_10, d_1 );
 	d_1 = _mm256_mul_pd( d_1, a_11 );
 	//_mm256_store_pd( &C[0+bs*1], d_1 );
 	ab_temp = _mm256_load_pd( &C0[0+bs*1] );
@@ -803,10 +970,8 @@ void corner_dtrtri_5x5_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	d_2 = _mm256_set_pd( 0.0, 1.0, 0.0, 0.0 );
 	a_20 = _mm256_broadcast_sd( &A0[2+bs*0] );
 	a_21 = _mm256_broadcast_sd( &A0[2+bs*1] );
-	ab_temp = _mm256_mul_pd( d_0, a_20 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_21 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
+	d_2 = _mm256_fnmadd_pd( d_0, a_20, d_2 );
+	d_2 = _mm256_fnmadd_pd( d_1, a_21, d_2 );
 	d_2 = _mm256_mul_pd( d_2, a_22 );
 	//_mm256_store_pd( &C[0+bs*2], d_2 );
 	ab_temp = _mm256_load_pd( &C0[0+bs*2] );
@@ -817,12 +982,9 @@ void corner_dtrtri_5x5_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	a_30 = _mm256_broadcast_sd( &A0[3+bs*0] );
 	a_31 = _mm256_broadcast_sd( &A0[3+bs*1] );
 	a_32 = _mm256_broadcast_sd( &A0[3+bs*2] );
-	ab_temp = _mm256_mul_pd( d_0, a_30 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_31 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
-	ab_temp = _mm256_mul_pd( d_2, a_32 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
+	d_3 = _mm256_fnmadd_pd( d_0, a_30, d_3 );
+	d_3 = _mm256_fnmadd_pd( d_1, a_31, d_3 );
+	d_3 = _mm256_fnmadd_pd( d_2, a_32, d_3 );
 	d_3 = _mm256_mul_pd( d_3, a_33 );
 	_mm256_store_pd( &C0[0+bs*3], d_3 );
 
@@ -836,59 +998,43 @@ void corner_dtrtri_5x5_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 //	d_7 = _mm256_setzero_pd();
 
 	b_0     = _mm256_broadcast_sd( &A1[0] );
-	ab_temp = _mm256_mul_pd( d_0, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_0, b_0, d_4 );
 //	b_0     = _mm256_broadcast_sd( &A1[1] );
-//	ab_temp = _mm256_mul_pd( d_0, b_0 );
-//	d_5     = _mm256_sub_pd( d_5, ab_temp );
+//	d_5     = _mm256_fnmadd_pd( d_0, b_0, d_5 );
 //	b_0     = _mm256_broadcast_sd( &A1[2] );
-//	ab_temp = _mm256_mul_pd( d_0, b_0 );
-//	d_6     = _mm256_sub_pd( d_6, ab_temp );
+//	d_6     = _mm256_fnmadd_pd( d_0, b_0, d_6 );
 //	b_0     = _mm256_broadcast_sd( &A1[3] );
-//	ab_temp = _mm256_mul_pd( d_0, b_0 );
-//	d_7     = _mm256_sub_pd( d_7, ab_temp );
+//	d_7     = _mm256_fnmadd_pd( d_0, b_0, d_7 );
 
 
 	b_0     = _mm256_broadcast_sd( &A1[4] );
-	ab_temp = _mm256_mul_pd( d_1, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_1, b_0, d_4 );
 //	b_0     = _mm256_broadcast_sd( &A1[5] );
-//	ab_temp = _mm256_mul_pd( d_1, b_0 );
-//	d_5     = _mm256_sub_pd( d_5, ab_temp );
+//	d_5     = _mm256_fnmadd_pd( d_1, b_0, d_5 );
 //	b_0     = _mm256_broadcast_sd( &A1[6] );
-//	ab_temp = _mm256_mul_pd( d_1, b_0 );
-//	d_6     = _mm256_sub_pd( d_6, ab_temp );
+//	d_6     = _mm256_fnmadd_pd( d_1, b_0, d_6 );
 //	b_0     = _mm256_broadcast_sd( &A1[7] );
-//	ab_temp = _mm256_mul_pd( d_1, b_0 );
-//	d_7     = _mm256_sub_pd( d_7, ab_temp );
+//	d_7     = _mm256_fnmadd_pd( d_1, b_0, d_7 );
 
 
 	b_0     = _mm256_broadcast_sd( &A1[8] );
-	ab_temp = _mm256_mul_pd( d_2, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_2, b_0, d_4 );
 //	b_0     = _mm256_broadcast_sd( &A1[9] );
-//	ab_temp = _mm256_mul_pd( d_2, b_0 );
-//	d_5     = _mm256_sub_pd( d_5, ab_temp );
+//	d_5     = _mm256_fnmadd_pd( d_2, b_0, d_5 );
 //	b_0     = _mm256_broadcast_sd( &A1[10] );
-//	ab_temp = _mm256_mul_pd( d_2, b_0 );
-//	d_6     = _mm256_sub_pd( d_6, ab_temp );
+//	d_6     = _mm256_fnmadd_pd( d_2, b_0, d_6 );
 //	b_0     = _mm256_broadcast_sd( &A1[11] );
-//	ab_temp = _mm256_mul_pd( d_2, b_0 );
-//	d_7     = _mm256_sub_pd( d_7, ab_temp );
+//	d_7     = _mm256_fnmadd_pd( d_2, b_0, d_7 );
 
 
 	b_0     = _mm256_broadcast_sd( &A1[12] );
-	ab_temp = _mm256_mul_pd( d_3, b_0 );
-	d_4     = _mm256_sub_pd( d_4, ab_temp );
+	d_4     = _mm256_fnmadd_pd( d_3, b_0, d_4 );
 //	b_0     = _mm256_broadcast_sd( &A1[13] );
-//	ab_temp = _mm256_mul_pd( d_3, b_0 );
-//	d_5     = _mm256_sub_pd( d_5, ab_temp );
+//	d_5     = _mm256_fnmadd_pd( d_3, b_0, d_5 );
 //	b_0     = _mm256_broadcast_sd( &A1[14] );
-//	ab_temp = _mm256_mul_pd( d_3, b_0 );
-//	d_6     = _mm256_sub_pd( d_6, ab_temp );
+//	d_6     = _mm256_fnmadd_pd( d_3, b_0, d_6 );
 //	b_0     = _mm256_broadcast_sd( &A1[15] );
-//	ab_temp = _mm256_mul_pd( d_3, b_0 );
-//	d_7     = _mm256_sub_pd( d_7, ab_temp );
+//	d_7     = _mm256_fnmadd_pd( d_3, b_0, d_7 );
 
 
 	// solution of top-left square & bottom-right triangle
@@ -916,21 +1062,18 @@ void corner_dtrtri_5x5_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 	d_0  = _mm256_mul_pd( d_0, a_00 );
 	d_4  = _mm256_mul_pd( d_4, a_00 );
 	_mm256_store_pd( &C0[0+bs*4], d_4 );
-	//_mm256_store_pd( &C1[0+bs*4], d_0 );
+//	_mm256_store_pd( &C1[0+bs*4], d_0 );
 	ab_temp = _mm256_load_pd( &C1[0+bs*4] );
 	ab_temp = _mm256_blend_pd( ab_temp, d_0, 0x1 );
 	_mm256_store_pd( &C1[0+bs*4], ab_temp );
 
 //	a_10 = _mm256_broadcast_sd( &A1[1+bs*4] );
 //	d_1  = _mm256_set_pd( 0.0, 0.0, 1.0, 0.0 );
-//	ab_temp = _mm256_mul_pd( d_4, a_10 );
-//	d_5 = _mm256_sub_pd( d_5, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_0, a_10 );
-//	d_1 = _mm256_sub_pd( d_1, ab_temp );
+//	d_5 = _mm256_fnmadd_pd( d_4, a_10, d_5 );
+//	d_1 = _mm256_fnmadd_pd( d_0, a_10, d_1 );
 //	d_5 = _mm256_mul_pd( d_5, a_11 );
 //	d_1 = _mm256_mul_pd( d_1, a_11 );
 //	_mm256_store_pd( &C0[0+bs*5], d_5 );
-//	//_mm256_store_pd( &C1[0+bs*5], d_1 );
 //	ab_temp = _mm256_load_pd( &C1[0+bs*5] );
 //	ab_temp = _mm256_blend_pd( ab_temp, d_1, 0x3 );
 //	_mm256_store_pd( &C1[0+bs*5], ab_temp );
@@ -938,18 +1081,13 @@ void corner_dtrtri_5x5_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 //	d_2 = _mm256_set_pd( 0.0, 1.0, 0.0, 0.0 );
 //	a_20 = _mm256_broadcast_sd( &A1[2+bs*4] );
 //	a_21 = _mm256_broadcast_sd( &A1[2+bs*5] );
-//	ab_temp = _mm256_mul_pd( d_4, a_20 );
-//	d_6 = _mm256_sub_pd( d_6, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_0, a_20 );
-//	d_2 = _mm256_sub_pd( d_2, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_5, a_21 );
-//	d_6 = _mm256_sub_pd( d_6, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_1, a_21 );
-//	d_2 = _mm256_sub_pd( d_2, ab_temp );
+//	d_6 = _mm256_fnmadd_pd( d_4, a_20, d_6 );
+//	d_2 = _mm256_fnmadd_pd( d_0, a_20, d_2 );
+//	d_6 = _mm256_fnmadd_pd( d_5, a_21, d_6 );
+//	d_2 = _mm256_fnmadd_pd( d_1, a_21, d_2 );
 //	d_6 = _mm256_mul_pd( d_6, a_22 );
 //	d_2 = _mm256_mul_pd( d_2, a_22 );
 //	_mm256_store_pd( &C0[0+bs*6], d_6 );
-//	//_mm256_store_pd( &C1[0+bs*6], d_2 );
 //	ab_temp = _mm256_load_pd( &C1[0+bs*6] );
 //	ab_temp = _mm256_blend_pd( ab_temp, d_2, 0x7 );
 //	_mm256_store_pd( &C1[0+bs*6], ab_temp );
@@ -958,18 +1096,12 @@ void corner_dtrtri_5x5_lib4(double *A0, int sda, int use_inv_diag_A, double *inv
 //	a_30 = _mm256_broadcast_sd( &A1[3+bs*4] );
 //	a_31 = _mm256_broadcast_sd( &A1[3+bs*5] );
 //	a_32 = _mm256_broadcast_sd( &A1[3+bs*6] );
-//	ab_temp = _mm256_mul_pd( d_4, a_30 );
-//	d_7 = _mm256_sub_pd( d_7, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_0, a_30 );
-//	d_3 = _mm256_sub_pd( d_3, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_5, a_31 );
-//	d_7 = _mm256_sub_pd( d_7, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_1, a_31 );
-//	d_3 = _mm256_sub_pd( d_3, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_6, a_32 );
-//	d_7 = _mm256_sub_pd( d_7, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_2, a_32 );
-//	d_3 = _mm256_sub_pd( d_3, ab_temp );
+//	d_7 = _mm256_fnmadd_pd( d_4, a_30, d_7 );
+//	d_3 = _mm256_fnmadd_pd( d_0, a_30, d_3 );
+//	d_7 = _mm256_fnmadd_pd( d_5, a_31, d_7 );
+//	d_3 = _mm256_fnmadd_pd( d_1, a_31, d_3 );
+//	d_7 = _mm256_fnmadd_pd( d_6, a_32, d_7 );
+//	d_3 = _mm256_fnmadd_pd( d_2, a_32, d_3 );
 //	d_7 = _mm256_mul_pd( d_7, a_33 );
 //	d_3 = _mm256_mul_pd( d_3, a_33 );
 //	_mm256_store_pd( &C0[0+bs*7], d_7 );
@@ -1024,8 +1156,7 @@ void corner_dtrtri_4x4_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, d
 
 	d_1 = _mm256_set_pd( 0.0, 0.0, 1.0, 0.0 );
 	a_10 = _mm256_broadcast_sd( &A[1+bs*0] );
-	ab_temp = _mm256_mul_pd( d_0, a_10 );
-	d_1 = _mm256_sub_pd( d_1, ab_temp );
+	d_1 = _mm256_fnmadd_pd( d_0, a_10, d_1 );
 	d_1 = _mm256_mul_pd( d_1, a_11 );
 	//_mm256_store_pd( &C[0+bs*1], d_1 );
 	ab_temp = _mm256_load_pd( &C[0+bs*1] );
@@ -1035,10 +1166,8 @@ void corner_dtrtri_4x4_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, d
 	d_2 = _mm256_set_pd( 0.0, 1.0, 0.0, 0.0 );
 	a_20 = _mm256_broadcast_sd( &A[2+bs*0] );
 	a_21 = _mm256_broadcast_sd( &A[2+bs*1] );
-	ab_temp = _mm256_mul_pd( d_0, a_20 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_21 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
+	d_2 = _mm256_fnmadd_pd( d_0, a_20, d_2 );
+	d_2 = _mm256_fnmadd_pd( d_1, a_21, d_2 );
 	d_2 = _mm256_mul_pd( d_2, a_22 );
 	//_mm256_store_pd( &C[0+bs*2], d_2 );
 	ab_temp = _mm256_load_pd( &C[0+bs*2] );
@@ -1049,12 +1178,9 @@ void corner_dtrtri_4x4_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, d
 	a_30 = _mm256_broadcast_sd( &A[3+bs*0] );
 	a_31 = _mm256_broadcast_sd( &A[3+bs*1] );
 	a_32 = _mm256_broadcast_sd( &A[3+bs*2] );
-	ab_temp = _mm256_mul_pd( d_0, a_30 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_31 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
-	ab_temp = _mm256_mul_pd( d_2, a_32 );
-	d_3 = _mm256_sub_pd( d_3, ab_temp );
+	d_3 = _mm256_fnmadd_pd( d_0, a_30, d_3 );
+	d_3 = _mm256_fnmadd_pd( d_1, a_31, d_3 );
+	d_3 = _mm256_fnmadd_pd( d_2, a_32, d_3 );
 	d_3 = _mm256_mul_pd( d_3, a_33 );
 	_mm256_store_pd( &C[0+bs*3], d_3 );
 
@@ -1108,8 +1234,7 @@ void corner_dtrtri_3x3_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, d
 
 	d_1 = _mm256_set_pd( 0.0, 0.0, 1.0, 0.0 );
 	a_10 = _mm256_broadcast_sd( &A[1+bs*0] );
-	ab_temp = _mm256_mul_pd( d_0, a_10 );
-	d_1 = _mm256_sub_pd( d_1, ab_temp );
+	d_1 = _mm256_fnmadd_pd( d_0, a_10, d_1 );
 	d_1 = _mm256_mul_pd( d_1, a_11 );
 	//_mm256_store_pd( &C[0+bs*1], d_1 );
 	ab_temp = _mm256_load_pd( &C[0+bs*1] );
@@ -1119,10 +1244,8 @@ void corner_dtrtri_3x3_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, d
 	d_2 = _mm256_set_pd( 0.0, 1.0, 0.0, 0.0 );
 	a_20 = _mm256_broadcast_sd( &A[2+bs*0] );
 	a_21 = _mm256_broadcast_sd( &A[2+bs*1] );
-	ab_temp = _mm256_mul_pd( d_0, a_20 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
-	ab_temp = _mm256_mul_pd( d_1, a_21 );
-	d_2 = _mm256_sub_pd( d_2, ab_temp );
+	d_2 = _mm256_fnmadd_pd( d_0, a_20, d_2 );
+	d_2 = _mm256_fnmadd_pd( d_1, a_21, d_2 );
 	d_2 = _mm256_mul_pd( d_2, a_22 );
 	//_mm256_store_pd( &C[0+bs*2], d_2 );
 	ab_temp = _mm256_load_pd( &C[0+bs*2] );
@@ -1133,12 +1256,9 @@ void corner_dtrtri_3x3_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, d
 //	a_30 = _mm256_broadcast_sd( &A[3+bs*0] );
 //	a_31 = _mm256_broadcast_sd( &A[3+bs*1] );
 //	a_32 = _mm256_broadcast_sd( &A[3+bs*2] );
-//	ab_temp = _mm256_mul_pd( d_0, a_30 );
-//	d_3 = _mm256_sub_pd( d_3, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_1, a_31 );
-//	d_3 = _mm256_sub_pd( d_3, ab_temp );
-//	ab_temp = _mm256_mul_pd( d_2, a_32 );
-//	d_3 = _mm256_sub_pd( d_3, ab_temp );
+//	d_3 = _mm256_fnmadd_pd( d_0, a_30, d_3 );
+//	d_3 = _mm256_fnmadd_pd( d_1, a_31, d_3 );
+//	d_3 = _mm256_fnmadd_pd( d_2, a_32, d_3 );
 //	d_3 = _mm256_mul_pd( d_3, a_33 );
 //	_mm256_store_pd( &C[0+bs*3], d_3 );
 
@@ -1218,6 +1338,592 @@ void corner_dtrtri_1x1_lib4(double *A, int use_inv_diag_A, double *inv_diag_A, d
 
 
 
+void kernel_dtrtri_12x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E)
+	{
+
+	double *A1 = A0 + 4*sda;
+	double *A2 = A1 + 4*sda;
+	double *C1 = C0 + 4*sdc;
+	double *C2 = C1 + 4*sdc;
+	
+	const int bs = 4;
+	
+	int k;
+	
+	__m256d
+		zeros,
+		a_0, a_4, a_8,
+		b_0,
+		c_00, c_01, c_03, c_02,
+		c_40, c_41, c_43, c_42,
+		c_80, c_81, c_83, c_82;
+	
+	// prefetch
+	a_0 = _mm256_load_pd( &A0[0] );
+//	a_4 = _mm256_load_pd( &A1[0] );
+//	a_8 = _mm256_load_pd( &A2[0] );
+	b_0 = _mm256_load_pd( &B[0] );
+
+	// zero registers
+	zeros = _mm256_setzero_pd();
+	c_00 = _mm256_setzero_pd();
+	c_01 = _mm256_setzero_pd();
+	c_03 = _mm256_setzero_pd();
+	c_02 = _mm256_setzero_pd();
+	c_40 = _mm256_setzero_pd();
+	c_41 = _mm256_setzero_pd();
+	c_43 = _mm256_setzero_pd();
+	c_42 = _mm256_setzero_pd();
+	c_80 = _mm256_setzero_pd();
+	c_81 = _mm256_setzero_pd();
+	c_83 = _mm256_setzero_pd();
+	c_82 = _mm256_setzero_pd();
+
+	k = 0;
+
+	a_0  = _mm256_blend_pd( zeros, a_0, 0x1 );
+	c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+//	c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+//	c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+//	c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+//	c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+	b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+	c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+//	c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+//	c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+	a_0  = _mm256_load_pd( &A0[4] ); // prefetch
+//	c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+//	a_4  = _mm256_load_pd( &A1[4] ); // prefetch
+//	c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+	b_0  = _mm256_load_pd( &B[4] ); // prefetch
+//	a_8  = _mm256_load_pd( &A2[4] ); // prefetch
+		
+	
+	a_0  = _mm256_blend_pd( zeros, a_0, 0x3 );
+	c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+//	c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+//	c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+//	c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+//	c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+	b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+	c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+//	c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+//	c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+	a_0  = _mm256_load_pd( &A0[8] ); // prefetch
+//	c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+//	a_4  = _mm256_load_pd( &A1[8] ); // prefetch
+//	c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+	b_0  = _mm256_load_pd( &B[8] ); // prefetch
+//	a_8  = _mm256_load_pd( &A2[8] ); // prefetch
+
+
+	a_0  = _mm256_blend_pd( zeros, a_0, 0x7 );
+	c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+//	c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+//	c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+//	c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+//	c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+	b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+	c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+//	c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+//	c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+	a_0  = _mm256_load_pd( &A0[12] ); // prefetch
+//	c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+//	a_4  = _mm256_load_pd( &A1[12] ); // prefetch
+//	c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+	b_0  = _mm256_load_pd( &B[12] ); // prefetch
+//	a_8  = _mm256_load_pd( &A2[12] ); // prefetch
+
+
+	c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+//	c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+//	c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+//	c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+//	c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+	b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+	c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+//	c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+//	c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+	a_0  = _mm256_load_pd( &A0[16] ); // prefetch
+//	c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+	a_4  = _mm256_load_pd( &A1[16] ); // prefetch
+//	c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+	b_0  = _mm256_load_pd( &B[16] ); // prefetch
+//	a_8  = _mm256_load_pd( &A2[16] ); // prefetch
+
+	
+	A0 += 16;
+	A1 += 16;
+	A2 += 16;
+	B  += 16;
+
+
+	a_4  = _mm256_blend_pd( zeros, a_4, 0x1 );
+	c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+	c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+//	c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+	c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+//	c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+	b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+	c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+	c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+//	c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+	a_0  = _mm256_load_pd( &A0[4] ); // prefetch
+	c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+	a_4  = _mm256_load_pd( &A1[4] ); // prefetch
+//	c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+	b_0  = _mm256_load_pd( &B[4] ); // prefetch
+//	a_8  = _mm256_load_pd( &A2[4] ); // prefetch
+		
+	
+	a_4   = _mm256_blend_pd( zeros, a_4, 0x3 );
+	c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+	c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+//	c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+	c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+//	c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+	b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+	c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+	c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+//	c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+	a_0  = _mm256_load_pd( &A0[8] ); // prefetch
+	c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+	a_4  = _mm256_load_pd( &A1[8] ); // prefetch
+//	c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+	b_0  = _mm256_load_pd( &B[8] ); // prefetch
+//	a_8  = _mm256_load_pd( &A2[8] ); // prefetch
+	
+	
+	a_4  = _mm256_blend_pd( zeros, a_4, 0x7 );
+	c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+	c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+//	c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+	c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+//	c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+	b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+	c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+	c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+//	c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+	a_0  = _mm256_load_pd( &A0[12] ); // prefetch
+	c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+	a_4  = _mm256_load_pd( &A1[12] ); // prefetch
+//	c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+	b_0  = _mm256_load_pd( &B[12] ); // prefetch
+//	a_8  = _mm256_load_pd( &A2[12] ); // prefetch
+
+
+	c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+	c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+//	c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+	c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+//	c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+	b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+	c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+	c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+//	c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+	a_0  = _mm256_load_pd( &A0[16] ); // prefetch
+	c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+	a_4  = _mm256_load_pd( &A1[16] ); // prefetch
+//	c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+	b_0  = _mm256_load_pd( &B[16] ); // prefetch
+	a_8  = _mm256_load_pd( &A2[16] ); // prefetch
+		
+	
+	A0 += 16;
+	A1 += 16;
+	A2 += 16;
+	B  += 16;
+
+
+	a_8  = _mm256_blend_pd( zeros, a_8, 0x1 );
+	c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+	c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+	c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+	c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+	c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+	b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+	c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+	c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+	c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+	a_0  = _mm256_load_pd( &A0[4] ); // prefetch
+	c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+	a_4  = _mm256_load_pd( &A1[4] ); // prefetch
+	c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+	b_0  = _mm256_load_pd( &B[4] ); // prefetch
+	a_8  = _mm256_load_pd( &A2[4] ); // prefetch
+		
+	
+	a_8  = _mm256_blend_pd( zeros, a_8, 0x3 );
+	c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+	c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+	c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+	c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+	c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+	b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+	c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+	c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+	c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+	a_0  = _mm256_load_pd( &A0[8] ); // prefetch
+	c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+	a_4  = _mm256_load_pd( &A1[8] ); // prefetch
+	c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+	b_0  = _mm256_load_pd( &B[8] ); // prefetch
+	a_8  = _mm256_load_pd( &A2[8] ); // prefetch
+
+	
+	
+	a_8  = _mm256_blend_pd( zeros, a_8, 0x7 );
+	c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+	c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+	c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+	c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+	c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+	b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+	c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+	c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+	c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+	a_0  = _mm256_load_pd( &A0[12] ); // prefetch
+	c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+	a_4  = _mm256_load_pd( &A1[12] ); // prefetch
+	c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+	b_0  = _mm256_load_pd( &B[12] ); // prefetch
+	a_8  = _mm256_load_pd( &A2[12] ); // prefetch
+
+	
+	c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+	c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+	c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+	c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+	c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+	b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+	c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+	c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+	c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+	b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+	c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+	a_0  = _mm256_load_pd( &A0[16] ); // prefetch
+	c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+	a_4  = _mm256_load_pd( &A1[16] ); // prefetch
+	c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+	b_0  = _mm256_load_pd( &B[16] ); // prefetch
+	a_8  = _mm256_load_pd( &A2[16] ); // prefetch
+	
+	
+	A0 += 16;
+	A1 += 16;
+	A2 += 16;
+	B  += 16;
+
+	
+	k = 12;
+
+	for(; k<kmax-3; k+=4) // correction in cholesky is multiple of block size 4
+		{
+		
+		c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+		c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+		c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+		b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+		c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+		c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+		c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+		b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+		c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+		c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+		c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+		b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+		c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+		a_0  = _mm256_load_pd( &A0[4] ); // prefetch
+		c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+		a_4  = _mm256_load_pd( &A1[4] ); // prefetch
+		c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+		b_0  = _mm256_load_pd( &B[4] ); // prefetch
+		a_8  = _mm256_load_pd( &A2[4] ); // prefetch
+		
+		
+		
+		c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+		c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+		c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+		b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+		c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+		c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+		c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+		b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+		c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+		c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+		c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+		b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+		c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+		a_0  = _mm256_load_pd( &A0[8] ); // prefetch
+		c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+		a_4  = _mm256_load_pd( &A1[8] ); // prefetch
+		c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+		b_0  = _mm256_load_pd( &B[8] ); // prefetch
+		a_8  = _mm256_load_pd( &A2[8] ); // prefetch
+
+
+
+		c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+		c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+		c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+		b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+		c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+		c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+		c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+		b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+		c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+		c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+		c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+		b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+		c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+		a_0  = _mm256_load_pd( &A0[12] ); // prefetch
+		c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+		a_4  = _mm256_load_pd( &A1[12] ); // prefetch
+		c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+		b_0  = _mm256_load_pd( &B[12] ); // prefetch
+		a_8  = _mm256_load_pd( &A2[12] ); // prefetch
+
+
+		c_00 = _mm256_fnmadd_pd( a_0, b_0, c_00 );
+		c_40 = _mm256_fnmadd_pd( a_4, b_0, c_40 );
+		c_80 = _mm256_fnmadd_pd( a_8, b_0, c_80 );
+
+		b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+		c_01 = _mm256_fnmadd_pd( a_0, b_0, c_01 );
+		c_41 = _mm256_fnmadd_pd( a_4, b_0, c_41 );
+		c_81 = _mm256_fnmadd_pd( a_8, b_0, c_81 );
+
+		b_0  = _mm256_permute2f128_pd( b_0, b_0, 0x1 );
+		c_03 = _mm256_fnmadd_pd( a_0, b_0, c_03 );
+		c_43 = _mm256_fnmadd_pd( a_4, b_0, c_43 );
+		c_83 = _mm256_fnmadd_pd( a_8, b_0, c_83 );
+
+		b_0  = _mm256_shuffle_pd( b_0, b_0, 0x5 );
+		c_02 = _mm256_fnmadd_pd( a_0, b_0, c_02 );
+		a_0  = _mm256_load_pd( &A0[16] ); // prefetch
+		c_42 = _mm256_fnmadd_pd( a_4, b_0, c_42 );
+		a_4  = _mm256_load_pd( &A1[16] ); // prefetch
+		c_82 = _mm256_fnmadd_pd( a_8, b_0, c_82 );
+		b_0  = _mm256_load_pd( &B[16] ); // prefetch
+		a_8  = _mm256_load_pd( &A2[16] ); // prefetch
+		
+	
+		A0 += 16;
+		A1 += 16;
+		A2 += 16;
+		B  += 16;
+
+		}
+
+
+	__m256d
+		e_00, e_01, e_02, e_03;
+
+	e_00 = _mm256_blend_pd( c_00, c_01, 0xa );
+	e_01 = _mm256_blend_pd( c_00, c_01, 0x5 );
+	e_02 = _mm256_blend_pd( c_02, c_03, 0xa );
+	e_03 = _mm256_blend_pd( c_02, c_03, 0x5 );
+	
+	c_00 = _mm256_blend_pd( e_00, e_02, 0xc );
+	c_02 = _mm256_blend_pd( e_00, e_02, 0x3 );
+	c_01 = _mm256_blend_pd( e_01, e_03, 0xc );
+	c_03 = _mm256_blend_pd( e_01, e_03, 0x3 );
+
+	e_00 = _mm256_blend_pd( c_40, c_41, 0xa );
+	e_01 = _mm256_blend_pd( c_40, c_41, 0x5 );
+	e_02 = _mm256_blend_pd( c_42, c_43, 0xa );
+	e_03 = _mm256_blend_pd( c_42, c_43, 0x5 );
+	
+	c_40 = _mm256_blend_pd( e_00, e_02, 0xc );
+	c_42 = _mm256_blend_pd( e_00, e_02, 0x3 );
+	c_41 = _mm256_blend_pd( e_01, e_03, 0xc );
+	c_43 = _mm256_blend_pd( e_01, e_03, 0x3 );
+
+	e_00 = _mm256_blend_pd( c_80, c_81, 0xa );
+	e_01 = _mm256_blend_pd( c_80, c_81, 0x5 );
+	e_02 = _mm256_blend_pd( c_82, c_83, 0xa );
+	e_03 = _mm256_blend_pd( c_82, c_83, 0x5 );
+	
+	c_80 = _mm256_blend_pd( e_00, e_02, 0xc );
+	c_82 = _mm256_blend_pd( e_00, e_02, 0x3 );
+	c_81 = _mm256_blend_pd( e_01, e_03, 0xc );
+	c_83 = _mm256_blend_pd( e_01, e_03, 0x3 );
+
+
+	__m256d
+		ones,
+		a_00, a_10, a_20, a_30, a_11, a_21, a_31, a_22, a_32, a_33;
+	
+	ones = _mm256_set_pd( 1.0, 1.0, 1.0, 1.0 );
+	
+	if(use_inv_diag_E)
+		{
+		a_00 = _mm256_broadcast_sd( &inv_diag_E[0] );
+		a_11 = _mm256_broadcast_sd( &inv_diag_E[1] );
+		a_22 = _mm256_broadcast_sd( &inv_diag_E[2] );
+		a_33 = _mm256_broadcast_sd( &inv_diag_E[3] );
+		}
+	else
+		{
+		a_00 = _mm256_broadcast_sd( &E[0+bs*0] );
+		a_11 = _mm256_broadcast_sd( &E[1+bs*1] );
+		a_22 = _mm256_broadcast_sd( &E[2+bs*2] );
+		a_33 = _mm256_broadcast_sd( &E[3+bs*3] );
+		a_00 = _mm256_div_pd( ones, a_00 ); // TODO sd + broadcast
+		a_11 = _mm256_div_pd( ones, a_11 ); // TODO sd + broadcast
+		a_22 = _mm256_div_pd( ones, a_22 ); // TODO sd + broadcast
+		a_33 = _mm256_div_pd( ones, a_33 ); // TODO sd + broadcast
+		}
+	
+	c_00 = _mm256_mul_pd( c_00, a_00 );
+	c_40 = _mm256_mul_pd( c_40, a_00 );
+	c_80 = _mm256_mul_pd( c_80, a_00 );
+	_mm256_store_pd( &C0[0+bs*0], c_00 );
+	_mm256_store_pd( &C1[0+bs*0], c_40 );
+	_mm256_store_pd( &C2[0+bs*0], c_80 );
+
+	a_10 = _mm256_broadcast_sd( &E[1+bs*0] );
+	c_01 = _mm256_fnmadd_pd( c_00, a_10, c_01 );
+	c_41 = _mm256_fnmadd_pd( c_40, a_10, c_41 );
+	c_81 = _mm256_fnmadd_pd( c_80, a_10, c_81 );
+	c_01 = _mm256_mul_pd( c_01, a_11 );
+	c_41 = _mm256_mul_pd( c_41, a_11 );
+	c_81 = _mm256_mul_pd( c_81, a_11 );
+	_mm256_store_pd( &C0[0+bs*1], c_01 );
+	_mm256_store_pd( &C1[0+bs*1], c_41 );
+	_mm256_store_pd( &C2[0+bs*1], c_81 );
+
+	a_20 = _mm256_broadcast_sd( &E[2+bs*0] );
+	a_21 = _mm256_broadcast_sd( &E[2+bs*1] );
+	c_02 = _mm256_fnmadd_pd( c_00, a_20, c_02 );
+	c_42 = _mm256_fnmadd_pd( c_40, a_20, c_42 );
+	c_82 = _mm256_fnmadd_pd( c_80, a_20, c_82 );
+	c_02 = _mm256_fnmadd_pd( c_01, a_21, c_02 );
+	c_42 = _mm256_fnmadd_pd( c_41, a_21, c_42 );
+	c_82 = _mm256_fnmadd_pd( c_81, a_21, c_82 );
+	c_02 = _mm256_mul_pd( c_02, a_22 );
+	c_42 = _mm256_mul_pd( c_42, a_22 );
+	c_82 = _mm256_mul_pd( c_82, a_22 );
+	_mm256_store_pd( &C0[0+bs*2], c_02 );
+	_mm256_store_pd( &C1[0+bs*2], c_42 );
+	_mm256_store_pd( &C2[0+bs*2], c_82 );
+
+	a_30 = _mm256_broadcast_sd( &E[3+bs*0] );
+	a_31 = _mm256_broadcast_sd( &E[3+bs*1] );
+	a_32 = _mm256_broadcast_sd( &E[3+bs*2] );
+	c_03 = _mm256_fnmadd_pd( c_00, a_30, c_03 );
+	c_43 = _mm256_fnmadd_pd( c_40, a_30, c_43 );
+	c_83 = _mm256_fnmadd_pd( c_80, a_30, c_83 );
+	c_03 = _mm256_fnmadd_pd( c_01, a_31, c_03 );
+	c_43 = _mm256_fnmadd_pd( c_41, a_31, c_43 );
+	c_83 = _mm256_fnmadd_pd( c_81, a_31, c_83 );
+	c_03 = _mm256_fnmadd_pd( c_02, a_32, c_03 );
+	c_43 = _mm256_fnmadd_pd( c_42, a_32, c_43 );
+	c_83 = _mm256_fnmadd_pd( c_82, a_32, c_83 );
+	c_03 = _mm256_mul_pd( c_03, a_33 );
+	c_43 = _mm256_mul_pd( c_43, a_33 );
+	c_83 = _mm256_mul_pd( c_83, a_33 );
+	_mm256_store_pd( &C0[0+bs*3], c_03 );
+	_mm256_store_pd( &C1[0+bs*3], c_43 );
+	_mm256_store_pd( &C2[0+bs*3], c_83 );
+
+
+	}
+
+
+
 void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E)
 	{
 
@@ -1229,9 +1935,9 @@ void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0
 	int k;
 	
 	__m256d
+		zeros,
 		a_0123, a_4567, //A_0123,
 		b_0123, b_1032, b_3210, b_2301,
-		ab_tmp0, ab_tmp1, // temporary results
 		c_00_11_22_33, c_01_10_23_32, c_03_12_21_30, c_02_13_20_31,
 		c_40_51_62_73, c_41_50_63_72, c_43_52_61_70, c_42_53_60_71;
 	
@@ -1241,6 +1947,7 @@ void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0
 	b_0123 = _mm256_load_pd( &B[0] );
 
 	// zero registers
+	zeros = _mm256_setzero_pd();
 	c_00_11_22_33 = _mm256_setzero_pd();
 	c_01_10_23_32 = _mm256_setzero_pd();
 	c_03_12_21_30 = _mm256_setzero_pd();
@@ -1252,177 +1959,123 @@ void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0
 
 	k = 0;
 
-	ab_tmp1       = _mm256_setzero_pd();
-
-	a_0123        = _mm256_blend_pd( ab_tmp1, a_0123, 0x1 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
+	a_0123        = _mm256_blend_pd( zeros, a_0123, 0x1 );
+	c_00_11_22_33 = _mm256_fnmadd_pd( a_0123, b_0123, c_00_11_22_33 );
 	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 	b_0123        = _mm256_load_pd( &B[4] ); // prefetch
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
+	c_01_10_23_32 = _mm256_fnmadd_pd( a_0123, b_1032, c_01_10_23_32 );
 	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
+	c_03_12_21_30 = _mm256_fnmadd_pd( a_0123, b_3210, c_03_12_21_30 );
 	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
+	c_02_13_20_31 = _mm256_fnmadd_pd( a_0123, b_2301, c_02_13_20_31 );
 	a_0123        = _mm256_load_pd( &A0[4] ); // prefetch
-	a_4567        = _mm256_load_pd( &A1[4] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
 	
 	
-	a_0123        = _mm256_blend_pd( ab_tmp1, a_0123, 0x3 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
+	a_0123        = _mm256_blend_pd( zeros, a_0123, 0x3 );
+	c_00_11_22_33 = _mm256_fnmadd_pd( a_0123, b_0123, c_00_11_22_33 );
 	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 	b_0123        = _mm256_load_pd( &B[8] ); // prefetch
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
+	c_01_10_23_32 = _mm256_fnmadd_pd( a_0123, b_1032, c_01_10_23_32 );
 	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
+	c_03_12_21_30 = _mm256_fnmadd_pd( a_0123, b_3210, c_03_12_21_30 );
 	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
+	c_02_13_20_31 = _mm256_fnmadd_pd( a_0123, b_2301, c_02_13_20_31 );
 	a_0123        = _mm256_load_pd( &A0[8] ); // prefetch
-	a_4567        = _mm256_load_pd( &A1[8] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
 
 
-	a_0123        = _mm256_blend_pd( ab_tmp1, a_0123, 0x7 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
+	a_0123        = _mm256_blend_pd( zeros, a_0123, 0x7 );
+	c_00_11_22_33 = _mm256_fnmadd_pd( a_0123, b_0123, c_00_11_22_33 );
 	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 	b_0123        = _mm256_load_pd( &B[12] ); // prefetch
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
+	c_01_10_23_32 = _mm256_fnmadd_pd( a_0123, b_1032, c_01_10_23_32 );
 	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
+	c_03_12_21_30 = _mm256_fnmadd_pd( a_0123, b_3210, c_03_12_21_30 );
 	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
+	c_02_13_20_31 = _mm256_fnmadd_pd( a_0123, b_2301, c_02_13_20_31 );
 	a_0123        = _mm256_load_pd( &A0[12] ); // prefetch
-	a_4567        = _mm256_load_pd( &A1[12] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
 
 
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
+	c_00_11_22_33 = _mm256_fnmadd_pd( a_0123, b_0123, c_00_11_22_33 );
 	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 	b_0123        = _mm256_load_pd( &B[16] ); // prefetch
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
+	c_01_10_23_32 = _mm256_fnmadd_pd( a_0123, b_1032, c_01_10_23_32 );
 	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
+	c_03_12_21_30 = _mm256_fnmadd_pd( a_0123, b_3210, c_03_12_21_30 );
 	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
+	c_02_13_20_31 = _mm256_fnmadd_pd( a_0123, b_2301, c_02_13_20_31 );
 	a_0123        = _mm256_load_pd( &A0[16] ); // prefetch
 	a_4567        = _mm256_load_pd( &A1[16] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
-
 	
 	A0 += 16;
 	A1 += 16;
 	B  += 16;
 
 
-	a_4567        = _mm256_blend_pd( ab_tmp1, a_4567, 0x1 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
+	a_4567        = _mm256_blend_pd( zeros, a_4567, 0x1 );
 	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0123 );
+	c_00_11_22_33 = _mm256_fnmadd_pd( a_0123, b_0123, c_00_11_22_33 );
+	c_40_51_62_73 = _mm256_fnmadd_pd( a_4567, b_0123, c_40_51_62_73 );
 	b_0123        = _mm256_load_pd( &B[4] ); // prefetch
-	c_40_51_62_73 = _mm256_sub_pd( c_40_51_62_73, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
 	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1032 );
-	c_41_50_63_72 = _mm256_sub_pd( c_41_50_63_72, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
+	c_01_10_23_32 = _mm256_fnmadd_pd( a_0123, b_1032, c_01_10_23_32 );
+	c_41_50_63_72 = _mm256_fnmadd_pd( a_4567, b_1032, c_41_50_63_72 );
 	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_3210 );
-	c_43_52_61_70 = _mm256_sub_pd( c_43_52_61_70, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
+	c_03_12_21_30 = _mm256_fnmadd_pd( a_0123, b_3210, c_03_12_21_30 );
+	c_43_52_61_70 = _mm256_fnmadd_pd( a_4567, b_3210, c_43_52_61_70 );
+	c_02_13_20_31 = _mm256_fnmadd_pd( a_0123, b_2301, c_02_13_20_31 );
 	a_0123        = _mm256_load_pd( &A0[4] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_2301 );
+	c_42_53_60_71 = _mm256_fnmadd_pd( a_4567, b_2301, c_42_53_60_71 );
 	a_4567        = _mm256_load_pd( &A1[4] ); // prefetch
-	c_42_53_60_71 = _mm256_sub_pd( c_42_53_60_71, ab_tmp0 );
 	
 	
-	a_4567        = _mm256_blend_pd( ab_tmp1, a_4567, 0x3 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
+	a_4567        = _mm256_blend_pd( zeros, a_4567, 0x3 );
 	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0123 );
+	c_00_11_22_33 = _mm256_fnmadd_pd( a_0123, b_0123, c_00_11_22_33 );
+	c_40_51_62_73 = _mm256_fnmadd_pd( a_4567, b_0123, c_40_51_62_73 );
 	b_0123        = _mm256_load_pd( &B[8] ); // prefetch
-	c_40_51_62_73 = _mm256_sub_pd( c_40_51_62_73, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
 	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1032 );
-	c_41_50_63_72 = _mm256_sub_pd( c_41_50_63_72, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
+	c_01_10_23_32 = _mm256_fnmadd_pd( a_0123, b_1032, c_01_10_23_32 );
+	c_41_50_63_72 = _mm256_fnmadd_pd( a_4567, b_1032, c_41_50_63_72 );
 	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_3210 );
-	c_43_52_61_70 = _mm256_sub_pd( c_43_52_61_70, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
+	c_03_12_21_30 = _mm256_fnmadd_pd( a_0123, b_3210, c_03_12_21_30 );
+	c_43_52_61_70 = _mm256_fnmadd_pd( a_4567, b_3210, c_43_52_61_70 );
+	c_02_13_20_31 = _mm256_fnmadd_pd( a_0123, b_2301, c_02_13_20_31 );
 	a_0123        = _mm256_load_pd( &A0[8] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_2301 );
+	c_42_53_60_71 = _mm256_fnmadd_pd( a_4567, b_2301, c_42_53_60_71 );
 	a_4567        = _mm256_load_pd( &A1[8] ); // prefetch
-	c_42_53_60_71 = _mm256_sub_pd( c_42_53_60_71, ab_tmp0 );
 	
 	
-	a_4567        = _mm256_blend_pd( ab_tmp1, a_4567, 0x7 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
+	a_4567        = _mm256_blend_pd( zeros, a_4567, 0x7 );
 	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0123 );
+	c_00_11_22_33 = _mm256_fnmadd_pd( a_0123, b_0123, c_00_11_22_33 );
+	c_40_51_62_73 = _mm256_fnmadd_pd( a_4567, b_0123, c_40_51_62_73 );
 	b_0123        = _mm256_load_pd( &B[12] ); // prefetch
-	c_40_51_62_73 = _mm256_sub_pd( c_40_51_62_73, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
 	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1032 );
-	c_41_50_63_72 = _mm256_sub_pd( c_41_50_63_72, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
+	c_01_10_23_32 = _mm256_fnmadd_pd( a_0123, b_1032, c_01_10_23_32 );
+	c_41_50_63_72 = _mm256_fnmadd_pd( a_4567, b_1032, c_41_50_63_72 );
 	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_3210 );
-	c_43_52_61_70 = _mm256_sub_pd( c_43_52_61_70, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
+	c_03_12_21_30 = _mm256_fnmadd_pd( a_0123, b_3210, c_03_12_21_30 );
+	c_43_52_61_70 = _mm256_fnmadd_pd( a_4567, b_3210, c_43_52_61_70 );
+	c_02_13_20_31 = _mm256_fnmadd_pd( a_0123, b_2301, c_02_13_20_31 );
 	a_0123        = _mm256_load_pd( &A0[12] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_2301 );
+	c_42_53_60_71 = _mm256_fnmadd_pd( a_4567, b_2301, c_42_53_60_71 );
 	a_4567        = _mm256_load_pd( &A1[12] ); // prefetch
-	c_42_53_60_71 = _mm256_sub_pd( c_42_53_60_71, ab_tmp0 );
 	
 	
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
 	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0123 );
+	c_00_11_22_33 = _mm256_fnmadd_pd( a_0123, b_0123, c_00_11_22_33 );
+	c_40_51_62_73 = _mm256_fnmadd_pd( a_4567, b_0123, c_40_51_62_73 );
 	b_0123        = _mm256_load_pd( &B[16] ); // prefetch
-	c_40_51_62_73 = _mm256_sub_pd( c_40_51_62_73, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
 	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1032 );
-	c_41_50_63_72 = _mm256_sub_pd( c_41_50_63_72, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
+	c_01_10_23_32 = _mm256_fnmadd_pd( a_0123, b_1032, c_01_10_23_32 );
+	c_41_50_63_72 = _mm256_fnmadd_pd( a_4567, b_1032, c_41_50_63_72 );
 	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_3210 );
-	c_43_52_61_70 = _mm256_sub_pd( c_43_52_61_70, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
+	c_03_12_21_30 = _mm256_fnmadd_pd( a_0123, b_3210, c_03_12_21_30 );
+	c_43_52_61_70 = _mm256_fnmadd_pd( a_4567, b_3210, c_43_52_61_70 );
+	c_02_13_20_31 = _mm256_fnmadd_pd( a_0123, b_2301, c_02_13_20_31 );
 	a_0123        = _mm256_load_pd( &A0[16] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_2301 );
+	c_42_53_60_71 = _mm256_fnmadd_pd( a_4567, b_2301, c_42_53_60_71 );
 	a_4567        = _mm256_load_pd( &A1[16] ); // prefetch
-	c_42_53_60_71 = _mm256_sub_pd( c_42_53_60_71, ab_tmp0 );
 	
 	
 	A0 += 16;
@@ -1434,7 +2087,6 @@ void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0
 	for(; k<kmax-3; k+=4) // correction in cholesky is multiple of block size 4
 		{
 		
-/*	__builtin_prefetch( A+32 );*/
 		b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 		c_00_11_22_33 = _mm256_fnmadd_pd( a_0123, b_0123, c_00_11_22_33 );
 		c_40_51_62_73 = _mm256_fnmadd_pd( a_4567, b_0123, c_40_51_62_73 );
@@ -1451,7 +2103,6 @@ void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0
 		a_4567        = _mm256_load_pd( &A1[4] ); // prefetch
 		
 		
-/*	__builtin_prefetch( A+40 );*/
 		b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 		c_00_11_22_33 = _mm256_fnmadd_pd( a_0123, b_0123, c_00_11_22_33 );
 		c_40_51_62_73 = _mm256_fnmadd_pd( a_4567, b_0123, c_40_51_62_73 );
@@ -1468,7 +2119,6 @@ void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0
 		a_4567        = _mm256_load_pd( &A1[8] ); // prefetch
 
 
-/*	__builtin_prefetch( A+48 );*/
 		b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 		c_00_11_22_33 = _mm256_fnmadd_pd( a_0123, b_0123, c_00_11_22_33 );
 		c_40_51_62_73 = _mm256_fnmadd_pd( a_4567, b_0123, c_40_51_62_73 );
@@ -1485,7 +2135,6 @@ void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0
 		a_4567        = _mm256_load_pd( &A1[12] ); // prefetch
 
 
-/*	__builtin_prefetch( A+56 );*/
 		b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
 		c_00_11_22_33 = _mm256_fnmadd_pd( a_0123, b_0123, c_00_11_22_33 );
 		c_40_51_62_73 = _mm256_fnmadd_pd( a_4567, b_0123, c_40_51_62_73 );
@@ -1558,18 +2207,14 @@ void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0
 		a_33 = _mm256_div_pd( ones, a_33 ); // TODO sd + broadcast
 		}
 	
-//	a_00 = _mm256_broadcast_sd( &fact[0] );
 	d_00_10_20_30 = _mm256_mul_pd( d_00_10_20_30, a_00 );
 	d_40_50_60_70 = _mm256_mul_pd( d_40_50_60_70, a_00 );
 	_mm256_store_pd( &C0[0+bs*0], d_00_10_20_30 );
 	_mm256_store_pd( &C1[0+bs*0], d_40_50_60_70 );
 
 	a_10 = _mm256_broadcast_sd( &E[1+bs*0] );
-//	a_11 = _mm256_broadcast_sd( &fact[2] );
-	ab_tmp0 = _mm256_mul_pd( d_00_10_20_30, a_10 );
-	ab_tmp1 = _mm256_mul_pd( d_40_50_60_70, a_10 );
-	d_01_11_21_31 = _mm256_sub_pd( d_01_11_21_31, ab_tmp0 );
-	d_41_51_61_71 = _mm256_sub_pd( d_41_51_61_71, ab_tmp1 );
+	d_01_11_21_31 = _mm256_fnmadd_pd( d_00_10_20_30, a_10, d_01_11_21_31 );
+	d_41_51_61_71 = _mm256_fnmadd_pd( d_40_50_60_70, a_10, d_41_51_61_71 );
 	d_01_11_21_31 = _mm256_mul_pd( d_01_11_21_31, a_11 );
 	d_41_51_61_71 = _mm256_mul_pd( d_41_51_61_71, a_11 );
 	_mm256_store_pd( &C0[0+bs*1], d_01_11_21_31 );
@@ -1577,15 +2222,10 @@ void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0
 
 	a_20 = _mm256_broadcast_sd( &E[2+bs*0] );
 	a_21 = _mm256_broadcast_sd( &E[2+bs*1] );
-//	a_22 = _mm256_broadcast_sd( &fact[5] );
-	ab_tmp0 = _mm256_mul_pd( d_00_10_20_30, a_20 );
-	ab_tmp1 = _mm256_mul_pd( d_40_50_60_70, a_20 );
-	d_02_12_22_32 = _mm256_sub_pd( d_02_12_22_32, ab_tmp0 );
-	d_42_52_62_72 = _mm256_sub_pd( d_42_52_62_72, ab_tmp1 );
-	ab_tmp0 = _mm256_mul_pd( d_01_11_21_31, a_21 );
-	ab_tmp1 = _mm256_mul_pd( d_41_51_61_71, a_21 );
-	d_02_12_22_32 = _mm256_sub_pd( d_02_12_22_32, ab_tmp0 );
-	d_42_52_62_72 = _mm256_sub_pd( d_42_52_62_72, ab_tmp1 );
+	d_02_12_22_32 = _mm256_fnmadd_pd( d_00_10_20_30, a_20, d_02_12_22_32 );
+	d_42_52_62_72 = _mm256_fnmadd_pd( d_40_50_60_70, a_20, d_42_52_62_72 );
+	d_02_12_22_32 = _mm256_fnmadd_pd( d_01_11_21_31, a_21, d_02_12_22_32 );
+	d_42_52_62_72 = _mm256_fnmadd_pd( d_41_51_61_71, a_21, d_42_52_62_72 );
 	d_02_12_22_32 = _mm256_mul_pd( d_02_12_22_32, a_22 );
 	d_42_52_62_72 = _mm256_mul_pd( d_42_52_62_72, a_22 );
 	_mm256_store_pd( &C0[0+bs*2], d_02_12_22_32 );
@@ -1594,19 +2234,12 @@ void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0
 	a_30 = _mm256_broadcast_sd( &E[3+bs*0] );
 	a_31 = _mm256_broadcast_sd( &E[3+bs*1] );
 	a_32 = _mm256_broadcast_sd( &E[3+bs*2] );
-//	a_33 = _mm256_broadcast_sd( &fact[9] );
-	ab_tmp0 = _mm256_mul_pd( d_00_10_20_30, a_30 );
-	ab_tmp1 = _mm256_mul_pd( d_40_50_60_70, a_30 );
-	d_03_13_23_33 = _mm256_sub_pd( d_03_13_23_33, ab_tmp0 );
-	d_43_53_63_73 = _mm256_sub_pd( d_43_53_63_73, ab_tmp1 );
-	ab_tmp0 = _mm256_mul_pd( d_01_11_21_31, a_31 );
-	ab_tmp1 = _mm256_mul_pd( d_41_51_61_71, a_31 );
-	d_03_13_23_33 = _mm256_sub_pd( d_03_13_23_33, ab_tmp0 );
-	d_43_53_63_73 = _mm256_sub_pd( d_43_53_63_73, ab_tmp1 );
-	ab_tmp0 = _mm256_mul_pd( d_02_12_22_32, a_32 );
-	ab_tmp1 = _mm256_mul_pd( d_42_52_62_72, a_32 );
-	d_03_13_23_33 = _mm256_sub_pd( d_03_13_23_33, ab_tmp0 );
-	d_43_53_63_73 = _mm256_sub_pd( d_43_53_63_73, ab_tmp1 );
+	d_03_13_23_33 = _mm256_fnmadd_pd( d_00_10_20_30, a_30, d_03_13_23_33 );
+	d_43_53_63_73 = _mm256_fnmadd_pd( d_40_50_60_70, a_30, d_43_53_63_73 );
+	d_03_13_23_33 = _mm256_fnmadd_pd( d_01_11_21_31, a_31, d_03_13_23_33 );
+	d_43_53_63_73 = _mm256_fnmadd_pd( d_41_51_61_71, a_31, d_43_53_63_73 );
+	d_03_13_23_33 = _mm256_fnmadd_pd( d_02_12_22_32, a_32, d_03_13_23_33 );
+	d_43_53_63_73 = _mm256_fnmadd_pd( d_42_52_62_72, a_32, d_43_53_63_73 );
 	d_03_13_23_33 = _mm256_mul_pd( d_03_13_23_33, a_33 );
 	d_43_53_63_73 = _mm256_mul_pd( d_43_53_63_73, a_33 );
 	_mm256_store_pd( &C0[0+bs*3], d_03_13_23_33 );
@@ -1628,96 +2261,65 @@ void kernel_dtrtri_8x3_lib4(int kmax, double *A0, int sda, double *B, double *C0
 	int k;
 	
 	__m256d
+		zeros,
 		a_0123, a_4567, //A_0123,
-		b_0123, b_1032, b_3210, b_2301,
+		b_0,
 		ab_tmp0, ab_tmp1, // temporary results
-		c_00_11_22_33, c_01_10_23_32, c_03_12_21_30, c_02_13_20_31,
-		c_40_51_62_73, c_41_50_63_72, c_43_52_61_70, c_42_53_60_71;
+		d_0, d_1, d_2,
+		d_4, d_5, d_6;
 	
 	// prefetch
 	a_0123 = _mm256_load_pd( &A0[0] );
-	a_4567 = _mm256_load_pd( &A1[0] );
-	b_0123 = _mm256_load_pd( &B[0] );
 
 	// zero registers
-	c_00_11_22_33 = _mm256_setzero_pd();
-	c_01_10_23_32 = _mm256_setzero_pd();
-	c_03_12_21_30 = _mm256_setzero_pd();
-	c_02_13_20_31 = _mm256_setzero_pd();
-	c_40_51_62_73 = _mm256_setzero_pd();
-	c_41_50_63_72 = _mm256_setzero_pd();
-	c_43_52_61_70 = _mm256_setzero_pd();
-	c_42_53_60_71 = _mm256_setzero_pd();
+	zeros = _mm256_setzero_pd();
+	d_0 = _mm256_setzero_pd();
+	d_1 = _mm256_setzero_pd();
+	d_2 = _mm256_setzero_pd();
+	d_4 = _mm256_setzero_pd();
+	d_5 = _mm256_setzero_pd();
+	d_6 = _mm256_setzero_pd();
 
 	k = 0;
 
-	ab_tmp1       = _mm256_setzero_pd();
-
-	a_0123        = _mm256_blend_pd( ab_tmp1, a_0123, 0x1 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
-	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-	b_0123        = _mm256_load_pd( &B[4] ); // prefetch
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
-	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
-	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
-	a_0123        = _mm256_load_pd( &A0[4] ); // prefetch
-	a_4567        = _mm256_load_pd( &A1[4] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
+	a_0123 = _mm256_blend_pd( ab_tmp1, a_0123, 0x1 );
+	b_0    = _mm256_broadcast_sd( &B[0] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	b_0    = _mm256_broadcast_sd( &B[1] );
+	d_1    = _mm256_fnmadd_pd( a_0123, b_0, d_1 );
+	b_0    = _mm256_broadcast_sd( &B[2] );
+	d_2    = _mm256_fnmadd_pd( a_0123, b_0, d_2 );
+	a_0123 = _mm256_load_pd( &A0[4] );
 	
 	
-	a_0123        = _mm256_blend_pd( ab_tmp1, a_0123, 0x3 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
-	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-	b_0123        = _mm256_load_pd( &B[8] ); // prefetch
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
-	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
-	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
-	a_0123        = _mm256_load_pd( &A0[8] ); // prefetch
-	a_4567        = _mm256_load_pd( &A1[8] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
+	a_0123 = _mm256_blend_pd( ab_tmp1, a_0123, 0x3 );
+	b_0    = _mm256_broadcast_sd( &B[4] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	b_0    = _mm256_broadcast_sd( &B[5] );
+	d_1    = _mm256_fnmadd_pd( a_0123, b_0, d_1 );
+	b_0    = _mm256_broadcast_sd( &B[6] );
+	d_2    = _mm256_fnmadd_pd( a_0123, b_0, d_2 );
+	a_0123 = _mm256_load_pd( &A0[8] );
 
 
-	a_0123        = _mm256_blend_pd( ab_tmp1, a_0123, 0x7 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
-	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-	b_0123        = _mm256_load_pd( &B[12] ); // prefetch
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
-	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
-	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
-	a_0123        = _mm256_load_pd( &A0[12] ); // prefetch
-	a_4567        = _mm256_load_pd( &A1[12] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
+	a_0123 = _mm256_blend_pd( ab_tmp1, a_0123, 0x7 );
+	b_0    = _mm256_broadcast_sd( &B[8] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	b_0    = _mm256_broadcast_sd( &B[9] );
+	d_1    = _mm256_fnmadd_pd( a_0123, b_0, d_1 );
+	b_0    = _mm256_broadcast_sd( &B[10] );
+	d_2    = _mm256_fnmadd_pd( a_0123, b_0, d_2 );
+	a_0123 = _mm256_load_pd( &A0[12] );
 
 
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
-	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-	b_0123        = _mm256_load_pd( &B[16] ); // prefetch
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
-	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
-	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
-	a_0123        = _mm256_load_pd( &A0[16] ); // prefetch
-	a_4567        = _mm256_load_pd( &A1[16] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
+	b_0    = _mm256_broadcast_sd( &B[12] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	b_0    = _mm256_broadcast_sd( &B[13] );
+	d_1    = _mm256_fnmadd_pd( a_0123, b_0, d_1 );
+	b_0    = _mm256_broadcast_sd( &B[14] );
+	d_2    = _mm256_fnmadd_pd( a_0123, b_0, d_2 );
+	a_0123 = _mm256_load_pd( &A0[16] );
+	a_4567 = _mm256_load_pd( &A1[16] );
 
 	
 	A0 += 16;
@@ -1725,104 +2327,60 @@ void kernel_dtrtri_8x3_lib4(int kmax, double *A0, int sda, double *B, double *C0
 	B  += 16;
 
 
-	a_4567        = _mm256_blend_pd( ab_tmp1, a_4567, 0x1 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
-	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0123 );
-	b_0123        = _mm256_load_pd( &B[4] ); // prefetch
-	c_40_51_62_73 = _mm256_sub_pd( c_40_51_62_73, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
-	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1032 );
-	c_41_50_63_72 = _mm256_sub_pd( c_41_50_63_72, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
-	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_3210 );
-	c_43_52_61_70 = _mm256_sub_pd( c_43_52_61_70, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
-	a_0123        = _mm256_load_pd( &A0[4] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_2301 );
-	a_4567        = _mm256_load_pd( &A1[4] ); // prefetch
-	c_42_53_60_71 = _mm256_sub_pd( c_42_53_60_71, ab_tmp0 );
+	a_4567 = _mm256_blend_pd( ab_tmp1, a_4567, 0x1 );
+	b_0    = _mm256_broadcast_sd( &B[0] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+	b_0    = _mm256_broadcast_sd( &B[1] );
+	d_1    = _mm256_fnmadd_pd( a_0123, b_0, d_1 );
+	d_5    = _mm256_fnmadd_pd( a_4567, b_0, d_5 );
+	b_0    = _mm256_broadcast_sd( &B[2] );
+	d_2    = _mm256_fnmadd_pd( a_0123, b_0, d_2 );
+	d_6    = _mm256_fnmadd_pd( a_4567, b_0, d_6 );
+	a_0123 = _mm256_load_pd( &A0[4] );
+	a_4567 = _mm256_load_pd( &A1[4] );
+		
 	
+	a_4567 = _mm256_blend_pd( ab_tmp1, a_4567, 0x3 );
+	b_0    = _mm256_broadcast_sd( &B[4] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+	b_0    = _mm256_broadcast_sd( &B[5] );
+	d_1    = _mm256_fnmadd_pd( a_0123, b_0, d_1 );
+	d_5    = _mm256_fnmadd_pd( a_4567, b_0, d_5 );
+	b_0    = _mm256_broadcast_sd( &B[6] );
+	d_2    = _mm256_fnmadd_pd( a_0123, b_0, d_2 );
+	d_6    = _mm256_fnmadd_pd( a_4567, b_0, d_6 );
+	a_0123 = _mm256_load_pd( &A0[8] );
+	a_4567 = _mm256_load_pd( &A1[8] );
+		
 	
-	a_4567        = _mm256_blend_pd( ab_tmp1, a_4567, 0x3 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
-	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0123 );
-	b_0123        = _mm256_load_pd( &B[8] ); // prefetch
-	c_40_51_62_73 = _mm256_sub_pd( c_40_51_62_73, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
-	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1032 );
-	c_41_50_63_72 = _mm256_sub_pd( c_41_50_63_72, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
-	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_3210 );
-	c_43_52_61_70 = _mm256_sub_pd( c_43_52_61_70, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
-	a_0123        = _mm256_load_pd( &A0[8] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_2301 );
-	a_4567        = _mm256_load_pd( &A1[8] ); // prefetch
-	c_42_53_60_71 = _mm256_sub_pd( c_42_53_60_71, ab_tmp0 );
+	a_4567 = _mm256_blend_pd( ab_tmp1, a_4567, 0x7 );
+	b_0    = _mm256_broadcast_sd( &B[8] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+	b_0    = _mm256_broadcast_sd( &B[9] );
+	d_1    = _mm256_fnmadd_pd( a_0123, b_0, d_1 );
+	d_5    = _mm256_fnmadd_pd( a_4567, b_0, d_5 );
+	b_0    = _mm256_broadcast_sd( &B[10] );
+	d_2    = _mm256_fnmadd_pd( a_0123, b_0, d_2 );
+	d_6    = _mm256_fnmadd_pd( a_4567, b_0, d_6 );
+	a_0123 = _mm256_load_pd( &A0[12] );
+	a_4567 = _mm256_load_pd( &A1[12] );
+		
 	
-	
-	a_4567        = _mm256_blend_pd( ab_tmp1, a_4567, 0x7 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
-	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0123 );
-	b_0123        = _mm256_load_pd( &B[12] ); // prefetch
-	c_40_51_62_73 = _mm256_sub_pd( c_40_51_62_73, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
-	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1032 );
-	c_41_50_63_72 = _mm256_sub_pd( c_41_50_63_72, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
-	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_3210 );
-	c_43_52_61_70 = _mm256_sub_pd( c_43_52_61_70, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
-	a_0123        = _mm256_load_pd( &A0[12] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_2301 );
-	a_4567        = _mm256_load_pd( &A1[12] ); // prefetch
-	c_42_53_60_71 = _mm256_sub_pd( c_42_53_60_71, ab_tmp0 );
-	
-	
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
-	b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-	c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0123 );
-	b_0123        = _mm256_load_pd( &B[16] ); // prefetch
-	c_40_51_62_73 = _mm256_sub_pd( c_40_51_62_73, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
-	b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-	c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1032 );
-	c_41_50_63_72 = _mm256_sub_pd( c_41_50_63_72, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
-	b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-	c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_3210 );
-	c_43_52_61_70 = _mm256_sub_pd( c_43_52_61_70, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
-	a_0123        = _mm256_load_pd( &A0[16] ); // prefetch
-	c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_2301 );
-	a_4567        = _mm256_load_pd( &A1[16] ); // prefetch
-	c_42_53_60_71 = _mm256_sub_pd( c_42_53_60_71, ab_tmp0 );
-	
+	b_0    = _mm256_broadcast_sd( &B[12] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+	b_0    = _mm256_broadcast_sd( &B[13] );
+	d_1    = _mm256_fnmadd_pd( a_0123, b_0, d_1 );
+	d_5    = _mm256_fnmadd_pd( a_4567, b_0, d_5 );
+	b_0    = _mm256_broadcast_sd( &B[14] );
+	d_2    = _mm256_fnmadd_pd( a_0123, b_0, d_2 );
+	d_6    = _mm256_fnmadd_pd( a_4567, b_0, d_6 );
+	a_0123 = _mm256_load_pd( &A0[16] );
+	a_4567 = _mm256_load_pd( &A1[16] );
+		
 	
 	A0 += 16;
 	A1 += 16;
@@ -1833,136 +2391,63 @@ void kernel_dtrtri_8x3_lib4(int kmax, double *A0, int sda, double *B, double *C0
 	for(; k<kmax-3; k+=4) // correction in cholesky is multiple of block size 4
 		{
 		
-/*	__builtin_prefetch( A+32 );*/
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
-		b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_0123 );
-		b_0123        = _mm256_load_pd( &B[4] ); // prefetch
-		c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-		c_40_51_62_73 = _mm256_sub_pd( c_40_51_62_73, ab_tmp1 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
-		b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_1032 );
-		c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-		c_41_50_63_72 = _mm256_sub_pd( c_41_50_63_72, ab_tmp1 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
-		b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_3210 );
-		c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-		c_43_52_61_70 = _mm256_sub_pd( c_43_52_61_70, ab_tmp1 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
-		a_0123        = _mm256_load_pd( &A0[4] ); // prefetch
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_2301 );
-		a_4567        = _mm256_load_pd( &A1[4] ); // prefetch
-		c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
-		c_42_53_60_71 = _mm256_sub_pd( c_42_53_60_71, ab_tmp1 );
+		b_0    = _mm256_broadcast_sd( &B[0] );
+		d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+		d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+		b_0    = _mm256_broadcast_sd( &B[1] );
+		d_1    = _mm256_fnmadd_pd( a_0123, b_0, d_1 );
+		d_5    = _mm256_fnmadd_pd( a_4567, b_0, d_5 );
+		b_0    = _mm256_broadcast_sd( &B[2] );
+		d_2    = _mm256_fnmadd_pd( a_0123, b_0, d_2 );
+		d_6    = _mm256_fnmadd_pd( a_4567, b_0, d_6 );
+		a_0123 = _mm256_load_pd( &A0[4] );
+		a_4567 = _mm256_load_pd( &A1[4] );
+			
 		
+		b_0    = _mm256_broadcast_sd( &B[4] );
+		d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+		d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+		b_0    = _mm256_broadcast_sd( &B[5] );
+		d_1    = _mm256_fnmadd_pd( a_0123, b_0, d_1 );
+		d_5    = _mm256_fnmadd_pd( a_4567, b_0, d_5 );
+		b_0    = _mm256_broadcast_sd( &B[6] );
+		d_2    = _mm256_fnmadd_pd( a_0123, b_0, d_2 );
+		d_6    = _mm256_fnmadd_pd( a_4567, b_0, d_6 );
+		a_0123 = _mm256_load_pd( &A0[8] );
+		a_4567 = _mm256_load_pd( &A1[8] );
+			
 		
-/*	__builtin_prefetch( A+40 );*/
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
-		b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_0123 );
-		b_0123        = _mm256_load_pd( &B[8] ); // prefetch
-		c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-		c_40_51_62_73 = _mm256_sub_pd( c_40_51_62_73, ab_tmp1 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
-		b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_1032 );
-		c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-		c_41_50_63_72 = _mm256_sub_pd( c_41_50_63_72, ab_tmp1 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
-		b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_3210 );
-		c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-		c_43_52_61_70 = _mm256_sub_pd( c_43_52_61_70, ab_tmp1 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
-		a_0123        = _mm256_load_pd( &A0[8] ); // prefetch
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_2301 );
-		a_4567        = _mm256_load_pd( &A1[8] ); // prefetch
-		c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
-		c_42_53_60_71 = _mm256_sub_pd( c_42_53_60_71, ab_tmp1 );
-
-
-/*	__builtin_prefetch( A+48 );*/
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
-		b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_0123 );
-		b_0123        = _mm256_load_pd( &B[12] ); // prefetch
-		c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-		c_40_51_62_73 = _mm256_sub_pd( c_40_51_62_73, ab_tmp1 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
-		b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_1032 );
-		c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-		c_41_50_63_72 = _mm256_sub_pd( c_41_50_63_72, ab_tmp1 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
-		b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_3210 );
-		c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-		c_43_52_61_70 = _mm256_sub_pd( c_43_52_61_70, ab_tmp1 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
-		a_0123        = _mm256_load_pd( &A0[12] ); // prefetch
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_2301 );
-		a_4567        = _mm256_load_pd( &A1[12] ); // prefetch
-		c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
-		c_42_53_60_71 = _mm256_sub_pd( c_42_53_60_71, ab_tmp1 );
-
-
-/*	__builtin_prefetch( A+56 );*/
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_0123 );
-		b_1032        = _mm256_shuffle_pd( b_0123, b_0123, 0x5 );
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_0123 );
-		b_0123        = _mm256_load_pd( &B[16] ); // prefetch
-		c_00_11_22_33 = _mm256_sub_pd( c_00_11_22_33, ab_tmp0 );
-		c_40_51_62_73 = _mm256_sub_pd( c_40_51_62_73, ab_tmp1 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_1032 );
-		b_3210        = _mm256_permute2f128_pd( b_1032, b_1032, 0x1 );
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_1032 );
-		c_01_10_23_32 = _mm256_sub_pd( c_01_10_23_32, ab_tmp0 );
-		c_41_50_63_72 = _mm256_sub_pd( c_41_50_63_72, ab_tmp1 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_3210 );
-		b_2301        = _mm256_shuffle_pd( b_3210, b_3210, 0x5 );
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_3210 );
-		c_03_12_21_30 = _mm256_sub_pd( c_03_12_21_30, ab_tmp0 );
-		c_43_52_61_70 = _mm256_sub_pd( c_43_52_61_70, ab_tmp1 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_2301 );
-		a_0123        = _mm256_load_pd( &A0[16] ); // prefetch
-		ab_tmp1       = _mm256_mul_pd( a_4567, b_2301 );
-		a_4567        = _mm256_load_pd( &A1[16] ); // prefetch
-		c_02_13_20_31 = _mm256_sub_pd( c_02_13_20_31, ab_tmp0 );
-		c_42_53_60_71 = _mm256_sub_pd( c_42_53_60_71, ab_tmp1 );
+		b_0    = _mm256_broadcast_sd( &B[8] );
+		d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+		d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+		b_0    = _mm256_broadcast_sd( &B[9] );
+		d_1    = _mm256_fnmadd_pd( a_0123, b_0, d_1 );
+		d_5    = _mm256_fnmadd_pd( a_4567, b_0, d_5 );
+		b_0    = _mm256_broadcast_sd( &B[10] );
+		d_2    = _mm256_fnmadd_pd( a_0123, b_0, d_2 );
+		d_6    = _mm256_fnmadd_pd( a_4567, b_0, d_6 );
+		a_0123 = _mm256_load_pd( &A0[12] );
+		a_4567 = _mm256_load_pd( &A1[12] );
+			
 		
+		b_0    = _mm256_broadcast_sd( &B[12] );
+		d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+		d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+		b_0    = _mm256_broadcast_sd( &B[13] );
+		d_1    = _mm256_fnmadd_pd( a_0123, b_0, d_1 );
+		d_5    = _mm256_fnmadd_pd( a_4567, b_0, d_5 );
+		b_0    = _mm256_broadcast_sd( &B[14] );
+		d_2    = _mm256_fnmadd_pd( a_0123, b_0, d_2 );
+		d_6    = _mm256_fnmadd_pd( a_4567, b_0, d_6 );
+		a_0123 = _mm256_load_pd( &A0[16] );
+		a_4567 = _mm256_load_pd( &A1[16] );
+				
+
 		A0 += 16;
 		A1 += 16;
 		B  += 16;
 
 		}
-
-	__m256d
-		c_00_10_22_32, c_01_11_23_33, c_02_12_20_30, c_03_13_21_31,
-		c_40_50_62_72, c_41_51_63_73, c_42_52_60_70, c_43_53_61_71,
-		c_00_10_20_30, c_01_11_21_31, c_02_12_22_32, c_03_13_23_33,
-		c_40_50_60_70, c_41_51_61_71, c_42_52_62_72, c_43_53_63_73,
-		d_00_10_20_30, d_01_11_21_31, d_02_12_22_32, d_03_13_23_33,
-		d_40_50_60_70, d_41_51_61_71, d_42_52_62_72, d_43_53_63_73;
-
-	c_00_10_22_32 = _mm256_blend_pd( c_00_11_22_33, c_01_10_23_32, 0xa );
-	c_01_11_23_33 = _mm256_blend_pd( c_00_11_22_33, c_01_10_23_32, 0x5 );
-	c_02_12_20_30 = _mm256_blend_pd( c_02_13_20_31, c_03_12_21_30, 0xa );
-	c_03_13_21_31 = _mm256_blend_pd( c_02_13_20_31, c_03_12_21_30, 0x5 );
-	c_40_50_62_72 = _mm256_blend_pd( c_40_51_62_73, c_41_50_63_72, 0xa );
-	c_41_51_63_73 = _mm256_blend_pd( c_40_51_62_73, c_41_50_63_72, 0x5 );
-	c_42_52_60_70 = _mm256_blend_pd( c_42_53_60_71, c_43_52_61_70, 0xa );
-	c_43_53_61_71 = _mm256_blend_pd( c_42_53_60_71, c_43_52_61_70, 0x5 );
-	
-	d_00_10_20_30 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0xc );
-	d_02_12_22_32 = _mm256_blend_pd( c_00_10_22_32, c_02_12_20_30, 0x3 );
-	d_01_11_21_31 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0xc );
-	d_03_13_23_33 = _mm256_blend_pd( c_01_11_23_33, c_03_13_21_31, 0x3 );
-	d_40_50_60_70 = _mm256_blend_pd( c_40_50_62_72, c_42_52_60_70, 0xc );
-	d_42_52_62_72 = _mm256_blend_pd( c_40_50_62_72, c_42_52_60_70, 0x3 );
-	d_41_51_61_71 = _mm256_blend_pd( c_41_51_63_73, c_43_53_61_71, 0xc );
-	d_43_53_63_73 = _mm256_blend_pd( c_41_51_63_73, c_43_53_61_71, 0x3 );
 
 	__m256d
 		ones,
@@ -1975,74 +2460,40 @@ void kernel_dtrtri_8x3_lib4(int kmax, double *A0, int sda, double *B, double *C0
 		a_00 = _mm256_broadcast_sd( &inv_diag_E[0] );
 		a_11 = _mm256_broadcast_sd( &inv_diag_E[1] );
 		a_22 = _mm256_broadcast_sd( &inv_diag_E[2] );
-//		a_33 = _mm256_broadcast_sd( &inv_diag_E[3] );
 		}
 	else
 		{
 		a_00 = _mm256_broadcast_sd( &E[0+bs*0] );
 		a_11 = _mm256_broadcast_sd( &E[1+bs*1] );
 		a_22 = _mm256_broadcast_sd( &E[2+bs*2] );
-//		a_33 = _mm256_broadcast_sd( &E[3+bs*3] );
 		a_00 = _mm256_div_pd( ones, a_00 ); // TODO sd + broadcast
 		a_11 = _mm256_div_pd( ones, a_11 ); // TODO sd + broadcast
 		a_22 = _mm256_div_pd( ones, a_22 ); // TODO sd + broadcast
-//		a_33 = _mm256_div_pd( ones, a_33 ); // TODO sd + broadcast
 		}
 	
-	//a_00 = _mm256_broadcast_sd( &fact[0] );
-	d_00_10_20_30 = _mm256_mul_pd( d_00_10_20_30, a_00 );
-	d_40_50_60_70 = _mm256_mul_pd( d_40_50_60_70, a_00 );
-	_mm256_store_pd( &C0[0+bs*0], d_00_10_20_30 );
-	_mm256_store_pd( &C1[0+bs*0], d_40_50_60_70 );
+	d_0 = _mm256_mul_pd( d_0, a_00 );
+	d_4 = _mm256_mul_pd( d_4, a_00 );
+	_mm256_store_pd( &C0[0+bs*0], d_0 );
+	_mm256_store_pd( &C1[0+bs*0], d_4 );
 
 	a_10 = _mm256_broadcast_sd( &E[1+bs*0] );
-	//a_11 = _mm256_broadcast_sd( &fact[2] );
-	ab_tmp0 = _mm256_mul_pd( d_00_10_20_30, a_10 );
-	ab_tmp1 = _mm256_mul_pd( d_40_50_60_70, a_10 );
-	d_01_11_21_31 = _mm256_sub_pd( d_01_11_21_31, ab_tmp0 );
-	d_41_51_61_71 = _mm256_sub_pd( d_41_51_61_71, ab_tmp1 );
-	d_01_11_21_31 = _mm256_mul_pd( d_01_11_21_31, a_11 );
-	d_41_51_61_71 = _mm256_mul_pd( d_41_51_61_71, a_11 );
-	_mm256_store_pd( &C0[0+bs*1], d_01_11_21_31 );
-	_mm256_store_pd( &C1[0+bs*1], d_41_51_61_71 );
+	d_1 = _mm256_fnmadd_pd( d_0, a_10, d_1 );
+	d_5 = _mm256_fnmadd_pd( d_4, a_10, d_5 );
+	d_1 = _mm256_mul_pd( d_1, a_11 );
+	d_5 = _mm256_mul_pd( d_5, a_11 );
+	_mm256_store_pd( &C0[0+bs*1], d_1 );
+	_mm256_store_pd( &C1[0+bs*1], d_5 );
 
 	a_20 = _mm256_broadcast_sd( &E[2+bs*0] );
 	a_21 = _mm256_broadcast_sd( &E[2+bs*1] );
-	//a_22 = _mm256_broadcast_sd( &fact[5] );
-	ab_tmp0 = _mm256_mul_pd( d_00_10_20_30, a_20 );
-	ab_tmp1 = _mm256_mul_pd( d_40_50_60_70, a_20 );
-	d_02_12_22_32 = _mm256_sub_pd( d_02_12_22_32, ab_tmp0 );
-	d_42_52_62_72 = _mm256_sub_pd( d_42_52_62_72, ab_tmp1 );
-	ab_tmp0 = _mm256_mul_pd( d_01_11_21_31, a_21 );
-	ab_tmp1 = _mm256_mul_pd( d_41_51_61_71, a_21 );
-	d_02_12_22_32 = _mm256_sub_pd( d_02_12_22_32, ab_tmp0 );
-	d_42_52_62_72 = _mm256_sub_pd( d_42_52_62_72, ab_tmp1 );
-	d_02_12_22_32 = _mm256_mul_pd( d_02_12_22_32, a_22 );
-	d_42_52_62_72 = _mm256_mul_pd( d_42_52_62_72, a_22 );
-	_mm256_store_pd( &C0[0+bs*2], d_02_12_22_32 );
-	_mm256_store_pd( &C1[0+bs*2], d_42_52_62_72 );
-
-//	a_30 = _mm256_broadcast_sd( &E[3+bs*0] );
-//	a_31 = _mm256_broadcast_sd( &E[3+bs*1] );
-//	a_32 = _mm256_broadcast_sd( &E[3+bs*2] );
-//	//a_33 = _mm256_broadcast_sd( &fact[9] );
-//	ab_tmp0 = _mm256_mul_pd( d_00_10_20_30, a_30 );
-//	ab_tmp1 = _mm256_mul_pd( d_40_50_60_70, a_30 );
-//	d_03_13_23_33 = _mm256_sub_pd( d_03_13_23_33, ab_tmp0 );
-//	d_43_53_63_73 = _mm256_sub_pd( d_43_53_63_73, ab_tmp1 );
-//	ab_tmp0 = _mm256_mul_pd( d_01_11_21_31, a_31 );
-//	ab_tmp1 = _mm256_mul_pd( d_41_51_61_71, a_31 );
-//	d_03_13_23_33 = _mm256_sub_pd( d_03_13_23_33, ab_tmp0 );
-//	d_43_53_63_73 = _mm256_sub_pd( d_43_53_63_73, ab_tmp1 );
-//	ab_tmp0 = _mm256_mul_pd( d_02_12_22_32, a_32 );
-//	ab_tmp1 = _mm256_mul_pd( d_42_52_62_72, a_32 );
-//	d_03_13_23_33 = _mm256_sub_pd( d_03_13_23_33, ab_tmp0 );
-//	d_43_53_63_73 = _mm256_sub_pd( d_43_53_63_73, ab_tmp1 );
-//	d_03_13_23_33 = _mm256_mul_pd( d_03_13_23_33, a_33 );
-//	d_43_53_63_73 = _mm256_mul_pd( d_43_53_63_73, a_33 );
-//	_mm256_store_pd( &C0[0+bs*3], d_03_13_23_33 );
-//	_mm256_store_pd( &C1[0+bs*3], d_43_53_63_73 );
-
+	d_2 = _mm256_fnmadd_pd( d_0, a_20, d_2 );
+	d_6 = _mm256_fnmadd_pd( d_4, a_20, d_6 );
+	d_2 = _mm256_fnmadd_pd( d_1, a_21, d_2 );
+	d_6 = _mm256_fnmadd_pd( d_5, a_21, d_6 );
+	d_2 = _mm256_mul_pd( d_2, a_22 );
+	d_6 = _mm256_mul_pd( d_6, a_22 );
+	_mm256_store_pd( &C0[0+bs*2], d_2 );
+	_mm256_store_pd( &C1[0+bs*2], d_6 );
 
 	}
 
@@ -2059,18 +2510,19 @@ void kernel_dtrtri_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0
 	int k;
 	
 	__m256d
+		zeros,
 		a_0123, a_4567, //A_0123,
 		b_0101, b_1010,
-		ab_tmp0, ab_tmp1, // temporary results
+		ab_tmp0, 
 		c_00_11_20_31, c_01_10_21_30,
 		c_40_51_60_71, c_41_50_61_70;
 	
 	// prefetch
 	a_0123 = _mm256_load_pd( &A0[0] );
-//	a_4567 = _mm256_load_pd( &A1[0] );
 	b_0101 = _mm256_broadcast_pd( (__m128d *) &B[0] );
 
 	// zero registers
+	zeros = _mm256_setzero_pd();
 	c_00_11_20_31 = _mm256_setzero_pd();
 	c_01_10_21_30 = _mm256_setzero_pd();
 	c_40_51_60_71 = _mm256_setzero_pd();
@@ -2078,65 +2530,36 @@ void kernel_dtrtri_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0
 
 	k = 0;
 
-	ab_tmp1       = _mm256_setzero_pd();
-
-	a_0123        = _mm256_blend_pd( ab_tmp1, a_0123, 0x1 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
+	a_0123        = _mm256_blend_pd( zeros, a_0123, 0x1 );
+	c_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, c_00_11_20_31 );
 	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
 	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[4] ); // prefetch
-//	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
+	c_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, c_01_10_21_30 );
 	a_0123        = _mm256_load_pd( &A0[4] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-//	a_4567        = _mm256_load_pd( &A1[4] ); // prefetch
-//	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
 	
 	
-	a_0123        = _mm256_blend_pd( ab_tmp1, a_0123, 0x3 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
+	a_0123        = _mm256_blend_pd( zeros, a_0123, 0x3 );
+	c_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, c_00_11_20_31 );
 	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
 	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[8] ); // prefetch
-//	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
+	c_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010 , c_01_10_21_30 );
 	a_0123        = _mm256_load_pd( &A0[8] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-//	a_4567        = _mm256_load_pd( &A1[8] ); // prefetch
-//	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
 
 
-	a_0123        = _mm256_blend_pd( ab_tmp1, a_0123, 0x7 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
+	a_0123        = _mm256_blend_pd( zeros, a_0123, 0x7 );
+	c_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, c_00_11_20_31 );
 	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
 	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[12] ); // prefetch
-//	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
+	c_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, c_01_10_21_30 );
 	a_0123        = _mm256_load_pd( &A0[12] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-//	a_4567        = _mm256_load_pd( &A1[12] ); // prefetch
-//	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
 
 
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
+	c_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, c_00_11_20_31 );
 	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
 	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[16] ); // prefetch
-//	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
+	c_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, c_01_10_21_30 );
 	a_0123        = _mm256_load_pd( &A0[16] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
 	a_4567        = _mm256_load_pd( &A1[16] ); // prefetch
-//	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
 	
 	
 	A0 += 16;
@@ -2144,64 +2567,48 @@ void kernel_dtrtri_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0
 	B  += 16;
 
 
-	a_4567        = _mm256_blend_pd( ab_tmp1, a_4567, 0x1 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
+	a_4567        = _mm256_blend_pd( zeros, a_4567, 0x1 );
+	c_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, c_00_11_20_31 );
 	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
+	c_40_51_60_71 = _mm256_fnmadd_pd( a_4567, b_0101, c_40_51_60_71 );
 	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[4] ); // prefetch
-	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
+	c_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, c_01_10_21_30 );
 	a_0123        = _mm256_load_pd( &A0[4] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
+	c_41_50_61_70 = _mm256_fnmadd_pd( a_4567, b_1010, c_41_50_61_70 );
 	a_4567        = _mm256_load_pd( &A1[4] ); // prefetch
-	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
 	
 	
-	a_4567        = _mm256_blend_pd( ab_tmp1, a_4567, 0x3 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
+	a_4567        = _mm256_blend_pd( zeros, a_4567, 0x3 );
+	c_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, c_00_11_20_31 );
 	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
+	c_40_51_60_71 = _mm256_fnmadd_pd( a_4567, b_0101, c_40_51_60_71 );
 	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[8] ); // prefetch
-	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
+	c_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, c_01_10_21_30 );
 	a_0123        = _mm256_load_pd( &A0[8] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
+	c_41_50_61_70 = _mm256_fnmadd_pd( a_4567, b_1010, c_41_50_61_70 );
 	a_4567        = _mm256_load_pd( &A1[8] ); // prefetch
-	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
-
-
-	a_4567        = _mm256_blend_pd( ab_tmp1, a_4567, 0x7 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[12] ); // prefetch
-	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-	a_0123        = _mm256_load_pd( &A0[12] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-	a_4567        = _mm256_load_pd( &A1[12] ); // prefetch
-	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
-
-
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[16] ); // prefetch
-	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-	a_0123        = _mm256_load_pd( &A0[16] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-	a_4567        = _mm256_load_pd( &A1[16] ); // prefetch
-	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
 	
+
+	a_4567        = _mm256_blend_pd( zeros, a_4567, 0x7 );
+	c_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, c_00_11_20_31 );
+	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
+	c_40_51_60_71 = _mm256_fnmadd_pd( a_4567, b_0101, c_40_51_60_71 );
+	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[12] ); // prefetch
+	c_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, c_01_10_21_30 );
+	a_0123        = _mm256_load_pd( &A0[12] ); // prefetch
+	c_41_50_61_70 = _mm256_fnmadd_pd( a_4567, b_1010, c_41_50_61_70 );
+	a_4567        = _mm256_load_pd( &A1[12] ); // prefetch
+	
+
+	c_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, c_00_11_20_31 );
+	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
+	c_40_51_60_71 = _mm256_fnmadd_pd( a_4567, b_0101, c_40_51_60_71 );
+	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[16] ); // prefetch
+	c_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, c_01_10_21_30 );
+	a_0123        = _mm256_load_pd( &A0[16] ); // prefetch
+	c_41_50_61_70 = _mm256_fnmadd_pd( a_4567, b_1010, c_41_50_61_70 );
+	a_4567        = _mm256_load_pd( &A1[16] ); // prefetch
+		
 	
 	A0 += 16;
 	A1 += 16;
@@ -2212,64 +2619,45 @@ void kernel_dtrtri_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0
 	for(; k<kmax-3; k+=4) // correction in cholesky is multiple of block size 4
 		{
 		
-/*	__builtin_prefetch( A+32 );*/
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
+		c_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, c_00_11_20_31 );
 		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-		c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
+		c_40_51_60_71 = _mm256_fnmadd_pd( a_4567, b_0101, c_40_51_60_71 );
 		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[4] ); // prefetch
-		c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
+		c_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, c_01_10_21_30 );
 		a_0123        = _mm256_load_pd( &A0[4] ); // prefetch
-		c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
+		c_41_50_61_70 = _mm256_fnmadd_pd( a_4567, b_1010, c_41_50_61_70 );
 		a_4567        = _mm256_load_pd( &A1[4] ); // prefetch
-		c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
 		
 		
-/*	__builtin_prefetch( A+40 );*/
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
+		c_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, c_00_11_20_31 );
 		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-		c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
+		c_40_51_60_71 = _mm256_fnmadd_pd( a_4567, b_0101, c_40_51_60_71 );
 		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[8] ); // prefetch
-		c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
+		c_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, c_01_10_21_30 );
 		a_0123        = _mm256_load_pd( &A0[8] ); // prefetch
-		c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
+		c_41_50_61_70 = _mm256_fnmadd_pd( a_4567, b_1010, c_41_50_61_70 );
 		a_4567        = _mm256_load_pd( &A1[8] ); // prefetch
-		c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
+		
 
-
-/*	__builtin_prefetch( A+48 );*/
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
+		c_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, c_00_11_20_31 );
 		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-		c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
+		c_40_51_60_71 = _mm256_fnmadd_pd( a_4567, b_0101, c_40_51_60_71 );
 		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[12] ); // prefetch
-		c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
+		c_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, c_01_10_21_30 );
 		a_0123        = _mm256_load_pd( &A0[12] ); // prefetch
-		c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
+		c_41_50_61_70 = _mm256_fnmadd_pd( a_4567, b_1010, c_41_50_61_70 );
 		a_4567        = _mm256_load_pd( &A1[12] ); // prefetch
-		c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
+		
 
-
-/*	__builtin_prefetch( A+56 );*/
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
+		c_00_11_20_31 = _mm256_fnmadd_pd( a_0123, b_0101, c_00_11_20_31 );
 		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-		c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
+		c_40_51_60_71 = _mm256_fnmadd_pd( a_4567, b_0101, c_40_51_60_71 );
 		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[16] ); // prefetch
-		c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
+		c_01_10_21_30 = _mm256_fnmadd_pd( a_0123, b_1010, c_01_10_21_30 );
 		a_0123        = _mm256_load_pd( &A0[16] ); // prefetch
-		c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
+		c_41_50_61_70 = _mm256_fnmadd_pd( a_4567, b_1010, c_41_50_61_70 );
 		a_4567        = _mm256_load_pd( &A1[16] ); // prefetch
-		c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
+
 		
 		A0 += 16;
 		A1 += 16;
@@ -2304,18 +2692,14 @@ void kernel_dtrtri_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0
 		a_11 = _mm256_div_pd( ones, a_11 ); // TODO sd + broadcast
 		}
 	
-//	a_00 = _mm256_broadcast_sd( &fact[0] );
 	d_0 = _mm256_mul_pd( d_0, a_00 );
 	d_4 = _mm256_mul_pd( d_4, a_00 );
 	_mm256_store_pd( &C0[0+bs*0], d_0 );
 	_mm256_store_pd( &C1[0+bs*0], d_4 );
 
 	a_10 = _mm256_broadcast_sd( &E[1+bs*0] );
-//	a_11 = _mm256_broadcast_sd( &fact[2] );
-	ab_tmp0 = _mm256_mul_pd( d_0, a_10 );
-	ab_tmp1 = _mm256_mul_pd( d_4, a_10 );
-	d_1 = _mm256_sub_pd( d_1, ab_tmp0 );
-	d_5 = _mm256_sub_pd( d_5, ab_tmp1 );
+	d_1 = _mm256_fnmadd_pd( d_0, a_10, d_1 );
+	d_5 = _mm256_fnmadd_pd( d_4, a_10, d_5 );
 	d_1 = _mm256_mul_pd( d_1, a_11 );
 	d_5 = _mm256_mul_pd( d_5, a_11 );
 	_mm256_store_pd( &C0[0+bs*1], d_1 );
@@ -2336,150 +2720,83 @@ void kernel_dtrtri_8x1_lib4(int kmax, double *A0, int sda, double *B, double *C0
 	int k;
 	
 	__m256d
+		zeros,
 		a_0123, a_4567, //A_0123,
-		b_0101, b_1010,
-		ab_tmp0, ab_tmp1, // temporary results
-		c_00_11_20_31, c_01_10_21_30,
-		c_40_51_60_71, c_41_50_61_70;
+		b_0,
+		ab_tmp0, 
+		d_0,
+		d_4;
 	
 	// prefetch
 	a_0123 = _mm256_load_pd( &A0[0] );
-//	a_4567 = _mm256_load_pd( &A1[0] );
-	b_0101 = _mm256_broadcast_pd( (__m128d *) &B[0] );
 
 	// zero registers
-	c_00_11_20_31 = _mm256_setzero_pd();
-	c_01_10_21_30 = _mm256_setzero_pd();
-	c_40_51_60_71 = _mm256_setzero_pd();
-	c_41_50_61_70 = _mm256_setzero_pd();
+	zeros = _mm256_setzero_pd();
+	d_0 = _mm256_setzero_pd();
+	d_4 = _mm256_setzero_pd();
 
 	k = 0;
 
-	ab_tmp1       = _mm256_setzero_pd();
-
-	a_0123        = _mm256_blend_pd( ab_tmp1, a_0123, 0x1 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[4] ); // prefetch
-//	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-	a_0123        = _mm256_load_pd( &A0[4] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-//	a_4567        = _mm256_load_pd( &A1[4] ); // prefetch
-//	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
-	
-	
-	a_0123        = _mm256_blend_pd( ab_tmp1, a_0123, 0x3 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[8] ); // prefetch
-//	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-	a_0123        = _mm256_load_pd( &A0[8] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-//	a_4567        = _mm256_load_pd( &A1[8] ); // prefetch
-//	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
+	a_0123 = _mm256_blend_pd( zeros, a_0123, 0x1 );
+	b_0    = _mm256_broadcast_sd( &B[0] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	a_0123 = _mm256_load_pd( &A0[4] ); // prefetch
 
 
-	a_0123        = _mm256_blend_pd( ab_tmp1, a_0123, 0x7 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[12] ); // prefetch
-//	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-	a_0123        = _mm256_load_pd( &A0[12] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-//	a_4567        = _mm256_load_pd( &A1[12] ); // prefetch
-//	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
+	a_0123 = _mm256_blend_pd( zeros, a_0123, 0x3 );
+	b_0    = _mm256_broadcast_sd( &B[4] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	a_0123 = _mm256_load_pd( &A0[8] ); // prefetch
 
 
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[16] ); // prefetch
-//	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-	a_0123        = _mm256_load_pd( &A0[16] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-//	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-	a_4567        = _mm256_load_pd( &A1[16] ); // prefetch
-//	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
-	
+	a_0123 = _mm256_blend_pd( zeros, a_0123, 0x7 );
+	b_0    = _mm256_broadcast_sd( &B[8] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	a_0123 = _mm256_load_pd( &A0[12] ); // prefetch
+
+
+	b_0    = _mm256_broadcast_sd( &B[12] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	a_0123 = _mm256_load_pd( &A0[16] ); // prefetch
+	a_4567 = _mm256_load_pd( &A1[16] ); // prefetch
+
 	
 	A0 += 16;
 	A1 += 16;
 	B  += 16;
 
 
-	a_4567        = _mm256_blend_pd( ab_tmp1, a_4567, 0x1 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[4] ); // prefetch
-	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-	a_0123        = _mm256_load_pd( &A0[4] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-	a_4567        = _mm256_load_pd( &A1[4] ); // prefetch
-	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
-	
-	
-	a_4567        = _mm256_blend_pd( ab_tmp1, a_4567, 0x3 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[8] ); // prefetch
-	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-	a_0123        = _mm256_load_pd( &A0[8] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-	a_4567        = _mm256_load_pd( &A1[8] ); // prefetch
-	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
+	a_4567 = _mm256_blend_pd( zeros, a_4567, 0x1 );
+	b_0    = _mm256_broadcast_sd( &B[0] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+	a_0123 = _mm256_load_pd( &A0[4] ); // prefetch
+	a_4567 = _mm256_load_pd( &A1[4] ); // prefetch
 
 
-	a_4567        = _mm256_blend_pd( ab_tmp1, a_4567, 0x7 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[12] ); // prefetch
-	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-	a_0123        = _mm256_load_pd( &A0[12] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-	a_4567        = _mm256_load_pd( &A1[12] ); // prefetch
-	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
+	a_4567 = _mm256_blend_pd( zeros, a_4567, 0x3 );
+	b_0    = _mm256_broadcast_sd( &B[4] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+	a_0123 = _mm256_load_pd( &A0[8] ); // prefetch
+	a_4567 = _mm256_load_pd( &A1[8] ); // prefetch
 
 
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-	b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-	c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-	b_0101        = _mm256_broadcast_pd( (__m128d *) &B[16] ); // prefetch
-	c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-	a_0123        = _mm256_load_pd( &A0[16] ); // prefetch
-	c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-	ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-	a_4567        = _mm256_load_pd( &A1[16] ); // prefetch
-	c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
-	
-	
+	a_4567 = _mm256_blend_pd( zeros, a_4567, 0x7 );
+	b_0    = _mm256_broadcast_sd( &B[8] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+	a_0123 = _mm256_load_pd( &A0[12] ); // prefetch
+	a_4567 = _mm256_load_pd( &A1[12] ); // prefetch
+
+
+	b_0    = _mm256_broadcast_sd( &B[12] );
+	d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+	d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+	a_0123 = _mm256_load_pd( &A0[16] ); // prefetch
+	a_4567 = _mm256_load_pd( &A1[16] ); // prefetch
+
+
 	A0 += 16;
 	A1 += 16;
 	B  += 16;
@@ -2489,78 +2806,39 @@ void kernel_dtrtri_8x1_lib4(int kmax, double *A0, int sda, double *B, double *C0
 	for(; k<kmax-3; k+=4) // correction in cholesky is multiple of block size 4
 		{
 		
-/*	__builtin_prefetch( A+32 );*/
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-		c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[4] ); // prefetch
-		c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-		a_0123        = _mm256_load_pd( &A0[4] ); // prefetch
-		c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-		a_4567        = _mm256_load_pd( &A1[4] ); // prefetch
-		c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
-		
-		
-/*	__builtin_prefetch( A+40 );*/
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-		c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[8] ); // prefetch
-		c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-		a_0123        = _mm256_load_pd( &A0[8] ); // prefetch
-		c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-		a_4567        = _mm256_load_pd( &A1[8] ); // prefetch
-		c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
+		b_0    = _mm256_broadcast_sd( &B[0] );
+		d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+		d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+		a_0123 = _mm256_load_pd( &A0[4] ); // prefetch
+		a_4567 = _mm256_load_pd( &A1[4] ); // prefetch
 
 
-/*	__builtin_prefetch( A+48 );*/
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-		c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[12] ); // prefetch
-		c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-		a_0123        = _mm256_load_pd( &A0[12] ); // prefetch
-		c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-		a_4567        = _mm256_load_pd( &A1[12] ); // prefetch
-		c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
+		b_0    = _mm256_broadcast_sd( &B[4] );
+		d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+		d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+		a_0123 = _mm256_load_pd( &A0[8] ); // prefetch
+		a_4567 = _mm256_load_pd( &A1[8] ); // prefetch
 
 
-/*	__builtin_prefetch( A+56 );*/
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_0101 );
-		b_1010        = _mm256_shuffle_pd( b_0101, b_0101, 0x5 );
-		c_00_11_20_31 = _mm256_sub_pd( c_00_11_20_31, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_0101 );
-		b_0101        = _mm256_broadcast_pd( (__m128d *) &B[16] ); // prefetch
-		c_40_51_60_71 = _mm256_sub_pd( c_40_51_60_71, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_0123, b_1010 );
-		a_0123        = _mm256_load_pd( &A0[16] ); // prefetch
-		c_01_10_21_30 = _mm256_sub_pd( c_01_10_21_30, ab_tmp0 );
-		ab_tmp0       = _mm256_mul_pd( a_4567, b_1010 );
-		a_4567        = _mm256_load_pd( &A1[16] ); // prefetch
-		c_41_50_61_70 = _mm256_sub_pd( c_41_50_61_70, ab_tmp0 );
-		
+		b_0    = _mm256_broadcast_sd( &B[8] );
+		d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+		d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+		a_0123 = _mm256_load_pd( &A0[12] ); // prefetch
+		a_4567 = _mm256_load_pd( &A1[12] ); // prefetch
+
+
+		b_0    = _mm256_broadcast_sd( &B[12] );
+		d_0    = _mm256_fnmadd_pd( a_0123, b_0, d_0 );
+		d_4    = _mm256_fnmadd_pd( a_4567, b_0, d_4 );
+		a_0123 = _mm256_load_pd( &A0[16] ); // prefetch
+		a_4567 = _mm256_load_pd( &A1[16] ); // prefetch
+
+
 		A0 += 16;
 		A1 += 16;
 		B  += 16;
 
 		}
-
-	__m256d
-		d_0, d_1, d_4, d_5;
-
-	d_0 = _mm256_blend_pd( c_00_11_20_31, c_01_10_21_30, 0xa );
-	d_1 = _mm256_blend_pd( c_00_11_20_31, c_01_10_21_30, 0x5 );
-	d_4 = _mm256_blend_pd( c_40_51_60_71, c_41_50_61_70, 0xa );
-	d_5 = _mm256_blend_pd( c_40_51_60_71, c_41_50_61_70, 0x5 );
 
 	__m256d
 		ones,
@@ -2571,32 +2849,17 @@ void kernel_dtrtri_8x1_lib4(int kmax, double *A0, int sda, double *B, double *C0
 	if(use_inv_diag_E)
 		{
 		a_00 = _mm256_broadcast_sd( &inv_diag_E[0] );
-//		a_11 = _mm256_broadcast_sd( &inv_diag_E[1] );
 		}
 	else
 		{
 		a_00 = _mm256_broadcast_sd( &E[0+bs*0] );
-//		a_11 = _mm256_broadcast_sd( &E[1+bs*1] );
 		a_00 = _mm256_div_pd( ones, a_00 ); // TODO sd + broadcast
-//		a_11 = _mm256_div_pd( ones, a_11 ); // TODO sd + broadcast
 		}
 	
-	//a_00 = _mm256_broadcast_sd( &fact[0] );
 	d_0 = _mm256_mul_pd( d_0, a_00 );
 	d_4 = _mm256_mul_pd( d_4, a_00 );
 	_mm256_store_pd( &C0[0+bs*0], d_0 );
 	_mm256_store_pd( &C1[0+bs*0], d_4 );
-
-//	a_10 = _mm256_broadcast_sd( &E[1+bs*0] );
-//	//a_11 = _mm256_broadcast_sd( &fact[2] );
-//	ab_tmp0 = _mm256_mul_pd( d_0, a_10 );
-//	ab_tmp1 = _mm256_mul_pd( d_4, a_10 );
-//	d_1 = _mm256_sub_pd( d_1, ab_tmp0 );
-//	d_5 = _mm256_sub_pd( d_5, ab_tmp1 );
-//	d_1 = _mm256_mul_pd( d_1, a_11 );
-//	d_5 = _mm256_mul_pd( d_5, a_11 );
-//	_mm256_store_pd( &C0[0+bs*1], d_1 );
-//	_mm256_store_pd( &C1[0+bs*1], d_5 );
 
 	}
 
