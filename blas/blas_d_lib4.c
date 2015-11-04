@@ -6417,6 +6417,21 @@ void dlauum_lib(int m, double *pA, int sda, double *pB, int sdb, int alg, double
 	int ii, jj;
 	
 	ii = 0;
+// TODO unify kernels for dtrmm_l_u and dlauum using a flag !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#if 1 // defined(TARGET_X64_AVX2)
+	for( ; ii<m-11; ii+=12)
+		{
+		// off-diagonal blocks
+		for(jj=0; jj<ii; jj+=4)
+			{
+			kernel_dtrmm_l_u_nt_12x4_lib4(m-ii, pA+ii*sda+ii*bs, sda, pB+jj*sdb+ii*bs, pC+ii*sdc+jj*bs, sdc, pD+ii*sdd+jj*bs, sdd, alg);
+			}
+		// diagonal block
+		kernel_dlauum_nt_12x4_lib4(m-ii, pA+ii*sda+ii*bs, sda, pB+ii*sdb+ii*bs, alg, pC+ii*sdc+ii*bs, sdc, pD+ii*sdd+ii*bs, sdd);
+		kernel_dlauum_nt_8x4_lib4(m-ii-4, pA+(ii+4)*sda+(ii+4)*bs, sda, pB+(ii+4)*sdb+(ii+4)*bs, alg, pC+(ii+4)*sdc+(ii+4)*bs, sdc, pD+(ii+4)*sdd+(ii+4)*bs, sdd);
+		kernel_dlauum_nt_4x4_lib4(m-ii-8, pA+(ii+8)*sda+(ii+8)*bs, pB+(ii+8)*sdb+(ii+8)*bs, alg, pC+(ii+8)*sdc+(ii+8)*bs, pD+(ii+8)*sdd+(ii+8)*bs);
+		}
+#endif
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
 	for( ; ii<m-7; ii+=8)
 		{
@@ -6480,7 +6495,7 @@ void dlauum_lib(int m, double *pA, int sda, double *pB, int sdb, int alg, double
 			corner_dlauum_nt_1x1_lib4(pA+ii*sda+ii*bs, pB+ii*sdb+ii*bs, alg, pC+ii*sdc+ii*bs, pD+ii*sdd+ii*bs);
 			}
 		}
-
+	
 	return;
 
 	}

@@ -276,7 +276,7 @@ int main()
 			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 1, pC, cnd, pC, cnd, 1, 1);
 			}
 
-#if 1
+#if 0
 		gettimeofday(&tvm1, NULL); // start
 	
 		for(rep=0; rep<nrep; rep++)
@@ -538,8 +538,9 @@ int main()
 //			dgemm_nn_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
 //			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 0, pC, cnd, pC, cnd);
 //			dtrmm_nt_u_lib(n, n, pA, cnd, pB, cnd, pC, cnd);
-//			dpotrf_lib(n, n, pB, cnd, pC, cnd, x);
-			dtrtri_lib(n, pB, cnd, 1, x, pC, cnd);
+			dpotrf_lib(n, n, pB, cnd, pC, cnd, x);
+//			dtrtri_lib(n, pB, cnd, 1, x, pC, cnd);
+//			dlauum_lib(n, pA, cnd, pB, cnd, 0, pC, cnd, pD, cnd);
 
 			}
 	
@@ -552,16 +553,18 @@ int main()
 //			dgemm_(&c_n, &c_n, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
 //			dsyrk_(&c_l, &c_n, &n, &n, &d_1, A, &n, &d_0, C, &n);
 //			dtrmm_(&c_r, &c_u, &c_t, &c_n, &n, &n, &d_1, A, &n, C, &n);
-//			dpotrf_(&c_l, &n, B, &n, &info);
-			dtrtri_(&c_l, &c_n, &n, B, &n, &info);
+			dpotrf_(&c_l, &n, B, &n, &info);
+//			dtrtri_(&c_l, &c_n, &n, B, &n, &info);
+//			dlauum_(&c_l, &n, B, &n, &info);
 #endif
 #if defined(REF_BLAS_BLIS)
 //			dgemm_(&c_n, &c_t, &n77, &n77, &n77, &d_1, A, &n77, B, &n77, &d_0, C, &n77);
 //			dgemm_(&c_n, &c_n, &n77, &n77, &n77, &d_1, A, &n77, B, &n77, &d_0, C, &n77);
 //			dsyrk_(&c_l, &c_n, &n77, &n77, &d_1, A, &n77, &d_0, C, &n77);
 //			dtrmm_(&c_r, &c_u, &c_t, &c_n, &n77, &n77, &d_1, A, &n77, C, &n77);
-//			dpotrf_(&c_l, &n77, B, &n77, &info);
-			dtrtri_(&c_l, &c_n, &n77, B, &n77, &info);
+			dpotrf_(&c_l, &n77, B, &n77, &info);
+//			dtrtri_(&c_l, &c_n, &n77, B, &n77, &info);
+//			dlauum_(&c_l, &n77, B, &n77, &info);
 #endif
 			}
 

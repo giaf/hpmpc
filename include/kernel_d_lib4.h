@@ -73,6 +73,7 @@ void kernel_dtrmm_nt_l_4x4_lib4(int kmax, double *A, double *B, double *C);
 void kernel_dtrmm_nt_l_4x2_lib4(int kmax, double *A, double *B, double *C);
 void kernel_dtrmm_nt_l_2x4_lib4(int kmax, double *A, double *B, double *C);
 void kernel_dtrmm_nt_l_2x2_lib4(int kmax, double *A, double *B, double *C);
+void kernel_dtrmm_l_u_nt_12x4_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg);
 void kernel_dtrmm_l_u_nt_8x4_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg);
 void kernel_dtrmm_l_u_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg);
 void kernel_dsyrk_nt_12x4_vs_lib4(int km, int kn, int kadd, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg);
@@ -309,6 +310,7 @@ void corner_dlauum_nt_4x4_lib4(double *A, double *B, int alg, double *C, double 
 void corner_dlauum_nt_3x3_lib4(double *A, double *B, int alg, double *C, double *D);
 void corner_dlauum_nt_2x2_lib4(double *A, double *B, int alg, double *C, double *D);
 void corner_dlauum_nt_1x1_lib4(double *A, double *B, int alg, double *C, double *D);
+void kernel_dlauum_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, int alg, double *C0, int sdc, double *D0, int sdd);
 void kernel_dlauum_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, int alg, double *C0, int sdc, double *D0, int sdd);
 void kernel_dlauum_nt_4x4_lib4(int kmax, double *A, double *B, int alg, double *C, double *D);
 void corner_dtrmm_l_u_nt_4x4_lib4(double *A, double *B, int alg, double *C, double *D);
