@@ -281,6 +281,10 @@ void kernel_dtrsv_t_2_lib4_new(int kmax, double *A, int sda, int use_inv_diag_A,
 void kernel_dtrsv_t_1_lib4_new(int kmax, double *A, int sda, int use_inv_diag_A, double *inv_diag_A, double *x);
 
 
+void corner_dtrtri_12x4_lib4(double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
+void corner_dtrtri_11x3_lib4(double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
+void corner_dtrtri_10x2_lib4(double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
+void corner_dtrtri_9x1_lib4(double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
 void corner_dtrtri_8x8_lib4(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc);
 void corner_dtrtri_7x7_lib4(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc);
 void corner_dtrtri_6x6_lib4(double *A0, int sda, int use_inv_diag_A, double *inv_diag_A, double *C0, int sdc);
@@ -289,6 +293,10 @@ void corner_dtrtri_4x4_lib4(double *A0, int use_inv_diag_A, double *inv_diag_A, 
 void corner_dtrtri_3x3_lib4(double *A0, int use_inv_diag_A, double *inv_diag_A, double *C0);
 void corner_dtrtri_2x2_lib4(double *A0, int use_inv_diag_A, double *inv_diag_A, double *C0);
 void corner_dtrtri_1x1_lib4(double *A0, int use_inv_diag_A, double *inv_diag_A, double *C0);
+void kernel_dtrtri_12x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
+void kernel_dtrtri_12x3_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
+void kernel_dtrtri_12x2_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
+void kernel_dtrtri_12x1_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
 void kernel_dtrtri_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
 void kernel_dtrtri_8x3_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
 void kernel_dtrtri_8x2_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *E, int use_inv_diag_E, double *inv_diag_E);
