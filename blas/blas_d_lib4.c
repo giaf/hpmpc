@@ -6418,7 +6418,7 @@ void dlauum_lib(int m, double *pA, int sda, double *pB, int sdb, int alg, double
 	
 	ii = 0;
 // TODO unify kernels for dtrmm_l_u and dlauum using a flag !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#if 1 // defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX2)
 	for( ; ii<m-11; ii+=12)
 		{
 		// off-diagonal blocks
