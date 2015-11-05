@@ -123,8 +123,6 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 		const int cnx  = ncl*((nx+ncl-1)/ncl);
 		const int cng  = ncl*((ng+ncl-1)/ncl);
 		const int cngN = ncl*((ngN+ncl-1)/ncl);
-		const int anz  = nal*((nz+nal-1)/nal);
-		const int anx  = nal*((nx+nal-1)/nal);
 
 		int pnb0;
 		int png0;
@@ -133,8 +131,6 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 
 		double alpha_min = ALPHA_MIN; // minimum accepted step length
         static double sigma_par[] = {0.4, 0.1, 0.001}; // control primal-dual IP behaviour
-/*      static double stat[5*K_MAX]; // statistics from the IP routine*/
-//      double *work0 = (double *) malloc((8 + (N+1)*(pnz*cnx + pnz*cnz + pnz*cnl + 5*anz + 3*anx + 7*anb) + 3*anz)*sizeof(double));
         int warm_start = WARM_START;
         int compute_mult = 1; // compute multipliers
 		double temp;
@@ -240,7 +236,7 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
         for(ii=0; ii<=N; ii++)
 	        {
             hux[ii] = ptr;
-            ptr += anz;
+            ptr += pnz;
 	        }
 
         for(ii=0; ii<N; ii++) // time Variant box constraints
@@ -254,7 +250,7 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
         for(ii=0; ii<=N; ii++) // time Variant box constraints
 	        {
             hpi[ii] = ptr;
-            ptr += anx; // for alignment of ptr
+            ptr += pnx; // for alignment of ptr
 	        }
 
         for(ii=0; ii<N; ii++) // time Variant box constraints
@@ -279,19 +275,19 @@ int c_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char 
 			for(ii=0; ii<=N; ii++)
 				{
 				hq[ii] = ptr;
-				ptr += anz;
+				ptr += pnz;
 				}
 
 			for(ii=0; ii<=N; ii++)
 				{
 				hrb[ii] = ptr;
-				ptr += anx;
+				ptr += pnx;
 				}
 
 			for(ii=0; ii<=N; ii++)
 				{
 				hrq[ii] = ptr;
-				ptr += anz;
+				ptr += pnz;
 				}
 
 			for(ii=0; ii<N; ii++)

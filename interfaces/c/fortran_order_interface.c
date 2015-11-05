@@ -123,8 +123,8 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
 		const int cnx  = ncl*((nx+ncl-1)/ncl);
 		const int cng  = ncl*((ng+ncl-1)/ncl);
 		const int cngN = ncl*((ngN+ncl-1)/ncl);
-		const int anz  = nal*((nz+nal-1)/nal);
-		const int anx  = nal*((nx+nal-1)/nal);
+//		const int anz  = nal*((nz+nal-1)/nal);
+//		const int anx  = nal*((nx+nal-1)/nal);
 
 		int pnb0;
 		int png0;
@@ -240,13 +240,13 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
         for(ii=0; ii<=N; ii++)
 	        {
             hux[ii] = ptr;
-            ptr += anz;
+            ptr += pnz;
 	        }
 
         for(ii=0; ii<=N; ii++) // time Variant box constraints
 	        {
             hpi[ii] = ptr;
-            ptr += anx; // for alignment of ptr
+            ptr += pnx; // for alignment of ptr
 	        }
 
 		work = ptr;
@@ -282,19 +282,19 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
 			for(ii=0; ii<=N; ii++)
 				{
 				hq[ii] = ptr;
-				ptr += anz;
+				ptr += pnz;
 				}
 
 			for(ii=0; ii<=N; ii++)
 				{
 				hrb[ii] = ptr;
-				ptr += anx;
+				ptr += pnx;
 				}
 
 			for(ii=0; ii<=N; ii++)
 				{
 				hrq[ii] = ptr;
-				ptr += anz;
+				ptr += pnz;
 				}
 
 			for(ii=0; ii<N; ii++)
