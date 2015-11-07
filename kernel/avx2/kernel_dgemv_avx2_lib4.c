@@ -28,12 +28,7 @@
 #include <emmintrin.h>  // SSE2
 #include <pmmintrin.h>  // SSE3
 #include <smmintrin.h>  // SSE4
-#ifdef CUSTOM_GCC
-//#include "/opt/gcc/lib/gcc/x86_64-unknown-linux-gnu/5.2.0/include/immintrin.h"
-#include "/opt/gcc/lib/gcc/x86_64-pc-linux-gnu/6.0.0/include/immintrin.h"
-#else 
 #include <immintrin.h>  // AVX
-#endif
 
 
 // TODO use cast & extract to process data in order !!!
