@@ -4861,6 +4861,13 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y,
 		}
 	
 	j=0;
+#if defined(TARGET_X64_AVX2)
+	for(; j<n-11; j+=12)
+		{
+		kernel_dsymv_6_lib4(m-j, pA+j*sda+j*bs, sda, x+j, z+j, z+j, x+j, z+j, z+j, 1, alg);
+		kernel_dsymv_6_lib4(m-(j+6), pA+2+(j+4)*sda+(j+6)*bs, sda, x+(j+6), z+(j+6), z+(j+6), x+(j+6), z+(j+6), z+(j+6), 2, alg);
+		}
+#endif
 	for(; j<n-3; j+=4)
 		{
 		kernel_dsymv_4_lib4(m-j, pA+j*sda+j*bs, sda, x+j, z+j, z+j, x+j, z+j, z+j, 1, alg);
@@ -4917,6 +4924,12 @@ void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, i
 		}
 	
 	j=0;
+#if defined(TARGET_X64_AVX2)
+	for(; j<n-5; j+=6)
+		{
+		kernel_dsymv_6_lib4(m, pA+j*bs, sda, x_n+j, z_n, z_n, x_t, z_t+j, z_t+j, 0, alg);
+		}
+#endif
 	for(; j<n-3; j+=4)
 		{
 		kernel_dsymv_4_lib4(m, pA+j*bs, sda, x_n+j, z_n, z_n, x_t, z_t+j, z_t+j, 0, alg);
@@ -4953,6 +4966,12 @@ void dtrsv_n_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *
 			y[i] = x[i];
 
 	j = 0;
+#if defined(TARGET_X64_AVX2)
+	for(; j<n-11; j+=12)
+		{
+		kernel_dtrsv_n_12_lib4_new(j, &pA[j*sda], sda, use_inv_diag_A, &inv_diag_A[j], x, &y[j]);
+		}
+#endif
 	for(; j<n-7; j+=8)
 		{
 		kernel_dtrsv_n_8_lib4_new(j, &pA[j*sda], sda, use_inv_diag_A, &inv_diag_A[j], x, &y[j]);
