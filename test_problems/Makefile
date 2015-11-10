@@ -29,7 +29,7 @@ ifeq ($(REF_BLAS), 0)
 LIBS = -lm 
 endif
 ifeq ($(REF_BLAS), OPENBLAS)
-LIBS = -lm -L/opt/openblas/lib/ libopenblas.a -pthread
+LIBS = /opt/openblas/lib/libopenblas.a -pthread -lm
 endif
 ifeq ($(REF_BLAS), BLIS)
 LIBS = -lblis -lm -fopenmp
