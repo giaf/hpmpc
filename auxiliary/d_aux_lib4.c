@@ -421,6 +421,32 @@ void d_copy_mat(int row, int col, double *A, int lda, double *B, int ldb)
 
 
 
+/* copies the transpose of a matrix */
+void d_tran_mat(int row, int col, double *A, int lda, double *B, int ldb)
+	{
+	
+	int i, j;
+	
+	for(j=0; j<col; j++)
+		{
+		i = 0;
+		for(; i<row-3; i+=4)
+			{
+			B[j+(i+0)*ldb] = A[i+0+j*lda];
+			B[j+(i+1)*ldb] = A[i+1+j*lda];
+			B[j+(i+2)*ldb] = A[i+2+j*lda];
+			B[j+(i+3)*ldb] = A[i+3+j*lda];
+			}
+		for(; i<row; i++)
+			{
+			B[j+i*ldb] = A[i+j*lda];
+			}
+		}
+	
+	}
+
+
+
 /* copies a packed matrix */
 void d_copy_pmat(int row, int col, int bs_dummy, double *A, int sda, double *B, int sdb)
 	{

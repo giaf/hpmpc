@@ -27,3 +27,6 @@
 
 void d_ric_trf_mhe_if_blas(int nx, int nw, int ndN, int N, double **A, double **G, double **Q, double **R, double **AGU, double **Up, double **Ue, double **Ur, double *Ud);
 void d_ric_trs_mhe_if_blas(int nx, int nw, int ndN, int N, double **AGU, double **Up, double **Ue, double **Ur, double *Ud, double **q, double **r, double **f, double **xp, double **x, double **w, double **lam, double *work);
+
+void d_back_ric_trf_tv_blas(int N, int *nx, int *nu, double **BAbt, double **Q, double **Lp, double *BAbtL);
+void d_back_ric_trs_tv_blas(int N, int *nx, int *nu, double **BAbt, double **b, double **Lp, double **q, double **l, double **ux, double *work, int compute_Pb, double ** Pb, int compute_pi, double **pi);

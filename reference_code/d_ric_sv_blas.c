@@ -375,3 +375,209 @@ void d_ric_sv_mpc_blas(int nx, int nu, int N, double **BAbt, double **Q, double 
 	}
 
 
+
+void d_back_ric_trf_tv_blas(int N, int *nx, int *nu, double **BAbt, double **Q, double **Lp, double *BAbtL)
+	{
+
+	int nu0, nu1, nx0, nx1, nz0, nz1, nux0, nux1;
+
+	int ii, jj, ll, nn, tmp;
+
+	int info;
+	int i_1 = 1;
+	char c_l = 'L';
+	char c_n = 'N';
+	char c_r = 'R';
+	char c_t = 'T';
+	char c_u = 'U';
+	double d_0 = 0.0;
+	double d_1 = 1.0;
+
+	// factorization and backward substitution 
+
+	// final stage 
+	nu0 = nu[N];
+	nx0 = nx[N];
+	nux0 = nu0+nx0;
+	nz0 = nux0+1;
+
+	// copy Q_N
+	for(jj=0; jj<nux0; jj++)
+		{
+		tmp = nux0-jj;
+		dcopy_(&tmp, Q[N]+jj*(nz0+1), &i_1, Lp[N]+jj*(nz0+1), &i_1);
+		// TODO dcopy_
+//		for(ii=jj; ii<nux0; ii++)
+//			Lp[N][ii+nz0*jj] = Q[N][ii+nz0*jj];
+		}
+
+	// L_N = chol(P_N)
+	dpotrf_( &c_l, &nux0, Lp[N], &nz0, &info );
+
+
+
+	// middle stages 
+	for(nn=0; nn<N; nn++)
+		{	
+		nu1 = nu0;
+		nx1 = nx0;
+		nux1 = nux0;
+		nz1 = nz0;
+		nu0 = nu[N-nn-1];
+		nx0 = nx[N-nn-1];
+		nux0 = nu0+nx0;
+		nz0 = nux0+1;
+
+		// copy BAbt
+		for(jj=0; jj<nx1; jj++)
+			{
+			dcopy_(&nux0, BAbt[N-nn-1]+jj*nz0, &i_1, BAbtL+jj*nz0, &i_1);
+			// TODO dcopy_
+//			for(ii=0; ii<nux0; ii++)
+//				BAbtL[ii+jj*nz0] = BAbt[N-nn-1][ii+jj*nz0];
+			}
+
+		// BAbtL = BAbt * L
+		dtrmm_( &c_r, &c_l, &c_n, &c_n, &nux0, &nx1, &d_1, Lp[N-nn]+nu1*(nz1+1), &nz1, BAbtL, &nz0 );
+
+		// copy Q_n
+		for(jj=0; jj<nux0; jj++)
+			{
+			tmp = nux0-jj;
+			dcopy_(&tmp, Q[N-nn-1]+jj*(nz0+1), &i_1, Lp[N-nn-1]+jj*(nz0+1), &i_1);
+			// TODO dcopy_
+//			for(ii=jj; ii<nux0; ii++)
+//				Lp[N-nn-1][ii+nz0*jj] = Q[N-nn-1][ii+nz0*jj];
+			}
+
+		// Q_n += BAbtL * BAbtL'
+		dsyrk_( &c_l, &c_n, &nux0, &nx1, &d_1, BAbtL, &nz0, &d_1, Lp[N-nn-1], &nz0 );
+
+		// L_n = chol(Q_n)
+		dpotrf_( &c_l, &nux0, Lp[N-nn-1], &nz0, &info );
+
+
+		}
+
+	}
+
+
+
+void d_back_ric_trs_tv_blas(int N, int *nx, int *nu, double **BAbt, double **b, double **Lp, double **q, double **l, double **ux, double *work, int compute_Pb, double ** Pb, int compute_pi, double **pi)
+	{
+	
+	int nu0, nu1, nx0, nx1, nux0, nux1, nz0, nz1;
+
+	int ii, jj, nn;
+	
+	int info;
+	int i_1 = 1;
+	char c_l = 'L';
+	char c_n = 'N';
+	char c_r = 'R';
+	char c_t = 'T';
+	char c_u = 'U';
+	double d_0 = 0.0;
+	double d_1 = 1.0;
+	double d_m1 = -1.0;
+
+	// backward substitution 
+
+	// final stage
+	nu0 = nu[N];
+	nx0 = nx[N];
+	nux0 = nu0+nx0;
+	nz0 = nux0+1;
+
+	// copy q in l
+//	for(ii=0; ii<nu0+nx0; ii++) hl[N][ii] = hq[N][ii];
+	dcopy_(&nux0, q[N], &i_1, l[N], &i_1);
+
+	// middle stages
+	for(nn=0; nn<N; nn++)
+		{
+		nu1 = nu0;
+		nx1 = nx0;
+		nz1 = nz0;
+		nu0 = nu[N-nn-1];
+		nx0 = nx[N-nn-1];
+		nux0 = nu0+nx0;
+		nz0 = nux0+1;
+		if(compute_Pb)
+			{
+			dcopy_(&nx1, b[N-nn-1], &i_1, Pb[N-nn-1], &i_1);
+			dtrmv_(&c_l, &c_t, &c_n, &nx1, Lp[N-nn]+nu1*(nz1+1), &nz1, Pb[N-nn-1], &i_1);
+			dtrmv_(&c_l, &c_n, &c_n, &nx1, Lp[N-nn]+nu1*(nz1+1), &nz1, Pb[N-nn-1], &i_1);
+			}
+		// copy q in l
+		dcopy_(&nux0, q[N-nn-1], &i_1, l[N-nn-1], &i_1);
+
+		dcopy_(&nx1, l[N-nn], &i_1, work, &i_1);
+		daxpy_(&nx1, &d_1, Pb[N-nn-1], &i_1, work, &i_1);
+
+		dgemv_(&c_n, &nux0, &nx1, &d_1, BAbt[N-nn-1], &nz0, work, &i_1, &d_1, l[N-nn-1], &i_1);
+		dtrsv_(&c_l, &c_n, &c_n, &nu0, Lp[N-nn-1], &nz0, l[N-nn-1], &i_1);
+		dgemv_(&c_n, &nx0, &nu0, &d_m1, Lp[N-nn-1]+nu0, &nz0, l[N-nn-1], &i_1, &d_1, l[N-nn-1]+nu0, &i_1);
+		}
+
+
+	// forward substitution 
+
+	nu1 = nu[0];
+	nx1 = nx[0];
+	nux1 = nu1+nx1;
+	nz1 = nux1+1;
+	// first stage
+	nn = 0;
+	nu0 = nu1;
+	nx0 = nx1;
+	nz0 = nz1;
+	nu1 = nu[nn+1];
+	nx1 = nx[nn+1];
+	nux1 = nu1+nx1;
+	nz1 = nux1+1;
+
+	for(jj=0; jj<nu0; jj++) ux[nn][jj] = - l[nn][jj];
+	dtrsv_(&c_l, &c_t, &c_n, &nx0, Lp[nn]+nu0*(nz0+1), &nz0, ux[nn]+nu0, &i_1);
+	dgemv_(&c_t, &nx0, &nu0, &d_m1, Lp[nn]+nu0, &nz0, ux[nn]+nu0, &i_1, &d_1, ux[nn], &i_1);
+	dtrsv_(&c_l, &c_t, &c_n, &nu0, Lp[nn], &nz0, ux[nn], &i_1);
+	dcopy_(&nx1, b[nn], &i_1, ux[nn+1]+nu1, &i_1);
+	dgemv_(&c_t, &nux0, &nx1, &d_1, BAbt[nn], &nz0, ux[nn], &i_1, &d_1, ux[nn+1]+nu1, &i_1);
+	if(compute_pi)
+		{
+		dcopy_(&nx1, ux[nn+1]+nu1, &i_1, pi[nn+1], &i_1);
+		dtrmv_(&c_l, &c_t, &c_n, &nx1, Lp[nn+1]+nu1*(nz1+1), &nz1, pi[nn+1], &i_1);
+		dtrmv_(&c_l, &c_n, &c_n, &nx1, Lp[nn+1]+nu1*(nz1+1), &nz1, pi[nn+1], &i_1);
+		daxpy_(&nx1, &d_1, l[nn+1]+nu1, &i_1, pi[nn+1], &i_1);
+		}
+	// middle stages
+	for(nn=1; nn<N; nn++)
+		{
+		nu0 = nu1;
+		nx0 = nx1;
+		nux0 = nux1;
+		nz0 = nz1;
+		nu1 = nu[nn+1];
+		nx1 = nx[nn+1];
+		nux1 = nu1+nx1;
+		nz1 = nux1+1;
+		for(jj=0; jj<nu0; jj++) ux[nn][jj] = - l[nn][jj];
+		dgemv_(&c_t, &nx0, &nu0, &d_m1, Lp[nn]+nu0, &nz0, ux[nn]+nu0, &i_1, &d_1, ux[nn], &i_1);
+		dtrsv_(&c_l, &c_t, &c_n, &nu0, Lp[nn], &nz0, ux[nn], &i_1);
+		dcopy_(&nx1, b[nn], &i_1, ux[nn+1]+nu1, &i_1);
+		dgemv_(&c_t, &nux0, &nx1, &d_1, BAbt[nn], &nz0, ux[nn], &i_1, &d_1, ux[nn+1]+nu1, &i_1);
+
+		if(compute_pi)
+			{
+			dcopy_(&nx1, ux[nn+1]+nu1, &i_1, pi[nn+1], &i_1);
+			dtrmv_(&c_l, &c_t, &c_n, &nx1, Lp[nn+1]+nu1*(nz1+1), &nz1, pi[nn+1], &i_1);
+			dtrmv_(&c_l, &c_n, &c_n, &nx1, Lp[nn+1]+nu1*(nz1+1), &nz1, pi[nn+1], &i_1);
+			daxpy_(&nx1, &d_1, l[nn+1]+nu1, &i_1, pi[nn+1], &i_1);
+			}
+		}
+
+	}
+
+
+
+

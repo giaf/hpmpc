@@ -41,6 +41,7 @@
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_solvers.h"
 #include "../include/block_size.h"
+#include "../include/reference_code.h"
 #include "tools.h"
 
 
@@ -420,6 +421,22 @@ int main()
 //		d_print_mat(1, nx, b0, 1);
 //		exit(2);
 		
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+		
+		double *BAbt0; d_zeros(&BAbt0, nu+1, nx);
+		d_tran_mat(nx, nu, B, nx, BAbt0, nu+1);
+		d_tran_mat(nx, 1, b0, nx, BAbt0+nu, nu+1);
+		double *BAbt1; d_zeros(&BAbt1, nu+nx+1, nx);
+		d_tran_mat(nx, nu, B, nx, BAbt1, nu+nx+1);
+		d_tran_mat(nx, nx, A, nx, BAbt1+nu, nu+nx+1);
+		d_tran_mat(nx, 1, b, nx, BAbt1+nu+nx, nu+nx+1);
+
+//		d_print_mat(nu+1, nx, BAbt0, nu+1);
+//		d_print_mat(nu+nx+1, nx, BAbt1, nu+nx+1);
+//		exit(1);
+
+#endif
+
 /************************************************
 * cost function
 ************************************************/	
@@ -460,6 +477,26 @@ int main()
 //		d_print_pmat(nx+1, nx, bs, pQN, cnx);
 //		exit(2);
 
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+
+		double *Q0; d_zeros(&Q0, nu+1, nu+1);
+		d_copy_mat(nu, nu, Q, pnz, Q0, nu+1);
+		d_copy_mat(1, nu, Q+nu+nx, pnz, Q0+nu, nu+1);
+		Q0[nu*(nu+2)] = 1e35; // large enough
+		double *Q1; d_zeros(&Q1, nu+nx+1, nu+nx+1);
+		d_copy_mat(nu+nx+1, nu+nx, Q, pnz, Q1, nu+nx+1);
+		Q1[(nu+nx)*(nu+nx+2)] = 1e35; // large enough
+		double *QN; d_zeros(&QN, nx+1, nx+1);
+		d_copy_mat(nx, nx, Q+nu*(pnz+1), pnz, QN, nx+1);
+		d_copy_mat(1, nx, Q+nu*(pnz+1)+nx, pnz, QN+nx, nx+1);
+		QN[(nx)*(nx+2)] = 1e35; // large enough
+
+//		d_print_mat(nu+1, nu+1, Q0, nu+1);
+//		d_print_mat(nu+nx+1, nu+nx+1, Q1, nu+nx+1);
+//		d_print_mat(nx+1, nx+1, QN, nx+1);
+//		exit(2);
+
+#endif
 
 //	d_print_pmat(nz, nz, bs, pQ, cnz);
 
@@ -554,6 +591,27 @@ int main()
 		
 		//double *work; d_zeros_align(&work, 2*anz, 1);
 		double *work0; d_zeros_align(&work0, pnz, cnx);
+
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+
+		double *(hBAbt[N]);
+		double *(hQ[N+1]);
+		double *(hL[N+1]);
+		hBAbt[0] = BAbt0;
+		hQ[0] = Q0;
+		d_zeros(&hL[0], nu+1, nu+1);
+		for(ii=1; ii<N; ii++)
+			{
+			hBAbt[ii] = BAbt1;
+			hQ[ii] = Q1;
+			d_zeros(&hL[ii], nu+nx+1, nu+nx+1);
+			}
+		hQ[N] = QN;
+		d_zeros(&hL[N], nx+1, nx+1);
+
+		double *BAbtL; d_zeros(&BAbtL, nu+nx+1, nx);
+
+#endif
 
 /************************************************
 * test of riccati_eye / diag
@@ -1369,7 +1427,7 @@ int main()
 
 
 		// timing 
-		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6, tv7;
+		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6, tv7, tv8, tv9, tv10;
 
 		// double precision
 		gettimeofday(&tv0, NULL); // start
@@ -1493,9 +1551,41 @@ int main()
 #endif
 
 
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
 
+		// size-variant code
+		gettimeofday(&tv8, NULL); // start
 
+		for(rep=0; rep<nrep; rep++)
+			{
+			d_back_ric_trf_tv_blas(N, nx_v, nu_v, hBAbt, hQ, hL, BAbtL);
+			}
 
+		gettimeofday(&tv9, NULL); // start
+
+		for(rep=0; rep<nrep; rep++)
+			{
+			d_back_ric_trs_tv_blas(N, nx_v, nu_v, hBAbt, hb_tv, hL, hq_tv, hl, hux, work1, 1, hPb, 1, hpi);
+			}
+
+		gettimeofday(&tv10, NULL); // start
+
+//		for(ii=0; ii<=N; ii++)
+//			printf("\n%d %d\n", nu_v[ii], nx_v[ii]);
+
+		if(PRINTRES==1 && ll_max==1)
+			{
+			/* print result */
+			printf("\n\nsv\n\n");
+			for(ii=0; ii<=N; ii++)
+				d_print_mat(1, nu_v[ii]+nx_v[ii], hux[ii], 1);
+			printf("\n");
+			for(ii=1; ii<=N; ii++)
+				d_print_mat(1, nx, hpi[ii], 1);
+//			exit(1);
+			}
+
+#endif
 
 
 		float time_sv = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
@@ -1527,6 +1617,12 @@ int main()
 		float time_trs_tv = (float) (tv7.tv_sec-tv6.tv_sec)/(nrep+0.0)+(tv7.tv_usec-tv6.tv_usec)/(nrep*1e6);
 		float Gflops_trs_tv = 1e-9*flop_trs_tv/time_trs_tv;
 	
+		float time_trf_tv_blas = (float) (tv9.tv_sec-tv8.tv_sec)/(nrep+0.0)+(tv9.tv_usec-tv8.tv_usec)/(nrep*1e6);
+		float Gflops_trf_tv_blas = 1e-9*flop_trf_tv/time_trf_tv_blas;
+
+		float time_trs_tv_blas = (float) (tv10.tv_sec-tv9.tv_sec)/(nrep+0.0)+(tv10.tv_usec-tv9.tv_usec)/(nrep*1e6);
+		float Gflops_trs_tv_blas = 1e-9*flop_trs_tv/time_trs_tv_blas;
+	
 		if(ll==0)
 			{
 			printf("\nnx\tnu\tN\tsv time\t\tsv Gflops\tsv %%\t\ttrs time\ttrs Gflops\ttrs %%\n\n");
@@ -1535,7 +1631,7 @@ int main()
 //		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max, time_sv_fast, Gflops_sv_fast, 100.0*Gflops_sv_fast/Gflops_max, time_sv_tv, Gflops_sv_tv, 100.0*Gflops_sv_tv/Gflops_max);
 //		fprintf(f, "%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trs_admm, Gflops_trs_admm, 100.0*Gflops_trs_admm/Gflops_max, time_sv_fast, Gflops_sv_fast, 100.0*Gflops_sv_fast/Gflops_max, time_sv_tv, Gflops_sv_tv, 100.0*Gflops_sv_tv/Gflops_max);
 	
-		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_trf_tv, Gflops_trf_tv, 100.0*Gflops_trf_tv/Gflops_max, time_trs_tv, Gflops_trs_tv, 100.0*Gflops_trs_tv/Gflops_max);
+		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_trf_tv, Gflops_trf_tv, 100.0*Gflops_trf_tv/Gflops_max, time_trs_tv, Gflops_trs_tv, 100.0*Gflops_trs_tv/Gflops_max, time_trf_tv_blas, Gflops_trf_tv_blas, 100.0*Gflops_trf_tv_blas/Gflops_max, time_trs_tv_blas, Gflops_trs_tv_blas, 100.0*Gflops_trs_tv_blas/Gflops_max);
 
 /************************************************
 * return
@@ -1595,6 +1691,18 @@ int main()
 		free(hpi[N]);
 		free(hrq[N]);
 	
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+		free(BAbt0);
+		free(BAbt1);
+		free(Q0);
+		free(Q1);
+		free(QN);
+		free(BAbtL);
+		for(jj=0; jj<N; jj++)
+			{
+			free(hL[jj]);
+			}
+#endif
 
 
 		} // increase size
