@@ -41,6 +41,7 @@
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_solvers.h"
 #include "../include/block_size.h"
+#include "../include/reference_code.h"
 #include "tools.h"
 
 
@@ -330,6 +331,13 @@ int main()
 		nv_tv[N] = nx;
 		ne_tv[N] = nd;
 
+		// diagonal hessian
+		int diag_hessian[N+1];
+		for(ii=0; ii<=N; ii++)
+			diag_hessian[ii] = 1;
+//		diag_hessian[2] = 1;
+
+
 		int pnv_tv[N+1];
 		int pne_tv[N+1];
 		int cnv_tv[N+1];
@@ -444,6 +452,25 @@ int main()
 			d_cvt_mat2pmat(ne_tv[N], nv_tv[N], C, nd, 0, pQAN+pnv_tv[N]*cnv_tv[N], cnv_tv[N]);
 //		d_print_pmat(pnv_tv[N]+pne_tv[N], cnv_tv[N], bs, pQAN, cnv_tv[N]);
 
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+		double *QA0; d_zeros(&QA0, nv_tv[0]+ne_tv[0], nv_tv[0]);
+		d_copy_mat(nv_tv[0], nv_tv[0], Q+nx*(nxu+1), nxu, QA0, nv_tv[0]+ne_tv[0]);
+		d_copy_mat(ne_tv[0], nv_tv[0], B, nx, QA0+nv_tv[0], nv_tv[0]+ne_tv[0]);
+
+		double *QA1; d_zeros(&QA1, nv_tv[1]+ne_tv[1], nv_tv[1]);
+		d_copy_mat(nv_tv[1], nv_tv[1], Q, nxu, QA1, nv_tv[1]+ne_tv[1]);
+		d_copy_mat(ne_tv[1], nv_tv[1], AB, nx, QA1+nv_tv[1], nv_tv[1]+ne_tv[1]);
+
+		double *QAN; d_zeros(&QAN, nv_tv[N]+ne_tv[N], nv_tv[N]);
+		d_copy_mat(nv_tv[N], nv_tv[N], Q, nxu, QAN, nv_tv[N]+ne_tv[N]);
+		if(ne_tv[N]>0)
+			d_copy_mat(ne_tv[N], nv_tv[N], C, nx, QAN+nv_tv[N], nv_tv[N]+ne_tv[N]);
+
+//		d_print_mat(nv_tv[0]+ne_tv[0], nv_tv[0], QA0, nv_tv[0]+ne_tv[0]);
+//		d_print_mat(nv_tv[1]+ne_tv[1], nv_tv[1], QA1, nv_tv[1]+ne_tv[1]);
+//		d_print_mat(nv_tv[N]+ne_tv[N], nv_tv[N], QAN, nv_tv[N]+ne_tv[N]);
+//		exit(2);
+#endif
 
 
 		// dense Hessian of cost function
@@ -497,18 +524,36 @@ int main()
 			qbN[pnv_tv[N]+1] = -2.0;
 			}
 
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+		double *qb0b; d_zeros_align(&qb0b, nv_tv[0]+ne_tv[0], 1);
+		d_copy_mat(nv_tv[0], 1, qb0, 1, qb0b, 1);
+		d_copy_mat(ne_tv[0], 1, qb0+pnv_tv[0], 1, qb0b+nv_tv[0], 1);
+		double *qb1b; d_zeros_align(&qb1b, nv_tv[1]+ne_tv[1], 1);
+		d_copy_mat(nv_tv[1], 1, qb1, 1, qb1b, 1);
+		d_copy_mat(ne_tv[1], 1, qb1+pnv_tv[1], 1, qb1b+nv_tv[1], 1);
+		double *qbNb; d_zeros_align(&qbNb, nv_tv[N]+ne_tv[N], 1);
+		d_copy_mat(nv_tv[N], 1, qbN, 1, qbNb, 1);
+		d_copy_mat(ne_tv[N], 1, qbN+pnv_tv[N], 1, qbNb+nv_tv[N], 1);
+
+//		d_print_mat(1, nv_tv[0]+ne_tv[0], qb0b, 1);
+//		d_print_mat(1, nv_tv[1]+ne_tv[1], qb1b, 1);
+//		d_print_mat(1, nv_tv[N]+ne_tv[N], qbNb, 1);
+//		exit(2);
+#endif
 
 
 		double *(hpQA_tv[N+1]);
-		double *(hdQpA_tv[N+1]);
+//		double *(hdQpA_tv[N+1]);
 		double *(hqb_tv[N+1]);
 		double *(hpLA_tv[N+1]);
 		double *(hdLA_tv[N+1]);
 		double *(hpLe_tv[N+1]);
 		double *(hxupi_tv[N+1]);
 		
-		hpQA_tv[0] = pQA0;
-		hdQpA_tv[0] = dQpA0;
+		if(diag_hessian[0])
+			hpQA_tv[0] = dQpA0;
+		else
+			hpQA_tv[0] = pQA0;
 		hqb_tv[0] = qb0;
 		d_zeros_align(&hpLA_tv[0], pnv_tv[0]+pne_tv[0], cnv_tv[0]);
 		d_zeros_align(&hdLA_tv[0], pnv_tv[0], 1);
@@ -516,16 +561,20 @@ int main()
 		d_zeros_align(&hxupi_tv[0], pnv_tv[0]+pne_tv[0], 1);
 		for(ii=1; ii<N; ii++)
 			{
-			hpQA_tv[ii] = pQA1;
-			hdQpA_tv[ii] = dQpA1;
+			if(diag_hessian[ii])
+				hpQA_tv[ii] = dQpA1;
+			else
+				hpQA_tv[ii] = pQA1;
 			hqb_tv[ii] = qb1;
 			d_zeros_align(&hpLA_tv[ii], pnv_tv[ii]+pne_tv[ii], cnv_tv[ii]);
 			d_zeros_align(&hdLA_tv[ii], pnv_tv[ii], 1);
 			d_zeros_align(&hpLe_tv[ii], pne_tv[ii], cne_tv[ii]);
 			d_zeros_align(&hxupi_tv[ii], pnv_tv[ii]+pne_tv[ii], 1);
 			}
-		hpQA_tv[N] = pQAN;
-		hdQpA_tv[N] = dQpAN;
+		if(diag_hessian[N])
+			hpQA_tv[N] = dQpAN;
+		else
+			hpQA_tv[N] = pQAN;
 		hqb_tv[N] = qbN;
 		d_zeros_align(&hpLA_tv[N], pnv_tv[N]+pne_tv[N], cnv_tv[N]);
 		d_zeros_align(&hdLA_tv[N], pnv_tv[N], 1);
@@ -540,7 +589,7 @@ int main()
 
 
 		double *work_tv; d_zeros_align(&work_tv, pneM*cneM+pneM, 1);
-		double *tmp_tv; d_zeros_align(&tmp_tv, 2*pneM, 1);
+		double *tmp_tv; d_zeros_align(&tmp_tv, pneM, 1);
 
 
 		double *hres_tv[N+1];
@@ -549,6 +598,29 @@ int main()
 			d_zeros_align(&hres_tv[ii], pnv_tv[ii]+pne_tv[ii], 1);
 			}
 
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+		double *(hQA_tv[N+1]);
+		double *(hLA_tv[N+1]);
+		double *(hLe_tv[N+1]);
+		double *(hqbb_tv[N+1]);
+		double *Le_tmp;
+		hQA_tv[0] = QA0;
+		d_zeros(&hLA_tv[0], nv_tv[0]+ne_tv[0], nv_tv[0]);
+		d_zeros(&hLe_tv[0], ne_tv[0], ne_tv[0]);
+		hqbb_tv[0] = qb0b;
+		for(ii=1; ii<N; ii++)
+			{
+			hQA_tv[ii] = QA1;
+			d_zeros(&hLA_tv[ii], nv_tv[ii]+ne_tv[ii], nv_tv[ii]);
+			d_zeros(&hLe_tv[ii], ne_tv[ii], ne_tv[ii]);
+			hqbb_tv[ii] = qb1b;
+			}
+		hQA_tv[N] = QAN;
+		d_zeros(&hLA_tv[N], nv_tv[N]+ne_tv[N], nv_tv[N]);
+		d_zeros(&hLe_tv[N], ne_tv[N], ne_tv[N]);
+		hqbb_tv[N] = qbNb;
+		d_zeros(&Le_tmp, neM, neM);
+#endif
 
 
 
@@ -578,17 +650,14 @@ int main()
 		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6;
 
 
-		int diag_hessian = 0;
-
-
 		gettimeofday(&tv0, NULL); // start
 
 		for(rep=0; rep<nrep; rep++)
 			{
-			if(diag_hessian)
-				info = d_forward_schur_trf_tv(N, nv_tv, ne_tv, 1e-8, 1, hdQpA_tv, hpLA_tv, hdLA_tv, hpLe_tv, work_tv);	
-			else // dense hessian
-				info = d_forward_schur_trf_tv(N, nv_tv, ne_tv, 1e-8, 0, hpQA_tv, hpLA_tv, hdLA_tv, hpLe_tv, work_tv);	
+//			if(diag_hessian)
+//				info = d_forward_schur_trf_tv(N, nv_tv, ne_tv, 1e-8, 1, hdQpA_tv, hpLA_tv, hdLA_tv, hpLe_tv, work_tv);	
+//			else // dense hessian
+				info = d_forward_schur_trf_tv(N, nv_tv, ne_tv, 1e-8, diag_hessian, hpQA_tv, hpLA_tv, hdLA_tv, hpLe_tv, work_tv);	
 			}
 
 		gettimeofday(&tv1, NULL); // start
@@ -608,10 +677,10 @@ int main()
 
 		for(rep=0; rep<nrep; rep++)
 			{
-			if(diag_hessian)
-				d_forward_schur_trs_tv(N, nv_tv, ne_tv, 1, hqb_tv, hpLA_tv, hdLA_tv, hpLe_tv, hxupi_tv, tmp_tv);	
-			else // dense hessian
-				d_forward_schur_trs_tv(N, nv_tv, ne_tv, 0, hqb_tv, hpLA_tv, hdLA_tv, hpLe_tv, hxupi_tv, tmp_tv);	
+//			if(diag_hessian)
+//				d_forward_schur_trs_tv(N, nv_tv, ne_tv, 1, hqb_tv, hpLA_tv, hdLA_tv, hpLe_tv, hxupi_tv, tmp_tv);	
+//			else // dense hessian
+				d_forward_schur_trs_tv(N, nv_tv, ne_tv, diag_hessian, hqb_tv, hpLA_tv, hdLA_tv, hpLe_tv, hxupi_tv, tmp_tv);	
 			}
 
 		gettimeofday(&tv3, NULL); // start
@@ -638,6 +707,47 @@ int main()
 #endif
 			}
 
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+		gettimeofday(&tv4, NULL); // start
+
+		for(rep=0; rep<nrep; rep++)
+			{
+			info = d_forward_schur_trf_tv_blas(N, nv_tv, ne_tv, 1e-8, diag_hessian, hQA_tv, hLA_tv, hLe_tv, Le_tmp);	
+			}
+
+		gettimeofday(&tv5, NULL); // start
+
+		for(rep=0; rep<nrep; rep++)
+			{
+			d_forward_schur_trs_tv_blas(N, nv_tv, ne_tv, diag_hessian, hqbb_tv, hLA_tv, hLe_tv, hxupi_tv, tmp_tv);	
+			}
+
+		gettimeofday(&tv6, NULL); // start
+			
+
+		if(ll_max==1)
+			{
+#if 0
+			for(ii=0; ii<=N; ii++)
+				{
+				d_print_mat(1, pnv_tv[ii]+pne_tv[ii], hxupi_tv[ii], 1);
+				}
+#else
+			printf("\nxu\n");
+			for(ii=0; ii<=N; ii++)
+				{
+				d_print_mat(1, nv_tv[ii], hxupi_tv[ii], 1);
+				}
+			printf("\npi\n");
+			for(ii=0; ii<=N; ii++)
+				{
+				d_print_mat(1, ne_tv[ii], hxupi_tv[ii]+nv_tv[ii], 1);
+				}
+#endif
+			}
+
+#endif
+
 
 		// compute residuals
 #if 0
@@ -652,9 +762,48 @@ int main()
 
 #endif 
 
+		int ne0, ne1, nv0, nv1;
+
 		float time_trf = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
-		float flops_trf;
-		if(diag_hessian==0)
+		float flops_trf = 0;
+#if 1
+		// first stage
+		ne0 = ne_tv[0];
+		nv0 = nv_tv[0];
+		if(diag_hessian[0])
+			{
+			flops_trf += 2.0*ne0*nv0;
+			}
+		else
+			{
+			flops_trf += 1.0/3.0*nv0*nv0*nv0 + nv0*nv0*ne0;
+			}
+		flops_trf += nv0*ne0*ne0 + 2.0/3.0*ne0*ne0*ne0;
+		// middle stages
+		for(ii=1; ii<N; ii++)
+			{
+			ne1 = ne0;
+			nv1 = nv0;
+			ne0 = ne_tv[ii];
+			nv0 = nv_tv[ii];
+			if(diag_hessian[ii])
+				{
+				flops_trf += 5.0/3.0*ne1*ne1*ne1 + 2.0*ne0*(nv0-ne1);
+				}
+			else
+				{
+				flops_trf += 1.0/3.0*ne1*ne1*ne1 + 1.0/3.0*nv0*nv0*nv0 + nv0*nv0*ne0;
+				}
+			flops_trf += nv0*ne0*ne0 + 2.0/3.0*ne0*ne0*ne0;
+			}
+		// last stage
+		ne1 = ne0;
+		nv1 = nv0;
+		ne0 = ne_tv[N];
+		nv0 = nv_tv[N];
+		flops_trf += 1.0/3.0*ne1*ne1*ne1 + 1.0/3.0*nv0*nv0*nv0 + nv0*nv0*ne0 + ne0*ne0*nv0 + 2.0/3.0*ne0*ne0*ne0;
+#else
+		if(1) // dense hessian
 			{
 			flops_trf = N*(10.0/3.0*nx*nx*nx + 4.0*nx*nx*nu + 2.0*nx*nu*nu + 1.0/3.0*nu*nu*nu) + 1.0/3.0*nx*nx*nx + 1.0*nx*nx*nd + 1.0*nx*nd*nd + 1.0/3.0*nd*nd*nd;
 			if(nv_tv[0]==nu)
@@ -666,11 +815,74 @@ int main()
 			if(nv_tv[0]==nu)
 				flops_trf -= 1.0*nx*nx*nx;
 			}
+#endif
 		float Gflops_trf = 1e-9*flops_trf/time_trf;
 
 		float time_trs = (float) (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
-		float flops_trs;
-		if(diag_hessian==0)
+		float flops_trs = 0;
+#if 1
+		// first stage
+		ne0 = ne_tv[0];
+		nv0 = nv_tv[0];
+		if(diag_hessian[0])
+			{
+			flops_trs += 2.0*nv0  + 2.0*ne0*nv0;
+			}
+		else
+			{
+			flops_trs += nv0*nv0 + 2.0*nv0*ne0;
+			}
+		// middle stages
+		for(ii=1; ii<=N; ii++)
+			{
+			ne1 = ne0;
+			nv1 = nv0;
+			ne0 = ne_tv[ii];
+			nv0 = nv_tv[ii];
+			if(diag_hessian[ii])
+				{
+				flops_trs += ne1*ne1 + 2.0*(nv0-ne1) + 2.0*nv0*ne0;
+				}
+			else
+				{
+				flops_trs += nv0*nv0 + 2.0*nv0*ne0;
+				}
+			flops_trs += 2.0*ne1*ne1;
+			}
+		// last stage
+		flops_trs += 2.0*ne0*ne0 + nv0*nv0 + 2.0*nv0*ne0;
+		// middle stages
+		for(ii=1; ii<N; ii++)
+			{
+			ne0  = ne1;
+			ne1  = ne_tv[N-ii-1];//ne0;
+			nv0  = nv_tv[N-ii];
+			if(diag_hessian[ii])
+				{
+				flops_trs += ne1*ne1 + 2.0*(nv0-ne1) + 2.0*nv0*ne0;
+				}
+			else
+				{
+				flops_trs += nv0*nv0 + 2.0*nv0*ne0;
+				}
+			flops_trs += 2.0*ne0*ne0;
+			}
+		// first stage
+		ii = N;
+		ne0  = ne1;
+		ne1  = ne_tv[N-ii-1];//ne0;
+		nv0  = nv_tv[N-ii];
+		if(diag_hessian[ii])
+			{
+			flops_trs += 2.0*nv0 + 2.0*nv0*ne0;
+			}
+		else
+			{
+			flops_trs += nv0*nv0 + 2.0*nv0*ne0;
+			}
+		flops_trs += 2.0*ne0*ne0;
+#else
+		if(1) // dense hessian
 			{
 			flops_trs = N*(10.0*nx*nx + 8.0*nx*nu + 2.0*nu*nu) + 2.0*nx*nx + 4.0*nx*nd + 2.0*nd*nd;
 			if(nv_tv[0]==nu)
@@ -682,13 +894,20 @@ int main()
 			if(nv_tv[0]==nu)
 				flops_trs -= 4.0*nx*nx;
 			}
+#endif
 		float Gflops_trs = 1e-9*flops_trs/time_trs;
 
 		float Gflops_max = flops_max * GHz_max;
 
+		float time_trf_blas = (float) (tv5.tv_sec-tv4.tv_sec)/(nrep+0.0)+(tv5.tv_usec-tv4.tv_usec)/(nrep*1e6);
+		float Gflops_trf_blas = 1e-9*flops_trf/time_trf_blas;
+
+		float time_trs_blas = (float) (tv6.tv_sec-tv5.tv_sec)/(nrep+0.0)+(tv6.tv_usec-tv5.tv_usec)/(nrep*1e6);
+		float Gflops_trs_blas = 1e-9*flops_trs/time_trs_blas;
+
 		if(ll==0)
 			printf("\nnx\tnu\tnd\tN\ttrf_time\tGlops\t\t%%\t\ttrs_time\tGlops\t\t%%\n");
-		printf("%d\t%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, nd, N, time_trf, Gflops_trf, 100.0*Gflops_trf/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max);
+		printf("%d\t%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, nd, N, time_trf, Gflops_trf, 100.0*Gflops_trf/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max, time_trf_blas, Gflops_trf_blas, 100.0*Gflops_trf_blas/Gflops_max, time_trs_blas, Gflops_trs_blas, 100.0*Gflops_trs_blas/Gflops_max);
 
 /************************************************
 * free memory
@@ -722,6 +941,21 @@ int main()
 			free(hxupi_tv[ii]);
 			free(hres_tv[ii]);
 			}
+
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+		free(QA0);
+		free(QA1);
+		free(QAN);
+		free(qb0b);
+		free(qb1b);
+		free(qbNb);
+		free(Le_tmp);
+		for(ii=0; ii<=N; ii++)
+			{
+			free(hLA_tv[ii]);
+			free(hLe_tv[ii]);
+			}
+#endif
 
 		} // increase size
 

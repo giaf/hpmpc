@@ -1616,7 +1616,7 @@ void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double
 
 
 
-int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian, double **hpQA, double **hpLA, double **hdLA, double **hpLe, double *work)
+int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessian, double **hpQA, double **hpLA, double **hdLA, double **hpLe, double *work)
 	{
 
 	const int bs = D_MR;
@@ -1655,7 +1655,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 	cnv0 = (nv0+ncl-1)/ncl*ncl;
 	cne0 = (ne0+ncl-1)/ncl*ncl;
 
-	if(diag_hessian)
+	if(diag_hessian[0])
 		{
 
 		dgeset_lib(pnv0, nv0, 0.0, 0, hpLA[ii], cnv0);
@@ -1719,7 +1719,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 		cnv0 = (nv0+ncl-1)/ncl*ncl;
 		cne0 = (ne0+ncl-1)/ncl*ncl;
 
-		if(diag_hessian)
+		if(diag_hessian[ii])
 			{
 
 			nx0 = ne1;
@@ -1798,6 +1798,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 			ddiareg_lib(nv0, reg, 0, hpLA[ii], cnv0);
 
 			// assume that A is aligned to a panel boundary, and that the lower part of A is copied between Q and A
+//			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
 			dpotrf_lib(nve0, nv0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
 
 			for(jj=0; jj<nv0; jj++) 
@@ -1844,7 +1845,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 	cne0 = (ne0+ncl-1)/ncl*ncl;
 
 
-	if(diag_hessian)
+	if(diag_hessian[N])
 		{
 
 		dlauum_lib(ne1, hpLe[ii-1], cne1, hpLe[ii-1], cne1, 0, hpLA[ii], cnv0, hpLA[ii], cnv0);
@@ -1914,7 +1915,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int diag_hessian
 
 
 
-void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **hqb, double **hpLA, double **hdLA, double **hpLe, double **hxupi, double *tmp)
+void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double **hqb, double **hpLA, double **hdLA, double **hpLe, double **hxupi, double *tmp)
 	{
 
 	const int bs = D_MR;
@@ -1942,7 +1943,7 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 
 	d_copy_mat(pnv0+ne0, 1, hqb[ii], 1, hxupi[ii], 1);
 
-	if(diag_hessian)
+	if(diag_hessian[ii])
 		{
 
 //		d_print_pmat(nve0, nv0, bs, hpLA[ii], cnv0);
@@ -1995,7 +1996,7 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 		dtrmv_u_t_lib(ne1, hpLe[ii-1], cne1, hxupi[ii-1]+pnv1, 0, tmp);
 		dtrmv_u_n_lib(ne1, hpLe[ii-1], cne1, tmp, -1, hxupi[ii]);
 
-		if(diag_hessian)
+		if(diag_hessian[ii])
 			{
 
 			nx0 = ne1;
@@ -2053,7 +2054,7 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 
 //	d_print_mat(1, pnv0+pne0, hxupi[ii], 1);
 
-	if(diag_hessian)
+	if(diag_hessian[ii])
 		{
 
 		dgemv_t_lib(ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hxupi[N]+pnv0, -1, hxupi[N], hxupi[N]);
@@ -2078,6 +2079,7 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 		}
 	
 //	d_print_mat(1, pnv0+pne0, hxupi[ii], 1);
+//	return;
 //	exit(1);
 
 //	ne1 = ne[N-1];
@@ -2099,14 +2101,13 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 		cnv0 = (nv0+ncl-1)/ncl*ncl;
 		cne0 = (ne0+ncl-1)/ncl*ncl;
 
-		for(jj=0; jj<ne0; jj++) tmp[pne0+jj] = hxupi[N-ii][pnv0+jj] - hxupi[N-ii+1][jj];
-
-		dtrmv_u_t_lib(ne0, hpLe[N-ii], cne0, tmp+pne0, 0, tmp);
+		for(jj=0; jj<ne0; jj++) hxupi[N-ii][pnv0+jj] = hxupi[N-ii][pnv0+jj] - hxupi[N-ii+1][jj]; 
+		dtrmv_u_t_lib(ne0, hpLe[N-ii], cne0, hxupi[N-ii]+pnv0, 0, tmp);
 		dtrmv_u_n_lib(ne0, hpLe[N-ii], cne0, tmp, 0, hxupi[N-ii]+pnv0);
 
 		for(jj=0; jj<nv0; jj++) hxupi[N-ii][jj] = - hxupi[N-ii][jj];
 
-		if(diag_hessian)
+		if(diag_hessian[N-ii])
 			{
 
 			nx0 = ne1;
@@ -2146,14 +2147,14 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int diag_hessian, double **
 	cnv0 = (nv0+ncl-1)/ncl*ncl;
 	cne0 = (ne0+ncl-1)/ncl*ncl;
 
-	for(jj=0; jj<ne0; jj++) tmp[pne0+jj] = hxupi[N-ii][pnv0+jj] - hxupi[N-ii+1][jj];
+	for(jj=0; jj<ne0; jj++) hxupi[N-ii][pnv0+jj] = hxupi[N-ii][pnv0+jj] - hxupi[N-ii+1][jj];
 
-	dtrmv_u_t_lib(ne0, hpLe[N-ii], cne0, tmp+pne0, 0, tmp);
+	dtrmv_u_t_lib(ne0, hpLe[N-ii], cne0, hxupi[N-ii]+pnv0, 0, tmp);
 	dtrmv_u_n_lib(ne0, hpLe[N-ii], cne0, tmp, 0, hxupi[N-ii]+pnv0);
 
 	for(jj=0; jj<nv0; jj++) hxupi[N-ii][jj] = - hxupi[N-ii][jj];
 
-	if(diag_hessian)
+	if(diag_hessian[N-ii])
 		{
 
 		dgemv_t_lib(ne0, nv0, hpLA[N-ii]+pnv0*cnv0, cnv0, hxupi[N-ii]+pnv0, -1, hxupi[N-ii], hxupi[N-ii]);
