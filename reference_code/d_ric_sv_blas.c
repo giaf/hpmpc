@@ -42,6 +42,7 @@
 
 
 
+#if 0
 // TODO return error code
 void d_ric_trf_mhe_if_blas(int nx, int nw, int ndN, int N, double **A, double **G, double **Q, double **R, double **AGU, double **Up, double **Ue, double **Ur, double *Ud)
 	{
@@ -297,6 +298,7 @@ void d_ric_trs_mhe_if_blas(int nx, int nw, int ndN, int N, double **AGU, double 
 	return;
 
 	}
+#endif
 
 
 
@@ -575,6 +577,375 @@ void d_back_ric_trs_tv_blas(int N, int *nx, int *nu, double **BAbt, double **b, 
 			daxpy_(&nx1, &d_1, l[nn+1]+nu1, &i_1, pi[nn+1], &i_1);
 			}
 		}
+
+	}
+
+
+
+int d_forward_schur_trf_tv_blas(int N, int *nv, int *ne, double reg, int *diag_hessian, double **QA, double **LA, double **Le, double *Le_tmp)
+	{
+
+	// XXX ONLY FOR FULL HESSIAN !!!!!
+
+	int ii, jj, ll;	
+
+
+
+	float diag_min;
+	diag_min = 1.0;
+
+
+	int nv0, ne0, ne1, nve0;
+
+	int tmp;
+
+	int info;
+	char c_l = 'L';
+	char c_n = 'N';
+	char c_r = 'R';
+	char c_t = 'T';
+	char c_u = 'U';
+	double d_0 = 0.0;
+	double d_1 = 1.0;
+	int i_1 = 1;
+
+
+	// first stage
+	ii = 0;
+	nv0 = nv[0];
+	ne0 = ne[0];
+	nve0 = nv0 + ne0;
+
+	if(diag_hessian[0])
+		{
+
+		return -1;
+
+		}
+	else
+		{
+
+		for(jj=0; jj<nv0; jj++)
+			{
+			tmp = nv0+ne0-jj;
+			dcopy_(&tmp, QA[ii]+jj*(nve0+1), &i_1, LA[ii]+jj*(nve0+1), &i_1);
+			}
+
+		for(jj=0; jj<nv0; jj++)
+			LA[ii][jj*(nve0+1)] += reg;
+
+		dpotrf_(&c_l, &nv0, LA[ii], &nve0, &info);
+		dtrsm_(&c_r, &c_l, &c_t, &c_n, &ne0, &nv0, &d_1, LA[ii], &nve0, LA[ii]+nv0, &nve0);
+
+		}
+		
+	dsyrk_(&c_l, &c_n, &ne0, &nv0, &d_1, LA[ii]+nv0, &nve0, &d_0, Le[ii], &ne0);
+	for(jj=0; jj<ne0; jj++) Le[ii][jj*(ne0+1)] += reg;
+	dpotrf_(&c_l, &ne0, Le[ii], &ne0, &info);
+
+	dtrtri_(&c_l, &c_n, &ne0, Le[ii], &ne0, &info);
+
+
+
+	// middle stages
+	for(ii=1; ii<N; ii++)
+		{
+
+		ne1  = ne0;
+		nv0  = nv[ii];
+		ne0  = ne[ii];
+		nve0 = nv0 + ne0;
+
+		if(diag_hessian[ii])
+			{
+
+			return -1;
+
+			}
+		else
+			{
+
+			for(jj=0; jj<ne1; jj++)
+				{
+				tmp = ne1-jj;
+				dcopy_(&tmp, Le[ii-1]+jj*(ne1+1), &i_1, Le_tmp+jj*(ne1+1), &i_1);
+				}
+
+			dlauum_(&c_l, &ne1, Le_tmp, &ne1, &info);
+
+			for(jj=0; jj<nv0; jj++)
+				{
+				tmp = nv0+ne0-jj;
+				dcopy_(&tmp, QA[ii]+jj*(nve0+1), &i_1, LA[ii]+jj*(nve0+1), &i_1);
+				}
+
+			for(jj=0; jj<nv0; jj++)
+				LA[ii][jj*(nve0+1)] += reg;
+
+			for(jj=0; jj<ne1; jj++)
+				{
+				tmp = ne1-jj;
+				daxpy_(&tmp, &d_1, Le_tmp+jj*(ne1+1), &i_1, LA[ii]+jj*(nve0+1), &i_1);
+				}
+
+			dpotrf_(&c_l, &nv0, LA[ii], &nve0, &info);
+			dtrsm_(&c_r, &c_l, &c_t, &c_n, &ne0, &nv0, &d_1, LA[ii], &nve0, LA[ii]+nv0, &nve0);
+
+			}
+
+
+		dsyrk_(&c_l, &c_n, &ne0, &nv0, &d_1, LA[ii]+nv0, &nve0, &d_0, Le[ii], &ne0);
+		for(jj=0; jj<ne0; jj++) Le[ii][jj*(ne0+1)] += reg;
+		dpotrf_(&c_l, &ne0, Le[ii], &ne0, &info);
+
+		dtrtri_(&c_l, &c_n, &ne0, Le[ii], &ne0, &info);
+
+		}
+
+
+	// last stage
+	ii = N;
+	ne1  = ne0;
+	nv0  = nv[ii];
+	ne0  = ne[ii];
+	nve0 = nv0 + ne0;
+
+
+	if(diag_hessian[N])
+		{
+
+		return -1;
+
+		}
+	else
+		{
+
+		for(jj=0; jj<ne1; jj++)
+			{
+			tmp = ne1-jj;
+			dcopy_(&tmp, Le[ii-1]+jj*(ne1+1), &i_1, Le_tmp+jj*(ne1+1), &i_1);
+			}
+
+		dlauum_(&c_l, &ne1, Le_tmp, &ne1, &info);
+
+		for(jj=0; jj<nv0; jj++)
+			{
+			tmp = nv0+ne0-jj;
+			dcopy_(&tmp, QA[ii]+jj*(nve0+1), &i_1, LA[ii]+jj*(nve0+1), &i_1);
+			}
+
+		for(jj=0; jj<nv0; jj++)
+			LA[ii][jj*(nve0+1)] += reg;
+
+		for(jj=0; jj<ne1; jj++)
+			{
+			tmp = ne1-jj;
+			daxpy_(&tmp, &d_1, Le_tmp+jj*(ne1+1), &i_1, LA[ii]+jj*(nve0+1), &i_1);
+			}
+
+		}
+
+	dpotrf_(&c_l, &nv0, LA[ii], &nve0, &info);
+	dtrsm_(&c_r, &c_l, &c_t, &c_n, &ne0, &nv0, &d_1, LA[ii], &nve0, LA[ii]+nv0, &nve0);
+
+	if(ne0>0)
+		{
+
+		dsyrk_(&c_l, &c_n, &ne0, &nv0, &d_1, LA[ii]+nv0, &nve0, &d_0, Le[ii], &ne0);
+		for(jj=0; jj<ne0; jj++) Le[ii][jj*(ne0+1)] += reg;
+		dpotrf_(&c_l, &ne0, Le[ii], &ne0, &info);
+
+		dtrtri_(&c_l, &c_n, &ne0, Le[ii], &ne0, &info);
+		
+		}
+
+//	d_print_mat(nv0+ne0, nv0, LA[ii], nv0);
+//	exit(1);
+
+	return 0;
+
+	}
+
+
+
+int d_forward_schur_trs_tv_blas(int N, int *nv, int *ne, int *diag_hessian, double **qb, double **LA, double **Le, double **xupi, double *work)
+	{
+
+	int ii, jj, ll;	
+
+	int nv0, nv1, ne0, ne1, nve0;
+
+	int info;
+	int i_1 = 1;
+	char c_l = 'L';
+	char c_n = 'N';
+	char c_r = 'R';
+	char c_t = 'T';
+	char c_u = 'U';
+	double d_0 = 0.0;
+	double d_1 = 1.0;
+	double d_m1 = -1.0;
+
+
+	// forward recursion
+
+	// first stage
+	ii = 0;
+	nv0  = nv[0];
+	ne0  = ne[0];
+	nve0 = nv0 + ne0;
+
+	dcopy_(&nve0, qb[ii], &i_1, xupi[ii], &i_1);
+
+	if(diag_hessian[ii])
+		{
+
+		return -1;
+
+		}
+	else
+		{
+
+		dtrsv_(&c_l, &c_n, &c_n, &nv0, LA[ii], &nve0, xupi[ii], &i_1);
+		dgemv_(&c_n, &ne0, &nv0, &d_m1, LA[ii]+nv0, &nve0, xupi[ii], &i_1, &d_1, xupi[ii]+nv0, &i_1);
+
+		}
+	
+
+
+	// middle stages
+	for(ii=1; ii<=N; ii++)
+		{
+
+		ne1  = ne0;
+		nv1  = nv0;
+		nv0  = nv[ii];
+		ne0  = ne[ii];
+		nve0 = nv0 + ne0;
+
+		dcopy_(&ne1, xupi[ii-1]+nv1, &i_1, work, &i_1);
+		dtrmv_(&c_l, &c_n, &c_n, &ne1, Le[ii-1], &ne1, work, &i_1);
+		dtrmv_(&c_l, &c_t, &c_n, &ne1, Le[ii-1], &ne1, work, &i_1);
+
+		dcopy_(&nve0, qb[ii], &i_1, xupi[ii], &i_1);
+		daxpy_(&ne1, &d_m1, work, &i_1, xupi[ii], &i_1);
+
+		if(diag_hessian[ii])
+			{
+
+			return -1;
+
+			}
+		else
+			{
+
+			dtrsv_(&c_l, &c_n, &c_n, &nv0, LA[ii], &nve0, xupi[ii], &i_1);
+			dgemv_(&c_n, &ne0, &nv0, &d_m1, LA[ii]+nv0, &nve0, xupi[ii], &i_1, &d_1, xupi[ii]+nv0, &i_1);
+
+			}
+
+//		d_print_mat(1, nv0+ne0, xupi[ii], 1);
+//		exit(1);
+
+		}
+	
+
+	// last stage
+	ii = N;
+	if(ne0>0)
+		{
+		dtrmv_(&c_l, &c_n, &c_n, &ne0, Le[N], &ne0, xupi[N]+nv0, &i_1);
+		dtrmv_(&c_l, &c_t, &c_n, &ne0, Le[N], &ne0, xupi[N]+nv0, &i_1);
+		}
+	// backward recursion
+
+	// last stage
+	for(jj=0; jj<nv0; jj++) xupi[N][jj] = - xupi[N][jj];
+
+//	d_print_mat(1, pnv0+pne0, hxupi[ii], 1);
+
+	if(diag_hessian[ii])
+		{
+
+		return -1;
+
+		}
+	else
+		{
+
+		dgemv_(&c_t, &ne0, &nv0, &d_m1, LA[N]+nv0, &nve0, xupi[N]+nv0, &i_1, &d_1, xupi[N], &i_1);
+		dtrsv_(&c_l, &c_t, &c_n, &nv0, LA[N], &nve0, xupi[N], &i_1);
+
+		}
+	
+//	d_print_mat(1, nv0+ne0, xupi[ii], 1);
+//	return 0;
+//	exit(1);
+
+//	ne1 = ne[N-1];
+
+	// middle stages
+	for(ii=1; ii<N; ii++)
+		{
+		
+		ne0  = ne1;
+		ne1  = ne[N-ii-1];//ne0;
+		nv0  = nv[N-ii];
+		nve0 = nv0 + ne0;
+
+		for(jj=0; jj<ne0; jj++) xupi[N-ii][nv0+jj] = xupi[N-ii][nv0+jj] - xupi[N-ii+1][jj];
+		dtrmv_(&c_l, &c_n, &c_n, &ne0, Le[N-ii], &ne0, xupi[N-ii]+nv0, &i_1);
+		dtrmv_(&c_l, &c_t, &c_n, &ne0, Le[N-ii], &ne0, xupi[N-ii]+nv0, &i_1);
+
+		for(jj=0; jj<nv0; jj++) xupi[N-ii][jj] = - xupi[N-ii][jj];
+
+		if(diag_hessian[N-ii])
+			{
+
+			return -1;
+
+			}
+		else
+			{
+
+			dgemv_(&c_t, &ne0, &nv0, &d_m1, LA[N-ii]+nv0, &nve0, xupi[N-ii]+nv0, &i_1, &d_1, xupi[N-ii], &i_1);
+			dtrsv_(&c_l, &c_t, &c_n, &nv0, LA[N-ii], &nve0, xupi[N-ii], &i_1);
+
+			}
+
+		}
+	
+	// first stage
+	ii = N;
+	ne0  = ne1;
+	ne1  = ne[N-ii-1];//ne0;
+	nv0  = nv[N-ii];
+	nve0 = nv0 + ne0;
+
+	for(jj=0; jj<ne0; jj++) xupi[N-ii][nv0+jj] = xupi[N-ii][nv0+jj] - xupi[N-ii+1][jj];
+	dtrmv_(&c_l, &c_n, &c_n, &ne0, Le[N-ii], &ne0, xupi[N-ii]+nv0, &i_1);
+	dtrmv_(&c_l, &c_t, &c_n, &ne0, Le[N-ii], &ne0, xupi[N-ii]+nv0, &i_1);
+
+	for(jj=0; jj<nv0; jj++) xupi[N-ii][jj] = - xupi[N-ii][jj];
+
+	if(diag_hessian[N-ii])
+		{
+
+		return -1;
+
+		}
+	else
+		{
+
+		dgemv_(&c_t, &ne0, &nv0, &d_m1, LA[N-ii]+nv0, &nve0, xupi[N-ii]+nv0, &i_1, &d_1, xupi[N-ii], &i_1);
+		dtrsv_(&c_l, &c_t, &c_n, &nv0, LA[N-ii], &nve0, xupi[N-ii], &i_1);
+
+		}
+	
+//	d_print_mat(1, pnv0+pne0, hxupi[N-ii], 1);
+//	exit(1);
+
+	return 0;
 
 	}
 
