@@ -89,3 +89,4 @@ void dtrsv_n_lib_old(int m, int n, int inverted_diag, double *pA, int sda, doubl
 void dtrsv_t_lib_old(int m, int n, int inverted_diag, double *pA, int sda, double *x);
 void dtrtri_lib(int m, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *pC, int sdc);
 void dlauum_lib(int m, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd);
+void dlauum_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D);

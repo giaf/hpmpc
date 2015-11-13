@@ -1792,14 +1792,17 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 			else
 				dgecp_lib(ne0, nv0, 0, hpLA[ii]+pnv0*cnv0, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
 
-			dlauum_lib(ne1, hpLe[ii-1], cne1, hpLe[ii-1], cne1, 1, hpLA[ii], cnv0, hpLA[ii], cnv0);
-
 			// regularize 
 			ddiareg_lib(nv0, reg, 0, hpLA[ii], cnv0);
 
 			// assume that A is aligned to a panel boundary, and that the lower part of A is copied between Q and A
+#if defined(TARGET_X64_AVX2)
+			dlauum_dpotrf_lib(nve0, nv0, ne1, hpLe[ii-1], cne1, hpLe[ii-1], cne1, 1, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
+#else
+			dlauum_lib(ne1, hpLe[ii-1], cne1, hpLe[ii-1], cne1, 1, hpLA[ii], cnv0, hpLA[ii], cnv0);
 //			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
 			dpotrf_lib(nve0, nv0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
+#endif
 
 			for(jj=0; jj<nv0; jj++) 
 				diag_min = fmin(diag_min, hdLA[ii][jj]);

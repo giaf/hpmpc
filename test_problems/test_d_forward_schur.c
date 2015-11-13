@@ -334,7 +334,7 @@ int main()
 		// diagonal hessian
 		int diag_hessian[N+1];
 		for(ii=0; ii<=N; ii++)
-			diag_hessian[ii] = 1;
+			diag_hessian[ii] = 0;
 //		diag_hessian[2] = 1;
 
 
