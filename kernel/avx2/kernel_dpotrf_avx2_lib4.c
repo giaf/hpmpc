@@ -2195,7 +2195,7 @@ void kernel_dpotrf_nt_8x8_lib4_new(int ksub, double *Am0, int sdam, double *Bm0,
 	
 	__m256d
 		zeros,
-		a_0, a_4, a_8,
+		a_0, a_4,
 		b_0, b_4,
 		c_00, c_01, c_03, c_02,
 		c_40, c_41, c_43, c_42,

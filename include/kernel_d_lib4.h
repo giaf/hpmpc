@@ -313,6 +313,7 @@ void corner_dlauum_nt_3x3_lib4(double *A, double *B, int alg, double *C, double 
 void corner_dlauum_nt_2x2_lib4(double *A, double *B, int alg, double *C, double *D);
 void corner_dlauum_nt_1x1_lib4(double *A, double *B, int alg, double *C, double *D);
 void kernel_dlauum_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, int alg, double *C0, int sdc, double *D0, int sdd);
+void kernel_dlauum_nt_8x8_lib4(int kmax, double *A0, int sda, double *B0, int sdb, int alg, double *C0, int sdc, double *D0, int sdd);
 void kernel_dlauum_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, int alg, double *C0, int sdc, double *D0, int sdd);
 void kernel_dlauum_nt_4x4_lib4(int kmax, double *A, double *B, int alg, double *C, double *D);
 void corner_dtrmm_l_u_nt_4x4_lib4(double *A, double *B, int alg, double *C, double *D);
