@@ -229,6 +229,13 @@ int main()
 		for(i=0; i<n*n; i++)
 			M[i] = 1;
 	
+		int n2 = n*n;
+		double *B2; d_zeros(&B2, n, n);
+		for(i=0; i<n*n; i++)
+			B2[i] = 1e-15;
+		for(i=0; i<n; i++)
+			B2[i*(n+1)] = 1;
+
 		int pnd = ((n+bsd-1)/bsd)*bsd;	
 		int cnd = ((n+D_NCL-1)/D_NCL)*D_NCL;	
 		int cnd2 = 2*((n+D_NCL-1)/D_NCL)*D_NCL;	
@@ -534,14 +541,14 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
+//			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
 //			dgemm_nn_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
 //			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 0, pC, cnd, pC, cnd);
 //			dtrmm_nt_u_lib(n, n, pA, cnd, pB, cnd, pC, cnd);
 //			dpotrf_lib(n, n, pB, cnd, pC, cnd, x);
 //			dtrtri_lib(n, pB, cnd, 1, x, pC, cnd);
 //			dlauum_lib(n, pA, cnd, pB, cnd, 0, pC, cnd, pD, cnd);
-//			dgemv_n_lib(n, n, pA, cnd, x, 0, y, y);
+			dgemv_n_lib(n, n, pA, cnd, x, 0, y, y);
 //			dgemv_t_lib(n, n, pA, cnd, x2, 0, y2, y2);
 //			dtrmv_u_n_lib(n, pA, cnd, x, 0, y2);
 //			dtrsv_n_lib(n, n, pA, cnd, 1, x2, x, y);
@@ -555,14 +562,14 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 #if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_NETLIB) || defined(REF_BLAS_MKL)
-			dgemm_(&c_n, &c_t, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
+//			dgemm_(&c_n, &c_t, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
 //			dgemm_(&c_n, &c_n, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
 //			dsyrk_(&c_l, &c_n, &n, &n, &d_1, A, &n, &d_0, C, &n);
 //			dtrmm_(&c_r, &c_u, &c_t, &c_n, &n, &n, &d_1, A, &n, C, &n);
-//			dpotrf_(&c_l, &n, B, &n, &info);
-//			dtrtri_(&c_l, &c_n, &n, B, &n, &info);
+//			dpotrf_(&c_l, &n, B2, &n, &info);
+//			dtrtri_(&c_l, &c_n, &n, B2, &n, &info);
 //			dlauum_(&c_l, &n, B, &n, &info);
-//			dgemv_(&c_n, &n, &n, &d_1, A, &n, x, &i_1, &d_0, y, &i_1);
+			dgemv_(&c_n, &n, &n, &d_1, A, &n, x, &i_1, &d_0, y, &i_1);
 //			dgemv_(&c_t, &n, &n, &d_1, A, &n, x2, &i_1, &d_0, y2, &i_1);
 //			dtrmv_(&c_l, &c_n, &c_n, &n, B, &n, x, &i_1);
 //			dtrsv_(&c_l, &c_n, &c_n, &n, B, &n, x, &i_1);
@@ -581,13 +588,12 @@ int main()
 
 		gettimeofday(&tv2, NULL); // stop
 
-
 		float Gflops_max = flops_max * GHz_max;
 
-		float flop_operation = 2.0*n*n*n; // dgemm
+//		float flop_operation = 2.0*n*n*n; // dgemm
 //		float flop_operation = 1.0*n*n*n; // dsyrk dtrmm
 //		float flop_operation = 1.0/3.0*n*n*n; // dpotrf dtrtri
-//		float flop_operation = 2.0*n*n; // dgemv dsymv
+		float flop_operation = 2.0*n*n; // dgemv dsymv
 //		float flop_operation = 1.0*n*n; // dtrmv dtrsv
 //		float flop_operation = 4.0*n*n; // dgemv_nt
 
@@ -604,6 +610,7 @@ int main()
 
 		free(A);
 		free(B);
+		free(B2);
 		free(M);
 		free(pA);
 		free(pB);

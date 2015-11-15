@@ -305,6 +305,7 @@ int main()
 			nu = nx/2; //2; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 			N  = 10; // horizon lenght
 			nrep = 2*nnrep[ll];
+//			nrep = nnrep[ll]/4;
 			}
 
 		int nd = 0;
@@ -452,7 +453,7 @@ int main()
 			d_cvt_mat2pmat(ne_tv[N], nv_tv[N], C, nd, 0, pQAN+pnv_tv[N]*cnv_tv[N], cnv_tv[N]);
 //		d_print_pmat(pnv_tv[N]+pne_tv[N], cnv_tv[N], bs, pQAN, cnv_tv[N]);
 
-#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL) || defined(REF_BLAS_NETLIB)
 		double *QA0; d_zeros(&QA0, nv_tv[0]+ne_tv[0], nv_tv[0]);
 		d_copy_mat(nv_tv[0], nv_tv[0], Q+nx*(nxu+1), nxu, QA0, nv_tv[0]+ne_tv[0]);
 		d_copy_mat(ne_tv[0], nv_tv[0], B, nx, QA0+nv_tv[0], nv_tv[0]+ne_tv[0]);
@@ -524,7 +525,7 @@ int main()
 			qbN[pnv_tv[N]+1] = -2.0;
 			}
 
-#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL) || defined(REF_BLAS_NETLIB)
 		double *qb0b; d_zeros_align(&qb0b, nv_tv[0]+ne_tv[0], 1);
 		d_copy_mat(nv_tv[0], 1, qb0, 1, qb0b, 1);
 		d_copy_mat(ne_tv[0], 1, qb0+pnv_tv[0], 1, qb0b+nv_tv[0], 1);
@@ -598,7 +599,7 @@ int main()
 			d_zeros_align(&hres_tv[ii], pnv_tv[ii]+pne_tv[ii], 1);
 			}
 
-#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL) || defined(REF_BLAS_NETLIB)
 		double *(hQA_tv[N+1]);
 		double *(hLA_tv[N+1]);
 		double *(hLe_tv[N+1]);
@@ -707,7 +708,20 @@ int main()
 #endif
 			}
 
-#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+		// compute residuals
+#if 0
+
+		d_forward_schur_res_tv(N, nv_tv, ne_tv, diag_hessian, hpQA_tv, hqb_tv, hxupi_tv, hres_tv);
+
+		printf("\nresiduals\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, nv_tv[ii], hres_tv[ii], 1);
+		for(ii=0; ii<=N; ii++)
+			d_print_mat(1, ne_tv[ii], hres_tv[ii]+pnv_tv[ii], 1);
+
+#endif 
+
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL) || defined(REF_BLAS_NETLIB)
 		gettimeofday(&tv4, NULL); // start
 
 		for(rep=0; rep<nrep; rep++)
@@ -942,7 +956,7 @@ int main()
 			free(hres_tv[ii]);
 			}
 
-#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL) || defined(REF_BLAS_NETLIB)
 		free(QA0);
 		free(QA1);
 		free(QAN);

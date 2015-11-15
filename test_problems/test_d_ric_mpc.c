@@ -306,6 +306,7 @@ int main()
 			nu = nx/2; //2; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 			N  = 10; // horizon lenght
 			nrep = 2*nnrep[ll];
+//			nrep = nnrep[ll]/4;
 			}
 
 
@@ -421,7 +422,7 @@ int main()
 //		d_print_mat(1, nx, b0, 1);
 //		exit(2);
 		
-#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL) || defined(REF_BLAS_NETLIB)
 		
 		double *BAbt0; d_zeros(&BAbt0, nu+1, nx);
 		d_tran_mat(nx, nu, B, nx, BAbt0, nu+1);
@@ -477,7 +478,7 @@ int main()
 //		d_print_pmat(nx+1, nx, bs, pQN, cnx);
 //		exit(2);
 
-#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL) || defined(REF_BLAS_NETLIB)
 
 		double *Q0; d_zeros(&Q0, nu+1, nu+1);
 		d_copy_mat(nu, nu, Q, pnz, Q0, nu+1);
@@ -592,7 +593,7 @@ int main()
 		//double *work; d_zeros_align(&work, 2*anz, 1);
 		double *work0; d_zeros_align(&work0, pnz, cnx);
 
-#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL) || defined(REF_BLAS_NETLIB)
 
 		double *(hBAbt[N]);
 		double *(hQ[N+1]);
@@ -1551,7 +1552,7 @@ int main()
 #endif
 
 
-#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL) || defined(REF_BLAS_NETLIB)
 
 		// size-variant code
 		gettimeofday(&tv8, NULL); // start
@@ -1691,7 +1692,7 @@ int main()
 		free(hpi[N]);
 		free(hrq[N]);
 	
-#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL)
+#if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL) || defined(REF_BLAS_NETLIB)
 		free(BAbt0);
 		free(BAbt1);
 		free(Q0);

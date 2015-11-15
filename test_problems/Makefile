@@ -35,7 +35,7 @@ ifeq ($(REF_BLAS), BLIS)
 LIBS = -lblis -lm -fopenmp
 endif
 ifeq ($(REF_BLAS), NETLIB)
-LIBS = -llapack_netlib -lblas_netlib -lgfortran -lm
+LIBS = /opt/netlib/liblapack.a /opt/netlib/libblas.a -lgfortran -lm
 endif
 ifeq ($(REF_BLAS), MKL)
 LIBS = -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_gf_lp64.a /opt/intel/mkl/lib/intel64/libmkl_core.a /opt/intel/mkl/lib/intel64/libmkl_sequential.a -Wl,--end-group -ldl -lpthread -lm
