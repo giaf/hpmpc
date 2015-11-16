@@ -5463,7 +5463,7 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y,
 		}
 	
 	j=0;
-#if defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	for(; j<n-11; j+=12)
 		{
 		kernel_dsymv_6_lib4(m-j, pA+j*sda+j*bs, sda, x+j, z+j, z+j, x+j, z+j, z+j, 1, alg);
@@ -5526,7 +5526,7 @@ void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, i
 		}
 	
 	j=0;
-#if defined(TARGET_X64_AVX2)
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	for(; j<n-5; j+=6)
 		{
 		kernel_dsymv_6_lib4(m, pA+j*bs, sda, x_n+j, z_n, z_n, x_t, z_t+j, z_t+j, 0, alg);
