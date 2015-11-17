@@ -30,7 +30,7 @@ ifeq ($(TARGET), X64_AVX)
 OBJS += dsyrk_dpotrf_versions.o
 endif
 
-CFLAGS += -funroll-loops
+CFLAGS += -O3 -funroll-loops
 
 obj: $(OBJS)
 
