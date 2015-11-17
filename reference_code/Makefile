@@ -25,11 +25,12 @@
 
 include ../Makefile.rule
 
+OBJS = d_ric_sv_blas.o dsyrk_dpotrf_codegen.o
 ifeq ($(TARGET), X64_AVX)
-OBJS = dsyrk_dpotrf_versions.o d_ric_sv_blas.o
-else
-OBJS = d_ric_sv_blas.o
+OBJS += dsyrk_dpotrf_versions.o
 endif
+
+CFLAGS += -funroll-loops
 
 obj: $(OBJS)
 

@@ -36,6 +36,10 @@
 
 
 
+//#define N_CODEGEN 4+0*40 // matrix size in codegenerated reference routines
+
+
+
 //void dgemm_(char *ta, char *tb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc);
 //void dgemv_(char *ta, int *m, int *n, double *alpha, double *A, int *lda, double *x, int *incx, double *beta, double *y, int *incy);
 
@@ -545,10 +549,10 @@ int main()
 //			dgemm_nn_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
 //			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 0, pC, cnd, pC, cnd);
 //			dtrmm_nt_u_lib(n, n, pA, cnd, pB, cnd, pC, cnd);
-//			dpotrf_lib(n, n, pB, cnd, pC, cnd, x);
+			dpotrf_lib(n, n, pB, cnd, pC, cnd, x);
 //			dtrtri_lib(n, pB, cnd, 1, x, pC, cnd);
 //			dlauum_lib(n, pA, cnd, pB, cnd, 0, pC, cnd, pD, cnd);
-			dgemv_n_lib(n, n, pA, cnd, x, 0, y, y);
+//			dgemv_n_lib(n, n, pA, cnd, x, 0, y, y);
 //			dgemv_t_lib(n, n, pA, cnd, x2, 0, y2, y2);
 //			dtrmv_u_n_lib(n, pA, cnd, x, 0, y2);
 //			dtrsv_n_lib(n, n, pA, cnd, 1, x2, x, y);
@@ -566,10 +570,10 @@ int main()
 //			dgemm_(&c_n, &c_n, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
 //			dsyrk_(&c_l, &c_n, &n, &n, &d_1, A, &n, &d_0, C, &n);
 //			dtrmm_(&c_r, &c_u, &c_t, &c_n, &n, &n, &d_1, A, &n, C, &n);
-//			dpotrf_(&c_l, &n, B2, &n, &info);
+			dpotrf_(&c_l, &n, B2, &n, &info);
 //			dtrtri_(&c_l, &c_n, &n, B2, &n, &info);
 //			dlauum_(&c_l, &n, B, &n, &info);
-			dgemv_(&c_n, &n, &n, &d_1, A, &n, x, &i_1, &d_0, y, &i_1);
+//			dgemv_(&c_n, &n, &n, &d_1, A, &n, x, &i_1, &d_0, y, &i_1);
 //			dgemv_(&c_t, &n, &n, &d_1, A, &n, x2, &i_1, &d_0, y2, &i_1);
 //			dtrmv_(&c_l, &c_n, &c_n, &n, B, &n, x, &i_1);
 //			dtrsv_(&c_l, &c_n, &c_n, &n, B, &n, x, &i_1);
@@ -588,23 +592,118 @@ int main()
 
 		gettimeofday(&tv2, NULL); // stop
 
+#ifdef N_CODEGEN
+
+		if(n==N_CODEGEN+0*4)
+			{
+//			B2[0] = 2.0;
+//			B2[1] = 1.0; B2[5] = 2.0;
+//			B2[2] = 0.0; B2[6] = 1.0; B2[10] = 2.0;
+//			B2[3] = 0.0; B2[7] = 0.0; B2[11] = 1.0; B2[15] = 2.0;
+
+			for(rep=0; rep<nrep; rep++)
+				{
+				dpotrf_codegen_0(B2);
+				}
+
+//			d_print_mat(n, n, B2, n);
+			}
+		else if(n==N_CODEGEN+1*4)
+			{
+			for(rep=0; rep<nrep; rep++)
+				{
+				dpotrf_codegen_1(B2);
+				}
+			}
+		else if(n==N_CODEGEN+2*4)
+			{
+			for(rep=0; rep<nrep; rep++)
+				{
+				dpotrf_codegen_2(B2);
+				}
+			}
+		else if(n==N_CODEGEN+3*4)
+			{
+			for(rep=0; rep<nrep; rep++)
+				{
+				dpotrf_codegen_3(B2);
+				}
+			}
+		else if(n==N_CODEGEN+4*4)
+			{
+			for(rep=0; rep<nrep; rep++)
+				{
+				dpotrf_codegen_4(B2);
+				}
+			}
+		else if(n==N_CODEGEN+5*4)
+			{
+			for(rep=0; rep<nrep; rep++)
+				{
+				dpotrf_codegen_5(B2);
+				}
+			}
+		else if(n==N_CODEGEN+6*4)
+			{
+			for(rep=0; rep<nrep; rep++)
+				{
+				dpotrf_codegen_6(B2);
+				}
+			}
+		else if(n==N_CODEGEN+7*4)
+			{
+			for(rep=0; rep<nrep; rep++)
+				{
+				dpotrf_codegen_7(B2);
+				}
+			}
+		else if(n==N_CODEGEN+8*4)
+			{
+			for(rep=0; rep<nrep; rep++)
+				{
+				dpotrf_codegen_8(B2);
+				}
+			}
+		else if(n==N_CODEGEN+9*4)
+			{
+			for(rep=0; rep<nrep; rep++)
+				{
+				dpotrf_codegen_9(B2);
+				}
+			}
+
+
+		gettimeofday(&tv3, NULL); // stop
+
+#endif
+
 		float Gflops_max = flops_max * GHz_max;
 
 //		float flop_operation = 2.0*n*n*n; // dgemm
 //		float flop_operation = 1.0*n*n*n; // dsyrk dtrmm
-//		float flop_operation = 1.0/3.0*n*n*n; // dpotrf dtrtri
-		float flop_operation = 2.0*n*n; // dgemv dsymv
+		float flop_operation = 1.0/3.0*n*n*n; // dpotrf dtrtri
+//		float flop_operation = 2.0*n*n; // dgemv dsymv
 //		float flop_operation = 1.0*n*n; // dtrmv dtrsv
 //		float flop_operation = 4.0*n*n; // dgemv_nt
 
-		float time_hpmpc = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
-		float time_blas  = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
+		float time_hpmpc    = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+		float time_blas     = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
+#ifdef N_CODEGEN
+		float time_codegen  = (float) (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
+#endif
 
-		float Gflops_hpmpc = 1e-9*flop_operation/time_hpmpc;
-		float Gflops_blas  = 1e-9*flop_operation/time_blas;
+		float Gflops_hpmpc    = 1e-9*flop_operation/time_hpmpc;
+		float Gflops_blas     = 1e-9*flop_operation/time_blas;
+#ifdef N_CODEGEN
+		float Gflops_codegen  = 1e-9*flop_operation/time_codegen;
+#endif
 
 
+#ifdef N_CODEGEN
+		printf("%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_hpmpc, 100.0*Gflops_hpmpc/Gflops_max, Gflops_blas, 100.0*Gflops_blas/Gflops_max, Gflops_codegen, 100.0*Gflops_codegen/Gflops_max);
+#else
 		printf("%d\t%7.2f\t%7.2f\t%7.2f\t%7.2f\n", n, Gflops_hpmpc, 100.0*Gflops_hpmpc/Gflops_max, Gflops_blas, 100.0*Gflops_blas/Gflops_max);
+#endif
 
 #endif
 
