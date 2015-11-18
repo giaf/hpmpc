@@ -28,6 +28,96 @@
 #define N 4+0*40
 
 
+int dpotrf_ref(int n, double *A, int lda)
+	{
+
+	double a_jj, temp;
+
+	int ii, jj, kk;
+
+	for(jj=0; jj<n; jj++)
+		{
+
+		a_jj = A[jj+lda*jj];
+
+		for(kk=0; kk<jj; kk++)
+			{
+			a_jj -= A[jj+lda*kk] * A[jj+lda*kk];
+			}
+
+		if(a_jj<=0)
+			{
+			A[jj+lda*jj] = a_jj;
+			return jj;
+			}
+		
+		a_jj = sqrt(a_jj);
+		A[jj+lda*jj] = a_jj;
+
+		for(kk=0; kk<jj; kk++)
+			{
+			temp = A[jj+lda*kk];
+			for(ii=jj+1; ii<n; ii++)
+				{
+				A[ii+lda*jj] -= temp * A[ii+lda*kk];
+				}
+			}
+
+		a_jj = 1.0 / a_jj;
+
+		for(ii=jj+1; ii<n; ii++)
+			{
+			A[ii+lda*jj] *= a_jj;
+			}
+
+		}
+	
+	return 0;
+	
+	}
+
+
+
+void dsyrk_ref(int n, double *A, int lda, double *C)
+	{
+
+	double temp;
+
+	int ii, jj, kk;
+
+	for(jj=0; jj<n; jj++)
+		{
+		for(kk=0; kk<n; kk++)
+			{
+			temp = A[jj+lda*kk];
+			for(ii=jj; ii<n; ii++)
+				{
+				C[ii+lda*jj] += temp * A[ii+lda*kk];
+				}
+			}
+		}
+	
+	}
+
+
+
+void dcopy_ref(int n, double *A, int lda, double *C)
+	{
+
+	int ii, jj;
+
+	for(jj=0; jj<n; jj++)
+		{
+		for(ii=jj; ii<n; ii++)
+			{
+			C[ii+lda*jj] = A[ii+lda*jj];
+			}
+		}
+	
+	}
+
+
+
 int dpotrf_codegen_0(double *A)
 	{
 
