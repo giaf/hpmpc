@@ -1105,3 +1105,1012 @@ void dcopy_codegen_9(double *A, double *C)
 	
 	}
 
+
+
+#if defined(TARGET_X64_AVX2)
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_0(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+0*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+#if (N==4)
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[0], &pD[0], 1, &pC[0], &pD[0], &inv_diag_D[0]);
+		return;
+#else
+
+	i = 0;
+
+	for(; i<m-11; i+=12)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_8x8_lib4_new(j+4, &pD[(i+4)*sdd], sdd, &pD[(j+4)*sdd], sdd, 1, &pC[(j+4)*bs+(i+4)*sdc], sdc, &pD[(j+4)*bs+(i+4)*sdd], sdd, &inv_diag_D[j+4]);
+		}
+
+	if(m%12==8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		return;
+		}
+
+	if(m%12==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		return;
+		}
+
+#endif
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_1(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+1*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+#if (N==4)
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[0], sdd, &pD[0], 1, &pC[0], sdc, &pD[0], sdd, &inv_diag_D[0]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[4*sdd], &pD[j*sdd], 1, &pC[4*bs+4*sdc], &pD[4*bs+4*sdd], &inv_diag_D[4]);
+		return;
+#else
+
+	i = 0;
+
+	for(; i<m-11; i+=12)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_8x8_lib4_new(j+4, &pD[(i+4)*sdd], sdd, &pD[(j+4)*sdd], sdd, 1, &pC[(j+4)*bs+(i+4)*sdc], sdc, &pD[(j+4)*bs+(i+4)*sdd], sdd, &inv_diag_D[j+4]);
+		}
+
+	if(m%12==8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		return;
+		}
+
+	if(m%12==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		return;
+		}
+
+#endif
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_2(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+2*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+#if (N==4)
+		kernel_dpotrf_nt_12x4_lib4_new(0, &pD[0], sdd, &pD[0], 1, &pC[0], sdc, &pD[0], sdd, &inv_diag_D[0]);
+		kernel_dpotrf_nt_8x8_lib4_new(4, &pD[4*sdd], sdd, &pD[4*sdd], sdd, 1, &pC[4*bs+4*sdc], sdc, &pD[4*bs+4*sdd], sdd, &inv_diag_D[4]);
+		return;
+#else
+
+	i = 0;
+
+	for(; i<m-11; i+=12)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_8x8_lib4_new(j+4, &pD[(i+4)*sdd], sdd, &pD[(j+4)*sdd], sdd, 1, &pC[(j+4)*bs+(i+4)*sdc], sdc, &pD[(j+4)*bs+(i+4)*sdd], sdd, &inv_diag_D[j+4]);
+		}
+
+	if(m%12==8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		return;
+		}
+
+	if(m%12==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		return;
+		}
+
+#endif
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_3(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+3*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+
+	for(; i<m-11; i+=12)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_8x8_lib4_new(j+4, &pD[(i+4)*sdd], sdd, &pD[(j+4)*sdd], sdd, 1, &pC[(j+4)*bs+(i+4)*sdc], sdc, &pD[(j+4)*bs+(i+4)*sdd], sdd, &inv_diag_D[j+4]);
+		}
+
+	if(m%12==8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		return;
+		}
+
+	if(m%12==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		return;
+		}
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_4(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+4*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+
+	for(; i<m-11; i+=12)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_8x8_lib4_new(j+4, &pD[(i+4)*sdd], sdd, &pD[(j+4)*sdd], sdd, 1, &pC[(j+4)*bs+(i+4)*sdc], sdc, &pD[(j+4)*bs+(i+4)*sdd], sdd, &inv_diag_D[j+4]);
+		}
+
+	if(m%12==8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		return;
+		}
+
+	if(m%12==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		return;
+		}
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_5(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+5*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+
+	for(; i<m-11; i+=12)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_8x8_lib4_new(j+4, &pD[(i+4)*sdd], sdd, &pD[(j+4)*sdd], sdd, 1, &pC[(j+4)*bs+(i+4)*sdc], sdc, &pD[(j+4)*bs+(i+4)*sdd], sdd, &inv_diag_D[j+4]);
+		}
+
+	if(m%12==8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		return;
+		}
+
+	if(m%12==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		return;
+		}
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_6(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+6*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+
+	for(; i<m-11; i+=12)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_8x8_lib4_new(j+4, &pD[(i+4)*sdd], sdd, &pD[(j+4)*sdd], sdd, 1, &pC[(j+4)*bs+(i+4)*sdc], sdc, &pD[(j+4)*bs+(i+4)*sdd], sdd, &inv_diag_D[j+4]);
+		}
+
+	if(m%12==8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		return;
+		}
+
+	if(m%12==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		return;
+		}
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_7(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+7*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+
+	for(; i<m-11; i+=12)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_8x8_lib4_new(j+4, &pD[(i+4)*sdd], sdd, &pD[(j+4)*sdd], sdd, 1, &pC[(j+4)*bs+(i+4)*sdc], sdc, &pD[(j+4)*bs+(i+4)*sdd], sdd, &inv_diag_D[j+4]);
+		}
+
+	if(m%12==8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		return;
+		}
+
+	if(m%12==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		return;
+		}
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_8(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+8*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+
+	for(; i<m-11; i+=12)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_8x8_lib4_new(j+4, &pD[(i+4)*sdd], sdd, &pD[(j+4)*sdd], sdd, 1, &pC[(j+4)*bs+(i+4)*sdc], sdc, &pD[(j+4)*bs+(i+4)*sdd], sdd, &inv_diag_D[j+4]);
+		}
+
+	if(m%12==8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		return;
+		}
+
+	if(m%12==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		return;
+		}
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_9(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+9*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+
+	for(; i<m-11; i+=12)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_12x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_8x8_lib4_new(j+4, &pD[(i+4)*sdd], sdd, &pD[(j+4)*sdd], sdd, 1, &pC[(j+4)*bs+(i+4)*sdc], sdc, &pD[(j+4)*bs+(i+4)*sdd], sdd, &inv_diag_D[j+4]);
+		}
+
+	if(m%12==8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		return;
+		}
+
+	if(m%12==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		return;
+		}
+
+	}
+
+
+
+#endif
+
+
+
+#if defined(TARGET_X64_AVX)
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_0(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+0*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+#if (N==4)
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[0], &pD[0], 1, &pC[0], &pD[0], &inv_diag_D[0]);
+		return;
+#else
+
+	i = 0;
+	for(; i<m-7; i+=8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		}
+
+	if(m%8==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		}
+
+#endif
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_1(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+1*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+#if (N==4)
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[0], sdd, &pD[0], 1, &pC[0], sdc, &pD[0], sdd, &inv_diag_D[0]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[4*sdd], &pD[j*sdd], 1, &pC[4*bs+4*sdc], &pD[4*bs+4*sdd], &inv_diag_D[4]);
+		return;
+#else
+
+	i = 0;
+	for(; i<m-7; i+=8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		}
+
+	if(m%8==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		}
+
+#endif
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_2(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+2*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+	for(; i<m-7; i+=8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		}
+
+	if(m%8==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		}
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_3(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+3*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+	for(; i<m-7; i+=8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		}
+
+	if(m%8==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		}
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_4(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+4*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+	for(; i<m-7; i+=8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		}
+
+	if(m%8==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		}
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_5(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+5*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+	for(; i<m-7; i+=8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		}
+
+	if(m%8==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		}
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_6(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+6*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+	for(; i<m-7; i+=8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		}
+
+	if(m%8==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		}
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_7(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+7*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+	for(; i<m-7; i+=8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		}
+
+	if(m%8==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		}
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_8(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+8*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+	for(; i<m-7; i+=8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		}
+
+	if(m%8==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		}
+
+	}
+
+
+
+// XXX assume m==n, and multiple of 4, therefore also m==n==sdc==sdd
+void dpotrf_lib_codegen_9(double *pC, double *pD, double *inv_diag_D)
+	{
+
+	const int n = N+9*4;
+	const int m = n;
+	const int sdc = n;
+	const int sdd = n;
+
+	const int bs = 4;
+
+	double *dummy;
+	
+	int i, j;
+
+	i = 0;
+	for(; i<m-7; i+=8)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dtrsm_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_8x4_lib4_new(j, &pD[i*sdd], sdd, &pD[j*sdd], 1, &pC[j*bs+i*sdc], sdc, &pD[j*bs+i*sdd], sdd, &inv_diag_D[j]);
+		kernel_dpotrf_nt_4x4_lib4_new(j+4, &pD[(i+4)*sdd], &pD[(j+4)*sdd], 1, &pC[(j+4)*bs+(i+4)*sdc], &pD[(j+4)*bs+(i+4)*sdd], &inv_diag_D[j+4]);
+		}
+
+	if(m%8==4)
+		{
+		j = 0;
+		for(; j<i; j+=4)
+			{
+			kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(m-i, n-j, 0, 0, dummy, dummy, j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &pD[j*bs+j*sdd], 1, &inv_diag_D[j]);
+			}
+		kernel_dpotrf_nt_4x4_lib4_new(j, &pD[i*sdd], &pD[j*sdd], 1, &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], &inv_diag_D[j]);
+		}
+
+	}
+
+
+
+#endif

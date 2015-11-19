@@ -36,7 +36,7 @@
 
 
 
-//#define N_CODEGEN 4+0*40 // matrix size in codegenerated reference routines
+#define N_CODEGEN 4+0*40 // matrix size in codegenerated reference routines
 
 
 
@@ -550,7 +550,7 @@ int main()
 //			dgemm_nn_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
 //			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 0, pC, cnd, pC, cnd);
 //			dtrmm_nt_u_lib(n, n, pA, cnd, pB, cnd, pC, cnd);
-//			dpotrf_lib(n, n, pB, cnd, pC, cnd, x);
+			dpotrf_lib(n, n, pB, cnd, pC, cnd, x);
 //			dtrtri_lib(n, pB, cnd, 1, x, pC, cnd);
 //			dlauum_lib(n, pA, cnd, pB, cnd, 0, pC, cnd, pD, cnd);
 //			dgemv_n_lib(n, n, pA, cnd, x, 0, y, y);
@@ -560,8 +560,8 @@ int main()
 //			dsymv_lib(n, n, pA, cnd, x, 0, y, y);
 //			dgemv_nt_lib(n, n, pA, cnd, x, x2, 0, y, y, y2, y2);
 
-			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 1, pB, cnd, pC, cnd);
-			dpotrf_lib(n, n, pC, cnd, pC, cnd, x);
+//			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 1, pB, cnd, pC, cnd);
+//			dpotrf_lib(n, n, pC, cnd, pC, cnd, x);
 			}
 	
 		gettimeofday(&tv1, NULL); // stop
@@ -573,7 +573,7 @@ int main()
 //			dgemm_(&c_n, &c_n, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
 //			dsyrk_(&c_l, &c_n, &n, &n, &d_1, A, &n, &d_0, C, &n);
 //			dtrmm_(&c_r, &c_u, &c_t, &c_n, &n, &n, &d_1, A, &n, C, &n);
-//			dpotrf_(&c_l, &n, B2, &n, &info);
+			dpotrf_(&c_l, &n, B2, &n, &info);
 //			dtrtri_(&c_l, &c_n, &n, B2, &n, &info);
 //			dlauum_(&c_l, &n, B, &n, &info);
 //			dgemv_(&c_n, &n, &n, &d_1, A, &n, x, &i_1, &d_0, y, &i_1);
@@ -582,13 +582,13 @@ int main()
 //			dtrsv_(&c_l, &c_n, &c_n, &n, B, &n, x, &i_1);
 //			dsymv_(&c_l, &n, &d_1, A, &n, x, &i_1, &d_0, y, &i_1);
 
-			for(i=0; i<n; i++)
-				{
-				i_t = n-i;
-				dcopy_(&i_t, &B[i*(n+1)], &i_1, &C[i*(n+1)], &i_1);
-				}
-			dsyrk_(&c_l, &c_n, &n, &n, &d_1, A, &n, &d_1, C, &n);
-			dpotrf_(&c_l, &n, C, &n, &info);
+//			for(i=0; i<n; i++)
+//				{
+//				i_t = n-i;
+//				dcopy_(&i_t, &B[i*(n+1)], &i_1, &C[i*(n+1)], &i_1);
+//				}
+//			dsyrk_(&c_l, &c_n, &n, &n, &d_1, A, &n, &d_1, C, &n);
+//			dpotrf_(&c_l, &n, C, &n, &info);
 #endif
 #if defined(REF_BLAS_BLIS)
 //			dgemm_(&c_n, &c_t, &n77, &n77, &n77, &d_1, A, &n77, B, &n77, &d_0, C, &n77);
@@ -609,110 +609,130 @@ int main()
 			{
 			for(rep=0; rep<nrep; rep++)
 				{
+				dpotrf_lib_codegen_0(pB, pC, x);
+
 //				dpotrf_codegen_0(B2);
 
-				dcopy_codegen_0(B, C);
-				dsyrk_codegen_0(A, C);
-				dpotrf_codegen_0(C);
+//				dcopy_codegen_0(B, C);
+//				dsyrk_codegen_0(A, C);
+//				dpotrf_codegen_0(C);
 				}
 			}
 		else if(n==N_CODEGEN+1*4)
 			{
 			for(rep=0; rep<nrep; rep++)
 				{
+				dpotrf_lib_codegen_1(pB, pC, x);
+
 //				dpotrf_codegen_1(B2);
 
-				dcopy_codegen_1(B, C);
-				dsyrk_codegen_1(A, C);
-				dpotrf_codegen_1(C);
+//				dcopy_codegen_1(B, C);
+//				dsyrk_codegen_1(A, C);
+//				dpotrf_codegen_1(C);
 				}
 			}
 		else if(n==N_CODEGEN+2*4)
 			{
 			for(rep=0; rep<nrep; rep++)
 				{
+				dpotrf_lib_codegen_2(pB, pC, x);
+
 //				dpotrf_codegen_2(B2);
 
-				dcopy_codegen_2(B, C);
-				dsyrk_codegen_2(A, C);
-				dpotrf_codegen_2(C);
+//				dcopy_codegen_2(B, C);
+//				dsyrk_codegen_2(A, C);
+//				dpotrf_codegen_2(C);
 				}
 			}
 		else if(n==N_CODEGEN+3*4)
 			{
 			for(rep=0; rep<nrep; rep++)
 				{
+				dpotrf_lib_codegen_3(pB, pC, x);
+
 //				dpotrf_codegen_3(B2);
 
-				dcopy_codegen_3(B, C);
-				dsyrk_codegen_3(A, C);
-				dpotrf_codegen_3(C);
+//				dcopy_codegen_3(B, C);
+//				dsyrk_codegen_3(A, C);
+//				dpotrf_codegen_3(C);
 				}
 			}
 		else if(n==N_CODEGEN+4*4)
 			{
 			for(rep=0; rep<nrep; rep++)
 				{
+				dpotrf_lib_codegen_4(pB, pC, x);
+
 //				dpotrf_codegen_4(B2);
 
-				dcopy_codegen_4(B, C);
-				dsyrk_codegen_4(A, C);
-				dpotrf_codegen_4(C);
+//				dcopy_codegen_4(B, C);
+//				dsyrk_codegen_4(A, C);
+//				dpotrf_codegen_4(C);
 				}
 			}
 		else if(n==N_CODEGEN+5*4)
 			{
 			for(rep=0; rep<nrep; rep++)
 				{
+				dpotrf_lib_codegen_5(pB, pC, x);
+
 //				dpotrf_codegen_5(B2);
 
-				dcopy_codegen_5(B, C);
-				dsyrk_codegen_5(A, C);
-				dpotrf_codegen_5(C);
+//				dcopy_codegen_5(B, C);
+//				dsyrk_codegen_5(A, C);
+//				dpotrf_codegen_5(C);
 				}
 			}
 		else if(n==N_CODEGEN+6*4)
 			{
 			for(rep=0; rep<nrep; rep++)
 				{
+				dpotrf_lib_codegen_6(pB, pC, x);
+
 //				dpotrf_codegen_6(B2);
 
-				dcopy_codegen_6(B, C);
-				dsyrk_codegen_6(A, C);
-				dpotrf_codegen_6(C);
+//				dcopy_codegen_6(B, C);
+//				dsyrk_codegen_6(A, C);
+//				dpotrf_codegen_6(C);
 				}
 			}
 		else if(n==N_CODEGEN+7*4)
 			{
 			for(rep=0; rep<nrep; rep++)
 				{
+				dpotrf_lib_codegen_7(pB, pC, x);
+
 //				dpotrf_codegen_7(B2);
 
-				dcopy_codegen_7(B, C);
-				dsyrk_codegen_7(A, C);
-				dpotrf_codegen_7(C);
+//				dcopy_codegen_7(B, C);
+//				dsyrk_codegen_7(A, C);
+//				dpotrf_codegen_7(C);
 				}
 			}
 		else if(n==N_CODEGEN+8*4)
 			{
 			for(rep=0; rep<nrep; rep++)
 				{
+				dpotrf_lib_codegen_8(pB, pC, x);
+
 //				dpotrf_codegen_8(B2);
 
-				dcopy_codegen_8(B, C);
-				dsyrk_codegen_8(A, C);
-				dpotrf_codegen_8(C);
+//				dcopy_codegen_8(B, C);
+//				dsyrk_codegen_8(A, C);
+//				dpotrf_codegen_8(C);
 				}
 			}
 		else if(n==N_CODEGEN+9*4)
 			{
 			for(rep=0; rep<nrep; rep++)
 				{
+				dpotrf_lib_codegen_9(pB, pC, x);
+
 //				dpotrf_codegen_9(B2);
 
-				dcopy_codegen_9(B, C);
-				dsyrk_codegen_9(A, C);
-				dpotrf_codegen_9(C);
+//				dcopy_codegen_9(B, C);
+//				dsyrk_codegen_9(A, C);
+//				dpotrf_codegen_9(C);
 				}
 			}
 
@@ -725,12 +745,12 @@ int main()
 
 //		float flop_operation = 2.0*n*n*n; // dgemm
 //		float flop_operation = 1.0*n*n*n; // dsyrk dtrmm
-//		float flop_operation = 1.0/3.0*n*n*n; // dpotrf dtrtri
+		float flop_operation = 1.0/3.0*n*n*n; // dpotrf dtrtri
 //		float flop_operation = 2.0*n*n; // dgemv dsymv
 //		float flop_operation = 1.0*n*n; // dtrmv dtrsv
 //		float flop_operation = 4.0*n*n; // dgemv_nt
 
-		float flop_operation = 4.0/3.0*n*n*n; // dsyrk+dpotrf
+//		float flop_operation = 4.0/3.0*n*n*n; // dsyrk+dpotrf
 
 		float time_hpmpc    = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		float time_blas     = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
