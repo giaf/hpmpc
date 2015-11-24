@@ -40,6 +40,9 @@ endif
 ifeq ($(TARGET), C99_4X4_PREFETCH)
 OBJS = d_aux_ric_c99_lib4.o #s_aux_ric_c99_lib8.o
 endif
+ifeq ($(TARGET), CORTEX_A57)
+OBJS = d_aux_ric_c99_lib4.o #s_aux_ric_c99_lib8.o
+endif
 ifeq ($(TARGET), CORTEX_A15)
 OBJS = d_aux_ric_c99_lib4.o #s_aux_ric_c99_lib8.o
 endif

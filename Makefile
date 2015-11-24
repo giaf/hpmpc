@@ -66,6 +66,14 @@ BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 LQCP_AUX_OBJS = ./lqcp_solvers/c99/d_aux_ric_c99_lib4.o #./lqcp_solvers/c99/s_aux_ricc_99_lib4.o
 MPC_AUX_OBJS = ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o
 endif
+ifeq ($(TARGET), CORTEX_A57)
+AUX_OBJS = ./auxiliary/d_aux_lib4.o ./auxiliary/d_aux_extern_depend_lib4.o ./auxiliary/s_aux_lib4.o
+KERNEL_OBJS_DOUBLE = ./kernel/c99/kernel_dgemm_c99_lib4.o ./kernel/c99/kernel_dtrmm_c99_lib4.o  ./kernel/c99/kernel_dtrsm_c99_lib4.o ./kernel/c99/kernel_dsyrk_c99_lib4.o  ./kernel/c99/kernel_dpotrf_c99_lib4.o ./kernel/c99/kernel_dgemv_c99_lib4.o ./kernel/c99/kernel_dtrmv_c99_lib4.o ./kernel/c99/kernel_dtrsv_c99_lib4.o ./kernel/c99/kernel_dsymv_c99_lib4.o ./kernel/c99/kernel_dtran_c99_lib4.o ./kernel/c99/kernel_dttmm_c99_lib4.o ./kernel/c99/kernel_dtrinv_c99_lib4.o ./kernel/c99/kernel_dcopy_c99_lib4.o
+KERNEL_OBJS_SINGLE = ./kernel/c99/kernel_sgemm_c99_lib4.o ./kernel/c99/kernel_strmm_c99_lib4.o ./kernel/c99/kernel_sgemm_strsm_c99_lib4.o ./kernel/c99/kernel_ssyrk_spotrf_c99_lib4.o ./kernel/c99/kernel_sgemv_c99_lib4.o ./kernel/c99/kernel_strmv_c99_lib4.o ./kernel/c99/kernel_strsv_c99_lib4.o ./kernel/c99/kernel_ssymv_c99_lib4.o ./kernel/c99/kernel_stran_c99_lib4.o 
+BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
+LQCP_AUX_OBJS = ./lqcp_solvers/c99/d_aux_ric_c99_lib4.o #./lqcp_solvers/c99/s_aux_ricc_99_lib4.o
+MPC_AUX_OBJS = ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o
+endif
 ifeq ($(TARGET), CORTEX_A15)
 AUX_OBJS = ./auxiliary/d_aux_lib4.o ./auxiliary/d_aux_extern_depend_lib4.o ./auxiliary/s_aux_lib4.o
 KERNEL_OBJS_DOUBLE = ./kernel/armv7a/kernel_dgemm_vfpv3_lib4.o ./kernel/armv7a/kernel_dtrmm_vfpv3_lib4.o  ./kernel/armv7a/kernel_dtrsm_vfpv3_lib4.o ./kernel/armv7a/kernel_dsyrk_vfpv3_lib4.o  ./kernel/armv7a/kernel_dpotrf_vfpv3_lib4.o ./kernel/armv7a/kernel_dgemv_c99_lib4.o ./kernel/armv7a/kernel_dtrmv_c99_lib4.o ./kernel/armv7a/kernel_dtrsv_c99_lib4.o ./kernel/armv7a/kernel_dsymv_c99_lib4.o ./kernel/armv7a/kernel_dtran_c99_lib4.o ./kernel/armv7a/kernel_dttmm_c99_lib4.o ./kernel/armv7a/kernel_dtrinv_c99_lib4.o  ./kernel/armv7a/kernel_dcopy_c99_lib4.o

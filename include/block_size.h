@@ -61,6 +61,13 @@
 #define D_NCL 2
 #define S_NCL 4
 
+#elif defined( TARGET_CORTEX_A57 )
+
+#define D_MR 4
+#define S_MR 4
+#define D_NCL 2
+#define S_NCL 4
+
 #elif defined( TARGET_CORTEX_A15 )
 
 #define D_MR 4

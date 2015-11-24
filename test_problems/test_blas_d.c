@@ -98,15 +98,18 @@ int main()
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	const float flops_max = 4;
 	printf("Testing BLAS version for SSE3 instruction set, 64 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
+#elif defined(TARGET_CORTEX_A57)
+	const float flops_max = 2;
+	printf("Testing reference BLAS version compiled for Cortex A57, 4x4 kernel: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_CORTEX_A15)
 	const float flops_max = 2;
-	printf("Testing solvers for ARMv7a VFPv3 instruction set, oprimized for Cortex A15: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
+	printf("Testing solvers for ARMv7a VFPv3 instruction set, optimized for Cortex A15: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_CORTEX_A9)
 	const float flops_max = 1;
-	printf("Testing solvers for ARMv7a VFPv3 instruction set, oprimized for Cortex A9: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
+	printf("Testing solvers for ARMv7a VFPv3 instruction set, optimized for Cortex A9: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_CORTEX_A7)
 	const float flops_max = 0.5;
-	printf("Testing solvers for ARMv7a VFPv3 instruction set, oprimized for Cortex A7: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
+	printf("Testing solvers for ARMv7a VFPv3 instruction set, optimized for Cortex A7: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_X86_ATOM)
 	const float flops_max = 1;
 	printf("Testing BLAS version for SSE3 instruction set, 32 bit, optimized for Intel Atom: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
@@ -135,6 +138,9 @@ int main()
 	fprintf(f, "\n");
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	fprintf(f, "C = 'd_x64_sse3';\n");
+	fprintf(f, "\n");
+#elif defined(TARGET_CORTEX_A57)
+	fprintf(f, "C = 'd_ARM_cortex_A57';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEX_A9)
 	fprintf(f, "C = 'd_ARM_cortex_A9';\n");
