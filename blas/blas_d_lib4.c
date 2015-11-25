@@ -220,7 +220,7 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 				j = 0;
 				for(; j<n-3; j+=4)
 					{
-#if defined(CORTEX_A15) || defined(CORTEX_A9) || defined(CORTEX_A7)
+#if defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7) //|| defined(TARGET_CORTEX_A57)
 					kernel_dgemm_nt_4x4_nn_lib4(k, &pA[i*sda], &pB[j*sdb], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], alg, 0, 0);
 #else
 					kernel_dgemm_nt_4x4_lib4(k, &pA[i*sda], &pB[j*sdb], &pC[j*bs+i*sdc], &pD[j*bs+i*sdd], alg, 0, 0);

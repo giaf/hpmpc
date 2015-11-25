@@ -43,6 +43,7 @@ ifeq ($(TARGET), C99_4X4_PREFETCH)
 endif
 ifeq ($(TARGET), CORTEX_A57)
 	make -C c99 obj
+	make -C armv8a obj
 endif
 ifeq ($(TARGET), CORTEX_A15)
 	make -C armv7a obj
