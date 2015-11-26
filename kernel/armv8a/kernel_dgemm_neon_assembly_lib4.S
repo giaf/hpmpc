@@ -23,7 +23,7 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-// must save (and restore) x18-x28 and v08-v17
+// must save (and restore) x18-x29 and v08-v17
 
 
 	.text
@@ -243,13 +243,17 @@ kernel_dgemm_nt_4x4_lib4:
 
 	fmadd d16, d0, d4, d16
 	fmadd d17, d1, d4, d17
+	add x1, x1, #(8 * 4)
 	fmadd d18, d2, d4, d18
 	fmadd d19, d3, d4, d19
+	add x2, x2, #(8 * 4)
 
 	fmadd d20, d0, d5, d20
 	fmadd d21, d1, d5, d21
+	sub w0, w0, #1
 	fmadd d22, d2, d5, d22
 	fmadd d23, d3, d5, d23
+	cmp	w0, #0
 
 	fmadd d24, d0, d6, d24
 	fmadd d25, d1, d6, d25
@@ -260,13 +264,6 @@ kernel_dgemm_nt_4x4_lib4:
 	fmadd d29, d1, d7, d29
 	fmadd d30, d2, d7, d30
 	fmadd d31, d3, d7, d31
-
-	add x1, x1, #(8 * 4)
-	add x2, x2, #(8 * 4)
-	
-	sub w0, w0, #1
-
-	cmp	w0, #0
 
 	bgt	.L00_clean_loop
 
@@ -406,7 +403,7 @@ kernel_dgemm_nt_4x4_lib4:
 
 
 
-//                               w0        x1         w2       x3         x4         w5       x6         w7       sp       sp      sp
+//                               w0        x1         w2       x3         x4         w5       x6         w7       sp+0     sp+8    sp+16
 // void kernel_dgemm_nt_8x4_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg, int tc, int td)
 
 	.align	4
@@ -522,8 +519,8 @@ kernel_dgemm_nt_8x4_lib4:
 
 // prefetch
 ld1   {v0.2d, v1.2d}, [x1], #32
-ld1   {v2.2d, v3.2d}, [x11], #32
 ld1   {v4.2d, v5.2d}, [x3], #32
+ld1   {v2.2d, v3.2d}, [x11], #32
 
 	ble	.L01_check_clean_loop
 
@@ -531,9 +528,9 @@ ld1   {v4.2d, v5.2d}, [x3], #32
 .L01_main_loop:
 
 	// 0
-	ld1   {v10.2d, v11.2d}, [x3], #32
-	fmla  v16.2d, v0.2d, v4.2d[0]
 	ld1   {v6.2d, v7.2d}, [x1], #32
+	fmla  v16.2d, v0.2d, v4.2d[0]
+	ld1   {v10.2d, v11.2d}, [x3], #32
 	fmla  v17.2d, v1.2d, v4.2d[0]
 	ld1   {v8.2d, v9.2d}, [x11], #32
 	fmla  v24.2d, v2.2d, v4.2d[0]
@@ -581,7 +578,7 @@ ld1   {v4.2d, v5.2d}, [x3], #32
 	fmla  v22.2d, v6.2d, v11.2d[1]
 	fmla  v23.2d, v7.2d, v11.2d[1]
 	ld1   {v6.2d, v7.2d}, [x1], #32
-	fmla  v30.2d, v9.2d, v11.2d[1]
+	fmla  v30.2d, v8.2d, v11.2d[1]
 	fmla  v31.2d, v9.2d, v11.2d[1]
 	ld1   {v10.2d, v11.2d}, [x3], #32
 
@@ -648,23 +645,30 @@ ld1   {v4.2d, v5.2d}, [x3], #32
 
 	ble	.L01_end_matter
 
+	b .L01_clean_loop_no_load
 
 .L01_clean_loop:
 
-	// 0
 	ld1   {v0.2d, v1.2d}, [x1], #32
-	ld1   {v2.2d, v3.2d}, [x11], #32
 	ld1   {v4.2d, v5.2d}, [x3], #32
+	ld1   {v2.2d, v3.2d}, [x11], #32
 
+.L01_clean_loop_no_load:
+
+	// 0
 	fmla  v16.2d, v0.2d, v4.2d[0]
 	fmla  v17.2d, v1.2d, v4.2d[0]
 	fmla  v24.2d, v2.2d, v4.2d[0]
 	fmla  v25.2d, v3.2d, v4.2d[0]
 
+	sub w0, w0, #1
+
 	fmla  v18.2d, v0.2d, v4.2d[1]
 	fmla  v19.2d, v1.2d, v4.2d[1]
 	fmla  v26.2d, v2.2d, v4.2d[1]
 	fmla  v27.2d, v3.2d, v4.2d[1]
+
+	cmp	w0, #0
 
 	fmla  v20.2d, v0.2d, v5.2d[0]
 	fmla  v21.2d, v1.2d, v5.2d[0]
@@ -675,11 +679,6 @@ ld1   {v4.2d, v5.2d}, [x3], #32
 	fmla  v23.2d, v1.2d, v5.2d[1]
 	fmla  v30.2d, v2.2d, v5.2d[1]
 	fmla  v31.2d, v3.2d, v5.2d[1]
-
-
-	sub w0, w0, #1
-
-	cmp	w0, #0
 
 	bgt	.L01_clean_loop
 
