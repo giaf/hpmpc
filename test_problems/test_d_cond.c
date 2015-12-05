@@ -463,6 +463,7 @@ int main()
 		double *(hpGamma_u_Q_A[N]);
 		double *(hpGamma_v[N]);
 		double *(hpGamma_v_Q[N]);
+		double *(hpGamma_v_Q_A[N]);
 		for(ii=0; ii<N; ii++)
 			{
 			hpA[ii] = pA;
@@ -481,6 +482,7 @@ int main()
 			d_zeros_align(&hpGamma_u_Q_A[ii], ((ii+2)*nu+bs-1)/bs*bs, cnx); //((ii+1)*nu+bs-1)/bs*bs, cnx);
 			d_zeros_align(&hpGamma_v[ii], (nx+(ii+1)*nu+bs-1)/bs*bs, cnx);
 			d_zeros_align(&hpGamma_v_Q[ii], (nx+(ii+2)*nu+bs-1)/bs*bs, cnx); //((ii+1)*nu+bs-1)/bs*bs, cnx);
+			d_zeros_align(&hpGamma_v_Q_A[ii], (nx+(ii+2)*nu+bs-1)/bs*bs, cnx); //((ii+1)*nu+bs-1)/bs*bs, cnx);
 			}
 		hpQ[N] = pQ;
 		hdQ[N] = dQ;
@@ -511,6 +513,12 @@ int main()
 		
 #define DIAG_HESSIAN 0 // diagonal Hessian of the cost function
 #define Q_N_NOT_ZERO 1 // Q_N is not zero
+
+#if (DIAG_HESSIAN==0)
+		printf("\nDense Hessian of the cost function\n");
+#else
+		printf("\nDiagonal Hessian of the cost function\n");
+#endif
 		
 		int cond_alg;
 		double **ppdummy;
@@ -521,7 +529,6 @@ int main()
 
 
 // N^3 n_x^2 condensing algorithm for MPC
-		cond_alg = 0; 
 		printf("\nN^3 n_x^2 condensing algorithm, MPC case\n");
 
 		dgeset_lib(N*nu, N*nu, 0.0, 0, pH_R[0], cNnu);
@@ -536,7 +543,7 @@ int main()
 #if (DIAG_HESSIAN==0)
 			d_cond_R_N3_nx2(N, nx, nu, 0, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pdummy, pdummy, hpGamma_u, hpGamma_u_Q, pH_R[0]);
 #else
-			d_cond_R_N3_nx2(N, nx, nu, 0, hpAt, hpBt, 1, Q_N_NOT_ZERO, hdQ, hpS, hdR, pdummy, pdummy, hpGamma_u, hpGamma_u_Q, pH_R[0]);
+			d_cond_R_N3_nx2(N, nx, nu, 0, hpAt, hpBt, 1, Q_N_NOT_ZERO, hdQ, ppdummy, hdR, pdummy, pdummy, hpGamma_u, hpGamma_u_Q, pH_R[0]);
 #endif
 
 			}
@@ -552,7 +559,6 @@ int main()
 
 
 // N^3 n_x^2 condensing algorithm for MHE
-		cond_alg = 0; 
 		printf("\nN^3 n_x^2 condensing algorithm, MHE case\n");
 
 		dgeset_lib(nx+N*nu, nx+N*nu, 0.0, 0, pH_Rx[0], cnxNnu);
@@ -583,8 +589,7 @@ int main()
 
 
 
-// N^2 n_x^2 condensing algorithm
-		cond_alg = 1; 
+// N^2 n_x^2 condensing algorithm for MPC
 		printf("\nN^2 n_x^2 condensing algorithm, MPC case\n");
 
 		dgeset_lib(N*nu, N*nu, 0.0, 0, pH_R[0], cNnu);
@@ -594,12 +599,12 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
+			d_cond_Gamma_u_T(N, nx, nu, 0, hpA, hpBt, hpGamma_u);
+
 #if (DIAG_HESSIAN==0)
-			d_cond_R(N, nx, nu, cond_alg, hpA, hpAt, hpBt, ppdummy, DIAG_HESSIAN, Q_N_NOT_ZERO, hpQ, 0, ppdummy, hpS, hpR, ppdummy, pD, pM, pQs, pLam, pdummy, pdummy, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
-//			d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]);
+			d_cond_R_N2_nx2(N, nx, nu, 0, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pD, pM, pLam, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
 #else
-			d_cond_R(N, nx, nu, cond_alg, hpA, hpAt, hpBt, ppdummy, DIAG_HESSIAN, Q_N_NOT_ZERO, hdQ, 0, ppdummy, hpS, hdR, ppdummy, pD, pM, pQs, pLam, pdummy, pdummy, 1, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
-//			d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]);
+			d_cond_R_N2_nx2(N, nx, nu, 0, hpAt, hpBt, 1, Q_N_NOT_ZERO, hdQ, ppdummy, hdR, pD, pM, pLam, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
 #endif
 
 			}
@@ -612,13 +617,45 @@ int main()
 //		printf("\nGamma_u^T = \n"); for(ii=0; ii<N; ii++) d_print_pmat((ii+1)*nu, nx, bs, hpGamma_u[ii], cnx);
 //		printf("\nGamma_u^T Q = \n"); for(ii=0; ii<N; ii++) d_print_pmat((ii+1)*nu, nx, bs, hpGamma_u_Q[ii], cnx);
 //		printf("\nGamma_u^T Q A = \n"); for(ii=0; ii<N; ii++) d_print_pmat((ii+1)*nu, nx, bs, hpGamma_u_Q_A[ii], cnx);
-		printf("\nH_R = \n"); d_print_pmat(Nnu, Nnu, bs, pH_R[0], cNnu);
+		printf("\nH_R MPC = \n"); d_print_pmat(Nnu, Nnu, bs, pH_R[0], cNnu);
 #endif
 
 
 
-// N^2 n_x^3 condensing algorithm
-		cond_alg = 2; 
+// N^2 n_x^2 condensing algorithm for MHE
+		printf("\nN^2 n_x^2 condensing algorithm, MHE case\n");
+
+		dgeset_lib(nx+N*nu, nx+N*nu, 0.0, 0, pH_Rx[0], cnxNnu);
+
+		gettimeofday(&tv0, NULL); // start
+
+		for(rep=0; rep<nrep; rep++)
+			{
+
+			d_cond_Gamma_u_T(N, nx, nu, 1, hpA, hpBt, hpGamma_v);
+
+#if (DIAG_HESSIAN==0)
+			d_cond_R_N2_nx2(N, nx, nu, 1, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pD, pM, pLam, hpGamma_v, hpGamma_v_Q, hpGamma_v_Q_A, pH_Rx[0]);
+#else
+			d_cond_R_N2_nx2(N, nx, nu, 1, hpAt, hpBt, 1, Q_N_NOT_ZERO, hdQ, ppdummy, hdR, pD, pM, pLam, hpGamma_v, hpGamma_v_Q, hpGamma_v_Q_A, pH_Rx[0]);
+#endif
+
+			}
+
+		gettimeofday(&tv1, NULL); // start
+
+		double time_cond_4 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+#if defined(PRINT_ON)
+//		printf("\nGamma_u^T = \n"); for(ii=0; ii<N; ii++) d_print_pmat((ii+1)*nu, nx, bs, hpGamma_u[ii], cnx);
+//		printf("\nGamma_u^T Q = \n"); for(ii=0; ii<N; ii++) d_print_pmat((ii+1)*nu, nx, bs, hpGamma_u_Q[ii], cnx);
+//		printf("\nGamma_u^T Q A = \n"); for(ii=0; ii<N; ii++) d_print_pmat((ii+1)*nu, nx, bs, hpGamma_u_Q_A[ii], cnx);
+		printf("\nH_R MHE = \n"); d_print_pmat(nx+Nnu, nx+Nnu, bs, pH_Rx[0], cnxNnu);
+#endif
+
+
+
+// N^2 n_x^3 condensing algorithm for MPC
 		printf("\nN^2 n_x^3 condensing algorithm, MPC case\n");
 
 		dgeset_lib(N*nu, N*nu, 0.0, 0, pH_R[0], cNnu);
@@ -628,12 +665,12 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
+			d_cond_Gamma_u_T(N, nx, nu, 0, hpA, hpBt, hpGamma_u);
+
 #if (DIAG_HESSIAN==0)
-			d_cond_R(N, nx, nu, cond_alg, hpA, ppdummy, hpBt, hpBAt, DIAG_HESSIAN, Q_N_NOT_ZERO, ppdummy, 0, ppdummy, ppdummy, ppdummy, hpRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, ppdummy, ppdummy, pH_R[0]);
-//			d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]);
+			d_cond_R_N2_nx3(N, nx, nu, 0, hpBAt, 0, Q_N_NOT_ZERO, hpRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, pH_R[0]);
 #else
-			d_cond_R(N, nx, nu, cond_alg, hpA, ppdummy, hpBt, hpBAt, DIAG_HESSIAN, Q_N_NOT_ZERO, ppdummy, 0, ppdummy, ppdummy, ppdummy, hdRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, ppdummy, ppdummy, pH_R[0]);
-//			d_cond_r(N, nx, nu, hpA, hb, 1, 1, hdQ, hpS, hq, hr, hpGamma_u, 1, hGamma_b, 1, hGamma_b_q, H_r[0]);
+			d_cond_R_N2_nx3(N, nx, nu, 0, hpBAt, 1, Q_N_NOT_ZERO, hdRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, pH_R[0]);
 #endif
 
 			}
@@ -643,7 +680,37 @@ int main()
 		double time_cond_2 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
 #if defined(PRINT_ON)
-		printf("\nH_R = \n"); d_print_pmat(Nnu, Nnu, bs, pH_R[0], cNnu);
+		printf("\nH_R MPC = \n"); d_print_pmat(Nnu, Nnu, bs, pH_R[0], cNnu);
+#endif
+
+
+
+// N^2 n_x^3 condensing algorithm for MHE
+		printf("\nN^2 n_x^3 condensing algorithm, MHE case\n");
+
+		dgeset_lib(nx+N*nu, nx+N*nu, 0.0, 0, pH_Rx[0], cnxNnu);
+
+		gettimeofday(&tv0, NULL); // start
+
+		for(rep=0; rep<nrep; rep++)
+			{
+
+			d_cond_Gamma_u_T(N, nx, nu, 1, hpA, hpBt, hpGamma_v);
+
+#if (DIAG_HESSIAN==0)
+			d_cond_R_N2_nx3(N, nx, nu, 1, hpBAt, 0, Q_N_NOT_ZERO, hpRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_v, pH_Rx[0]);
+#else
+			d_cond_R_N2_nx3(N, nx, nu, 1, hpBAt, 1, Q_N_NOT_ZERO, hdRSQ, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_v, pH_Rx[0]);
+#endif
+
+			}
+
+		gettimeofday(&tv1, NULL); // start
+
+		double time_cond_5 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+#if defined(PRINT_ON)
+		printf("\nH_R MHE = \n"); d_print_pmat(nx+Nnu, nx+Nnu, bs, pH_Rx[0], cnxNnu);
 #endif
 
 /************************************************
@@ -654,6 +721,8 @@ int main()
 		printf("\ntime condensing N^2 n_x^2 MPC = %e seconds\n", time_cond_1);
 		printf("\ntime condensing N^2 n_x^3 MPC = %e seconds\n", time_cond_2);
 		printf("\ntime condensing N^3 n_x^2 MHE = %e seconds\n", time_cond_3);
+		printf("\ntime condensing N^2 n_x^2 MHE = %e seconds\n", time_cond_4);
+		printf("\ntime condensing N^2 n_x^3 MHE = %e seconds\n", time_cond_5);
 
 /************************************************
 * free memory
@@ -688,6 +757,7 @@ int main()
 			free(hpGamma_u_Q_A[ii]);
 			free(hpGamma_v[ii]);
 			free(hpGamma_v_Q[ii]);
+			free(hpGamma_v_Q_A[ii]);
 			}
 
 		free(pL);
