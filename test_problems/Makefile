@@ -51,6 +51,7 @@ endif
 #OBJS_TEST = tools.o test_d_forward_schur.o
 #OBJS_TEST = tools.o test_s_ric_mpc.o
 #OBJS_TEST = tools.o test_d_ric_mhe.o
+#OBJS_TEST = tools.o test_d_cond.o
 #OBJS_TEST = tools.o test_d_cond_mpc.o
 OBJS_TEST = tools.o test_d_ip_hard.o
 #OBJS_TEST = tools.o test_s_ip_box.o
