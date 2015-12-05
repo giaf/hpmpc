@@ -1131,7 +1131,7 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 			j = 0;
 			for(; j<n-2; j+=4)
 				{
-					kernel_dgemm_nt_12x4_vs_lib4(m-i, n-j, k, &pA[i*sda], sda, &pB[j*sdb], &pC[i*bs+j*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 1, 1);
+				kernel_dgemm_nt_12x4_vs_lib4(m-i, n-j, k, &pA[i*sda], sda, &pB[j*sdb], &pC[i*bs+j*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 1, 1);
 				}
 			if(j<n)
 				{
@@ -1146,7 +1146,7 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 			j = 0;
 			for(; j<n-2; j+=4)
 				{
-					kernel_dgemm_nt_10x4_vs_lib4(m-i, n-j, k, &pA[i*sda], sda, &pB[j*sdb], &pC[i*bs+j*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 1, 1);
+				kernel_dgemm_nt_10x4_vs_lib4(m-i, n-j, k, &pA[i*sda], sda, &pB[j*sdb], &pC[i*bs+j*sdc], sdc, &pD[i*bs+j*sdd], sdd, alg, 1, 1);
 				}
 			if(j<n)
 				{

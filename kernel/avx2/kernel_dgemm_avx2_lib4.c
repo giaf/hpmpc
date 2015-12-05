@@ -1235,25 +1235,25 @@ void kernel_dgemm_nt_12x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda,
 				d_2 = _mm256_add_pd( d_2, c_2 );
 				d_3 = _mm256_add_pd( d_3, c_3 );
 
-				d_0 = _mm256_load_pd( &C0[0+bs*4] );
-				d_1 = _mm256_load_pd( &C0[0+bs*5] );
-				d_2 = _mm256_load_pd( &C0[0+bs*6] );
-				d_3 = _mm256_load_pd( &C0[0+bs*7] );
+				d_4 = _mm256_load_pd( &C0[0+bs*4] );
+				d_5 = _mm256_load_pd( &C0[0+bs*5] );
+				d_6 = _mm256_load_pd( &C0[0+bs*6] );
+				d_7 = _mm256_load_pd( &C0[0+bs*7] );
 
-				d_0 = _mm256_add_pd( d_4, c_4 );
-				d_1 = _mm256_add_pd( d_5, c_5 );
-				d_2 = _mm256_add_pd( d_6, c_6 );
-				d_3 = _mm256_add_pd( d_7, c_7 );
+				d_4 = _mm256_add_pd( d_4, c_4 );
+				d_5 = _mm256_add_pd( d_5, c_5 );
+				d_6 = _mm256_add_pd( d_6, c_6 );
+				d_7 = _mm256_add_pd( d_7, c_7 );
 
-				d_0 = _mm256_load_pd( &C0[0+bs*8] );
-				d_1 = _mm256_load_pd( &C0[0+bs*9] );
-				d_2 = _mm256_load_pd( &C0[0+bs*10] );
-				d_3 = _mm256_load_pd( &C0[0+bs*11] );
+				d_8 = _mm256_load_pd( &C0[0+bs*8] );
+				d_9 = _mm256_load_pd( &C0[0+bs*9] );
+				d_a = _mm256_load_pd( &C0[0+bs*10] );
+				d_b = _mm256_load_pd( &C0[0+bs*11] );
 
-				d_0 = _mm256_add_pd( d_8, c_8 );
-				d_1 = _mm256_add_pd( d_9, c_9 );
-				d_2 = _mm256_add_pd( d_a, c_a );
-				d_3 = _mm256_add_pd( d_b, c_b );
+				d_8 = _mm256_add_pd( d_8, c_8 );
+				d_9 = _mm256_add_pd( d_9, c_9 );
+				d_a = _mm256_add_pd( d_a, c_a );
+				d_b = _mm256_add_pd( d_b, c_b );
 				}
 			else // AB = - A*B'
 				{
@@ -1727,20 +1727,20 @@ void kernel_dgemm_nt_8x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, 
 			e_2 = _mm256_unpacklo_pd( c_02, c_03 );
 			e_3 = _mm256_unpackhi_pd( c_03, c_02 );
 
-			c_0 = _mm256_permute2f128_pd( c_0, c_2, 0x20 );
-			c_1 = _mm256_permute2f128_pd( c_1, c_3, 0x20 );
-			c_2 = _mm256_permute2f128_pd( c_0, c_2, 0x31 );
-			c_3 = _mm256_permute2f128_pd( c_1, c_3, 0x31 );
+			c_0 = _mm256_permute2f128_pd( e_0, e_2, 0x20 );
+			c_1 = _mm256_permute2f128_pd( e_1, e_3, 0x20 );
+			c_2 = _mm256_permute2f128_pd( e_0, e_2, 0x31 );
+			c_3 = _mm256_permute2f128_pd( e_1, e_3, 0x31 );
 
 			e_0 = _mm256_unpacklo_pd( c_40, c_41 );
 			e_1 = _mm256_unpackhi_pd( c_41, c_40 );
 			e_2 = _mm256_unpacklo_pd( c_42, c_43 );
 			e_3 = _mm256_unpackhi_pd( c_43, c_42 );
 
-			c_4 = _mm256_permute2f128_pd( c_0, c_2, 0x20 );
-			c_5 = _mm256_permute2f128_pd( c_1, c_3, 0x20 );
-			c_6 = _mm256_permute2f128_pd( c_0, c_2, 0x31 );
-			c_7 = _mm256_permute2f128_pd( c_1, c_3, 0x31 );
+			c_4 = _mm256_permute2f128_pd( e_0, e_2, 0x20 );
+			c_5 = _mm256_permute2f128_pd( e_1, e_3, 0x20 );
+			c_6 = _mm256_permute2f128_pd( e_0, e_2, 0x31 );
+			c_7 = _mm256_permute2f128_pd( e_1, e_3, 0x31 );
 
 			if(alg==1) // AB = A*B'
 				{
