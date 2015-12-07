@@ -159,14 +159,14 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-//		dgemm_nn_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0, 0, 0);
+//		dgemm_nt_lib(n, n, n, pB, cn, pA, cn, 0, pC, cn, pD, cn, 0, 0);
 //		dgemm_nn_lib(n, n, n, pB, cn, pA, cn, pC, cn, pD, cn, 0, 0, 0);
 //		dsyrk_dpotrf_lib(8, 2, n, pA, cn, pB, cn, pD, cn, diag, 1, 0);
 //		dsyrk_dpotrf_lib_new(11, n, n, pA, cn, pA, cn, 1, pB, cn, pD, cn, diag);
-		dsyrk_nt_lib(n, n, n, pA, cn, pA, cn, 1, pB, cn, pD, cn);
-		dpotrf_lib(n, n, pD, cn, pD, cn, x);
-		dtrtri_lib(n, pD, cn, 1, x, pL, cn);
-		dlauum_lib(7, pL, cn, pL, cn, 0, pF, cn, pF, cn);
+//		dsyrk_nt_lib(n, n, n, pA, cn, pA, cn, 1, pB, cn, pD, cn);
+//		dpotrf_lib(n, n, pD, cn, pD, cn, x);
+//		dtrtri_lib(n, pD, cn, 1, x, pL, cn);
+//		dlauum_lib(7, pL, cn, pL, cn, 0, pF, cn, pF, cn);
 //		dsyrk_nn_lib(n, n, n, pA, cn, pB, cn, pC, cn, pD, cn, 0);
 //		dgemm_diag_left_lib(n, n, x, pA, cn, pC, cn, pD, cn, 0);
 //		dsyrk_diag_left_right_lib(n, x, x, pA, cn, pC, cn, pD, cn, 0);
@@ -174,7 +174,8 @@ int main()
 //		dgemm_nt_lib(13, n, n, pA, pn, pB, pn, pC, pn, 0);
 /*		dgemm_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
 /*		dtrmm_lib(n, n, pA, pn, pB, pn, pC, pn);*/
-/*		dtrtr_l_lib(10, 5, pA+1, pn, pC, pn);*/
+//		dtrtr_l_lib(7, 1, pA+1, pn, 0, pC+0, pn);
+		dtrtr_u_lib(9, 3, pA+3, pn, 0, pC+0, pn);
 //		dttmm_ll_lib(n, pA, pn, pA, pn, pC, pn);
 //		dttmm_uu_lib(n, pA, pn, pA, pn, pC, pn);
 //		dtrmm_u_lib(n, n, pA, pn, pB, pn, pC, pn);
@@ -219,10 +220,11 @@ int main()
 
 	if(n<=24)
 		{
-//		d_print_pmat(pn, pn, bs, pC, pn);
-		d_print_pmat(pn, cn, bs, pD, cn);
-		d_print_pmat(pn, cn, bs, pL, cn);
-		d_print_pmat(pn, cn, bs, pF, cn);
+		d_print_pmat(pn, pn, bs, pA, pn);
+		d_print_pmat(pn, pn, bs, pC, pn);
+//		d_print_pmat(pn, cn, bs, pD, cn);
+//		d_print_pmat(pn, cn, bs, pL, cn);
+//		d_print_pmat(pn, cn, bs, pF, cn);
 //		d_print_pmat(n, n, bs, pB, pn);
 /*		d_print_pmat(n, n, bs, pA, pn);*/
 /*		d_print_mat(n, n, B, n);*/

@@ -100,7 +100,7 @@ void d_back_ric_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, do
 //	d_print_pmat(nz0, nux0, bs, hpL[N], cnl0);
 //	exit(2);
 
-	dtrtr_l_lib(nx0, nu0, hpL[N]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, hpL[N]+ncl*bs, cnl0);	
+	dtrtr_l_lib(nx0, nu0, hpL[N]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, 0, hpL[N]+ncl*bs, cnl0);	
 
 
 
@@ -146,7 +146,7 @@ void d_back_ric_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, do
 
 		dsyrk_dpotrf_lib(nz0, nux0, nx1+ng0, work, cnxg0, work, cnxg0, 1, hpQ[N-nn-1], cnux0, hpL[N-nn-1], cnl0, hdL[N-nn-1]);
 
-		dtrtr_l_lib(nx0, nu0, hpL[N-nn-1]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, hpL[N-nn-1]+ncl*bs, cnl0);	
+		dtrtr_l_lib(nx0, nu0, hpL[N-nn-1]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, 0, hpL[N-nn-1]+ncl*bs, cnl0);	
 
 //	d_print_pmat(nz0, nux0, bs, hpL[N-nn-1], cnl0);
 		}
@@ -262,7 +262,7 @@ void d_back_ric_trf_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, d
 
 	dsyrk_dpotrf_lib(nux0, nux0, ng0, work, cng0, work, cng0, 1, hpQ[N], cnux0, hpL[N], cnl0, hdL[N]);
 
-	dtrtr_l_lib(nx0, nu0, hpL[N]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, hpL[N]+ncl*bs, cnl0);	
+	dtrtr_l_lib(nx0, nu0, hpL[N]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, 0, hpL[N]+ncl*bs, cnl0);	
 
 
 
@@ -300,7 +300,7 @@ void d_back_ric_trf_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, d
 
 		dsyrk_dpotrf_lib(nux0, nux0, nx1+ng0, work, cnxg0, work, cnxg0, 1, hpQ[N-nn-1], cnux0, hpL[N-nn-1], cnl0, hdL[N-nn-1]);
 
-		dtrtr_l_lib(nx0, nu0, hpL[N-nn-1]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, hpL[N-nn-1]+ncl*bs, cnl0);	
+		dtrtr_l_lib(nx0, nu0, hpL[N-nn-1]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, 0, hpL[N-nn-1]+ncl*bs, cnl0);	
 
 		}
 
@@ -507,7 +507,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 
 	dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs, ngN, pLBAbtDCt+(nu/bs)*bs*cngN, cngN, pLBAbtDCt+(nu/bs)*bs*cngN, cngN, 1, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hdL[N]+nu);
 
-	dtrtr_l_lib(nx, nu, hpL[N]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N]+(ncl)*bs, cnl);	
+	dtrtr_l_lib(nx, nu, hpL[N]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, 0, hpL[N]+(ncl)*bs, cnl);	
 
 
 
@@ -539,7 +539,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 
 		dsyrk_dpotrf_lib(nz, nu+nx, nx+ng, pLBAbtDCt, cnxg, pLBAbtDCt, cnxg, 1, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, hdL[N-nn-1]);
 
-		dtrtr_l_lib(nx, nu, hpL[N-nn-1]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-nn-1]+(ncl)*bs, cnl);	
+		dtrtr_l_lib(nx, nu, hpL[N-nn-1]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, 0, hpL[N-nn-1]+(ncl)*bs, cnl);	
 
 		}
 
@@ -612,7 +612,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 			}
 		dsyrk_dpotrf_lib(nz, nu+nx, nx+ng, pLBAbtDCt, cnxg, pLBAbtDCt, cnxg, 1, hpQ[0], cnz, hpL[0], cnl, hdL[0]);
 
-		dtrtr_l_lib(nx, nu, hpL[0]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[0]+(ncl)*bs, cnl);	
+		dtrtr_l_lib(nx, nu, hpL[0]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, 0, hpL[0]+(ncl)*bs, cnl);	
 
 
 
@@ -704,7 +704,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 
 	dsyrk_dpotrf_lib(nx+nu%bs+1, nx+nu%bs ngN, pLBAbtDCt+(nu/bs)*bs*cngN, cngN, pLBAbtDCt+(nu/bs)*bs*cngN, cngN, 1, hpQ[N]+(nu/bs)*bs*cnz+(nu/bs)*bs*bs, cnz, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hdL[N]+nu);
 
-	dtrtr_l_lib(nx, nu, hpL[N]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N]+(ncl)*bs, cnl);	
+	dtrtr_l_lib(nx, nu, hpL[N]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, 0, hpL[N]+(ncl)*bs, cnl);	
 
 	diag_min = d_min_mat(nx, 1, hdL[N], 1);
 
@@ -762,7 +762,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 
 			dsyrk_dpotrf_lib(nz, nu+nx, nx+ng, pLBAbtDCt, cnxg, pLBAbtDCt, cnxg, 1, hpQ[N-nn-1], cnz, hpL[N-nn-1], cnl, hdL[N-nn-1]);
 
-			dtrtr_l_lib(nx, nu, hpL[N-nn-1]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-nn-1]+(ncl)*bs, cnl);	
+			dtrtr_l_lib(nx, nu, hpL[N-nn-1]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, 0, hpL[N-nn-1]+(ncl)*bs, cnl);	
 
 			diag_min = d_min_mat(nx+nu, 1, hdL[N-nn-1], 1);
 
@@ -811,7 +811,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 
 			dpotrf_lib(nz, nu+nx, hpL[N-nn-1], cnl, hpL[N-nn-1], cnl, hdL[N-nn-1]);
 
-			dtrtr_l_lib(nx, nu, hpL[N-nn-1]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-nn-1]+(ncl)*bs, cnl);	
+			dtrtr_l_lib(nx, nu, hpL[N-nn-1]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, 0, hpL[N-nn-1]+(ncl)*bs, cnl);	
 
 			diag_min = d_min_mat(nx+nu, 1, hdL[N-nn-1], 1);
 
@@ -963,7 +963,7 @@ void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int
 			}
 		dsyrk_dpotrf_lib(nz, nu+nx, nx+ng, pLBAbtDCt, cnxg, pLBAbtDCt, cnxg, 1, hpQ[0], cnz, hpL[0], cnl, hdL[0]);
 
-		dtrtr_l_lib(nx, nu, hpL[0]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[0]+(ncl)*bs, cnl);	
+		dtrtr_l_lib(nx, nu, hpL[0]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, 0, hpL[0]+(ncl)*bs, cnl);	
 
 
 
@@ -1079,7 +1079,7 @@ void d_back_ric_trf_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, in
 
 	dsyrk_dpotrf_lib(nx+nu%bs, nx+nu%bs, ngN, pLBAbtDCt+(nu/bs)*bs*cngN, cngN, pLBAbtDCt+(nu/bs)*bs*cngN, cngN, 1, hpQ[N]+(nu/bs)*bs*cnux+(nu/bs)*bs*bs, cnux, hpL[N]+(nu/bs)*bs*cnl+(nu/bs)*bs*bs, cnl, hdL[N]+nu);
 
-	dtrtr_l_lib(nx, nu, hpL[N]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N]+(ncl)*bs, cnl);	
+	dtrtr_l_lib(nx, nu, hpL[N]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, 0, hpL[N]+(ncl)*bs, cnl);	
 
 
 	// middle stages 
@@ -1099,7 +1099,7 @@ void d_back_ric_trf_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, in
 
 		dsyrk_dpotrf_lib(nux, nux, nx+ng, pLBAbtDCt, cnxg, pLBAbtDCt, cnxg, 1, hpQ[N-nn-1], cnux, hpL[N-nn-1], cnl, hdL[N-nn-1]);
 
-		dtrtr_l_lib(nx, nu, hpL[N-nn-1]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[N-nn-1]+(ncl)*bs, cnl);	
+		dtrtr_l_lib(nx, nu, hpL[N-nn-1]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, 0, hpL[N-nn-1]+(ncl)*bs, cnl);	
 
 		}
 
@@ -1139,7 +1139,7 @@ void d_back_ric_trf_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, in
 
 		dsyrk_dpotrf_lib(nux, nux, nx+ng, pLBAbtDCt, cnxg, pLBAbtDCt, cnxg, 1, hpQ[0], cnux, hpL[0], cnl, hdL[0]);
 
-		dtrtr_l_lib(nx, nu, hpL[0]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, hpL[0]+(ncl)*bs, cnl);	
+		dtrtr_l_lib(nx, nu, hpL[0]+(nu/bs)*bs*cnl+nu%bs+nu*bs, cnl, 0, hpL[0]+(ncl)*bs, cnl);	
 
 		}
 
@@ -1389,7 +1389,7 @@ void d_ric_diag_trf_mpc(int N, int *nx, int *nu, double **hdA, double **hpBt, do
 		dsyrk_nt_lib(nx0, nx0, nu0, hpL[N-nn-1]+pnu0*cnu0, cnu0, hpL[N-nn-1]+pnu0*cnu0, cnu0, -1, hpP[N-nn-1], cnx0, hpP[N-nn-1], cnx0);
 		//d_print_pmat(nx0, nx0, bs, hpP[N-nn-1], cnx0);
 
-		dtrtr_l_lib(nx0, 0, hpP[N-nn-1], cnx0, hpP[N-nn-1], cnx0);	
+		dtrtr_l_lib(nx0, 0, hpP[N-nn-1], cnx0, 0, hpP[N-nn-1], cnx0);	
 		//d_print_pmat(nx0, nx0, bs, hpP[N-nn-1], cnx0);
 
 		//exit(1);
@@ -1606,7 +1606,7 @@ void d_ric_eye_sv_mpc(int nx, int nu, int N, double **hpBt, double **hpR, double
 		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
 
 		// copy lower triangular to upper triangular
-		dtrtr_l_lib(nx, 0, hpP[N-nn-1], cnx, hpP[N-nn-1], cnx);	
+		dtrtr_l_lib(nx, 0, hpP[N-nn-1], cnx, 0, hpP[N-nn-1], cnx);	
 		//d_print_pmat(nx, nx, bs, hpP[N-nn-1], cnx);
 		//exit(1);
 
@@ -3469,7 +3469,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		for(jj=0; jj<ny; jj++) hpLe[ii][(jj/bs)*bs*cnf+jj%bs+jj*bs] = diag[jj];
 
 		// transpose and align /Pi_e
-		dtrtr_l_lib(nx, ny, hpLe[ii]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, hpLe[ii]+ncl*bs, cnf);	
+		dtrtr_l_lib(nx, ny, hpLe[ii]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, 0, hpLe[ii]+ncl*bs, cnf);	
 		//d_print_pmat(nz, nz, bs, hpLe[ii], cnf);
 
 		// compute A*U', with U' upper cholesky factor of /Pi_e
@@ -3482,7 +3482,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		//d_print_pmat(nw, nw, bs, Lam_w, cnw);
 
 		// transpose in place the lower cholesky factor of Q
-		dtrtr_l_lib(nw, 0, Lam_w, cnw, Lam_w, cnw);	
+		dtrtr_l_lib(nw, 0, Lam_w, cnw, 0, Lam_w, cnw);	
 		//d_print_pmat(nw, nw, bs, Lam_w, cnw);
 
 		// compute G*U', with U' upper cholesky factor of Q
@@ -3504,7 +3504,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[ii+1], cnl);
 
 		// transpose in place the lower cholesky factor of /Pi_p
-		dtrtr_l_lib(nx, 0, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, hpLp[ii+1]+(nx+nw+pad)*bs, cnl);	
+		dtrtr_l_lib(nx, 0, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, 0, hpLp[ii+1]+(nx+nw+pad)*bs, cnl);	
 		//d_print_pmat(nx, cnl, bs, hpLp[ii+1], cnl);
 		//d_print_pmat(nx, nx, bs, hpLp[ii+1]+(nx+nw+pad)*bs, cnl);
 
@@ -3576,7 +3576,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	for(jj=0; jj<ny; jj++) hpLe[N][(jj/bs)*bs*cnf+jj%bs+jj*bs] = diag[jj];
 
 	// transpose and align /Pi_e
-	dtrtr_l_lib(nx, ny, hpLe[N]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, hpLe[N]+ncl*bs, cnf);	
+	dtrtr_l_lib(nx, ny, hpLe[N]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, 0, hpLe[N]+ncl*bs, cnf);	
 	//d_print_pmat(nz, nz, bs, hpLe[N], cnf);
 
 	//exit(1);
@@ -3660,7 +3660,7 @@ void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hp
 		//d_print_pmat(nw, nw, bs, Lam_w, cnw);
 
 		// transpose in place the lower cholesky factor of Q
-		dtrtr_l_lib(nw, 0, Lam_w, cnw, Lam_w, cnw);	
+		dtrtr_l_lib(nw, 0, Lam_w, cnw, 0, Lam_w, cnw);	
 		//d_print_pmat(nw, nw, bs, Lam_w, cnw);
 
 		// compute G*U', with U' upper cholesky factor of Q
@@ -3691,7 +3691,7 @@ void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hp
 		for(jj=0; jj<ny; jj++) hpLp[ii+1][(jj/bs)*bs*cnl+jj%bs+(nx+pad+jj)*bs] = diag[jj];
 
 		// transpose and align Lp
-		dtrtr_l_lib(nx, ny, hpLp[ii+1]+(ny/bs)*bs*cnl+ny%bs+(nx+pad+ny)*bs, cnl, hpLp[ii+1]+(nx+pad+ncl)*bs, cnl);	
+		dtrtr_l_lib(nx, ny, hpLp[ii+1]+(ny/bs)*bs*cnl+ny%bs+(nx+pad+ny)*bs, cnl, 0, hpLp[ii+1]+(nx+pad+ncl)*bs, cnl);	
 		//d_print_pmat(nz, cnl-1, bs, hpLp[ii+1], cnl);
 
 		//exit(1);
@@ -3702,7 +3702,7 @@ void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hp
 	// stage N
 
 	//d_print_pmat(nx, nx, bs, hpLp[N]+(nx+pad+ncl)*bs, cnl);
-	dtrtr_u_lib(nx, hpLp[N]+(nx+pad+ncl)*bs, cnl, GQGt, cnx);
+	dtrtr_u_lib(nx, 0, hpLp[N]+(nx+pad+ncl)*bs, cnl, 0, GQGt, cnx);
 	//d_print_pmat(nx, nx, bs, GQGt, cnx);
 
 	dsyttmm_lu_lib(nx, GQGt, cnx, Pi_p, cnx);
@@ -3778,7 +3778,7 @@ void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hp
 	for(jj=0; jj<ny; jj++) hpLe[N][(jj/bs)*bs*cnf+jj%bs+jj*bs] = diag[jj];
 
 	// transpose and align /Pi_e
-	dtrtr_l_lib(nx, ny, hpLe[N]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, hpLe[N]+ncl*bs, cnf);	
+	dtrtr_l_lib(nx, ny, hpLe[N]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, 0, hpLe[N]+ncl*bs, cnf);	
 	//d_print_pmat(nz, nz, bs, hpLe[N], cnf);
 
 	//dpotrf_lib_old(nz, nz, Lam, cnz, Lam, cnz, diag);
@@ -3880,7 +3880,7 @@ void d_ric_trf_mhe_test(int nx, int nw, int ny, int N, double **hpA, double **hp
 		//d_print_mat(nz, 1, diag, 1);
 
 		// transpose and align the bottom right part of Lam
-		dtrtr_l_lib(nx, ny, Fam+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, Fam+ncl*bs, cnf);	
+		dtrtr_l_lib(nx, ny, Fam+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf, 0, Fam+ncl*bs, cnf);	
 		//d_print_pmat(nz, nz, bs, Fam, cnf);
 
 		// compute upper cholesky factor of /Pi_e using triangular-triangular matrix multiplication
@@ -3898,7 +3898,7 @@ void d_ric_trf_mhe_test(int nx, int nw, int ny, int N, double **hpA, double **hp
 		//d_print_pmat(nw, nw, bs, Lam_w, cnw);
 
 		// transpose in place the lower cholesky factor of Q
-		dtrtr_l_lib(nw, 0, Lam_w, cnw, Lam_w, cnw);	
+		dtrtr_l_lib(nw, 0, Lam_w, cnw, 0, Lam_w, cnw);	
 		//d_print_pmat(nw, nw, bs, Lam_w, cnw);
 
 		// compute G*U', with U' upper cholesky factor of Q
@@ -3912,7 +3912,7 @@ void d_ric_trf_mhe_test(int nx, int nw, int ny, int N, double **hpA, double **hp
 		//d_print_pmat(nx, nx+nw+pad+nx, bs, hpLp[ii+1], cnl);
 
 		// transpose in place the lower cholesky factor of /Pi_p
-		dtrtr_l_lib(nx, 0, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, hpLp[ii+1]+(nx+nw+pad)*bs, cnl);	
+		dtrtr_l_lib(nx, 0, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, 0, hpLp[ii+1]+(nx+nw+pad)*bs, cnl);	
 		//d_print_pmat(nx, cnl, bs, hpLp[ii+1], cnl);
 
 		//exit(1);

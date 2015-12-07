@@ -2795,7 +2795,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 						ptr += pnx*cny;
 						d_cvt_tran_mat2pmat(ny, nx, C+ii*ny*nx, ny, 0, hpCt[ii], cny);
 						dpotrf_lib_old(ny, ny, hpQRAG[ii], cnwx1, Q_temp, cny, diag);
-						dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
+						dtrtr_l_lib(ny, 0, Q_temp, cny, 0, Q_temp, cny);	
 						dtrmm_nt_u_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
 						dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, 0, hpQRAG[ii], cnwx1, hpQRAG[ii], cnwx1);
 						}
@@ -2832,7 +2832,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 						ptr += pnx*cny;
 						d_cvt_tran_mat2pmat(ny, nx, C+ii*ny*nx, ny, 0, hpCt[ii], cny);
 						dpotrf_lib_old(ny, ny, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, Q_temp, cny, diag);
-						dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
+						dtrtr_l_lib(ny, 0, Q_temp, cny, 0, Q_temp, cny);	
 						dtrmm_nt_u_lib(nx, ny, hpCt[ii], cny, Q_temp, cny, Ct_temp, cny);
 						dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, 0, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1, hpQRAG[ii]+(pnw-pnx)*cnwx1, cnwx1);
 						}
@@ -2868,7 +2868,7 @@ int fortran_order_riccati_mhe_if( char prec, int alg,
 				ptr += pnx*cny;
 				d_cvt_tran_mat2pmat(ny, nx, C+N*ny*nx, ny, 0, hpCt[N], cny);
 				dpotrf_lib_old(ny, ny, hpQRAG[N], cnx, Q_temp, cny, diag);
-				dtrtr_l_lib(ny, 0, Q_temp, cny, Q_temp, cny);	
+				dtrtr_l_lib(ny, 0, Q_temp, cny, 0, Q_temp, cny);	
 				dtrmm_nt_u_lib(nx, ny, hpCt[N], cny, Q_temp, cny, Ct_temp, cny);
 				dsyrk_nt_lib(nx, nx, ny, Ct_temp, cny, Ct_temp, cny, 0, hpQRAG[N], cnx, hpQRAG[N], cnx);
 				}

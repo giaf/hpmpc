@@ -265,19 +265,21 @@ int main()
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
 	
+#if 0
 	int nn[] = {4, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300};
 	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 4000, 4000, 2000, 2000, 1000, 1000, 400, 400, 400, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+#else
+	int nn[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 16, 20, 24, 28, 32, 36, 40, 45, 50, 55, 60, 70, 80, 90, 100};
+	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 4000, 4000, 2000, 2000, 1000, 1000, 400, 400, 400, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
+#endif
 	
-	int vnx[] = {8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 512, 1024};
-	int vnrep[] = {100, 100, 100, 100, 100, 100, 50, 50, 50, 20, 10, 10};
-	int vN[] = {4, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256};
-
 	int nx, nu, N, nrep;
 
 	int *nx_v, *nu_v, *nb_v, *ng_v;
 
 	int ll;
 //	int ll_max = 77;
+//	ll_max = 25;
 	int ll_max = 1;
 	for(ll=0; ll<ll_max; ll++)
 		{
@@ -299,10 +301,17 @@ int main()
 			}
 		else
 			{
+#if 0
 			nx = nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
 			nu = 2; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-			N  = 10; // horizon lenght
-			nrep = 2*nnrep[ll];
+			N  = 30; // horizon lenght
+			nrep = nnrep[ll]/10;
+#else
+			nx = 16; // number of states (it has to be even for the mass-spring system test problem)
+			nu = 8; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+			N  = nn[ll]; // horizon lenght
+			nrep = nnrep[ll]/4;
+#endif
 			}
 
 		int rep;
@@ -511,13 +520,15 @@ int main()
 * condensing
 ************************************************/
 		
-#define DIAG_HESSIAN 0 // diagonal Hessian of the cost function
+#define DIAG_HESSIAN 1 // diagonal Hessian of the cost function
 #define Q_N_NOT_ZERO 1 // Q_N is not zero
 
+#if defined(PRINT_ON)
 #if (DIAG_HESSIAN==0)
 		printf("\nDense Hessian of the cost function\n");
 #else
 		printf("\nDiagonal Hessian of the cost function\n");
+#endif
 #endif
 		
 		int cond_alg;
@@ -529,7 +540,9 @@ int main()
 
 
 // N^3 n_x^2 condensing algorithm for MPC
+#if defined(PRINT_ON)
 		printf("\nN^3 n_x^2 condensing algorithm, MPC case\n");
+#endif
 
 		dgeset_lib(N*nu, N*nu, 0.0, 0, pH_R[0], cNnu);
 
@@ -559,7 +572,9 @@ int main()
 
 
 // N^3 n_x^2 condensing algorithm for MHE
+#if defined(PRINT_ON)
 		printf("\nN^3 n_x^2 condensing algorithm, MHE case\n");
+#endif
 
 		dgeset_lib(nx+N*nu, nx+N*nu, 0.0, 0, pH_Rx[0], cnxNnu);
 
@@ -590,7 +605,9 @@ int main()
 
 
 // N^2 n_x^2 condensing algorithm for MPC
+#if defined(PRINT_ON)
 		printf("\nN^2 n_x^2 condensing algorithm, MPC case\n");
+#endif
 
 		dgeset_lib(N*nu, N*nu, 0.0, 0, pH_R[0], cNnu);
 
@@ -623,7 +640,9 @@ int main()
 
 
 // N^2 n_x^2 condensing algorithm for MHE
+#if defined(PRINT_ON)
 		printf("\nN^2 n_x^2 condensing algorithm, MHE case\n");
+#endif
 
 		dgeset_lib(nx+N*nu, nx+N*nu, 0.0, 0, pH_Rx[0], cnxNnu);
 
@@ -656,7 +675,9 @@ int main()
 
 
 // N^2 n_x^3 condensing algorithm for MPC
+#if defined(PRINT_ON)
 		printf("\nN^2 n_x^3 condensing algorithm, MPC case\n");
+#endif
 
 		dgeset_lib(N*nu, N*nu, 0.0, 0, pH_R[0], cNnu);
 
@@ -686,7 +707,9 @@ int main()
 
 
 // N^2 n_x^3 condensing algorithm for MHE
+#if defined(PRINT_ON)
 		printf("\nN^2 n_x^3 condensing algorithm, MHE case\n");
+#endif
 
 		dgeset_lib(nx+N*nu, nx+N*nu, 0.0, 0, pH_Rx[0], cnxNnu);
 
@@ -717,12 +740,21 @@ int main()
 * print restults
 ************************************************/
 
-		printf("\ntime condensing N^3 n_x^2 MPC = %e seconds\n", time_cond_0);
-		printf("\ntime condensing N^2 n_x^2 MPC = %e seconds\n", time_cond_1);
-		printf("\ntime condensing N^2 n_x^3 MPC = %e seconds\n", time_cond_2);
-		printf("\ntime condensing N^3 n_x^2 MHE = %e seconds\n", time_cond_3);
-		printf("\ntime condensing N^2 n_x^2 MHE = %e seconds\n", time_cond_4);
-		printf("\ntime condensing N^2 n_x^3 MHE = %e seconds\n", time_cond_5);
+		if(ll_max==1)
+			{
+			printf("\ntime condensing N^3 n_x^2 MPC = %e seconds\n", time_cond_0);
+			printf("\ntime condensing N^2 n_x^2 MPC = %e seconds\n", time_cond_1);
+			printf("\ntime condensing N^2 n_x^3 MPC = %e seconds\n", time_cond_2);
+			printf("\ntime condensing N^3 n_x^2 MHE = %e seconds\n", time_cond_3);
+			printf("\ntime condensing N^2 n_x^2 MHE = %e seconds\n", time_cond_4);
+			printf("\ntime condensing N^2 n_x^3 MHE = %e seconds\n", time_cond_5);
+			}
+		else
+			{
+			if(ll==0)
+				printf("\nN\tnx\tnu\tN3Nx2MPC\tN2nx3MPC\tN2nx3MPC\tN3nx2MHE\tN2nx2MHE\tN2nx3MHE\n");
+			printf("%d\t%d\t%d\t%e\t%e\t%e\t%e\t%e\t%e\n", N, nx, nu, time_cond_0, time_cond_1, time_cond_2, time_cond_3, time_cond_4, time_cond_5);
+			}
 
 /************************************************
 * free memory

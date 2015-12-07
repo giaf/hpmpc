@@ -115,6 +115,10 @@ void kernel_dgetr_8_lib4(int kmax, int kna, double *A0, int sda, double *C, int 
 		v8, v9, va, vb, vc, vd, ve, vf;
 	
 	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
 	if(kna>0)
 		{
 		for( ; k<kna; k++)
@@ -254,6 +258,9 @@ void kernel_dgetr_8_lib4(int kmax, int kna, double *A0, int sda, double *C, int 
 
 		}
 
+	
+	cleanup_loop:
+
 	for( ; k<kmax; k++)
 		{
 		C[0+bs*0] = A0[0+bs*0];
@@ -287,6 +294,10 @@ void kernel_dgetr_4_lib4(int kmax, int kna, double *A, double *C, int sdc)
 		v0, v1, v2, v3, v4, v5, v6, v7;
 	
 	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
 	if(kna>0)
 		{
 		for( ; k<kna; k++)
@@ -369,6 +380,9 @@ void kernel_dgetr_4_lib4(int kmax, int kna, double *A, double *C, int sdc)
 
 		}
 
+	
+	cleanup_loop:
+
 	for( ; k<kmax; k++)
 		{
 		C[0+bs*0] = A[0+bs*0];
@@ -385,6 +399,185 @@ void kernel_dgetr_4_lib4(int kmax, int kna, double *A, double *C, int sdc)
 
 
 // transposed of general matrices, read along panels, write across panels TODO test if it is the best way
+void kernel_dtrtr_4_lib4(int kmax, int kna, double *A, double *C, int sdc)
+	{
+
+	// A is lower triangular, C is upper triangular
+	// kmax+1 4-wide + end 3x3 triangle
+
+	const int bs = 4;
+	
+	__m256d
+		v0, v1, v2, v3,
+		v4, v5, v6, v7;
+	
+	int k;
+
+	kmax += 1;
+
+	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
+	if(kna>0)
+		{
+		for( ; k<kna; k++)
+			{
+			C[0+bs*0] = A[0+bs*0];
+			C[0+bs*1] = A[1+bs*0];
+			C[0+bs*2] = A[2+bs*0];
+			C[0+bs*3] = A[3+bs*0];
+
+			C += 1;
+			A += bs;
+			}
+		C += bs*(sdc-1);
+		}
+#if 1
+	for( ; k<kmax-7; k+=8)
+		{
+
+		v0 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[0+bs*0] ) ), _mm_load_pd( &A[0+bs*2]) , 0x1 ); // 00 10 02 12
+		v1 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[0+bs*1] ) ), _mm_load_pd( &A[0+bs*3]) , 0x1 ); // 01 11 03 13
+		v2 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[2+bs*0] ) ), _mm_load_pd( &A[2+bs*2]) , 0x1 ); // 20 30 22 32
+		v3 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[2+bs*1] ) ), _mm_load_pd( &A[2+bs*3]) , 0x1 ); // 21 31 23 33
+		
+		A += 4*bs;
+
+		v4 = _mm256_unpacklo_pd( v0, v1 ); // 00 01 02 03
+		v5 = _mm256_unpackhi_pd( v0, v1 ); // 10 11 12 13
+		v6 = _mm256_unpacklo_pd( v2, v3 ); // 20 21 22 23
+		v7 = _mm256_unpackhi_pd( v2, v3 ); // 30 31 32 33
+
+		_mm256_store_pd( &C[0+bs*0], v4 );
+		_mm256_store_pd( &C[0+bs*1], v5 );
+		_mm256_store_pd( &C[0+bs*2], v6 );
+		_mm256_store_pd( &C[0+bs*3], v7 );
+
+		C += sdc*bs;
+
+		v0 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[0+bs*0] ) ), _mm_load_pd( &A[0+bs*2]) , 0x1 );
+		v1 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[0+bs*1] ) ), _mm_load_pd( &A[0+bs*3]) , 0x1 );
+		v2 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[2+bs*0] ) ), _mm_load_pd( &A[2+bs*2]) , 0x1 );
+		v3 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[2+bs*1] ) ), _mm_load_pd( &A[2+bs*3]) , 0x1 );
+		
+		A += 4*bs;
+
+		v4 = _mm256_unpacklo_pd( v0, v1 );
+		v5 = _mm256_unpackhi_pd( v0, v1 );
+		v6 = _mm256_unpacklo_pd( v2, v3 );
+		v7 = _mm256_unpackhi_pd( v2, v3 );
+
+		_mm256_store_pd( &C[0+bs*0], v4 );
+		_mm256_store_pd( &C[0+bs*1], v5 );
+		_mm256_store_pd( &C[0+bs*2], v6 );
+		_mm256_store_pd( &C[0+bs*3], v7 );
+
+		C += sdc*bs;
+
+		}	
+	for( ; k<kmax-3; k+=4)
+		{
+
+		v0 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[0+bs*0] ) ), _mm_load_pd( &A[0+bs*2]) , 0x1 ); // 00 10 02 12
+		v1 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[0+bs*1] ) ), _mm_load_pd( &A[0+bs*3]) , 0x1 ); // 01 11 03 13
+		v2 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[2+bs*0] ) ), _mm_load_pd( &A[2+bs*2]) , 0x1 ); // 20 30 22 32
+		v3 = _mm256_insertf128_pd( _mm256_castpd128_pd256( _mm_load_pd( &A[2+bs*1] ) ), _mm_load_pd( &A[2+bs*3]) , 0x1 ); // 21 31 23 33
+		
+		A += 4*bs;
+
+		v4 = _mm256_unpacklo_pd( v0, v1 ); // 00 01 02 03
+		v5 = _mm256_unpackhi_pd( v0, v1 ); // 10 11 12 13
+		v6 = _mm256_unpacklo_pd( v2, v3 ); // 20 21 22 23
+		v7 = _mm256_unpackhi_pd( v2, v3 ); // 30 31 32 33
+
+		_mm256_store_pd( &C[0+bs*0], v4 );
+		_mm256_store_pd( &C[0+bs*1], v5 );
+		_mm256_store_pd( &C[0+bs*2], v6 );
+		_mm256_store_pd( &C[0+bs*3], v7 );
+
+		C += sdc*bs;
+
+		}
+
+#else
+	for( ; k<kmax-3; k+=4)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[0+bs*3] = A[3+bs*0];
+
+		C[1+bs*0] = A[0+bs*1];
+		C[1+bs*1] = A[1+bs*1];
+		C[1+bs*2] = A[2+bs*1];
+		C[1+bs*3] = A[3+bs*1];
+
+		C[2+bs*0] = A[0+bs*2];
+		C[2+bs*1] = A[1+bs*2];
+		C[2+bs*2] = A[2+bs*2];
+		C[2+bs*3] = A[3+bs*2];
+
+		C[3+bs*0] = A[0+bs*3];
+		C[3+bs*1] = A[1+bs*3];
+		C[3+bs*2] = A[2+bs*3];
+		C[3+bs*3] = A[3+bs*3];
+
+		C += bs*sdc;
+		A += bs*bs;
+		}
+#endif
+
+	cleanup_loop:
+
+	for( ; k<kmax; k++)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[0+bs*3] = A[3+bs*0];
+
+		C += 1;
+		A += bs;
+		}
+
+	// end 3x3 triangle
+	kna = (bs-(bs-kna+kmax)%bs)%bs;
+
+	if(kna==1)
+		{
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[0+bs*3] = A[3+bs*0];
+		C[1+bs*(sdc+1)] = A[2+bs*1];
+		C[1+bs*(sdc+2)] = A[3+bs*1];
+		C[2+bs*(sdc+2)] = A[3+bs*2];
+		}
+	else if(kna==2)
+		{
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[0+bs*3] = A[3+bs*0];
+		C[1+bs*2] = A[2+bs*1];
+		C[1+bs*3] = A[3+bs*1];
+		C[2+bs*(sdc+2)] = A[3+bs*2];
+		}
+	else
+		{
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[0+bs*3] = A[3+bs*0];
+		C[1+bs*2] = A[2+bs*1];
+		C[1+bs*3] = A[3+bs*1];
+		C[2+bs*3] = A[3+bs*2];
+		}
+
+	}
+
+
+
+// transposed of general matrices, read along panels, write across panels TODO test if it is the best way
 void kernel_dgetr_3_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	{
 
@@ -393,6 +586,10 @@ void kernel_dgetr_3_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	int k;
 
 	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
 	if(kna>0)
 		{
 		for( ; k<kna; k++)
@@ -428,6 +625,9 @@ void kernel_dgetr_3_lib4(int kmax, int kna, double *A, double *C, int sdc)
 		C += bs*sdc;
 		A += bs*bs;
 		}
+	
+	cleanup_loop:
+
 	for( ; k<kmax; k++)
 		{
 		C[0+bs*0] = A[0+bs*0];
@@ -443,6 +643,92 @@ void kernel_dgetr_3_lib4(int kmax, int kna, double *A, double *C, int sdc)
 
 
 // transposed of general matrices, read along panels, write across panels TODO test if it is the best way
+void kernel_dtrtr_3_lib4(int kmax, int kna, double *A, double *C, int sdc)
+	{
+
+	// A is lower triangular, C is upper triangular
+	// kmax+1 3-wide + end 2x2 triangle
+
+	const int bs = 4;
+	
+	int k;
+
+	kmax += 1;
+
+	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
+	if(kna>0)
+		{
+		for( ; k<kna; k++)
+			{
+			C[0+bs*0] = A[0+bs*0];
+			C[0+bs*1] = A[1+bs*0];
+			C[0+bs*2] = A[2+bs*0];
+
+			C += 1;
+			A += bs;
+			}
+		C += bs*(sdc-1);
+		}
+	
+	for( ; k<kmax-3; k+=4)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+
+		C[1+bs*0] = A[0+bs*1];
+		C[1+bs*1] = A[1+bs*1];
+		C[1+bs*2] = A[2+bs*1];
+
+		C[2+bs*0] = A[0+bs*2];
+		C[2+bs*1] = A[1+bs*2];
+		C[2+bs*2] = A[2+bs*2];
+
+		C[3+bs*0] = A[0+bs*3];
+		C[3+bs*1] = A[1+bs*3];
+		C[3+bs*2] = A[2+bs*3];
+
+		C += bs*sdc;
+		A += bs*bs;
+		}
+	
+	cleanup_loop:
+
+	for( ; k<kmax; k++)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+
+		C += 1;
+		A += bs;
+		}
+
+	// end 2x2 triangle
+	kna = (bs-(bs-kna+kmax)%bs)%bs;
+
+	if(kna==1)
+		{
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[1+bs*(sdc+1)] = A[2+bs*1];
+		}
+	else
+		{
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[1+bs*2] = A[2+bs*1];
+		}
+
+	}
+
+
+
+// transposed of general matrices, read along panels, write across panels TODO test if it is the best way
 void kernel_dgetr_2_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	{
 
@@ -451,6 +737,10 @@ void kernel_dgetr_2_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	int k;
 
 	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
 	if(kna>0)
 		{
 		for( ; k<kna; k++)
@@ -481,6 +771,9 @@ void kernel_dgetr_2_lib4(int kmax, int kna, double *A, double *C, int sdc)
 		C += bs*sdc;
 		A += bs*bs;
 		}
+	
+	cleanup_loop:
+
 	for( ; k<kmax; k++)
 		{
 		C[0+bs*0] = A[0+bs*0];
@@ -495,6 +788,73 @@ void kernel_dgetr_2_lib4(int kmax, int kna, double *A, double *C, int sdc)
 
 
 // transposed of general matrices, read along panels, write across panels TODO test if it is the best way
+void kernel_dtrtr_2_lib4(int kmax, int kna, double *A, double *C, int sdc)
+	{
+
+	// A is lower triangular, C is upper triangular
+	// kmax+1 2-wide + end 1x1 triangle
+
+	const int bs = 4;
+	
+	int k;
+
+	kmax += 1;
+
+	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
+	if(kna>0)
+		{
+		for( ; k<kna; k++)
+			{
+			C[0+bs*0] = A[0+bs*0];
+			C[0+bs*1] = A[1+bs*0];
+
+			C += 1;
+			A += bs;
+			}
+		C += bs*(sdc-1);
+		}
+	
+	for( ; k<kmax-3; k+=4)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+
+		C[1+bs*0] = A[0+bs*1];
+		C[1+bs*1] = A[1+bs*1];
+
+		C[2+bs*0] = A[0+bs*2];
+		C[2+bs*1] = A[1+bs*2];
+
+		C[3+bs*0] = A[0+bs*3];
+		C[3+bs*1] = A[1+bs*3];
+
+		C += bs*sdc;
+		A += bs*bs;
+		}
+	
+	cleanup_loop:
+
+	for( ; k<kmax; k++)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+
+		C += 1;
+		A += bs;
+		}
+	
+	// end 1x1 triangle
+	C[0+bs*1] = A[1+bs*0];
+
+	}
+
+
+
+// transposed of general matrices, read along panels, write across panels TODO test if it is the best way
 void kernel_dgetr_1_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	{
 
@@ -503,6 +863,10 @@ void kernel_dgetr_1_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	int k;
 
 	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
 	if(kna>0)
 		{
 		for( ; k<kna; k++)
@@ -528,6 +892,9 @@ void kernel_dgetr_1_lib4(int kmax, int kna, double *A, double *C, int sdc)
 		C += bs*sdc;
 		A += bs*bs;
 		}
+	
+	cleanup_loop:
+
 	for( ; k<kmax; k++)
 		{
 		C[0+bs*0] = A[0+bs*0];

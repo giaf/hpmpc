@@ -144,11 +144,14 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg);
 void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg);
 void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg);
-void kernel_dgetr_4_lib4(int kmax, int kna, double *A, double *C, int sdc);
 void kernel_dgetr_8_lib4(int kmax, int kna, double *A, int sda, double *C, int sdc);
+void kernel_dgetr_4_lib4(int kmax, int kna, double *A, double *C, int sdc);
 void kernel_dgetr_3_lib4(int kmax, int kna, double *A, double *C, int sdc);
 void kernel_dgetr_2_lib4(int kmax, int kna, double *A, double *C, int sdc);
 void kernel_dgetr_1_lib4(int kmax, int kna, double *A, double *C, int sdc);
+void kernel_dtrtr_4_lib4(int kmax, int kna, double *A, double *C, int sdc);
+void kernel_dtrtr_3_lib4(int kmax, int kna, double *A, double *C, int sdc);
+void kernel_dtrtr_2_lib4(int kmax, int kna, double *A, double *C, int sdc);
 void kernel_dtrtr_l_8_lib4(int kmax, int kna, double *A, int sda, double *C, int sdc);
 void kernel_dtrtr_l_4_lib4(int kmax, int kna, double *A, int sda, double *C);
 void kernel_dsyttmm_lu_nt_4x4_lib4(int kmax, double *A, double *C);

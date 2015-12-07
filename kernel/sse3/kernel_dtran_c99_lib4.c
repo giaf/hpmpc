@@ -101,6 +101,10 @@ void kernel_dgetr_4_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	int k;
 
 	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
 	if(kna>0)
 		{
 		for( ; k<kna; k++)
@@ -141,6 +145,9 @@ void kernel_dgetr_4_lib4(int kmax, int kna, double *A, double *C, int sdc)
 		C += bs*sdc;
 		A += bs*bs;
 		}
+	
+	cleanup_loop:
+
 	for( ; k<kmax; k++)
 		{
 		C[0+bs*0] = A[0+bs*0];
@@ -157,6 +164,114 @@ void kernel_dgetr_4_lib4(int kmax, int kna, double *A, double *C, int sdc)
 
 
 // transposed of general matrices, read along panels, write across panels TODO test if it is the best way
+void kernel_dtrtr_4_lib4(int kmax, int kna, double *A, double *C, int sdc)
+	{
+
+	// A is lower triangular, C is upper triangular
+	// kmax+1 4-wide + end 3x3 triangle
+
+	const int bs = 4;
+	const int bs = 4;
+	
+	int k;
+
+	kmax += 1;
+
+	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
+	if(kna>0)
+		{
+		for( ; k<kna; k++)
+			{
+			C[0+bs*0] = A[0+bs*0];
+			C[0+bs*1] = A[1+bs*0];
+			C[0+bs*2] = A[2+bs*0];
+			C[0+bs*3] = A[3+bs*0];
+
+			C += 1;
+			A += bs;
+			}
+		C += bs*(sdc-1);
+		}
+	
+	for( ; k<kmax-3; k+=4)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[0+bs*3] = A[3+bs*0];
+
+		C[1+bs*0] = A[0+bs*1];
+		C[1+bs*1] = A[1+bs*1];
+		C[1+bs*2] = A[2+bs*1];
+		C[1+bs*3] = A[3+bs*1];
+
+		C[2+bs*0] = A[0+bs*2];
+		C[2+bs*1] = A[1+bs*2];
+		C[2+bs*2] = A[2+bs*2];
+		C[2+bs*3] = A[3+bs*2];
+
+		C[3+bs*0] = A[0+bs*3];
+		C[3+bs*1] = A[1+bs*3];
+		C[3+bs*2] = A[2+bs*3];
+		C[3+bs*3] = A[3+bs*3];
+
+		C += bs*sdc;
+		A += bs*bs;
+		}
+
+	cleanup_loop:
+
+	for( ; k<kmax; k++)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[0+bs*3] = A[3+bs*0];
+
+		C += 1;
+		A += bs;
+		}
+
+	// end 3x3 triangle
+	kna = (bs-(bs-kna+kmax)%bs)%bs;
+
+	if(kna==1)
+		{
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[0+bs*3] = A[3+bs*0];
+		C[1+bs*(sdc+1)] = A[2+bs*1];
+		C[1+bs*(sdc+2)] = A[3+bs*1];
+		C[2+bs*(sdc+2)] = A[3+bs*2];
+		}
+	else if(kna==2)
+		{
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[0+bs*3] = A[3+bs*0];
+		C[1+bs*2] = A[2+bs*1];
+		C[1+bs*3] = A[3+bs*1];
+		C[2+bs*(sdc+2)] = A[3+bs*2];
+		}
+	else
+		{
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[0+bs*3] = A[3+bs*0];
+		C[1+bs*2] = A[2+bs*1];
+		C[1+bs*3] = A[3+bs*1];
+		C[2+bs*3] = A[3+bs*2];
+		}
+
+	}
+
+
+
+// transposed of general matrices, read along panels, write across panels TODO test if it is the best way
 void kernel_dgetr_3_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	{
 
@@ -165,6 +280,10 @@ void kernel_dgetr_3_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	int k;
 
 	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
 	if(kna>0)
 		{
 		for( ; k<kna; k++)
@@ -200,6 +319,9 @@ void kernel_dgetr_3_lib4(int kmax, int kna, double *A, double *C, int sdc)
 		C += bs*sdc;
 		A += bs*bs;
 		}
+	
+	cleanup_loop:
+
 	for( ; k<kmax; k++)
 		{
 		C[0+bs*0] = A[0+bs*0];
@@ -215,6 +337,92 @@ void kernel_dgetr_3_lib4(int kmax, int kna, double *A, double *C, int sdc)
 
 
 // transposed of general matrices, read along panels, write across panels TODO test if it is the best way
+void kernel_dtrtr_3_lib4(int kmax, int kna, double *A, double *C, int sdc)
+	{
+
+	// A is lower triangular, C is upper triangular
+	// kmax+1 3-wide + end 2x2 triangle
+
+	const int bs = 4;
+	
+	int k;
+
+	kmax += 1;
+
+	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
+	if(kna>0)
+		{
+		for( ; k<kna; k++)
+			{
+			C[0+bs*0] = A[0+bs*0];
+			C[0+bs*1] = A[1+bs*0];
+			C[0+bs*2] = A[2+bs*0];
+
+			C += 1;
+			A += bs;
+			}
+		C += bs*(sdc-1);
+		}
+	
+	for( ; k<kmax-3; k+=4)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+
+		C[1+bs*0] = A[0+bs*1];
+		C[1+bs*1] = A[1+bs*1];
+		C[1+bs*2] = A[2+bs*1];
+
+		C[2+bs*0] = A[0+bs*2];
+		C[2+bs*1] = A[1+bs*2];
+		C[2+bs*2] = A[2+bs*2];
+
+		C[3+bs*0] = A[0+bs*3];
+		C[3+bs*1] = A[1+bs*3];
+		C[3+bs*2] = A[2+bs*3];
+
+		C += bs*sdc;
+		A += bs*bs;
+		}
+	
+	cleanup_loop:
+
+	for( ; k<kmax; k++)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+
+		C += 1;
+		A += bs;
+		}
+
+	// end 2x2 triangle
+	kna = (bs-(bs-kna+kmax)%bs)%bs;
+
+	if(kna==1)
+		{
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[1+bs*(sdc+1)] = A[2+bs*1];
+		}
+	else
+		{
+		C[0+bs*1] = A[1+bs*0];
+		C[0+bs*2] = A[2+bs*0];
+		C[1+bs*2] = A[2+bs*1];
+		}
+
+	}
+
+
+
+// transposed of general matrices, read along panels, write across panels TODO test if it is the best way
 void kernel_dgetr_2_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	{
 
@@ -223,6 +431,10 @@ void kernel_dgetr_2_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	int k;
 
 	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
 	if(kna>0)
 		{
 		for( ; k<kna; k++)
@@ -253,6 +465,9 @@ void kernel_dgetr_2_lib4(int kmax, int kna, double *A, double *C, int sdc)
 		C += bs*sdc;
 		A += bs*bs;
 		}
+	
+	cleanup_loop:
+
 	for( ; k<kmax; k++)
 		{
 		C[0+bs*0] = A[0+bs*0];
@@ -267,6 +482,73 @@ void kernel_dgetr_2_lib4(int kmax, int kna, double *A, double *C, int sdc)
 
 
 // transposed of general matrices, read along panels, write across panels TODO test if it is the best way
+void kernel_dtrtr_2_lib4(int kmax, int kna, double *A, double *C, int sdc)
+	{
+
+	// A is lower triangular, C is upper triangular
+	// kmax+1 2-wide + end 1x1 triangle
+
+	const int bs = 4;
+	
+	int k;
+
+	kmax += 1;
+
+	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
+	if(kna>0)
+		{
+		for( ; k<kna; k++)
+			{
+			C[0+bs*0] = A[0+bs*0];
+			C[0+bs*1] = A[1+bs*0];
+
+			C += 1;
+			A += bs;
+			}
+		C += bs*(sdc-1);
+		}
+	
+	for( ; k<kmax-3; k+=4)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+
+		C[1+bs*0] = A[0+bs*1];
+		C[1+bs*1] = A[1+bs*1];
+
+		C[2+bs*0] = A[0+bs*2];
+		C[2+bs*1] = A[1+bs*2];
+
+		C[3+bs*0] = A[0+bs*3];
+		C[3+bs*1] = A[1+bs*3];
+
+		C += bs*sdc;
+		A += bs*bs;
+		}
+	
+	cleanup_loop:
+
+	for( ; k<kmax; k++)
+		{
+		C[0+bs*0] = A[0+bs*0];
+		C[0+bs*1] = A[1+bs*0];
+
+		C += 1;
+		A += bs;
+		}
+	
+	// end 1x1 triangle
+	C[0+bs*1] = A[1+bs*0];
+
+	}
+
+
+
+// transposed of general matrices, read along panels, write across panels TODO test if it is the best way
 void kernel_dgetr_1_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	{
 
@@ -275,6 +557,10 @@ void kernel_dgetr_1_lib4(int kmax, int kna, double *A, double *C, int sdc)
 	int k;
 
 	k = 0;
+
+	if(kmax<kna)
+		goto cleanup_loop;
+
 	if(kna>0)
 		{
 		for( ; k<kna; k++)
@@ -300,6 +586,9 @@ void kernel_dgetr_1_lib4(int kmax, int kna, double *A, double *C, int sdc)
 		C += bs*sdc;
 		A += bs*bs;
 		}
+	
+	cleanup_loop:
+
 	for( ; k<kmax; k++)
 		{
 		C[0+bs*0] = A[0+bs*0];

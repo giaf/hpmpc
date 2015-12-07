@@ -6025,16 +6025,17 @@ void dtrsv_t_lib_old(int m, int n, int inverted_diag, double *pA, int sda, doubl
 
 
 
-// transpose & align lower triangular matrix
-void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
+// transpose lower triangular matrix
+void dtrtr_l_lib(int m, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc)
 	{
 
+#if 0
 	if(m<=0)
 		return;
 	
 	const int bs = 4;
 	
-	int mna = (bs-offset%bs)%bs;
+	int mna = (bs-offsetA%bs)%bs;
 	
 	int j;
 	
@@ -6069,7 +6070,496 @@ void dtrtr_l_lib(int m, int offset, double *pA, int sda, double *pC, int sdc)
 		{
 		corner_dtrtr_l_3_lib4(mna, pA, sda, pC);
 		}
+#else
+
+/*
+
+A = 
+ x
+ x x
+ x x x
+ x x x x
+  
+ x x x x x
+ x x x x x x
+ x x x x x x x
+ x x x x x x x x
+
+C =
+ x x x x x x x x
+  
+   x x x x x x x
+     x x x x x x
+	   x x x x x
+	     x x x x
+
+	       x x x
+	         x x
+	           x
+
+*/
+
+	int n = m;
+
+	if(m<=0 || n<=0)
+		return;
+
+	const int bs = 4;
+
+	int mna = (bs-offsetA%bs)%bs;
+	mna = m<mna ? m : mna;
+	int nna = (bs-offsetC%bs)%bs;
+	nna = n<nna ? n : nna;
 	
+	int ii;
+
+	ii = 0;
+
+	if(mna>0)
+		{
+		if(mna==1)
+			{
+			pC[0] = pA[0];
+			}
+		else if(mna==2)
+			{
+			if(nna==1)
+				{
+				pC[0+bs*0] = pA[0+bs*0];
+				pC[0+bs*1] = pA[1+bs*0];
+				pC[1+bs*(0+sdc)] = pA[1+bs*1];
+				}
+			else
+				{
+				pC[0+bs*0] = pA[0+bs*0];
+				pC[0+bs*1] = pA[1+bs*0];
+				pC[1+bs*1] = pA[1+bs*1];
+				}
+			}
+		else //if(mna==3)
+			{
+			if(nna==1)
+				{
+				pC[0+bs*0] = pA[0+bs*0];
+				pC[0+bs*1] = pA[1+bs*0];
+				pC[0+bs*2] = pA[2+bs*0];
+				pC[1+bs*(0+sdc)] = pA[1+bs*1];
+				pC[1+bs*(1+sdc)] = pA[2+bs*1];
+				pC[2+bs*(1+sdc)] = pA[2+bs*2];
+				}
+			else if(nna==2)
+				{
+				pC[0+bs*0] = pA[0+bs*0];
+				pC[0+bs*1] = pA[1+bs*0];
+				pC[0+bs*2] = pA[2+bs*0];
+				pC[1+bs*1] = pA[1+bs*1];
+				pC[1+bs*2] = pA[2+bs*1];
+				pC[2+bs*(1+sdc)] = pA[2+bs*2];
+				}
+			else
+				{
+				pC[0+bs*0] = pA[0+bs*0];
+				pC[0+bs*1] = pA[1+bs*0];
+				pC[0+bs*2] = pA[2+bs*0];
+				pC[1+bs*1] = pA[1+bs*1];
+				pC[1+bs*2] = pA[2+bs*1];
+				pC[2+bs*2] = pA[2+bs*2];
+				}
+			}
+		ii += mna;
+		pA += mna + bs*(sda-1);
+		pC += mna*bs;
+		}
+#if 0 //defined(TARGET_X64_AVX2)
+	for( ; ii<m-7; ii+=8)
+		{
+		kernel_dgetr_8_lib4(n, nna, pA, sda, pC, sdc);
+		pA += 2*bs*sda;
+		pC += 2*bs*bs;
+		}
+#endif
+	for( ; ii<m-3; ii+=4)
+		{
+		kernel_dtrtr_4_lib4(ii, nna, pA, pC, sdc);
+		pA += bs*sda;
+		pC += bs*bs;
+		}
+	
+	// clean-up at the end using smaller kernels
+	if(ii==m)
+		return;
+	
+	if(m-ii==1)
+		kernel_dgetr_1_lib4(ii+1, nna, pA, pC, sdc);
+	else if(m-ii==2)
+		kernel_dtrtr_2_lib4(ii, nna, pA, pC, sdc);
+	else if(m-ii==3)
+		kernel_dtrtr_3_lib4(ii, nna, pA, pC, sdc);
+		
+	return;
+
+#endif
+	
+	}
+
+
+
+// transpose an aligned upper triangular matrix into an aligned lower triangular matrix
+void dtrtr_u_lib(int m, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc)
+	{
+
+/*
+
+A = 
+ x x x x x x x x
+   x x x x x x x
+
+     x x x x x x
+       x x x x x
+         x x x x
+           x x x
+             x x
+               x
+
+C = 
+ x
+
+ x x
+ x x x
+ x x x x
+ x x x x x
+ x x x x x x
+ x x x x x x x
+ x x x x x x x x
+
+*/
+
+#if 0
+
+	if(m<=0)
+		return;
+
+	const int bs = 4;
+
+	int ii;
+
+	for(ii=0; ii<m-3; ii+=4)
+		{
+		kernel_dtrtr_u_4_lib4(m-ii, pA+ii*sda+ii*bs, pC+ii*sdc+ii*bs, sdc);
+		}
+	
+	if(ii<m)
+		{
+		if(m-ii==1)
+			{
+			pC[ii*sdc+ii*bs] = pA[ii*sda+ii*bs];
+			}
+		else if(m-ii==2)
+			{
+			pC[ii*sdc+(ii+0)*bs+0] = pA[ii*sda+(ii+0)*bs+0];
+			pC[ii*sdc+(ii+0)*bs+1] = pA[ii*sda+(ii+1)*bs+0];
+			pC[ii*sdc+(ii+1)*bs+1] = pA[ii*sda+(ii+1)*bs+1];
+			}
+		else // if(m-ii==3)
+			{
+			pC[ii*sdc+(ii+0)*bs+0] = pA[ii*sda+(ii+0)*bs+0];
+			pC[ii*sdc+(ii+0)*bs+1] = pA[ii*sda+(ii+1)*bs+0];
+			pC[ii*sdc+(ii+0)*bs+2] = pA[ii*sda+(ii+2)*bs+0];
+			pC[ii*sdc+(ii+1)*bs+1] = pA[ii*sda+(ii+1)*bs+1];
+			pC[ii*sdc+(ii+1)*bs+2] = pA[ii*sda+(ii+2)*bs+1];
+			pC[ii*sdc+(ii+2)*bs+2] = pA[ii*sda+(ii+2)*bs+2];
+			}
+
+		}
+
+#else
+
+	int n = m;
+
+	if(m<=0 || n<=0)
+		return;
+
+	const int bs = 4;
+
+	int mna = (bs-offsetA%bs)%bs;
+	mna = m<mna ? m : mna;
+	int nna = (bs-offsetC%bs)%bs;
+	nna = n<nna ? n : nna;
+	int tna = nna;
+	
+	int ii;
+
+	ii = 0;
+
+	if(mna>0)
+		{
+		if(mna==1)
+			{
+			kernel_dgetr_1_lib4(n, nna, pA, pC, sdc);
+			if(nna!=1)
+				{
+//				pC[0+bs*0] = pA[0+bs*0];
+				pA += 1*bs;
+				pC += 1;
+				tna = (bs-(offsetC+1)%bs)%bs;
+				}
+			else //if(nna==1)
+				{
+//				pC[0+bs*0] = pA[0+bs*0];
+				pA += 1*bs;
+				pC += 1 + (sdc-1)*bs;
+				tna = 0; //(bs-(offsetC+1)%bs)%bs;
+				}
+//			kernel_dgetr_1_lib4(n-1, tna, pA, pC, sdc);
+			}
+		else if(mna==2)
+			{
+			if(nna==0 || nna==3)
+				{
+				pC[0+bs*0] = pA[0+bs*0];
+				pC[1+bs*0] = pA[0+bs*1];
+				pC[1+bs*1] = pA[1+bs*1];
+				pA += 2*bs;
+				pC += 2;
+				tna = (bs-(offsetC+2)%bs)%bs;
+				kernel_dgetr_2_lib4(n-2, tna, pA, pC, sdc);
+				}
+			else if(nna==1)
+				{
+				pC[0+bs*0] = pA[0+bs*0];
+				pA += 1*bs;
+				pC += 1 + (sdc-1)*bs;
+//				pC[0+bs*0] = pA[0+bs*0];
+//				pC[0+bs*1] = pA[1+bs*0];
+				kernel_dgetr_2_lib4(n-1, 0, pA, pC, sdc);
+				pA += 1*bs;
+				pC += 1;
+				tna = 3; //(bs-(offsetC+2)%bs)%bs;
+//				kernel_dgetr_2_lib4(n-2, tna, pA, pC, sdc);
+				}
+			else if(nna==2)
+				{
+				pC[0+bs*0] = pA[0+bs*0];
+				pC[1+bs*0] = pA[0+bs*1];
+				pC[1+bs*1] = pA[1+bs*1];
+				pA += 2*bs;
+				pC += 2 + (sdc-1)*bs;
+				tna = 0; //(bs-(offsetC+2)%bs)%bs;
+				kernel_dgetr_2_lib4(n-2, tna, pA, pC, sdc);
+				}
+			}
+		else //if(mna==3)
+			{
+			if(nna==0)
+				{
+				pC[0+bs*0] = pA[0+bs*0];
+				pC[1+bs*0] = pA[0+bs*1];
+				pC[1+bs*1] = pA[1+bs*1];
+				pC[2+bs*0] = pA[0+bs*2];
+				pC[2+bs*1] = pA[1+bs*2];
+				pC[2+bs*2] = pA[2+bs*2];
+				pA += 3*bs;
+				pC += 3;
+				tna = 1;
+				kernel_dgetr_3_lib4(n-3, tna, pA, pC, sdc);
+				}
+			else if(nna==1)
+				{
+				pC[0+bs*0] = pA[0+bs*0];
+				pA += bs;
+				pC += 1 + (sdc-1)*bs;
+				pC[0+bs*0] = pA[0+bs*0];
+				pC[0+bs*1] = pA[1+bs*0];
+				pC[1+bs*0] = pA[0+bs*1];
+				pC[1+bs*1] = pA[1+bs*1];
+				pC[1+bs*2] = pA[2+bs*1];
+				pA += 2*bs;
+				pC += 2;
+				tna = 2;
+				kernel_dgetr_3_lib4(n-3, tna, pA, pC, sdc);
+				}
+			else if(nna==2)
+				{
+				pC[0+bs*0] = pA[0+bs*0];
+				pC[1+bs*0] = pA[0+bs*1];
+				pC[1+bs*1] = pA[1+bs*1];
+				pA += 2*bs;
+				pC += 2 + (sdc-1)*bs;
+//				pC[0+bs*0] = pA[0+bs*0];
+//				pC[0+bs*1] = pA[1+bs*0];
+//				pC[0+bs*2] = pA[2+bs*0];
+				kernel_dgetr_3_lib4(n-2, 0, pA, pC, sdc);
+				pA += 1*bs;
+				pC += 1;
+				tna = 3;
+//				kernel_dgetr_3_lib4(n-3, tna, pA, pC, sdc);
+				}
+			else //if(nna==3)
+				{
+				pC[0+bs*0] = pA[0+bs*0];
+				pC[1+bs*0] = pA[0+bs*1];
+				pC[1+bs*1] = pA[1+bs*1];
+				pC[2+bs*0] = pA[0+bs*2];
+				pC[2+bs*1] = pA[1+bs*2];
+				pC[2+bs*2] = pA[2+bs*2];
+				pA += 3*bs;
+				pC += 3 + (sdc-1)*bs;
+				tna = 0;
+				kernel_dgetr_3_lib4(n-3, tna, pA, pC, sdc);
+				}
+			}
+		ii += mna;
+		pA += mna + bs*(sda-1);
+		pC += mna*bs;
+		}
+#if 0 //defined(TARGET_X64_AVX2)
+	for( ; ii<m-7; ii+=8)
+		{
+		kernel_dgetr_8_lib4(n, nna, pA, sda, pC, sdc);
+		pA += 2*bs*sda;
+		pC += 2*bs*bs;
+		}
+#endif
+	for( ; ii<m-3; ii+=4)
+		{
+		if(tna==0)
+			{
+			pC[0+bs*0] = pA[0+bs*0];
+			pC[1+bs*0] = pA[0+bs*1];
+			pC[1+bs*1] = pA[1+bs*1];
+			pC[2+bs*0] = pA[0+bs*2];
+			pC[2+bs*1] = pA[1+bs*2];
+			pC[2+bs*2] = pA[2+bs*2];
+			pC[3+bs*0] = pA[0+bs*3];
+			pC[3+bs*1] = pA[1+bs*3];
+			pC[3+bs*2] = pA[2+bs*3];
+			pC[3+bs*3] = pA[3+bs*3];
+			pA += 4*bs;
+			pC += sdc*bs;
+			kernel_dgetr_4_lib4(n-ii-4, 0, pA, pC, sdc);
+			}
+		else if(tna==1)
+			{
+			pC[0+bs*0] = pA[0+bs*0];
+			pA += bs;
+			pC += 1 + (sdc-1)*bs;
+			pC[0+bs*0] = pA[0+bs*0];
+			pC[0+bs*1] = pA[1+bs*0];
+			pC[1+bs*0] = pA[0+bs*1];
+			pC[1+bs*1] = pA[1+bs*1];
+			pC[1+bs*2] = pA[2+bs*1];
+			pC[2+bs*0] = pA[0+bs*2];
+			pC[2+bs*1] = pA[1+bs*2];
+			pC[2+bs*2] = pA[2+bs*2];
+			pC[2+bs*3] = pA[3+bs*2];
+			pA += 3*bs;
+			pC += 3;
+			kernel_dgetr_4_lib4(n-ii-4, 1, pA, pC, sdc);
+			}
+		else if(tna==2)
+			{
+			pC[0+bs*0] = pA[0+bs*0];
+			pC[1+bs*0] = pA[0+bs*1];
+			pC[1+bs*1] = pA[1+bs*1];
+			pA += 2*bs;
+			pC += 2 + (sdc-1)*bs;
+			pC[0+bs*0] = pA[0+bs*0];
+			pC[0+bs*1] = pA[1+bs*0];
+			pC[0+bs*2] = pA[2+bs*0];
+			pC[1+bs*0] = pA[0+bs*1];
+			pC[1+bs*1] = pA[1+bs*1];
+			pC[1+bs*2] = pA[2+bs*1];
+			pC[1+bs*3] = pA[3+bs*1];
+			pA += 2*bs;
+			pC += 2;
+			kernel_dgetr_4_lib4(n-ii-4, 2, pA, pC, sdc);
+			}
+		else //if(tna==3)
+			{
+			pC[0+bs*0] = pA[0+bs*0];
+			pC[1+bs*0] = pA[0+bs*1];
+			pC[1+bs*1] = pA[1+bs*1];
+			pC[2+bs*0] = pA[0+bs*2];
+			pC[2+bs*1] = pA[1+bs*2];
+			pC[2+bs*2] = pA[2+bs*2];
+			pA += 3*bs;
+			pC += 3 + (sdc-1)*bs;
+			kernel_dgetr_4_lib4(n-ii-3, 0, pA, pC, sdc);
+//			pC[0+bs*0] = pA[0+bs*0];
+//			pC[0+bs*1] = pA[1+bs*0];
+//			pC[0+bs*2] = pA[2+bs*0];
+//			pC[0+bs*3] = pA[3+bs*0];
+			pA += bs;
+			pC += 1;
+//			kernel_dgetr_4_lib4(n-ii-4, tna, pA, pC, sdc);
+			}
+		pA += bs*sda;
+		pC += bs*bs;
+		}
+
+	// clean-up at the end
+	if(ii==m)
+		return;
+	
+	if(m-ii==1)
+		{
+		pC[0+bs*0] = pA[0+bs*0];
+		}
+	else if(m-ii==2)
+		{
+		if(tna!=1)
+			{
+			pC[0+bs*0] = pA[0+bs*0];
+			pC[1+bs*0] = pA[0+bs*1];
+			pC[1+bs*1] = pA[1+bs*1];
+			}
+		else //if(tna==1)
+			{
+			pC[0+bs*0] = pA[0+bs*0];
+			pA += bs;
+			pC += 1 + (sdc-1)*bs;
+			pC[0+bs*0] = pA[0+bs*0];
+			pC[0+bs*1] = pA[1+bs*0];
+			}
+		}
+	else if(m-ii==3)
+		{
+		if(tna==0 || tna==3)
+			{
+			pC[0+bs*0] = pA[0+bs*0];
+			pC[1+bs*0] = pA[0+bs*1];
+			pC[1+bs*1] = pA[1+bs*1];
+			pC[2+bs*0] = pA[0+bs*2];
+			pC[2+bs*1] = pA[1+bs*2];
+			pC[2+bs*2] = pA[2+bs*2];
+			}
+		else if(tna==1)
+			{
+			pC[0+bs*0] = pA[0+bs*0];
+			pA += bs;
+			pC += 1 + (sdc-1)*bs;
+			pC[0+bs*0] = pA[0+bs*0];
+			pC[0+bs*1] = pA[1+bs*0];
+			pC[1+bs*0] = pA[0+bs*0];
+			pC[1+bs*1] = pA[1+bs*1];
+			pC[1+bs*2] = pA[2+bs*1];
+			}
+		else //if(tna==2)
+			{
+			pC[0+bs*0] = pA[0+bs*0];
+			pC[1+bs*0] = pA[0+bs*1];
+			pC[1+bs*1] = pA[1+bs*1];
+			pA += 2*bs;
+			pC += 2 + (sdc-1)*bs;
+			pC[0+bs*0] = pA[0+bs*0];
+			pC[0+bs*1] = pA[1+bs*0];
+			pC[0+bs*2] = pA[2+bs*0];
+			}
+		}
+		
+	return;
+	#endif
+
 	}
 
 
@@ -7119,6 +7609,29 @@ void dgead_lib(int m, int n, double alpha, int offsetA, double *A, int sda, int 
 void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc)
 	{
 
+/*
+
+m = 5
+n = 3
+offsetA = 1
+offsetC = 2
+
+A = 
+ x x x
+ -
+ x x x
+ x x x
+ x x x
+ x x x
+
+C =
+ x x x x x
+ x x x x x
+ -
+ x x x x x
+
+*/
+
 	if(m<=0 || n<=0)
 		return;
 
@@ -7176,50 +7689,6 @@ void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, doub
 	
 	}	
 //#endif
-
-
-
-// transpose an aligned upper triangular matrix into an aligned lower triangular matrix
-void dtrtr_u_lib(int m, double *pA, int sda, double *pC, int sdc)
-	{
-
-	if(m<=0)
-		return;
-
-	const int bs = 4;
-
-	int ii;
-
-	for(ii=0; ii<m-3; ii+=4)
-		{
-		kernel_dtrtr_u_4_lib4(m-ii, pA+ii*sda+ii*bs, pC+ii*sdc+ii*bs, sdc);
-		}
-	
-	if(ii<m)
-		{
-		if(m-ii==1)
-			{
-			pC[ii*sdc+ii*bs] = pA[ii*sda+ii*bs];
-			}
-		else if(m-ii==2)
-			{
-			pC[ii*sdc+(ii+0)*bs+0] = pA[ii*sda+(ii+0)*bs+0];
-			pC[ii*sdc+(ii+0)*bs+1] = pA[ii*sda+(ii+1)*bs+0];
-			pC[ii*sdc+(ii+1)*bs+1] = pA[ii*sda+(ii+1)*bs+1];
-			}
-		else // if(m-ii==3)
-			{
-			pC[ii*sdc+(ii+0)*bs+0] = pA[ii*sda+(ii+0)*bs+0];
-			pC[ii*sdc+(ii+0)*bs+1] = pA[ii*sda+(ii+1)*bs+0];
-			pC[ii*sdc+(ii+0)*bs+2] = pA[ii*sda+(ii+2)*bs+0];
-			pC[ii*sdc+(ii+1)*bs+1] = pA[ii*sda+(ii+1)*bs+1];
-			pC[ii*sdc+(ii+1)*bs+2] = pA[ii*sda+(ii+2)*bs+1];
-			pC[ii*sdc+(ii+2)*bs+2] = pA[ii*sda+(ii+2)*bs+2];
-			}
-
-		}
-
-	}
 
 
 
