@@ -41,7 +41,7 @@
 
 
 
-#define PRINT_ON
+//#define PRINT_ON
 
 
 
@@ -265,7 +265,7 @@ int main()
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
 	
-#if 1
+#if 0
 	int nn[] = {4, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300};
 	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 4000, 4000, 2000, 2000, 1000, 1000, 400, 400, 400, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
 	int ll_max = 77;
@@ -280,7 +280,7 @@ int main()
 	int *nx_v, *nu_v, *nb_v, *ng_v;
 
 	int ll;
-	ll_max = 1;
+//	ll_max = 1;
 	for(ll=0; ll<ll_max; ll++)
 		{
 
@@ -300,7 +300,7 @@ int main()
 			}
 		else
 			{
-#if 1
+#if 0
 			nx = nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
 			nu = 2; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 			N  = 30; // horizon lenght
@@ -531,7 +531,7 @@ int main()
 * condensing
 ************************************************/
 		
-#define DIAG_HESSIAN 0 // diagonal Hessian of the cost function
+#define DIAG_HESSIAN 1 // diagonal Hessian of the cost function
 #define Q_N_NOT_ZERO 1 // Q_N is not zero
 
 #if defined(PRINT_ON)
@@ -566,7 +566,7 @@ int main()
 
 			d_cond_Gamma_u_T(N, nx, nu, 0, hpA, hpBt, hpGamma_u);
 
-#if 0
+#if 1
 #if (DIAG_HESSIAN==0)
 			d_cond_R_N3_nx2(N, nx, nu, 0, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pdummy, pdummy, hpGamma_u, hpGamma_u_Q, pH_R[0]);
 #else
@@ -574,9 +574,9 @@ int main()
 #endif
 #else
 #if (DIAG_HESSIAN==0)
-			d_cond_R_N2_nx2_permute(N, nx, nu, 0, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pD, pM, pQs, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
+			d_cond_R_N2_nx2_permute(N, nx, nu, 0, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pD, pM, pQs, pGamma_L, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
 #else
-			d_cond_R_N2_nx2_permute(N, nx, nu, 0, hpAt, hpBt, 1, Q_N_NOT_ZERO, hdQ, ppdummy, hdR, pD, pM, pQs, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
+			d_cond_R_N2_nx2_permute(N, nx, nu, 0, hpAt, hpBt, 1, Q_N_NOT_ZERO, hdQ, ppdummy, hdR, pD, pM, pQs, pGamma_L, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
 #endif
 #endif
 			
@@ -610,7 +610,7 @@ int main()
 
 			d_cond_Gamma_u_T(N, nx, nu, 1, hpA, hpBt, hpGamma_v);
 
-#if 0
+#if 1
 #if (DIAG_HESSIAN==0)
 			d_cond_R_N3_nx2(N, nx, nu, 1, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pL, dL, hpGamma_v, hpGamma_v_Q, pH_Rx[0]);
 #else
@@ -618,9 +618,9 @@ int main()
 #endif
 #else
 #if (DIAG_HESSIAN==0)
-			d_cond_R_N2_nx2_permute(N, nx, nu, 1, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pD, pM, pQs, hpGamma_v, hpGamma_v_Q, hpGamma_v_Q_A, pH_Rx[0]);
+			d_cond_R_N2_nx2_permute(N, nx, nu, 1, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pD, pM, pQs, pGamma_L, hpGamma_v, hpGamma_v_Q, hpGamma_v_Q_A, pH_Rx[0]);
 #else
-			d_cond_R_N2_nx2_permute(N, nx, nu, 1, hpAt, hpBt, 1, Q_N_NOT_ZERO, hdQ, ppdummy, hdR, pD, pM, pQs, hpGamma_v, hpGamma_v_Q, hpGamma_v_Q_A, pH_Rx[0]);
+			d_cond_R_N2_nx2_permute(N, nx, nu, 1, hpAt, hpBt, 1, Q_N_NOT_ZERO, hdQ, ppdummy, hdR, pD, pM, pQs, pGamma_L, hpGamma_v, hpGamma_v_Q, hpGamma_v_Q_A, pH_Rx[0]);
 #endif
 #endif
 
@@ -656,9 +656,9 @@ int main()
 			d_cond_Gamma_u_T(N, nx, nu, 0, hpA, hpBt, hpGamma_u);
 
 #if (DIAG_HESSIAN==0)
-			d_cond_fact_R_N2_nx2_permute(N, nx, nu, 0, hpAt, hpBt, 0, hpQ, hpS, hpR, pD, pM, pQs, diag, hpGamma_u, hpGamma_u_Q, pH_R[0]);
+			d_cond_fact_R_N2_nx2_permute(N, nx, nu, 0, hpAt, hpBt, 0, hpQ, hpS, hpR, pD, pM, pQs, diag, pGamma_L, hpGamma_u, hpGamma_u_Q, pH_R[0]);
 #else
-			d_cond_fact_R_N2_nx2_permute(N, nx, nu, 0, hpAt, hpBt, 1, hdQ, ppdummy, hdR, pD, pM, pQs, diag, hpGamma_u, hpGamma_u_Q, pH_R[0]);
+			d_cond_fact_R_N2_nx2_permute(N, nx, nu, 0, hpAt, hpBt, 1, hdQ, ppdummy, hdR, pD, pM, pQs, diag, pGamma_L, hpGamma_u, hpGamma_u_Q, pH_R[0]);
 #endif
 
 			}
@@ -693,9 +693,9 @@ int main()
 			d_cond_Gamma_u_T(N, nx, nu, 1, hpA, hpBt, hpGamma_v);
 
 #if (DIAG_HESSIAN==0)
-//			d_cond_R_N2_nx2_permute(N, nx, nu, 1, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pD, pM, pQs, hpGamma_v, hpGamma_v_Q, hpGamma_v_Q_A, pH_Rx[0]);
+			d_cond_fact_R_N2_nx2_permute(N, nx, nu, 1, hpAt, hpBt, 0, hpQ, hpS, hpR, pD, pM, pQs, diag, pGamma_L, hpGamma_v, hpGamma_v_Q, pH_Rx[0]);
 #else
-//			d_cond_R_N2_nx2_permute(N, nx, nu, 1, hpAt, hpBt, 1, Q_N_NOT_ZERO, hdQ, ppdummy, hdR, pD, pM, pQs, hpGamma_v, hpGamma_v_Q, hpGamma_v_Q_A, pH_Rx[0]);
+			d_cond_fact_R_N2_nx2_permute(N, nx, nu, 1, hpAt, hpBt, 1, hdQ, ppdummy, hdR, pD, pM, pQs, diag, pGamma_L, hpGamma_v, hpGamma_v_Q, pH_Rx[0]);
 #endif
 
 			}

@@ -636,6 +636,23 @@ void kernel_dsyrk_dpotrf_nt_8x4_lib4_new(int kadd, double *Ap0, int sdap, double
 //			Bp  += 4; // keep it !!!
 
 			}
+		
+		if(alg==-1)
+			{
+
+			long long long_sign = 0x8000000000000000;
+			__m256d sign = _mm256_broadcast_sd( (double *) &long_sign );
+
+			d_0 = _mm256_xor_pd( d_0, sign );
+			d_1 = _mm256_xor_pd( d_1, sign );
+			d_2 = _mm256_xor_pd( d_2, sign );
+			d_3 = _mm256_xor_pd( d_3, sign );
+			d_4 = _mm256_xor_pd( d_4, sign );
+			d_5 = _mm256_xor_pd( d_5, sign );
+			d_6 = _mm256_xor_pd( d_6, sign );
+			d_7 = _mm256_xor_pd( d_7, sign );
+
+			}
 
 		}
 
@@ -1500,6 +1517,23 @@ void kernel_dsyrk_dpotrf_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 //			Ap0 += 4; // keep it !!!
 //			Ap1 += 4; // keep it !!!
 //			Bp  += 4; // keep it !!!
+
+			}
+
+		if(alg==-1)
+			{
+
+			long long long_sign = 0x8000000000000000;
+			__m256d sign = _mm256_broadcast_sd( (double *) &long_sign );
+
+			d_0 = _mm256_xor_pd( d_0, sign );
+			d_1 = _mm256_xor_pd( d_1, sign );
+			d_2 = _mm256_xor_pd( d_2, sign );
+			d_3 = _mm256_xor_pd( d_3, sign );
+			d_4 = _mm256_xor_pd( d_4, sign );
+			d_5 = _mm256_xor_pd( d_5, sign );
+			d_6 = _mm256_xor_pd( d_6, sign );
+			d_7 = _mm256_xor_pd( d_7, sign );
 
 			}
 
@@ -2507,6 +2541,19 @@ void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 			}
 
+		if(alg==-1)
+			{
+
+			long long long_sign = 0x8000000000000000;
+			__m256d sign = _mm256_broadcast_sd( (double *) &long_sign );
+
+			d_0 = _mm256_xor_pd( d_0, sign );
+			d_1 = _mm256_xor_pd( d_1, sign );
+			d_2 = _mm256_xor_pd( d_2, sign );
+			d_3 = _mm256_xor_pd( d_3, sign );
+
+			}
+
 		}
 
 	if(ksub>0)
@@ -3015,6 +3062,17 @@ void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 			}
 
+		if(alg==-1)
+			{
+
+			long long long_sign = 0x8000000000000000;
+			__m256d sign = _mm256_broadcast_sd( (double *) &long_sign );
+
+			d_0 = _mm256_xor_pd( d_0, sign );
+			d_1 = _mm256_xor_pd( d_1, sign );
+
+			}
+
 		}
 			
 	if(ksub>0)
@@ -3323,6 +3381,19 @@ void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 			
 //			Ap += 4; // keep it !!!
 //			Bp += 4; // keep it !!!
+
+			}
+
+		if(alg==-1)
+			{
+
+			long long long_sign = 0x8000000000000000;
+			__m128d sign = _mm_loaddup_pd( (double *) &long_sign );
+
+			d_0 = _mm_xor_pd( d_0, sign );
+			d_1 = _mm_xor_pd( d_1, sign );
+			D_0 = _mm_xor_pd( D_0, sign );
+			D_1 = _mm_xor_pd( D_1, sign );
 
 			}
 

@@ -705,6 +705,27 @@ void kernel_dsyrk_dpotrf_nt_12x4_lib4_new(int kadd, double *Ap0, int sdap, doubl
 
 			}
 
+		if(alg==-1)
+			{
+
+			long long long_sign = 0x8000000000000000;
+			__m256d sign = _mm256_broadcast_sd( (double *) &long_sign );
+
+			c_00 = _mm256_xor_pd( c_00, sign );
+			c_40 = _mm256_xor_pd( c_40, sign );
+			c_80 = _mm256_xor_pd( c_80, sign );
+			c_01 = _mm256_xor_pd( c_01, sign );
+			c_41 = _mm256_xor_pd( c_41, sign );
+			c_81 = _mm256_xor_pd( c_81, sign );
+			c_02 = _mm256_xor_pd( c_02, sign );
+			c_42 = _mm256_xor_pd( c_42, sign );
+			c_82 = _mm256_xor_pd( c_82, sign );
+			c_03 = _mm256_xor_pd( c_03, sign );
+			c_43 = _mm256_xor_pd( c_43, sign );
+			c_83 = _mm256_xor_pd( c_83, sign );
+
+			}
+
 		}
 
 	if(ksub>0)
@@ -1634,6 +1655,26 @@ void kernel_dlauum_dpotrf_nt_12x4_lib4_new(int kadd, double *Ap0, int sdap, doub
 
 		}
 
+	if(alg==-1)
+		{
+
+		long long long_sign = 0x8000000000000000;
+		__m256d sign = _mm256_broadcast_sd( (double *) &long_sign );
+
+		c_00 = _mm256_xor_pd( c_00, sign );
+		c_40 = _mm256_xor_pd( c_40, sign );
+		c_80 = _mm256_xor_pd( c_80, sign );
+		c_01 = _mm256_xor_pd( c_01, sign );
+		c_41 = _mm256_xor_pd( c_41, sign );
+		c_81 = _mm256_xor_pd( c_81, sign );
+		c_02 = _mm256_xor_pd( c_02, sign );
+		c_42 = _mm256_xor_pd( c_42, sign );
+		c_82 = _mm256_xor_pd( c_82, sign );
+		c_03 = _mm256_xor_pd( c_03, sign );
+		c_43 = _mm256_xor_pd( c_43, sign );
+		c_83 = _mm256_xor_pd( c_83, sign );
+
+		}
 
 
 	dpotrf_corr:
@@ -2699,6 +2740,27 @@ void kernel_dsyrk_dpotrf_nt_12x4_vs_lib4_new(int km, int kn, int kadd, int tri_A
 			c_82 = _mm256_fmadd_pd( a_8, b_0, c_82 );
 	//		b_0  = _mm256_load_pd( &Bp[4] );
 	/*		a_8  = _mm256_load_pd( &Ap2[4] ); // prefetch*/
+
+			}
+
+		if(alg==-1)
+			{
+
+			long long long_sign = 0x8000000000000000;
+			__m256d sign = _mm256_broadcast_sd( (double *) &long_sign );
+
+			c_00 = _mm256_xor_pd( c_00, sign );
+			c_40 = _mm256_xor_pd( c_40, sign );
+			c_80 = _mm256_xor_pd( c_80, sign );
+			c_01 = _mm256_xor_pd( c_01, sign );
+			c_41 = _mm256_xor_pd( c_41, sign );
+			c_81 = _mm256_xor_pd( c_81, sign );
+			c_02 = _mm256_xor_pd( c_02, sign );
+			c_42 = _mm256_xor_pd( c_42, sign );
+			c_82 = _mm256_xor_pd( c_82, sign );
+			c_03 = _mm256_xor_pd( c_03, sign );
+			c_43 = _mm256_xor_pd( c_43, sign );
+			c_83 = _mm256_xor_pd( c_83, sign );
 
 			}
 
@@ -4190,6 +4252,27 @@ void kernel_dlauum_dpotrf_nt_8x8_lib4_new(int kadd, double *Ap0, int sdap, doubl
 
 		}
 
+	if(alg==-1)
+		{
+
+		long long long_sign = 0x8000000000000000;
+		__m256d sign = _mm256_broadcast_sd( (double *) &long_sign );
+
+		c_00 = _mm256_xor_pd( c_00, sign );
+		c_40 = _mm256_xor_pd( c_40, sign );
+		c_44 = _mm256_xor_pd( c_44, sign );
+		c_01 = _mm256_xor_pd( c_01, sign );
+		c_41 = _mm256_xor_pd( c_41, sign );
+		c_45 = _mm256_xor_pd( c_45, sign );
+		c_02 = _mm256_xor_pd( c_02, sign );
+		c_42 = _mm256_xor_pd( c_42, sign );
+		c_46 = _mm256_xor_pd( c_46, sign );
+		c_03 = _mm256_xor_pd( c_03, sign );
+		c_43 = _mm256_xor_pd( c_43, sign );
+		c_47 = _mm256_xor_pd( c_47, sign );
+
+		}
+
 	dpotrf_corr:
 
 	if(ksub<=0)
@@ -5010,6 +5093,27 @@ void kernel_dsyrk_dpotrf_nt_8x8_lib4_new(int kadd, double *Ap0, int sdap, double
 			c_46 = _mm256_fmadd_pd( a_4, b_4, c_46 );
 	//		a_4  = _mm256_load_pd( &Ap1[4] ); // prefetch
 	//		b_4  = _mm256_load_pd( &Bp1[4] ); // prefetch
+
+			}
+
+		if(alg==-1)
+			{
+
+			long long long_sign = 0x8000000000000000;
+			__m256d sign = _mm256_broadcast_sd( (double *) &long_sign );
+
+			c_00 = _mm256_xor_pd( c_00, sign );
+			c_40 = _mm256_xor_pd( c_40, sign );
+			c_44 = _mm256_xor_pd( c_44, sign );
+			c_01 = _mm256_xor_pd( c_01, sign );
+			c_41 = _mm256_xor_pd( c_41, sign );
+			c_45 = _mm256_xor_pd( c_45, sign );
+			c_02 = _mm256_xor_pd( c_02, sign );
+			c_42 = _mm256_xor_pd( c_42, sign );
+			c_46 = _mm256_xor_pd( c_46, sign );
+			c_03 = _mm256_xor_pd( c_03, sign );
+			c_43 = _mm256_xor_pd( c_43, sign );
+			c_47 = _mm256_xor_pd( c_47, sign );
 
 			}
 
@@ -6228,6 +6332,27 @@ void kernel_dsyrk_dpotrf_nt_8x8_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 			}
 
+		if(alg==-1)
+			{
+
+			long long long_sign = 0x8000000000000000;
+			__m256d sign = _mm256_broadcast_sd( (double *) &long_sign );
+
+			c_00 = _mm256_xor_pd( c_00, sign );
+			c_40 = _mm256_xor_pd( c_40, sign );
+			c_44 = _mm256_xor_pd( c_44, sign );
+			c_01 = _mm256_xor_pd( c_01, sign );
+			c_41 = _mm256_xor_pd( c_41, sign );
+			c_45 = _mm256_xor_pd( c_45, sign );
+			c_02 = _mm256_xor_pd( c_02, sign );
+			c_42 = _mm256_xor_pd( c_42, sign );
+			c_46 = _mm256_xor_pd( c_46, sign );
+			c_03 = _mm256_xor_pd( c_03, sign );
+			c_43 = _mm256_xor_pd( c_43, sign );
+			c_47 = _mm256_xor_pd( c_47, sign );
+
+			}
+
 		}
 
 	if(ksub>0)
@@ -7271,6 +7396,23 @@ void kernel_dsyrk_dpotrf_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 			}
 
+		if(alg==-1)
+			{
+
+			long long long_sign = 0x8000000000000000;
+			__m256d sign = _mm256_broadcast_sd( (double *) &long_sign );
+
+			c_00_11_22_33 = _mm256_xor_pd( c_00_11_22_33, sign );
+			c_40_51_62_73 = _mm256_xor_pd( c_40_51_62_73, sign );
+			c_01_10_23_32 = _mm256_xor_pd( c_01_10_23_32, sign );
+			c_41_50_63_72 = _mm256_xor_pd( c_41_50_63_72, sign );
+			c_02_13_20_31 = _mm256_xor_pd( c_02_13_20_31, sign );
+			c_42_53_60_71 = _mm256_xor_pd( c_42_53_60_71, sign );
+			c_03_12_21_30 = _mm256_xor_pd( c_03_12_21_30, sign );
+			c_43_52_61_70 = _mm256_xor_pd( c_43_52_61_70, sign );
+
+			}
+
 		}
 
 	if(ksub>0)
@@ -8124,6 +8266,23 @@ void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 			
 			}
 
+		if(alg==-1)
+			{
+
+			long long long_sign = 0x8000000000000000;
+			__m256d sign = _mm256_broadcast_sd( (double *) &long_sign );
+
+			c_00 = _mm256_xor_pd( c_00, sign );
+			c_01 = _mm256_xor_pd( c_01, sign );
+			c_02 = _mm256_xor_pd( c_02, sign );
+			c_03 = _mm256_xor_pd( c_03, sign );
+			C_00 = _mm256_xor_pd( C_00, sign );
+			C_01 = _mm256_xor_pd( C_01, sign );
+			C_02 = _mm256_xor_pd( C_02, sign );
+			C_03 = _mm256_xor_pd( C_03, sign );
+
+			}
+
 		}
 		
 	if(ksub>0)
@@ -8617,6 +8776,23 @@ void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 
 			}
 
+		if(alg==-1)
+			{
+
+			long long long_sign = 0x8000000000000000;
+			__m256d sign = _mm256_broadcast_sd( (double *) &long_sign );
+
+			c_00_11_20_31 = _mm256_xor_pd( c_00_11_20_31, sign );
+			c_01_10_21_30 = _mm256_xor_pd( c_01_10_21_30, sign );
+			d_00_11_20_31 = _mm256_xor_pd( d_00_11_20_31, sign );
+			d_01_10_21_30 = _mm256_xor_pd( d_01_10_21_30, sign );
+			C_00_11_20_31 = _mm256_xor_pd( C_00_11_20_31, sign );
+			C_01_10_21_30 = _mm256_xor_pd( C_01_10_21_30, sign );
+			D_00_11_20_31 = _mm256_xor_pd( D_00_11_20_31, sign );
+			D_01_10_21_30 = _mm256_xor_pd( D_01_10_21_30, sign );
+
+			}
+
 		}
 			
 	if(ksub>0)
@@ -8941,6 +9117,23 @@ void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 		
 //			Ap += 4; // keep it !!!
 //			Bp += 4; // keep it !!!
+
+			}
+
+		if(alg==-1)
+			{
+
+			long long long_sign = 0x8000000000000000;
+			__m128d sign = _mm256_loaddup_pd( (double *) &long_sign );
+
+			c_00_11 = _mm_xor_pd( c_00_11, sign );
+			c_01_10 = _mm_xor_pd( c_01_10, sign );
+			d_00_11 = _mm_xor_pd( d_00_11, sign );
+			d_01_10 = _mm_xor_pd( d_01_10, sign );
+			C_00_11 = _mm_xor_pd( C_00_11, sign );
+			C_01_10 = _mm_xor_pd( C_01_10, sign );
+			D_00_11 = _mm_xor_pd( D_00_11, sign );
+			D_01_10 = _mm_xor_pd( D_01_10, sign );
 
 			}
 
