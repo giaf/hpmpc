@@ -3402,7 +3402,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 	//d_print_pmat(nx, nx, bs, Pi_p, cnx);
 
 	// copy /Pi_p on the bottom right block of Lam
-	dtrma_lib(nx, ny, Pi_p, cnx, hpLe[0]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf);
+	dtrcp_l_lib(nx, 0, Pi_p, cnx, ny, hpLe[0]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf);
 	//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 	// loop over horizon
@@ -3496,7 +3496,7 @@ void d_ric_trf_mhe(int nx, int nw, int ny, int N, double **hpA, double **hpG, do
 		//d_print_pmat(nx, nx, bs, hpLp[ii+1]+(nx+nw+pad)*bs, cnl);
 
 		// copy /Pi_p on the bottom right block of Lam
-		dtrma_lib(nx, ny, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, hpLe[ii+1]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf);
+		dtrcp_l_lib(nx, 0, hpLp[ii+1]+(nx+nw+pad)*bs, cnl, ny, hpLe[ii+1]+(ny/bs)*bs*cnf+ny%bs+ny*bs, cnf);
 		//d_print_pmat(nz, nz, bs, Lam, cnz);
 
 		// factorize Pi_p
@@ -3674,7 +3674,7 @@ void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hp
 		//d_print_pmat(nx, nx, bs, hpLp[ii+1]+(nx+nw+pad)*bs, cnl);
 
 		// copy GQGt on the bottom right block of Lam
-		dtrma_lib(nx, ny, GQGt, cnx, hpLp[ii+1]+(ny/bs)*bs*cnz+ny%bs+(nx+pad+ny)*bs, cnl);
+		dtrcp_l_lib(nx, 0, GQGt, cnx, ny, hpLp[ii+1]+(ny/bs)*bs*cnz+ny%bs+(nx+pad+ny)*bs, cnl);
 		//d_print_pmat(nz, cnl-1, bs, hpLp[ii+1], cnl);
 	
 		// compute CA*U', with U upper cholesky factor of /Pi_p
@@ -3709,8 +3709,8 @@ void d_ric_trf_mhe_end(int nx, int nw, int ny, int N, double **hpCA, double **hp
 	//d_print_pmat(nx, nx, bs, Pi_p, cnx);
 
 	// copy /Pi_p on the bottom right block of Lam
-	//dtrma_lib(nx, ny, Pi_p, cnx, Lam+(ny/bs)*bs*cnz+ny%bs+ny*bs, cnz);
-	dtrma_lib(nx, ny, Pi_p, cnx, hpLe[N]+(ny/bs)*bs*cnz+ny%bs+ny*bs, cnf);
+	//dtrcp_l_lib(nx, 0, Pi_p, cnx, ny, Lam+(ny/bs)*bs*cnz+ny%bs+ny*bs, cnz);
+	dtrcp_l_lib(nx, 0, Pi_p, cnx, ny, hpLe[N]+(ny/bs)*bs*cnz+ny%bs+ny*bs, cnf);
 	//d_print_pmat(nz, nz, bs, hpLe[N], cnf);
 
 	// backup the top-left part of the bottom right block of Lam

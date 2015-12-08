@@ -28,12 +28,14 @@ include ../Makefile.rule
 obj:
 ifeq ($(TARGET), X64_AVX2)
 	make -C avx2 obj
+	make -C avx obj
 endif
 ifeq ($(TARGET), X64_AVX)
 	make -C avx obj
 endif
 ifeq ($(TARGET), X64_SSE3)
 	make -C sse3 obj
+	make -C c99 obj
 endif
 ifeq ($(TARGET), C99_4X4)
 	make -C c99 obj
@@ -42,17 +44,20 @@ ifeq ($(TARGET), C99_4X4_PREFETCH)
 	make -C c99 obj
 endif
 ifeq ($(TARGET), CORTEX_A57)
-	make -C c99 obj
 	make -C armv8a obj
+	make -C c99 obj
 endif
 ifeq ($(TARGET), CORTEX_A15)
 	make -C armv7a obj
+	make -C c99 obj
 endif
 ifeq ($(TARGET), CORTEX_A9)
 	make -C armv7a obj
+	make -C c99 obj
 endif
 ifeq ($(TARGET), CORTEX_A7)
 	make -C armv7a obj
+	make -C c99 obj
 endif
 
 clean:

@@ -175,7 +175,8 @@ int main()
 /*		dgemm_nt_lib(n, n, n, pB, pn, pA, pn, pC, pn, 0);*/
 /*		dtrmm_lib(n, n, pA, pn, pB, pn, pC, pn);*/
 //		dtrtr_l_lib(7, 1, pA+1, pn, 0, pC+0, pn);
-		dtrtr_u_lib(9, 3, pA+3, pn, 0, pC+0, pn);
+//		dtrtr_u_lib(9, 3, pA+3, pn, 0, pC+0, pn);
+		dtrcp_l_lib(9, 3, pA+3, pn, 0, pC+0, pn);
 //		dttmm_ll_lib(n, pA, pn, pA, pn, pC, pn);
 //		dttmm_uu_lib(n, pA, pn, pA, pn, pC, pn);
 //		dtrmm_u_lib(n, n, pA, pn, pB, pn, pC, pn);

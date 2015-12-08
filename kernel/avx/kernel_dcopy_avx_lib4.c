@@ -33,8 +33,16 @@
 
 
 // both A and B are aligned to 256-bit boundaries
-void kernel_align_panel_8_0_lib4(int kmax, double *A0, int sda,  double *B0, int sdb)
+void kernel_dgecp_8_0_lib4(int tri, int kmax, double *A0, int sda,  double *B0, int sdb)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 8-wide + end 7x7 triangle
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -46,6 +54,9 @@ void kernel_align_panel_8_0_lib4(int kmax, double *A0, int sda,  double *B0, int
 
 	__m256d
 		a_0;
+	
+	__m128d
+		c_0;
 	
 	int k;
 
@@ -99,14 +110,59 @@ void kernel_align_panel_8_0_lib4(int kmax, double *A0, int sda,  double *B0, int
 		B1 += 4;
 
 		}
+	
+	if(tri==1)
+		{
+		// 7x7 triangle 
+
+		c_0 = _mm_load_sd( &A0[1+0*bs] );
+		_mm_store_sd( &B0[1+0*bs], c_0 );
+		c_0 = _mm_load_pd( &A0[2+0*bs] );
+		_mm_store_pd( &B0[2+0*bs], c_0 );
+		a_0 = _mm256_load_pd( &A1[0+0*bs] );
+		_mm256_store_pd( &B1[0+0*bs], a_0 );
+
+		c_0 = _mm_load_pd( &A0[2+1*bs] );
+		_mm_store_pd( &B0[2+1*bs], c_0 );
+		a_0 = _mm256_load_pd( &A1[0+1*bs] );
+		_mm256_store_pd( &B1[0+1*bs], a_0 );
+
+		c_0 = _mm_load_sd( &A0[3+2*bs] );
+		_mm_store_sd( &B0[3+2*bs], c_0 );
+		a_0 = _mm256_load_pd( &A1[0+2*bs] );
+		_mm256_store_pd( &B1[0+2*bs], a_0 );
+
+		a_0 = _mm256_load_pd( &A1[0+3*bs] );
+		_mm256_store_pd( &B1[0+3*bs], a_0 );
+
+		c_0 = _mm_load_sd( &A1[1+4*bs] );
+		_mm_store_sd( &B1[1+4*bs], c_0 );
+		c_0 = _mm_load_pd( &A1[2+4*bs] );
+		_mm_store_pd( &B1[2+4*bs], c_0 );
+
+		c_0 = _mm_load_pd( &A1[2+5*bs] );
+		_mm_store_pd( &B1[2+5*bs], c_0 );
+
+		c_0 = _mm_load_sd( &A1[3+6*bs] );
+		_mm_store_sd( &B1[3+6*bs], c_0 );
+
+		}
 
 	}
 
 
 
 // both A and B are aligned to 256-bit boundaries, 1 element of A must be skipped
-void kernel_align_panel_8_1_lib4(int kmax, double *A0, int sda, double *B0, int sdb)
+void kernel_dgecp_8_1_lib4(int tri, int kmax, double *A0, int sda, double *B0, int sdb)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 8-wide + end 7x7 triangle
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -120,6 +176,9 @@ void kernel_align_panel_8_1_lib4(int kmax, double *A0, int sda, double *B0, int 
 	__m256d
 		a_0, a_1, a_2,
 		b_0, b_1;
+	
+	__m128d
+		c_0;
 	
 	int k;
 
@@ -194,13 +253,77 @@ void kernel_align_panel_8_1_lib4(int kmax, double *A0, int sda, double *B0, int 
 
 		}
 
+	if(tri==1)
+		{
+		// 7x7 triangle
+
+		c_0 = _mm_load_pd( &A0[2+bs*0] );
+		_mm_storeu_pd( &B0[1+bs*0], c_0 );
+		c_0 = _mm_load_sd( &A1[0+bs*0] );
+		_mm_store_sd( &B0[3+bs*0], c_0 );
+		c_0 = _mm_load_sd( &A1[1+bs*0] );
+		_mm_store_sd( &B1[0+bs*0], c_0 );
+		c_0 = _mm_load_pd( &A1[2+bs*0] );
+		_mm_storeu_pd( &B1[1+bs*0], c_0 );
+		c_0 = _mm_load_sd( &A2[0+bs*0] );
+		_mm_store_sd( &B1[3+bs*0], c_0 );
+
+		c_0 = _mm_load_sd( &A0[3+bs*1] );
+		_mm_store_sd( &B0[2+bs*1], c_0 );
+		c_0 = _mm_load_sd( &A1[0+bs*1] );
+		_mm_store_sd( &B0[3+bs*1], c_0 );
+		c_0 = _mm_load_sd( &A1[1+bs*1] );
+		_mm_store_sd( &B1[0+bs*1], c_0 );
+		c_0 = _mm_load_pd( &A1[2+bs*1] );
+		_mm_storeu_pd( &B1[1+bs*1], c_0 );
+		c_0 = _mm_load_sd( &A2[0+bs*1] );
+		_mm_store_sd( &B1[3+bs*1], c_0 );
+
+		c_0 = _mm_load_sd( &A1[0+bs*2] );
+		_mm_store_sd( &B0[3+bs*2], c_0 );
+		c_0 = _mm_load_sd( &A1[1+bs*2] );
+		_mm_store_sd( &B1[0+bs*2], c_0 );
+		c_0 = _mm_load_pd( &A1[2+bs*2] );
+		_mm_storeu_pd( &B1[1+bs*2], c_0 );
+		c_0 = _mm_load_sd( &A2[0+bs*2] );
+		_mm_store_sd( &B1[3+bs*2], c_0 );
+
+		c_0 = _mm_load_sd( &A1[1+bs*3] );
+		_mm_store_sd( &B1[0+bs*3], c_0 );
+		c_0 = _mm_load_pd( &A1[2+bs*3] );
+		_mm_storeu_pd( &B1[1+bs*3], c_0 );
+		c_0 = _mm_load_sd( &A2[0+bs*3] );
+		_mm_store_sd( &B1[3+bs*3], c_0 );
+
+		c_0 = _mm_load_pd( &A1[2+bs*4] );
+		_mm_storeu_pd( &B1[1+bs*4], c_0 );
+		c_0 = _mm_load_sd( &A2[0+bs*4] );
+		_mm_store_sd( &B1[3+bs*4], c_0 );
+
+		c_0 = _mm_load_sd( &A1[3+bs*5] );
+		_mm_store_sd( &B1[2+bs*5], c_0 );
+		c_0 = _mm_load_sd( &A2[0+bs*5] );
+		_mm_store_sd( &B1[3+bs*5], c_0 );
+
+		c_0 = _mm_load_sd( &A2[0+bs*6] );
+		_mm_store_sd( &B1[3+bs*6], c_0 );
+
+		}
 	}
 
 
 
 // both A and B are aligned to 256-bit boundaries, 2 elements of A must be skipped
-void kernel_align_panel_8_2_lib4(int kmax, double *A0, int sda, double *B0, int sdb)
+void kernel_dgecp_8_2_lib4(int tri, int kmax, double *A0, int sda, double *B0, int sdb)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 8-wide + end 7x7 triangle
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -214,6 +337,9 @@ void kernel_align_panel_8_2_lib4(int kmax, double *A0, int sda, double *B0, int 
 	__m256d
 		a_0, a_1, a_2,
 		b_0, b_1;
+	
+	__m128d
+		c_0;
 	
 	int k;
 
@@ -275,6 +401,51 @@ void kernel_align_panel_8_2_lib4(int kmax, double *A0, int sda, double *B0, int 
 		A2 += 4;
 		B0 += 4;
 		B1 += 4;
+
+		}
+
+	if(tri==1)
+		{
+		// 7x7 triangle 
+
+		c_0 = _mm_load_sd( &A0[3+bs*0] );
+		_mm_store_sd( &B0[1+bs*0], c_0 );
+		c_0 = _mm_load_pd( &A1[0+bs*0] );
+		_mm_store_pd( &B0[2+bs*0], c_0 );
+		c_0 = _mm_load_pd( &A1[2+bs*0] );
+		_mm_store_pd( &B1[0+bs*0], c_0 );
+		c_0 = _mm_load_pd( &A2[0+bs*0] );
+		_mm_store_pd( &B1[2+bs*0], c_0 );
+
+		c_0 = _mm_load_pd( &A1[0+bs*1] );
+		_mm_store_pd( &B0[2+bs*1], c_0 );
+		c_0 = _mm_load_pd( &A1[2+bs*1] );
+		_mm_store_pd( &B1[0+bs*1], c_0 );
+		c_0 = _mm_load_pd( &A2[0+bs*1] );
+		_mm_store_pd( &B1[2+bs*1], c_0 );
+
+		c_0 = _mm_load_sd( &A1[1+bs*2] );
+		_mm_store_sd( &B0[3+bs*2], c_0 );
+		c_0 = _mm_load_pd( &A1[2+bs*2] );
+		_mm_store_pd( &B1[0+bs*2], c_0 );
+		c_0 = _mm_load_pd( &A2[0+bs*2] );
+		_mm_store_pd( &B1[2+bs*2], c_0 );
+
+		c_0 = _mm_load_pd( &A1[2+bs*3] );
+		_mm_store_pd( &B1[0+bs*3], c_0 );
+		c_0 = _mm_load_pd( &A2[0+bs*3] );
+		_mm_store_pd( &B1[2+bs*3], c_0 );
+
+		c_0 = _mm_load_sd( &A1[3+bs*4] );
+		_mm_store_sd( &B1[1+bs*4], c_0 );
+		c_0 = _mm_load_pd( &A2[0+bs*4] );
+		_mm_store_pd( &B1[2+bs*4], c_0 );
+
+		c_0 = _mm_load_pd( &A2[0+bs*5] );
+		_mm_store_pd( &B1[2+bs*5], c_0 );
+
+		c_0 = _mm_load_sd( &A2[1+bs*6] );
+		_mm_store_sd( &B1[3+bs*6], c_0 );
 
 		}
 
@@ -283,8 +454,16 @@ void kernel_align_panel_8_2_lib4(int kmax, double *A0, int sda, double *B0, int 
 
 
 // both A and B are aligned to 256-bit boundaries, 3 elements of A must be skipped
-void kernel_align_panel_8_3_lib4(int kmax, double *A0, int sda, double *B0, int sdb)
+void kernel_dgecp_8_3_lib4(int tri, int kmax, double *A0, int sda, double *B0, int sdb)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 8-wide + end 7x7 triangle
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -298,6 +477,9 @@ void kernel_align_panel_8_3_lib4(int kmax, double *A0, int sda, double *B0, int 
 	__m256d
 		a_0, a_1, a_2,
 		b_0, b_1;
+	
+	__m128d
+		c_0;
 	
 	int k;
 
@@ -372,13 +554,78 @@ void kernel_align_panel_8_3_lib4(int kmax, double *A0, int sda, double *B0, int 
 
 		}
 
+	if(tri==1)
+		{
+		// 7x7 triangle 
+
+		c_0 = _mm_load_pd( &A1[0+bs*0] );
+		_mm_storeu_pd( &B0[1+bs*0], c_0 );
+		c_0 = _mm_load_sd( &A1[2+bs*0] );
+		_mm_store_sd( &B0[3+bs*0], c_0 );
+		c_0 = _mm_load_sd( &A1[3+bs*0] );
+		_mm_store_sd( &B1[0+bs*0], c_0 );
+		c_0 = _mm_load_pd( &A2[0+bs*0] );
+		_mm_storeu_pd( &B1[1+bs*0], c_0 );
+		c_0 = _mm_load_sd( &A2[2+bs*0] );
+		_mm_store_sd( &B1[3+bs*0], c_0 );
+
+		c_0 = _mm_load_sd( &A1[1+bs*1] );
+		_mm_store_sd( &B0[2+bs*1], c_0 );
+		c_0 = _mm_load_sd( &A1[2+bs*1] );
+		_mm_store_sd( &B0[3+bs*1], c_0 );
+		c_0 = _mm_load_sd( &A1[3+bs*1] );
+		_mm_store_sd( &B1[0+bs*1], c_0 );
+		c_0 = _mm_load_pd( &A2[0+bs*1] );
+		_mm_storeu_pd( &B1[1+bs*1], c_0 );
+		c_0 = _mm_load_sd( &A2[2+bs*1] );
+		_mm_store_sd( &B1[3+bs*1], c_0 );
+
+		c_0 = _mm_load_sd( &A1[2+bs*2] );
+		_mm_store_sd( &B0[3+bs*2], c_0 );
+		c_0 = _mm_load_sd( &A1[3+bs*2] );
+		_mm_store_sd( &B1[0+bs*2], c_0 );
+		c_0 = _mm_load_pd( &A2[0+bs*2] );
+		_mm_storeu_pd( &B1[1+bs*2], c_0 );
+		c_0 = _mm_load_sd( &A2[2+bs*2] );
+		_mm_store_sd( &B1[3+bs*2], c_0 );
+
+		c_0 = _mm_load_sd( &A1[3+bs*3] );
+		_mm_store_sd( &B1[0+bs*3], c_0 );
+		c_0 = _mm_load_pd( &A2[0+bs*3] );
+		_mm_storeu_pd( &B1[1+bs*3], c_0 );
+		c_0 = _mm_load_sd( &A2[2+bs*3] );
+		_mm_store_sd( &B1[3+bs*3], c_0 );
+
+		c_0 = _mm_load_pd( &A2[0+bs*4] );
+		_mm_storeu_pd( &B1[1+bs*4], c_0 );
+		c_0 = _mm_load_sd( &A2[2+bs*4] );
+		_mm_store_sd( &B1[3+bs*4], c_0 );
+
+		c_0 = _mm_load_sd( &A2[1+bs*5] );
+		_mm_store_sd( &B1[2+bs*5], c_0 );
+		c_0 = _mm_load_sd( &A2[2+bs*5] );
+		_mm_store_sd( &B1[3+bs*5], c_0 );
+
+		c_0 = _mm_load_sd( &A2[2+bs*6] );
+		_mm_store_sd( &B1[3+bs*6], c_0 );
+
+		}
+
 	}
 
 
 
 // both A and B are aligned to 256-bit boundaries
-void kernel_align_panel_4_0_lib4(int kmax, double *A, double *B)
+void kernel_dgecp_4_0_lib4(int tri, int kmax, double *A, double *B)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 4-wide + end 3x3 triangle
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -387,6 +634,9 @@ void kernel_align_panel_4_0_lib4(int kmax, double *A, double *B)
 
 	__m256d
 		a_0;
+	
+	__m128d
+		c_0;
 	
 	int k;
 
@@ -419,14 +669,39 @@ void kernel_align_panel_4_0_lib4(int kmax, double *A, double *B)
 		B += 4;
 
 		}
+	
+	if(tri==1)
+		{
+		// 3x3 triangle
+
+		c_0 = _mm_load_sd( &A[1+bs*0] );
+		_mm_store_sd( &B[1+bs*0], c_0 );
+		c_0 = _mm_load_pd( &A[2+bs*0] );
+		_mm_store_pd( &B[2+bs*0], c_0 );
+
+		c_0 = _mm_load_pd( &A[2+bs*1] );
+		_mm_store_pd( &B[2+bs*1], c_0 );
+
+		c_0 = _mm_load_sd( &A[3+bs*2] );
+		_mm_store_sd( &B[3+bs*2], c_0 );
+
+		}
 
 	}
 
 
 
 // both A and B are aligned to 256-bit boundaries, 1 element of A must be skipped
-void kernel_align_panel_4_1_lib4(int kmax, double *A0, int sda, double *B)
+void kernel_dgecp_4_1_lib4(int tri, int kmax, double *A0, int sda, double *B)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 4-wide + end 3x3 triangle
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -438,6 +713,9 @@ void kernel_align_panel_4_1_lib4(int kmax, double *A0, int sda, double *B)
 	__m256d
 		a_0, a_1,
 		b_0;
+	
+	__m128d
+		c_0;
 	
 	int k;
 
@@ -485,6 +763,25 @@ void kernel_align_panel_4_1_lib4(int kmax, double *A0, int sda, double *B)
 		A0 += 4;
 		A1 += 4;
 		B  += 4;
+
+		}
+	
+	if(tri==1)
+		{
+		// 3x3 triangle
+
+		c_0 = _mm_load_pd( &A0[2+bs*0] );
+		_mm_storeu_pd( &B[1+bs*0], c_0 );
+		c_0 = _mm_load_sd( &A1[0+bs*0] );
+		_mm_store_sd( &B[3+bs*0], c_0 );
+
+		c_0 = _mm_load_sd( &A0[3+bs*1] );
+		_mm_store_sd( &B[2+bs*1], c_0 );
+		c_0 = _mm_load_sd( &A1[0+bs*1] );
+		_mm_store_sd( &B[3+bs*1], c_0 );
+
+		c_0 = _mm_load_sd( &A1[0+bs*2] );
+		_mm_store_sd( &B[3+bs*2], c_0 );
 
 		}
 
@@ -493,8 +790,16 @@ void kernel_align_panel_4_1_lib4(int kmax, double *A0, int sda, double *B)
 
 
 // both A and B are aligned to 256-bit boundaries, 2 elements of A must be skipped
-void kernel_align_panel_4_2_lib4(int kmax, double *A0, int sda, double *B)
+void kernel_dgecp_4_2_lib4(int tri, int kmax, double *A0, int sda, double *B)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 4-wide + end 3x3 triangle
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -506,6 +811,9 @@ void kernel_align_panel_4_2_lib4(int kmax, double *A0, int sda, double *B)
 	__m256d
 		a_0, a_1,
 		b_0;
+	
+	__m128d
+		c_0;
 	
 	int k;
 
@@ -548,6 +856,23 @@ void kernel_align_panel_4_2_lib4(int kmax, double *A0, int sda, double *B)
 		A0 += 4;
 		A1 += 4;
 		B  += 4;
+
+		}
+	
+	if(tri==1)
+		{
+		// 3x3 triangle
+
+		c_0 = _mm_load_sd( &A0[3+bs*0] );
+		_mm_store_sd( &B[1+bs*0], c_0 );
+		c_0 = _mm_load_pd( &A1[0+bs*0] );
+		_mm_store_pd( &B[2+bs*0], c_0 );
+
+		c_0 = _mm_load_pd( &A1[0+bs*1] );
+		_mm_store_pd( &B[2+bs*1], c_0 );
+
+		c_0 = _mm_load_sd( &A1[1+bs*2] );
+		_mm_store_sd( &B[3+bs*2], c_0 );
 
 		}
 
@@ -556,8 +881,16 @@ void kernel_align_panel_4_2_lib4(int kmax, double *A0, int sda, double *B)
 
 
 // both A and B are aligned to 256-bit boundaries, 3 elements of A must be skipped
-void kernel_align_panel_4_3_lib4(int kmax, double *A0, int sda, double *B)
+void kernel_dgecp_4_3_lib4(int tri, int kmax, double *A0, int sda, double *B)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 4-wide + end 3x3 triangle
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -569,6 +902,9 @@ void kernel_align_panel_4_3_lib4(int kmax, double *A0, int sda, double *B)
 	__m256d
 		a_0, a_1,
 		b_0;
+	
+	__m128d
+		c_0;
 	
 	int k;
 
@@ -618,14 +954,41 @@ void kernel_align_panel_4_3_lib4(int kmax, double *A0, int sda, double *B)
 		B  += 4;
 
 		}
+	
+	if(tri==1)
+		{
+		// 3x3 triangle
+
+		c_0 = _mm_load_pd( &A1[0+bs*0] );
+		_mm_storeu_pd( &B[1+bs*0], c_0 );
+		c_0 = _mm_load_sd( &A1[2+bs*0] );
+		_mm_store_sd( &B[3+bs*0], c_0 );
+
+		c_0 = _mm_load_sd( &A1[1+bs*1] );
+		_mm_store_sd( &B[2+bs*1], c_0 );
+		c_0 = _mm_load_sd( &A1[2+bs*1] );
+		_mm_store_sd( &B[3+bs*1], c_0 );
+
+		c_0 = _mm_load_sd( &A1[2+bs*2] );
+		_mm_store_sd( &B[3+bs*2], c_0 );
+		}
+
 
 	}
 
 
 
 // both A and B are aligned to 64-bit boundaries
-void kernel_align_panel_3_0_lib4(int kmax, double *A, double *B)
+void kernel_dgecp_3_0_lib4(int tri, int kmax, double *A, double *B)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 3-wide + end 2x2 triangle
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -676,14 +1039,34 @@ void kernel_align_panel_3_0_lib4(int kmax, double *A, double *B)
 		B += 4;
 
 		}
+	
+	if(tri==1)
+		{
+		// 2x2 triangle
+
+		a_0 = _mm_loadu_pd( &A[1+bs*0] );
+		_mm_storeu_pd( &B[1+bs*0], a_0 );
+
+		a_0 = _mm_load_sd( &A[2+bs*1] );
+		_mm_store_sd( &B[2+bs*1], a_0 );
+
+		}
 
 	}
 
 
 
 // both A and B are aligned to 256-bit boundaries, 2 elements of A must be skipped
-void kernel_align_panel_3_2_lib4(int kmax, double *A0, int sda, double *B)
+void kernel_dgecp_3_2_lib4(int tri, int kmax, double *A0, int sda, double *B)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 3-wide + end 2x2 triangle
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -738,14 +1121,37 @@ void kernel_align_panel_3_2_lib4(int kmax, double *A0, int sda, double *B)
 		B  += 4;
 
 		}
+	
+	if(tri==1)
+		{
+		// 2x2 triangle
+
+		a_0 = _mm_load_sd( &A0[3+bs*0] );
+		_mm_store_sd( &B[1+bs*0], a_0 );
+		a_0 = _mm_load_sd( &A1[0+bs*0] );
+		_mm_store_sd( &B[2+bs*0], a_0 );
+
+		a_0 = _mm_load_sd( &A1[0+bs*1] );
+		_mm_store_sd( &B[2+bs*1], a_0 );
+
+		}
+
 
 	}
 
 
 
 // both A and B are aligned to 256-bit boundaries, 3 elements of A must be skipped
-void kernel_align_panel_3_3_lib4(int kmax, double *A0, int sda, double *B)
+void kernel_dgecp_3_3_lib4(int tri, int kmax, double *A0, int sda, double *B)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 3-wide + end 2x2 triangle
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -800,14 +1206,34 @@ void kernel_align_panel_3_3_lib4(int kmax, double *A0, int sda, double *B)
 		B  += 4;
 
 		}
+	
+	if(tri==1)
+		{
+		// 2x2 triangle
+
+		a_0 = _mm_loadu_pd( &A1[0+bs*0] );
+		_mm_storeu_pd( &B[1+bs*0], a_0 );
+
+		a_0 = _mm_load_sd( &A1[1+bs*1] );
+		_mm_store_sd( &B[2+bs*1], a_0 );
+
+		}
 
 	}
 
 
 
 // both A and B are aligned to 64-bit boundaries
-void kernel_align_panel_2_0_lib4(int kmax, double *A, double *B)
+void kernel_dgecp_2_0_lib4(int tri, int kmax, double *A, double *B)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 2-wide + end 1x1 triangle
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -848,14 +1274,31 @@ void kernel_align_panel_2_0_lib4(int kmax, double *A, double *B)
 		B += 4;
 
 		}
+	
+	if(tri==1)
+		{
+		// 1x1 triangle
+
+		a_0 = _mm_load_sd( &A[1+bs*0] );
+		_mm_store_sd( &B[1+bs*0], a_0 );
+
+		}
 
 	}
 
 
 
 // both A and B are aligned to 128-bit boundaries, 3 elements of A must be skipped
-void kernel_align_panel_2_3_lib4(int kmax, double *A0, int sda, double *B)
+void kernel_dgecp_2_3_lib4(int tri, int kmax, double *A0, int sda, double *B)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 2-wide + end 1x1 triangle
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -905,14 +1348,31 @@ void kernel_align_panel_2_3_lib4(int kmax, double *A0, int sda, double *B)
 		B  += 4;
 
 		}
+	
+	if(tri==1)
+		{
+		// 1x1 triangle
+
+		a_0 = _mm_load_sd( &A1[0+bs*0] );
+		_mm_store_sd( &B[1+bs*0], a_0 );
+
+		}
 
 	}
 
 
 
 // both A and B are aligned 64-bit boundaries
-void kernel_align_panel_1_0_lib4(int kmax, double *A, double *B)
+void kernel_dgecp_1_0_lib4(int tri, int kmax, double *A, double *B)
 	{
+
+	if(tri==1)
+		{
+		// A and C are lower triangular
+		// kmax+1 1-wide
+
+		kmax += 1;
+		}
 
 	if(kmax<=0)
 		return;
@@ -960,7 +1420,7 @@ void kernel_align_panel_1_0_lib4(int kmax, double *A, double *B)
 
 
 // both A and B are aligned to 256-bit boundaries
-void kernel_add_align_panel_8_0_lib4(int kmax, double alpha, double *A0, int sda,  double *B0, int sdb)
+void kernel_dgead_8_0_lib4(int kmax, double alpha, double *A0, int sda,  double *B0, int sdb)
 	{
 
 	if(kmax<=0)
@@ -1064,7 +1524,7 @@ void kernel_add_align_panel_8_0_lib4(int kmax, double alpha, double *A0, int sda
 
 
 // both A and B are aligned to 256-bit boundaries, 1 element of A must be skipped
-void kernel_add_align_panel_8_1_lib4(int kmax, double alpha, double *A0, int sda, double *B0, int sdb)
+void kernel_dgead_8_1_lib4(int kmax, double alpha, double *A0, int sda, double *B0, int sdb)
 	{
 
 	if(kmax<=0)
@@ -1191,7 +1651,7 @@ void kernel_add_align_panel_8_1_lib4(int kmax, double alpha, double *A0, int sda
 
 
 // both A and B are aligned to 256-bit boundaries, 2 elements of A must be skipped
-void kernel_add_align_panel_8_2_lib4(int kmax, double alpha, double *A0, int sda, double *B0, int sdb)
+void kernel_dgead_8_2_lib4(int kmax, double alpha, double *A0, int sda, double *B0, int sdb)
 	{
 
 	if(kmax<=0)
@@ -1308,7 +1768,7 @@ void kernel_add_align_panel_8_2_lib4(int kmax, double alpha, double *A0, int sda
 
 
 // both A and B are aligned to 256-bit boundaries, 3 elements of A must be skipped
-void kernel_add_align_panel_8_3_lib4(int kmax, double alpha, double *A0, int sda, double *B0, int sdb)
+void kernel_dgead_8_3_lib4(int kmax, double alpha, double *A0, int sda, double *B0, int sdb)
 	{
 
 	if(kmax<=0)
@@ -1435,7 +1895,7 @@ void kernel_add_align_panel_8_3_lib4(int kmax, double alpha, double *A0, int sda
 
 
 // both A and B are aligned to 256-bit boundaries
-void kernel_add_align_panel_4_0_lib4(int kmax, double alpha, double *A, double *B)
+void kernel_dgead_4_0_lib4(int kmax, double alpha, double *A, double *B)
 	{
 
 	if(kmax<=0)
@@ -1500,7 +1960,7 @@ void kernel_add_align_panel_4_0_lib4(int kmax, double alpha, double *A, double *
 
 
 // both A and B are aligned to 256-bit boundaries, 1 element of A must be skipped
-void kernel_add_align_panel_4_1_lib4(int kmax, double alpha, double *A0, int sda, double *B)
+void kernel_dgead_4_1_lib4(int kmax, double alpha, double *A0, int sda, double *B)
 	{
 
 	if(kmax<=0)
@@ -1584,7 +2044,7 @@ void kernel_add_align_panel_4_1_lib4(int kmax, double alpha, double *A0, int sda
 
 
 // both A and B are aligned to 256-bit boundaries, 2 elements of A must be skipped
-void kernel_add_align_panel_4_2_lib4(int kmax, double alpha, double *A0, int sda, double *B)
+void kernel_dgead_4_2_lib4(int kmax, double alpha, double *A0, int sda, double *B)
 	{
 
 	if(kmax<=0)
@@ -1665,7 +2125,7 @@ void kernel_add_align_panel_4_2_lib4(int kmax, double alpha, double *A0, int sda
 
 
 // both A and B are aligned to 256-bit boundaries, 3 elements of A must be skipped
-void kernel_add_align_panel_4_3_lib4(int kmax, double alpha, double *A0, int sda, double *B)
+void kernel_dgead_4_3_lib4(int kmax, double alpha, double *A0, int sda, double *B)
 	{
 
 	if(kmax<=0)
@@ -1751,7 +2211,7 @@ void kernel_add_align_panel_4_3_lib4(int kmax, double alpha, double *A0, int sda
 
 
 // both A and B are aligned to 64-bit boundaries
-void kernel_add_align_panel_3_0_lib4(int kmax, double alpha, double *A, double *B)
+void kernel_dgead_3_0_lib4(int kmax, double alpha, double *A, double *B)
 	{
 
 	if(kmax<=0)
@@ -1842,7 +2302,7 @@ void kernel_add_align_panel_3_0_lib4(int kmax, double alpha, double *A, double *
 
 
 // both A and B are aligned to 256-bit boundaries, 2 elements of A must be skipped
-void kernel_add_align_panel_3_2_lib4(int kmax, double alpha, double *A0, int sda, double *B)
+void kernel_dgead_3_2_lib4(int kmax, double alpha, double *A0, int sda, double *B)
 	{
 
 	if(kmax<=0)
@@ -1937,7 +2397,7 @@ void kernel_add_align_panel_3_2_lib4(int kmax, double alpha, double *A0, int sda
 
 
 // both A and B are aligned to 256-bit boundaries, 3 elements of A must be skipped
-void kernel_add_align_panel_3_3_lib4(int kmax, double alpha, double *A0, int sda, double *B)
+void kernel_dgead_3_3_lib4(int kmax, double alpha, double *A0, int sda, double *B)
 	{
 
 	if(kmax<=0)
@@ -2032,7 +2492,7 @@ void kernel_add_align_panel_3_3_lib4(int kmax, double alpha, double *A0, int sda
 
 
 // both A and B are aligned to 64-bit boundaries
-void kernel_add_align_panel_2_0_lib4(int kmax, double alpha, double *A, double *B)
+void kernel_dgead_2_0_lib4(int kmax, double alpha, double *A, double *B)
 	{
 
 	if(kmax<=0)
@@ -2097,7 +2557,7 @@ void kernel_add_align_panel_2_0_lib4(int kmax, double alpha, double *A, double *
 
 
 // both A and B are aligned to 128-bit boundaries, 3 elements of A must be skipped
-void kernel_add_align_panel_2_3_lib4(int kmax, double alpha, double *A0, int sda, double *B)
+void kernel_dgead_2_3_lib4(int kmax, double alpha, double *A0, int sda, double *B)
 	{
 
 	if(kmax<=0)
@@ -2171,7 +2631,7 @@ void kernel_add_align_panel_2_3_lib4(int kmax, double alpha, double *A0, int sda
 
 
 // both A and B are aligned 64-bit boundaries
-void kernel_add_align_panel_1_0_lib4(int kmax, double alpha, double *A, double *B)
+void kernel_dgead_1_0_lib4(int kmax, double alpha, double *A, double *B)
 	{
 
 	if(kmax<=0)
