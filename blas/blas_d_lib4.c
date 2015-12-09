@@ -94,7 +94,7 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 
 	const int bs = 4;
 
-	int i, j;
+	int i, j, l;
 
 #if 0
 	i = 0;
@@ -124,7 +124,120 @@ void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 		if(td==0) // tc==0, td==0
 			{
 
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+	// low rank updates
+	if (k<=4)
+		{
 
+		int alg2 = alg;
+		
+		double *pC2 = pC;
+	
+		if(k>0)
+			{
+			l = 0;
+			for(; l<k-3; l+=4)
+				{
+				// rank 4 updates
+				i = 0;
+//				for(; i<m-7; i+=8)
+//					{
+//					kernel_dsyr4_8_lib4(n, n, pA+i*sda+l*bs, sda, pB+l*bs, sdb, alg2, pC2+i*sdc, sdc, pD+i*sdd, sdd);
+//					}
+				for(; i<m-3; i+=4)
+					{
+					kernel_dsyr4_4_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+					}
+				if(m-i>0)
+					{
+					if(m-i==1)
+						kernel_dsyr4_1_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+					else if(m-i==2)
+						kernel_dsyr4_2_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+					else //if(m-i==3)
+						kernel_dsyr4_3_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+					}
+				pC2 = pD;
+				if(alg2==0)
+					{
+					alg2=1;
+					}
+				}
+			// clean up lower ranks
+			if(k-l>0)
+				{
+				if(k-l==1)
+					{
+					// rank 1 update
+					for(i=0; i<m-3; i+=4)
+						{
+						kernel_dsyr1_4_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						}
+					if(m-i>0)
+						{
+						if(m-i==1)
+							kernel_dsyr1_1_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						else if(m-i==2)
+							kernel_dsyr1_2_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						else //if(m-i==3)
+							kernel_dsyr1_3_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						}
+					}
+				else if(k-l==2)
+					{
+					// rank 2 update
+					for(i=0; i<m-3; i+=4)
+						{
+						kernel_dsyr2_4_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						}
+					if(m-i>0)
+						{
+						if(m-i==1)
+							kernel_dsyr2_1_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						else if(m-i==2)
+							kernel_dsyr2_2_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						else //if(m-i==3)
+							kernel_dsyr2_3_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						}
+					}
+				else //if(k-l==3)
+					{
+					// rank 3 update
+					for(i=0; i<m-3; i+=4)
+						{
+						kernel_dsyr3_4_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						}
+					if(m-i>0)
+						{
+						if(m-i==1)
+							kernel_dsyr3_1_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						else if(m-i==2)
+							kernel_dsyr3_2_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						else //if(m-i==3)
+							kernel_dsyr3_3_lib4(n, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						}
+					}
+				}
+			}
+		else // rank 0 update
+			{
+			for(i=0; i<m-3; i+=4)
+				{
+				kernel_dsyr0_4_lib4(n, n, alg, pC+i*sdc, pD+i*sdd);
+				}
+			if(m-i>0)
+				{
+				if(m-i==1)
+					kernel_dsyr0_1_lib4(n, n, alg, pC+i*sdc, pD+i*sdd);
+				else if(m-i==2)
+					kernel_dsyr0_2_lib4(n, n, alg, pC+i*sdc, pD+i*sdd);
+				else //if(m-i==3)
+					kernel_dsyr0_3_lib4(n, n, alg, pC+i*sdc, pD+i*sdd);
+				}
+			}
+		return;
+		}
+#endif
 
 			i = 0;
 #if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2) || defined(TARGET_CORTEX_A57)
@@ -2186,11 +2299,208 @@ void dsyrk_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 		return;
 
 	const int bs = 4;
+
+	int i, j, l;
+
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+	// low rank updates
+	if (k<=4)
+		{
+
+		int alg2 = alg;
+		
+		double *pC2 = pC;
 	
-	int i, j;
-	
-/*	int n = m;*/
-	
+		if(k>0)
+			{
+			l = 0;
+			for(; l<k-3; l+=4)
+				{
+				// rank 4 updates
+				i = 0;
+				for(; i<m-3; i+=4)
+					{
+					kernel_dsyr4_4_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+					}
+				if(m-i>0)
+					{
+					if(m-i==1)
+						kernel_dsyr4_1_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+					else if(m-i==2)
+						kernel_dsyr4_2_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+					else //if(m-i==3)
+						kernel_dsyr4_3_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+					}
+				pC2 = pD;
+				if(alg2==0)
+					{
+					alg2=1;
+					}
+				}
+			// clean up lower ranks
+			if(k-l>0)
+				{
+				if(k-l==1)
+					{
+					// rank 1 update
+					for(i=0; i<m-3; i+=4)
+						{
+						kernel_dsyr1_4_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						}
+					if(m-i>0)
+						{
+						if(m-i==1)
+							kernel_dsyr1_1_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						else if(m-i==2)
+							kernel_dsyr1_2_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						else //if(m-i==3)
+							kernel_dsyr1_3_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						}
+					}
+				else if(k-l==2)
+					{
+					// rank 2 update
+					for(i=0; i<m-3; i+=4)
+						{
+						kernel_dsyr2_4_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						}
+					if(m-i>0)
+						{
+						if(m-i==1)
+							kernel_dsyr2_1_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						else if(m-i==2)
+							kernel_dsyr2_2_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						else //if(m-i==3)
+							kernel_dsyr2_3_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						}
+					}
+				else //if(k-l==3)
+					{
+					// rank 3 update
+					for(i=0; i<m-3; i+=4)
+						{
+						kernel_dsyr3_4_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						}
+					if(m-i>0)
+						{
+						if(m-i==1)
+							kernel_dsyr3_1_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						else if(m-i==2)
+							kernel_dsyr3_2_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						else //if(m-i==3)
+							kernel_dsyr3_3_lib4(i, n, pA+i*sda+l*bs, pB+l*bs, sdb, alg2, pC2+i*sdc, pD+i*sdd);
+						}
+					}
+				}
+			}
+		else // rank 0 update
+			{
+			for(i=0; i<m-3; i+=4)
+				{
+				kernel_dsyr0_4_lib4(i, n, alg, pC+i*sdc, pD+i*sdd);
+				}
+			if(m-i>0)
+				{
+				if(m-i==1)
+					kernel_dsyr0_1_lib4(i, n, alg, pC+i*sdc, pD+i*sdd);
+				else if(m-i==2)
+					kernel_dsyr0_2_lib4(i, n, alg, pC+i*sdc, pD+i*sdd);
+				else //if(m-i==3)
+					kernel_dsyr0_3_lib4(i, n, alg, pC+i*sdc, pD+i*sdd);
+				}
+			}
+		return;
+		}
+
+#if 0
+	if(k<=4)
+		{
+		if(k==0)
+			{
+			for(i=0; i<m-3; i+=4)
+				{
+				kernel_dsyr0_4_lib4(i, n, alg, pC+i*sdc, pD+i*sdd);
+				}
+			if(m-i>0)
+				{
+				if(m-i==1)
+					kernel_dsyr0_1_lib4(i, n, alg, pC+i*sdc, pD+i*sdd);
+				else if(m-i==2)
+					kernel_dsyr0_2_lib4(i, n, alg, pC+i*sdc, pD+i*sdd);
+				else //if(m-i==3)
+					kernel_dsyr0_3_lib4(i, n, alg, pC+i*sdc, pD+i*sdd);
+				}
+			}
+		else if(k==1)
+			{
+			for(i=0; i<m-3; i+=4)
+				{
+				kernel_dsyr1_4_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				}
+			if(m-i>0)
+				{
+				if(m-i==1)
+					kernel_dsyr1_1_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				else if(m-i==2)
+					kernel_dsyr1_2_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				else //if(m-i==3)
+					kernel_dsyr1_3_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				}
+			}
+		else if(k==2)
+			{
+			for(i=0; i<m-3; i+=4)
+				{
+				kernel_dsyr2_4_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				}
+			if(m-i>0)
+				{
+				if(m-i==1)
+					kernel_dsyr2_1_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				else if(m-i==2)
+					kernel_dsyr2_2_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				else //if(m-i==3)
+					kernel_dsyr2_3_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				}
+			}
+		else if(k==3)
+			{
+			for(i=0; i<m-3; i+=4)
+				{
+				kernel_dsyr3_4_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				}
+			if(m-i>0)
+				{
+				if(m-i==1)
+					kernel_dsyr3_1_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				else if(m-i==2)
+					kernel_dsyr3_2_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				else //if(m-i==3)
+					kernel_dsyr3_3_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				}
+			}
+		else // if(k==4)
+			{
+			for(i=0; i<m-3; i+=4)
+				{
+				kernel_dsyr3_4_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				}
+			if(m-i>0)
+				{
+				if(m-i==1)
+					kernel_dsyr3_1_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				else if(m-i==2)
+					kernel_dsyr3_2_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				else //if(m-i==3)
+					kernel_dsyr3_3_lib4(i, n, pA+i*sda, pB, sdb, alg, pC+i*sdc, pD+i*sdd);
+				}
+			}
+		return;
+		}
+#endif
+
+#endif
+
 	i = 0;
 #if defined(TARGET_X64_AVX2)
 	for(; i<m-11; i+=12)

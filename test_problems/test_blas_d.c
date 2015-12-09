@@ -37,6 +37,7 @@
 
 
 //#define N_CODEGEN 4+0*40 // matrix size in codegenerated reference routines
+//#define LOW_RANK 100
 
 
 
@@ -184,7 +185,7 @@ int main()
 	printf("\nn\t  kernel_dgemm\t  dgemm\t\t  dsyrk_dpotrf\t  dtrmm\t\t  dtrtr\t\t  dgemv_n\t  dgemv_t\t  dtrmv_n\t  dtrmv_t\t  dtrsv_n\t  dtrsv_t\t  dsymv\t\t  dgemv_nt\t\t  dsyrk+dpotrf\t  BLAS dgemm\t  BLAS dgemv_n\t  BLAS dgemv_t\n");
 	printf("\nn\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\n\n");
 	
-#if 1
+#if 0
 	int nn[] = {4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300, 304, 308, 312, 316, 320, 324, 328, 332, 336, 340, 344, 348, 352, 356, 360, 364, 368, 372, 376, 380, 384, 388, 392, 396, 400, 404, 408, 412, 416, 420, 424, 428, 432, 436, 440, 444, 448, 452, 456, 460, 500, 550, 600, 650, 700};
 	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 400, 400, 400, 400, 400, 200, 200, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 4, 4, 4, 4, 4};
 	
@@ -208,6 +209,9 @@ int main()
 		int nrep = 40000; //nnrep[ll];
 #endif
 
+#if defined(LOW_RANK)
+		int m = LOW_RANK;
+#endif
 
 #if defined(REF_BLAS_BLIS)
 		f77_int n77 = n;
@@ -217,6 +221,13 @@ int main()
 		double *B; d_zeros(&B, n, n);
 		double *C; d_zeros(&C, n, n);
 		double *M; d_zeros(&M, n, n);
+
+#if defined(LOW_RANK)
+		double *Al; d_zeros(&Al, m, n);
+		double *Cl; d_zeros(&Cl, m, m);
+		for(i=0; i<m*n; i++)
+			Al[i] = i;
+#endif
 
 		char c_n = 'n';
 		char c_l = 'l';
@@ -265,6 +276,14 @@ int main()
 		double *x2; d_zeros_align(&x2, pnd, 1);
 		double *y2; d_zeros_align(&y2, pnd, 1);
 		double *diag; d_zeros_align(&diag, pnd, 1);
+
+#if defined(LOW_RANK)
+		int pmd = ((m+bsd-1)/bsd)*bsd;	
+		int cmd = ((m+D_NCL-1)/D_NCL)*D_NCL;	
+		double *pAl; d_zeros_align(&pAl, pmd, cnd);
+		double *pCl; d_zeros_align(&pCl, pmd, cmd);
+#endif
+
 	
 		d_cvt_mat2pmat(n, n, A, n, 0, pA, cnd);
 		d_cvt_mat2pmat(n, n, B, n, 0, pB, cnd);
@@ -568,6 +587,11 @@ int main()
 
 //			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 1, pB, cnd, pC, cnd);
 //			dpotrf_lib(n, n, pC, cnd, pC, cnd, x);
+
+#if defined(LOW_RANK)
+			dgemm_nt_lib(m, m, n, pAl, cnd, pAl, cnd, 0, pCl, cmd, pCl, cmd, 0, 0);
+//			dsyrk_nt_lib(m, m, n, pAl, cnd, pAl, cnd, 1, pCl, cmd, pCl, cmd);
+#endif
 			}
 	
 		gettimeofday(&tv1, NULL); // stop
@@ -595,6 +619,12 @@ int main()
 //				}
 //			dsyrk_(&c_l, &c_n, &n, &n, &d_1, A, &n, &d_1, C, &n);
 //			dpotrf_(&c_l, &n, C, &n, &info);
+
+#if defined(LOW_RANK)
+			dgemm_(&c_n, &c_t, &m, &m, &n, &d_1, Al, &m, Al, &m, &d_0, Cl, &m);
+//			dsyrk_(&c_l, &c_n, &m, &n, &d_1, Al, &m, &d_0, Cl, &m);
+#endif
+
 #endif
 #if defined(REF_BLAS_BLIS)
 //			dgemm_(&c_n, &c_t, &n77, &n77, &n77, &d_1, A, &n77, B, &n77, &d_0, C, &n77);
@@ -758,6 +788,11 @@ int main()
 
 //		float flop_operation = 4.0/3.0*n*n*n; // dsyrk+dpotrf
 
+#if defined(LOW_RANK)
+		float flop_operation = 2.0*m*m*n; // dgemm
+//		float flop_operation = 1.0*m*m*n; // dsyrk dtrmm
+#endif
+
 		float time_hpmpc    = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 		float time_blas     = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
 #ifdef N_CODEGEN
@@ -795,6 +830,12 @@ int main()
 		free(y);
 		free(x2);
 		free(y2);
+#if defined(LOW_RANK)
+		free(Al);
+		free(Cl);
+		free(pAl);
+		free(pCl);
+#endif
 		
 		}
 

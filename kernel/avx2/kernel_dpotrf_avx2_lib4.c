@@ -9124,7 +9124,7 @@ void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 			{
 
 			long long long_sign = 0x8000000000000000;
-			__m128d sign = _mm256_loaddup_pd( (double *) &long_sign );
+			__m128d sign = _mm_loaddup_pd( (double *) &long_sign );
 
 			c_00_11 = _mm_xor_pd( c_00_11, sign );
 			c_01_10 = _mm_xor_pd( c_01_10, sign );

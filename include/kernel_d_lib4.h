@@ -324,3 +324,27 @@ void corner_dtrmm_l_u_nt_1x4_lib4(double *A, double *B, int alg, double *C, doub
 // kernels for aux routines
 void kernel_dgeset_4_lib4(int kmax, double alpha, double *A);
 void kernel_dtrset_4_lib4(int kmax, double alpha, double *A);
+
+
+// low rank update
+void kernel_dsyr0_4_lib4(int kmax, int tri, int alg, double *C, double *D);
+void kernel_dsyr0_3_lib4(int kmax, int tri, int alg, double *C, double *D);
+void kernel_dsyr0_2_lib4(int kmax, int tri, int alg, double *C, double *D);
+void kernel_dsyr0_1_lib4(int kmax, int tri, int alg, double *C, double *D);
+void kernel_dsyr1_4_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr1_3_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr1_2_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr1_1_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr2_4_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr2_3_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr2_2_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr2_1_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr3_4_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr3_3_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr3_2_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr3_1_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr4_4_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr4_3_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr4_2_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+void kernel_dsyr4_1_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
+
