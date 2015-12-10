@@ -115,12 +115,12 @@ all: clean static_library test_problem run
 codegen: clean codegenerator test_problem run
 
 static_library: target 
-	make -C auxiliary obj
-	make -C kernel obj
-	make -C blas obj
-	make -C lqcp_solvers obj
-	make -C mpc_solvers obj
-	make -C interfaces obj
+	( cd auxiliary; $(MAKE) obj)
+	( cd kernel; $(MAKE) obj)
+	( cd blas; $(MAKE) obj)
+	( cd lqcp_solvers; $(MAKE) obj)
+	( cd mpc_solvers; $(MAKE) obj)
+	( cd interfaces; $(MAKE) obj)
 #ifneq ($(REF_BLAS), 0)
 	make -C reference_code obj
 #endif
@@ -130,12 +130,12 @@ static_library: target
 	@echo
 
 shared_library: target
-	make -C auxiliary obj
-	make -C kernel obj
-	make -C blas obj
-	make -C lqcp_solvers obj
-	make -C mpc_solvers obj
-	make -C interfaces obj
+	( cd auxiliary; $(MAKE) obj)
+	( cd kernel; $(MAKE) obj)
+	( cd blas; $(MAKE) obj)
+	( cd lqcp_solvers; $(MAKE) obj)
+	( cd mpc_solvers; $(MAKE) obj)
+	( cd interfaces; $(MAKE) obj)
 #ifneq ($(REF_BLAS), 0)
 	make -C reference_code obj
 #endif
