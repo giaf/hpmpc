@@ -3342,7 +3342,7 @@ void dpotrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *
 			}
 		}
 #endif
-#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7) || defined(TARGET_CORTEX_A57)
 	for(; i<m-3; i+=4)
 		{
 		j = 0;
@@ -3523,7 +3523,7 @@ void dpotrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *
 		}
 
 #endif
-#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7) || defined(TARGET_CORTEX_A57)
 	j = 0;
 	for(; j<n-3; j+=4) // then i<m-3 !!!
 		{
@@ -4282,7 +4282,7 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pB, int 
 			}
 		}
 #endif
-#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7) || defined(TARGET_CORTEX_A57)
 	for(; i<m-3; i+=4)
 		{
 		j = 0;
@@ -4556,7 +4556,7 @@ void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pB, int 
 		}
 
 #endif
-#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7) || defined(TARGET_CORTEX_A57)
 	j = 0;
 	for(; j<n-3; j+=4) // then i<m-3 !!!
 		{
@@ -5675,7 +5675,7 @@ void dlauum_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pB, int
 			}
 		}
 #endif
-#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_C99_4X4) || defined(TARGET_X64_SSE3) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7) || defined(TARGET_CORTEX_A57)
 	for(; i<m-3; i+=4)
 		{
 		j = 0;
@@ -8855,7 +8855,7 @@ void dtrtri_lib(int m, double *pA, int sda, int use_inv_diag_A, double *inv_diag
 			}
 		}
 #endif
-#if defined(TARGET_X64_SSE3) || defined(TARGET_C99_4X4) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7)
+#if defined(TARGET_X64_SSE3) || defined(TARGET_C99_4X4) || defined(TARGET_CORTEX_A15) || defined(TARGET_CORTEX_A9) || defined(TARGET_CORTEX_A7) || defined(TARGET_CORTEX_A57)
 	for( ; ii<m-3; ii+=4)
 		{
 		jj = ii;

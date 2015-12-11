@@ -470,7 +470,7 @@ void cvt_d2s_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, int
 
 
 /* converts a matrix into a packed matrix */
-void s_cvt_mat2pmat(int row, int col, int offset, int bs_dummy, float *A, int lda, float *pA, int sda)
+void s_cvt_mat2pmat(int row, int col, float *A, int lda, int offset, float *pA, int sda)
 	{
 	
 	const int bs = 4;
@@ -500,13 +500,6 @@ void s_cvt_mat2pmat(int row, int col, int offset, int bs_dummy, float *A, int ld
 	ii = 0;
 	for(; ii<row1-3; ii+=bs)
 		{
-/*		for(j=0; j<col; j++)*/
-/*			{*/
-/*			pA[0+j*bs+ii*sda] = A[0+ii+j*lda];*/
-/*			pA[1+j*bs+ii*sda] = A[1+ii+j*lda];*/
-/*			pA[2+j*bs+ii*sda] = A[2+ii+j*lda];*/
-/*			pA[3+j*bs+ii*sda] = A[3+ii+j*lda];*/
-/*			}*/
 		j=0;
 		for(; j<col-3; j+=4)
 			{
@@ -553,6 +546,7 @@ void s_cvt_mat2pmat(int row, int col, int offset, int bs_dummy, float *A, int ld
 		}
 	
 	}
+
 
 
 

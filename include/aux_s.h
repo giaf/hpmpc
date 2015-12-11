@@ -32,7 +32,7 @@ void s_copy_pmat(int row, int col, int bs, float *A, int sda, float *B, int sdb)
 //void s_transpose_pmat_lo(int row, int offset, float *A, int sda, float *B, int sdb);
 //void s_align_pmat(int row, int col, int offset, int bs, float *A, int sda, float *B, int sdb);
 void s_cvt_d2s_pmat(int row, int col, int dbs, double *A, int sda, int sbs, float *B, int sdb);
-void s_cvt_mat2pmat(int row, int col, int offset, int bs, float *A, int lda, float *B, int sdb);
+void s_cvt_mat2pmat(int row, int col, float *A, int lda, int offset, float *B, int sdb);
 void cvt_d2s_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, int lda, float *pA, int sda);
 void s_cvt_tran_mat2pmat(int row, int col, int offset, int bs, float *A, int lda, float *B, int sdb);
 void cvt_tran_d2s_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, int lda, float *pA, int sda);

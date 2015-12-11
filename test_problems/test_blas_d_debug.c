@@ -29,9 +29,7 @@
 #include <math.h>
 
 #include "../include/aux_d.h"
-/*#include "../include/aux_s.h"*/
 #include "../include/blas_d.h"
-/*#include "../include/blas_lib_s.h"*/
 #include "../include/block_size.h"
 
 
@@ -41,8 +39,8 @@ int main()
 	
 	int i, j, rep;
 	
-	const int bs = D_MR; //d_get_mr();
-/*	const int bss = S_MR; //s_get_mr();*/
+	const int bs  = D_MR;
+	const int ncl = D_NCL;
 	
 	printf("\nbs = %d\n\n", bs);
 	
@@ -53,32 +51,18 @@ int main()
 	double *B; d_zeros(&B, n, n);
 	double *C; d_zeros(&C, n, n);
 	double *L; d_zeros(&L, n, n);
-/*	float *sA; s_zeros(&sA, n, n);*/
-/*	float *sB; s_zeros(&sB, n, n);*/
 	
 	for(i=0; i<n*n; i++)
 		{
 		A[i] = i;
-/*		sA[i] = i;*/
 		}
 	
 	B[0] = 2;
-/*	B[1] = 1;*/
-/*	sB[0] = 2;*/
-/*	sB[1] = 1;*/
 	for(i=1; i<n-1; i++)
 		{
-/*		B[i*(n+1)-1] = 1;*/
 		B[i*(n+1)+0] = 2;
-//		B[i*(n+1)+1] = 1;
-/*		sB[i*(n+1)-1] = 1;*/
-/*		sB[i*(n+1)+0] = 2;*/
-/*		sB[i*(n+1)+1] = 1;*/
 		}
-/*	B[n*n-2] = 1;*/
 	B[n*n-1] = 2;
-/*	sB[n*n-2] = 1;*/
-/*	sB[n*n-1] = 2;*/
 	
 	for(i=0; i<n; i++)
 		C[i*(n+1)] = 2;
@@ -88,17 +72,13 @@ int main()
 //	d_print_mat(n, n, C, n);
 
 	int pn = ((n+bs-1)/bs)*bs;//+4;	
-/*	int pns = ((n+bss-1)/bss)*bss;//+4;	*/
-	int cn = ((n+D_NCL-1)/D_NCL)*D_NCL;//+4;	
-	int cn2 = ((2*n+D_NCL-1)/D_NCL)*D_NCL;	
+	int cn = ((n+ncl-1)/ncl)*ncl;//+4;	
+	int cn2 = ((2*n+ncl-1)/ncl)*ncl;	
 
 	double *pA; d_zeros_align(&pA, pn, cn);
 	double *pB; d_zeros_align(&pB, pn, cn);
 	double *pC; d_zeros_align(&pC, pn, cn);
 	double *pL; d_zeros_align(&pL, pn, cn);
-/*	float *spA; s_zeros_align(&spA, pns, pns);*/
-/*	float *spB; s_zeros_align(&spB, pns, pns);*/
-/*	float *spC; s_zeros_align(&spC, pns, pns);*/
 	double *pD; d_zeros_align(&pD, pn, cn);
 	double *pE; d_zeros_align(&pE, pn, cn2);
 	double *pF; d_zeros_align(&pF, pn, cn);
@@ -144,7 +124,6 @@ int main()
 	d_print_pmat(pn, cn, bs, pB, cn);
 	d_print_pmat(pn, cn, bs, pC, cn);
 	d_print_pmat(pn, cn, bs, pD, cn);
-	//d_print_pmat(pn, pn, bs, pD, cn);
 	d_print_mat(1, n, x, 1);
 	d_print_mat(1, n, y, 1);
 

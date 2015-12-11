@@ -23,7 +23,7 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-void sgemm_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sdb, float *pC, int sdc, int alg);
+void sgemm_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sdb, int alg, float *pC, int sdc);
 void strmm_lib(int m, int n, float *pA, int sda, float *pB, int sdb, float *pC, int sdc);
 void ssyrk_spotrf_lib(int m, int n, int k, float *pA, int sda, float *pC, int sdc, float *diag);
 void sgemv_n_lib(int n, int m, float *pA, int sda, float *x, float *y, int alg);
