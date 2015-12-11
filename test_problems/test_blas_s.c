@@ -83,6 +83,9 @@ int main()
 #elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
 	const float flops_max = 8;
 	printf("Testing BLAS version for SSE3 instruction set, 64 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
+#elif defined(TARGET_CORTEX_A57)
+	const float flops_max = 8;
+	printf("Testing solvers for ARMv8a NEON instruction set, oprimized for Cortex A57: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
 #elif defined(TARGET_CORTEX_A15)
 	const float flops_max = 8;
 	printf("Testing solvers for ARMv7a NEON instruction set, oprimized for Cortex A15: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
@@ -123,6 +126,9 @@ int main()
 	fprintf(f, "\n");
 #elif defined(TARGET_X64_SSE3)
 	fprintf(f, "C = 's_x64_sse3';\n");
+	fprintf(f, "\n");
+#elif defined(TARGET_CORTEX_A57)
+	fprintf(f, "C = 's_ARM_cortex_A57';\n");
 	fprintf(f, "\n");
 #elif defined(TARGET_CORTEX_A15)
 	fprintf(f, "C = 's_ARM_cortex_A15';\n");
@@ -218,10 +224,10 @@ int main()
 		float *y2; s_zeros_align(&y2, 2*pns, 1);
 		float *diag; s_zeros_align(&diag, pns, 1);
 	
-		s_cvt_mat2pmat(n, n, 0, bss, sA, n, pA, cns);
-		s_cvt_mat2pmat(n, n, 0, bss, sB, n, pB, cns);
-		s_cvt_mat2pmat(n, n, 0, bss, sB, n, pD, cns);
-		s_cvt_mat2pmat(n, n, 0, bss, sA, n, pE, cns2);
+		s_cvt_mat2pmat(n, n, sA, n, 0, pA, cns);
+		s_cvt_mat2pmat(n, n, sB, n, 0, pB, cns);
+		s_cvt_mat2pmat(n, n, sB, n, 0, pD, cns);
+		s_cvt_mat2pmat(n, n, sA, n, 0, pE, cns2);
 	
 		for(i=0; i<pns*cns; i++) pC[i] = -1;
 		
@@ -234,7 +240,7 @@ int main()
 		/* warm up */
 		for(rep=0; rep<nrep; rep++)
 			{
-			sgemm_nt_lib(n, n, n, pA, cns, pB, cns, pC, cns, 0);
+			sgemm_nt_lib(n, n, n, pA, cns, pB, cns, 0, pC, cns);
 			}
 
 		gettimeofday(&tv0, NULL); // start
@@ -242,7 +248,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
-			sgemm_nt_lib(n, n, n, pA, cns, pB, cns, pC, cns, 0);
+			sgemm_nt_lib(n, n, n, pA, cns, pB, cns, 0, pC, cns);
 
 			}
 	

@@ -140,7 +140,11 @@ void sgemm_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sdb, i
 		j = 0;
 		for(; j<n-3; j+=4)
 			{
+#if defined(TARGET_CORTEX_A57)
+			kernel_sgemm_nt_4x4_lib4_new(k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], alg, 0, 0);
+#else
 			kernel_sgemm_nt_4x4_lib4(k, &pA[0+i*sda], &pB[0+j*sdb], &pC[0+(j+0)*bs+i*sdc], &pC[0+(j+0)*bs+i*sdc], alg);
+#endif
 			}
 		jj = 0;
 /*		for(; jj<n-j-1; jj+=2)*/

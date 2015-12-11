@@ -27,7 +27,7 @@ include ../../Makefile.rule
 
 ifeq ($(TARGET), CORTEX_A57)
 OBJS_DOUBLE = kernel_dgemm_neon_lib4.o  kernel_dgemm_neon_assembly_lib4.o 
-OBJS_SINGLE = 
+OBJS_SINGLE = kernel_sgemm_neon_assembly_lib4.o 
 endif
 
 obj: $(OBJS_DOUBLE) $(OBJS_SINGLE)
