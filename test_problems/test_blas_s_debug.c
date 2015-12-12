@@ -69,7 +69,7 @@ int main()
 	for(i=0; i<n-1; i++)
 		C[1+i*(n+1)] = 1;
 
-//	s_print_mat(n, n, C, n);
+//	s_print_mat(n, n, A, n);
 
 
 	int pn = ((n+bs-1)/bs)*bs;//+4;	
@@ -89,6 +89,8 @@ int main()
 	s_cvt_mat2pmat(n, n, B, n, 0, pB, cn);
 	s_cvt_mat2pmat(n, n, B, n, 0, pD, cn);
 	s_cvt_mat2pmat(n, n, A, n, 0, pE, cn2);
+
+//	s_print_pmat(n, n, bs, pA, cn);
 
 	float *x; s_zeros_align(&x, n, 1);
 	float *y; s_zeros_align(&y, n, 1);
@@ -128,8 +130,8 @@ int main()
 
 	if(n<=24)
 		{
-		s_print_pmat(pn, pn, bs, pA, pn);
-		s_print_pmat(pn, pn, bs, pC, pn);
+		s_print_pmat(n, n, bs, pA, cn);
+		s_print_pmat(n, n, bs, pC, cn);
 		}
 
 	return 0;

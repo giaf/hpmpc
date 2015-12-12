@@ -529,7 +529,7 @@ void cvt_d2s_mat2pmat(int row, int col, int offset, int bs_dummy, double *A, int
 
 
 /* converts a matrix into a packed matrix */
-void s_cvt_mat2pmat(int row, int col, int offset, int bs_dummy, float *A, int lda, float *pA, int sda)
+void s_cvt_mat2pmat(int row, int col, float *A, int lda, int offset, float *pA, int sda)
 	{
 	
 	const int bs = 8;

@@ -26,7 +26,7 @@
 include ../Makefile.rule
 
 obj:
-	make -C c obj
+	( cd c; $(MAKE) obj)
 
 clean:
 	make -C c clean
