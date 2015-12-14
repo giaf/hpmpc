@@ -51,6 +51,7 @@ endif
 #OBJS_TEST = tools.o test_d_forward_schur.o
 #OBJS_TEST = tools.o test_s_ric_mpc.o
 #OBJS_TEST = tools.o test_d_ric_mhe.o
+#OBJS_TEST = tools.o test_d_ric_mpc_tim.o
 #OBJS_TEST = tools.o test_d_cond.o
 #OBJS_TEST = tools.o test_d_fact.o
 #OBJS_TEST = tools.o test_d_cond_fact.o
@@ -82,6 +83,7 @@ test_d_ric_mpc.o: test_d_ric_mpc.c test_param.h ../problem_size.h
 test_d_forward_schur.o: test_d_forward_schur.c test_param.h ../problem_size.h
 test_s_ric_mpc.o: test_s_ric_mpc.c test_param.h ../problem_size.h
 test_d_ric_mhe.o: test_d_ric_mhe.c test_param.h ../problem_size.h
+test_d_ric_mpc_tim.o: test_d_ric_mpc_tim.c test_param.h ../problem_size.h
 test_d_cond.o: test_d_cond.c test_param.h ../problem_size.h
 test_d_fact.o: test_d_fact.c test_param.h ../problem_size.h
 test_d_cond_fact.o: test_d_cond_fact.c test_param.h ../problem_size.h
