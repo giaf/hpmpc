@@ -41,7 +41,7 @@
 
 
 
-//#define PRINT_ON
+#define PRINT_ON
 
 
 
@@ -280,7 +280,7 @@ int main()
 	int *nx_v, *nu_v, *nb_v, *ng_v;
 
 	int ll;
-//	ll_max = 1;
+	ll_max = 1;
 	for(ll=0; ll<ll_max; ll++)
 		{
 

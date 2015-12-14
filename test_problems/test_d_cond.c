@@ -699,9 +699,9 @@ int main()
 			d_cond_Gamma_u_T(N, nx, nu, 0, hpA, hpBt, hpGamma_u);
 
 #if (DIAG_HESSIAN==0)
-			d_cond_R_N2_nx3(N, nx, nu, 0, hpBAt, 0, Q_N_NOT_ZERO, hpRSQ_MPC, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, pH_R[0]);
+			d_cond_R_N2_nx3(N, nx, nu, 0, hpBAt, 0, Q_N_NOT_ZERO, hpRSQ_MPC, pD, pM, pQs, pLam, diag_ric, pBAtL, hpGamma_u, pH_R[0]);
 #else
-			d_cond_R_N2_nx3(N, nx, nu, 0, hpBAt, 1, Q_N_NOT_ZERO, hdRSQ_MPC, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_u, pH_R[0]);
+			d_cond_R_N2_nx3(N, nx, nu, 0, hpBAt, 1, Q_N_NOT_ZERO, hdRSQ_MPC, pD, pM, pQs, pLam, diag_ric, pBAtL, hpGamma_u, pH_R[0]);
 #endif
 
 			}
@@ -731,9 +731,9 @@ int main()
 			d_cond_Gamma_u_T(N, nx, nu, 1, hpA, hpBt, hpGamma_v);
 
 #if (DIAG_HESSIAN==0)
-			d_cond_R_N2_nx3(N, nx, nu, 1, hpBAt, 0, Q_N_NOT_ZERO, hpRSQ_MHE, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_v, pH_Rx[0]);
+			d_cond_R_N2_nx3(N, nx, nu, 1, hpBAt, 0, Q_N_NOT_ZERO, hpRSQ_MHE, pD, pM, pQs, pLam, diag_ric, pBAtL, hpGamma_v, pH_Rx[0]);
 #else
-			d_cond_R_N2_nx3(N, nx, nu, 1, hpBAt, 1, Q_N_NOT_ZERO, hdRSQ_MHE, pD, pM, pQs, pLam, diag_ric, pBAtL, 1, hpGamma_v, pH_Rx[0]);
+			d_cond_R_N2_nx3(N, nx, nu, 1, hpBAt, 1, Q_N_NOT_ZERO, hdRSQ_MHE, pD, pM, pQs, pLam, diag_ric, pBAtL, hpGamma_v, pH_Rx[0]);
 #endif
 
 			}

@@ -54,6 +54,7 @@ endif
 #OBJS_TEST = tools.o test_d_cond.o
 #OBJS_TEST = tools.o test_d_fact.o
 #OBJS_TEST = tools.o test_d_cond_fact.o
+#OBJS_TEST = tools.o test_d_part_cond.o
 #OBJS_TEST = tools.o test_d_cond_mpc.o
 OBJS_TEST = tools.o test_d_ip_hard.o
 #OBJS_TEST = tools.o test_s_ip_box.o
@@ -84,6 +85,7 @@ test_d_ric_mhe.o: test_d_ric_mhe.c test_param.h ../problem_size.h
 test_d_cond.o: test_d_cond.c test_param.h ../problem_size.h
 test_d_fact.o: test_d_fact.c test_param.h ../problem_size.h
 test_d_cond_fact.o: test_d_cond_fact.c test_param.h ../problem_size.h
+test_d_part_cond.o: test_d_part_cond.c test_param.h ../problem_size.h
 test_d_cond_mpc.o: test_d_cond_mpc.c test_param.h ../problem_size.h
 test_d_ip_hard.o: test_d_ip_hard.c test_param.h ../problem_size.h
 test_s_ip_box.o: test_s_ip_box.c test_param.h ../problem_size.h

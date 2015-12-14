@@ -224,7 +224,7 @@ void d_back_ric_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, do
 
 
 
-void d_back_ric_trf_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hpL, double **hdL, double *work, double *diag, int *nb, int **idxb, double **hQd, int *ng, double **hpDCt, double **Qx)
+void d_back_ric_trf_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hpL, double **hdL, double *work, int *nb, int **idxb, double **hQd, int *ng, double **hpDCt, double **Qx)
 	{
 
 	const int bs = D_MR;
