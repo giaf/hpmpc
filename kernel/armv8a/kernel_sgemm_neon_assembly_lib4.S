@@ -794,27 +794,34 @@ kernel_sgemm_nt_12x4_lib4_new:
 	cmp	w0, #3
 
 	// prefetch
-
-	ble	.L02_check_clean_loop
-
-
-.L02_main_loop:
-
-	// 0
 	ld1   {v0.4s, v1.4s}, [x1], #32
 	ld1   {v6.4s, v7.4s}, [x3], #32
 	ld1   {v2.4s, v3.4s}, [x11], #32
 	ld1   {v4.4s, v5.4s}, [x14], #32
 
+	ble	.L02_check_clean_loop2
+
+
+.L02_main_loop:
+
+	// 0
 	fmla  v16.4s, v0.4s, v6.4s[0]
+	ld1   {v8.4s, v9.4s}, [x1], #32
 	fmla  v17.4s, v0.4s, v6.4s[1]
+	ld1   {v14.4s, v15.4s}, [x3], #32
 	fmla  v18.4s, v0.4s, v6.4s[2]
+	ld1   {v10.4s, v11.4s}, [x11], #32
 	fmla  v19.4s, v0.4s, v6.4s[3]
+	ld1   {v12.4s, v13.4s}, [x14], #32
 
 	fmla  v20.4s, v2.4s, v6.4s[0]
+	prfm  PLDL1KEEP, [x1, #64]
 	fmla  v21.4s, v2.4s, v6.4s[1]
+	prfm  PLDL1KEEP, [x3, #64]
 	fmla  v22.4s, v2.4s, v6.4s[2]
+	prfm  PLDL1KEEP, [x11, #64]
 	fmla  v23.4s, v2.4s, v6.4s[3]
+	prfm  PLDL1KEEP, [x14, #64]
 
 	fmla  v24.4s, v4.4s, v6.4s[0]
 	fmla  v25.4s, v4.4s, v6.4s[1]
@@ -841,11 +848,59 @@ kernel_sgemm_nt_12x4_lib4_new:
 
 
 	// 2
+	fmla  v16.4s, v8.4s, v14.4s[0]
 	ld1   {v0.4s, v1.4s}, [x1], #32
+	fmla  v17.4s, v8.4s, v14.4s[1]
 	ld1   {v6.4s, v7.4s}, [x3], #32
+	fmla  v18.4s, v8.4s, v14.4s[2]
 	ld1   {v2.4s, v3.4s}, [x11], #32
+	fmla  v19.4s, v8.4s, v14.4s[3]
 	ld1   {v4.4s, v5.4s}, [x14], #32
 
+	fmla  v20.4s, v10.4s, v14.4s[0]
+	fmla  v21.4s, v10.4s, v14.4s[1]
+	fmla  v22.4s, v10.4s, v14.4s[2]
+	fmla  v23.4s, v10.4s, v14.4s[3]
+
+	fmla  v24.4s, v12.4s, v14.4s[0]
+	fmla  v25.4s, v12.4s, v14.4s[1]
+	fmla  v26.4s, v12.4s, v14.4s[2]
+	fmla  v27.4s, v12.4s, v14.4s[3]
+
+
+	cmp	w0, #3
+
+	// 3
+	fmla  v16.4s, v9.4s, v15.4s[0]
+	fmla  v17.4s, v9.4s, v15.4s[1]
+	fmla  v18.4s, v9.4s, v15.4s[2]
+	fmla  v19.4s, v9.4s, v15.4s[3]
+
+	fmla  v20.4s, v11.4s, v15.4s[0]
+	fmla  v21.4s, v11.4s, v15.4s[1]
+	fmla  v22.4s, v11.4s, v15.4s[2]
+	fmla  v23.4s, v11.4s, v15.4s[3]
+
+	fmla  v24.4s, v13.4s, v15.4s[0]
+	fmla  v25.4s, v13.4s, v15.4s[1]
+	fmla  v26.4s, v13.4s, v15.4s[2]
+	fmla  v27.4s, v13.4s, v15.4s[3]
+
+
+	bgt	.L02_main_loop
+
+
+
+.L02_check_clean_loop2:
+
+	cmp	w0, #1
+
+	blt	.L02_end_matter
+
+	beq	.L02_check_clean_loop1
+
+
+	// 0
 	fmla  v16.4s, v0.4s, v6.4s[0]
 	fmla  v17.4s, v0.4s, v6.4s[1]
 	fmla  v18.4s, v0.4s, v6.4s[2]
@@ -861,10 +916,9 @@ kernel_sgemm_nt_12x4_lib4_new:
 	fmla  v26.4s, v4.4s, v6.4s[2]
 	fmla  v27.4s, v4.4s, v6.4s[3]
 
+	sub w0, w0, #2
 
-	cmp	w0, #3
-
-	// 3
+	// 1
 	fmla  v16.4s, v1.4s, v7.4s[0]
 	fmla  v17.4s, v1.4s, v7.4s[1]
 	fmla  v18.4s, v1.4s, v7.4s[2]
@@ -875,58 +929,37 @@ kernel_sgemm_nt_12x4_lib4_new:
 	fmla  v22.4s, v3.4s, v7.4s[2]
 	fmla  v23.4s, v3.4s, v7.4s[3]
 
+	cmp	w0, #0
+
 	fmla  v24.4s, v5.4s, v7.4s[0]
 	fmla  v25.4s, v5.4s, v7.4s[1]
 	fmla  v26.4s, v5.4s, v7.4s[2]
 	fmla  v27.4s, v5.4s, v7.4s[3]
 
-
-
-	bgt	.L02_main_loop
-
-
-
-.L02_check_clean_loop:
-
-	cmp	w0, #0
-
 	ble	.L02_end_matter
 
-	b .L02_clean_loop_no_load
-
-.L02_clean_loop:
-
-	// prefetch
-
-.L02_clean_loop_no_load:
-
-	// 0
 	ld1   {v0.4s}, [x1], #16
 	ld1   {v6.4s}, [x3], #16
 	ld1   {v2.4s}, [x11], #16
 	ld1   {v4.4s}, [x14], #16
 
+.L02_check_clean_loop1:
+
+	// 0
 	fmla  v16.4s, v0.4s, v6.4s[0]
 	fmla  v17.4s, v0.4s, v6.4s[1]
 	fmla  v18.4s, v0.4s, v6.4s[2]
 	fmla  v19.4s, v0.4s, v6.4s[3]
-
-	sub w0, w0, #1
 
 	fmla  v20.4s, v2.4s, v6.4s[0]
 	fmla  v21.4s, v2.4s, v6.4s[1]
 	fmla  v22.4s, v2.4s, v6.4s[2]
 	fmla  v23.4s, v2.4s, v6.4s[3]
 
-	cmp	w0, #0
-
 	fmla  v24.4s, v4.4s, v6.4s[0]
 	fmla  v25.4s, v4.4s, v6.4s[1]
 	fmla  v26.4s, v4.4s, v6.4s[2]
 	fmla  v27.4s, v4.4s, v6.4s[3]
-
-	bgt	.L02_clean_loop
-
 
 
 .L02_end_matter:
