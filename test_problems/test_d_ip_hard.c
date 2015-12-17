@@ -129,6 +129,8 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 
 
 
+#if 1
+
 int main()
 	{
 	
@@ -604,8 +606,8 @@ int main()
 		for(jj=0; jj<nx+nu; jj++)
 			hux[ii][jj] = 0;
 
-	hux[0][nu+0] = xx0[0];
-	hux[0][nu+1] = xx0[1];
+	hux[0][nu+0] = 3.5; //xx0[0];
+	hux[0][nu+1] = 3.5; //xx0[1];
 
 //	// solution of unconstrained problem as warm start
 //	warm_start = 1;
@@ -649,8 +651,8 @@ int main()
 			for(jj=0; jj<nx+nu; jj++)
 				hux[ii][jj] = 0;
 
-		hux[0][nu+0] = xx0[2*idx];
-		hux[0][nu+1] = xx0[2*idx+1];
+		hux[0][nu+0] = 3.5; //xx0[2*idx];
+		hux[0][nu+1] = 3.5; //xx0[2*idx+1];
 
 //		// solution of unconstrained problem as warm start
 //		warm_start = 1;
@@ -912,4 +914,342 @@ int main()
 	}
 
 
+#else
+
+int main()
+	{
+	
+	printf("\n");
+	printf("\n");
+	printf("\n");
+	printf(" HPMPC -- Library for High-Performance implementation of solvers for MPC.\n");
+	printf(" Copyright (C) 2014-2015 by Technical University of Denmark. All rights reserved.\n");
+	printf("\n");
+	printf(" HPMPC is distributed in the hope that it will be useful,\n");
+	printf(" but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
+	printf(" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n");
+	printf(" See the GNU Lesser General Public License for more details.\n");
+	printf("\n");
+	printf("\n");
+	printf("\n");
+	
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
+	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); // flush to zero subnormals !!! works only with one thread !!!
+#endif
+
+	int ii, jj;
+	
+	int rep, nrep=NREP;
+
+	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
+	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+	int N  = NN; // horizon lenght
+	int nb  = NB; // number of box constrained inputs and states
+	int ng  = 0; //4;  // number of general constraints
+	
+	int nbu = nu<nb ? nu : nb ;
+	int nbx = nb-nu>0 ? nb-nu : 0;
+
+
+	// stage-wise variant size
+	int nx_v[N+1];
+	nx_v[0] = 0;
+	for(ii=1; ii<=N; ii++)
+		nx_v[ii] = nx;
+
+	int nu_v[N+1];
+	for(ii=0; ii<N; ii++)
+		nu_v[ii] = nu;
+	nu_v[N] = 0;
+
+	int nb_v[N+1];
+	nb_v[0] = nbu;
+	for(ii=1; ii<N; ii++)
+		nb_v[ii] = nb;
+	nb_v[N] = nbx;
+
+	int ng_v[N+1];
+	for(ii=0; ii<=N; ii++)
+		ng_v[ii] = 0;
+
+
+
+	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx/2, nu);
+	printf("\n");
+	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints, %d two-sided general constraints.\n", nx, nu, N, nb, ng);
+	printf("\n");
+#if IP == 1
+	printf(" IP method parameters: primal-dual IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_param.c to change them).\n", K_MAX, MU_TOL);
+#elif IP == 2
+	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_param.c to change them).\n", K_MAX, MU_TOL);
+#else
+	printf(" Wrong value for IP solver choice: %d\n", IP);
+#endif
+
+	int info = 0;
+		
+	const int bs  = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+	const int nal = bs*ncl; // number of doubles per cache line
+
+	int pnz = (nu+nx+1+bs-1)/bs*bs;
+	int pnu = (nu+bs-1)/bs*bs;
+	int pnu1 = (nu+1+bs-1)/bs*bs;
+	int pnx = (nx+bs-1)/bs*bs;
+	int pnx1 = (nx+1+bs-1)/bs*bs;
+	int pnux = (nu+nx+bs-1)/bs*bs;
+	int cnx = (nx+ncl-1)/ncl*ncl;
+	int cnu = (nu+ncl-1)/ncl*ncl;
+	int cnux = (nu+nx+ncl-1)/ncl*ncl;
+
+	int pnb_v[N+1]; for(ii=0; ii<=N; ii++) pnb_v[ii] = (nb_v[ii]+bs-1)/bs*bs;
+
+
+/************************************************
+* dynamical system
+************************************************/	
+
+	double *A; d_zeros(&A, nx, nx); // states update matrix
+
+	double *B; d_zeros(&B, nx, nu); // inputs matrix
+
+	double *b; d_zeros(&b, nx, 1); // states offset
+	double *x0; d_zeros_align(&x0, nx, 1); // initial state
+
+	double Ts = 0.5; // sampling time
+	mass_spring_system(Ts, nx, nu, N, A, B, b, x0);
+	
+	for(jj=0; jj<nx; jj++)
+		b[jj] = 0.1;
+	
+	for(jj=0; jj<nx; jj++)
+		x0[jj] = 0;
+	x0[0] = 3.5;
+	x0[1] = 3.5;
+
+	double *pA; d_zeros_align(&pA, pnx, cnx);
+	d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
+//	d_print_pmat(nx, nx, bs, pA, cnx);
+	double *b0; d_zeros_align(&b0, pnx, 1);
+	dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
+//	d_print_mat(1, nx, b0, 1);
+
+	double *pBAbt0; d_zeros_align(&pBAbt0, pnu1, cnx);
+	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt0, cnx);
+	d_cvt_tran_mat2pmat(nx, 1, b0, nx, nu, pBAbt0+nu/bs*bs*cnx+nu%bs, cnx);
+//	d_print_pmat(nu+1, nx, bs, pBAbt0, cnx);
+
+	double *pBAbt1; d_zeros_align(&pBAbt1, pnz, cnx);
+	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt1, cnx);
+	d_cvt_tran_mat2pmat(nx, nx, A, nx, nu, pBAbt1+nu/bs*bs*cnx+nu%bs, cnx);
+	d_cvt_tran_mat2pmat(nx, 1, b, nx, nu+nx, pBAbt0+(nu+nx)/bs*bs*cnx+(nu+nx)%bs, cnx);
+//	d_print_pmat(nu+nx+1, nx, bs, pBAbt1, cnx);
+
+
+/************************************************
+* box & general constraints
+************************************************/	
+
+	int *idx0; i_zeros(&idx0, nb_v[0], 1);
+	double *d0; d_zeros_align(&d0, 2*pnb_v[0], 1);
+	for(jj=0; jj<nbu; jj++)
+		{
+		d0[jj]          = - 0.5;   //   umin
+		d0[pnb_v[0]+jj] = - 0.5;   // - umax
+		idx0[jj] = jj;
+		}
+//	i_print_mat(nbu, 1, idx0, nbu);
+
+	int *idx1; i_zeros(&idx1, nb_v[1], 1);
+	double *d1; d_zeros_align(&d1, 2*pnb_v[1], 1);
+	for(jj=0; jj<nbu; jj++)
+		{
+		d1[jj]          = - 0.5;   //   umin
+		d1[pnb_v[1]+jj] = - 0.5;   // - umax
+		idx1[jj] = jj;
+		}
+	for(; jj<nb; jj++)
+		{
+		d1[jj]          = - 4.0;   //   xmin
+		d1[pnb_v[1]+jj] = - 4.0;   // - xmax
+		idx1[jj] = jj;
+		}
+//	i_print_mat(nb, 1, idx1, nb);
+
+	int *idxN; i_zeros(&idxN, nb_v[N], 1);
+	double *dN; d_zeros_align(&dN, 2*pnb_v[N], 1);
+	for(jj=0; jj<nbx; jj++)
+		{
+		dN[jj]          = - 4.0;   //   xmin
+		dN[pnb_v[N]+jj] = - 4.0;   // - xmax
+		idxN[jj] = jj;
+		}
+	//d_print_mat(1, 2*pnb+2*png, d, 1);
+	//d_print_mat(1, 2*pnb+2*pngN, dN, 1);
+	//exit(1);
+	
+/************************************************
+* cost function
+************************************************/	
+	
+	double *Q; d_zeros(&Q, nx, nx);
+	for(ii=0; ii<nx; ii++) Q[ii*(nx+1)] = 1.0;
+
+	double *R; d_zeros(&R, nu, nu);
+	for(ii=0; ii<nu; ii++) R[ii*(nu+1)] = 2.0;
+
+	double *S; d_zeros(&S, nu, nx);
+
+	double *q; d_zeros(&q, nx, 1);
+	for(ii=0; ii<nx; ii++) q[ii] = 0.1;
+
+	double *r; d_zeros(&r, nu, 1);
+	for(ii=0; ii<nu; ii++) r[ii] = 0.1;
+
+	double  *pQ0; d_zeros_align(&pQ0, pnu1, cnu);
+	d_cvt_mat2pmat(nu, nu, R, nu, 0, pQ0, cnu);
+	d_cvt_tran_mat2pmat(nu, 1, r, nu, nu, pQ0+nu/bs*bs*cnu+nu%bs, cnu);
+//	d_print_pmat(nu+1, nu, bs, pQ0, cnu);
+
+	double  *pQ1; d_zeros_align(&pQ1, pnz, cnux);
+	d_cvt_mat2pmat(nu, nu, R, nu, 0, pQ1, cnux);
+	d_cvt_tran_mat2pmat(nu, nx, S, nu, nu, pQ1+nu/bs*bs*cnux+nu%bs, cnux);
+	d_cvt_tran_mat2pmat(nu, 1, r, nu, nu+nx, pQ1+(nu+nx)/bs*bs*cnux+(nu+nx)%bs, cnux);
+	d_cvt_mat2pmat(nx, nx, Q, nx, nu, pQ1+nu/bs*bs*cnux+nu%bs+nu*bs, cnux);
+	d_cvt_tran_mat2pmat(nx, 1, q, nx, nu+nx, pQ1+(nu+nx)/bs*bs*cnux+(nu+nx)%bs+nu*bs, cnux);
+//	d_print_pmat(nu+nx+1, nu+nx, bs, pQ1, cnux);
+
+	double  *pQN; d_zeros_align(&pQN, pnx1, cnx);
+	d_cvt_mat2pmat(nx, nx, Q, nx, 0, pQN, cnx);
+	d_cvt_tran_mat2pmat(nx, 1, q, nx, nx, pQN+(nx)/bs*bs*cnx+(nx)%bs, cnx);
+//	d_print_pmat(nx+1, nx, bs, pQN, cnx);
+
+
+	// maximum element in cost functions
+	double mu0 = 2.0;
+
+/************************************************
+* work space
+************************************************/	
+
+	double *(hpBAbt[N]);
+	double *(hpQ[N+1]);
+	double *(hd[N+1]);
+	int *(idx[N+1]);
+	double *(hux[N+1]);
+	double *(hpi[N+1]);
+	double *(hlam[N+1]);
+	double *(ht[N+1]);
+	hpBAbt[0] = pBAbt0;
+	hpQ[0] = pQ0;
+	hd[0] = d0;
+	idx[0] = idx0;
+	d_zeros_align(&hux[0], pnu, 1);
+	d_zeros_align(&hpi[0], pnx, 1);
+	d_zeros_align(&hlam[0], 2*pnb_v[0], 1);
+	d_zeros_align(&ht[0], 2*pnb_v[0], 1);
+	for(ii=1; ii<N; ii++)
+		{
+		hpBAbt[ii] = pBAbt1;
+		hpQ[ii] = pQ1;
+		hd[ii] = d1;
+		idx[ii] = idx1;
+		d_zeros_align(&hux[ii], pnux, 1);
+		d_zeros_align(&hpi[ii], pnx, 1);
+		d_zeros_align(&hlam[ii], 2*pnb_v[ii], 1);
+		d_zeros_align(&ht[ii], 2*pnb_v[ii], 1);
+		}
+	hpQ[N] = pQN;
+	hd[N] = dN;
+	idx[N] = idxN;
+	d_zeros_align(&hux[N], pnx, 1);
+	d_zeros_align(&hpi[N], pnx, 1);
+	d_zeros_align(&hlam[N], 2*pnb_v[N], 1);
+	d_zeros_align(&ht[N], 2*pnb_v[N], 1);
+
+
+
+	double *work; d_zeros_align(&work, d_ip2_hard_mpc_tv_work_space_size_double(N, nx_v, nu_v, nb_v, ng_v), 1);
+
+/************************************************
+* call the solver
+************************************************/	
+
+	int hpmpc_status;
+	int kk;
+	int k_max = 10;
+	double mu_tol = 1e-20;
+	double alpha_min = 1e-8;
+	int warm_start = 0;
+	double sigma_par[] = {0.4, 0.1, 0.001}; // control primal-dual IP behaviour
+	double *stat; d_zeros(&stat, k_max, 5);
+
+	double **dummy;
+
+	struct timeval tv0, tv1, tv2;
+	gettimeofday(&tv0, NULL); // stop
+
+	int kk_avg = 0;
+
+//	printf("\nsolution...\n");
+	for(rep=0; rep<nrep; rep++)
+		{
+
+		hpmpc_status = d_ip2_hard_mpc_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hpQ, dummy, hd, hux, 1, hpi, hlam, ht, work);
+		
+		kk_avg += kk;
+
+		}
+//	printf("\ndone\n");
+
+	gettimeofday(&tv1, NULL); // stop
+
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, nu_v[ii]+nx_v[ii], hux[ii], 1);
+
+	double time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+	for(jj=0; jj<kk; jj++)
+		printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, stat[5*jj], stat[5*jj+1], stat[5*jj+2], stat[5*jj+2], stat[5*jj+3], stat[5*jj+4], stat[5*jj+4]);
+	printf("\n");
+	
+	printf("\n");
+	printf(" Average number of iterations over %d runs: %5.1f\n", nrep, kk_avg / (double) nrep);
+	printf(" Average solution time over %d runs: %5.2e seconds\n", nrep, time);
+
+/************************************************
+* free memory
+************************************************/	
+
+	free(A);
+	free(B);
+	free(b);
+	free(x0);
+	free(pBAbt0);
+	free(pBAbt1);
+	free(d0);
+	free(d1);
+	free(dN);
+	free(idx0);
+	free(idx1);
+	free(idxN);
+	free(Q);
+	free(S);
+	free(R);
+	free(q);
+	free(r);
+	free(pQ0);
+	free(pQ1);
+	free(pQN);
+	free(work);
+	free(stat);
+	for(ii=0; ii<=N; ii++)
+		{
+		free(hux[ii]);
+		}
+	
+	}
+
+
+#endif
 

@@ -26,31 +26,31 @@
 include ../Makefile.rule
 
 ifeq ($(TARGET), X64_AVX2)
-OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib8.o
+OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib8.o i_aux.o
 endif
 ifeq ($(TARGET), X64_AVX)
-OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib8.o
+OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib8.o i_aux.o
 endif
 ifeq ($(TARGET), X64_SSE3)
-OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o
+OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o i_aux.o
 endif
 ifeq ($(TARGET), C99_4X4)
-OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o
+OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o i_aux.o
 endif
 ifeq ($(TARGET), C99_4X4_PREFETCH)
-OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o
+OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o i_aux.o
 endif
 ifeq ($(TARGET), CORTEX_A57)
-OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o
+OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o i_aux.o
 endif
 ifeq ($(TARGET), CORTEX_A15)
-OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o
+OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o i_aux.o
 endif
 ifeq ($(TARGET), CORTEX_A9)
-OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o
+OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o i_aux.o
 endif
 ifeq ($(TARGET), CORTEX_A7)
-OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o
+OBJS = d_aux_lib4.o d_aux_extern_depend_lib4.o s_aux_lib4.o i_aux.o
 endif
 
 obj: $(OBJS)
