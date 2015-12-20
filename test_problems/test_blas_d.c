@@ -571,6 +571,10 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 
+#if defined(LOW_RANK)
+//			dgemm_nt_lib(m, m, n, pAl, cnd, pAl, cnd, 0, pCl, cmd, pCl, cmd, 0, 0);
+			dsyrk_nt_lib(m, m, n, pAl, cnd, pAl, cnd, 1, pCl, cmd, pCl, cmd);
+#else
 			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
 //			dgemm_nn_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
 //			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 0, pC, cnd, pC, cnd);
@@ -587,10 +591,6 @@ int main()
 
 //			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 1, pB, cnd, pC, cnd);
 //			dpotrf_lib(n, n, pC, cnd, pC, cnd, x);
-
-#if defined(LOW_RANK)
-			dgemm_nt_lib(m, m, n, pAl, cnd, pAl, cnd, 0, pCl, cmd, pCl, cmd, 0, 0);
-//			dsyrk_nt_lib(m, m, n, pAl, cnd, pAl, cnd, 1, pCl, cmd, pCl, cmd);
 #endif
 			}
 	
@@ -599,6 +599,10 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 #if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_NETLIB) || defined(REF_BLAS_MKL)
+#if defined(LOW_RANK)
+//			dgemm_(&c_n, &c_t, &m, &m, &n, &d_1, Al, &m, Al, &m, &d_0, Cl, &m);
+			dsyrk_(&c_l, &c_n, &m, &n, &d_1, Al, &m, &d_0, Cl, &m);
+#else
 			dgemm_(&c_n, &c_t, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
 //			dgemm_(&c_n, &c_n, &n, &n, &n, &d_1, A, &n, M, &n, &d_0, C, &n);
 //			dsyrk_(&c_l, &c_n, &n, &n, &d_1, A, &n, &d_0, C, &n);
@@ -620,12 +624,9 @@ int main()
 //			dsyrk_(&c_l, &c_n, &n, &n, &d_1, A, &n, &d_1, C, &n);
 //			dpotrf_(&c_l, &n, C, &n, &info);
 
-#if defined(LOW_RANK)
-			dgemm_(&c_n, &c_t, &m, &m, &n, &d_1, Al, &m, Al, &m, &d_0, Cl, &m);
-//			dsyrk_(&c_l, &c_n, &m, &n, &d_1, Al, &m, &d_0, Cl, &m);
+#endif
 #endif
 
-#endif
 #if defined(REF_BLAS_BLIS)
 //			dgemm_(&c_n, &c_t, &n77, &n77, &n77, &d_1, A, &n77, B, &n77, &d_0, C, &n77);
 //			dgemm_(&c_n, &c_n, &n77, &n77, &n77, &d_1, A, &n77, B, &n77, &d_0, C, &n77);
@@ -779,6 +780,10 @@ int main()
 
 		float Gflops_max = flops_max * GHz_max;
 
+#if defined(LOW_RANK)
+//		float flop_operation = 2.0*m*m*n; // dgemm
+		float flop_operation = 1.0*m*m*n; // dsyrk dtrmm
+#else
 		float flop_operation = 2.0*n*n*n; // dgemm
 //		float flop_operation = 1.0*n*n*n; // dsyrk dtrmm
 //		float flop_operation = 1.0/3.0*n*n*n; // dpotrf dtrtri
@@ -787,10 +792,6 @@ int main()
 //		float flop_operation = 4.0*n*n; // dgemv_nt
 
 //		float flop_operation = 4.0/3.0*n*n*n; // dsyrk+dpotrf
-
-#if defined(LOW_RANK)
-		float flop_operation = 2.0*m*m*n; // dgemm
-//		float flop_operation = 1.0*m*m*n; // dsyrk dtrmm
 #endif
 
 		float time_hpmpc    = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
