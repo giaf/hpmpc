@@ -393,7 +393,7 @@ int main()
 
 		double *Q; d_zeros(&Q, nx, nx);
 		for(ii=0; ii<nx; ii++)
-			Q[ii*(nx+1)] = 3.0;
+			Q[ii*(nx+1)] = 1.0;
 
 		double *R; d_zeros(&R, nu, nu);
 		for(ii=0; ii<nu; ii++)
@@ -409,7 +409,7 @@ int main()
 
 		double *r; d_zeros_align(&r, pnu, 1);
 		for(ii=0; ii<nu; ii++)
-			r[ii] = 0.1;
+			r[ii] = 0.2;
 
 #if defined(PRINT_ON)
 		printf("\nQ = \n"); d_print_mat(nx, nx, Q, nx);
@@ -531,7 +531,7 @@ int main()
 ************************************************/
 		
 #define DIAG_HESSIAN 0 // diagonal Hessian of the cost function
-#define Q_N_NOT_ZERO 1 // Q_N is not zero
+#define Q_N_NOT_ZERO 0 // Q_N is not zero
 
 #if defined(PRINT_ON)
 #if (DIAG_HESSIAN==0)

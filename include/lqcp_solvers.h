@@ -76,6 +76,11 @@ void d_cond_R_N2_nx3_permute(int N, int nx, int nu, int free_x0, double **pBAt, 
 void d_cond_fact_R_N2_nx2_permute(int N, int nx, int nu, int free_x0, double **pAt, double **pBt, int diag_hessian, double **pQ, double **pS, double **pR, double *pD, double *pM, double *pQs, double *diag, double *pGamma_L, double **pGamma_u, double **pGamma_w, double *pH_R);
 void d_cond_fact_R_N2_nx3_permute(int N, int nx, int nu, int free_x0, double **pBAt, int diag_hessian, double **pRSQ, double *pD, double *pM, double *pQs, double *pL, double *diag, double *pBAtL, double *pGamma_L, double **pGamma_u, double *pH_R);
 
+// part cond
+
+void d_cond_Gamma_u_b_T(int N, int nx, int nu, int free_x0, double **pA, double **pBt, double **b, double *pGamma_L, double **pGamma_u);
+void d_cond_Rr_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAbt, int diag_hessian, int nzero_Q_N, double **pRSQrq, double *pD, double *pM, double *pP, double *pLam, double *diag, double *pBAbtL, double *pGamma_L, double **pGamma_u_b, double *pH_R);
+
 
 // new routines
 void d_back_ric_sv_new(int N, int nx, int nu, double **hpBAbt, double **hpQ, int update_hessian, double **hQd, double **hQl, int fixed_x0, double **hux, double **hpL, double **hl, double *pLBAbt, double *work, int compute_Pb, double **hPb, int compute_pi, double **hpi, int nb, int ng, int ngN, double **hpDCt, double **Qx, double **qx);

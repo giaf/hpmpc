@@ -129,7 +129,7 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 
 
 
-#if 1
+#if 0
 
 int main()
 	{
@@ -971,6 +971,7 @@ int main()
 	int ng_v[N+1];
 	for(ii=0; ii<=N; ii++)
 		ng_v[ii] = 0;
+	
 
 
 
@@ -1003,6 +1004,7 @@ int main()
 	int cnux = (nu+nx+ncl-1)/ncl*ncl;
 
 	int pnb_v[N+1]; for(ii=0; ii<=N; ii++) pnb_v[ii] = (nb_v[ii]+bs-1)/bs*bs;
+	int cnx_v[N+1]; for(ii=0; ii<=N; ii++) cnx_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
 
 
 /************************************************
@@ -1042,8 +1044,9 @@ int main()
 	double *pBAbt1; d_zeros_align(&pBAbt1, pnz, cnx);
 	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt1, cnx);
 	d_cvt_tran_mat2pmat(nx, nx, A, nx, nu, pBAbt1+nu/bs*bs*cnx+nu%bs, cnx);
-	d_cvt_tran_mat2pmat(nx, 1, b, nx, nu+nx, pBAbt0+(nu+nx)/bs*bs*cnx+(nu+nx)%bs, cnx);
+	d_cvt_tran_mat2pmat(nx, 1, b, nx, nu+nx, pBAbt1+(nu+nx)/bs*bs*cnx+(nu+nx)%bs, cnx);
 //	d_print_pmat(nu+nx+1, nx, bs, pBAbt1, cnx);
+//	exit(4);
 
 
 /************************************************
@@ -1104,7 +1107,7 @@ int main()
 	for(ii=0; ii<nx; ii++) q[ii] = 0.1;
 
 	double *r; d_zeros(&r, nu, 1);
-	for(ii=0; ii<nu; ii++) r[ii] = 0.1;
+	for(ii=0; ii<nu; ii++) r[ii] = 0.2;
 
 	double  *pQ0; d_zeros_align(&pQ0, pnu1, cnu);
 	d_cvt_mat2pmat(nu, nu, R, nu, 0, pQ0, cnu);
@@ -1185,6 +1188,10 @@ int main()
 	double *stat; d_zeros(&stat, k_max, 5);
 
 	double **dummy;
+
+//	for(ii=0; ii<N; ii++)
+//		d_print_pmat(nu_v[ii]+nx_v[ii]+1, nx_v[ii+1], bs, hpBAbt[ii], cnx_v[ii+1]);
+//	exit(3);
 
 	struct timeval tv0, tv1, tv2;
 	gettimeofday(&tv0, NULL); // stop

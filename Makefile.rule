@@ -26,9 +26,10 @@
 
 
 # Target architecture, currently supported (more architectures are available with the older v0.1 release):
-# X64_AVX2   : machine with AVX2 and FMA3 instruction sets (recent Intel and AMD processors), 64 bit operating system.
-# X64_AVX    : machine with AVX instruction set (previous generation Intel and AMD processors), 64 bit operating system.
-# X64_SSE3   : machine with SSE3 instruction set (older Intel and AMD processors), 64 bit operating system.
+# X64_AVX2   : machine with AVX2 and FMA3 instruction sets (recent Intel and AMD processors), 64 bit operating system, code optimized for Intel Haswell.
+# X64_AVX    : machine with AVX instruction set (previous generation Intel and AMD processors), 64 bit operating system, code optimized for Intel Sandy-Bridge.
+# X64_SSE3   : machine with SSE3 instruction set (older Intel and AMD processors), 64 bit operating system, code optimized for Intel Core.
+# CORTEX_A57 : machine with ARMv8a processor with NEON, 64-bit operating system, code optimized for ARM Cortex A57.
 # CORTEX_A15 : machine with ARMv7a processor with VPFv3 (D32 versions) and NEON, code optimized for ARM Cortex A15.
 # CORTEX_A9  : machine with ARMv7a processor with VPFv3 (D32 versions) and NEON, code optimized for ARM Cortex A9.
 # CORTEX_A7  : machine with ARMv7a processor with VPFv3 (D32 versions) and NEON, code optimized for ARM Cortex A7.

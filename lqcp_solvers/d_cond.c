@@ -554,12 +554,11 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 					dgemm_diag_right_lib(nz, nx, pBAt[0], cnx, pP, 0, pBAtL, cnx, pBAtL, cnx);
 					dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, 0, pLam, cnz, pLam, cnz);
 					ddiaad_lib(nz, 1.0, pRSQ[0], 0, pLam, cnz);
-					dtrtr_l_lib(nu, 0, pLam, cnz, 0, pLam, cnz);	
 
 					offset = nx;
-					dgecp_lib(nu, nu, 0, pLam, cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
+					dtrtr_l_lib(nu, 0, pLam, cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
 					dgecp_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pH_R+offset*bs, cnxNnu);
-					dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_R, cnxNnu);
+					dtrcp_l_lib(nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_R, cnxNnu);
 
 					// transpose H in the lower triangular
 					dgetr_lib(nx, N*nu, 0, pH_R+nx*bs, cnxNnu, nx, pH_R+nx/bs*bs*cnxNnu+nx%bs, cnxNnu);
@@ -580,10 +579,9 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 					dgemm_diag_right_lib(nz, nx, pBAt[ii], cnx, pP, 0, pBAtL, cnx, pBAtL, cnx);
 					dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, 0, pLam, cnz, pLam, cnz);
 					ddiaad_lib(nz, 1.0, pRSQ[ii], 0, pLam, cnz);
-					dtrtr_l_lib(nu, 0, pLam, cnz, 0, pLam, cnz);	
 
 					offset = nx + ii*nu;
-					dgecp_lib(nu, nu, 0, pLam, cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
+					dtrtr_l_lib(nu, 0, pLam, cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
 					dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
 					dgemm_nt_lib(nx+ii*nu, nu, nx, pGamma_u[ii-1], cnx, pM, cnx, 0, pH_R+offset*bs, cnxNnu, pH_R+offset*bs, cnxNnu, 0, 0);
 
@@ -603,10 +601,9 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 				dtrmm_nt_u_lib(nz, nx, pBAt[ii], cnx, pP, cnx, pBAtL, cnx);
 				dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, 0, pLam, cnz, pLam, cnz);
 				ddiaad_lib(nz, 1.0, pRSQ[ii], 0, pLam, cnz);
-				dtrtr_l_lib(nu, 0, pLam, cnz, 0, pLam, cnz);	
 
 				offset = nx + ii*nu;
-				dgecp_lib(nu, nu, 0, pLam, cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
+				dtrtr_l_lib(nu, 0, pLam, cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
 				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
 				dgemm_nt_lib(nx+ii*nu, nu, nx, pGamma_u[ii-1], cnx, pM, cnx, 0, pH_R+offset*bs, cnxNnu, pH_R+offset*bs, cnxNnu, 0, 0);
 
@@ -620,12 +617,11 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 			dtrmm_nt_u_lib(nz, nx, pBAt[0], cnx, pP, cnx, pBAtL, cnx);
 			dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, 0, pLam, cnz, pLam, cnz);
 			ddiaad_lib(nz, 1.0, pRSQ[0], 0, pLam, cnz);
-			dtrtr_l_lib(nu, 0, pLam, cnz, 0, pLam, cnz);	
 
 			offset = nx;
-			dgecp_lib(nu, nu, 0, pLam, cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
+			dtrtr_l_lib(nu, 0, pLam, cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
 			dgecp_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pH_R+offset*bs, cnxNnu);
-			dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_R, cnxNnu);
+			dtrcp_l_lib(nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_R, cnxNnu);
 
 			// transpose H in the lower triangular
 			dgetr_lib(nx, N*nu, 0, pH_R+nx*bs, cnxNnu, nx, pH_R+nx/bs*bs*cnxNnu+nx%bs, cnxNnu);
@@ -661,8 +657,7 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 					// second final stage 
 					ii = N-1;
 					offset = nx + ii*nu;
-					dgecp_lib(nu, nu, 0, pRSQ[ii], cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
-					dtrtr_l_lib(nu, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);	
+					dtrtr_l_lib(nu, 0, pRSQ[ii], cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
 					dgetr_lib(nx, nu, nu, pRSQ[ii]+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
 					dgemm_nt_lib(nx+ii*nu, nu, nx, pGamma_u[ii-1], cnx, pM, cnx, 0, pH_R+offset*bs, cnxNnu, pH_R+offset*bs, cnxNnu, 0, 0);
 
@@ -691,10 +686,9 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 				{	
 				dtrmm_nt_u_lib(nz, nx, pBAt[ii], cnx, pP, cnx, pBAtL, cnx);
 				dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, 1, pRSQ[ii], cnz, pLam, cnz);
-				dtrtr_l_lib(nu, 0, pLam, cnz, 0, pLam, cnz);	
 
 				offset = nx + ii*nu;
-				dgecp_lib(nu, nu, 0, pLam, cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
+				dtrtr_l_lib(nu, 0, pLam, cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
 				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
 				dgemm_nt_lib(nx+ii*nu, nu, nx, pGamma_u[ii-1], cnx, pM, cnx, 0, pH_R+offset*bs, cnxNnu, pH_R+offset*bs, cnxNnu, 0, 0);
 
@@ -707,12 +701,11 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 			// first stage 
 			dtrmm_nt_u_lib(nz, nx, pBAt[0], cnx, pP, cnx, pBAtL, cnx);
 			dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, 1, pRSQ[0], cnz, pLam, cnz);
-			dtrtr_l_lib(nu, 0, pLam, cnz, 0, pLam, cnz);	
 
 			offset = nx;
-			dgecp_lib(nu, nu, 0, pLam, cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
+			dtrtr_l_lib(nu, 0, pLam, cnz, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
 			dgecp_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pH_R+offset*bs, cnxNnu);
-			dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_R, cnxNnu);
+			dtrcp_l_lib(nx, nu, pLam+nu/bs*bs*cnz+nu%bs+nu*bs, cnz, 0, pH_R, cnxNnu);
 
 			// transpose H in the lower triangular
 			dgetr_lib(nx, N*nu, 0, pH_R+nx*bs, cnxNnu, nx, pH_R+nx/bs*bs*cnxNnu+nx%bs, cnxNnu);
@@ -777,9 +770,7 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 					dgemm_diag_right_lib(nu, nx, pBAt[0], cnx, pP, 0, pBAtL, cnx, pBAtL, cnx);
 					dsyrk_nt_lib(nu, nu, nx, pBAtL, cnx, pBAtL, cnx, 0, pLam, cnz, pLam, cnz);
 					ddiaad_lib(nu, 1.0, pRSQ[0], 0, pLam, cnz);
-					dtrtr_l_lib(nu, 0, pLam, cnz, 0, pLam, cnz);	
-
-					dgecp_lib(nu, nu, 0, pLam, cnz, 0, pH_R, cNnu);
+					dtrtr_l_lib(nu, 0, pLam, cnz, 0, pH_R, cNnu);
 
 					// transpose H in the lower triangular
 					dtrtr_u_lib(N*nu, 0, pH_R, cNnu, 0, pH_R, cNnu);
@@ -799,9 +790,7 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 					dgemm_diag_right_lib(nz, nx, pBAt[ii], cnx, pP, 0, pBAtL, cnx, pBAtL, cnx);
 					dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, 0, pLam, cnz, pLam, cnz);
 					ddiaad_lib(nz, 1.0, pRSQ[ii], 0, pLam, cnz);
-					dtrtr_l_lib(nu, 0, pLam, cnz, 0, pLam, cnz);	
-
-					dgecp_lib(nu, nu, 0, pLam, cnz, (ii)*nu, pH_R+((ii)*nu)/bs*bs*cNnu+((ii)*nu)%bs+(ii)*nu*bs, cNnu);
+					dtrtr_l_lib(nu, 0, pLam, cnz, (ii)*nu, pH_R+((ii)*nu)/bs*bs*cNnu+((ii)*nu)%bs+(ii)*nu*bs, cNnu);
 					dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
 					dgemm_nt_lib((ii)*nu, nu, nx, pGamma_u[ii-1], cnx, pM, cnx, 0, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 0, 0);
 
@@ -821,9 +810,7 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 				dtrmm_nt_u_lib(nz, nx, pBAt[ii], cnx, pP, cnx, pBAtL, cnx);
 				dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, 0, pLam, cnz, pLam, cnz);
 				ddiaad_lib(nz, 1.0, pRSQ[ii], 0, pLam, cnz);
-				dtrtr_l_lib(nu, 0, pLam, cnz, 0, pLam, cnz);	
-
-				dgecp_lib(nu, nu, 0, pLam, cnz, (ii)*nu, pH_R+((ii)*nu)/bs*bs*cNnu+((ii)*nu)%bs+(ii)*nu*bs, cNnu);
+				dtrtr_l_lib(nu, 0, pLam, cnz, (ii)*nu, pH_R+((ii)*nu)/bs*bs*cNnu+((ii)*nu)%bs+(ii)*nu*bs, cNnu);
 				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
 				dgemm_nt_lib((ii)*nu, nu, nx, pGamma_u[ii-1], cnx, pM, cnx, 0, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 0, 0);
 
@@ -837,9 +824,7 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 			dtrmm_nt_u_lib(nu, nx, pBAt[0], cnx, pP, cnx, pBAtL, cnx);
 			dsyrk_nt_lib(nu, nu, nx, pBAtL, cnx, pBAtL, cnx, 0, pLam, cnz, pLam, cnz);
 			ddiaad_lib(nu, 1.0, pRSQ[0], 0, pLam, cnz);
-			dtrtr_l_lib(nu, 0, pLam, cnz, 0, pLam, cnz);	
-
-			dgecp_lib(nu, nu, 0, pLam, cnz, 0, pH_R, cNnu);
+			dtrtr_l_lib(nu, 0, pLam, cnz, 0, pH_R, cNnu);
 
 			// transpose H in the lower triangular
 			dtrtr_u_lib(N*nu, 0, pH_R, cNnu, 0, pH_R, cNnu);
@@ -857,7 +842,7 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 					{
 
 					// first stage 
-					dtrcp_l_lib(nu, 0, pRSQ[0], cnz, 0, pH_R, cNnu);
+					dtrcp_l_lib(nu, 0, pRSQ[0], cnu, 0, pH_R, cNnu);
 
 					return;
 
@@ -871,8 +856,7 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 					// second final stage 
 					ii = N-1;
 					offset = ii*nu;
-					dgecp_lib(nu, nu, 0, pRSQ[ii], cnz, offset, pH_R+offset/bs*bs*cNnu+offset%bs+offset*bs, cNnu);
-					dtrtr_l_lib(nu, offset, pH_R+offset/bs*bs*cNnu+offset%bs+offset*bs, cNnu, offset, pH_R+offset/bs*bs*cNnu+offset%bs+offset*bs, cNnu);	
+					dtrtr_l_lib(nu, 0, pRSQ[ii], cnz, offset, pH_R+offset/bs*bs*cNnu+offset%bs+offset*bs, cNnu);
 					dgetr_lib(nx, nu, nu, pRSQ[ii]+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
 					dgemm_nt_lib(ii*nu, nu, nx, pGamma_u[ii-1], cnx, pM, cnx, 0, pH_R+offset*bs, cNnu, pH_R+offset*bs, cNnu, 0, 0);
 
@@ -901,9 +885,7 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 				{	
 				dtrmm_nt_u_lib(nz, nx, pBAt[ii], cnx, pP, cnx, pBAtL, cnx);
 				dsyrk_nt_lib(nz, nz, nx, pBAtL, cnx, pBAtL, cnx, 1, pRSQ[ii], cnz, pLam, cnz);
-				dtrtr_l_lib(nu, 0, pLam, cnz, 0, pLam, cnz);	
-
-				dgecp_lib(nu, nu, 0, pLam, cnz, (ii)*nu, pH_R+((ii)*nu)/bs*bs*cNnu+((ii)*nu)%bs+(ii)*nu*bs, cNnu);
+				dtrtr_l_lib(nu, 0, pLam, cnz, (ii)*nu, pH_R+((ii)*nu)/bs*bs*cNnu+((ii)*nu)%bs+(ii)*nu*bs, cNnu);
 				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnz+nu%bs, cnz, 0, pM, cnx);
 				dgemm_nt_lib((ii)*nu, nu, nx, pGamma_u[ii-1], cnx, pM, cnx, 0, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 0, 0);
 
@@ -916,9 +898,7 @@ void d_cond_R_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAt, int diag
 			// first stage 
 			dtrmm_nt_u_lib(nu, nx, pBAt[0], cnx, pP, cnx, pBAtL, cnx);
 			dsyrk_nt_lib(nu, nu, nx, pBAtL, cnx, pBAtL, cnx, 1, pRSQ[0], cnu, pLam, cnz);
-			dtrtr_l_lib(nu, 0, pLam, cnz, 0, pLam, cnz);	
-
-			dgecp_lib(nu, nu, 0, pLam, cnz, 0, pH_R, cNnu);
+			dtrtr_l_lib(nu, 0, pLam, cnz, 0, pH_R, cNnu);
 
 			// transpose H in the lower triangular
 			dtrtr_u_lib(N*nu, 0, pH_R, cNnu, 0, pH_R, cNnu);
@@ -1608,7 +1588,7 @@ void d_cond_fact_R_N2_nx3_permute(int N, int nx, int nu, int free_x0, double **p
 
 
 
-void d_cond_Gamma_u_b_T(int N, int nx, int nu, int free_x0, double **pA, double **pBt, double **b, double **pGamma_u)
+void d_cond_Gamma_u_b_T(int N, int nx, int nu, int free_x0, double **pA, double **pBt, double **b, double *pGamma_L, double **pGamma_u)
 	{
 
 	const int bs = D_MR;
@@ -1616,43 +1596,583 @@ void d_cond_Gamma_u_b_T(int N, int nx, int nu, int free_x0, double **pA, double 
 
 	int cnx = (nx+ncl-1)/ncl*ncl;
 
-	int ii, offset;
+	int ii, offset0, offset1;
 
 	if(free_x0) // MHE
 		{
-		dgetr_lib(nx, nx, 0, pA[0], cnx, 0, pGamma_u[0], cnx);
-		offset = nx;
-		drowin_lib(nx, b[0], pGamma_u[0]+offset/bs*bs*cnx+offset%bs);
-		offset = nx+1;
-		dgecp_lib(nu, nx, 0, pBt[0], cnx, offset, pGamma_u[0]+offset/bs*bs*cnx+offset%bs, cnx);
+		dgecp_lib(nu, nx, 0, pBt[0], cnx, 0, pGamma_u[0], cnx);
+		offset0 = nu;
+		dgetr_lib(nx, nx, 0, pA[0], cnx, offset0, pGamma_u[0]+offset0/bs*bs*cnx+offset0%bs, cnx);
+		offset0 = nu+nx;
+		drowin_lib(nx, b[0], pGamma_u[0]+offset0/bs*bs*cnx+offset0%bs);
 		for(ii=1; ii<N; ii++)
 			{
-			offset = nx+1 + ii*nu;
-			dgemm_nt_lib(nx+1+ii*nu, nx, nx, pGamma_u[ii-1], cnx, pA[ii], cnx, 0, pGamma_u[ii], cnx, pGamma_u[ii], cnx, 0, 0); // Gamma_u * A^T
-			drowad_lib(nx, 1.0, b[ii], pGamma_u[ii]+nx/bs*bs*cnx+nx%bs);
-			dgecp_lib(nu, nx, 0, pBt[ii], cnx, offset, pGamma_u[ii]+offset/bs*bs*cnx+offset%bs, cnx);
+			dgemm_nt_lib(nx+1+ii*nu, nx, nx, pGamma_u[ii-1], cnx, pA[ii], cnx, 0, pGamma_L, cnx, pGamma_u[ii], cnx, 0, 0); // Gamma_u * A^T
+			offset0 = ii*nu+nx;
+			drowad_lib(nx, 1.0, b[ii], pGamma_u[ii]+offset0/bs*bs*cnx+offset0%bs);
+			offset0 = ii*nu;
+			offset1 = (ii+1)*nu;
+			dgecp_lib(nx+1, nx, offset0, pGamma_u[ii]+offset0/bs*bs*cnx+offset0%bs, cnx, 0, pGamma_L, cnx);
+			dgecp_lib(nx+1, nx, 0, pGamma_L, cnx, offset1, pGamma_u[ii]+offset1/bs*bs*cnx+offset1%bs, cnx);
+			dgecp_lib(nu, nx, 0, pBt[ii], cnx, offset0, pGamma_u[ii]+offset0/bs*bs*cnx+offset0%bs, cnx);
 			}
+		return;
 		}
 	else // MPC
 		{
-		drowin_lib(nx, b[0], pGamma_u[0]);
-		offset = 1;
-		dgecp_lib(nu, nx, 0, pBt[0], cnx, offset, pGamma_u[0]+offset/bs*bs*cnx+offset%bs, cnx);
+		dgecp_lib(nu, nx, 0, pBt[0], cnx, 0, pGamma_u[0], cnx);
+		offset0 = nu;
+		drowin_lib(nx, b[0], pGamma_u[0]+offset0/bs*bs*cnx+offset0%bs);
 		for(ii=1; ii<N; ii++)
 			{
-			offset = 1 + ii*nu;
 #if 1
 			dgemm_nt_lib(nx, 1+ii*nu, nx, pA[ii], cnx, pGamma_u[ii-1], cnx, 0, pGamma_u[ii], cnx, pGamma_u[ii], cnx, 0, 1); // (A * Gamma_u^T)^T
 #else
 			dgemm_nt_lib(1+ii*nu, nx, nx, pGamma_u[ii-1], cnx, pA[ii], cnx, 0, pGamma_u[ii], cnx, pGamma_u[ii], cnx, 0, 0); // Gamma_u * A^T
 #endif
-			drowad_lib(nx, 1.0, b[ii], pGamma_u[ii]);
-			dgecp_lib(nu, nx, 0, pBt[ii], cnx, offset, pGamma_u[ii]+offset/bs*bs*cnx+offset%bs, cnx);
+			offset0 = ii*nu;
+			drowad_lib(nx, 1.0, b[ii], pGamma_u[ii]+offset0/bs*bs*cnx+offset0%bs);
+			offset1 = (ii+1)*nu;
+			dgecp_lib(1, nx, offset0, pGamma_u[ii]+offset0/bs*bs*cnx+offset0%bs, cnx, offset1, pGamma_u[ii]+offset1/bs*bs*cnx+offset1%bs, cnx);
+			dgecp_lib(nu, nx, 0, pBt[ii], cnx, offset0, pGamma_u[ii]+offset0/bs*bs*cnx+offset0%bs, cnx);
 			}
+		return;
 		}
 
 	}
 
+
+
+void d_cond_Rr_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAbt, int diag_hessian, int nzero_Q_N, double **pRSQrq, double *pD, double *pM, double *pP, double *pLam, double *diag, double *pBAbtL, double *pGamma_L, double **pGamma_u_b, double *pH_R)
+	{
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int cnx = (nx+ncl-1)/ncl*ncl;
+	int cnu = (nu+ncl-1)/ncl*ncl;
+
+	int ii, jj, kk, offset, offset0, offset1, i_temp;
+
+	int N1 = N;
+	if(nzero_Q_N==0)
+		N1 = N-1;
+	
+	int nz = nx+nu+1;
+	int nux = nu+nx;
+	int pnz = (nu+nx+1+bs-1)/bs*bs;
+	int cnux = (nu+nx+ncl-1)/ncl*ncl;
+
+	if(free_x0) // MHE
+		{
+
+		int cnxNnu = (nx+N*nu+ncl-1)/ncl*ncl;
+		int cnx1Nnu = (nx+1+N*nu+ncl-1)/ncl*ncl;
+
+		if(diag_hessian)
+			{
+
+			// TODO
+			exit(1);
+
+			if(nzero_Q_N==0)
+				{
+
+				if(N==1)
+					{
+
+					// first stage 
+					offset = nx;
+					dgeset_lib(nx+nu, nx+nu, 0.0, 0, pH_R, cnxNnu);
+					ddiaad_lib(nu, 1.0, pRSQrq[0], offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
+					ddiaad_lib(nx, 1.0, pRSQrq[0]+nu, 0, pH_R, cnxNnu);
+
+					return;
+
+					}
+				else
+					{
+
+					// final stage 
+					dgeset_lib(nx, nx, 0.0, 0, pP, cnx);
+
+					// second final stage 
+					ii = N-1;
+					offset = nx + ii*nu;
+					dgeset_lib(nx+(ii+1)*nu, nu, 0.0, 0, pH_R+offset*bs, cnxNnu);
+					ddiaad_lib(nu, 1.0, pRSQrq[ii], offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
+					dgeset_lib(nx, nx, 0.0, 0, pP, cnx);
+					ddiain_sqrt_lib(nx, pRSQrq[ii]+nu, 0, pP, cnx);
+
+					ii--;
+
+					}
+
+				}
+			else
+				{
+
+				if(N==1)
+					{
+
+					// final stage 
+					for(ii=0; ii<nx; ii++)
+						pP[ii] = sqrt(pRSQrq[1][ii]);
+
+					// first stage 
+					dgemm_diag_right_lib(nux, nx, pBAbt[0], cnx, pP, 0, pBAbtL, cnx, pBAbtL, cnx);
+					dsyrk_nt_lib(nux, nux, nx, pBAbtL, cnx, pBAbtL, cnx, 0, pLam, cnux, pLam, cnux);
+					ddiaad_lib(nux, 1.0, pRSQrq[0], 0, pLam, cnux);
+
+					offset = nx;
+					dtrtr_l_lib(nu, 0, pLam, cnux, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
+					dgecp_lib(nx, nu, nu, pLam+nu/bs*bs*cnux+nu%bs, cnux, 0, pH_R+offset*bs, cnxNnu);
+					dtrcp_l_lib(nx, nu, pLam+nu/bs*bs*cnux+nu%bs+nu*bs, cnux, 0, pH_R, cnxNnu);
+
+					// transpose H in the lower triangular
+					dgetr_lib(nx, N*nu, 0, pH_R+nx*bs, cnxNnu, nx, pH_R+nx/bs*bs*cnxNnu+nx%bs, cnxNnu);
+					dtrtr_u_lib(N*nu, nx, pH_R+nx/bs*bs*cnxNnu+nx%bs+nx*bs, cnxNnu, nx, pH_R+nx/bs*bs*cnxNnu+nx%bs+nx*bs, cnxNnu);
+
+					return;
+
+					}
+				else
+					{
+
+					// final stage 
+					for(ii=0; ii<nx; ii++)
+						pP[ii] = sqrt(pRSQrq[N][ii]);
+
+					// second final stage 
+					ii = N-1;
+					dgemm_diag_right_lib(nux, nx, pBAbt[ii], cnx, pP, 0, pBAbtL, cnx, pBAbtL, cnx);
+					dsyrk_nt_lib(nux, nux, nx, pBAbtL, cnx, pBAbtL, cnx, 0, pLam, cnux, pLam, cnux);
+					ddiaad_lib(nux, 1.0, pRSQrq[ii], 0, pLam, cnux);
+
+					offset = nx + ii*nu;
+					dtrtr_l_lib(nu, 0, pLam, cnux, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
+					dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnux+nu%bs, cnux, 0, pM, cnx);
+					dgemm_nt_lib(nx+ii*nu, nu, nx, pGamma_u_b[ii-1], cnx, pM, cnx, 0, pH_R+offset*bs, cnxNnu, pH_R+offset*bs, cnxNnu, 0, 0);
+
+					dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnux+nu%bs+nu*bs, cnux, 0, pP, cnx);
+					dpotrf_lib(nx, nx, pP, cnx, pP, cnx, diag);
+					dtrtr_l_lib(nx, 0, pP, cnx, 0, pP, cnx);	
+
+					ii--;
+
+					}
+
+				}
+
+			// middle stages 
+			for(; ii>0; ii--)
+				{	
+				dtrmm_nt_u_lib(nux, nx, pBAbt[ii], cnx, pP, cnx, pBAbtL, cnx);
+				dsyrk_nt_lib(nux, nux, nx, pBAbtL, cnx, pBAbtL, cnx, 0, pLam, cnux, pLam, cnux);
+				ddiaad_lib(nux, 1.0, pRSQrq[ii], 0, pLam, cnux);
+
+				offset = nx + ii*nu;
+				dtrtr_l_lib(nu, 0, pLam, cnux, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
+				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnux+nu%bs, cnux, 0, pM, cnx);
+				dgemm_nt_lib(nx+ii*nu, nu, nx, pGamma_u_b[ii-1], cnx, pM, cnx, 0, pH_R+offset*bs, cnxNnu, pH_R+offset*bs, cnxNnu, 0, 0);
+
+				dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnux+nu%bs+nu*bs, cnux, 0, pP, cnx);
+				dpotrf_lib(nx, nx, pP, cnx, pP, cnx, diag);
+				dtrtr_l_lib(nx, 0, pP, cnx, 0, pP, cnx);	
+
+				}
+
+			// first stage 
+			dtrmm_nt_u_lib(nux, nx, pBAbt[0], cnx, pP, cnx, pBAbtL, cnx);
+			dsyrk_nt_lib(nux, nux, nx, pBAbtL, cnx, pBAbtL, cnx, 0, pLam, cnux, pLam, cnux);
+			ddiaad_lib(nux, 1.0, pRSQrq[0], 0, pLam, cnux);
+
+			offset = nx;
+			dtrtr_l_lib(nu, 0, pLam, cnux, offset, pH_R+offset/bs*bs*cnxNnu+offset%bs+offset*bs, cnxNnu);
+			dgecp_lib(nx, nu, nu, pLam+nu/bs*bs*cnux+nu%bs, cnux, 0, pH_R+offset*bs, cnxNnu);
+			dtrcp_l_lib(nx, nu, pLam+nu/bs*bs*cnux+nu%bs+nu*bs, cnux, 0, pH_R, cnxNnu);
+
+			// transpose H in the lower triangular
+			dgetr_lib(nx, N*nu, 0, pH_R+nx*bs, cnxNnu, nx, pH_R+nx/bs*bs*cnxNnu+nx%bs, cnxNnu);
+			dtrtr_u_lib(N*nu, nx, pH_R+nx/bs*bs*cnxNnu+nx%bs+nx*bs, cnxNnu, nx, pH_R+nx/bs*bs*cnxNnu+nx%bs+nx*bs, cnxNnu);
+
+			return;
+
+			}
+		else // dense Hessian
+			{
+
+			if(nzero_Q_N==0)
+				{
+
+				if(N==1)
+					{
+
+					// first stage 
+					offset0 = nux;
+					dtrcp_l_lib(nux, 0, pRSQrq[0], cnux, 0, pH_R, cnxNnu);
+					dgecp_lib(1, nux, offset0, pRSQrq[0]+offset0/bs*bs*cnux+offset0%bs, cnux, offset0, pH_R+offset0/bs*bs*cnxNnu+offset0%bs, cnxNnu);
+
+					return;
+
+					}
+				else
+					{
+
+					// final stage 
+					dgeset_lib(nx+1, nx, 0.0, 0, pP, cnx);
+
+					// second final stage 
+					ii = N-1;
+					offset0 = ii*nu;
+					dtrcp_l_lib(nu, 0, pRSQrq[ii], cnux, offset0, pH_R+offset0/bs*bs*cnxNnu+offset0%bs+offset0*bs, cnxNnu);
+					dgetr_lib(nx, nu, nu, pRSQrq[ii]+nu/bs*bs*cnux+nu%bs, cnux, 0, pM, cnx);
+					dgemm_nt_lib(nx+1+ii*nu, nu, nx, pGamma_u_b[ii-1], cnx, pM, cnx, 0, pGamma_L, cnu, pGamma_L, cnu, 0, 0);
+					offset1 = nx+ii*nu;
+					dgead_lib(1, nu, 1.0, nux, pRSQrq[ii]+nux/bs*bs*cnux+nux%bs, cnux, offset1, pGamma_L+offset1/bs*bs*cnu+offset1%bs, cnu);
+					dgetr_lib(ii*nu, nu, 0, pGamma_L, cnu, offset0, pH_R+offset0/bs*bs*cnxNnu+offset0%bs, cnxNnu);
+					offset1 = N*nu;
+					dgecp_lib(nx+1, nu, offset0, pGamma_L+offset0/bs*bs*cnu+offset0%bs, cnu, offset1, pH_R+offset1/bs*bs*cnxNnu+offset1%bs+offset0*bs, cnxNnu);
+
+					dtrcp_l_lib(nx+1, nu, pRSQrq[ii]+nu/bs*bs*cnux+nu%bs+nu*bs, cnux, 0, pP, cnx);
+					dpotrf_lib(nx+1, nx, pP, cnx, pP, cnx, diag);
+					dtrtr_l_lib(nx, 0, pP, cnx, 0, pP, cnx);	
+
+					ii--;
+
+					}
+				}
+			else
+				{
+				// final stage 
+				dpotrf_lib(nx+1, nx, pRSQrq[N], cnx, pP, cnx, diag);
+				dtrtr_l_lib(nx, 0, pP, cnx, 0, pP, cnx);	
+
+				ii = N-1;
+				}
+
+			// middle stages 
+			for(; ii>0; ii--)
+				{	
+
+				dtrmm_nt_u_lib(nz, nx, pBAbt[ii], cnx, pP, cnx, pBAbtL, cnx);
+				dgead_lib(1, nx, 1.0, nux, pP+nx/bs*bs*cnx+nx%bs, cnx, nux, pBAbtL+nux/bs*bs*cnx+nux%bs, cnx);
+				dsyrk_nt_lib(nz, nux, nx, pBAbtL, cnx, pBAbtL, cnx, 1, pRSQrq[ii], cnux, pLam, cnux);
+
+				offset0 = ii*nu;
+				dtrcp_l_lib(nu, 0, pLam, cnux, offset0, pH_R+offset0/bs*bs*cnxNnu+offset0%bs+offset0*bs, cnxNnu);
+				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnux+nu%bs, cnux, 0, pM, cnx);
+				dgemm_nt_lib(nx+1+ii*nu, nu, nx, pGamma_u_b[ii-1], cnx, pM, cnx, 0, pGamma_L, cnu, pGamma_L, cnu, 0, 0);
+				offset1 = nx+ii*nu;
+				dgead_lib(1, nu, 1.0, nux, pLam+nux/bs*bs*cnux+nux%bs, cnux, offset1, pGamma_L+offset1/bs*bs*cnu+offset1%bs, cnu);
+				dgetr_lib(ii*nu, nu, 0, pGamma_L, cnu, offset0, pH_R+offset0/bs*bs*cnxNnu+offset0%bs, cnxNnu);
+				offset1 = N*nu;
+				dgecp_lib(nx+1, nu, offset0, pGamma_L+offset0/bs*bs*cnu+offset0%bs, cnu, offset1, pH_R+offset1/bs*bs*cnxNnu+offset1%bs+offset0*bs, cnxNnu);
+
+				dgecp_lib(nx+1, nx, nu, pLam+nu/bs*bs*cnux+nu%bs+nu*bs, cnux, 0, pP, cnx);
+				dpotrf_lib(nx+1, nx, pP, cnx, pP, cnx, diag);
+				dtrtr_l_lib(nx, 0, pP, cnx, 0, pP, cnx);	
+
+				}
+
+			// first stage 
+			dtrmm_nt_u_lib(nz, nx, pBAbt[0], cnx, pP, cnx, pBAbtL, cnx);
+			dgead_lib(1, nx, 1.0, nux, pP+nx/bs*bs*cnx+nx%bs, cnx, nux, pBAbtL+nux/bs*bs*cnx+nux%bs, cnx);
+			dsyrk_nt_lib(nz, nux, nx, pBAbtL, cnx, pBAbtL, cnx, 1, pRSQrq[0], cnux, pLam, cnux);
+
+			dtrcp_l_lib(nu, 0, pLam, cnux, 0, pH_R, cnxNnu);
+			offset0 = N*nu;
+			dgecp_lib(nx+1, nu, nu, pLam+nu/bs*bs*cnux+nu%bs, cnux, offset0, pH_R+offset0/bs*bs*cnxNnu+offset0%bs, cnxNnu);
+			dtrcp_l_lib(nx, nu, pLam+nu/bs*bs*cnux+nu%bs+nu*bs, cnux, offset0, pH_R+offset0/bs*bs*cnxNnu+offset0%bs+offset0*bs, cnxNnu); // TODO routine to merge with the following
+			offset1 = N*nu + nx;
+			dgecp_lib(1, nx, nux, pLam+nux/bs*bs*cnux+nux%bs+nu*bs, cnux, offset1, pH_R+offset1/bs*bs*cnxNnu+offset1%bs+offset0*bs, cnxNnu);
+
+			return;
+
+			}
+
+		}
+	else // fixed x0: MPC
+		{
+
+		int cNnu = (N*nu+ncl-1)/ncl*ncl;
+		int c1Nnu = (1+N*nu+ncl-1)/ncl*ncl;
+
+		if(diag_hessian)
+			{
+
+			// TODO
+			exit(1);
+
+			if(nzero_Q_N==0)
+				{
+
+				if(N==1)
+					{
+
+					// first stage 
+					dgeset_lib(nx+nu, nx+nu, 0.0, 0, pH_R, cNnu);
+					ddiaad_lib(nu, 1.0, pRSQrq[0], 0, pH_R, cNnu);
+
+					return;
+
+					}
+				else
+					{
+
+					// final stage 
+					dgeset_lib(nx, nx, 0.0, 0, pP, cnx);
+
+					// second final stage 
+					ii = N-1;
+					offset = ii*nu;
+					dgeset_lib((ii+1)*nu, nu, 0.0, 0, pH_R+offset*bs, cNnu);
+					ddiaad_lib(nu, 1.0, pRSQrq[ii], offset, pH_R+offset/bs*bs*cNnu+offset%bs+offset*bs, cNnu);
+					dgeset_lib(nx, nx, 0.0, 0, pP, cnx);
+					ddiain_sqrt_lib(nx, pRSQrq[ii]+nu, 0, pP, cnx);
+
+					ii--;
+
+					}
+
+				}
+			else
+				{
+
+				if(N==1)
+					{
+
+					// final stage 
+					for(ii=0; ii<nx; ii++)
+						pP[ii] = sqrt(pRSQrq[1][ii]);
+
+					// first stage 
+					dgemm_diag_right_lib(nu, nx, pBAbt[0], cnx, pP, 0, pBAbtL, cnx, pBAbtL, cnx);
+					dsyrk_nt_lib(nu, nu, nx, pBAbtL, cnx, pBAbtL, cnx, 0, pLam, cnux, pLam, cnux);
+					ddiaad_lib(nu, 1.0, pRSQrq[0], 0, pLam, cnux);
+					dtrtr_l_lib(nu, 0, pLam, cnux, 0, pH_R, cNnu);
+
+					// transpose H in the lower triangular
+					dtrtr_u_lib(N*nu, 0, pH_R, cNnu, 0, pH_R, cNnu);
+
+					return;
+
+					}
+				else
+					{
+
+					// final stage 
+					for(ii=0; ii<nx; ii++)
+						pP[ii] = sqrt(pRSQrq[N][ii]);
+
+					// second final stage 
+					ii = N-1;
+					dgemm_diag_right_lib(nux, nx, pBAbt[ii], cnx, pP, 0, pBAbtL, cnx, pBAbtL, cnx);
+					dsyrk_nt_lib(nux, nux, nx, pBAbtL, cnx, pBAbtL, cnx, 0, pLam, cnux, pLam, cnux);
+					ddiaad_lib(nux, 1.0, pRSQrq[ii], 0, pLam, cnux);
+					dtrtr_l_lib(nu, 0, pLam, cnux, (ii)*nu, pH_R+((ii)*nu)/bs*bs*cNnu+((ii)*nu)%bs+(ii)*nu*bs, cNnu);
+					dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnux+nu%bs, cnux, 0, pM, cnx);
+					dgemm_nt_lib((ii)*nu, nu, nx, pGamma_u_b[ii-1], cnx, pM, cnx, 0, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 0, 0);
+
+					dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnux+nu%bs+nu*bs, cnux, 0, pP, cnx);
+					dpotrf_lib(nx, nx, pP, cnx, pP, cnx, diag);
+					dtrtr_l_lib(nx, 0, pP, cnx, 0, pP, cnx);	
+
+					ii--;
+
+					}
+
+				}
+
+			// middle stages 
+			for(; ii>0; ii--)
+				{	
+				dtrmm_nt_u_lib(nux, nx, pBAbt[ii], cnx, pP, cnx, pBAbtL, cnx);
+				dsyrk_nt_lib(nux, nux, nx, pBAbtL, cnx, pBAbtL, cnx, 0, pLam, cnux, pLam, cnux);
+				ddiaad_lib(nux, 1.0, pRSQrq[ii], 0, pLam, cnux);
+
+				dtrtr_l_lib(nu, 0, pLam, cnux, (ii)*nu, pH_R+((ii)*nu)/bs*bs*cNnu+((ii)*nu)%bs+(ii)*nu*bs, cNnu);
+				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnux+nu%bs, cnux, 0, pM, cnx);
+				dgemm_nt_lib((ii)*nu, nu, nx, pGamma_u_b[ii-1], cnx, pM, cnx, 0, pH_R+ii*nu*bs, cNnu, pH_R+ii*nu*bs, cNnu, 0, 0);
+
+				dgecp_lib(nx, nx, nu, pLam+nu/bs*bs*cnux+nu%bs+nu*bs, cnux, 0, pP, cnx);
+				dpotrf_lib(nx, nx, pP, cnx, pP, cnx, diag);
+				dtrtr_l_lib(nx, 0, pP, cnx, 0, pP, cnx);	
+
+				}
+
+			// first stage 
+			dtrmm_nt_u_lib(nu, nx, pBAbt[0], cnx, pP, cnx, pBAbtL, cnx);
+			dsyrk_nt_lib(nu, nu, nx, pBAbtL, cnx, pBAbtL, cnx, 0, pLam, cnux, pLam, cnux);
+			ddiaad_lib(nu, 1.0, pRSQrq[0], 0, pLam, cnux);
+			dtrtr_l_lib(nu, 0, pLam, cnux, 0, pH_R, cNnu);
+
+			// transpose H in the lower triangular
+			dtrtr_u_lib(N*nu, 0, pH_R, cNnu, 0, pH_R, cNnu);
+
+			return;
+
+			}
+		else // dense hessian
+			{
+
+			if(nzero_Q_N==0)
+				{
+
+				if(N==1)
+					{
+
+					// first stage 
+					offset0 = nu;
+					dtrcp_l_lib(nu, 0, pRSQrq[0], cnu, 0, pH_R, cNnu);
+					dgecp_lib(1, nu, offset0, pRSQrq[0]+offset0/bs*bs*cnu+offset0%bs, cnu, offset0, pH_R+offset0/bs*bs*cNnu+offset0%bs, cNnu);
+
+					return;
+
+					}
+				else
+					{
+
+					// final stage 
+					dgeset_lib(nx, nx, 0.0, 0, pP, cnx);
+
+					// second final stage 
+					ii = N-1;
+					offset0 = ii*nu;
+					dtrcp_l_lib(nu, 0, pRSQrq[ii], cnux, offset0, pH_R+offset0/bs*bs*cNnu+offset0%bs+offset0*bs, cNnu);
+
+					dgetr_lib(nx, nu, nu, pRSQrq[ii]+nu/bs*bs*cnux+nu%bs, cnux, 0, pM, cnx);
+					dgemm_nt_lib(1+ii*nu, nu, nx, pGamma_u_b[ii-1], cnx, pM, cnx, 0, pGamma_L, cnu, pGamma_L, cnu, 0, 0);
+					dgead_lib(1, nu, 1.0, nux, pRSQrq[ii]+nux/bs*bs*cnux+nux%bs, cnux, offset0, pGamma_L+offset0/bs*bs*cnu+offset0%bs, cnu);
+					dgetr_lib(ii*nu, nu, 0, pGamma_L, cnu, offset0, pH_R+offset0/bs*bs*cNnu+offset0%bs, cNnu);
+					offset1 = N*nu;
+					dgecp_lib(1, nu, offset0, pGamma_L+offset0/bs*bs*cnu+offset0%bs, cnu, offset1, pH_R+offset1/bs*bs*cNnu+offset1%bs+offset0*bs, cNnu);
+
+					dtrcp_l_lib(nx+1, nu, pRSQrq[ii]+nu/bs*bs*cnux+nu%bs+nu*bs, cnux, 0, pP, cnx);
+					dpotrf_lib(nx+1, nx, pP, cnx, pP, cnx, diag);
+					dtrtr_l_lib(nx, 0, pP, cnx, 0, pP, cnx);	
+
+					ii--;
+
+					}
+
+				}
+			else
+				{
+
+				// final stage 
+				dpotrf_lib(nx, nx, pRSQrq[N], cnx, pP, cnx, diag);
+				dtrtr_l_lib(nx, 0, pP, cnx, 0, pP, cnx);	
+
+				ii = N-1;
+
+				}
+
+			// middle stages 
+			for(; ii>0; ii--)
+				{	
+				dtrmm_nt_u_lib(nz, nx, pBAbt[ii], cnx, pP, cnx, pBAbtL, cnx);
+				dgead_lib(1, nx, 1.0, nux, pP+nx/bs*bs*cnx+nx%bs, cnx, nux, pBAbtL+nux/bs*bs*cnx+nux%bs, cnx);
+				dsyrk_nt_lib(nz, nux, nx, pBAbtL, cnx, pBAbtL, cnx, 1, pRSQrq[ii], cnux, pLam, cnux);
+
+				offset0 = ii*nu;
+				dtrcp_l_lib(nu, 0, pLam, cnux, offset0, pH_R+offset0/bs*bs*cNnu+offset0%bs+offset0*bs, cNnu);
+				dgetr_lib(nx, nu, nu, pLam+nu/bs*bs*cnux+nu%bs, cnux, 0, pM, cnx);
+				dgemm_nt_lib(1+ii*nu, nu, nx, pGamma_u_b[ii-1], cnx, pM, cnx, 0, pGamma_L, cnu, pGamma_L, cnu, 0, 0);
+				dgead_lib(1, nu, 1.0, nux, pLam+nux/bs*bs*cnux+nux%bs, cnux, offset0, pGamma_L+offset0/bs*bs*cnu+offset0%bs, cnu);
+				dgetr_lib(ii*nu, nu, 0, pGamma_L, cnu, offset0, pH_R+offset0/bs*bs*cNnu+offset0%bs, cNnu);
+				offset1 = N*nu;
+				dgecp_lib(1, nu, offset0, pGamma_L+offset0/bs*bs*cnu+offset0%bs, cnu, offset1, pH_R+offset1/bs*bs*cNnu+offset1%bs+offset0*bs, cNnu);
+
+				dgecp_lib(nx+1, nx, nu, pLam+nu/bs*bs*cnux+nu%bs+nu*bs, cnux, 0, pP, cnx);
+				dpotrf_lib(nx+1, nx, pP, cnx, pP, cnx, diag);
+				dtrtr_l_lib(nx, 0, pP, cnx, 0, pP, cnx);	
+
+				}
+
+			// first stage 
+			dtrmm_nt_u_lib(nu+1, nx, pBAbt[0], cnx, pP, cnx, pBAbtL, cnx);
+			dgead_lib(1, nx, 1.0, nux, pP+nx/bs*bs*cnx+nx%bs, cnx, nu, pBAbtL+nu/bs*bs*cnx+nu%bs, cnx);
+			dsyrk_nt_lib(nu+1, nu, nx, pBAbtL, cnx, pBAbtL, cnx, 1, pRSQrq[0], cnu, pLam, cnu);
+
+			dtrcp_l_lib(nu, 0, pLam, cnux, 0, pH_R, cNnu);
+			offset0 = N*nu;
+			dgecp_lib(1, nu, nu, pLam+nu/bs*bs*cnu+nu%bs, cnu, offset0, pH_R+offset0/bs*bs*cNnu+offset0%bs, cNnu);
+
+			return;
+
+			}
+
+		}
+
+	return;
+
+	}
+
+
+
+void d_cond_d(int N, int nx, int nu, int *nb, int free_x0, double **hd, int **hidx, double *hd2, int *hidx2)
+	{
+
+	const int bs  = D_MR;
+	const int ncl = D_NCL;
+
+	int ii, jj;
+
+	int pnb, nb2, pnb2, nb_tmp;
+
+
+	// inputs
+	nb2 = 0;
+	for(ii=0; ii<N; ii++)
+		for(jj=0; jj<nb[ii]; jj++)
+			if(hidx[ii][jj]<nu)
+				nb2++;
+	// initial state
+	if(free_x0)
+		for(jj=0; jj<nb[0]; jj++)
+			if(hidx[0][jj]>=nu)
+				nb2++;
+	pnb2 = (nb2+bs-1)/bs*bs;
+
+	nb_tmp = 0;
+	// inputs
+	for(ii=0; ii<N; ii++)
+		{
+		pnb = (nb[ii]+bs-1)/bs*bs;
+
+		for(jj=0; jj<nb[ii]; jj++)
+			{
+			if(hidx[ii][jj]<nu)
+				{
+				hd2[nb_tmp]      = hd[ii][jj]; // lower bound
+				hd2[pnb2+nb_tmp] = hd[ii][pnb+jj]; // upper bound
+				hidx2[nb_tmp] = hidx[ii][jj]+ii*nu; // index
+				nb_tmp++;
+				}
+			}
+		}
+	// states on the first stage
+	if(free_x0)
+		{
+		ii = 0;
+		pnb = (nb[ii]+bs-1)/bs*bs;
+
+		for(jj=0; jj<nb[ii]; jj++)
+			{
+			if(hidx[ii][jj]>=nu)
+				{
+				hd2[nb_tmp]      = hd[ii][jj]; // lower bound
+				hd2[pnb2+nb_tmp] = hd[ii][pnb+jj]; // upper bound
+				hidx2[nb_tmp] = hidx[ii][jj]-nu+N*nu; // index
+				nb_tmp++;
+				}
+			}
+		}
+	// other states as general constraints
+	// TODO
+	
+	}
 
 
 	

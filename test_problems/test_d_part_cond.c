@@ -237,17 +237,12 @@ int main()
 	fprintf(f, "B = [\n");
 	
 
-	const int LTI = 1;
-
 	printf("\n");
 	printf("Tested solvers:\n");
 	printf("-sv : Riccati factorization and system solution (prediction step in IP methods)\n");
 	printf("-trs: system solution after a previous call to Riccati factorization (correction step in IP methods)\n");
 	printf("\n");
-	if(LTI==1)
-		printf("\nTest for linear time-invariant systems\n");
-	else
-		printf("\nTest for linear time-variant systems\n");
+	printf("\nTest for linear time-invariant systems\n");
 	printf("\n");
 	
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
@@ -277,6 +272,7 @@ int main()
 	// number of problem instances solution for better timing
 	int nrep = NREP; 
 
+#if 0
 
 	int N_v[N+1];
 	int nx_v[N+1];
@@ -462,380 +458,542 @@ int main()
 
 		}
 
-	return 0;
+#else
 
-
-
-
-	for(ll=0; ll<1; ll++)
-		{
+	int offset;
+	int free_x0;
+	int ll;
 		
+	int nux  = nu+nx;
+	int nz   = nu+nx+1;
+	int pnx  = (nx+bs-1)/bs*bs;
+	int pnx1 = (nx+1+bs-1)/bs*bs;
+	int pnu  = (nu+bs-1)/bs*bs;
+	int pnux = (nu+nx+bs-1)/bs*bs;
+	int pnu1 = (nu+1+bs-1)/bs*bs;
+	int pnz  = (nu+nx+1+bs-1)/bs*bs;
+	int cnx  = (nx+ncl-1)/ncl*ncl;
+	int cnu  = (nu+ncl-1)/ncl*ncl;
+	int cnux = (nu+nx+ncl-1)/ncl*ncl;
 
-		// define time-varian problem size
-		nx_v[0] = 0;
-		for(ii=1; ii<N; ii++) nx_v[ii] = nx;
-		nx_v[N] = nx;
-
-		nu_v[0] = nu;
-		for(ii=1; ii<N; ii++) nu_v[ii] = nu;
-		nu_v[N] = 0;
-
-		for(ii=0; ii<=N; ii++) nb_v[ii] = 0;
-
-		for(ii=0; ii<=N; ii++) ng_v[ii] = 0;
-
-
-
-		int rep;
-	
-		int nz = nx+nu+1;
-		int pnz = bs*((nz+bs-1)/bs);
-		int pnx = bs*((nx+bs-1)/bs);
-		int pnx1 = bs*((nx+1+bs-1)/bs);
-		int pnu = bs*((nu+bs-1)/bs);
-		int pnu1 = bs*((nu+1+bs-1)/bs);
-		int cnz = ncl*((nx+nu+1+ncl-1)/ncl);
-		int cnx = ncl*((nx+ncl-1)/ncl);
-		int cnx1 = ncl*((nx+1+ncl-1)/ncl);
-		int cnu = ncl*((nu+ncl-1)/ncl);
-
-//		const int pad = (ncl-nx%ncl)%ncl; // packing between BAbtL & P
-		//const int cnl = cnz<cnx+ncl ? nx+pad+cnx+ncl : nx+pad+cnz;
-		int cnl = cnz<cnx+ncl ? cnx+ncl : cnz;
-	
 /************************************************
 * dynamical system
 ************************************************/	
 
-		double *A; d_zeros(&A, nx, nx); // states update matrix
+	double *A; d_zeros(&A, nx, nx); // states update matrix
 
-		double *B; d_zeros(&B, nx, nu); // inputs matrix
+	double *B; d_zeros(&B, nx, nu); // inputs matrix
 
-		double *b; d_zeros(&b, nx, 1); // states offset
-		double *x0; d_zeros(&x0, nx, 1); // initial state
+	double *b; d_zeros(&b, nx, 1); // states offset
+	double *x0; d_zeros_align(&x0, nx, 1); // initial state
 
-		double Ts = 0.5; // sampling time
-		mass_spring_system(Ts, nx, nu, N, A, B, b, x0);
-	
-		for(jj=0; jj<nx; jj++)
-			b[jj] = 0.0;
-	
-		for(jj=0; jj<nx; jj++)
-			x0[jj] = 0;
-		x0[0] = 3.5;
-		x0[1] = 3.5;
-	
+	double Ts = 0.5; // sampling time
+	mass_spring_system(Ts, nx, nu, N, A, B, b, x0);
+
+	for(jj=0; jj<nx; jj++)
+		b[jj] = 0.1;
+
+	for(jj=0; jj<nx; jj++)
+		x0[jj] = 0;
+	x0[0] = 3.5;
+	x0[1] = 3.5;
+
 //	d_print_mat(nx, nx, A, nx);
 //	d_print_mat(nx, nu, B, nx);
 //	d_print_mat(nx, 1, b, nx);
 //	d_print_mat(nx, 1, x0, nx);
-		
-		//for(ii=0; ii<nx*nx; ii++) A[ii] = 0.0;
-		//for(ii=0; ii<nx; ii++) A[ii*(nx+1)] = 1.0;
 	
-	/* packed */
-		double *BAb; d_zeros(&BAb, nx, nz);
+	double *pA; d_zeros_align(&pA, pnx, cnx);
+	d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
 
-		dmcopy(nx, nu, B, nx, BAb, nx);
-		dmcopy(nx, nx, A, nx, BAb+nu*nx, nx);
-		dmcopy(nx, 1 , b, nx, BAb+(nu+nx)*nx, nx);
-	
-//	d_print_mat(nx, nx+nu+1, BAb, nx);
+	double *pAt; d_zeros_align(&pAt, pnx, cnx);
+	d_cvt_tran_mat2pmat(nx, nx, A, nx, 0, pAt, cnx);
 
-	/* transposed */
-		double *BAbt; d_zeros_align(&BAbt, pnz, pnz);
-		for(ii=0; ii<nx; ii++)
-			for(jj=0; jj<nz; jj++)
-				{
-				BAbt[jj+pnz*ii] = BAb[ii+nx*jj];
-				}
+	double *pBt; d_zeros_align(&pBt, pnu, cnx);
+	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBt, cnx);
 
-//	d_print_mat(nz, nx+1, BAbt, pnz);
-	
-	/* packed into contiguous memory */
-		double *pBAbt; d_zeros_align(&pBAbt, pnz, cnx);
-		d_cvt_mat2pmat(nz, nx, BAbt, pnz, 0, pBAbt, cnx);
+	// matrices for size-variant solver
+	double *pBAbt0; d_zeros_align(&pBAbt0, pnu1, cnx);
+	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt0, cnx);
+	d_cvt_tran_mat2pmat(nx, 1, b, nx, nu, pBAbt0+nu/bs*bs*cnx+nu%bs, cnx);
+	double *b0; d_zeros_align(&b0, pnx, 1);
+	dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
 
-//	d_print_pmat(nz, nx, bs, pBAbt, cnx);
+	d_copy_mat(1, nx, b0, 1, pBAbt0+nu/bs*bs*cnx+nu%bs, bs);
+	double *pBAbt1; d_zeros_align(&pBAbt1, pnz, cnx);
+	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt1, cnx);
+	d_cvt_tran_mat2pmat(nx, nx, A, nx, nu, pBAbt1+nu/bs*bs*cnx+nu%bs, cnx);
+	d_cvt_tran_mat2pmat(nx, 1, b, nx, nu+nx, pBAbt1+(nu+nx)/bs*bs*cnx+(nu+nx)%bs, cnx);
 
-		// matrices for size-variant solver
-		double *pBAbt0; d_zeros_align(&pBAbt0, pnu1, cnx);
-		d_cvt_mat2pmat(nu, nx, BAbt, pnz, 0, pBAbt0, cnx);
-		d_cvt_mat2pmat(1, nx, BAbt+nu+nx, pnz, nu, pBAbt0+nu/bs*bs*cnx+nu%bs, cnx);
-		double *pA; d_zeros_align(&pA, pnx, cnx);
-		d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
-		double *b0; d_zeros_align(&b0, pnx, 1);
-		dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
-		d_copy_mat(1, nx, b0, 1, pBAbt0+nu/bs*bs*cnx+nu%bs, bs);
-		double *pBAbt1; d_zeros_align(&pBAbt1, pnz, cnx);
-		d_cvt_mat2pmat(nz, nx, BAbt, pnz, 0, pBAbt1, cnx);
+//	d_print_pmat(nu+1, nx, bs, pBAbt0, cnx);
+//	d_print_pmat(nu+nx+1, nx, bs, pBAbt1, cnx);
+//	d_print_pmat(nx, nx, bs, pA, cnx);
+//	d_print_mat(1, nx, b0, 1);
 
-//		d_print_pmat(nu+1, nx, bs, pBAbt0, cnx);
-//		d_print_pmat(nu+nx+1, nx, bs, pBAbt1, cnx);
-//		d_print_pmat(nx, nx, bs, pA, cnx);
-//		d_print_mat(1, nx, b0, 1);
-//		exit(2);
-		
 /************************************************
 * cost function
 ************************************************/	
-
-		const int ncx = nx;
-
-		double *Q; d_zeros_align(&Q, pnz, pnz);
-		for(ii=0; ii<nu; ii++) Q[ii*(pnz+1)] = 2.0;
-		for(; ii<nu+ncx; ii++) Q[ii*(pnz+1)] = 1.0;
-		for(ii=0; ii<nu; ii++) Q[nx+nu+ii*pnz] = 0.0;
-		for(; ii<nu+ncx; ii++) Q[nx+nu+ii*pnz] = 0.0;
-/*		Q[(nx+nu)*(pnz+1)] = 1e35; // large enough (not needed any longer) */
-		double *q; d_zeros_align(&q, pnz, 1);
-		for(ii=0; ii<nu+ncx; ii++) q[ii] = Q[nx+nu+ii*pnz];
-
-		/* packed into contiguous memory */
-		double *pQ; d_zeros_align(&pQ, pnz, cnz);
-		d_cvt_mat2pmat(nz, nz, Q, pnz, 0, pQ, cnz);
-
-		// matrices for size-variant solver
-//		int cnu = (nu+ncl-1)/ncl*ncl;
-//		int cnx = (nx+ncl-1)/ncl*ncl;
-		int cnux = (nu+nx+ncl-1)/ncl*ncl;
-		int pnux = (nu+nx+bs-1)/bs*bs;
-		double *pQ0; d_zeros_align(&pQ0, pnu1, cnu);
-		d_cvt_mat2pmat(nu, nu, Q, pnz, 0, pQ0, cnu);
-		d_cvt_mat2pmat(1, nu, Q+nu+nx, pnz, nu, pQ0+nu/bs*bs*cnu+nu%bs, cnu);
-		double *pQ1; d_zeros_align(&pQ1, pnz, cnux);
-		d_cvt_mat2pmat(nu+nx+1, nu+nx, Q, pnz, 0, pQ1, cnux);
-		double *pQN; d_zeros_align(&pQN, pnx1, cnx);
-		d_cvt_mat2pmat(nx, nx, Q+nu*(pnz+1), pnz, 0, pQN, cnx);
-		d_cvt_mat2pmat(1, nx, Q+nu*(pnz+1)+nx, pnz, nx, pQN+nx/bs*bs*cnx+nx%bs, cnx);
-
-		double *q1; d_zeros_align(&q1, pnux, 1);
-
-//		d_print_pmat(nu+1, nu, bs, pQ0, cnu);
-//		d_print_pmat(nu+nx+1, nu+nx, bs, pQ1, cnux);
-//		d_print_pmat(nx+1, nx, bs, pQN, cnx);
-//		exit(2);
-
-//	d_print_pmat(nz, nz, bs, pQ, cnz);
-
-	/* matrices series */
-		double *(hpQ[N+1]);
-		double *(hpQ_tv[N+1]);
-		double *(hpL[N+1]);
-		double *(hdL[N+1]);
-		double *(hl[N+1]);
-		double *(hq[N+1]);
-		double *(hq_tv[N+1]);
-		double *(hux[N+1]);
-		double *(hpi[N+1]);
-		double *(hpBAbt[N]);
-		double *(hpBAbt_tv[N]);
-		double *(hb_tv[N]);
-		double *(hrb[N]);
-		double *(hrq[N+1]);
-		double *(hPb[N]);
-		for(jj=0; jj<N; jj++)
-			{
-			if(LTI==1)
-				{
-				hpBAbt[jj] = pBAbt; // LTI
-				hpQ[jj] = pQ;
-//				hpQ_tv[jj] = pQ;
-				}
-			else // LTV
-				{
-				d_zeros_align(&hpBAbt[jj], pnz, cnx);
-				for(ii=0; ii<pnz*cnx; ii++) hpBAbt[jj][ii] = pBAbt[ii];
-				d_zeros_align(&hpQ[jj], pnz, cnz);
-				for(ii=0; ii<pnz*cnz; ii++) hpQ[jj][ii] = pQ[ii];
-//				d_zeros_align(&hpQ_tv[jj], pnz, cnz);
-//				for(ii=0; ii<pnz*cnz; ii++) hpQ_tv[jj][ii] = pQ[ii];
-				}
-			d_zeros_align(&hq[jj], pnz, 1); // it has to be pnz !!!
-			d_zeros_align(&hpL[jj], pnz, cnl);
-			d_zeros_align(&hdL[jj], pnz, 1);
-			d_zeros_align(&hl[jj], pnz, 1);
-			d_zeros_align(&hux[jj], pnz, 1); // it has to be pnz !!!
-			d_zeros_align(&hpi[jj], pnx, 1);
-			d_zeros_align(&hrb[jj], pnx, 1);
-			d_zeros_align(&hrq[jj], pnz, 1);
-			d_zeros_align(&hPb[jj], pnx, 1);
-			}
-		if(LTI==1)
-			{
-			hpQ[N] = pQ;
-//			hpQ_tv[N] = pQ_N;
-			}
-		else
-			{
-			d_zeros_align(&hpQ[N], pnz, cnz);
-			for(ii=0; ii<pnz*cnz; ii++) hpQ[N][ii] = pQ[ii]; // LTV
-			d_zeros_align(&hpQ_tv[N], pnx1, cnx1);
-//			for(ii=0; ii<pnx1*cnx1; ii++) hpQ_tv[N][ii] = pQ_N[ii]; // LTV
-			}
-		d_zeros_align(&hpL[N], pnz, cnl);
-		d_zeros_align(&hdL[N], pnz, 1);
-		d_zeros_align(&hl[N], pnz, 1);
-		d_zeros_align(&hq[N], pnz, 1); // it has to be pnz !!!
-		d_zeros_align(&hux[N], pnz, 1); // it has to be pnz !!!
-		d_zeros_align(&hpi[N], pnx, 1);
-		d_zeros_align(&hrq[N], pnz, 1);
-		// size-variant matrices
-		if(LTI==1)
-			{
-			hpQ_tv[0] = pQ0;
-			hq_tv[0] = q1;
-			hpBAbt_tv[0] = pBAbt0;
-			hb_tv[0] = b0;
-			for(ii=1; ii<N; ii++)
-				{
-				hpQ_tv[ii] = pQ1;
-				hpBAbt_tv[ii] = pBAbt1;
-				hb_tv[ii] = b;
-				hq_tv[ii] = q1;
-				}
-			hpQ_tv[N] = pQN;
-			hq_tv[N] = q1;
-			}
-		else
-			{
-			// TODO
-			}
 	
-		// starting guess
-		for(jj=0; jj<nx; jj++) hux[0][nu+jj]=x0[jj];
-	
-		double *work1; d_zeros_align(&work1, pnz, 2);
-		
-		//double *work; d_zeros_align(&work, 2*anz, 1);
-		double *work0; d_zeros_align(&work0, pnz, cnx);
+	double *dRSQrq1; d_zeros_align(&dRSQrq1, 2*(nx+nu), 1);
+	for(ii=0; ii<nu; ii++) dRSQrq1[ii] = 2.0;
+	for( ; ii<nu+nx; ii++) dRSQrq1[ii] = 1.0;
+	for( ; ii<2*nu+nx; ii++) dRSQrq1[ii] = 0.2;
+	for( ; ii<2*nu+2*nx; ii++) dRSQrq1[ii] = 0.1;
+//	d_print_mat(nx+nu, 2, dRSQrq1, nx+nu);
 
+	double *dRSQrq0; d_zeros_align(&dRSQrq0, 2*nu, 1);
+	d_copy_mat(nu, 1, dRSQrq1, nu, dRSQrq0, nu);
+	d_copy_mat(nu, 1, dRSQrq1+nu+nx, nu, dRSQrq0+nu, nu);
 
+	double *dRSQrqN; d_zeros_align(&dRSQrqN, 2*nx, 1);
+	d_copy_mat(nx, 1, dRSQrq1+nu, nx, dRSQrqN, nx);
+	d_copy_mat(nx, 1, dRSQrq1+2*nu+nx, nx, dRSQrqN+nx, nx);
+
+	double *pRSQrq0; d_zeros_align(&pRSQrq0, pnu1, cnu);
+	ddiain_lib(nu, dRSQrq0, 0, pRSQrq0, cnu);
+	drowin_lib(nu, dRSQrq0+nu, pRSQrq0+nu/bs*bs*cnu+nu%bs);
+//	d_print_pmat(nu+1, nu, bs, pRSQrq0, cnu);
+
+	double *pRSQrq1; d_zeros_align(&pRSQrq1, pnz, cnux);
+	ddiain_lib(nu+nx, dRSQrq1, 0, pRSQrq1, cnux);
+	drowin_lib(nu+nx, dRSQrq1+nu+nx, pRSQrq1+nux/bs*bs*cnux+nux%bs);
+//	d_print_pmat(nu+nx+1, nu+nx, bs, pRSQrq1, cnux);
+
+	double *pRSQrqN; d_zeros_align(&pRSQrqN, pnx1, cnx);
+	ddiain_lib(nx, dRSQrqN, 0, pRSQrqN, cnx);
+	drowin_lib(nx, dRSQrqN+nx, pRSQrqN+nx/bs*bs*cnx+nx%bs);
+//	d_print_pmat(nx+1, nx, bs, pRSQrqN, cnx);
+
+//	return 0;
 
 /************************************************
-* riccati-like iteration
+* constraints
 ************************************************/
-		
 
-		// timing 
-		struct timeval tv0, tv1, tv2, tv3, tv4, tv5, tv6, tv7, tv8, tv9, tv10;
+	int nb[N+1];
+	nb[0] = nu;
+	for(ii=1; ii<N; ii++)
+		nb[ii] = nu+nx;
+	nb[N] = nx;
+//	for(ii=0; ii<=N; ii++)
+//		printf("%d\n", nb[ii]);
 
-		// double precision
-		gettimeofday(&tv0, NULL); // start
-
-		gettimeofday(&tv1, NULL); // start
-
-		gettimeofday(&tv2, NULL); // start
-
-		gettimeofday(&tv3, NULL); // start
-
-		gettimeofday(&tv4, NULL); // start
-
-		gettimeofday(&tv5, NULL); // start
-
-		// size-variant code
-
-		for(rep=0; rep<nrep; rep++)
-			{
-//			d_back_ric_sv_tv(N, nx_v, nu_v, hpBAbt_tv, hpQ_tv, hux, hpL, hdL, work0, work1, 0, dummy, COMPUTE_MULT, hpi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy);
-			d_back_ric_trf_tv(N, nx_v, nu_v, hpBAbt_tv, hpQ_tv, hpL, hdL, work0, nb_v, 0, dummy, ng_v, dummy, dummy);
-			}
-
-		gettimeofday(&tv6, NULL); // start
-
-		for(rep=0; rep<nrep; rep++)
-			{
-			d_back_ric_trs_tv(N, nx_v, nu_v, hpBAbt_tv, hb_tv, hpL, hdL, hq_tv, hl, hux, work1, 1, hPb, 1, hpi, nb_v, 0, dummy, ng_v, dummy, dummy);
-			}
-
-		gettimeofday(&tv7, NULL); // start
-
-		if(PRINTRES==1)
-			{
-			/* print result */
-			printf("\n\nsv\n\n");
-			for(ii=0; ii<=N; ii++)
-				d_print_mat(1, nu_v[ii]+nx_v[ii], hux[ii], 1);
-			printf("\n");
-			for(ii=1; ii<=N; ii++)
-				d_print_mat(1, nx, hpi[ii], 1);
-//			exit(1);
-			}
+	int pnb[N+1]; for(ii=0; ii<=N; ii++) pnb[ii] = (nb[ii]+bs-1)/bs*bs;
 
 
+	double *d0; d_zeros_align(&d0, 2*pnb[0], 1);
+	int *idx0; i_zeros(&idx0, nb[0], 1);
+	for(ii=0; ii<nb[0]; ii++)
+		{
+		d0[ii]        = -0.5;
+		d0[pnb[0]+ii] = -0.5;
+		idx0[ii]      = ii;
+		}
 
-		float flop_trf_tv = (1.0/3.0*nx*nx*nx) + (N-1)*(7.0/3.0*nx*nx*nx+4.0*nx*nx*nu+2.0*nx*nu*nu+1.0/3.0*nu*nu*nu) + (1.0*nx*nx*nu+1.0*nx*nu*nu+1.0/3.0*nu*nu*nu);
-		float time_trf_tv = (float) (tv6.tv_sec-tv5.tv_sec)/(nrep+0.0)+(tv6.tv_usec-tv5.tv_usec)/(nrep*1e6);
-		float Gflops_trf_tv = 1e-9*flop_trf_tv/time_trf_tv;
-	
-		float flop_trs_tv = (N)*(8*nx*nx+8.0*nx*nu+2.0*nu*nu);
-		float time_trs_tv = (float) (tv7.tv_sec-tv6.tv_sec)/(nrep+0.0)+(tv7.tv_usec-tv6.tv_usec)/(nrep*1e6);
-		float Gflops_trs_tv = 1e-9*flop_trs_tv/time_trs_tv;
+	double *d1; d_zeros_align(&d1, 2*pnb[1], 1);
+	int *idx1; i_zeros(&idx1, nb[1], 1);
+	for(ii=0; ii<nu; ii++)
+		{
+		d1[ii]        = -0.5;
+		d1[pnb[1]+ii] = -0.5;
+		idx1[ii]      = ii;
+		}
+	for(; ii<nb[1]; ii++)
+		{
+		d1[ii]        = -4.0;
+		d1[pnb[1]+ii] = -4.0;
+		idx1[ii]      = ii;
+		}
+
+	double *dN; d_zeros_align(&dN, 2*pnb[N], 1);
+	int *idxN; i_zeros(&idxN, nb[N], 1);
+	for(ii=0; ii<nb[N]; ii++)
+		{
+		dN[ii]        = -4.0;
+		dN[pnb[N]+ii] = -4.0;
+		idxN[ii]      = ii;
+		}
 	
 /************************************************
-* return
+* original problem data
 ************************************************/
 
-		free(A);
-		free(pA);
-		free(B);
-		free(b);
-		free(b0);
-		free(x0);
-		free(BAb);
-		free(BAbt);
-		free(pBAbt);
-		free(pBAbt0);
-		free(pBAbt1);
-		free(Q);
-		free(pQ);
-		free(pQ0);
-		free(pQ1);
-		free(pQN);
-		free(q);
-		free(q1);
-		free(work0);
-		free(work1);
-		for(jj=0; jj<N; jj++)
+	double *(hpA[N]);
+	double *(hpAt[N]);
+	double *(hpBt[N]);
+	double *(hb[N]);
+	double *(hpBAbt[N]);
+	double *(hpRSQrq[N+1]);
+	double *(hdRSQrq[N+1]);
+	double *(hd[N+1]);
+	int *(hidx[N+1]);
+	hpA[0] = pA;
+	hpAt[0] = pAt;
+	hpBt[0] = pBt;
+	hb[0] = b0;
+	hpBAbt[0] = pBAbt0;
+	hpRSQrq[0] = pRSQrq0;
+	hdRSQrq[0] = dRSQrq0;
+	hd[0] = d0;
+	hidx[0] = idx0;
+	for(ii=1; ii<N; ii++)
+		{
+		hpA[ii] = pA;
+		hpAt[ii] = pAt;
+		hpBt[ii] = pBt;
+		hb[ii] = b;
+		hpBAbt[ii] = pBAbt1;
+		hpRSQrq[ii] = pRSQrq1;
+		hdRSQrq[ii] = dRSQrq1;
+		hd[ii] = d1;
+		hidx[ii] = idx1;
+		}
+	hpRSQrq[N] = pRSQrqN;
+	hdRSQrq[N] = dRSQrqN;
+	hd[N] = dN;
+	hidx[N] = idxN;
+//	for(ii=0; ii<N; ii++)
+//		d_print_pmat(nx, nx, bs, hpA[ii], cnx);
+	
+#if 0
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, 2*pnb[ii], hd[ii], 1);
+	exit(1);
+#endif
+
+/************************************************
+* partial condensing
+************************************************/
+
+	int Np = 1;
+
+	int Nc = N/Np; // minimum horizon length within each stage group
+
+	int rN = N - Np*Nc; // number of stage groups with horizon Nc+1 
+
+	int N_tmp;
+
+	int N_v[Np+1];
+	for(ii=0; ii<rN; ii++)
+		N_v[ii] = Nc+1;
+	for(; ii<Np; ii++)
+		N_v[ii] = Nc;
+
+	int nx_v[Np+1];
+	nx_v[0] = 0;
+	for(ii=1; ii<=Np; ii++)
+		nx_v[ii] = nx;
+
+	int nu_v[Np+1];
+	for(ii=0; ii<Np; ii++)
+		nu_v[ii] = nu*N_v[ii];
+	nu_v[Np] = 0;
+
+	int nb_v[Np+1]; 
+	int nb_tmp;
+	N_tmp = 0;
+	for(ll=0; ll<Np; ll++) 
+		{
+		nb_tmp = 0;
+		for(ii=0; ii<N_v[ll]; ii++)
+			for(jj=0; jj<nb[N_tmp+ii]; jj++)
+				if(hidx[N_tmp+ii][jj]<nu)
+					nb_tmp++;
+		ii = 0; // initial stage
+		for(jj=0; jj<nb[N_tmp+ii]; jj++)
+			if(hidx[N_tmp+ii][jj]>=nu)
+				nb_tmp++;
+		nb_v[ll] = nb_tmp;
+
+		N_tmp += N_v[ll];
+		}
+	nb_v[Np] = nb[N];
+
+#if 0
+	N_tmp = 0;
+	for(ii=0; ii<Np; ii++) 
+		{
+		nb_v[ii] = 0;
+		for(jj=0; jj<N_v[ii]; jj++)
 			{
-			if(LTI!=1)
-				{
-				free(hpQ[jj]);
-				free(hq[jj]);
-				free(hpBAbt[jj]);
-				}
-			free(hpL[jj]);
-			free(hdL[jj]);
-			free(hl[jj]);
-			free(hux[jj]);
-			free(hpi[jj]);
-			free(hrq[jj]);
-			free(hrb[jj]);
-			free(hPb[jj]);
+			nb_v[ii] += nb[N_tmp+jj];
+//			printf(" %d", nb[N_tmp+jj]);
 			}
-		if(LTI!=1)
-			{
-			free(hpQ[N]);
-			free(hq[N]);
-			}
-		free(hpL[N]);
-		free(hdL[N]);
-		free(hl[N]);
-		free(hux[N]);
-		free(hpi[N]);
-		free(hrq[N]);
+//		printf(": %d\n", nb_v[ii]);
+		N_tmp += N_v[ii];
+		}
+	nb_v[Np] = nb[N];
+	printf("\n%d %d\n", N, N_tmp);
+#endif
+#if 0
+	for(ii=0; ii<=Np; ii++) 
+		printf("\n%d\n", nb_v[ii]);
+	exit(2);
+#endif
+
+	int ng_v[Np+1]; 
+	for(ii=0; ii<=Np; ii++) 
+		ng_v[ii] = 0;
+	
+	int pnx_v[Np+1]; for(ii=0; ii<=Np; ii++) pnx_v[ii] = (nx_v[ii]+bs-1)/bs*bs;
+	int pnz_v[Np+1]; for(ii=0; ii<=Np; ii++) pnz_v[ii] = (nu_v[ii]+nx_v[ii]+1+bs-1)/bs*bs;
+	int pnux_v[Np+1]; for(ii=0; ii<=Np; ii++) pnux_v[ii] = (nu_v[ii]+nx_v[ii]+bs-1)/bs*bs;
+	int pnb_v[Np+1]; for(ii=0; ii<=Np; ii++) pnb_v[ii] = (nb_v[ii]+bs-1)/bs*bs;
+	int cnx_v[Np+1]; for(ii=0; ii<=Np; ii++) cnx_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
+	int cnux_v[Np+1]; for(ii=0; ii<=Np; ii++) cnux_v[ii] = (nu_v[ii]+nx_v[ii]+ncl-1)/ncl*ncl;
 	
 
+	double *(hpBAbt2[Np]);
+	double *(hpRSQrq2[Np+1]);
+	double *(hd2[Np+1]); // TODO
+	int *(hidx2[Np+1]); // TODO
+	for(ii=0; ii<Np; ii++)
+		{
+		d_zeros_align(&hpBAbt2[ii], pnz_v[ii], cnx_v[ii+1]);
+		d_zeros_align(&hpRSQrq2[ii], pnz_v[ii], cnux_v[ii]);
+		d_zeros_align(&hd2[ii], 2*pnb_v[ii], 1);
+		i_zeros(&hidx2[ii], 2*pnb_v[ii], 1);
+		}
+	d_zeros_align(&hpRSQrq2[Np], pnz_v[Np], cnux_v[Np]);
+	d_zeros_align(&hd2[Np], 2*pnb_v[Np], 1);
+	i_zeros(&hidx2[Np], 2*pnb_v[Np], 1);
+	
+	double *pD; d_zeros_align(&pD, pnu+pnx, cnu);
+	double *pM; d_zeros_align(&pM, pnu, cnx);
+	double *pQs; d_zeros_align(&pQs, pnx1, cnx);
+	double *pLam; d_zeros_align(&pLam, pnz, cnux);
+	double *diag_ric; d_zeros_align(&diag_ric, nz, 1);
+	double *pBAbtL; d_zeros_align(&pBAbtL, pnz, cnx);
 
-		} // increase size
+	int pnx1Nnu = (nx+1+(Nc+1)*nu+bs-1)/bs*bs;
+	int cnxNnu = (nx+(Nc+1)*nu+ncl-1)/ncl*ncl;
+	double *pGamma_Lu; d_zeros_align(&pGamma_Lu, pnx1Nnu, cnu);
 
-	fprintf(f, "];\n");
-	fclose(f);
+	double *(hpGamma_u_b[Nc+1]);
+	for(ii=0; ii<Nc+1; ii++)
+		{
+		offset = ((ii+1)*nu+nx+1+bs-1)/bs*bs;
+		d_zeros_align(&hpGamma_u_b[ii], offset, cnx);
+		}
 
+	double *pGamma_tmp;
+
+#define DIAG_HESSIAN 0 // diagonal Hessian of the cost function
+#define Q_N_NOT_ZERO 0 // Q_N is not zero
+
+
+
+	int rep;
+	struct timeval tv0, tv1;
+
+	gettimeofday(&tv0, NULL); // stop
+
+	for(rep=0; rep<nrep; rep++)
+		{
+		N_tmp = 0;
+		for(ll=0; ll<Np; ll++)
+			{
+	//		printf("\n%d %d\n", ll, N_v[ll]);
+
+			if(ll==0)
+				free_x0 = 0;
+			else
+				free_x0 = 1;
+
+			pGamma_tmp = hpGamma_u_b[N_v[ll]-1];
+			hpGamma_u_b[N_v[ll]-1] = hpBAbt2[ll];
+			d_cond_Gamma_u_b_T(N_v[ll], nx, nu, free_x0, hpA+N_tmp, hpBt+N_tmp, hb+N_tmp, pGamma_Lu, hpGamma_u_b);
+			hpGamma_u_b[N_v[ll]-1] = pGamma_tmp;
+
+	//		d_print_pmat(nu_v[ll]+nx_v[ll]+1, nx_v[ll+1], bs, hpBAbt2[ll], cnx_v[ll+1]);
+
+			d_cond_Rr_N2_nx3(N_v[ll], nx, nu, free_x0, hpBAbt+N_tmp, DIAG_HESSIAN, Q_N_NOT_ZERO, hpRSQrq+N_tmp, pD, pM, pQs, pLam, diag_ric, pBAbtL, pGamma_Lu, hpGamma_u_b, hpRSQrq2[ll]); //pH_Rx);
+
+	//		d_print_pmat(nu_v[ll]+nx_v[ll]+1, nu_v[ll]+nx_v[ll], bs, hpRSQrq2[ll], cnux_v[ll]);
+
+			d_cond_d(N_v[ll], nx, nu, nb+N_tmp, free_x0, hd+N_tmp, hidx+N_tmp, hd2[ll], hidx2[ll]);
+	//		d_print_mat(1, 2*pnb_v[ll], hd2[ll], 1);
+	//		i_print_mat(1, pnb_v[ll], hidx2[ll], 1);
+
+			N_tmp += N_v[ll];
+
+			}
+		// last stage TODO
+		hpRSQrq2[Np] = pRSQrqN;
+		hd2[Np] = dN;
+		hidx2[Np] = idxN;
+		}
+	
+	gettimeofday(&tv1, NULL); // stop
+
+	double time_part_cond = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+
+
+//	printf("\n%d %d\n", N, N_tmp);
+
+/************************************************
+* partially condensed riccati solver
+************************************************/
+
+	double *(hux2[Np+1]);
+	double *(hpi2[Np+1]);
+	double *(hlam2[Np+1]);
+	double *(ht2[Np+1]);
+	for(ii=0; ii<=Np; ii++)
+		{
+		d_zeros_align(&hux2[ii], pnux_v[ii], 1);
+		d_zeros_align(&hpi2[ii], pnx_v[ii], 1);
+		d_zeros_align(&hlam2[ii], 2*pnb_v[ii], 1);
+		d_zeros_align(&ht2[ii], 2*pnb_v[ii], 1);
+		}
+	double *work2; d_zeros_align(&work2, d_ip2_hard_mpc_tv_work_space_size_double(Np, nx_v, nu_v, nb_v, ng_v), 1);
+
+	int hpmpc_status;
+	int kk;
+	int k_max = 10;
+	double mu0 = 2; // max of cost function
+	double mu_tol = 1e-20;
+	double alpha_min = 1e-8;
+	int warm_start = 0;
+	double sigma_par[] = {0.4, 0.1, 0.001}; // control primal-dual IP behaviour
+	double *stat; d_zeros(&stat, k_max, 5);
+
+
+//	for(ii=0; ii<N; ii++)
+//		d_print_pmat(nu_v[ii]+nx_v[ii]+1, nx_v[ii+1], bs, hpBAbt2[ii], cnx_v[ii+1]);
+//	exit(1);
+
+	gettimeofday(&tv0, NULL); // stop
+
+	printf("\nbegin...\n");
+	for(rep=0; rep<nrep; rep++)
+		{
+
+		hpmpc_status = d_ip2_hard_mpc_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, Np, nx_v, nu_v, nb_v, hidx2, ng_v, hpBAbt2, hpRSQrq2, dummy, hd2, hux2, 0, hpi2, hlam2, ht2, work2);
+
+		}
+	printf("\nend...\n");
+
+	gettimeofday(&tv1, NULL); // stop
+
+	double time_solve = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+
+
+	for(ii=0; ii<=Np; ii++)
+		d_print_mat(1, nu_v[ii]+nx_v[ii], hux2[ii], 1);
+	
+	double *(hu[N]);
+	double *(hx[N+1]);
+	for(ii=0; ii<N; ii++)
+		{
+		d_zeros_align(&hu[ii], pnu, 1);
+		d_zeros_align(&hx[ii], pnx, 1);
+		}
+	d_zeros_align(&hx[N], pnx, 1);
+
+	N_tmp = 0;
+	for(ii=0; ii<Np; ii++)
+		{
+		for(jj=0; jj<N_v[ii]; jj++)
+			{
+			d_copy_mat(nu, 1, hux2[ii]+jj*nu, nu, hu[N_tmp], nu);
+			N_tmp++;
+			}
+		}
+	printf("\nu = \n");
+	for(ii=0; ii<N; ii++)	
+		d_print_mat(1, nu, hu[ii], 1);
+
+	dgemv_t_lib(nx, nx, pAt, cnx, hx[0], 1, b0, hx[1]);
+	dgemv_t_lib(nu, nx, pBt, cnx, hu[0], 1, hx[1], hx[1]);
+	for(ii=1; ii<N; ii++)
+		{
+		dgemv_t_lib(nx, nx, pAt, cnx, hx[ii], 1, b, hx[ii+1]);
+		dgemv_t_lib(nu, nx, pBt, cnx, hu[ii], 1, hx[ii+1], hx[ii+1]);
+		}
+	printf("\nx = \n");
+	for(ii=0; ii<=N; ii++)	
+		d_print_mat(1, nx, hx[ii], 1);
+		
+	for(jj=0; jj<kk; jj++)
+		printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, stat[5*jj], stat[5*jj+1], stat[5*jj+2], stat[5*jj+2], stat[5*jj+3], stat[5*jj+4], stat[5*jj+4]);
+	printf("\n");
+
+	printf("\ntime_part_cond = %e\n", time_part_cond);
+	printf("\ntime_solve     = %e\n", time_solve);
+	printf("\ntotal_time     = %e\n", time_part_cond+time_solve);
+
+/************************************************
+* free memory
+************************************************/
+
+	free(A);
+	free(B);
+	free(b);
+	free(b0);
+	free(x0);
+	free(pA);
+	free(pAt);
+	free(pBt);
+	free(pBAbt0);
+	free(pBAbt1);
+	free(dRSQrq0);
+	free(dRSQrq1);
+	free(dRSQrqN);
+	free(pRSQrq0);
+	free(pRSQrq1);
+	free(pRSQrqN);
+	free(d0);
+	free(d1);
+	free(dN);
+	free(idx0);
+	free(idx1);
+	free(idxN);
+	free(pD);
+	free(pM);
+	free(pQs);
+	free(pLam);
+	free(diag_ric);
+	free(pBAbtL);
+	free(pGamma_Lu);
+	for(ii=0; ii<Nc+1; ii++)
+		{
+		free(hpGamma_u_b[ii]);
+		}
+
+	for(ii=0; ii<Np; ii++)
+		{
+		free(hpBAbt2[ii]);
+		free(hpRSQrq2[ii]);
+		free(hd2[ii]);
+		free(hidx2[ii]);
+		free(hux2[ii]);
+		free(hpi2[ii]);
+		free(hlam2[ii]);
+		free(ht2[ii]);
+		}
+//	free(hpRSQrq2[Np]);
+//	free(hd2[Np]);
+//	free(hidx2[Np]);
+	free(hux2[Np]);
+	free(hpi2[Np]);
+	free(hlam2[Np]);
+	free(ht2[Np]);
+	free(work2);
+	free(stat);
+
+	for(ii=0; ii<N; ii++)
+		{
+		free(hu[ii]);
+		free(hx[ii]);
+		}
+	free(hx[N]);
+
+#endif
 
 	return 0;
 
 	}
-
-
 
