@@ -2111,7 +2111,7 @@ void d_cond_Rr_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAbt, int di
 
 
 
-void d_cond_d(int N, int nx, int nu, int *nb, int free_x0, double **hd, int **hidx, double *hd2, int *hidx2)
+void d_cond_d(int N, int nx, int nu, int *nb, int free_x0, double **hd, int **hidx, double **hpGamma_u, double *d2, int *idx2, double *pDCt2)
 	{
 
 	const int bs  = D_MR;
@@ -2119,7 +2119,11 @@ void d_cond_d(int N, int nx, int nu, int *nb, int free_x0, double **hd, int **hi
 
 	int ii, jj;
 
-	int pnb, nb2, pnb2, nb_tmp;
+	int pnb, nb2, pnb2, nb_tmp, ng2, png2, cng2, ng_tmp, ng_tmp2;
+	int offset0, offset1, idx_tmp;
+	double Gamma_b_tmp;
+
+	int cnx    = (nx+ncl-1)/ncl*ncl;
 
 
 	// inputs
@@ -2129,11 +2133,18 @@ void d_cond_d(int N, int nx, int nu, int *nb, int free_x0, double **hd, int **hi
 			if(hidx[ii][jj]<nu)
 				nb2++;
 	// initial state
-	if(free_x0)
-		for(jj=0; jj<nb[0]; jj++)
-			if(hidx[0][jj]>=nu)
-				nb2++;
+	for(jj=0; jj<nb[0]; jj++)
+		if(hidx[0][jj]>=nu)
+			nb2++;
 	pnb2 = (nb2+bs-1)/bs*bs;
+	// following states
+	ng2 = 0;
+	for(ii=1; ii<N; ii++)
+		for(jj=0; jj<nb[ii]; jj++)
+			if(hidx[ii][jj]>=nu)
+				ng2++;
+	png2 = (ng2+bs-1)/bs*bs;
+	cng2 = (ng2+ncl-1)/ncl*ncl;
 
 	nb_tmp = 0;
 	// inputs
@@ -2145,33 +2156,114 @@ void d_cond_d(int N, int nx, int nu, int *nb, int free_x0, double **hd, int **hi
 			{
 			if(hidx[ii][jj]<nu)
 				{
-				hd2[nb_tmp]      = hd[ii][jj]; // lower bound
-				hd2[pnb2+nb_tmp] = hd[ii][pnb+jj]; // upper bound
-				hidx2[nb_tmp] = hidx[ii][jj]+ii*nu; // index
+				d2[nb_tmp]      = hd[ii][jj]; // lower bound
+				d2[pnb2+nb_tmp] = hd[ii][pnb+jj]; // upper bound
+				idx2[nb_tmp] = hidx[ii][jj]+ii*nu; // index
 				nb_tmp++;
 				}
 			}
 		}
 	// states on the first stage
-	if(free_x0)
-		{
-		ii = 0;
-		pnb = (nb[ii]+bs-1)/bs*bs;
+	ii = 0;
+	pnb = (nb[ii]+bs-1)/bs*bs;
 
-		for(jj=0; jj<nb[ii]; jj++)
+	for(jj=0; jj<nb[ii]; jj++)
+		{
+		if(hidx[ii][jj]>=nu)
 			{
-			if(hidx[ii][jj]>=nu)
-				{
-				hd2[nb_tmp]      = hd[ii][jj]; // lower bound
-				hd2[pnb2+nb_tmp] = hd[ii][pnb+jj]; // upper bound
-				hidx2[nb_tmp] = hidx[ii][jj]-nu+N*nu; // index
-				nb_tmp++;
-				}
+			d2[nb_tmp]      = hd[ii][jj]; // lower bound
+			d2[pnb2+nb_tmp] = hd[ii][pnb+jj]; // upper bound
+			idx2[nb_tmp] = hidx[ii][jj]-nu+N*nu; // index
+			nb_tmp++;
 			}
 		}
 	// other states as general constraints
-	// TODO
+	// XXX assumes that all the first components of the states are constrained, and in the proper order (i.e. C of the original problem is the identity I)
+	// TODO general case !!!!!!!!!!!!!!!!!!!!!!!!!
+
+	if(free_x0)
+		{
+
+		dgeset_lib(nx+N*nu, ng2, 0.0, 0, pDCt2, cng2);
+
+		ng_tmp2 = 0;
+		for(ii=1; ii<N; ii++)
+			{
+
+			pnb = (nb[ii]+bs-1)/bs*bs;
+
+//			d_print_pmat(1+ii*nu, nx, bs, hpGamma_u[ii-1], cnx);
+			// count the bounds on states
+			ng_tmp = 0;
+			for(jj=0; jj<nb[ii]; jj++)
+				{
+				if(hidx[ii][jj]>=nu)
+					{
+					idx_tmp = hidx[ii][jj]-nu;
+					offset0 = nx+ii*nu;
+					Gamma_b_tmp = hpGamma_u[ii-1][offset0/bs*bs*cnx+offset0%bs+idx_tmp*bs];
+					d2[2*pnb2+ng_tmp2+ng_tmp]      = hd[ii][jj]     - Gamma_b_tmp; // lower bound
+					d2[2*pnb2+png2+ng_tmp2+ng_tmp] = hd[ii][pnb+jj] + Gamma_b_tmp; // upper bound
+//					printf("\n%d %d %f %f %f %f %f\n", hidx[ii][jj], idx_tmp, Gamma_b_tmp, hd[ii][jj], d2[2*pnb2+ng_tmp2+ng_tmp], hd[ii][pnb+jj], d2[2*pnb2+png2+ng_tmp2+ng_tmp]);
+					ng_tmp++;
+					}
+				}
+
+			// copy
+			dgecp_lib(ii*nu, ng_tmp, 0, hpGamma_u[ii-1], cnx, 0, pDCt2+ng_tmp2*bs, cng2);
+			offset0 = ii*nu;
+			offset1 = N*nu;
+			dgecp_lib(nx, ng_tmp, offset0, hpGamma_u[ii-1]+offset0/bs*bs*cnx+offset0%bs, cnx, offset1, pDCt2+offset1/bs*bs*cng2+offset1%bs+ng_tmp2*bs, cng2); 
+
+			ng_tmp2 += ng_tmp;
+
+			}
+
+//		d_print_pmat(nx+N*nu, ng2, bs, pDCt2, cng2);
+
+		}
+	else
+		{
+
+		dgeset_lib(N*nu, ng2, 0.0, 0, pDCt2, cng2);
+
+		ng_tmp2 = 0;
+		for(ii=1; ii<N; ii++)
+			{
+
+			pnb = (nb[ii]+bs-1)/bs*bs;
+
+//			d_print_pmat(1+ii*nu, nx, bs, hpGamma_u[ii-1], cnx);
+			// count the bounds on states
+			ng_tmp = 0;
+			for(jj=0; jj<nb[ii]; jj++)
+				{
+				if(hidx[ii][jj]>=nu)
+					{
+					idx_tmp = hidx[ii][jj]-nu;
+					offset0 = ii*nu;
+					Gamma_b_tmp = hpGamma_u[ii-1][offset0/bs*bs*cnx+offset0%bs+idx_tmp*bs];
+					d2[2*pnb2+ng_tmp2+ng_tmp]      = hd[ii][jj]     - Gamma_b_tmp; // lower bound
+					d2[2*pnb2+png2+ng_tmp2+ng_tmp] = hd[ii][pnb+jj] + Gamma_b_tmp; // upper bound
+//					printf("\n%d %d %f %f %f %f %f\n", hidx[ii][jj], idx_tmp, Gamma_b_tmp, hd[ii][jj], d2[2*pnb2+ng_tmp2+ng_tmp], hd[ii][pnb+jj], d2[2*pnb2+png2+ng_tmp2+ng_tmp]);
+					ng_tmp++;
+					}
+				}
+
+			// copy
+			dgecp_lib(ii*nu, ng_tmp, 0, hpGamma_u[ii-1], cnx, 0, pDCt2+ng_tmp2*bs, cng2);
+
+			ng_tmp2 += ng_tmp;
+
+			}
+
+//		d_print_pmat(N*nu, ng2, bs, pDCt2, cng2);
+
+		}
 	
+//	for(ii=0; ii<N; ii++)
+//		d_print_mat(1, 2*pnb2+2*png2, d2, 1);
+
 	}
 
 

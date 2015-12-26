@@ -571,10 +571,17 @@ int main()
 ************************************************/
 
 	int nb[N+1];
+#if 0
 	nb[0] = nu;
 	for(ii=1; ii<N; ii++)
 		nb[ii] = nu+nx;
 	nb[N] = nx;
+#else
+	nb[0] = nu;
+	for(ii=1; ii<N; ii++)
+		nb[ii] = nu;
+	nb[N] = 0;
+#endif
 //	for(ii=0; ii<=N; ii++)
 //		printf("%d\n", nb[ii]);
 
@@ -689,6 +696,7 @@ int main()
 		nu_v[ii] = nu*N_v[ii];
 	nu_v[Np] = 0;
 
+	// inputs and states at initial stages are kept as bounds
 	int nb_v[Np+1]; 
 	int nb_tmp;
 	N_tmp = 0;
@@ -710,52 +718,64 @@ int main()
 	nb_v[Np] = nb[N];
 
 #if 0
-	N_tmp = 0;
-	for(ii=0; ii<Np; ii++) 
-		{
-		nb_v[ii] = 0;
-		for(jj=0; jj<N_v[ii]; jj++)
-			{
-			nb_v[ii] += nb[N_tmp+jj];
-//			printf(" %d", nb[N_tmp+jj]);
-			}
-//		printf(": %d\n", nb_v[ii]);
-		N_tmp += N_v[ii];
-		}
-	nb_v[Np] = nb[N];
-	printf("\n%d %d\n", N, N_tmp);
-#endif
-#if 0
 	for(ii=0; ii<=Np; ii++) 
 		printf("\n%d\n", nb_v[ii]);
 	exit(2);
 #endif
 
+	// states after the initial stage are processed as general constraints on the inputs and states at the initial stage
 	int ng_v[Np+1]; 
+#if 0
 	for(ii=0; ii<=Np; ii++) 
 		ng_v[ii] = 0;
+#else
+	N_tmp = 0;
+	for(ll=0; ll<Np; ll++)
+		{
+		nb_tmp = 0;
+		for(ii=1; ii<N_v[ll]; ii++)
+			for(jj=0; jj<nb[N_tmp+ii]; jj++)
+				if(hidx[N_tmp+ii][jj]>=nu)
+					nb_tmp++;
+		ng_v[ll] = nb_tmp;
+
+		N_tmp += N_v[ll];
+		}
+	ng_v[Np] = 0;
+#endif
+#if 0
+	for(ii=0; ii<=Np; ii++) 
+		printf("\n%d\n", ng_v[ii]);
+	exit(2);
+#endif
+
 	
+	int nux_v[Np+1]; for(ii=0; ii<=Np; ii++) nux_v[ii] = nu_v[ii]+nx_v[ii];
 	int pnx_v[Np+1]; for(ii=0; ii<=Np; ii++) pnx_v[ii] = (nx_v[ii]+bs-1)/bs*bs;
 	int pnz_v[Np+1]; for(ii=0; ii<=Np; ii++) pnz_v[ii] = (nu_v[ii]+nx_v[ii]+1+bs-1)/bs*bs;
 	int pnux_v[Np+1]; for(ii=0; ii<=Np; ii++) pnux_v[ii] = (nu_v[ii]+nx_v[ii]+bs-1)/bs*bs;
 	int pnb_v[Np+1]; for(ii=0; ii<=Np; ii++) pnb_v[ii] = (nb_v[ii]+bs-1)/bs*bs;
+	int png_v[Np+1]; for(ii=0; ii<=Np; ii++) png_v[ii] = (ng_v[ii]+bs-1)/bs*bs;
+	int cng_v[Np+1]; for(ii=0; ii<=Np; ii++) cng_v[ii] = (ng_v[ii]+ncl-1)/ncl*ncl;
 	int cnx_v[Np+1]; for(ii=0; ii<=Np; ii++) cnx_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
 	int cnux_v[Np+1]; for(ii=0; ii<=Np; ii++) cnux_v[ii] = (nu_v[ii]+nx_v[ii]+ncl-1)/ncl*ncl;
 	
-
 	double *(hpBAbt2[Np]);
 	double *(hpRSQrq2[Np+1]);
-	double *(hd2[Np+1]); // TODO
-	int *(hidx2[Np+1]); // TODO
+	double *(hpDCt2[Np+1]);
+	double *(hd2[Np+1]);
+	int *(hidx2[Np+1]);
 	for(ii=0; ii<Np; ii++)
 		{
 		d_zeros_align(&hpBAbt2[ii], pnz_v[ii], cnx_v[ii+1]);
 		d_zeros_align(&hpRSQrq2[ii], pnz_v[ii], cnux_v[ii]);
-		d_zeros_align(&hd2[ii], 2*pnb_v[ii], 1);
+		d_zeros_align(&hpDCt2[ii], pnux_v[ii], cng_v[ii]);
+		d_zeros_align(&hd2[ii], 2*pnb_v[ii]+2*png_v[ii], 1);
 		i_zeros(&hidx2[ii], 2*pnb_v[ii], 1);
 		}
 	d_zeros_align(&hpRSQrq2[Np], pnz_v[Np], cnux_v[Np]);
-	d_zeros_align(&hd2[Np], 2*pnb_v[Np], 1);
+	d_zeros_align(&hpDCt2[Np], pnux_v[Np], cng_v[Np]);
+	d_zeros_align(&hd2[Np], 2*pnb_v[Np]+2*png_v[Np], 1);
 	i_zeros(&hidx2[Np], 2*pnb_v[Np], 1);
 	
 	double *pD; d_zeros_align(&pD, pnu+pnx, cnu);
@@ -786,6 +806,8 @@ int main()
 	int rep;
 	struct timeval tv0, tv1;
 
+	printf("\nbegin...\n");
+
 	gettimeofday(&tv0, NULL); // stop
 
 	for(rep=0; rep<nrep; rep++)
@@ -802,8 +824,8 @@ int main()
 
 			pGamma_tmp = hpGamma_u_b[N_v[ll]-1];
 			hpGamma_u_b[N_v[ll]-1] = hpBAbt2[ll];
+
 			d_cond_Gamma_u_b_T(N_v[ll], nx, nu, free_x0, hpA+N_tmp, hpBt+N_tmp, hb+N_tmp, pGamma_Lu, hpGamma_u_b);
-			hpGamma_u_b[N_v[ll]-1] = pGamma_tmp;
 
 	//		d_print_pmat(nu_v[ll]+nx_v[ll]+1, nx_v[ll+1], bs, hpBAbt2[ll], cnx_v[ll+1]);
 
@@ -811,20 +833,33 @@ int main()
 
 	//		d_print_pmat(nu_v[ll]+nx_v[ll]+1, nu_v[ll]+nx_v[ll], bs, hpRSQrq2[ll], cnux_v[ll]);
 
-			d_cond_d(N_v[ll], nx, nu, nb+N_tmp, free_x0, hd+N_tmp, hidx+N_tmp, hd2[ll], hidx2[ll]);
+
+//printf("\nGamma_u_b = \n");
+//for(ii=0; ii<Nc+1; ii++)
+//	{
+//	offset = ((ii+1)*nu+nx+1+bs-1)/bs*bs;
+//	d_print_pmat(offset, nx, bs, hpGamma_u_b[ii], cnx);
+//	}
+
+
+			d_cond_d(N_v[ll], nx, nu, nb+N_tmp, free_x0, hd+N_tmp, hidx+N_tmp, hpGamma_u_b, hd2[ll], hidx2[ll], hpDCt2[ll]);
 	//		d_print_mat(1, 2*pnb_v[ll], hd2[ll], 1);
 	//		i_print_mat(1, pnb_v[ll], hidx2[ll], 1);
+
+			hpGamma_u_b[N_v[ll]-1] = pGamma_tmp;
 
 			N_tmp += N_v[ll];
 
 			}
-		// last stage TODO
+		// last stage 
 		hpRSQrq2[Np] = pRSQrqN;
 		hd2[Np] = dN;
 		hidx2[Np] = idxN;
 		}
 	
 	gettimeofday(&tv1, NULL); // stop
+
+	printf("\nend...\n");
 
 	double time_part_cond = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
@@ -844,10 +879,15 @@ int main()
 		{
 		d_zeros_align(&hux2[ii], pnux_v[ii], 1);
 		d_zeros_align(&hpi2[ii], pnx_v[ii], 1);
-		d_zeros_align(&hlam2[ii], 2*pnb_v[ii], 1);
-		d_zeros_align(&ht2[ii], 2*pnb_v[ii], 1);
+		d_zeros_align(&hlam2[ii], 2*pnb_v[ii]+2*png_v[ii], 1);
+		d_zeros_align(&ht2[ii], 2*pnb_v[ii]+2*png_v[ii], 1);
 		}
 	double *work2; d_zeros_align(&work2, d_ip2_hard_mpc_tv_work_space_size_double(Np, nx_v, nu_v, nb_v, ng_v), 1);
+
+	printf("\nsize theory = %d\n", d_ip2_hard_mpc_tv_work_space_size_double(Np, nx_v, nu_v, nb_v, ng_v));
+
+//	for(ii=0; ii<=Np; ii++)
+//		printf("\n%d %d %d %d\n", nx_v[ii], nu_v[ii], nb_v[ii], ng_v[ii]);
 
 	int hpmpc_status;
 	int kk;
@@ -860,22 +900,28 @@ int main()
 	double *stat; d_zeros(&stat, k_max, 5);
 
 
+#if 0 // TODO set to 0 !!!!!
+	for(ii=0; ii<=Np; ii++) 
+		ng_v[ii] = 0;
+#endif
+
 //	for(ii=0; ii<N; ii++)
 //		d_print_pmat(nu_v[ii]+nx_v[ii]+1, nx_v[ii+1], bs, hpBAbt2[ii], cnx_v[ii+1]);
 //	exit(1);
 
+	printf("\nbegin...\n");
+
 	gettimeofday(&tv0, NULL); // stop
 
-	printf("\nbegin...\n");
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		hpmpc_status = d_ip2_hard_mpc_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, Np, nx_v, nu_v, nb_v, hidx2, ng_v, hpBAbt2, hpRSQrq2, dummy, hd2, hux2, 0, hpi2, hlam2, ht2, work2);
+		hpmpc_status = d_ip2_hard_mpc_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, Np, nx_v, nu_v, nb_v, hidx2, ng_v, hpBAbt2, hpRSQrq2, hpDCt2, hd2, hux2, 0, hpi2, hlam2, ht2, work2);
 
 		}
-	printf("\nend...\n");
-
 	gettimeofday(&tv1, NULL); // stop
+
+	printf("\nend...\n");
 
 	double time_solve = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
@@ -967,6 +1013,7 @@ int main()
 		{
 		free(hpBAbt2[ii]);
 		free(hpRSQrq2[ii]);
+		free(hpDCt2[ii]);
 		free(hd2[ii]);
 		free(hidx2[ii]);
 		free(hux2[ii]);
@@ -976,6 +1023,7 @@ int main()
 		}
 //	free(hpRSQrq2[Np]);
 //	free(hd2[Np]);
+	free(hpDCt2[Np]);
 //	free(hidx2[Np]);
 	free(hux2[Np]);
 	free(hpi2[Np]);

@@ -80,6 +80,7 @@ void d_cond_fact_R_N2_nx3_permute(int N, int nx, int nu, int free_x0, double **p
 
 void d_cond_Gamma_u_b_T(int N, int nx, int nu, int free_x0, double **pA, double **pBt, double **b, double *pGamma_L, double **pGamma_u);
 void d_cond_Rr_N2_nx3(int N, int nx, int nu, int free_x0, double **pBAbt, int diag_hessian, int nzero_Q_N, double **pRSQrq, double *pD, double *pM, double *pP, double *pLam, double *diag, double *pBAbtL, double *pGamma_L, double **pGamma_u_b, double *pH_R);
+void d_cond_d(int N, int nx, int nu, int *nb, int free_x0, double **hd, int **hidx, double **hpGamma_u, double *d2, int *idx2, double *pDCt2);
 
 
 // new routines

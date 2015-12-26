@@ -46,10 +46,9 @@ int d_ip2_hard_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 
 	int size = 0;
 	int pnzM = 0;
-	int nxgM = 0;
 	for(ii=0; ii<=N; ii++)
 		{
-		if(nx[ii]+ng[ii]>nxgM) nxgM = nx[ii]+ng[ii];
+//		if(nx[ii]+ng[ii]>nxgM) nxgM = nx[ii]+ng[ii];
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
 		if(pnz>pnzM) pnzM = pnz;
 		pnb = (nb[ii]+bs-1)/bs*bs;
@@ -62,6 +61,13 @@ int d_ip2_hard_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, i
 //		size += pnz*(cnx+ncl>cnz ? cnx+ncl : cnz) + 3*pnx + 4*pnz + 15*pnb + 11*png; // TODO use cnux in cnl computation !!!!!
 		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 3*pnx + 4*pnz + 15*pnb + 11*png; // TODO use cnux in cnl computation !!!!!
 		}
+
+	int nxgM = ng[N];
+	for(ii=0; ii<N; ii++)
+		{
+		if(nx[ii+1]+ng[ii]>nxgM) nxgM = nx[ii+1]+ng[ii];
+		}
+
 	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
 
 	return size;
@@ -84,9 +90,9 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 	// matrices size
 	int idx;
-	int nxM = 0;
+//	int nxM = 0;
 	int nzM = 0;
-	int ngM = 0;
+//	int ngM = 0;
 
 	int pnx[N+1];
 	int pnz[N+1];
@@ -105,11 +111,17 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		cnx[jj] = (nx[jj]+ncl-1)/ncl*ncl;
 //		cnz[jj] = (nu[jj]+nx[jj]+1+ncl-1)/ncl*ncl;
 		cnux[jj] = (nu[jj]+nx[jj]+ncl-1)/ncl*ncl;
-		if(nx[jj]>nxM) nxM = nx[jj];
+//		if(nx[jj]>nxM) nxM = nx[jj];
 		if(nu[jj]+nx[jj]+1>nzM) nzM = nu[jj]+nx[jj]+1;
-		if(ng[jj]>ngM) ngM = ng[jj];
+//		if(ng[jj]>ngM) ngM = ng[jj];
+//		if(nx[jj]+ng[jj]>nxgM) nxgM = nx[jj]+ng[jj];
 		}
 
+	int nxgM = ng[N];
+	for(jj=0; jj<N; jj++)
+		{
+		if(nx[jj+1]+ng[jj]>nxgM) nxgM = nx[jj+1]+ng[jj];
+		}
 
 
 	// initialize work space
@@ -140,35 +152,44 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	double *(qx2[N+1]);
 	double *(Pb[N]);
 
+//	int size = 0;
+
 	// work space
 	for(jj=0; jj<=N; jj++)
 		{
 		pL[jj] = ptr;
 //		ptr += pnz[jj] * ( cnx[jj]+ncl>cnz[jj] ? cnx[jj]+ncl : cnz[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
 		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
+//		size += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		dL[jj] = ptr;
 		ptr += pnz[jj];
+//		size += pnz[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		l[jj] = ptr;
 		ptr += pnz[jj];
+//		size += pnz[jj];
 		}
 
 	// work space
 	work = ptr;
-	ptr += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl); // pnzM*cnxgM
+//	ptr += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl); // pnzM*cnxgM
+//	size += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl); // pnzM*cnxgM
+	ptr += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl); // pnzM*cnxgM
+//	size += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl); // pnzM*cnxgM
 
 	// b as vector
 	for(jj=0; jj<N; jj++)
 		{
 		b[jj] = ptr;
 		ptr += pnx[jj+1];
+//		size += pnx[jj+1];
 		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*pnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
 		}
 
@@ -177,6 +198,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		dux[jj] = ptr;
 		ptr += pnz[jj];
+//		size += pnz[jj];
 		}
 
 	// equality constr multipliers
@@ -184,6 +206,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		dpi[jj] = ptr;
 		ptr += pnx[jj];
+//		size += pnx[jj];
 		}
 	
 	// backup of P*b
@@ -191,6 +214,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		Pb[jj] = ptr;
 		ptr += pnx[jj+1];
+//		size += pnx[jj+1];
 		}
 
 	// linear part of cost function
@@ -198,6 +222,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		q[jj] = ptr;
 		ptr += pnz[jj];
+//		size += pnz[jj];
 		for(ll=0; ll<nu[jj]+nx[jj]; ll++) q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
 		}
 
@@ -209,6 +234,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		bd[jj] = ptr + 2*pnb[jj];
 		bl[jj] = ptr + 3*pnb[jj];
 		ptr += 4*pnb[jj];
+//		size += 4*pnb[jj];
 		// backup
 		for(ll=0; ll<nb[jj]; ll++)
 			{
@@ -220,6 +246,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 	diag = ptr;
 	ptr += (nzM+bs-1)/bs*bs; // pnzM
+//	size += (nzM+bs-1)/bs*bs; // pnzM
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space
 	for(jj=0; jj<=N; jj++)
@@ -227,18 +254,21 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		dlam[jj] = ptr;
 		dt[jj]   = ptr + 2*pnb[jj]+2*png[jj];
 		ptr += 4*pnb[jj]+4*png[jj];
+//		size += 4*pnb[jj]+4*png[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		lamt[jj] = ptr;
 		ptr += 2*pnb[jj]+2*png[jj];
+//		size += 2*pnb[jj]+2*png[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		t_inv[jj] = ptr;
 		ptr += 2*pnb[jj]+2*png[jj];
+//		size += 2*pnb[jj]+2*png[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
@@ -247,7 +277,10 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		qx[jj] = ptr+pnb[jj]+png[jj];
 		qx2[jj] = ptr+2*pnb[jj]+2*png[jj];
 		ptr += 3*pnb[jj]+3*png[jj];
+//		size += 3*pnb[jj]+3*png[jj];
 		}
+	
+//	printf("\nsize real = %d\n", size);
 
 
 

@@ -42,12 +42,15 @@ int d_ric_sv_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, int
 	int ii;
 
 	int nzM  = 0;
-	int nxgM = 0;
-
 	for(ii=0; ii<=N; ii++)
 		{
 		if(nu[ii]+nx[ii]+1>nzM) nzM = nu[ii]+nx[ii]+1;
-		if(nx[ii]+ng[ii]>nxgM) nxgM = nx[ii]+ng[ii];
+		}
+
+	int nxgM = ng[N];
+	for(ii=0; ii<N; ii++)
+		{
+		if(nx[ii+1]+ng[ii]>nxgM) nxgM = nx[ii+1]+ng[ii];
 		}
 	
 	int size = ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl);
