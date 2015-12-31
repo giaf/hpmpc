@@ -159,7 +159,7 @@ int main()
 
 	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = 10;//NN; // horizon lenght
+	int N  = NN; // horizon lenght
 #if 1
 	int nb  = NB; // number of box constrained inputs and states
 	int ng  = 0; //4;  // number of general constraints
@@ -232,8 +232,8 @@ int main()
 	
 	for(jj=0; jj<nx; jj++)
 		x0[jj] = 0;
-	x0[0] = 3.5;
-	x0[1] = 3.5;
+	x0[0] = 2.5;
+	x0[1] = 2.5;
 	
 //	d_print_mat(nx, nx, A, nx);
 //	d_print_mat(nx, nu, B, nx);
@@ -595,7 +595,7 @@ int main()
 
 
 	// initial states
-	double xx0[] = {3.5, 3.5, 3.66465, 2.15833, 1.81327, -0.94207, 1.86531, -2.35760, 2.91534, 1.79890, -1.49600, -0.76600, -2.60268, 1.92456, 1.66630, -2.28522, 3.12038, 1.83830, 1.93519, -1.87113};
+	double xx0[] = {2.5, 2.5, 3.66465, 2.15833, 1.81327, -0.94207, 1.86531, -2.35760, 2.91534, 1.79890, -1.49600, -0.76600, -2.60268, 1.92456, 1.66630, -2.28522, 3.12038, 1.83830, 1.93519, -1.87113};
 
 
 
@@ -606,8 +606,8 @@ int main()
 		for(jj=0; jj<nx+nu; jj++)
 			hux[ii][jj] = 0;
 
-	hux[0][nu+0] = 3.5; //xx0[0];
-	hux[0][nu+1] = 3.5; //xx0[1];
+	hux[0][nu+0] = 2.5; //xx0[0];
+	hux[0][nu+1] = 2.5; //xx0[1];
 
 //	// solution of unconstrained problem as warm start
 //	warm_start = 1;
@@ -651,8 +651,8 @@ int main()
 			for(jj=0; jj<nx+nu; jj++)
 				hux[ii][jj] = 0;
 
-		hux[0][nu+0] = 3.5; //xx0[2*idx];
-		hux[0][nu+1] = 3.5; //xx0[2*idx+1];
+		hux[0][nu+0] = 2.5; //xx0[2*idx];
+		hux[0][nu+1] = 2.5; //xx0[2*idx+1];
 
 //		// solution of unconstrained problem as warm start
 //		warm_start = 1;
@@ -1026,8 +1026,8 @@ int main()
 	
 	for(jj=0; jj<nx; jj++)
 		x0[jj] = 0;
-	x0[0] = 3.5;
-	x0[1] = 3.5;
+	x0[0] = 2.5;
+	x0[1] = 2.5;
 
 	double *pA; d_zeros_align(&pA, pnx, cnx);
 	d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);

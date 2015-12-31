@@ -190,7 +190,7 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		b[jj] = ptr;
 		ptr += pnx[jj+1];
 //		size += pnx[jj+1];
-		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*pnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
+		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
 		}
 
 	// inputs and states
