@@ -1,6 +1,6 @@
 % compile the C code
 
-mex HPMPC_riccati.c -lhpmpc #-L. HPMPC.a
+mex HPMPC_riccati.c /opt/hpmpc/lib/libhpmpc.a 
 
 
 

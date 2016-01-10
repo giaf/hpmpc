@@ -1,7 +1,6 @@
 % compile the C code
 
-mex HPMPC_ip_soft.c -lhpmpc %-L. HPMPC.a
-mex HPMPC_ip_hard.c -lhpmpc %-L. HPMPC.a
+mex HPMPC_ip_soft.c HPMPC_ip_hard.c /opt/hpmpc/lib/libhpmpc.a 
 
 
 

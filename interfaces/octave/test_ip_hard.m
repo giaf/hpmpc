@@ -1,5 +1,5 @@
 % compile the C code
-mex HPMPC_ip_hard.c -lhpmpc %-L. HPMPC.a
+mex HPMPC_ip_hard.c /opt/hpmpc/lib/libhpmpc.a 
 
 % import cool graphic toolkit if in octave
 if is_octave()
@@ -10,13 +10,15 @@ end
 
 % test problem
 
-nx = 12;			% number of states
-nu = 5;				% number of inputs (controls)
+nx = 8;			% number of states
+nu = 3;				% number of inputs (controls)
 N = 30;				% horizon length
 
-nb  = nu+nx;		% number of two-sided box constraints
+nb  = nu+nx/2;		% number of two-sided box constraints
 ng  = 0;            % number of two-sided general constraints
 ngN = nx;           % number of two-sided general constraints on last stage
+
+time_invariant = 1; % time_invariant (0) vs time_variant (1) problems
 
 nbu = min(nb, nu);
 
@@ -160,12 +162,25 @@ mult_pi = zeros(nx,N+1);
 mult_lam = zeros(2*(nb+ng)*N+2*(nb+ngN),1);
 mult_t = zeros(2*(nb+ng)*N+2*(nb+ngN),1);
 
-nrep = 1000;
+nrep = 1000; % number of calls to IPM solver for better timings
+
 
 tic
-for ii=1:nrep
-	HPMPC_ip_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, CC, DD, llg, uug, CN, lgN, ugN, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
+
+if time_invariant==0 % time-variant interface
+
+	for ii=1:nrep
+		HPMPC_ip_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, CC, DD, llg, uug, CN, lgN, ugN, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
+	end
+
+else % time-invariant interface
+
+	for ii=1:nrep
+		HPMPC_ip_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, A, B, b, Q, Qf, R, S, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
+	end
+
 end
+
 solution_time = toc/nrep
 
 kk
@@ -176,14 +191,45 @@ u
 x
 
 
-figure()
+f1 = figure()
 plot([0:N], x(:,:))
 title('states')
 xlabel('N')
 
-figure()
+% print figure to file
+if is_octave()
+	W = 4; H = 3;
+	set(f1,'PaperUnits','inches')
+	set(f1,'PaperOrientation','portrait');
+	set(f1,'PaperSize',[H,W])
+	set(f1,'PaperPosition',[0,0,W,H])
+	FN = findall(f1,'-property','FontName');
+	set(FN,'FontName','/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerifCondensed.ttf');
+	FS = findall(f1,'-property','FontSize');
+	set(FS,'FontSize',10);
+	file_name = ['states.eps'];
+	print(f1, file_name, '-depsc') 
+end
+
+
+f1 = figure()
 plot([1:N], u(:,:))
 title('controls')
 xlabel('N')
+
+% print figure to file
+if is_octave()
+	W = 4; H = 3;
+	set(f1,'PaperUnits','inches')
+	set(f1,'PaperOrientation','portrait');
+	set(f1,'PaperSize',[H,W])
+	set(f1,'PaperPosition',[0,0,W,H])
+	FN = findall(f1,'-property','FontName');
+	set(FN,'FontName','/usr/share/fonts/truetype/ttf-dejavu/DejaVuSerifCondensed.ttf');
+	FS = findall(f1,'-property','FontSize');
+	set(FS,'FontSize',10);
+	file_name = ['inputs.eps'];
+	print(f1, file_name, '-depsc') 
+end
 
 

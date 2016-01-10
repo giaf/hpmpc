@@ -78,6 +78,7 @@
 /* version dealing with equality constratins: is lb=ub, then fix the variable (corresponding column in A or B set to zero, and updated b) */
 int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol, char prec,
                           int N, int nx, int nu, int nb, int ng, int ngN, 
+						  int time_invariant,
                           double* A, double* B, double* b, 
                           double* Q, double* Qf, double* S, double* R, 
                           double* q, double* qf, double* r, 
@@ -211,307 +212,657 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
 		double *(hrd[N+1]);
 		double *work;
 
-        for(ii=0; ii<N; ii++)
-	        {
-            hpBAbt[ii] = ptr;
-            ptr += pnz*cnx;
-	        }
 
-		if(ng>0)
-			{
-			for(ii=0; ii<N; ii++)
-				{
-				hpDCt[ii] = ptr;
-				ptr += pnz*cng;
-				}
-			}
-		if(ngN>0)
-			{
-			hpDCt[N] = ptr;
-			ptr += pnz*cngN;
-			}
 
-        for(ii=0; ii<=N; ii++) // time variant and copied again internally in the IP !!!
-	        {
-            hpQ[ii] = ptr;
-            ptr += pnz*cnux; // TODO use cnux instrad
-	        }
-
-        for(ii=0; ii<=N; ii++)
-	        {
-            hux[ii] = ptr;
-            ptr += pnz;
-	        }
-
-        for(ii=0; ii<=N; ii++) // time Variant box constraints
-	        {
-            hpi[ii] = ptr;
-            ptr += pnx; // for alignment of ptr
-	        }
-
-		work = ptr;
-		ptr += d_ip2_hard_mpc_tv_work_space_size_double(N, nxx, nuu, nbb, ngg);
-
-        for(ii=0; ii<N; ii++) // time Variant box constraints
-	        {
-            hd[ii] = ptr;
-            ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
-	        }
-		hd[N] = ptr;
-		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
-
-        for(ii=0; ii<N; ii++) // time Variant box constraints
-	        {
-            hlam[ii] = ptr;
-            ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
-	        }
-		hlam[N] = ptr;
-		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
-
-        for(ii=0; ii<N; ii++) // time Variant box constraints
-	        {
-            ht[ii] = ptr;
-            ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
-	        }
-		ht[N] = ptr;
-		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
-
-		if(compute_res)
+		if(time_invariant) // TODO time-invariant work space ?????
 			{
 
-			for(ii=0; ii<=N; ii++)
-				{
-				hq[ii] = ptr;
-				ptr += pnz;
-				}
-
-			for(ii=0; ii<=N; ii++)
-				{
-				hrb[ii] = ptr;
-				ptr += pnx;
-				}
-
-			for(ii=0; ii<=N; ii++)
-				{
-				hrq[ii] = ptr;
-				ptr += pnz;
-				}
-
-			for(ii=0; ii<N; ii++)
-				{
-				hrd[ii] = ptr;
-				ptr += 2*pnb+2*png;
-				}
-			hrd[N] = ptr;
-			ptr += 2*pnb+2*pngN;
-
-			}
-
-
-
-        /* pack matrices 	*/
-
-		//printf("\n%d %d %d %d %d\n", N, nx, nu, nb, ng);
-
-        // dynamic system
-		// first stage
-		// compute A_0 * x_0 + b_0
-		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
-		d_cvt_mat2pmat(nx, nx, A, nx, 0, hpBAbt[0], cnx);
-		dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b, hpi[1]);
-
-		ii = 0;
-		d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, hpBAbt[0], cnx);
-		for (jj = 0; jj<nx; jj++)
-			hpBAbt[0][(nu)/bs*cnx*bs+(nu)%bs+jj*bs] = hpi[1][jj];
-
-		// middle stages
-        for(ii=1; ii<N; ii++)
-	        {
-            d_cvt_tran_mat2pmat(nx, nu, B+ii*nu*nx, nx, 0, hpBAbt[ii], cnx);
-            d_cvt_tran_mat2pmat(nx, nx, A+ii*nx*nx, nx, nu, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
-            for (jj = 0; jj<nx; jj++)
-                hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
-	        }
-		//d_print_mat(nx, nu, B, nx);
-		//d_print_mat(nx, nx, A, nx);
-		//d_print_pmat(nz, nx, bs, hpBAbt[0], cnx);
-		//d_print_pmat(nz, nx, bs, hpBAbt[N-1], cnx);
-		//exit(1);
-
-		// general constraints
-		if(ng>0)
-			{
-			// first stage
-			ii=0;
-			d_cvt_tran_mat2pmat(ng, nu, D, ng, 0, hpDCt[0], cng);
-			// middle stages
+			hpBAbt[0] = ptr;
+			ptr += pnz*cnx;
 			for(ii=1; ii<N; ii++)
 				{
-				d_cvt_tran_mat2pmat(ng, nu, D+ii*nu*ng, ng, 0, hpDCt[ii], cng);
-				d_cvt_tran_mat2pmat(ng, nx, C+ii*nx*ng, ng, nu, hpDCt[ii]+nu/bs*cng*bs+nu%bs, cng);
+				hpBAbt[ii] = ptr;
 				}
-			}
-		// last stage
-		if(ngN>0)
-			{
-			//for(ii=0; ii<pnu*cngN; ii++) hpDCt[N][ii] = 0.0; // make sure D is zero !!!!!
-			//d_cvt_tran_mat2pmat(ngN, nx, nu, bs, Cf, ngN, hpDCt[N]+nu/bs*cngN*bs+nu%bs, cngN);
-			d_cvt_tran_mat2pmat(ngN, nx, Cf, ngN, 0, hpDCt[N], cngN);
-			}
-		//d_print_mat(ngN, nx, Cf, ngN);
-		//d_print_pmat(nx+nu, ng, bs, hpDCt[0], cng);
-		//d_print_pmat(nx+nu, ng, bs, hpDCt[1], cng);
-		//d_print_pmat(nx+nu, ngN, bs, hpDCt[N], cngN);
-		//exit(1);
-		//printf("\n%d %d\n", nb, ng);
-		//d_print_mat(ng, nx, C, ng);
-		//d_print_mat(ng, nx, C+nx*ng, ng);
-		//d_print_mat(ng, nu, D, ng);
-		//d_print_mat(ng, nu, D+nu*ng, ng);
-		//d_print_pmat(nx+nu, ng, bs, hpDCt[0], cng);
-		//d_print_pmat(nx+nu, ng, bs, hpDCt[1], cng);
-		//d_print_pmat(nx+nu, ng, bs, hpDCt[N], cng);
-		//exit(1);
+			ptr += pnz*cnx;
 
-        // cost function
-		// first stage
-		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
-		d_cvt_mat2pmat(nu, nx, S, nu, 0, hpQ[0], cnx);
-		dgemv_n_lib(nu, nx, hpQ[0], cnx, hux[1], 1, r, hpi[1]);
-
-		jj = 0;
-		d_cvt_mat2pmat(nu, nu, R, nu, 0, hpQ[0], cnu);
-		for(ii=0; ii<nu; ii++)
-			hpQ[0][(nu)/bs*cnu*bs+(nu)%bs+ii*bs] = hpi[1][ii];
-
-		// middle stages
-        for(jj=1; jj<N; jj++)
-	        {
-			d_cvt_mat2pmat(nu, nu, R+jj*nu*nu, nu, 0, hpQ[jj], cnux);
-			d_cvt_mat2pmat(nu, nu, R+jj*nu*nu, nu, 0, hpQ[jj], cnux);
-			d_cvt_tran_mat2pmat(nu, nx, S+jj*nx*nu, nu, nu, hpQ[jj]+nu/bs*cnux*bs+nu%bs, cnux);
-			d_cvt_mat2pmat(nx, nx, Q+jj*nx*nx, nx, nu, hpQ[jj]+nu/bs*cnux*bs+nu%bs+nu*bs, cnux);
-			for(ii=0; ii<nu; ii++)
-				hpQ[jj][(nx+nu)/bs*cnux*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
-			for(ii=0; ii<nx; ii++)
-				hpQ[jj][(nx+nu)/bs*cnux*bs+(nx+nu)%bs+(nu+ii)*bs] = q[ii+nx*jj];
-	        }
-
-		// last stage
-		d_cvt_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnx);
-		d_cvt_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnx);
-		for(jj=0; jj<nx; jj++)
-			hpQ[N][nx/bs*cnx*bs+nx%bs+jj*bs] = qf[jj];
-
-		// estimate mu0 if not user-provided
-		if(mu0<=0)
-			{
-			jj=0;
-			for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, R[jj*nu*nu+ii*nu+ll]);
-			for(ii=0; ii<nu; ii++) mu0 = fmax(mu0, r[jj*nu+ii]);
-			for(jj=1; jj<N; jj++)
+			if(ng>0)
 				{
-				for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, R[jj*nu*nu+ii*nu+ll]);
-				for(ii=0; ii<nx*nu; ii++) mu0 = fmax(mu0, S[jj*nu*nx+ii]);
-				for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Q[jj*nx*nx+ii*nx+ll]);
-				for(ii=0; ii<nu; ii++) mu0 = fmax(mu0, r[jj*nu+ii]);
-				for(ii=0; ii<nx; ii++) mu0 = fmax(mu0, q[jj*nx+ii]);
+				hpDCt[0] = ptr;
+				ptr += pnz*cng;
+				for(ii=1; ii<N; ii++)
+					{
+					hpDCt[ii] = ptr;
+					}
+				ptr += pnz*cng;
 				}
-			for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Qf[ii*nx+ll]);
-			for(jj=0; jj<nx; jj++) mu0 = fmax(mu0, qf[ii]);
-			}
+			if(ngN>0)
+				{
+				hpDCt[N] = ptr;
+				ptr += pnz*cngN;
+				}
 
-		//d_print_pmat(nz, nz, bs, hpQ[0], cnu);
-		//d_print_pmat(nz, nz, bs, hpQ[1], cnux);
-		//d_print_pmat(nz, nz, bs, hpQ[N], cnx);
-		//exit(1);
+			hpQ[0] = ptr;
+			ptr += pnz*cnux;
+			for(ii=1; ii<N; ii++) // time variant and copied again internally in the IP !!!
+				{
+				hpQ[ii] = ptr;
+				}
+			ptr += pnz*cnux;
+			hpQ[N] = ptr;
+			ptr += pnz*cnux;
 
-		// input constraints
-		for(jj=0; jj<N; jj++)
-			{
+			for(ii=0; ii<=N; ii++)
+				{
+				hux[ii] = ptr;
+				ptr += pnz;
+				}
+
+			for(ii=0; ii<=N; ii++) // time Variant box constraints
+				{
+				hpi[ii] = ptr;
+				ptr += pnx; // for alignment of ptr
+				}
+
+			work = ptr;
+			ptr += d_ip2_hard_mpc_tv_work_space_size_double(N, nxx, nuu, nbb, ngg);
+
+			hd[0] = ptr;
+			ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+			for(ii=1; ii<N; ii++) // time Variant box constraints
+				{
+				hd[ii] = ptr;
+				}
+			ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+			hd[N] = ptr;
+			ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
+			for(ii=0; ii<N; ii++) // time variant Lagrangian multipliers
+				{
+				hlam[ii] = ptr;
+				ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+				}
+			hlam[N] = ptr;
+			ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
+			for(ii=0; ii<N; ii++) // time variant slack variables
+				{
+				ht[ii] = ptr;
+				ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+				}
+			ht[N] = ptr;
+			ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
+			if(compute_res)
+				{
+
+				for(ii=0; ii<=N; ii++)
+					{
+					hq[ii] = ptr;
+					ptr += pnz;
+					}
+
+				for(ii=0; ii<=N; ii++)
+					{
+					hrb[ii] = ptr;
+					ptr += pnx;
+					}
+
+				for(ii=0; ii<=N; ii++)
+					{
+					hrq[ii] = ptr;
+					ptr += pnz;
+					}
+
+				for(ii=0; ii<N; ii++)
+					{
+					hrd[ii] = ptr;
+					ptr += 2*pnb+2*png;
+					}
+				hrd[N] = ptr;
+				ptr += 2*pnb+2*pngN;
+
+				}
+
+
+
+			/* pack matrices 	*/
+
+			//printf("\n%d %d %d %d %d\n", N, nx, nu, nb, ng);
+
+			// dynamic system
+			// first stage
+			// compute A_0 * x_0 + b_0
+			for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
+			d_cvt_mat2pmat(nx, nx, A, nx, 0, hpBAbt[0], cnx); // pack A into (temporary) buffer
+			dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b, hpi[1]); // result in (temporary) buffer
+
+			ii = 0;
+			d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, hpBAbt[0], cnx);
+			for (jj = 0; jj<nx; jj++)
+				hpBAbt[0][(nu)/bs*cnx*bs+(nu)%bs+jj*bs] = hpi[1][jj];
+
+			// middle stages
+			ii=1;
+			if(jj<N)
+				{
+				d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, hpBAbt[ii], cnx);
+				d_cvt_tran_mat2pmat(nx, nx, A, nx, nu, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
+				for(jj=0; jj<nx; jj++)
+					hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[jj];
+				}
+			//d_print_mat(nx, nu, B, nx);
+			//d_print_mat(nx, nx, A, nx);
+			//d_print_pmat(nz, nx, bs, hpBAbt[0], cnx);
+			//d_print_pmat(nz, nx, bs, hpBAbt[N-1], cnx);
+			//exit(1);
+
+			// general constraints
+			if(ng>0)
+				{
+				// first stage
+				ii=0;
+				d_cvt_tran_mat2pmat(ng, nu, D, ng, 0, hpDCt[0], cng);
+				// middle stages
+				ii=1;
+				if(jj<N)
+					{
+					d_cvt_tran_mat2pmat(ng, nu, D, ng, 0, hpDCt[ii], cng);
+					d_cvt_tran_mat2pmat(ng, nx, C, ng, nu, hpDCt[ii]+nu/bs*cng*bs+nu%bs, cng);
+					}
+				}
+			// last stage
+			if(ngN>0)
+				{
+				//for(ii=0; ii<pnu*cngN; ii++) hpDCt[N][ii] = 0.0; // make sure D is zero !!!!!
+				//d_cvt_tran_mat2pmat(ngN, nx, nu, bs, Cf, ngN, hpDCt[N]+nu/bs*cngN*bs+nu%bs, cngN);
+				d_cvt_tran_mat2pmat(ngN, nx, Cf, ngN, 0, hpDCt[N], cngN);
+				}
+			//d_print_mat(ngN, nx, Cf, ngN);
+			//d_print_pmat(nx+nu, ng, bs, hpDCt[0], cng);
+			//d_print_pmat(nx+nu, ng, bs, hpDCt[1], cng);
+			//d_print_pmat(nx+nu, ngN, bs, hpDCt[N], cngN);
+			//exit(1);
+			//printf("\n%d %d\n", nb, ng);
+			//d_print_mat(ng, nx, C, ng);
+			//d_print_mat(ng, nx, C+nx*ng, ng);
+			//d_print_mat(ng, nu, D, ng);
+			//d_print_mat(ng, nu, D+nu*ng, ng);
+			//d_print_pmat(nx+nu, ng, bs, hpDCt[0], cng);
+			//d_print_pmat(nx+nu, ng, bs, hpDCt[1], cng);
+			//d_print_pmat(nx+nu, ng, bs, hpDCt[N], cng);
+			//exit(1);
+
+			// cost function
+			// first stage
+			for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
+			d_cvt_mat2pmat(nu, nx, S, nu, 0, hpQ[0], cnx); // pack S into a (temporary) buffer
+			dgemv_n_lib(nu, nx, hpQ[0], cnx, hux[1], 1, r, hpi[1]); // result in (temporary) buffer
+
+			jj = 0;
+			d_cvt_mat2pmat(nu, nu, R, nu, 0, hpQ[0], cnu);
+			for(ii=0; ii<nu; ii++)
+				hpQ[0][(nu)/bs*cnu*bs+(nu)%bs+ii*bs] = hpi[1][ii];
+
+			// middle stages
+			jj=1;
+			if(jj<N)
+				{
+				d_cvt_mat2pmat(nu, nu, R, nu, 0, hpQ[jj], cnux);
+				d_cvt_tran_mat2pmat(nu, nx, S, nu, nu, hpQ[jj]+nu/bs*cnux*bs+nu%bs, cnux);
+				d_cvt_mat2pmat(nx, nx, Q, nx, nu, hpQ[jj]+nu/bs*cnux*bs+nu%bs+nu*bs, cnux);
+				for(ii=0; ii<nu; ii++)
+					hpQ[jj][(nx+nu)/bs*cnux*bs+(nx+nu)%bs+ii*bs] = r[ii];
+				for(ii=0; ii<nx; ii++)
+					hpQ[jj][(nx+nu)/bs*cnux*bs+(nx+nu)%bs+(nu+ii)*bs] = q[ii];
+				}
+
+			// last stage
+			d_cvt_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnx);
+			d_cvt_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnx);
+			for(jj=0; jj<nx; jj++)
+				hpQ[N][nx/bs*cnx*bs+nx%bs+jj*bs] = qf[jj];
+
+			// estimate mu0 if not user-provided
+			if(mu0<=0)
+				{
+				// first stage
+				jj=0;
+				for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, abs(R[jj*nu*nu+ii*nu+ll]));
+				for(ii=0; ii<nu; ii++) mu0 = fmax(mu0, abs(r[jj*nu+ii]));
+				// middle stages
+				jj=1;
+				if(jj<N)
+					{
+					for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, abs(R[jj*nu*nu+ii*nu+ll]));
+					for(ii=0; ii<nx*nu; ii++) mu0 = fmax(mu0, abs(S[jj*nu*nx+ii]));
+					for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, abs(Q[jj*nx*nx+ii*nx+ll]));
+					for(ii=0; ii<nu; ii++) mu0 = fmax(mu0, abs(r[jj*nu+ii]));
+					for(ii=0; ii<nx; ii++) mu0 = fmax(mu0, abs(q[jj*nx+ii]));
+					}
+				// last stage
+				for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, abs(Qf[ii*nx+ll]));
+				for(jj=0; jj<nx; jj++) mu0 = fmax(mu0, abs(qf[ii]));
+				}
+
+			//d_print_pmat(nz, nz, bs, hpQ[0], cnu);
+			//d_print_pmat(nz, nz, bs, hpQ[1], cnux);
+			//d_print_pmat(nz, nz, bs, hpQ[N], cnx);
+			//exit(1);
+
+			// input constraints
+			jj=0;
 			pnb0 = (nbb[jj]+bs-1)/bs*bs;
 			for(ii=0; ii<nbu; ii++)
 				{
-				if(lb[ii+nb*jj]!=ub[ii+nb*jj]) // equality constraint
+				if(lb[ii]!=ub[ii]) // equality constraint
 					{
-					hd[jj][ii+0]    =   lb[ii+nb*jj];
-					hd[jj][ii+pnb0] = - ub[ii+nb*jj];
+					hd[jj][ii+0]    =   lb[ii];
+					hd[jj][ii+pnb0] = - ub[ii];
 					}
 				else
 					{
 					for(ll=0; ll<nx; ll++)
 						{
 						// update linear term
-						hpBAbt[jj][(nxx[jj]+nuu[jj])/bs*cnx*bs+(nx+nu)%bs+ll*bs] += hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs]*lb[ii+nb*jj];
+						hpBAbt[jj][(nxx[jj]+nuu[jj])/bs*cnx*bs+(nx+nu)%bs+ll*bs] += hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs]*lb[ii];
 						// zero corresponding B column
 						hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs] = 0;
 						}
 					
 					// inactive box constraints
-					hd[jj][ii+0]    =   lb[ii+nb*jj] + 1e3;
-					hd[jj][ii+pnb0] = - ub[ii+nb*jj] - 1e3;
+					hd[jj][ii+0]    =   lb[ii] + 1e3;
+					hd[jj][ii+pnb0] = - ub[ii] - 1e3;
 
 					}
 				}
-			}
-		// state constraints 
-		for(jj=1; jj<N; jj++)
-			{
-			pnb0 = (nbb[jj]+bs-1)/bs*bs;
-			for(ii=nuu[jj]; ii<nbb[jj]; ii++)
+			jj=1;
+			if(jj<N)
 				{
-				hd[jj][ii+0]    =   lb[ii+nb*jj];
-				hd[jj][ii+pnb0] = - ub[ii+nb*jj];
+				pnb0 = (nbb[jj]+bs-1)/bs*bs;
+				for(ii=0; ii<nbu; ii++)
+					{
+					if(lb[ii]!=ub[ii]) // equality constraint
+						{
+						hd[jj][ii+0]    =   lb[ii];
+						hd[jj][ii+pnb0] = - ub[ii];
+						}
+					else
+						{
+						for(ll=0; ll<nx; ll++)
+							{
+							// update linear term
+							hpBAbt[jj][(nxx[jj]+nuu[jj])/bs*cnx*bs+(nx+nu)%bs+ll*bs] += hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs]*lb[ii];
+							// zero corresponding B column
+							hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs] = 0;
+							}
+						
+						// inactive box constraints
+						hd[jj][ii+0]    =   lb[ii] + 1e3;
+						hd[jj][ii+pnb0] = - ub[ii] - 1e3;
+
+						}
+					}
+				}
+			// state constraints 
+			jj=1;
+			if(jj<N)
+				{
+				pnb0 = (nbb[jj]+bs-1)/bs*bs;
+				for(ii=nuu[jj]; ii<nbb[jj]; ii++)
+					{
+					hd[jj][ii+0]    =   lb[ii];
+					hd[jj][ii+pnb0] = - ub[ii];
+					//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
+					//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+					}
+				}
+			pnb0 = (nbb[N]+bs-1)/bs*bs;
+			for(ii=nuu[N]; ii<nbb[N]; ii++)
+				{
+				hd[N][ii+0]    =   lb[nu+ii];
+				hd[N][ii+pnb0] = - ub[nu+ii];
 				//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
 				//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
 				}
-			}
-		pnb0 = (nbb[N]+bs-1)/bs*bs;
-		for(ii=nuu[N]; ii<nbb[N]; ii++)
+			// general constraints
+			if(ng>0)
+				{
+				for(jj=0; jj<N; jj++)
+					{
+					pnb0 = (nbb[jj]+bs-1)/bs*bs;
+					png0 = (ngg[jj]+bs-1)/bs*bs;
+					for(ii=0; ii<ng; ii++)
+						{
+						hd[jj][2*pnb0+ii+0]    =   lg[ii+ng*jj];
+						hd[jj][2*pnb0+ii+png0] = - ug[ii+ng*jj];
+						}
+					}
+				}
+			if(ngN>0) // last stage
+				{
+				pnb0 = (nbb[N]+bs-1)/bs*bs;
+				png0 = (ngg[N]+bs-1)/bs*bs;
+				for(ii=0; ii<ngN; ii++)
+					{
+					hd[N][2*pnb0+ii+0]    =   lgf[ii];
+					hd[N][2*pnb0+ii+png0] = - ugf[ii];
+					}
+				}
+			//d_print_mat(1, 2*pnb+2*png, hd[0], 1);
+			//d_print_mat(1, 2*pnb+2*png, hd[1], 1);
+			//d_print_mat(1, 2*pnb+2*pngN, hd[N], 1);
+			//exit(1);
+
+			} // end of time invariant
+		else // time variant
 			{
-			hd[N][ii+0]    =   lb[nu+ii+nb*jj];
-			hd[N][ii+pnb0] = - ub[nu+ii+nb*jj];
-			//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
-			//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
-			}
-		// general constraints
-		if(ng>0)
-			{
+
+			for(ii=0; ii<N; ii++)
+				{
+				hpBAbt[ii] = ptr;
+				ptr += pnz*cnx;
+				}
+
+			if(ng>0)
+				{
+				for(ii=0; ii<N; ii++)
+					{
+					hpDCt[ii] = ptr;
+					ptr += pnz*cng;
+					}
+				}
+			if(ngN>0)
+				{
+				hpDCt[N] = ptr;
+				ptr += pnz*cngN;
+				}
+
+			for(ii=0; ii<=N; ii++) // time variant and copied again internally in the IP !!!
+				{
+				hpQ[ii] = ptr;
+				ptr += pnz*cnux; // TODO use cnux instrad
+				}
+
+			for(ii=0; ii<=N; ii++)
+				{
+				hux[ii] = ptr;
+				ptr += pnz;
+				}
+
+			for(ii=0; ii<=N; ii++) // time Variant box constraints
+				{
+				hpi[ii] = ptr;
+				ptr += pnx; // for alignment of ptr
+				}
+
+			work = ptr;
+			ptr += d_ip2_hard_mpc_tv_work_space_size_double(N, nxx, nuu, nbb, ngg);
+
+			for(ii=0; ii<N; ii++) // time Variant box constraints
+				{
+				hd[ii] = ptr;
+				ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+				}
+			hd[N] = ptr;
+			ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
+			for(ii=0; ii<N; ii++) // time Variant box constraints
+				{
+				hlam[ii] = ptr;
+				ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+				}
+			hlam[N] = ptr;
+			ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
+			for(ii=0; ii<N; ii++) // time Variant box constraints
+				{
+				ht[ii] = ptr;
+				ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+				}
+			ht[N] = ptr;
+			ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
+			if(compute_res)
+				{
+
+				for(ii=0; ii<=N; ii++)
+					{
+					hq[ii] = ptr;
+					ptr += pnz;
+					}
+
+				for(ii=0; ii<=N; ii++)
+					{
+					hrb[ii] = ptr;
+					ptr += pnx;
+					}
+
+				for(ii=0; ii<=N; ii++)
+					{
+					hrq[ii] = ptr;
+					ptr += pnz;
+					}
+
+				for(ii=0; ii<N; ii++)
+					{
+					hrd[ii] = ptr;
+					ptr += 2*pnb+2*png;
+					}
+				hrd[N] = ptr;
+				ptr += 2*pnb+2*pngN;
+
+				}
+
+
+
+			/* pack matrices 	*/
+
+			//printf("\n%d %d %d %d %d\n", N, nx, nu, nb, ng);
+
+			// dynamic system
+			// first stage
+			// compute A_0 * x_0 + b_0
+			for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
+			d_cvt_mat2pmat(nx, nx, A, nx, 0, hpBAbt[0], cnx);
+			dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b, hpi[1]);
+
+			ii = 0;
+			d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, hpBAbt[0], cnx);
+			for (jj = 0; jj<nx; jj++)
+				hpBAbt[0][(nu)/bs*cnx*bs+(nu)%bs+jj*bs] = hpi[1][jj];
+
+			// middle stages
+			for(ii=1; ii<N; ii++)
+				{
+				d_cvt_tran_mat2pmat(nx, nu, B+ii*nu*nx, nx, 0, hpBAbt[ii], cnx);
+				d_cvt_tran_mat2pmat(nx, nx, A+ii*nx*nx, nx, nu, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
+				for (jj = 0; jj<nx; jj++)
+					hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[ii*nx+jj];
+				}
+			//d_print_mat(nx, nu, B, nx);
+			//d_print_mat(nx, nx, A, nx);
+			//d_print_pmat(nz, nx, bs, hpBAbt[0], cnx);
+			//d_print_pmat(nz, nx, bs, hpBAbt[N-1], cnx);
+			//exit(1);
+
+			// general constraints
+			if(ng>0)
+				{
+				// first stage
+				ii=0;
+				d_cvt_tran_mat2pmat(ng, nu, D, ng, 0, hpDCt[0], cng);
+				// middle stages
+				for(ii=1; ii<N; ii++)
+					{
+					d_cvt_tran_mat2pmat(ng, nu, D+ii*nu*ng, ng, 0, hpDCt[ii], cng);
+					d_cvt_tran_mat2pmat(ng, nx, C+ii*nx*ng, ng, nu, hpDCt[ii]+nu/bs*cng*bs+nu%bs, cng);
+					}
+				}
+			// last stage
+			if(ngN>0)
+				{
+				//for(ii=0; ii<pnu*cngN; ii++) hpDCt[N][ii] = 0.0; // make sure D is zero !!!!!
+				//d_cvt_tran_mat2pmat(ngN, nx, nu, bs, Cf, ngN, hpDCt[N]+nu/bs*cngN*bs+nu%bs, cngN);
+				d_cvt_tran_mat2pmat(ngN, nx, Cf, ngN, 0, hpDCt[N], cngN);
+				}
+			//d_print_mat(ngN, nx, Cf, ngN);
+			//d_print_pmat(nx+nu, ng, bs, hpDCt[0], cng);
+			//d_print_pmat(nx+nu, ng, bs, hpDCt[1], cng);
+			//d_print_pmat(nx+nu, ngN, bs, hpDCt[N], cngN);
+			//exit(1);
+			//printf("\n%d %d\n", nb, ng);
+			//d_print_mat(ng, nx, C, ng);
+			//d_print_mat(ng, nx, C+nx*ng, ng);
+			//d_print_mat(ng, nu, D, ng);
+			//d_print_mat(ng, nu, D+nu*ng, ng);
+			//d_print_pmat(nx+nu, ng, bs, hpDCt[0], cng);
+			//d_print_pmat(nx+nu, ng, bs, hpDCt[1], cng);
+			//d_print_pmat(nx+nu, ng, bs, hpDCt[N], cng);
+			//exit(1);
+
+			// cost function
+			// first stage
+			for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
+			d_cvt_mat2pmat(nu, nx, S, nu, 0, hpQ[0], cnx);
+			dgemv_n_lib(nu, nx, hpQ[0], cnx, hux[1], 1, r, hpi[1]);
+
+			jj = 0;
+			d_cvt_mat2pmat(nu, nu, R, nu, 0, hpQ[0], cnu);
+			for(ii=0; ii<nu; ii++)
+				hpQ[0][(nu)/bs*cnu*bs+(nu)%bs+ii*bs] = hpi[1][ii];
+
+			// middle stages
+			for(jj=1; jj<N; jj++)
+				{
+//				d_cvt_mat2pmat(nu, nu, R+jj*nu*nu, nu, 0, hpQ[jj], cnux);
+				d_cvt_mat2pmat(nu, nu, R+jj*nu*nu, nu, 0, hpQ[jj], cnux);
+				d_cvt_tran_mat2pmat(nu, nx, S+jj*nx*nu, nu, nu, hpQ[jj]+nu/bs*cnux*bs+nu%bs, cnux);
+				d_cvt_mat2pmat(nx, nx, Q+jj*nx*nx, nx, nu, hpQ[jj]+nu/bs*cnux*bs+nu%bs+nu*bs, cnux);
+				for(ii=0; ii<nu; ii++)
+					hpQ[jj][(nx+nu)/bs*cnux*bs+(nx+nu)%bs+ii*bs] = r[ii+jj*nu];
+				for(ii=0; ii<nx; ii++)
+					hpQ[jj][(nx+nu)/bs*cnux*bs+(nx+nu)%bs+(nu+ii)*bs] = q[ii+nx*jj];
+				}
+
+			// last stage
+			d_cvt_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnx);
+			d_cvt_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnx);
+			for(jj=0; jj<nx; jj++)
+				hpQ[N][nx/bs*cnx*bs+nx%bs+jj*bs] = qf[jj];
+
+			// estimate mu0 if not user-provided
+			if(mu0<=0)
+				{
+				jj=0;
+				for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, R[jj*nu*nu+ii*nu+ll]);
+				for(ii=0; ii<nu; ii++) mu0 = fmax(mu0, r[jj*nu+ii]);
+				for(jj=1; jj<N; jj++)
+					{
+					for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, R[jj*nu*nu+ii*nu+ll]);
+					for(ii=0; ii<nx*nu; ii++) mu0 = fmax(mu0, S[jj*nu*nx+ii]);
+					for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Q[jj*nx*nx+ii*nx+ll]);
+					for(ii=0; ii<nu; ii++) mu0 = fmax(mu0, r[jj*nu+ii]);
+					for(ii=0; ii<nx; ii++) mu0 = fmax(mu0, q[jj*nx+ii]);
+					}
+				for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, Qf[ii*nx+ll]);
+				for(jj=0; jj<nx; jj++) mu0 = fmax(mu0, qf[ii]);
+				}
+
+			//d_print_pmat(nz, nz, bs, hpQ[0], cnu);
+			//d_print_pmat(nz, nz, bs, hpQ[1], cnux);
+			//d_print_pmat(nz, nz, bs, hpQ[N], cnx);
+			//exit(1);
+
+			// input constraints
 			for(jj=0; jj<N; jj++)
 				{
 				pnb0 = (nbb[jj]+bs-1)/bs*bs;
-				png0 = (ngg[jj]+bs-1)/bs*bs;
-				for(ii=0; ii<ng; ii++)
+				for(ii=0; ii<nbu; ii++)
 					{
-					hd[jj][2*pnb0+ii+0]    =   lg[ii+ng*jj];
-					hd[jj][2*pnb0+ii+png0] = - ug[ii+ng*jj];
+					if(lb[ii+nb*jj]!=ub[ii+nb*jj]) // equality constraint
+						{
+						hd[jj][ii+0]    =   lb[ii+nb*jj];
+						hd[jj][ii+pnb0] = - ub[ii+nb*jj];
+						}
+					else
+						{
+						for(ll=0; ll<nx; ll++)
+							{
+							// update linear term
+							hpBAbt[jj][(nxx[jj]+nuu[jj])/bs*cnx*bs+(nx+nu)%bs+ll*bs] += hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs]*lb[ii+nb*jj];
+							// zero corresponding B column
+							hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs] = 0;
+							}
+						
+						// inactive box constraints
+						hd[jj][ii+0]    =   lb[ii+nb*jj] + 1e3;
+						hd[jj][ii+pnb0] = - ub[ii+nb*jj] - 1e3;
+
+						}
 					}
 				}
-			}
-		if(ngN>0) // last stage
-			{
-			pnb0 = (nbb[N]+bs-1)/bs*bs;
-			png0 = (ngg[N]+bs-1)/bs*bs;
-			for(ii=0; ii<ngN; ii++)
+			// state constraints 
+			for(jj=1; jj<N; jj++)
 				{
-				hd[N][2*pnb0+ii+0]    =   lgf[ii];
-				hd[N][2*pnb0+ii+png0] = - ugf[ii];
+				pnb0 = (nbb[jj]+bs-1)/bs*bs;
+				for(ii=nuu[jj]; ii<nbb[jj]; ii++)
+					{
+					hd[jj][ii+0]    =   lb[ii+nb*jj];
+					hd[jj][ii+pnb0] = - ub[ii+nb*jj];
+					//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
+					//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+					}
 				}
-			}
-		//d_print_mat(1, 2*pnb+2*png, hd[0], 1);
-		//d_print_mat(1, 2*pnb+2*png, hd[1], 1);
-		//d_print_mat(1, 2*pnb+2*pngN, hd[N], 1);
-		//exit(1);
+			pnb0 = (nbb[N]+bs-1)/bs*bs;
+			for(ii=nuu[N]; ii<nbb[N]; ii++)
+				{
+				hd[N][ii+0]    =   lb[nu+ii+nb*jj];
+				hd[N][ii+pnb0] = - ub[nu+ii+nb*jj];
+				//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
+				//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+				}
+			// general constraints
+			if(ng>0)
+				{
+				for(jj=0; jj<N; jj++)
+					{
+					pnb0 = (nbb[jj]+bs-1)/bs*bs;
+					png0 = (ngg[jj]+bs-1)/bs*bs;
+					for(ii=0; ii<ng; ii++)
+						{
+						hd[jj][2*pnb0+ii+0]    =   lg[ii+ng*jj];
+						hd[jj][2*pnb0+ii+png0] = - ug[ii+ng*jj];
+						}
+					}
+				}
+			if(ngN>0) // last stage
+				{
+				pnb0 = (nbb[N]+bs-1)/bs*bs;
+				png0 = (ngg[N]+bs-1)/bs*bs;
+				for(ii=0; ii<ngN; ii++)
+					{
+					hd[N][2*pnb0+ii+0]    =   lgf[ii];
+					hd[N][2*pnb0+ii+png0] = - ugf[ii];
+					}
+				}
+			//d_print_mat(1, 2*pnb+2*png, hd[0], 1);
+			//d_print_mat(1, 2*pnb+2*png, hd[1], 1);
+			//d_print_mat(1, 2*pnb+2*pngN, hd[N], 1);
+			//exit(1);
 
-        // initial guess
-        for(jj=0; jj<N; jj++)
-            for(ii=0; ii<nu; ii++)
-                hux[jj][ii] = u[ii+nu*jj];
+			} // end of time variant
 
-        for(jj=1; jj<=N; jj++)
-            for(ii=0; ii<nx; ii++)
-                hux[jj][nuu[jj]+ii] = x[ii+nx*jj];
+
+
+		// initial guess 
+		for(jj=0; jj<N; jj++)
+			for(ii=0; ii<nu; ii++)
+				hux[jj][ii] = u[ii+nu*jj];
+
+		for(jj=1; jj<=N; jj++)
+			for(ii=0; ii<nx; ii++)
+				hux[jj][nuu[jj]+ii] = x[ii+nx*jj];
+
 
 
 #if 0
@@ -553,28 +904,58 @@ exit(1);
 
 
 		// check for input equality constraints
-		for(jj=0; jj<N; jj++)
+		if(time_invariant)
 			{
-			for(ii=0; ii<nbu; ii++)
+			for(jj=0; jj<N; jj++)
 				{
-				if(lb[ii+nb*jj]==ub[ii+nb*jj]) // equality constraint
+				for(ii=0; ii<nbu; ii++)
 					{
-	                u[ii+nu*jj] = lb[ii+nb*jj];
+					if(lb[ii]==ub[ii]) // equality constraint
+						{
+						u[ii+nu*jj] = lb[ii];
+						}
 					}
 				}
 			}
+		else // time-variant
+			{
+			for(jj=0; jj<N; jj++)
+				{
+				for(ii=0; ii<nbu; ii++)
+					{
+					if(lb[ii+nb*jj]==ub[ii+nb*jj]) // equality constraint
+						{
+						u[ii+nu*jj] = lb[ii+nb*jj];
+						}
+					}
+				}
+			}
+
 
 		// compute infinity norm of residuals on exit
 		if(compute_res)
 			{
 
 			// restore linear part of cost function 
-			for(ii=0; ii<N; ii++)
+			if(time_invariant)
 				{
-				for(jj=0; jj<nuu[ii]; jj++) 
-					hq[ii][jj]    = r[jj+nu*ii];
-				for(jj=0; jj<nxx[ii]; jj++) 
-					hq[ii][nuu[ii]+jj] = q[jj+nx*ii];
+				for(ii=0; ii<N; ii++)
+					{
+					for(jj=0; jj<nuu[ii]; jj++) 
+						hq[ii][jj]    = r[jj];
+					for(jj=0; jj<nxx[ii]; jj++) 
+						hq[ii][nuu[ii]+jj] = q[jj];
+					}
+				}
+			else // time-variant
+				{
+				for(ii=0; ii<N; ii++)
+					{
+					for(jj=0; jj<nuu[ii]; jj++) 
+						hq[ii][jj]    = r[jj+nu*ii];
+					for(jj=0; jj<nxx[ii]; jj++) 
+						hq[ii][nuu[ii]+jj] = q[jj+nx*ii];
+					}
 				}
 			for(jj=0; jj<nx; jj++) 
 				hq[N][jj] = qf[jj];

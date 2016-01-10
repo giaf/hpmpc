@@ -1,6 +1,6 @@
 % compile the C code
 
-mex HPMPC_admm_box.c -lhpmpc %-L. HPMPC.a
+mex HPMPC_admm_box.c /opt/hpmpc/lib/libhpmpc.a 
 
 
 

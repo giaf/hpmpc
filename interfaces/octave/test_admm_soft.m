@@ -1,6 +1,6 @@
 % compile the C code
 
-mex HPMPC_admm_soft.c -lhpmpc %-L. HPMPC.a
+mex HPMPC_admm_soft.c /opt/hpmpc/lib/libhpmpc.a 
 
 
 
