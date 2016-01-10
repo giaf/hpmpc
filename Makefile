@@ -196,24 +196,22 @@ test_problem:
 run:
 	./test_problems/test.out
 
-#install: library
 install_static:
-	cp -f libhpmpc.a /usr/lib/libhpmpc.a
-	mkdir -p /usr/include/hpmpc
-	cp -rf ./include/*.h /usr/include/hpmpc
+	mkdir -p $(PREFIX)/hpmpc
+	mkdir -p $(PREFIX)/hpmpc/lib
+	cp -f libhpmpc.a $(PREFIX)/hpmpc/lib/libhpmpc.a
+	mkdir -p $(PREFIX)/hpmpc/include
+	cp -rf ./include/*.h $(PREFIX)/hpmpc/include/
 	
 install_shared:
-	cp -f libhpmpc.so /usr/lib/libhpmpc.so
-	mkdir -p /usr/include/hpmpc
-	cp -rf ./include/*.h /usr/include/hpmpc
+	mkdir -p $(PREFIX)/hpmpc
+	mkdir -p $(PREFIX)/hpmpc/lib
+	cp -f libhpmpc.a $(PREFIX)/hpmpc/lib/libhpmpc.so
+	mkdir -p $(PREFIX)/hpmpc/include
+	cp -rf ./include/*.h $(PREFIX)/hpmpc/include/
 	
-uninstall_static:
-	rm /usr/lib/libhpmpc.a
-	rm -r /usr/include/hpmpc
-	
-uninstall_shared:
-	rm /usr/lib/libhpmpc.so
-	rm -r /usr/include/hpmpc
+uninstall:
+	rm -rf $(PREFIX)/hpmpc
 	
 clean:
 	make -C auxiliary clean
