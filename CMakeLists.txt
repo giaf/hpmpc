@@ -49,7 +49,7 @@ ENDIF( NOT CMAKE_BUILD_TYPE )
 #
 IF ( NOT HPMPC_TARGET )
     SET( HPMPC_TARGET X64_AVX CACHE STRING
-   	    "Choose build target: X64_AVX2, X64_AVX, X64_SSE3, CORTEX_A15, CORTEX_A9, CORTEX_A7, C99_4x4"
+   	    "Choose build target: X64_AVX2, X64_AVX, X64_SSE3, CORTEX_A57, CORTEX_A15, CORTEX_A9, CORTEX_A7, C99_4x4"
     )
 ENDIF( )
 
@@ -59,7 +59,7 @@ ENDIF( )
 #
 ################################################################################
 
-SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pedantic -Wfloat-equal -Wshadow -std=c99 -fPIC" )
+SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -fPIC" )
 
 IF ( ${HPMPC_TARGET} STREQUAL "X64_AVX2" )
     ADD_DEFINITIONS( -DTARGET_X64_AVX2 )

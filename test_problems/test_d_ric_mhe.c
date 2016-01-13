@@ -612,7 +612,7 @@ int main()
 		d_cvt_mat2pmat(nx, nx, L0, nx, 0, hpLp[0]+(nx+nw+pad)*bs, cnl);
 		for(ii=0; ii<nx; ii++) hdLp[0][ii] = 1.0/L0[ii*(nx+1)];
 		d_cvt_mat2pmat(nx, nx, L0, nx, ny, hpLp2[0]+(ny/bs)*bs+ny%bs+(nx+pad2+ny)*bs, cnl2);
-		dtrtr_l_lib(nx, ny, hpLp2[0]+(ny/bs)*bs*cnl2+ny%bs+(nx+pad2+ny)*bs, cnl2, hpLp2[0]+(nx+pad2+ncl)*bs, cnl2);	
+		dtrtr_l_lib(nx, ny, hpLp2[0]+(ny/bs)*bs*cnl2+ny%bs+(nx+pad2+ny)*bs, cnl2, 0, hpLp2[0]+(nx+pad2+ncl)*bs, cnl2);	
 		//d_print_pmat(nx, cnl, bs, hpLp[0], cnl);
 		//d_print_pmat(nz, cnl2, bs, hpLp2[0], cnl2);
 
@@ -663,9 +663,9 @@ int main()
 			{
 			for(jj=0; jj<ny; jj++) y_temp[jj] = - q[jj];
 			//d_print_mat(1, ny, y_temp, 1);
-			dsymv_lib(ny, ny, hpQ[ii], cny, hy[ii], y_temp, y_temp, -1);
+			dsymv_lib(ny, ny, hpQ[ii], cny, hy[ii], -1, y_temp, y_temp);
 			//d_print_mat(1, ny, y_temp, 1);
-			dgemv_t_lib(ny, nx, hpC[ii], cnx, y_temp, hqq[ii], hqq[ii], 0);
+			dgemv_t_lib(ny, nx, hpC[ii], cnx, y_temp, 0, hqq[ii], hqq[ii]);
 			//d_print_mat(1, nx, hqq[ii], 1);
 			//if(ii==9)
 			//exit(1);
@@ -1046,7 +1046,7 @@ int main()
 		//d_print_mat(nx, 1, hlam[0], nx);
 		//exit(3);
 
-#if 1
+#if 0
 		int nZ = nw+nx+1;
 		int pnZ = (nw+nx+1+bs-1)/bs*bs;
 		int cnZ = (nw+nx+1+ncl-1)/ncl*ncl;
@@ -1112,8 +1112,8 @@ int main()
 		// compute residuals
 		double *p0; d_zeros_align(&p0, anx, 1);
 		double *x_temp; d_zeros_align(&x_temp, anx, 1);
-		dtrmv_u_t_lib(nx, pL0_inv, cnx, x0, x_temp, 0);
-		dtrmv_u_n_lib(nx, pL0_inv, cnx, x_temp, p0, 0);
+		dtrmv_u_t_lib(nx, pL0_inv, cnx, x0, 0, x_temp);
+		dtrmv_u_n_lib(nx, pL0_inv, cnx, x_temp, 0, p0);
 		d_res_mhe_if(nx, nw, ndN, N, hpQA, hpRG, pL0_inv, hqq, hrr, hff, p0, hxe, hw, hlam, hq_res, hr_res, hf_res, work4);
 
 //		printf("\nprint residuals\n\n");

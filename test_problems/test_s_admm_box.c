@@ -273,7 +273,7 @@ int main()
 	
 	/* packed into contiguous memory */
 	float *pQ; s_zeros_align(&pQ, pnz, cnz);
-	s_cvt_mat2pmat(nz, nz, 0, bs, Q, pnz, pQ, cnz);
+	s_cvt_mat2pmat(nz, nz, Q, pnz, 0, pQ, cnz);
 
 /************************************************
 * matrices series

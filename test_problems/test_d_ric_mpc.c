@@ -1523,7 +1523,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 //			d_back_ric_sv_tv(N, nx_v, nu_v, hpBAbt_tv, hpQ_tv, hux, hpL, hdL, work0, work1, 0, dummy, COMPUTE_MULT, hpi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy);
-			d_back_ric_trf_tv(N, nx_v, nu_v, hpBAbt_tv, hpQ_tv, hpL, hdL, work0, work1, nb_v, 0, dummy, ng_v, dummy, dummy);
+			d_back_ric_trf_tv(N, nx_v, nu_v, hpBAbt_tv, hpQ_tv, hpL, hdL, work0, nb_v, 0, dummy, ng_v, dummy, dummy);
 			}
 
 		gettimeofday(&tv6, NULL); // start
