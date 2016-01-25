@@ -9499,3 +9499,58 @@ void dgemv_diag_lib(int m, double *dA, double *x, int alg, double *y, double *z)
 
 	
 
+#if defined(TARGET_X64_AVX)
+void dgetrf_lib(int m, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D)
+	{
+
+	if(m<=0)
+		return;
+	
+	const int bs = 4;
+
+	int ii, jj;
+
+	ii = 0;
+#if defined(TARGET_X64_AVX)
+	for( ; ii<m-4; ii+=8)
+		{
+		jj = 0;
+		for( ; jj<ii; jj+=4)
+			{
+//			kernel_dtrsm_nn_ru_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
+//			kernel_dtrsm_nn_ru_4x4_lib4(jj, &pD[(ii+4)*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+(ii+4)*sdc], &pD[jj*bs+(ii+4)*sdd], &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
+			kernel_dtrsm_nn_ru_8x4_lib4(jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], sdc, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
+			}
+		kernel_dgetrf_nn_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &inv_diag_D[jj]);
+		kernel_dtrsm_nn_ru_4x4_lib4(jj, &pD[(ii+4)*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+(ii+4)*sdc], &pD[jj*bs+(ii+4)*sdd], &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
+		jj+=4;
+		kernel_dtrsm_nn_ll_diag_4x4_lib4(ii, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &pD[ii*bs+ii*sdd]);
+		kernel_dgetrf_nn_4x4_lib4(jj, &pD[(ii+4)*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+(ii+4)*sdc], &pD[jj*bs+(ii+4)*sdd], &inv_diag_D[jj]);
+		jj+=4;
+		for( ; jj<m; jj+=4)
+			{
+			kernel_dtrsm_nn_ll_diag_4x4_lib4(ii, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &pD[ii*bs+ii*sdd]);
+			kernel_dtrsm_nn_ll_diag_4x4_lib4((ii+4), &pD[(ii+4)*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+(ii+4)*sdc], &pD[jj*bs+(ii+4)*sdd], &pD[(ii+4)*bs+(ii+4)*sdd]);
+			}
+		}
+#endif
+	for( ; ii<m; ii+=4)
+		{
+		jj = 0;
+		for( ; jj<ii; jj+=4)
+			{
+			kernel_dtrsm_nn_ru_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
+			}
+		kernel_dgetrf_nn_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &inv_diag_D[jj]);
+		jj+=4;
+		for( ; jj<m; jj+=4)
+			{
+			kernel_dtrsm_nn_ll_diag_4x4_lib4(ii, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &pD[ii*bs+ii*sdd]);
+			}
+		}
+
+	}
+#endif
+
+
+

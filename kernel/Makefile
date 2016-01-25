@@ -32,6 +32,7 @@ ifeq ($(TARGET), X64_AVX2)
 endif
 ifeq ($(TARGET), X64_AVX)
 	( cd avx; $(MAKE) obj)
+	( cd c99; $(MAKE) obj)
 endif
 ifeq ($(TARGET), X64_SSE3)
 	( cd sse3; $(MAKE) obj)

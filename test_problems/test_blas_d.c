@@ -185,7 +185,7 @@ int main()
 	printf("\nn\t  kernel_dgemm\t  dgemm\t\t  dsyrk_dpotrf\t  dtrmm\t\t  dtrtr\t\t  dgemv_n\t  dgemv_t\t  dtrmv_n\t  dtrmv_t\t  dtrsv_n\t  dtrsv_t\t  dsymv\t\t  dgemv_nt\t\t  dsyrk+dpotrf\t  BLAS dgemm\t  BLAS dgemv_n\t  BLAS dgemv_t\n");
 	printf("\nn\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\t Gflops\t    %%\n\n");
 	
-#if 0
+#if 1
 	int nn[] = {4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300, 304, 308, 312, 316, 320, 324, 328, 332, 336, 340, 344, 348, 352, 356, 360, 364, 368, 372, 376, 380, 384, 388, 392, 396, 400, 404, 408, 412, 416, 420, 424, 428, 432, 436, 440, 444, 448, 452, 456, 460, 500, 550, 600, 650, 700};
 	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 400, 400, 400, 400, 400, 200, 200, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 4, 4, 4, 4, 4};
 	
@@ -580,6 +580,7 @@ int main()
 //			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 0, pC, cnd, pC, cnd);
 //			dtrmm_nt_u_lib(n, n, pA, cnd, pB, cnd, pC, cnd);
 //			dpotrf_lib(n, n, pB, cnd, pC, cnd, x);
+//			dgetrf_lib(n, pB, cnd, pC, cnd, x);
 //			dtrtri_lib(n, pB, cnd, 1, x, pC, cnd);
 //			dlauum_lib(n, pA, cnd, pB, cnd, 0, pC, cnd, pD, cnd);
 //			dgemv_n_lib(n, n, pA, cnd, x, 0, y, y);
@@ -787,6 +788,7 @@ int main()
 		float flop_operation = 2.0*n*n*n; // dgemm
 //		float flop_operation = 1.0*n*n*n; // dsyrk dtrmm
 //		float flop_operation = 1.0/3.0*n*n*n; // dpotrf dtrtri
+//		float flop_operation = 2.0/3.0*n*n*n; // dgetrf
 //		float flop_operation = 2.0*n*n; // dgemv dsymv
 //		float flop_operation = 1.0*n*n; // dtrmv dtrsv
 //		float flop_operation = 4.0*n*n; // dgemv_nt
