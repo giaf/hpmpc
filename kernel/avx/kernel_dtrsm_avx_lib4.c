@@ -668,19 +668,19 @@ void kernel_dtrsm_nn_ll_diag_4x4_lib4(int kmax, double *A, double *B, int sdb, i
 	e_0 = _mm256_load_pd( &E[0+bs*2] );
 	e_0 = _mm256_blend_pd( e_0, zeros, 0x7 );
 	t_0 = _mm256_permute2f128_pd( d_0, d_0, 0x11 );
-	t_0 = _mm256_permute_pd( tmp, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x00 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_0 = _mm256_sub_pd( d_0, tmp );
 	t_0 = _mm256_permute2f128_pd( d_1, d_1, 0x11 );
-	t_0 = _mm256_permute_pd( tmp, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x00 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_1 = _mm256_sub_pd( d_1, tmp );
 	t_0 = _mm256_permute2f128_pd( d_2, d_2, 0x11 );
-	t_0 = _mm256_permute_pd( tmp, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x00 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_2 = _mm256_sub_pd( d_2, tmp );
 	t_0 = _mm256_permute2f128_pd( d_3, d_3, 0x11 );
-	t_0 = _mm256_permute_pd( tmp, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x00 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_3 = _mm256_sub_pd( d_3, tmp );
 

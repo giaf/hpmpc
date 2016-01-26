@@ -33,6 +33,8 @@ void dsyrk_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 void dpotrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D);
 //void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *diag, int alg);
 void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D);
+void dgetrf_lib(int m, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D);
+void dgetrf_pivot_lib(int m, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D, int *ipiv);
 void dgemv_n_lib(int n, int m, double *pA, int sda, double *x, int alg, double *y, double *z);
 void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y, double *z);
 void dtrmv_u_n_lib(int m, double *pA, int sda, double *x, int alg, double *y);
@@ -74,6 +76,7 @@ void drowex_lib(int kmax, double *pD, double *x);
 void drowad_lib(int kmax, double alpha, double *x, double *pD);
 void drowin_libsp(int kmax, int *idx, double *x, double *pD);
 void drowad_libsp(int kmax, double alpha, int *idx, double *x, double *pD);
+void drowsw_lib(int kmax, double *pA, double *pC);
 void dcolin_lib(int kmax, double *x, int offset, double *pD, int sdd);
 void dcolad_lib(int kmax, double alpha, double *x, int offset, double *pD, int sdd);
 void dcolin_libsp(int kmax, int *idx, double *x, double *pD, int sdd);

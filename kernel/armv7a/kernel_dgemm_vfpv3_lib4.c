@@ -2136,7 +2136,7 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 
 
 // normal-normal, 4x4 with data packed in 4
-void kernel_dgemm_nn_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td)
+void kernel_dgemm_nn_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, int alg, double *C, double *D, int tc, int td)
 	{
 	
 //	if(kmax<=0)
@@ -2545,17 +2545,17 @@ void kernel_dgemm_nn_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 
 
 
-void kernel_dgemm_nn_4x4_lib4(int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td)
+void kernel_dgemm_nn_4x4_lib4(int kmax, double *A, double *B, int sdb, int alg, double *C, double *D, int tc, int td)
 	{
 
-	kernel_dgemm_nn_4x4_vs_lib4(4, 4, kmax, A, B, sdb, C, D, alg, tc, td);
+	kernel_dgemm_nn_4x4_vs_lib4(4, 4, kmax, A, B, sdb, alg, C, D, tc, td);
 	
 	}
 
 
 
 // normal-normal, 4x2 with data packed in 4
-void kernel_dgemm_nn_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td)
+void kernel_dgemm_nn_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, int alg, double *C, double *D, int tc, int td)
 	{
 	
 //	if(kmax<=0)
@@ -2832,17 +2832,17 @@ void kernel_dgemm_nn_4x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 
 
 
-void kernel_dgemm_nn_4x2_lib4(int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td)
+void kernel_dgemm_nn_4x2_lib4(int kmax, double *A, double *B, int sdb, int alg, double *C, double *D, int tc, int td)
 	{
 
-	kernel_dgemm_nn_4x2_vs_lib4(4, 2, kmax, A, B, sdb, C, D, alg, tc, td);
+	kernel_dgemm_nn_4x2_vs_lib4(4, 2, kmax, A, B, sdb, alg, C, D, tc, td);
 	
 	}
 
 
 
 // normal-normal, 2x4 with data packed in 4
-void kernel_dgemm_nn_2x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td)
+void kernel_dgemm_nn_2x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, int alg, double *C, double *D, int tc, int td)
 	{
 	
 //	if(kmax<=0)
@@ -3129,17 +3129,17 @@ void kernel_dgemm_nn_2x4_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 
 
 
-void kernel_dgemm_nn_2x4_lib4(int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td)
+void kernel_dgemm_nn_2x4_lib4(int kmax, double *A, double *B, int sdb, int alg, double *C, double *D, int tc, int td)
 	{
 	
-	kernel_dgemm_nn_2x4_vs_lib4(2, 4, kmax, A, B, sdb, C, D, alg, tc, td);
+	kernel_dgemm_nn_2x4_vs_lib4(2, 4, kmax, A, B, sdb, alg, C, D, tc, td);
 
 	}
 
 
 
 // normal-normal, 2x2 with data packed in 4
-void kernel_dgemm_nn_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td)
+void kernel_dgemm_nn_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, int alg, double *C, double *D, int tc, int td)
 	{
 	
 //	if(kmax<=0)
@@ -3346,10 +3346,10 @@ void kernel_dgemm_nn_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 
 
 
-void kernel_dgemm_nn_2x2_lib4(int kmax, double *A, double *B, int sdb, double *C, double *D, int alg, int tc, int td)
+void kernel_dgemm_nn_2x2_lib4(int kmax, double *A, double *B, int sdb, int alg, double *C, double *D, int tc, int td)
 	{
 
-	kernel_dgemm_nn_2x2_vs_lib4(2, 2, kmax, A, B, sdb, C, D, alg, tc, td);
+	kernel_dgemm_nn_2x2_vs_lib4(2, 2, kmax, A, B, sdb, alg, C, D, tc, td);
 
 	}
 
