@@ -1106,6 +1106,26 @@ void corner_dgetrf_nn_4x4_lib4(double *C, double *LU, double *inv_diag_U)
 void idamax_lib4(int n, int offset, double *pA, int sda, int *p_idamax, double *p_amax)
 	{
 
+	const int bs = 4;
+
+#if 0
+pA -= offset%4;
+pA[0] = 1.3;
+pA[1] = 1.9;
+pA[2] = 1.2;
+pA[3] = 1.3;
+pA[0+1*sda*bs] = -1.4;
+pA[1+1*sda*bs] = 1.4;
+pA[2+1*sda*bs] = 0.4;
+pA[3+1*sda*bs] = 0.4;
+pA[0+2*sda*bs] = 0.4;
+pA[1+2*sda*bs] = 0.4;
+pA[2+2*sda*bs] = 0.4;
+pA[3+2*sda*bs] = 1.4;
+pA += offset%4;
+d_print_pmat( n+offset%4, 1, bs, pA-offset%4, sda);
+#endif
+
 	int idamax, ii;
 	double tmp, amax;
 		
@@ -1113,10 +1133,16 @@ void idamax_lib4(int n, int offset, double *pA, int sda, int *p_idamax, double *
 	if(n<1)
 		return;
 
-	const int bs = 4;
-
 	int na = (bs - offset%bs)%bs;
 	na = n<na ? n : na;
+
+	double dna, didamax, dmx;
+
+	__m256d
+		vna, idx, imx, max, msk, a_0, sng;
+	
+	__m128d
+		max0, max1, msk0, imx0, imx1;
 
 	amax = -1.0;
 	ii = 0;
@@ -1134,6 +1160,72 @@ void idamax_lib4(int n, int offset, double *pA, int sda, int *p_idamax, double *
 			}
 		pA += bs*(sda-1);
 		}
+#if 1
+	// XXX implemented using doubles since in AVX there is no support for SIMD integer
+	dna = (double) na;
+	didamax = (double) idamax;
+	vna = _mm256_broadcast_sd( &dna );
+	idx = _mm256_set_pd( 3.0, 2.0, 1.0, 0.0 );
+	idx = _mm256_add_pd( vna, idx );
+	vna = _mm256_set_pd( 4.0, 4.0, 4.0, 4.0 );
+	imx = _mm256_broadcast_sd( &didamax );
+	max = _mm256_broadcast_sd( &amax );
+	sng = _mm256_set_pd( -0.0, -0.0, -0.0, -0.0 );
+	for( ; ii<n-7; ii+=8)
+		{
+		a_0 = _mm256_load_pd( &pA[0] );
+		a_0 = _mm256_andnot_pd( sng, a_0 ); // abs
+		msk = _mm256_cmp_pd( a_0, max, 14 );
+		max = _mm256_blendv_pd( max, a_0, msk );
+		imx = _mm256_blendv_pd( imx, idx, msk );
+		idx = _mm256_add_pd( idx, vna );
+		pA += bs*sda;
+		a_0 = _mm256_load_pd( &pA[0] );
+		a_0 = _mm256_andnot_pd( sng, a_0 ); // abs
+		msk = _mm256_cmp_pd( a_0, max, 14 );
+		max = _mm256_blendv_pd( max, a_0, msk );
+		imx = _mm256_blendv_pd( imx, idx, msk );
+		idx = _mm256_add_pd( idx, vna );
+		pA += bs*sda;
+		}
+	for( ; ii<n-3; ii+=4)
+		{
+		a_0 = _mm256_load_pd( &pA[0] );
+		a_0 = _mm256_andnot_pd( sng, a_0 ); // abs
+		msk = _mm256_cmp_pd( a_0, max, 14 );
+		max = _mm256_blendv_pd( max, a_0, msk );
+		imx = _mm256_blendv_pd( imx, idx, msk );
+		idx = _mm256_add_pd( idx, vna );
+		pA += bs*sda;
+		}
+	// reduction 2
+	max0 = _mm256_extractf128_pd( max, 0x0 );
+	max1 = _mm256_extractf128_pd( max, 0x1 );
+	imx0 = _mm256_extractf128_pd( imx, 0x0 ); // lower indexes in case of identical max value
+	imx1 = _mm256_extractf128_pd( imx, 0x1 );
+	msk0 = _mm_cmp_pd( max1, max0, 14 );
+	max0 = _mm_blendv_pd( max0, max1, msk0 );
+	imx0 = _mm_blendv_pd( imx0, imx1, msk0 );
+
+	// reduction 1
+	max1 = _mm_permute_pd( max0, 0x1 );
+	imx1 = _mm_permute_pd( imx0, 0x1 );
+	msk0 = _mm_cmp_pd( max1, max0, 14 );
+	max0 = _mm_blendv_pd( max0, max1, msk0 );
+	imx0 = _mm_blendv_pd( imx0, imx1, msk0 );
+
+	_mm_store_sd( &dmx, max0 );
+	_mm_store_sd( &didamax, imx0 );
+
+//	printf("\n%f %f\n", dmx, didamax);
+
+//	dmx = amax + 1.0; //
+	if(dmx>amax)
+		{
+		amax = dmx;
+		idamax = round(didamax);
+		}
+#else
 	for( ; ii<n-3; ii+=4)
 		{
 		tmp = fabs(pA[0]);
@@ -1162,6 +1254,7 @@ void idamax_lib4(int n, int offset, double *pA, int sda, int *p_idamax, double *
 			}
 		pA += bs*sda;
 		}
+#endif
 	for( ; ii<n; ii++)
 		{
 		tmp = fabs(pA[0]);
@@ -1190,6 +1283,12 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 	// assume m>=4
 	int ma = m-4;
 
+	__m256d
+		tmp,
+		a_0,
+		b_0, b_1, b_2,
+		c_0;
+
 	double
 		tmp0, tmp1, tmp2, tmp3,
 		u_00, u_01, u_02, u_03,
@@ -1217,6 +1316,28 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		pA[2+bs*0] *= tmp0;
 		pA[3+bs*0] *= tmp0;
 		pB = pA + bs*sda;
+#if 1
+		b_0 = _mm256_broadcast_sd( &tmp0 );
+		k = 0;
+		for(; k<ma-7; k+=8)
+			{
+			c_0 = _mm256_load_pd( &pB[0+bs*0] );
+			c_0 = _mm256_mul_pd( c_0, b_0 );
+			_mm256_store_pd( &pB[0+bs*0], c_0 );
+			pB += bs*sda;
+			c_0 = _mm256_load_pd( &pB[0+bs*0] );
+			c_0 = _mm256_mul_pd( c_0, b_0 );
+			_mm256_store_pd( &pB[0+bs*0], c_0 );
+			pB += bs*sda;
+			}
+		for(; k<ma-3; k+=4)
+			{
+			c_0 = _mm256_load_pd( &pB[0+bs*0] );
+			c_0 = _mm256_mul_pd( c_0, b_0 );
+			_mm256_store_pd( &pB[0+bs*0], c_0 );
+			pB += bs*sda;
+			}
+#else
 		for(k=0; k<ma-3; k+=4)
 			{
 			pB[0+bs*0] *= tmp0;
@@ -1225,6 +1346,7 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 			pB[3+bs*0] *= tmp0;
 			pB += bs*sda;
 			}
+#endif
 		for( ; k<ma; k++)
 			{
 			pB[0+bs*0] *= tmp0;
@@ -1248,6 +1370,34 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 	pA[2+bs*1] = tmp2;
 	pA[3+bs*1] = tmp3;
 	pB = pA + bs*sda;
+#if 1
+	b_0 = _mm256_broadcast_sd( &u_01 );
+	k = 0;
+	for(; k<ma-7; k+=8)
+		{
+		c_0 = _mm256_load_pd( &pB[0+bs*1] );
+		a_0 = _mm256_load_pd( &pB[0+bs*0] );
+		tmp = _mm256_mul_pd( a_0, b_0 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		_mm256_store_pd( &pB[0+bs*1], c_0 );
+		pB += bs*sda;
+		c_0 = _mm256_load_pd( &pB[0+bs*1] );
+		a_0 = _mm256_load_pd( &pB[0+bs*0] );
+		tmp = _mm256_mul_pd( a_0, b_0 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		_mm256_store_pd( &pB[0+bs*1], c_0 );
+		pB += bs*sda;
+		}
+	for(; k<ma-3; k+=4)
+		{
+		c_0 = _mm256_load_pd( &pB[0+bs*1] );
+		a_0 = _mm256_load_pd( &pB[0+bs*0] );
+		tmp = _mm256_mul_pd( a_0, b_0 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		_mm256_store_pd( &pB[0+bs*1], c_0 );
+		pB += bs*sda;
+		}
+#else
 	for(k=0; k<ma-3; k+=4)
 		{
 		tmp0  = pB[0+bs*1];
@@ -1264,6 +1414,7 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		pB[3+bs*1] = tmp3;
 		pB += bs*sda;
 		}
+#endif
 	for( ; k<ma; k++)
 		{
 		tmp0 = pB[0+bs*1];
@@ -1284,6 +1435,28 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		pA[2+bs*1] *= tmp1;
 		pA[3+bs*1] *= tmp1;
 		pB = pA + bs*sda;
+#if 1
+		b_0 = _mm256_broadcast_sd( &tmp1 );
+		k = 0;
+		for(; k<ma-7; k+=8)
+			{
+			c_0 = _mm256_load_pd( &pB[0+bs*1] );
+			c_0 = _mm256_mul_pd( c_0, b_0 );
+			_mm256_store_pd( &pB[0+bs*1], c_0 );
+			pB += bs*sda;
+			c_0 = _mm256_load_pd( &pB[0+bs*1] );
+			c_0 = _mm256_mul_pd( c_0, b_0 );
+			_mm256_store_pd( &pB[0+bs*1], c_0 );
+			pB += bs*sda;
+			}
+		for(; k<ma-3; k+=4)
+			{
+			c_0 = _mm256_load_pd( &pB[0+bs*1] );
+			c_0 = _mm256_mul_pd( c_0, b_0 );
+			_mm256_store_pd( &pB[0+bs*1], c_0 );
+			pB += bs*sda;
+			}
+#else
 		for(k=0; k<ma-3; k+=4)
 			{
 			pB[0+bs*1] *= tmp1;
@@ -1292,6 +1465,7 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 			pB[3+bs*1] *= tmp1;
 			pB += bs*sda;
 			}
+#endif
 		for( ; k<ma; k++)
 			{
 			pB[0+bs*1] *= tmp1;
@@ -1317,6 +1491,44 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 	pA[2+bs*2] = tmp2;
 	pA[3+bs*2] = tmp3;
 	pB = pA + bs*sda;
+#if 1
+	b_0 = _mm256_broadcast_sd( &u_02 );
+	b_1 = _mm256_broadcast_sd( &u_12 );
+	k = 0;
+	for(; k<ma-7; k+=8)
+		{
+		c_0 = _mm256_load_pd( &pB[0+bs*2] );
+		a_0 = _mm256_load_pd( &pB[0+bs*0] );
+		tmp = _mm256_mul_pd( a_0, b_0 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		a_0 = _mm256_load_pd( &pB[0+bs*1] );
+		tmp = _mm256_mul_pd( a_0, b_1 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		_mm256_store_pd( &pB[0+bs*2], c_0 );
+		pB += bs*sda;
+		c_0 = _mm256_load_pd( &pB[0+bs*2] );
+		a_0 = _mm256_load_pd( &pB[0+bs*0] );
+		tmp = _mm256_mul_pd( a_0, b_0 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		a_0 = _mm256_load_pd( &pB[0+bs*1] );
+		tmp = _mm256_mul_pd( a_0, b_1 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		_mm256_store_pd( &pB[0+bs*2], c_0 );
+		pB += bs*sda;
+		}
+	for(; k<ma-3; k+=4)
+		{
+		c_0 = _mm256_load_pd( &pB[0+bs*2] );
+		a_0 = _mm256_load_pd( &pB[0+bs*0] );
+		tmp = _mm256_mul_pd( a_0, b_0 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		a_0 = _mm256_load_pd( &pB[0+bs*1] );
+		tmp = _mm256_mul_pd( a_0, b_1 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		_mm256_store_pd( &pB[0+bs*2], c_0 );
+		pB += bs*sda;
+		}
+#else
 	for(k=0; k<ma-3; k+=4)
 		{
 		tmp0  = pB[0+bs*2];
@@ -1337,6 +1549,7 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		pB[3+bs*2] = tmp3;
 		pB += bs*sda;
 		}
+#endif
 	for( ; k<ma; k++)
 		{
 		tmp0  = pB[0+bs*2];
@@ -1357,6 +1570,28 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		inv_diag_A[2] = tmp2;
 		pA[3+bs*2] *= tmp2;
 		pB = pA + bs*sda;
+#if 1
+		b_0 = _mm256_broadcast_sd( &tmp2 );
+		k = 0;
+		for(; k<ma-7; k+=8)
+			{
+			c_0 = _mm256_load_pd( &pB[0+bs*2] );
+			c_0 = _mm256_mul_pd( c_0, b_0 );
+			_mm256_store_pd( &pB[0+bs*2], c_0 );
+			pB += bs*sda;
+			c_0 = _mm256_load_pd( &pB[0+bs*2] );
+			c_0 = _mm256_mul_pd( c_0, b_0 );
+			_mm256_store_pd( &pB[0+bs*2], c_0 );
+			pB += bs*sda;
+			}
+		for(; k<ma-3; k+=4)
+			{
+			c_0 = _mm256_load_pd( &pB[0+bs*2] );
+			c_0 = _mm256_mul_pd( c_0, b_0 );
+			_mm256_store_pd( &pB[0+bs*2], c_0 );
+			pB += bs*sda;
+			}
+#else
 		for(k=0; k<ma-3; k+=4)
 			{
 			pB[0+bs*2] *= tmp2;
@@ -1365,6 +1600,7 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 			pB[3+bs*2] *= tmp2;
 			pB += bs*sda;
 			}
+#endif
 		for( ; k<ma; k++)
 			{
 			pB[0+bs*2] *= tmp2;
@@ -1391,6 +1627,54 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 	tmp3 -= pA[3+bs*2] * u_23;
 	pA[3+bs*3] = tmp3;
 	pB = pA + bs*sda;
+#if 1
+	b_0 = _mm256_broadcast_sd( &u_03 );
+	b_1 = _mm256_broadcast_sd( &u_13 );
+	b_2 = _mm256_broadcast_sd( &u_23 );
+	k = 0;
+	for(; k<ma-7; k+=8)
+		{
+		c_0 = _mm256_load_pd( &pB[0+bs*3] );
+		a_0 = _mm256_load_pd( &pB[0+bs*0] );
+		tmp = _mm256_mul_pd( a_0, b_0 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		a_0 = _mm256_load_pd( &pB[0+bs*1] );
+		tmp = _mm256_mul_pd( a_0, b_1 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		a_0 = _mm256_load_pd( &pB[0+bs*2] );
+		tmp = _mm256_mul_pd( a_0, b_2 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		_mm256_store_pd( &pB[0+bs*3], c_0 );
+		pB += bs*sda;
+		c_0 = _mm256_load_pd( &pB[0+bs*3] );
+		a_0 = _mm256_load_pd( &pB[0+bs*0] );
+		tmp = _mm256_mul_pd( a_0, b_0 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		a_0 = _mm256_load_pd( &pB[0+bs*1] );
+		tmp = _mm256_mul_pd( a_0, b_1 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		a_0 = _mm256_load_pd( &pB[0+bs*2] );
+		tmp = _mm256_mul_pd( a_0, b_2 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		_mm256_store_pd( &pB[0+bs*3], c_0 );
+		pB += bs*sda;
+		}
+	for(; k<ma-3; k+=4)
+		{
+		c_0 = _mm256_load_pd( &pB[0+bs*3] );
+		a_0 = _mm256_load_pd( &pB[0+bs*0] );
+		tmp = _mm256_mul_pd( a_0, b_0 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		a_0 = _mm256_load_pd( &pB[0+bs*1] );
+		tmp = _mm256_mul_pd( a_0, b_1 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		a_0 = _mm256_load_pd( &pB[0+bs*2] );
+		tmp = _mm256_mul_pd( a_0, b_2 );
+		c_0 = _mm256_sub_pd( c_0, tmp );
+		_mm256_store_pd( &pB[0+bs*3], c_0 );
+		pB += bs*sda;
+		}
+#else
 	for(k=0; k<ma-3; k+=4)
 		{
 		tmp0  = pB[0+bs*3];
@@ -1415,6 +1699,7 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		pB[3+bs*3] = tmp3;
 		pB += bs*sda;
 		}
+#endif
 	for( ; k<ma; k++)
 		{
 		tmp0  = pB[0+bs*3];
@@ -1435,6 +1720,28 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		tmp3 = 1.0 / pA[3+bs*3];
 		inv_diag_A[3] = tmp3;
 		pB = pA + bs*sda;
+#if 1
+		b_0 = _mm256_broadcast_sd( &tmp3 );
+		k = 0;
+		for(; k<ma-7; k+=8)
+			{
+			c_0 = _mm256_load_pd( &pB[0+bs*3] );
+			c_0 = _mm256_mul_pd( c_0, b_0 );
+			_mm256_store_pd( &pB[0+bs*3], c_0 );
+			pB += bs*sda;
+			c_0 = _mm256_load_pd( &pB[0+bs*3] );
+			c_0 = _mm256_mul_pd( c_0, b_0 );
+			_mm256_store_pd( &pB[0+bs*3], c_0 );
+			pB += bs*sda;
+			}
+		for(; k<ma-3; k+=4)
+			{
+			c_0 = _mm256_load_pd( &pB[0+bs*3] );
+			c_0 = _mm256_mul_pd( c_0, b_0 );
+			_mm256_store_pd( &pB[0+bs*3], c_0 );
+			pB += bs*sda;
+			}
+#else
 		for(k=0; k<ma-3; k+=4)
 			{
 			pB[0+bs*3] *= tmp3;
@@ -1443,6 +1750,7 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 			pB[3+bs*3] *= tmp3;
 			pB += bs*sda;
 			}
+#endif
 		for( ; k<ma; k++)
 			{
 			pB[0+bs*3] *= tmp3;
