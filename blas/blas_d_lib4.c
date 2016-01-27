@@ -6686,12 +6686,16 @@ void drowsw_lib(int kmax, double *pA, double *pC)
 		tmp = pA[0+bs*3];
 		pA[0+bs*3] = pC[0+bs*3];
 		pC[0+bs*3] = tmp;
+		pA += 4*bs;
+		pC += 4*bs;
 		}
 	for( ; ii<kmax; ii++)
 		{
 		tmp = pA[0+bs*0];
 		pA[0+bs*0] = pC[0+bs*0];
 		pC[0+bs*0] = tmp;
+		pA += 1*bs;
+		pC += 1*bs;
 		}
 	
 	}
@@ -9605,46 +9609,70 @@ void dgetrf_pivot_lib(int m, double *pC, int sdc, double *pD, int sdd, double *i
 
 	int n = m;
 
+	// needs to pivot on the yet-to-be-factorized matrix too
+	if(pC!=pD)
+		dgecp_lib(m, m, 0, pC, sdc, 0, pD, sdd);
+
 	for(jj=0; jj<n; jj+=4)
 		{
 		ii = 0;
 		// compute upper
 		for( ; ii<jj-4; ii+=8)
 			{
-			kernel_dtrsm_nn_ll_diag_8x4_lib4(ii, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], sdc, &pD[jj*bs+ii*sdd], sdd, &pD[ii*bs+ii*sdd], sdd);
+			kernel_dtrsm_nn_ll_diag_8x4_lib4(ii, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+ii*sdd], sdd, &pD[ii*bs+ii*sdd], sdd);
 			}
 		for( ; ii<jj; ii+=4)
 			{
-			kernel_dtrsm_nn_ll_diag_4x4_lib4(ii, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &pD[ii*bs+ii*sdd]);
+			kernel_dtrsm_nn_ll_diag_4x4_lib4(ii, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], &pD[ii*bs+ii*sdd]);
 			}
 #if 0 // no pivot
 		// factorization
-		kernel_dgetrf_nn_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &inv_diag_D[jj]);
+		kernel_dgetrf_nn_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], &inv_diag_D[jj]);
 		ii += 4;
 		// compute lower
 		for( ; ii<m-4; ii+=8)
 			{
-			kernel_dtrsm_nn_ru_8x4_lib4(jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], sdc, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
+			kernel_dtrsm_nn_ru_8x4_lib4(jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], sdc, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
 			}
 		for( ; ii<m; ii+=4)
 			{
-			kernel_dtrsm_nn_ru_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
+			kernel_dtrsm_nn_ru_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
 			}
 #else // pivot
 		i0 = ii;
 		for( ; ii<m-4; ii+=8)
 			{
-			kernel_dgemm_nn_8x4_lib4(jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, -1, &pC[jj*bs+ii*sdc], sdc, &pD[jj*bs+ii*sdd], sdd, 0, 0);
+			kernel_dgemm_nn_8x4_lib4(jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+ii*sdd], sdd, 0, 0);
 			}
 		for( ; ii<m; ii+=4)
 			{
-			kernel_dgemm_nn_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], 0, 0);
+			kernel_dgemm_nn_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
 			}
 		kernel_dgetrf_pivot_4_lib4(m-i0, &pD[jj*bs+i0*sdd], sdd, &inv_diag_D[jj], &ipiv[i0]);
 		ipiv[i0+0] += i0;
 		ipiv[i0+1] += i0;
 		ipiv[i0+2] += i0;
 		ipiv[i0+3] += i0;
+		if(ipiv[i0+0]!=i0+0)
+			{
+			drowsw_lib(jj, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs);
+			drowsw_lib(n-jj-4, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs+(jj+4)*bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs+(jj+4)*bs);
+			}
+		if(ipiv[i0+1]!=i0+1)
+			{
+			drowsw_lib(jj, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs);
+			drowsw_lib(n-jj-4, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs+(jj+4)*bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs+(jj+4)*bs);
+			}
+		if(ipiv[i0+2]!=i0+2)
+			{
+			drowsw_lib(jj, pD+(i0+2)/bs*bs*sdd+(i0+2)%bs, pD+(ipiv[i0+2])/bs*bs*sdd+(ipiv[i0+2])%bs);
+			drowsw_lib(n-jj-4, pD+(i0+2)/bs*bs*sdd+(i0+2)%bs+(jj+4)*bs, pD+(ipiv[i0+2])/bs*bs*sdd+(ipiv[i0+2])%bs+(jj+4)*bs);
+			}
+		if(ipiv[i0+3]!=i0+3)
+			{
+			drowsw_lib(jj, pD+(i0+3)/bs*bs*sdd+(i0+3)%bs, pD+(ipiv[i0+3])/bs*bs*sdd+(ipiv[i0+3])%bs);
+			drowsw_lib(n-jj-4, pD+(i0+3)/bs*bs*sdd+(i0+3)%bs+(jj+4)*bs, pD+(ipiv[i0+3])/bs*bs*sdd+(ipiv[i0+3])%bs+(jj+4)*bs);
+			}
 #endif
 		}
 

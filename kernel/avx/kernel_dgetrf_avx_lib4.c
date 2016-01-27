@@ -1181,6 +1181,7 @@ void idamax_lib4(int n, int offset, double *pA, int sda, int *p_idamax, double *
 
 
 
+// C numering (starting from zero) in the ipiv
 void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, int* ipiv)
 	{
 

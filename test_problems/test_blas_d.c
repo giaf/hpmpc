@@ -276,6 +276,7 @@ int main()
 		double *x2; d_zeros_align(&x2, pnd, 1);
 		double *y2; d_zeros_align(&y2, pnd, 1);
 		double *diag; d_zeros_align(&diag, pnd, 1);
+		int *ipiv; i_zeros(&ipiv, n, 1);
 
 #if defined(LOW_RANK)
 		int pmd = ((m+bsd-1)/bsd)*bsd;	
@@ -581,6 +582,7 @@ int main()
 //			dtrmm_nt_u_lib(n, n, pA, cnd, pB, cnd, pC, cnd);
 //			dpotrf_lib(n, n, pB, cnd, pC, cnd, x);
 //			dgetrf_lib(n, pB, cnd, pC, cnd, x);
+//			dgetrf_pivot_lib(n, pB, cnd, pC, cnd, x, ipiv);
 //			dtrtri_lib(n, pB, cnd, 1, x, pC, cnd);
 //			dlauum_lib(n, pA, cnd, pB, cnd, 0, pC, cnd, pD, cnd);
 //			dgemv_n_lib(n, n, pA, cnd, x, 0, y, y);
@@ -833,6 +835,7 @@ int main()
 		free(y);
 		free(x2);
 		free(y2);
+		free(ipiv);
 #if defined(LOW_RANK)
 		free(Al);
 		free(Cl);

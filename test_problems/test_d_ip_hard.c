@@ -33,6 +33,7 @@
 
 #include "../include/aux_d.h"
 #include "../include/aux_s.h"
+#include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_solvers.h"
 #include "../problem_size.h"

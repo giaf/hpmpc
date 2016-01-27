@@ -55,8 +55,8 @@ void kernel_dtrsm_nn_ll_diag_8x4_lib4(int kmax, double *A0, int sda, double *B, 
 
 	int k;
 
-	__m128d
-		v_0;
+//	__m128d
+//		v_0;
 
 	__m256d
 		zeros, tmp, t_0,
@@ -257,26 +257,34 @@ void kernel_dtrsm_nn_ll_diag_8x4_lib4(int kmax, double *A0, int sda, double *B, 
 	e_0 = _mm256_load_pd( &E0[0+bs*0] );
 	a_0 = _mm256_load_pd( &E1[0+bs*0] );
 	e_0 = _mm256_blend_pd( e_0, zeros, 0x1 );
-	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_0 ) );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_0 ) );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_0, d_0, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_0 = _mm256_sub_pd( d_0, tmp );
 	tmp = _mm256_mul_pd( a_0, t_0 );
 	d_4 = _mm256_sub_pd( d_4, tmp );
-	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_1 ) );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_1 ) );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_1, d_1, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_1 = _mm256_sub_pd( d_1, tmp );
 	tmp = _mm256_mul_pd( a_0, t_0 );
 	d_5 = _mm256_sub_pd( d_5, tmp );
-	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_2 ) );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_2 ) );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_2, d_2, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_2 = _mm256_sub_pd( d_2, tmp );
 	tmp = _mm256_mul_pd( a_0, t_0 );
 	d_6 = _mm256_sub_pd( d_6, tmp );
-	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_3 ) );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_3 ) );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_3, d_3, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_3 = _mm256_sub_pd( d_3, tmp );
 	tmp = _mm256_mul_pd( a_0, t_0 );
@@ -285,26 +293,34 @@ void kernel_dtrsm_nn_ll_diag_8x4_lib4(int kmax, double *A0, int sda, double *B, 
 	e_0 = _mm256_load_pd( &E0[0+bs*1] );
 	a_0 = _mm256_load_pd( &E1[0+bs*1] );
 	e_0 = _mm256_blend_pd( e_0, zeros, 0x3 );
-	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_0 ), 0x3 );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_0 ), 0x3 );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_0, d_0, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0xf );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_0 = _mm256_sub_pd( d_0, tmp );
 	tmp = _mm256_mul_pd( a_0, t_0 );
 	d_4 = _mm256_sub_pd( d_4, tmp );
-	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_1 ), 0x3 );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_1 ), 0x3 );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_1, d_1, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0xf );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_1 = _mm256_sub_pd( d_1, tmp );
 	tmp = _mm256_mul_pd( a_0, t_0 );
 	d_5 = _mm256_sub_pd( d_5, tmp );
-	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_2 ), 0x3 );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_2 ), 0x3 );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_2, d_2, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0xf );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_2 = _mm256_sub_pd( d_2, tmp );
 	tmp = _mm256_mul_pd( a_0, t_0 );
 	d_6 = _mm256_sub_pd( d_6, tmp );
-	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_3 ), 0x3 );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_3 ), 0x3 );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_3, d_3, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0xf );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_3 = _mm256_sub_pd( d_3, tmp );
 	tmp = _mm256_mul_pd( a_0, t_0 );
@@ -428,39 +444,55 @@ void kernel_dtrsm_nn_ll_diag_8x4_lib4(int kmax, double *A0, int sda, double *B, 
 	
 	e_0 = _mm256_load_pd( &E0[0+bs*0] );
 	e_0 = _mm256_blend_pd( e_0, zeros, 0x1 );
-	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_4 ) );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_4 ) );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_4, d_4, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_4 = _mm256_sub_pd( d_4, tmp );
-	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_5 ) );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_5 ) );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_5, d_5, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_5 = _mm256_sub_pd( d_5, tmp );
-	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_6 ) );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_6 ) );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_6, d_6, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_6 = _mm256_sub_pd( d_6, tmp );
-	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_7 ) );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_7 ) );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_7, d_7, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_7 = _mm256_sub_pd( d_7, tmp );
 
 	e_0 = _mm256_load_pd( &E0[0+bs*1] );
 	e_0 = _mm256_blend_pd( e_0, zeros, 0x3 );
-	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_4 ), 0x3 );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_4 ), 0x3 );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_4, d_4, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0xf );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_4 = _mm256_sub_pd( d_4, tmp );
-	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_5 ), 0x3 );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_5 ), 0x3 );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_5, d_5, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0xf );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_5 = _mm256_sub_pd( d_5, tmp );
-	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_6 ), 0x3 );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_6 ), 0x3 );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_6, d_6, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0xf );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_6 = _mm256_sub_pd( d_6, tmp );
-	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_7 ), 0x3 );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_7 ), 0x3 );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_7, d_7, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0xf );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_7 = _mm256_sub_pd( d_7, tmp );
 
@@ -502,8 +534,8 @@ void kernel_dtrsm_nn_ll_diag_4x4_lib4(int kmax, double *A, double *B, int sdb, i
 
 	int k;
 
-	__m128d
-		v_0;
+//	__m128d
+//		v_0;
 
 	__m256d
 		zeros, tmp, t_0,
@@ -629,58 +661,74 @@ void kernel_dtrsm_nn_ll_diag_4x4_lib4(int kmax, double *A, double *B, int sdb, i
 
 	e_0 = _mm256_load_pd( &E[0+bs*0] );
 	e_0 = _mm256_blend_pd( e_0, zeros, 0x1 );
-	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_0 ) );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_0 ) );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_0, d_0, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_0 = _mm256_sub_pd( d_0, tmp );
-	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_1 ) );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_1 ) );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_1, d_1, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_1 = _mm256_sub_pd( d_1, tmp );
-	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_2 ) );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_2 ) );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_2, d_2, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_2 = _mm256_sub_pd( d_2, tmp );
-	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_3 ) );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_movedup_pd( _mm256_castpd256_pd128( d_3 ) );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_3, d_3, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_3 = _mm256_sub_pd( d_3, tmp );
 
 	e_0 = _mm256_load_pd( &E[0+bs*1] );
 	e_0 = _mm256_blend_pd( e_0, zeros, 0x3 );
-	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_0 ), 0x3 );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_0 ), 0x3 );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_0, d_0, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0xf );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_0 = _mm256_sub_pd( d_0, tmp );
-	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_1 ), 0x3 );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_1 ), 0x3 );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_1, d_1, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0xf );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_1 = _mm256_sub_pd( d_1, tmp );
-	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_2 ), 0x3 );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_2 ), 0x3 );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_2, d_2, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0xf );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_2 = _mm256_sub_pd( d_2, tmp );
-	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_3 ), 0x3 );
-	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+//	v_0 = _mm_permute_pd( _mm256_castpd256_pd128( d_3 ), 0x3 );
+//	t_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( v_0 ), _mm256_castpd128_pd256( v_0 ), 0x00 );
+	t_0 = _mm256_permute2f128_pd( d_3, d_3, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0xf );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_3 = _mm256_sub_pd( d_3, tmp );
 
 	e_0 = _mm256_load_pd( &E[0+bs*2] );
 	e_0 = _mm256_blend_pd( e_0, zeros, 0x7 );
 	t_0 = _mm256_permute2f128_pd( d_0, d_0, 0x11 );
-	t_0 = _mm256_permute_pd( t_0, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_0 = _mm256_sub_pd( d_0, tmp );
 	t_0 = _mm256_permute2f128_pd( d_1, d_1, 0x11 );
-	t_0 = _mm256_permute_pd( t_0, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_1 = _mm256_sub_pd( d_1, tmp );
 	t_0 = _mm256_permute2f128_pd( d_2, d_2, 0x11 );
-	t_0 = _mm256_permute_pd( t_0, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_2 = _mm256_sub_pd( d_2, tmp );
 	t_0 = _mm256_permute2f128_pd( d_3, d_3, 0x11 );
-	t_0 = _mm256_permute_pd( t_0, 0x00 );
+	t_0 = _mm256_permute_pd( t_0, 0x0 );
 	tmp = _mm256_mul_pd( e_0, t_0 );
 	d_3 = _mm256_sub_pd( d_3, tmp );
 
