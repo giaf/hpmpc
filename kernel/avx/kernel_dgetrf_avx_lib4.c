@@ -1110,39 +1110,151 @@ void idamax_lib4(int n, int offset, double *pA, int sda, int *p_idamax, double *
 
 #if 0
 pA -= offset%4;
-pA[0] = 1.3;
-pA[1] = 1.9;
-pA[2] = 1.2;
-pA[3] = 1.3;
+pA[0] = 3.0;
+pA[1] = 2.9;
+pA[2] = 2.8;
+pA[3] = 2.7;
 pA[0+1*sda*bs] = -1.4;
 pA[1+1*sda*bs] = 1.4;
 pA[2+1*sda*bs] = 0.4;
 pA[3+1*sda*bs] = 0.4;
-pA[0+2*sda*bs] = 0.4;
-pA[1+2*sda*bs] = 0.4;
-pA[2+2*sda*bs] = 0.4;
-pA[3+2*sda*bs] = 1.4;
-pA += offset%4;
-d_print_pmat( n+offset%4, 1, bs, pA-offset%4, sda);
+pA[0+2*sda*bs] = 2.1;
+pA[1+2*sda*bs] = 3.2;
+pA[2+2*sda*bs] = 2.3;
+pA[3+2*sda*bs] = 2.4;
+d_print_pmat( n+offset%4, 1, bs, pA, sda);
+offset = 3;
+pA += offset;
+n = 12;
 #endif
 
 	int idamax, ii;
 	double tmp, amax;
 		
 	p_idamax[0] = -1;
-	if(n<1)
+	if(n<=0)
 		return;
 
 	int na = (bs - offset%bs)%bs;
-	na = n<na ? n : na;
+//	na = n<na ? n : na;
 
-	double dna, didamax, dmx;
+	double 
+		dn, dna, didamax, dmx, dlft;
 
 	__m256d
-		vna, idx, imx, max, msk, a_0, sng;
+		vna, idx, imx, max, msk, a_0, sgn, lft;
 	
 	__m128d
 		max0, max1, msk0, imx0, imx1;
+
+#if 1
+	ii = 0;
+
+	pA -= offset%bs;
+
+	sgn = _mm256_set_pd( -0.0, -0.0, -0.0, -0.0 );
+	vna = _mm256_set_pd( 4.0, 4.0, 4.0, 4.0 );
+	lft = _mm256_set_pd( 3.2, 2.2, 1.2, 0.2 );
+	idx = lft;
+	max = _mm256_setzero_pd();
+	imx = _mm256_setzero_pd();
+
+	if(na>0)
+		{
+
+		dna = (double) na;
+		msk = _mm256_broadcast_sd( &dna );
+		a_0 = _mm256_load_pd( &pA[0] );
+		idx = _mm256_sub_pd( idx, vna );
+		a_0 = _mm256_andnot_pd( sgn, a_0 ); // abs
+		idx = _mm256_add_pd( idx, msk );
+		msk = idx;
+		if(n<na)
+			{
+			// mask for end
+			n = na;
+			dn  = (double) n+offset%bs;
+			msk = _mm256_broadcast_sd( &dn );
+			msk = _mm256_cmp_pd( lft, msk, 14 ); // >
+			msk = _mm256_or_pd( msk, idx );
+			}
+		a_0 = _mm256_blendv_pd( a_0, sgn, msk );
+		msk = _mm256_cmp_pd( a_0, max, 14 ); // >
+		max = _mm256_blendv_pd( max, a_0, msk );
+		imx = _mm256_blendv_pd( imx, idx, msk );
+		idx = _mm256_add_pd( idx, vna );
+		pA += bs*sda;
+
+		ii += na;
+
+		}
+
+	// main loop
+	for( ; ii<n-7; ii+=8)
+		{
+		a_0 = _mm256_load_pd( &pA[0] );
+		a_0 = _mm256_andnot_pd( sgn, a_0 ); // abs
+		msk = _mm256_cmp_pd( a_0, max, 14 ); // >
+		max = _mm256_blendv_pd( max, a_0, msk );
+		imx = _mm256_blendv_pd( imx, idx, msk );
+		idx = _mm256_add_pd( idx, vna );
+		pA += bs*sda;
+		a_0 = _mm256_load_pd( &pA[0] );
+		a_0 = _mm256_andnot_pd( sgn, a_0 ); // abs
+		msk = _mm256_cmp_pd( a_0, max, 14 ); // >
+		max = _mm256_blendv_pd( max, a_0, msk );
+		imx = _mm256_blendv_pd( imx, idx, msk );
+		idx = _mm256_add_pd( idx, vna );
+		pA += bs*sda;
+		}
+	for( ; ii<n-3; ii+=4)
+		{
+		a_0 = _mm256_load_pd( &pA[0] );
+		a_0 = _mm256_andnot_pd( sgn, a_0 ); // abs
+		msk = _mm256_cmp_pd( a_0, max, 14 ); // >
+		max = _mm256_blendv_pd( max, a_0, msk );
+		imx = _mm256_blendv_pd( imx, idx, msk );
+		idx = _mm256_add_pd( idx, vna );
+		pA += bs*sda;
+		}
+	
+	// clanup loop
+	if(ii<n)
+		{
+		dlft = n-ii;
+		msk = _mm256_broadcast_sd( &dlft );
+		a_0 = _mm256_load_pd( &pA[0] );
+		msk = _mm256_cmp_pd( lft, msk, 14 ); // >
+		a_0 = _mm256_blendv_pd( a_0, sgn, msk );
+		a_0 = _mm256_andnot_pd( sgn, a_0 ); // abs
+		msk = _mm256_cmp_pd( a_0, max, 14 ); // >
+		max = _mm256_blendv_pd( max, a_0, msk );
+		imx = _mm256_blendv_pd( imx, idx, msk );
+//		idx = _mm256_add_pd( idx, vna );
+//		pA += bs*sda;
+		}
+
+	// reduction 2
+	max0 = _mm256_extractf128_pd( max, 0x0 );
+	max1 = _mm256_extractf128_pd( max, 0x1 );
+	imx0 = _mm256_extractf128_pd( imx, 0x0 ); // lower indexes in case of identical max value
+	imx1 = _mm256_extractf128_pd( imx, 0x1 );
+	msk0 = _mm_cmp_pd( max1, max0, 14 );
+	max0 = _mm_blendv_pd( max0, max1, msk0 );
+	imx0 = _mm_blendv_pd( imx0, imx1, msk0 );
+
+	// reduction 1
+	max1 = _mm_permute_pd( max0, 0x1 );
+	imx1 = _mm_permute_pd( imx0, 0x1 );
+	msk0 = _mm_cmp_pd( max1, max0, 14 );
+	max0 = _mm_blendv_pd( max0, max1, msk0 );
+	imx0 = _mm_blendv_pd( imx0, imx1, msk0 );
+
+	// store
+	_mm_store_sd( &p_amax[0], max0 );
+	p_idamax[0] = _mm_cvtsd_si32( imx0 );
+
+#else
 
 	amax = -1.0;
 	ii = 0;
@@ -1160,72 +1272,6 @@ d_print_pmat( n+offset%4, 1, bs, pA-offset%4, sda);
 			}
 		pA += bs*(sda-1);
 		}
-#if 1
-	// XXX implemented using doubles since in AVX there is no support for SIMD integer
-	dna = (double) na;
-	didamax = (double) idamax;
-	vna = _mm256_broadcast_sd( &dna );
-	idx = _mm256_set_pd( 3.0, 2.0, 1.0, 0.0 );
-	idx = _mm256_add_pd( vna, idx );
-	vna = _mm256_set_pd( 4.0, 4.0, 4.0, 4.0 );
-	imx = _mm256_broadcast_sd( &didamax );
-	max = _mm256_broadcast_sd( &amax );
-	sng = _mm256_set_pd( -0.0, -0.0, -0.0, -0.0 );
-	for( ; ii<n-7; ii+=8)
-		{
-		a_0 = _mm256_load_pd( &pA[0] );
-		a_0 = _mm256_andnot_pd( sng, a_0 ); // abs
-		msk = _mm256_cmp_pd( a_0, max, 14 );
-		max = _mm256_blendv_pd( max, a_0, msk );
-		imx = _mm256_blendv_pd( imx, idx, msk );
-		idx = _mm256_add_pd( idx, vna );
-		pA += bs*sda;
-		a_0 = _mm256_load_pd( &pA[0] );
-		a_0 = _mm256_andnot_pd( sng, a_0 ); // abs
-		msk = _mm256_cmp_pd( a_0, max, 14 );
-		max = _mm256_blendv_pd( max, a_0, msk );
-		imx = _mm256_blendv_pd( imx, idx, msk );
-		idx = _mm256_add_pd( idx, vna );
-		pA += bs*sda;
-		}
-	for( ; ii<n-3; ii+=4)
-		{
-		a_0 = _mm256_load_pd( &pA[0] );
-		a_0 = _mm256_andnot_pd( sng, a_0 ); // abs
-		msk = _mm256_cmp_pd( a_0, max, 14 );
-		max = _mm256_blendv_pd( max, a_0, msk );
-		imx = _mm256_blendv_pd( imx, idx, msk );
-		idx = _mm256_add_pd( idx, vna );
-		pA += bs*sda;
-		}
-	// reduction 2
-	max0 = _mm256_extractf128_pd( max, 0x0 );
-	max1 = _mm256_extractf128_pd( max, 0x1 );
-	imx0 = _mm256_extractf128_pd( imx, 0x0 ); // lower indexes in case of identical max value
-	imx1 = _mm256_extractf128_pd( imx, 0x1 );
-	msk0 = _mm_cmp_pd( max1, max0, 14 );
-	max0 = _mm_blendv_pd( max0, max1, msk0 );
-	imx0 = _mm_blendv_pd( imx0, imx1, msk0 );
-
-	// reduction 1
-	max1 = _mm_permute_pd( max0, 0x1 );
-	imx1 = _mm_permute_pd( imx0, 0x1 );
-	msk0 = _mm_cmp_pd( max1, max0, 14 );
-	max0 = _mm_blendv_pd( max0, max1, msk0 );
-	imx0 = _mm_blendv_pd( imx0, imx1, msk0 );
-
-	_mm_store_sd( &dmx, max0 );
-	_mm_store_sd( &didamax, imx0 );
-
-//	printf("\n%f %f\n", dmx, didamax);
-
-//	dmx = amax + 1.0; //
-	if(dmx>amax)
-		{
-		amax = dmx;
-		idamax = round(didamax);
-		}
-#else
 	for( ; ii<n-3; ii+=4)
 		{
 		tmp = fabs(pA[0]);
@@ -1254,7 +1300,6 @@ d_print_pmat( n+offset%4, 1, bs, pA-offset%4, sda);
 			}
 		pA += bs*sda;
 		}
-#endif
 	for( ; ii<n; ii++)
 		{
 		tmp = fabs(pA[0]);
@@ -1267,6 +1312,10 @@ d_print_pmat( n+offset%4, 1, bs, pA-offset%4, sda);
 	
 	p_amax[0] = amax;
 	p_idamax[0] = idamax;
+
+#endif
+
+//printf("%d %f\n\n", p_idamax[0], p_amax[0] );
 
 	return;
 
@@ -1283,11 +1332,23 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 	// assume m>=4
 	int ma = m-4;
 
+//	__m128d
+//		ones, inv;
+	
+		
 	__m256d
+		lft, msk,
+		ones,
 		tmp,
 		a_0,
 		b_0, b_1, b_2,
 		c_0;
+	
+	double
+		dlft;
+
+	lft  = _mm256_set_pd( 3.2, 2.2, 1.2, 0.2 );
+	ones = _mm256_set_pd( 1.0, 1.0, 1.0, 1.0 );
 
 	double
 		tmp0, tmp1, tmp2, tmp3,
@@ -1337,6 +1398,17 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 			_mm256_store_pd( &pB[0+bs*0], c_0 );
 			pB += bs*sda;
 			}
+		if(k<ma)
+			{
+			dlft = ma-k;
+			msk = _mm256_broadcast_sd( &dlft );
+			msk = _mm256_cmp_pd( msk, lft, 14 ); // >
+			c_0 = _mm256_load_pd( &pB[0+bs*0] );
+			tmp = _mm256_blendv_pd( b_0, ones, msk );
+			c_0 = _mm256_mul_pd( c_0, tmp );
+			_mm256_store_pd( &pB[0+bs*0], c_0 );
+//			pB += bs*sda;
+			}
 #else
 		for(k=0; k<ma-3; k+=4)
 			{
@@ -1346,12 +1418,12 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 			pB[3+bs*0] *= tmp0;
 			pB += bs*sda;
 			}
-#endif
 		for( ; k<ma; k++)
 			{
 			pB[0+bs*0] *= tmp0;
 			pB += 1;
 			}
+#endif
 		}
 	else
 		{
