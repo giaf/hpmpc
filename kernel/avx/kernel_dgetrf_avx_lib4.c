@@ -1332,8 +1332,8 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 	// assume m>=4
 	int ma = m-4;
 
-//	__m128d
-//		ones, inv;
+	__m128d
+		inv;
 	
 		
 	__m256d
@@ -1342,7 +1342,8 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		tmp,
 		a_0,
 		b_0, b_1, b_2,
-		c_0;
+		c_0,
+		d_0;
 	
 	double
 		dlft;
@@ -1371,14 +1372,16 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		if(ipiv[0]!=0)
 			drowsw_lib(4, pA+0, pA+ipiv[0]/bs*bs*sda+ipiv[0]%bs);
 
-		tmp0 = 1.0 / pA[0+bs*0];
-		inv_diag_A[0] = tmp0;
-		pA[1+bs*0] *= tmp0;
-		pA[2+bs*0] *= tmp0;
-		pA[3+bs*0] *= tmp0;
-		pB = pA + bs*sda;
 #if 1
-		b_0 = _mm256_broadcast_sd( &tmp0 );
+		c_0 = _mm256_load_pd( &pA[0+bs*0] );
+		inv = _mm_permute_pd( _mm256_castpd256_pd128( c_0 ), 0x0 );
+		inv = _mm_div_pd( _mm256_castpd256_pd128( ones ), inv );
+		b_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( inv ), _mm256_castpd128_pd256( inv ), 0x00 );
+		_mm_store_sd( &inv_diag_A[0], inv );
+		tmp = _mm256_mul_pd( c_0, b_0 );
+		c_0 = _mm256_blend_pd( tmp, c_0, 0x1 );
+		_mm256_store_pd( &pA[0+bs*0], c_0 );
+		pB = pA + bs*sda;
 		k = 0;
 		for(; k<ma-7; k+=8)
 			{
@@ -1404,12 +1407,18 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 			msk = _mm256_broadcast_sd( &dlft );
 			msk = _mm256_cmp_pd( msk, lft, 14 ); // >
 			c_0 = _mm256_load_pd( &pB[0+bs*0] );
-			tmp = _mm256_blendv_pd( b_0, ones, msk );
-			c_0 = _mm256_mul_pd( c_0, tmp );
+			tmp = _mm256_mul_pd( c_0, b_0 );
+			c_0 = _mm256_blendv_pd( tmp, c_0, msk );
 			_mm256_store_pd( &pB[0+bs*0], c_0 );
 //			pB += bs*sda;
 			}
 #else
+		tmp0 = 1.0 / pA[0+bs*0];
+		inv_diag_A[0] = tmp0;
+		pA[1+bs*0] *= tmp0;
+		pA[2+bs*0] *= tmp0;
+		pA[3+bs*0] *= tmp0;
+		pB = pA + bs*sda;
 		for(k=0; k<ma-3; k+=4)
 			{
 			pB[0+bs*0] *= tmp0;
@@ -1431,19 +1440,16 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		}
 
 	// second column
-	u_01  = pA[0+bs*1];
-	tmp1  = pA[1+bs*1];
-	tmp2  = pA[2+bs*1];
-	tmp3  = pA[3+bs*1];
-	tmp1 -= pA[1+bs*0] * u_01;
-	tmp2 -= pA[2+bs*0] * u_01;
-	tmp3 -= pA[3+bs*0] * u_01;
-	pA[1+bs*1] = tmp1;
-	pA[2+bs*1] = tmp2;
-	pA[3+bs*1] = tmp3;
-	pB = pA + bs*sda;
 #if 1
-	b_0 = _mm256_broadcast_sd( &u_01 );
+	c_0 = _mm256_load_pd( &pA[0+bs*1] );
+	b_0 = _mm256_permute2f128_pd( c_0, c_0, 0x00 );
+	b_0 = _mm256_permute_pd( b_0, 0x0 );
+	a_0 = _mm256_load_pd( &pA[0+bs*0] );
+	tmp = _mm256_mul_pd( a_0, b_0 );
+	d_0 = _mm256_sub_pd( c_0, tmp );
+	c_0 = _mm256_blend_pd( d_0, c_0, 0x1 );
+	_mm256_store_pd( &pA[0+bs*1], c_0 );
+	pB = pA + bs*sda;
 	k = 0;
 	for(; k<ma-7; k+=8)
 		{
@@ -1469,7 +1475,31 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		_mm256_store_pd( &pB[0+bs*1], c_0 );
 		pB += bs*sda;
 		}
+	if(k<ma)
+		{
+		dlft = ma-k;
+		msk = _mm256_broadcast_sd( &dlft );
+		msk = _mm256_cmp_pd( msk, lft, 14 ); // >
+		c_0 = _mm256_load_pd( &pB[0+bs*1] );
+		a_0 = _mm256_load_pd( &pB[0+bs*0] );
+		tmp = _mm256_mul_pd( a_0, b_0 );
+		d_0 = _mm256_sub_pd( c_0, tmp );
+		c_0 = _mm256_blendv_pd( d_0, c_0, msk );
+		_mm256_store_pd( &pB[0+bs*1], c_0 );
+//		pB += bs*sda;
+		}
 #else
+	u_01  = pA[0+bs*1];
+	tmp1  = pA[1+bs*1];
+	tmp2  = pA[2+bs*1];
+	tmp3  = pA[3+bs*1];
+	tmp1 -= pA[1+bs*0] * u_01;
+	tmp2 -= pA[2+bs*0] * u_01;
+	tmp3 -= pA[3+bs*0] * u_01;
+	pA[1+bs*1] = tmp1;
+	pA[2+bs*1] = tmp2;
+	pA[3+bs*1] = tmp3;
+	pB = pA + bs*sda;
 	for(k=0; k<ma-3; k+=4)
 		{
 		tmp0  = pB[0+bs*1];
@@ -1486,7 +1516,6 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		pB[3+bs*1] = tmp3;
 		pB += bs*sda;
 		}
-#endif
 	for( ; k<ma; k++)
 		{
 		tmp0 = pB[0+bs*1];
@@ -1494,6 +1523,7 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		pB[0+bs*1] = tmp0;
 		pB += 1;
 		}
+#endif
 
 	idamax_lib4(m-1, 1, &pA[1+bs*1], sda, &idamax, &tmp1);
 	ipiv[1] = idamax+1;
@@ -1502,13 +1532,16 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		if(ipiv[1]!=1)
 			drowsw_lib(4, pA+1, pA+ipiv[1]/bs*bs*sda+ipiv[1]%bs);
 
-		tmp1 = 1.0 / pA[1+bs*1];
-		inv_diag_A[1] = tmp1;
-		pA[2+bs*1] *= tmp1;
-		pA[3+bs*1] *= tmp1;
-		pB = pA + bs*sda;
 #if 1
-		b_0 = _mm256_broadcast_sd( &tmp1 );
+		c_0 = _mm256_load_pd( &pA[0+bs*1] );
+		inv = _mm_permute_pd( _mm256_castpd256_pd128( c_0 ), 0x3 );
+		inv = _mm_div_pd( _mm256_castpd256_pd128( ones ), inv );
+		b_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( inv ), _mm256_castpd128_pd256( inv ), 0x00 );
+		_mm_store_sd( &inv_diag_A[1], inv );
+		tmp = _mm256_mul_pd( c_0, b_0 );
+		c_0 = _mm256_blend_pd( tmp, c_0, 0x3 );
+		_mm256_store_pd( &pA[0+bs*1], c_0 );
+		pB = pA + bs*sda;
 		k = 0;
 		for(; k<ma-7; k+=8)
 			{
@@ -1528,7 +1561,23 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 			_mm256_store_pd( &pB[0+bs*1], c_0 );
 			pB += bs*sda;
 			}
+		if(k<ma)
+			{
+			dlft = ma-k;
+			msk = _mm256_broadcast_sd( &dlft );
+			msk = _mm256_cmp_pd( msk, lft, 14 ); // >
+			c_0 = _mm256_load_pd( &pB[0+bs*1] );
+			tmp = _mm256_mul_pd( c_0, b_0 );
+			c_0 = _mm256_blendv_pd( tmp, c_0, msk );
+			_mm256_store_pd( &pB[0+bs*1], c_0 );
+//			pB += bs*sda;
+			}
 #else
+		tmp1 = 1.0 / pA[1+bs*1];
+		inv_diag_A[1] = tmp1;
+		pA[2+bs*1] *= tmp1;
+		pA[3+bs*1] *= tmp1;
+		pB = pA + bs*sda;
 		for(k=0; k<ma-3; k+=4)
 			{
 			pB[0+bs*1] *= tmp1;
@@ -1537,12 +1586,12 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 			pB[3+bs*1] *= tmp1;
 			pB += bs*sda;
 			}
-#endif
 		for( ; k<ma; k++)
 			{
 			pB[0+bs*1] *= tmp1;
 			pB += 1;
 			}
+#endif
 		}
 	else
 		{
@@ -1550,22 +1599,22 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		}
 
 	// third column
-	u_02  = pA[0+bs*2];
-	u_12  = pA[1+bs*2];
-	u_12 -= pA[1+bs*0] * u_02;
-	pA[1+bs*2] = u_12;
-	tmp2  = pA[2+bs*2];
-	tmp3  = pA[3+bs*2];
-	tmp2 -= pA[2+bs*0] * u_02;
-	tmp3 -= pA[3+bs*0] * u_02;
-	tmp2 -= pA[2+bs*1] * u_12;
-	tmp3 -= pA[3+bs*1] * u_12;
-	pA[2+bs*2] = tmp2;
-	pA[3+bs*2] = tmp3;
-	pB = pA + bs*sda;
 #if 1
-	b_0 = _mm256_broadcast_sd( &u_02 );
-	b_1 = _mm256_broadcast_sd( &u_12 );
+	c_0 = _mm256_load_pd( &pA[0+bs*2] );
+	b_0 = _mm256_permute2f128_pd( c_0, c_0, 0x00 );
+	b_0 = _mm256_permute_pd( b_0, 0x0 );
+	a_0 = _mm256_load_pd( &pA[0+bs*0] );
+	tmp = _mm256_mul_pd( a_0, b_0 );
+	tmp = _mm256_sub_pd( c_0, tmp );
+	c_0 = _mm256_blend_pd( tmp, c_0, 0x1 );
+	b_1 = _mm256_permute2f128_pd( c_0, c_0, 0x00 );
+	b_1 = _mm256_permute_pd( b_1, 0xf );
+	a_0 = _mm256_load_pd( &pA[0+bs*1] );
+	tmp = _mm256_mul_pd( a_0, b_1 );
+	tmp = _mm256_sub_pd( c_0, tmp );
+	c_0 = _mm256_blend_pd( tmp, c_0, 0x3 );
+	_mm256_store_pd( &pA[0+bs*2], c_0 );
+	pB = pA + bs*sda;
 	k = 0;
 	for(; k<ma-7; k+=8)
 		{
@@ -1600,7 +1649,36 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		_mm256_store_pd( &pB[0+bs*2], c_0 );
 		pB += bs*sda;
 		}
+	if(k<ma)
+		{
+		dlft = ma-k;
+		msk = _mm256_broadcast_sd( &dlft );
+		msk = _mm256_cmp_pd( msk, lft, 14 ); // >
+		c_0 = _mm256_load_pd( &pB[0+bs*2] );
+		a_0 = _mm256_load_pd( &pB[0+bs*0] );
+		tmp = _mm256_mul_pd( a_0, b_0 );
+		d_0 = _mm256_sub_pd( c_0, tmp );
+		a_0 = _mm256_load_pd( &pB[0+bs*1] );
+		tmp = _mm256_mul_pd( a_0, b_1 );
+		d_0 = _mm256_sub_pd( c_0, tmp );
+		c_0 = _mm256_blendv_pd( d_0, c_0, msk);
+		_mm256_store_pd( &pB[0+bs*2], c_0 );
+//		pB += bs*sda;
+		}
 #else
+	u_02  = pA[0+bs*2];
+	u_12  = pA[1+bs*2];
+	u_12 -= pA[1+bs*0] * u_02;
+	pA[1+bs*2] = u_12;
+	tmp2  = pA[2+bs*2];
+	tmp3  = pA[3+bs*2];
+	tmp2 -= pA[2+bs*0] * u_02;
+	tmp3 -= pA[3+bs*0] * u_02;
+	tmp2 -= pA[2+bs*1] * u_12;
+	tmp3 -= pA[3+bs*1] * u_12;
+	pA[2+bs*2] = tmp2;
+	pA[3+bs*2] = tmp3;
+	pB = pA + bs*sda;
 	for(k=0; k<ma-3; k+=4)
 		{
 		tmp0  = pB[0+bs*2];
@@ -1621,7 +1699,6 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		pB[3+bs*2] = tmp3;
 		pB += bs*sda;
 		}
-#endif
 	for( ; k<ma; k++)
 		{
 		tmp0  = pB[0+bs*2];
@@ -1630,6 +1707,7 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		pB[0+bs*2] = tmp0;
 		pB += 1;
 		}
+#endif
 
 	idamax_lib4(m-2, 2, &pA[2+bs*2], sda, &idamax, &tmp2);
 	ipiv[2] = idamax+2;
@@ -1638,12 +1716,16 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		if(ipiv[2]!=2)
 			drowsw_lib(4, pA+2, pA+ipiv[2]/bs*bs*sda+ipiv[2]%bs);
 
-		tmp2 = 1.0 / pA[2+bs*2];
-		inv_diag_A[2] = tmp2;
-		pA[3+bs*2] *= tmp2;
-		pB = pA + bs*sda;
 #if 1
-		b_0 = _mm256_broadcast_sd( &tmp2 );
+		c_0 = _mm256_load_pd( &pA[0+bs*2] );
+		inv = _mm_permute_pd( _mm256_extractf128_pd( c_0, 0x1 ), 0x0 );
+		inv = _mm_div_pd( _mm256_castpd256_pd128( ones ), inv );
+		b_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( inv ), _mm256_castpd128_pd256( inv ), 0x00 );
+		_mm_store_sd( &inv_diag_A[2], inv );
+		tmp = _mm256_mul_pd( c_0, b_0 );
+		c_0 = _mm256_blend_pd( tmp, c_0, 0x7 );
+		_mm256_store_pd( &pA[0+bs*2], c_0 );
+		pB = pA + bs*sda;
 		k = 0;
 		for(; k<ma-7; k+=8)
 			{
@@ -1663,6 +1745,17 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 			_mm256_store_pd( &pB[0+bs*2], c_0 );
 			pB += bs*sda;
 			}
+		if(k<ma)
+			{
+			dlft = ma-k;
+			msk = _mm256_broadcast_sd( &dlft );
+			msk = _mm256_cmp_pd( msk, lft, 14 ); // >
+			c_0 = _mm256_load_pd( &pB[0+bs*2] );
+			tmp = _mm256_mul_pd( c_0, b_0 );
+			c_0 = _mm256_blendv_pd( tmp, c_0, msk );
+			_mm256_store_pd( &pB[0+bs*2], c_0 );
+//			pB += bs*sda;
+			}
 #else
 		for(k=0; k<ma-3; k+=4)
 			{
@@ -1672,12 +1765,12 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 			pB[3+bs*2] *= tmp2;
 			pB += bs*sda;
 			}
-#endif
 		for( ; k<ma; k++)
 			{
 			pB[0+bs*2] *= tmp2;
 			pB += 1;
 			}
+#endif
 		}
 	else
 		{
@@ -1685,24 +1778,28 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		}
 
 	// fourth column
-	u_03  = pA[0+bs*3];
-	u_13  = pA[1+bs*3];
-	u_13 -= pA[1+bs*0] * u_03;
-	pA[1+bs*3] = u_13;
-	u_23  = pA[2+bs*3];
-	u_23 -= pA[2+bs*0] * u_03;
-	u_23 -= pA[2+bs*1] * u_13;
-	pA[2+bs*3] = u_23;
-	tmp3  = pA[3+bs*3];
-	tmp3 -= pA[3+bs*0] * u_03;
-	tmp3 -= pA[3+bs*1] * u_13;
-	tmp3 -= pA[3+bs*2] * u_23;
-	pA[3+bs*3] = tmp3;
-	pB = pA + bs*sda;
 #if 1
-	b_0 = _mm256_broadcast_sd( &u_03 );
-	b_1 = _mm256_broadcast_sd( &u_13 );
-	b_2 = _mm256_broadcast_sd( &u_23 );
+	c_0 = _mm256_load_pd( &pA[0+bs*3] );
+	b_0 = _mm256_permute2f128_pd( c_0, c_0, 0x00 );
+	b_0 = _mm256_permute_pd( b_0, 0x0 );
+	a_0 = _mm256_load_pd( &pA[0+bs*0] );
+	tmp = _mm256_mul_pd( a_0, b_0 );
+	tmp = _mm256_sub_pd( c_0, tmp );
+	c_0 = _mm256_blend_pd( tmp, c_0, 0x1 );
+	b_1 = _mm256_permute2f128_pd( c_0, c_0, 0x00 );
+	b_1 = _mm256_permute_pd( b_1, 0xf );
+	a_0 = _mm256_load_pd( &pA[0+bs*1] );
+	tmp = _mm256_mul_pd( a_0, b_1 );
+	tmp = _mm256_sub_pd( c_0, tmp );
+	c_0 = _mm256_blend_pd( tmp, c_0, 0x3 );
+	b_2 = _mm256_permute2f128_pd( c_0, c_0, 0x11 );
+	b_2 = _mm256_permute_pd( b_2, 0x0 );
+	a_0 = _mm256_load_pd( &pA[0+bs*2] );
+	tmp = _mm256_mul_pd( a_0, b_2 );
+	tmp = _mm256_sub_pd( c_0, tmp );
+	c_0 = _mm256_blend_pd( tmp, c_0, 0x7 );
+	_mm256_store_pd( &pA[0+bs*3], c_0 );
+	pB = pA + bs*sda;
 	k = 0;
 	for(; k<ma-7; k+=8)
 		{
@@ -1746,7 +1843,42 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		_mm256_store_pd( &pB[0+bs*3], c_0 );
 		pB += bs*sda;
 		}
+	if(k<ma)
+		{
+		dlft = ma-k;
+		msk = _mm256_broadcast_sd( &dlft );
+		msk = _mm256_cmp_pd( msk, lft, 14 ); // >
+		c_0 = _mm256_load_pd( &pB[0+bs*3] );
+		a_0 = _mm256_load_pd( &pB[0+bs*0] );
+		tmp = _mm256_mul_pd( a_0, b_0 );
+		d_0 = _mm256_sub_pd( c_0, tmp );
+		c_0 = _mm256_blendv_pd( d_0, c_0, msk);
+		a_0 = _mm256_load_pd( &pB[0+bs*1] );
+		tmp = _mm256_mul_pd( a_0, b_1 );
+		d_0 = _mm256_sub_pd( c_0, tmp );
+		c_0 = _mm256_blendv_pd( d_0, c_0, msk);
+		a_0 = _mm256_load_pd( &pB[0+bs*2] );
+		tmp = _mm256_mul_pd( a_0, b_2 );
+		d_0 = _mm256_sub_pd( c_0, tmp );
+		c_0 = _mm256_blendv_pd( d_0, c_0, msk);
+		_mm256_store_pd( &pB[0+bs*3], c_0 );
+//		pB += bs*sda;
+		}
 #else
+	u_03  = pA[0+bs*3];
+	u_13  = pA[1+bs*3];
+	u_13 -= pA[1+bs*0] * u_03;
+	pA[1+bs*3] = u_13;
+	u_23  = pA[2+bs*3];
+	u_23 -= pA[2+bs*0] * u_03;
+	u_23 -= pA[2+bs*1] * u_13;
+	pA[2+bs*3] = u_23;
+	tmp3  = pA[3+bs*3];
+	tmp3 -= pA[3+bs*0] * u_03;
+	tmp3 -= pA[3+bs*1] * u_13;
+	tmp3 -= pA[3+bs*2] * u_23;
+	pA[3+bs*3] = tmp3;
+	pB = pA + bs*sda;
 	for(k=0; k<ma-3; k+=4)
 		{
 		tmp0  = pB[0+bs*3];
@@ -1771,7 +1903,6 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		pB[3+bs*3] = tmp3;
 		pB += bs*sda;
 		}
-#endif
 	for( ; k<ma; k++)
 		{
 		tmp0  = pB[0+bs*3];
@@ -1781,6 +1912,7 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		pB[0+bs*3] = tmp0;
 		pB += 1;
 		}
+#endif
 
 	idamax_lib4(m-3, 3, &pA[3+bs*3], sda, &idamax, &tmp3);
 	ipiv[3] = idamax+3;
@@ -1789,11 +1921,14 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 		if(ipiv[3]!=3)
 			drowsw_lib(4, pA+3, pA+ipiv[3]/bs*bs*sda+ipiv[3]%bs);
 
-		tmp3 = 1.0 / pA[3+bs*3];
-		inv_diag_A[3] = tmp3;
-		pB = pA + bs*sda;
 #if 1
-		b_0 = _mm256_broadcast_sd( &tmp3 );
+		c_0 = _mm256_load_pd( &pA[0+bs*3] );
+		inv = _mm_permute_pd( _mm256_extractf128_pd( c_0, 0x1 ), 0x3 );
+		inv = _mm_div_pd( _mm256_castpd256_pd128( ones ), inv );
+		b_0 = _mm256_permute2f128_pd( _mm256_castpd128_pd256( inv ), _mm256_castpd128_pd256( inv ), 0x00 );
+		_mm_store_sd( &inv_diag_A[3], inv );
+		pB = pA + bs*sda;
+//		b_0 = _mm256_broadcast_sd( &tmp3 );
 		k = 0;
 		for(; k<ma-7; k+=8)
 			{
@@ -1813,7 +1948,21 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 			_mm256_store_pd( &pB[0+bs*3], c_0 );
 			pB += bs*sda;
 			}
+		if(k<ma)
+			{
+			dlft = ma-k;
+			msk = _mm256_broadcast_sd( &dlft );
+			msk = _mm256_cmp_pd( msk, lft, 14 ); // >
+			c_0 = _mm256_load_pd( &pB[0+bs*3] );
+			tmp = _mm256_mul_pd( c_0, b_0 );
+			c_0 = _mm256_blendv_pd( tmp, c_0, msk );
+			_mm256_store_pd( &pB[0+bs*3], c_0 );
+//			pB += bs*sda;
+			}
 #else
+		tmp3 = 1.0 / pA[3+bs*3];
+		inv_diag_A[3] = tmp3;
+		pB = pA + bs*sda;
 		for(k=0; k<ma-3; k+=4)
 			{
 			pB[0+bs*3] *= tmp3;
@@ -1822,12 +1971,12 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 			pB[3+bs*3] *= tmp3;
 			pB += bs*sda;
 			}
-#endif
 		for( ; k<ma; k++)
 			{
 			pB[0+bs*3] *= tmp3;
 			pB += 1;
 			}
+#endif
 		}
 	else
 		{
