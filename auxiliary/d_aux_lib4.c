@@ -28,6 +28,14 @@
 #include "../include/block_size.h"
 #include "../include/kernel_d_lib4.h"
 
+#if defined(TARGET_X64_AVX)
+#include <mmintrin.h>
+#include <xmmintrin.h>  // SSE
+#include <emmintrin.h>  // SSE2
+#include <pmmintrin.h>  // SSE3
+#include <smmintrin.h>  // SSE4
+#include <immintrin.h>  // AVX
+#endif
 
 
 /* copies a matrix */
@@ -1303,13 +1311,139 @@ void d_cvt_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA
 	
 	const int bs = 4;
 
-	int i, ii, j, row0, row1, row2;
+	int 
+		i, ii, j, jj, row0, row1, row2;
+	
+	double
+		*B, *pB;
 	
 	row0 = (bs-offset%bs)%bs;
 	if(row0>row)
 		row0 = row;
 	row1 = row - row0;
 	
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+	__m256d
+		tmp;
+#endif
+
+#if 1
+	jj = 0;
+	for( ; jj<col-3; jj+=4)
+		{
+
+		B  =  A + jj*lda;
+		pB = pA + jj*bs;
+
+		ii = 0;
+		if(row0>0)
+			{
+			for( ; ii<row0; ii++)
+				{
+				pB[ii+bs*0] = B[ii+lda*0];
+				pB[ii+bs*1] = B[ii+lda*1];
+				pB[ii+bs*2] = B[ii+lda*2];
+				pB[ii+bs*3] = B[ii+lda*3];
+				}
+			B  += row0;
+			pB += row0 + bs*(sda-1);
+			}
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+		for( ; ii<row-3; ii+=4)
+			{
+			tmp = _mm256_loadu_pd( &B[0+lda*0] );
+			_mm256_store_pd( &pB[0+bs*0], tmp );
+			tmp = _mm256_loadu_pd( &B[0+lda*1] );
+			_mm256_store_pd( &pB[0+bs*1], tmp );
+			tmp = _mm256_loadu_pd( &B[0+lda*2] );
+			_mm256_store_pd( &pB[0+bs*2], tmp );
+			tmp = _mm256_loadu_pd( &B[0+lda*3] );
+			_mm256_store_pd( &pB[0+bs*3], tmp );
+			// update
+			B  += 4;
+			pB += bs*sda;
+			}
+#else
+		for( ; ii<row-3; ii+=4)
+			{
+			// col 0
+			pB[0+bs*0] = B[0+lda*0];
+			pB[1+bs*0] = B[1+lda*0];
+			pB[2+bs*0] = B[2+lda*0];
+			pB[3+bs*0] = B[3+lda*0];
+			// col 1
+			pB[0+bs*1] = B[0+lda*1];
+			pB[1+bs*1] = B[1+lda*1];
+			pB[2+bs*1] = B[2+lda*1];
+			pB[3+bs*1] = B[3+lda*1];
+			// col 2
+			pB[0+bs*2] = B[0+lda*2];
+			pB[1+bs*2] = B[1+lda*2];
+			pB[2+bs*2] = B[2+lda*2];
+			pB[3+bs*2] = B[3+lda*2];
+			// col 3
+			pB[0+bs*3] = B[0+lda*3];
+			pB[1+bs*3] = B[1+lda*3];
+			pB[2+bs*3] = B[2+lda*3];
+			pB[3+bs*3] = B[3+lda*3];
+			// update
+			B  += 4;
+			pB += bs*sda;
+			}
+#endif
+		for( ; ii<row; ii++)
+			{
+			// col 0
+			pB[0+bs*0] = B[0+lda*0];
+			// col 1
+			pB[0+bs*1] = B[0+lda*1];
+			// col 2
+			pB[0+bs*2] = B[0+lda*2];
+			// col 3
+			pB[0+bs*3] = B[0+lda*3];
+			// update
+			B  += 1;
+			pB += 1;
+			}
+		}
+	for( ; jj<col; jj++)
+		{
+
+		B  =  A + jj*lda;
+		pB = pA + jj*bs;
+
+		ii = 0;
+		if(row0>0)
+			{
+			for( ; ii<row0; ii++)
+				{
+				pB[ii+bs*0] = B[ii+lda*0];
+				}
+			B  += row0;
+			pB += row0 + bs*(sda-1);
+			}
+		for( ; ii<row-3; ii+=4)
+			{
+			// col 0
+			pB[0+bs*0] = B[0+lda*0];
+			pB[1+bs*0] = B[1+lda*0];
+			pB[2+bs*0] = B[2+lda*0];
+			pB[3+bs*0] = B[3+lda*0];
+			// update
+			B  += 4;
+			pB += bs*sda;
+			}
+		for( ; ii<row; ii++)
+			{
+			// col 0
+			pB[0+bs*0] = B[0+lda*0];
+			// update
+			B  += 1;
+			pB += 1;
+			}
+		}
+	
+#else
 	ii = 0;
 	if(row0>0)
 		{
@@ -1331,6 +1465,16 @@ void d_cvt_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA
 		j=0;
 		for(; j<col-3; j+=4)
 			{
+#if defined(TARGET_X64_AVX)
+			tmp = _mm256_loadu_pd( &A[ii+0+(j+0)*lda] );
+			_mm256_store_pd( &pA[0+(j+0)*bs+ii*sda], tmp );
+			tmp = _mm256_loadu_pd( &A[ii+0+(j+1)*lda] );
+			_mm256_store_pd( &pA[0+(j+1)*bs+ii*sda], tmp );
+			tmp = _mm256_loadu_pd( &A[ii+0+(j+2)*lda] );
+			_mm256_store_pd( &pA[0+(j+2)*bs+ii*sda], tmp );
+			tmp = _mm256_loadu_pd( &A[ii+0+(j+3)*lda] );
+			_mm256_store_pd( &pA[0+(j+3)*bs+ii*sda], tmp );
+#else
 			// unroll 0
 			pA[0+(j+0)*bs+ii*sda] = A[ii+0+(j+0)*lda];
 			pA[1+(j+0)*bs+ii*sda] = A[ii+1+(j+0)*lda];
@@ -1351,6 +1495,7 @@ void d_cvt_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA
 			pA[1+(j+3)*bs+ii*sda] = A[ii+1+(j+3)*lda];
 			pA[2+(j+3)*bs+ii*sda] = A[ii+2+(j+3)*lda];
 			pA[3+(j+3)*bs+ii*sda] = A[ii+3+(j+3)*lda];
+#endif
 			}
 		for(; j<col; j++)
 			{
@@ -1372,6 +1517,7 @@ void d_cvt_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA
 				}
 			}
 		}
+#endif
 	
 	}
 

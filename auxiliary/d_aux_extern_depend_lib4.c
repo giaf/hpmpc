@@ -184,7 +184,7 @@ void d_print_pmat_e(int row, int col, int bs, double *A, int sda)
 			{
 			for(j=0; j<col; j++)
 				{
-				printf("%e ", *(A+i+j*bs+ii*sda));
+				printf("%12.4e ", *(A+i+j*bs+ii*sda));
 				}
 			printf("\n");
 			}
