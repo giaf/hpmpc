@@ -48,7 +48,7 @@ int main()
 
 #if 1
 
-	int n = 12;
+	int n = 16;
 
 	int pn = (n+bs-1)/bs*bs;
 	int cn = (n+ncl-1)/ncl*ncl;
@@ -81,12 +81,11 @@ int main()
 
 	int *ipiv; i_zeros(&ipiv, n, 1);
 
-//	dgetrf_lib(n, pC, cn, pD, cn, inv_diag_D);
-//	kernel_dgetrf_pivot_4_lib4(n, pC, cn, inv_diag_D, ipiv);
-	dgetrf_pivot_lib(n, pC, cn, pD, cn, inv_diag_D, ipiv);
+//	dgetrf_lib(4, 16, pC, cn, pD, cn, inv_diag_D);
+	dgetrf_pivot_lib(12, 16, pC, cn, pD, cn, inv_diag_D, ipiv);
 
 //	d_print_pmat(n, n, bs, pC, cn);
-	d_print_pmat(n, n, bs, pD, cn);
+	d_print_pmat_e(n, n, bs, pD, cn);
 //	d_print_mat(1, n, inv_diag_D, 1);
 	i_print_mat(1, n, ipiv, 1);
 

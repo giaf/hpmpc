@@ -42,8 +42,9 @@ $ make
 
 More documentation will be available soon.
 
-Questions and comments can be send to the author Gianluca Frison, at the email address
+Questions and comments can be send to the author Gianluca Frison, at the email addresses
 
 giaf (at) dtu.dk
+gianluca.frison (at) imtek.uni-freiburg.de
 
 

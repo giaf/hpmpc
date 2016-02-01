@@ -20,6 +20,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA                  *
 *                                                                                                 *
 * Author: Gianluca Frison, giaf (at) dtu.dk                                                       *
+                           gianluca.frison (at) imtek.uni-freiburg.de
 *                                                                                                 *
 **************************************************************************************************/
 
