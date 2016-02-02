@@ -1317,15 +1317,15 @@ void d_cvt_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA
 	double
 		*B, *pB;
 	
-	row0 = (bs-offset%bs)%bs;
-	if(row0>row)
-		row0 = row;
-	row1 = row - row0;
-	
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	__m256d
 		tmp;
 #endif
+
+	row0 = (bs-offset%bs)%bs;
+	if(row0>row)
+		row0 = row;
+	row1 = row - row0;
 
 #if 1
 	jj = 0;
@@ -1532,10 +1532,16 @@ void d_cvt_tran_mat2pmat(int row, int col, double *A, int lda, int offset, doubl
 
 	int i, ii, j, row0, row1, row2;
 	
+	double
+		*B, *pB;
+	
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+	__m256d
+		v0, v1, v2, v3,
+		v4, v5, v6, v7;
+#endif
+
 	row0 = (bs-offset%bs)%bs;
-/*	if(row0>row)*/
-/*		row0 = row;*/
-/*	row1 = row - row0;*/
 	if(row0>col)
 		row0 = col;
 	row1 = col - row0;
@@ -1543,17 +1549,14 @@ void d_cvt_tran_mat2pmat(int row, int col, double *A, int lda, int offset, doubl
 	ii = 0;
 	if(row0>0)
 		{
-/*		for(j=0; j<col; j++)*/
 		for(j=0; j<row; j++)
 			{
 			for(i=0; i<row0; i++)
 				{
-/*				pA[i+j*bs+ii*sda] = A[i+ii+j*lda];*/
 				pA[i+j*bs+ii*sda] = A[j+(i+ii)*lda];
 				}
 			}
 	
-/*		A  += row0;*/
 		A  += row0*lda;
 		pA += row0 + bs*(sda-1);
 		}
@@ -1562,9 +1565,60 @@ void d_cvt_tran_mat2pmat(int row, int col, double *A, int lda, int offset, doubl
 	for(; ii<row1-3; ii+=bs)
 		{
 		j=0;
-/*		for(; j<col-3; j+=4)*/
+		B  = A + ii*lda;
+		pB = pA + ii*sda;
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 		for(; j<row-3; j+=4)
 			{
+			v0 = _mm256_loadu_pd( &B[0+0*lda] ); // 00 10 20 30
+			v1 = _mm256_loadu_pd( &B[0+1*lda] ); // 01 11 21 31
+			v4 = _mm256_unpacklo_pd( v0, v1 ); // 00 01 20 21
+			v5 = _mm256_unpackhi_pd( v0, v1 ); // 10 11 30 31
+			v2 = _mm256_loadu_pd( &B[0+2*lda] ); // 02 12 22 32
+			v3 = _mm256_loadu_pd( &B[0+3*lda] ); // 03 13 23 33
+			v6 = _mm256_unpacklo_pd( v2, v3 ); // 02 03 22 23
+			v7 = _mm256_unpackhi_pd( v2, v3 ); // 12 13 32 33
+			
+			B += 4;
+
+			v0 = _mm256_permute2f128_pd( v4, v6, 0x20 ); // 00 01 02 03
+			_mm256_store_pd( &pB[0+bs*0], v0 );
+			v2 = _mm256_permute2f128_pd( v4, v6, 0x31 ); // 20 21 22 23
+			_mm256_store_pd( &pB[0+bs*2], v2 );
+			v1 = _mm256_permute2f128_pd( v5, v7, 0x20 ); // 10 11 12 13
+			_mm256_store_pd( &pB[0+bs*1], v1 );
+			v3 = _mm256_permute2f128_pd( v5, v7, 0x31 ); // 30 31 32 33
+			_mm256_store_pd( &pB[0+bs*3], v3 );
+
+			pB += 4*bs;
+			}
+#else
+		for(; j<row-3; j+=4)
+			{
+#if 1
+			// unroll 0
+			pB[0+0*bs] = B[0+0*lda];
+			pB[1+0*bs] = B[0+1*lda];
+			pB[2+0*bs] = B[0+2*lda];
+			pB[3+0*bs] = B[0+3*lda];
+			// unroll 1
+			pB[0+1*bs] = B[1+0*lda];
+			pB[1+1*bs] = B[1+1*lda];
+			pB[2+1*bs] = B[1+2*lda];
+			pB[3+1*bs] = B[1+3*lda];
+			// unroll 2
+			pB[0+2*bs] = B[2+0*lda];
+			pB[1+2*bs] = B[2+1*lda];
+			pB[2+2*bs] = B[2+2*lda];
+			pB[3+2*bs] = B[2+3*lda];
+			// unroll 3
+			pB[0+3*bs] = B[3+0*lda];
+			pB[1+3*bs] = B[3+1*lda];
+			pB[2+3*bs] = B[3+2*lda];
+			pB[3+3*bs] = B[3+3*lda];
+			B  += 4;
+			pB += 4*bs;
+#else
 			// unroll 0
 			pA[0+(j+0)*bs+ii*sda] = A[j+0+(ii+0)*lda];
 			pA[1+(j+0)*bs+ii*sda] = A[j+0+(ii+1)*lda];
@@ -1585,26 +1639,35 @@ void d_cvt_tran_mat2pmat(int row, int col, double *A, int lda, int offset, doubl
 			pA[1+(j+3)*bs+ii*sda] = A[j+3+(ii+1)*lda];
 			pA[2+(j+3)*bs+ii*sda] = A[j+3+(ii+2)*lda];
 			pA[3+(j+3)*bs+ii*sda] = A[j+3+(ii+3)*lda];
+#endif
 			}
-/*		for(; j<col; j++)*/
+#endif
 		for(; j<row; j++)
 			{
+#if 1
+			// unroll 0
+			pB[0+0*bs] = B[0+0*lda];
+			pB[1+0*bs] = B[0+1*lda];
+			pB[2+0*bs] = B[0+2*lda];
+			pB[3+0*bs] = B[0+3*lda];
+			B  += 1;
+			pB += 1*bs;
+#else
 			pA[0+(j+0)*bs+ii*sda] = A[j+0+(ii+0)*lda];
 			pA[1+(j+0)*bs+ii*sda] = A[j+0+(ii+1)*lda];
 			pA[2+(j+0)*bs+ii*sda] = A[j+0+(ii+2)*lda];
 			pA[3+(j+0)*bs+ii*sda] = A[j+0+(ii+3)*lda];
+#endif
 			}
 		}
 	if(ii<row1)
 		{
 		row2 = row1-ii;
 		if(bs<row2) row2 = bs;
-/*		for(j=0; j<col; j++)*/
 		for(j=0; j<row; j++)
 			{
 			for(i=0; i<row2; i++)
 				{
-/*				pA[i+j*bs+ii*sda] = A[i+ii+j*lda];*/
 				pA[i+j*bs+ii*sda] = A[j+(i+ii)*lda];
 				}
 			}
