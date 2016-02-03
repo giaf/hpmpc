@@ -9538,7 +9538,7 @@ void dgemv_diag_lib(int m, double *dA, double *x, int alg, double *y, double *z)
 
 	
 
-#if defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
 void dgetrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D)
 	{
 
@@ -9697,7 +9697,10 @@ void dgetrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *
 		}
 	if(m>ii)
 		{
-		goto left_4;
+		if(n-ii>2)
+			goto left_4;
+		else
+			goto left_2;
 		}
 
 #endif
@@ -9788,12 +9791,50 @@ void dgetrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *
 		}
 	return;
 
+#if ! ( defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX) )
+	left_2:
+	jj = 0;
+	// solve lower
+	ie = n<ii ? n : ii; // ie is multiple of 4
+	for( ; jj<ie-2; jj+=4)
+		{
+		kernel_dtrsm_nn_ru_2x4_vs_lib4(m-ii, ie-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
+		}
+	if(jj<ie)
+		{
+		kernel_dtrsm_nn_ru_2x2_vs_lib4(m-ii, ie-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
+		jj+=2;
+		}
+	// factorize
+	if(jj<n-2)
+		{
+		kernel_dgetrf_nn_2x4_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &inv_diag_D[jj]);
+		jj+=4;
+		}
+	else if(jj<n)
+		{
+		kernel_dgetrf_nn_2x2_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &inv_diag_D[jj]);
+		jj+=2;
+		}
+	// solve upper 
+	for( ; jj<n-2; jj+=4)
+		{
+		kernel_dtrsm_nn_ll_diag_2x4_vs_lib4(m-ii, n-jj, ii, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &pD[ii*bs+ii*sdd]);
+		}
+	if(jj<n)
+		{
+		kernel_dtrsm_nn_ll_diag_2x2_vs_lib4(m-ii, n-jj, ii, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pC[jj*bs+ii*sdc], &pD[jj*bs+ii*sdd], &pD[ii*bs+ii*sdd]);
+		//jj+=2;
+		}
+	return;
+#endif
+
 	}
 #endif
 
 
 
-#if defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
 void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D, int *ipiv)
 	{
 
@@ -9802,247 +9843,20 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 	
 	const int bs = 4;
 
-	int ii, jj, i0, j0, ll;
+	int ii, jj, i0, j0, ll, p;
 
 	// needs to perform row-excanges on the yet-to-be-factorized matrix too
 	if(pC!=pD)
 		dgecp_lib(m, n, 0, pC, sdc, 0, pD, sdd);
 
-#if 0
-	for(jj=0; jj<n; jj+=4)
-		{
-		ii = 0;
-		// compute upper
-		for( ; ii<jj-4; ii+=8)
-			{
-			kernel_dtrsm_nn_ll_diag_8x4_lib4(ii, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+ii*sdd], sdd, &pD[ii*bs+ii*sdd], sdd);
-			}
-		for( ; ii<jj; ii+=4)
-			{
-			kernel_dtrsm_nn_ll_diag_4x4_lib4(ii, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], &pD[ii*bs+ii*sdd]);
-			}
-#if 0 // no pivot
-		// factorization
-		kernel_dgetrf_nn_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], &inv_diag_D[jj]);
-		ii += 4;
-		// compute lower
-		for( ; ii<m-4; ii+=8)
-			{
-			kernel_dtrsm_nn_ru_8x4_lib4(jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], sdc, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
-			}
-		for( ; ii<m; ii+=4)
-			{
-			kernel_dtrsm_nn_ru_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
-			}
-#else // pivot
-		i0 = ii;
-		for( ; ii<m-4; ii+=8)
-			{
-			kernel_dgemm_nn_8x4_lib4(jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+ii*sdd], sdd, 0, 0);
-			}
-		for( ; ii<m; ii+=4)
-			{
-			kernel_dgemm_nn_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
-			}
-		kernel_dgetrf_pivot_4_lib4(m-i0, &pD[jj*bs+i0*sdd], sdd, &inv_diag_D[jj], &ipiv[i0]);
-		ipiv[i0+0] += i0;
-		ipiv[i0+1] += i0;
-		ipiv[i0+2] += i0;
-		ipiv[i0+3] += i0;
-		if(ipiv[i0+0]!=i0+0)
-			{
-			drowsw_lib(jj, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs);
-			drowsw_lib(n-jj-4, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs+(jj+4)*bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs+(jj+4)*bs);
-			}
-		if(ipiv[i0+1]!=i0+1)
-			{
-			drowsw_lib(jj, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs);
-			drowsw_lib(n-jj-4, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs+(jj+4)*bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs+(jj+4)*bs);
-			}
-		if(ipiv[i0+2]!=i0+2)
-			{
-			drowsw_lib(jj, pD+(i0+2)/bs*bs*sdd+(i0+2)%bs, pD+(ipiv[i0+2])/bs*bs*sdd+(ipiv[i0+2])%bs);
-			drowsw_lib(n-jj-4, pD+(i0+2)/bs*bs*sdd+(i0+2)%bs+(jj+4)*bs, pD+(ipiv[i0+2])/bs*bs*sdd+(ipiv[i0+2])%bs+(jj+4)*bs);
-			}
-		if(ipiv[i0+3]!=i0+3)
-			{
-			drowsw_lib(jj, pD+(i0+3)/bs*bs*sdd+(i0+3)%bs, pD+(ipiv[i0+3])/bs*bs*sdd+(ipiv[i0+3])%bs);
-			drowsw_lib(n-jj-4, pD+(i0+3)/bs*bs*sdd+(i0+3)%bs+(jj+4)*bs, pD+(ipiv[i0+3])/bs*bs*sdd+(ipiv[i0+3])%bs+(jj+4)*bs);
-			}
-#endif
-		}
-#elif 0
-	jj = 0;
-	for(; jj<n-4; jj+=8)
-		{
-		ii = 0;
-		// compute upper
-		for( ; ii<jj-4; ii+=8)
-			{
-			kernel_dtrsm_nn_ll_diag_8x4_lib4(ii, &pD[ii*sdd], sdd, &pD[(jj+0)*bs], sdd, 1, &pD[(jj+0)*bs+ii*sdd], sdd, &pD[(jj+0)*bs+ii*sdd], sdd, &pD[ii*bs+ii*sdd], sdd);
-			kernel_dtrsm_nn_ll_diag_8x4_lib4(ii, &pD[ii*sdd], sdd, &pD[(jj+4)*bs], sdd, 1, &pD[(jj+4)*bs+ii*sdd], sdd, &pD[(jj+4)*bs+ii*sdd], sdd, &pD[ii*bs+ii*sdd], sdd);
-			}
-		for( ; ii<jj; ii+=4)
-			{
-			kernel_dtrsm_nn_ll_diag_4x4_lib4(ii, &pD[ii*sdd], &pD[(jj+0)*bs], sdd, 1, &pD[(jj+0)*bs+ii*sdd], &pD[(jj+0)*bs+ii*sdd], &pD[ii*bs+ii*sdd]);
-			kernel_dtrsm_nn_ll_diag_4x4_lib4(ii, &pD[ii*sdd], &pD[(jj+4)*bs], sdd, 1, &pD[(jj+4)*bs+ii*sdd], &pD[(jj+4)*bs+ii*sdd], &pD[ii*bs+ii*sdd]);
-			}
-#if 0 // no pivot
-		// factorization
-		kernel_dgetrf_nn_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], &inv_diag_D[jj]);
-		ii += 4;
-		// compute lower
-		for( ; ii<m-4; ii+=8)
-			{
-			kernel_dtrsm_nn_ru_8x4_lib4(jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], sdc, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
-			}
-		for( ; ii<m; ii+=4)
-			{
-			kernel_dtrsm_nn_ru_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
-			}
-#else // pivot
-		i0 = ii;
-		for( ; ii<m-4; ii+=8)
-			{
-			kernel_dgemm_nn_8x4_lib4(jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+ii*sdd], sdd, 0, 0);
-			}
-		for( ; ii<m; ii+=4)
-			{
-			kernel_dgemm_nn_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
-			}
-		kernel_dgetrf_pivot_4_lib4(m-i0, &pD[jj*bs+i0*sdd], sdd, &inv_diag_D[jj], &ipiv[i0]);
-		ipiv[i0+0] += i0;
-		ipiv[i0+1] += i0;
-		ipiv[i0+2] += i0;
-		ipiv[i0+3] += i0;
-		if(ipiv[i0+0]!=i0+0)
-			{
-			drowsw_lib(jj, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs);
-			drowsw_lib(n-jj-4, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs+(jj+4)*bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs+(jj+4)*bs);
-			}
-		if(ipiv[i0+1]!=i0+1)
-			{
-			drowsw_lib(jj, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs);
-			drowsw_lib(n-jj-4, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs+(jj+4)*bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs+(jj+4)*bs);
-			}
-		if(ipiv[i0+2]!=i0+2)
-			{
-			drowsw_lib(jj, pD+(i0+2)/bs*bs*sdd+(i0+2)%bs, pD+(ipiv[i0+2])/bs*bs*sdd+(ipiv[i0+2])%bs);
-			drowsw_lib(n-jj-4, pD+(i0+2)/bs*bs*sdd+(i0+2)%bs+(jj+4)*bs, pD+(ipiv[i0+2])/bs*bs*sdd+(ipiv[i0+2])%bs+(jj+4)*bs);
-			}
-		if(ipiv[i0+3]!=i0+3)
-			{
-			drowsw_lib(jj, pD+(i0+3)/bs*bs*sdd+(i0+3)%bs, pD+(ipiv[i0+3])/bs*bs*sdd+(ipiv[i0+3])%bs);
-			drowsw_lib(n-jj-4, pD+(i0+3)/bs*bs*sdd+(i0+3)%bs+(jj+4)*bs, pD+(ipiv[i0+3])/bs*bs*sdd+(ipiv[i0+3])%bs+(jj+4)*bs);
-			}
-		//
-		ii = i0;
-		kernel_dtrsm_nn_ll_diag_4x4_lib4(ii, &pD[ii*sdd], &pD[(jj+4)*bs], sdd, 1, &pD[(jj+4)*bs+ii*sdd], &pD[(jj+4)*bs+ii*sdd], &pD[ii*bs+ii*sdd]);
-		ii += 4;
-		i0 = ii;
-		for( ; ii<m-4; ii+=8)
-			{
-			kernel_dgemm_nn_8x4_lib4((jj+4), &pD[ii*sdd], sdd, &pD[(jj+4)*bs], sdd, -1, &pD[(jj+4)*bs+ii*sdd], sdd, &pD[(jj+4)*bs+ii*sdd], sdd, 0, 0);
-			}
-		for( ; ii<m; ii+=4)
-			{
-			kernel_dgemm_nn_4x4_lib4((jj+4), &pD[ii*sdd], &pD[(jj+4)*bs], sdd, -1, &pD[(jj+4)*bs+ii*sdd], &pD[(jj+4)*bs+ii*sdd], 0, 0);
-			}
-		kernel_dgetrf_pivot_4_lib4(m-i0, &pD[(jj+4)*bs+i0*sdd], sdd, &inv_diag_D[(jj+4)], &ipiv[i0]);
-		ipiv[i0+0] += i0;
-		ipiv[i0+1] += i0;
-		ipiv[i0+2] += i0;
-		ipiv[i0+3] += i0;
-		if(ipiv[i0+0]!=i0+0)
-			{
-			drowsw_lib(jj+4, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs);
-			drowsw_lib(n-jj-8, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs+(jj+8)*bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs+(jj+8)*bs);
-			}
-		if(ipiv[i0+1]!=i0+1)
-			{
-			drowsw_lib(jj+4, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs);
-			drowsw_lib(n-jj-8, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs+(jj+8)*bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs+(jj+8)*bs);
-			}
-		if(ipiv[i0+2]!=i0+2)
-			{
-			drowsw_lib(jj+4, pD+(i0+2)/bs*bs*sdd+(i0+2)%bs, pD+(ipiv[i0+2])/bs*bs*sdd+(ipiv[i0+2])%bs);
-			drowsw_lib(n-jj-8, pD+(i0+2)/bs*bs*sdd+(i0+2)%bs+(jj+8)*bs, pD+(ipiv[i0+2])/bs*bs*sdd+(ipiv[i0+2])%bs+(jj+8)*bs);
-			}
-		if(ipiv[i0+3]!=i0+3)
-			{
-			drowsw_lib(jj+4, pD+(i0+3)/bs*bs*sdd+(i0+3)%bs, pD+(ipiv[i0+3])/bs*bs*sdd+(ipiv[i0+3])%bs);
-			drowsw_lib(n-jj-8, pD+(i0+3)/bs*bs*sdd+(i0+3)%bs+(jj+8)*bs, pD+(ipiv[i0+3])/bs*bs*sdd+(ipiv[i0+3])%bs+(jj+8)*bs);
-			}
-#endif
-		}
-	for(; jj<n; jj+=4)
-		{
-		ii = 0;
-		// compute upper
-		for( ; ii<jj-4; ii+=8)
-			{
-			kernel_dtrsm_nn_ll_diag_8x4_lib4(ii, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+ii*sdd], sdd, &pD[ii*bs+ii*sdd], sdd);
-			}
-		for( ; ii<jj; ii+=4)
-			{
-			kernel_dtrsm_nn_ll_diag_4x4_lib4(ii, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], &pD[ii*bs+ii*sdd]);
-			}
-#if 0 // no pivot
-		// factorization
-		kernel_dgetrf_nn_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], &inv_diag_D[jj]);
-		ii += 4;
-		// compute lower
-		for( ; ii<m-4; ii+=8)
-			{
-			kernel_dtrsm_nn_ru_8x4_lib4(jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], sdc, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
-			}
-		for( ; ii<m; ii+=4)
-			{
-			kernel_dtrsm_nn_ru_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, 1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], &pD[jj*bs+jj*sdd], 1, &inv_diag_D[jj]);
-			}
-#else // pivot
-		i0 = ii;
-		for( ; ii<m-4; ii+=8)
-			{
-			kernel_dgemm_nn_8x4_lib4(jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+ii*sdd], sdd, 0, 0);
-			}
-		for( ; ii<m; ii+=4)
-			{
-			kernel_dgemm_nn_4x4_lib4(jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
-			}
-		kernel_dgetrf_pivot_4_lib4(m-i0, &pD[jj*bs+i0*sdd], sdd, &inv_diag_D[jj], &ipiv[i0]);
-		ipiv[i0+0] += i0;
-		ipiv[i0+1] += i0;
-		ipiv[i0+2] += i0;
-		ipiv[i0+3] += i0;
-		if(ipiv[i0+0]!=i0+0)
-			{
-			drowsw_lib(jj, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs);
-			drowsw_lib(n-jj-4, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs+(jj+4)*bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs+(jj+4)*bs);
-			}
-		if(ipiv[i0+1]!=i0+1)
-			{
-			drowsw_lib(jj, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs);
-			drowsw_lib(n-jj-4, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs+(jj+4)*bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs+(jj+4)*bs);
-			}
-		if(ipiv[i0+2]!=i0+2)
-			{
-			drowsw_lib(jj, pD+(i0+2)/bs*bs*sdd+(i0+2)%bs, pD+(ipiv[i0+2])/bs*bs*sdd+(ipiv[i0+2])%bs);
-			drowsw_lib(n-jj-4, pD+(i0+2)/bs*bs*sdd+(i0+2)%bs+(jj+4)*bs, pD+(ipiv[i0+2])/bs*bs*sdd+(ipiv[i0+2])%bs+(jj+4)*bs);
-			}
-		if(ipiv[i0+3]!=i0+3)
-			{
-			drowsw_lib(jj, pD+(i0+3)/bs*bs*sdd+(i0+3)%bs, pD+(ipiv[i0+3])/bs*bs*sdd+(ipiv[i0+3])%bs);
-			drowsw_lib(n-jj-4, pD+(i0+3)/bs*bs*sdd+(i0+3)%bs+(jj+4)*bs, pD+(ipiv[i0+3])/bs*bs*sdd+(ipiv[i0+3])%bs+(jj+4)*bs);
-			}
-#endif
-		}
-#else
+	// minimum matrix size
+	p = n<m ? n : m; // XXX
+
 	// main loop
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	// 8 columns at a time
 	jj = 0;
-	for(; jj<n-7; jj+=8)
+	for(; jj<n-7; jj+=8) // TODO p
 		{
 		// pivot & factorize & solve lower
 		// left block-column
@@ -10158,22 +9972,22 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 		if(n-jj<=4)
 			{
 			if(n-jj<=2)
-				goto left_2;
+				goto left_n_2;
 			else
-				goto left_4; // n-jj==3
+				goto left_n_4; // n-jj==3
 			}
 		else
 			{
 			if(n-jj<=6)
-				goto left_6;
+				goto left_n_6;
 			else
-				goto left_8; // n-jj==7
+				goto left_n_8; // n-jj==7
 			}
 		}
 #else
 	// 4 columns at a time
 	jj = 0;
-	for(; jj<n-3; jj+=4)
+	for(; jj<p-3; jj+=4) // XXX
 		{
 		// pivot & factorize & solve lower
 		ii = jj;
@@ -10184,7 +9998,16 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 			}
 		if(m-ii>0)
 			{
-			kernel_dgemm_nn_4x4_vs_lib4(m-ii, 4, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+			if(m-ii==3)
+				{
+				kernel_dgemm_nn_4x4_vs_lib4(3, 4, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+//				ii += 4;
+				}
+			else
+				{
+				kernel_dgemm_nn_2x4_vs_lib4(m-ii, 4, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+//				ii += 2;
+				}
 			}
 		kernel_dgetrf_pivot_4_lib4(m-i0, &pD[jj*bs+i0*sdd], sdd, &inv_diag_D[jj], &ipiv[i0]);
 		ipiv[i0+0] += i0;
@@ -10220,15 +10043,37 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 			}
 		if(n-ll>0)
 			{
-			kernel_dtrsm_nn_ll_diag_4x4_vs_lib4(4, n-ll, i0, &pD[i0*sdd], &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], &pD[ll*bs+i0*sdd], &pD[i0*bs+i0*sdd]);
+			if(n-ll==3)
+				{
+				kernel_dtrsm_nn_ll_diag_4x4_vs_lib4(4, 3, i0, &pD[i0*sdd], &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], &pD[ll*bs+i0*sdd], &pD[i0*bs+i0*sdd]);
+//				ll += 4;
+				}
+			else
+				{
+				kernel_dtrsm_nn_ll_diag_4x2_vs_lib4(4, n-ll, i0, &pD[i0*sdd], &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], &pD[ll*bs+i0*sdd], &pD[i0*bs+i0*sdd]);
+//				ll += 2;
+				}
 			}
 		}
-	if(n-jj>0)
+	if(m>=n)
 		{
-		if(n-jj<=2)
-			goto left_2;
-		else
-			goto left_4; // n-jj==3
+		if(n-jj>0)
+			{
+			if(n-jj<=2) // (m>=1 && n==1) || (m>=2 && n==2)
+				goto left_n_2;
+			else // m>=3 && n==3
+				goto left_n_4; // n-jj==3
+			}
+		}
+	else
+		{
+		if(m-jj>0)
+			{
+			if(m-jj<=2) // (m==1 && n>=2) || (m==2 && n>=3)
+				goto left_m_2;
+			else // m==3 and n>=4
+				goto left_m_4;
+			}
 		}
 #endif
 
@@ -10237,7 +10082,7 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 
 	// clean up
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
-	left_8:
+	left_n_8:
 	// 7-8 columns at a time
 	// pivot & factorize & solve lower
 	// left block-column
@@ -10252,10 +10097,12 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 		if(m-ii>4)
 			{
 			kernel_dgemm_nn_8x4_vs_lib4(m-ii, 4, jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+ii*sdd], sdd, 0, 0);
+//			ii+=8;
 			}
 		else
 			{
 			kernel_dgemm_nn_4x4_vs_lib4(m-ii, 4, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+//			ii+=4;
 			}
 		}
 	kernel_dgetrf_pivot_4_lib4(m-i0, &pD[jj*bs+i0*sdd], sdd, &inv_diag_D[jj], &ipiv[i0]);
@@ -10337,11 +10184,14 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 		if(ll<n)
 			{
 			kernel_dtrsm_nn_ll_diag_8x2_vs_lib4(m-i0, n-ll, i0, &pD[i0*sdd], sdd, &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], sdd, &pD[ll*bs+i0*sdd], sdd, &pD[i0*bs+i0*sdd], sdd);
+//			ll+=2;
 			}
 		}
 	return;
+#endif
 
-	left_6:
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+	left_n_6:
 	// 5-6 columns at a time
 	// pivot & factorize & solve lower
 	// left block-column
@@ -10356,10 +10206,12 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 		if(m-ii>4)
 			{
 			kernel_dgemm_nn_8x4_vs_lib4(m-ii, 4, jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+ii*sdd], sdd, 0, 0);
+//			ii+=8;
 			}
 		else
 			{
 			kernel_dgemm_nn_4x4_vs_lib4(m-ii, 4, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+//			ii+=4;
 			}
 		}
 	kernel_dgetrf_pivot_4_lib4(m-i0, &pD[jj*bs+i0*sdd], sdd, &inv_diag_D[jj], &ipiv[i0]);
@@ -10429,12 +10281,13 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 		if(ll<n)
 			{
 			kernel_dtrsm_nn_ll_diag_8x2_vs_lib4(m-i0, n-ll, i0, &pD[i0*sdd], sdd, &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], sdd, &pD[ll*bs+i0*sdd], sdd, &pD[i0*bs+i0*sdd], sdd);
+//			ll+=2;
 			}
 		}
 	return;
 #endif
 
-	left_4:
+	left_n_4:
 	// 3-4 columns at a time
 	// pivot & factorize & solve lower
 	ii = jj;
@@ -10447,12 +10300,17 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 	if(m-ii>0)
 		{
 		kernel_dgemm_nn_4x4_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
-		ii+=4;
+//		ii+=4;
 		}
 #else
-	for( ; ii<m; ii+=4)
+	for( ; ii<m-2; ii+=4)
 		{
 		kernel_dgemm_nn_4x4_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+		}
+	if(m-ii>0)
+		{
+		kernel_dgemm_nn_2x4_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+//		ii+=2;
 		}
 #endif
 	kernel_dgetrf_pivot_4_vs_lib4(m-i0, n-jj, &pD[jj*bs+i0*sdd], sdd, &inv_diag_D[jj], &ipiv[i0]);
@@ -10495,12 +10353,80 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 		if(n-ll>0)
 			{
 			kernel_dtrsm_nn_ll_diag_4x2_vs_lib4(m-i0, n-ll, i0, &pD[i0*sdd], &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], &pD[ll*bs+i0*sdd], &pD[i0*bs+i0*sdd]);
-			ll+=2;
+//			ll+=2;
 			}
 		}
 	return;
 
-	left_2:
+	left_m_4:
+	// 3-4 rows at a time
+	// pivot & factorize & solve lower
+	ii = jj;
+	i0 = ii;
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+	for( ; ii<m-4; ii+=8)
+		{
+		kernel_dgemm_nn_8x4_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+ii*sdd], sdd, 0, 0);
+		}
+	if(m-ii>0)
+		{
+		kernel_dgemm_nn_4x4_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+//		ii+=4;
+		}
+#else
+	for( ; ii<m-2; ii+=4)
+		{
+		kernel_dgemm_nn_4x4_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+		}
+	if(m-ii>0)
+		{
+		kernel_dgemm_nn_2x4_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+//		ii+=2;
+		}
+#endif
+	kernel_dgetrf_pivot_4_vs_lib4(m-i0, n-jj, &pD[jj*bs+i0*sdd], sdd, &inv_diag_D[jj], &ipiv[i0]);
+	ipiv[i0+0] += i0;
+	if(ipiv[i0+0]!=i0+0)
+		{
+		drowsw_lib(jj, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs);
+		drowsw_lib(n-jj-4, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs+(jj+4)*bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs+(jj+4)*bs);
+		}
+	ipiv[i0+1] += i0;
+	if(ipiv[i0+1]!=i0+1)
+		{
+		drowsw_lib(jj, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs);
+		drowsw_lib(n-jj-4, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs+(jj+4)*bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs+(jj+4)*bs);
+		}
+	ipiv[i0+2] += i0;
+	if(ipiv[i0+2]!=i0+2)
+		{
+		drowsw_lib(jj, pD+(i0+2)/bs*bs*sdd+(i0+2)%bs, pD+(ipiv[i0+2])/bs*bs*sdd+(ipiv[i0+2])%bs);
+		drowsw_lib(n-jj-4, pD+(i0+2)/bs*bs*sdd+(i0+2)%bs+(jj+4)*bs, pD+(ipiv[i0+2])/bs*bs*sdd+(ipiv[i0+2])%bs+(jj+4)*bs);
+		}
+	if(m-i0==4)
+		{
+		ipiv[i0+3] += i0;
+		if(ipiv[i0+3]!=i0+3)
+			{
+			drowsw_lib(jj, pD+(i0+3)/bs*bs*sdd+(i0+3)%bs, pD+(ipiv[i0+3])/bs*bs*sdd+(ipiv[i0+3])%bs);
+			drowsw_lib(n-jj-4, pD+(i0+3)/bs*bs*sdd+(i0+3)%bs+(jj+4)*bs, pD+(ipiv[i0+3])/bs*bs*sdd+(ipiv[i0+3])%bs+(jj+4)*bs);
+			}
+		}
+
+	// solve upper
+	ll = jj+4;
+	for( ; ll<n-2; ll+=4)
+		{
+		kernel_dtrsm_nn_ll_diag_4x4_vs_lib4(m-i0, n-ll, i0, &pD[i0*sdd], &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], &pD[ll*bs+i0*sdd], &pD[i0*bs+i0*sdd]);
+		}
+	if(n-ll>0)
+		{
+		kernel_dtrsm_nn_ll_diag_4x2_vs_lib4(m-i0, n-ll, i0, &pD[i0*sdd], &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], &pD[ll*bs+i0*sdd], &pD[i0*bs+i0*sdd]);
+//		ll+=2;
+		}
+	return;
+
+	left_n_2:
 	// 1-2 columns at a time
 	// pivot & factorize & solve lower
 	ii = jj;
@@ -10513,12 +10439,17 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 	if(m-ii>0)
 		{
 		kernel_dgemm_nn_4x2_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
-		ii+=4;
+//		ii+=4;
 		}
 #else
-	for( ; ii<m; ii+=4)
+	for( ; ii<m-2; ii+=4)
 		{
 		kernel_dgemm_nn_4x2_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+		}
+	if(m-ii>0)
+		{
+		kernel_dgemm_nn_2x2_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+//		ii+=2;
 		}
 #endif
 	kernel_dgetrf_pivot_4_vs_lib4(m-i0, n-jj, &pD[jj*bs+i0*sdd], sdd, &inv_diag_D[jj], &ipiv[i0]);
@@ -10542,14 +10473,114 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 	if(0) // there is no upper
 		{
 		ll = jj+4;
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 		for( ; ll<n; ll+=2)
 			{
 			kernel_dtrsm_nn_ll_diag_4x2_vs_lib4(m-i0, n-ll, i0, &pD[i0*sdd], &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], &pD[ll*bs+i0*sdd], &pD[i0*bs+i0*sdd]);
 			}
+#else
+		for( ; ll<n; ll+=2)
+			{
+			kernel_dtrsm_nn_ll_diag_2x2_vs_lib4(m-i0, n-ll, i0, &pD[i0*sdd], &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], &pD[ll*bs+i0*sdd], &pD[i0*bs+i0*sdd]);
+			}
+#endif
 		}
 	return;
 
+	left_m_2:
+	// 1-2 rows at a time
+	// pivot & factorize & solve lower
+	ii = jj;
+	i0 = ii;
+	if(n-jj>2)
+		{
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+		for( ; ii<m-4; ii+=8)
+			{
+			kernel_dgemm_nn_8x4_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+ii*sdd], sdd, 0, 0);
+			}
+		if(m-ii>0)
+			{
+			kernel_dgemm_nn_4x4_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+	//		ii+=4;
+			}
+#else
+		for( ; ii<m-2; ii+=4)
+			{
+			kernel_dgemm_nn_4x4_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+			}
+		if(m-ii>0)
+			{
+			kernel_dgemm_nn_2x4_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+	//		ii+=2;
+			}
 #endif
+		}
+	else
+		{
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+		for( ; ii<m-4; ii+=8)
+			{
+			kernel_dgemm_nn_8x2_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], sdd, &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], sdd, &pD[jj*bs+ii*sdd], sdd, 0, 0);
+			}
+		if(m-ii>0)
+			{
+			kernel_dgemm_nn_4x2_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+	//		ii+=4;
+			}
+#else
+		for( ; ii<m-2; ii+=4)
+			{
+			kernel_dgemm_nn_4x2_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+			}
+		if(m-ii>0)
+			{
+			kernel_dgemm_nn_2x2_vs_lib4(m-ii, n-jj, jj, &pD[ii*sdd], &pD[jj*bs], sdd, -1, &pD[jj*bs+ii*sdd], &pD[jj*bs+ii*sdd], 0, 0);
+	//		ii+=2;
+			}
+#endif
+		}
+	kernel_dgetrf_pivot_4_vs_lib4(m-i0, n-jj, &pD[jj*bs+i0*sdd], sdd, &inv_diag_D[jj], &ipiv[i0]);
+	ipiv[i0+0] += i0;
+	if(ipiv[i0+0]!=i0+0)
+		{
+		drowsw_lib(jj, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs);
+		drowsw_lib(n-jj-4, pD+(i0+0)/bs*bs*sdd+(i0+0)%bs+(jj+4)*bs, pD+(ipiv[i0+0])/bs*bs*sdd+(ipiv[i0+0])%bs+(jj+4)*bs);
+		}
+	if(m-i0==4)
+		{
+		ipiv[i0+1] += i0;
+		if(ipiv[i0+1]!=i0+1)
+			{
+			drowsw_lib(jj, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs);
+			drowsw_lib(n-jj-4, pD+(i0+1)/bs*bs*sdd+(i0+1)%bs+(jj+4)*bs, pD+(ipiv[i0+1])/bs*bs*sdd+(ipiv[i0+1])%bs+(jj+4)*bs);
+			}
+		}
+
+	// solve upper
+	ll = jj+4;
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
+	for( ; ll<n-2; ll+=4)
+		{
+		kernel_dtrsm_nn_ll_diag_4x4_vs_lib4(m-i0, n-ll, i0, &pD[i0*sdd], &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], &pD[ll*bs+i0*sdd], &pD[i0*bs+i0*sdd]);
+		}
+	if(n-ll>0)
+		{
+		kernel_dtrsm_nn_ll_diag_4x2_vs_lib4(m-i0, n-ll, i0, &pD[i0*sdd], &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], &pD[ll*bs+i0*sdd], &pD[i0*bs+i0*sdd]);
+//		ll += 2;
+		}
+#else
+	for( ; ll<n-2; ll+=4)
+		{
+		kernel_dtrsm_nn_ll_diag_2x4_vs_lib4(m-i0, n-ll, i0, &pD[i0*sdd], &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], &pD[ll*bs+i0*sdd], &pD[i0*bs+i0*sdd]);
+		}
+	if(n-ll>0)
+		{
+		kernel_dtrsm_nn_ll_diag_2x2_vs_lib4(m-i0, n-ll, i0, &pD[i0*sdd], &pD[ll*bs], sdd, 1, &pD[ll*bs+i0*sdd], &pD[ll*bs+i0*sdd], &pD[i0*bs+i0*sdd]);
+//		ll += 2;
+		}
+#endif
+	return;
 
 	}
 #endif

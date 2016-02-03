@@ -3125,6 +3125,9 @@ void kernel_dgetrf_nn_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B
 	d_2 = _mm256_setzero_pd();
 	d_3 = _mm256_setzero_pd();
 
+	if(kmax<=0)
+		goto add;
+
 	for(k=0; k<kmax-3; k+=4)
 		{
 
@@ -3215,6 +3218,8 @@ void kernel_dgetrf_nn_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B
 
 		}
 	
+	add:
+
 	if(alg!=0)
 		{
 		c_0 = _mm256_load_pd( &C[0+bs*0] );
