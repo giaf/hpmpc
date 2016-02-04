@@ -5092,6 +5092,9 @@ void kernel_dgetrf_pivot_4_lib4(int m, double *pA, int sda, double *inv_diag_A, 
 void kernel_dgetrf_pivot_4_vs_lib4(int m, int n, double *pA, int sda, double *inv_diag_A, int* ipiv)
 	{
 
+	if(m<=0 || n<=0)
+		return;
+
 	const int bs = 4;
 
 	// assume m>=4
@@ -5220,9 +5223,13 @@ void kernel_dgetrf_pivot_4_vs_lib4(int m, int n, double *pA, int sda, double *in
 	if(n==1)
 		{
 		// scale & return
+		dlft = m;
+		msk = _mm256_broadcast_sd( &dlft );
+		msk = _mm256_cmp_pd( lft, msk, 14 ); // >
 		a_0 = _mm256_load_pd( &pA[0+bs*0] );
 		tmp = _mm256_mul_pd( a_0, scl );
-		a_0 = _mm256_blend_pd( tmp, a_0, 0x1 );
+		tmp = _mm256_blend_pd( tmp, a_0, 0x1 );
+		a_0 = _mm256_blendv_pd( tmp, a_0, msk );
 		_mm256_store_pd( &pA[0+bs*0], a_0 );
 		pB = pA + B_pref;
 		k = 0;
@@ -5263,6 +5270,9 @@ void kernel_dgetrf_pivot_4_vs_lib4(int m, int n, double *pA, int sda, double *in
 	// second column
 
 	// scale & correct & find pivot
+	dlft = m;
+	msk = _mm256_broadcast_sd( &dlft );
+	msk = _mm256_cmp_pd( lft, msk, 14 ); // >
 	idx = _mm256_set_pd( 2.2, 1.2, 0.2, -0.8 );
 	max = _mm256_setzero_pd();
 	imx = _mm256_setzero_pd();
@@ -5270,14 +5280,17 @@ void kernel_dgetrf_pivot_4_vs_lib4(int m, int n, double *pA, int sda, double *in
 	c_0 = _mm256_load_pd( &pA[0+bs*1] );
 	tmp = _mm256_mul_pd( a_0, scl );
 	b_0 = _mm256_permute2f128_pd( c_0, c_0, 0x00 );
-	a_0 = _mm256_blend_pd( tmp, a_0, 0x1 );
+	tmp = _mm256_blend_pd( tmp, a_0, 0x1 );
+	a_0 = _mm256_blendv_pd( tmp, a_0, msk );
 	b_0 = _mm256_permute_pd( b_0, 0x0 );
 	tmp = _mm256_mul_pd( a_0, b_0 );
 	d_0 = _mm256_sub_pd( c_0, tmp );
-	c_0 = _mm256_blend_pd( d_0, c_0, 0x1 );
+	d_0 = _mm256_blend_pd( d_0, c_0, 0x1 );
+	c_0 = _mm256_blendv_pd( d_0, c_0, msk );
 	_mm256_store_pd( &pA[0+bs*0], a_0 );
 	_mm256_store_pd( &pA[0+bs*1], c_0 );
 	c_0 = _mm256_blend_pd( c_0, sgn, 0x1 );
+	c_0 = _mm256_blendv_pd( c_0, sgn, msk );
 	c_0 = _mm256_andnot_pd( sgn, c_0 ); // abs
 	msk = _mm256_cmp_pd( c_0, max, 14 ); // >
 	max = _mm256_blendv_pd( max, c_0, msk );
@@ -5370,29 +5383,36 @@ void kernel_dgetrf_pivot_4_vs_lib4(int m, int n, double *pA, int sda, double *in
 	idamax = _mm_cvtsd_si32( imx0 );
 
 	// compute scaling
-	ipiv[1] = idamax+1;
-	if(tmp0!=0)
+	if(m>1)
 		{
-		if(ipiv[1]!=1)
-			drowsw_lib(4, pA+1, pA+ipiv[1]/bs*bs*sda+ipiv[1]%bs);
+		ipiv[1] = idamax+1;
+		if(tmp0!=0)
+			{
+			if(ipiv[1]!=1)
+				drowsw_lib(4, pA+1, pA+ipiv[1]/bs*bs*sda+ipiv[1]%bs);
 
-		inv = _mm_loaddup_pd( &pA[1+bs*1] );
-		inv = _mm_div_pd( _mm256_castpd256_pd128( ones ), inv );
-		scl = _mm256_permute2f128_pd( _mm256_castpd128_pd256( inv ), _mm256_castpd128_pd256( inv ), 0x00 );
-		_mm_store_sd( &inv_diag_A[1], inv );
-		}
-	else
-		{
-		scl = ones;
-		inv_diag_A[1] = 0.0;
+			inv = _mm_loaddup_pd( &pA[1+bs*1] );
+			inv = _mm_div_pd( _mm256_castpd256_pd128( ones ), inv );
+			scl = _mm256_permute2f128_pd( _mm256_castpd128_pd256( inv ), _mm256_castpd128_pd256( inv ), 0x00 );
+			_mm_store_sd( &inv_diag_A[1], inv );
+			}
+		else
+			{
+			scl = ones;
+			inv_diag_A[1] = 0.0;
+			}
 		}
 
 	if(n==2)
 		{
 		// scale & return
+		dlft = m;
+		msk = _mm256_broadcast_sd( &dlft );
+		msk = _mm256_cmp_pd( lft, msk, 14 ); // >
 		a_0 = _mm256_load_pd( &pA[0+bs*1] );
 		tmp = _mm256_mul_pd( a_0, scl );
-		a_0 = _mm256_blend_pd( tmp, a_0, 0x3 );
+		tmp = _mm256_blend_pd( tmp, a_0, 0x3 );
+		a_0 = _mm256_blendv_pd( tmp, a_0, msk );
 		_mm256_store_pd( &pA[0+bs*1], a_0 );
 		pB = pA + B_pref;
 		k = 0;
@@ -5432,6 +5452,9 @@ void kernel_dgetrf_pivot_4_vs_lib4(int m, int n, double *pA, int sda, double *in
 	// third column
 
 	// scale & correct & find pivot
+	dlft = m;
+	msk = _mm256_broadcast_sd( &dlft );
+	msk = _mm256_cmp_pd( lft, msk, 14 ); // >
 	idx = _mm256_set_pd( 1.2, 0.2, -0.8, -1.8 );
 	max = _mm256_setzero_pd();
 	imx = _mm256_setzero_pd();
@@ -5441,18 +5464,22 @@ void kernel_dgetrf_pivot_4_vs_lib4(int m, int n, double *pA, int sda, double *in
 	a_0 = _mm256_load_pd( &pA[0+bs*0] );
 	tmp = _mm256_mul_pd( a_0, b_0 );
 	tmp = _mm256_sub_pd( c_0, tmp );
-	c_0 = _mm256_blend_pd( tmp, c_0, 0x1 );
+	tmp = _mm256_blend_pd( tmp, c_0, 0x1 );
+	c_0 = _mm256_blendv_pd( tmp, c_0, msk );
 	a_0 = _mm256_load_pd( &pA[0+bs*1] );
 	tmp = _mm256_mul_pd( a_0, scl );
 	b_1 = _mm256_permute2f128_pd( c_0, c_0, 0x00 );
-	a_0 = _mm256_blend_pd( tmp, a_0, 0x3 );
+	tmp = _mm256_blend_pd( tmp, a_0, 0x3 );
+	a_0 = _mm256_blendv_pd( tmp, a_0, msk );
 	b_1 = _mm256_permute_pd( b_1, 0xf );
 	tmp = _mm256_mul_pd( a_0, b_1 );
 	tmp = _mm256_sub_pd( c_0, tmp );
-	c_0 = _mm256_blend_pd( tmp, c_0, 0x3 );
+	tmp = _mm256_blend_pd( tmp, c_0, 0x3 );
+	c_0 = _mm256_blendv_pd( tmp, c_0, msk );
 	_mm256_store_pd( &pA[0+bs*1], a_0 );
 	_mm256_store_pd( &pA[0+bs*2], c_0 );
 	c_0 = _mm256_blend_pd( c_0, sgn, 0x3 );
+	c_0 = _mm256_blendv_pd( c_0, sgn, msk );
 	c_0 = _mm256_andnot_pd( sgn, c_0 ); // abs
 	msk = _mm256_cmp_pd( c_0, max, 14 ); // >
 	max = _mm256_blendv_pd( max, c_0, msk );
@@ -5559,29 +5586,36 @@ void kernel_dgetrf_pivot_4_vs_lib4(int m, int n, double *pA, int sda, double *in
 	idamax = _mm_cvtsd_si32( imx0 );
 
 	// compute scaling
-	ipiv[2] = idamax+2;
-	if(tmp0!=0)
+	if(m>2)
 		{
-		if(ipiv[2]!=2)
-			drowsw_lib(4, pA+2, pA+ipiv[2]/bs*bs*sda+ipiv[2]%bs);
+		ipiv[2] = idamax+2;
+		if(tmp0!=0)
+			{
+			if(ipiv[2]!=2)
+				drowsw_lib(4, pA+2, pA+ipiv[2]/bs*bs*sda+ipiv[2]%bs);
 
-		inv = _mm_loaddup_pd( &pA[2+bs*2] );
-		inv = _mm_div_pd( _mm256_castpd256_pd128( ones ), inv );
-		scl = _mm256_permute2f128_pd( _mm256_castpd128_pd256( inv ), _mm256_castpd128_pd256( inv ), 0x00 );
-		_mm_store_sd( &inv_diag_A[2], inv );
-		}
-	else
-		{
-		scl = ones;
-		inv_diag_A[2] = 0.0;
+			inv = _mm_loaddup_pd( &pA[2+bs*2] );
+			inv = _mm_div_pd( _mm256_castpd256_pd128( ones ), inv );
+			scl = _mm256_permute2f128_pd( _mm256_castpd128_pd256( inv ), _mm256_castpd128_pd256( inv ), 0x00 );
+			_mm_store_sd( &inv_diag_A[2], inv );
+			}
+		else
+			{
+			scl = ones;
+			inv_diag_A[2] = 0.0;
+			}
 		}
 
 	if(n==3)
 		{
 		// scale & return
+		dlft = m;
+		msk = _mm256_broadcast_sd( &dlft );
+		msk = _mm256_cmp_pd( lft, msk, 14 ); // >
 		a_0 = _mm256_load_pd( &pA[0+bs*2] );
 		tmp = _mm256_mul_pd( a_0, scl );
-		a_0 = _mm256_blend_pd( tmp, a_0, 0x7 );
+		tmp = _mm256_blend_pd( tmp, a_0, 0x7 );
+		a_0 = _mm256_blendv_pd( tmp, a_0, msk );
 		_mm256_store_pd( &pA[0+bs*2], a_0 );
 		pB = pA + B_pref;
 		k = 0;
@@ -5621,6 +5655,9 @@ void kernel_dgetrf_pivot_4_vs_lib4(int m, int n, double *pA, int sda, double *in
 	// fourth column
 
 	// scale & correct & find pivot
+	dlft = m;
+	msk = _mm256_broadcast_sd( &dlft );
+	msk = _mm256_cmp_pd( lft, msk, 14 ); // >
 	idx = _mm256_set_pd( 0.2, -0.8, -1.8, -2.8 );
 	max = _mm256_setzero_pd();
 	imx = _mm256_setzero_pd();
@@ -5630,24 +5667,29 @@ void kernel_dgetrf_pivot_4_vs_lib4(int m, int n, double *pA, int sda, double *in
 	a_0 = _mm256_load_pd( &pA[0+bs*0] );
 	tmp = _mm256_mul_pd( a_0, b_0 );
 	tmp = _mm256_sub_pd( c_0, tmp );
-	c_0 = _mm256_blend_pd( tmp, c_0, 0x1 );
+	tmp = _mm256_blend_pd( tmp, c_0, 0x1 );
+	c_0 = _mm256_blendv_pd( tmp, c_0, msk );
 	b_1 = _mm256_permute2f128_pd( c_0, c_0, 0x00 );
 	b_1 = _mm256_permute_pd( b_1, 0xf );
 	a_0 = _mm256_load_pd( &pA[0+bs*1] );
 	tmp = _mm256_mul_pd( a_0, b_1 );
 	tmp = _mm256_sub_pd( c_0, tmp );
-	c_0 = _mm256_blend_pd( tmp, c_0, 0x3 );
+	tmp = _mm256_blend_pd( tmp, c_0, 0x3 );
+	c_0 = _mm256_blendv_pd( tmp, c_0, msk );
 	a_0 = _mm256_load_pd( &pA[0+bs*2] );
 	tmp = _mm256_mul_pd( a_0, scl );
 	b_2 = _mm256_permute2f128_pd( c_0, c_0, 0x11 );
-	a_0 = _mm256_blend_pd( tmp, a_0, 0x7 );
+	tmp = _mm256_blend_pd( tmp, a_0, 0x7 );
+	a_0 = _mm256_blendv_pd( tmp, a_0, msk );
 	b_2 = _mm256_permute_pd( b_2, 0x0 );
 	tmp = _mm256_mul_pd( a_0, b_2 );
 	tmp = _mm256_sub_pd( c_0, tmp );
-	c_0 = _mm256_blend_pd( tmp, c_0, 0x7 );
+	tmp = _mm256_blend_pd( tmp, c_0, 0x7 );
+	c_0 = _mm256_blendv_pd( tmp, c_0, msk );
 	_mm256_store_pd( &pA[0+bs*2], a_0 );
 	_mm256_store_pd( &pA[0+bs*3], c_0 );
 	c_0 = _mm256_blend_pd( c_0, sgn, 0x7 );
+	c_0 = _mm256_blendv_pd( c_0, sgn, msk );
 	c_0 = _mm256_andnot_pd( sgn, c_0 ); // abs
 	msk = _mm256_cmp_pd( c_0, max, 14 ); // >
 	max = _mm256_blendv_pd( max, c_0, msk );
@@ -5768,21 +5810,24 @@ void kernel_dgetrf_pivot_4_vs_lib4(int m, int n, double *pA, int sda, double *in
 	idamax = _mm_cvtsd_si32( imx0 );
 
 	// compute scaling
-	ipiv[3] = idamax+3;
-	if(tmp0!=0)
+	if(m>3)
 		{
-		if(ipiv[3]!=3)
-			drowsw_lib(4, pA+3, pA+ipiv[3]/bs*bs*sda+ipiv[3]%bs);
+		ipiv[3] = idamax+3;
+		if(tmp0!=0)
+			{
+			if(ipiv[3]!=3)
+				drowsw_lib(4, pA+3, pA+ipiv[3]/bs*bs*sda+ipiv[3]%bs);
 
-		inv = _mm_loaddup_pd( &pA[3+bs*3] );
-		inv = _mm_div_pd( _mm256_castpd256_pd128( ones ), inv );
-		scl = _mm256_permute2f128_pd( _mm256_castpd128_pd256( inv ), _mm256_castpd128_pd256( inv ), 0x00 );
-		_mm_store_sd( &inv_diag_A[3], inv );
-		}
-	else
-		{
-		scl = ones;
-		inv_diag_A[3] = 0.0;
+			inv = _mm_loaddup_pd( &pA[3+bs*3] );
+			inv = _mm_div_pd( _mm256_castpd256_pd128( ones ), inv );
+			scl = _mm256_permute2f128_pd( _mm256_castpd128_pd256( inv ), _mm256_castpd128_pd256( inv ), 0x00 );
+			_mm_store_sd( &inv_diag_A[3], inv );
+			}
+		else
+			{
+			scl = ones;
+			inv_diag_A[3] = 0.0;
+			}
 		}
 
 	// scale

@@ -1780,9 +1780,8 @@ printf("\n%d %d\n", m, n);
 			}
 		else // m = {2,3}
 			{
-			pA[2+bs*1] *= tmp1;
 			if(m>2)
-				pA[3+bs*1] *= tmp1;
+				pA[2+bs*1] *= tmp1;
 			}
 		}
 	else
