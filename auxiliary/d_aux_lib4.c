@@ -28,7 +28,7 @@
 #include "../include/block_size.h"
 #include "../include/kernel_d_lib4.h"
 
-#if defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 #include <mmintrin.h>
 #include <xmmintrin.h>  // SSE
 #include <emmintrin.h>  // SSE2

@@ -53,7 +53,7 @@ CC = gcc
 #CC = clang
 
 # Common optimization/debugging flags
-COMMON_FLAGS = -O2 -std=c99 -fPIC
+COMMON_FLAGS = -O2 -fPIC
 ifeq ($(CC), /opt/gcc/bin/gcc )
 COMMON_FLAGS += -DCUSTOM_GCC 
 ifeq ($(TARGET), X64_AVX2)

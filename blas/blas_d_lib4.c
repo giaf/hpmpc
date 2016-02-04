@@ -9538,7 +9538,6 @@ void dgemv_diag_lib(int m, double *dA, double *x, int alg, double *y, double *z)
 
 	
 
-#if defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
 void dgetrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D)
 	{
 
@@ -9708,7 +9707,7 @@ void dgetrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *
 	// common return if i==m
 	return;
 
-#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX)
+#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	left_8:
 	jj = 0;
 	// solve lower
@@ -9830,11 +9829,9 @@ void dgetrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *
 #endif
 
 	}
-#endif
 
 
 
-#if defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
 void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D, int *ipiv)
 	{
 
@@ -10544,7 +10541,6 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 #endif
 
 	}
-#endif
 
 
 
