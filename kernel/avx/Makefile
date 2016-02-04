@@ -26,7 +26,7 @@
 include ../../Makefile.rule
 
 ifeq ($(TARGET), X64_AVX2)
-OBJS_DOUBLE = kernel_dcopy_avx_lib4.o kernel_dgetrf_avx_lib4.o
+OBJS_DOUBLE = kernel_dcopy_avx_lib4.o
 endif
 
 ifeq ($(TARGET), X64_AVX)

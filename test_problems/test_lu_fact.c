@@ -32,7 +32,7 @@
 #include "../include/blas_d.h"
 #include "../include/block_size.h"
 
-#include "data/pendulum_A.c"
+//#include "data/pendulum_A.c"
 
 
 
@@ -82,7 +82,7 @@ int main()
 	int *ipiv; i_zeros(&ipiv, n, 1);
 
 //	dgetrf_lib(4, 16, pC, cn, pD, cn, inv_diag_D);
-	dgetrf_pivot_lib(12, 16, pC, cn, pD, cn, inv_diag_D, ipiv);
+	dgetrf_pivot_lib(16, 16, pC, cn, pD, cn, inv_diag_D, ipiv);
 
 //	d_print_pmat(n, n, bs, pC, cn);
 	d_print_pmat_e(n, n, bs, pD, cn);

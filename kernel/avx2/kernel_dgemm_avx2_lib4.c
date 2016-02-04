@@ -4282,6 +4282,7 @@ void kernel_dgemm_nn_8x4_lib4(int kmax, double *A0, int sda, double *B, int sdb,
 		d_3 = _mm256_fmadd_pd( a_0, b_0, d_3 );
 		d_7 = _mm256_fmadd_pd( a_4, b_0, d_7 );
 
+		__builtin_prefetch( B+2*B_next+8 );
 
 		a_0 = _mm256_load_pd( &A0[0+bs*1] );
 		a_4 = _mm256_load_pd( &A1[0+bs*1] );
@@ -4299,7 +4300,6 @@ void kernel_dgemm_nn_8x4_lib4(int kmax, double *A0, int sda, double *B, int sdb,
 		d_7 = _mm256_fmadd_pd( a_4, b_0, d_7 );
 
 
-		__builtin_prefetch( B+2*B_next+8 );
 
 		a_0 = _mm256_load_pd( &A0[0+bs*2] );
 		a_4 = _mm256_load_pd( &A1[0+bs*2] );

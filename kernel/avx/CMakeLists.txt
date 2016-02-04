@@ -2,7 +2,7 @@ IF ( ${HPMPC_TARGET} STREQUAL "X64_AVX2" )
 	HPMPC_ADD_SOURCE_FILES
 	(
 	# Double
-	kernel_dcopy_avx_lib4.c kernel_dgetrf_avx_lib4.c
+	kernel_dcopy_avx_lib4.c
 	# Single
 	)
 
