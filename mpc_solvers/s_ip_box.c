@@ -73,20 +73,20 @@ int s_ip_box_mpc(int *kk, int k_max, float mu_tol, float alpha_min, int warm_sta
 	float *ptr;
 	ptr = work_memory;
 
-	float *(dux[N+1]);
-	float *(dpi[N+1]);
-	float *(pL[N+1]);
-	float *(pd[N+1]); // pointer to diagonal of Hessian
-	float *(pl[N+1]); // pointer to linear part of Hessian
-	float *(pl2[N+1]); // pointer to linear part of Hessian (backup)
-	float *(bd[N+1]); // backup diagonal of Hessian
-	float *(bl[N+1]); // backup linear part of Hessian
+	float *dux[N+1];
+	float *dpi[N+1];
+	float *pL[N+1];
+	float *pd[N+1]; // pointer to diagonal of Hessian
+	float *pl[N+1]; // pointer to linear part of Hessian
+	float *pl2[N+1]; // pointer to linear part of Hessian (backup)
+	float *bd[N+1]; // backup diagonal of Hessian
+	float *bl[N+1]; // backup linear part of Hessian
 	float *work;
 	float *diag;
-	float *(dlam[N+1]);
-	float *(dt[N+1]);
-	float *(lamt[N+1]);
-	float *(t_inv[N+1]);
+	float *dlam[N+1];
+	float *dt[N+1];
+	float *lamt[N+1];
+	float *t_inv[N+1];
 
 //	ptr += (N+1)*(pnz + pnx + pnz*cnl + 8*pnz) + 3*pnz;
 

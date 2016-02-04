@@ -124,13 +124,13 @@ int main()
 	printf("\nRiccati diag\n\n");
 
 	// data memory space
-	double *(hdA[N]);
-	double *(hpBt[N]);
-	double *(hpR[N]);
-	double *(hpS[N]);
-	double *(hpQ[N+1]);
-	double *(hpLK[N]);
-	double *(hpP[N+1]);
+	double *hdA[N];
+	double *hpBt[N];
+	double *hpR[N];
+	double *hpS[N];
+	double *hpQ[N+1];
+	double *hpLK[N];
+	double *hpP[N+1];
 	double *pK;
 
 	for(ii=0; ii<N; ii++)
@@ -236,11 +236,11 @@ int main()
 	// backward-forward solution
 
 	// data memory space
-	double *(hrq[N+1]);
-	double *(hux[N+1]);
-	double *(hpi[N+1]);
-	double *(hPb[N]);
-	double *(hb[N]);
+	double *hrq[N+1];
+	double *hux[N+1];
+	double *hpi[N+1];
+	double *hPb[N];
+	double *hb[N];
 
 	for(ii=0; ii<N; ii++)
 		{
@@ -300,8 +300,8 @@ int main()
 	// residuals
 
 	// data memory space
-	double *(hres_rq[N+1]);
-	double *(hres_b[N]);
+	double *hres_rq[N+1];
+	double *hres_b[N];
 
 	for(ii=0; ii<N; ii++)
 		{
@@ -373,10 +373,10 @@ int main()
 	int nzero[N+1];
 	for(ii=0; ii<=N; ii++) nzero[ii] = 0;
 
-	double *(hpBAbt_tv[N]);
-	double *(hpRSQ_tv[N+1]);
-	double *(hpL_tv[N+1]);
-	double *(hl[N+1]);
+	double *hpBAbt_tv[N];
+	double *hpRSQ_tv[N+1];
+	double *hpL_tv[N+1];
+	double *hl[N+1];
 
 	for(ii=0; ii<N; ii++)
 		{
@@ -511,10 +511,10 @@ int main()
 	for(ii=0; ii<=N; ii++) pnbb[ii] = (nbb[ii]+bs-1)/bs*bs;
 
 	// data memory space
-	double *(hd[N+1]);
-	double *(hlam[N+1]);
-	double *(ht[N+1]);
-	double *(hres_d[N+1]);
+	double *hd[N+1];
+	double *hlam[N+1];
+	double *ht[N+1];
+	double *hres_d[N+1];
 	for(ii=0; ii<=N; ii++)
 		{
 		d_zeros_align(&hd[ii], 2*pnbb[ii], 1);
@@ -917,7 +917,7 @@ int main()
 #if 1
 
 	double *BAb_temp; d_zeros(&BAb_temp, nx, nu+nx+1);
-	double *(hpBAbt2[N]);
+	double *hpBAbt2[N];
 
 	ptrB = BBB;
 	for(ii=0; ii<N; ii++)
@@ -936,7 +936,7 @@ int main()
 		}
 
 	double *RSQ; d_zeros(&RSQ, nz, nz);
-	double *(hpRSQ[N+1]);
+	double *hpRSQ[N+1];
 
 	for(ii=0; ii<=N; ii++)
 		{
@@ -949,11 +949,11 @@ int main()
 		//d_print_pmat(nz, nz, bs, hpRSQ[ii], cnz);
 		}
 
-	double *(hpL[N+1]);
-	double *(hq2[N+1]);
-	double *(hux2[N+1]);
-	double *(hpi2[N+1]);
-	double *(hPb2[N]);
+	double *hpL[N+1];
+	double *hq2[N+1];
+	double *hux2[N+1];
+	double *hpi2[N+1];
+	double *hPb2[N];
 	for(jj=0; jj<N; jj++)
 		{
 		d_zeros_align(&hq2[jj], pnz, 1); // it has to be pnz !!!
@@ -1006,8 +1006,8 @@ int main()
 	
 	// residuals
 
-	double *(hres_rq2[N+1]);
-	double *(hres_b2[N]);
+	double *hres_rq2[N+1];
+	double *hres_b2[N];
 
 	for(ii=0; ii<N; ii++)
 		{
@@ -1065,9 +1065,9 @@ int main()
 
 
 
-	double *(hd2[N+1]);
-	double *(hlam2[N+1]);
-	double *(ht2[N+1]);
+	double *hd2[N+1];
+	double *hlam2[N+1];
+	double *ht2[N+1];
 
 	for(ii=0; ii<N; ii++)
 		{

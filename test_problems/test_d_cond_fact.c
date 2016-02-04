@@ -455,25 +455,25 @@ int main()
 * matrix series
 ************************************************/
 
-		double *(hpA[N]);
-		double *(hpAt[N]);
-		double *(hpBt[N]);
-		double *(hpBAt[N]);
-		double *(hpQ[N+1]);
-		double *(hdQ[N+1]);
-		double *(hpR[N]);
-		double *(hdR[N]);
-		double *(hpS[N]);
-		double *(hpRSQ_MPC[N+1]);
-		double *(hpRSQ_MHE[N+1]);
-		double *(hdRSQ_MPC[N+1]);
-		double *(hdRSQ_MHE[N+1]);
-		double *(hpGamma_u[N]);
-		double *(hpGamma_u_Q[N]);
-		double *(hpGamma_u_Q_A[N]);
-		double *(hpGamma_v[N]);
-		double *(hpGamma_v_Q[N]);
-		double *(hpGamma_v_Q_A[N]);
+		double *hpA[N];
+		double *hpAt[N];
+		double *hpBt[N];
+		double *hpBAt[N];
+		double *hpQ[N+1];
+		double *hdQ[N+1];
+		double *hpR[N];
+		double *hdR[N];
+		double *hpS[N];
+		double *hpRSQ_MPC[N+1];
+		double *hpRSQ_MHE[N+1];
+		double *hdRSQ_MPC[N+1];
+		double *hdRSQ_MHE[N+1];
+		double *hpGamma_u[N];
+		double *hpGamma_u_Q[N];
+		double *hpGamma_u_Q_A[N];
+		double *hpGamma_v[N];
+		double *hpGamma_v_Q[N];
+		double *hpGamma_v_Q_A[N];
 		for(ii=0; ii<N; ii++)
 			{
 			hpA[ii] = pA;

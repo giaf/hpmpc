@@ -489,32 +489,32 @@ int main()
 * series of matrices
 ************************************************/	
 
-		double *(hpA[N]);
-		double *(hpCA[N]);
-		double *(hpG[N]);
-		double *(hpC[N+1]);
-		double *(hpR[N]);
-		double *(hpQ[N+1]);
-		double *(hpLp[N+1]);
-		double *(hdLp[N+1]);
-		double *(hpLp2[N+1]);
-		double *(hpLe[N+1]);
-		double *(hq[N]);
-		double *(hr[N+1]);
-		double *(hf[N]);
-		double *(hxe[N+1]);
-		double *(hxp[N+1]);
-		double *(hw[N]);
-		double *(hy[N+1]);
-		double *(hlam[N]);
+		double *hpA[N];
+		double *hpCA[N];
+		double *hpG[N];
+		double *hpC[N+1];
+		double *hpR[N];
+		double *hpQ[N+1];
+		double *hpLp[N+1];
+		double *hdLp[N+1];
+		double *hpLp2[N+1];
+		double *hpLe[N+1];
+		double *hq[N];
+		double *hr[N+1];
+		double *hf[N];
+		double *hxe[N+1];
+		double *hxp[N+1];
+		double *hw[N];
+		double *hy[N+1];
+		double *hlam[N];
 
-		double *(hpRG[N]);
-		double *(hpQA[N+1]);
-		double *(hpGLr[N]);
-		double *(hpALe[N+1]);
-		double *(hrr[N]);
-		double *(hqq[N+1]);
-		double *(hff[N+1]);
+		double *hpRG[N];
+		double *hpQA[N+1];
+		double *hpGLr[N];
+		double *hpALe[N+1];
+		double *hrr[N];
+		double *hqq[N+1];
+		double *hff[N+1];
 		double *p_hrr; d_zeros_align(&p_hrr, anw, N);
 		double *p_hqq; d_zeros_align(&p_hqq, anx, N+1);
 		double *p_hff; d_zeros_align(&p_hff, anx, N+1);
@@ -525,9 +525,9 @@ int main()
 		double *p_hy; d_zeros_align(&p_hy, any, N+1);
 		double *p_hlam; d_zeros_align(&p_hlam, anx, N+1);
 
-		double *(hq_res[N+1]);
-		double *(hr_res[N]);
-		double *(hf_res[N+1]);
+		double *hq_res[N+1];
+		double *hr_res[N];
+		double *hf_res[N+1];
 		double *p_hq_res; d_zeros_align(&p_hq_res, anx, N+1);
 		double *p_hr_res; d_zeros_align(&p_hr_res, anw, N);
 		double *p_hf_res; d_zeros_align(&p_hf_res, anx, N+1);
@@ -733,9 +733,9 @@ int main()
 
 
 
-		double *(hpQRAG[N+1]);
-		double *(hpLAG[N+1]);
-		double *(hpLe2[N+1]);
+		double *hpQRAG[N+1];
+		double *hpLAG[N+1];
+		double *hpLe2[N+1];
 
 		for(ii=0; ii<N; ii++)	
 			{
@@ -796,14 +796,14 @@ int main()
 * reference code
 ************************************************/	
 
-		double *(hA[N]);
-		double *(hG[N]);
-		double *(hQ[N+1]);
-		double *(hR[N]);
-		double *(hAGU[N]);
-		double *(hUp[N+1]);
-		double *(hUe[N+1]);
-		double *(hUr[N]);
+		double *hA[N];
+		double *hG[N];
+		double *hQ[N+1];
+		double *hR[N];
+		double *hAGU[N];
+		double *hUp[N+1];
+		double *hUe[N+1];
+		double *hUr[N];
 		double *Ud;
 		double *work_ref;
 
@@ -1273,11 +1273,11 @@ int main()
 		// window size
 		N = 20;
 
-		double *(hhxe[N+1]);
-		double *(hhxp[N+1]);
-		double *(hhw[N]);
-		double *(hhy[N+1]);
-		double *(hhlam[N]);
+		double *hhxe[N+1];
+		double *hhxp[N+1];
+		double *hhw[N];
+		double *hhy[N+1];
+		double *hhlam[N];
 
 		double *p_hhxe; d_zeros_align(&p_hhxe, anx, N+1);
 		double *p_hhxp; d_zeros_align(&p_hhxp, anx, N+1);

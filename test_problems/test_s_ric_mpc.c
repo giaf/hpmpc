@@ -373,15 +373,15 @@ int main()
 //	s_print_pmat(nz, nz, bss, spQ, pnz);
 
 	/* matrices series */
-		float *(hpQ[N+1]);
-		float *(hpL[N+1]);
-		float *(hq[N+1]);
-		float *(hux[N+1]);
-		float *(hpi[N+1]);
-		float *(hpBAbt[N]);
-		float *(hrb[N]);
-		float *(hrq[N+1]);
-		float *(hPb[N]);
+		float *hpQ[N+1];
+		float *hpL[N+1];
+		float *hq[N+1];
+		float *hux[N+1];
+		float *hpi[N+1];
+		float *hpBAbt[N];
+		float *hrb[N];
+		float *hrq[N+1];
+		float *hPb[N];
 		for(jj=0; jj<N; jj++)
 			{
 			s_zeros_align(&hpQ[jj], pnz, cnz);

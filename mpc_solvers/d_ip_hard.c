@@ -78,22 +78,22 @@ int d_ip_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_mi
 	double *ptr;
 	ptr = work_memory;
 
-	double *(dux[N+1]);
-	double *(dpi[N+1]);
-	double *(dL[N+1]);
-	double *(pL[N+1]);
-	double *(pd[N+1]); // pointer to diagonal of Hessian
-	double *(pl[N+1]); // pointer to linear part of Hessian
-	double *(bd[N+1]); // backup diagonal of Hessian
-	double *(bl[N+1]); // backup linear part of Hessian
+	double *dux[N+1];
+	double *dpi[N+1];
+	double *dL[N+1];
+	double *pL[N+1];
+	double *pd[N+1]; // pointer to diagonal of Hessian
+	double *pl[N+1]; // pointer to linear part of Hessian
+	double *bd[N+1]; // backup diagonal of Hessian
+	double *bl[N+1]; // backup linear part of Hessian
 	double *work0;
 	double *work1;
-	double *(dlam[N+1]);
-	double *(dt[N+1]);
-	double *(lamt[N+1]);
-	double *(t_inv[N+1]);
-	double *(qx[N+1]);
-	double *(Qx[N+1]);
+	double *dlam[N+1];
+	double *dt[N+1];
+	double *lamt[N+1];
+	double *t_inv[N+1];
+	double *qx[N+1];
+	double *Qx[N+1];
 
 //	ptr += (N+1)*(pnz + pnx + pnz*cnl + 8*pnz) + 3*pnz;
 

@@ -494,18 +494,18 @@ int main()
 * low-level interface: series of panel format of packed matrices
 ************************************************/	
 
-	double *(hpQ[N+1]);
-	double *(hq[N+1]);
-	double *(hux[N+1]);
-	double *(hpi[N+1]);
-	double *(hlam[N+1]);
-	double *(ht[N+1]);
-	double *(hpBAbt[N]);
-	double *(hd[N+1]);
-	double *(hpDCt[N+1]);
-	double *(hrb[N]);
-	double *(hrq[N+1]);
-	double *(hrd[N+1]);
+	double *hpQ[N+1];
+	double *hq[N+1];
+	double *hux[N+1];
+	double *hpi[N+1];
+	double *hlam[N+1];
+	double *ht[N+1];
+	double *hpBAbt[N];
+	double *hd[N+1];
+	double *hpDCt[N+1];
+	double *hrb[N];
+	double *hrq[N+1];
+	double *hrd[N+1];
 
 	for(jj=0; jj<N; jj++)
 		{
@@ -1136,14 +1136,14 @@ int main()
 * work space
 ************************************************/	
 
-	double *(hpBAbt[N]);
-	double *(hpQ[N+1]);
-	double *(hd[N+1]);
-	int *(idx[N+1]);
-	double *(hux[N+1]);
-	double *(hpi[N+1]);
-	double *(hlam[N+1]);
-	double *(ht[N+1]);
+	double *hpBAbt[N];
+	double *hpQ[N+1];
+	double *hd[N+1];
+	int *idx[N+1];
+	double *hux[N+1];
+	double *hpi[N+1];
+	double *hlam[N+1];
+	double *ht[N+1];
 	hpBAbt[0] = pBAbt0;
 	hpQ[0] = pQ0;
 	hd[0] = d0;

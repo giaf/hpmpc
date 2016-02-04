@@ -304,20 +304,20 @@ int main()
 * matrices series
 ************************************************/	
 
-	double *(hpQ[N+1]);
-	double *(hq[N+1]);
-	double *(hZ[N+1]);
-	double *(hz[N+1]);
-	double *(hux[N+1]);
-	double *(hpi[N+1]);
-	double *(hlam[N+1]);
-	double *(ht[N+1]);
-	double *(hpBAbt[N]);
-	double *(hdb[N+1]);
-	double *(hrb[N]);
-	double *(hrq[N+1]);
-	double *(hrd[N+1]);
-	double *(hrz[N+1]);
+	double *hpQ[N+1];
+	double *hq[N+1];
+	double *hZ[N+1];
+	double *hz[N+1];
+	double *hux[N+1];
+	double *hpi[N+1];
+	double *hlam[N+1];
+	double *ht[N+1];
+	double *hpBAbt[N];
+	double *hdb[N+1];
+	double *hrb[N];
+	double *hrq[N+1];
+	double *hrd[N+1];
+	double *hrz[N+1];
 
 	for(jj=0; jj<N; jj++)
 		{
@@ -529,14 +529,14 @@ int main()
 	double *pQs; d_zeros_align(&pQs, pnzs, cnzs);
 	d_cvt_mat2pmat(nzs, nzs, Qs, nzs, 0, pQs, cnzs);
 	//d_print_pmat(nzs, nzs, bs, pQs, cnzs);
-	double *(hpQs[N+1]);
-	double *(huxs[N+1]);
-	double *(hpis[N+1]);
-	double *(hlams[N+1]);
-	double *(hts[N+1]);
-	double *(hpBAbts[N]);
-	double *(hpDCts[N+1]);
-	double *(hds[N+1]);
+	double *hpQs[N+1];
+	double *huxs[N+1];
+	double *hpis[N+1];
+	double *hlams[N+1];
+	double *hts[N+1];
+	double *hpBAbts[N];
+	double *hpDCts[N+1];
+	double *hds[N+1];
 	for(jj=0; jj<N; jj++)
 		{
 		hpQs[jj] = pQs;
@@ -1014,8 +1014,8 @@ int main()
 		idx++;
 		}
 	
-	int *(idxb_tv[N+1]);
-	double *(hdb_tv[N+1]);
+	int *idxb_tv[N+1];
+	double *hdb_tv[N+1];
 	idxb_tv[0] = idxb0;
 	hdb_tv[0] = db0;
 	for(ii=1; ii<N; ii++)
@@ -1050,8 +1050,8 @@ int main()
 		z1[1*pns_tv[1]+ii] = 100.0;
 		}
 	
-	double *(hZ_tv[N+1]);
-	double *(hz_tv[N+1]);
+	double *hZ_tv[N+1];
+	double *hz_tv[N+1];
 	for(ii=0; ii<=N; ii++)
 		{
 		hZ_tv[ii] = Z1;
@@ -1073,8 +1073,8 @@ int main()
 	//printf("\n mu0 = %f\n", mu0);
 
 	// lagrangian multipliers and slack variables
-	double *(hlam_tv[N+1]);
-	double *(ht_tv[N+1]);
+	double *hlam_tv[N+1];
+	double *ht_tv[N+1];
 	for(ii=0; ii<=N; ii++)
 		{
 		d_zeros_align(&hlam_tv[ii], 2*pnb_tv[ii]+2*png_tv[ii]+4*pns_tv[ii], 1);
@@ -1129,11 +1129,11 @@ int main()
 	
 
 	
-	double *(hrq_tv[N+1]);
-	double *(hrb_tv[N]);
-	double *(hrd_tv[N+1]);
-	double *(hrz_tv[N+1]);
-	double *(hq_tv[N+1]);
+	double *hrq_tv[N+1];
+	double *hrb_tv[N];
+	double *hrd_tv[N+1];
+	double *hrz_tv[N+1];
+	double *hq_tv[N+1];
 
 	for(ii=0; ii<N; ii++)
 		{

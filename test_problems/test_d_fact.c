@@ -347,8 +347,8 @@ int main()
 		double *diag; d_zeros_align(&diag, pnxNnu, 1);
 
 		const int N2 = 1;
-		double *(pH_R[N2]);
-		double *(pH_Rx[N2]);
+		double *pH_R[N2];
+		double *pH_Rx[N2];
 		for(ii=0; ii<N2; ii++)
 			{
 			d_zeros_align(&pH_R[ii], pNnu, cNnu);

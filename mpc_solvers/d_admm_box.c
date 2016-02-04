@@ -74,19 +74,19 @@ void d_admm_box_mpc(int *kk, int k_max, double tol_p, double tol_d, int warm_sta
 	
 
 	/* array or pointers */
-	double *(ux_r[N+1]);
-/*	double *(ux_v[N+1]);*/
-/*	double *(ux_w[N+1]);*/
-	double *(dL[N+1]);
-	double *(pL[N+1]);
-	double *(pd[N+1]);
-	double *(pl[N+1]);
-	double *(bd[N+1]);
-	double *(bl[N+1]);
-	double *(bb[N]);
+	double *ux_r[N+1];
+/*	double *ux_v[N+1];*/
+/*	double *ux_w[N+1];*/
+	double *dL[N+1];
+	double *pL[N+1];
+	double *pd[N+1];
+	double *pl[N+1];
+	double *bd[N+1];
+	double *bl[N+1];
+	double *bb[N];
 	double *work0;
 	double *work1;
-	double *(Pb[N]);
+	double *Pb[N];
 	
 	double *ptr = work_memory;
 

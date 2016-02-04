@@ -73,22 +73,22 @@ void s_admm_soft_mpc(int *kk, int k_max, float tol_p, float tol_d, int warm_star
 	
 
 	/* array or pointers */
-	float *(ux_r[N+1]);
-/*	float *(ux_v[N+1]);*/
-/*	float *(ux_w[N+1]);*/
-	float *(pL[N+1]);
-	float *(pl[N+1]);
-	float *(bd[N+1]);
-	float *(bl[N+1]);
-	float *(bb[N]);
+	float *ux_r[N+1];
+/*	float *ux_v[N+1];*/
+/*	float *ux_w[N+1];*/
+	float *pL[N+1];
+	float *pl[N+1];
+	float *bd[N+1];
+	float *bl[N+1];
+	float *bb[N];
 	float *work1;
 	float *diag;
-	float *(Zi[N+1]); // inverse of Hessian of soft constraints slack variables
-/*	float *(s_u[N+1]); // soft constraints slack variable*/
-/*	float *(s_v[N+1]); // soft constraints slack variable*/
-/*	float *(s_w[N+1]); // soft constraints slack variable*/
-	float *(s_r[N+1]); // soft constraints slack variable
-	float *(Pb[N]);
+	float *Zi[N+1]; // inverse of Hessian of soft constraints slack variables
+/*	float *s_u[N+1]; // soft constraints slack variable*/
+/*	float *s_v[N+1]; // soft constraints slack variable*/
+/*	float *s_w[N+1]; // soft constraints slack variable*/
+	float *s_r[N+1]; // soft constraints slack variable
+	float *Pb[N];
 	
 	float *ptr = work_memory; // TODO + 10*anx
 

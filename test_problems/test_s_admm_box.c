@@ -279,20 +279,20 @@ int main()
 * matrices series
 ************************************************/	
 
-	float *(hpQ[N+1]);
-	float *(hq[N+1]);
-	float *(hux[N+1]);
-	float *(hpi[N+1]);
-	float *(hlam[N+1]);
-	float *(ht[N+1]);
-	float *(hpBAbt[N]);
-	float *(hlb[N+1]);
-	float *(hub[N+1]);
-	float *(hrb[N]);
-	float *(hrq[N+1]);
-	float *(hrd[N+1]);
-	float *(hux_v[N+1]);
-	float *(hux_w[N+1]);
+	float *hpQ[N+1];
+	float *hq[N+1];
+	float *hux[N+1];
+	float *hpi[N+1];
+	float *hlam[N+1];
+	float *ht[N+1];
+	float *hpBAbt[N];
+	float *hlb[N+1];
+	float *hub[N+1];
+	float *hrb[N];
+	float *hrq[N+1];
+	float *hrd[N+1];
+	float *hux_v[N+1];
+	float *hux_w[N+1];
 
 	for(jj=0; jj<N; jj++)
 		{

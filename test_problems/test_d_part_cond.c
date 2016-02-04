@@ -625,15 +625,15 @@ int main()
 * original problem data
 ************************************************/
 
-	double *(hpA[N]);
-	double *(hpAt[N]);
-	double *(hpBt[N]);
-	double *(hb[N]);
-	double *(hpBAbt[N]);
-	double *(hpRSQrq[N+1]);
-	double *(hdRSQrq[N+1]);
-	double *(hd[N+1]);
-	int *(hidx[N+1]);
+	double *hpA[N];
+	double *hpAt[N];
+	double *hpBt[N];
+	double *hb[N];
+	double *hpBAbt[N];
+	double *hpRSQrq[N+1];
+	double *hdRSQrq[N+1];
+	double *hd[N+1];
+	int *hidx[N+1];
 	hpA[0] = pA;
 	hpAt[0] = pAt;
 	hpBt[0] = pBt;
@@ -760,11 +760,11 @@ int main()
 	int cnx_v[Np+1]; for(ii=0; ii<=Np; ii++) cnx_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
 	int cnux_v[Np+1]; for(ii=0; ii<=Np; ii++) cnux_v[ii] = (nu_v[ii]+nx_v[ii]+ncl-1)/ncl*ncl;
 	
-	double *(hpBAbt2[Np]);
-	double *(hpRSQrq2[Np+1]);
-	double *(hpDCt2[Np+1]);
-	double *(hd2[Np+1]);
-	int *(hidx2[Np+1]);
+	double *hpBAbt2[Np];
+	double *hpRSQrq2[Np+1];
+	double *hpDCt2[Np+1];
+	double *hd2[Np+1];
+	int *hidx2[Np+1];
 	for(ii=0; ii<Np; ii++)
 		{
 		d_zeros_align(&hpBAbt2[ii], pnz_v[ii], cnx_v[ii+1]);
@@ -789,7 +789,7 @@ int main()
 	int cnxNnu = (nx+(Nc+1)*nu+ncl-1)/ncl*ncl;
 	double *pGamma_Lu; d_zeros_align(&pGamma_Lu, pnx1Nnu, cnu);
 
-	double *(hpGamma_u_b[Nc+1]);
+	double *hpGamma_u_b[Nc+1];
 	for(ii=0; ii<Nc+1; ii++)
 		{
 		offset = ((ii+1)*nu+nx+1+bs-1)/bs*bs;
@@ -871,10 +871,10 @@ int main()
 * partially condensed riccati solver
 ************************************************/
 
-	double *(hux2[Np+1]);
-	double *(hpi2[Np+1]);
-	double *(hlam2[Np+1]);
-	double *(ht2[Np+1]);
+	double *hux2[Np+1];
+	double *hpi2[Np+1];
+	double *hlam2[Np+1];
+	double *ht2[Np+1];
 	for(ii=0; ii<=Np; ii++)
 		{
 		d_zeros_align(&hux2[ii], pnux_v[ii], 1);
@@ -930,8 +930,8 @@ int main()
 	for(ii=0; ii<=Np; ii++)
 		d_print_mat(1, nu_v[ii]+nx_v[ii], hux2[ii], 1);
 	
-	double *(hu[N]);
-	double *(hx[N+1]);
+	double *hu[N];
+	double *hx[N+1];
 	for(ii=0; ii<N; ii++)
 		{
 		d_zeros_align(&hu[ii], pnu, 1);

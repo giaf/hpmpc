@@ -292,25 +292,25 @@ int main()
 * matrices series
 ************************************************/	
 
-	double *(hpQ[N+1]);
-	double *(hq[N+1]);
-	double *(hux[N+1]);
-	double *(hpi[N+1]);
-	double *(hlam[N+1]);
-	double *(ht[N+1]);
-	double *(hpBAbt[N]);
-	double *(hlb[N+1]);
-	double *(hub[N+1]);
-	double *(hrb[N]);
-	double *(hrq[N+1]);
-	double *(hrd[N+1]);
-	double *(hZ[N+1]);
-	double *(hz[N+1]);
-	double *(hux_v[N+1]);
-	double *(hux_w[N+1]);
-	double *(hs_u[N+1]);
-	double *(hs_v[N+1]);
-	double *(hs_w[N+1]);
+	double *hpQ[N+1];
+	double *hq[N+1];
+	double *hux[N+1];
+	double *hpi[N+1];
+	double *hlam[N+1];
+	double *ht[N+1];
+	double *hpBAbt[N];
+	double *hlb[N+1];
+	double *hub[N+1];
+	double *hrb[N];
+	double *hrq[N+1];
+	double *hrd[N+1];
+	double *hZ[N+1];
+	double *hz[N+1];
+	double *hux_v[N+1];
+	double *hux_w[N+1];
+	double *hs_u[N+1];
+	double *hs_v[N+1];
+	double *hs_w[N+1];
 
 	for(jj=0; jj<N; jj++)
 		{

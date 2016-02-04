@@ -502,21 +502,21 @@ int main()
 //	d_print_pmat(nz, nz, bs, pQ, cnz);
 
 	/* matrices series */
-		double *(hpQ[N+1]);
-		double *(hpQ_tv[N+1]);
-		double *(hpL[N+1]);
-		double *(hdL[N+1]);
-		double *(hl[N+1]);
-		double *(hq[N+1]);
-		double *(hq_tv[N+1]);
-		double *(hux[N+1]);
-		double *(hpi[N+1]);
-		double *(hpBAbt[N]);
-		double *(hpBAbt_tv[N]);
-		double *(hb_tv[N]);
-		double *(hrb[N]);
-		double *(hrq[N+1]);
-		double *(hPb[N]);
+		double *hpQ[N+1];
+		double *hpQ_tv[N+1];
+		double *hpL[N+1];
+		double *hdL[N+1];
+		double *hl[N+1];
+		double *hq[N+1];
+		double *hq_tv[N+1];
+		double *hux[N+1];
+		double *hpi[N+1];
+		double *hpBAbt[N];
+		double *hpBAbt_tv[N];
+		double *hb_tv[N];
+		double *hrb[N];
+		double *hrq[N+1];
+		double *hPb[N];
 		for(jj=0; jj<N; jj++)
 			{
 			if(LTI==1)
@@ -595,9 +595,9 @@ int main()
 
 #if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL) || defined(REF_BLAS_NETLIB)
 
-		double *(hBAbt[N]);
-		double *(hQ[N+1]);
-		double *(hL[N+1]);
+		double *hBAbt[N];
+		double *hQ[N+1];
+		double *hL[N+1];
 		hBAbt[0] = BAbt0;
 		hQ[0] = Q0;
 		d_zeros(&hL[0], nu+1, nu+1);
@@ -657,13 +657,13 @@ int main()
 
 
 		// data memory space
-		double *(hdA[N]);
-		double *(hpBt[N]);
-		double *(hpR[N]);
-		double *(hpS[N]);
-		double *(hpQ2[N+1]);
-		double *(hpLK[N]);
-		double *(hpP[N+1]);
+		double *hdA[N];
+		double *hpBt[N];
+		double *hpR[N];
+		double *hpS[N];
+		double *hpQ2[N+1];
+		double *hpLK[N];
+		double *hpP[N+1];
 		double *pK;
 
 		for(ii=0; ii<N; ii++)
@@ -761,18 +761,18 @@ int main()
 
 
 		// data memory space
-		double *(hrq2[N+1]);
-		//double *(hu2[N]);
-		//double *(hx2[N+1]);
-		double *(hux2[N+1]);
-		double *(hpi2[N+1]);
-		double *(hPb2[N]);
+		double *hrq2[N+1];
+		//double *hu2[N];
+		//double *hx2[N+1];
+		double *hux2[N+1];
+		double *hpi2[N+1];
+		double *hPb2[N];
 
-		double *(hb2[N]);
-		//double *(hres_r2[N]);
-		//double *(hres_q2[N+1]);
-		double *(hres_rq2[N+1]);
-		double *(hres_b2[N]);
+		double *hb2[N];
+		//double *hres_r2[N];
+		//double *hres_q2[N+1];
+		double *hres_rq2[N+1];
+		double *hres_b2[N];
 
 		for(ii=0; ii<N; ii++)
 			{
@@ -897,10 +897,10 @@ int main()
 		int pnbb[N+1];
 		for(ii=0; ii<=N; ii++) pnbb[ii] = (nbb[ii]+bs-1)/bs*bs;
 
-		double *(hd2[N+1]);
-		double *(hlam2[N+1]);
-		double *(ht2[N+1]);
-		double *(hres_d2[N+1]);
+		double *hd2[N+1];
+		double *hlam2[N+1];
+		double *ht2[N+1];
+		double *hres_d2[N+1];
 		for(ii=0; ii<=N; ii++)
 			{
 			d_zeros_align(&hd2[ii], 2*pnbb[ii], 1);

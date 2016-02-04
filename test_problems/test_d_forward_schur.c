@@ -543,13 +543,13 @@ int main()
 #endif
 
 
-		double *(hpQA_tv[N+1]);
-//		double *(hdQpA_tv[N+1]);
-		double *(hqb_tv[N+1]);
-		double *(hpLA_tv[N+1]);
-		double *(hdLA_tv[N+1]);
-		double *(hpLe_tv[N+1]);
-		double *(hxupi_tv[N+1]);
+		double *hpQA_tv[N+1];
+//		double *hdQpA_tv[N+1];
+		double *hqb_tv[N+1];
+		double *hpLA_tv[N+1];
+		double *hdLA_tv[N+1];
+		double *hpLe_tv[N+1];
+		double *hxupi_tv[N+1];
 		
 		if(diag_hessian[0])
 			hpQA_tv[0] = dQpA0;
@@ -600,10 +600,10 @@ int main()
 			}
 
 #if defined(REF_BLAS_OPENBLAS) || defined(REF_BLAS_MKL) || defined(REF_BLAS_NETLIB)
-		double *(hQA_tv[N+1]);
-		double *(hLA_tv[N+1]);
-		double *(hLe_tv[N+1]);
-		double *(hqbb_tv[N+1]);
+		double *hQA_tv[N+1];
+		double *hLA_tv[N+1];
+		double *hLe_tv[N+1];
+		double *hqbb_tv[N+1];
 		double *Le_tmp;
 		hQA_tv[0] = QA0;
 		d_zeros(&hLA_tv[0], nv_tv[0]+ne_tv[0], nv_tv[0]);

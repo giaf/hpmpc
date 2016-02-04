@@ -3640,14 +3640,14 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 		if(alg==0 && diag_hessian==0)
 			use_Gamma_x_Q = 1;
 
-		double *(hpGamma_x[M1]);
-		double *(hpGamma_x_Q[M1]);
-		double *(hpGamma_u[M1]);
-		double *(hpGamma_u_Q[M1]);
-		double *(hpGamma_u_Q_A[M1]);
-		double *(hGamma_b[M1]);
-		double *(hGamma_b_q[M1]);
-		double *(hpL[M1+1]);
+		double *hpGamma_x[M1];
+		double *hpGamma_x_Q[M1];
+		double *hpGamma_u[M1];
+		double *hpGamma_u_Q[M1];
+		double *hpGamma_u_Q_A[M1];
+		double *hGamma_b[M1];
+		double *hGamma_b_q[M1];
+		double *hpL[M1+1];
 		double *pD;
 		double *pM;
 		double *work;
@@ -3807,12 +3807,12 @@ void d_cond_lqcp(int N, int nx, int nu, int alg, double **hpA, double **hpAt, do
 		int pnz = (nz+bs-1)/bs*bs;
 		int cnz = (nz+ncl-1)/ncl*ncl;
 
-		double *(hpGamma_x[M1]);
-		double *(hpGamma_u[M1]);
-		double *(hpGamma_u_Q[M1]); // TODO remove !!!!!
-		double *(hpGamma_u_Q_A[M1]); // TODO remove !!!!!
-		double *(hGamma_b[M1]);
-		double *(hGamma_b_q[M1]);
+		double *hpGamma_x[M1];
+		double *hpGamma_u[M1];
+		double *hpGamma_u_Q[M1]; // TODO remove !!!!!
+		double *hpGamma_u_Q_A[M1]; // TODO remove !!!!!
+		double *hGamma_b[M1];
+		double *hGamma_b_q[M1];
 		double *pBAtL;
 		double *pLam;
 		double *pM;

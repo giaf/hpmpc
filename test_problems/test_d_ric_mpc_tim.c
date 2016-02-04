@@ -354,34 +354,34 @@ int main()
 		double *pBAb1;
 		d_zeros_align(&pBAb1, pnz_v[1], cnx_v[2]);
 
-		double *(hpBAb[N]);
+		double *hpBAb[N];
 		hpBAb[0] = pBAb0;
 		for(ii=1; ii<N; ii++) 
 			hpBAb[ii] = pBAb1;
 	//	for(ii=0; ii<Np; ii++)
 	//		d_print_pmat(nu_v[ii]+nx_v[ii], nx_v[ii+1], bs, hpBA[ii], cnx_v[ii]);
 
-		double *(hb[N]);
+		double *hb[N];
 		for(ii=0; ii<N; ii++)
 			d_zeros_align(&hb[ii], pnx_v[ii+1], 1);
 
 		// cost function
-		double *(hq[N+1]);
+		double *hq[N+1];
 		for(ii=0; ii<=N; ii++)
 			d_zeros_align(&hq[ii], pnux_v[ii], 1);
-		double *(hl[N+1]);
+		double *hl[N+1];
 		for(ii=0; ii<=N; ii++)
 			d_zeros_align(&hl[ii], pnux_v[ii], 1);
 
 		// L matrices
 		int cnl_v;
-		double *(hpL[N+1]);
+		double *hpL[N+1];
 		for(ii=0; ii<=N; ii++)
 			{
 			cnl_v = cnux_v[ii]<cnx_v[ii]+ncl ? cnx_v[ii]+ncl : cnux_v[ii];
 			d_zeros_align(&hpL[ii], pnux_v[ii], cnl_v);
 			}
-		double *(hdL[N+1]);
+		double *hdL[N+1];
 		for(ii=0; ii<=N; ii++)
 			{
 			d_zeros_align(&hdL[ii], pnux_v[ii], 1);
@@ -389,12 +389,12 @@ int main()
 			}
 
 		// state & co
-		double *(hux[N+1]);
+		double *hux[N+1];
 		for(ii=0; ii<=N; ii++)
 			d_zeros_align(&hux[ii], pnux_v[ii], 1);
 		
 		// hPb
-		double *(hPb[N]);
+		double *hPb[N];
 		for(ii=0; ii<N; ii++)
 			d_zeros_align(&hPb[ii], pnx_v[ii+1], 1);
 
@@ -434,13 +434,13 @@ int main()
 		double *t; d_zeros_align(&t, pnu, 1);
 		double *pt; d_zeros_align(&pt, pnx, 1);
 
-		double *(hk[N]);
+		double *hk[N];
 		for(ii=0; ii<N; ii++)
 			d_zeros_align(&hk[ii], pnu, 1);
-		double *(hu[N]);
+		double *hu[N];
 		for(ii=0; ii<N; ii++)
 			d_zeros_align(&hu[ii], pnu, 1);
-		double *(hx[N+1]);
+		double *hx[N+1];
 		for(ii=0; ii<=N; ii++)
 			d_zeros_align(&hx[ii], pnx, 1);
 

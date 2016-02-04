@@ -130,27 +130,27 @@ int d_ip2_hard_mpc_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	double *ptr;
 	ptr = double_work_memory; // supposed to be aligned to cache line boundaries
 
-	double *(pL[N+1]);
-	double *(dL[N+1]);
-	double *(l[N+1]);
+	double *pL[N+1];
+	double *dL[N+1];
+	double *l[N+1];
 	double *work;
-	double *(b[N]);
-	double *(q[N+1]);
-	double *(dux[N+1]);
-	double *(dpi[N+1]);
-	double *(pd[N+1]); // pointer to diagonal of Hessian
-	double *(pl[N+1]); // pointer to linear part of Hessian
-	double *(bd[N+1]); // backup diagonal of Hessian
-	double *(bl[N+1]); // backup linear part of Hessian
+	double *b[N];
+	double *q[N+1];
+	double *dux[N+1];
+	double *dpi[N+1];
+	double *pd[N+1]; // pointer to diagonal of Hessian
+	double *pl[N+1]; // pointer to linear part of Hessian
+	double *bd[N+1]; // backup diagonal of Hessian
+	double *bl[N+1]; // backup linear part of Hessian
 	double *diag;
-	double *(dlam[N+1]);
-	double *(dt[N+1]);
-	double *(lamt[N+1]);
-	double *(t_inv[N+1]);
-	double *(Qx[N+1]);
-	double *(qx[N+1]);
-	double *(qx2[N+1]);
-	double *(Pb[N]);
+	double *dlam[N+1];
+	double *dt[N+1];
+	double *lamt[N+1];
+	double *t_inv[N+1];
+	double *Qx[N+1];
+	double *qx[N+1];
+	double *qx2[N+1];
+	double *Pb[N];
 
 //	int size = 0;
 
@@ -587,23 +587,23 @@ int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 	double *ptr;
 	ptr = work_memory;
 
-	double *(dux[N+1]);
-	double *(dpi[N+1]);
-	double *(dL[N+1]);
-	double *(pL[N+1]);
-	double *(pd[N+1]); // pointer to diagonal of Hessian
-	double *(pl[N+1]); // pointer to linear part of Hessian
-	double *(bd[N+1]); // backup diagonal of Hessian
-	double *(bl[N+1]); // backup linear part of Hessian
+	double *dux[N+1];
+	double *dpi[N+1];
+	double *dL[N+1];
+	double *pL[N+1];
+	double *pd[N+1]; // pointer to diagonal of Hessian
+	double *pl[N+1]; // pointer to linear part of Hessian
+	double *bd[N+1]; // backup diagonal of Hessian
+	double *bl[N+1]; // backup linear part of Hessian
 	double *work0;
 	double *work1;
-	double *(dlam[N+1]);
-	double *(dt[N+1]);
-	double *(lamt[N+1]);
-	double *(t_inv[N+1]);
-	double *(Qx[N+1]);
-	double *(qx[N+1]);
-	double *(Pb[N]);
+	double *dlam[N+1];
+	double *dt[N+1];
+	double *lamt[N+1];
+	double *t_inv[N+1];
+	double *Qx[N+1];
+	double *qx[N+1];
+	double *Pb[N];
 
 //	ptr += (N+1)*(pnx + pnz*cnl + 12*pnz) + 3*pnz;
 
@@ -1095,20 +1095,20 @@ int d_ip2_diag_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_m
 
 
 	// initialize work space
-	double *(pL[N]);
+	double *pL[N];
 	double *pK;
-	double *(pP[N+1]);
-	double *(dux[N+1]);
-	double *(dpi[N+1]);
-	double *(Pb[N]);
-	double *(pd[N+1]);
-	double *(pl[N+1]);
-	double *(bd[N+1]);
-	double *(bl[N+1]);
-	double *(dlam[N+1]);
-	double *(dt[N+1]);
-	double *(lamt[N+1]);
-	double *(t_inv[N+1]);
+	double *pP[N+1];
+	double *dux[N+1];
+	double *dpi[N+1];
+	double *Pb[N];
+	double *pd[N+1];
+	double *pl[N+1];
+	double *bd[N+1];
+	double *bl[N+1];
+	double *dlam[N+1];
+	double *dt[N+1];
+	double *lamt[N+1];
+	double *t_inv[N+1];
 	double *work;
 
 //	ptr += (N+1)*(pnx + pnz*cnl + 12*pnz) + 3*pnz;
