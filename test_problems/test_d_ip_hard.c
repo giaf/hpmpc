@@ -1233,12 +1233,12 @@ int main()
 	free(A);
 	free(B);
 	free(b);
-	free(x0);
-	free(pBAbt0);
-	free(pBAbt1);
-	free(d0);
-	free(d1);
-	free(dN);
+	d_free_align(x0);
+	d_free_align(pBAbt0);
+	d_free_align(pBAbt1);
+	d_free_align(d0);
+	d_free_align(d1);
+	d_free_align(dN);
 	free(idx0);
 	free(idx1);
 	free(idxN);
@@ -1247,14 +1247,14 @@ int main()
 	free(R);
 	free(q);
 	free(r);
-	free(pQ0);
-	free(pQ1);
-	free(pQN);
-	free(work);
+	d_free_align(pQ0);
+	d_free_align(pQ1);
+	d_free_align(pQN);
+	d_free_align(work);
 	free(stat);
 	for(ii=0; ii<=N; ii++)
 		{
-		free(hux[ii]);
+		d_free_align(hux[ii]);
 		}
 	
 	return 0;

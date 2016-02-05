@@ -48,6 +48,9 @@ void d_zeros(double **pA, int row, int col)
 /* creates a zero matrix aligned to a cache line */
 void d_zeros_align(double **pA, int row, int col)
 	{
+#if defined(OS_WINDOWS)
+	*pA = (double *) _aligned_malloc( (row*col)*sizeof(double), 64 );
+#else
 	void *temp;
 	int err = posix_memalign(&temp, 64, (row*col)*sizeof(double));
 	if(err!=0)
@@ -56,12 +59,23 @@ void d_zeros_align(double **pA, int row, int col)
 		exit(1);
 		}
 	*pA = temp;
+#endif
 	double *A = *pA;
 	int i;
 	for(i=0; i<row*col; i++) A[i] = 0.0;
 	}
 
 
+
+/* frees aligned memory */
+void d_free_align(double *pA)
+	{
+#if defined(OS_WINDOWS)
+	_aligned_free( pA );
+#else
+	free( pA );
+#endif
+	}
 
 /* creates a zero matrix aligned */
 void d_ones(double **pA, int row, int col)
@@ -78,6 +92,9 @@ void d_ones(double **pA, int row, int col)
 /* creates a zero matrix aligned to a cache line */
 void d_ones_align(double **pA, int row, int col)
 	{
+#if defined(OS_WINDOWS)
+	*pA = (double *) _aligned_malloc( (row*col)*sizeof(double), 64 );
+#else
 	void *temp;
 	int err = posix_memalign(&temp, 64, (row*col)*sizeof(double));
 	if(err!=0)
@@ -86,6 +103,7 @@ void d_ones_align(double **pA, int row, int col)
 		exit(1);
 		}
 	*pA = temp;
+#endif
 	double *A = *pA;
 	int i;
 	for(i=0; i<row*col; i++) A[i] = 1.0;
