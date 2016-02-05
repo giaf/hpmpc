@@ -164,25 +164,44 @@ codegenerator: target
 target:
 	touch ./include/target.h
 ifeq ($(TARGET), X64_AVX2)
-	echo "#ifndef TARGET_X64_AVX2\n#define TARGET_X64_AVX2\n#endif" > ./include/target.h
+	echo "#ifndef TARGET_X64_AVX2" > ./include/target.h
+	echo "#define TARGET_X64_AVX2" >> ./include/target.h
+	echo "#endif" >> ./include/target.h
 endif
 ifeq ($(TARGET), X64_AVX)
-	echo "#ifndef TARGET_X64_AVX\n#define TARGET_X64_AVX\n#endif" > ./include/target.h
+	echo "#ifndef TARGET_X64_AVX" > ./include/target.h
+	echo "#define TARGET_X64_AVX" >> ./include/target.h
+	echo "#endif" >> ./include/target.h
 endif
 ifeq ($(TARGET), X64_SSE3)
-	echo "#ifndef TARGET_X64_SSE3\n#define TARGET_X64_SSE3\n#endif" > ./include/target.h
+	echo "#ifndef TARGET_X64_SSE3" > ./include/target.h
+	echo "#define TARGET_X64_SSE3" >> ./include/target.h
+	echo "#endif" >> ./include/target.h
 endif
 ifeq ($(TARGET), C99_4X4)
-	echo "#ifndef TARGET_C99_4X4\n#define TARGET_C99_4X4\n#endif" > ./include/target.h
+	echo "#ifndef TARGET_C99_4X4" > ./include/target.h
+	echo "#define TARGET_C99_4X4" >> ./include/target.h
+	echo "#endif" >> ./include/target.h
+endif
+ifeq ($(TARGET), CORTEX_A57)
+	echo "#ifndef TARGET_CORTEX_A57" > ./include/target.h
+	echo "#define TARGET_CORTEX_A57" >> ./include/target.h
+	echo "#endif" >> ./include/target.h
 endif
 ifeq ($(TARGET), CORTEX_A15)
-	echo "#ifndef TARGET_CORTEX_A15\n#define TARGET_CORTEX_A15\n#endif" > ./include/target.h
+	echo "#ifndef TARGET_CORTEX_A15" > ./include/target.h
+	echo "#define TARGET_CORTEX_A15" >> ./include/target.h
+	echo "#endif" >> ./include/target.h
 endif
 ifeq ($(TARGET), CORTEX_A9)
-	echo "#ifndef TARGET_CORTEX_A9\n#define TARGET_CORTEX_A9\n#endif" > ./include/target.h
+	echo "#ifndef TARGET_CORTEX_A9" > ./include/target.h
+	echo "#define TARGET_CORTEX_A9" >> ./include/target.h
+	echo "#endif" >> ./include/target.h
 endif
 ifeq ($(TARGET), CORTEX_A7)
-	echo "#ifndef TARGET_CORTEX_A7\n#define TARGET_CORTEX_A7\n#endif" > ./include/target.h
+	echo "#ifndef TARGET_CORTEX_A7" > ./include/target.h
+	echo "#define TARGET_CORTEX_A7" >> ./include/target.h
+	echo "#endif" >> ./include/target.h
 endif
 
 test_problem:
