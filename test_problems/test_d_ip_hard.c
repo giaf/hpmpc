@@ -1224,6 +1224,7 @@ int main()
 	printf("\n");
 	printf(" Average number of iterations over %d runs: %5.1f\n", nrep, kk_avg / (double) nrep);
 	printf(" Average solution time over %d runs: %5.2e seconds\n", nrep, time);
+	printf("\n\n");
 
 /************************************************
 * free memory
@@ -1255,6 +1256,8 @@ int main()
 		{
 		free(hux[ii]);
 		}
+	
+	return 0;
 	
 	}
 

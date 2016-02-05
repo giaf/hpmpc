@@ -5617,7 +5617,6 @@ void kernel_dgemm_dtrsm_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 	
 	const int bs = 4;
 	
-	static __m256i mask_bkp[4];
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
 
 	double d_temp;
@@ -5625,7 +5624,7 @@ void kernel_dgemm_dtrsm_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 	int k;
 	
 	__m256i
-		mask0;
+		msk;
 
 	__m256d
 		a_0123, a_4567, A_0123, A_4567,
@@ -5634,19 +5633,6 @@ void kernel_dgemm_dtrsm_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		d_0, d_1, d_3, d_2,
 		d_4, d_5, d_7, d_6;
 	
-	// compute store mask
-	if(km>=8)
-		{
-		mask0 = _mm256_set_epi64x( -1, -1, -1, -1 );
-		_mm256_storeu_si256( mask_bkp, mask0 );
-		}
-	else
-		{
-		d_temp = km-4.0;
-		mask0 = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
-		_mm256_storeu_si256( mask_bkp, mask0 );
-		}
-
 	// zero registers
 	d_0 = _mm256_setzero_pd();
 	d_1 = _mm256_setzero_pd();
@@ -6398,7 +6384,8 @@ void kernel_dgemm_dtrsm_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 	__m128d
 		s_ii, ones;
 	
-	mask0 = _mm256_loadu_si256( mask_bkp );
+	d_temp = km - 4.0;
+	msk = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
 
 	if(use_inv_diag_E)
 		{
@@ -6406,7 +6393,7 @@ void kernel_dgemm_dtrsm_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		d_00 = _mm256_mul_pd( d_00, a_ii );
 		d_40 = _mm256_mul_pd( d_40, a_ii );
 		_mm256_store_pd( &D0[0+bs*0], d_00 );
-		_mm256_maskstore_pd( &D1[0+bs*0], mask0, d_40 );
+		_mm256_maskstore_pd( &D1[0+bs*0], msk, d_40 );
 
 		a_ii = _mm256_broadcast_sd( &E[1+bs*0] ); // E_10
 		ab_tmp0 = _mm256_mul_pd( d_00, a_ii );
@@ -6417,7 +6404,7 @@ void kernel_dgemm_dtrsm_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		d_01 = _mm256_mul_pd( d_01, a_ii );
 		d_41 = _mm256_mul_pd( d_41, a_ii );
 		_mm256_store_pd( &D0[0+bs*1], d_01 );
-		_mm256_maskstore_pd( &D1[0+bs*1], mask0, d_41 );
+		_mm256_maskstore_pd( &D1[0+bs*1], msk, d_41 );
 
 		a_ii = _mm256_broadcast_sd( &E[2+bs*0] ); // E_20
 		ab_tmp0 = _mm256_mul_pd( d_00, a_ii );
@@ -6433,7 +6420,7 @@ void kernel_dgemm_dtrsm_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		d_02 = _mm256_mul_pd( d_02, a_ii );
 		d_42 = _mm256_mul_pd( d_42, a_ii );
 		_mm256_store_pd( &D0[0+bs*2], d_02 );
-		_mm256_maskstore_pd( &D1[0+bs*2], mask0, d_42 );
+		_mm256_maskstore_pd( &D1[0+bs*2], msk, d_42 );
 
 		if(kn>=4)
 			{
@@ -6456,7 +6443,7 @@ void kernel_dgemm_dtrsm_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 			d_03 = _mm256_mul_pd( d_03, a_ii );
 			d_43 = _mm256_mul_pd( d_43, a_ii );
 			_mm256_store_pd( &D0[0+bs*3], d_03 );
-			_mm256_maskstore_pd( &D1[0+bs*3], mask0, d_43 );
+			_mm256_maskstore_pd( &D1[0+bs*3], msk, d_43 );
 			}
 		}
 	else
@@ -6469,7 +6456,7 @@ void kernel_dgemm_dtrsm_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		d_00 = _mm256_mul_pd( d_00, a_ii );
 		d_40 = _mm256_mul_pd( d_40, a_ii );
 		_mm256_store_pd( &D0[0+bs*0], d_00 );
-		_mm256_maskstore_pd( &D1[0+bs*0], mask0, d_40 );
+		_mm256_maskstore_pd( &D1[0+bs*0], msk, d_40 );
 
 		a_ii = _mm256_broadcast_sd( &E[1+bs*0] ); // E_10
 		ab_tmp0 = _mm256_mul_pd( d_00, a_ii );
@@ -6483,7 +6470,7 @@ void kernel_dgemm_dtrsm_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		d_01 = _mm256_mul_pd( d_01, a_ii );
 		d_41 = _mm256_mul_pd( d_41, a_ii );
 		_mm256_store_pd( &D0[0+bs*1], d_01 );
-		_mm256_maskstore_pd( &D1[0+bs*1], mask0, d_41 );
+		_mm256_maskstore_pd( &D1[0+bs*1], msk, d_41 );
 
 		a_ii = _mm256_broadcast_sd( &E[2+bs*0] ); // E_20
 		ab_tmp0 = _mm256_mul_pd( d_00, a_ii );
@@ -6502,7 +6489,7 @@ void kernel_dgemm_dtrsm_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		d_02 = _mm256_mul_pd( d_02, a_ii );
 		d_42 = _mm256_mul_pd( d_42, a_ii );
 		_mm256_store_pd( &D0[0+bs*2], d_02 );
-		_mm256_maskstore_pd( &D1[0+bs*2], mask0, d_42 );
+		_mm256_maskstore_pd( &D1[0+bs*2], msk, d_42 );
 
 		if(kn>=4)
 			{
@@ -6528,7 +6515,7 @@ void kernel_dgemm_dtrsm_nt_8x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 			d_03 = _mm256_mul_pd( d_03, a_ii );
 			d_43 = _mm256_mul_pd( d_43, a_ii );
 			_mm256_store_pd( &D0[0+bs*3], d_03 );
-			_mm256_maskstore_pd( &D1[0+bs*3], mask0, d_43 );
+			_mm256_maskstore_pd( &D1[0+bs*3], msk, d_43 );
 			}
 		}
 
@@ -6548,7 +6535,6 @@ void kernel_dgemm_dtrsm_nt_8x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 	
 	const int bs = 4;
 	
-	static __m256i mask_bkp[4];
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
 
 	double d_temp;
@@ -6556,7 +6542,7 @@ void kernel_dgemm_dtrsm_nt_8x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 	int k;
 	
 	__m256i
-		mask0;
+		msk;
 
 	__m256d
 		a_0123, a_4567,
@@ -6565,19 +6551,6 @@ void kernel_dgemm_dtrsm_nt_8x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		d_0, d_1,
 		d_4, d_5;
 	
-	// compute store mask
-	if(km>=8)
-		{
-		mask0 = _mm256_set_epi64x( -1, -1, -1, -1 );
-		_mm256_storeu_si256( mask_bkp, mask0 );
-		}
-	else
-		{
-		d_temp = km-4.0;
-		mask0 = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
-		_mm256_storeu_si256( mask_bkp, mask0 );
-		}
-
 	// zero registers
 	d_0 = _mm256_setzero_pd();
 	d_1 = _mm256_setzero_pd();
@@ -7076,7 +7049,8 @@ void kernel_dgemm_dtrsm_nt_8x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 	__m128d
 		s_ii, ones;
 	
-	mask0 = _mm256_loadu_si256( mask_bkp );
+	d_temp = km - 4.0;
+	msk = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
 
 	if(use_inv_diag_E)
 		{
@@ -7084,7 +7058,7 @@ void kernel_dgemm_dtrsm_nt_8x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		d_00 = _mm256_mul_pd( d_00, a_ii );
 		d_40 = _mm256_mul_pd( d_40, a_ii );
 		_mm256_store_pd( &D0[0+bs*0], d_00 );
-		_mm256_maskstore_pd( &D1[0+bs*0], mask0, d_40 );
+		_mm256_maskstore_pd( &D1[0+bs*0], msk, d_40 );
 
 		if(kn>=2)
 			{
@@ -7097,7 +7071,7 @@ void kernel_dgemm_dtrsm_nt_8x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 			d_01 = _mm256_mul_pd( d_01, a_ii );
 			d_41 = _mm256_mul_pd( d_41, a_ii );
 			_mm256_store_pd( &D0[0+bs*1], d_01 );
-			_mm256_maskstore_pd( &D1[0+bs*1], mask0, d_41 );
+			_mm256_maskstore_pd( &D1[0+bs*1], msk, d_41 );
 			}
 		}
 	else
@@ -7110,7 +7084,7 @@ void kernel_dgemm_dtrsm_nt_8x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		d_00 = _mm256_mul_pd( d_00, a_ii );
 		d_40 = _mm256_mul_pd( d_40, a_ii );
 		_mm256_store_pd( &D0[0+bs*0], d_00 );
-		_mm256_maskstore_pd( &D1[0+bs*0], mask0, d_40 );
+		_mm256_maskstore_pd( &D1[0+bs*0], msk, d_40 );
 
 		if(kn>=4)
 			{
@@ -7126,7 +7100,7 @@ void kernel_dgemm_dtrsm_nt_8x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 			d_01 = _mm256_mul_pd( d_01, a_ii );
 			d_41 = _mm256_mul_pd( d_41, a_ii );
 			_mm256_store_pd( &D0[0+bs*1], d_01 );
-			_mm256_maskstore_pd( &D1[0+bs*1], mask0, d_41 );
+			_mm256_maskstore_pd( &D1[0+bs*1], msk, d_41 );
 			}
 		}
 
@@ -7141,7 +7115,6 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 
 	const int bs = 4;
 	
-	static __m256i mask_bkp[4];
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
 
 	double d_temp;
@@ -7149,7 +7122,7 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 	int k;
 	
 	__m256i
-		mask0;
+		msk;
 
 	__m256d
 		a_0123, A_0123,
@@ -7157,19 +7130,6 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		ab_tmp0, zeros,
 		d_0, d_1, d_3, d_2;
 	
-	// compute store mask
-	if(km>=4)
-		{
-		mask0 = _mm256_set_epi64x( -1, -1, -1, -1 );
-		_mm256_storeu_si256( mask_bkp, mask0 );
-		}
-	else
-		{
-		d_temp = km-0.0;
-		mask0 = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
-		_mm256_storeu_si256( mask_bkp, mask0 );
-		}
-
 	// zero registers
 	d_0 = _mm256_setzero_pd();
 	d_1 = _mm256_setzero_pd();
@@ -7581,20 +7541,21 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 	__m128d
 		s_ii, ones;
 	
-	mask0 = _mm256_loadu_si256( mask_bkp );
+	d_temp = km - 0.0;
+	msk = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
 
 	if(use_inv_diag_E)
 		{
 		a_ii = _mm256_broadcast_sd( &inv_diag_E[0] ); // E_00
 		d_00 = _mm256_mul_pd( d_00, a_ii );
-		_mm256_maskstore_pd( &D0[0+bs*0], mask0, d_00 );
+		_mm256_maskstore_pd( &D0[0+bs*0], msk, d_00 );
 
 		a_ii = _mm256_broadcast_sd( &E[1+bs*0] ); // E_10
 		ab_tmp0 = _mm256_mul_pd( d_00, a_ii );
 		d_01 = _mm256_sub_pd( d_01, ab_tmp0 );
 		a_ii = _mm256_broadcast_sd( &inv_diag_E[1] ); // E_11
 		d_01 = _mm256_mul_pd( d_01, a_ii );
-		_mm256_maskstore_pd( &D0[0+bs*1], mask0, d_01 );
+		_mm256_maskstore_pd( &D0[0+bs*1], msk, d_01 );
 
 		a_ii = _mm256_broadcast_sd( &E[2+bs*0] ); // E_20
 		ab_tmp0 = _mm256_mul_pd( d_00, a_ii );
@@ -7604,7 +7565,7 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		d_02 = _mm256_sub_pd( d_02, ab_tmp0 );
 		a_ii = _mm256_broadcast_sd( &inv_diag_E[2] ); // E_22
 		d_02 = _mm256_mul_pd( d_02, a_ii );
-		_mm256_maskstore_pd( &D0[0+bs*2], mask0, d_02 );
+		_mm256_maskstore_pd( &D0[0+bs*2], msk, d_02 );
 
 		if(kn>=4)
 			{
@@ -7619,7 +7580,7 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 			d_03 = _mm256_sub_pd( d_03, ab_tmp0 );
 			a_ii = _mm256_broadcast_sd( &inv_diag_E[3] ); // E_33
 			d_03 = _mm256_mul_pd( d_03, a_ii );
-			_mm256_maskstore_pd( &D0[0+bs*3], mask0, d_03 );
+			_mm256_maskstore_pd( &D0[0+bs*3], msk, d_03 );
 			}
 		}
 	else
@@ -7630,7 +7591,7 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		s_ii = _mm_movedup_pd( s_ii );
 		a_ii  = _mm256_permute2f128_pd( _mm256_castpd128_pd256( s_ii ), _mm256_castpd128_pd256( s_ii ), 0x0 );
 		d_00 = _mm256_mul_pd( d_00, a_ii );
-		_mm256_maskstore_pd( &D0[0+bs*0], mask0, d_00 );
+		_mm256_maskstore_pd( &D0[0+bs*0], msk, d_00 );
 
 		a_ii = _mm256_broadcast_sd( &E[1+bs*0] ); // E_10
 		ab_tmp0 = _mm256_mul_pd( d_00, a_ii );
@@ -7640,7 +7601,7 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		s_ii = _mm_movedup_pd( s_ii );
 		a_ii  = _mm256_permute2f128_pd( _mm256_castpd128_pd256( s_ii ), _mm256_castpd128_pd256( s_ii ), 0x0 );
 		d_01 = _mm256_mul_pd( d_01, a_ii );
-		_mm256_maskstore_pd( &D0[0+bs*1], mask0, d_01 );
+		_mm256_maskstore_pd( &D0[0+bs*1], msk, d_01 );
 
 		a_ii = _mm256_broadcast_sd( &E[2+bs*0] ); // E_20
 		ab_tmp0 = _mm256_mul_pd( d_00, a_ii );
@@ -7653,7 +7614,7 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		s_ii = _mm_movedup_pd( s_ii );
 		a_ii  = _mm256_permute2f128_pd( _mm256_castpd128_pd256( s_ii ), _mm256_castpd128_pd256( s_ii ), 0x0 );
 		d_02 = _mm256_mul_pd( d_02, a_ii );
-		_mm256_maskstore_pd( &D0[0+bs*2], mask0, d_02 );
+		_mm256_maskstore_pd( &D0[0+bs*2], msk, d_02 );
 
 		if(kn>=4)
 			{
@@ -7671,7 +7632,7 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 			s_ii = _mm_movedup_pd( s_ii );
 			a_ii  = _mm256_permute2f128_pd( _mm256_castpd128_pd256( s_ii ), _mm256_castpd128_pd256( s_ii ), 0x0 );
 			d_03 = _mm256_mul_pd( d_03, a_ii );
-			_mm256_maskstore_pd( &D0[0+bs*3], mask0, d_03 );
+			_mm256_maskstore_pd( &D0[0+bs*3], msk, d_03 );
 			}
 		}
 
@@ -7686,7 +7647,6 @@ void kernel_dgemm_dtrsm_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 	
 	const int bs = 4;
 	
-	static __m256i mask_bkp[4];
 	static double d_mask[4] = {0.5, 1.5, 2.5, 3.5};
 
 	double d_temp;
@@ -7694,7 +7654,7 @@ void kernel_dgemm_dtrsm_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 	int k;
 	
 	__m256i
-		mask0;
+		msk;
 
 	__m256d
 		a_0123,
@@ -7703,19 +7663,6 @@ void kernel_dgemm_dtrsm_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		d_0, d_1,
 		D_0, D_1;
 	
-	// compute store mask
-	if(km>=4)
-		{
-		mask0 = _mm256_set_epi64x( -1, -1, -1, -1 );
-		_mm256_storeu_si256( mask_bkp, mask0 );
-		}
-	else
-		{
-		d_temp = km-0.0;
-		mask0 = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
-		_mm256_storeu_si256( mask_bkp, mask0 );
-		}
-
 	// zero registers
 	d_0 = _mm256_setzero_pd();
 	d_1 = _mm256_setzero_pd();
@@ -8006,13 +7953,14 @@ void kernel_dgemm_dtrsm_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 	__m128d
 		s_ii, ones;
 	
-	mask0 = _mm256_loadu_si256( mask_bkp );
+	d_temp = km - 0.0;
+	msk = _mm256_castpd_si256( _mm256_sub_pd( _mm256_loadu_pd( d_mask ), _mm256_broadcast_sd( &d_temp ) ) );
 
 	if(use_inv_diag_E)
 		{
 		a_ii = _mm256_broadcast_sd( &inv_diag_E[0] ); // E_00
 		d_00 = _mm256_mul_pd( d_00, a_ii );
-		_mm256_maskstore_pd( &D[0+bs*0], mask0, d_00 );
+		_mm256_maskstore_pd( &D[0+bs*0], msk, d_00 );
 
 		if(kn>=2)
 			{
@@ -8021,7 +7969,7 @@ void kernel_dgemm_dtrsm_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 			d_01 = _mm256_sub_pd( d_01, ab_tmp0 );
 			a_ii = _mm256_broadcast_sd( &inv_diag_E[1] ); // E_11
 			d_01 = _mm256_mul_pd( d_01, a_ii );
-			_mm256_maskstore_pd( &D[0+bs*1], mask0, d_01 );
+			_mm256_maskstore_pd( &D[0+bs*1], msk, d_01 );
 			}
 		}
 	else
@@ -8032,7 +7980,7 @@ void kernel_dgemm_dtrsm_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		s_ii = _mm_movedup_pd( s_ii );
 		a_ii  = _mm256_permute2f128_pd( _mm256_castpd128_pd256( s_ii ), _mm256_castpd128_pd256( s_ii ), 0x0 );
 		d_00 = _mm256_mul_pd( d_00, a_ii );
-		_mm256_maskstore_pd( &D[0+bs*0], mask0, d_00 );
+		_mm256_maskstore_pd( &D[0+bs*0], msk, d_00 );
 
 		if(kn>=4)
 			{
@@ -8044,7 +7992,7 @@ void kernel_dgemm_dtrsm_nt_4x2_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 			s_ii = _mm_movedup_pd( s_ii );
 			a_ii  = _mm256_permute2f128_pd( _mm256_castpd128_pd256( s_ii ), _mm256_castpd128_pd256( s_ii ), 0x0 );
 			d_01 = _mm256_mul_pd( d_01, a_ii );
-			_mm256_maskstore_pd( &D[0+bs*1], mask0, d_01 );
+			_mm256_maskstore_pd( &D[0+bs*1], msk, d_01 );
 			}
 		}
 
