@@ -41,6 +41,14 @@ void i_zeros(int **pA, int row, int col)
 
 
 
+/* frees memory */
+void i_free(int *pA)
+	{
+	free( pA );
+	}
+
+
+
 void i_print_mat(int row, int col, int *A, int lda)
 	{
 	int i, j;

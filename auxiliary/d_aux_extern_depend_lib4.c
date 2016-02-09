@@ -67,6 +67,14 @@ void d_zeros_align(double **pA, int row, int col)
 
 
 
+/* frees memory */
+void d_free(double *pA)
+	{
+	free( pA );
+	}
+
+
+
 /* frees aligned memory */
 void d_free_align(double *pA)
 	{
@@ -76,6 +84,8 @@ void d_free_align(double *pA)
 	free( pA );
 #endif
 	}
+
+
 
 /* creates a zero matrix aligned */
 void d_ones(double **pA, int row, int col)

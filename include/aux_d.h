@@ -25,6 +25,8 @@
 
 void d_zeros(double **pA, int row, int col);
 void d_zeros_align(double **pA, int row, int col);
+void d_free(double *pA);
+void d_free_align(double *pA);
 void d_ones(double **pA, int row, int col);
 void d_ones_align(double **pA, int row, int col);
 void d_eye(double **pA, int row);
@@ -62,4 +64,5 @@ void dtrset_lib(int row, double alpha, int offset, double *pA, int sda);
 
 // integer stuff
 void i_zeros(int **pA, int row, int col);
+void i_free(int *pA);
 void i_print_mat(int row, int col, int *A, int lda);
