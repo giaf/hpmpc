@@ -84,7 +84,7 @@
 
 // OCP QP interface
 // struct of arguments to the solver
-struct ocp_qp_solver_args{
+struct ocp_qp_hpmpc_args{
 	double tol;
 	int max_iter;
 	double min_step;
@@ -104,7 +104,7 @@ enum return_values{
 
 
 // work space size
-int ocp_qp_hpmpc_workspace_double(int N, int *nx, int *nu, int *ng, int *nb, struct ocp_qp_solver_args *args)
+int ocp_qp_hpmpc_workspace_size(int N, int *nx, int *nu, int *ng, int *nb, struct ocp_qp_hpmpc_args *args)
 	{
 
 	const int bs = D_MR;
@@ -136,14 +136,14 @@ int ocp_qp_hpmpc_workspace_double(int N, int *nx, int *nu, int *ng, int *nb, str
 
 	work_space += d_ip2_hard_mpc_tv_work_space_size_double(N, nx, nu, nb, ng); // work space needed by the IPM
 	
-	return work_space;
+	return work_space * sizeof(double);
 
 	}
 
 
 
 /* version dealing with equality constratins: is lb=ub, then fix the variable (corresponding column in A or B set to zero, and updated b) */
-int ocp_qp_solver(int N, int *nx, int *nu, int *nb, int *ng, double **hA, double **hB, double **hb, double **hQ, double **hS, double **hR, double **hq, double **hr, int **hidxb, double **hlb, double **hub, double **hC, double **hD, double **hlg, double **hug, double **hx, double **hu, struct ocp_qp_solver_args *args, double *work0)
+int ocp_qp_hpmpc(int N, int *nx, int *nu, int *nb, int *ng, double **hA, double **hB, double **hb, double **hQ, double **hS, double **hR, double **hq, double **hr, int **hidxb, double **hlb, double **hub, double **hC, double **hD, double **hlg, double **hug, double **hx, double **hu, struct ocp_qp_hpmpc_args *args, double *work0)
 	{
 
 //	printf("\nstart of wrapper\n");
@@ -194,7 +194,7 @@ int ocp_qp_solver(int N, int *nx, int *nu, int *nb, int *ng, double **hA, double
 
 
 
-	// matrices size
+	// matrices size // TODO pass them to the solver !!!!!
 	int pnx[N+1]; for(ii=0; ii<=N; ii++) pnx[ii] = (nx[ii]+bs-1)/bs*bs;
 	int pnz[N+1]; for(ii=0; ii<=N; ii++) pnz[ii] = (nu[ii]+nx[ii]+1+bs-1)/bs*bs;
 	int pnux[N+1]; for(ii=0; ii<=N; ii++) pnux[ii] = (nu[ii]+nx[ii]+bs-1)/bs*bs;
