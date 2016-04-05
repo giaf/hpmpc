@@ -111,9 +111,9 @@ ifneq ($(REF_BLAS), 0)
 REFERENCE_CODE += ./reference_code/d_ric_sv_blas.o
 endif
 
-all: clean static_library test_problem run
+all: static_library test_problem
 
-codegen: clean codegenerator test_problem run
+# codegen: clean codegenerator test_problem run
 
 static_library: target 
 	( cd auxiliary; $(MAKE) obj)
@@ -145,21 +145,21 @@ shared_library: target
 	@echo " libhpmpc.so shared library build complete."
 	@echo
 
-codegenerator: target
-	make -C auxiliary obj
-	make -C kernel obj
-	make -C blas obj
-	touch ./codegen/d_ric_sv_codegen.c 
-	touch ./codegen/s_ric_sv_codegen.c
-	touch ./codegen/d_res_codegen.c 
-	touch ./codegen/s_res_codegen.c 
-	make -C codegen obj
-	make -C mpc_solvers obj
-	make -C interfaces obj
-	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
-	@echo
-	@echo " libhpmpc.a code generator build complete."
-	@echo
+# codegenerator: target
+# 	make -C auxiliary obj
+# 	make -C kernel obj
+# 	make -C blas obj
+# 	touch ./codegen/d_ric_sv_codegen.c
+# 	touch ./codegen/s_ric_sv_codegen.c
+# 	touch ./codegen/d_res_codegen.c
+# 	touch ./codegen/s_res_codegen.c
+# 	make -C codegen obj
+# 	make -C mpc_solvers obj
+# 	make -C interfaces obj
+# 	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
+# 	@echo
+# 	@echo " libhpmpc.a code generator build complete."
+# 	@echo
 
 target:
 	touch ./include/target.h
