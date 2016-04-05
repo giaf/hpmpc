@@ -37,7 +37,7 @@ endif
 ifeq ($(TARGET), X64_AVX)
 AUX_OBJS = ./auxiliary/d_aux_lib4.o ./auxiliary/d_aux_extern_depend_lib4.o ./auxiliary/s_aux_lib8.o
 KERNEL_OBJS_DOUBLE = ./kernel/avx/kernel_dgemm_avx_lib4.o ./kernel/avx/kernel_dtrmm_avx_lib4.o  ./kernel/avx/kernel_dtrsm_avx_lib4.o ./kernel/avx/kernel_dsyrk_avx_lib4.o  ./kernel/avx/kernel_dpotrf_avx_lib4.o ./kernel/avx/kernel_dgemv_avx_lib4.o ./kernel/avx/kernel_dtrmv_avx_lib4.o ./kernel/avx/kernel_dtrsv_avx_lib4.o ./kernel/avx/kernel_dsymv_avx_lib4.o ./kernel/avx/kernel_dtran_avx_lib4.o ./kernel/avx/kernel_dttmm_avx_lib4.o ./kernel/avx/kernel_dtrinv_avx_lib4.o ./kernel/avx/kernel_dcopy_avx_lib4.o ./kernel/avx/kernel_dgetrf_avx_lib4.o
-KERNEL_OBJS_SINGLE = ./kernel/avx/kernel_sgemm_avx_lib8.o ./kernel/avx/kernel_strmm_avx_lib8.o ./kernel/avx/kernel_sgemm_strsm_avx_lib8.o ./kernel/avx/kernel_ssyrk_spotrf_avx_lib8.o ./kernel/avx/kernel_sgemv_avx_lib8.o ./kernel/avx/kernel_strmv_avx_lib8.o ./kernel/avx/kernel_strsv_avx_lib8.o ./kernel/avx/kernel_ssymv_avx_lib8.o ./kernel/avx/kernel_stran_avx_lib8.o  
+KERNEL_OBJS_SINGLE = ./kernel/avx/kernel_sgemm_avx_lib8.o ./kernel/avx/kernel_strmm_avx_lib8.o ./kernel/avx/kernel_sgemm_strsm_avx_lib8.o ./kernel/avx/kernel_ssyrk_spotrf_avx_lib8.o ./kernel/avx/kernel_sgemv_avx_lib8.o ./kernel/avx/kernel_strmv_avx_lib8.o ./kernel/avx/kernel_strsv_avx_lib8.o ./kernel/avx/kernel_ssymv_avx_lib8.o ./kernel/avx/kernel_stran_avx_lib8.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib8.o
 LQCP_AUX_OBJS = ./lqcp_solvers/c99/d_aux_ric_c99_lib4.o #./lqcp_solvers/c99/s_aux_ricc_99_lib8.o
 MPC_AUX_OBJS = ./mpc_solvers/avx/d_aux_ip_avx_lib4.o ./mpc_solvers/avx/s_aux_ip_avx_lib8.o
@@ -45,7 +45,7 @@ endif
 ifeq ($(TARGET), X64_SSE3)
 AUX_OBJS = ./auxiliary/d_aux_lib4.o ./auxiliary/d_aux_extern_depend_lib4.o ./auxiliary/s_aux_lib4.o
 KERNEL_OBJS_DOUBLE = ./kernel/sse3/kernel_dgemm_sse3_lib4.o ./kernel/sse3/kernel_dtrmm_sse3_lib4.o  ./kernel/sse3/kernel_dtrsm_sse3_lib4.o ./kernel/sse3/kernel_dsyrk_sse3_lib4.o  ./kernel/sse3/kernel_dpotrf_sse3_lib4.o ./kernel/c99/kernel_dgemv_c99_lib4.o ./kernel/c99/kernel_dtrmv_c99_lib4.o ./kernel/c99/kernel_dtrsv_c99_lib4.o ./kernel/c99/kernel_dsymv_c99_lib4.o ./kernel/c99/kernel_dtran_c99_lib4.o ./kernel/c99/kernel_dttmm_c99_lib4.o ./kernel/c99/kernel_dtrinv_c99_lib4.o ./kernel/c99/kernel_dcopy_c99_lib4.o ./kernel/c99/kernel_dgetrf_c99_lib4.o
-KERNEL_OBJS_SINGLE = ./kernel/sse3/kernel_sgemm_sse_lib4.o ./kernel/sse3/kernel_strmm_sse_lib4.o ./kernel/sse3/kernel_sgemm_strsm_sse_lib4.o ./kernel/sse3/kernel_ssyrk_spotrf_sse_lib4.o ./kernel/sse3/kernel_sgemv_c99_lib4.o ./kernel/sse3/kernel_strmv_c99_lib4.o ./kernel/sse3/kernel_strsv_c99_lib4.o ./kernel/sse3/kernel_ssymv_c99_lib4.o ./kernel/sse3/kernel_stran_c99_lib4.o 
+KERNEL_OBJS_SINGLE = ./kernel/sse3/kernel_sgemm_sse_lib4.o ./kernel/sse3/kernel_strmm_sse_lib4.o ./kernel/sse3/kernel_sgemm_strsm_sse_lib4.o ./kernel/sse3/kernel_ssyrk_spotrf_sse_lib4.o ./kernel/sse3/kernel_sgemv_c99_lib4.o ./kernel/sse3/kernel_strmv_c99_lib4.o ./kernel/sse3/kernel_strsv_c99_lib4.o ./kernel/sse3/kernel_ssymv_c99_lib4.o ./kernel/sse3/kernel_stran_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 LQCP_AUX_OBJS = ./lqcp_solvers/c99/d_aux_ric_c99_lib4.o #./lqcp_solvers/c99/s_aux_ricc_99_lib4.o
 MPC_AUX_OBJS = ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o
@@ -53,7 +53,7 @@ endif
 ifeq ($(TARGET), C99_4X4)
 AUX_OBJS = ./auxiliary/d_aux_lib4.o ./auxiliary/d_aux_extern_depend_lib4.o ./auxiliary/s_aux_lib4.o
 KERNEL_OBJS_DOUBLE = ./kernel/c99/kernel_dgemm_c99_lib4.o ./kernel/c99/kernel_dtrmm_c99_lib4.o  ./kernel/c99/kernel_dtrsm_c99_lib4.o ./kernel/c99/kernel_dsyrk_c99_lib4.o  ./kernel/c99/kernel_dpotrf_c99_lib4.o ./kernel/c99/kernel_dgemv_c99_lib4.o ./kernel/c99/kernel_dtrmv_c99_lib4.o ./kernel/c99/kernel_dtrsv_c99_lib4.o ./kernel/c99/kernel_dsymv_c99_lib4.o ./kernel/c99/kernel_dtran_c99_lib4.o ./kernel/c99/kernel_dttmm_c99_lib4.o ./kernel/c99/kernel_dtrinv_c99_lib4.o ./kernel/c99/kernel_dcopy_c99_lib4.o ./kernel/c99/kernel_dgetrf_c99_lib4.o
-KERNEL_OBJS_SINGLE = ./kernel/c99/kernel_sgemm_c99_lib4.o ./kernel/c99/kernel_strmm_c99_lib4.o ./kernel/c99/kernel_sgemm_strsm_c99_lib4.o ./kernel/c99/kernel_ssyrk_spotrf_c99_lib4.o ./kernel/c99/kernel_sgemv_c99_lib4.o ./kernel/c99/kernel_strmv_c99_lib4.o ./kernel/c99/kernel_strsv_c99_lib4.o ./kernel/c99/kernel_ssymv_c99_lib4.o ./kernel/c99/kernel_stran_c99_lib4.o 
+KERNEL_OBJS_SINGLE = ./kernel/c99/kernel_sgemm_c99_lib4.o ./kernel/c99/kernel_strmm_c99_lib4.o ./kernel/c99/kernel_sgemm_strsm_c99_lib4.o ./kernel/c99/kernel_ssyrk_spotrf_c99_lib4.o ./kernel/c99/kernel_sgemv_c99_lib4.o ./kernel/c99/kernel_strmv_c99_lib4.o ./kernel/c99/kernel_strsv_c99_lib4.o ./kernel/c99/kernel_ssymv_c99_lib4.o ./kernel/c99/kernel_stran_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 LQCP_AUX_OBJS = ./lqcp_solvers/c99/d_aux_ric_c99_lib4.o #./lqcp_solvers/c99/s_aux_ricc_99_lib4.o
 MPC_AUX_OBJS = ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o
@@ -61,7 +61,7 @@ endif
 ifeq ($(TARGET), C99_4X4_PREFETCH)
 AUX_OBJS = ./auxiliary/d_aux_lib4.o ./auxiliary/d_aux_extern_depend_lib4.o ./auxiliary/s_aux_lib4.o
 KERNEL_OBJS_DOUBLE = ./kernel/c99/kernel_dgemm_c99_prefetch_lib4.o ./kernel/c99/kernel_dtrmm_c99_prefetch_lib4.o  ./kernel/c99/kernel_dtrsm_c99_prefetch_lib4.o ./kernel/c99/kernel_dsyrk_c99_lib4.o  ./kernel/c99/kernel_dpotrf_c99_prefetch_lib4.o ./kernel/c99/kernel_dgemv_c99_lib4.o ./kernel/c99/kernel_dtrmv_c99_lib4.o ./kernel/c99/kernel_dtrsv_c99_lib4.o ./kernel/c99/kernel_dsymv_c99_lib4.o ./kernel/c99/kernel_dtran_c99_lib4.o ./kernel/c99/kernel_dttmm_c99_lib4.o ./kernel/c99/kernel_dtrinv_c99_lib4.o ./kernel/c99/kernel_dcopy_c99_lib4.o ./kernel/c99/kernel_dgetrf_c99_lib4.o
-KERNEL_OBJS_SINGLE = ./kernel/c99/kernel_sgemm_c99_lib4.o ./kernel/c99/kernel_strmm_c99_lib4.o ./kernel/c99/kernel_sgemm_strsm_c99_lib4.o ./kernel/c99/kernel_ssyrk_spotrf_c99_lib4.o ./kernel/c99/kernel_sgemv_c99_lib4.o ./kernel/c99/kernel_strmv_c99_lib4.o ./kernel/c99/kernel_strsv_c99_lib4.o ./kernel/c99/kernel_ssymv_c99_lib4.o ./kernel/c99/kernel_stran_c99_lib4.o 
+KERNEL_OBJS_SINGLE = ./kernel/c99/kernel_sgemm_c99_lib4.o ./kernel/c99/kernel_strmm_c99_lib4.o ./kernel/c99/kernel_sgemm_strsm_c99_lib4.o ./kernel/c99/kernel_ssyrk_spotrf_c99_lib4.o ./kernel/c99/kernel_sgemv_c99_lib4.o ./kernel/c99/kernel_strmv_c99_lib4.o ./kernel/c99/kernel_strsv_c99_lib4.o ./kernel/c99/kernel_ssymv_c99_lib4.o ./kernel/c99/kernel_stran_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 LQCP_AUX_OBJS = ./lqcp_solvers/c99/d_aux_ric_c99_lib4.o #./lqcp_solvers/c99/s_aux_ricc_99_lib4.o
 MPC_AUX_OBJS = ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o
@@ -69,7 +69,7 @@ endif
 ifeq ($(TARGET), CORTEX_A57)
 AUX_OBJS = ./auxiliary/d_aux_lib4.o ./auxiliary/d_aux_extern_depend_lib4.o ./auxiliary/s_aux_lib4.o
 KERNEL_OBJS_DOUBLE = ./kernel/armv8a/kernel_dgemm_neon_lib4.o ./kernel/armv8a/kernel_dgemm_neon_assembly_lib4.o ./kernel/c99/kernel_dtrmm_c99_lib4.o  ./kernel/c99/kernel_dtrsm_c99_lib4.o ./kernel/c99/kernel_dsyrk_c99_lib4.o  ./kernel/c99/kernel_dpotrf_c99_lib4.o ./kernel/c99/kernel_dgemv_c99_lib4.o ./kernel/c99/kernel_dtrmv_c99_lib4.o ./kernel/c99/kernel_dtrsv_c99_lib4.o ./kernel/c99/kernel_dsymv_c99_lib4.o ./kernel/c99/kernel_dtran_c99_lib4.o ./kernel/c99/kernel_dttmm_c99_lib4.o ./kernel/c99/kernel_dtrinv_c99_lib4.o ./kernel/c99/kernel_dcopy_c99_lib4.o ./kernel/c99/kernel_dgetrf_c99_lib4.o
-KERNEL_OBJS_SINGLE = ./kernel/armv8a/kernel_sgemm_neon_assembly_lib4.o ./kernel/c99/kernel_sgemm_c99_lib4.o ./kernel/c99/kernel_strmm_c99_lib4.o ./kernel/c99/kernel_sgemm_strsm_c99_lib4.o ./kernel/c99/kernel_ssyrk_spotrf_c99_lib4.o ./kernel/c99/kernel_sgemv_c99_lib4.o ./kernel/c99/kernel_strmv_c99_lib4.o ./kernel/c99/kernel_strsv_c99_lib4.o ./kernel/c99/kernel_ssymv_c99_lib4.o ./kernel/c99/kernel_stran_c99_lib4.o 
+KERNEL_OBJS_SINGLE = ./kernel/armv8a/kernel_sgemm_neon_assembly_lib4.o ./kernel/c99/kernel_sgemm_c99_lib4.o ./kernel/c99/kernel_strmm_c99_lib4.o ./kernel/c99/kernel_sgemm_strsm_c99_lib4.o ./kernel/c99/kernel_ssyrk_spotrf_c99_lib4.o ./kernel/c99/kernel_sgemv_c99_lib4.o ./kernel/c99/kernel_strmv_c99_lib4.o ./kernel/c99/kernel_strsv_c99_lib4.o ./kernel/c99/kernel_ssymv_c99_lib4.o ./kernel/c99/kernel_stran_c99_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 LQCP_AUX_OBJS = ./lqcp_solvers/c99/d_aux_ric_c99_lib4.o #./lqcp_solvers/c99/s_aux_ricc_99_lib4.o
 MPC_AUX_OBJS = ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o
@@ -77,7 +77,7 @@ endif
 ifeq ($(TARGET), CORTEX_A15)
 AUX_OBJS = ./auxiliary/d_aux_lib4.o ./auxiliary/d_aux_extern_depend_lib4.o ./auxiliary/s_aux_lib4.o
 KERNEL_OBJS_DOUBLE = ./kernel/armv7a/kernel_dgemm_vfpv3_lib4.o ./kernel/armv7a/kernel_dtrmm_vfpv3_lib4.o  ./kernel/armv7a/kernel_dtrsm_vfpv3_lib4.o ./kernel/armv7a/kernel_dsyrk_vfpv3_lib4.o  ./kernel/armv7a/kernel_dpotrf_vfpv3_lib4.o ./kernel/armv7a/kernel_dgemv_c99_lib4.o ./kernel/armv7a/kernel_dtrmv_c99_lib4.o ./kernel/armv7a/kernel_dtrsv_c99_lib4.o ./kernel/c99/kernel_dsymv_c99_lib4.o ./kernel/c99/kernel_dtran_c99_lib4.o ./kernel/c99/kernel_dttmm_c99_lib4.o ./kernel/c99/kernel_dtrinv_c99_lib4.o  ./kernel/c99/kernel_dcopy_c99_lib4.o ./kernel/c99/kernel_dgetrf_c99_lib4.o
-KERNEL_OBJS_SINGLE = ./kernel/armv7a/kernel_sgemm_neon_lib4.o ./kernel/armv7a/kernel_strmm_neon_lib4.o ./kernel/armv7a/kernel_sgemm_strsm_neon_lib4.o ./kernel/armv7a/kernel_ssyrk_spotrf_neon_lib4.o ./kernel/armv7a/kernel_sgemv_neon_lib4.o ./kernel/armv7a/kernel_strmv_neon_lib4.o ./kernel/armv7a/kernel_strsv_neon_lib4.o ./kernel/armv7a/kernel_ssymv_c99_lib4.o ./kernel/armv7a/kernel_stran_neon_lib4.o 
+KERNEL_OBJS_SINGLE = ./kernel/armv7a/kernel_sgemm_neon_lib4.o ./kernel/armv7a/kernel_strmm_neon_lib4.o ./kernel/armv7a/kernel_sgemm_strsm_neon_lib4.o ./kernel/armv7a/kernel_ssyrk_spotrf_neon_lib4.o ./kernel/armv7a/kernel_sgemv_neon_lib4.o ./kernel/armv7a/kernel_strmv_neon_lib4.o ./kernel/armv7a/kernel_strsv_neon_lib4.o ./kernel/armv7a/kernel_ssymv_c99_lib4.o ./kernel/armv7a/kernel_stran_neon_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 LQCP_AUX_OBJS = ./lqcp_solvers/c99/d_aux_ric_c99_lib4.o #./lqcp_solvers/c99/s_aux_ricc_99_lib4.o
 MPC_AUX_OBJS = ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o
@@ -85,7 +85,7 @@ endif
 ifeq ($(TARGET), CORTEX_A9)
 AUX_OBJS = ./auxiliary/d_aux_lib4.o ./auxiliary/d_aux_extern_depend_lib4.o ./auxiliary/s_aux_lib4.o
 KERNEL_OBJS_DOUBLE = ./kernel/armv7a/kernel_dgemm_vfpv3_lib4.o ./kernel/armv7a/kernel_dtrmm_vfpv3_lib4.o  ./kernel/armv7a/kernel_dtrsm_vfpv3_lib4.o ./kernel/armv7a/kernel_dsyrk_vfpv3_lib4.o  ./kernel/armv7a/kernel_dpotrf_vfpv3_lib4.o ./kernel/armv7a/kernel_dgemv_c99_lib4.o ./kernel/armv7a/kernel_dtrmv_c99_lib4.o ./kernel/armv7a/kernel_dtrsv_c99_lib4.o ./kernel/c99/kernel_dsymv_c99_lib4.o ./kernel/c99/kernel_dtran_c99_lib4.o ./kernel/c99/kernel_dttmm_c99_lib4.o ./kernel/c99/kernel_dtrinv_c99_lib4.o ./kernel/c99/kernel_dcopy_c99_lib4.o ./kernel/c99/kernel_dgetrf_c99_lib4.o
-KERNEL_OBJS_SINGLE = ./kernel/armv7a/kernel_sgemm_neon_lib4.o  ./kernel/armv7a/kernel_strmm_neon_lib4.o ./kernel/armv7a/kernel_sgemm_strsm_neon_lib4.o ./kernel/armv7a/kernel_ssyrk_spotrf_neon_lib4.o ./kernel/armv7a/kernel_sgemv_neon_lib4.o ./kernel/armv7a/kernel_strmv_neon_lib4.o ./kernel/armv7a/kernel_strsv_neon_lib4.o ./kernel/armv7a/kernel_ssymv_c99_lib4.o ./kernel/armv7a/kernel_stran_neon_lib4.o 
+KERNEL_OBJS_SINGLE = ./kernel/armv7a/kernel_sgemm_neon_lib4.o  ./kernel/armv7a/kernel_strmm_neon_lib4.o ./kernel/armv7a/kernel_sgemm_strsm_neon_lib4.o ./kernel/armv7a/kernel_ssyrk_spotrf_neon_lib4.o ./kernel/armv7a/kernel_sgemv_neon_lib4.o ./kernel/armv7a/kernel_strmv_neon_lib4.o ./kernel/armv7a/kernel_strsv_neon_lib4.o ./kernel/armv7a/kernel_ssymv_c99_lib4.o ./kernel/armv7a/kernel_stran_neon_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 LQCP_AUX_OBJS = ./lqcp_solvers/c99/d_aux_ric_c99_lib4.o #./lqcp_solvers/c99/s_aux_ricc_99_lib4.o
 MPC_AUX_OBJS = ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o
@@ -93,14 +93,14 @@ endif
 ifeq ($(TARGET), CORTEX_A7)
 AUX_OBJS = ./auxiliary/d_aux_lib4.o ./auxiliary/d_aux_extern_depend_lib4.o ./auxiliary/s_aux_lib4.o
 KERNEL_OBJS_DOUBLE = ./kernel/armv7a/kernel_dgemm_vfpv3_lib4.o ./kernel/armv7a/kernel_dtrmm_vfpv3_lib4.o  ./kernel/armv7a/kernel_dtrsm_vfpv3_lib4.o ./kernel/armv7a/kernel_dsyrk_vfpv3_lib4.o  ./kernel/armv7a/kernel_dpotrf_vfpv3_lib4.o ./kernel/armv7a/kernel_dgemv_c99_lib4.o ./kernel/armv7a/kernel_dtrmv_c99_lib4.o ./kernel/armv7a/kernel_dtrsv_c99_lib4.o ./kernel/c99/kernel_dsymv_c99_lib4.o ./kernel/c99/kernel_dtran_c99_lib4.o ./kernel/c99/kernel_dttmm_c99_lib4.o ./kernel/c99/kernel_dtrinv_c99_lib4.o ./kernel/c99/kernel_dcopy_c99_lib4.o ./kernel/c99/kernel_dgetrf_c99_lib4.o
-KERNEL_OBJS_SINGLE = ./kernel/armv7a/kernel_sgemm_neon_lib4.o  ./kernel/armv7a/kernel_strmm_neon_lib4.o ./kernel/armv7a/kernel_sgemm_strsm_neon_lib4.o ./kernel/armv7a/kernel_ssyrk_spotrf_neon_lib4.o ./kernel/armv7a/kernel_sgemv_neon_lib4.o ./kernel/armv7a/kernel_strmv_neon_lib4.o ./kernel/armv7a/kernel_strsv_neon_lib4.o ./kernel/armv7a/kernel_ssymv_c99_lib4.o ./kernel/armv7a/kernel_stran_neon_lib4.o 
+KERNEL_OBJS_SINGLE = ./kernel/armv7a/kernel_sgemm_neon_lib4.o  ./kernel/armv7a/kernel_strmm_neon_lib4.o ./kernel/armv7a/kernel_sgemm_strsm_neon_lib4.o ./kernel/armv7a/kernel_ssyrk_spotrf_neon_lib4.o ./kernel/armv7a/kernel_sgemv_neon_lib4.o ./kernel/armv7a/kernel_strmv_neon_lib4.o ./kernel/armv7a/kernel_strsv_neon_lib4.o ./kernel/armv7a/kernel_ssymv_c99_lib4.o ./kernel/armv7a/kernel_stran_neon_lib4.o
 BLAS_OBJS = ./blas/blas_d_lib4.o ./blas/blas_s_lib4.o
 LQCP_AUX_OBJS = ./lqcp_solvers/c99/d_aux_ric_c99_lib4.o #./lqcp_solvers/c99/s_aux_ricc_99_lib4.o
 MPC_AUX_OBJS = ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o
 endif
 AUX_OBJS += ./auxiliary/i_aux.o
 LQCP_OBJS = $(LQCP_AUX_OBJS) ./lqcp_solvers/d_ric_sv.o ./lqcp_solvers/d_res.o ./lqcp_solvers/d_cond.o ./lqcp_solvers/s_ric_sv.o ./lqcp_solvers/s_res.o
-LQCP_CODEGEN_OBJS = ./codegen/d_ric_sv_codegen.o ./codegen/d_res_codegen.o ./codegen/s_ric_sv_codegen.o  ./codegen/s_res_codegen.o 
+LQCP_CODEGEN_OBJS = ./codegen/d_ric_sv_codegen.o ./codegen/d_res_codegen.o ./codegen/s_ric_sv_codegen.o  ./codegen/s_res_codegen.o
 MPC_OBJS = $(MPC_AUX_OBJS) ./mpc_solvers/d_ip_hard.o ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d_ip_soft.o ./mpc_solvers/d_ip2_soft.o ./mpc_solvers/d_res_ip_soft.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/d_admm_soft.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o ./mpc_solvers/s_admm_soft.o
 INTERFACE_OBJS = ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/fortran_order_interface.o
 REFERENCE_CODE = ./reference_code/dsyrk_dpotrf_codegen.o
@@ -111,11 +111,11 @@ ifneq ($(REF_BLAS), 0)
 REFERENCE_CODE += ./reference_code/d_ric_sv_blas.o
 endif
 
-all: clean static_library test_problem run
+all: static_library test_problem
 
-codegen: clean codegenerator test_problem run
+# codegen: clean codegenerator test_problem run
 
-static_library: target 
+static_library: target
 	( cd auxiliary; $(MAKE) obj)
 	( cd kernel; $(MAKE) obj)
 	( cd blas; $(MAKE) obj)
@@ -145,21 +145,21 @@ shared_library: target
 	@echo " libhpmpc.so shared library build complete."
 	@echo
 
-codegenerator: target
-	make -C auxiliary obj
-	make -C kernel obj
-	make -C blas obj
-	touch ./codegen/d_ric_sv_codegen.c 
-	touch ./codegen/s_ric_sv_codegen.c
-	touch ./codegen/d_res_codegen.c 
-	touch ./codegen/s_res_codegen.c 
-	make -C codegen obj
-	make -C mpc_solvers obj
-	make -C interfaces obj
-	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
-	@echo
-	@echo " libhpmpc.a code generator build complete."
-	@echo
+# codegenerator: target
+# 	make -C auxiliary obj
+# 	make -C kernel obj
+# 	make -C blas obj
+# 	touch ./codegen/d_ric_sv_codegen.c
+# 	touch ./codegen/s_ric_sv_codegen.c
+# 	touch ./codegen/d_res_codegen.c
+# 	touch ./codegen/s_res_codegen.c
+# 	make -C codegen obj
+# 	make -C mpc_solvers obj
+# 	make -C interfaces obj
+# 	ar rcs libhpmpc.a $(AUX_OBJS) $(KERNEL_OBJS_DOUBLE) $(KERNEL_OBJS_SINGLE) $(BLAS_OBJS) $(LQCP_CODEGEN_OBJS) $(MPC_OBJS) $(INTERFACE_OBJS)
+# 	@echo
+# 	@echo " libhpmpc.a code generator build complete."
+# 	@echo
 
 target:
 	touch ./include/target.h
@@ -221,17 +221,17 @@ install_static:
 	cp -f libhpmpc.a $(PREFIX)/hpmpc/lib/libhpmpc.a
 	mkdir -p $(PREFIX)/hpmpc/include
 	cp -rf ./include/*.h $(PREFIX)/hpmpc/include/
-	
+
 install_shared:
 	mkdir -p $(PREFIX)/hpmpc
 	mkdir -p $(PREFIX)/hpmpc/lib
 	cp -f libhpmpc.a $(PREFIX)/hpmpc/lib/libhpmpc.so
 	mkdir -p $(PREFIX)/hpmpc/include
 	cp -rf ./include/*.h $(PREFIX)/hpmpc/include/
-	
+
 uninstall:
 	rm -rf $(PREFIX)/hpmpc
-	
+
 clean:
 	make -C auxiliary clean
 	make -C kernel clean
@@ -251,4 +251,3 @@ clean:
 	rm -f libhpmpc.a
 	rm -f libhpmpc.so
 #	rm -f ./matlab/HPMPC.a
-
