@@ -99,17 +99,17 @@ LQCP_AUX_OBJS = ./lqcp_solvers/c99/d_aux_ric_c99_lib4.o #./lqcp_solvers/c99/s_au
 MPC_AUX_OBJS = ./mpc_solvers/c99/d_aux_ip_c99_lib4.o ./mpc_solvers/c99/s_aux_ip_c99_lib4.o
 endif
 AUX_OBJS += ./auxiliary/i_aux.o
-LQCP_OBJS = $(LQCP_AUX_OBJS) ./lqcp_solvers/d_ric_sv.o ./lqcp_solvers/d_res.o ./lqcp_solvers/d_cond.o ./lqcp_solvers/s_ric_sv.o ./lqcp_solvers/s_res.o
-LQCP_CODEGEN_OBJS = ./codegen/d_ric_sv_codegen.o ./codegen/d_res_codegen.o ./codegen/s_ric_sv_codegen.o  ./codegen/s_res_codegen.o
-MPC_OBJS = $(MPC_AUX_OBJS) ./mpc_solvers/d_ip_hard.o ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d_ip_soft.o ./mpc_solvers/d_ip2_soft.o ./mpc_solvers/d_res_ip_soft.o ./mpc_solvers/d_admm_box.o ./mpc_solvers/d_admm_soft.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o ./mpc_solvers/s_admm_soft.o
+LQCP_OBJS = $(LQCP_AUX_OBJS) ./lqcp_solvers/d_back_ric_rec.o ./lqcp_solvers/d_for_schur_rec.o ./lqcp_solvers/d_res.o #./lqcp_solvers/d_cond.o ./lqcp_solvers/s_ric_sv.o ./lqcp_solvers/s_res.o
+LQCP_CODEGEN_OBJS = #./codegen/d_ric_sv_codegen.o ./codegen/d_res_codegen.o ./codegen/s_ric_sv_codegen.o  ./codegen/s_res_codegen.o
+MPC_OBJS = $(MPC_AUX_OBJS) ./mpc_solvers/d_ip_hard.o ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d_ip_soft.o ./mpc_solvers/d_ip2_soft.o ./mpc_solvers/d_res_ip_soft.o #./mpc_solvers/d_admm_box.o ./mpc_solvers/d_admm_soft.o ./mpc_solvers/s_ip_box.o ./mpc_solvers/s_res_ip_box.o ./mpc_solvers/s_ip2_box.o ./mpc_solvers/s_admm_box.o ./mpc_solvers/s_admm_soft.o
 INTERFACE_OBJS = ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/fortran_order_interface.o
-REFERENCE_CODE = ./reference_code/dsyrk_dpotrf_codegen.o
-ifeq ($(TARGET), X64_AVX)
-REFERENCE_CODE += ./reference_code/dsyrk_dpotrf_versions.o
-endif
-ifneq ($(REF_BLAS), 0)
-REFERENCE_CODE += ./reference_code/d_ric_sv_blas.o
-endif
+REFERENCE_CODE = #./reference_code/dsyrk_dpotrf_codegen.o
+#ifeq ($(TARGET), X64_AVX)
+#REFERENCE_CODE += ./reference_code/dsyrk_dpotrf_versions.o
+#endif
+#ifneq ($(REF_BLAS), 0)
+#REFERENCE_CODE += ./reference_code/d_ric_sv_blas.o
+#endif
 
 all: static_library test_problem
 

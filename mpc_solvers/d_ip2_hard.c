@@ -530,6 +530,7 @@ exit(1);
 
 
 
+#if 0
 /* primal-dual interior-point method, hard constraints, time variant matrices (mpc version) */
 int d_ip2_hard_mpc(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int nx, int nu, int N, int nb, int ng, int ngN, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *work_memory)
 	{
@@ -1575,6 +1576,7 @@ exit(1);
 	return -1;
 
 	} // end of ipsolver
+#endif
 
 
 

@@ -303,7 +303,7 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
 					ptr += pnz;
 					}
 
-				for(ii=0; ii<=N; ii++)
+				for(ii=0; ii<N; ii++)
 					{
 					hrb[ii] = ptr;
 					ptr += pnx;
@@ -633,7 +633,7 @@ int fortran_order_ip_hard_mpc_tv( int *kk, int k_max, double mu0, double mu_tol,
 					ptr += pnz;
 					}
 
-				for(ii=0; ii<=N; ii++)
+				for(ii=0; ii<N; ii++)
 					{
 					hrb[ii] = ptr;
 					ptr += pnx;
@@ -1131,6 +1131,7 @@ exit(1);
 
 
 
+#if 0
 /* version dealing with equality constratins: is lb=ub, then fix the variable (corresponding column in A or B set to zero, and updated b) */
 int fortran_order_ip_hard_mpc( int *kk, int k_max, double mu0, double mu_tol, char prec,
                           int N, int nx, int nu, int nb, int ng, int ngN, 
@@ -4460,4 +4461,5 @@ int fortran_order_admm_soft_wrapper( int k_max, double tol,
     return 0;
 
 	}
+#endif
 
