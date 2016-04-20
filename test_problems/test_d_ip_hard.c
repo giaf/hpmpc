@@ -1235,7 +1235,7 @@ int main()
 
 	double *rt; d_zeros(&rt, N*2*(nb+ng)+2*(nb+ngN), 1);
 
-	double *rwork; d_zeros(&rwork, hpmpc_ip_hard_mpc_dp_work_space_tv(N, nx, nu, nb, ng, ngN), 1);
+	double *rwork; d_zeros(&rwork, hpmpc_d_ip_mpc_hard_tv_work_space_size_doubles(N, nx, nu, nb, ng, ngN), 1);
 
 	double inf_norm_res[4] = {}; // infinity norm of residuals: rq, rb, rd, mu
 
@@ -1295,7 +1295,7 @@ int main()
 
 	double mu = 0.0;
 
-	double *work; d_zeros_align(&work, d_ip2_hard_mpc_tv_work_space_size_double(N, nx_v, nu_v, nb_v, ng_v), 1);
+	double *work; d_zeros_align(&work, d_ip2_mpc_hard_tv_work_space_size_doubles(N, nx_v, nu_v, nb_v, ng_v), 1);
 
 /************************************************
 * solvers common stuff
@@ -1304,7 +1304,7 @@ int main()
 	int hpmpc_status;
 	int kk, kk_avg;
 	int k_max = 10;
-	double mu_tol = 1e-20;
+	double mu_tol = 1e-10;
 	double alpha_min = 1e-8;
 	int warm_start = 0;
 	double sigma_par[] = {0.4, 0.1, 0.001}; // control primal-dual IP behaviour
@@ -1330,7 +1330,7 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		hpmpc_status = fortran_order_ip_hard_mpc_tv(&kk, k_max, mu0, mu_tol, 'd', N, nx, nu, nb, ng, ngN, time_invariant, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, rx, ru, rwork, stat, compute_res, inf_norm_res, compute_mult, rpi, rlam, rt);
+		hpmpc_status = fortran_order_d_ip_mpc_hard_tv(&kk, k_max, mu0, mu_tol, 'd', N, nx, nu, nb, ng, ngN, time_invariant, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, rx, ru, rwork, stat, compute_res, inf_norm_res, compute_mult, rpi, rlam, rt);
 
 		kk_avg += kk;
 
@@ -1373,7 +1373,7 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		hpmpc_status = d_ip2_hard_mpc_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hpQ, dummy, hd, hux, compute_mult, hpi, hlam, ht, work);
+		hpmpc_status = d_ip2_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hpQ, dummy, hd, hux, compute_mult, hpi, hlam, ht, work);
 		
 		kk_avg += kk;
 
@@ -1390,7 +1390,7 @@ int main()
 	if(compute_res)
 		{
 		// compute residuals
-		d_res_ip_hard_mpc_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hpQ, hq, hux, dummy, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+		d_res_ip_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hpQ, hq, hux, dummy, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 		// print residuals
 		printf("\nhrq\n\n");

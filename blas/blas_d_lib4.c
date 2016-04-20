@@ -6812,6 +6812,21 @@ void dcolad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int s
 
 
 
+// insert vector to vector, sparse formulation
+void dvecin_libsp(int kmax, int *idx, double *x, double *y)
+	{
+
+	int jj;
+
+	for(jj=0; jj<kmax; jj++)
+		{
+		y[idx[jj]] = x[jj];
+		}
+	
+	}
+
+
+
 // copies a packed matrix into a packed matrix
 void dgecp_lib(int m, int n, int offsetA, double *A, int sda, int offsetB, double *B, int sdb)
 	{

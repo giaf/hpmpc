@@ -59,166 +59,128 @@ int d_ric_sv_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, int
 
 
 
-/* version tailored for mpc (x0 fixed) ; version supporting time-variant nx, nu, nb, ng */
-void d_back_ric_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hux, double **hpL, double **hdL, double *work, double *diag, int compute_Pb, double **hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hQd, double **hQl, int *ng, double **hpDCt, double **Qx, double **qx)
+/* backward riccati recursion, factorization & solution */
+/* version supporting stage-variant nx, nu, nb, ng */
+void d_back_ric_rec_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hux, double **hpL, double **hdL, double *work, double *diag, int compute_Pb, double **hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hQd, double **hQl, int *ng, double **hpDCt, double **Qx, double **qx)
 	{
 
 	const int bs = D_MR;
 	const int ncl = D_NCL;
 	
-	int nu0, nu1, nx0, nx1, nz0, nb0, ng0, cnx0, cnx1, cnl0, cnl1, cng0, cnxg0, pnx1, nux0, nux1, cnux0, cnux1;
-
 	int ii, jj, ll, nn;
 
-	double temp;
+	// compute sizes of matrices TODO pass them instead of compute them ???
+	int nux[N+1];
+	int nz[N+1];
+	int cnx[N+1];
+	int cnux[N+1];
+	int cnl[N+1];
+	int cng[N+1];
+	int cnxg[N+1];
+	int pnx[N+1];
+
+	for(nn=0; nn<N; nn++)
+		{
+		nux[nn] = nu[nn]+nx[nn];
+		nz[nn] = nux[nn]+1;
+		cnx[nn] = (nx[nn]+ncl-1)/ncl*ncl;
+		cnux[nn] = (nu[nn]+nx[nn]+ncl-1)/ncl*ncl;
+		cnl[nn] = cnux[nn]<cnx[nn]+ncl ? cnx[nn]+ncl : cnux[nn];
+		cnxg[nn] = (nx[nn+1]+ng[nn]+ncl-1)/ncl*ncl;
+		pnx[nn] = (nx[nn]+bs-1)/bs*bs;
+		}
+	nn = N;
+	nux[nn] = nu[nn]+nx[nn];
+	nz[nn] = nux[nn]+1;
+	cnx[nn] = (nx[nn]+ncl-1)/ncl*ncl;
+	cnux[nn] = (nu[nn]+nx[nn]+ncl-1)/ncl*ncl;
+	cnl[nn] = cnux[nn]<cnx[nn]+ncl ? cnx[nn]+ncl : cnux[nn];
+	pnx[nn] = (nx[nn]+bs-1)/bs*bs;
+
+
 
 	// factorization and backward substitution 
 
 	// final stage 
-	nu0 = nu[N];
-	nx0 = nx[N];
-	nb0 = nb[N];
-	ng0 = ng[N];
-	nux0 = nu0+nx0;
-	nz0 = nux0+1;
-	cnx0 = (nx0+ncl-1)/ncl*ncl;
-//	cnz0 = (nz0+ncl-1)/ncl*ncl; // XXX
-	cnux0 = (nux0+ncl-1)/ncl*ncl; // XXX
-	cnl0 = cnux0<cnx0+ncl ? cnx0+ncl : cnux0;
-
-	if(ng0>0)
+	if(ng[N]>0)
 		{
-		cng0 = (ng0+ncl-1)/ncl*ncl;
-		dgemm_diag_right_lib(nux0, ng0, hpDCt[N], cng0, Qx[N], 0, work, cng0, work, cng0);
-		drowin_lib(ng0, qx[N], &work[(nux0)/bs*cng0*bs+(nux0)%bs]);
+		cng[N] = (ng[N]+ncl-1)/ncl*ncl;
+		dgemm_diag_right_lib(nux[N], ng[N], hpDCt[N], cng[N], Qx[N], 0, work, cng[N], work, cng[N]);
+		drowin_lib(ng[N], qx[N], work+nux[N]/bs*cng[N]*bs+nux[N]%bs);
 		}
-	if(nb0>0)
+	if(nb[N]>0)
 		{
-		ddiain_libsp(nb0, idxb[N], hQd[N], hpQ[N], cnux0);
-		drowin_libsp(nb0, idxb[N], hQl[N], hpQ[N]+(nux0)/bs*bs*cnux0+(nux0)%bs);
+		ddiain_libsp(nb[N], idxb[N], hQd[N], hpQ[N], cnux[N]);
+		drowin_libsp(nb[N], idxb[N], hQl[N], hpQ[N]+nux[N]/bs*bs*cnux[N]+nux[N]%bs);
 		}
 
-	dsyrk_dpotrf_lib(nz0, nux0, ng0, work, cng0, work, cng0, 1, hpQ[N], cnux0, hpL[N], cnl0, hdL[N]);
-//	d_print_pmat(nz0, nux0, bs, hpL[N], cnl0);
-//	exit(2);
+	dsyrk_dpotrf_lib(nz[N], nux[N], ng[N], work, cng[N], work, cng[N], 1, hpQ[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 
-	dtrtr_l_lib(nx0, nu0, hpL[N]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, 0, hpL[N]+ncl*bs, cnl0);	
+	dtrtr_l_lib(nx[N], nu[N], hpL[N]+nu[N]/bs*bs*cnl[N]+nu[N]%bs+nu[N]*bs, cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
 
 
 
 	// middle stages 
 	for(nn=0; nn<N; nn++)
 		{	
-		nu1 = nu0;
-		nx1 = nx0;
-		nux1 = nux0;
-		cnx1 = cnx0;
-		cnl1 = cnl0;
-		nu0 = nu[N-nn-1];
-		nx0 = nx[N-nn-1];
-		nb0 = nb[N-nn-1];
-		ng0 = ng[N-nn-1];
-		nux0 = nu0+nx0;
-		nz0 = nux0+1;
-		cnx0 = (nx0+ncl-1)/ncl*ncl;
-//		cnz0 = (nz0+ncl-1)/ncl*ncl; // XXX
-		cnux0 = (nux0+ncl-1)/ncl*ncl; // XXX
-		cnl0 = cnux0<cnx0+ncl ? cnx0+ncl : cnux0;
-		cnxg0 = (nx1+ng0+ncl-1)/ncl*ncl;
 
-		dtrmm_nt_u_lib(nz0, nx1, hpBAbt[N-nn-1], cnx1, hpL[N-nn]+ncl*bs, cnl1, work, cnxg0);
+		dtrmm_nt_u_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], work, cnxg[N-nn-1]);
 
 		if(compute_Pb)
 			{
-			for(jj=0; jj<nx1; jj++) diag[jj] = work[(nux0)/bs*bs*cnxg0+(nux0)%bs+jj*bs];
-			dtrmv_u_t_lib(nx1, hpL[N-nn]+ncl*bs, cnl1, diag, 0, hPb[N-nn-1]); // L*(L'*b)
+			for(jj=0; jj<nx[N-nn]; jj++) diag[jj] = work[nux[N-nn-1]/bs*bs*cnxg[N-nn-1]+nux[N-nn-1]%bs+jj*bs];
+			dtrmv_u_t_lib(nx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], diag, 0, hPb[N-nn-1]); // L*(L'*b)
 			}
-		dgead_lib(1, nx1, 1.0, nux1, hpL[N-nn]+(nux1)/bs*bs*cnl1+(nux1)%bs+nu1*bs,cnl1, nux0, work+(nux0)/bs*bs*cnxg0+(nux0)%bs, cnxg0);
-		if(ng0>0)
+		dgead_lib(1, nx[N-nn], 1.0, nux[N-nn], hpL[N-nn]+nux[N-nn]/bs*bs*cnl[N-nn]+nux[N-nn]%bs+nu[N-nn]*bs, cnl[N-nn], nux[N-nn-1], work+nux[N-nn-1]/bs*bs*cnxg[N-nn-1]+nux[N-nn-1]%bs, cnxg[N-nn-1]);
+		if(ng[N-nn-1]>0)
 			{
-			cng0 = (ng0+ncl-1)/ncl*ncl;
-			dgemm_diag_right_lib(nux0, ng0, hpDCt[N-nn-1], cng0, Qx[N-nn-1], 0, work+nx1*bs, cnxg0, work+nx1*bs, cnxg0);
-			drowin_lib(ng0, qx[N-nn-1], &work[(nux0)/bs*cnxg0*bs+(nux0)%bs+nx1*bs]);
+			cng[N-nn-1] = (ng[N-nn-1]+ncl-1)/ncl*ncl;
+			dgemm_diag_right_lib(nux[N-nn-1], ng[N-nn-1], hpDCt[N-nn-1], cng[N-nn-1], Qx[N-nn-1], 0, work+nx[N-nn]*bs, cnxg[N-nn-1], work+nx[N-nn]*bs, cnxg[N-nn-1]);
+			drowin_lib(ng[N-nn-1], qx[N-nn-1], work+nux[N-nn-1]/bs*cnxg[N-nn-1]*bs+nux[N-nn-1]%bs+nx[N-nn]*bs);
 			}
-		if(nb0>0)
+		if(nb[N-nn-1]>0)
 			{
-			ddiain_libsp(nb0, idxb[N-nn-1], hQd[N-nn-1], hpQ[N-nn-1], cnux0);
-			drowin_libsp(nb0, idxb[N-nn-1], hQl[N-nn-1], hpQ[N-nn-1]+(nux0)/bs*bs*cnux0+(nux0)%bs);
+			ddiain_libsp(nb[N-nn-1], idxb[N-nn-1], hQd[N-nn-1], hpQ[N-nn-1], cnux[N-nn-1]);
+			drowin_libsp(nb[N-nn-1], idxb[N-nn-1], hQl[N-nn-1], hpQ[N-nn-1]+nux[N-nn-1]/bs*bs*cnux[N-nn-1]+nux[N-nn-1]%bs);
 			}
 
-		dsyrk_dpotrf_lib(nz0, nux0, nx1+ng0, work, cnxg0, work, cnxg0, 1, hpQ[N-nn-1], cnux0, hpL[N-nn-1], cnl0, hdL[N-nn-1]);
+		dsyrk_dpotrf_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work, cnxg[N-nn-1], 1, hpQ[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 
-		dtrtr_l_lib(nx0, nu0, hpL[N-nn-1]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, 0, hpL[N-nn-1]+ncl*bs, cnl0);	
+		dtrtr_l_lib(nx[N-nn-1], nu[N-nn-1], hpL[N-nn-1]+nu[N-nn-1]/bs*bs*cnl[N-nn-1]+nu[N-nn-1]%bs+nu[N-nn-1]*bs, cnl[N-nn-1], 0, hpL[N-nn-1]+ncl*bs, cnl[N-nn-1]);	
 
-//	d_print_pmat(nz0, nux0, bs, hpL[N-nn-1], cnl0);
 		}
 
-//	exit(2);
 
 
 	// forward substitution 
 
-	nu1 = nu[0];
-	nx1 = nx[0];
-	nux1 = nu1+nx1;
-	cnx1 = (nx1+ncl-1)/ncl*ncl;
-//	cnz1 = (nu1+nx1+1+ncl-1)/ncl*ncl;
-	cnux1 = (nux1+ncl-1)/ncl*ncl;
-	cnl1 = cnux1<cnx1+ncl ? cnx1+ncl : cnux1;
 	// first stage
 	nn = 0;
-	nu0 = nu1;
-	nx0 = nx1;
-	nux0 = nux1;
-	cnx0 = cnx1;
-//	cnz0 = cnz1;
-	cnl0 = cnl1;
-	nu1 = nu[nn+1];
-	nx1 = nx[nn+1];
-	nux1 = nu1+nx1;
-	cnx1 = (nx1+ncl-1)/ncl*ncl;
-//	cnz1 = (nu1+nx1+1+ncl-1)/ncl*ncl;
-	cnux1 = (nux1+ncl-1)/ncl*ncl;
-	cnl1 = cnux1<cnx1+ncl ? cnx1+ncl : cnux1;
-	pnx1  = (nx1+ncl-1)/ncl*ncl;
-	for(jj=0; jj<nux0; jj++) hux[nn][jj] = - hpL[nn][(nux0)/bs*bs*cnl0+(nux0)%bs+bs*jj];
-	dtrsv_t_lib(nux0, nux0, hpL[nn], cnl0, 1, hdL[nn], &hux[nn][0], &hux[nn][0]);
-	for(jj=0; jj<nx1; jj++) hux[nn+1][nu1+jj] = hpBAbt[nn][(nux0)/bs*bs*cnx1+(nux0)%bs+bs*jj];
-	dgemv_t_lib(nux0, nx1, hpBAbt[nn], cnx1, &hux[nn][0], 1, &hux[nn+1][nu1], &hux[nn+1][nu1]);
+	for(jj=0; jj<nux[nn]; jj++) hux[nn][jj] = - hpL[nn][nux[nn]/bs*bs*cnl[nn]+nux[nn]%bs+bs*jj];
+	dtrsv_t_lib(nux[nn], nux[nn], hpL[nn], cnl[nn], 1, hdL[nn], hux[nn], hux[nn]);
+	for(jj=0; jj<nx[nn+1]; jj++) hux[nn+1][nu[nn+1]+jj] = hpBAbt[nn][nux[nn]/bs*bs*cnx[nn+1]+nux[nn]%bs+bs*jj];
+	dgemv_t_lib(nux[nn], nx[nn+1], hpBAbt[nn], cnx[nn+1], hux[nn], 1, hux[nn+1]+nu[nn+1], hux[nn+1]+nu[nn+1]);
 	if(compute_pi)
 		{
-		for(jj=0; jj<nx1; jj++) work[pnx1+jj] = hux[nn+1][nu1+jj]; // copy x into aligned memory
-		for(jj=0; jj<nx1; jj++) work[jj] = hpL[nn+1][(nux1)/bs*bs*cnl1+(nux1)%bs+bs*(nu1+jj)]; // work space
-		dtrmv_u_n_lib(nx1, hpL[nn+1]+(ncl)*bs, cnl1, &work[pnx1], 1, &work[0]);
-		dtrmv_u_t_lib(nx1, hpL[nn+1]+(ncl)*bs, cnl1, &work[0], 0, &hpi[nn+1][0]); // L*(L'*b) + p
+		for(jj=0; jj<nx[nn+1]; jj++) work[pnx[nn+1]+jj] = hux[nn+1][nu[nn+1]+jj]; // copy x into aligned memory
+		for(jj=0; jj<nx[nn+1]; jj++) work[jj] = hpL[nn+1][nux[nn+1]/bs*bs*cnl[nn+1]+nux[nn+1]%bs+bs*(nu[nn+1]+jj)]; // work space
+		dtrmv_u_n_lib(nx[nn+1], hpL[nn+1]+(ncl)*bs, cnl[nn+1], work+pnx[nn+1], 1, work);
+		dtrmv_u_t_lib(nx[nn+1], hpL[nn+1]+(ncl)*bs, cnl[nn+1], work, 0, hpi[nn+1]); // L*(L'*b) + p
 		}
-	// moddle stages
+
+	// middle stages
 	for(nn=1; nn<N; nn++)
 		{
-		nu0 = nu1;
-		nx0 = nx1;
-		nux0 = nux1;
-		cnx0 = cnx1;
-//		cnz0 = cnz1;
-		cnl0 = cnl1;
-		nu1 = nu[nn+1];
-		nx1 = nx[nn+1];
-		nux1 = nu1+nx1;
-		cnx1 = (nx1+ncl-1)/ncl*ncl;
-//		cnz1 = (nu1+nx1+1+ncl-1)/ncl*ncl;
-		cnux1 = (nux1+ncl-1)/ncl*ncl;
-		cnl1 = cnux1<cnx1+ncl ? cnx1+ncl : cnux1;
-		pnx1  = (nx1+ncl-1)/ncl*ncl;
-		for(jj=0; jj<nu0; jj++) hux[nn][jj] = - hpL[nn][(nux0)/bs*bs*cnl0+(nux0)%bs+bs*jj];
-		dtrsv_t_lib(nux0, nu0, hpL[nn], cnl0, 1, hdL[nn], &hux[nn][0], &hux[nn][0]);
-		for(jj=0; jj<nx1; jj++) hux[nn+1][nu1+jj] = hpBAbt[nn][(nux0)/bs*bs*cnx1+(nux0)%bs+bs*jj];
-		dgemv_t_lib(nux0, nx1, hpBAbt[nn], cnx1, &hux[nn][0], 1, &hux[nn+1][nu1], &hux[nn+1][nu1]);
+		for(jj=0; jj<nu[nn]; jj++) hux[nn][jj] = - hpL[nn][nux[nn]/bs*bs*cnl[nn]+nux[nn]%bs+bs*jj];
+		dtrsv_t_lib(nux[nn], nu[nn], hpL[nn], cnl[nn], 1, hdL[nn], hux[nn], hux[nn]);
+		for(jj=0; jj<nx[nn+1]; jj++) hux[nn+1][nu[nn+1]+jj] = hpBAbt[nn][nux[nn]/bs*bs*cnx[nn+1]+nux[nn]%bs+bs*jj];
+		dgemv_t_lib(nux[nn], nx[nn+1], hpBAbt[nn], cnx[nn+1], hux[nn], 1, hux[nn+1]+nu[nn+1], hux[nn+1]+nu[nn+1]);
 		if(compute_pi)
 			{
-			for(jj=0; jj<nx1; jj++) work[pnx1+jj] = hux[nn+1][nu1+jj]; // copy x into aligned memory
-			for(jj=0; jj<nx1; jj++) work[jj] = hpL[nn+1][(nux1)/bs*bs*cnl1+(nux1)%bs+bs*(nu1+jj)]; // work space
-			dtrmv_u_n_lib(nx1, hpL[nn+1]+(ncl)*bs, cnl1, &work[pnx1], 1, &work[0]);
-			dtrmv_u_t_lib(nx1, hpL[nn+1]+(ncl)*bs, cnl1, &work[0], 0, &hpi[nn+1][0]); // L*(L'*b) + p
+			for(jj=0; jj<nx[nn+1]; jj++) work[pnx[nn+1]+jj] = hux[nn+1][nu[nn+1]+jj]; // copy x into aligned memory
+			for(jj=0; jj<nx[nn+1]; jj++) work[jj] = hpL[nn+1][nux[nn+1]/bs*bs*cnl[nn+1]+nux[nn+1]%bs+bs*(nu[nn+1]+jj)]; // work space
+			dtrmv_u_n_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work+pnx[nn+1], 1, work);
+			dtrmv_u_t_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work, 0, hpi[nn+1]); // L*(L'*b) + p
 			}
 		}
 	
@@ -226,83 +188,82 @@ void d_back_ric_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, do
 
 
 
-void d_back_ric_trf_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hpL, double **hdL, double *work, int *nb, int **idxb, double **hQd, int *ng, double **hpDCt, double **Qx)
+/* backward riccati recursion, factorization */
+/* version supporting stage-variant nx, nu, nb, ng */
+void d_back_ric_rec_trf_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hpL, double **hdL, double *work, int *nb, int **idxb, double **hQd, int *ng, double **hpDCt, double **Qx)
 	{
 
 	const int bs = D_MR;
 	const int ncl = D_NCL;
 	
-	int nu0, nu1, nx0, nx1, nz0, nb0, ng0, cnx0, cnx1, cnl0, cnl1, cng0, cnxg0, pnx1, nux0, nux1, cnux0, cnux1;
-
 	int ii, jj, ll, nn;
 
-	double temp;
+	// compute sizes of matrices TODO pass them instead of compute them ???
+	int nux[N+1];
+	int nz[N+1];
+	int cnx[N+1];
+	int cnux[N+1];
+	int cnl[N+1];
+	int cng[N+1];
+	int cnxg[N+1];
+
+	for(nn=0; nn<N; nn++)
+		{
+		nux[nn] = nu[nn]+nx[nn];
+		nz[nn] = nux[nn]+1;
+		cnx[nn] = (nx[nn]+ncl-1)/ncl*ncl;
+		cnux[nn] = (nu[nn]+nx[nn]+ncl-1)/ncl*ncl;
+		cnl[nn] = cnux[nn]<cnx[nn]+ncl ? cnx[nn]+ncl : cnux[nn];
+		cnxg[nn] = (nx[nn+1]+ng[nn]+ncl-1)/ncl*ncl;
+		}
+	nn = N;
+	nux[nn] = nu[nn]+nx[nn];
+	nz[nn] = nux[nn]+1;
+	cnx[nn] = (nx[nn]+ncl-1)/ncl*ncl;
+	cnux[nn] = (nu[nn]+nx[nn]+ncl-1)/ncl*ncl;
+	cnl[nn] = cnux[nn]<cnx[nn]+ncl ? cnx[nn]+ncl : cnux[nn];
+
+
 
 	// factorization and backward substitution 
 
 	// final stage 
-	nu0 = nu[N];
-	nx0 = nx[N];
-	nb0 = nb[N];
-	ng0 = ng[N];
-	nux0 = nu0+nx0;
-	nz0 = nux0+1;
-	cnx0 = (nx0+ncl-1)/ncl*ncl;
-//	cnz0 = (nz0+ncl-1)/ncl*ncl; // XXX
-	cnux0 = (nux0+ncl-1)/ncl*ncl; // XXX
-	cnl0 = cnux0<cnx0+ncl ? cnx0+ncl : cnux0;
 
-	if(ng0>0)
+	if(ng[N]>0)
 		{
-		cng0 = (ng0+ncl-1)/ncl*ncl;
-		dgemm_diag_right_lib(nux0, ng0, hpDCt[N], cng0, Qx[N], 0, work, cng0, work, cng0);
+		cng[N] = (ng[N]+ncl-1)/ncl*ncl;
+		dgemm_diag_right_lib(nux[N], ng[N], hpDCt[N], cng[N], Qx[N], 0, work, cng[N], work, cng[N]);
 		}
-	if(nb0>0)
+	if(nb[N]>0)
 		{
-		ddiain_libsp(nb0, idxb[N], hQd[N], hpQ[N], cnux0);
+		ddiain_libsp(nb[N], idxb[N], hQd[N], hpQ[N], cnux[N]);
 		}
 
-	dsyrk_dpotrf_lib(nux0, nux0, ng0, work, cng0, work, cng0, 1, hpQ[N], cnux0, hpL[N], cnl0, hdL[N]);
+	dsyrk_dpotrf_lib(nux[N], nux[N], ng[N], work, cng[N], work, cng[N], 1, hpQ[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 
-	dtrtr_l_lib(nx0, nu0, hpL[N]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, 0, hpL[N]+ncl*bs, cnl0);	
+	dtrtr_l_lib(nx[N], nu[N], hpL[N]+nu[N]/bs*bs*cnl[N]+nu[N]%bs+nu[N]*bs, cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
 
 
 
 	// middle stages 
 	for(nn=0; nn<N; nn++)
 		{	
-		nu1 = nu0;
-		nx1 = nx0;
-		nux1 = nux0;
-		cnx1 = cnx0;
-		cnl1 = cnl0;
-		nu0 = nu[N-nn-1];
-		nx0 = nx[N-nn-1];
-		nb0 = nb[N-nn-1];
-		ng0 = ng[N-nn-1];
-		nux0 = nu0+nx0;
-		nz0 = nux0+1;
-		cnx0 = (nx0+ncl-1)/ncl*ncl;
-//		cnz0 = (nz0+ncl-1)/ncl*ncl; // XXX
-		cnux0 = (nux0+ncl-1)/ncl*ncl; // XXX
-		cnl0 = cnux0<cnx0+ncl ? cnx0+ncl : cnux0;
-		cnxg0 = (nx1+ng0+ncl-1)/ncl*ncl;
 
-		dtrmm_nt_u_lib(nux0, nx1, hpBAbt[N-nn-1], cnx1, hpL[N-nn]+ncl*bs, cnl1, work, cnxg0);
+		dtrmm_nt_u_lib(nux[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], work, cnxg[N-nn-1]);
 
-		if(ng0>0)
+		if(ng[N-nn-1]>0)
 			{
-			cng0 = (ng0+ncl-1)/ncl*ncl;
-			dgemm_diag_right_lib(nux0, ng0, hpDCt[N-nn-1], cng0, Qx[N-nn-1], 0, work+nx1*bs, cnxg0, work+nx1*bs, cnxg0);
+			cng[N-nn-1] = (ng[N-nn-1]+ncl-1)/ncl*ncl;
+			dgemm_diag_right_lib(nux[N-nn-1], ng[N-nn-1], hpDCt[N-nn-1], cng[N-nn-1], Qx[N-nn-1], 0, work+nx[N-nn]*bs, cnxg[N-nn-1], work+nx[N-nn]*bs, cnxg[N-nn-1]);
 			}
-		if(nb0>0)
+		if(nb[N-nn-1]>0)
 			{
-			ddiain_libsp(nb0, idxb[N-nn-1], hQd[N-nn-1], hpQ[N-nn-1], cnux0);
+			ddiain_libsp(nb[N-nn-1], idxb[N-nn-1], hQd[N-nn-1], hpQ[N-nn-1], cnux[N-nn-1]);
 			}
 
-		dsyrk_dpotrf_lib(nux0, nux0, nx1+ng0, work, cnxg0, work, cnxg0, 1, hpQ[N-nn-1], cnux0, hpL[N-nn-1], cnl0, hdL[N-nn-1]);
+		dsyrk_dpotrf_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work, cnxg[N-nn-1], 1, hpQ[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 
-		dtrtr_l_lib(nx0, nu0, hpL[N-nn-1]+nu0/bs*bs*cnl0+nu0%bs+nu0*bs, cnl0, 0, hpL[N-nn-1]+ncl*bs, cnl0);	
+		dtrtr_l_lib(nx[N-nn-1], nu[N-nn-1], hpL[N-nn-1]+nu[N-nn-1]/bs*bs*cnl[N-nn-1]+nu[N-nn-1]%bs+nu[N-nn-1]*bs, cnl[N-nn-1], 0, hpL[N-nn-1]+ncl*bs, cnl[N-nn-1]);	
 
 		}
 
@@ -310,149 +271,116 @@ void d_back_ric_trf_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, d
 
 
 
-void d_back_ric_trs_tv(int N, int *nx, int *nu, double **hpBAbt, double **hb, double **hpL, double **hdL, double **hq, double **hl, double **hux, double *work, int compute_Pb, double ** hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hql, int *ng, double **hpDCt, double **qx)
+/* backward riccati recursion, solution */
+/* version supporting stage-variant nx, nu, nb, ng */
+void d_back_ric_rec_trs_tv(int N, int *nx, int *nu, double **hpBAbt, double **hb, double **hpL, double **hdL, double **hq, double **hl, double **hux, double *work, int compute_Pb, double ** hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hql, int *ng, double **hpDCt, double **qx)
 	{
 	
 	const int bs  = D_MR;
 	const int ncl = D_NCL;
 
-	int nu0, nu1, nx0, nx1, nb0, ng0, pnx0, pnx1, cnx0, cnx1, cng0, cnl0, cnl1, nux0, nux1, cnux0, cnux1;
-
 	int ii, jj, nn;
 	
+	// compute sizes of matrices TODO pass them instead of compute them ???
+	int nux[N+1];
+	int nz[N+1];
+	int cnx[N+1];
+	int cnux[N+1];
+	int cnl[N+1];
+	int cng[N+1];
+	int cnxg[N+1];
+	int pnx[N+1];
+
+	for(nn=0; nn<N; nn++)
+		{
+		nux[nn] = nu[nn]+nx[nn];
+		nz[nn] = nux[nn]+1;
+		cnx[nn] = (nx[nn]+ncl-1)/ncl*ncl;
+		cnux[nn] = (nu[nn]+nx[nn]+ncl-1)/ncl*ncl;
+		cnl[nn] = cnux[nn]<cnx[nn]+ncl ? cnx[nn]+ncl : cnux[nn];
+		cnxg[nn] = (nx[nn+1]+ng[nn]+ncl-1)/ncl*ncl;
+		pnx[nn] = (nx[nn]+bs-1)/bs*bs;
+		}
+	nn = N;
+	nux[nn] = nu[nn]+nx[nn];
+	nz[nn] = nux[nn]+1;
+	cnx[nn] = (nx[nn]+ncl-1)/ncl*ncl;
+	cnux[nn] = (nu[nn]+nx[nn]+ncl-1)/ncl*ncl;
+	cnl[nn] = cnux[nn]<cnx[nn]+ncl ? cnx[nn]+ncl : cnux[nn];
+	pnx[nn] = (nx[nn]+bs-1)/bs*bs;
+
+
+
 	// backward substitution 
 
 	// final stage
-	nu0 = nu[N];
-	nx0 = nx[N];
-	nb0 = nb[N];
-	ng0 = ng[N];
-	nux0 = nu0+nx0;
-	pnx0 = (nx0+bs-1)/bs*bs;
-	cnx0 = (nx0+ncl-1)/ncl*ncl;
-//	cnz0 = (nu0+nx0+1+ncl-1)/ncl*ncl;
-	cnux0 = (nux0+ncl-1)/ncl*ncl;
-	cnl0 = cnux0<cnx0+ncl ? cnx0+ncl : cnux0;
 	// copy q in l
-	for(ii=0; ii<nu0+nx0; ii++) hl[N][ii] = hq[N][ii];
+	for(ii=0; ii<nu[N]+nx[N]; ii++) hl[N][ii] = hq[N][ii];
 	// box constraints
-	if(nb0>0)
+	if(nb[N]>0)
 		{
-		d_update_vector_sparse(nb[N], idxb[N], hl[N], hql[N]);
+		dvecin_libsp(nb[N], idxb[N], hql[N], hl[N]);
 		}
 	// general constraints
-	if(ng0>0)
+	if(ng[N]>0)
 		{
-		cng0 = (ng0+ncl-1)/ncl*ncl;
-		dgemv_n_lib(nux0, ng0, hpDCt[N], cng0, qx[N], 1, hl[N], hl[N]);
+		cng[N] = (ng[N]+ncl-1)/ncl*ncl;
+		dgemv_n_lib(nux[N], ng[N], hpDCt[N], cng[N], qx[N], 1, hl[N], hl[N]);
 		}
 
 	// middle stages
 	for(nn=0; nn<N; nn++)
 		{
-		nu1 = nu0;
-		nx1 = nx0;
-		nux1 = nux0;
-		pnx1 = pnx0;
-		cnx1 = cnx0;
-		cnl1 = cnl0;
-		nu0 = nu[N-nn-1];
-		nx0 = nx[N-nn-1];
-		nb0 = nb[N-nn-1];
-		ng0 = ng[N-nn-1];
-		nux0 = nu0+nx0;
-		pnx0 = (nx0+bs-1)/bs*bs;
-		cnx0 = (nx0+ncl-1)/ncl*ncl;
-//		cnz0 = (nu0+nx0+1+ncl-1)/ncl*ncl;
-		cnux0 = (nux0+ncl-1)/ncl*ncl;
-		cnl0 = cnux0<cnx0+ncl ? cnx0+ncl : cnux0;
 		if(compute_Pb)
 			{
-//			for(jj=0; jj<nx1; jj++) work[jj] = hux[N-nn][nu1+jj]; // copy b in aligned memory
-//			dtrmv_u_n_lib(nx1, hpL[N-nn]+ncl*bs, cnl1, work, 0, work+pnx1);
-			dtrmv_u_n_lib(nx1, hpL[N-nn]+ncl*bs, cnl1, hb[N-nn-1], 0, work);
-			dtrmv_u_t_lib(nx1, hpL[N-nn]+ncl*bs, cnl1, work, 0, hPb[N-nn-1]); // L*(L'*b)
+			dtrmv_u_n_lib(nx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], hb[N-nn-1], 0, work);
+			dtrmv_u_t_lib(nx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], work, 0, hPb[N-nn-1]); // L*(L'*b)
 			}
 		// copy q in l
-		for(ii=0; ii<nux0; ii++) hl[N-nn-1][ii] = hq[N-nn-1][ii];
+		for(ii=0; ii<nux[N-nn-1]; ii++) hl[N-nn-1][ii] = hq[N-nn-1][ii];
 		// box constraints
-		if(nb0>0)
+		if(nb[N-nn-1]>0)
 			{
-			d_update_vector_sparse(nb[N-nn-1], idxb[N-nn-1], hl[N-nn-1], hql[N-nn-1]);
+			dvecin_libsp(nb[N-nn-1], idxb[N-nn-1], hql[N-nn-1], hl[N-nn-1]);
 			}
 		// general constraints
-		if(ng0>0)
+		if(ng[N-nn-1]>0)
 			{
-			cng0 = (ng0+ncl-1)/ncl*ncl;
-			dgemv_n_lib(nux0, ng0, hpDCt[N-nn-1], cng0, qx[N-nn-1], 1, hl[N-nn-1], hl[N-nn-1]);
+			cng[N-nn-1] = (ng[N-nn-1]+ncl-1)/ncl*ncl;
+			dgemv_n_lib(nux[N-nn-1], ng[N-nn-1], hpDCt[N-nn-1], cng[N-nn-1], qx[N-nn-1], 1, hl[N-nn-1], hl[N-nn-1]);
 			}
-		for(jj=0; jj<nx1; jj++) work[jj] = hPb[N-nn-1][jj] + hl[N-nn][nu1+jj]; // add p
-		dgemv_n_lib(nux0, nx1, hpBAbt[N-nn-1], cnx1, work, 1, hl[N-nn-1], hl[N-nn-1]);
-		dtrsv_n_lib(nux0, nu0, hpL[N-nn-1], cnl0, 1, hdL[N-nn-1], hl[N-nn-1], hl[N-nn-1]);
+		for(jj=0; jj<nx[N-nn]; jj++) work[jj] = hPb[N-nn-1][jj] + hl[N-nn][nu[N-nn]+jj]; // add p
+		dgemv_n_lib(nux[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], work, 1, hl[N-nn-1], hl[N-nn-1]);
+		dtrsv_n_lib(nux[N-nn-1], nu[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], 1, hdL[N-nn-1], hl[N-nn-1], hl[N-nn-1]);
 		}
 
 
 	// forward substitution 
 
-	nu1 = nu[0];
-	nx1 = nx[0];
-	nux1 = nu1+nx1;
-	cnx1 = (nx1+ncl-1)/ncl*ncl;
-//	cnz1 = (nu1+nx1+1+ncl-1)/ncl*ncl;
-	cnux1 = (nux1+ncl-1)/ncl*ncl;
-	cnl1 = cnux1<cnx1+ncl ? cnx1+ncl : cnux1;
 	// first stage
 	nn = 0;
-	nu0 = nu1;
-	nx0 = nx1;
-	cnx0 = cnx1;
-	cnux0 = cnux1;
-//	cnz0 = cnz1;
-	cnl0 = cnl1;
-	nu1 = nu[nn+1];
-	nx1 = nx[nn+1];
-	nux1 = nu1+nx1;
-	pnx1  = (nx1+bs-1)/bs*bs;
-	cnx1 = (nx1+ncl-1)/ncl*ncl;
-//	cnz1 = (nu1+nx1+1+ncl-1)/ncl*ncl;
-	cnux1 = (nux1+ncl-1)/ncl*ncl;
-	cnl1 = cnux1<cnx1+ncl ? cnx1+ncl : cnux1;
-	for(jj=0; jj<nu0; jj++) hux[nn][jj] = - hl[nn][jj];
-	dtrsv_t_lib(nux0, nux0, hpL[nn], cnl0, 1, hdL[nn], &hux[nn][0], &hux[nn][0]);
-	dgemv_t_lib(nux0, nx1, hpBAbt[nn], cnx1, &hux[nn][0], 1, &hb[nn][0], &hux[nn+1][nu1]);
+	for(jj=0; jj<nu[nn]; jj++) hux[nn][jj] = - hl[nn][jj];
+	dtrsv_t_lib(nux[nn], nux[nn], hpL[nn], cnl[nn], 1, hdL[nn], hux[nn], hux[nn]);
+	dgemv_t_lib(nux[nn], nx[nn+1], hpBAbt[nn], cnx[nn+1], hux[nn], 1, hb[nn], hux[nn+1]+nu[nn+1]);
 	if(compute_pi)
 		{
-		for(jj=0; jj<nx1; jj++) work[pnx1+jj] = hux[nn+1][nu1+jj]; // copy x into aligned memory
-		dtrmv_u_n_lib(nx1, hpL[nn+1]+ncl*bs, cnl1, &work[pnx1], 0, &work[0]);
-		dtrmv_u_t_lib(nx1, hpL[nn+1]+ncl*bs, cnl1, &work[0], 0, &hpi[nn+1][0]); // L*(L'*b) + p
-		for(jj=0; jj<nx1; jj++) hpi[nn+1][jj] += hl[nn+1][nu1+jj];
+		for(jj=0; jj<nx[nn+1]; jj++) work[pnx[nn+1]+jj] = hux[nn+1][nu[nn+1]+jj]; // copy x into aligned memory
+		dtrmv_u_n_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work+pnx[nn+1], 0, work);
+		dtrmv_u_t_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work, 0, hpi[nn+1]); // L*(L'*b) + p
+		for(jj=0; jj<nx[nn+1]; jj++) hpi[nn+1][jj] += hl[nn+1][nu[nn+1]+jj];
 		}
 	// middle stages
 	for(nn=1; nn<N; nn++)
 		{
-		nu0 = nu1;
-		nx0 = nx1;
-		nux0 = nux1;
-		cnx0 = cnx1;
-//		cnz0 = cnz1;
-		cnl0 = cnl1;
-		nu1 = nu[nn+1];
-		nx1 = nx[nn+1];
-		nux1 = nu1+nx1;
-		pnx1  = (nx1+bs-1)/bs*bs;
-		cnx1 = (nx1+ncl-1)/ncl*ncl;
-//		cnz1 = (nu1+nx1+1+ncl-1)/ncl*ncl;
-		cnux1 = (nux1+ncl-1)/ncl*ncl;
-		cnl1 = cnux1<cnx1+ncl ? cnx1+ncl : cnux1;
-		for(jj=0; jj<nu0; jj++) hux[nn][jj] = - hl[nn][jj];
-		dtrsv_t_lib(nux0, nu0, hpL[nn], cnl0, 1, hdL[nn], &hux[nn][0], &hux[nn][0]);
-		dgemv_t_lib(nux0, nx1, hpBAbt[nn], cnx1, &hux[nn][0], 1, &hb[nn][0], &hux[nn+1][nu1]);
+		for(jj=0; jj<nu[nn]; jj++) hux[nn][jj] = - hl[nn][jj];
+		dtrsv_t_lib(nux[nn], nu[nn], hpL[nn], cnl[nn], 1, hdL[nn], hux[nn], hux[nn]);
+		dgemv_t_lib(nux[nn], nx[nn+1], hpBAbt[nn], cnx[nn+1], hux[nn], 1, hb[nn], hux[nn+1]+nu[nn+1]);
 		if(compute_pi)
 			{
-			for(jj=0; jj<nx1; jj++) work[pnx1+jj] = hux[nn+1][nu1+jj]; // copy x into aligned memory
-			dtrmv_u_n_lib(nx1, hpL[nn+1]+ncl*bs, cnl1, &work[pnx1], 0, &work[0]);
-			dtrmv_u_t_lib(nx1, hpL[nn+1]+ncl*bs, cnl1, &work[0], 0, &hpi[nn+1][0]); // L*(L'*b) + p
-			for(jj=0; jj<nx1; jj++) hpi[nn+1][jj] += hl[nn+1][nu1+jj];
+			for(jj=0; jj<nx[nn+1]; jj++) work[pnx[nn+1]+jj] = hux[nn+1][nu[nn+1]+jj]; // copy x into aligned memory
+			dtrmv_u_n_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work+pnx[nn+1], 0, work);
+			dtrmv_u_t_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work, 0, hpi[nn+1]); // L*(L'*b) + p
+			for(jj=0; jj<nx[nn+1]; jj++) hpi[nn+1][jj] += hl[nn+1][nu[nn+1]+jj];
 			}
 		}
 
