@@ -26,31 +26,31 @@
 include ../Makefile.rule
 
 ifeq ($(TARGET), X64_AVX2)
-OBJS = blas_d_lib4.o blas_s_lib8.o
+OBJS = blas_d_lib4.o #blas_s_lib8.o
 endif
 ifeq ($(TARGET), X64_AVX)
-OBJS = blas_d_lib4.o blas_s_lib8.o
+OBJS = blas_d_lib4.o #blas_s_lib8.o
 endif
 ifeq ($(TARGET), X64_SSE3)
-OBJS = blas_d_lib4.o blas_s_lib4.o
+OBJS = blas_d_lib4.o #blas_s_lib4.o
 endif
 ifeq ($(TARGET), C99_4X4)
-OBJS = blas_d_lib4.o blas_s_lib4.o
+OBJS = blas_d_lib4.o #blas_s_lib4.o
 endif
 ifeq ($(TARGET), C99_4X4_PREFETCH)
-OBJS = blas_d_lib4.o blas_s_lib4.o
+OBJS = blas_d_lib4.o #blas_s_lib4.o
 endif
 ifeq ($(TARGET), CORTEX_A57)
-OBJS = blas_d_lib4.o blas_s_lib4.o
+OBJS = blas_d_lib4.o #blas_s_lib4.o
 endif
 ifeq ($(TARGET), CORTEX_A15)
-OBJS = blas_d_lib4.o blas_s_lib4.o
+OBJS = blas_d_lib4.o #blas_s_lib4.o
 endif
 ifeq ($(TARGET), CORTEX_A9)
-OBJS = blas_d_lib4.o blas_s_lib4.o
+OBJS = blas_d_lib4.o #blas_s_lib4.o
 endif
 ifeq ($(TARGET), CORTEX_A7)
-OBJS = blas_d_lib4.o blas_s_lib4.o
+OBJS = blas_d_lib4.o #blas_s_lib4.o
 endif
 
 obj: $(OBJS)
