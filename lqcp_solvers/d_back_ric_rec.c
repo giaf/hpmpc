@@ -114,7 +114,11 @@ void d_back_ric_rec_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ
 		drowin_libsp(nb[N], idxb[N], hQl[N], hpQ[N]+nux[N]/bs*bs*cnux[N]+nux[N]%bs);
 		}
 
+#ifdef BLASFEO
+	dsyrk_dpotrf_ntnn_l_lib(nz[N], nux[N], ng[N], work, cng[N], work, cng[N], 1, hpQ[N], cnux[N], hpL[N], cnl[N], hdL[N]);
+#else
 	dsyrk_dpotrf_lib(nz[N], nux[N], ng[N], work, cng[N], work, cng[N], 1, hpQ[N], cnux[N], hpL[N], cnl[N], hdL[N]);
+#endif
 
 	dtrtr_l_lib(nx[N], nu[N], hpL[N]+nu[N]/bs*bs*cnl[N]+nu[N]%bs+nu[N]*bs, cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
 
@@ -124,7 +128,11 @@ void d_back_ric_rec_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ
 	for(nn=0; nn<N; nn++)
 		{	
 
+#ifdef BLASFEO
+		dtrmm_ntnn_lu_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], 0, work, cnxg[N-nn-1], work, cnxg[N-nn-1]);
+#else
 		dtrmm_nt_u_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], work, cnxg[N-nn-1]);
+#endif
 
 		if(compute_Pb)
 			{
@@ -144,7 +152,11 @@ void d_back_ric_rec_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ
 			drowin_libsp(nb[N-nn-1], idxb[N-nn-1], hQl[N-nn-1], hpQ[N-nn-1]+nux[N-nn-1]/bs*bs*cnux[N-nn-1]+nux[N-nn-1]%bs);
 			}
 
+#ifdef BLASFEO
+		dsyrk_dpotrf_ntnn_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work, cnxg[N-nn-1], 1, hpQ[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
+#else
 		dsyrk_dpotrf_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work, cnxg[N-nn-1], 1, hpQ[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
+#endif
 
 		dtrtr_l_lib(nx[N-nn-1], nu[N-nn-1], hpL[N-nn-1]+nu[N-nn-1]/bs*bs*cnl[N-nn-1]+nu[N-nn-1]%bs+nu[N-nn-1]*bs, cnl[N-nn-1], 0, hpL[N-nn-1]+ncl*bs, cnl[N-nn-1]);	
 
@@ -239,7 +251,11 @@ void d_back_ric_rec_trf_tv(int N, int *nx, int *nu, double **hpBAbt, double **hp
 		ddiain_libsp(nb[N], idxb[N], hQd[N], hpQ[N], cnux[N]);
 		}
 
+#ifdef BLASFEO
+	dsyrk_dpotrf_ntnn_l_lib(nux[N], nux[N], ng[N], work, cng[N], work, cng[N], 1, hpQ[N], cnux[N], hpL[N], cnl[N], hdL[N]);
+#else
 	dsyrk_dpotrf_lib(nux[N], nux[N], ng[N], work, cng[N], work, cng[N], 1, hpQ[N], cnux[N], hpL[N], cnl[N], hdL[N]);
+#endif
 
 	dtrtr_l_lib(nx[N], nu[N], hpL[N]+nu[N]/bs*bs*cnl[N]+nu[N]%bs+nu[N]*bs, cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
 
@@ -249,7 +265,11 @@ void d_back_ric_rec_trf_tv(int N, int *nx, int *nu, double **hpBAbt, double **hp
 	for(nn=0; nn<N; nn++)
 		{	
 
+#ifdef BLASFEO
+		dtrmm_ntnn_lu_lib(nux[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], 0, work, cnxg[N-nn-1], work, cnxg[N-nn-1]);
+#else
 		dtrmm_nt_u_lib(nux[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], work, cnxg[N-nn-1]);
+#endif
 
 		if(ng[N-nn-1]>0)
 			{
@@ -261,7 +281,11 @@ void d_back_ric_rec_trf_tv(int N, int *nx, int *nu, double **hpBAbt, double **hp
 			ddiain_libsp(nb[N-nn-1], idxb[N-nn-1], hQd[N-nn-1], hpQ[N-nn-1], cnux[N-nn-1]);
 			}
 
+#ifdef BLASFEO
+		dsyrk_dpotrf_ntnn_l_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work, cnxg[N-nn-1], 1, hpQ[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
+#else
 		dsyrk_dpotrf_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work, cnxg[N-nn-1], 1, hpQ[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
+#endif
 
 		dtrtr_l_lib(nx[N-nn-1], nu[N-nn-1], hpL[N-nn-1]+nu[N-nn-1]/bs*bs*cnl[N-nn-1]+nu[N-nn-1]%bs+nu[N-nn-1]*bs, cnl[N-nn-1], 0, hpL[N-nn-1]+ncl*bs, cnl[N-nn-1]);	
 

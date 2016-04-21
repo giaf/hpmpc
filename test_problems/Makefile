@@ -41,6 +41,10 @@ ifeq ($(REF_BLAS), MKL)
 LIBS = -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_gf_lp64.a /opt/intel/mkl/lib/intel64/libmkl_core.a /opt/intel/mkl/lib/intel64/libmkl_sequential.a -Wl,--end-group -ldl -lpthread -lm
 endif
 
+ifeq ($(USE_BLASFEO), 1)
+LIBS += /opt/blasfeo/lib/libblasfeo.a
+endif
+
 #OBJS_TEST = test_blas_d_debug.o
 #OBJS_TEST = test_blas_s_debug.o
 #OBJS_TEST = test_blas_d.o

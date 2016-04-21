@@ -44,8 +44,8 @@ TARGET = X64_AVX
 #TARGET = C99_4X4
 #TARGET = C99_4X4_PREFETCH
 
-# Installation directory
-PREFIX = /opt
+# use BLASFEO for the linear algebra
+USE_BLASFEO = 1
 
 # C Compiler
 CC = gcc
@@ -56,6 +56,9 @@ CC = gcc
 OS = LINUX
 #OS = WINDOWS
 
+# Installation directory
+PREFIX = /opt
+
 # Common optimization/debugging flags
 COMMON_FLAGS = -O2 -fPIC
 ifeq ($(CC), /opt/gcc/bin/gcc )
@@ -64,6 +67,9 @@ ifeq ($(TARGET), X64_AVX2)
 #COMMON_FLAGS += -I/opt/gcc/lib/gcc/x86_64-unknown-linux-gnu/5.2.0/include
 COMMON_FLAGS += -I/opt/gcc/lib/gcc/x86_64-pc-linux-gnu/6.0.0/include
 endif
+endif
+ifeq ($(USE_BLASFEO), 1)
+COMMON_FLAGS += -DBLASFEO
 endif
 ifeq ($(OS), WINDOWS)
 COMMON_FLAGS += -DOS_WINDOWS
