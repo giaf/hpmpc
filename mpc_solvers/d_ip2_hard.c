@@ -301,7 +301,7 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 
 	// initialize ux & t>0 (slack variable)
-	d_init_var_hard_mpc_tv(N, nx, nu, nb, idxb, ng, ux, pi, pDCt, d, t, lam, mu0, warm_start);
+	d_init_var_mpc_hard_tv(N, nx, nu, nb, idxb, ng, ux, pi, pDCt, d, t, lam, mu0, warm_start);
 
 
 
@@ -344,7 +344,7 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 
 		//update cost function matrices and vectors (box constraints)
-		d_update_hessian_hard_mpc_tv(N, nx, nu, nb, ng, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx, qx2, bd, bl, pd, pl, d);
+		d_update_hessian_mpc_hard_tv(N, nx, nu, nb, ng, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx, qx2, bd, bl, pd, pl, d);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -388,7 +388,7 @@ exit(1);
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1.0;
-		d_compute_alpha_hard_mpc_tv(N, nx, nu, nb, idxb, ng, &alpha, t, dt, lam, dlam, lamt, dux, pDCt, d);
+		d_compute_alpha_mpc_hard_tv(N, nx, nu, nb, idxb, ng, &alpha, t, dt, lam, dlam, lamt, dux, pDCt, d);
 
 		
 
@@ -401,7 +401,7 @@ exit(1);
 
 
 		// compute the affine duality gap
-		d_compute_mu_hard_mpc_tv(N, nx, nu, nb, ng, &mu_aff, mu_scal, alpha, lam, dlam, t, dt);
+		d_compute_mu_mpc_hard_tv(N, nx, nu, nb, ng, &mu_aff, mu_scal, alpha, lam, dlam, t, dt);
 
 		stat[5*(*kk)+2] = mu_aff;
 		//printf("\nmu = %f\n", mu_aff);
@@ -429,7 +429,7 @@ for(ii=0; ii<=N; ii++)
 #endif
 
 
-		d_update_gradient_hard_mpc_tv(N, nx, nu, nb, ng, sigma*mu, dt, dlam, t_inv, pl, qx);
+		d_update_gradient_mpc_hard_tv(N, nx, nu, nb, ng, sigma*mu, dt, dlam, t_inv, pl, qx);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -466,7 +466,7 @@ exit(1);
 
 		// compute t & dlam & dt & alpha
 		alpha = 1.0;
-		d_compute_alpha_hard_mpc_tv(N, nx, nu, nb, idxb, ng, &alpha, t, dt, lam, dlam, lamt, dux, pDCt, d);
+		d_compute_alpha_mpc_hard_tv(N, nx, nu, nb, idxb, ng, &alpha, t, dt, lam, dlam, lamt, dux, pDCt, d);
 
 		stat[5*(*kk)] = sigma;
 		stat[5*(*kk)+3] = alpha;
@@ -477,7 +477,7 @@ exit(1);
 
 		// update x, u, lam, t & compute the duality gap mu
 
-		d_update_var_hard_mpc_tv(N, nx, nu, nb, ng, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
+		d_update_var_mpc_hard_tv(N, nx, nu, nb, ng, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
 
 		stat[5*(*kk)+4] = mu;
 		

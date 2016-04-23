@@ -383,7 +383,6 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 
 			// last stage
 			d_cvt_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnx);
-			d_cvt_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnx);
 			for(jj=0; jj<nx; jj++)
 				hpQ[N][nx/bs*cnx*bs+nx%bs+jj*bs] = qf[jj];
 
@@ -710,7 +709,6 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 				}
 
 			// last stage
-			d_cvt_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnx);
 			d_cvt_mat2pmat(nx, nx, Qf, nx, 0, hpQ[N], cnx);
 			for(jj=0; jj<nx; jj++)
 				hpQ[N][nx/bs*cnx*bs+nx%bs+jj*bs] = qf[jj];
