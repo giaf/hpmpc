@@ -576,7 +576,13 @@ int main()
 //			dgemm_nt_lib(m, m, n, pAl, cnd, pAl, cnd, 0, pCl, cmd, pCl, cmd, 0, 0);
 			dsyrk_nt_lib(m, m, n, pAl, cnd, pAl, cnd, 1, pCl, cmd, pCl, cmd);
 #else
-			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
+
+#if defined(BLASFEO)
+//			dgemm_ntnn_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd);
+//			dgemv_n_lib_b(n, n, pA, cnd, x, 0, y, y);
+			dgemv_t_lib_b(n, n, pA, cnd, x, 0, y, y);
+#else
+//			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
 //			dgemm_nn_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
 //			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 0, pC, cnd, pC, cnd);
 //			dtrmm_nt_u_lib(n, n, pA, cnd, pB, cnd, pC, cnd);
@@ -587,7 +593,7 @@ int main()
 //			dtrtri_lib(n, pB, cnd, 1, x, pC, cnd);
 //			dlauum_lib(n, pA, cnd, pB, cnd, 0, pC, cnd, pD, cnd);
 //			dgemv_n_lib(n, n, pA, cnd, x, 0, y, y);
-//			dgemv_t_lib(n, n, pA, cnd, x2, 0, y2, y2);
+			dgemv_t_lib(n, n, pA, cnd, x2, 0, y2, y2);
 //			dtrmv_u_n_lib(n, pA, cnd, x, 0, y2);
 //			dtrsv_n_lib(n, n, pA, cnd, 1, x2, x, y);
 //			dsymv_lib(n, n, pA, cnd, x, 0, y, y);
@@ -595,6 +601,7 @@ int main()
 
 //			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 1, pB, cnd, pC, cnd);
 //			dpotrf_lib(n, n, pC, cnd, pC, cnd, x);
+#endif // BLASFEO
 #endif
 			}
 	
@@ -645,143 +652,6 @@ int main()
 
 		gettimeofday(&tv2, NULL); // stop
 
-#ifdef N_CODEGEN
-
-		if(n==N_CODEGEN+0*4)
-			{
-			for(rep=0; rep<nrep; rep++)
-				{
-				dpotrf_lib_codegen_0(pB, pC, x);
-
-//				dpotrf_codegen_0(B2);
-
-//				dcopy_codegen_0(B, C);
-//				dsyrk_codegen_0(A, C);
-//				dpotrf_codegen_0(C);
-				}
-			}
-		else if(n==N_CODEGEN+1*4)
-			{
-			for(rep=0; rep<nrep; rep++)
-				{
-				dpotrf_lib_codegen_1(pB, pC, x);
-
-//				dpotrf_codegen_1(B2);
-
-//				dcopy_codegen_1(B, C);
-//				dsyrk_codegen_1(A, C);
-//				dpotrf_codegen_1(C);
-				}
-			}
-		else if(n==N_CODEGEN+2*4)
-			{
-			for(rep=0; rep<nrep; rep++)
-				{
-				dpotrf_lib_codegen_2(pB, pC, x);
-
-//				dpotrf_codegen_2(B2);
-
-//				dcopy_codegen_2(B, C);
-//				dsyrk_codegen_2(A, C);
-//				dpotrf_codegen_2(C);
-				}
-			}
-		else if(n==N_CODEGEN+3*4)
-			{
-			for(rep=0; rep<nrep; rep++)
-				{
-				dpotrf_lib_codegen_3(pB, pC, x);
-
-//				dpotrf_codegen_3(B2);
-
-//				dcopy_codegen_3(B, C);
-//				dsyrk_codegen_3(A, C);
-//				dpotrf_codegen_3(C);
-				}
-			}
-		else if(n==N_CODEGEN+4*4)
-			{
-			for(rep=0; rep<nrep; rep++)
-				{
-				dpotrf_lib_codegen_4(pB, pC, x);
-
-//				dpotrf_codegen_4(B2);
-
-//				dcopy_codegen_4(B, C);
-//				dsyrk_codegen_4(A, C);
-//				dpotrf_codegen_4(C);
-				}
-			}
-		else if(n==N_CODEGEN+5*4)
-			{
-			for(rep=0; rep<nrep; rep++)
-				{
-				dpotrf_lib_codegen_5(pB, pC, x);
-
-//				dpotrf_codegen_5(B2);
-
-//				dcopy_codegen_5(B, C);
-//				dsyrk_codegen_5(A, C);
-//				dpotrf_codegen_5(C);
-				}
-			}
-		else if(n==N_CODEGEN+6*4)
-			{
-			for(rep=0; rep<nrep; rep++)
-				{
-				dpotrf_lib_codegen_6(pB, pC, x);
-
-//				dpotrf_codegen_6(B2);
-
-//				dcopy_codegen_6(B, C);
-//				dsyrk_codegen_6(A, C);
-//				dpotrf_codegen_6(C);
-				}
-			}
-		else if(n==N_CODEGEN+7*4)
-			{
-			for(rep=0; rep<nrep; rep++)
-				{
-				dpotrf_lib_codegen_7(pB, pC, x);
-
-//				dpotrf_codegen_7(B2);
-
-//				dcopy_codegen_7(B, C);
-//				dsyrk_codegen_7(A, C);
-//				dpotrf_codegen_7(C);
-				}
-			}
-		else if(n==N_CODEGEN+8*4)
-			{
-			for(rep=0; rep<nrep; rep++)
-				{
-				dpotrf_lib_codegen_8(pB, pC, x);
-
-//				dpotrf_codegen_8(B2);
-
-//				dcopy_codegen_8(B, C);
-//				dsyrk_codegen_8(A, C);
-//				dpotrf_codegen_8(C);
-				}
-			}
-		else if(n==N_CODEGEN+9*4)
-			{
-			for(rep=0; rep<nrep; rep++)
-				{
-				dpotrf_lib_codegen_9(pB, pC, x);
-
-//				dpotrf_codegen_9(B2);
-
-//				dcopy_codegen_9(B, C);
-//				dsyrk_codegen_9(A, C);
-//				dpotrf_codegen_9(C);
-				}
-			}
-
-
-		gettimeofday(&tv3, NULL); // stop
-
-#endif
 
 		float Gflops_max = flops_max * GHz_max;
 
@@ -789,11 +659,11 @@ int main()
 //		float flop_operation = 2.0*m*m*n; // dgemm
 		float flop_operation = 1.0*m*m*n; // dsyrk dtrmm
 #else
-		float flop_operation = 2.0*n*n*n; // dgemm
+//		float flop_operation = 2.0*n*n*n; // dgemm
 //		float flop_operation = 1.0*n*n*n; // dsyrk dtrmm
 //		float flop_operation = 1.0/3.0*n*n*n; // dpotrf dtrtri
 //		float flop_operation = 2.0/3.0*n*n*n; // dgetrf
-//		float flop_operation = 2.0*n*n; // dgemv dsymv
+		float flop_operation = 2.0*n*n; // dgemv dsymv
 //		float flop_operation = 1.0*n*n; // dtrmv dtrsv
 //		float flop_operation = 4.0*n*n; // dgemv_nt
 
