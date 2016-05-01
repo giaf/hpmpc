@@ -24,6 +24,7 @@
 **************************************************************************************************/
 
 
+#if ! defined(BLASFEO)
 
 void kernel_dgemv_t_8_lib4(int kmax, double *A, int sda, double *x, double *y, double *z, int alg)
 	{
@@ -993,6 +994,7 @@ void kernel_dgemv_n_1_lib4(int kmax, double *A, double *x, double *y, double *z,
 	}
 	
 	
+#endif
 	
 void kernel_dgemv_diag_lib4(int kmax, double *dA, double *x, double *y, double *z, int alg)
 	{

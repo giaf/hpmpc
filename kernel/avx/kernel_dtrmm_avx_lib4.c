@@ -33,6 +33,7 @@
 #define LOW_RANK 11
 
 
+#if ! defined(BLASFEO)
 
 void kernel_dtrmm_nt_u_10x4_vs_lib4(int km, int kmax, double *A0, int sda, double *B, double *D0, int sdd)
 	{
@@ -4523,6 +4524,7 @@ void kernel_dtrmm_nt_l_2x2_lib4(int kmax, double *A, double *B, double *D)
 	
 	}
 
+#endif
 
 
 // A upper triangle matrix on the left

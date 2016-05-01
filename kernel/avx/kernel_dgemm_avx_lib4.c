@@ -35,6 +35,8 @@
 
 
 
+#if ! defined(BLASFEO)
+
 #if 1
 void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg, int tc, int td)
 	{
@@ -7625,6 +7627,7 @@ void kernel_dgemm_nt_2x2_vs_lib4(int km, int kn, int kmax, double *A, double *B,
 
 	}
 
+#endif
 
 
 void kernel_dgemm_nn_8x4_lib4(int kmax, double *A0, int sda, double *B, int sdb, int alg, double *C0, int sdc, double *D0, int sdd, int tc, int td)
@@ -10169,6 +10172,7 @@ void kernel_dgemm_nn_2x2_lib4(int kmax, double *A, double *B, int sdb, int alg, 
 	kernel_dgemm_nn_2x2_vs_lib4(2, 2, kmax, A, B, sdb, alg, C, D, tc, td);
 
 	}
+
 
 
 

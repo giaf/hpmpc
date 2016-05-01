@@ -24,6 +24,7 @@
 **************************************************************************************************/
 
 
+#if ! defined(BLASFEO)
 
 // new kernels
 
@@ -2603,6 +2604,7 @@ void kernel_dtrsv_t_1_lib4(int kmax, int inverted_diag, double *A, int sda, doub
 
 	}
 	
+#endif
 	
 	
 

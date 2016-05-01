@@ -1096,6 +1096,7 @@ void kernel_dlauum_nt_4x4_lib4(int kmax, double *A, double *B, int alg, double *
 	}
 
 
+#if ! defined(BLASFEO)
 
 // computes the (lower triangular) diagonal blocks of the symmetric matrix U*U'
 void kernel_dsyttmm_ul_nt_8x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
@@ -3314,6 +3315,7 @@ void kernel_dttmm_uu_nt_4x2_lib4(int kmax, double *A, double *B, double *C)
 	
 	}	
 
+#endif
 
 
 

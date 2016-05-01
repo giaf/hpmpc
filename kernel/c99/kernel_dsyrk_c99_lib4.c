@@ -28,6 +28,7 @@
 #include "../../include/block_size.h"
 
 
+#if ! defined(BLASFEO)
 
 void kernel_dsyrk_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
 	{
@@ -1193,6 +1194,7 @@ void kernel_dsyrk_nn_2x2_lib4(int kmax, double *A, double *B, int sdb, double *C
 
 	}
 
+#endif
 
 
 // Al and Ar are the diagonal of two matrices

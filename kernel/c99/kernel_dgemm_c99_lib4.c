@@ -24,6 +24,7 @@
 **************************************************************************************************/
 
 
+#if ! defined(BLASFEO)
 
 // normal-transposed, 4x4 with data packed in 4
 void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
@@ -1622,6 +1623,7 @@ void kernel_dgemm_nt_2x2_lib4(int kmax, double *A, double *B, double *C, double 
 	}
 
 
+#endif
 
 // normal-normal, 4x4 with data packed in 4
 void kernel_dgemm_nn_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, int sdb, int alg, double *C, double *D, int tc, int td)

@@ -97,7 +97,11 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 		ddiareg_lib(nv0, reg, 0, hpLA[ii], cnv0);
 
 		// assume that A is aligned to a panel boundary, and that the lower part of A is copied between Q and A
+#ifdef BLASFEO
+		dpotrf_ntnn_l_lib(nve0, nv0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
+#else
 		dpotrf_lib(nve0, nv0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
+#endif
 
 		for(jj=0; jj<nv0; jj++) 
 			diag_min = fmin(diag_min, hdLA[ii][jj]);
@@ -112,7 +116,11 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 		
 	dgeset_lib(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
 	ddiareg_lib(ne0, reg, 0, hpLe_tmp, cne0);
+#ifdef BLASFEO
+	dsyrk_dpotrf_ntnn_l_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
+#else
 	dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
+#endif
 
 	for(jj=0; jj<ne0; jj++) 
 		diag_min = fmin(diag_min, hdLe_tmp[jj]);
@@ -168,7 +176,11 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 //			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
 
 			// assume that A is aligned to a panel boundary, and that the lower part of A is copied between Q and A
+#ifdef BLASFEO
+			dpotrf_ntnn_l_lib(2*nx0, nx0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
+#else
 			dpotrf_lib(2*nx0, nx0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
+#endif
 
 			for(jj=0; jj<nx0; jj++) 
 				diag_min = fmin(diag_min, hdLA[ii][jj]);
@@ -217,7 +229,11 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 #else
 			dlauum_lib(ne1, hpLe[ii-1], cne1, hpLe[ii-1], cne1, 1, hpLA[ii], cnv0, hpLA[ii], cnv0);
 //			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
+#ifdef BLASFEO
+			dpotrf_ntnn_l_lib(nve0, nv0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
+#else
 			dpotrf_lib(nve0, nv0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
+#endif
 #endif
 
 			for(jj=0; jj<nv0; jj++) 
@@ -236,7 +252,11 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 
 		dgeset_lib(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
 		ddiareg_lib(ne0, reg, 0, hpLe_tmp, cne0);
+#ifdef BLASFEO
+		dsyrk_dpotrf_ntnn_l_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
+#else
 		dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
+#endif
 
 		for(jj=0; jj<ne0; jj++) 
 			diag_min = fmin(diag_min, hdLe_tmp[jj]);
@@ -292,7 +312,11 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 	// regularize 
 	ddiareg_lib(nv0, reg, 0, hpLA[N], cnv0);
 
+#ifdef BLASFEO
+	dpotrf_ntnn_l_lib(nve0, nv0, hpLA[N], cnv0, hpLA[N], cnv0, hdLA[N]);
+#else
 	dpotrf_lib(nve0, nv0, hpLA[N], cnv0, hpLA[N], cnv0, hdLA[N]);
+#endif
 
 	for(jj=0; jj<nv0; jj++) 
 		diag_min = fmin(diag_min, hdLA[N][jj]);
@@ -308,7 +332,11 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 #if 1
 		dgeset_lib(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
 		ddiareg_lib(ne0, reg, 0, hpLe_tmp, cne0);
+#ifdef BLASFEO
+		dsyrk_dpotrf_ntnn_l_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
+#else
 		dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
+#endif
 
 		for(jj=0; jj<ne0; jj++) 
 			diag_min = fmin(diag_min, hdLe_tmp[jj]);
@@ -317,7 +345,11 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 #else
 		dgeset_lib(ne0, ne0, 0.0, 0, hpLe[N], cne0);
 		ddiareg_lib(ne0, reg, 0, hpLe[N], cne0);
+#ifdef BLASFEO
+		dsyrk_dpotrf_ntnn_l_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, 1, hpLe[N], cne0, hpLe[N], cne0, hdLe_tmp);
+#else
 		dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, 1, hpLe[N], cne0, hpLe[N], cne0, hdLe_tmp);
+#endif
 #endif
 		
 		}
@@ -370,7 +402,11 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 
 		//dtrsv_n_lib(nv0, nv0, hpLA[ii], cnv0, 1, hdLA[ii], hxupi[ii], hxupi[ii]);
 		dgemv_diag_lib(nv0, hdLA[ii], hxupi[ii], 0, hxupi[ii], hxupi[ii]); 
+#ifdef BLASFEO
+		dgemv_n_lib_b(ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hxupi[ii], -1, hxupi[ii]+pnv0, hxupi[ii]+pnv0);
+#else
 		dgemv_n_lib(ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hxupi[ii], -1, hxupi[ii]+pnv0, hxupi[ii]+pnv0);
+#endif
 
 		}
 	else
@@ -382,7 +418,11 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 		else
 			for(jj=0; jj<ne0; jj++) hxupi[ii][nv0+jj] = hxupi[ii][pnv0+jj];
 		
+#ifdef BLASFEO
+		dtrsv_ln_inv_lib(nve0, nv0, hpLA[ii], cnv0, hdLA[ii], hxupi[ii], hxupi[ii]);
+#else
 		dtrsv_n_lib(nve0, nv0, hpLA[ii], cnv0, 1, hdLA[ii], hxupi[ii], hxupi[ii]);
+#endif
 
 		// copy back
 		if(ne0>pnv0-nv0)
@@ -412,8 +452,13 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 
 		d_copy_mat(pnv0+ne0, 1, hqb[ii], 1, hxupi[ii], 1);
 
+#ifdef BLASFEO
+		dtrmv_ut_lib(ne1, hpLe[ii-1], cne1, hxupi[ii-1]+pnv1, 0, tmp, tmp);
+		dtrmv_un_lib(ne1, hpLe[ii-1], cne1, tmp, -1, hxupi[ii], hxupi[ii]);
+#else
 		dtrmv_u_t_lib(ne1, hpLe[ii-1], cne1, hxupi[ii-1]+pnv1, 0, tmp);
 		dtrmv_u_n_lib(ne1, hpLe[ii-1], cne1, tmp, -1, hxupi[ii]);
+#endif
 
 		if(diag_hessian[ii])
 			{
@@ -421,9 +466,17 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 			nx0 = ne1;
 			nu0 = nv0 - nx0;
 			
+#ifdef BLASFEO
+			dtrsv_ln_inv_lib(nx0, nx0, hpLA[ii], cnv0, hdLA[ii], hxupi[ii], hxupi[ii]);
+#else
 			dtrsv_n_lib(nx0, nx0, hpLA[ii], cnv0, 1, hdLA[ii], hxupi[ii], hxupi[ii]);
+#endif
 			dgemv_diag_lib(nu0, hdLA[ii]+nx0, hxupi[ii]+nx0, 0, hxupi[ii]+nx0, hxupi[ii]+nx0); 
+#ifdef BLASFEO
+			dgemv_n_lib_b(ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hxupi[ii], -1, hxupi[ii]+pnv0, hxupi[ii]+pnv0);
+#else
 			dgemv_n_lib(ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hxupi[ii], -1, hxupi[ii]+pnv0, hxupi[ii]+pnv0);
+#endif
 
 			}
 		else
@@ -435,7 +488,11 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 			else
 				for(jj=0; jj<ne0; jj++) hxupi[ii][nv0+jj] = hxupi[ii][pnv0+jj];
 
+#ifdef BLASFEO
+			dtrsv_ln_inv_lib(nve0, nv0, hpLA[ii], cnv0, hdLA[ii], hxupi[ii], hxupi[ii]);
+#else
 			dtrsv_n_lib(nve0, nv0, hpLA[ii], cnv0, 1, hdLA[ii], hxupi[ii], hxupi[ii]);
+#endif
 
 			// copy back
 			if(ne0>pnv0-nv0)
@@ -454,18 +511,34 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 	// last stage
 	ii = N;
 #if 1
+#ifdef BLASFEO
 	dtrmv_u_t_lib(ne0, hpLe[N], cne0, hxupi[ii]+pnv0, 0, tmp);
 #else
+	dtrmv_u_t_lib(ne0, hpLe[N], cne0, hxupi[ii]+pnv0, 0, tmp);
+#endif
+#else
 	double *dummy;
+#ifdef BLASFEO
+	dtrsv_ln_lib(ne0, ne0, hpLe[N], cne0, dummy, hxupi[ii]+pnv0, tmp); // not inverted !!!!!
+#else
 	dtrsv_n_lib(ne0, ne0, hpLe[N], cne0, 0, dummy, hxupi[ii]+pnv0, tmp);
+#endif
 #endif
 
 	
 	// backward recursion
 #if 1
+#ifdef BLASFEO
+	dtrmv_un_lib(ne0, hpLe[N], cne0, tmp, 0, hxupi[ii]+pnv0, hxupi[ii]+pnv0);
+#else
 	dtrmv_u_n_lib(ne0, hpLe[N], cne0, tmp, 0, hxupi[ii]+pnv0);
+#endif
+#else
+#ifdef BLASFEO
+	dtrsv_lt_lib(ne0, ne0, hpLe[N], cne0, dummy, tmp, hxupi[ii]+pnv0); // not inverted !!!!!
 #else
 	dtrsv_t_lib(ne0, ne0, hpLe[N], cne0, 0, dummy, tmp, hxupi[ii]+pnv0);
+#endif
 #endif
 
 	// last stage
@@ -476,8 +549,13 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 	if(diag_hessian[ii])
 		{
 
+#ifdef BLASFEO
+		dgemv_t_lib_b(ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hxupi[N]+pnv0, -1, hxupi[N], hxupi[N]);
+		dtrsv_lt_inv_lib(nv0, nv0, hpLA[N], cnv0, hdLA[N], hxupi[N], hxupi[N]);
+#else
 		dgemv_t_lib(ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hxupi[N]+pnv0, -1, hxupi[N], hxupi[N]);
 		dtrsv_t_lib(nv0, nv0, hpLA[N], cnv0, 1, hdLA[N], hxupi[N], hxupi[N]);
+#endif
 
 		}
 	else
@@ -488,7 +566,11 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 		else
 			for(jj=0; jj<ne0; jj++) hxupi[N][nv0+jj] = hxupi[N][pnv0+jj];
 
+#ifdef BLASFEO
+		dtrsv_lt_inv_lib(nve0, nv0, hpLA[N], cnv0, hdLA[N], hxupi[N], hxupi[N]);
+#else
 		dtrsv_t_lib(nve0, nv0, hpLA[N], cnv0, 1, hdLA[N], hxupi[N], hxupi[N]);
+#endif
 
 //		if(ne0>pnv0-nv0)
 //			for(jj=0; jj<pnv0-nv0; jj++) hxupi[N][nve0+jj] = hxupi[N][nv0+jj];
@@ -521,8 +603,13 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 		cne0 = (ne0+ncl-1)/ncl*ncl;
 
 		for(jj=0; jj<ne0; jj++) hxupi[N-ii][pnv0+jj] = hxupi[N-ii][pnv0+jj] - hxupi[N-ii+1][jj]; 
+#ifdef BLASFEO
+		dtrmv_ut_lib(ne0, hpLe[N-ii], cne0, hxupi[N-ii]+pnv0, 0, tmp, tmp);
+		dtrmv_un_lib(ne0, hpLe[N-ii], cne0, tmp, 0, hxupi[N-ii]+pnv0, hxupi[N-ii]+pnv0);
+#else
 		dtrmv_u_t_lib(ne0, hpLe[N-ii], cne0, hxupi[N-ii]+pnv0, 0, tmp);
 		dtrmv_u_n_lib(ne0, hpLe[N-ii], cne0, tmp, 0, hxupi[N-ii]+pnv0);
+#endif
 
 		for(jj=0; jj<nv0; jj++) hxupi[N-ii][jj] = - hxupi[N-ii][jj];
 
@@ -532,8 +619,13 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 			nx0 = ne1;
 			nu0 = nv0 - nx0;
 
+#ifdef BLASFEO
+			dgemv_t_lib_b(ne0, nv0, hpLA[N-ii]+pnv0*cnv0, cnv0, hxupi[N-ii]+pnv0, -1, hxupi[N-ii], hxupi[N-ii]);
+			dtrsv_lt_inv_lib(nx0, nx0, hpLA[N-ii], cnv0, hdLA[N-ii], hxupi[N-ii], hxupi[N-ii]);
+#else
 			dgemv_t_lib(ne0, nv0, hpLA[N-ii]+pnv0*cnv0, cnv0, hxupi[N-ii]+pnv0, -1, hxupi[N-ii], hxupi[N-ii]);
 			dtrsv_t_lib(nx0, nx0, hpLA[N-ii], cnv0, 1, hdLA[N-ii], hxupi[N-ii], hxupi[N-ii]);
+#endif
 			dgemv_diag_lib(nu0, hdLA[N-ii]+nx0, hxupi[N-ii]+nx0, 0, hxupi[N-ii]+nx0, hxupi[N-ii]+nx0); 
 
 			}
@@ -545,7 +637,11 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 			else
 				for(jj=0; jj<ne0; jj++) hxupi[N-ii][nv0+jj] = hxupi[N-ii][pnv0+jj];
 
+#ifdef BLASFEO
+			dtrsv_lt_inv_lib(nve0, nv0, hpLA[N-ii], cnv0, hdLA[N-ii], hxupi[N-ii], hxupi[N-ii]);
+#else
 			dtrsv_t_lib(nve0, nv0, hpLA[N-ii], cnv0, 1, hdLA[N-ii], hxupi[N-ii], hxupi[N-ii]);
+#endif
 
 			}
 
@@ -568,15 +664,24 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 
 	for(jj=0; jj<ne0; jj++) hxupi[N-ii][pnv0+jj] = hxupi[N-ii][pnv0+jj] - hxupi[N-ii+1][jj];
 
+#ifdef BLASFEO
+	dtrmv_ut_lib(ne0, hpLe[N-ii], cne0, hxupi[N-ii]+pnv0, 0, tmp, tmp);
+	dtrmv_un_lib(ne0, hpLe[N-ii], cne0, tmp, 0, hxupi[N-ii]+pnv0, hxupi[N-ii]+pnv0);
+#else
 	dtrmv_u_t_lib(ne0, hpLe[N-ii], cne0, hxupi[N-ii]+pnv0, 0, tmp);
 	dtrmv_u_n_lib(ne0, hpLe[N-ii], cne0, tmp, 0, hxupi[N-ii]+pnv0);
+#endif
 
 	for(jj=0; jj<nv0; jj++) hxupi[N-ii][jj] = - hxupi[N-ii][jj];
 
 	if(diag_hessian[N-ii])
 		{
 
+#ifdef BLASFEO
+		dgemv_t_lib_b(ne0, nv0, hpLA[N-ii]+pnv0*cnv0, cnv0, hxupi[N-ii]+pnv0, -1, hxupi[N-ii], hxupi[N-ii]);
+#else
 		dgemv_t_lib(ne0, nv0, hpLA[N-ii]+pnv0*cnv0, cnv0, hxupi[N-ii]+pnv0, -1, hxupi[N-ii], hxupi[N-ii]);
+#endif
 		dgemv_diag_lib(nv0, hdLA[N-ii], hxupi[N-ii], 0, hxupi[N-ii], hxupi[N-ii]); 
 
 		}
@@ -588,7 +693,11 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 		else
 			for(jj=0; jj<ne0; jj++) hxupi[N-ii][nv0+jj] = hxupi[N-ii][pnv0+jj];
 
+#ifdef BLASFEO
+		dtrsv_lt_inv_lib(nve0, nv0, hpLA[N-ii], cnv0, hdLA[N-ii], hxupi[N-ii], hxupi[N-ii]);
+#else
 		dtrsv_t_lib(nve0, nv0, hpLA[N-ii], cnv0, 1, hdLA[N-ii], hxupi[N-ii], hxupi[N-ii]);
+#endif
 
 		}
 

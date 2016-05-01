@@ -35,6 +35,7 @@
 #define LOW_RANK 7
 
 
+#if ! defined(BLASFEO)
 
 // normal-transposed, 8x4 with data packed in 4
 void kernel_dsyrk_nt_8x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg)
@@ -2032,6 +2033,7 @@ void kernel_dsyrk_nn_2x2_lib4(int kmax, double *A, double *B, int sdb, double *C
 
 	}
 
+#endif
 
 
 // Al and Ar are the diagonal of two matrices
@@ -3550,6 +3552,7 @@ void kernel_dsyrk_diag_left_right_1_lib4(int kmax, double *Al, double *Ar, doubl
 	}
 
 
+#if ! defined(BLASFEO)
 
 // rank 0 update
 void kernel_dsyr0_4_lib4(int kmax, int tri, int alg, double *C, double *D)
@@ -7641,6 +7644,7 @@ void kernel_dsyr4_1_lib4(int kmax, int tri, double *A, double *B, int sdb, int a
 	}
 
 
+#endif
 
 
 

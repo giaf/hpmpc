@@ -31,6 +31,7 @@
 #include <immintrin.h>  // AVX
 
 
+#if ! defined(BLASFEO)
 
 void kernel_dgemm_nt_12x4_lib4(int kmax, double *A0, int sda, double *B, double *C0, int sdc, double *D0, int sdd, int alg, int tc, int td)
 	{
@@ -4225,6 +4226,7 @@ void kernel_dgemm_nn_12x4_vs_lib4(int km, int kn, int kmax, double *A0, int sda,
 
 	}
 
+#endif
 
 
 void kernel_dgemm_nn_8x4_lib4(int kmax, double *A0, int sda, double *B, int sdb, int alg, double *C0, int sdc, double *D0, int sdd, int tc, int td)

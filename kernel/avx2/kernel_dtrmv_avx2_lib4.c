@@ -31,6 +31,7 @@
 #include <immintrin.h>  // AVX
  
 
+#if ! defined(BLASFEO)
 
 // it moves vertically across panels
 void kernel_dtrmv_u_t_12_lib4(int kmax, double *A, int sda, double *x, double *y, int alg)
@@ -1901,3 +1902,4 @@ void kernel_dtrmv_u_n_2_lib4(int kmax, double *A, double *x, double *y, int alg)
 
 	}
 
+#endif

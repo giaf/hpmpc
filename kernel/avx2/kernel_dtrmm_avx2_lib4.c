@@ -31,6 +31,7 @@
 #include <immintrin.h>  // AVX
 
 
+#if ! defined(BLASFEO)
 
 // normal-transposed, 12x4 with data packed in 4
 void kernel_dtrmm_nt_u_12x4_lib4(int kadd, double *A0, int sda, double *B, double *D0, int sdd)
@@ -2492,6 +2493,7 @@ void kernel_dtrmm_nt_l_2x2_lib4(int kmax, double *A, double *B, double *C)
 	
 	}
 
+#endif
 
 
 // A upper triangle matrix on the left
