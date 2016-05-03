@@ -1,6 +1,6 @@
 % compile the C code
-mex HPMPC_ip_hard.c /opt/hpmpc/lib/libhpmpc.a                                % linear algebra in HPMPC 
-%mex HPMPC_ip_hard.c /opt/hpmpc/lib/libhpmpc.a /opt/blasfeo/lib/libblasfeo.a   % linear algebra in BLASFEO
+mex HPMPC_ip_mpc_hard.c /opt/hpmpc/lib/libhpmpc.a                                % linear algebra in HPMPC 
+%mex HPMPC_ip_mpc_hard.c /opt/hpmpc/lib/libhpmpc.a /opt/blasfeo/lib/libblasfeo.a   % linear algebra in BLASFEO
 
 % import cool graphic toolkit if in octave
 if is_octave()
@@ -171,13 +171,13 @@ tic
 if time_invariant==0 % time-variant interface
 
 	for ii=1:nrep
-		HPMPC_ip_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, CC, DD, llg, uug, CN, lgN, ugN, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
+		HPMPC_ip_mpc_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, CC, DD, llg, uug, CN, lgN, ugN, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
 	end
 
 else % time-invariant interface
 
 	for ii=1:nrep
-		HPMPC_ip_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, A, B, b, Q, Qf, R, S, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
+		HPMPC_ip_mpc_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, A, B, b, Q, Qf, R, S, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
 	end
 
 end
