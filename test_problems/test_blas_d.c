@@ -311,7 +311,11 @@ int main()
 		/* warm up */
 		for(rep=0; rep<nrep; rep++)
 			{
+#if defined(BLASFEO)
+			dgemm_ntnn_lib(n, n, n, pA, cnd, pB, cnd, 1, pC, cnd, pC, cnd);
+#else
 			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 1, pC, cnd, pC, cnd, 1, 1);
+#endif
 			}
 
 #if 0

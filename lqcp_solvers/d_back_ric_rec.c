@@ -369,7 +369,7 @@ void d_back_ric_rec_trs_tv(int N, int *nx, int *nu, double **hpBAbt, double **hb
 
 	// final stage
 	// copy q in l
-	for(ii=0; ii<nu[N]+nx[N]; ii++) hl[N][ii] = hq[N][ii];
+	for(ii=0; ii<nux[N]; ii++) hl[N][ii] = hq[N][ii];
 	// box constraints
 	if(nb[N]>0)
 		{
@@ -431,7 +431,7 @@ void d_back_ric_rec_trs_tv(int N, int *nx, int *nu, double **hpBAbt, double **hb
 
 	// first stage
 	nn = 0;
-	for(jj=0; jj<nu[nn]; jj++) hux[nn][jj] = - hl[nn][jj];
+	for(jj=0; jj<nux[nn]; jj++) hux[nn][jj] = - hl[nn][jj]; 
 #ifdef BLASFEO
 	dtrsv_lt_inv_lib(nux[nn], nux[nn], hpL[nn], cnl[nn], hdL[nn], hux[nn], hux[nn]);
 	dgemv_t_lib(nux[nn], nx[nn+1], hpBAbt[nn], cnx[nn+1], hux[nn], 1, hb[nn], hux[nn+1]+nu[nn+1]);

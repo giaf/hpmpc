@@ -164,6 +164,7 @@ int c_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_tol, cha
 
         /* array or pointers */
         double *(hpBAbt[N]);
+        double *(hb[N]);
         double *(hpDCt[N+1]);
         double *(hpQ[N+1]);
         double *(hux[N+1]);
@@ -216,6 +217,37 @@ int c_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_tol, cha
 			hpQ[N] = ptr;
 			ptr += pnz*cnux;
 
+			work = ptr;
+			ptr += d_ip2_mpc_hard_tv_work_space_size_doubles(N, nxx, nuu, nbb, ngg);
+
+			hb[0] = ptr;
+			ptr += pnx;
+			for(ii=1; ii<N; ii++)
+				{
+				hb[ii] = ptr;
+				ptr += pnx;
+				}
+
+			hq[0] = ptr;
+			ptr += pnz;
+			for(ii=1; ii<N; ii++)
+				{
+				hq[ii] = ptr;
+				}
+			ptr += pnz;
+			hq[N] = ptr;
+			ptr += pnz;
+
+			hd[0] = ptr;
+			ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+			for(ii=1; ii<N; ii++) // time Variant box constraints
+				{
+				hd[ii] = ptr;
+				}
+			ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+			hd[N] = ptr;
+			ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
 			for(ii=0; ii<=N; ii++)
 				{
 				hux[ii] = ptr;
@@ -227,19 +259,6 @@ int c_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_tol, cha
 				hpi[ii] = ptr;
 				ptr += pnx; // for alignment of ptr
 				}
-
-			work = ptr;
-			ptr += d_ip2_mpc_hard_tv_work_space_size_doubles(N, nxx, nuu, nbb, ngg);
-
-			hd[0] = ptr;
-			ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
-			for(ii=1; ii<N; ii++) // time Variant box constraints
-				{
-				hd[ii] = ptr;
-				}
-			ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
-			hd[N] = ptr;
-			ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
 
 			for(ii=0; ii<N; ii++) // time variant Lagrangian multipliers
 				{
@@ -259,12 +278,6 @@ int c_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_tol, cha
 
 			if(compute_res)
 				{
-
-				for(ii=0; ii<=N; ii++)
-					{
-					hq[ii] = ptr;
-					ptr += pnz;
-					}
 
 				for(ii=0; ii<N; ii++)
 					{
@@ -299,12 +312,12 @@ int c_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_tol, cha
 			// compute A_0 * x_0 + b_0
 			for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
 			d_cvt_tran_mat2pmat(nx, nx, A, nx, 0, hpBAbt[0], cnx); // pack A into (temporary) buffer
-			dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b, hpi[1]); // result in (temporary) buffer
+			dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b, hb[0]); // result 
 
 			ii = 0;
 			d_cvt_mat2pmat(nu, nx, B, nu, 0, hpBAbt[0], cnx);
 			for (jj = 0; jj<nx; jj++)
-				hpBAbt[0][(nu)/bs*cnx*bs+(nu)%bs+jj*bs] = hpi[1][jj];
+				hpBAbt[0][(nu)/bs*cnx*bs+(nu)%bs+jj*bs] = hb[0][jj];
 
 			// middle stages
 			ii=1;
@@ -313,7 +326,10 @@ int c_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_tol, cha
 				d_cvt_mat2pmat(nu, nx, B, nu, 0, hpBAbt[ii], cnx);
 				d_cvt_mat2pmat(nx, nx, A, nx, nu, hpBAbt[ii]+nu/bs*cnx*bs+nu%bs, cnx);
 				for(jj=0; jj<nx; jj++)
+					{
+					hb[ii][jj] = b[jj];
 					hpBAbt[ii][(nx+nu)/bs*cnx*bs+(nx+nu)%bs+jj*bs] = b[jj];
+					}
 				}
 			//d_print_mat(nx, nu, B, nx);
 			//d_print_mat(nx, nx, A, nx);
@@ -546,6 +562,29 @@ int c_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_tol, cha
 				ptr += pnz*cnux; // TODO use cnux instrad
 				}
 
+			work = ptr;
+			ptr += d_ip2_mpc_hard_tv_work_space_size_doubles(N, nxx, nuu, nbb, ngg);
+
+			for(ii=0; ii<N; ii++)
+				{
+				hb[ii] = ptr;
+				ptr += pnx;
+				}
+
+			for(ii=0; ii<=N; ii++)
+				{
+				hq[ii] = ptr;
+				ptr += pnz;
+				}
+
+			for(ii=0; ii<N; ii++) // time Variant box constraints
+				{
+				hd[ii] = ptr;
+				ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+				}
+			hd[N] = ptr;
+			ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
 			for(ii=0; ii<=N; ii++)
 				{
 				hux[ii] = ptr;
@@ -557,17 +596,6 @@ int c_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_tol, cha
 				hpi[ii] = ptr;
 				ptr += pnx; // for alignment of ptr
 				}
-
-			work = ptr;
-			ptr += d_ip2_mpc_hard_tv_work_space_size_doubles(N, nxx, nuu, nbb, ngg);
-
-			for(ii=0; ii<N; ii++) // time Variant box constraints
-				{
-				hd[ii] = ptr;
-				ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
-				}
-			hd[N] = ptr;
-			ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
 
 			for(ii=0; ii<N; ii++) // time Variant box constraints
 				{
@@ -587,12 +615,6 @@ int c_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_tol, cha
 
 			if(compute_res)
 				{
-
-				for(ii=0; ii<=N; ii++)
-					{
-					hq[ii] = ptr;
-					ptr += pnz;
-					}
 
 				for(ii=0; ii<N; ii++)
 					{
@@ -919,7 +941,7 @@ exit(1);
 
 			double mu;
 
-			d_res_ip_mpc_hard_tv(N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+			d_res_ip_mpc_hard_tv(N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hb, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 #if 0
 			printf("\n");

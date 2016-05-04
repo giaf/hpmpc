@@ -52,7 +52,7 @@ int hpmpc_d_ip_mpc_hard_tv_work_space_size_doubles(int N, int nx, int nu, int nb
 	const int cnxg = ncl*((nx+ng+ncl-1)/ncl);
 	const int cnl  = cnux<cnx+ncl ? cnx+ncl : cnux;
 
-	int work_space_size = (8 + bs + (N+1)*(nb + pnz*cnx + pnz*cnux + pnz*cnl + pnz*cng + 7*pnz + 5*pnx + 23*pnb + 19*png) + pnz*(cngN-cng) + 19*(pngN-png) + pnz + (cngN<cnxg ? pnz*cnxg : pnz*cngN) );
+	int work_space_size = (8 + bs + (N+1)*(nb + pnz*cnx + pnz*cnux + pnz*cnl + pnz*cng + 7*pnz + 6*pnx + 23*pnb + 19*png) + pnz*(cngN-cng) + 19*(pngN-png) + pnz + (cngN<cnxg ? pnz*cnxg : pnz*cngN) );
 
 	return work_space_size;
 

@@ -45,13 +45,17 @@ ifeq ($(USE_BLASFEO), 1)
 LIBS += /opt/blasfeo/lib/libblasfeo.a
 endif
 
+# tested
+#OBJS_TEST = test_blas_d.o
+#OBJS_TEST = tools.o test_d_ric_mpc.o
+OBJS_TEST = tools.o test_d_ip_hard.o
+
+# old
 #OBJS_TEST = test_blas_d_debug.o
 #OBJS_TEST = test_blas_s_debug.o
-#OBJS_TEST = test_blas_d.o
 #OBJS_TEST = test_blas_dsyrk_dpotrf.o
 #OBJS_TEST = test_blas_d_low_rank.o
 #OBJS_TEST = test_blas_s.o
-#OBJS_TEST = tools.o test_d_ric_mpc.o
 #OBJS_TEST = tools.o test_d_forward_schur.o
 #OBJS_TEST = tools.o test_s_ric_mpc.o
 #OBJS_TEST = tools.o test_d_ric_mhe.o
@@ -61,7 +65,6 @@ endif
 #OBJS_TEST = tools.o test_d_cond_fact.o
 #OBJS_TEST = tools.o test_d_part_cond.o
 #OBJS_TEST = tools.o test_d_cond_mpc.o
-OBJS_TEST = tools.o test_d_ip_hard.o
 #OBJS_TEST = tools.o test_s_ip_box.o
 #OBJS_TEST = tools.o test_d_ip_soft.o
 #OBJS_TEST = tools.o test_d_ip_diag_box.o

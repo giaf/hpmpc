@@ -30,7 +30,7 @@
 
 
 /* supports the problem size to change stage-wise */
-void d_res_ip_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **hpBAbt, double **hpQ, double **hq, double **hux, double **hpDCt, double **hd, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double *mu)
+void d_res_ip_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **hpBAbt, double **hb, double **hpQ, double **hq, double **hux, double **hpDCt, double **hd, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double *mu)
 	{
 
 	const int bs = D_MR;
@@ -108,7 +108,7 @@ void d_res_ip_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 		}
 	
 	for(jj=0; jj<nx1; jj++) 
-		hrb[ii][jj] = hux[ii+1][nu1+jj] - hpBAbt[ii][(nu0+nx0)/bs*bs*cnx1+(nu0+nx0)%bs+bs*jj];
+		hrb[ii][jj] = hux[ii+1][nu1+jj] - hb[ii][jj];
 	dgemv_t_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hux[ii], -1, hrb[ii], hrb[ii]);
 
 
@@ -166,7 +166,7 @@ void d_res_ip_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 			}
 
 		for(jj=0; jj<nx1; jj++) 
-			hrb[ii][jj] = hux[ii+1][nu1+jj] - hpBAbt[ii][(nu0+nx0)/bs*bs*cnx1+(nu0+nx0)%bs+bs*jj];
+			hrb[ii][jj] = hux[ii+1][nu1+jj] - hb[ii][jj];
 		dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii+1], hux[ii], -1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
 
 		}

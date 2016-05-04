@@ -1021,7 +1021,7 @@ int main()
 
 	double *B; d_zeros(&B, nx, nu); // inputs matrix
 
-	double *b; d_zeros(&b, nx, 1); // states offset
+	double *b; d_zeros_align(&b, nx, 1); // states offset
 	double *x0; d_zeros_align(&x0, nx, 1); // initial state
 
 	double Ts = 0.5; // sampling time
@@ -1037,22 +1037,17 @@ int main()
 
 	double *pA; d_zeros_align(&pA, pnx, cnx);
 	d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
-//	d_print_pmat(nx, nx, bs, pA, cnx);
 	double *b0; d_zeros_align(&b0, pnx, 1);
 	dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
-//	d_print_mat(1, nx, b0, 1);
 
 	double *pBAbt0; d_zeros_align(&pBAbt0, pnu1, cnx);
 	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt0, cnx);
 	d_cvt_tran_mat2pmat(nx, 1, b0, nx, nu, pBAbt0+nu/bs*bs*cnx+nu%bs, cnx);
-//	d_print_pmat(nu+1, nx, bs, pBAbt0, cnx);
 
 	double *pBAbt1; d_zeros_align(&pBAbt1, pnz, cnx);
 	d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt1, cnx);
 	d_cvt_tran_mat2pmat(nx, nx, A, nx, nu, pBAbt1+nu/bs*bs*cnx+nu%bs, cnx);
 	d_cvt_tran_mat2pmat(nx, 1, b, nx, nu+nx, pBAbt1+(nu+nx)/bs*bs*cnx+(nu+nx)%bs, cnx);
-//	d_print_pmat(nu+nx+1, nx, bs, pBAbt1, cnx);
-//	exit(4);
 
 
 /************************************************
@@ -1244,6 +1239,7 @@ int main()
 ************************************************/	
 
 	double *hpBAbt[N];
+	double *hb[N];
 	double *hpQ[N+1];
 	double *hq[N+1];
 	double *hd[N+1];
@@ -1256,6 +1252,7 @@ int main()
 	double *hrq[N+1];
 	double *hrd[N+1];
 	hpBAbt[0] = pBAbt0;
+	hb[0] = b0;
 	hpQ[0] = pQ0;
 	hq[0] = q0;
 	hd[0] = d0;
@@ -1270,6 +1267,7 @@ int main()
 	for(ii=1; ii<N; ii++)
 		{
 		hpBAbt[ii] = pBAbt1;
+		hb[ii] = b;
 		hpQ[ii] = pQ1;
 		hq[ii] = q1;
 		hd[ii] = d1;
@@ -1312,7 +1310,7 @@ int main()
 	int compute_res = 1;
 	int compute_mult = 1;
 
-	struct timeval tv0, tv1, tv2;
+	struct timeval tv0, tv1, tv2, tv3;
 	double time;
 
 	double **dummy;
@@ -1357,6 +1355,32 @@ int main()
 	printf(" Average solution time over %d runs: %5.2e seconds\n", nrep, time);
 	printf("\n\n");
 
+	gettimeofday(&tv0, NULL); // stop
+
+	kk_avg = 0;
+
+	for(rep=0; rep<nrep; rep++)
+		{
+
+		fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(N, nx, nu, nb, ng, ngN, time_invariant, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, 0.0, rx, ru, rwork, compute_res, inf_norm_res, compute_mult, rpi, rlam, rt);
+
+		kk_avg += kk;
+
+		}
+	
+	gettimeofday(&tv1, NULL); // stop
+
+	printf("\nsolution from high-level interface (resolve final kkt)\n\n");
+	d_print_mat(nx, N+1, rx, nx);
+	d_print_mat(nu, N, ru, nu);
+
+	printf("\ninfinity norm of residuals\n\n");
+	d_print_mat_e(1, 4, inf_norm_res, 1);
+
+	time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+	printf(" Average solution time over %d runs: %5.2e seconds\n", nrep, time);
+
 /************************************************
 * call the solver (low-level interface)
 ************************************************/	
@@ -1369,7 +1393,7 @@ int main()
 
 	kk_avg = 0;
 
-//	printf("\nsolution...\n");
+	printf("\nsolution...\n");
 	for(rep=0; rep<nrep; rep++)
 		{
 
@@ -1378,7 +1402,7 @@ int main()
 		kk_avg += kk;
 
 		}
-//	printf("\ndone\n");
+	printf("\ndone\n");
 
 	gettimeofday(&tv1, NULL); // stop
 
@@ -1386,11 +1410,33 @@ int main()
 	for(ii=0; ii<=N; ii++)
 		d_print_mat(1, nu_v[ii]+nx_v[ii], hux[ii], 1);
 	
+	// zero the solution again
+
+	for(ii=0; ii<=N; ii++)
+		for(jj=0; jj<nu_v[ii]+nx_v[ii]; jj++) hux[ii][jj] = 0.0;
+
+	gettimeofday(&tv2, NULL); // stop
+
+	printf("\nsolution...\n");
+	for(rep=0; rep<nrep; rep++)
+		{
+
+		d_kkt_solve_new_rhs_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpQ, hq, dummy, hd, 0.0, hux, compute_mult, hpi, hlam, ht, work);
+
+		}
+	printf("\ndone\n");
+
+	gettimeofday(&tv3, NULL); // stop
+
+	printf("\nsolution from low-level interface (resolve final kkt)\n\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, nu_v[ii]+nx_v[ii], hux[ii], 1);
+
 	// residuals
 	if(compute_res)
 		{
 		// compute residuals
-		d_res_ip_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hpQ, hq, hux, dummy, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+		d_res_ip_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpQ, hq, hux, dummy, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 		// print residuals
 		printf("\nhrq\n\n");
@@ -1411,7 +1457,8 @@ int main()
 
 		}
 
-	time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+	double time_ipm = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+	double time_final = (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
 
 	printf("\nstatistics from last run\n\n");
 	for(jj=0; jj<kk; jj++)
@@ -1420,7 +1467,8 @@ int main()
 	
 	printf("\n");
 	printf(" Average number of iterations over %d runs: %5.1f\n", nrep, kk_avg / (double) nrep);
-	printf(" Average solution time over %d runs: %5.2e seconds\n", nrep, time);
+	printf(" Average solution time over %d runs: %5.2e seconds (IPM)\n", nrep, time_ipm);
+	printf(" Average solution time over %d runs: %5.2e seconds (resolve final kkt)\n", nrep, time_final);
 	printf("\n\n");
 
 /************************************************
@@ -1465,10 +1513,14 @@ int main()
 		d_free_align(hrb[ii]);
 		d_free_align(hrq[ii]);
 		d_free_align(hrd[ii]);
+		d_free_align(ht[ii]);
+		d_free_align(hlam[ii]);
 		}
 	d_free_align(hux[N]);
 	d_free_align(hrq[N]);
 	d_free_align(hrd[N]);
+	d_free_align(ht[N]);
+	d_free_align(hlam[N]);
 	
 	// high level interface
 	free(rA);

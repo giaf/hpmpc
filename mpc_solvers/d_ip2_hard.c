@@ -441,10 +441,10 @@ exit(1);
 #endif
 
 
-		// copy b into x
-		for(ii=0; ii<N; ii++)
-			for(jj=0; jj<nx[ii+1]; jj++) 
-				dux[ii+1][nu[ii+1]+jj] = pBAbt[ii][(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs+bs*jj]; // copy b
+//		// copy b into x
+//		for(ii=0; ii<N; ii++)
+//			for(jj=0; jj<nx[ii+1]; jj++) 
+//				dux[ii+1][nu[ii+1]+jj] = pBAbt[ii][(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs+bs*jj]; // copy b
 
 
 
@@ -525,6 +525,235 @@ exit(1);
 	return -1;
 
 	} // end of ipsolver
+
+
+
+/* primal-dual interior-point method, hard constraints, time variant matrices, time variant size (mpc version) */
+void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **r_A, double **pQ, double **r_H, double **pDCt, double **r_C, double r_T, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
+	{
+
+	
+	// indeces
+	int jj, ll, ii, bs0;
+
+	// constants
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+
+
+	// matrices size
+	int idx;
+//	int nxM = 0;
+	int nzM = 0;
+//	int ngM = 0;
+
+	int pnx[N+1];
+	int pnz[N+1];
+	int pnb[N+1];
+	int png[N+1];
+	int cnx[N+1];
+//	int cnz[N+1];
+	int cnux[N+1];
+
+	for(jj=0; jj<=N; jj++)
+		{
+		pnx[jj] = (nx[jj]+bs-1)/bs*bs;
+		pnz[jj] = (nu[jj]+nx[jj]+1+bs-1)/bs*bs;
+		pnb[jj] = (nb[jj]+bs-1)/bs*bs;
+		png[jj] = (ng[jj]+bs-1)/bs*bs;
+		cnx[jj] = (nx[jj]+ncl-1)/ncl*ncl;
+//		cnz[jj] = (nu[jj]+nx[jj]+1+ncl-1)/ncl*ncl;
+		cnux[jj] = (nu[jj]+nx[jj]+ncl-1)/ncl*ncl;
+//		if(nx[jj]>nxM) nxM = nx[jj];
+		if(nu[jj]+nx[jj]+1>nzM) nzM = nu[jj]+nx[jj]+1;
+//		if(ng[jj]>ngM) ngM = ng[jj];
+//		if(nx[jj]+ng[jj]>nxgM) nxgM = nx[jj]+ng[jj];
+		}
+
+	int nxgM = ng[N];
+	for(jj=0; jj<N; jj++)
+		{
+		if(nx[jj+1]+ng[jj]>nxgM) nxgM = nx[jj+1]+ng[jj];
+		}
+
+
+	// initialize work space
+	// work_space_double_size_per_stage = pnz*cnl + 2*pnz + 2*pnx + 14*pnb + 10*png
+	// work_space_double_size_const_max = pnz*cnxg + pnz
+	double *ptr;
+	ptr = double_work_memory; // supposed to be aligned to cache line boundaries
+
+	double *pL[N+1];
+	double *dL[N+1];
+	double *l[N+1];
+	double *work;
+	double *b[N];
+	double *q[N+1];
+	double *dux[N+1];
+	double *dpi[N+1];
+	double *pd[N+1]; // pointer to diagonal of Hessian
+	double *pl[N+1]; // pointer to linear part of Hessian
+	double *bd[N+1]; // backup diagonal of Hessian
+	double *bl[N+1]; // backup linear part of Hessian
+	double *diag;
+	double *dlam[N+1];
+	double *dt[N+1];
+	double *lamt[N+1];
+	double *t_inv[N+1];
+	double *Qx[N+1];
+	double *qx[N+1];
+	double *qx2[N+1];
+	double *Pb[N];
+
+//	int size = 0;
+
+	// work space
+	for(jj=0; jj<=N; jj++)
+		{
+		pL[jj] = ptr;
+//		ptr += pnz[jj] * ( cnx[jj]+ncl>cnz[jj] ? cnx[jj]+ncl : cnz[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
+		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
+//		size += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
+		}
+
+	for(jj=0; jj<=N; jj++)
+		{
+		dL[jj] = ptr;
+		ptr += pnz[jj];
+//		size += pnz[jj];
+		}
+
+	for(jj=0; jj<=N; jj++)
+		{
+		l[jj] = ptr;
+		ptr += pnz[jj];
+//		size += pnz[jj];
+		}
+
+	// work space
+	work = ptr;
+//	ptr += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl); // pnzM*cnxgM
+//	size += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl); // pnzM*cnxgM
+	ptr += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl); // pnzM*cnxgM
+//	size += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl); // pnzM*cnxgM
+
+	// b as vector
+	for(jj=0; jj<N; jj++)
+		{
+		b[jj] = ptr;
+		ptr += pnx[jj+1];
+//		size += pnx[jj+1];
+		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
+		}
+
+	// inputs and states
+	for(jj=0; jj<=N; jj++)
+		{
+		dux[jj] = ptr;
+		ptr += pnz[jj];
+//		size += pnz[jj];
+		}
+
+	// equality constr multipliers
+	for(jj=0; jj<=N; jj++)
+		{
+		dpi[jj] = ptr;
+		ptr += pnx[jj];
+//		size += pnx[jj];
+		}
+	
+	// backup of P*b
+	for(jj=0; jj<N; jj++)
+		{
+		Pb[jj] = ptr;
+		ptr += pnx[jj+1];
+//		size += pnx[jj+1];
+		}
+
+	// linear part of cost function
+	for(jj=0; jj<=N; jj++)
+		{
+		q[jj] = ptr;
+		ptr += pnz[jj];
+//		size += pnz[jj];
+		for(ll=0; ll<nu[jj]+nx[jj]; ll++) q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
+		}
+
+	// Hessian backup
+	for(jj=0; jj<=N; jj++)
+		{
+		pd[jj] = ptr;
+		pl[jj] = ptr + pnb[jj];
+		bd[jj] = ptr + 2*pnb[jj];
+		bl[jj] = ptr + 3*pnb[jj];
+		ptr += 4*pnb[jj];
+//		size += 4*pnb[jj];
+		// backup
+		for(ll=0; ll<nb[jj]; ll++)
+			{
+			idx = idxb[jj][ll];
+			bd[jj][ll] = pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs];
+			bl[jj][ll] = q[jj][idx];
+			}
+		}
+
+	diag = ptr;
+	ptr += (nzM+bs-1)/bs*bs; // pnzM
+//	size += (nzM+bs-1)/bs*bs; // pnzM
+
+	// slack variables, Lagrangian multipliers for inequality constraints and work space
+	for(jj=0; jj<=N; jj++)
+		{
+		dlam[jj] = ptr;
+		dt[jj]   = ptr + 2*pnb[jj]+2*png[jj];
+		ptr += 4*pnb[jj]+4*png[jj];
+//		size += 4*pnb[jj]+4*png[jj];
+		}
+
+	for(jj=0; jj<=N; jj++)
+		{
+		lamt[jj] = ptr;
+		ptr += 2*pnb[jj]+2*png[jj];
+//		size += 2*pnb[jj]+2*png[jj];
+		}
+
+	for(jj=0; jj<=N; jj++)
+		{
+		t_inv[jj] = ptr;
+		ptr += 2*pnb[jj]+2*png[jj];
+//		size += 2*pnb[jj]+2*png[jj];
+		}
+
+	for(jj=0; jj<=N; jj++)
+		{
+		Qx[jj] = ptr;
+		qx[jj] = ptr+pnb[jj]+png[jj];
+		qx2[jj] = ptr+2*pnb[jj]+2*png[jj];
+		ptr += 3*pnb[jj]+3*png[jj];
+//		size += 3*pnb[jj]+3*png[jj];
+		}
+	
+//	printf("\nsize real = %d\n", size);
+
+
+
+
+	//update cost function vectors for a generic RHS (not tailored to IPM)
+	d_update_gradient_new_rhs_mpc_hard_tv(N, nx, nu, nb, ng, r_T, t_inv, lamt, qx, bl, pl, r_C); 
+
+
+	// solve the system
+	d_back_ric_rec_trs_tv(N, nx, nu, pBAbt, r_A, pL, dL, r_H, l, ux, work, 1, Pb, compute_mult, pi, nb, idxb, pl, ng, pDCt, qx);
+
+
+	// compute t & lam 
+	d_compute_t_lam_new_rhs_mpc_hard_tv(N, nx, nu, nb, idxb, ng, r_T, t, lam, lamt, t_inv, ux, pDCt, r_C);
+
+	
+
+
+	} // end of final kkt solve
 
 
 
