@@ -1026,7 +1026,6 @@ void d_compute_alpha_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 				}
 
 			ptr_db   += 2*pnb;
-			ptr_dux  += 2*pnb;
 			ptr_t    += 2*pnb;
 			ptr_dt   += 2*pnb;
 			ptr_lamt += 2*pnb;
@@ -1712,7 +1711,7 @@ void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int
 
 
 
-void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **t_aff, double **lam_aff, double **lamt, double **tinv, double **dux, double **pDCt, double **db)
+void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double r_T, double **t_aff, double **lam_aff, double **lamt, double **tinv, double **dux, double **pDCt, double **db)
 	{
 	
 	// constants
@@ -1753,8 +1752,8 @@ void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 
 				ptr_t_aff[ll+0]   =   ptr_dux[ptr_idxb[ll]] - ptr_db[ll+0];
 				ptr_t_aff[ll+pnb] = - ptr_dux[ptr_idxb[ll]] - ptr_db[ll+pnb];
-				ptr_lam_aff[ll+0]   = ptr_tinv[ll+0]   * r_T - ptr_lamt[ll+0]   * ptr_dt[ll+0];
-				ptr_lam_aff[ll+pnb] = ptr_tinv[ll+pnb] * r_T - ptr_lamt[ll+pnb] * ptr_dt[ll+pnb];
+				ptr_lam_aff[ll+0]   = ptr_tinv[ll+0]   * r_T - ptr_lamt[ll+0]   * ptr_t_aff[ll+0];
+				ptr_lam_aff[ll+pnb] = ptr_tinv[ll+pnb] * r_T - ptr_lamt[ll+pnb] * ptr_t_aff[ll+pnb];
 				}
 
 			ptr_db      += 2*pnb;
@@ -1794,6 +1793,7 @@ void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 	return;
 	
 	}
+
 
 
 
