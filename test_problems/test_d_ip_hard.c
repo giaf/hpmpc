@@ -98,6 +98,8 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	dmcopy(nx, nx, A, nx, T, nx);
 	daxpy_3l(nx2, -1.0, I, T);
 	dgemm_nn_3l(nx, nu, nx, T, nx, Bc, nx, B, nx);
+	free(T);
+	free(I);
 	
 	int *ipiv = (int *) malloc(nx*sizeof(int));
 	dgesv_3l(nx, nu, Ac, nx, ipiv, B, nx, &info);
@@ -946,9 +948,11 @@ int main()
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
 	int nb  = NB; // number of box constrained inputs and states
-	int ng  = 0; //4;  // number of general constraints
-	int ngN = 0; // number of general constraints at the last stage
+	int ng  = nx; //4;  // number of general constraints
+	int ngN = nx; // number of general constraints at the last stage
 	
+	int M = 32; // where the equality constraint hold
+
 	int nbu = nu<nb ? nu : nb ;
 	int nbx = nb-nu>0 ? nb-nu : 0;
 
@@ -974,6 +978,7 @@ int main()
 	for(ii=0; ii<N; ii++)
 		ng_v[ii] = ng;
 	ng_v[N] = ngN;
+	ng_v[M] = nx; // XXX
 	
 
 
@@ -994,7 +999,6 @@ int main()
 		
 	const int bs  = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
-	const int nal = bs*ncl; // number of doubles per cache line
 
 	int pnz = (nu+nx+1+bs-1)/bs*bs;
 	int pnu = (nu+bs-1)/bs*bs;
@@ -1010,7 +1014,9 @@ int main()
 	int png_v[N+1]; for(ii=0; ii<=N; ii++) png_v[ii] = (ng_v[ii]+bs-1)/bs*bs;
 	int pnx_v[N+1]; for(ii=0; ii<=N; ii++) pnx_v[ii] = (nx_v[ii]+bs-1)/bs*bs;
 	int pnz_v[N+1]; for(ii=0; ii<=N; ii++) pnz_v[ii] = (nu_v[ii]+nx_v[ii]+1+bs-1)/bs*bs;
+	int pnux_v[N+1]; for(ii=0; ii<=N; ii++) pnux_v[ii] = (nu_v[ii]+nx_v[ii]+bs-1)/bs*bs;
 	int cnx_v[N+1]; for(ii=0; ii<=N; ii++) cnx_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
+	int cng_v[N+1]; for(ii=0; ii<=N; ii++) cng_v[ii] = (ng_v[ii]+ncl-1)/ncl*ncl;
 
 
 /************************************************
@@ -1055,43 +1061,95 @@ int main()
 ************************************************/	
 
 	int *idx0; i_zeros(&idx0, nb_v[0], 1);
-	double *d0; d_zeros_align(&d0, 2*pnb_v[0], 1);
+	double *d0; d_zeros_align(&d0, 2*pnb_v[0]+2*png_v[0], 1);
 	for(jj=0; jj<nbu; jj++)
 		{
 		d0[jj]          = - 0.5;   //   umin
-		d0[pnb_v[0]+jj] = - 0.5;   // - umax
+		d0[pnb_v[0]+jj] =   0.5;   //   umax
 		idx0[jj] = jj;
+		}
+	for(jj=0; jj<ng_v[0]; jj++)
+		{
+		d0[2*pnb_v[0]+jj]          = - 100.0;   //   xmin
+		d0[2*pnb_v[0]+png_v[0]+jj] =   100.0;   //   xmax
 		}
 //	i_print_mat(nbu, 1, idx0, nbu);
 
 	int *idx1; i_zeros(&idx1, nb_v[1], 1);
-	double *d1; d_zeros_align(&d1, 2*pnb_v[1], 1);
+	double *d1; d_zeros_align(&d1, 2*pnb_v[1]+2*png_v[1], 1);
 	for(jj=0; jj<nbu; jj++)
 		{
 		d1[jj]          = - 0.5;   //   umin
-		d1[pnb_v[1]+jj] = - 0.5;   // - umax
+		d1[pnb_v[1]+jj] =   0.5;   //   umax
 		idx1[jj] = jj;
 		}
 	for(; jj<nb; jj++)
 		{
 		d1[jj]          = - 4.0;   //   xmin
-		d1[pnb_v[1]+jj] = - 4.0;   // - xmax
+		d1[pnb_v[1]+jj] =   4.0;   //   xmax
 		idx1[jj] = jj;
+		}
+	for(jj=0; jj<ng_v[1]; jj++)
+		{
+		d1[2*pnb_v[1]+jj]          = - 100.0;   //   xmin
+		d1[2*pnb_v[1]+png_v[1]+jj] =   100.0;   //   xmax
 		}
 //	i_print_mat(nb, 1, idx1, nb);
 
 	int *idxN; i_zeros(&idxN, nb_v[N], 1);
-	double *dN; d_zeros_align(&dN, 2*pnb_v[N], 1);
+	double *dN; d_zeros_align(&dN, 2*pnb_v[N]+2*png_v[N], 1);
 	for(jj=0; jj<nbx; jj++)
 		{
 		dN[jj]          = - 4.0;   //   xmin
-		dN[pnb_v[N]+jj] = - 4.0;   // - xmax
+		dN[pnb_v[N]+jj] =   4.0;   //   xmax
 		idxN[jj] = jj;
 		}
-	//d_print_mat(1, 2*pnb+2*png, d, 1);
-	//d_print_mat(1, 2*pnb+2*pngN, dN, 1);
-	//exit(1);
+	for(jj=0; jj<ng_v[N]; jj++)
+		{
+		dN[2*pnb_v[N]+jj]          = - 0.0;   //   xmin
+		dN[2*pnb_v[N]+png_v[N]+jj] =   0.0;   //   xmax
+		}
+//	d_print_mat(1, 2*pnb+2*png, d, 1);
+//	d_print_mat(1, 2*pnb_v[N]+2*png_v[N], dN, 1);
+//	exit(1);
 	
+	double *dM; d_zeros_align(&dM, 2*pnb_v[M]+2*png_v[M], 1);
+	for(jj=0; jj<nbu; jj++)
+		{
+		dM[jj]          = - 0.5;   //   umin
+		dM[pnb_v[1]+jj] =   0.5;   //   umax
+		}
+	for(; jj<nb; jj++)
+		{
+		dM[jj]          = - 4.0;   //   xmin
+		dM[pnb_v[1]+jj] =   4.0;   //   xmax
+		}
+	for(jj=0; jj<ng_v[M]; jj++)
+		{
+		dM[2*pnb_v[M]+jj]          = - 0.5;   //   xmin
+		dM[2*pnb_v[M]+png_v[M]+jj] = - 0.5;   //   xmax
+		}
+
+	// first stage
+	double *pDCt0; d_zeros(&pDCt0, pnux_v[0], cng_v[0]);
+	// middle stage
+	double *pDCt1; d_zeros(&pDCt1, pnux_v[1], cng_v[1]);
+	// last stage
+	double *DCN; d_zeros(&DCN, ng_v[N], nx_v[N]);
+	for(jj=0; jj<ng_v[N]; jj++) DCN[jj*(ng_v[N]+1)] = 1.0;
+//	d_print_mat(ng_v[N], nx_v[N], DCN, ng_v[N]);
+	double *pDCtN; d_zeros_align(&pDCtN, pnx_v[N], cng_v[N]);
+	d_cvt_tran_mat2pmat(ng_v[N], nx_v[N], DCN, ng_v[N], 0, pDCtN, cng_v[N]);
+//	d_print_pmat(nx_v[N], ng_v[N], bs, pDCtN, cng_v[N]);
+	// constrained stage
+	double *DCM; d_zeros(&DCM, ng_v[M], nu_v[M]+nx_v[M]);
+	for(jj=0; jj<ng_v[M]; jj++) DCM[jj+(jj+nu_v[M])*ng_v[M]] = 1.0;
+//	d_print_mat(ng_v[M], nu_v[M]+nx_v[M], DCM, ng_v[M]);
+	double *pDCtM; d_zeros_align(&pDCtM, pnux_v[M], cng_v[M]);
+	d_cvt_tran_mat2pmat(ng_v[M], nu_v[M]+nx_v[M], DCM, ng_v[M], 0, pDCtM, cng_v[M]);
+//	d_print_pmat(nu_v[M]+nx_v[M], ng_v[M], bs, pDCtM, cng_v[M]);
+//	exit(2);
+
 /************************************************
 * cost function
 ************************************************/	
@@ -1143,6 +1201,7 @@ int main()
 * high level interface work space
 ************************************************/	
 
+#if 0
 	double *rA; d_zeros(&rA, nx, N*nx);
 	d_rep_mat(N, nx, nx, A, nx, rA, nx);
 
@@ -1233,12 +1292,14 @@ int main()
 	double *rwork; d_zeros(&rwork, hpmpc_d_ip_mpc_hard_tv_work_space_size_doubles(N, nx, nu, nb, ng, ngN), 1);
 
 	double inf_norm_res[4] = {}; // infinity norm of residuals: rq, rb, rd, mu
+#endif
 
 /************************************************
 * low level interface work space
 ************************************************/	
 
 	double *hpBAbt[N];
+	double *hpDCt[N+1];
 	double *hb[N];
 	double *hpQ[N+1];
 	double *hq[N+1];
@@ -1252,6 +1313,7 @@ int main()
 	double *hrq[N+1];
 	double *hrd[N+1];
 	hpBAbt[0] = pBAbt0;
+	hpDCt[0] = pDCt0;
 	hb[0] = b0;
 	hpQ[0] = pQ0;
 	hq[0] = q0;
@@ -1259,14 +1321,15 @@ int main()
 	idx[0] = idx0;
 	d_zeros_align(&hux[0], pnu, 1);
 	d_zeros_align(&hpi[0], pnx, 1);
-	d_zeros_align(&hlam[0], 2*pnb_v[0], 1);
-	d_zeros_align(&ht[0], 2*pnb_v[0], 1);
+	d_zeros_align(&hlam[0], 2*pnb_v[0]+2*png_v[0], 1);
+	d_zeros_align(&ht[0], 2*pnb_v[0]+2*png_v[0], 1);
 	d_zeros_align(&hrb[0], pnx_v[1], 1);
 	d_zeros_align(&hrq[0], pnz_v[0], 1);
 	d_zeros_align(&hrd[0], 2*pnb_v[0]+2*png_v[0], 1);
 	for(ii=1; ii<N; ii++)
 		{
 		hpBAbt[ii] = pBAbt1;
+		hpDCt[ii] = pDCt1;
 		hb[ii] = b;
 		hpQ[ii] = pQ1;
 		hq[ii] = q1;
@@ -1274,22 +1337,26 @@ int main()
 		idx[ii] = idx1;
 		d_zeros_align(&hux[ii], pnux, 1);
 		d_zeros_align(&hpi[ii], pnx, 1);
-		d_zeros_align(&hlam[ii], 2*pnb_v[ii], 1);
-		d_zeros_align(&ht[ii], 2*pnb_v[ii], 1);
+		d_zeros_align(&hlam[ii], 2*pnb_v[ii]+2*png_v[ii], 1);
+		d_zeros_align(&ht[ii], 2*pnb_v[ii]+2*png_v[ii], 1);
 		d_zeros_align(&hrb[ii], pnx_v[ii+1], 1);
 		d_zeros_align(&hrq[ii], pnz_v[ii], 1);
 		d_zeros_align(&hrd[ii], 2*pnb_v[ii]+2*png_v[ii], 1);
 		}
 	hpQ[N] = pQN;
+	hpDCt[N] = pDCtN;
 	hq[N] = qN;
 	hd[N] = dN;
 	idx[N] = idxN;
 	d_zeros_align(&hux[N], pnx, 1);
 	d_zeros_align(&hpi[N], pnx, 1);
-	d_zeros_align(&hlam[N], 2*pnb_v[N], 1);
-	d_zeros_align(&ht[N], 2*pnb_v[N], 1);
+	d_zeros_align(&hlam[N], 2*pnb_v[N]+2*png_v[N], 1);
+	d_zeros_align(&ht[N], 2*pnb_v[N]+2*png_v[N], 1);
 	d_zeros_align(&hrq[N], pnz_v[N], 1);
 	d_zeros_align(&hrd[N], 2*pnb_v[N]+2*png_v[N], 1);
+
+	hpDCt[M] = pDCtM;
+	hd[M] = dM;
 
 	double mu = 0.0;
 
@@ -1302,7 +1369,7 @@ int main()
 	int hpmpc_status;
 	int kk, kk_avg;
 	int k_max = 10;
-	double mu_tol = 1e-10;
+	double mu_tol = 1e-8;
 	double alpha_min = 1e-8;
 	int warm_start = 0;
 	double sigma_par[] = {0.4, 0.1, 0.001}; // control primal-dual IP behaviour
@@ -1319,6 +1386,7 @@ int main()
 * call the solver (high-level interface)
 ************************************************/	
 
+#if 0
 	int time_invariant = 0; // assume the problem to be time invariant
 
 	gettimeofday(&tv0, NULL); // stop
@@ -1380,6 +1448,7 @@ int main()
 	time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
 	printf(" Average solution time over %d runs: %5.2e seconds\n", nrep, time);
+#endif
 
 /************************************************
 * call the solver (low-level interface)
@@ -1397,7 +1466,7 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		hpmpc_status = d_ip2_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hpQ, dummy, hd, hux, compute_mult, hpi, hlam, ht, work);
+		hpmpc_status = d_ip2_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma_par, stat, N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hpQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 		
 		kk_avg += kk;
 
@@ -1412,8 +1481,8 @@ int main()
 	
 	// zero the solution again
 
-	for(ii=0; ii<=N; ii++)
-		for(jj=0; jj<nu_v[ii]+nx_v[ii]; jj++) hux[ii][jj] = 0.0;
+//	for(ii=0; ii<=N; ii++)
+//		for(jj=0; jj<nu_v[ii]+nx_v[ii]; jj++) hux[ii][jj] = 0.0;
 
 	gettimeofday(&tv2, NULL); // stop
 
@@ -1421,7 +1490,7 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		d_kkt_solve_new_rhs_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpQ, hq, dummy, hd, 0.0, hux, compute_mult, hpi, hlam, ht, work);
+//		d_kkt_solve_new_rhs_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpQ, hq, hpDCt, hd, 0.0, hux, compute_mult, hpi, hlam, ht, work);
 
 		}
 	printf("\ndone\n");
@@ -1436,7 +1505,7 @@ int main()
 	if(compute_res)
 		{
 		// compute residuals
-		d_res_ip_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpQ, hq, hux, dummy, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+		d_res_ip_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 		// print residuals
 		printf("\nhrq\n\n");
@@ -1522,6 +1591,7 @@ int main()
 	d_free_align(ht[N]);
 	d_free_align(hlam[N]);
 	
+#if 0
 	// high level interface
 	free(rA);
 	free(rB);
@@ -1542,6 +1612,7 @@ int main()
 	free(rpi);
 	free(rlam);
 	free(rt);
+#endif
 	
 	return 0;
 	

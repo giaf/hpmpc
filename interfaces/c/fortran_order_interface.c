@@ -432,8 +432,8 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 				{
 				if(lb[ii]!=ub[ii]) // equality constraint
 					{
-					hd[jj][ii+0]    =   lb[ii];
-					hd[jj][ii+pnb0] = - ub[ii];
+					hd[jj][ii+0]    = lb[ii];
+					hd[jj][ii+pnb0] = ub[ii];
 					}
 				else
 					{
@@ -446,8 +446,8 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 						}
 					
 					// inactive box constraints
-					hd[jj][ii+0]    =   lb[ii] + 1e3;
-					hd[jj][ii+pnb0] = - ub[ii] - 1e3;
+					hd[jj][ii+0]    = lb[ii] + 1e3;
+					hd[jj][ii+pnb0] = ub[ii] - 1e3;
 
 					}
 				}
@@ -459,8 +459,8 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 					{
 					if(lb[ii]!=ub[ii]) // equality constraint
 						{
-						hd[jj][ii+0]    =   lb[ii];
-						hd[jj][ii+pnb0] = - ub[ii];
+						hd[jj][ii+0]    = lb[ii];
+						hd[jj][ii+pnb0] = ub[ii];
 						}
 					else
 						{
@@ -473,8 +473,8 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 							}
 						
 						// inactive box constraints
-						hd[jj][ii+0]    =   lb[ii] + 1e3;
-						hd[jj][ii+pnb0] = - ub[ii] - 1e3;
+						hd[jj][ii+0]    = lb[ii] + 1e3;
+						hd[jj][ii+pnb0] = ub[ii] - 1e3;
 
 						}
 					}
@@ -486,19 +486,19 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 				pnb0 = (nbb[jj]+bs-1)/bs*bs;
 				for(ii=nuu[jj]; ii<nbb[jj]; ii++)
 					{
-					hd[jj][ii+0]    =   lb[ii];
-					hd[jj][ii+pnb0] = - ub[ii];
-					//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
-					//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+					hd[jj][ii+0]    = lb[ii];
+					hd[jj][ii+pnb0] = ub[ii];
+					//hd[jj][2*nu+2*ii+0] = lb[N*nu+ii+nx*jj];
+					//hd[jj][2*nu+2*ii+1] = ub[N*nu+ii+nx*jj];
 					}
 				}
 			pnb0 = (nbb[N]+bs-1)/bs*bs;
 			for(ii=nuu[N]; ii<nbb[N]; ii++)
 				{
-				hd[N][ii+0]    =   lb[nu+ii];
-				hd[N][ii+pnb0] = - ub[nu+ii];
-				//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
-				//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+				hd[N][ii+0]    = lb[nu+ii];
+				hd[N][ii+pnb0] = ub[nu+ii];
+				//hd[jj][2*nu+2*ii+0] = lb[N*nu+ii+nx*jj];
+				//hd[jj][2*nu+2*ii+1] = ub[N*nu+ii+nx*jj];
 				}
 			// general constraints
 			if(ng>0)
@@ -509,8 +509,8 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 					png0 = (ngg[jj]+bs-1)/bs*bs;
 					for(ii=0; ii<ng; ii++)
 						{
-						hd[jj][2*pnb0+ii+0]    =   lg[ii+ng*jj];
-						hd[jj][2*pnb0+ii+png0] = - ug[ii+ng*jj];
+						hd[jj][2*pnb0+ii+0]    = lg[ii+ng*jj];
+						hd[jj][2*pnb0+ii+png0] = ug[ii+ng*jj];
 						}
 					}
 				}
@@ -520,8 +520,8 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 				png0 = (ngg[N]+bs-1)/bs*bs;
 				for(ii=0; ii<ngN; ii++)
 					{
-					hd[N][2*pnb0+ii+0]    =   lgf[ii];
-					hd[N][2*pnb0+ii+png0] = - ugf[ii];
+					hd[N][2*pnb0+ii+0]    = lgf[ii];
+					hd[N][2*pnb0+ii+png0] = ugf[ii];
 					}
 				}
 			//d_print_mat(1, 2*pnb+2*png, hd[0], 1);
@@ -765,8 +765,8 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 					{
 					if(lb[ii+nb*jj]!=ub[ii+nb*jj]) // equality constraint
 						{
-						hd[jj][ii+0]    =   lb[ii+nb*jj];
-						hd[jj][ii+pnb0] = - ub[ii+nb*jj];
+						hd[jj][ii+0]    = lb[ii+nb*jj];
+						hd[jj][ii+pnb0] = ub[ii+nb*jj];
 						}
 					else
 						{
@@ -779,8 +779,8 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 							}
 						
 						// inactive box constraints
-						hd[jj][ii+0]    =   lb[ii+nb*jj] + 1e3;
-						hd[jj][ii+pnb0] = - ub[ii+nb*jj] - 1e3;
+						hd[jj][ii+0]    = lb[ii+nb*jj] + 1e3;
+						hd[jj][ii+pnb0] = ub[ii+nb*jj] - 1e3;
 
 						}
 					}
@@ -791,19 +791,19 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 				pnb0 = (nbb[jj]+bs-1)/bs*bs;
 				for(ii=nuu[jj]; ii<nbb[jj]; ii++)
 					{
-					hd[jj][ii+0]    =   lb[ii+nb*jj];
-					hd[jj][ii+pnb0] = - ub[ii+nb*jj];
-					//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
-					//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+					hd[jj][ii+0]    = lb[ii+nb*jj];
+					hd[jj][ii+pnb0] = ub[ii+nb*jj];
+					//hd[jj][2*nu+2*ii+0] = lb[N*nu+ii+nx*jj];
+					//hd[jj][2*nu+2*ii+1] = ub[N*nu+ii+nx*jj];
 					}
 				}
 			pnb0 = (nbb[N]+bs-1)/bs*bs;
 			for(ii=nuu[N]; ii<nbb[N]; ii++)
 				{
-				hd[N][ii+0]    =   lb[nu+ii+nb*jj];
-				hd[N][ii+pnb0] = - ub[nu+ii+nb*jj];
-				//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
-				//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+				hd[N][ii+0]    = lb[nu+ii+nb*jj];
+				hd[N][ii+pnb0] = ub[nu+ii+nb*jj];
+				//hd[jj][2*nu+2*ii+0] = lb[N*nu+ii+nx*jj];
+				//hd[jj][2*nu+2*ii+1] = ub[N*nu+ii+nx*jj];
 				}
 			// general constraints
 			if(ng>0)
@@ -814,8 +814,8 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 					png0 = (ngg[jj]+bs-1)/bs*bs;
 					for(ii=0; ii<ng; ii++)
 						{
-						hd[jj][2*pnb0+ii+0]    =   lg[ii+ng*jj];
-						hd[jj][2*pnb0+ii+png0] = - ug[ii+ng*jj];
+						hd[jj][2*pnb0+ii+0]    = lg[ii+ng*jj];
+						hd[jj][2*pnb0+ii+png0] = ug[ii+ng*jj];
 						}
 					}
 				}
@@ -825,8 +825,8 @@ int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_to
 				png0 = (ngg[N]+bs-1)/bs*bs;
 				for(ii=0; ii<ngN; ii++)
 					{
-					hd[N][2*pnb0+ii+0]    =   lgf[ii];
-					hd[N][2*pnb0+ii+png0] = - ugf[ii];
+					hd[N][2*pnb0+ii+0]    = lgf[ii];
+					hd[N][2*pnb0+ii+png0] = ugf[ii];
 					}
 				}
 			//d_print_mat(1, 2*pnb+2*png, hd[0], 1);
@@ -1400,8 +1400,8 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 		pnb0 = (nbb[jj]+bs-1)/bs*bs;
 		for(ii=0; ii<nbu; ii++)
 			{
-			hd[jj][ii+0]    =   lb[ii];
-			hd[jj][ii+pnb0] = - ub[ii];
+			hd[jj][ii+0]    = lb[ii];
+			hd[jj][ii+pnb0] = ub[ii];
 			}
 		jj=1;
 		if(jj<N)
@@ -1409,8 +1409,8 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 			pnb0 = (nbb[jj]+bs-1)/bs*bs;
 			for(ii=0; ii<nbu; ii++)
 				{
-				hd[jj][ii+0]    =   lb[ii];
-				hd[jj][ii+pnb0] = - ub[ii];
+				hd[jj][ii+0]    = lb[ii];
+				hd[jj][ii+pnb0] = ub[ii];
 				}
 			}
 		// state constraints 
@@ -1420,19 +1420,19 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 			pnb0 = (nbb[jj]+bs-1)/bs*bs;
 			for(ii=nuu[jj]; ii<nbb[jj]; ii++)
 				{
-				hd[jj][ii+0]    =   lb[ii];
-				hd[jj][ii+pnb0] = - ub[ii];
-				//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
-				//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+				hd[jj][ii+0]    = lb[ii];
+				hd[jj][ii+pnb0] = ub[ii];
+				//hd[jj][2*nu+2*ii+0] = lb[N*nu+ii+nx*jj];
+				//hd[jj][2*nu+2*ii+1] = ub[N*nu+ii+nx*jj];
 				}
 			}
 		pnb0 = (nbb[N]+bs-1)/bs*bs;
 		for(ii=nuu[N]; ii<nbb[N]; ii++)
 			{
-			hd[N][ii+0]    =   lb[nu+ii];
-			hd[N][ii+pnb0] = - ub[nu+ii];
-			//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
-			//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+			hd[N][ii+0]    = lb[nu+ii];
+			hd[N][ii+pnb0] = ub[nu+ii];
+			//hd[jj][2*nu+2*ii+0] = lb[N*nu+ii+nx*jj];
+			//hd[jj][2*nu+2*ii+1] = ub[N*nu+ii+nx*jj];
 			}
 		// general constraints
 		if(ng>0)
@@ -1443,8 +1443,8 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 				png0 = (ngg[jj]+bs-1)/bs*bs;
 				for(ii=0; ii<ng; ii++)
 					{
-					hd[jj][2*pnb0+ii+0]    =   lg[ii+ng*jj];
-					hd[jj][2*pnb0+ii+png0] = - ug[ii+ng*jj];
+					hd[jj][2*pnb0+ii+0]    = lg[ii+ng*jj];
+					hd[jj][2*pnb0+ii+png0] = ug[ii+ng*jj];
 					}
 				}
 			}
@@ -1454,8 +1454,8 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 			png0 = (ngg[N]+bs-1)/bs*bs;
 			for(ii=0; ii<ngN; ii++)
 				{
-				hd[N][2*pnb0+ii+0]    =   lgf[ii];
-				hd[N][2*pnb0+ii+png0] = - ugf[ii];
+				hd[N][2*pnb0+ii+0]    = lgf[ii];
+				hd[N][2*pnb0+ii+png0] = ugf[ii];
 				}
 			}
 		//d_print_mat(1, 2*pnb+2*png, hd[0], 1);
@@ -1618,8 +1618,8 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 			pnb0 = (nbb[jj]+bs-1)/bs*bs;
 			for(ii=0; ii<nbu; ii++)
 				{
-				hd[jj][ii+0]    =   lb[ii+nb*jj];
-				hd[jj][ii+pnb0] = - ub[ii+nb*jj];
+				hd[jj][ii+0]    = lb[ii+nb*jj];
+				hd[jj][ii+pnb0] = ub[ii+nb*jj];
 				}
 			}
 		// state constraints 
@@ -1628,19 +1628,19 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 			pnb0 = (nbb[jj]+bs-1)/bs*bs;
 			for(ii=nuu[jj]; ii<nbb[jj]; ii++)
 				{
-				hd[jj][ii+0]    =   lb[ii+nb*jj];
-				hd[jj][ii+pnb0] = - ub[ii+nb*jj];
-				//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
-				//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+				hd[jj][ii+0]    = lb[ii+nb*jj];
+				hd[jj][ii+pnb0] = ub[ii+nb*jj];
+				//hd[jj][2*nu+2*ii+0] = lb[N*nu+ii+nx*jj];
+				//hd[jj][2*nu+2*ii+1] = ub[N*nu+ii+nx*jj];
 				}
 			}
 		pnb0 = (nbb[N]+bs-1)/bs*bs;
 		for(ii=nuu[N]; ii<nbb[N]; ii++)
 			{
-			hd[N][ii+0]    =   lb[nu+ii+nb*jj];
-			hd[N][ii+pnb0] = - ub[nu+ii+nb*jj];
-			//hd[jj][2*nu+2*ii+0] =   lb[N*nu+ii+nx*jj];
-			//hd[jj][2*nu+2*ii+1] = - ub[N*nu+ii+nx*jj];
+			hd[N][ii+0]    = lb[nu+ii+nb*jj];
+			hd[N][ii+pnb0] = ub[nu+ii+nb*jj];
+			//hd[jj][2*nu+2*ii+0] = lb[N*nu+ii+nx*jj];
+			//hd[jj][2*nu+2*ii+1] = ub[N*nu+ii+nx*jj];
 			}
 		// general constraints
 		if(ng>0)
@@ -1651,8 +1651,8 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 				png0 = (ngg[jj]+bs-1)/bs*bs;
 				for(ii=0; ii<ng; ii++)
 					{
-					hd[jj][2*pnb0+ii+0]    =   lg[ii+ng*jj];
-					hd[jj][2*pnb0+ii+png0] = - ug[ii+ng*jj];
+					hd[jj][2*pnb0+ii+0]    = lg[ii+ng*jj];
+					hd[jj][2*pnb0+ii+png0] = ug[ii+ng*jj];
 					}
 				}
 			}
@@ -1662,8 +1662,8 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 			png0 = (ngg[N]+bs-1)/bs*bs;
 			for(ii=0; ii<ngN; ii++)
 				{
-				hd[N][2*pnb0+ii+0]    =   lgf[ii];
-				hd[N][2*pnb0+ii+png0] = - ugf[ii];
+				hd[N][2*pnb0+ii+0]    = lgf[ii];
+				hd[N][2*pnb0+ii+png0] = ugf[ii];
 				}
 			}
 		//d_print_mat(1, 2*pnb+2*png, hd[0], 1);

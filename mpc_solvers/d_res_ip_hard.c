@@ -73,7 +73,7 @@ void d_res_ip_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 	for(jj=0; jj<nb0; jj++)
 		{
 		hrd[ii][jj]     =   hux[ii][idxb[ii][jj]] - hd[ii][jj]     - ht[ii][jj];
-		hrd[ii][pnb+jj] = - hux[ii][idxb[ii][jj]] - hd[ii][pnb+jj] - ht[ii][pnb+jj];
+		hrd[ii][pnb+jj] = - hux[ii][idxb[ii][jj]] + hd[ii][pnb+jj] - ht[ii][pnb+jj];
 		}
 	if(ng0>0)
 		{
@@ -82,7 +82,7 @@ void d_res_ip_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 			{
 			hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+jj];
 			hrd[ii][2*pnb+jj] += - hd[ii][2*pnb+jj] - ht[ii][2*pnb+jj];
-			hrd[ii][2*pnb+png+jj] += - hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
+			hrd[ii][2*pnb+png+jj] += hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
 			}
 		}
 
@@ -138,7 +138,7 @@ void d_res_ip_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 		for(jj=0; jj<nb0; jj++)
 			{
 			hrd[ii][jj]     =   hux[ii][idxb[ii][jj]] - hd[ii][jj]     - ht[ii][jj];
-			hrd[ii][pnb+jj] = - hux[ii][idxb[ii][jj]] - hd[ii][pnb+jj] - ht[ii][pnb+jj];
+			hrd[ii][pnb+jj] = - hux[ii][idxb[ii][jj]] + hd[ii][pnb+jj] - ht[ii][pnb+jj];
 			}
 		if(ng0>0)
 			{
@@ -147,7 +147,7 @@ void d_res_ip_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 				{
 				hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+jj];
 				hrd[ii][2*pnb+jj] += - hd[ii][2*pnb+jj] - ht[ii][2*pnb+jj];
-				hrd[ii][2*pnb+png+jj] += - hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
+				hrd[ii][2*pnb+png+jj] += hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
 				}
 			}
 
@@ -193,7 +193,7 @@ void d_res_ip_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 	for(jj=0; jj<nb0; jj++)
 		{
 		hrd[ii][jj]     =   hux[ii][idxb[ii][jj]] - hd[ii][jj]     - ht[ii][jj];
-		hrd[ii][pnb+jj] = - hux[ii][idxb[ii][jj]] - hd[ii][pnb+jj] - ht[ii][pnb+jj];
+		hrd[ii][pnb+jj] = - hux[ii][idxb[ii][jj]] + hd[ii][pnb+jj] - ht[ii][pnb+jj];
 		}
 	if(ng0>0)
 		{
@@ -202,7 +202,7 @@ void d_res_ip_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 			{
 			hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+jj];
 			hrd[ii][2*pnb+jj] += - hd[ii][2*pnb+jj] - ht[ii][2*pnb+jj];
-			hrd[ii][2*pnb+png+jj] += - hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
+			hrd[ii][2*pnb+png+jj] += hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
 			}
 		}
 

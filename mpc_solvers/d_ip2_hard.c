@@ -280,6 +280,19 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	
 //	printf("\nsize real = %d\n", size);
 
+#if 0
+	int cng[N+1];
+	for(jj=0; jj<=N; jj++)
+		{
+		cng[jj] = (ng[jj]+ncl-1)/ncl*ncl;
+		}
+	d_print_pmat(nu[0]+nx[0]+1, nx[1], bs, pBAbt[0], cnx[1]);
+	d_print_pmat(nu[1]+nx[1]+1, nx[2], bs, pBAbt[1], cnx[2]);
+	d_print_pmat(nu[0]+nx[0], ng[0], bs, pDCt[0], cng[0]);
+	d_print_pmat(nu[1]+nx[1], ng[1], bs, pDCt[1], cng[1]);
+	d_print_pmat(nu[N]+nx[N], ng[N], bs, pDCt[N], cng[N]);
+	exit(1);
+#endif
 
 
 	double temp0, temp1;
@@ -303,6 +316,11 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	// initialize ux & t>0 (slack variable)
 	d_init_var_mpc_hard_tv(N, nx, nu, nb, idxb, ng, ux, pi, pDCt, d, t, lam, mu0, warm_start);
 
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu[ii]+nx[ii], ux[ii], 1);
+exit(1);
+#endif
 
 
 	// initialize pi
@@ -396,8 +414,11 @@ exit(1);
 		stat[5*(*kk)+1] = alpha;
 			
 		alpha *= 0.995;
-		//printf("\nalpha = %f\n", alpha);
 
+#if 0
+printf("\nalpha = %f\n", alpha);
+exit(1);
+#endif
 
 
 		// compute the affine duality gap
