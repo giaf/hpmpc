@@ -951,7 +951,7 @@ int main()
 	int ng  = nx; //4;  // number of general constraints
 	int ngN = nx; // number of general constraints at the last stage
 	
-	int M = 32; // where the equality constraint hold
+//	int M = 32; // where the equality constraint hold
 
 	int nbu = nu<nb ? nu : nb ;
 	int nbx = nb-nu>0 ? nb-nu : 0;
@@ -978,7 +978,7 @@ int main()
 	for(ii=0; ii<N; ii++)
 		ng_v[ii] = ng;
 	ng_v[N] = ngN;
-	ng_v[M] = nx; // XXX
+//	ng_v[M] = nx; // XXX
 	
 
 
@@ -1113,22 +1113,22 @@ int main()
 //	d_print_mat(1, 2*pnb_v[N]+2*png_v[N], dN, 1);
 //	exit(1);
 	
-	double *dM; d_zeros_align(&dM, 2*pnb_v[M]+2*png_v[M], 1);
-	for(jj=0; jj<nbu; jj++)
-		{
-		dM[jj]          = - 0.5;   //   umin
-		dM[pnb_v[1]+jj] =   0.5;   //   umax
-		}
-	for(; jj<nb; jj++)
-		{
-		dM[jj]          = - 4.0;   //   xmin
-		dM[pnb_v[1]+jj] =   4.0;   //   xmax
-		}
-	for(jj=0; jj<ng_v[M]; jj++)
-		{
-		dM[2*pnb_v[M]+jj]          = - 0.5;   //   xmin
-		dM[2*pnb_v[M]+png_v[M]+jj] = - 0.5;   //   xmax
-		}
+//	double *dM; d_zeros_align(&dM, 2*pnb_v[M]+2*png_v[M], 1);
+//	for(jj=0; jj<nbu; jj++)
+//		{
+//		dM[jj]          = - 0.5;   //   umin
+//		dM[pnb_v[1]+jj] =   0.5;   //   umax
+//		}
+//	for(; jj<nb; jj++)
+//		{
+//		dM[jj]          = - 4.0;   //   xmin
+//		dM[pnb_v[1]+jj] =   4.0;   //   xmax
+//		}
+//	for(jj=0; jj<ng_v[M]; jj++)
+//		{
+//		dM[2*pnb_v[M]+jj]          = - 0.5;   //   xmin
+//		dM[2*pnb_v[M]+png_v[M]+jj] = - 0.5;   //   xmax
+//		}
 
 	// first stage
 	double *pDCt0; d_zeros(&pDCt0, pnux_v[0], cng_v[0]);
@@ -1142,11 +1142,11 @@ int main()
 	d_cvt_tran_mat2pmat(ng_v[N], nx_v[N], DCN, ng_v[N], 0, pDCtN, cng_v[N]);
 //	d_print_pmat(nx_v[N], ng_v[N], bs, pDCtN, cng_v[N]);
 	// constrained stage
-	double *DCM; d_zeros(&DCM, ng_v[M], nu_v[M]+nx_v[M]);
-	for(jj=0; jj<ng_v[M]; jj++) DCM[jj+(jj+nu_v[M])*ng_v[M]] = 1.0;
+//	double *DCM; d_zeros(&DCM, ng_v[M], nu_v[M]+nx_v[M]);
+//	for(jj=0; jj<ng_v[M]; jj++) DCM[jj+(jj+nu_v[M])*ng_v[M]] = 1.0;
 //	d_print_mat(ng_v[M], nu_v[M]+nx_v[M], DCM, ng_v[M]);
-	double *pDCtM; d_zeros_align(&pDCtM, pnux_v[M], cng_v[M]);
-	d_cvt_tran_mat2pmat(ng_v[M], nu_v[M]+nx_v[M], DCM, ng_v[M], 0, pDCtM, cng_v[M]);
+//	double *pDCtM; d_zeros_align(&pDCtM, pnux_v[M], cng_v[M]);
+//	d_cvt_tran_mat2pmat(ng_v[M], nu_v[M]+nx_v[M], DCM, ng_v[M], 0, pDCtM, cng_v[M]);
 //	d_print_pmat(nu_v[M]+nx_v[M], ng_v[M], bs, pDCtM, cng_v[M]);
 //	exit(2);
 
@@ -1355,8 +1355,8 @@ int main()
 	d_zeros_align(&hrq[N], pnz_v[N], 1);
 	d_zeros_align(&hrd[N], 2*pnb_v[N]+2*png_v[N], 1);
 
-	hpDCt[M] = pDCtM;
-	hd[M] = dM;
+//	hpDCt[M] = pDCtM;
+//	hd[M] = dM;
 
 	double mu = 0.0;
 

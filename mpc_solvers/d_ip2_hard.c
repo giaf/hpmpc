@@ -140,7 +140,6 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	double *pl[N+1]; // pointer to linear part of Hessian
 	double *bd[N+1]; // backup diagonal of Hessian
 	double *bl[N+1]; // backup linear part of Hessian
-	double *diag;
 	double *dlam[N+1];
 	double *dt[N+1];
 	double *lamt[N+1];
@@ -179,7 +178,7 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	work = ptr;
 //	ptr += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl); // pnzM*cnxgM
 //	size += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl); // pnzM*cnxgM
-	ptr += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl); // pnzM*cnxgM
+	ptr += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl) + (nzM+bs-1)/bs*bs; // pnzM*cnxgM + pnzM
 //	size += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl); // pnzM*cnxgM
 
 	// b as vector
@@ -241,10 +240,6 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 			bl[jj][ll] = q[jj][idx];
 			}
 		}
-
-	diag = ptr;
-	ptr += (nzM+bs-1)/bs*bs; // pnzM
-//	size += (nzM+bs-1)/bs*bs; // pnzM
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space
 	for(jj=0; jj<=N; jj++)
@@ -381,7 +376,7 @@ exit(1);
 
 
 		// compute the search direction: factorize and solve the KKT system
-		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, diag, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
+		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
 
 #if 0
 for(ii=0; ii<=N; ii++)

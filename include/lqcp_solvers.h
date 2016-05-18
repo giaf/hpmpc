@@ -24,11 +24,11 @@
 **************************************************************************************************/
 
 // work space size
-int d_ric_sv_mpc_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, int *ng);
+int d_back_ric_rec_sv_tv_work_space_size_double(int N, int *nx, int *nu, int *nb, int *ng);
 int d_cond_lqcp_work_space(int N, int nx, int nu, int N2, int alg);
 
 // Backward Riccati recursion
-void d_back_ric_rec_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hux, double **hpL, double **hdL, double *work, double *diag, int compute_Pb, double **hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hQd, double **hQl, int *ng, double **hpDCt, double **Qx, double **qx);
+void d_back_ric_rec_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hux, double **hpL, double **hdL, double *work, int compute_Pb, double **hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hQd, double **hQl, int *ng, double **hpDCt, double **Qx, double **qx);
 void d_back_ric_rec_trf_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hpL, double **hdL, double *work, int *nb, int **idxb, double **hQd, int *ng, double **hpDCt, double **Qx);
 void d_back_ric_rec_trs_tv(int N, int *nx, int *nu, double **hpBAbt, double **hb, double **hpL, double **hdL, double **hq, double **hl, double **hux, double *work, int compute_Pb, double ** hPb, int compute_pi, double **hpi, int *nb, int **idxb, double **hql, int *ng, double **hpDCt, double **qx);
 void d_back_ric_res_tv(int N, int *nx, int *nu, double **hpBAbt, double **hb, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb);
