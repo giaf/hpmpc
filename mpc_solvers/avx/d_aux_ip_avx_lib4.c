@@ -3985,7 +3985,6 @@ void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 				}
 
 			ptr_db      += 2*pnb;
-			ptr_dux     += 2*pnb;
 			ptr_t_aff   += 2*pnb;
 			ptr_lam_aff += 2*pnb;
 			ptr_lamt    += 2*pnb;
@@ -4007,7 +4006,7 @@ void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 
 			for(ll=0; ll<ng0; ll++)
 				{
-				ptr_t_aff[ll+png] = - ptr_t_aff[ll];
+				ptr_t_aff[ll+png] = - ptr_t_aff[ll+0];
 				ptr_t_aff[ll+0]   -= ptr_db[ll+0];
 				ptr_t_aff[ll+png] += ptr_db[ll+png];
 				ptr_lam_aff[ll+0]   = ptr_tinv[ll+0]   * r_T - ptr_lamt[ll+0]   * ptr_t_aff[ll+0];

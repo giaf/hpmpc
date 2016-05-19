@@ -660,7 +660,7 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 		b[jj] = ptr;
 		ptr += pnx[jj+1];
 //		size += pnx[jj+1];
-		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
+//		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1); // not used
 		}
 
 	// inputs and states
@@ -693,7 +693,7 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 		q[jj] = ptr;
 		ptr += pnz[jj];
 //		size += pnz[jj];
-		for(ll=0; ll<nu[jj]+nx[jj]; ll++) q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
+//		for(ll=0; ll<nu[jj]+nx[jj]; ll++) q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs]; // not used
 		}
 
 	// Hessian backup
@@ -709,8 +709,9 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 		for(ll=0; ll<nb[jj]; ll++)
 			{
 			idx = idxb[jj][ll];
-			bd[jj][ll] = pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs];
-			bl[jj][ll] = q[jj][idx];
+//			bd[jj][ll] = pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs]; // not used
+//			bl[jj][ll] = q[jj][idx]; 
+			bl[jj][ll] = r_H[jj][idx]; // XXX
 			}
 		}
 

@@ -1475,14 +1475,18 @@ int main()
 
 	gettimeofday(&tv1, NULL); // stop
 
-	printf("\nsolution from low-level interface\n\n");
+	printf("\nsolution from low-level interface (original problem)\n\n");
 	for(ii=0; ii<=N; ii++)
 		d_print_mat(1, nu_v[ii]+nx_v[ii], hux[ii], 1);
+//	for(ii=0; ii<=N; ii++)
+//		d_print_mat(1, 2*pnb_v[ii]+2*png_v[ii], hlam[ii], 1);
+//	for(ii=0; ii<=N; ii++)
+//		d_print_mat(1, 2*pnb_v[ii]+2*png_v[ii], ht[ii], 1);
 	
 	// zero the solution again
 
-//	for(ii=0; ii<=N; ii++)
-//		for(jj=0; jj<nu_v[ii]+nx_v[ii]; jj++) hux[ii][jj] = 0.0;
+	for(ii=0; ii<=N; ii++)
+		for(jj=0; jj<nu_v[ii]+nx_v[ii]; jj++) hux[ii][jj] = 0.0;
 
 	gettimeofday(&tv2, NULL); // stop
 
@@ -1490,7 +1494,7 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-//		d_kkt_solve_new_rhs_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpQ, hq, hpDCt, hd, 0.0, hux, compute_mult, hpi, hlam, ht, work);
+		d_kkt_solve_new_rhs_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpQ, hq, hpDCt, hd, 0.0, hux, compute_mult, hpi, hlam, ht, work);
 
 		}
 	printf("\ndone\n");
@@ -1500,6 +1504,10 @@ int main()
 	printf("\nsolution from low-level interface (resolve final kkt)\n\n");
 	for(ii=0; ii<=N; ii++)
 		d_print_mat(1, nu_v[ii]+nx_v[ii], hux[ii], 1);
+//	for(ii=0; ii<=N; ii++)
+//		d_print_mat(1, 2*pnb_v[ii]+2*png_v[ii], hlam[ii], 1);
+//	for(ii=0; ii<=N; ii++)
+//		d_print_mat(1, 2*pnb_v[ii]+2*png_v[ii], ht[ii], 1);
 
 	// residuals
 	if(compute_res)
