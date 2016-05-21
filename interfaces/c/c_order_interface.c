@@ -43,7 +43,8 @@
 
 
 /* version dealing with equality constratins: is lb=ub, then fix the variable (corresponding column in A or B set to zero, and updated b) */
-int c_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_tol, char prec,
+int c_order_d_ip_mpc_hard_tv( 
+							int *kk, int k_max, double mu0, double mu_tol, 
 							int N, int nx, int nu, int nb, int ng, int ngN, 
 							int time_invariant, int free_x0, int warm_start,
 							double* A, double* B, double* b, 
@@ -988,6 +989,7 @@ exit(1);
 	inf_norm_res[3] = mu;
 
 	//printf("\n%e %e %e %e\n", norm_res[0], norm_res[1], norm_res[2], norm_res[3]);
+
 
 
 	// copy back multipliers

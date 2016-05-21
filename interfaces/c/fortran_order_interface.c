@@ -43,7 +43,8 @@
 
 
 /* version dealing with equality constratins: is lb=ub, then fix the variable (corresponding column in A or B set to zero, and updated b) */
-int fortran_order_d_ip_mpc_hard_tv( int *kk, int k_max, double mu0, double mu_tol,
+int fortran_order_d_ip_mpc_hard_tv( 
+							int *kk, int k_max, double mu0, double mu_tol,
 							int N, int nx, int nu, int nb, int ng, int ngN, 
 							int time_invariant, int free_x0, int warm_start,
 							double* A, double* B, double* b, 
@@ -1069,19 +1070,18 @@ exit(1);
 
 /* version dealing with equality constratins: is lb=ub, then fix the variable (corresponding column in A or B set to zero, and updated b) */
 void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
-                          int N, int nx, int nu, int nb, int ng, int ngN, 
-						  int time_invariant,
-                          double* A, double* B, double* b, 
-                          double* Q, double* Qf, double* S, double* R, 
-                          double* q, double* qf, double* r, 
-						  double *lb, double *ub,
-                          double *C, double *D, double *lg, double *ug,
-						  double *Cf, double *lgf, double *ugf,
-						  double tau, 
-                          double* x, double* u,
-						  double *work0, 
-						  int compute_res, double *inf_norm_res,
-						  int compute_mult, double *pi, double *lam, double *t)
+							int N, int nx, int nu, int nb, int ng, int ngN, 
+							int time_invariant, int free_x0,
+							double* A, double* B, double* b, 
+							double* Q, double* Qf, double* S, double* R, 
+							double* q, double* qf, double* r, 
+							double *lb, double *ub,
+							double *C, double *D, double *lg, double *ug,
+							double *Cf, double *lgf, double *ugf,
+							double tau, 
+							double* x, double* u, double *pi, double *lam, double *t,
+							double *inf_norm_res,
+							double *work0) 
 
 	{
 
@@ -1089,8 +1089,6 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 
 	//printf("\n%d %d %d %d %d %d\n", N, nx, nu, nb, ng, ngN);
 
-	//const int nb = nx+nu; // number of box constraints
-	//const int ng = 0; // number of general constraints // TODO remove when not needed any longer
 	const int nbu = nb<nu ? nb : nu ;
 
 	const int bs = D_MR; //d_get_mr();
@@ -1161,10 +1159,7 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 //printf("\n%d\n", ((size_t) work0) & 63);
 
 	/* align work space */
-	size_t align = 64;
 	size_t addr = (( (size_t) work0 ) + 63 ) / 64 * 64;
-	//size_t offset = addr % 64;
-	//double *ptr = work0 + offset / 8;
 	double *ptr = (double *) addr;
 
 
@@ -1284,30 +1279,25 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 		ht[N] = ptr;
 		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
 
-		if(compute_res)
+		for(ii=0; ii<N; ii++)
 			{
-
-			for(ii=0; ii<N; ii++)
-				{
-				hrb[ii] = ptr;
-				ptr += pnx;
-				}
-
-			for(ii=0; ii<=N; ii++)
-				{
-				hrq[ii] = ptr;
-				ptr += pnz;
-				}
-
-			for(ii=0; ii<N; ii++)
-				{
-				hrd[ii] = ptr;
-				ptr += 2*pnb+2*png;
-				}
-			hrd[N] = ptr;
-			ptr += 2*pnb+2*pngN;
-
+			hrb[ii] = ptr;
+			ptr += pnx;
 			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hrq[ii] = ptr;
+			ptr += pnz;
+			}
+
+		for(ii=0; ii<N; ii++)
+			{
+			hrd[ii] = ptr;
+			ptr += 2*pnb+2*png;
+			}
+		hrd[N] = ptr;
+		ptr += 2*pnb+2*pngN;
 
 
 
@@ -1503,30 +1493,25 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 		ht[N] = ptr;
 		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
 
-		if(compute_res)
+		for(ii=0; ii<N; ii++)
 			{
-
-			for(ii=0; ii<N; ii++)
-				{
-				hrb[ii] = ptr;
-				ptr += pnx;
-				}
-
-			for(ii=0; ii<=N; ii++)
-				{
-				hrq[ii] = ptr;
-				ptr += pnz;
-				}
-
-			for(ii=0; ii<N; ii++)
-				{
-				hrd[ii] = ptr;
-				ptr += 2*pnb+2*png;
-				}
-			hrd[N] = ptr;
-			ptr += 2*pnb+2*pngN;
-
+			hrb[ii] = ptr;
+			ptr += pnx;
 			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hrq[ii] = ptr;
+			ptr += pnz;
+			}
+
+		for(ii=0; ii<N; ii++)
+			{
+			hrd[ii] = ptr;
+			ptr += 2*pnb+2*png;
+			}
+		hrd[N] = ptr;
+		ptr += 2*pnb+2*pngN;
 
 
 
@@ -1646,7 +1631,7 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 
 
 	// call the IP solver
-	d_kkt_solve_new_rhs_mpc_hard_tv(N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hb, hpQ, hq, hpDCt, hd, tau, hux, compute_mult, hpi, hlam, ht, work); // TODO B 
+	d_kkt_solve_new_rhs_mpc_hard_tv(N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hb, hpQ, hq, hpDCt, hd, tau, hux, 1, hpi, hlam, ht, work); // TODO B 
 
 
 
@@ -1662,176 +1647,170 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 
 
 	// compute infinity norm of residuals on exit
-	if(compute_res)
+
+	// restore linear part of cost function 
+	if(time_invariant)
 		{
-
-		// restore linear part of cost function 
-		if(time_invariant)
+		for(ii=0; ii<N; ii++)
 			{
-			for(ii=0; ii<N; ii++)
-				{
-				for(jj=0; jj<nuu[ii]; jj++) 
-					hq[ii][jj]    = r[jj];
-				for(jj=0; jj<nxx[ii]; jj++) 
-					hq[ii][nuu[ii]+jj] = q[jj];
-				}
+			for(jj=0; jj<nuu[ii]; jj++) 
+				hq[ii][jj]    = r[jj];
+			for(jj=0; jj<nxx[ii]; jj++) 
+				hq[ii][nuu[ii]+jj] = q[jj];
 			}
-		else // time-variant
+		}
+	else // time-variant
+		{
+		for(ii=0; ii<N; ii++)
 			{
-			for(ii=0; ii<N; ii++)
-				{
-				for(jj=0; jj<nuu[ii]; jj++) 
-					hq[ii][jj]    = r[jj+nu*ii];
-				for(jj=0; jj<nxx[ii]; jj++) 
-					hq[ii][nuu[ii]+jj] = q[jj+nx*ii];
-				}
+			for(jj=0; jj<nuu[ii]; jj++) 
+				hq[ii][jj]    = r[jj+nu*ii];
+			for(jj=0; jj<nxx[ii]; jj++) 
+				hq[ii][nuu[ii]+jj] = q[jj+nx*ii];
 			}
-		for(jj=0; jj<nx; jj++) 
-			hq[N][jj] = qf[jj];
+		}
+	for(jj=0; jj<nx; jj++) 
+		hq[N][jj] = qf[jj];
 
-		double mu;
+	double mu;
 
-		d_res_mpc_hard_tv(N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hb, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+	d_res_mpc_hard_tv(N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hb, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 #if 0
-		printf("\n");
-		for(ii=0; ii<=N; ii++)
-			d_print_mat(1, nuu[ii]+nxx[ii], hrq[ii], 1);
-		printf("\n");
-		for(ii=0; ii<N; ii++)
-			d_print_mat(1, nxx[ii+1], hrb[ii], 1);
-		printf("\n");
-		for(ii=0; ii<=N; ii++)
-			d_print_mat(1, (nbb[ii]+bs-1)/bs*bs*2+(ngg[ii]+bs-1)/bs*bs*2, hrd[ii], 1);
-		printf("\n");
-		printf("%f\n", mu);
-		exit(1);
+	printf("\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, nuu[ii]+nxx[ii], hrq[ii], 1);
+	printf("\n");
+	for(ii=0; ii<N; ii++)
+		d_print_mat(1, nxx[ii+1], hrb[ii], 1);
+	printf("\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, (nbb[ii]+bs-1)/bs*bs*2+(ngg[ii]+bs-1)/bs*bs*2, hrd[ii], 1);
+	printf("\n");
+	printf("%f\n", mu);
+	exit(1);
 #endif
 
-		temp = fabs(hrq[0][0]);
-		for(jj=0; jj<nu; jj++) 
-			temp = fmax( temp, fabs(hrq[0][jj]) );
-		for(ii=1; ii<N; ii++)
-			for(jj=0; jj<nu+nx; jj++) 
-				temp = fmax( temp, fabs(hrq[ii][jj]) );
+	temp = fabs(hrq[0][0]);
+	for(jj=0; jj<nu; jj++) 
+		temp = fmax( temp, fabs(hrq[0][jj]) );
+	for(ii=1; ii<N; ii++)
+		for(jj=0; jj<nu+nx; jj++) 
+			temp = fmax( temp, fabs(hrq[ii][jj]) );
+	for(jj=0; jj<nx; jj++) 
+		temp = fmax( temp, fabs(hrq[N][jj]) );
+	inf_norm_res[0] = temp;
+
+	temp = fabs(hrb[0][0]);
+	for(ii=0; ii<N; ii++)
 		for(jj=0; jj<nx; jj++) 
-			temp = fmax( temp, fabs(hrq[N][jj]) );
-		inf_norm_res[0] = temp;
+			temp = fmax( temp, fabs(hrb[ii][jj]) );
+	inf_norm_res[1] = temp;
 
-		temp = fabs(hrb[0][0]);
-		for(ii=0; ii<N; ii++)
-			for(jj=0; jj<nx; jj++) 
-				temp = fmax( temp, fabs(hrb[ii][jj]) );
-		inf_norm_res[1] = temp;
-
-		temp = fabs(hrd[0][0]);
-		pnb0 = (nbb[0]+bs-1)/bs*bs;
-		for(jj=0; jj<nbu; jj++) 
-			{
-			temp = fmax( temp, fabs(hrd[0][jj]) );
-			temp = fmax( temp, fabs(hrd[0][pnb0+jj]) );
-			}
-		for(ii=1; ii<N; ii++)
-			{
-			pnb0 = (nbb[ii]+bs-1)/bs*bs;
-			for(jj=0; jj<nb; jj++) 
-				{
-				temp = fmax( temp, fabs(hrd[ii][jj]) );
-				temp = fmax( temp, fabs(hrd[ii][pnb0+jj]) );
-				}
-			}
-		pnb0 = (nbb[N]+bs-1)/bs*bs;
-		for(jj=0; jj<nbb[N]; jj++) 
-			{
-			temp = fmax( temp, fabs(hrq[N][jj]) );
-			temp = fmax( temp, fabs(hrq[N][pnb0+jj]) );
-			}
-		for(ii=0; ii<N; ii++)
-			{
-			pnb0 = (nbb[ii]+bs-1)/bs*bs;
-			png0 = (ngg[ii]+bs-1)/bs*bs;
-			for(jj=2*pnb0; jj<2*pnb0+ng; jj++) 
-				{
-				temp = fmax( temp, fabs(hrd[ii][jj]) );
-				temp = fmax( temp, fabs(hrd[ii][png0+jj]) );
-				}
-			}
-		pnb0 = (nbb[N]+bs-1)/bs*bs;
-		png0 = (ngg[N]+bs-1)/bs*bs;
-		for(jj=2*pnb0; jj<2*pnb0+ngg[N]; jj++) 
-			{
-			temp = fmax( temp, fabs(hrd[N][jj]) );
-			temp = fmax( temp, fabs(hrd[N][png0+jj]) );
-			}
-		inf_norm_res[2] = temp;
-
-		inf_norm_res[3] = mu;
-
-		//printf("\n%e %e %e %e\n", norm_res[0], norm_res[1], norm_res[2], norm_res[3]);
-
-		}
-
-	if(compute_mult)
+	temp = fabs(hrd[0][0]);
+	pnb0 = (nbb[0]+bs-1)/bs*bs;
+	for(jj=0; jj<nbu; jj++) 
 		{
+		temp = fmax( temp, fabs(hrd[0][jj]) );
+		temp = fmax( temp, fabs(hrd[0][pnb0+jj]) );
+		}
+	for(ii=1; ii<N; ii++)
+		{
+		pnb0 = (nbb[ii]+bs-1)/bs*bs;
+		for(jj=0; jj<nb; jj++) 
+			{
+			temp = fmax( temp, fabs(hrd[ii][jj]) );
+			temp = fmax( temp, fabs(hrd[ii][pnb0+jj]) );
+			}
+		}
+	pnb0 = (nbb[N]+bs-1)/bs*bs;
+	for(jj=0; jj<nbb[N]; jj++) 
+		{
+		temp = fmax( temp, fabs(hrq[N][jj]) );
+		temp = fmax( temp, fabs(hrq[N][pnb0+jj]) );
+		}
+	for(ii=0; ii<N; ii++)
+		{
+		pnb0 = (nbb[ii]+bs-1)/bs*bs;
+		png0 = (ngg[ii]+bs-1)/bs*bs;
+		for(jj=2*pnb0; jj<2*pnb0+ng; jj++) 
+			{
+			temp = fmax( temp, fabs(hrd[ii][jj]) );
+			temp = fmax( temp, fabs(hrd[ii][png0+jj]) );
+			}
+		}
+	pnb0 = (nbb[N]+bs-1)/bs*bs;
+	png0 = (ngg[N]+bs-1)/bs*bs;
+	for(jj=2*pnb0; jj<2*pnb0+ngg[N]; jj++) 
+		{
+		temp = fmax( temp, fabs(hrd[N][jj]) );
+		temp = fmax( temp, fabs(hrd[N][png0+jj]) );
+		}
+	inf_norm_res[2] = temp;
 
-		for(ii=0; ii<=N; ii++)
-			for(jj=0; jj<nx; jj++)
-				pi[jj+ii*nx] = hpi[ii][jj];
+	inf_norm_res[3] = mu;
 
-		ii = 0;
-		pnb0 = (nbb[0]+bs-1)/bs*bs;
-		for(jj=0; jj<nbu; jj++)
+	//printf("\n%e %e %e %e\n", norm_res[0], norm_res[1], norm_res[2], norm_res[3]);
+
+
+
+	// copy back multipliers
+
+	for(ii=0; ii<=N; ii++)
+		for(jj=0; jj<nx; jj++)
+			pi[jj+ii*nx] = hpi[ii][jj];
+
+	ii = 0;
+	pnb0 = (nbb[0]+bs-1)/bs*bs;
+	for(jj=0; jj<nbu; jj++)
+		{
+		lam[jj+ii*(2*nb+2*ng)]       = hlam[ii][jj];
+		lam[jj+ii*(2*nb+2*ng)+nb+ng] = hlam[ii][pnb0+jj];
+		t[jj+ii*(2*nb+2*ng)]       = ht[ii][jj];
+		t[jj+ii*(2*nb+2*ng)+nb+ng] = ht[ii][pnb0+jj];
+		}
+	for(ii=1; ii<N; ii++)
+		{
+		pnb0 = (nbb[ii]+bs-1)/bs*bs;
+		for(jj=0; jj<nb; jj++)
 			{
 			lam[jj+ii*(2*nb+2*ng)]       = hlam[ii][jj];
 			lam[jj+ii*(2*nb+2*ng)+nb+ng] = hlam[ii][pnb0+jj];
 			t[jj+ii*(2*nb+2*ng)]       = ht[ii][jj];
 			t[jj+ii*(2*nb+2*ng)+nb+ng] = ht[ii][pnb0+jj];
 			}
-		for(ii=1; ii<N; ii++)
-			{
-			pnb0 = (nbb[ii]+bs-1)/bs*bs;
-			for(jj=0; jj<nb; jj++)
-				{
-				lam[jj+ii*(2*nb+2*ng)]       = hlam[ii][jj];
-				lam[jj+ii*(2*nb+2*ng)+nb+ng] = hlam[ii][pnb0+jj];
-				t[jj+ii*(2*nb+2*ng)]       = ht[ii][jj];
-				t[jj+ii*(2*nb+2*ng)+nb+ng] = ht[ii][pnb0+jj];
-				}
-			}
-		ii = N;
-		pnb0 = (nbb[N]+bs-1)/bs*bs;
-		for(jj=0; jj<nbb[N]; jj++)
-			{
-			lam[nu+jj+ii*(2*nb+2*ng)]        = hlam[ii][jj];
-			lam[nu+jj+ii*(2*nb+2*ng)+nb+ngN] = hlam[ii][pnb0+jj];
-			t[nu+jj+ii*(2*nb+2*ng)]        = ht[ii][jj];
-			t[nu+jj+ii*(2*nb+2*ng)+nb+ngN] = ht[ii][pnb0+jj];
-			}
-
-		for(ii=0; ii<N; ii++)
-			{
-			pnb0 = (nbb[ii]+bs-1)/bs*bs;
-			png0 = (ngg[ii]+bs-1)/bs*bs;
-			for(jj=0; jj<ng; jj++)
-				{
-				lam[jj+ii*(2*nb+2*ng)+nb]       = hlam[ii][2*pnb0+jj];
-				lam[jj+ii*(2*nb+2*ng)+nb+ng+nb] = hlam[ii][2*pnb0+png0+jj];
-				t[jj+ii*(2*nb+2*ng)+nb]       = ht[ii][2*pnb0+jj];
-				t[jj+ii*(2*nb+2*ng)+nb+ng+nb] = ht[ii][2*pnb0+png0+jj];
-				}
-			}
-		pnb0 = (nbb[N]+bs-1)/bs*bs;
-		png0 = (ngg[N]+bs-1)/bs*bs;
-		for(jj=0; jj<ngN; jj++)
-			{
-			lam[jj+N*(2*nb+2*ng)+nb]        = hlam[N][2*pnb0+jj];
-			lam[jj+N*(2*nb+2*ng)+nb+ngN+nb] = hlam[N][2*pnb0+png0+jj];
-			t[jj+N*(2*nb+2*ng)+nb]        = ht[N][2*pnb0+jj];
-			t[jj+N*(2*nb+2*ng)+nb+ngN+nb] = ht[N][2*pnb0+png0+jj];
-			}
-
+		}
+	ii = N;
+	pnb0 = (nbb[N]+bs-1)/bs*bs;
+	for(jj=0; jj<nbb[N]; jj++)
+		{
+		lam[nu+jj+ii*(2*nb+2*ng)]        = hlam[ii][jj];
+		lam[nu+jj+ii*(2*nb+2*ng)+nb+ngN] = hlam[ii][pnb0+jj];
+		t[nu+jj+ii*(2*nb+2*ng)]        = ht[ii][jj];
+		t[nu+jj+ii*(2*nb+2*ng)+nb+ngN] = ht[ii][pnb0+jj];
 		}
 
+	for(ii=0; ii<N; ii++)
+		{
+		pnb0 = (nbb[ii]+bs-1)/bs*bs;
+		png0 = (ngg[ii]+bs-1)/bs*bs;
+		for(jj=0; jj<ng; jj++)
+			{
+			lam[jj+ii*(2*nb+2*ng)+nb]       = hlam[ii][2*pnb0+jj];
+			lam[jj+ii*(2*nb+2*ng)+nb+ng+nb] = hlam[ii][2*pnb0+png0+jj];
+			t[jj+ii*(2*nb+2*ng)+nb]       = ht[ii][2*pnb0+jj];
+			t[jj+ii*(2*nb+2*ng)+nb+ng+nb] = ht[ii][2*pnb0+png0+jj];
+			}
+		}
+	pnb0 = (nbb[N]+bs-1)/bs*bs;
+	png0 = (ngg[N]+bs-1)/bs*bs;
+	for(jj=0; jj<ngN; jj++)
+		{
+		lam[jj+N*(2*nb+2*ng)+nb]        = hlam[N][2*pnb0+jj];
+		lam[jj+N*(2*nb+2*ng)+nb+ngN+nb] = hlam[N][2*pnb0+png0+jj];
+		t[jj+N*(2*nb+2*ng)+nb]        = ht[N][2*pnb0+jj];
+		t[jj+N*(2*nb+2*ng)+nb+ngN+nb] = ht[N][2*pnb0+png0+jj];
+		}
 
 /*printf("\nend of wrapper\n");*/
 

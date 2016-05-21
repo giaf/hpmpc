@@ -648,7 +648,7 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(N, nx, nu, nb, ng, ngN, time_invariant, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, 0.0, rx, ru, rwork, compute_res, inf_norm_res, compute_mult, rpi, rlam, rt);
+		fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(N, nx, nu, nb, ng, ngN, time_invariant, free_x0, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, 0.0, rx, ru, rpi, rlam, rt, inf_norm_res, rwork);
 
 		kk_avg += kk;
 
