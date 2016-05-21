@@ -65,37 +65,35 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	const int ng  = (int) mxGetScalar(prhs[8]);
 	const int ngN = (int) mxGetScalar(prhs[9]);
 	const int time_invariant = (int) mxGetScalar(prhs[10]);
+	const int free_x0 = (int) mxGetScalar(prhs[11]);
+	const int warm_start = (int) mxGetScalar(prhs[12]);
 
-	A    = mxGetPr(prhs[11]);
-	B    = mxGetPr(prhs[12]);
-	b    = mxGetPr(prhs[13]);
-	Q    = mxGetPr(prhs[14]);
-	Qf   = mxGetPr(prhs[15]);
-	R    = mxGetPr(prhs[16]);
-	S    = mxGetPr(prhs[17]);
-	q    = mxGetPr(prhs[18]);
-	qf   = mxGetPr(prhs[19]);
-	r    = mxGetPr(prhs[20]);
-	lb   = mxGetPr(prhs[21]);
-	ub   = mxGetPr(prhs[22]);
-	C    = mxGetPr(prhs[23]);
-	D    = mxGetPr(prhs[24]);
-	lg   = mxGetPr(prhs[25]);
-	ug   = mxGetPr(prhs[26]);
-	CN   = mxGetPr(prhs[27]);
-	lgN  = mxGetPr(prhs[28]);
-	ugN  = mxGetPr(prhs[29]);
-	x    = mxGetPr(prhs[30]);
-	u    = mxGetPr(prhs[31]);
-	stat = mxGetPr(prhs[32]);
-
-	int compute_res = (int) mxGetScalar(prhs[33]);
-	inf_norm_res = mxGetPr(prhs[34]);
-	
-	int compute_mult = (int) mxGetScalar(prhs[35]);
-	pi  = mxGetPr(prhs[36]);
-	lam = mxGetPr(prhs[37]);
-	t   = mxGetPr(prhs[38]);
+	A    = mxGetPr(prhs[13]);
+	B    = mxGetPr(prhs[14]);
+	b    = mxGetPr(prhs[15]);
+	Q    = mxGetPr(prhs[16]);
+	Qf   = mxGetPr(prhs[17]);
+	R    = mxGetPr(prhs[18]);
+	S    = mxGetPr(prhs[19]);
+	q    = mxGetPr(prhs[20]);
+	qf   = mxGetPr(prhs[21]);
+	r    = mxGetPr(prhs[22]);
+	lb   = mxGetPr(prhs[23]);
+	ub   = mxGetPr(prhs[24]);
+	C    = mxGetPr(prhs[25]);
+	D    = mxGetPr(prhs[26]);
+	lg   = mxGetPr(prhs[27]);
+	ug   = mxGetPr(prhs[28]);
+	CN   = mxGetPr(prhs[29]);
+	lgN  = mxGetPr(prhs[30]);
+	ugN  = mxGetPr(prhs[31]);
+	x    = mxGetPr(prhs[32]);
+	u    = mxGetPr(prhs[33]);
+	pi  = mxGetPr(prhs[34]);
+	lam = mxGetPr(prhs[35]);
+	t   = mxGetPr(prhs[36]);
+	inf_norm_res = mxGetPr(prhs[37]);
+	stat = mxGetPr(prhs[38]);
 	
 	int kk = -1;
 
@@ -107,8 +105,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 #endif
 
 	// call solver 
-	fortran_order_d_ip_mpc_hard_tv(&kk, k_max, mu0, tol, 'd', N, nx, nu, nb, ng, ngN, time_invariant, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, work, stat, compute_res, inf_norm_res, compute_mult, pi, lam, t);
-	//c_order_ip_hard_mpc_tv(&kk, k_max, mu0, tol, 'd', N, nx, nu, nb, ng, ngN, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, work, stat, compute_res, inf_norm_res, compute_mult, pi, lam, t);
+	fortran_order_d_ip_mpc_hard_tv(&kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, pi, lam, t, inf_norm_res, work, stat);
+//	c_order_d_ip_mpc_hard_tv(&kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, A, B, b, Q, Qf, S, R, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, pi, lam, t, inf_norm_res, work, stat);
 
 	*kkk = (double) kk;
 

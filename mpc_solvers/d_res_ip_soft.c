@@ -29,7 +29,7 @@
 
 
 
-void d_res_ip_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, int *ns, double **hpBAbt, double **hpQ, double **hq, double **hZ, double **hz, double **hux, double **hpDCt, double **hd, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double **hrz, double *mu)
+void d_res_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, int *ns, double **hpBAbt, double **hpQ, double **hq, double **hZ, double **hz, double **hux, double **hpDCt, double **hd, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double **hrz, double *mu)
 	{
 
 	const int bs = D_MR;
@@ -192,7 +192,8 @@ void d_res_ip_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng,
 
 
 	// normalize mu
-	mu[0] /= 2.0*nb_tot;
+	if(nb_tot!=0)
+		mu[0] /= 2.0*nb_tot;
 
 	}
 

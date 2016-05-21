@@ -74,7 +74,7 @@ int d_ip2_mpc_hard_tv_work_space_size_doubles(int N, int *nx, int *nu, int *nb, 
 
 
 /* primal-dual interior-point method, hard constraints, time variant matrices, time variant size (mpc version) */
-int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *sigma_par, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
+int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
 	{
 	
 	// indeces
@@ -292,20 +292,29 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 	double temp0, temp1;
 	double alpha, mu, mu_aff;
+
+	// check if there are inequality constraints
 	double mu_scal = 0.0; 
 	for(jj=0; jj<=N; jj++) mu_scal += 2*nb[jj] + 2*ng[jj];
-	//printf("\nmu_scal = %f\n", mu_scal);
-	mu_scal = 1.0 / mu_scal;
+//	printf("\nmu_scal = %f\n", mu_scal);
+//	exit(2);
+	if(mu_scal!=0.0) // there are some constraints
+		{
+		mu_scal = 1.0 / mu_scal;
+		}
+	else // call the riccati solver and return
+		{
+		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, ux, pL, dL, work, 1, Pb, compute_mult, pi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
+		*kk = 0;
+		return;
+		}
+
 	//printf("\nmu_scal = %f\n", mu_scal);
 	double sigma, sigma_decay, sigma_min;
 	//for(ii=0; ii<=N; ii++)
 	//	printf("\n%d %d\n", nb[ii], ng[ii]);
 	//exit(1);
 
-	sigma = sigma_par[0]; //0.4;
-	sigma_decay = sigma_par[1]; //0.3;
-	sigma_min = sigma_par[2]; //0.01;
-	
 
 
 	// initialize ux & t>0 (slack variable)
@@ -370,7 +379,7 @@ for(ii=0; ii<=N; ii++)
 	d_print_mat(1, ng[ii], qx[ii], 1);
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, ng[ii], qx2[ii], 1);
-if(*kk==1)
+//if(*kk==1)
 exit(1);
 #endif
 
@@ -380,7 +389,7 @@ exit(1);
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, bs, pQ[ii], cnz[ii]);
+	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, bs, pQ[ii], cnux[ii]);
 //exit(1);
 #endif
 #if 0
@@ -392,7 +401,7 @@ for(ii=0; ii<=N; ii++)
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
-if(*kk==1)
+//if(*kk==1)
 exit(1);
 #endif
 
@@ -420,7 +429,11 @@ exit(1);
 		d_compute_mu_mpc_hard_tv(N, nx, nu, nb, ng, &mu_aff, mu_scal, alpha, lam, dlam, t, dt);
 
 		stat[5*(*kk)+2] = mu_aff;
-		//printf("\nmu = %f\n", mu_aff);
+
+#if 0
+printf("\nmu = %f\n", mu_aff);
+exit(1);
+#endif
 
 
 
@@ -497,13 +510,6 @@ exit(1);
 
 		stat[5*(*kk)+4] = mu;
 		
-		// update sigma
-/*		sigma *= sigma_decay;*/
-/*		if(sigma<sigma_min)*/
-/*			sigma = sigma_min;*/
-/*		if(alpha<0.3)*/
-/*			sigma = sigma_par[0];*/
-
 
 
 		// increment loop index
@@ -512,6 +518,8 @@ exit(1);
 
 		} // end of IP loop
 	
+
+
 	// restore Hessian
 	for(jj=0; jj<=N; jj++)
 		{

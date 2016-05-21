@@ -147,21 +147,20 @@ end
 
 % initial guess for states and inputs
 x = zeros(nx, N+1); x(:,1) = x0; % initial condition
-%u = -1*ones(nu, N);
 u = zeros(nu, N);
-%pi = zeros(nx, N+1);
+mult_pi = zeros(nx,N+1);
+mult_lam = zeros(2*(nb+ng)*N+2*(nb+ngN),1);
+mult_t = zeros(2*(nb+ng)*N+2*(nb+ngN),1);
+
+free_x0 = 0; % consider x0 as optimization variable
+warm_start = 0; % read initial guess from x and u
 
 mu0 = 2;        % max element in cost function as estimate of max multiplier
 kk = -1;		% actual number of performed iterations
 k_max = 20;		% maximim number of iterations
 tol = 1e-8;		% tolerance in the duality measure
 infos = zeros(5, k_max);
-compute_res = 1;
 inf_norm_res = zeros(1, 4);
-compute_mult = 1;
-mult_pi = zeros(nx,N+1);
-mult_lam = zeros(2*(nb+ng)*N+2*(nb+ngN),1);
-mult_t = zeros(2*(nb+ng)*N+2*(nb+ngN),1);
 
 nrep = 1000; % number of calls to IPM solver for better timings
 
@@ -171,13 +170,13 @@ tic
 if time_invariant==0 % time-variant interface
 
 	for ii=1:nrep
-		HPMPC_ip_mpc_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, CC, DD, llg, uug, CN, lgN, ugN, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
+		HPMPC_ip_mpc_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, CC, DD, llg, uug, CN, lgN, ugN, x, u, mult_pi, mult_lam, mult_t, inf_norm_res, infos);
 	end
 
 else % time-invariant interface
 
 	for ii=1:nrep
-		HPMPC_ip_mpc_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, A, B, b, Q, Qf, R, S, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, infos, compute_res, inf_norm_res, compute_mult, mult_pi, mult_lam, mult_t);
+		HPMPC_ip_mpc_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, A, B, b, Q, Qf, R, S, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, mult_pi, mult_lam, mult_t, inf_norm_res, infos);
 	end
 
 end
