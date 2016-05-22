@@ -197,16 +197,16 @@ void d_back_ric_rec_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ
 #else
 	dgemv_t_lib(nux[nn], nx[nn+1], hpBAbt[nn], cnx[nn+1], hux[nn], 1, hux[nn+1]+nu[nn+1], hux[nn+1]+nu[nn+1]);
 #endif
-	if(compute_pi) // TODO change pi index !!!!!!!!!!
+	if(compute_pi) // TODO change pi index !!!!!!!!!! done
 		{
 		for(jj=0; jj<nx[nn+1]; jj++) work1[pnx[nn+1]+jj] = hux[nn+1][nu[nn+1]+jj]; // copy x into aligned memory
 		for(jj=0; jj<nx[nn+1]; jj++) work1[jj] = hpL[nn+1][nux[nn+1]/bs*bs*cnl[nn+1]+nux[nn+1]%bs+bs*(nu[nn+1]+jj)]; // work space
 #ifdef BLASFEO
 		dtrmv_un_lib(nx[nn+1], hpL[nn+1]+(ncl)*bs, cnl[nn+1], work1+pnx[nn+1], 1, work1, work1);
-		dtrmv_ut_lib(nx[nn+1], hpL[nn+1]+(ncl)*bs, cnl[nn+1], work1, 0, hpi[nn+1], hpi[nn+1]); // L*(L'*b) + p
+		dtrmv_ut_lib(nx[nn+1], hpL[nn+1]+(ncl)*bs, cnl[nn+1], work1, 0, hpi[nn], hpi[nn]); // L*(L'*b) + p
 #else
 		dtrmv_u_n_lib(nx[nn+1], hpL[nn+1]+(ncl)*bs, cnl[nn+1], work1+pnx[nn+1], 1, work1);
-		dtrmv_u_t_lib(nx[nn+1], hpL[nn+1]+(ncl)*bs, cnl[nn+1], work1, 0, hpi[nn+1]); // L*(L'*b) + p
+		dtrmv_u_t_lib(nx[nn+1], hpL[nn+1]+(ncl)*bs, cnl[nn+1], work1, 0, hpi[nn]); // L*(L'*b) + p
 #endif
 		}
 
@@ -231,10 +231,10 @@ void d_back_ric_rec_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ
 			for(jj=0; jj<nx[nn+1]; jj++) work1[jj] = hpL[nn+1][nux[nn+1]/bs*bs*cnl[nn+1]+nux[nn+1]%bs+bs*(nu[nn+1]+jj)]; // work space
 #ifdef BLASFEO
 			dtrmv_un_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work1+pnx[nn+1], 1, work1, work1);
-			dtrmv_ut_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work1, 0, hpi[nn+1], hpi[nn+1]); // L*(L'*b) + p
+			dtrmv_ut_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work1, 0, hpi[nn], hpi[nn]); // L*(L'*b) + p
 #else
 			dtrmv_u_n_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work1+pnx[nn+1], 1, work1);
-			dtrmv_u_t_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work1, 0, hpi[nn+1]); // L*(L'*b) + p
+			dtrmv_u_t_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work1, 0, hpi[nn]); // L*(L'*b) + p
 #endif
 			}
 		}
@@ -457,12 +457,12 @@ void d_back_ric_rec_trs_tv(int N, int *nx, int *nu, double **hpBAbt, double **hb
 		for(jj=0; jj<nx[nn+1]; jj++) work[pnx[nn+1]+jj] = hux[nn+1][nu[nn+1]+jj]; // copy x into aligned memory
 #ifdef BLASFEO
 		dtrmv_un_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work+pnx[nn+1], 0, work, work);
-		dtrmv_ut_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work, 0, hpi[nn+1], hpi[nn+1]); // L*(L'*b) + p
+		dtrmv_ut_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work, 0, hpi[nn], hpi[nn]); // L*(L'*b) + p
 #else
 		dtrmv_u_n_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work+pnx[nn+1], 0, work);
-		dtrmv_u_t_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work, 0, hpi[nn+1]); // L*(L'*b) + p
+		dtrmv_u_t_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work, 0, hpi[nn]); // L*(L'*b) + p
 #endif
-		for(jj=0; jj<nx[nn+1]; jj++) hpi[nn+1][jj] += hl[nn+1][nu[nn+1]+jj];
+		for(jj=0; jj<nx[nn+1]; jj++) hpi[nn][jj] += hl[nn+1][nu[nn+1]+jj];
 		}
 	// middle stages
 	for(nn=1; nn<N; nn++)
@@ -480,12 +480,12 @@ void d_back_ric_rec_trs_tv(int N, int *nx, int *nu, double **hpBAbt, double **hb
 			for(jj=0; jj<nx[nn+1]; jj++) work[pnx[nn+1]+jj] = hux[nn+1][nu[nn+1]+jj]; // copy x into aligned memory
 #ifdef BLASFEO
 			dtrmv_un_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work+pnx[nn+1], 0, work, work);
-			dtrmv_ut_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work, 0, hpi[nn+1], hpi[nn+1]); // L*(L'*b) + p
+			dtrmv_ut_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work, 0, hpi[nn], hpi[nn]); // L*(L'*b) + p
 #else
 			dtrmv_u_n_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work+pnx[nn+1], 0, work);
-			dtrmv_u_t_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work, 0, hpi[nn+1]); // L*(L'*b) + p
+			dtrmv_u_t_lib(nx[nn+1], hpL[nn+1]+ncl*bs, cnl[nn+1], work, 0, hpi[nn]); // L*(L'*b) + p
 #endif
-			for(jj=0; jj<nx[nn+1]; jj++) hpi[nn+1][jj] += hl[nn+1][nu[nn+1]+jj];
+			for(jj=0; jj<nx[nn+1]; jj++) hpi[nn][jj] += hl[nn+1][nu[nn+1]+jj];
 			}
 		}
 

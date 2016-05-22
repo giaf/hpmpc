@@ -135,7 +135,7 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	double *b[N];
 	double *q[N+1];
 	double *dux[N+1];
-	double *dpi[N+1];
+	double *dpi[N];
 	double *pd[N+1]; // pointer to diagonal of Hessian
 	double *pl[N+1]; // pointer to linear part of Hessian
 	double *bd[N+1]; // backup diagonal of Hessian
@@ -199,11 +199,11 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		}
 
 	// equality constr multipliers
-	for(jj=0; jj<=N; jj++)
+	for(jj=0; jj<N; jj++)
 		{
 		dpi[jj] = ptr;
-		ptr += pnx[jj];
-//		size += pnx[jj];
+		ptr += pnx[jj+1];
+//		size += pnx[jj+1];
 		}
 	
 	// backup of P*b
@@ -328,8 +328,8 @@ exit(1);
 
 
 	// initialize pi
-	for(jj=0; jj<=N; jj++)
-		for(ll=0; ll<nx[jj]; ll++)
+	for(jj=0; jj<N; jj++)
+		for(ll=0; ll<nx[jj+1]; ll++)
 			dpi[jj][ll] = 0.0;
 
 
@@ -615,7 +615,7 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 	double *b[N];
 	double *q[N+1];
 	double *dux[N+1];
-	double *dpi[N+1];
+	double *dpi[N];
 	double *pd[N+1]; // pointer to diagonal of Hessian
 	double *pl[N+1]; // pointer to linear part of Hessian
 	double *bd[N+1]; // backup diagonal of Hessian
@@ -680,11 +680,11 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 		}
 
 	// equality constr multipliers
-	for(jj=0; jj<=N; jj++)
+	for(jj=0; jj<N; jj++)
 		{
 		dpi[jj] = ptr;
-		ptr += pnx[jj];
-//		size += pnx[jj];
+		ptr += pnx[jj+1];
+//		size += pnx[jj+1];
 		}
 	
 	// backup of P*b

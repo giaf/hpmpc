@@ -107,8 +107,8 @@ void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 
 
 	// initialize pi
-	for(jj=0; jj<=N; jj++)
-		for(ll=0; ll<nx[jj]; ll++)
+	for(jj=0; jj<N; jj++)
+		for(ll=0; ll<nx[jj+1]; ll++)
 			pi[jj][ll] = 0.0; // initialize multipliers to zero
 
 
@@ -236,8 +236,8 @@ void d_init_var_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 
 
 	// initialize pi
-	for(jj=0; jj<=N; jj++)
-		for(ll=0; ll<nx[jj]; ll++)
+	for(jj=0; jj<N; jj++)
+		for(ll=0; ll<nx[jj+1]; ll++)
 			pi[jj][ll] = 0.0; // initialize multipliers to zero
 
 
@@ -2240,7 +2240,7 @@ void d_update_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double 
 	const int ncl = D_NCL;
 	const int nal = bs*ncl; // number of doubles per cache line
 
-	int nu0, nx0, nb0, pnb, ng0, png;
+	int nu0, nx0, nx1, nb0, pnb, ng0, png;
 
 	int jj, ll, ll_bkp, ll_end;
 	double ll_left;
@@ -2277,6 +2277,10 @@ void d_update_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double 
 		pnb  = bs*((nb0+bs-1)/bs); // cache aligned number of box constraints
 		ng0 = ng[jj];
 		png  = bs*((ng0+bs-1)/bs); // cache aligned number of box constraints
+		if(jj<N)
+			nx1 = nx[jj+1];
+		else
+			nx1 = 0;
 		
 		ptr_pi   = pi[jj];
 		ptr_dpi  = dpi[jj];
@@ -2288,7 +2292,7 @@ void d_update_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double 
 		ptr_dlam = dlam[jj];
 
 		ll = 0;
-		for(; ll<nx0-3; ll+=4)
+		for(; ll<nx1-3; ll+=4)
 			{
 			v_pi  = _mm256_load_pd( &ptr_pi[ll] );
 			v_dpi = _mm256_load_pd( &ptr_dpi[ll] );
@@ -2301,9 +2305,9 @@ void d_update_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double 
 #endif
 			_mm256_store_pd( &ptr_pi[ll], v_pi );
 			}
-		if(ll<nx0)
+		if(ll<nx1)
 			{
-			ll_left = nx0-ll;
+			ll_left = nx1-ll;
 			v_left= _mm256_broadcast_sd( &ll_left );
 			v_mask= _mm256_loadu_pd( d_mask );
 			i_mask= _mm256_castpd_si256( _mm256_sub_pd( v_mask, v_left ) );
@@ -2800,7 +2804,7 @@ void d_update_var_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 	const int bs = D_MR;
 	const int ncl = D_NCL;
 
-	int nu0, nx0, nb0, pnb, ng0, png, ns0, pns;
+	int nu0, nx0, nx1, nb0, pnb, ng0, png, ns0, pns;
 
 	int jj, ll, ll_bkp, ll_end;
 	double ll_left;
@@ -2842,9 +2846,15 @@ void d_update_var_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 		ptr_lam  = lam[jj];
 		ptr_dlam = dlam[jj];
 
-		// equality constraints
+		nu0 = nu[jj];
 		nx0 = nx[jj];
-		for(ll=0; ll<nx0-3; ll+=4)
+		if(jj<N)
+			nx1 = nx[jj+1];
+		else
+			nx1 = 0;
+
+		// equality constraints
+		for(ll=0; ll<nx1-3; ll+=4)
 			{
 			v_pi  = _mm256_load_pd( &ptr_pi[ll] );
 			v_dpi = _mm256_load_pd( &ptr_dpi[ll] );
@@ -2857,9 +2867,9 @@ void d_update_var_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 #endif
 			_mm256_store_pd( &ptr_pi[ll], v_pi );
 			}
-		if(ll<nx0)
+		if(ll<nx1)
 			{
-			ll_left = nx0 - ll;
+			ll_left = nx1 - ll;
 			v_left= _mm256_broadcast_sd( &ll_left );
 			v_mask= _mm256_loadu_pd( d_mask );
 			i_mask= _mm256_castpd_si256( _mm256_sub_pd( v_mask, v_left ) );
@@ -2877,7 +2887,6 @@ void d_update_var_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 			}
 
 		// inputs and states
-		nu0 = nu[jj];
 		for(ll=0; ll<nu0+nx0-3; ll+=4)
 			{
 			v_ux  = _mm256_load_pd( &ptr_ux[ll] );

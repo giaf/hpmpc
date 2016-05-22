@@ -99,8 +99,8 @@ void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 
 
 	// initialize pi
-	for(jj=0; jj<=N; jj++)
-		for(ll=0; ll<nx[jj]; ll++)
+	for(jj=0; jj<N; jj++)
+		for(ll=0; ll<nx[jj+1]; ll++)
 			pi[jj][ll] = 0.0; // initialize multipliers to zero
 
 
@@ -228,8 +228,8 @@ void d_init_var_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 
 
 	// initialize pi
-	for(jj=0; jj<=N; jj++)
-		for(ll=0; ll<nx[jj]; ll++)
+	for(jj=0; jj<N; jj++)
+		for(ll=0; ll<nx[jj+1]; ll++)
 			pi[jj][ll] = 0.0; // initialize multipliers to zero
 
 
@@ -1283,7 +1283,7 @@ void d_update_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double 
 	const int bs = D_MR;
 	const int ncl = D_NCL;
 
-	int nu0, nx0, nb0, pnb, ng0, png;
+	int nu0, nx0, nx1, nb0, pnb, ng0, png;
 
 	int jj, ll;
 	
@@ -1301,6 +1301,10 @@ void d_update_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double 
 		pnb = bs*((nb0+bs-1)/bs); // cache aligned number of box constraints
 		ng0 = ng[jj];
 		png = bs*((ng0+bs-1)/bs); // cache aligned number of box constraints
+		if(jj<N)
+			nx1 = nx[jj+1];
+		else
+			nx1 = 0;
 		
 		ptr_pi   = pi[jj];
 		ptr_dpi  = dpi[jj];
@@ -1322,14 +1326,14 @@ void d_update_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double 
 		for(; ll<nu0+nx0; ll++)
 			ptr_ux[ll] += alpha*(ptr_dux[ll] - ptr_ux[ll]);
 		// update equality constrained multipliers
-		for(ll=0; ll<nx0-3; ll+=4)
+		for(ll=0; ll<nx1-3; ll+=4)
 			{
 			ptr_pi[ll+0] += alpha*(ptr_dpi[ll+0] - ptr_pi[ll+0]);
 			ptr_pi[ll+1] += alpha*(ptr_dpi[ll+1] - ptr_pi[ll+1]);
 			ptr_pi[ll+2] += alpha*(ptr_dpi[ll+2] - ptr_pi[ll+2]);
 			ptr_pi[ll+3] += alpha*(ptr_dpi[ll+3] - ptr_pi[ll+3]);
 			}
-		for(; ll<nx0; ll++)
+		for(; ll<nx1; ll++)
 			ptr_pi[ll] += alpha*(ptr_dpi[ll] - ptr_pi[ll]);
 		// box constraints
 		for(ll=0; ll<nb0; ll++)
@@ -1376,7 +1380,7 @@ void d_update_var_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 	const int bs = D_MR;
 	const int ncl = D_NCL;
 
-	int nu0, nx0, nb0, pnb, ng0, png, ns0, pns;
+	int nu0, nx0, nx1, nb0, pnb, ng0, png, ns0, pns;
 
 	int jj, ll;
 	
@@ -1394,6 +1398,10 @@ void d_update_var_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 		pnb = bs*((nb0+bs-1)/bs); // cache aligned number of box constraints
 		ng0 = ng[jj];
 		png = bs*((ng0+bs-1)/bs); // cache aligned number of box constraints
+		if(jj<N)
+			nx1 = nx[jj+1];
+		else
+			nx1 = 0;
 		
 		ptr_pi   = pi[jj];
 		ptr_dpi  = dpi[jj];
@@ -1416,14 +1424,14 @@ void d_update_var_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 
 			ptr_ux[ll] += alpha*(ptr_dux[ll] - ptr_ux[ll]);
 		// update equality constrained multipliers
-		for(ll=0; ll<nx0-3; ll+=4)
+		for(ll=0; ll<nx1-3; ll+=4)
 			{
 			ptr_pi[ll+0] += alpha*(ptr_dpi[ll+0] - ptr_pi[ll+0]);
 			ptr_pi[ll+1] += alpha*(ptr_dpi[ll+1] - ptr_pi[ll+1]);
 			ptr_pi[ll+2] += alpha*(ptr_dpi[ll+2] - ptr_pi[ll+2]);
 			ptr_pi[ll+3] += alpha*(ptr_dpi[ll+3] - ptr_pi[ll+3]);
 			}
-		for(; ll<nx0; ll++)
+		for(; ll<nx1; ll++)
 			ptr_pi[ll] += alpha*(ptr_dpi[ll] - ptr_pi[ll]);
 
 		// box constraints
