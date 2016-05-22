@@ -59,3 +59,45 @@ int hpmpc_d_ip_mpc_hard_tv_work_space_size_doubles(int N, int nx, int nu, int nb
 	}
 
 
+
+int hpmpc_d_ip_ocp_hard_tv_work_space_size_doubles(int N, int *nx, int *nu, int *nb, int *ng)
+	{
+
+	const int bs  = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+
+	int ii;
+
+	int pnx[N+1];
+	int pnz[N+1];
+	int pnb[N+1];
+	int png[N+1];
+	int cnx[N+1];
+	int cnux[N+1];
+	int cng[N+1];
+
+	for(ii=0; ii<=N; ii++)
+		{
+		pnx[ii] = (nx[ii]+bs-1)/bs*bs;
+		pnz[ii] = (nu[ii]+nx[ii]+1+bs-1)/bs*bs;
+		pnb[ii] = (nb[ii]+bs-1)/bs*bs;
+		png[ii] = (ng[ii]+bs-1)/bs*bs;
+		cnx[ii] = (nx[ii]+ncl-1)/ncl*ncl;
+		cnux[ii] = (nu[ii]+nx[ii]+ncl-1)/ncl*ncl;
+		cng[ii] = (ng[ii]+ncl-1)/ncl*ncl;
+		}
+
+	int work_space_size = 8 + bs + d_ip2_mpc_hard_tv_work_space_size_doubles(N, nx, nu, nb, ng);
+
+	for(ii=0; ii<N; ii++)
+		{
+		work_space_size += nb[ii] + pnz[ii]*cnx[ii+1] + pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + 3*pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii];
+		}
+	ii = N;
+	work_space_size += nb[ii] + pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii];
+
+	return work_space_size;
+
+	}
+
+

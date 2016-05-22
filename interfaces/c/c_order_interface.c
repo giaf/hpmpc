@@ -152,7 +152,7 @@ int c_order_d_ip_mpc_hard_tv(
 	double *(hpQ[N+1]);
 	double *(hux[N+1]);
 	double *(hd[N+1]);
-	double *(hpi[N+1]);
+	double *(hpi[N]);
 	double *(hlam[N+1]);
 	double *(ht[N+1]);
 	double *(hq[N+1]);
@@ -237,7 +237,7 @@ int c_order_d_ip_mpc_hard_tv(
 			ptr += pnz;
 			}
 
-		for(ii=0; ii<=N; ii++) // time Variant box constraints
+		for(ii=0; ii<N; ii++) // time Variant box constraints
 			{
 			hpi[ii] = ptr;
 			ptr += pnx; // for alignment of ptr
@@ -569,7 +569,7 @@ int c_order_d_ip_mpc_hard_tv(
 			ptr += pnz;
 			}
 
-		for(ii=0; ii<=N; ii++) // time Variant box constraints
+		for(ii=0; ii<N; ii++) // time Variant box constraints
 			{
 			hpi[ii] = ptr;
 			ptr += pnx; // for alignment of ptr
@@ -994,7 +994,7 @@ exit(1);
 
 	// copy back multipliers
 
-	for(ii=0; ii<=N; ii++)
+	for(ii=0; ii<N; ii++)
 		for(jj=0; jj<nx; jj++)
 			pi[jj+ii*nx] = hpi[ii][jj];
 
