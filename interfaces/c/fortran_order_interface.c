@@ -100,7 +100,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 	int *ptr_int;
 	ptr_int = (int *) work0;
 
-	int *(idxb[N+1]);
+	int *idxb[N+1];
 
 	idxb[0] = ptr_int;
 	ptr_int += nb[0];
@@ -165,7 +165,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 		}
 
 	work = ptr;
-	ptr += d_ip2_mpc_hard_tv_work_space_size_doubles(N, nx, nu, nb, ng);
+	ptr += d_ip2_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng)/sizeof(double);
 
 	for(ii=0; ii<N; ii++)
 		{
@@ -611,7 +611,7 @@ void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 		}
 
 	work = ptr;
-	ptr += d_ip2_mpc_hard_tv_work_space_size_doubles(N, nx, nu, nb, ng);
+	ptr += d_ip2_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng)/sizeof(double);
 
 	for(ii=0; ii<N; ii++)
 		{
@@ -769,6 +769,17 @@ void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 	double mu;
 
 	d_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, hpBAbt, hb, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+
+#if 0
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, nu[ii]+nx[ii], hrq[ii], 1);
+	for(ii=0; ii<N; ii++)
+		d_print_mat(1, nx[ii+1], hrb[ii], 1);
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, 2*pnb[ii]+2*png[ii], hrd[ii], 1);
+	d_print_mat(1, 1, &mu, 1);
+	exit(1);
+#endif
 
 	temp = fabs(hrq[0][0]);
 	for(ii=0; ii<N; ii++)
@@ -1002,7 +1013,7 @@ int fortran_order_d_ip_mpc_hard_tv(
 		ptr += pnz*cnux;
 
 		work = ptr;
-		ptr += d_ip2_mpc_hard_tv_work_space_size_doubles(N, nxx, nuu, nbb, ngg);
+		ptr += d_ip2_mpc_hard_tv_work_space_size_bytes(N, nxx, nuu, nbb, ngg)/sizeof(double);
 
 		hb[0] = ptr;
 		ptr += pnx;
@@ -1343,7 +1354,7 @@ int fortran_order_d_ip_mpc_hard_tv(
 			}
 
 		work = ptr;
-		ptr += d_ip2_mpc_hard_tv_work_space_size_doubles(N, nxx, nuu, nbb, ngg);
+		ptr += d_ip2_mpc_hard_tv_work_space_size_bytes(N, nxx, nuu, nbb, ngg)/sizeof(double);
 
 		for(ii=0; ii<N; ii++)
 			{
@@ -2023,7 +2034,7 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 		ptr += pnz*cnux;
 
 		work = ptr;
-		ptr += d_ip2_mpc_hard_tv_work_space_size_doubles(N, nxx, nuu, nbb, ngg);
+		ptr += d_ip2_mpc_hard_tv_work_space_size_bytes(N, nxx, nuu, nbb, ngg)/sizeof(double);
 
 		hb[0] = ptr;
 		ptr += pnx;
@@ -2245,7 +2256,7 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 			}
 
 		work = ptr;
-		ptr += d_ip2_mpc_hard_tv_work_space_size_doubles(N, nxx, nuu, nbb, ngg);
+		ptr += d_ip2_mpc_hard_tv_work_space_size_bytes(N, nxx, nuu, nbb, ngg)/sizeof(double);
 
 		for(ii=0; ii<N; ii++)
 			{

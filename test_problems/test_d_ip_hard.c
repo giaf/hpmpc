@@ -507,7 +507,7 @@ int main()
 
 	double *rt; d_zeros(&rt, N*2*(nb+ng)+2*(nb+ngN), 1);
 
-	double *rwork; d_zeros(&rwork, hpmpc_d_ip_mpc_hard_tv_work_space_size_doubles(N, nx, nu, nb, ng, ngN), 1);
+	double *rwork = (double *) malloc(hpmpc_d_ip_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng, ngN));
 
 	double inf_norm_res[4] = {}; // infinity norm of residuals: rq, rb, rd, mu
 #endif
@@ -577,7 +577,7 @@ int main()
 
 	double mu = 0.0;
 
-	double *work; d_zeros_align(&work, d_ip2_mpc_hard_tv_work_space_size_doubles(N, nx_v, nu_v, nb_v, ng_v), 1);
+	double *work; d_zeros_align(&work, d_ip2_mpc_hard_tv_work_space_size_bytes(N, nx_v, nu_v, nb_v, ng_v)/sizeof(double), 1);
 
 /************************************************
 * (new) high level interface work space
@@ -696,7 +696,7 @@ int main()
 	d_zeros(&ht1[N], 2*nb_v[N]+2*ng_v[N], 1);
 
 	// work space
-	double *work1; d_zeros(&work1, hpmpc_d_ip_ocp_hard_tv_work_space_size_doubles(N, nx_v, nu_v, nb_v, ng_v), 1);
+	double *work1 = (double *) malloc(hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(N, nx_v, nu_v, nb_v, ng_v));
 
 /************************************************
 * solvers common stuff

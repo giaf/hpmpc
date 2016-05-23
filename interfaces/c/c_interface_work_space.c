@@ -32,7 +32,7 @@
 
 // Riccati-based IP method for box-constrained MPC, double precision
 // XXX assume size(double) >= size(int) && size(double) >= size(int *) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-int hpmpc_d_ip_mpc_hard_tv_work_space_size_doubles(int N, int nx, int nu, int nb, int ng, int ngN)
+int hpmpc_d_ip_mpc_hard_tv_work_space_size_bytes(int N, int nx, int nu, int nb, int ng, int ngN)
 	{
 
 	const int bs  = D_MR; //d_get_mr();
@@ -54,13 +54,13 @@ int hpmpc_d_ip_mpc_hard_tv_work_space_size_doubles(int N, int nx, int nu, int nb
 
 	int work_space_size = (8 + bs + (N+1)*(nb + pnz*cnx + pnz*cnux + pnz*cnl + pnz*cng + 7*pnz + 6*pnx + 23*pnb + 19*png) + pnz*(cngN-cng) + 19*(pngN-png) + pnz + (cngN<cnxg ? pnz*cnxg : pnz*cngN) );
 
-	return work_space_size;
+	return work_space_size*sizeof(double);
 
 	}
 
 
 
-int hpmpc_d_ip_ocp_hard_tv_work_space_size_doubles(int N, int *nx, int *nu, int *nb, int *ng)
+int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng)
 	{
 
 	const int bs  = D_MR; //d_get_mr();
@@ -87,14 +87,19 @@ int hpmpc_d_ip_ocp_hard_tv_work_space_size_doubles(int N, int *nx, int *nu, int 
 		cng[ii] = (ng[ii]+ncl-1)/ncl*ncl;
 		}
 
-	int work_space_size = 8 + bs + d_ip2_mpc_hard_tv_work_space_size_doubles(N, nx, nu, nb, ng);
+	int size_doubles = bs;
+	int size_ints = 0;
 
 	for(ii=0; ii<N; ii++)
 		{
-		work_space_size += nb[ii] + pnz[ii]*cnx[ii+1] + pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + 3*pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii];
+		size_doubles += pnz[ii]*cnx[ii+1] + pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + 3*pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii];
+		size_ints += nb[ii];
 		}
 	ii = N;
-	work_space_size += nb[ii] + pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii];
+	size_doubles += pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii];
+	size_ints += nb[ii];
+
+	int work_space_size = 64 + d_ip2_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng) + size_doubles*sizeof(double) + size_ints*sizeof(int);
 
 	return work_space_size;
 

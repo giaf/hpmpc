@@ -35,7 +35,7 @@
 
 
 /* computes work space size */
-int d_ip2_mpc_hard_tv_work_space_size_doubles(int N, int *nx, int *nu, int *nb, int *ng)
+int d_ip2_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng)
 	{
 
 	const int bs = D_MR;
@@ -67,6 +67,8 @@ int d_ip2_mpc_hard_tv_work_space_size_doubles(int N, int *nx, int *nu, int *nb, 
 		}
 
 	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
+
+	size *= sizeof(double);
 
 	return size;
 	}

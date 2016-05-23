@@ -32,7 +32,7 @@
 
 
 
-int d_back_ric_rec_sv_tv_work_space_size_doubles(int N, int *nx, int *nu, int *nb, int *ng)
+int d_back_ric_rec_sv_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng)
 	{
 
 	const int bs = D_MR;
@@ -57,7 +57,7 @@ int d_back_ric_rec_sv_tv_work_space_size_doubles(int N, int *nx, int *nu, int *n
 	
 	int size = pnzM*cnxgM + pnzM;
 
-	return size;
+	return size*sizeof(double);
 	}
 
 

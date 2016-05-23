@@ -467,7 +467,7 @@ int main()
 		d_zeros_align(&hl[N], pnux_v[N], 1);
 		d_zeros_align(&hrq[N], pnz_v[N], 1);
 
-		double *work; d_zeros_align(&work, d_back_ric_rec_sv_tv_work_space_size_doubles(N, nx_v, nu_v, nb_v, ng_v), 1); // TODO
+		double *work; d_zeros_align(&work, d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx_v, nu_v, nb_v, ng_v)/sizeof(double), 1); // TODO
 
 
 /************************************************

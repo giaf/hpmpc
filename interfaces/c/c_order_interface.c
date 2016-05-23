@@ -201,7 +201,7 @@ int c_order_d_ip_mpc_hard_tv(
 		ptr += pnz*cnux;
 
 		work = ptr;
-		ptr += d_ip2_mpc_hard_tv_work_space_size_doubles(N, nxx, nuu, nbb, ngg);
+		ptr += d_ip2_mpc_hard_tv_work_space_size_bytes(N, nxx, nuu, nbb, ngg)/sizeof(double);
 
 		hb[0] = ptr;
 		ptr += pnx;
@@ -541,7 +541,7 @@ int c_order_d_ip_mpc_hard_tv(
 			}
 
 		work = ptr;
-		ptr += d_ip2_mpc_hard_tv_work_space_size_doubles(N, nxx, nuu, nbb, ngg);
+		ptr += d_ip2_mpc_hard_tv_work_space_size_bytes(N, nxx, nuu, nbb, ngg)/sizeof(double);
 
 		for(ii=0; ii<N; ii++)
 			{
