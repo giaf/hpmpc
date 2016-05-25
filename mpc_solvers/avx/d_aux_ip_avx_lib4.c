@@ -53,7 +53,7 @@ void d_init_var_hard_mpc_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 
 	double thr0 = 0.1; // minimum vale of t (minimum distance from a constraint)
 
-
+	jj = 0;
 	// cold start
 	if(warm_start==0)
 		{
