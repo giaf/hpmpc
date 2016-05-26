@@ -49,6 +49,8 @@ PREFIX = /opt
 
 # C Compiler
 CC = gcc
+#MINGW_ROOT = ~/cross_compiler_windows
+#CC = $(MINGW_ROOT)/mingw-w64-bin_x86_64-linux_20131228/bin/x86_64-w64-mingw32-gcc 
 #CC = /opt/gcc/bin/gcc # custom gcc
 #CC = clang
 
