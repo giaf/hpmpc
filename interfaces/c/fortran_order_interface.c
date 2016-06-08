@@ -42,7 +42,6 @@
 
 
 
-/* version dealing with equality constratins: is lb=ub, then fix the variable (corresponding column in A or B set to zero, and updated b) */
 int fortran_order_d_ip_ocp_hard_tv( 
 							int *kk, int k_max, double mu0, double mu_tol,
 							int N, int *nx, int *nu, int *nb, int *ng,
@@ -1881,7 +1880,6 @@ exit(1);
 
 
 
-/* version dealing with equality constratins: is lb=ub, then fix the variable (corresponding column in A or B set to zero, and updated b) */
 void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 							int N, int nx, int nu, int nb, int ng, int ngN, 
 							int time_invariant, int free_x0,

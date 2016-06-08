@@ -86,8 +86,8 @@ void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 				if(t[jj][pnb+ll] < thr0)
 					{
 					ux[jj][idxb[jj][ll]] = ( - db[jj][pnb+ll] + db[jj][ll])*0.5;
-					t[jj][ll]     = - db[jj][ll]     + ux[jj][idxb[jj][ll]];
-					t[jj][pnb+ll] =   db[jj][pnb+ll] - ux[jj][idxb[jj][ll]];
+					t[jj][ll]     = thr0; //- db[jj][ll]     + ux[jj][idxb[jj][ll]];
+					t[jj][pnb+ll] = thr0; //  db[jj][pnb+ll] - ux[jj][idxb[jj][ll]];
 					}
 				else
 					{

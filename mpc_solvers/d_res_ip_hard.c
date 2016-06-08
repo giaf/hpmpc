@@ -86,7 +86,7 @@ void d_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, do
 			}
 		}
 
-	for(jj=0; jj<nu0; jj++) 
+	for(jj=0; jj<nu0; jj++) // XXX is this correct in case of nx[0]>0 ?????
 		hrq[ii][jj] = - hq[ii][jj];
 	for(jj=0; jj<nb0; jj++) 
 		hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
@@ -223,6 +223,35 @@ void d_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, do
 	// normalize mu
 	if(nb_tot!=0)
 		mu[0] /= 2.0*nb_tot;
+
+
+
+#if 1
+	// change sign of residuals
+	for(ii=0; ii<=N; ii++)
+		for(jj=0; jj<nu[ii]+nx[ii]; jj++)
+			hrq[ii][jj] = - hrq[ii][jj];
+	for(ii=0; ii<N; ii++)
+		for(jj=0; jj<nx[ii+1]; jj++)
+			hrb[ii][jj] = - hrb[ii][jj];
+	for(ii=0; ii<=N; ii++)
+		{
+		pnb = (nb[ii]+bs-1)/bs*bs;
+		png = (ng[ii]+bs-1)/bs*bs;
+		for(jj=0; jj<nb[ii]; jj++)
+			{
+			hrd[ii][jj]     = - hrd[ii][jj];
+			hrd[ii][pnb+jj] = - hrd[ii][pnb+jj];
+			}
+		for(jj=0; jj<ng[ii]; jj++)
+			{
+			hrd[ii][2*pnb+jj]     = - hrd[ii][2*pnb+jj];
+			hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+png+jj];
+			}
+		}
+#endif
+
+
 
 	return;
 

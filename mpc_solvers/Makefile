@@ -25,7 +25,7 @@
 
 include ../Makefile.rule
 
-OBJS = d_ip2_hard.o d_res_ip_hard.o d_ip2_soft.o d_res_ip_soft.o 
+OBJS = d_ip2_hard.o d_res_ip_hard.o d_ip2_res_hard.o d_res_ip_res_hard.o d_ip2_soft.o d_res_ip_soft.o 
 
 obj: $(OBJS)
 ifeq ($(TARGET), X64_AVX2)

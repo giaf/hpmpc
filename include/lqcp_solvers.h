@@ -68,3 +68,8 @@ void d_cond_d(int N, int nx, int nu, int *nb, int free_x0, double **hd, int **hi
 int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessian, double **hpQA, double **hpLA, double **hdLA, double **hpLe, double *work);
 void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double **hqb, double **hpLA, double **hdLA, double **hpLe, double **hxupi, double *tmp);
 void d_forward_schur_res_tv(int N, int *nv, int *ne, int *diag_hessian, double **hpQA, double **hqb, double **hxupi, double **hr);
+
+
+// XXX
+void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, double **hpBAbt, double **hpQ, double **hpL, double **hdL, double *work, int *nb, int **idxb, int *ng, double **hpDCt, double **Qx, double **bd);
+void d_back_ric_rec_trs_tv_res(int N, int *nx, int *nu, double **hpBAbt, double **hb, double **hpL, double **hdL, double **hq, double **hl, double **hux, double *work, int compute_Pb, double ** hPb, int compute_pi, double **hpi, int *nb, int **idxb, int *ng, double **hpDCt, double **qx);

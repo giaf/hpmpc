@@ -71,6 +71,7 @@ void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 		pnb  = (nb0+bs-1)/bs*bs; // simd aligned number of box constraints
 		for(ll=0; ll<nb0; ll++)
 			{
+#if 1
 			t[jj][ll]     = - db[jj][ll]     + ux[jj][idxb[jj][ll]];
 			t[jj][pnb+ll] =   db[jj][pnb+ll] - ux[jj][idxb[jj][ll]];
 			if(t[jj][ll] < thr0)
@@ -92,6 +93,10 @@ void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 				t[jj][pnb+ll] = thr0;
 				ux[jj][idxb[jj][ll]] = db[jj][pnb+ll] - thr0;
 				}
+#else
+			t[jj][ll]     = thr0;
+			t[jj][pnb+ll] = thr0;
+#endif
 			lam[jj][ll]     = mu0/t[jj][ll];
 			lam[jj][pnb+ll] = mu0/t[jj][pnb+ll];
 			}

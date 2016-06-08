@@ -25,7 +25,7 @@
 
 include ../../Makefile.rule
 
-OBJS = d_aux_ip_c99_lib4.o #s_aux_ip_c99_lib4.o
+OBJS = d_aux_ip_c99_lib4.o d_aux_ip_res_c99_lib4.o #s_aux_ip_c99_lib4.o
 
 obj: $(OBJS)
 

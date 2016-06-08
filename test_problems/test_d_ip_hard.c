@@ -161,8 +161,10 @@ int main()
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
 	int nb  = nu+nx; // number of box constrained inputs and states
-	int ng  = nx; //4;  // number of general constraints
-	int ngN = nx; // number of general constraints at the last stage
+	int ng  = 0;// nx; //4;  // number of general constraints
+	int ngN = 0;// nx; // number of general constraints at the last stage
+
+# define USE_IPM_RES 0
 	
 //	int M = 32; // where the equality constraint hold
 
@@ -349,9 +351,9 @@ int main()
 	double *D; d_zeros(&D, ng, nu);
 
 	// first stage
-	double *pDCt0; d_zeros(&pDCt0, pnux_v[0], cng_v[0]);
+	double *pDCt0; d_zeros_align(&pDCt0, pnux_v[0], cng_v[0]);
 	// middle stage
-	double *pDCt1; d_zeros(&pDCt1, pnux_v[1], cng_v[1]);
+	double *pDCt1; d_zeros_align(&pDCt1, pnux_v[1], cng_v[1]);
 	// last stage
 	double *DCN; d_zeros(&DCN, ng_v[N], nx_v[N]);
 	for(jj=0; jj<ng_v[N]; jj++) DCN[jj*(ng_v[N]+1)] = 1.0;
@@ -577,7 +579,11 @@ int main()
 
 	double mu = 0.0;
 
+#if USE_IPM_RES
+	double *work; d_zeros_align(&work, d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx_v, nu_v, nb_v, ng_v)/sizeof(double), 1);
+#else
 	double *work; d_zeros_align(&work, d_ip2_mpc_hard_tv_work_space_size_bytes(N, nx_v, nu_v, nb_v, ng_v)/sizeof(double), 1);
+#endif
 
 /************************************************
 * (new) high level interface work space
@@ -704,8 +710,8 @@ int main()
 
 	int hpmpc_status;
 	int kk, kk_avg;
-	int k_max = 10;
-	double mu_tol = 1e-8;
+	int k_max = 20;
+	double mu_tol = 1e-10;
 	double alpha_min = 1e-8;
 	int warm_start = 0; // read initial guess from x and u
 	double *stat; d_zeros(&stat, k_max, 5);
@@ -733,7 +739,7 @@ int main()
 		{
 
 //		hpmpc_status = fortran_order_d_ip_mpc_hard_tv(&kk, k_max, mu0, mu_tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, rx, ru, rpi, rlam, rt, inf_norm_res, rwork, stat);
-		hpmpc_status = fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, mu_tol, N, nx_v, nu_v, nb_v, ng_v, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi1, hlam1, ht1, inf_norm_res, work1, stat);
+//		hpmpc_status = fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, mu_tol, N, nx_v, nu_v, nb_v, ng_v, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi1, hlam1, ht1, inf_norm_res, work1, stat);
 
 		kk_avg += kk;
 
@@ -772,7 +778,7 @@ int main()
 		{
 
 //		fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(N, nx, nu, nb, ng, ngN, time_invariant, free_x0, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, 0.0, rx, ru, rpi, rlam, rt, inf_norm_res, rwork);
-		fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(N, nx_v, nu_v, nb_v, ng_v, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, 0.0, hx, hu, hpi1, hlam1, ht1, inf_norm_res, work1);
+//		fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(N, nx_v, nu_v, nb_v, ng_v, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, 0.0, hx, hu, hpi1, hlam1, ht1, inf_norm_res, work1);
 
 		kk_avg += kk;
 
@@ -812,7 +818,11 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
+#if USE_IPM_RES
+		hpmpc_status = d_ip2_res_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hpRSQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+#else
 		hpmpc_status = d_ip2_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hpRSQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+#endif
 		
 		kk_avg += kk;
 
@@ -879,7 +889,11 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
+#if 0 //USE_IPM_RES
+		d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpRSQ, hrq, hpDCt, hd, 0.0, hux, compute_mult, hpi, hlam, ht, work);
+#else
 		d_kkt_solve_new_rhs_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpRSQ, hrq, hpDCt, hd, 0.0, hux, compute_mult, hpi, hlam, ht, work);
+#endif
 
 		}
 	printf("\ndone\n");
