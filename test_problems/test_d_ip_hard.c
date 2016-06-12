@@ -161,10 +161,10 @@ int main()
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
 	int nb  = nu+nx; // number of box constrained inputs and states
-	int ng  = 0;// nx; //4;  // number of general constraints
-	int ngN = 0;// nx; // number of general constraints at the last stage
+	int ng  = nx; //4;  // number of general constraints
+	int ngN = nx; // number of general constraints at the last stage
 
-# define USE_IPM_RES 0
+# define USE_IPM_RES 1
 	
 //	int M = 32; // where the equality constraint hold
 
@@ -848,19 +848,19 @@ int main()
 		// print residuals
 		printf("\nhrrq\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat(1, nu_v[ii]+nx_v[ii], hrrq[ii], 1);
+			d_print_mat_e(1, nu_v[ii]+nx_v[ii], hrrq[ii], 1);
 
 		printf("\nhrb\n\n");
 		for(ii=0; ii<N; ii++)
-			d_print_mat(1, nx_v[ii+1], hrb[ii], 1);
+			d_print_mat_e(1, nx_v[ii+1], hrb[ii], 1);
 
 		printf("\nhrd low\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat(1, nb_v[ii], hrd[ii], 1);
+			d_print_mat_e(1, nb_v[ii], hrd[ii], 1);
 
 		printf("\nhrd up\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat(1, nb_v[ii], hrd[ii]+pnb_v[ii], 1);
+			d_print_mat_e(1, nb_v[ii], hrd[ii]+pnb_v[ii], 1);
 
 		}
 
@@ -871,6 +871,7 @@ int main()
 		for(jj=0; jj<nu_v[ii]+nx_v[ii]; jj++) hux[ii][jj] = 0.0;
 
 	// modify constraints
+#if 1
 	for(jj=0; jj<nbx; jj++)
 		{
 		dN[jj]          = - 4.0;   //   xmin
@@ -882,6 +883,7 @@ int main()
 		dN[2*pnb_v[N]+jj]          =   0.1;   //   xmin
 		dN[2*pnb_v[N]+png_v[N]+jj] =   0.1;   //   xmax
 		}
+#endif
 
 	gettimeofday(&tv2, NULL); // stop
 
@@ -889,10 +891,10 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-#if 0 //USE_IPM_RES
-		d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpRSQ, hrq, hpDCt, hd, 0.0, hux, compute_mult, hpi, hlam, ht, work);
+#if USE_IPM_RES
+		d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpRSQ, hrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 #else
-		d_kkt_solve_new_rhs_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpRSQ, hrq, hpDCt, hd, 0.0, hux, compute_mult, hpi, hlam, ht, work);
+		d_kkt_solve_new_rhs_mpc_hard_tv(N, nx_v, nu_v, nb_v, idx, ng_v, hpBAbt, hb, hpRSQ, hrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 #endif
 
 		}
@@ -917,19 +919,19 @@ int main()
 		// print residuals
 		printf("\nhrrq\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat(1, nu_v[ii]+nx_v[ii], hrrq[ii], 1);
+			d_print_mat_e(1, nu_v[ii]+nx_v[ii], hrrq[ii], 1);
 
 		printf("\nhrb\n\n");
 		for(ii=0; ii<N; ii++)
-			d_print_mat(1, nx_v[ii+1], hrb[ii], 1);
+			d_print_mat_e(1, nx_v[ii+1], hrb[ii], 1);
 
 		printf("\nhrd low\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat(1, nb_v[ii], hrd[ii], 1);
+			d_print_mat_e(1, nb_v[ii], hrd[ii], 1);
 
 		printf("\nhrd up\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat(1, nb_v[ii], hrd[ii]+pnb_v[ii], 1);
+			d_print_mat_e(1, nb_v[ii], hrd[ii]+pnb_v[ii], 1);
 
 		}
 

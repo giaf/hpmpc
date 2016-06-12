@@ -3854,7 +3854,7 @@ void d_compute_mu_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 
 
 
-void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double r_T, double **t_inv, double **lamt, double **qx, double **bl, double **pl, double **db)
+void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double **t_inv, double **lamt, double **qx, double **bl, double **pl, double **db)
 	{
 	
 	// constants
@@ -3890,19 +3890,19 @@ void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int
 			for(ii=0; ii<nb0-3; ii+=4)
 				{
 
-				ptr_pl[ii+0] = ptr_bl[ii+0] - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_tinv[ii+pnb+0]*r_T - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_tinv[ii+0]*r_T;
+				ptr_pl[ii+0] = ptr_bl[ii+0] - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] - ptr_lamt[ii+0]*ptr_db[ii+0];
 
-				ptr_pl[ii+1] = ptr_bl[ii+1] - ptr_lamt[ii+pnb+1]*ptr_db[ii+pnb+1] + ptr_tinv[ii+pnb+1]*r_T - ptr_lamt[ii+1]*ptr_db[ii+1] - ptr_tinv[ii+1]*r_T;
+				ptr_pl[ii+1] = ptr_bl[ii+1] - ptr_lamt[ii+pnb+1]*ptr_db[ii+pnb+1] - ptr_lamt[ii+1]*ptr_db[ii+1];
 
-				ptr_pl[ii+2] = ptr_bl[ii+2] - ptr_lamt[ii+pnb+2]*ptr_db[ii+pnb+2] + ptr_tinv[ii+pnb+2]*r_T - ptr_lamt[ii+2]*ptr_db[ii+2] - ptr_tinv[ii+2]*r_T;
+				ptr_pl[ii+2] = ptr_bl[ii+2] - ptr_lamt[ii+pnb+2]*ptr_db[ii+pnb+2] - ptr_lamt[ii+2]*ptr_db[ii+2];
 
-				ptr_pl[ii+3] = ptr_bl[ii+3] - ptr_lamt[ii+pnb+3]*ptr_db[ii+pnb+3] + ptr_tinv[ii+pnb+3]*r_T - ptr_lamt[ii+3]*ptr_db[ii+3] - ptr_tinv[ii+3]*r_T;
+				ptr_pl[ii+3] = ptr_bl[ii+3] - ptr_lamt[ii+pnb+3]*ptr_db[ii+pnb+3] - ptr_lamt[ii+3]*ptr_db[ii+3];
 
 				}
 			for(; ii<nb0; ii++)
 				{
 
-				ptr_pl[ii+0] = ptr_bl[ii+0] - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_tinv[ii+pnb+0]*r_T - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_tinv[ii+0]*r_T;
+				ptr_pl[ii+0] = ptr_bl[ii+0] - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] - ptr_lamt[ii+0]*ptr_db[ii+0];
 
 				}
 
@@ -3924,19 +3924,19 @@ void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int
 			for(ii=0; ii<ng0-3; ii+=4)
 				{
 
-				ptr_qx[ii+0] = - ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_tinv[ii+png+0]*r_T - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_tinv[ii+0]*r_T;
+				ptr_qx[ii+0] = - ptr_lamt[ii+png+0]*ptr_db[ii+png+0] - ptr_lamt[ii+0]*ptr_db[ii+0];
 
-				ptr_qx[ii+1] = - ptr_lamt[ii+png+1]*ptr_db[ii+png+1] + ptr_tinv[ii+png+1]*r_T - ptr_lamt[ii+1]*ptr_db[ii+1] - ptr_tinv[ii+1]*r_T;
+				ptr_qx[ii+1] = - ptr_lamt[ii+png+1]*ptr_db[ii+png+1] - ptr_lamt[ii+1]*ptr_db[ii+1];
 
-				ptr_qx[ii+2] = - ptr_lamt[ii+png+2]*ptr_db[ii+png+2] + ptr_tinv[ii+png+2]*r_T - ptr_lamt[ii+2]*ptr_db[ii+2] - ptr_tinv[ii+2]*r_T;
+				ptr_qx[ii+2] = - ptr_lamt[ii+png+2]*ptr_db[ii+png+2] - ptr_lamt[ii+2]*ptr_db[ii+2];
 
-				ptr_qx[ii+3] = - ptr_lamt[ii+png+3]*ptr_db[ii+png+3] + ptr_tinv[ii+png+3]*r_T - ptr_lamt[ii+3]*ptr_db[ii+3] - ptr_tinv[ii+3]*r_T;
+				ptr_qx[ii+3] = - ptr_lamt[ii+png+3]*ptr_db[ii+png+3] - ptr_lamt[ii+3]*ptr_db[ii+3];
 
 				}
 			for(; ii<ng0; ii++)
 				{
 
-				ptr_qx[ii+0] = - ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_tinv[ii+png+0]*r_T - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_tinv[ii+0]*r_T;
+				ptr_qx[ii+0] = - ptr_lamt[ii+png+0]*ptr_db[ii+png+0] - ptr_lamt[ii+0]*ptr_db[ii+0];
 
 				}
 
@@ -3948,7 +3948,7 @@ void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int
 
 
 
-void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double r_T, double **t_aff, double **lam_aff, double **lamt, double **tinv, double **dux, double **pDCt, double **db)
+void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **t_aff, double **lam_aff, double **lamt, double **tinv, double **dux, double **pDCt, double **db)
 	{
 	
 	// constants
@@ -3989,8 +3989,8 @@ void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 
 				ptr_t_aff[ll+0]   =   ptr_dux[ptr_idxb[ll]] - ptr_db[ll+0];
 				ptr_t_aff[ll+pnb] = - ptr_dux[ptr_idxb[ll]] + ptr_db[ll+pnb];
-				ptr_lam_aff[ll+0]   = ptr_tinv[ll+0]   * r_T - ptr_lamt[ll+0]   * ptr_t_aff[ll+0];
-				ptr_lam_aff[ll+pnb] = ptr_tinv[ll+pnb] * r_T - ptr_lamt[ll+pnb] * ptr_t_aff[ll+pnb];
+				ptr_lam_aff[ll+0]   = - ptr_lamt[ll+0]   * ptr_t_aff[ll+0];
+				ptr_lam_aff[ll+pnb] = - ptr_lamt[ll+pnb] * ptr_t_aff[ll+pnb];
 				}
 
 			ptr_db      += 2*pnb;
@@ -4018,8 +4018,8 @@ void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 				ptr_t_aff[ll+png] = - ptr_t_aff[ll+0];
 				ptr_t_aff[ll+0]   -= ptr_db[ll+0];
 				ptr_t_aff[ll+png] += ptr_db[ll+png];
-				ptr_lam_aff[ll+0]   = ptr_tinv[ll+0]   * r_T - ptr_lamt[ll+0]   * ptr_t_aff[ll+0];
-				ptr_lam_aff[ll+png] = ptr_tinv[ll+png] * r_T - ptr_lamt[ll+png] * ptr_t_aff[ll+png];
+				ptr_lam_aff[ll+0]   = - ptr_lamt[ll+0]   * ptr_t_aff[ll+0];
+				ptr_lam_aff[ll+png] = - ptr_lamt[ll+png] * ptr_t_aff[ll+png];
 				}
 
 			}

@@ -589,7 +589,7 @@ exit(2);
 
 
 
-void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **r_A, double **pQ, double **r_H, double **pDCt, double **r_C, double r_T, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
+void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **r_A, double **pQ, double **r_H, double **pDCt, double **r_C, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
 	{
 
 	
@@ -801,7 +801,7 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 
 
 	//update cost function vectors for a generic RHS (not tailored to IPM)
-	d_update_gradient_new_rhs_mpc_hard_tv(N, nx, nu, nb, ng, r_T, t_inv, lamt, qx, bl, pl, r_C); 
+	d_update_gradient_new_rhs_mpc_hard_tv(N, nx, nu, nb, ng, t_inv, lamt, qx, bl, pl, r_C); 
 
 
 	// solve the system
@@ -809,7 +809,7 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 
 
 	// compute t & lam 
-	d_compute_t_lam_new_rhs_mpc_hard_tv(N, nx, nu, nb, idxb, ng, r_T, t, lam, lamt, t_inv, ux, pDCt, r_C);
+	d_compute_t_lam_new_rhs_mpc_hard_tv(N, nx, nu, nb, idxb, ng, t, lam, lamt, t_inv, ux, pDCt, r_C);
 
 	
 

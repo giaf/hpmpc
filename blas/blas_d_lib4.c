@@ -5498,7 +5498,7 @@ void ddiain_libsp(int kmax, int *idx, double *x, double *pD, int sdd)
 
 
 // add scaled vector to diagonal, sparse formulation 
-void ddiaad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int sdd)
+void ddiaad_libsp(int kmax, int *idx, double alpha, double *x, double *pD, int sdd)
 	{
 
 	const int bs = 4;
@@ -5509,6 +5509,24 @@ void ddiaad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int s
 		{
 		ii = idx[jj];
 		pD[ii/bs*bs*sdd+ii%bs+ii*bs] += alpha * x[jj];
+		}
+	
+	}
+
+
+
+// add scaled vector to another vector and insert to diagonal, sparse formulation 
+void ddiaadin_libsp(int kmax, int *idx, double alpha, double *x, double *y, double *pD, int sdd)
+	{
+
+	const int bs = 4;
+
+	int ii, jj;
+
+	for(jj=0; jj<kmax; jj++)
+		{
+		ii = idx[jj];
+		pD[ii/bs*bs*sdd+ii%bs+ii*bs] = y[jj] + alpha * x[jj];
 		}
 	
 	}

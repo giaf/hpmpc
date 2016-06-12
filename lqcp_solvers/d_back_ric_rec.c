@@ -536,8 +536,8 @@ void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, double **hpBAbt, double 
 	if(nb[N]>0)
 		{
 		pnb = (nb[N]+bs-1)/bs*bs;
-		ddiain_libsp(nb[N], idxb[N], bd[N], hpQ[N], cnux[N]);
-		ddiaad_libsp(nb[N], 1.0, idxb[N], Qx[N], hpQ[N], cnux[N]);
+//		ddiain_libsp(nb[N], idxb[N], bd[N], hpQ[N], cnux[N]);
+		ddiaadin_libsp(nb[N], idxb[N], 1.0, Qx[N], bd[N], hpQ[N], cnux[N]);
 		}
 	else
 		{
@@ -573,8 +573,8 @@ void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, double **hpBAbt, double 
 		if(nb[N-nn-1]>0)
 			{
 			pnb = (nb[N-nn-1]+bs-1)/bs*bs;
-			ddiain_libsp(nb[N-nn-1], idxb[N-nn-1], bd[N-nn-1], hpQ[N-nn-1], cnux[N-nn-1]);
-			ddiaad_libsp(nb[N-nn-1], 1.0, idxb[N-nn-1], Qx[N-nn-1], hpQ[N-nn-1], cnux[N-nn-1]);
+//			ddiain_libsp(nb[N-nn-1], idxb[N-nn-1], hpQ[N-nn-1], cnux[N-nn-1]);
+			ddiaadin_libsp(nb[N-nn-1], idxb[N-nn-1], 1.0, Qx[N-nn-1], bd[N-nn-1], hpQ[N-nn-1], cnux[N-nn-1]);
 			}
 		else
 			{

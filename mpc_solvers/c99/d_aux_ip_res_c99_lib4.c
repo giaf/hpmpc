@@ -439,6 +439,44 @@ void d_compute_mu_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 
 
 
+void d_compute_centering_correction_res_mpc_hard_tv(int N, int *nb, int *ng, double sigma_mu, double **dt, double **dlam, double **res_m)
+	{
+
+	const int bs = D_MR;
+
+	int pnb, png;
+
+	int ii, jj;
+
+	double
+		*ptr_res_m, *ptr_dt, *ptr_dlam;
+	
+	for(ii=0; ii<=N; ii++)
+		{
+
+		pnb = (nb[ii]+bs-1)/bs*bs;
+		png = (ng[ii]+bs-1)/bs*bs;
+
+		ptr_res_m = res_m[ii];
+		ptr_dt    = dt[ii];
+		ptr_dlam  = dlam[ii];
+
+		for(jj=0; jj<nb[ii]; jj++)
+			{
+			ptr_res_m[jj]     += ptr_dt[jj]     * ptr_dlam[jj]     - sigma_mu;
+			ptr_res_m[pnb+jj] += ptr_dt[pnb+jj] * ptr_dlam[pnb+jj] - sigma_mu;
+			}
+		for(jj=0; jj<ng[ii]; jj++)
+			{
+			ptr_res_m[2*pnb+jj]     += ptr_dt[2*pnb+jj]     * ptr_dlam[2*pnb+jj]     - sigma_mu;
+			ptr_res_m[2*pnb+png+jj] += ptr_dt[2*pnb+png+jj] * ptr_dlam[2*pnb+png+jj] - sigma_mu;
+			}
+		}
+
+	}
+
+
+
 void d_update_gradient_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double **res_d, double **res_m, double **lam, double **t_inv, double **qx)
 	{
 	
