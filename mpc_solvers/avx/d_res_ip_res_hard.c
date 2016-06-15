@@ -80,12 +80,12 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 	dgemv_n_lib(nu0, nx1, hpBAbt[ii], cnx1, hpi[ii], 1, hrq[ii], hrq[ii]);
 	if(ng0>0)
 		{
-#if 0
+#if 1
 		// TODO work space + one dgemv call
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, -1, hrq[ii], hrq[ii]);
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, 1, hrq[ii], hrq[ii]);
 #else
-		double tmp_lam[ng0];
+		double tmp_lam[ng0]; // TODO use aligned work space !!!!!!!!!!!
 		for(jj=0; jj<ng0; jj++)
 			tmp_lam[jj] = hlam[ii][jj+2*pnb+png] - hlam[ii][jj+2*pnb+0];
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, tmp_lam, 1, hrq[ii], hrq[ii]);
@@ -158,12 +158,12 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 		dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnux0, hux[ii], 1, hrq[ii], hrq[ii]);
 		if(ng0>0)
 			{
-#if 0
+#if 1
 			// TODO work space + one dgemv call
 			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, -1, hrq[ii], hrq[ii]);
 			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, 1, hrq[ii], hrq[ii]);
 #else
-			double tmp_lam[ng0];
+			double tmp_lam[ng0]; // TODO use aligned work space !!!!!!!!!!!
 			for(jj=0; jj<ng0; jj++)
 				tmp_lam[jj] = hlam[ii][jj+2*pnb+png] - hlam[ii][jj+2*pnb+0];
 			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, tmp_lam, 1, hrq[ii], hrq[ii]);
@@ -183,7 +183,7 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 			}
 		if(ng0>0)
 			{
-			dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], 0, hrd[ii]+2*pnb, hrd[ii]+2*pnb);
+			dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], 0, hrd[ii]+2*pnb, hrd[ii]+2*pnb); // TODO merge with the one in hrq !!!!!
 			for(jj=0; jj<ng0; jj++)
 				{
 				hrd[ii][2*pnb+jj] = - hrd[ii][2*pnb+jj];
@@ -231,12 +231,12 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 	dsymv_lib(nx0+nu0%bs, nx0+nu0%bs, hpQ[ii]+nu0/bs*bs*cnux0+nu0/bs*bs*bs, cnux0, hux[ii]+nu0/bs*bs, 1, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs);
 	if(ng0>0)
 		{
-#if 0
+#if 1
 		// TODO work space + one dgemv call
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, -1, hrq[ii], hrq[ii]);
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, 1, hrq[ii], hrq[ii]);
 #else
-			double tmp_lam[ng0];
+			double tmp_lam[ng0]; // TODO use aligned work space !!!!!!!!!!!
 			for(jj=0; jj<ng0; jj++)
 				tmp_lam[jj] = hlam[ii][jj+2*pnb+png] - hlam[ii][jj+2*pnb+0];
 			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, tmp_lam, 1, hrq[ii], hrq[ii]);
