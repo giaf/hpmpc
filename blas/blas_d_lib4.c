@@ -28,6 +28,15 @@
 #include "../include/kernel_d_lib4.h"
 #include "../include/block_size.h"
 
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+#include <mmintrin.h>
+#include <xmmintrin.h>  // SSE
+#include <emmintrin.h>  // SSE2
+#include <pmmintrin.h>  // SSE3
+#include <smmintrin.h>  // SSE4
+#include <immintrin.h>  // AVX
+#endif
+
 
 
 #if ! defined(BLASFEO)
@@ -5292,6 +5301,63 @@ void dtrsv_t_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *
 
 	}
 #endif
+
+
+
+// y = y + alpha*x, with increments equal to 1
+void daxpy_lib(int kmax, double alpha, double *x, double *y)
+	{
+
+	int ii;
+
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+	__m256d
+		v_alpha, v_tmp,
+		v_x0, v_y0,
+		v_x1, v_y1;
+#endif
+
+	ii = 0;
+#if defined(TARGET_X64_AVX) || defined(TARGET_X64_AVX2)
+	v_alpha = _mm256_broadcast_sd( &alpha );
+	for( ; ii<kmax-7; ii+=8)
+		{
+		v_x0  = _mm256_load_pd( &x[ii+0] );
+		v_x1  = _mm256_load_pd( &x[ii+4] );
+		v_y0  = _mm256_load_pd( &y[ii+0] );
+		v_y1  = _mm256_load_pd( &y[ii+4] );
+		v_tmp = _mm256_mul_pd( v_alpha, v_x0 );
+		v_y0  = _mm256_add_pd( v_tmp, v_y0 );
+		v_tmp = _mm256_mul_pd( v_alpha, v_x1 );
+		v_y1  = _mm256_add_pd( v_tmp, v_y1 );
+		_mm256_store_pd( &y[ii+0], v_y0 );
+		_mm256_store_pd( &y[ii+4], v_y1 );
+		}
+	for( ; ii<kmax-3; ii+=4)
+		{
+		v_x0  = _mm256_load_pd( &x[ii] );
+		v_y0  = _mm256_load_pd( &y[ii] );
+		v_tmp = _mm256_mul_pd( v_alpha, v_x0 );
+		v_y0  = _mm256_add_pd( v_tmp, v_y0 );
+		_mm256_store_pd( &y[ii], v_y0 );
+		}
+#else
+	for( ; ii<kmax-3; ii+=4)
+		{
+		y[ii+0] = y[ii+0] + alpha*x[ii+0];
+		y[ii+1] = y[ii+1] + alpha*x[ii+1];
+		y[ii+2] = y[ii+2] + alpha*x[ii+2];
+		y[ii+3] = y[ii+3] + alpha*x[ii+3];
+		}
+#endif
+	for( ; ii<kmax; ii++)
+		{
+		y[ii+0] = y[ii+0] + alpha*x[ii+0];
+		}
+
+	return;
+
+	}
 
 
 

@@ -724,7 +724,7 @@ void d_back_ric_rec_trs_tv_res(int N, int *nx, int *nu, double **hpBAbt, double 
 	dtrsv_t_lib(nux[nn], nux[nn], hpL[nn], cnl[nn], 1, hdL[nn], hux[nn], hux[nn]);
 	dgemv_t_lib(nux[nn], nx[nn+1], hpBAbt[nn], cnx[nn+1], hux[nn], 1, hb[nn], hux[nn+1]+nu[nn+1]);
 #endif
-	if(compute_pi) // TODO change pi index !!!!!!!!!!
+	if(compute_pi)
 		{
 		for(jj=0; jj<nx[nn+1]; jj++) work[pnx[nn+1]+jj] = hux[nn+1][nu[nn+1]+jj]; // copy x into aligned memory
 #ifdef BLASFEO
@@ -747,7 +747,7 @@ void d_back_ric_rec_trs_tv_res(int N, int *nx, int *nu, double **hpBAbt, double 
 		dtrsv_t_lib(nux[nn], nu[nn], hpL[nn], cnl[nn], 1, hdL[nn], hux[nn], hux[nn]);
 		dgemv_t_lib(nux[nn], nx[nn+1], hpBAbt[nn], cnx[nn+1], hux[nn], 1, hb[nn], hux[nn+1]+nu[nn+1]);
 #endif
-		if(compute_pi) // TODO change pi index !!!!!!!!!!
+		if(compute_pi)
 			{
 			for(jj=0; jj<nx[nn+1]; jj++) work[pnx[nn+1]+jj] = hux[nn+1][nu[nn+1]+jj]; // copy x into aligned memory
 #ifdef BLASFEO

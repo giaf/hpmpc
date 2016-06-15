@@ -157,6 +157,100 @@ void d_update_hessian_gradient_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb,
 
 
 
+void d_compute_dt_dlam_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **dux, double **t, double **t_inv, double **lam, double **pDCt, double **res_d, double **res_m, double **dt, double **dlam)
+	{
+	
+	// constants
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int nu0, nx0, nb0, pnb, ng0, png, cng;
+
+	double
+		*ptr_res_d, *ptr_res_m, *ptr_dux, *ptr_t, *ptr_t_inv, *ptr_dt, *ptr_lam, *ptr_dlam;
+	
+	int
+		*ptr_idxb;
+	
+	int jj, ll;
+
+	for(jj=0; jj<=N; jj++)
+		{
+
+		ptr_res_d = res_d[jj];
+		ptr_res_m = res_m[jj];
+		ptr_dux   = dux[jj];
+		ptr_t     = t[jj];
+		ptr_t_inv = t_inv[jj];
+		ptr_dt    = dt[jj];
+		ptr_lam   = lam[jj];
+		ptr_dlam  = dlam[jj];
+		ptr_idxb  = idxb[jj];
+
+		// box constraints
+		nb0 = nb[jj];
+		if(nb0>0)
+			{
+
+			pnb = (nb0+bs-1)/bs*bs;
+
+			// box constraints
+			for(ll=0; ll<nb0; ll++)
+				{
+				
+				ptr_dt[ll+0]   =   ptr_dux[ptr_idxb[ll]] - ptr_res_d[ll+0];
+				ptr_dt[ll+pnb] = - ptr_dux[ptr_idxb[ll]] + ptr_res_d[ll+pnb];
+
+				ptr_dlam[ll+0]   = - ptr_t_inv[ll+0]   * ( ptr_lam[ll+0]*ptr_dt[ll+0]     + ptr_res_m[ll+0] );
+				ptr_dlam[ll+pnb] = - ptr_t_inv[ll+pnb] * ( ptr_lam[ll+pnb]*ptr_dt[ll+pnb] + ptr_res_m[ll+pnb] );
+
+				}
+
+			ptr_res_d += 2*pnb;
+			ptr_res_m += 2*pnb;
+			ptr_t     += 2*pnb;
+			ptr_t_inv += 2*pnb;
+			ptr_dt    += 2*pnb;
+			ptr_lam   += 2*pnb;
+			ptr_dlam  += 2*pnb;
+
+			}
+
+		// general constraints
+		ng0 = ng[jj];
+		if(ng0>0)
+			{
+
+			nu0 = nu[jj];
+			nx0 = nx[jj];
+			png = (ng0+bs-1)/bs*bs;
+			cng = (ng0+ncl-1)/ncl*ncl;
+
+			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
+
+			for(ll=0; ll<ng0; ll++)
+				{
+
+				ptr_dt[ll+png] = - ptr_dt[ll];
+
+				ptr_dt[ll+0]   -= ptr_res_d[ll+0];
+				ptr_dt[ll+png] += ptr_res_d[ll+png];
+
+				ptr_dlam[ll+0]   = - ptr_t_inv[ll+0]   * ( ptr_lam[ll+0]*ptr_dt[ll+0]     + ptr_res_m[ll+0] );
+				ptr_dlam[ll+png] = - ptr_t_inv[ll+png] * ( ptr_lam[ll+png]*ptr_dt[ll+png] + ptr_res_m[ll+png] );
+
+				}
+
+			}
+
+		}		
+
+	return;
+	
+	}
+
+
+
 void d_compute_alpha_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **dux, double **t, double **t_inv, double **lam, double **pDCt, double **res_d, double **res_m, double **dt, double **dlam, double *ptr_alpha)
 	{
 	

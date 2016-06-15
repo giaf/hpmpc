@@ -57,7 +57,7 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 		cnux = (nu[ii]+nx[ii]+ncl-1)/ncl*ncl;
 		pnx = (nx[ii]+bs-1)/bs*bs;
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
-		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 5*pnx + 6*pnz + 17*pnb + 16*png;
+		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 5*pnx + 6*pnz + 18*pnb + 16*png;
 		}
 
 	int nxgM = ng[N];
@@ -126,6 +126,7 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 	double *dux[N+1];
 	double *dpi[N];
 	double *bd[N+1]; // backup diagonal of Hessian
+	double *bl[N+1]; // backup gradient
 	double *dlam[N+1];
 	double *dt[N+1];
 	double *t_inv[N+1];
@@ -200,19 +201,22 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 		{
 		q[jj] = ptr;
 		ptr += pnz[jj];
-		for(ll=0; ll<nu[jj]+nx[jj]; ll++) q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
+		for(ll=0; ll<nu[jj]+nx[jj]; ll++) 
+			q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
 		}
 
-	// diagonal of Hessian backup
+	// diagonal of Hessian and gradient backup
 	for(jj=0; jj<=N; jj++)
 		{
 		bd[jj] = ptr;
-		ptr += pnb[jj];
+		bl[jj] = ptr+pnb[jj];
+		ptr += 2*pnb[jj];
 		// backup
 		for(ll=0; ll<nb[jj]; ll++)
 			{
 			idx = idxb[jj][ll];
 			bd[jj][ll] = pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs];
+			bl[jj][ll] = q[jj][idx]; // XXX this has to come after q !!!
 			}
 		}
 
@@ -394,15 +398,11 @@ printf("\nIPM it %d\n", *kk);
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii], bd[ii], 1);
-for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nu[ii]+nx[ii], q[ii], 1);
-for(ii=0; ii<=N; ii++)
 	d_print_mat(1, pnb[ii]+png[ii], Qx[ii], 1);
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, pnb[ii]+png[ii], qx[ii], 1);
 //if(*kk==1)
-exit(1);
+//exit(1);
 #endif
 
 
@@ -416,8 +416,9 @@ exit(1);
 
 		
 #if 0
+printf("\nL\n");
 for(ii=0; ii<=N; ii++)
-	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, bs, pQ[ii], cnux[ii]);
+	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, bs, pL[ii], cnux[ii]);
 exit(1);
 #endif
 #if 0
@@ -631,7 +632,7 @@ printf("\nt\n");
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, 2*pnb[ii]+2*png[ii], t[ii], 1);
 //if(*kk==1)
-exit(1);
+//exit(1);
 #endif
 
 
@@ -766,6 +767,7 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 	double *dux[N+1];
 	double *dpi[N];
 	double *bd[N+1]; // backup diagonal of Hessian
+	double *bl[N+1]; // backup diagonal of Hessian
 	double *dlam[N+1];
 	double *dt[N+1];
 	double *t_inv[N+1];
@@ -845,12 +847,14 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 	for(jj=0; jj<=N; jj++)
 		{
 		bd[jj] = ptr;
-		ptr += pnb[jj];
+		bl[jj] = ptr+pnb[jj];
+		ptr += 2*pnb[jj];
 //		// backup
 //		for(ll=0; ll<nb[jj]; ll++)
 //			{
 //			idx = idxb[jj][ll];
 //			bd[jj][ll] = pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs];
+//			bl[jj][ll] = q[jj][idx]; // XXX this has to come after q !!!
 //			}
 		}
 
@@ -975,13 +979,11 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 	// solve the system
 	d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
 
-	// compute t & dlam & dt & alpha // TODO no need to compute alpha !!!!!
-	double alpha = 1.0;
-	d_compute_alpha_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, dux, t, t_inv, lam, pDCt, res_d, res_m, dt, dlam, &alpha);
-	alpha = 1.0;
+	// compute t & dlam & dt
+	d_compute_dt_dlam_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, dux, t, t_inv, lam, pDCt, res_d, res_m, dt, dlam);
 
 	// update x, u, lam, t & compute the duality gap mu
-	d_update_var_res_mpc_hard_tv(N, nx, nu, nb, ng, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
+	d_update_var_res_mpc_hard_tv(N, nx, nu, nb, ng, 1.0, ux, dux, t, dt, lam, dlam, pi, dpi);
 
 #else
 
