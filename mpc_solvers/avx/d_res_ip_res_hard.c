@@ -24,8 +24,8 @@
 **************************************************************************************************/
 
 
-#include "../include/blas_d.h"
-#include "../include/block_size.h"
+#include "../../include/blas_d.h"
+#include "../../include/block_size.h"
 
 
 
