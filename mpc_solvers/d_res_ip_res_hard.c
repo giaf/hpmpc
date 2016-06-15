@@ -80,9 +80,16 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 	dgemv_n_lib(nu0, nx1, hpBAbt[ii], cnx1, hpi[ii], 1, hrq[ii], hrq[ii]);
 	if(ng0>0)
 		{
+#if 0
 		// TODO work space + one dgemv call
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, -1, hrq[ii], hrq[ii]);
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, 1, hrq[ii], hrq[ii]);
+#else
+		double tmp_lam[ng0];
+		for(jj=0; jj<ng0; jj++)
+			tmp_lam[jj] = hlam[ii][jj+2*pnb+png] - hlam[ii][jj+2*pnb+0];
+		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, tmp_lam, 1, hrq[ii], hrq[ii]);
+#endif
 		}
 	
 	// res_b && res_q
@@ -151,9 +158,16 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 		dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnux0, hux[ii], 1, hrq[ii], hrq[ii]);
 		if(ng0>0)
 			{
+#if 0
 			// TODO work space + one dgemv call
 			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, -1, hrq[ii], hrq[ii]);
 			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, 1, hrq[ii], hrq[ii]);
+#else
+			double tmp_lam[ng0];
+			for(jj=0; jj<ng0; jj++)
+				tmp_lam[jj] = hlam[ii][jj+2*pnb+png] - hlam[ii][jj+2*pnb+0];
+			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, tmp_lam, 1, hrq[ii], hrq[ii]);
+#endif
 			}
 
 		// res_b && res_q
@@ -217,9 +231,16 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 	dsymv_lib(nx0+nu0%bs, nx0+nu0%bs, hpQ[ii]+nu0/bs*bs*cnux0+nu0/bs*bs*bs, cnux0, hux[ii]+nu0/bs*bs, 1, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs);
 	if(ng0>0)
 		{
+#if 0
 		// TODO work space + one dgemv call
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, -1, hrq[ii], hrq[ii]);
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, 1, hrq[ii], hrq[ii]);
+#else
+			double tmp_lam[ng0];
+			for(jj=0; jj<ng0; jj++)
+				tmp_lam[jj] = hlam[ii][jj+2*pnb+png] - hlam[ii][jj+2*pnb+0];
+			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, tmp_lam, 1, hrq[ii], hrq[ii]);
+#endif
 		}
 	
 	// res_d
@@ -259,33 +280,6 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 	// normalize mu
 	if(nb_tot!=0)
 		mu[0] /= 2.0*nb_tot;
-
-
-
-#if 1
-	// TODO change sign of residuals
-//	for(ii=0; ii<=N; ii++)
-//		for(jj=0; jj<nu[ii]+nx[ii]; jj++)
-//			hrq[ii][jj] = - hrq[ii][jj];
-//	for(ii=0; ii<N; ii++)
-//		for(jj=0; jj<nx[ii+1]; jj++)
-//			hrb[ii][jj] = - hrb[ii][jj];
-//	for(ii=0; ii<=N; ii++)
-//		{
-//		pnb = (nb[ii]+bs-1)/bs*bs;
-//		png = (ng[ii]+bs-1)/bs*bs;
-//		for(jj=0; jj<nb[ii]; jj++)
-//			{
-//			hrd[ii][jj]     = - hrd[ii][jj];
-//			hrd[ii][pnb+jj] = - hrd[ii][pnb+jj];
-//			}
-//		for(jj=0; jj<ng[ii]; jj++)
-//			{
-//			hrd[ii][2*pnb+jj]     = - hrd[ii][2*pnb+jj];
-//			hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+png+jj];
-//			}
-//		}
-#endif
 
 
 

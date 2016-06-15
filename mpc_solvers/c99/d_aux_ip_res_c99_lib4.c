@@ -384,19 +384,18 @@ void d_compute_alpha_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 
 
 
-void d_update_var_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double alpha, double **ux, double **dux, double **t, double **dt, double **lam, double **dlam, double **pi, double **dpi)
+void d_update_var_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double alpha, double **ux, double **dux, double **pi, double **dpi, double **t, double **dt, double **lam, double **dlam)
 	{
 
 	// constants
 	const int bs = D_MR;
-	const int ncl = D_NCL;
 
 	int nu0, nx0, nx1, nb0, pnb, ng0, png;
 
 	int jj, ll;
 	
 	double
-		*ptr_pi, *ptr_dpi, *ptr_ux, *ptr_dux, *ptr_t, *ptr_dt, *ptr_lam, *ptr_dlam;
+		*ptr_ux, *ptr_dux, *ptr_pi, *ptr_dpi, *ptr_t, *ptr_dt, *ptr_lam, *ptr_dlam;
 
 	for(jj=0; jj<=N; jj++)
 		{
@@ -412,59 +411,106 @@ void d_update_var_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 		else
 			nx1 = 0;
 		
-		ptr_pi   = pi[jj];
-		ptr_dpi  = dpi[jj];
-		ptr_ux   = ux[jj];
-		ptr_dux  = dux[jj];
-		ptr_t    = t[jj];
-		ptr_dt   = dt[jj];
-		ptr_lam  = lam[jj];
-		ptr_dlam = dlam[jj];
-
 		// update inputs and states
-		for(ll=0; ll<nu0+nx0-3; ll+=4)
-			{
-			ptr_ux[ll+0] += alpha*ptr_dux[ll+0];
-			ptr_ux[ll+1] += alpha*ptr_dux[ll+1];
-			ptr_ux[ll+2] += alpha*ptr_dux[ll+2];
-			ptr_ux[ll+3] += alpha*ptr_dux[ll+3];
-			}
-		for(; ll<nu0+nx0; ll++)
-			ptr_ux[ll] += alpha*ptr_dux[ll];
+		ptr_ux     = ux[jj];
+		ptr_dux    = dux[jj];
+		daxpy_lib(nu0+nx0, alpha, ptr_dux, ptr_ux);
 
 		// update equality constrained multipliers
-		for(ll=0; ll<nx1-3; ll+=4)
-			{
-			ptr_pi[ll+0] += alpha*ptr_dpi[ll+0];
-			ptr_pi[ll+1] += alpha*ptr_dpi[ll+1];
-			ptr_pi[ll+2] += alpha*ptr_dpi[ll+2];
-			ptr_pi[ll+3] += alpha*ptr_dpi[ll+3];
-			}
-		for(; ll<nx1; ll++)
-			ptr_pi[ll] += alpha*ptr_dpi[ll];
+		ptr_pi     = pi[jj];
+		ptr_dpi    = dpi[jj];
+		daxpy_lib(nx1, alpha, ptr_dpi, ptr_pi);
 
 		// box constraints
-		for(ll=0; ll<nb0; ll++)
-			{
-			ptr_lam[ll+0]   += alpha*ptr_dlam[ll+0];
-			ptr_lam[ll+pnb] += alpha*ptr_dlam[ll+pnb];
-			ptr_t[ll+0]   += alpha*ptr_dt[ll+0];
-			ptr_t[ll+pnb] += alpha*ptr_dt[ll+pnb];
-			}
+		ptr_t       = t[jj];
+		ptr_dt      = dt[jj];
+		ptr_lam     = lam[jj];
+		ptr_dlam    = dlam[jj];
+		daxpy_lib(nb0, alpha, &ptr_dlam[0], &ptr_lam[0]);
+		daxpy_lib(nb0, alpha, &ptr_dlam[pnb], &ptr_lam[pnb]);
+		daxpy_lib(nb0, alpha, &ptr_dt[0], &ptr_t[0]);
+		daxpy_lib(nb0, alpha, &ptr_dt[pnb], &ptr_t[pnb]);
 
-		ptr_t    += 2*pnb;
-		ptr_dt   += 2*pnb;
-		ptr_lam  += 2*pnb;
-		ptr_dlam += 2*pnb;
+		// general constraints
+		ptr_t       += 2*pnb;
+		ptr_dt      += 2*pnb;
+		ptr_lam     += 2*pnb;
+		ptr_dlam    += 2*pnb;
+		daxpy_lib(ng0, alpha, &ptr_dlam[0], &ptr_lam[0]);
+		daxpy_lib(ng0, alpha, &ptr_dlam[png], &ptr_lam[png]);
+		daxpy_lib(ng0, alpha, &ptr_dt[0], &ptr_t[0]);
+		daxpy_lib(ng0, alpha, &ptr_dt[png], &ptr_t[png]);
 
-		// genreal constraints
-		for(ll=0; ll<ng0; ll++)
-			{
-			ptr_lam[ll+0]   += alpha*ptr_dlam[ll+0];
-			ptr_lam[ll+png] += alpha*ptr_dlam[ll+png];
-			ptr_t[ll+0]   += alpha*ptr_dt[ll+0];
-			ptr_t[ll+png] += alpha*ptr_dt[ll+png];
-			}
+		}
+
+	return;
+	
+	}
+
+
+
+void d_backup_update_var_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double alpha, double **ux_bkp, double **ux, double **dux, double **pi_bkp, double **pi, double **dpi, double **t_bkp, double **t, double **dt, double **lam_bkp, double **lam, double **dlam)
+	{
+
+	// constants
+	const int bs = D_MR;
+
+	int nu0, nx0, nx1, nb0, pnb, ng0, png;
+
+	int jj, ll;
+	
+	double
+		*ptr_ux_bkp, *ptr_ux, *ptr_dux, *ptr_pi_bkp, *ptr_pi, *ptr_dpi, *ptr_t_bkp, *ptr_t, *ptr_dt, *ptr_lam_bkp, *ptr_lam, *ptr_dlam;
+
+	for(jj=0; jj<=N; jj++)
+		{
+
+		nx0 = nx[jj];
+		nu0 = nu[jj];
+		nb0 = nb[jj];
+		pnb = bs*((nb0+bs-1)/bs); // cache aligned number of box constraints
+		ng0 = ng[jj];
+		png = bs*((ng0+bs-1)/bs); // cache aligned number of box constraints
+		if(jj<N)
+			nx1 = nx[jj+1];
+		else
+			nx1 = 0;
+		
+		// update inputs and states
+		ptr_ux_bkp = ux_bkp[jj];
+		ptr_ux     = ux[jj];
+		ptr_dux    = dux[jj];
+		daxpy_bkp_lib(nu0+nx0, alpha, ptr_dux, ptr_ux, ptr_ux_bkp);
+
+		// update equality constrained multipliers
+		ptr_pi_bkp = pi_bkp[jj];
+		ptr_pi     = pi[jj];
+		ptr_dpi    = dpi[jj];
+		daxpy_bkp_lib(nx1, alpha, ptr_dpi, ptr_pi, ptr_pi_bkp);
+
+		// box constraints
+		ptr_t_bkp   = t_bkp[jj];
+		ptr_t       = t[jj];
+		ptr_dt      = dt[jj];
+		ptr_lam_bkp = lam_bkp[jj];
+		ptr_lam     = lam[jj];
+		ptr_dlam    = dlam[jj];
+		daxpy_bkp_lib(nb0, alpha, &ptr_dlam[0], &ptr_lam[0], &ptr_lam_bkp[0]);
+		daxpy_bkp_lib(nb0, alpha, &ptr_dlam[pnb], &ptr_lam[pnb], &ptr_lam_bkp[pnb]);
+		daxpy_bkp_lib(nb0, alpha, &ptr_dt[0], &ptr_t[0], &ptr_t_bkp[0]);
+		daxpy_bkp_lib(nb0, alpha, &ptr_dt[pnb], &ptr_t[pnb], &ptr_t_bkp[pnb]);
+
+		// general constraints
+		ptr_t_bkp   += 2*pnb;
+		ptr_t       += 2*pnb;
+		ptr_dt      += 2*pnb;
+		ptr_lam_bkp += 2*pnb;
+		ptr_lam     += 2*pnb;
+		ptr_dlam    += 2*pnb;
+		daxpy_bkp_lib(ng0, alpha, &ptr_dlam[0], &ptr_lam[0], &ptr_lam_bkp[0]);
+		daxpy_bkp_lib(ng0, alpha, &ptr_dlam[png], &ptr_lam[png], &ptr_lam_bkp[png]);
+		daxpy_bkp_lib(ng0, alpha, &ptr_dt[0], &ptr_t[0], &ptr_t_bkp[0]);
+		daxpy_bkp_lib(ng0, alpha, &ptr_dt[png], &ptr_t[png], &ptr_t_bkp[png]);
 
 		}
 

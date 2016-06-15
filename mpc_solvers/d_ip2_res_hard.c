@@ -79,9 +79,6 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
 	{
 
-	// XXX
-	int bkp_last_it = 1;
-	
 	// indeces
 	int jj, ll, ii, bs0;
 
@@ -266,33 +263,28 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 		ptr += 2*pnb[jj]+2*png[jj];
 		}
 	
-	if(bkp_last_it)
+	for(jj=0; jj<=N; jj++)
 		{
+		ux_bkp[jj] = ptr;
+		ptr += pnz[jj];
+		}
 
-		for(jj=0; jj<=N; jj++)
-			{
-			ux_bkp[jj] = ptr;
-			ptr += pnz[jj];
-			}
+	for(jj=0; jj<N; jj++)
+		{
+		pi_bkp[jj] = ptr;
+		ptr += pnx[jj+1];
+		}
 
-		for(jj=0; jj<N; jj++)
-			{
-			pi_bkp[jj] = ptr;
-			ptr += pnx[jj+1];
-			}
+	for(jj=0; jj<=N; jj++)
+		{
+		t_bkp[jj] = ptr;
+		ptr += 2*pnb[jj]+2*png[jj];
+		}
 
-		for(jj=0; jj<=N; jj++)
-			{
-			t_bkp[jj] = ptr;
-			ptr += 2*pnb[jj]+2*png[jj];
-			}
-
-		for(jj=0; jj<=N; jj++)
-			{
-			lam_bkp[jj] = ptr;
-			ptr += 2*pnb[jj]+2*png[jj];
-			}
-
+	for(jj=0; jj<=N; jj++)
+		{
+		lam_bkp[jj] = ptr;
+		ptr += 2*pnb[jj]+2*png[jj];
 		}
 
 
@@ -571,51 +563,8 @@ exit(2);
 
 
 
-		// backup the solution of the previous iteration // TODO embed in update var
-		if(bkp_last_it)
-			{
-			// bkp ux
-			for(ii=0; ii<=N; ii++)
-				for(jj=0; jj<nu[ii]+nx[ii]; jj++)
-					ux_bkp[ii][jj] = ux[ii][jj];
-			// bkp pi
-			for(ii=0; ii<N; ii++)
-				for(jj=0; jj<nx[ii+1]; jj++)
-					pi_bkp[ii][jj] = pi[ii][jj];
-			// bkp t
-			for(ii=0; ii<=N; ii++)
-				{
-				for(jj=0; jj<nb[ii]; jj++)
-					{
-					t_bkp[ii][jj] = t[ii][jj];
-					t_bkp[ii][pnb[ii]+jj] = t[ii][pnb[ii]+jj];
-					}
-				for(jj=0; jj<ng[ii]; jj++)
-					{
-					t_bkp[ii][2*pnb[ii]+jj] = t[ii][2*pnb[ii]+jj];
-					t_bkp[ii][2*pnb[ii]+png[ii]+jj] = t[ii][2*pnb[ii]+png[ii]+jj];
-					}
-				}
-			// bkp lam
-			for(ii=0; ii<=N; ii++)
-				{
-				for(jj=0; jj<nb[ii]; jj++)
-					{
-					lam_bkp[ii][jj] = lam[ii][jj];
-					lam_bkp[ii][pnb[ii]+jj] = lam[ii][pnb[ii]+jj];
-					}
-				for(jj=0; jj<ng[ii]; jj++)
-					{
-					lam_bkp[ii][2*pnb[ii]+jj] = lam[ii][2*pnb[ii]+jj];
-					lam_bkp[ii][2*pnb[ii]+png[ii]+jj] = lam[ii][2*pnb[ii]+png[ii]+jj];
-					}
-				}
-			}
-
-
-
-		// update x, u, lam, t & compute the duality gap mu
-		d_update_var_res_mpc_hard_tv(N, nx, nu, nb, ng, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
+		// backup & update x, u, pi, lam, t 
+		d_backup_update_var_res_mpc_hard_tv(N, nx, nu, nb, ng, alpha, ux_bkp, ux, dux, pi_bkp, pi, dpi, t_bkp, t, dt, lam_bkp, lam, dlam);
 
 
 #if 0
@@ -677,7 +626,7 @@ for(ii=0; ii<=N; ii++)
 	
 
 
-	// restore Hessian
+	// restore Hessian XXX and gradient
 //	for(jj=0; jj<=N; jj++)
 //		{
 //		for(ll=0; ll<nb[jj]; ll++)
@@ -697,6 +646,16 @@ for(jj=0; jj<=N; jj++)
 	d_print_mat(1, nu[jj]+nx[jj], ux[jj], 1);
 exit(2);
 #endif
+
+
+
+	// TODO if mu is nan, recover solution !!!
+//	if(mu==1.0/0.0 || mu==-1.0/0.0)
+//		{
+//		printf("\nnan!!!\n");
+//		exit(3);
+//		}
+
 
 
 //exit(2);
@@ -983,7 +942,7 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 	d_compute_dt_dlam_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, dux, t, t_inv, lam, pDCt, res_d, res_m, dt, dlam);
 
 	// update x, u, lam, t & compute the duality gap mu
-	d_update_var_res_mpc_hard_tv(N, nx, nu, nb, ng, 1.0, ux, dux, t, dt, lam, dlam, pi, dpi);
+	d_update_var_res_mpc_hard_tv(N, nx, nu, nb, ng, 1.0, ux, dux, pi, dpi, t, dt, lam, dlam);
 
 #else
 
