@@ -96,7 +96,7 @@ int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *n
 		size_ints += nb[ii];
 		}
 	ii = N;
-	size_doubles += pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii];
+	size_doubles += pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + 3*pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii];
 	size_ints += nb[ii];
 
 	int work_space_size = 64 + d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng) + size_doubles*sizeof(double) + size_ints*sizeof(int);

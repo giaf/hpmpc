@@ -64,15 +64,9 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 
 	size += pngM;
 
-	int nxgM = ng[N];
-	for(ii=0; ii<N; ii++)
-		{
-		if(nx[ii+1]+ng[ii]>nxgM) nxgM = nx[ii+1]+ng[ii];
-		}
-
-	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM; // TODO Riccati work space
-
 	size *= sizeof(double);
+
+	size += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng);
 
 	return size;
 	}
@@ -156,6 +150,10 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] );
 		}
 
+	// work space
+	work = ptr;
+	ptr += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
+
 	for(jj=0; jj<=N; jj++)
 		{
 		dL[jj] = ptr;
@@ -167,10 +165,6 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 		l[jj] = ptr;
 		ptr += pnz[jj];
 		}
-
-	// work space
-	work = ptr;
-	ptr += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
 
 	// b as vector
 	for(jj=0; jj<N; jj++)
@@ -576,6 +570,7 @@ exit(2);
 
 		// backup & update x, u, pi, lam, t 
 		d_backup_update_var_res_mpc_hard_tv(N, nx, nu, nb, ng, alpha, ux_bkp, ux, dux, pi_bkp, pi, dpi, t_bkp, t, dt, lam_bkp, lam, dlam);
+//		d_update_var_res_mpc_hard_tv(N, nx, nu, nb, ng, alpha, ux, dux, pi, dpi, t, dt, lam, dlam);
 
 
 #if 0
@@ -766,6 +761,10 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] );
 		}
 
+	// work space
+	work = ptr;
+	ptr += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
+
 	for(jj=0; jj<=N; jj++)
 		{
 		dL[jj] = ptr;
@@ -777,10 +776,6 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 		l[jj] = ptr;
 		ptr += pnz[jj];
 		}
-
-	// work space
-	work = ptr;
-	ptr += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
 
 	// b as vector
 	for(jj=0; jj<N; jj++)
