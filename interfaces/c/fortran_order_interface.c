@@ -52,7 +52,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 							double **C, double **D, double **lg, double **ug,
 							double **x, double **u, double **pi, double **lam, double **t,
 							double *inf_norm_res,
-							double *work0, 
+							void *work0, 
 							double *stat)
 
 	{
@@ -164,7 +164,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 		}
 
 	work = ptr;
-	ptr += d_ip2_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng)/sizeof(double);
+	ptr += d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng)/sizeof(double);
 
 	for(ii=0; ii<N; ii++)
 		{
@@ -378,7 +378,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 
 	// call the IP solver
-	hpmpc_status = d_ip2_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, hpBAbt, hpQ, hpDCt, hd, hux, 1, hpi, hlam, ht, work);
+	hpmpc_status = d_ip2_res_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, hpBAbt, hpQ, hpDCt, hd, hux, 1, hpi, hlam, ht, work);
 //	for(ii=0; ii<=N; ii++)
 //		d_print_mat(1, nu[ii]+nx[ii], hux[ii], 1);
 //	exit(1);
@@ -610,7 +610,7 @@ void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 		}
 
 	work = ptr;
-	ptr += d_ip2_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng)/sizeof(double);
+	ptr += d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng)/sizeof(double);
 
 	for(ii=0; ii<N; ii++)
 		{
@@ -745,7 +745,7 @@ void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 
 	// call the IP solver
 //	hpmpc_status = d_ip2_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, hpBAbt, hpQ, hpDCt, hd, hux, 1, hpi, hlam, ht, work);
-	d_kkt_solve_new_rhs_mpc_hard_tv(N, nx, nu, nb, idxb, ng, hpBAbt, hb, hpQ, hq, hpDCt, hd, tau, hux, 1, hpi, hlam, ht, work); // TODO B 
+	d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, hpBAbt, hb, hpQ, hq, hpDCt, hd, tau, hux, 1, hpi, hlam, ht, work); // TODO B 
 //	for(ii=0; ii<=N; ii++)
 //		d_print_mat(1, nu[ii]+nx[ii], hux[ii], 1);
 //	exit(1);

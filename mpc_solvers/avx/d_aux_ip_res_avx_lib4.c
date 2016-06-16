@@ -1011,7 +1011,6 @@ void d_update_var_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 
 	// constants
 	const int bs = D_MR;
-	const int ncl = D_NCL;
 
 	int nu0, nx0, nx1, nb0, pnb, ng0, png;
 
@@ -1077,7 +1076,6 @@ void d_backup_update_var_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 
 	// constants
 	const int bs = D_MR;
-	const int ncl = D_NCL;
 
 	int nu0, nx0, nx1, nb0, pnb, ng0, png;
 

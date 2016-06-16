@@ -47,12 +47,14 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 
 	int size = 0;
 	int pnzM = 0;
+	int pngM = 0;
 	for(ii=0; ii<=N; ii++)
 		{
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
 		if(pnz>pnzM) pnzM = pnz;
 		pnb = (nb[ii]+bs-1)/bs*bs;
 		png = (ng[ii]+bs-1)/bs*bs;
+		if(png>pngM) pngM = png;
 		cnx = (nx[ii]+ncl-1)/ncl*ncl;
 		cnux = (nu[ii]+nx[ii]+ncl-1)/ncl*ncl;
 		pnx = (nx[ii]+bs-1)/bs*bs;
@@ -60,13 +62,15 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 5*pnx + 6*pnz + 18*pnb + 16*png;
 		}
 
+	size += pngM;
+
 	int nxgM = ng[N];
 	for(ii=0; ii<N; ii++)
 		{
 		if(nx[ii+1]+ng[ii]>nxgM) nxgM = nx[ii+1]+ng[ii];
 		}
 
-	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
+	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM; // TODO Riccati work space
 
 	size *= sizeof(double);
 
@@ -98,12 +102,15 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 	int cnx[N+1];
 	int cnux[N+1];
 
+	int pngM = 0;
+
 	for(jj=0; jj<=N; jj++)
 		{
 		pnx[jj] = (nx[jj]+bs-1)/bs*bs;
 		pnz[jj] = (nu[jj]+nx[jj]+1+bs-1)/bs*bs;
 		pnb[jj] = (nb[jj]+bs-1)/bs*bs;
 		png[jj] = (ng[jj]+bs-1)/bs*bs;
+		if(png[jj]>pngM) pngM = png[jj];
 		cnx[jj] = (nx[jj]+ncl-1)/ncl*ncl;
 		cnux[jj] = (nu[jj]+nx[jj]+ncl-1)/ncl*ncl;
 		}
@@ -132,6 +139,7 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 	double *Qx[N+1];
 	double *qx[N+1];
 	double *Pb[N];
+	double *res_work;
 	double *res_q[N+1];
 	double *res_b[N];
 	double *res_d[N+1];
@@ -239,6 +247,9 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 		}
 	
 	// residuals
+	res_work = ptr;
+	ptr += pngM;
+
 	for(jj=0; jj<=N; jj++)
 		{
 		res_q[jj] = ptr;
@@ -352,7 +363,7 @@ exit(1);
 
 
 	// compute residuals
-	d_res_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, pBAbt, b, pQ, q, ux, pDCt, d, pi, lam, t, res_q, res_b, res_d, res_m, &mu);
+	d_res_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, pBAbt, b, pQ, q, ux, pDCt, d, pi, lam, t, res_work, res_q, res_b, res_d, res_m, &mu);
 #if 0
 	printf("\nres_q\n");
 	for(jj=0; jj<=N; jj++)
@@ -595,7 +606,7 @@ for(ii=0; ii<=N; ii++)
 				pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs] = bd[jj][ll];
 				}
 			}
-		d_res_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, pBAbt, b, pQ, q, ux, pDCt, d, pi, lam, t, res_q, res_b, res_d, res_m, &mu);
+		d_res_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, pBAbt, b, pQ, q, ux, pDCt, d, pi, lam, t, res_work, res_q, res_b, res_d, res_m, &mu);
 #if 0
 		printf("\nres_q\n");
 		for(jj=0; jj<=N; jj++)
@@ -701,12 +712,15 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 	int cnx[N+1];
 	int cnux[N+1];
 
+	int pngM = 0;
+
 	for(jj=0; jj<=N; jj++)
 		{
 		pnx[jj] = (nx[jj]+bs-1)/bs*bs;
 		pnz[jj] = (nu[jj]+nx[jj]+1+bs-1)/bs*bs;
 		pnb[jj] = (nb[jj]+bs-1)/bs*bs;
 		png[jj] = (ng[jj]+bs-1)/bs*bs;
+		if(png[jj]>pngM) pngM = png[jj];
 		cnx[jj] = (nx[jj]+ncl-1)/ncl*ncl;
 		cnux[jj] = (nu[jj]+nx[jj]+ncl-1)/ncl*ncl;
 		}
@@ -735,6 +749,7 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 	double *Qx[N+1];
 	double *qx[N+1];
 	double *Pb[N];
+	double *res_work;
 	double *res_q[N+1];
 	double *res_b[N];
 	double *res_d[N+1];
@@ -839,6 +854,9 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 		}
 	
 	// residuals
+	res_work = ptr;
+	ptr += pngM;
+
 	for(jj=0; jj<=N; jj++)
 		{
 		res_q[jj] = ptr;
@@ -930,7 +948,7 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 		}
 
 	// compute residuals
-	d_res_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, pBAbt, b, pQ, q, ux, pDCt, d, pi, lam, t, res_q, res_b, res_d, res_m, &mu);
+	d_res_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, pBAbt, b, pQ, q, ux, pDCt, d, pi, lam, t, res_work, res_q, res_b, res_d, res_m, &mu);
 
 	// update gradient
 	d_update_gradient_res_mpc_hard_tv(N, nx, nu, nb, ng, res_d, res_m, lam, t_inv, qx);

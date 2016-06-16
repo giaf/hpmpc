@@ -155,7 +155,7 @@ int main()
 
 	int ii, jj;
 	
-	int rep, nrep=NREP;
+	int rep, nrep=1000;//NREP;
 
 	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
@@ -321,8 +321,8 @@ int main()
 		}
 	for(jj=0; jj<ng_v[N]; jj++)
 		{
-		dN[2*pnb_v[N]+jj]          = - 0.0;   //   xmin
-		dN[2*pnb_v[N]+png_v[N]+jj] =   0.0;   //   xmax
+		dN[2*pnb_v[N]+jj]          = - 1.5;   //   xmin
+		dN[2*pnb_v[N]+png_v[N]+jj] =   1.5;   //   xmax
 		}
 //	d_print_mat(1, 2*pnb+2*png, d, 1);
 //	d_print_mat(1, 2*pnb_v[N]+2*png_v[N], dN, 1);
@@ -710,8 +710,8 @@ int main()
 
 	int hpmpc_status;
 	int kk, kk_avg;
-	int k_max = 20;
-	double mu_tol = 1e-10;
+	int k_max = 10;
+	double mu_tol = 1e-25;
 	double alpha_min = 1e-8;
 	int warm_start = 0; // read initial guess from x and u
 	double *stat; d_zeros(&stat, k_max, 5);
@@ -739,7 +739,7 @@ int main()
 		{
 
 //		hpmpc_status = fortran_order_d_ip_mpc_hard_tv(&kk, k_max, mu0, mu_tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, rx, ru, rpi, rlam, rt, inf_norm_res, rwork, stat);
-//		hpmpc_status = fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, mu_tol, N, nx_v, nu_v, nb_v, ng_v, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi1, hlam1, ht1, inf_norm_res, work1, stat);
+		hpmpc_status = fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, mu_tol, N, nx_v, nu_v, nb_v, ng_v, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi1, hlam1, ht1, inf_norm_res, work1, stat);
 
 		kk_avg += kk;
 
@@ -778,7 +778,7 @@ int main()
 		{
 
 //		fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(N, nx, nu, nb, ng, ngN, time_invariant, free_x0, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, 0.0, rx, ru, rpi, rlam, rt, inf_norm_res, rwork);
-//		fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(N, nx_v, nu_v, nb_v, ng_v, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, 0.0, hx, hu, hpi1, hlam1, ht1, inf_norm_res, work1);
+		fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(N, nx_v, nu_v, nb_v, ng_v, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, 0.0, hx, hu, hpi1, hlam1, ht1, inf_norm_res, work1);
 
 		kk_avg += kk;
 
@@ -871,7 +871,7 @@ int main()
 		for(jj=0; jj<nu_v[ii]+nx_v[ii]; jj++) hux[ii][jj] = 0.0;
 
 	// modify constraints
-#if 1
+#if 0
 	for(jj=0; jj<nbx; jj++)
 		{
 		dN[jj]          = - 4.0;   //   xmin
