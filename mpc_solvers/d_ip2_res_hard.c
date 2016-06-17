@@ -413,9 +413,12 @@ for(ii=0; ii<=N; ii++)
 
 		
 #if 0
-printf("\nL\n");
+printf("\npL\n");
 for(ii=0; ii<=N; ii++)
 	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, bs, pL[ii], cnux[ii]);
+printf("\ndL\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu[ii]+nx[ii], dL[ii], 1);
 exit(1);
 #endif
 #if 0

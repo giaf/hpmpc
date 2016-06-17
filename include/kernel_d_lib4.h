@@ -139,11 +139,11 @@ void kernel_dtrsv_t_4_lib4(int kmax, int inverted_diag, double *A, int sda, doub
 void kernel_dtrsv_t_3_lib4(int kmax, int inverted_diag, double *A, int sda, double *x);
 void kernel_dtrsv_t_2_lib4(int kmax, int inverted_diag, double *A, int sda, double *x);
 void kernel_dtrsv_t_1_lib4(int kmax, int inverted_diag, double *A, int sda, double *x);
-void kernel_dsymv_6_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg);
-void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg);
-void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg);
-void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg);
-void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg);
+void kernel_dsymv_6_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg_n, int alg_t);
+void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int al_n, int alg_tg);
+void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int al_n, int alg_tg);
+void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int al_n, int alg_tg);
+void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int al_n, int alg_tg);
 void kernel_dgetr_8_lib4(int tri, int kmax, int kna, double *A, int sda, double *C, int sdc);
 void kernel_dgetr_4_lib4(int tri, int kmax, int kna, double *A, double *C, int sdc);
 void kernel_dgetr_3_lib4(int tri, int kmax, int kna, double *A, double *C, int sdc);

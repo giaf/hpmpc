@@ -25,7 +25,7 @@
 
 
 
-void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg)
+void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg_n, int alg_t)
 	{
 	
 	if(kmax<=0) 
@@ -40,14 +40,14 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		x_n_0, x_n_1, x_n_2, x_n_3, y_n_0,
 		x_t_0, y_t_0, y_t_1, y_t_2, y_t_3;
 	
-	if(alg==1)
+	if(alg_n==1)
 		{
 		x_n_0 = x_n[0];
 		x_n_1 = x_n[1];
 		x_n_2 = x_n[2];
 		x_n_3 = x_n[3];
 		}
-	else // alg==-1
+	else // alg_n==-1
 		{
 		x_n_0 = - x_n[0];
 		x_n_1 = - x_n[1];
@@ -335,14 +335,14 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		
 		}
 
-	if(alg==1)
+	if(alg_t==1)
 		{
 		z_t[0] = y_t[0] + y_t_0;
 		z_t[1] = y_t[1] + y_t_1;
 		z_t[2] = y_t[2] + y_t_2;
 		z_t[3] = y_t[3] + y_t_3;
 		}
-	else // alg==-1
+	else // alg_t==-1
 		{
 		z_t[0] = y_t[0] - y_t_0;
 		z_t[1] = y_t[1] - y_t_1;
@@ -354,7 +354,7 @@ void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 	
 	
 
-void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg)
+void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg_n, int alg_t)
 	{
 	
 	if(kmax<=0) 
@@ -369,13 +369,13 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		x_n_0, x_n_1, x_n_2, y_n_0,
 		x_t_0, y_t_0, y_t_1, y_t_2;
 	
-	if(alg==1)
+	if(alg_n==1)
 		{
 		x_n_0 = x_n[0];
 		x_n_1 = x_n[1];
 		x_n_2 = x_n[2];
 		}
-	else // alg==-1
+	else // alg_n==-1
 		{
 		x_n_0 = - x_n[0];
 		x_n_1 = - x_n[1];
@@ -571,13 +571,13 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 
 	STORE_3:
 
-	if(alg==1)
+	if(alg_t==1)
 		{
 		z_t[0] = y_t[0] + y_t_0;
 		z_t[1] = y_t[1] + y_t_1;
 		z_t[2] = y_t[2] + y_t_2;
 		}
-	else // alg==-1
+	else // alg_t==-1
 		{
 		z_t[0] = y_t[0] - y_t_0;
 		z_t[1] = y_t[1] - y_t_1;
@@ -588,7 +588,7 @@ void kernel_dsymv_3_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 	
 	
 	
-void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg)
+void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg_n, int alg_t)
 	{
 	
 	if(kmax<=0) 
@@ -603,12 +603,12 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		x_n_0, x_n_1, y_n_0,
 		x_t_0, y_t_0, y_t_1;
 	
-	if(alg==1)
+	if(alg_n==1)
 		{
 		x_n_0 = x_n[0];
 		x_n_1 = x_n[1];
 		}
-	else // alg==-1
+	else // alg_n==-1
 		{
 		x_n_0 = - x_n[0];
 		x_n_1 = - x_n[1];
@@ -784,12 +784,12 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 	
 	STORE_2:
 
-	if(alg==1)
+	if(alg_t==1)
 		{
 		z_t[0] = y_t[0] + y_t_0;
 		z_t[1] = y_t[1] + y_t_1;
 		}
-	else // alg==-1
+	else // alg_t==-1
 		{
 		z_t[0] = y_t[0] - y_t_0;
 		z_t[1] = y_t[1] - y_t_1;
@@ -799,7 +799,7 @@ void kernel_dsymv_2_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 	
 	
 	
-void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg)
+void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg_n, int alg_t)
 	{
 	
 	if(kmax<=0) 
@@ -814,11 +814,11 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		x_n_0, y_n_0,
 		x_t_0, y_t_0;
 	
-	if(alg==1)
+	if(alg_n==1)
 		{
 		x_n_0 = x_n[0];
 		}
-	else // alg==-1
+	else // alg_n==-1
 		{
 		x_n_0 = - x_n[0];
 		}
@@ -969,11 +969,11 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 
 	STORE_1:
 
-	if(alg==1)
+	if(alg_t==1)
 		{
 		z_t[0] = y_t[0] + y_t_0;
 		}
-	else // alg==-1
+	else // alg_t==-1
 		{
 		z_t[0] = y_t[0] - y_t_0;
 		}

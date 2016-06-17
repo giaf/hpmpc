@@ -167,7 +167,7 @@ void d_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, do
 
 		for(jj=0; jj<nx1; jj++) 
 			hrb[ii][jj] = hux[ii+1][nu1+jj] - hb[ii][jj];
-		dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii], hux[ii], -1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+		dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii], hux[ii], -1, -1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
 
 		}
 	

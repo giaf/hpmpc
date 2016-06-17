@@ -155,23 +155,17 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 		for(jj=0; jj<nb0; jj++) 
 			hrq[ii][idxb[ii][jj]] += - hlam[ii][jj] + hlam[ii][pnb+jj];
 		dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnux0, hux[ii], 1, hrq[ii], hrq[ii]);
-		if(ng0>0)
-			{
-#if 0
-			// TODO work space + one dgemv call
-			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, -1, hrq[ii], hrq[ii]);
-			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, 1, hrq[ii], hrq[ii]);
-#else
-			for(jj=0; jj<ng0; jj++)
-				work[jj] = hlam[ii][jj+2*pnb+png] - hlam[ii][jj+2*pnb+0];
-			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, work, 1, hrq[ii], hrq[ii]);
-#endif
-			}
+//		if(ng0>0)
+//			{
+//			for(jj=0; jj<ng0; jj++)
+//				work[jj] = hlam[ii][jj+2*pnb+png] - hlam[ii][jj+2*pnb+0];
+//			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, work, 1, hrq[ii], hrq[ii]);
+//			}
 
 		// res_b && res_q
 		for(jj=0; jj<nx1; jj++) 
 			hrb[ii][jj] = hb[ii][jj] - hux[ii+1][nu1+jj];
-		dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii], hux[ii], 1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+		dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii], hux[ii], 1, 1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
 
 		// res_d
 		for(jj=0; jj<nb0; jj++)
@@ -181,7 +175,14 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 			}
 		if(ng0>0)
 			{
+			for(jj=0; jj<ng0; jj++)
+				work[jj] = hlam[ii][jj+2*pnb+png] - hlam[ii][jj+2*pnb+0];
+#if 1
+			dgemv_nt_lib(nu0+nx0, ng0, hpDCt[ii], cng, work, hux[ii], 1, 0, hrq[ii], hrd[ii]+2*pnb, hrq[ii], hrd[ii]+2*pnb);
+#else
+			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, work, 1, hrq[ii], hrq[ii]);
 			dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], 0, hrd[ii]+2*pnb, hrd[ii]+2*pnb); // TODO merge with the one in hrq !!!!!
+#endif
 			for(jj=0; jj<ng0; jj++)
 				{
 				hrd[ii][2*pnb+jj] = - hrd[ii][2*pnb+jj];

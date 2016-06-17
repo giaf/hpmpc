@@ -5105,27 +5105,27 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y,
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	for(; j<n-11; j+=12)
 		{
-		kernel_dsymv_6_lib4(m-j, pA+j*sda+j*bs, sda, x+j, z+j, z+j, x+j, z+j, z+j, 1, alg);
-		kernel_dsymv_6_lib4(m-(j+6), pA+2+(j+4)*sda+(j+6)*bs, sda, x+(j+6), z+(j+6), z+(j+6), x+(j+6), z+(j+6), z+(j+6), 2, alg);
+		kernel_dsymv_6_lib4(m-j, pA+j*sda+j*bs, sda, x+j, z+j, z+j, x+j, z+j, z+j, 1, alg, alg);
+		kernel_dsymv_6_lib4(m-(j+6), pA+2+(j+4)*sda+(j+6)*bs, sda, x+(j+6), z+(j+6), z+(j+6), x+(j+6), z+(j+6), z+(j+6), 2, alg, alg);
 		}
 #endif
 	for(; j<n-3; j+=4)
 		{
-		kernel_dsymv_4_lib4(m-j, pA+j*sda+j*bs, sda, x+j, z+j, z+j, x+j, z+j, z+j, 1, alg);
+		kernel_dsymv_4_lib4(m-j, pA+j*sda+j*bs, sda, x+j, z+j, z+j, x+j, z+j, z+j, 1, alg, alg);
 		}
 	if(j<n)
 		{
 		if(n-j==1)
 			{
-			kernel_dsymv_1_lib4(m-j, pA+j*sda+j*bs, sda, x+j, z+j, z+j, x+j, z+j, z+j, 1, alg);
+			kernel_dsymv_1_lib4(m-j, pA+j*sda+j*bs, sda, x+j, z+j, z+j, x+j, z+j, z+j, 1, alg, alg);
 			}
 		else if(n-j==2)
 			{
-			kernel_dsymv_2_lib4(m-j, pA+j*sda+j*bs, sda, x+j, z+j, z+j, x+j, z+j, z+j, 1, alg);
+			kernel_dsymv_2_lib4(m-j, pA+j*sda+j*bs, sda, x+j, z+j, z+j, x+j, z+j, z+j, 1, alg, alg);
 			}
 		else // if(n-j==3)
 			{
-			kernel_dsymv_3_lib4(m-j, pA+j*sda+j*bs, sda, x+j, z+j, z+j, x+j, z+j, z+j, 1, alg);
+			kernel_dsymv_3_lib4(m-j, pA+j*sda+j*bs, sda, x+j, z+j, z+j, x+j, z+j, z+j, 1, alg, alg);
 			}
 		}
 
@@ -5134,7 +5134,7 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y,
 
 
 // it moves vertically across block
-void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, int alg, double *y_n, double *y_t, double *z_n, double *z_t)
+void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, int alg_n, int alg_t, double *y_n, double *y_t, double *z_n, double *z_t)
 	{
 
 	if(m<=0 || n<=0)
@@ -5146,19 +5146,27 @@ void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, i
 
 	int j;
 	
-	if(alg==0)
+	if(alg_n==0)
 		{
 		for(j=0; j<m; j++)
 			z_n[j] = 0.0;
-		for(j=0; j<n; j++)
-			z_t[j] = 0.0; // TODO the t part can work as in dgemv_t, i.e. move this in the kernel !!!!!
-		alg = 1;
+		alg_n = 1;
 		}
 	else
 		{
 		if(y_n!=z_n)
 			for(j=0; j<m; j++)
 				z_n[j] = y_n[j];
+		}
+
+	if(alg_t==0)
+		{
+		for(j=0; j<n; j++)
+			z_t[j] = 0.0; // TODO the t part can work as in dgemv_t, i.e. move this in the kernel !!!!!
+		alg_t = 1;
+		}
+	else
+		{
 		if(y_t!=z_t)
 			for(j=0; j<n; j++)
 				z_t[j] = y_t[j]; // TODO the t part can work as in dgemv_t, i.e. move this in the kernel !!!!!
@@ -5168,20 +5176,20 @@ void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, i
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	for(; j<n-5; j+=6)
 		{
-		kernel_dsymv_6_lib4(m, pA+j*bs, sda, x_n+j, z_n, z_n, x_t, z_t+j, z_t+j, 0, alg);
+		kernel_dsymv_6_lib4(m, pA+j*bs, sda, x_n+j, z_n, z_n, x_t, z_t+j, z_t+j, 0, alg_n, alg_t);
 		}
 #endif
 	for(; j<n-3; j+=4)
 		{
-		kernel_dsymv_4_lib4(m, pA+j*bs, sda, x_n+j, z_n, z_n, x_t, z_t+j, z_t+j, 0, alg);
+		kernel_dsymv_4_lib4(m, pA+j*bs, sda, x_n+j, z_n, z_n, x_t, z_t+j, z_t+j, 0, alg_n, alg_t);
 		}
 	for(; j<n-1; j+=2)
 		{
-		kernel_dsymv_2_lib4(m, pA+j*bs, sda, x_n+j, z_n, z_n, x_t, z_t+j, z_t+j, 0, alg);
+		kernel_dsymv_2_lib4(m, pA+j*bs, sda, x_n+j, z_n, z_n, x_t, z_t+j, z_t+j, 0, alg_n, alg_t);
 		}
 	for(; j<n; j++)
 		{
-		kernel_dsymv_1_lib4(m, pA+j*bs, sda, x_n+j, z_n, z_n, x_t, z_t+j, z_t+j, 0, alg);
+		kernel_dsymv_1_lib4(m, pA+j*bs, sda, x_n+j, z_n, z_n, x_t, z_t+j, z_t+j, 0, alg_n, alg_t);
 		}
 
 	}

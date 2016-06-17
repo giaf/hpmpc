@@ -115,7 +115,7 @@ void d_res_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, in
 			hrq[ii][idxb[ii][nu0+jj]] += hlam[ii][2*pnb+2*png+0*pns+jj] - hlam[ii][2*pnb+2*png+1*pns+jj];
 		for(jj=0; jj<nx1; jj++) 
 			hrb[ii][jj] = hux[ii+1][nu1+jj] - hpBAbt[ii][(nu0+nx0)/bs*bs*cnx1+(nu0+nx0)%bs+bs*jj];
-		dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii+1], hux[ii], -1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+		dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii+1], hux[ii], -1, -1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
 
 		for(jj=0; jj<ns0; jj++) 
 			{ 

@@ -40,7 +40,7 @@ void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, int alg, double *
 void dtrmv_u_n_lib(int m, double *pA, int sda, double *x, int alg, double *y);
 void dtrmv_u_t_lib(int m, double *pA, int sda, double *x, int alg, double *y);
 void dsymv_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y, double *z);
-void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, int alg, double *y_n, double *y_t, double *z_n, double *z_t);
+void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, int alg_n, int alg_t, double *y_n, double *y_t, double *z_n, double *z_t);
 void dtrsv_n_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y);
 void dtrsv_t_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y);
 void dgecp_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
