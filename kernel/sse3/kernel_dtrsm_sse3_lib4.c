@@ -3502,8 +3502,8 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4_new(int kadd, double *Ap, double *Bp, int ks
 		"                                \n\t"
 		"                                \n\t"
 		"                                \n\t"
-		"cmpl      $4,  %%edx            \n\t"
-		"jl      .END1_1                   \n\t"
+//		"cmpl      $4,  %%edx            \n\t"
+//		"jl      .END1_1                   \n\t"
 		"                                \n\t"
 		"movddup 24(%%rax), %%xmm0       \n\t" // load E[3+bs*0]
 		"movddup 56(%%rax), %%xmm1       \n\t" // load E[3+bs*1]
@@ -3516,7 +3516,7 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4_new(int kadd, double *Ap, double *Bp, int ks
 		"subpd   %%xmm0, %%xmm10         \n\t"
 		"subpd   %%xmm4, %%xmm14         \n\t"
 		"                                \n\t"
-		"cmpl      $4,  %%ecx            \n\t"
+//		"cmpl      $4,  %%ecx            \n\t"
 		"                                \n\t"
 		"movaps  %%xmm1,  %%xmm4         \n\t"
 		"mulpd   %%xmm8, %%xmm1          \n\t"
@@ -3561,10 +3561,10 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4_new(int kadd, double *Ap, double *Bp, int ks
 		"                                \n\t"
 		"                                \n\t"
 		"movddup 8(%%rax), %%xmm0        \n\t" // load E[1+bs*0]
-		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
-		"divsd   %%xmm0, %%xmm5          \n\t" // 1.0/a_00
 		"movddup 40(%%rax), %%xmm1       \n\t" // load E[1+bs*1]
-		"movddup %%xmm5, %%xmm0          \n\t" 
+		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
+		"divsd   %%xmm1, %%xmm5          \n\t" // 1.0/a_11
+		"movddup %%xmm5, %%xmm1          \n\t" 
 		"                                \n\t"
 		"movaps  %%xmm0,  %%xmm4         \n\t"
 		"mulpd   %%xmm9, %%xmm0          \n\t"
@@ -3581,11 +3581,11 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4_new(int kadd, double *Ap, double *Bp, int ks
 		"                                \n\t"
 		"                                \n\t"
 		"movddup 16(%%rax), %%xmm0       \n\t" // load E[2+bs*0]
-		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
-		"divsd   %%xmm0, %%xmm5          \n\t" // 1.0/a_00
 		"movddup 48(%%rax), %%xmm1       \n\t" // load E[2+bs*1]
 		"movddup 80(%%rax), %%xmm2       \n\t" // load E[2+bs*2]
-		"movddup %%xmm5, %%xmm0          \n\t" 
+		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
+		"divsd   %%xmm2, %%xmm5          \n\t" // 1.0/a_22
+		"movddup %%xmm5, %%xmm2          \n\t" 
 		"                                \n\t"
 		"movaps  %%xmm0,  %%xmm4         \n\t"
 		"mulpd   %%xmm9, %%xmm0          \n\t"
@@ -3611,12 +3611,12 @@ void kernel_dgemm_dtrsm_nt_4x4_lib4_new(int kadd, double *Ap, double *Bp, int ks
 		"jl      .END1_1                   \n\t"
 		"                                \n\t"
 		"movddup 24(%%rax), %%xmm0       \n\t" // load E[3+bs*0]
-		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
-		"divsd   %%xmm0, %%xmm5          \n\t" // 1.0/a_00
 		"movddup 56(%%rax), %%xmm1       \n\t" // load E[3+bs*1]
 		"movddup 88(%%rax), %%xmm2       \n\t" // load E[3+bs*2]
 		"movddup 120(%%rax), %%xmm3       \n\t" // load E[3+bs*3]
-		"movddup %%xmm5, %%xmm0          \n\t" 
+		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
+		"divsd   %%xmm3, %%xmm5          \n\t" // 1.0/e_33
+		"movddup %%xmm5, %%xmm3          \n\t" 
 		"                                \n\t"
 		"movaps  %%xmm0,  %%xmm4         \n\t"
 		"mulpd   %%xmm9, %%xmm0          \n\t"
@@ -4504,10 +4504,10 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		"                                \n\t"
 		"                                \n\t"
 		"movddup 8(%%rax), %%xmm0        \n\t" // load E[1+bs*0]
-		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
-		"divsd   %%xmm0, %%xmm5          \n\t" // 1.0/a_00
 		"movddup 40(%%rax), %%xmm1       \n\t" // load E[1+bs*1]
-		"movddup %%xmm5, %%xmm0          \n\t" 
+		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
+		"divsd   %%xmm1, %%xmm5          \n\t" // 1.0/a_11
+		"movddup %%xmm5, %%xmm1          \n\t" 
 		"                                \n\t"
 		"movaps  %%xmm0,  %%xmm4         \n\t"
 		"mulpd   %%xmm9, %%xmm0          \n\t"
@@ -4529,11 +4529,11 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		"                                \n\t"
 		"                                \n\t"
 		"movddup 16(%%rax), %%xmm0       \n\t" // load E[2+bs*0]
-		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
-		"divsd   %%xmm0, %%xmm5          \n\t" // 1.0/a_00
 		"movddup 48(%%rax), %%xmm1       \n\t" // load E[2+bs*1]
 		"movddup 80(%%rax), %%xmm2       \n\t" // load E[2+bs*2]
-		"movddup %%xmm5, %%xmm0          \n\t" 
+		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
+		"divsd   %%xmm2, %%xmm5          \n\t" // 1.0/a_22
+		"movddup %%xmm5, %%xmm2          \n\t" 
 		"                                \n\t"
 		"movaps  %%xmm0,  %%xmm4         \n\t"
 		"mulpd   %%xmm9, %%xmm0          \n\t"
@@ -4564,12 +4564,12 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A, 
 		"jl      .END1_0                   \n\t"
 		"                                \n\t"
 		"movddup 24(%%rax), %%xmm0       \n\t" // load E[3+bs*0]
-		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
-		"divsd   %%xmm0, %%xmm5          \n\t" // 1.0/a_00
 		"movddup 56(%%rax), %%xmm1       \n\t" // load E[3+bs*1]
 		"movddup 88(%%rax), %%xmm2       \n\t" // load E[3+bs*2]
 		"movddup 120(%%rax), %%xmm3       \n\t" // load E[3+bs*3]
-		"movddup %%xmm5, %%xmm0          \n\t" 
+		"movsd   %%xmm6, %%xmm5          \n\t" // 1.0
+		"divsd   %%xmm3, %%xmm5          \n\t" // 1.0/a_33
+		"movddup %%xmm5, %%xmm3          \n\t" 
 		"                                \n\t"
 		"movaps  %%xmm0,  %%xmm4         \n\t"
 		"mulpd   %%xmm9, %%xmm0          \n\t"

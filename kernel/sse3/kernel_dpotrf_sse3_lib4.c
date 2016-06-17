@@ -1735,7 +1735,7 @@ void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4_new(int km, int kn, int kadd, int tri_A,
 		"movaps	 %%xmm9,  (%%rbx)        \n\t"
 		"jge    .STORE_0_4_0               \n\t"
 		"movsd	 %%xmm13, 16(%%rbx)      \n\t"
-		"jmp    .STORE_0_4_END           \n\t"
+		"jmp    .STORE_0_4_END_0         \n\t"
 		".STORE_0_4_0:                     \n\t"
 		"movaps	 %%xmm13, 16(%%rbx)      \n\t"
 		".STORE_0_4_END_0:                 \n\t"
