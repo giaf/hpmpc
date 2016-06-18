@@ -62,7 +62,7 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 5*pnx + 6*pnz + 18*pnb + 16*png;
 		}
 
-	size += pngM;
+	size += 2*pngM;
 
 	size *= sizeof(double);
 
@@ -242,7 +242,7 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 	
 	// residuals
 	res_work = ptr;
-	ptr += pngM;
+	ptr += 2*pngM;
 
 	for(jj=0; jj<=N; jj++)
 		{
@@ -853,7 +853,7 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 	
 	// residuals
 	res_work = ptr;
-	ptr += pngM;
+	ptr += 2*pngM;
 
 	for(jj=0; jj<=N; jj++)
 		{
