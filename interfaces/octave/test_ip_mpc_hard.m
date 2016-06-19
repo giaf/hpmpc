@@ -148,7 +148,7 @@ end
 % initial guess for states and inputs
 x = zeros(nx, N+1); x(:,1) = x0; % initial condition
 u = zeros(nu, N);
-mult_pi = zeros(nx,N+1);
+mult_pi = zeros(nx,N);
 mult_lam = zeros(2*(nb+ng)*N+2*(nb+ngN),1);
 mult_t = zeros(2*(nb+ng)*N+2*(nb+ngN),1);
 
