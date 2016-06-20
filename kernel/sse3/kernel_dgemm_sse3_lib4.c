@@ -23,21 +23,305 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+//#define TARGET_AMD_K10
+//#define TARGET_AMD_BULLDOZER
+
 #include <mmintrin.h>
 #include <xmmintrin.h>  // SSE
 #include <emmintrin.h>  // SSE2
 #include <pmmintrin.h>  // SSE3
-/*#include <smmintrin.h>  // SSE4*/
-//#include <immintrin.h>  // AVX
+#if defined(TARGET_AMD_BULLDOZER)
+#include <smmintrin.h>  // SSE4
+#include <immintrin.h>  // AVX
+#endif
 
-
-//#define TARGET_AMD_K10
 
 // normal-transposed, 4x4 with data packed in 4
 void kernel_dgemm_nt_4x4_lib4(int kmax, double *A, double *B, double *C, double *D, int alg, int tc, int td)
 	{
 
-#if defined(TARGET_AMD_K10)
+#if defined(TARGET_AMD_BULLDOZER)
+
+	const int ldc = 4;
+
+	int k;
+	
+	__m128d
+		d_0, d_1, d_2, d_3,
+		d_4, d_5, d_6, d_7,
+		a_0, a_2,
+		b_0, b_1;
+	
+	d_0 = _mm_setzero_pd();
+	d_1 = _mm_setzero_pd();
+	d_2 = _mm_setzero_pd();
+	d_3 = _mm_setzero_pd();
+	d_4 = _mm_setzero_pd();
+	d_5 = _mm_setzero_pd();
+	d_6 = _mm_setzero_pd();
+	d_7 = _mm_setzero_pd();
+	
+	k = 0;
+	for(; k<kmax-3; k+=4)
+		{
+
+		a_0 = _mm_load_pd(&A[0]);
+		a_2 = _mm_load_pd(&A[2]);
+		
+		b_0 = _mm_loaddup_pd(&B[0]);
+		d_0 = _mm_fmadd_pd( a_0, b_0, d_0 );
+		d_4 = _mm_fmadd_pd( a_2, b_0, d_4 );
+
+		b_0 = _mm_loaddup_pd(&B[1]);
+		d_1 = _mm_fmadd_pd( a_0, b_0, d_1 );
+		d_5 = _mm_fmadd_pd( a_2, b_0, d_5 );
+
+		b_0 = _mm_loaddup_pd(&B[2]);
+		d_2 = _mm_fmadd_pd( a_0, b_0, d_2 );
+		d_6 = _mm_fmadd_pd( a_2, b_0, d_6 );
+
+		b_0 = _mm_loaddup_pd(&B[3]);
+		d_3 = _mm_fmadd_pd( a_0, b_0, d_3 );
+		d_7 = _mm_fmadd_pd( a_2, b_0, d_7 );
+
+
+
+		a_0 = _mm_load_pd(&A[4]);
+		a_2 = _mm_load_pd(&A[6]);
+		
+		b_0 = _mm_loaddup_pd(&B[4]);
+		d_0 = _mm_fmadd_pd( a_0, b_0, d_0 );
+		d_4 = _mm_fmadd_pd( a_2, b_0, d_4 );
+
+		b_0 = _mm_loaddup_pd(&B[5]);
+		d_1 = _mm_fmadd_pd( a_0, b_0, d_1 );
+		d_5 = _mm_fmadd_pd( a_2, b_0, d_5 );
+
+		b_0 = _mm_loaddup_pd(&B[6]);
+		d_2 = _mm_fmadd_pd( a_0, b_0, d_2 );
+		d_6 = _mm_fmadd_pd( a_2, b_0, d_6 );
+
+		b_0 = _mm_loaddup_pd(&B[7]);
+		d_3 = _mm_fmadd_pd( a_0, b_0, d_3 );
+		d_7 = _mm_fmadd_pd( a_2, b_0, d_7 );
+
+
+
+		a_0 = _mm_load_pd(&A[8]);
+		a_2 = _mm_load_pd(&A[10]);
+		
+		b_0 = _mm_loaddup_pd(&B[8]);
+		d_0 = _mm_fmadd_pd( a_0, b_0, d_0 );
+		d_4 = _mm_fmadd_pd( a_2, b_0, d_4 );
+
+		b_0 = _mm_loaddup_pd(&B[9]);
+		d_1 = _mm_fmadd_pd( a_0, b_0, d_1 );
+		d_5 = _mm_fmadd_pd( a_2, b_0, d_5 );
+
+		b_0 = _mm_loaddup_pd(&B[10]);
+		d_2 = _mm_fmadd_pd( a_0, b_0, d_2 );
+		d_6 = _mm_fmadd_pd( a_2, b_0, d_6 );
+
+		b_0 = _mm_loaddup_pd(&B[11]);
+		d_3 = _mm_fmadd_pd( a_0, b_0, d_3 );
+		d_7 = _mm_fmadd_pd( a_2, b_0, d_7 );
+
+
+
+		a_0 = _mm_load_pd(&A[12]);
+		a_2 = _mm_load_pd(&A[14]);
+		
+		b_0 = _mm_loaddup_pd(&B[12]);
+		d_0 = _mm_fmadd_pd( a_0, b_0, d_0 );
+		d_4 = _mm_fmadd_pd( a_2, b_0, d_4 );
+
+		b_0 = _mm_loaddup_pd(&B[13]);
+		d_1 = _mm_fmadd_pd( a_0, b_0, d_1 );
+		d_5 = _mm_fmadd_pd( a_2, b_0, d_5 );
+
+		b_0 = _mm_loaddup_pd(&B[14]);
+		d_2 = _mm_fmadd_pd( a_0, b_0, d_2 );
+		d_6 = _mm_fmadd_pd( a_2, b_0, d_6 );
+
+		b_0 = _mm_loaddup_pd(&B[15]);
+		d_3 = _mm_fmadd_pd( a_0, b_0, d_3 );
+		d_7 = _mm_fmadd_pd( a_2, b_0, d_7 );
+
+
+		
+		A += 16;
+		B += 16;
+
+		}
+	
+	for(; k<kmax; k++)
+		{
+
+		a_0 = _mm_load_pd(&A[0]);
+		a_2 = _mm_load_pd(&A[2]);
+		
+		b_0 = _mm_loaddup_pd(&B[0]);
+		d_0 = _mm_fmadd_pd( a_0, b_0, d_0 );
+		d_4 = _mm_fmadd_pd( a_2, b_0, d_4 );
+
+		b_0 = _mm_loaddup_pd(&B[1]);
+		d_1 = _mm_fmadd_pd( a_0, b_0, d_1 );
+		d_5 = _mm_fmadd_pd( a_2, b_0, d_5 );
+
+		b_0 = _mm_loaddup_pd(&B[2]);
+		d_2 = _mm_fmadd_pd( a_0, b_0, d_2 );
+		d_6 = _mm_fmadd_pd( a_2, b_0, d_6 );
+
+		b_0 = _mm_loaddup_pd(&B[3]);
+		d_3 = _mm_fmadd_pd( a_0, b_0, d_3 );
+		d_7 = _mm_fmadd_pd( a_2, b_0, d_7 );
+
+
+		A += 4;
+		B += 4;
+
+		}
+
+	if(alg==0) // D = A * B' , there is no tc
+		{
+		if(td==0)
+			{
+
+			goto store_n;
+			}
+		else
+			{
+
+			goto store_t;
+			}
+		}
+#if 0
+	else
+		{
+		if(tc==0) // C
+			{
+			c_0 = _mm_shuffle_pd( c_00_11, c_01_10, 0x2 );
+			c_1 = _mm_shuffle_pd( c_01_10, c_00_11, 0x2 );
+			c_2 = _mm_shuffle_pd( c_20_31, c_21_30, 0x2 );
+			c_3 = _mm_shuffle_pd( c_21_30, c_20_31, 0x2 );
+
+			d_0 = _mm_load_pd( &C[0+ldc*0] );
+			d_2 = _mm_load_pd( &C[2+ldc*0] );
+			d_1 = _mm_load_pd( &C[0+ldc*1] );
+			d_3 = _mm_load_pd( &C[2+ldc*1] );
+		
+			if(alg==1) // AB = A * B'
+				{
+				d_0 = _mm_add_pd( d_0, c_0 ); 
+				d_1 = _mm_add_pd( d_1, c_1 ); 
+				d_2 = _mm_add_pd( d_2, c_2 ); 
+				d_3 = _mm_add_pd( d_3, c_3 );
+				}
+			else // AB = - A * B'
+				{
+				d_0 = _mm_sub_pd( d_0, c_0 ); 
+				d_1 = _mm_sub_pd( d_1, c_1 ); 
+				d_2 = _mm_sub_pd( d_2, c_2 ); 
+				d_3 = _mm_sub_pd( d_3, c_3 ); 
+				}
+
+			if(td==0) // AB + C
+				{
+				goto store_n;
+				}
+			else // t(AB + C)
+				{
+				t_0 = d_0;
+				d_0 = _mm_unpacklo_pd( d_0, d_1 );
+				d_1 = _mm_unpackhi_pd( t_0, d_1 );
+				t_0 = d_2;
+				d_2 = _mm_unpacklo_pd( d_2, d_3 );
+				d_3 = _mm_unpackhi_pd( t_0, d_3 );
+
+				goto store_t;
+				}
+			}
+		else // t(C)
+			{
+			c_0 = _mm_unpacklo_pd( c_00_11, c_01_10 );
+			c_1 = _mm_unpackhi_pd( c_01_10, c_00_11 );
+			c_2 = _mm_unpacklo_pd( c_20_31, c_21_30 );
+			c_3 = _mm_unpackhi_pd( c_21_30, c_20_31 );
+
+			d_0 = _mm_load_pd( &C[0+ldc*0] );
+			d_1 = _mm_load_pd( &C[0+ldc*1] );
+			d_2 = _mm_load_pd( &C[0+ldc*2] );
+			d_3 = _mm_load_pd( &C[0+ldc*3] );
+
+			if(alg==1) // AB = A * B'
+				{
+				d_0 = _mm_add_pd( d_0, c_0 );
+				d_1 = _mm_add_pd( d_1, c_1 );
+				d_2 = _mm_add_pd( d_2, c_2 );
+				d_3 = _mm_add_pd( d_3, c_3 );
+				}
+			else // AB = - A * B'
+				{
+				d_0 = _mm_sub_pd( d_0, c_0 );
+				d_1 = _mm_sub_pd( d_1, c_1 );
+				d_2 = _mm_sub_pd( d_2, c_2 );
+				d_3 = _mm_sub_pd( d_3, c_3 );
+				}
+
+			if(td==0) // t( t(AB) + C )
+				{
+				t_0 = d_0;
+				d_0 = _mm_unpacklo_pd( d_0, d_1 );
+				d_1 = _mm_unpackhi_pd( t_0, d_1 );
+				t_0 = d_2;
+				d_2 = _mm_unpacklo_pd( d_2, d_3 );
+				d_3 = _mm_unpackhi_pd( t_0, d_3 );
+
+				goto store_n;
+				}
+			else // t(AB) + C
+				{
+				goto store_t;
+				}
+			}
+		}
+#endif
+
+	// store (3 - 4) x (1 - 2)
+	store_n:
+	_mm_store_pd( &D[0+ldc*0], d_0 );
+	_mm_store_pd( &D[0+ldc*1], d_1 );
+	_mm_store_pd( &D[0+ldc*2], d_2 );
+	_mm_store_pd( &D[0+ldc*3], d_3 );
+	_mm_store_pd( &D[2+ldc*0], d_4 );
+	_mm_store_pd( &D[2+ldc*1], d_5 );
+	_mm_store_pd( &D[2+ldc*2], d_6 );
+	_mm_store_pd( &D[2+ldc*3], d_7 );
+	return;
+
+	store_t:
+#if 0
+	if(kn>=2)
+		{
+		_mm_store_pd( &D[0+ldc*0], d_0 );
+		_mm_store_pd( &D[0+ldc*1], d_1 );
+		_mm_store_pd( &D[0+ldc*2], d_2 );
+		if(km>=4)
+			_mm_store_pd( &D[0+ldc*3], d_3 );
+		}
+	else	
+		{
+		_mm_store_sd( &D[0+ldc*0], d_0 );
+		_mm_store_sd( &D[0+ldc*1], d_1 );
+		_mm_store_sd( &D[0+ldc*2], d_2 );
+		if(km>=4)
+			_mm_store_sd( &D[0+ldc*3], d_3 );
+		}
+#endif
+	return;
+
+
+#elif defined(TARGET_AMD_K10)
 
 	const int ldc = 4;
 
