@@ -361,13 +361,13 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 				}
 			for(; jj<ng0; jj++) // TODO mask ?
 				{
-				u_tmp2 = _mm_load_pd( &work[png+jj] );
-				u_tmp0 = _mm_load_pd( &ptr_rd[jj+0] );
-				u_tmp1 = _mm_load_pd( &ptr_rd[jj+png] );
-				u_tmp0 = _mm_sub_pd( u_tmp0, u_tmp2 );
-				u_tmp1 = _mm_sub_pd( u_tmp1, u_tmp2 );
-				_mm_store_pd( &ptr_rd[jj+0], u_tmp0 );
-				_mm_store_pd( &ptr_rd[jj+png], u_tmp1 );
+				u_tmp2 = _mm_load_sd( &work[png+jj] );
+				u_tmp0 = _mm_load_sd( &ptr_rd[jj+0] );
+				u_tmp1 = _mm_load_sd( &ptr_rd[jj+png] );
+				u_tmp0 = _mm_sub_sd( u_tmp0, u_tmp2 );
+				u_tmp1 = _mm_sub_sd( u_tmp1, u_tmp2 );
+				_mm_store_sd( &ptr_rd[jj+0], u_tmp0 );
+				_mm_store_sd( &ptr_rd[jj+png], u_tmp1 );
 				}
 
 			}
