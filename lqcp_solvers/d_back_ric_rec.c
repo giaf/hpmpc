@@ -400,7 +400,7 @@ void d_back_ric_rec_trs_tv(int N, int *nx, int *nu, double **hpBAbt, double **hb
 		}
 
 	// middle stages
-	for(nn=0; nn<N; nn++)
+	for(nn=0; nn<N-1; nn++)
 		{
 		if(compute_Pb)
 			{
@@ -438,6 +438,45 @@ void d_back_ric_rec_trs_tv(int N, int *nx, int *nu, double **hpBAbt, double **hb
 		dtrsv_n_lib(nux[N-nn-1], nu[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], 1, hdL[N-nn-1], hl[N-nn-1], hl[N-nn-1]);
 #endif
 		}
+	
+	// first stage
+	nn = N-1;
+	if(compute_Pb)
+		{
+#ifdef BLASFEO
+		dtrmv_un_lib(nx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], hb[N-nn-1], 0, work, work);
+		dtrmv_ut_lib(nx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], work, 0, hPb[N-nn-1], hPb[N-nn-1]); // L*(L'*b)
+#else
+		dtrmv_u_n_lib(nx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], hb[N-nn-1], 0, work);
+		dtrmv_u_t_lib(nx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], work, 0, hPb[N-nn-1]); // L*(L'*b)
+#endif
+		}
+	// copy q in l
+	for(ii=0; ii<nux[N-nn-1]; ii++) hl[N-nn-1][ii] = hq[N-nn-1][ii];
+	// box constraints
+	if(nb[N-nn-1]>0)
+		{
+		dvecin_libsp(nb[N-nn-1], idxb[N-nn-1], hql[N-nn-1], hl[N-nn-1]);
+		}
+	// general constraints
+	if(ng[N-nn-1]>0)
+		{
+		cng[N-nn-1] = (ng[N-nn-1]+ncl-1)/ncl*ncl;
+#ifdef BLASFEO
+		dgemv_n_lib(nux[N-nn-1], ng[N-nn-1], hpDCt[N-nn-1], cng[N-nn-1], qx[N-nn-1], 1, hl[N-nn-1], hl[N-nn-1]);
+#else
+		dgemv_n_lib(nux[N-nn-1], ng[N-nn-1], hpDCt[N-nn-1], cng[N-nn-1], qx[N-nn-1], 1, hl[N-nn-1], hl[N-nn-1]);
+#endif
+		}
+	for(jj=0; jj<nx[N-nn]; jj++) work[jj] = hPb[N-nn-1][jj] + hl[N-nn][nu[N-nn]+jj]; // add p
+#ifdef BLASFEO
+	dgemv_n_lib(nux[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], work, 1, hl[N-nn-1], hl[N-nn-1]);
+	dtrsv_ln_inv_lib(nux[N-nn-1], nux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1], hl[N-nn-1], hl[N-nn-1]);
+#else
+	dgemv_n_lib(nux[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], work, 1, hl[N-nn-1], hl[N-nn-1]);
+	dtrsv_n_lib(nux[N-nn-1], nux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], 1, hdL[N-nn-1], hl[N-nn-1], hl[N-nn-1]);
+#endif
+
 
 
 	// forward substitution 
@@ -667,7 +706,7 @@ void d_back_ric_rec_trs_tv_res(int N, int *nx, int *nu, double **hpBAbt, double 
 		}
 
 	// middle stages
-	for(nn=0; nn<N; nn++)
+	for(nn=0; nn<N-1; nn++)
 		{
 		if(compute_Pb)
 			{
@@ -710,6 +749,50 @@ void d_back_ric_rec_trs_tv_res(int N, int *nx, int *nu, double **hpBAbt, double 
 		dtrsv_n_lib(nux[N-nn-1], nu[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], 1, hdL[N-nn-1], hl[N-nn-1], hl[N-nn-1]);
 #endif
 		}
+	
+	// first stage
+	nn = N-1;
+	if(compute_Pb)
+		{
+#ifdef BLASFEO
+		dtrmv_un_lib(nx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], hb[N-nn-1], 0, work, work);
+		dtrmv_ut_lib(nx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], work, 0, hPb[N-nn-1], hPb[N-nn-1]); // L*(L'*b)
+#else
+		dtrmv_u_n_lib(nx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], hb[N-nn-1], 0, work);
+		dtrmv_u_t_lib(nx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], work, 0, hPb[N-nn-1]); // L*(L'*b)
+#endif
+		}
+	// copy q in l
+	for(ii=0; ii<nux[N-nn-1]; ii++) hl[N-nn-1][ii] = hq[N-nn-1][ii];
+	// box constraints
+	if(nb[N-nn-1]>0)
+		{
+		pnb = (nb[N-nn-1]+bs-1)/bs*bs;
+		dvecad_libsp(nb[N-nn-1], 1.0, idxb[N-nn-1], qx[N-nn-1], hl[N-nn-1]);
+		}
+	else
+		{
+		pnb = 0;
+		}
+	// general constraints
+	if(ng[N-nn-1]>0)
+		{
+		cng[N-nn-1] = (ng[N-nn-1]+ncl-1)/ncl*ncl;
+#ifdef BLASFEO
+		dgemv_n_lib(nux[N-nn-1], ng[N-nn-1], hpDCt[N-nn-1], cng[N-nn-1], qx[N-nn-1]+pnb, 1, hl[N-nn-1], hl[N-nn-1]);
+#else
+		dgemv_n_lib(nux[N-nn-1], ng[N-nn-1], hpDCt[N-nn-1], cng[N-nn-1], qx[N-nn-1]+pnb, 1, hl[N-nn-1], hl[N-nn-1]);
+#endif
+		}
+	for(jj=0; jj<nx[N-nn]; jj++) work[jj] = hPb[N-nn-1][jj] + hl[N-nn][nu[N-nn]+jj]; // add p
+#ifdef BLASFEO
+	dgemv_n_lib(nux[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], work, 1, hl[N-nn-1], hl[N-nn-1]);
+	dtrsv_ln_inv_lib(nux[N-nn-1], nux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1], hl[N-nn-1], hl[N-nn-1]);
+#else
+	dgemv_n_lib(nux[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], work, 1, hl[N-nn-1], hl[N-nn-1]);
+	dtrsv_n_lib(nux[N-nn-1], nux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], 1, hdL[N-nn-1], hl[N-nn-1], hl[N-nn-1]);
+#endif
+
 
 
 	// forward substitution 
