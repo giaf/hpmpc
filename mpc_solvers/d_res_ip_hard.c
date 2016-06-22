@@ -69,7 +69,6 @@ void d_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, do
 	for(jj=0; jj<ng0; jj++) 
 		mu[0] += hlam[ii][2*pnb+jj] * ht[ii][2*pnb+jj] + hlam[ii][2*pnb+png+jj] * ht[ii][2*pnb+png+jj];
 
-	
 	for(jj=0; jj<nb0; jj++)
 		{
 		hrd[ii][jj]     =   hux[ii][idxb[ii][jj]] - hd[ii][jj]     - ht[ii][jj];
@@ -86,30 +85,25 @@ void d_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, do
 			}
 		}
 
-	for(jj=0; jj<nu0; jj++) // XXX is this correct in case of nx[0]>0 ?????
+//	for(jj=0; jj<nu0; jj++) 
+//		hrq[ii][jj] = - hq[ii][jj];
+//	for(jj=0; jj<nx0; jj++) 
+//		hrq[ii][nu0+jj] = - hq[ii][nu0+jj]; // + hpi[ii-1][jj];
+	for(jj=0; jj<nu0+nx0; jj++) 
 		hrq[ii][jj] = - hq[ii][jj];
 	for(jj=0; jj<nb0; jj++) 
 		hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
-	for(jj=0; jj<nu0%bs; jj++) 
-		{ 
-		temp[jj] = hux[ii][nu0/bs*bs+jj]; 
-		hux[ii][nu0/bs*bs+jj] = 0.0; 
-		}
-	dgemv_t_lib(nx0+nu0%bs, nu0, hpQ[ii]+nu0/bs*bs*cnux0, cnux0, hux[ii]+nu0/bs*bs, -1, hrq[ii], hrq[ii]);
-	for(jj=0; jj<nu0%bs; jj++) 
-		hux[ii][nu0/bs*bs+jj] = temp[jj];
-	dsymv_lib(nu0, nu0, hpQ[ii], cnux0, hux[ii], -1, hrq[ii], hrq[ii]);
-	dgemv_n_lib(nu0, nx1, hpBAbt[ii], cnx1, hpi[ii], -1, hrq[ii], hrq[ii]);
+	dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnux0, hux[ii], -1, hrq[ii], hrq[ii]);
 	if(ng0>0)
 		{
 		// TODO work space + one dgemv call
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, 1, hrq[ii], hrq[ii]);
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, -1, hrq[ii], hrq[ii]);
 		}
-	
+
 	for(jj=0; jj<nx1; jj++) 
 		hrb[ii][jj] = hux[ii+1][nu1+jj] - hb[ii][jj];
-	dgemv_t_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hux[ii], -1, hrb[ii], hrb[ii]);
+	dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii], hux[ii], -1, -1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
 
 
 

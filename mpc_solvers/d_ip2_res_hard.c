@@ -322,8 +322,17 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 		{
 		double **dummy;
 		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, ux, pL, dL, work, 1, Pb, compute_mult, pi, nb, idxb, dummy, dummy, ng, dummy, dummy, dummy);
+		// backup solution
+		for(ii=0; ii<=N; ii++)
+			for(jj=0; jj<nu[ii]+nx[ii]; jj++)
+				ux_bkp[ii][jj] = ux[ii][jj];
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nx[ii+1]; jj++)
+				pi_bkp[ii][jj] = pi[ii][jj];
+		// no IPM iterations
 		*kk = 0;
-		return;
+		// return success
+		return 0;
 		}
 
 	//printf("\nmu_scal = %f\n", mu_scal);
@@ -518,9 +527,7 @@ for(ii=0; ii<=N; ii++)
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii], pl[ii], 1);
-for(ii=0; ii<=N; ii++)
-	d_print_mat(1, ng[ii], qx[ii], 1);
+	d_print_mat(1, pnb[ii]+png[ii], qx[ii], 1);
 if(*kk==1)
 exit(1);
 #endif
@@ -944,15 +951,63 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 			lam[ii][2*pnb[ii]+png[ii]+jj] = lam_bkp[ii][2*pnb[ii]+png[ii]+jj];
 			}
 		}
+	
+#if 0
+printf("\nux_bkp\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu[ii]+nx[ii], ux[ii], 1);
+printf("\npi_bkp\n");
+for(ii=0; ii<N; ii++)
+	d_print_mat(1, nx[ii+1], pi[ii], 1);
+printf("\nlam_bkp\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], lam[ii], 1);
+printf("\nt_bkp\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], t[ii], 1);
+exit(2);
+#endif
 
 	// compute residuals
 	d_res_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, pBAbt, b, pQ, q, ux, pDCt, d, pi, lam, t, res_work, res_q, res_b, res_d, res_m, &mu);
 
+#if 0
+printf("\nres_q\n");
+for(jj=0; jj<=N; jj++)
+	d_print_mat_e(1, nu[jj]+nx[jj], res_q[jj], 1);
+printf("\nres_b\n");
+for(jj=0; jj<N; jj++)
+	d_print_mat_e(1, nx[jj+1], res_b[jj], 1);
+printf("\nres_d\n");
+for(jj=0; jj<=N; jj++)
+	d_print_mat_e(1, 2*pnb[jj]+2*png[jj], res_d[jj], 1);
+printf("\nres_m\n");
+for(jj=0; jj<=N; jj++)
+	d_print_mat_e(1, 2*pnb[jj]+2*png[jj], res_m[jj], 1);
+printf("\nmu\n");
+d_print_mat_e(1, 1, &mu, 1);
+exit(2);
+#endif
+
 	// update gradient
 	d_update_gradient_res_mpc_hard_tv(N, nx, nu, nb, ng, res_d, res_m, lam, t_inv, qx);
 
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, pnb[ii]+png[ii], qx[ii], 1);
+exit(2);
+#endif
+
 	// solve the system
-	d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
+	d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
+
+#if 0
+printf("\nNEW dux\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
+//if(*kk==1)
+//exit(1);
+#endif
 
 	// compute t & dlam & dt
 	d_compute_dt_dlam_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, dux, t, t_inv, lam, pDCt, res_d, res_m, dt, dlam);
