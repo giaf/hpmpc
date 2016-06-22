@@ -60,7 +60,7 @@ int hpmpc_d_ip_mpc_hard_tv_work_space_size_bytes(int N, int nx, int nu, int nb, 
 
 
 
-int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng)
+int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int const *nx, int const *nu, int const *nb, int const *ng)
 	{
 
 	const int bs  = D_MR; //d_get_mr();
