@@ -41,10 +41,12 @@ int d_back_ric_rec_sv_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb,
 	int ii;
 
 	int nzM  = 0;
-	for(ii=0; ii<=N; ii++)
+	for(ii=0; ii<N; ii++)
 		{
 		if(nu[ii]+nx[ii]+1>nzM) nzM = nu[ii]+nx[ii]+1;
 		}
+	ii = N;
+	if(nx[ii]+1>nzM) nzM = nx[ii]+1;
 
 	int nxgM = ng[N];
 	for(ii=0; ii<N; ii++)
@@ -95,10 +97,10 @@ void d_back_ric_rec_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ
 		pnx[nn] = (nx[nn]+bs-1)/bs*bs;
 		}
 	nn = N;
-	nux[nn] = nu[nn]+nx[nn];
+	nux[nn] = nx[nn];
 	nz[nn] = nux[nn]+1;
 	cnx[nn] = (nx[nn]+ncl-1)/ncl*ncl;
-	cnux[nn] = (nu[nn]+nx[nn]+ncl-1)/ncl*ncl;
+	cnux[nn] = (nx[nn]+ncl-1)/ncl*ncl;
 	cnl[nn] = cnux[nn]<cnx[nn]+ncl ? cnx[nn]+ncl : cnux[nn];
 	pnx[nn] = (nx[nn]+bs-1)/bs*bs;
 
@@ -128,7 +130,7 @@ void d_back_ric_rec_sv_tv(int N, int *nx, int *nu, double **hpBAbt, double **hpQ
 	dsyrk_dpotrf_lib(nz[N], nux[N], ng[N], work0, cng[N], work0, cng[N], 1, hpQ[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 #endif
 
-	dtrtr_l_lib(nx[N], nu[N], hpL[N]+nu[N]/bs*bs*cnl[N]+nu[N]%bs+nu[N]*bs, cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
+	dtrtr_l_lib(nx[N], 0, hpL[N], cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
 
 
 
@@ -272,10 +274,10 @@ void d_back_ric_rec_trf_tv(int N, int *nx, int *nu, double **hpBAbt, double **hp
 		cnxg[nn] = (nx[nn+1]+ng[nn]+ncl-1)/ncl*ncl;
 		}
 	nn = N;
-	nux[nn] = nu[nn]+nx[nn];
+	nux[nn] = nx[nn];
 	nz[nn] = nux[nn]+1;
 	cnx[nn] = (nx[nn]+ncl-1)/ncl*ncl;
-	cnux[nn] = (nu[nn]+nx[nn]+ncl-1)/ncl*ncl;
+	cnux[nn] = (nx[nn]+ncl-1)/ncl*ncl;
 	cnl[nn] = cnux[nn]<cnx[nn]+ncl ? cnx[nn]+ncl : cnux[nn];
 
 
@@ -300,7 +302,7 @@ void d_back_ric_rec_trf_tv(int N, int *nx, int *nu, double **hpBAbt, double **hp
 	dsyrk_dpotrf_lib(nux[N], nux[N], ng[N], work, cng[N], work, cng[N], 1, hpQ[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 #endif
 
-	dtrtr_l_lib(nx[N], nu[N], hpL[N]+nu[N]/bs*bs*cnl[N]+nu[N]%bs+nu[N]*bs, cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
+	dtrtr_l_lib(nx[N], 0, hpL[N], cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
 
 
 
@@ -369,10 +371,10 @@ void d_back_ric_rec_trs_tv(int N, int *nx, int *nu, double **hpBAbt, double **hb
 		pnx[nn] = (nx[nn]+bs-1)/bs*bs;
 		}
 	nn = N;
-	nux[nn] = nu[nn]+nx[nn];
+	nux[nn] = nx[nn];
 	nz[nn] = nux[nn]+1;
 	cnx[nn] = (nx[nn]+ncl-1)/ncl*ncl;
-	cnux[nn] = (nu[nn]+nx[nn]+ncl-1)/ncl*ncl;
+	cnux[nn] = (nx[nn]+ncl-1)/ncl*ncl;
 	cnl[nn] = cnux[nn]<cnx[nn]+ncl ? cnx[nn]+ncl : cnux[nn];
 	pnx[nn] = (nx[nn]+bs-1)/bs*bs;
 
@@ -560,10 +562,10 @@ void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, double **hpBAbt, double 
 		cnxg[nn] = (nx[nn+1]+ng[nn]+ncl-1)/ncl*ncl;
 		}
 	nn = N;
-	nux[nn] = nu[nn]+nx[nn];
+	nux[nn] = nx[nn];
 	nz[nn] = nux[nn]+1;
 	cnx[nn] = (nx[nn]+ncl-1)/ncl*ncl;
-	cnux[nn] = (nu[nn]+nx[nn]+ncl-1)/ncl*ncl;
+	cnux[nn] = (nx[nn]+ncl-1)/ncl*ncl;
 	cnl[nn] = cnux[nn]<cnx[nn]+ncl ? cnx[nn]+ncl : cnux[nn];
 
 
@@ -595,7 +597,7 @@ void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, double **hpBAbt, double 
 	dsyrk_dpotrf_lib(nux[N], nux[N], ng[N], work, cng[N], work, cng[N], 1, hpQ[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 #endif
 
-	dtrtr_l_lib(nx[N], nu[N], hpL[N]+nu[N]/bs*bs*cnl[N]+nu[N]%bs+nu[N]*bs, cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
+	dtrtr_l_lib(nx[N], 0, hpL[N], cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
 
 
 
@@ -670,10 +672,10 @@ void d_back_ric_rec_trs_tv_res(int N, int *nx, int *nu, double **hpBAbt, double 
 		pnx[nn] = (nx[nn]+bs-1)/bs*bs;
 		}
 	nn = N;
-	nux[nn] = nu[nn]+nx[nn];
+	nux[nn] = nx[nn];
 	nz[nn] = nux[nn]+1;
 	cnx[nn] = (nx[nn]+ncl-1)/ncl*ncl;
-	cnux[nn] = (nu[nn]+nx[nn]+ncl-1)/ncl*ncl;
+	cnux[nn] = (nx[nn]+ncl-1)/ncl*ncl;
 	cnl[nn] = cnux[nn]<cnx[nn]+ncl ? cnx[nn]+ncl : cnux[nn];
 	pnx[nn] = (nx[nn]+bs-1)/bs*bs;
 

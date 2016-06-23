@@ -47,7 +47,7 @@ int d_ip2_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, in
 
 	int size = 0;
 	int pnzM = 0;
-	for(ii=0; ii<=N; ii++)
+	for(ii=0; ii<N; ii++)
 		{
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
 		if(pnz>pnzM) pnzM = pnz;
@@ -59,6 +59,16 @@ int d_ip2_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, in
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
 		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 3*pnx + 4*pnz + 15*pnb + 11*png;
 		}
+	ii = N;
+	pnz = (nx[ii]+1+bs-1)/bs*bs;
+	if(pnz>pnzM) pnzM = pnz;
+	pnb = (nb[ii]+bs-1)/bs*bs;
+	png = (ng[ii]+bs-1)/bs*bs;
+	cnx = (nx[ii]+ncl-1)/ncl*ncl;
+	cnux = (nx[ii]+ncl-1)/ncl*ncl;
+	pnx = (nx[ii]+bs-1)/bs*bs;
+	pnz = (nx[ii]+1+bs-1)/bs*bs;
+	size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 3*pnx + 4*pnz + 15*pnb + 11*png;
 
 	int nxgM = ng[N];
 	for(ii=0; ii<N; ii++)
@@ -75,7 +85,7 @@ int d_ip2_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, in
 
 
 
-int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
+int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int N, int *nx, int *nu_N, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
 	{
 	
 	// indeces
@@ -84,6 +94,14 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
+
+
+
+	// nu with nu[N]=0
+	int nu[N+1];
+	for(ii=0; ii<N; ii++)
+		nu[ii] = nu_N[ii];
+	nu[N] = 0;
 
 
 
@@ -589,7 +607,7 @@ exit(2);
 
 
 
-void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **r_A, double **pQ, double **r_H, double **pDCt, double **r_C, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
+void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu_N, int *nb, int **idxb, int *ng, double **pBAbt, double **r_A, double **pQ, double **r_H, double **pDCt, double **r_C, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
 	{
 
 	
@@ -599,6 +617,14 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
+
+
+
+	// nu with nu[N]=0
+	int nu[N+1];
+	for(ii=0; ii<N; ii++)
+		nu[ii] = nu_N[ii];
+	nu[N] = 0;
 
 
 

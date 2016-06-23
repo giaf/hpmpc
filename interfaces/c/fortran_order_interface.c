@@ -44,7 +44,7 @@
 
 int fortran_order_d_ip_ocp_hard_tv( 
 							int *kk, int k_max, double mu0, double mu_tol,
-							int N, int *nx, int *nu, int *nb, int *ng,
+							int N, int *nx, int *nu_N, int *nb, int *ng,
 							int warm_start,
 							double **A, double **B, double **b, 
 							double **Q, double **S, double **R, double **q, double **r, 
@@ -65,6 +65,16 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 	const int bs = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
+
+
+
+	// nu with nu[N]=0
+	int nu[N+1];
+	for(ii=0; ii<N; ii++)
+		nu[ii] = nu_N[ii];
+	nu[N] = 0;
+
+
 
 	int pnx[N+1];
 	int pnz[N+1];
