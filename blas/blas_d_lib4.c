@@ -5781,7 +5781,7 @@ void drowin_libsp(int kmax, int *idx, double *x, double *pD)
 
 
 // add scaled vector to row, sparse formulation 
-void drowad_libsp(int kmax, double alpha, int *idx, double *x, double *pD)
+void drowad_libsp(int kmax, int *idx, double alpha, double *x, double *pD)
 	{
 
 	const int bs = 4;
@@ -5792,6 +5792,24 @@ void drowad_libsp(int kmax, double alpha, int *idx, double *x, double *pD)
 		{
 		ii = idx[jj];
 		pD[ii*bs] += alpha * x[jj];
+		}
+	
+	}
+
+
+
+// add scaled vector to another vector and insert to row, sparse formulation 
+void drowadin_libsp(int kmax, int *idx, double alpha, double *x, double *y, double *pD)
+	{
+
+	const int bs = 4;
+
+	int ii, jj;
+
+	for(jj=0; jj<kmax; jj++)
+		{
+		ii = idx[jj];
+		pD[ii*bs] = y[jj] + alpha * x[jj];
 		}
 	
 	}
