@@ -42,6 +42,7 @@
 
 
 
+// TODO add indx to the interface ????
 int c_order_d_ip_ocp_hard_tv( 
 							int *kk, int k_max, double mu0, double mu_tol,
 							int N, int *nx, int *nu_N, int *nb, int *ng,
@@ -61,11 +62,8 @@ int c_order_d_ip_ocp_hard_tv(
 
 	int hpmpc_status = -1;
 
+
 	int ii, jj, ll, nbu;
-
-	const int bs = D_MR; //d_get_mr();
-	const int ncl = D_NCL;
-
 
 
 	// nu with nu[N]=0
@@ -74,6 +72,22 @@ int c_order_d_ip_ocp_hard_tv(
 		nu[ii] = nu_N[ii];
 	nu[N] = 0;
 
+
+	// check for consistency of problem size
+	// nb <= nu+nx
+	for(ii=0; ii<=N; ii++)
+		{
+		if(nb[ii]>nu[ii]+nx[ii])
+			{
+			printf("\nERROR: At stage %d, the number of bounds nb=%d can not be larger than the number of variables nu+nx=%d.\n\n", ii, nb[ii], nu[ii]+nx[ii]);
+			exit(1);
+			}
+		}
+
+
+	// constant for panel-wise matrix format
+	const int bs = D_MR;
+	const int ncl = D_NCL;
 
 
 	int pnx[N+1];
