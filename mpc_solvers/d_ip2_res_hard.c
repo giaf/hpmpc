@@ -147,8 +147,6 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 	double *dlam[N+1];
 	double *dt[N+1];
 	double *t_inv[N+1];
-	double *Qb[N+1];
-	double *qb[N+1];
 	double *Qx[N+1];
 	double *qx[N+1];
 	double *Pb[N];
@@ -190,7 +188,9 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 		{
 		b[jj] = ptr;
 		ptr += pnx[jj+1];
-		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
+//		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
+		for(ii=0; ii<nx[jj+1]; ii++)
+			b[jj][ii] = pBAbt[jj][(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs+ii*bs];
 		}
 
 	// inputs and states
@@ -434,8 +434,6 @@ for(ii=0; ii<=N; ii++)
 
 
 		// compute the search direction: factorize and solve the KKT system
-		// TODO sv
-		// TODO update BAb and Q with residuals
 #if 1
 		d_back_ric_rec_sv_tv_res(N, nx, nu, 1, pBAbt, res_b, pQ, res_q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
 #else
@@ -793,8 +791,6 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu_N, int *nb, int
 	double *dlam[N+1];
 	double *dt[N+1];
 	double *t_inv[N+1];
-	double *Qb[N+1];
-	double *qb[N+1];
 	double *Qx[N+1];
 	double *qx[N+1];
 	double *Pb[N];

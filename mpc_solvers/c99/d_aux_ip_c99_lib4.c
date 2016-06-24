@@ -269,7 +269,7 @@ void d_init_var_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 
 
 
-void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **Qx, double **qx, double **qx2, double **bd, double **bl, double **pd, double **pl, double **db)
+void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double **db, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **Qx, double **qx)
 	{
 	
 	// constants
@@ -281,7 +281,7 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 	double temp0, temp1;
 	
 	double 
-		*ptr_pd, *ptr_pl, *ptr_bd, *ptr_bl, *ptr_db, *ptr_Qx, *ptr_qx, *ptr_qx2,
+		*ptr_db, *ptr_Qx, *ptr_qx,
 		*ptr_t, *ptr_lam, *ptr_lamt, *ptr_dlam, *ptr_tinv;
 	
 	int ii, jj, bs0;
@@ -295,10 +295,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 		ptr_dlam  = dlam[jj];
 		ptr_tinv  = t_inv[jj];
 		ptr_db    = db[jj];
-		ptr_bd    = bd[jj];
-		ptr_bl    = bl[jj];
-		ptr_pd    = pd[jj];
-		ptr_pl    = pl[jj];
+		ptr_Qx    = Qx[jj];
+		ptr_qx    = qx[jj];
 
 		// box constraints
 		nb0 = nb[jj];
@@ -316,8 +314,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 				ptr_lamt[ii+pnb+0] = ptr_lam[ii+pnb+0]*ptr_tinv[ii+pnb+0];
 				ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
 				ptr_dlam[ii+pnb+0] = ptr_tinv[ii+pnb+0]*sigma_mu; // !!!!!
-				ptr_pd[ii+0] = ptr_bd[ii+0] + ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
-				ptr_pl[ii+0] = ptr_bl[ii+0] + ptr_lam[ii+pnb+0] - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
+				ptr_Qx[ii+0] = ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
+				ptr_qx[ii+0] = ptr_lam[ii+pnb+0] - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
 
 				ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
 				ptr_tinv[ii+pnb+1] = 1.0/ptr_t[ii+pnb+1];
@@ -325,8 +323,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 				ptr_lamt[ii+pnb+1] = ptr_lam[ii+pnb+1]*ptr_tinv[ii+pnb+1];
 				ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
 				ptr_dlam[ii+pnb+1] = ptr_tinv[ii+pnb+1]*sigma_mu; // !!!!!
-				ptr_pd[ii+1] = ptr_bd[ii+1] + ptr_lamt[ii+1] + ptr_lamt[ii+pnb+1];
-				ptr_pl[ii+1] = ptr_bl[ii+1] + ptr_lam[ii+pnb+1] - ptr_lamt[ii+pnb+1]*ptr_db[ii+pnb+1] + ptr_dlam[ii+pnb+1] - ptr_lam[ii+1] - ptr_lamt[ii+1]*ptr_db[ii+1] - ptr_dlam[ii+1];
+				ptr_Qx[ii+1] = ptr_lamt[ii+1] + ptr_lamt[ii+pnb+1];
+				ptr_qx[ii+1] = ptr_lam[ii+pnb+1] - ptr_lamt[ii+pnb+1]*ptr_db[ii+pnb+1] + ptr_dlam[ii+pnb+1] - ptr_lam[ii+1] - ptr_lamt[ii+1]*ptr_db[ii+1] - ptr_dlam[ii+1];
 
 				ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
 				ptr_tinv[ii+pnb+2] = 1.0/ptr_t[ii+pnb+2];
@@ -334,8 +332,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 				ptr_lamt[ii+pnb+2] = ptr_lam[ii+pnb+2]*ptr_tinv[ii+pnb+2];
 				ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
 				ptr_dlam[ii+pnb+2] = ptr_tinv[ii+pnb+2]*sigma_mu; // !!!!!
-				ptr_pd[ii+2] = ptr_bd[ii+2] + ptr_lamt[ii+2] + ptr_lamt[ii+pnb+2];
-				ptr_pl[ii+2] = ptr_bl[ii+2] + ptr_lam[ii+pnb+2] - ptr_lamt[ii+pnb+2]*ptr_db[ii+pnb+2] + ptr_dlam[ii+pnb+2] - ptr_lam[ii+2] - ptr_lamt[ii+2]*ptr_db[ii+2] - ptr_dlam[ii+2];
+				ptr_Qx[ii+2] = ptr_lamt[ii+2] + ptr_lamt[ii+pnb+2];
+				ptr_qx[ii+2] = ptr_lam[ii+pnb+2] - ptr_lamt[ii+pnb+2]*ptr_db[ii+pnb+2] + ptr_dlam[ii+pnb+2] - ptr_lam[ii+2] - ptr_lamt[ii+2]*ptr_db[ii+2] - ptr_dlam[ii+2];
 
 				ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
 				ptr_tinv[ii+pnb+3] = 1.0/ptr_t[ii+pnb+3];
@@ -343,8 +341,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 				ptr_lamt[ii+pnb+3] = ptr_lam[ii+pnb+3]*ptr_tinv[ii+pnb+3];
 				ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
 				ptr_dlam[ii+pnb+3] = ptr_tinv[ii+pnb+3]*sigma_mu; // !!!!!
-				ptr_pd[ii+3] = ptr_bd[ii+3] + ptr_lamt[ii+3] + ptr_lamt[ii+pnb+3];
-				ptr_pl[ii+3] = ptr_bl[ii+3] + ptr_lam[ii+pnb+3] - ptr_lamt[ii+pnb+3]*ptr_db[ii+pnb+3] + ptr_dlam[ii+pnb+3] - ptr_lam[ii+3] - ptr_lamt[ii+3]*ptr_db[ii+3] - ptr_dlam[ii+3];
+				ptr_Qx[ii+3] = ptr_lamt[ii+3] + ptr_lamt[ii+pnb+3];
+				ptr_qx[ii+3] = ptr_lam[ii+pnb+3] - ptr_lamt[ii+pnb+3]*ptr_db[ii+pnb+3] + ptr_dlam[ii+pnb+3] - ptr_lam[ii+3] - ptr_lamt[ii+3]*ptr_db[ii+3] - ptr_dlam[ii+3];
 
 				}
 			for(; ii<nb0; ii++)
@@ -356,8 +354,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 				ptr_lamt[ii+pnb+0] = ptr_lam[ii+pnb+0]*ptr_tinv[ii+pnb+0];
 				ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
 				ptr_dlam[ii+pnb+0] = ptr_tinv[ii+pnb+0]*sigma_mu; // !!!!!
-				ptr_pd[ii] = ptr_bd[ii] + ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
-				ptr_pl[ii] = ptr_bl[ii] + ptr_lam[ii+pnb+0] - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
+				ptr_Qx[ii] = ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
+				ptr_qx[ii] = ptr_lam[ii+pnb+0] - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
 
 				}
 
@@ -367,6 +365,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 			ptr_dlam  += 2*pnb;
 			ptr_tinv  += 2*pnb;
 			ptr_db    += 2*pnb;
+			ptr_Qx    += pnb;
+			ptr_qx    += pnb;
 
 			}
 
@@ -375,10 +375,6 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 		if(ng0>0)
 			{
 
-			ptr_Qx    = Qx[jj];
-			ptr_qx    = qx[jj];
-			ptr_qx2   = qx2[jj];
-		
 			png = (ng0+bs-1)/bs*bs; // simd aligned number of general constraints
 
 			for(ii=0; ii<ng0-3; ii+=4)
@@ -390,9 +386,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 				ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
 				ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
 				ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
-				ptr_Qx[ii+0] = sqrt(ptr_lamt[ii+0] + ptr_lamt[ii+png+0]);
-				ptr_qx[ii+0] =  (ptr_lam[ii+png+0] - ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0]);
-				ptr_qx2[ii+0] = ptr_qx[ii+0] / ptr_Qx[ii+0];
+				ptr_Qx[ii+0] = ptr_lamt[ii+0] + ptr_lamt[ii+png+0];
+				ptr_qx[ii+0] =  ptr_lam[ii+png+0] - ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
 
 				ptr_tinv[ii+1] = 1.0/ptr_t[ii+1];
 				ptr_tinv[ii+png+1] = 1.0/ptr_t[ii+png+1];
@@ -400,9 +395,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 				ptr_lamt[ii+png+1] = ptr_lam[ii+png+1]*ptr_tinv[ii+png+1];
 				ptr_dlam[ii+1] = ptr_tinv[ii+1]*sigma_mu; // !!!!!
 				ptr_dlam[ii+png+1] = ptr_tinv[ii+png+1]*sigma_mu; // !!!!!
-				ptr_Qx[ii+1] = sqrt(ptr_lamt[ii+1] + ptr_lamt[ii+png+1]);
-				ptr_qx[ii+1] =  (ptr_lam[ii+png+1] - ptr_lamt[ii+png+1]*ptr_db[ii+png+1] + ptr_dlam[ii+png+1] - ptr_lam[ii+1] - ptr_lamt[ii+1]*ptr_db[ii+1] - ptr_dlam[ii+1]);
-				ptr_qx2[ii+1] = ptr_qx[ii+1] / ptr_Qx[ii+1];
+				ptr_Qx[ii+1] = ptr_lamt[ii+1] + ptr_lamt[ii+png+1];
+				ptr_qx[ii+1] =  ptr_lam[ii+png+1] - ptr_lamt[ii+png+1]*ptr_db[ii+png+1] + ptr_dlam[ii+png+1] - ptr_lam[ii+1] - ptr_lamt[ii+1]*ptr_db[ii+1] - ptr_dlam[ii+1];
 
 				ptr_tinv[ii+2] = 1.0/ptr_t[ii+2];
 				ptr_tinv[ii+png+2] = 1.0/ptr_t[ii+png+2];
@@ -410,9 +404,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 				ptr_lamt[ii+png+2] = ptr_lam[ii+png+2]*ptr_tinv[ii+png+2];
 				ptr_dlam[ii+2] = ptr_tinv[ii+2]*sigma_mu; // !!!!!
 				ptr_dlam[ii+png+2] = ptr_tinv[ii+png+2]*sigma_mu; // !!!!!
-				ptr_Qx[ii+2] = sqrt(ptr_lamt[ii+2] + ptr_lamt[ii+png+2]);
-				ptr_qx[ii+2] =  (ptr_lam[ii+png+2] - ptr_lamt[ii+png+2]*ptr_db[ii+png+2] + ptr_dlam[ii+png+2] - ptr_lam[ii+2] - ptr_lamt[ii+2]*ptr_db[ii+2] - ptr_dlam[ii+2]);
-				ptr_qx2[ii+2] = ptr_qx[ii+2] / ptr_Qx[ii+2];
+				ptr_Qx[ii+2] = ptr_lamt[ii+2] + ptr_lamt[ii+png+2];
+				ptr_qx[ii+2] =  ptr_lam[ii+png+2] - ptr_lamt[ii+png+2]*ptr_db[ii+png+2] + ptr_dlam[ii+png+2] - ptr_lam[ii+2] - ptr_lamt[ii+2]*ptr_db[ii+2] - ptr_dlam[ii+2];
 
 				ptr_tinv[ii+3] = 1.0/ptr_t[ii+3];
 				ptr_tinv[ii+png+3] = 1.0/ptr_t[ii+png+3];
@@ -420,9 +413,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 				ptr_lamt[ii+png+3] = ptr_lam[ii+png+3]*ptr_tinv[ii+png+3];
 				ptr_dlam[ii+3] = ptr_tinv[ii+3]*sigma_mu; // !!!!!
 				ptr_dlam[ii+png+3] = ptr_tinv[ii+png+3]*sigma_mu; // !!!!!
-				ptr_Qx[ii+3] = sqrt(ptr_lamt[ii+3] + ptr_lamt[ii+png+3]);
-				ptr_qx[ii+3] =  (ptr_lam[ii+png+3] - ptr_lamt[ii+png+3]*ptr_db[ii+png+3] + ptr_dlam[ii+png+3] - ptr_lam[ii+3] - ptr_lamt[ii+3]*ptr_db[ii+3] - ptr_dlam[ii+3]);
-				ptr_qx2[ii+3] = ptr_qx[ii+3] / ptr_Qx[ii+3];
+				ptr_Qx[ii+3] = ptr_lamt[ii+3] + ptr_lamt[ii+png+3];
+				ptr_qx[ii+3] =  ptr_lam[ii+png+3] - ptr_lamt[ii+png+3]*ptr_db[ii+png+3] + ptr_dlam[ii+png+3] - ptr_lam[ii+3] - ptr_lamt[ii+3]*ptr_db[ii+3] - ptr_dlam[ii+3];
 
 				}
 			for(; ii<ng0; ii++)
@@ -434,9 +426,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 				ptr_lamt[ii+png+0] = ptr_lam[ii+png+0]*ptr_tinv[ii+png+0];
 				ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
 				ptr_dlam[ii+png+0] = ptr_tinv[ii+png+0]*sigma_mu; // !!!!!
-				ptr_Qx[ii+0] = sqrt(ptr_lamt[ii+0] + ptr_lamt[ii+png+0]);
-				ptr_qx[ii+0] =  (ptr_lam[ii+png+0] - ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0]);
-				ptr_qx2[ii+0] = ptr_qx[ii+0] / ptr_Qx[ii+0];
+				ptr_Qx[ii+0] = ptr_lamt[ii+0] + ptr_lamt[ii+png+0];
+				ptr_qx[ii+0] =  ptr_lam[ii+png+0] - ptr_lamt[ii+png+0]*ptr_db[ii+png+0] + ptr_dlam[ii+png+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
 
 				}
 
@@ -795,7 +786,9 @@ void d_update_hessian_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int *ng, int
 
 	}
 
-void d_update_gradient_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double sigma_mu, double **dt, double **dlam, double **t_inv, double **pl2, double **qx)
+
+
+void d_update_gradient_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double sigma_mu, double **dt, double **dlam, double **t_inv, double **qx)
 	{
 
 	// constants
@@ -815,7 +808,7 @@ void d_update_gradient_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, do
 		ptr_dlam  = dlam[jj];
 		ptr_dt    = dt[jj];
 		ptr_t_inv = t_inv[jj];
-		ptr_pl2   = pl2[jj];
+		ptr_qx    = qx[jj];
 
 		// box constraints
 		nb0 = nb[jj];
@@ -824,16 +817,35 @@ void d_update_gradient_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, do
 
 			pnb  = (nb0+bs-1)/bs*bs; // simd aligned number of box constraints
 
-			for(ii=0; ii<nb0; ii++)
+			for(ii=0; ii<nb0-3; ii+=4)
 				{
-				ptr_dlam[0*pnb+ii] = ptr_t_inv[0*pnb+ii]*(sigma_mu - ptr_dlam[0*pnb+ii]*ptr_dt[0*pnb+ii]);
-				ptr_dlam[1*pnb+ii] = ptr_t_inv[1*pnb+ii]*(sigma_mu - ptr_dlam[1*pnb+ii]*ptr_dt[1*pnb+ii]);
-				ptr_pl2[ii] += ptr_dlam[1*pnb+ii] - ptr_dlam[0*pnb+ii];
+				ptr_dlam[0*pnb+ii+0] = ptr_t_inv[0*pnb+ii+0]*(sigma_mu - ptr_dlam[0*pnb+ii+0]*ptr_dt[0*pnb+ii+0]);
+				ptr_dlam[1*pnb+ii+0] = ptr_t_inv[1*pnb+ii+0]*(sigma_mu - ptr_dlam[1*pnb+ii+0]*ptr_dt[1*pnb+ii+0]);
+				ptr_qx[ii+0] += ptr_dlam[1*pnb+ii+0] - ptr_dlam[0*pnb+ii+0];
+
+				ptr_dlam[0*pnb+ii+1] = ptr_t_inv[0*pnb+ii+1]*(sigma_mu - ptr_dlam[0*pnb+ii+1]*ptr_dt[0*pnb+ii+1]);
+				ptr_dlam[1*pnb+ii+1] = ptr_t_inv[1*pnb+ii+1]*(sigma_mu - ptr_dlam[1*pnb+ii+1]*ptr_dt[1*pnb+ii+1]);
+				ptr_qx[ii+1] += ptr_dlam[1*pnb+ii+1] - ptr_dlam[0*pnb+ii+1];
+
+				ptr_dlam[0*pnb+ii+2] = ptr_t_inv[0*pnb+ii+2]*(sigma_mu - ptr_dlam[0*pnb+ii+2]*ptr_dt[0*pnb+ii+2]);
+				ptr_dlam[1*pnb+ii+2] = ptr_t_inv[1*pnb+ii+2]*(sigma_mu - ptr_dlam[1*pnb+ii+2]*ptr_dt[1*pnb+ii+2]);
+				ptr_qx[ii+2] += ptr_dlam[1*pnb+ii+2] - ptr_dlam[0*pnb+ii+2];
+
+				ptr_dlam[0*pnb+ii+3] = ptr_t_inv[0*pnb+ii+3]*(sigma_mu - ptr_dlam[0*pnb+ii+3]*ptr_dt[0*pnb+ii+3]);
+				ptr_dlam[1*pnb+ii+3] = ptr_t_inv[1*pnb+ii+3]*(sigma_mu - ptr_dlam[1*pnb+ii+3]*ptr_dt[1*pnb+ii+3]);
+				ptr_qx[ii+3] += ptr_dlam[1*pnb+ii+3] - ptr_dlam[0*pnb+ii+3];
+				}
+			for(; ii<nb0; ii++)
+				{
+				ptr_dlam[0*pnb+ii+0] = ptr_t_inv[0*pnb+ii+0]*(sigma_mu - ptr_dlam[0*pnb+ii+0]*ptr_dt[0*pnb+ii+0]);
+				ptr_dlam[1*pnb+ii+0] = ptr_t_inv[1*pnb+ii+0]*(sigma_mu - ptr_dlam[1*pnb+ii+0]*ptr_dt[1*pnb+ii+0]);
+				ptr_qx[ii+0] += ptr_dlam[1*pnb+ii+0] - ptr_dlam[0*pnb+ii+0];
 				}
 
 			ptr_dlam  += 2*pnb;
 			ptr_dt    += 2*pnb;
 			ptr_t_inv += 2*pnb;
+			ptr_qx    += pnb;
 
 			}
 
@@ -842,15 +854,32 @@ void d_update_gradient_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, do
 		if(ng0>0)
 			{
 
-			ptr_qx    = qx[jj];
-
 			png  = (ng0+bs-1)/bs*bs; // simd aligned number of general constraints
 
-			for(ii=0; ii<ng0; ii++)
+			for(ii=0; ii<ng0-3; ii+=4)
 				{
-				ptr_dlam[0*png+ii] = ptr_t_inv[0*png+ii]*(sigma_mu - ptr_dlam[0*png+ii]*ptr_dt[0*png+ii]);
-				ptr_dlam[1*png+ii] = ptr_t_inv[1*png+ii]*(sigma_mu - ptr_dlam[1*png+ii]*ptr_dt[1*png+ii]);
-				ptr_qx[ii] += ptr_dlam[1*png+ii] - ptr_dlam[0*png+ii];
+				ptr_dlam[0*png+ii+0] = ptr_t_inv[0*png+ii+0]*(sigma_mu - ptr_dlam[0*png+ii+0]*ptr_dt[0*png+ii+0]);
+				ptr_dlam[1*png+ii+0] = ptr_t_inv[1*png+ii+0]*(sigma_mu - ptr_dlam[1*png+ii+0]*ptr_dt[1*png+ii+0]);
+				ptr_qx[ii+0] += ptr_dlam[1*png+ii+0] - ptr_dlam[0*png+ii+0];
+
+				ptr_dlam[0*png+ii+1] = ptr_t_inv[0*png+ii+1]*(sigma_mu - ptr_dlam[0*png+ii+1]*ptr_dt[0*png+ii+1]);
+				ptr_dlam[1*png+ii+1] = ptr_t_inv[1*png+ii+1]*(sigma_mu - ptr_dlam[1*png+ii+1]*ptr_dt[1*png+ii+1]);
+				ptr_qx[ii+1] += ptr_dlam[1*png+ii+1] - ptr_dlam[0*png+ii+1];
+
+				ptr_dlam[0*png+ii+2] = ptr_t_inv[0*png+ii+2]*(sigma_mu - ptr_dlam[0*png+ii+2]*ptr_dt[0*png+ii+2]);
+				ptr_dlam[1*png+ii+2] = ptr_t_inv[1*png+ii+2]*(sigma_mu - ptr_dlam[1*png+ii+2]*ptr_dt[1*png+ii+2]);
+				ptr_qx[ii+2] += ptr_dlam[1*png+ii+2] - ptr_dlam[0*png+ii+2];
+
+				ptr_dlam[0*png+ii+3] = ptr_t_inv[0*png+ii+3]*(sigma_mu - ptr_dlam[0*png+ii+3]*ptr_dt[0*png+ii+3]);
+				ptr_dlam[1*png+ii+3] = ptr_t_inv[1*png+ii+3]*(sigma_mu - ptr_dlam[1*png+ii+3]*ptr_dt[1*png+ii+3]);
+				ptr_qx[ii+3] += ptr_dlam[1*png+ii+3] - ptr_dlam[0*png+ii+3];
+
+				}
+			for(; ii<ng0; ii++)
+				{
+				ptr_dlam[0*png+ii+0] = ptr_t_inv[0*png+ii+0]*(sigma_mu - ptr_dlam[0*png+ii+0]*ptr_dt[0*png+ii+0]);
+				ptr_dlam[1*png+ii+0] = ptr_t_inv[1*png+ii+0]*(sigma_mu - ptr_dlam[1*png+ii+0]*ptr_dt[1*png+ii+0]);
+				ptr_qx[ii+0] += ptr_dlam[1*png+ii+0] - ptr_dlam[0*png+ii+0];
 				}
 
 			}
@@ -1630,7 +1659,7 @@ void d_compute_mu_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 
 
 
-void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double **t_inv, double **lamt, double **qx, double **bl, double **pl, double **db)
+void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double **db, double **lamt, double **qx)
 	{
 	
 	// constants
@@ -1642,8 +1671,8 @@ void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int
 	double temp0, temp1;
 	
 	double 
-		*ptr_pl, *ptr_bl, *ptr_db, *ptr_Qx, *ptr_qx, *ptr_qx2,
-		*ptr_t, *ptr_lam, *ptr_lamt, *ptr_tinv;
+		*ptr_db, *ptr_Qx, *ptr_qx,
+		*ptr_lamt;
 	
 	int ii, jj, bs0;
 	
@@ -1651,10 +1680,8 @@ void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int
 		{
 		
 		ptr_lamt  = lamt[jj];
-		ptr_tinv  = t_inv[jj];
 		ptr_db    = db[jj];
-		ptr_bl    = bl[jj];
-		ptr_pl    = pl[jj];
+		ptr_qx    = qx[jj];
 
 		// box constraints
 		nb0 = nb[jj];
@@ -1666,25 +1693,25 @@ void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int
 			for(ii=0; ii<nb0-3; ii+=4)
 				{
 
-				ptr_pl[ii+0] = ptr_bl[ii+0] - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] - ptr_lamt[ii+0]*ptr_db[ii+0];
+				ptr_qx[ii+0] = - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] - ptr_lamt[ii+0]*ptr_db[ii+0];
 
-				ptr_pl[ii+1] = ptr_bl[ii+1] - ptr_lamt[ii+pnb+1]*ptr_db[ii+pnb+1] - ptr_lamt[ii+1]*ptr_db[ii+1];
+				ptr_qx[ii+1] = - ptr_lamt[ii+pnb+1]*ptr_db[ii+pnb+1] - ptr_lamt[ii+1]*ptr_db[ii+1];
 
-				ptr_pl[ii+2] = ptr_bl[ii+2] - ptr_lamt[ii+pnb+2]*ptr_db[ii+pnb+2] - ptr_lamt[ii+2]*ptr_db[ii+2];
+				ptr_qx[ii+2] = - ptr_lamt[ii+pnb+2]*ptr_db[ii+pnb+2] - ptr_lamt[ii+2]*ptr_db[ii+2];
 
-				ptr_pl[ii+3] = ptr_bl[ii+3] - ptr_lamt[ii+pnb+3]*ptr_db[ii+pnb+3] - ptr_lamt[ii+3]*ptr_db[ii+3];
+				ptr_qx[ii+3] = - ptr_lamt[ii+pnb+3]*ptr_db[ii+pnb+3] - ptr_lamt[ii+3]*ptr_db[ii+3];
 
 				}
 			for(; ii<nb0; ii++)
 				{
 
-				ptr_pl[ii+0] = ptr_bl[ii+0] - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] - ptr_lamt[ii+0]*ptr_db[ii+0];
+				ptr_qx[ii+0] = - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] - ptr_lamt[ii+0]*ptr_db[ii+0];
 
 				}
 
 			ptr_lamt  += 2*pnb;
-			ptr_tinv  += 2*pnb;
 			ptr_db    += 2*pnb;
+			ptr_qx    += pnb;
 
 			} // end of if nb0>0
 
@@ -1693,8 +1720,6 @@ void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int
 		if(ng0>0)
 			{
 
-			ptr_qx    = qx[jj];
-		
 			png = (ng0+bs-1)/bs*bs; // simd aligned number of general constraints
 
 			for(ii=0; ii<ng0-3; ii+=4)
