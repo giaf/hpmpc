@@ -599,13 +599,12 @@ void d_back_ric_rec_sv_tv_res(int N, int *nx, int *nu, int update_lin, double **
 	if(ng[N]>0)
 		{
 		for(ii=0; ii<ng[N]; ii++) 
-			{
 			Qx[N][pnb+ii] = sqrt(Qx[N][pnb+ii]); // XXX
-			qx[N][pnb+ii] /= Qx[N][pnb+ii];
-			}
 		cng[N] = (ng[N]+ncl-1)/ncl*ncl;
 		dgemm_diag_right_lib(nux[N], ng[N], hpDCt[N], cng[N], Qx[N]+pnb, 0, work0, cng[N], work0, cng[N]);
 		drowin_lib(ng[N], qx[N]+pnb, work0+nux[N]/bs*cng[N]*bs+nux[N]%bs);
+		for(ii=0; ii<ng[N]; ii++) 
+			work0[nux[N]/bs*cng[N]*bs+nux[N]%bs+ii*bs] /= Qx[N][pnb+ii];
 		}
 #ifdef BLASFEO
 	dsyrk_dpotrf_ntnn_l_lib(nz[N], nux[N], ng[N], work0, cng[N], work0, cng[N], 1, hpQ[N], cnux[N], hpL[N], cnl[N], hdL[N]);
@@ -663,13 +662,12 @@ void d_back_ric_rec_sv_tv_res(int N, int *nx, int *nu, int update_lin, double **
 		if(ng[N-nn-1]>0)
 			{
 			for(ii=0; ii<ng[N-nn-1]; ii++) 
-				{
 				Qx[N-nn-1][pnb+ii] = sqrt(Qx[N-nn-1][pnb+ii]); // XXX
-				qx[N-nn-1][pnb+ii] /= Qx[N-nn-1][pnb+ii];
-				}
 			cng[N-nn-1] = (ng[N-nn-1]+ncl-1)/ncl*ncl;
 			dgemm_diag_right_lib(nux[N-nn-1], ng[N-nn-1], hpDCt[N-nn-1], cng[N-nn-1], Qx[N-nn-1]+pnb, 0, work0+nx[N-nn]*bs, cnxg[N-nn-1], work0+nx[N-nn]*bs, cnxg[N-nn-1]);
 			drowin_lib(ng[N-nn-1], qx[N-nn-1]+pnb, work0+nux[N-nn-1]/bs*cnxg[N-nn-1]*bs+nux[N-nn-1]%bs+nx[N-nn]*bs);
+			for(ii=0; ii<ng[N-nn-1]; ii++) 
+				work0[nux[N-nn-1]/bs*cnxg[N-nn-1]*bs+nux[N-nn-1]%bs+(ii+nx[N-nn])*bs] /= Qx[N-nn-1][pnb+ii];
 			}
 
 #ifdef BLASFEO
