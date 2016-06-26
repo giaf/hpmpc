@@ -308,7 +308,8 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	else // call the riccati solver and return
 		{
 		double **dummy;
-		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, ux, pL, dL, work, 1, Pb, compute_mult, pi, nb, idxb, dummy, dummy, ng, dummy, dummy, dummy);
+		d_back_ric_rec_sv_tv_res(N, nx, nu, 0, pBAbt, b, 0, pQ, q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, dummy, ng, dummy, dummy, dummy);
+//		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, ux, pL, dL, work, 1, Pb, compute_mult, pi, nb, idxb, dummy, dummy, ng, dummy, dummy, dummy);
 		*kk = 0;
 		return;
 		}
@@ -389,7 +390,7 @@ exit(1);
 		// compute the search direction: factorize and solve the KKT system
 //		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
 #if 1
-		d_back_ric_rec_sv_tv_res(N, nx, nu, 1, pBAbt, b, pQ, q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
+		d_back_ric_rec_sv_tv_res(N, nx, nu, 0, pBAbt, b, 1, pQ, q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
 #else
 		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
 		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
