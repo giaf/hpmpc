@@ -374,8 +374,18 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 	d_init_var_mpc_hard_tv(N, nx, nu, nb, idxb, ng, ux, pi, pDCt, d, t, lam, mu0, warm_start);
 
 #if 0
+printf("\nux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nu[ii]+nx[ii], ux[ii], 1);
+printf("\npi\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nx[ii+1], pi[ii], 1);
+printf("\nlam\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], lam[ii], 1);
+printf("\nt\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], t[ii], 1);
 exit(1);
 #endif
 
@@ -398,10 +408,13 @@ exit(1);
 	// loop without residuals compuation at early iterations
 	//
 
-	double mu_tol_low = mu_tol<1e-8 ? 1e-8 : mu_tol ;
+	double mu_tol_low = mu_tol<1e-6 ? 1e-6 : mu_tol ;
 
-//	if(0)
+#if 0
+	if(0)
+#else
 	while( *kk<k_max && mu>mu_tol_low && alpha>=alpha_min )
+#endif
 		{
 
 //		printf("\nkk = %d (no res)\n", *kk);
@@ -413,15 +426,9 @@ exit(1);
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii], pd[ii], 1);
+	d_print_mat(1, pnb[ii]+png[ii], Qx[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii], pl[ii], 1);
-for(ii=0; ii<=N; ii++)
-	d_print_mat(1, ng[ii], Qx[ii], 1);
-for(ii=0; ii<=N; ii++)
-	d_print_mat(1, ng[ii], qx[ii], 1);
-for(ii=0; ii<=N; ii++)
-	d_print_mat(1, ng[ii], qx2[ii], 1);
+	d_print_mat(1, pnb[ii]+png[ii], qx[ii], 1);
 //if(*kk==1)
 exit(1);
 #endif
