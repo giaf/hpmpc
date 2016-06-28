@@ -235,7 +235,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 	for(ii=0; ii<N; ii++)
 		{
 		hrb[ii] = ptr;
-		ptr += pnx[ii];
+		ptr += pnx[ii+1];
 		}
 
 	for(ii=0; ii<=N; ii++)

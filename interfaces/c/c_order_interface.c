@@ -235,7 +235,7 @@ int c_order_d_ip_ocp_hard_tv(
 	for(ii=0; ii<N; ii++)
 		{
 		hrb[ii] = ptr;
-		ptr += pnx[ii];
+		ptr += pnx[ii+1];
 		}
 
 	for(ii=0; ii<=N; ii++)
@@ -440,6 +440,15 @@ int c_order_d_ip_ocp_hard_tv(
 	double mu;
 
 	d_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, hpBAbt, hb, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+
+#if 0
+	printf("\nres_q\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_mat_e(1, nu[ii]+nx[ii], hrq[ii], 1);
+	printf("\nres_b\n");
+	for(ii=0; ii<N; ii++)
+		d_print_mat_e(1, nx[ii+1], hrb[ii], 1);
+#endif
 
 	temp = fabs(hrq[0][0]);
 	for(ii=0; ii<N; ii++)
