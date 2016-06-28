@@ -82,6 +82,7 @@ void dcolin_lib(int kmax, double *x, int offset, double *pD, int sdd);
 void dcolad_lib(int kmax, double alpha, double *x, int offset, double *pD, int sdd);
 void dcolin_libsp(int kmax, int *idx, double *x, double *pD, int sdd);
 void dcolad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int sdd);
+void dvecad_libsp(int kmax, int *idx, double alpha, double *x, double *y);
 
 
 

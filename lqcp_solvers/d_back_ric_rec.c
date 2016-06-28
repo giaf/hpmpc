@@ -426,7 +426,7 @@ void d_back_ric_rec_trs_tv_res(int N, int *nx, int *nu, double **hpBAbt, double 
 	if(nb[N]>0)
 		{
 		pnb = (nb[N]+bs-1)/bs*bs;
-		dvecad_libsp(nb[N], 1.0, idxb[N], qx[N], hl[N]);
+		dvecad_libsp(nb[N], idxb[N], 1.0, qx[N], hl[N]);
 		}
 	else
 		{
@@ -462,7 +462,7 @@ void d_back_ric_rec_trs_tv_res(int N, int *nx, int *nu, double **hpBAbt, double 
 		if(nb[N-nn-1]>0)
 			{
 			pnb = (nb[N-nn-1]+bs-1)/bs*bs;
-			dvecad_libsp(nb[N-nn-1], 1.0, idxb[N-nn-1], qx[N-nn-1], hl[N-nn-1]);
+			dvecad_libsp(nb[N-nn-1], idxb[N-nn-1], 1.0, qx[N-nn-1], hl[N-nn-1]);
 			}
 		else
 			{
@@ -506,7 +506,7 @@ void d_back_ric_rec_trs_tv_res(int N, int *nx, int *nu, double **hpBAbt, double 
 	if(nb[N-nn-1]>0)
 		{
 		pnb = (nb[N-nn-1]+bs-1)/bs*bs;
-		dvecad_libsp(nb[N-nn-1], 1.0, idxb[N-nn-1], qx[N-nn-1], hl[N-nn-1]);
+		dvecad_libsp(nb[N-nn-1], idxb[N-nn-1], 1.0, qx[N-nn-1], hl[N-nn-1]);
 		}
 	else
 		{

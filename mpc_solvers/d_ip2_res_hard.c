@@ -34,6 +34,11 @@
 
 
 
+// use iterative refinement to increase accuracy of the solution of the equality constrained sub-problems
+#define ITER_REF 1
+
+
+
 /* computes work space size */
 int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng)
 	{
@@ -60,6 +65,9 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 		pnx = (nx[ii]+bs-1)/bs*bs;
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
 		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 5*pnx + 6*pnz + 19*pnb + 18*png;
+#if ITER_REF>0
+		size += pnz*cnux + 3*pnx + 3*pnz;
+#endif
 		}
 	ii = N;
 	pnz = (nx[ii]+1+bs-1)/bs*bs;
@@ -72,6 +80,9 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 	pnx = (nx[ii]+bs-1)/bs*bs;
 	pnz = (nx[ii]+1+bs-1)/bs*bs;
 	size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 5*pnx + 6*pnz + 19*pnb + 18*png;
+#if ITER_REF>0
+	size += pnz*cnux + 3*pnx + 3*pnz;
+#endif
 
 	size += 2*pngM;
 
@@ -160,6 +171,22 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 	double *pi_bkp[N];
 	double *t_bkp[N+1];
 	double *lam_bkp[N+1];
+#if ITER_REF>0
+	double *pQ2[N+1];
+	double *q2[N+1];
+	double *res_q2[N+1];
+	double *res_b2[N];
+	double *dux2[N+1];
+	double *dpi2[N];
+	double *Pb2[N];
+
+	int nb2[N+1]; for(ii=0; ii<=N; ii++) nb2[ii] = 0;
+	int ng2[N+1]; for(ii=0; ii<=N; ii++) ng2[ii] = 0;
+	int cng[N+1]; for(jj=0; jj<=N; jj++) cng[jj] = (ng[jj]+ncl-1)/ncl*ncl;
+
+	double **pdummy;
+	double **ppdummy;
+#endif
 
 	// work space
 	for(jj=0; jj<=N; jj++)
@@ -319,6 +346,50 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 		ptr += 2*pnb[jj]+2*png[jj];
 		}
 
+#if ITER_REF>0
+	for(jj=0; jj<=N; jj++)
+		{
+		pQ2[jj] = ptr;
+		ptr += pnz[jj]*cnux[jj];
+		}
+
+	for(jj=0; jj<=N; jj++)
+		{
+		q2[jj] = ptr;
+		ptr += pnz[jj];
+		}
+
+	for(jj=0; jj<=N; jj++)
+		{
+		res_q2[jj] = ptr;
+		ptr += pnz[jj];
+		}
+
+	for(jj=0; jj<N; jj++)
+		{
+		res_b2[jj] = ptr;
+		ptr += pnx[jj+1];
+		}
+
+	for(jj=0; jj<=N; jj++)
+		{
+		dux2[jj] = ptr;
+		ptr += pnz[jj];
+		}
+
+	for(jj=0; jj<N; jj++)
+		{
+		dpi2[jj] = ptr;
+		ptr += pnx[jj+1];
+		}
+
+	for(jj=0; jj<N; jj++)
+		{
+		Pb2[jj] = ptr;
+		ptr += pnx[jj+1];
+		}
+
+#endif
 
 #if 0
 	int cng[N+1];
@@ -722,11 +793,112 @@ for(ii=0; ii<=N; ii++)
 
 
 		// compute the search direction: factorize and solve the KKT system
+#if ITER_REF>0
+		// update Hessian and gradient
+		for(ii=0; ii<=N; ii++)
+			{
+
+			// box constraints
+			// gradient
+			for(jj=0; jj<nu[ii]+nx[ii]; jj++)
+				q2[ii][jj] = res_q[ii][jj];
+			dvecad_libsp(nb[ii], idxb[ii], 1.0, qx[ii], q2[ii]);
+//			d_print_mat_e(1, nu[ii]+nx[ii], q2[ii], 1);
+			// hessian
+			for(jj=0; jj<pnz[ii]*cnux[ii]; jj++)
+				pQ2[ii][jj] = pQ[ii][jj];
+			ddiaad_libsp(nb[ii], idxb[ii], 1.0, Qx[ii], pQ2[ii], cnux[ii]);
+			drowin_lib(cnux[ii], q2[ii], pQ2[ii]+(nu[ii]+nx[ii])/bs*bs*cnux[ii]+(nu[ii]+nx[ii])%bs);
+//			drowin_lib(cnux[ii], res_q[ii], pQ2[ii]+(nu[ii]+nx[ii])/bs*bs*cnux[ii]+(nu[ii]+nx[ii])%bs);
+//			drowad_libsp(nb[ii], idxb[ii], 1.0, qx[ii], pQ2[ii]+(nu[ii]+nx[ii])/bs*bs*cnux[ii]+(nu[ii]+nx[ii])%bs);
+//			d_print_pmat_e(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], bs, pQ2[ii], cnux[ii]);
+
+			// general constraints
+			if(ng[ii]>0) // TODO unsymmetric update not requiring sqrt & div ???
+				{
+				for(jj=0; jj<ng[ii]; jj++) 
+					{
+					Qx[ii][pnb[ii]+jj] = sqrt(Qx[ii][pnb[ii]+jj]); // XXX
+					}
+				dgemm_diag_right_lib(nu[ii]+nx[ii], ng[ii], pDCt[ii], cng[ii], Qx[ii]+pnb[ii], 0, work, cng[ii], work, cng[ii]);
+				drowin_lib(ng[ii], qx[ii]+pnb[ii], work+(nu[ii]+nx[ii])/bs*cng[ii]*bs+(nu[ii]+nx[ii])%bs);
+				for(jj=0; jj<ng[ii]; jj++) 
+					work[(nu[ii]+nx[ii])/bs*cng[ii]*bs+(nu[ii]+nx[ii])%bs+jj*bs] /= Qx[ii][pnb[ii]+jj];
+				}
+
+#ifdef BLASFEO
+			dsyrk_ntnn_l_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
+#else
+			dsyrk_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
+#endif
+			drowex_lib(cnux[ii], pQ2[ii]+(nu[ii]+nx[ii])/bs*bs*cnux[ii]+(nu[ii]+nx[ii])%bs, q2[ii]);
+
+//			d_print_pmat_e(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], bs, pQ2[ii], cnux[ii]);
+			}
+//		exit(2);
+
+		// factorize & solve KKT system
+		d_back_ric_rec_sv_tv_res(N, nx, nu, 1, pBAbt, res_b, 0, pQ2, res_q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb2, idxb, ppdummy, ng2, ppdummy, ppdummy, ppdummy);
+
+		int it_ref;
+		for(it_ref=0; it_ref<ITER_REF; it_ref++)
+			{
+
+			// compute residuals
+			d_res_res_mpc_hard_tv(N, nx, nu, nb2, idxb, ng2, pBAbt, res_b, pQ2, q2, dux, ppdummy, ppdummy, dpi, ppdummy, ppdummy, res_work, res_q2, res_b2, ppdummy, ppdummy, pdummy);
+
+	#if 0
+			printf("\nres_q2\n");
+			for(ii=0; ii<=N; ii++)
+				d_print_mat_e(1, nu[ii]+nx[ii], res_q2[ii], 1);
+			printf("\nres_b2\n");
+			for(ii=0; ii<N; ii++)
+				d_print_mat_e(1, nx[ii+1], res_b2[ii], 1);
+	//		exit(2);
+	#endif
+
+			// solve for residuals
+			d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b2, pL, dL, res_q2, l, dux2, work, 1, Pb2, compute_mult, dpi2, nb2, idxb, ng2, ppdummy, ppdummy);
+
+	//		printf("\nux2\n");
+	//		for(ii=0; ii<=N; ii++)
+	//			d_print_mat_e(1, nu[ii]+nx[ii], dux2[ii], 1);
+	//		printf("\npi2\n");
+	//		for(ii=0; ii<N; ii++)
+	//			d_print_mat_e(1, nx[ii+1], dpi2[ii], 1);
+	//		exit(2);
+
+			// update solution
+			for(ii=0; ii<=N; ii++)
+				for(jj=0; jj<nu[ii]+nx[ii]; jj++)
+					dux[ii][jj] += dux2[ii][jj];
+			for(ii=0; ii<N; ii++)
+				for(jj=0; jj<nx[ii+1]; jj++)
+					dpi[ii][jj] += dpi2[ii][jj];
+
+			}
+
+#if 0
+		// compute residuals again
+		d_res_res_mpc_hard_tv(N, nx, nu, nb2, idxb, ng2, pBAbt, res_b, pQ2, q2, dux, ppdummy, ppdummy, dpi, ppdummy, ppdummy, res_work, res_q2, res_b2, ppdummy, ppdummy, pdummy);
+
+		printf("\nres_q2\n");
+		for(ii=0; ii<=N; ii++)
+			d_print_mat_e(1, nu[ii]+nx[ii], res_q2[ii], 1);
+		printf("\nres_b2\n");
+		for(ii=0; ii<N; ii++)
+			d_print_mat_e(1, nx[ii+1], res_b2[ii], 1);
+		exit(2);
+#endif
+
+
+#else
 #if 1
 		d_back_ric_rec_sv_tv_res(N, nx, nu, 1, pBAbt, res_b, 1, pQ, res_q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
 #else
 		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
 		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
+#endif
 #endif
 
 		
@@ -777,7 +949,7 @@ exit(1);
 #endif
 
 
-#if 1 // IPM1
+#if 0 // IPM1
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1.0;

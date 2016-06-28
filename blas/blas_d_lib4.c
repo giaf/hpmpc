@@ -5981,7 +5981,7 @@ void dvecin_libsp(int kmax, int *idx, double *x, double *y)
 
 
 // adds vector to vector, sparse formulation
-void dvecad_libsp(int kmax, double alpha, int *idx, double *x, double *y)
+void dvecad_libsp(int kmax, int *idx, double alpha, double *x, double *y)
 	{
 
 	int jj;
