@@ -76,7 +76,7 @@ int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int const *nx, int const
 	int cnux[N+1];
 	int cng[N+1];
 
-	for(ii=0; ii<=N; ii++)
+	for(ii=0; ii<N; ii++)
 		{
 		pnx[ii] = (nx[ii]+bs-1)/bs*bs;
 		pnz[ii] = (nu[ii]+nx[ii]+1+bs-1)/bs*bs;
@@ -86,6 +86,14 @@ int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int const *nx, int const
 		cnux[ii] = (nu[ii]+nx[ii]+ncl-1)/ncl*ncl;
 		cng[ii] = (ng[ii]+ncl-1)/ncl*ncl;
 		}
+	ii = N;
+	pnx[ii] = (nx[ii]+bs-1)/bs*bs;
+	pnz[ii] = (nx[ii]+1+bs-1)/bs*bs;
+	pnb[ii] = (nb[ii]+bs-1)/bs*bs;
+	png[ii] = (ng[ii]+bs-1)/bs*bs;
+	cnx[ii] = (nx[ii]+ncl-1)/ncl*ncl;
+	cnux[ii] = (nx[ii]+ncl-1)/ncl*ncl;
+	cng[ii] = (ng[ii]+ncl-1)/ncl*ncl;
 
 	int size_doubles = bs;
 	int size_ints = 0;

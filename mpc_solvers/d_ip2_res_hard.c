@@ -48,7 +48,7 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 	int size = 0;
 	int pnzM = 0;
 	int pngM = 0;
-	for(ii=0; ii<=N; ii++)
+	for(ii=0; ii<N; ii++)
 		{
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
 		if(pnz>pnzM) pnzM = pnz;
@@ -59,8 +59,19 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 		cnux = (nu[ii]+nx[ii]+ncl-1)/ncl*ncl;
 		pnx = (nx[ii]+bs-1)/bs*bs;
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
-		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 5*pnx + 6*pnz + 18*pnb + 16*png;
+		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 5*pnx + 6*pnz + 19*pnb + 18*png;
 		}
+	ii = N;
+	pnz = (nx[ii]+1+bs-1)/bs*bs;
+	if(pnz>pnzM) pnzM = pnz;
+	pnb = (nb[ii]+bs-1)/bs*bs;
+	png = (ng[ii]+bs-1)/bs*bs;
+	if(png>pngM) pngM = png;
+	cnx = (nx[ii]+ncl-1)/ncl*ncl;
+	cnux = (nx[ii]+ncl-1)/ncl*ncl;
+	pnx = (nx[ii]+bs-1)/bs*bs;
+	pnz = (nx[ii]+1+bs-1)/bs*bs;
+	size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 5*pnx + 6*pnz + 19*pnb + 18*png;
 
 	size += 2*pngM;
 
@@ -74,7 +85,7 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 
 
 /* primal-dual interior-point method computing residuals at each iteration, hard constraints, time variant matrices, time variant size (mpc version) */
-int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
+int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int N, int *nx, int *nu_N, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
 	{
 
 	// indeces
@@ -83,6 +94,14 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
+
+
+
+	// nu with nu[N]=0
+	int nu[N+1];
+	for(ii=0; ii<N; ii++)
+		nu[ii] = nu_N[ii];
+	nu[N] = 0;
 
 
 
@@ -124,12 +143,11 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 	double *dux[N+1];
 	double *dpi[N];
 	double *bd[N+1]; // backup diagonal of Hessian
-	double *bl[N+1]; // backup gradient
+//	double *bl[N+1]; // backup gradient
 	double *dlam[N+1];
 	double *dt[N+1];
 	double *t_inv[N+1];
-	double *Qb[N+1];
-	double *qb[N+1];
+	double *lamt[N+1];
 	double *Qx[N+1];
 	double *qx[N+1];
 	double *Pb[N];
@@ -171,7 +189,9 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 		{
 		b[jj] = ptr;
 		ptr += pnx[jj+1];
-		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
+//		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
+		for(ii=0; ii<nx[jj+1]; ii++)
+			b[jj][ii] = pBAbt[jj][(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs+ii*bs];
 		}
 
 	// inputs and states
@@ -208,14 +228,15 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 	for(jj=0; jj<=N; jj++)
 		{
 		bd[jj] = ptr;
-		bl[jj] = ptr+pnb[jj];
-		ptr += 2*pnb[jj];
+//		bl[jj] = ptr+pnb[jj];
+//		ptr += 2*pnb[jj];
+		ptr += pnb[jj];
 		// backup
 		for(ll=0; ll<nb[jj]; ll++)
 			{
 			idx = idxb[jj][ll];
 			bd[jj][ll] = pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs];
-			bl[jj][ll] = q[jj][idx]; // XXX this has to come after q !!!
+//			bl[jj][ll] = q[jj][idx]; // XXX this has to come after q !!!
 			}
 		}
 
@@ -230,6 +251,12 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 	for(jj=0; jj<=N; jj++)
 		{
 		t_inv[jj] = ptr;
+		ptr += 2*pnb[jj]+2*png[jj];
+		}
+
+	for(jj=0; jj<=N; jj++)
+		{
+		lamt[jj] = ptr;
 		ptr += 2*pnb[jj]+2*png[jj];
 		}
 
@@ -321,7 +348,7 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 	else // call the riccati solver and return
 		{
 		double **dummy;
-		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, ux, pL, dL, work, 1, Pb, compute_mult, pi, nb, idxb, dummy, dummy, ng, dummy, dummy, dummy);
+		d_back_ric_rec_sv_tv_res(N, nx, nu, 0, pBAbt, b, 0, pQ, q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, dummy, ng, dummy, dummy, dummy);
 		// backup solution
 		for(ii=0; ii<=N; ii++)
 			for(jj=0; jj<nu[ii]+nx[ii]; jj++)
@@ -347,8 +374,18 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 	d_init_var_mpc_hard_tv(N, nx, nu, nb, idxb, ng, ux, pi, pDCt, d, t, lam, mu0, warm_start);
 
 #if 0
+printf("\nux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nu[ii]+nx[ii], ux[ii], 1);
+printf("\npi\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nx[ii+1], pi[ii], 1);
+printf("\nlam\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], lam[ii], 1);
+printf("\nt\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], t[ii], 1);
 exit(1);
 #endif
 
@@ -364,6 +401,271 @@ exit(1);
 	alpha = 1.0;
 
 
+
+
+
+	//
+	// loop without residuals compuation at early iterations
+	//
+
+	double mu_tol_low = mu_tol<1e-6 ? 1e-6 : mu_tol ;
+
+#if 0
+	if(0)
+#else
+	while( *kk<k_max && mu>mu_tol_low && alpha>=alpha_min )
+#endif
+		{
+
+//		printf("\nkk = %d (no res)\n", *kk);
+						
+
+
+		//update cost function matrices and vectors (box constraints)
+		d_update_hessian_mpc_hard_tv(N, nx, nu, nb, ng, d, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx);
+
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, pnb[ii]+png[ii], Qx[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, pnb[ii]+png[ii], qx[ii], 1);
+//if(*kk==1)
+exit(1);
+#endif
+
+
+		// compute the search direction: factorize and solve the KKT system
+//		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
+#if 1
+		d_back_ric_rec_sv_tv_res(N, nx, nu, 0, pBAbt, b, 1, pQ, q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
+#else
+		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
+		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
+#endif
+
+
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, bs, pQ[ii], cnux[ii]);
+exit(1);
+#endif
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_pmat(pnz[ii], cnz[ii], bs, pL[ii], cnz[ii]);
+//exit(1);
+#endif
+#if 0
+printf("\ndux\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
+printf("\ndpi\n");
+for(ii=0; ii<N; ii++)
+	d_print_mat(1, nx[ii+1], dpi[ii], 1);
+//if(*kk==1)
+exit(1);
+#endif
+
+
+#if 1 // IPM1
+
+		// compute t_aff & dlam_aff & dt_aff & alpha
+		alpha = 1.0;
+		d_compute_alpha_mpc_hard_tv(N, nx, nu, nb, idxb, ng, &alpha, t, dt, lam, dlam, lamt, dux, pDCt, d);
+
+		
+
+		stat[5*(*kk)] = sigma;
+		stat[5*(*kk)+1] = alpha;
+			
+		alpha *= 0.995;
+
+#if 0
+printf("\nalpha = %f\n", alpha);
+exit(1);
+#endif
+
+
+		// compute the affine duality gap
+		d_compute_mu_mpc_hard_tv(N, nx, nu, nb, ng, &mu_aff, mu_scal, alpha, lam, dlam, t, dt);
+
+		stat[5*(*kk)+2] = mu_aff;
+
+#if 0
+printf("\nmu = %f\n", mu_aff);
+exit(1);
+#endif
+
+
+
+		// compute sigma
+		sigma = mu_aff/mu;
+		sigma = sigma*sigma*sigma;
+//		if(sigma<sigma_min)
+//			sigma = sigma_min;
+//printf("\n%f %f %f %f\n", mu_aff, mu, sigma, mu_scal);
+//exit(1);
+
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii], dt[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii], dlam[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii], t_inv[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nb[ii], pl[ii], 1);
+//exit(1);
+#endif
+
+
+//		d_update_gradient_mpc_hard_tv(N, nx, nu, nb, ng, sigma*mu, dt, dlam, t_inv, pl, qx);
+		d_update_gradient_mpc_hard_tv(N, nx, nu, nb, ng, sigma*mu, dt, dlam, t_inv, qx);
+
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nb[ii], pl[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, ng[ii], qx[ii], 1);
+if(*kk==1)
+exit(1);
+#endif
+
+
+//		// copy b into x
+//		for(ii=0; ii<N; ii++)
+//			for(jj=0; jj<nx[ii+1]; jj++) 
+//				dux[ii+1][nu[ii+1]+jj] = pBAbt[ii][(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs+bs*jj]; // copy b
+
+
+
+		// solve the system
+//		d_back_ric_rec_trs_tv(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
+		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
+
+#if 0
+printf("\ndux\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
+if(*kk==1)
+exit(1);
+#endif
+
+
+
+#endif // end of IPM1
+
+
+		// compute t & dlam & dt & alpha
+		alpha = 1.0;
+		d_compute_alpha_mpc_hard_tv(N, nx, nu, nb, idxb, ng, &alpha, t, dt, lam, dlam, lamt, dux, pDCt, d);
+
+#if 0
+printf("\nalpha = %f\n", alpha);
+printf("\ndt\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], dt[ii], 1);
+printf("\ndlam\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], dlam[ii], 1);
+exit(2);
+#endif
+
+		stat[5*(*kk)] = sigma;
+		stat[5*(*kk)+3] = alpha;
+			
+		alpha *= 0.995;
+
+
+
+		// backup solution // TODO embedd into update_var e add 'step' to the name
+		for(ii=0; ii<=N; ii++)
+			for(jj=0; jj<nu[ii]+nx[ii]; jj++)
+				ux_bkp[ii][jj] = ux[ii][jj];
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nx[ii+1]; jj++)
+				pi_bkp[ii][jj] = pi[ii][jj];
+		for(ii=0; ii<=N; ii++)
+			{
+			for(jj=0; jj<nb[ii]; jj++)
+				{
+				lam_bkp[ii][jj] = lam[ii][jj];
+				lam_bkp[ii][pnb[ii]+jj] = lam[ii][pnb[ii]+jj];
+				t_bkp[ii][jj] = t[ii][jj];
+				t_bkp[ii][pnb[ii]+jj] = t[ii][pnb[ii]+jj];
+				}
+			for(jj=0; jj<ng[ii]; jj++)
+				{
+				lam_bkp[ii][2*pnb[ii]+jj] = lam[ii][2*pnb[ii]+jj];
+				lam_bkp[ii][2*pnb[ii]+png[ii]+jj] = lam[ii][2*pnb[ii]+png[ii]+jj];
+				t_bkp[ii][2*pnb[ii]+jj] = t[ii][2*pnb[ii]+jj];
+				t_bkp[ii][2*pnb[ii]+png[ii]+jj] = t[ii][2*pnb[ii]+png[ii]+jj];
+				}
+			}
+
+		// compute step & update x, u, lam, t & compute the duality gap mu
+		d_update_var_mpc_hard_tv(N, nx, nu, nb, ng, &mu, mu_scal, alpha, ux, dux, t, dt, lam, dlam, pi, dpi);
+
+		stat[5*(*kk)+4] = mu;
+		
+
+#if 0
+printf("\nux\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, nu[ii]+nx[ii], ux[ii], 1);
+printf("\npi\n");
+for(ii=0; ii<N; ii++)
+	d_print_mat(1, nx[ii+1], pi[ii], 1);
+printf("\nlam\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], lam[ii], 1);
+printf("\nt\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], t[ii], 1);
+//if(*kk==1)
+exit(1);
+#endif
+
+
+		// increment loop index
+		(*kk)++;
+
+
+		} // end of IP loop
+	
+
+	// restore Hessian
+	for(jj=0; jj<=N; jj++)
+		{
+		for(ll=0; ll<nb[jj]; ll++)
+			{
+			idx = idxb[jj][ll];
+			pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs] = bd[jj][ll];
+//			pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+idx*bs] = bl[jj][ll];
+			}
+		for(ll=0; ll<nu[jj]+nx[jj]; ll++) 
+			pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs] = q[jj][ll];
+		}
+
+#if 0
+printf("\nux\n");
+for(jj=0; jj<=N; jj++)
+	d_print_mat(1, nu[jj]+nx[jj], ux[jj], 1);
+printf("\npi\n");
+for(jj=0; jj<N; jj++)
+	d_print_mat(1, nx[jj+1], pi[jj], 1);
+printf("\nlam\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], lam[ii], 1);
+printf("\nt\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], t[ii], 1);
+exit(2);
+#endif
+
+
+	//
+	// loop with residuals computation for high-accuracy result
+	//
 
 	// compute residuals
 	d_res_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, pBAbt, b, pQ, q, ux, pDCt, d, pi, lam, t, res_work, res_q, res_b, res_d, res_m, &mu);
@@ -388,9 +690,15 @@ exit(1);
 
 
 	// IP loop		
+#if 0
+	int ipm_it;
+	for(ipm_it=0; ipm_it<3; ipm_it++)
+#else
 	while( *kk<k_max && mu>mu_tol && alpha>=alpha_min ) // XXX exit conditions on residuals???
+#endif
 		{
 
+//		printf("\nkk = %d (res)\n", *kk);
 
 
 #if 0
@@ -414,11 +722,12 @@ for(ii=0; ii<=N; ii++)
 
 
 		// compute the search direction: factorize and solve the KKT system
-		// TODO sv
-//		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
+#if 1
+		d_back_ric_rec_sv_tv_res(N, nx, nu, 1, pBAbt, res_b, 1, pQ, res_q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
+#else
 		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
-//		d_back_ric_rec_trs_tv(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
 		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
+#endif
 
 		
 #if 0
@@ -431,14 +740,17 @@ for(ii=0; ii<=N; ii++)
 exit(1);
 #endif
 #if 0
+if(*kk==1)
+{
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
 printf("\ndpi\n");
 for(ii=0; ii<N; ii++)
 	d_print_mat(1, nx[ii+1], dpi[ii], 1);
+}
 //if(*kk==1)
-exit(1);
+//exit(1);
 #endif
 
 
@@ -602,15 +914,22 @@ for(ii=0; ii<=N; ii++)
 
 
 		// compute residuals
-		// restore Hessian
+		// restore Hessian XXX check for time-invariant problem !!!!!
 		for(jj=0; jj<=N; jj++)
 			{
 			for(ll=0; ll<nb[jj]; ll++)
 				{
 				idx = idxb[jj][ll];
 				pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs] = bd[jj][ll];
+//				pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+idx*bs] = bl[jj][ll];
 				}
 			}
+		for(ii=0; ii<=N; ii++)
+			for(jj=0; jj<nu[ii]+nx[ii]; jj++)
+				pQ[ii][(nu[ii]+nx[ii])/bs*bs*cnux[ii]+(nu[ii]+nx[ii])%bs+jj*bs] = q[ii][jj];
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nx[ii+1]; jj++)
+				pBAbt[ii][(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs+jj*bs] = b[ii][jj];
 		d_res_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, pBAbt, b, pQ, q, ux, pDCt, d, pi, lam, t, res_work, res_q, res_b, res_d, res_m, &mu);
 #if 0
 		printf("\nres_q\n");
@@ -654,12 +973,31 @@ for(ii=0; ii<=N; ii++)
 //		}
 
 #if 0
+printf("\nABb\n");
+for(jj=0; jj<N; jj++)
+	d_print_pmat(nu[jj]+nx[jj]+1, nx[jj+1], bs, pBAbt[jj], cnx[jj+1]);
 printf("\nQ\n");
 for(jj=0; jj<=N; jj++)
 	d_print_pmat(nu[jj]+nx[jj]+1, nu[jj]+nx[jj], bs, pQ[jj], cnux[jj]);
+//printf("\nux\n");
+//for(jj=0; jj<=N; jj++)
+//	d_print_mat(1, nu[jj]+nx[jj], ux[jj], 1);
+//exit(2);
+#endif
+
+#if 0
 printf("\nux\n");
 for(jj=0; jj<=N; jj++)
 	d_print_mat(1, nu[jj]+nx[jj], ux[jj], 1);
+printf("\npi\n");
+for(jj=0; jj<N; jj++)
+	d_print_mat(1, nx[jj+1], pi[jj], 1);
+printf("\nlam\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], lam[ii], 1);
+printf("\nt\n");
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pnb[ii]+2*png[ii], t[ii], 1);
 exit(2);
 #endif
 
@@ -695,7 +1033,7 @@ exit(2);
 
 
 
-void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **b, double **pQ, double **q, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
+void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu_N, int *nb, int **idxb, int *ng, double **pBAbt, double **b, double **pQ, double **q, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
 	{
 	
 	// indeces
@@ -704,6 +1042,14 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
+
+
+
+	// nu with nu[N]=0
+	int nu[N+1];
+	for(ii=0; ii<N; ii++)
+		nu[ii] = nu_N[ii];
+	nu[N] = 0;
 
 
 
@@ -745,12 +1091,11 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 	double *dux[N+1];
 	double *dpi[N];
 	double *bd[N+1]; // backup diagonal of Hessian
-	double *bl[N+1]; // backup diagonal of Hessian
+//	double *bl[N+1]; // backup diagonal of Hessian
 	double *dlam[N+1];
 	double *dt[N+1];
 	double *t_inv[N+1];
-	double *Qb[N+1];
-	double *qb[N+1];
+	double *lamt[N+1];
 	double *Qx[N+1];
 	double *qx[N+1];
 	double *Pb[N];
@@ -826,8 +1171,9 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 	for(jj=0; jj<=N; jj++)
 		{
 		bd[jj] = ptr;
-		bl[jj] = ptr+pnb[jj];
-		ptr += 2*pnb[jj];
+//		bl[jj] = ptr+pnb[jj];
+//		ptr += 2*pnb[jj];
+		ptr += pnb[jj];
 //		// backup
 //		for(ll=0; ll<nb[jj]; ll++)
 //			{
@@ -848,6 +1194,12 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 	for(jj=0; jj<=N; jj++)
 		{
 		t_inv[jj] = ptr;
+		ptr += 2*pnb[jj]+2*png[jj];
+		}
+
+	for(jj=0; jj<=N; jj++)
+		{
+		lamt[jj] = ptr;
 		ptr += 2*pnb[jj]+2*png[jj];
 		}
 

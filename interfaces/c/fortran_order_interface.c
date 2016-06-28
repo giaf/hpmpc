@@ -42,9 +42,10 @@
 
 
 
+// TODO add indx to the interface ????
 int fortran_order_d_ip_ocp_hard_tv( 
 							int *kk, int k_max, double mu0, double mu_tol,
-							int N, int *nx, int *nu, int *nb, int *ng,
+							int N, int *nx, int *nu_N, int *nb, int *ng,
 							int warm_start,
 							double **A, double **B, double **b, 
 							double **Q, double **S, double **R, double **q, double **r, 
@@ -61,10 +62,33 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 	int hpmpc_status = -1;
 
+
 	int ii, jj, ll, nbu;
 
-	const int bs = D_MR; //d_get_mr();
+
+	// nu with nu[N]=0
+	int nu[N+1];
+	for(ii=0; ii<N; ii++)
+		nu[ii] = nu_N[ii];
+	nu[N] = 0;
+
+
+	// check for consistency of problem size
+	// nb <= nu+nx
+	for(ii=0; ii<=N; ii++)
+		{
+		if(nb[ii]>nu[ii]+nx[ii])
+			{
+			printf("\nERROR: At stage %d, the number of bounds nb=%d can not be larger than the number of variables nu+nx=%d.\n\n", ii, nb[ii], nu[ii]+nx[ii]);
+			exit(1);
+			}
+		}
+
+
+	// constant for panel-wise matrix format
+	const int bs = D_MR;
 	const int ncl = D_NCL;
+
 
 	int pnx[N+1];
 	int pnz[N+1];

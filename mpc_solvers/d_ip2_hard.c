@@ -47,7 +47,7 @@ int d_ip2_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, in
 
 	int size = 0;
 	int pnzM = 0;
-	for(ii=0; ii<=N; ii++)
+	for(ii=0; ii<N; ii++)
 		{
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
 		if(pnz>pnzM) pnzM = pnz;
@@ -57,8 +57,18 @@ int d_ip2_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, in
 		cnux = (nu[ii]+nx[ii]+ncl-1)/ncl*ncl;
 		pnx = (nx[ii]+bs-1)/bs*bs;
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
-		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 3*pnx + 4*pnz + 15*pnb + 11*png;
+		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 3*pnx + 4*pnz + 11*pnb + 10*png;
 		}
+	ii = N;
+	pnz = (nx[ii]+1+bs-1)/bs*bs;
+	if(pnz>pnzM) pnzM = pnz;
+	pnb = (nb[ii]+bs-1)/bs*bs;
+	png = (ng[ii]+bs-1)/bs*bs;
+	cnx = (nx[ii]+ncl-1)/ncl*ncl;
+	cnux = (nx[ii]+ncl-1)/ncl*ncl;
+	pnx = (nx[ii]+bs-1)/bs*bs;
+	pnz = (nx[ii]+1+bs-1)/bs*bs;
+	size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 3*pnx + 4*pnz + 11*pnb + 10*png;
 
 	int nxgM = ng[N];
 	for(ii=0; ii<N; ii++)
@@ -75,7 +85,7 @@ int d_ip2_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, in
 
 
 
-int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
+int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int N, int *nx, int *nu_N, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
 	{
 	
 	// indeces
@@ -87,18 +97,23 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 
 
+	// nu with nu[N]=0
+	int nu[N+1];
+	for(ii=0; ii<N; ii++)
+		nu[ii] = nu_N[ii];
+	nu[N] = 0;
+
+
+
 	// matrices size
 	int idx;
-//	int nxM = 0;
 	int nzM = 0;
-//	int ngM = 0;
 
 	int pnx[N+1];
 	int pnz[N+1];
 	int pnb[N+1];
 	int png[N+1];
 	int cnx[N+1];
-//	int cnz[N+1];
 	int cnux[N+1];
 
 	for(jj=0; jj<=N; jj++)
@@ -108,12 +123,8 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		pnb[jj] = (nb[jj]+bs-1)/bs*bs;
 		png[jj] = (ng[jj]+bs-1)/bs*bs;
 		cnx[jj] = (nx[jj]+ncl-1)/ncl*ncl;
-//		cnz[jj] = (nu[jj]+nx[jj]+1+ncl-1)/ncl*ncl;
 		cnux[jj] = (nu[jj]+nx[jj]+ncl-1)/ncl*ncl;
-//		if(nx[jj]>nxM) nxM = nx[jj];
 		if(nu[jj]+nx[jj]+1>nzM) nzM = nu[jj]+nx[jj]+1;
-//		if(ng[jj]>ngM) ngM = ng[jj];
-//		if(nx[jj]+ng[jj]>nxgM) nxgM = nx[jj]+ng[jj];
 		}
 
 	int nxgM = ng[N];
@@ -137,58 +148,52 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	double *q[N+1];
 	double *dux[N+1];
 	double *dpi[N];
-	double *pd[N+1]; // pointer to diagonal of Hessian
-	double *pl[N+1]; // pointer to linear part of Hessian
+//	double *pd[N+1]; // pointer to diagonal of Hessian
+//	double *pl[N+1]; // pointer to linear part of Hessian
 	double *bd[N+1]; // backup diagonal of Hessian
-	double *bl[N+1]; // backup linear part of Hessian
+//	double *bl[N+1]; // backup linear part of Hessian
 	double *dlam[N+1];
 	double *dt[N+1];
 	double *lamt[N+1];
 	double *t_inv[N+1];
 	double *Qx[N+1];
 	double *qx[N+1];
-	double *qx2[N+1];
+//	double *qx2[N+1];
 	double *Pb[N];
 
 //	int size = 0;
 
 	// work space
+	work = ptr;
+	ptr += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl) + (nzM+bs-1)/bs*bs;
+
+	// work space
 	for(jj=0; jj<=N; jj++)
 		{
 		pL[jj] = ptr;
-//		ptr += pnz[jj] * ( cnx[jj]+ncl>cnz[jj] ? cnx[jj]+ncl : cnz[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
-		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
-//		size += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
+		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] );
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		dL[jj] = ptr;
 		ptr += pnz[jj];
-//		size += pnz[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		l[jj] = ptr;
 		ptr += pnz[jj];
-//		size += pnz[jj];
 		}
-
-	// work space
-	work = ptr;
-//	ptr += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl); // pnzM*cnxgM
-//	size += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl); // pnzM*cnxgM
-	ptr += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl) + (nzM+bs-1)/bs*bs; // pnzM*cnxgM + pnzM
-//	size += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl); // pnzM*cnxgM
 
 	// b as vector
 	for(jj=0; jj<N; jj++)
 		{
 		b[jj] = ptr;
 		ptr += pnx[jj+1];
-//		size += pnx[jj+1];
-		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
+//		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
+		for(ii=0; ii<nx[jj+1]; ii++)
+			b[jj][ii] = pBAbt[jj][(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs+ii*bs];
 		}
 
 	// inputs and states
@@ -196,7 +201,6 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		dux[jj] = ptr;
 		ptr += pnz[jj];
-//		size += pnz[jj];
 		}
 
 	// equality constr multipliers
@@ -204,7 +208,6 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		dpi[jj] = ptr;
 		ptr += pnx[jj+1];
-//		size += pnx[jj+1];
 		}
 	
 	// backup of P*b
@@ -212,7 +215,6 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		Pb[jj] = ptr;
 		ptr += pnx[jj+1];
-//		size += pnx[jj+1];
 		}
 
 	// linear part of cost function
@@ -220,25 +222,28 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		q[jj] = ptr;
 		ptr += pnz[jj];
-//		size += pnz[jj];
-		for(ll=0; ll<nu[jj]+nx[jj]; ll++) q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
+		for(ll=0; ll<nu[jj]+nx[jj]; ll++) 
+			q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
 		}
 
 	// Hessian backup
 	for(jj=0; jj<=N; jj++)
 		{
-		pd[jj] = ptr;
-		pl[jj] = ptr + pnb[jj];
-		bd[jj] = ptr + 2*pnb[jj];
-		bl[jj] = ptr + 3*pnb[jj];
-		ptr += 4*pnb[jj];
-//		size += 4*pnb[jj];
+//		pd[jj] = ptr;
+//		pl[jj] = ptr + pnb[jj];
+//		bd[jj] = ptr + 2*pnb[jj];
+//		bl[jj] = ptr + 3*pnb[jj];
+//		ptr += 4*pnb[jj];
+		bd[jj] = ptr;
+//		bl[jj] = ptr + pnb[jj];
+//		ptr += 2*pnb[jj];
+		ptr += pnb[jj];
 		// backup
 		for(ll=0; ll<nb[jj]; ll++)
 			{
 			idx = idxb[jj][ll];
 			bd[jj][ll] = pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs];
-			bl[jj][ll] = q[jj][idx];
+//			bl[jj][ll] = q[jj][idx];
 			}
 		}
 
@@ -248,30 +253,27 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		dlam[jj] = ptr;
 		dt[jj]   = ptr + 2*pnb[jj]+2*png[jj];
 		ptr += 4*pnb[jj]+4*png[jj];
-//		size += 4*pnb[jj]+4*png[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		lamt[jj] = ptr;
 		ptr += 2*pnb[jj]+2*png[jj];
-//		size += 2*pnb[jj]+2*png[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		t_inv[jj] = ptr;
 		ptr += 2*pnb[jj]+2*png[jj];
-//		size += 2*pnb[jj]+2*png[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		Qx[jj] = ptr;
 		qx[jj] = ptr+pnb[jj]+png[jj];
-		qx2[jj] = ptr+2*pnb[jj]+2*png[jj];
-		ptr += 3*pnb[jj]+3*png[jj];
-//		size += 3*pnb[jj]+3*png[jj];
+//		qx2[jj] = ptr+2*pnb[jj]+2*png[jj];
+//		ptr += 3*pnb[jj]+3*png[jj];
+		ptr += 2*pnb[jj]+2*png[jj];
 		}
 	
 //	printf("\nsize real = %d\n", size);
@@ -305,7 +307,9 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		}
 	else // call the riccati solver and return
 		{
-		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, ux, pL, dL, work, 1, Pb, compute_mult, pi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
+		double **dummy;
+		d_back_ric_rec_sv_tv_res(N, nx, nu, 0, pBAbt, b, 0, pQ, q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, dummy, ng, dummy, dummy, dummy);
+//		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, ux, pL, dL, work, 1, Pb, compute_mult, pi, nb, idxb, dummy, dummy, ng, dummy, dummy, dummy);
 		*kk = 0;
 		return;
 		}
@@ -365,7 +369,7 @@ exit(1);
 
 
 		//update cost function matrices and vectors (box constraints)
-		d_update_hessian_mpc_hard_tv(N, nx, nu, nb, ng, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx, qx2, bd, bl, pd, pl, d);
+		d_update_hessian_mpc_hard_tv(N, nx, nu, nb, ng, d, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -384,7 +388,14 @@ exit(1);
 
 
 		// compute the search direction: factorize and solve the KKT system
-		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
+//		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
+#if 1
+		d_back_ric_rec_sv_tv_res(N, nx, nu, 0, pBAbt, b, 1, pQ, q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
+#else
+		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
+		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
+#endif
+
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -460,7 +471,8 @@ for(ii=0; ii<=N; ii++)
 #endif
 
 
-		d_update_gradient_mpc_hard_tv(N, nx, nu, nb, ng, sigma*mu, dt, dlam, t_inv, pl, qx);
+//		d_update_gradient_mpc_hard_tv(N, nx, nu, nb, ng, sigma*mu, dt, dlam, t_inv, pl, qx);
+		d_update_gradient_mpc_hard_tv(N, nx, nu, nb, ng, sigma*mu, dt, dlam, t_inv, qx);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -480,7 +492,8 @@ exit(1);
 
 
 		// solve the system
-		d_back_ric_rec_trs_tv(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
+//		d_back_ric_rec_trs_tv(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
+		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
 
 #if 0
 printf("\ndux\n");
@@ -557,10 +570,24 @@ exit(1);
 			{
 			idx = idxb[jj][ll];
 			pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs] = bd[jj][ll];
-			pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+idx*bs] = bl[jj][ll];
+//			pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+idx*bs] = bl[jj][ll];
 			}
+		for(ll=0; ll<nu[jj]+nx[jj]; ll++) 
+			pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs] = q[jj][ll];
 		}
 
+#if 0
+printf("\nq\n");
+for(jj=0; jj<=N; jj++)
+	d_print_mat(1, nb[jj], bl[jj], 1);
+exit(2);
+#endif
+#if 0
+printf("\nq\n");
+for(jj=0; jj<=N; jj++)
+	d_print_mat(1, nu[jj]+nx[jj], q[jj], 1);
+exit(2);
+#endif
 #if 0
 printf("\nux\n");
 for(jj=0; jj<=N; jj++)
@@ -589,7 +616,7 @@ exit(2);
 
 
 
-void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **pBAbt, double **r_A, double **pQ, double **r_H, double **pDCt, double **r_C, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
+void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu_N, int *nb, int **idxb, int *ng, double **pBAbt, double **r_A, double **pQ, double **r_H, double **pDCt, double **r_C, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory)
 	{
 
 	
@@ -599,6 +626,14 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
+
+
+
+	// nu with nu[N]=0
+	int nu[N+1];
+	for(ii=0; ii<N; ii++)
+		nu[ii] = nu_N[ii];
+	nu[N] = 0;
 
 
 
@@ -652,10 +687,10 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 	double *q[N+1];
 	double *dux[N+1];
 	double *dpi[N];
-	double *pd[N+1]; // pointer to diagonal of Hessian
-	double *pl[N+1]; // pointer to linear part of Hessian
+//	double *pd[N+1]; // pointer to diagonal of Hessian
+//	double *pl[N+1]; // pointer to linear part of Hessian
 	double *bd[N+1]; // backup diagonal of Hessian
-	double *bl[N+1]; // backup linear part of Hessian
+//	double *bl[N+1]; // backup linear part of Hessian
 	double *diag;
 	double *dlam[N+1];
 	double *dt[N+1];
@@ -663,48 +698,42 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 	double *t_inv[N+1];
 	double *Qx[N+1];
 	double *qx[N+1];
-	double *qx2[N+1];
+//	double *qx2[N+1];
 	double *Pb[N];
 
 //	int size = 0;
 
 	// work space
+	work = ptr;
+	ptr += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl) + (nzM+bs-1)/bs*bs;
+
+	// work space
 	for(jj=0; jj<=N; jj++)
 		{
 		pL[jj] = ptr;
-//		ptr += pnz[jj] * ( cnx[jj]+ncl>cnz[jj] ? cnx[jj]+ncl : cnz[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
-		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
-//		size += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] ); // pnz*cnl // TODO use cnux instead of cnux !!!!!
+		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] );
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		dL[jj] = ptr;
 		ptr += pnz[jj];
-//		size += pnz[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		l[jj] = ptr;
 		ptr += pnz[jj];
-//		size += pnz[jj];
 		}
-
-	// work space
-	work = ptr;
-//	ptr += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl); // pnzM*cnxgM
-//	size += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl); // pnzM*cnxgM
-	ptr += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl); // pnzM*cnxgM
-//	size += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl); // pnzM*cnxgM
 
 	// b as vector
 	for(jj=0; jj<N; jj++)
 		{
 		b[jj] = ptr;
 		ptr += pnx[jj+1];
-//		size += pnx[jj+1];
-//		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1); // not used
+//		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
+//		for(ii=0; ii<nx[jj+1]; ii++)
+//			b[jj][ii] = pBAbt[jj][(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs+ii*bs];
 		}
 
 	// inputs and states
@@ -712,7 +741,6 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 		{
 		dux[jj] = ptr;
 		ptr += pnz[jj];
-//		size += pnz[jj];
 		}
 
 	// equality constr multipliers
@@ -720,7 +748,6 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 		{
 		dpi[jj] = ptr;
 		ptr += pnx[jj+1];
-//		size += pnx[jj+1];
 		}
 	
 	// backup of P*b
@@ -728,7 +755,6 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 		{
 		Pb[jj] = ptr;
 		ptr += pnx[jj+1];
-//		size += pnx[jj+1];
 		}
 
 	// linear part of cost function
@@ -736,32 +762,29 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 		{
 		q[jj] = ptr;
 		ptr += pnz[jj];
-//		size += pnz[jj];
-//		for(ll=0; ll<nu[jj]+nx[jj]; ll++) q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs]; // not used
+//		for(ll=0; ll<nu[jj]+nx[jj]; ll++) q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
 		}
 
 	// Hessian backup
 	for(jj=0; jj<=N; jj++)
 		{
-		pd[jj] = ptr;
-		pl[jj] = ptr + pnb[jj];
-		bd[jj] = ptr + 2*pnb[jj];
-		bl[jj] = ptr + 3*pnb[jj];
-		ptr += 4*pnb[jj];
-//		size += 4*pnb[jj];
+//		pd[jj] = ptr;
+//		pl[jj] = ptr + pnb[jj];
+//		bd[jj] = ptr + 2*pnb[jj];
+//		bl[jj] = ptr + 3*pnb[jj];
+//		ptr += 4*pnb[jj];
+		bd[jj] = ptr;
+//		bl[jj] = ptr + pnb[jj];
+//		ptr += 2*pnb[jj];
+		ptr += pnb[jj];
 		// backup
 		for(ll=0; ll<nb[jj]; ll++)
 			{
 			idx = idxb[jj][ll];
-//			bd[jj][ll] = pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs]; // not used
-//			bl[jj][ll] = q[jj][idx]; 
-			bl[jj][ll] = r_H[jj][idx]; // XXX
+//			bd[jj][ll] = pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs];
+//			bl[jj][ll] = q[jj][idx];
 			}
 		}
-
-	diag = ptr;
-	ptr += (nzM+bs-1)/bs*bs; // pnzM
-//	size += (nzM+bs-1)/bs*bs; // pnzM
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space
 	for(jj=0; jj<=N; jj++)
@@ -769,43 +792,40 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 		dlam[jj] = ptr;
 		dt[jj]   = ptr + 2*pnb[jj]+2*png[jj];
 		ptr += 4*pnb[jj]+4*png[jj];
-//		size += 4*pnb[jj]+4*png[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		lamt[jj] = ptr;
 		ptr += 2*pnb[jj]+2*png[jj];
-//		size += 2*pnb[jj]+2*png[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		t_inv[jj] = ptr;
 		ptr += 2*pnb[jj]+2*png[jj];
-//		size += 2*pnb[jj]+2*png[jj];
 		}
 
 	for(jj=0; jj<=N; jj++)
 		{
 		Qx[jj] = ptr;
 		qx[jj] = ptr+pnb[jj]+png[jj];
-		qx2[jj] = ptr+2*pnb[jj]+2*png[jj];
-		ptr += 3*pnb[jj]+3*png[jj];
-//		size += 3*pnb[jj]+3*png[jj];
+//		qx2[jj] = ptr+2*pnb[jj]+2*png[jj];
+//		ptr += 3*pnb[jj]+3*png[jj];
+		ptr += 2*pnb[jj]+2*png[jj];
 		}
-	
-//	printf("\nsize real = %d\n", size);
+	//	printf("\nsize real = %d\n", size);
 
 
 
 
 	//update cost function vectors for a generic RHS (not tailored to IPM)
-	d_update_gradient_new_rhs_mpc_hard_tv(N, nx, nu, nb, ng, t_inv, lamt, qx, bl, pl, r_C); 
+	d_update_gradient_new_rhs_mpc_hard_tv(N, nx, nu, nb, ng, r_C, t_inv, lamt, qx); 
 
 
 	// solve the system
-	d_back_ric_rec_trs_tv(N, nx, nu, pBAbt, r_A, pL, dL, r_H, l, ux, work, 1, Pb, compute_mult, pi, nb, idxb, pl, ng, pDCt, qx);
+//	d_back_ric_rec_trs_tv(N, nx, nu, pBAbt, r_A, pL, dL, r_H, l, ux, work, 1, Pb, compute_mult, pi, nb, idxb, pl, ng, pDCt, qx);
+	d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, r_A, pL, dL, r_H, l, ux, work, 1, Pb, compute_mult, pi, nb, idxb, ng, pDCt, qx);
 
 
 	// compute t & lam 
