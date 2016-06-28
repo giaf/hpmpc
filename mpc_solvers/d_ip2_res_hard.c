@@ -829,7 +829,7 @@ for(ii=0; ii<=N; ii++)
 #ifdef BLASFEO
 			dsyrk_ntnn_l_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
 #else
-			dsyrk_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
+			dsyrk_nt_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
 #endif
 			drowex_lib(cnux[ii], pQ2[ii]+(nu[ii]+nx[ii])/bs*bs*cnux[ii]+(nu[ii]+nx[ii])%bs, q2[ii]);
 
