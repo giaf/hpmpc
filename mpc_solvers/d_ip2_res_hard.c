@@ -186,6 +186,7 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 
 	double **pdummy;
 	double **ppdummy;
+	double *work2;
 #endif
 
 	// work space
@@ -735,7 +736,7 @@ exit(2);
 
 
 	//
-	// loop with residuals computation for high-accuracy result
+	// loop with residuals computation and iterative refinement for high-accuracy result
 	//
 
 	// compute residuals
@@ -816,22 +817,21 @@ for(ii=0; ii<=N; ii++)
 			// general constraints
 			if(ng[ii]>0) // TODO unsymmetric update not requiring sqrt & div ???
 				{
-				for(jj=0; jj<ng[ii]; jj++) 
-					{
-					Qx[ii][pnb[ii]+jj] = sqrt(Qx[ii][pnb[ii]+jj]); // XXX
-					}
+				work2 = work + pnz[ii]*cng[ii];
+//				for(jj=0; jj<ng[ii]; jj++) 
+//					Qx[ii][pnb[ii]+jj] = sqrt(Qx[ii][pnb[ii]+jj]); // XXX
 				dgemm_diag_right_lib(nu[ii]+nx[ii], ng[ii], pDCt[ii], cng[ii], Qx[ii]+pnb[ii], 0, work, cng[ii], work, cng[ii]);
 				drowin_lib(ng[ii], qx[ii]+pnb[ii], work+(nu[ii]+nx[ii])/bs*cng[ii]*bs+(nu[ii]+nx[ii])%bs);
-				for(jj=0; jj<ng[ii]; jj++) 
-					work[(nu[ii]+nx[ii])/bs*cng[ii]*bs+(nu[ii]+nx[ii])%bs+jj*bs] /= Qx[ii][pnb[ii]+jj];
-				}
-
+//				for(jj=0; jj<ng[ii]; jj++) 
+//					work[(nu[ii]+nx[ii])/bs*cng[ii]*bs+(nu[ii]+nx[ii])%bs+jj*bs] /= Qx[ii][pnb[ii]+jj];
+				dgecp_lib(nu[ii]+nx[ii], ng[ii], 0, pDCt[ii], cng[ii], 0, work2, png[ii]);
 #ifdef BLASFEO
-			dsyrk_ntnn_l_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
+				dsyrk_ntnn_l_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work2, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
 #else
-			dsyrk_nt_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
+				dsyrk_nt_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work2, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
 #endif
-			drowex_lib(cnux[ii], pQ2[ii]+(nu[ii]+nx[ii])/bs*bs*cnux[ii]+(nu[ii]+nx[ii])%bs, q2[ii]);
+				drowex_lib(cnux[ii], pQ2[ii]+(nu[ii]+nx[ii])/bs*bs*cnux[ii]+(nu[ii]+nx[ii])%bs, q2[ii]);
+				}
 
 //			d_print_pmat_e(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], bs, pQ2[ii], cnux[ii]);
 			}
@@ -848,13 +848,14 @@ for(ii=0; ii<=N; ii++)
 			d_res_res_mpc_hard_tv(N, nx, nu, nb2, idxb, ng2, pBAbt, res_b, pQ2, q2, dux, ppdummy, ppdummy, dpi, ppdummy, ppdummy, res_work, res_q2, res_b2, ppdummy, ppdummy, pdummy);
 
 	#if 0
+			printf("\niterative refinemet %d\n", it_ref);
 			printf("\nres_q2\n");
 			for(ii=0; ii<=N; ii++)
 				d_print_mat_e(1, nu[ii]+nx[ii], res_q2[ii], 1);
 			printf("\nres_b2\n");
 			for(ii=0; ii<N; ii++)
 				d_print_mat_e(1, nx[ii+1], res_b2[ii], 1);
-	//		exit(2);
+//			exit(2);
 	#endif
 
 			// solve for residuals
@@ -892,7 +893,7 @@ for(ii=0; ii<=N; ii++)
 #endif
 
 
-#else
+#else // no iterative refinement
 #if 1
 		d_back_ric_rec_sv_tv_res(N, nx, nu, 1, pBAbt, res_b, 1, pQ, res_q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
 #else
@@ -969,7 +970,7 @@ exit(1);
 
 
 		// compute the affine duality gap
-		d_compute_mu_res_mpc_hard_tv(N, nx, nu, nb, ng, alpha, lam, dlam, t, dt, mu_scal, &mu_aff);
+		d_compute_mu_res_mpc_hard_tv(N, nx, nu, nb, ng, alpha, lam, dlam, t, dt, &mu_aff, mu_scal);
 
 		stat[5*(*kk)+2] = mu_aff;
 
