@@ -35,11 +35,11 @@
 #include "../../include/d_blas_aux.h"
 #include "../../include/block_size.h"
 
-#ifdef BLASFEO
+//#ifdef BLASFEO
 #include <blasfeo_d_blas.h>
-#else
+//#else
 #include "../../include/blas_d.h"
-#endif
+//#endif
 
 
 

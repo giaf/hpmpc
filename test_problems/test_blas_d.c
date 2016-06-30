@@ -583,10 +583,10 @@ int main()
 
 #if defined(BLASFEO)
 //			dgemm_ntnn_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd);
-//			dgemv_n_lib_b(n, n, pA, cnd, x, 0, y, y);
-			dgemv_t_lib_b(n, n, pA, cnd, x, 0, y, y);
+			dgemv_n_lib(n, n, pA, cnd, x, 0, y, y);
+//			dgemv_t_lib(n, n, pA, cnd, x, 0, y, y);
 #else
-//			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
+			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
 //			dgemm_nn_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
 //			dsyrk_nt_lib(n, n, n, pA, cnd, pA, cnd, 0, pC, cnd, pC, cnd);
 //			dtrmm_nt_u_lib(n, n, pA, cnd, pB, cnd, pC, cnd);
@@ -597,7 +597,7 @@ int main()
 //			dtrtri_lib(n, pB, cnd, 1, x, pC, cnd);
 //			dlauum_lib(n, pA, cnd, pB, cnd, 0, pC, cnd, pD, cnd);
 //			dgemv_n_lib(n, n, pA, cnd, x, 0, y, y);
-			dgemv_t_lib(n, n, pA, cnd, x2, 0, y2, y2);
+//			dgemv_t_lib(n, n, pA, cnd, x2, 0, y2, y2);
 //			dtrmv_u_n_lib(n, pA, cnd, x, 0, y2);
 //			dtrsv_n_lib(n, n, pA, cnd, 1, x2, x, y);
 //			dsymv_lib(n, n, pA, cnd, x, 0, y, y);
@@ -663,11 +663,11 @@ int main()
 //		float flop_operation = 2.0*m*m*n; // dgemm
 		float flop_operation = 1.0*m*m*n; // dsyrk dtrmm
 #else
-//		float flop_operation = 2.0*n*n*n; // dgemm
+		float flop_operation = 2.0*n*n*n; // dgemm
 //		float flop_operation = 1.0*n*n*n; // dsyrk dtrmm
 //		float flop_operation = 1.0/3.0*n*n*n; // dpotrf dtrtri
 //		float flop_operation = 2.0/3.0*n*n*n; // dgetrf
-		float flop_operation = 2.0*n*n; // dgemv dsymv
+//		float flop_operation = 2.0*n*n; // dgemv dsymv
 //		float flop_operation = 1.0*n*n; // dtrmv dtrsv
 //		float flop_operation = 4.0*n*n; // dgemv_nt
 

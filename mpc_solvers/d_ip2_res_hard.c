@@ -33,11 +33,11 @@
 #include "../include/mpc_aux.h"
 #include "../include/d_blas_aux.h"
 
-#ifdef BLASFEO
+//#ifdef BLASFEO
 #include <blasfeo_d_blas.h>
-#else
+//#else
 #include "../include/blas_d.h"
-#endif
+//#endif
 
 
 // use iterative refinement to increase accuracy of the solution of the equality constrained sub-problems
