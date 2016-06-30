@@ -26,9 +26,15 @@
 #include <math.h>
 
 #include "../include/aux_d.h"
-#include "../include/blas_d.h"
 #include "../include/block_size.h"
 #include "../include/lqcp_aux.h"
+#include "../include/d_blas_aux.h"
+
+#ifdef BLASFEO
+#include <blasfeo_d_blas.h>
+#else
+#include "../include/blas_d.h"
+#endif
 
 
 

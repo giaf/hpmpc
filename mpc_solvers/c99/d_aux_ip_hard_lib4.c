@@ -24,8 +24,14 @@
 **************************************************************************************************/
 
 #include <math.h>
-#include "../../include/blas_d.h"
+#include "../../include/d_blas_aux.h"
 #include "../../include/block_size.h"
+
+#ifdef BLASFEO
+#include <blasfeo_d_blas.h>
+#else
+#include "../../include/blas_d.h"
+#endif
 
 
 
@@ -124,7 +130,11 @@ void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 			ptr_t   = t[jj];
 			ptr_lam = lam[jj];
 			ptr_db  = db[jj];
+#ifdef BLASFEO
 			dgemv_t_lib(nu[jj]+nx[jj], ng0, pDCt[jj], cng, ux[jj], 0, ptr_t+2*pnb, ptr_t+2*pnb);
+#else
+			dgemv_t_lib(nu[jj]+nx[jj], ng0, pDCt[jj], cng, ux[jj], 0, ptr_t+2*pnb, ptr_t+2*pnb);
+#endif
 			for(ll=2*pnb; ll<2*pnb+ng0; ll++)
 				{
 				ptr_t[ll+png] = - ptr_t[ll];
@@ -500,7 +510,11 @@ void d_compute_alpha_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			png = (ng0+bs-1)/bs*bs;
 			cng = (ng0+ncl-1)/ncl*ncl;
 
+#ifdef BLASFEO
 			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
+#else
+			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
+#endif
 
 			for(ll=0; ll<ng0; ll++)
 				{
@@ -850,7 +864,11 @@ void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 			png = (ng0+bs-1)/bs*bs;
 			cng = (ng0+ncl-1)/ncl*ncl;
 
+#ifdef BLASFEO
 			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_t_aff, ptr_t_aff);
+#else
+			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_t_aff, ptr_t_aff);
+#endif
 
 			for(ll=0; ll<ng0; ll++)
 				{
@@ -1070,7 +1088,11 @@ void d_compute_dt_dlam_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **i
 			png = (ng0+bs-1)/bs*bs;
 			cng = (ng0+ncl-1)/ncl*ncl;
 
+#ifdef BLASFEO
 			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
+#else
+			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
+#endif
 
 			for(ll=0; ll<ng0; ll++)
 				{
@@ -1183,7 +1205,11 @@ void d_compute_alpha_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 			png = (ng0+bs-1)/bs*bs;
 			cng = (ng0+ncl-1)/ncl*ncl;
 
+#ifdef BLASFEO
 			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
+#else
+			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
+#endif
 
 			for(ll=0; ll<ng0; ll++)
 				{

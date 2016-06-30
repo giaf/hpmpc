@@ -31,7 +31,13 @@
 #include "../include/lqcp_solvers.h"
 #include "../include/block_size.h"
 #include "../include/mpc_aux.h"
+#include "../include/d_blas_aux.h"
 
+#ifdef BLASFEO
+#include <blasfeo_d_blas.h>
+#else
+#include "../include/blas_d.h"
+#endif
 
 
 // use iterative refinement to increase accuracy of the solution of the equality constrained sub-problems
@@ -200,7 +206,7 @@ exit(2);
 	int ng2[N+1]; for(ii=0; ii<=N; ii++) ng2[ii] = 0;
 	int cng[N+1]; for(jj=0; jj<=N; jj++) cng[jj] = (ng[jj]+ncl-1)/ncl*ncl;
 
-	double **pdummy;
+	double *pdummy;
 	double **ppdummy;
 	double *work2;
 #endif

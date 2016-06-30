@@ -49,6 +49,8 @@ USE_BLASFEO = 0
 
 # C Compiler
 CC = gcc
+#MINGW_ROOT = ~/cross_compiler_windows  (can be obtained here: https://sourceforge.net/projects/mingw-w64/files/)
+#CC = $(MINGW_ROOT)/mingw-w64-bin_x86_64-linux_20131228/bin/x86_64-w64-mingw32-gcc 
 #CC = /opt/gcc/bin/gcc # custom gcc
 #CC = clang
 
@@ -60,7 +62,7 @@ OS = LINUX
 PREFIX = /opt
 
 # Common optimization/debugging flags
-COMMON_FLAGS = -O2 -fPIC
+COMMON_FLAGS = -O2 -fPIC #-std=c99
 ifeq ($(CC), /opt/gcc/bin/gcc )
 COMMON_FLAGS += -DCUSTOM_GCC 
 ifeq ($(TARGET), X64_AVX2)
@@ -69,7 +71,7 @@ COMMON_FLAGS += -I/opt/gcc/lib/gcc/x86_64-pc-linux-gnu/6.0.0/include
 endif
 endif
 ifeq ($(USE_BLASFEO), 1)
-COMMON_FLAGS += -DBLASFEO
+COMMON_FLAGS += -DBLASFEO -I/opt/blasfeo/include
 endif
 ifeq ($(OS), WINDOWS)
 COMMON_FLAGS += -DOS_WINDOWS

@@ -311,7 +311,7 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		d_back_ric_rec_sv_tv_res(N, nx, nu, 0, pBAbt, b, 0, pQ, q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, dummy, ng, dummy, dummy, dummy);
 //		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, ux, pL, dL, work, 1, Pb, compute_mult, pi, nb, idxb, dummy, dummy, ng, dummy, dummy, dummy);
 		*kk = 0;
-		return;
+		return 0;
 		}
 
 	//printf("\nmu_scal = %f\n", mu_scal);
