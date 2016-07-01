@@ -23,7 +23,7 @@ unsigned const NT = 2;
 typedef Eigen::Matrix<double, NX, 1> StateVector;
 typedef Eigen::Matrix<double, NU, 1> InputVector;
 
-TEST(hpmpc_test, low_level_call_test_1)
+TEST(hpmpc_test, problem_1_solution_is_correct)
 {
 	int const nx[NT + 1] = {0, NX, NX};
 	int const nu[NT + 1] = {NU, NU, 0};
@@ -118,7 +118,7 @@ TEST(hpmpc_test, low_level_call_test_1)
 	EXPECT_TRUE(x[2].isApprox(x2_expected, 1e-6));
 }
 
-TEST(hpmpc_test, low_level_call_test_0)
+TEST(hpmpc_test, problem_0_solution_is_correct)
 {
 	typedef Eigen::Matrix<double, NX + NU, 1> StateInputVector;
 

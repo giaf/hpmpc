@@ -9,6 +9,7 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 
 set(SRC 
     hpmpc_test.cpp
+    test_qp.cpp
    )
    
 add_executable(hpmpc_test ${SRC})

@@ -1,11 +1,12 @@
-#include <c_interface.h>
+#include "../include/c_interface.h"
+
+#include <gtest/gtest.h>
 
 #include <assert.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
 
-#include "qp.c"
+#include "data/test_qp/qp0010.c"
 
 double ** alloc_lambda(int N, int const * nb, int const * ng)
 {
@@ -58,9 +59,9 @@ void print_vector(double const * x, int N)
         printf("%e\t", x[i]);
 }
 
-int main(int argc, char ** argv)
+TEST(test_qp, qp10_return_code_ok)
 {
-	ProblemStruct * qp = malloc(sizeof(ProblemStruct));
+	ProblemStruct * qp = (ProblemStruct *)malloc(sizeof(ProblemStruct));
 	memset(qp, sizeof(ProblemStruct), 0xff);
 
 	init_problem(qp);
@@ -70,7 +71,7 @@ int main(int argc, char ** argv)
 	int const work_size = hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(qp->N, qp->nx, qp->nu, qp->nb, qp->ng);
 
 	void * const work = malloc(work_size);
-	double * const stat = malloc(qp->k_max * 5 * sizeof(double));
+	double * const stat = (double *)malloc(qp->k_max * 5 * sizeof(double));
 	double ** lam = alloc_lambda(qp->N, qp->nb, qp->ng);
 	double ** t = alloc_lambda(qp->N, qp->nb, qp->ng);
 	double ** pi = alloc_pi(qp->N, qp->nx);
@@ -89,21 +90,21 @@ int main(int argc, char ** argv)
 					stat);
 
 	printf("ret = %d, num_iter = %d\n", ret, num_iter);
-    printf("**** Solution ****\n");
-    
-    for (int i = 0; i <= qp->N; ++i)
-    {
-        printf("%d:\t", i);
-        
-        if (i < qp->N)
-        {            
-            print_vector(qp->u[i], qp->nu[i]);
-            printf("|\t");
-        }
-        
-        print_vector(qp->x[i], qp->nx[i]);
-        printf("\n");
-    }
+	printf("**** Solution ****\n");
+
+	for (int i = 0; i <= qp->N; ++i)
+	{
+	printf("%d:\t", i);
+
+	if (i < qp->N)
+	{            
+	    print_vector(qp->u[i], qp->nu[i]);
+	    printf("|\t");
+	}
+
+	print_vector(qp->x[i], qp->nx[i]);
+	printf("\n");
+	}
 
 	free_pi(pi, qp->N);
 	free_lambda(t, qp->N);
@@ -112,5 +113,5 @@ int main(int argc, char ** argv)
 	free(work);
 	free(qp);
 
-	return ret == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
+	EXPECT_EQ(ret, 0);
 }
