@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <memory.h>
 
-#include "failed_qp.c"
+#include "qp.c"
 
 double ** alloc_lambda(int N, int const * nb, int const * ng)
 {
@@ -52,6 +52,12 @@ void free_pi(double ** pi, int N)
 	free_array_of_arrays(pi, N);
 }
 
+void print_vector(double const * x, int N)
+{
+    for (int i = 0; i < N; ++i)
+        printf("%e\t", x[i]);
+}
+
 int main(int argc, char ** argv)
 {
 	ProblemStruct * qp = malloc(sizeof(ProblemStruct));
@@ -83,6 +89,21 @@ int main(int argc, char ** argv)
 					stat);
 
 	printf("ret = %d, num_iter = %d\n", ret, num_iter);
+    printf("**** Solution ****\n");
+    
+    for (int i = 0; i <= qp->N; ++i)
+    {
+        printf("%d:\t", i);
+        
+        if (i < qp->N)
+        {            
+            print_vector(qp->u[i], qp->nu[i]);
+            printf("|\t");
+        }
+        
+        print_vector(qp->x[i], qp->nx[i]);
+        printf("\n");
+    }
 
 	free_pi(pi, qp->N);
 	free_lambda(t, qp->N);
