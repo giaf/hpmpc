@@ -235,7 +235,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 	for(ii=0; ii<N; ii++)
 		{
 		hrb[ii] = ptr;
-		ptr += pnx[ii];
+		ptr += pnx[ii+1];
 		}
 
 	for(ii=0; ii<=N; ii++)
@@ -521,7 +521,6 @@ void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 							double **Q, double **S, double **R, double **q, double **r, 
 							double **lb, double **ub,
 							double **C, double **D, double **lg, double **ug,
-							double tau,
 							double **x, double **u, double **pi, double **lam, double **t,
 							double *inf_norm_res,
 							double *work0) 
@@ -769,7 +768,7 @@ void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 
 	// call the IP solver
 //	hpmpc_status = d_ip2_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, hpBAbt, hpQ, hpDCt, hd, hux, 1, hpi, hlam, ht, work);
-	d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, hpBAbt, hb, hpQ, hq, hpDCt, hd, tau, hux, 1, hpi, hlam, ht, work); // TODO B 
+	d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, hpBAbt, hb, hpQ, hq, hpDCt, hd, hux, 1, hpi, hlam, ht, work); // TODO B 
 //	for(ii=0; ii<=N; ii++)
 //		d_print_mat(1, nu[ii]+nx[ii], hux[ii], 1);
 //	exit(1);
@@ -1913,7 +1912,6 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 							double *lb, double *ub,
 							double *C, double *D, double *lg, double *ug,
 							double *Cf, double *lgf, double *ugf,
-							double tau, 
 							double* x, double* u, double *pi, double *lam, double *t,
 							double *inf_norm_res,
 							double *work0) 
@@ -2466,7 +2464,7 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 
 
 	// call the IP solver
-	d_kkt_solve_new_rhs_mpc_hard_tv(N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hb, hpQ, hq, hpDCt, hd, tau, hux, 1, hpi, hlam, ht, work); // TODO B 
+	d_kkt_solve_new_rhs_mpc_hard_tv(N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hb, hpQ, hq, hpDCt, hd, hux, 1, hpi, hlam, ht, work); // TODO B 
 
 
 

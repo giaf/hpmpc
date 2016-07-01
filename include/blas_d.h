@@ -58,31 +58,6 @@ void dtrinv_lib(int m, double *pA, int sda, double *pC, int sdc);
 void dsyrk_dpotrf_dtrinv_lib(int m, int n, int k, double *pA, int sda, int alg, double *pC, int sdd, double *pD, int sdc, double *pE, int sde, double *diag);
 //void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *diag, int alg);
 void dtsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, int alg, double *pC, int sdc, double *pD, int sdd, double *diag);
-void dgemm_diag_right_lib(int m, int n, double *pA, int sda, double *dB, int alg, double *pC, int sdc, double *pD, int sdd);
-void dgemm_diag_left_lib(int m, int n, double *dA, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd);
-void dsyrk_diag_left_right_lib(int m, double *Al, double *Ar, double *B, int sdb, int alg, double *C, int sdc, double *D, int sdd);
-void dgemv_diag_lib(int m, double *dA, double *x, int alg, double *y, double *z);
-
-// auxiliary routines
-void ddiareg_lib(int kmax, double reg, int offset, double *pD, int sdd);
-void ddiain_lib(int kmax, double *x, int offset, double *pD, int sdd);
-void ddiain_sqrt_lib(int kmax, double *x, int offset, double *pD, int sdd);
-void ddiaex_lib(int kmax, int offset, double *pD, int sdd, double *x);
-void ddiaad_lib(int kmax, double alpha, double *x, int offset, double *pD, int sdd);
-void ddiain_libsp(int kmax, int *idx, double *x, double *pD, int sdd);
-void ddiaad_libsp(int kmax, int *idx, double alpha, double *x, double *pD, int sdd);
-void ddiaadin_libsp(int kmax, int *idx, double alpha, double *x, double *y, double *pD, int sdd);
-void drowin_lib(int kmax, double *x, double *pD);
-void drowex_lib(int kmax, double *pD, double *x);
-void drowad_lib(int kmax, double alpha, double *x, double *pD);
-void drowin_libsp(int kmax, int *idx, double *x, double *pD);
-void drowad_libsp(int kmax, int *idx, double alpha, double *x, double *pD);
-void drowsw_lib(int kmax, double *pA, double *pC);
-void dcolin_lib(int kmax, double *x, int offset, double *pD, int sdd);
-void dcolad_lib(int kmax, double alpha, double *x, int offset, double *pD, int sdd);
-void dcolin_libsp(int kmax, int *idx, double *x, double *pD, int sdd);
-void dcolad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int sdd);
-
 
 
 

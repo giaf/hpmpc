@@ -235,7 +235,7 @@ int c_order_d_ip_ocp_hard_tv(
 	for(ii=0; ii<N; ii++)
 		{
 		hrb[ii] = ptr;
-		ptr += pnx[ii];
+		ptr += pnx[ii+1];
 		}
 
 	for(ii=0; ii<=N; ii++)
@@ -441,6 +441,15 @@ int c_order_d_ip_ocp_hard_tv(
 
 	d_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, hpBAbt, hb, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
+#if 0
+	printf("\nres_q\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_mat_e(1, nu[ii]+nx[ii], hrq[ii], 1);
+	printf("\nres_b\n");
+	for(ii=0; ii<N; ii++)
+		d_print_mat_e(1, nx[ii+1], hrb[ii], 1);
+#endif
+
 	temp = fabs(hrq[0][0]);
 	for(ii=0; ii<N; ii++)
 		for(jj=0; jj<nu[ii]+nx[ii]; jj++) 
@@ -523,7 +532,6 @@ void c_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 							double **Q, double **S, double **R, double **q, double **r, 
 							double **lb, double **ub,
 							double **C, double **D, double **lg, double **ug,
-							double tau,
 							double **x, double **u, double **pi, double **lam, double **t,
 							double *inf_norm_res,
 							double *work0) 
@@ -771,7 +779,7 @@ void c_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 
 	// call the IP solver
 //	hpmpc_status = d_ip2_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, hpBAbt, hpQ, hpDCt, hd, hux, 1, hpi, hlam, ht, work);
-	d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, hpBAbt, hb, hpQ, hq, hpDCt, hd, tau, hux, 1, hpi, hlam, ht, work); // TODO B 
+	d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, hpBAbt, hb, hpQ, hq, hpDCt, hd, hux, 1, hpi, hlam, ht, work); // TODO B 
 //	for(ii=0; ii<=N; ii++)
 //		d_print_mat(1, nu[ii]+nx[ii], hux[ii], 1);
 //	exit(1);
@@ -1894,6 +1902,754 @@ exit(1);
 	}
 
 
+
+void c_order_d_solve_kkt_new_rhs_mpc_hard_tv(
+							int N, int nx, int nu, int nb, int ng, int ngN, 
+							int time_invariant, int free_x0,
+							double* A, double* B, double* b, 
+							double* Q, double* Qf, double* S, double* R, 
+							double* q, double* qf, double* r, 
+							double *lb, double *ub,
+							double *C, double *D, double *lg, double *ug,
+							double *Cf, double *lgf, double *ugf,
+							double* x, double* u, double *pi, double *lam, double *t,
+							double *inf_norm_res,
+							double *work0) 
+
+	{
+
+//printf("\nstart of wrapper\n");
+
+	//printf("\n%d %d %d %d %d %d\n", N, nx, nu, nb, ng, ngN);
+
+	const int nbu = nb<nu ? nb : nu ;
+
+	const int bs = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+
+	const int nz   = nx+nu+1;
+	const int pnz  = bs*((nz+bs-1)/bs);
+	const int pnu  = bs*((nu+bs-1)/bs);
+	const int pnx  = bs*((nx+bs-1)/bs);
+	const int pnb  = bs*((nb+bs-1)/bs);
+	const int png  = bs*((ng+bs-1)/bs);
+	const int pngN = bs*((ngN+bs-1)/bs);
+	const int cnux = (nu+nx+ncl-1)/ncl*ncl;
+	const int cnu  = (nu+ncl-1)/ncl*ncl;
+	const int cnx  = ncl*((nx+ncl-1)/ncl);
+	const int cng  = ncl*((ng+ncl-1)/ncl);
+	const int cngN = ncl*((ngN+ncl-1)/ncl);
+
+	int pnb0;
+	int png0;
+
+
+	int i, ii, jj, ll;
+
+	double temp;
+
+
+
+	// time-variant quantities
+	int *ptr_int;
+	ptr_int = (int *) work0;
+
+	int nxx[N+1];
+	int nuu[N+1];
+	int nbb[N+1];
+	int ngg[N+1];
+	int *(idxb[N+1]);
+
+	nxx[0] = 0;
+	nuu[0] = nu;
+	nbb[0] = nbu;
+	idxb[0] = ptr_int;
+	ptr_int += nbb[0];
+	for(jj=0; jj<nbb[0]; jj++) idxb[0][jj] = jj;
+	ngg[0] = ng;
+	for(ii=1; ii<N; ii++)
+		{
+		nxx[ii] = nx;
+		nuu[ii] = nu;
+		nbb[ii] = nb;
+		idxb[ii] = ptr_int;
+		ptr_int += nbb[ii];
+		for(jj=0; jj<nbb[ii]; jj++) idxb[ii][jj] = jj;
+		ngg[ii] = ng;
+		}
+	nxx[N] = nx;
+	nuu[N] = 0;
+	nbb[N] = nb-nu>0 ? nb-nu : 0;
+	idxb[N] = ptr_int;
+	ptr_int += nbb[N];
+	for(jj=0; jj<nbb[N]; jj++) idxb[N][jj] = nuu[N]+jj;
+	ngg[N] = ngN;
+
+	work0 = (double *) ptr_int;
+
+
+
+//printf("\n%d\n", ((size_t) work0) & 63);
+
+	/* align work space */
+	size_t addr = (( (size_t) work0 ) + 63 ) / 64 * 64;
+	double *ptr = (double *) addr;
+
+
+//printf("\n%d\n", ((size_t) ptr) & 63);
+
+	/* array or pointers */
+	double *hpBAbt[N];
+	double *hb[N];
+	double *hpQ[N+1];
+	double *hq[N+1];
+	double *hpDCt[N+1];
+	double *hd[N+1];
+	double *hux[N+1];
+	double *hpi[N];
+	double *hlam[N+1];
+	double *ht[N+1];
+	double *hrb[N];
+	double *hrq[N+1];
+	double *hrd[N+1];
+	double *work;
+
+
+
+	if(time_invariant) // TODO time-invariant work space ?????
+		{
+
+		hpBAbt[0] = ptr;
+		ptr += pnz*cnx;
+		for(ii=1; ii<N; ii++)
+			{
+			hpBAbt[ii] = ptr;
+			}
+		ptr += pnz*cnx;
+
+		if(ng>0)
+			{
+			hpDCt[0] = ptr;
+			ptr += pnz*cng;
+			for(ii=1; ii<N; ii++)
+				{
+				hpDCt[ii] = ptr;
+				}
+			ptr += pnz*cng;
+			}
+		if(ngN>0)
+			{
+			hpDCt[N] = ptr;
+			ptr += pnz*cngN;
+			}
+
+		hpQ[0] = ptr;
+		ptr += pnz*cnux;
+		for(ii=1; ii<N; ii++) // time variant and copied again internally in the IP !!!
+			{
+			hpQ[ii] = ptr;
+			}
+		ptr += pnz*cnux;
+		hpQ[N] = ptr;
+		ptr += pnz*cnux;
+
+		work = ptr;
+		ptr += d_ip2_mpc_hard_tv_work_space_size_bytes(N, nxx, nuu, nbb, ngg)/sizeof(double);
+
+		hb[0] = ptr;
+		ptr += pnx;
+		for(ii=1; ii<N; ii++)
+			{
+			hb[ii] = ptr;
+			}
+		ptr += pnx;
+
+		hq[0] = ptr;
+		ptr += pnz;
+		for(ii=1; ii<N; ii++)
+			{
+			hq[ii] = ptr;
+			}
+		ptr += pnz;
+		hq[N] = ptr;
+		ptr += pnz;
+
+		hd[0] = ptr;
+		ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+		for(ii=1; ii<N; ii++) // time Variant box constraints
+			{
+			hd[ii] = ptr;
+			}
+		ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+		hd[N] = ptr;
+		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hux[ii] = ptr;
+			ptr += pnz;
+			}
+
+		for(ii=0; ii<N; ii++) // time Variant box constraints
+			{
+			hpi[ii] = ptr;
+			ptr += pnx; // for alignment of ptr
+			}
+
+		for(ii=0; ii<N; ii++) // time variant Lagrangian multipliers
+			{
+			hlam[ii] = ptr;
+			ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+			}
+		hlam[N] = ptr;
+		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
+		for(ii=0; ii<N; ii++) // time variant slack variables
+			{
+			ht[ii] = ptr;
+			ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+			}
+		ht[N] = ptr;
+		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
+		for(ii=0; ii<N; ii++)
+			{
+			hrb[ii] = ptr;
+			ptr += pnx;
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hrq[ii] = ptr;
+			ptr += pnz;
+			}
+
+		for(ii=0; ii<N; ii++)
+			{
+			hrd[ii] = ptr;
+			ptr += 2*pnb+2*png;
+			}
+		hrd[N] = ptr;
+		ptr += 2*pnb+2*pngN;
+
+
+
+		/* pack matrices 	*/
+
+		//printf("\n%d %d %d %d %d\n", N, nx, nu, nb, ng);
+
+		// dynamic system
+		// first stage
+		// compute A_0 * x_0 + b_0
+		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
+		d_cvt_tran_mat2pmat(nx, nx, A, nx, 0, hpBAbt[0], cnx); // pack A into (temporary) buffer
+		dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b, hb[0]); // result 
+
+		ii = 0;
+		d_cvt_mat2pmat(nu, nx, B, nu, 0, hpBAbt[0], cnx); // restore B0
+
+		// middle stages
+		ii=1;
+		if(jj<N)
+			{
+			d_copy_mat(nx, 1, b, nx, hb[ii], nx);
+			}
+
+
+		// cost function
+		// first stage
+		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
+		d_cvt_tran_mat2pmat(nx, nu, S, nx, 0, hpQ[0], cnx); // pack S into a (temporary) buffer
+		dgemv_n_lib(nu, nx, hpQ[0], cnx, hux[1], 1, r, hq[0]); // result
+
+		jj = 0;
+		d_cvt_mat2pmat(nu, nu, R, nu, 0, hpQ[0], cnu); // restore R0
+
+		// middle stages
+		jj=1;
+		if(jj<N)
+			{
+			d_copy_mat(nu, 1, r, nu, hq[jj], nu+nx);
+			d_copy_mat(nx, 1, q, nx, hq[jj]+nu, nu+nx);
+			}
+
+		// last stage
+		d_copy_mat(nx, 1, qf, nx, hq[N], nx);
+
+
+		// input constraints
+		jj=0;
+		pnb0 = (nbb[jj]+bs-1)/bs*bs;
+		for(ii=0; ii<nbu; ii++)
+			{
+			hd[jj][ii+0]    = lb[ii];
+			hd[jj][ii+pnb0] = ub[ii];
+			}
+		jj=1;
+		if(jj<N)
+			{
+			pnb0 = (nbb[jj]+bs-1)/bs*bs;
+			for(ii=0; ii<nbu; ii++)
+				{
+				hd[jj][ii+0]    = lb[ii];
+				hd[jj][ii+pnb0] = ub[ii];
+				}
+			}
+		// state constraints 
+		jj=1;
+		if(jj<N)
+			{
+			pnb0 = (nbb[jj]+bs-1)/bs*bs;
+			for(ii=nuu[jj]; ii<nbb[jj]; ii++)
+				{
+				hd[jj][ii+0]    = lb[ii];
+				hd[jj][ii+pnb0] = ub[ii];
+				//hd[jj][2*nu+2*ii+0] = lb[N*nu+ii+nx*jj];
+				//hd[jj][2*nu+2*ii+1] = ub[N*nu+ii+nx*jj];
+				}
+			}
+		pnb0 = (nbb[N]+bs-1)/bs*bs;
+		for(ii=nuu[N]; ii<nbb[N]; ii++)
+			{
+			hd[N][ii+0]    = lb[nu+ii];
+			hd[N][ii+pnb0] = ub[nu+ii];
+			//hd[jj][2*nu+2*ii+0] = lb[N*nu+ii+nx*jj];
+			//hd[jj][2*nu+2*ii+1] = ub[N*nu+ii+nx*jj];
+			}
+		// general constraints
+		if(ng>0)
+			{
+			for(jj=0; jj<N; jj++)
+				{
+				pnb0 = (nbb[jj]+bs-1)/bs*bs;
+				png0 = (ngg[jj]+bs-1)/bs*bs;
+				for(ii=0; ii<ng; ii++)
+					{
+					hd[jj][2*pnb0+ii+0]    = lg[ii+ng*jj];
+					hd[jj][2*pnb0+ii+png0] = ug[ii+ng*jj];
+					}
+				}
+			}
+		if(ngN>0) // last stage
+			{
+			pnb0 = (nbb[N]+bs-1)/bs*bs;
+			png0 = (ngg[N]+bs-1)/bs*bs;
+			for(ii=0; ii<ngN; ii++)
+				{
+				hd[N][2*pnb0+ii+0]    = lgf[ii];
+				hd[N][2*pnb0+ii+png0] = ugf[ii];
+				}
+			}
+		//d_print_mat(1, 2*pnb+2*png, hd[0], 1);
+		//d_print_mat(1, 2*pnb+2*png, hd[1], 1);
+		//d_print_mat(1, 2*pnb+2*pngN, hd[N], 1);
+		//exit(1);
+
+		} // end of time invariant
+	else // time variant
+		{
+
+		for(ii=0; ii<N; ii++)
+			{
+			hpBAbt[ii] = ptr;
+			ptr += pnz*cnx;
+			}
+
+		if(ng>0)
+			{
+			for(ii=0; ii<N; ii++)
+				{
+				hpDCt[ii] = ptr;
+				ptr += pnz*cng;
+				}
+			}
+		if(ngN>0)
+			{
+			hpDCt[N] = ptr;
+			ptr += pnz*cngN;
+			}
+
+		for(ii=0; ii<=N; ii++) // time variant and copied again internally in the IP !!!
+			{
+			hpQ[ii] = ptr;
+			ptr += pnz*cnux; // TODO use cnux instrad
+			}
+
+		work = ptr;
+		ptr += d_ip2_mpc_hard_tv_work_space_size_bytes(N, nxx, nuu, nbb, ngg)/sizeof(double);
+
+		for(ii=0; ii<N; ii++)
+			{
+			hb[ii] = ptr;
+			ptr += pnx;
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hq[ii] = ptr;
+			ptr += pnz;
+			}
+
+		for(ii=0; ii<N; ii++) // time Variant box constraints
+			{
+			hd[ii] = ptr;
+			ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+			}
+		hd[N] = ptr;
+		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hux[ii] = ptr;
+			ptr += pnz;
+			}
+
+		for(ii=0; ii<N; ii++) // time Variant box constraints
+			{
+			hpi[ii] = ptr;
+			ptr += pnx; // for alignment of ptr
+			}
+
+		for(ii=0; ii<N; ii++) // time Variant box constraints
+			{
+			hlam[ii] = ptr;
+			ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+			}
+		hlam[N] = ptr;
+		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
+		for(ii=0; ii<N; ii++) // time Variant box constraints
+			{
+			ht[ii] = ptr;
+			ptr += 2*pnb+2*png; //anb; //nb; // for alignment of ptr
+			}
+		ht[N] = ptr;
+		ptr += 2*pnb+2*pngN; //anb; //nb; // for alignment of ptr
+
+		for(ii=0; ii<N; ii++)
+			{
+			hrb[ii] = ptr;
+			ptr += pnx;
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hrq[ii] = ptr;
+			ptr += pnz;
+			}
+
+		for(ii=0; ii<N; ii++)
+			{
+			hrd[ii] = ptr;
+			ptr += 2*pnb+2*png;
+			}
+		hrd[N] = ptr;
+		ptr += 2*pnb+2*pngN;
+
+
+
+		/* pack matrices 	*/
+
+		//printf("\n%d %d %d %d %d\n", N, nx, nu, nb, ng);
+
+		// dynamic system
+		// first stage
+		// compute A_0 * x_0 + b_0
+		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
+		d_cvt_tran_mat2pmat(nx, nx, A, nx, 0, hpBAbt[0], cnx);
+		dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b+0*nx, hb[0]);
+
+		ii = 0;
+		d_cvt_mat2pmat(nu, nx, B+0*nx*nu, nu, 0, hpBAbt[0], cnx); // restore B0
+
+		// middle stages
+		for(ii=1; ii<N; ii++)
+			{
+			d_copy_mat(nx, 1, b+ii*nx, nx, hb[ii], nx);
+			}
+
+
+		// cost function
+		// first stage
+		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
+		d_cvt_tran_mat2pmat(nx, nu, S, nx, 0, hpQ[0], cnx);
+		dgemv_n_lib(nu, nx, hpQ[0], cnx, hux[1], 1, r+0*nu, hq[0]);
+
+		jj = 0;
+		d_cvt_mat2pmat(nu, nu, R, nu, 0, hpQ[0], cnu); // restore Q0
+
+		// middle stages
+		for(jj=1; jj<N; jj++)
+			{
+			d_copy_mat(nu, 1, r+jj*nu, nu, hq[jj], nu+nx);
+			d_copy_mat(nx, 1, q+jj*nx, nx, hq[jj]+nu, nu+nx);
+			}
+
+		// last stage
+		d_copy_mat(nx, 1, qf, nx, hq[N], nx);
+
+
+		// input constraints
+		for(jj=0; jj<N; jj++)
+			{
+			pnb0 = (nbb[jj]+bs-1)/bs*bs;
+			for(ii=0; ii<nbu; ii++)
+				{
+				hd[jj][ii+0]    = lb[ii+nb*jj];
+				hd[jj][ii+pnb0] = ub[ii+nb*jj];
+				}
+			}
+		// state constraints 
+		for(jj=1; jj<N; jj++)
+			{
+			pnb0 = (nbb[jj]+bs-1)/bs*bs;
+			for(ii=nuu[jj]; ii<nbb[jj]; ii++)
+				{
+				hd[jj][ii+0]    = lb[ii+nb*jj];
+				hd[jj][ii+pnb0] = ub[ii+nb*jj];
+				//hd[jj][2*nu+2*ii+0] = lb[N*nu+ii+nx*jj];
+				//hd[jj][2*nu+2*ii+1] = ub[N*nu+ii+nx*jj];
+				}
+			}
+		pnb0 = (nbb[N]+bs-1)/bs*bs;
+		for(ii=nuu[N]; ii<nbb[N]; ii++)
+			{
+			hd[N][ii+0]    = lb[nu+ii+nb*jj];
+			hd[N][ii+pnb0] = ub[nu+ii+nb*jj];
+			//hd[jj][2*nu+2*ii+0] = lb[N*nu+ii+nx*jj];
+			//hd[jj][2*nu+2*ii+1] = ub[N*nu+ii+nx*jj];
+			}
+		// general constraints
+		if(ng>0)
+			{
+			for(jj=0; jj<N; jj++)
+				{
+				pnb0 = (nbb[jj]+bs-1)/bs*bs;
+				png0 = (ngg[jj]+bs-1)/bs*bs;
+				for(ii=0; ii<ng; ii++)
+					{
+					hd[jj][2*pnb0+ii+0]    = lg[ii+ng*jj];
+					hd[jj][2*pnb0+ii+png0] = ug[ii+ng*jj];
+					}
+				}
+			}
+		if(ngN>0) // last stage
+			{
+			pnb0 = (nbb[N]+bs-1)/bs*bs;
+			png0 = (ngg[N]+bs-1)/bs*bs;
+			for(ii=0; ii<ngN; ii++)
+				{
+				hd[N][2*pnb0+ii+0]    = lgf[ii];
+				hd[N][2*pnb0+ii+png0] = ugf[ii];
+				}
+			}
+		//d_print_mat(1, 2*pnb+2*png, hd[0], 1);
+		//d_print_mat(1, 2*pnb+2*png, hd[1], 1);
+		//d_print_mat(1, 2*pnb+2*pngN, hd[N], 1);
+		//exit(1);
+
+		} // end of time variant
+
+
+
+	// initial guess TODO remove
+//	for(jj=0; jj<N; jj++)
+//		for(ii=0; ii<nu; ii++)
+//			hux[jj][ii] = u[ii+nu*jj];
+
+//	for(jj=1; jj<=N; jj++)
+//		for(ii=0; ii<nx; ii++)
+//			hux[jj][nuu[jj]+ii] = x[ii+nx*jj];
+
+
+
+	// call the IP solver
+	d_kkt_solve_new_rhs_mpc_hard_tv(N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hb, hpQ, hq, hpDCt, hd, hux, 1, hpi, hlam, ht, work); // TODO B 
+
+
+
+	// copy back inputs and states
+	for(jj=0; jj<N; jj++)
+		for(ii=0; ii<nu; ii++)
+			u[ii+nu*jj] = hux[jj][ii];
+
+	for(jj=1; jj<=N; jj++)
+		for(ii=0; ii<nx; ii++)
+			x[ii+nx*jj] = hux[jj][nuu[jj]+ii];
+
+
+
+	// compute infinity norm of residuals on exit
+
+	// restore linear part of cost function 
+	if(time_invariant)
+		{
+		for(ii=0; ii<N; ii++)
+			{
+			for(jj=0; jj<nuu[ii]; jj++) 
+				hq[ii][jj]    = r[jj];
+			for(jj=0; jj<nxx[ii]; jj++) 
+				hq[ii][nuu[ii]+jj] = q[jj];
+			}
+		}
+	else // time-variant
+		{
+		for(ii=0; ii<N; ii++)
+			{
+			for(jj=0; jj<nuu[ii]; jj++) 
+				hq[ii][jj]    = r[jj+nu*ii];
+			for(jj=0; jj<nxx[ii]; jj++) 
+				hq[ii][nuu[ii]+jj] = q[jj+nx*ii];
+			}
+		}
+	for(jj=0; jj<nx; jj++) 
+		hq[N][jj] = qf[jj];
+
+	double mu;
+
+	d_res_mpc_hard_tv(N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hb, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+
+#if 0
+	printf("\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, nuu[ii]+nxx[ii], hrq[ii], 1);
+	printf("\n");
+	for(ii=0; ii<N; ii++)
+		d_print_mat(1, nxx[ii+1], hrb[ii], 1);
+	printf("\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, (nbb[ii]+bs-1)/bs*bs*2+(ngg[ii]+bs-1)/bs*bs*2, hrd[ii], 1);
+	printf("\n");
+	printf("%f\n", mu);
+	exit(1);
+#endif
+
+	temp = fabs(hrq[0][0]);
+	for(jj=0; jj<nu; jj++) 
+		temp = fmax( temp, fabs(hrq[0][jj]) );
+	for(ii=1; ii<N; ii++)
+		for(jj=0; jj<nu+nx; jj++) 
+			temp = fmax( temp, fabs(hrq[ii][jj]) );
+	for(jj=0; jj<nx; jj++) 
+		temp = fmax( temp, fabs(hrq[N][jj]) );
+	inf_norm_res[0] = temp;
+
+	temp = fabs(hrb[0][0]);
+	for(ii=0; ii<N; ii++)
+		for(jj=0; jj<nx; jj++) 
+			temp = fmax( temp, fabs(hrb[ii][jj]) );
+	inf_norm_res[1] = temp;
+
+	temp = fabs(hrd[0][0]);
+	pnb0 = (nbb[0]+bs-1)/bs*bs;
+	for(jj=0; jj<nbu; jj++) 
+		{
+		temp = fmax( temp, fabs(hrd[0][jj]) );
+		temp = fmax( temp, fabs(hrd[0][pnb0+jj]) );
+		}
+	for(ii=1; ii<N; ii++)
+		{
+		pnb0 = (nbb[ii]+bs-1)/bs*bs;
+		for(jj=0; jj<nb; jj++) 
+			{
+			temp = fmax( temp, fabs(hrd[ii][jj]) );
+			temp = fmax( temp, fabs(hrd[ii][pnb0+jj]) );
+			}
+		}
+	pnb0 = (nbb[N]+bs-1)/bs*bs;
+	for(jj=0; jj<nbb[N]; jj++) 
+		{
+		temp = fmax( temp, fabs(hrq[N][jj]) );
+		temp = fmax( temp, fabs(hrq[N][pnb0+jj]) );
+		}
+	for(ii=0; ii<N; ii++)
+		{
+		pnb0 = (nbb[ii]+bs-1)/bs*bs;
+		png0 = (ngg[ii]+bs-1)/bs*bs;
+		for(jj=2*pnb0; jj<2*pnb0+ng; jj++) 
+			{
+			temp = fmax( temp, fabs(hrd[ii][jj]) );
+			temp = fmax( temp, fabs(hrd[ii][png0+jj]) );
+			}
+		}
+	pnb0 = (nbb[N]+bs-1)/bs*bs;
+	png0 = (ngg[N]+bs-1)/bs*bs;
+	for(jj=2*pnb0; jj<2*pnb0+ngg[N]; jj++) 
+		{
+		temp = fmax( temp, fabs(hrd[N][jj]) );
+		temp = fmax( temp, fabs(hrd[N][png0+jj]) );
+		}
+	inf_norm_res[2] = temp;
+
+	inf_norm_res[3] = mu;
+
+	//printf("\n%e %e %e %e\n", norm_res[0], norm_res[1], norm_res[2], norm_res[3]);
+
+
+
+	// copy back multipliers
+
+	for(ii=0; ii<N; ii++)
+		for(jj=0; jj<nx; jj++)
+			pi[jj+ii*nx] = hpi[ii][jj];
+
+	ii = 0;
+	pnb0 = (nbb[0]+bs-1)/bs*bs;
+	for(jj=0; jj<nbu; jj++)
+		{
+		lam[jj+ii*(2*nb+2*ng)]       = hlam[ii][jj];
+		lam[jj+ii*(2*nb+2*ng)+nb+ng] = hlam[ii][pnb0+jj];
+		t[jj+ii*(2*nb+2*ng)]       = ht[ii][jj];
+		t[jj+ii*(2*nb+2*ng)+nb+ng] = ht[ii][pnb0+jj];
+		}
+	for(ii=1; ii<N; ii++)
+		{
+		pnb0 = (nbb[ii]+bs-1)/bs*bs;
+		for(jj=0; jj<nb; jj++)
+			{
+			lam[jj+ii*(2*nb+2*ng)]       = hlam[ii][jj];
+			lam[jj+ii*(2*nb+2*ng)+nb+ng] = hlam[ii][pnb0+jj];
+			t[jj+ii*(2*nb+2*ng)]       = ht[ii][jj];
+			t[jj+ii*(2*nb+2*ng)+nb+ng] = ht[ii][pnb0+jj];
+			}
+		}
+	ii = N;
+	pnb0 = (nbb[N]+bs-1)/bs*bs;
+	for(jj=0; jj<nbb[N]; jj++)
+		{
+		lam[nu+jj+ii*(2*nb+2*ng)]        = hlam[ii][jj];
+		lam[nu+jj+ii*(2*nb+2*ng)+nb+ngN] = hlam[ii][pnb0+jj];
+		t[nu+jj+ii*(2*nb+2*ng)]        = ht[ii][jj];
+		t[nu+jj+ii*(2*nb+2*ng)+nb+ngN] = ht[ii][pnb0+jj];
+		}
+
+	for(ii=0; ii<N; ii++)
+		{
+		pnb0 = (nbb[ii]+bs-1)/bs*bs;
+		png0 = (ngg[ii]+bs-1)/bs*bs;
+		for(jj=0; jj<ng; jj++)
+			{
+			lam[jj+ii*(2*nb+2*ng)+nb]       = hlam[ii][2*pnb0+jj];
+			lam[jj+ii*(2*nb+2*ng)+nb+ng+nb] = hlam[ii][2*pnb0+png0+jj];
+			t[jj+ii*(2*nb+2*ng)+nb]       = ht[ii][2*pnb0+jj];
+			t[jj+ii*(2*nb+2*ng)+nb+ng+nb] = ht[ii][2*pnb0+png0+jj];
+			}
+		}
+	pnb0 = (nbb[N]+bs-1)/bs*bs;
+	png0 = (ngg[N]+bs-1)/bs*bs;
+	for(jj=0; jj<ngN; jj++)
+		{
+		lam[jj+N*(2*nb+2*ng)+nb]        = hlam[N][2*pnb0+jj];
+		lam[jj+N*(2*nb+2*ng)+nb+ngN+nb] = hlam[N][2*pnb0+png0+jj];
+		t[jj+N*(2*nb+2*ng)+nb]        = ht[N][2*pnb0+jj];
+		t[jj+N*(2*nb+2*ng)+nb+ngN+nb] = ht[N][2*pnb0+png0+jj];
+		}
+
+/*printf("\nend of wrapper\n");*/
+
+    return;
+
+	}
 
 
 
