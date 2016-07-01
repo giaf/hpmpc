@@ -30,8 +30,9 @@
 #include "../include/lqcp_aux.h"
 #include "../include/d_blas_aux.h"
 
-//#ifdef BLASFEO
+#ifdef BLASFEO
 #include <blasfeo_d_blas.h>
+#endif
 //#else
 #include "../include/blas_d.h"
 //#endif
