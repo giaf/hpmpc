@@ -51,7 +51,7 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(int N, int nx, int nu, int nb
 
 
 // new interfaces
-int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng);
+int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int const *nx, int const *nu, int const *nb, int const *ng);
 
 int c_order_d_ip_ocp_hard_tv(
 							int *kk, int k_max, double mu0, double mu_tol,

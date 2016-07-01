@@ -94,16 +94,16 @@ TEST(test_qp, qp10_return_code_ok)
 
 	for (int i = 0; i <= qp->N; ++i)
 	{
-	printf("%d:\t", i);
+		printf("%d:\t", i);
 
-	if (i < qp->N)
-	{            
-	    print_vector(qp->u[i], qp->nu[i]);
-	    printf("|\t");
-	}
+		if (i < qp->N)
+		{            
+		    print_vector(qp->u[i], qp->nu[i]);
+		    printf("|\t");
+		}
 
-	print_vector(qp->x[i], qp->nx[i]);
-	printf("\n");
+		print_vector(qp->x[i], qp->nx[i]);
+		printf("\n");
 	}
 
 	free_pi(pi, qp->N);
