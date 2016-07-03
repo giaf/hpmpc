@@ -59,6 +59,10 @@ void print_vector(double const * x, int N)
         printf("%e\t", x[i]);
 }
 
+/*
+Test case for https://github.com/giaf/hpmpc/issues/10
+This is a badly conditioned problem (condition number 6.5488e+10)
+*/
 TEST(test_qp, qp10_return_code_ok)
 {
 	ProblemStruct * qp = (ProblemStruct *)malloc(sizeof(ProblemStruct));
