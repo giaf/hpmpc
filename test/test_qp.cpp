@@ -6,7 +6,24 @@
 #include <stdio.h>
 #include <memory.h>
 
+/*
+Test case for https://github.com/giaf/hpmpc/issues/10
+This is a badly conditioned problem (condition number 6.5488e+10)
+*/
+struct QP0010
+{
 #include "data/test_qp/qp0010.c"
+};
+
+struct QP0012
+{
+#include "data/test_qp/qp0012.c"
+};
+
+typedef ::testing::Types<
+		QP0010,
+		QP0012
+	> QPTypes;
 
 double ** alloc_lambda(int N, int const * nb, int const * ng)
 {
@@ -59,16 +76,55 @@ void print_vector(double const * x, int N)
         printf("%e\t", x[i]);
 }
 
-/*
-Test case for https://github.com/giaf/hpmpc/issues/10
-This is a badly conditioned problem (condition number 6.5488e+10)
-*/
-TEST(test_qp, qp10_return_code_ok)
+template <typename QP>
+void print_solution(QP const& qp, int ret, int num_iter)
 {
+	printf("ret = %d, num_iter = %d\n", ret, num_iter);
+	printf("**** Solution ****\n");
+
+	for (int i = 0; i <= qp->N; ++i)
+	{
+		printf("%d:\t", i);
+
+		if (i < qp->N)
+		{            
+		    print_vector(qp->u[i], qp->nu[i]);
+		    printf("|\t");
+		}
+
+		print_vector(qp->x[i], qp->nx[i]);
+		printf("\n");
+	}
+}
+
+template <typename QP_>
+class QPTest : public ::testing::Test
+{
+protected:
+	typedef QP_ QP;
+
+/*
+	QPTest()
+	:	qp_(new QP::ProblemStruct)
+	{
+		memset(qp, sizeof(ProblemStruct), 0xff);
+	}
+
+	std::unique_ptr<QP::ProblemStruct> qp_;
+*/
+};
+
+TYPED_TEST_CASE(QPTest, QPTypes);
+
+TYPED_TEST(QPTest, return_code_ok)
+{
+	typedef typename TestFixture::QP::ProblemStruct ProblemStruct;
+
 	ProblemStruct * qp = (ProblemStruct *)malloc(sizeof(ProblemStruct));
 	memset(qp, sizeof(ProblemStruct), 0xff);
 
-	init_problem(qp);
+	typename TestFixture::QP factory;
+	factory.init_problem(qp);
 
 	int num_iter = -1;
 	double inf_norm_res[4];
@@ -92,23 +148,6 @@ TEST(test_qp, qp10_return_code_ok)
 					inf_norm_res,
 					work,
 					stat);
-
-	printf("ret = %d, num_iter = %d\n", ret, num_iter);
-	printf("**** Solution ****\n");
-
-	for (int i = 0; i <= qp->N; ++i)
-	{
-		printf("%d:\t", i);
-
-		if (i < qp->N)
-		{            
-		    print_vector(qp->u[i], qp->nu[i]);
-		    printf("|\t");
-		}
-
-		print_vector(qp->x[i], qp->nx[i]);
-		printf("\n");
-	}
 
 	free_pi(pi, qp->N);
 	free_lambda(t, qp->N);
