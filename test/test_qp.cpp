@@ -162,7 +162,6 @@ TYPED_TEST(QPTest, return_code_ok)
 					stat);
 
 	std::cout << "ret = " << ret << "\tnum_iter = " << num_iter << std::endl;
-
 	free_pi(pi, qp->N);
 	free_lambda(t, qp->N);
 	free_lambda(lam, qp->N);
