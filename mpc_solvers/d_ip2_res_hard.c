@@ -51,7 +51,7 @@
 
 
 /* computes work space size */
-int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng)
+int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int const *nx, int const *nu, int const *nb, int const *ng)
 	{
 
 	const int bs = D_MR;

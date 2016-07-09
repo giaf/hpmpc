@@ -39,7 +39,7 @@
 
 
 
-int d_back_ric_rec_sv_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng)
+int d_back_ric_rec_sv_tv_work_space_size_bytes(int N, int const *nx, int const *nu, int const *nb, int const *ng)
 	{
 
 	const int bs = D_MR;
