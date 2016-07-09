@@ -1306,7 +1306,7 @@ void d_align_pmat(int row, int col, int offset, int bs_dummy, double *A, int sda
 
 
 /* converts a matrix into a packed matrix */
-void d_cvt_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA, int sda)
+void d_cvt_mat2pmat(int row, int col, double const *A, int lda, int offset, double *pA, int sda)
 	{
 	
 	const int bs = 4;
@@ -1314,8 +1314,8 @@ void d_cvt_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA
 	int 
 		i, ii, j, jj, row0, row1, row2;
 	
-	double
-		*B, *pB;
+	double const * B;
+	double *pB;
 	
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	__m256d
@@ -1525,15 +1525,15 @@ void d_cvt_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA
 
 /* converts a matrix into a packed matrix */
 // row and col of the source matrix, offsett in the destination matrix
-void d_cvt_tran_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA, int sda)
+void d_cvt_tran_mat2pmat(int row, int col, double const *A, int lda, int offset, double *pA, int sda)
 	{
 	
 	const int bs = 4;
 
 	int i, ii, j, row0, row1, row2;
 	
-	double
-		*B, *pB;
+	double const * B;
+	double * pB;
 	
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 	__m256d
