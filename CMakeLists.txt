@@ -12,7 +12,7 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.8 )
 #
 # Project name and programming languages used
 #
-PROJECT( HPMPC C )
+PROJECT( HPMPC )
 
 #
 # Folder path for generated executables
