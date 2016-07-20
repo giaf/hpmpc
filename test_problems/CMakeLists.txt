@@ -1,21 +1,22 @@
 
 ADD_LIBRARY( hpmpc_tools STATIC tools.c )
 
+# Some of the test problems are commented because of linker errors (unresolved symbols).
 SET( TEST_PROBLEMS
 	test_blas_d_debug.c
 	test_blas_s_debug.c
 	test_blas_d.c
 	test_blas_s.c
-	test_d_ric_mpc.c
-	test_s_ric_mpc.c
-	test_d_ric_mhe.c
+	#test_d_ric_mpc.c
+	#test_s_ric_mpc.c
+	#test_d_ric_mhe.c
 	test_d_ip_hard.c
-	test_s_ip_box.c
-	test_d_ip_soft.c
-	test_d_admm_box.c
-	test_s_admm_box.c
-	test_d_admm_soft.c
-	test_s_admm_soft.c
+	#test_s_ip_box.c
+	#test_d_ip_soft.c
+	#test_d_admm_box.c
+	#test_s_admm_box.c
+	#test_d_admm_soft.c
+	#test_s_admm_soft.c
 )
 
 FOREACH( SRC ${TEST_PROBLEMS} )

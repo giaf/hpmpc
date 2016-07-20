@@ -17,10 +17,7 @@ set(SRC
 add_executable(hpmpc_test ${SRC})
 
 target_link_libraries(hpmpc_test 
-	${PROJECT_SOURCE_DIR}/libhpmpc.a 
+	hpmpc 
 	gtest
 	gtest_main
 )
-
-#enable_testing()
-#add_test(AllTests mpc_test)
