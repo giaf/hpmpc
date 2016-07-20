@@ -53,6 +53,11 @@ IF ( NOT HPMPC_TARGET )
     )
 ENDIF( )
 
+#
+# Build options
+#
+option(HPMPC_BUILD_TESTS "Build tests" ON)
+
 ################################################################################
 #
 # Compiler settings
@@ -203,4 +208,6 @@ ADD_SUBDIRECTORY( test_problems )
 # Build tests
 #
 ################################################################################
-add_subdirectory(test)
+if(HPMPC_BUILD_TESTS)
+    add_subdirectory(test)
+endif()

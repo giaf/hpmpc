@@ -274,7 +274,7 @@ int d_ip2_mpc_soft_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, ux, pL, dL, work, 1, Pb, compute_mult, pi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
 		*kk = 0;
-		return;
+		return -100;	// MK: return value was missing. What should it actually return here?
 		}
 
 	double sigma = 1.0;
