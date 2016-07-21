@@ -1219,21 +1219,21 @@ int fortran_order_d_ip_mpc_hard_tv(
 			{
 			// first stage
 			jj=0;
-			for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, abs(R[jj*nu*nu+ii*nu+ll]));
-			for(ii=0; ii<nu; ii++) mu0 = fmax(mu0, abs(r[jj*nu+ii]));
+			for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, fabs(R[jj*nu*nu+ii*nu+ll]));
+			for(ii=0; ii<nu; ii++) mu0 = fmax(mu0, fabs(r[jj*nu+ii]));
 			// middle stages
 			jj=1;
 			if(jj<N)
 				{
-				for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, abs(R[jj*nu*nu+ii*nu+ll]));
-				for(ii=0; ii<nx*nu; ii++) mu0 = fmax(mu0, abs(S[jj*nu*nx+ii]));
-				for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, abs(Q[jj*nx*nx+ii*nx+ll]));
-				for(ii=0; ii<nu; ii++) mu0 = fmax(mu0, abs(r[jj*nu+ii]));
-				for(ii=0; ii<nx; ii++) mu0 = fmax(mu0, abs(q[jj*nx+ii]));
+				for(ii=0; ii<nu; ii++) for(ll=0; ll<nu; ll++) mu0 = fmax(mu0, fabs(R[jj*nu*nu+ii*nu+ll]));
+				for(ii=0; ii<nx*nu; ii++) mu0 = fmax(mu0, fabs(S[jj*nu*nx+ii]));
+				for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, fabs(Q[jj*nx*nx+ii*nx+ll]));
+				for(ii=0; ii<nu; ii++) mu0 = fmax(mu0, fabs(r[jj*nu+ii]));
+				for(ii=0; ii<nx; ii++) mu0 = fmax(mu0, fabs(q[jj*nx+ii]));
 				}
 			// last stage
-			for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, abs(Qf[ii*nx+ll]));
-			for(jj=0; jj<nx; jj++) mu0 = fmax(mu0, abs(qf[ii]));
+			for(ii=0; ii<nx; ii++) for(ll=0; ll<nx; ll++) mu0 = fmax(mu0, fabs(Qf[ii*nx+ll]));
+			for(jj=0; jj<nx; jj++) mu0 = fmax(mu0, fabs(qf[ii]));
 			}
 
 		//d_print_pmat(nz, nz, bs, hpQ[0], cnu);
