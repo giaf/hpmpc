@@ -25,23 +25,27 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include <sys/time.h>
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
 #include <xmmintrin.h> // needed to flush to zero sub-normals with _MM_SET_FLUSH_ZERO_MODE (_MM_FLUSH_ZERO_ON); in the main()
 #endif
 
-#include "test_param.h"
-#include "../problem_size.h"
 #include "../include/aux_d.h"
+#include "../include/aux_s.h"
 #include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_solvers.h"
+#include "../problem_size.h"
 #include "../include/block_size.h"
 #include "tools.h"
+#include "test_param.h"
+#include "../include/c_interface.h"
 
 
 
-#define PRINT_ON
+// XXX
+#include "../lqcp_solvers/d_part_cond.c"
 
 
 
@@ -99,6 +103,8 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	dmcopy(nx, nx, A, nx, T, nx);
 	daxpy_3l(nx2, -1.0, I, T);
 	dgemm_nn_3l(nx, nu, nx, T, nx, Bc, nx, B, nx);
+	free(T);
+	free(I);
 	
 	int *ipiv = (int *) malloc(nx*sizeof(int));
 	dgesv_3l(nx, nu, Ac, nx, ipiv, B, nx, &info);
@@ -130,6 +136,7 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	}
 
 
+
 int main()
 	{
 	
@@ -146,680 +153,249 @@ int main()
 	printf("\n");
 	printf("\n");
 	printf("\n");
-
-	printf("Condensing solver performance test - double precision\n");
-	printf("\n");
-
-	// maximum frequency of the processor
-	const float GHz_max = GHZ_MAX;
-	printf("Frequency used to compute theoretical peak: %5.1f GHz (edit test_param.h to modify this value).\n", GHz_max);
-	printf("\n");
-
-	// maximum flops per cycle, double precision
-#if defined(TARGET_X64_AVX2)
-	const float flops_max = 16;
-	printf("Testing solvers for AVX & FMA3 instruction sets, 64 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
-#elif defined(TARGET_X64_AVX)
-	const float flops_max = 8;
-	printf("Testing solvers for AVX instruction set, 64 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
-#elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
-	const float flops_max = 4;
-	printf("Testing solvers for SSE3 instruction set, 64 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
-#elif defined(TARGET_CORTEX_A57)
-	const float flops_max = 4;
-	printf("Testing solvers for ARMv8a NEON instruction set, oprimized for Cortex A57: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
-#elif defined(TARGET_CORTEX_A15)
-	const float flops_max = 2;
-	printf("Testing solvers for ARMv7a VFPv3 instruction set, oprimized for Cortex A15: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
-#elif defined(TARGET_CORTEX_A9)
-	const float flops_max = 1;
-	printf("Testing solvers for ARMv7a VFPv3 instruction set, oprimized for Cortex A9: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
-#elif defined(TARGET_CORTEX_A7)
-	const float flops_max = 0.5;
-	printf("Testing solvers for ARMv7a VFPv3 instruction set, oprimized for Cortex A7: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
-#elif defined(TARGET_X86_ATOM)
-	const float flops_max = 1;
-	printf("Testing solvers for SSE3 instruction set, 32 bit, optimized for Intel Atom: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
-#elif defined(TARGET_POWERPC_G2)
-	const float flops_max = 1;
-	printf("Testing solvers for POWERPC instruction set, 32 bit: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
-#elif defined(TARGET_C99_4X4)
-	const float flops_max = 2;
-	printf("Testing reference solvers, 4x4 kernel: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
-#elif defined(TARGET_C99_4X4_PREFETCH)
-	const float flops_max = 2;
-	printf("Testing reference solvers, 4x4 kernel with register prefetch: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
-#elif defined(TARGET_C99_2X2)
-	const float flops_max = 2;
-	printf("Testing reference solvers, 2x2 kernel: theoretical peak %5.1f Gflops\n", flops_max*GHz_max);
-#endif
-	
-	FILE *f;
-	f = fopen("./test_problems/results/test_blas.m", "w"); // a
-
-#if defined(TARGET_X64_AVX2)
-	fprintf(f, "C = 'd_x64_avx2';\n");
-	fprintf(f, "\n");
-#elif defined(TARGET_X64_AVX)
-	fprintf(f, "C = 'd_x64_avx';\n");
-	fprintf(f, "\n");
-#elif defined(TARGET_X64_SSE3) || defined(TARGET_AMD_SSE3)
-	fprintf(f, "C = 'd_x64_sse3';\n");
-	fprintf(f, "\n");
-#elif defined(TARGET_CORTEX_A9)
-	fprintf(f, "C = 'd_ARM_cortex_A9';\n");
-	fprintf(f, "\n");
-#elif defined(TARGET_CORTEX_A7)
-	fprintf(f, "C = 'd_ARM_cortex_A7';\n");
-	fprintf(f, "\n");
-#elif defined(TARGET_CORTEX_A15)
-	fprintf(f, "C = 'd_ARM_cortex_A15';\n");
-	fprintf(f, "\n");
-#elif defined(TARGET_CORTEX_A57)
-	fprintf(f, "C = 'd_ARM_cortex_A57';\n");
-	fprintf(f, "\n");
-#elif defined(TARGET_X86_ATOM)
-	fprintf(f, "C = 'd_x86_atom';\n");
-	fprintf(f, "\n");
-#elif defined(TARGET_POWERPC_G2)
-	fprintf(f, "C = 'd_PowerPC_G2';\n");
-	fprintf(f, "\n");
-#elif defined(TARGET_C99_4X4)
-	fprintf(f, "C = 'd_c99_4x4';\n");
-	fprintf(f, "\n");
-#elif defined(TARGET_C99_4X4_PREFETCH)
-	fprintf(f, "C = 'd_c99_4x4';\n");
-	fprintf(f, "\n");
-#elif defined(TARGET_C99_2X2)
-	fprintf(f, "C = 'd_c99_2x2';\n");
-	fprintf(f, "\n");
-#endif
-
-	fprintf(f, "A = [%f %f];\n", GHz_max, flops_max);
-	fprintf(f, "\n");
-
-	fprintf(f, "B = [\n");
-	
-
-	const int LTI = 1;
-
-	printf("\n");
-	printf("Tested solvers:\n");
-//	printf("-sv : Riccati factorization and system solution (prediction step in IP methods)\n");
-//	printf("-trs: system solution after a previous call to Riccati factorization (correction step in IP methods)\n");
-	printf("\n");
-//	if(LTI==1)
-//		printf("\nTest for linear time-invariant systems\n");
-//	else
-//		printf("\nTest for linear time-variant systems\n");
-	printf("\n");
 	
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_X64_SSE3) || defined(TARGET_X86_ATOM) || defined(TARGET_AMD_SSE3)
-/*	printf("\nflush to zero on\n");*/
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); // flush to zero subnormals !!! works only with one thread !!!
 #endif
 
 	int ii, jj;
+	
+	int rep, nrep=1000;//NREP;
 
-	
-	const int bs = D_MR; //d_get_mr();
-	const int ncl = D_NCL;
-	
-#if 1
-	int nn[] = {4, 6, 8, 10, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128, 132, 136, 140, 144, 148, 152, 156, 160, 164, 168, 172, 176, 180, 184, 188, 192, 196, 200, 204, 208, 212, 216, 220, 224, 228, 232, 236, 240, 244, 248, 252, 256, 260, 264, 268, 272, 276, 280, 284, 288, 292, 296, 300};
-	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 4000, 4000, 2000, 2000, 1000, 1000, 400, 400, 400, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
-	int ll_max = 77;
+	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
+	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+	int N  = NN; // horizon lenght
+//	int nb  = nu+nx; // number of box constrained inputs and states
+//	int ng  = nx; //4;  // number of general constraints
+//	int ngN = nx; // number of general constraints at the last stage
+	printf("\nN = %d, nx = %d, nu = %d\n\n", N, nx, nu);
+
+#define MHE 1
+
+
+//	int nbu = nu<nb ? nu : nb ;
+//	int nbx = nb-nu>0 ? nb-nu : 0;
+
+
+	// stage-wise variant size
+	int nx_v[N+1];
+#if MHE==1
+	nx_v[0] = nx;
 #else
-	int nn[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 16, 20, 24, 28, 32, 36, 40, 45, 50, 55, 60, 70, 80, 90, 100};
-	int nnrep[] = {10000, 10000, 10000, 10000, 10000, 4000, 4000, 2000, 2000, 1000, 1000, 400, 400, 400, 200, 200, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 20, 20, 20, 20, 20, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10};
-	int ll_max = 25;
+	nx_v[0] = 0;
 #endif
+	for(ii=1; ii<=N; ii++)
+		nx_v[ii] = nx;
+
+	int nu_v[N+1];
+	for(ii=0; ii<N; ii++)
+		nu_v[ii] = nu;
+	nu_v[N] = 0;
+
+//	int nb_v[N+1];
+//	nb_v[0] = nbu;
+//	for(ii=1; ii<N; ii++)
+//		nb_v[ii] = nb;
+//	nb_v[N] = nbx;
+
+//	int ng_v[N+1];
+//	for(ii=0; ii<N; ii++)
+//		ng_v[ii] = ng;
+//	ng_v[N] = ngN;
+//	ng_v[M] = nx; // XXX
 	
-	int nx, nu, N, nrep;
 
-	int *nx_v, *nu_v, *nb_v, *ng_v;
 
-	int ll;
-	ll_max = 1;
-	for(ll=0; ll<ll_max; ll++)
-		{
+	int info = 0;
 		
+	const int bs  = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
 
-		if(ll_max==1)
-			{
-			nx = NX; // number of states (it has to be even for the mass-spring system test problem)
-			nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-			N  = NN; // horizon lenght
-			nrep = NREP;
-			//nx = 25;
-			//nu = 1;
-			//N = 11;
-			printf("\nProblem size:\n");
-			printf("\tN  = \t%d\n", N);
-			printf("\tnx = \t%d\n", nx);
-			printf("\tnu = \t%d\n\n", nu);
-			}
-		else
-			{
-#if 1
-			nx = nn[ll]; // number of states (it has to be even for the mass-spring system test problem)
-			nu = 2; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-			N  = 30; // horizon lenght
-			nrep = nnrep[ll]/10;
-#else
-			nx = 16; // number of states (it has to be even for the mass-spring system test problem)
-			nu = 8; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-			N  = nn[ll]; // horizon lenght
-			nrep = nnrep[ll]/4;
-#endif
-			}
+	int pnz = (nu+nx+1+bs-1)/bs*bs;
+	int pnu = (nu+bs-1)/bs*bs;
+	int pnu1 = (nu+1+bs-1)/bs*bs;
+	int pnx = (nx+bs-1)/bs*bs;
+	int pnx1 = (nx+1+bs-1)/bs*bs;
+	int pnux = (nu+nx+bs-1)/bs*bs;
+	int cnx = (nx+ncl-1)/ncl*ncl;
+	int cnu = (nu+ncl-1)/ncl*ncl;
+	int cnux = (nu+nx+ncl-1)/ncl*ncl;
 
-		int rep;
-	
-		int nz = nx+nu+1;
-		int Nnu = N*nu;
-		int Nnx = N*nx;
-		int nxNnu = nx + N*nu;
-		int pnz = (nz+bs-1)/bs*bs;
-		int pnx = (nx+bs-1)/bs*bs;
-		int pnu = (nu+bs-1)/bs*bs;
-		int pNnu = (N*nu+bs-1)/bs*bs;
-		int pnxNnu = (nx+N*nu+bs-1)/bs*bs;
-		int cnz = (nx+nu+1+ncl-1)/ncl*ncl;
-		int cnx = (nx+ncl-1)/ncl*ncl;
-		int cnu = (nu+ncl-1)/ncl*ncl;
-		//int cNnu = ((N-1)*nu+cnu+ncl-1)/ncl*ncl;
-		int cNnu = (N*nu+ncl-1)/ncl*ncl;
-		int cNnx = (N*nx+ncl-1)/ncl*ncl;
-		int cnxNnu = (nx+N*nu+ncl-1)/ncl*ncl;
-		int cnl = cnz>cnx+ncl ? pnz : cnx+ncl;
+//	int pnb_v[N+1]; 
+//	int png_v[N+1]; 
+	int pnx_v[N+1]; 
+	int pnz_v[N+1]; 
+	int pnux_v[N+1]; 
+	int cnx_v[N+1]; 
+	int cnux_v[N+1]; 
+//	int cng_v[N+1]; 
+	int nxM = 0;
+	int nu2 = 0;
 
-		int ny = nu+nx;
-		int pny = (ny+bs-1)/bs*bs;
-		int cny = (ny+ncl-1)/ncl*ncl;
-		int cnk = cnx+ncl>cny ? cnx+ncl : cny;
+	for(ii=0; ii<N; ii++) 
+		{
+//		pnb_v[ii] = (nb_v[ii]+bs-1)/bs*bs;
+//		png_v[ii] = (ng_v[ii]+bs-1)/bs*bs;
+		pnx_v[ii] = (nx_v[ii]+bs-1)/bs*bs;
+		pnz_v[ii] = (nu_v[ii]+nx_v[ii]+1+bs-1)/bs*bs;
+		pnux_v[ii] = (nu_v[ii]+nx_v[ii]+bs-1)/bs*bs;
+		cnx_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
+		cnux_v[ii] = (nu_v[ii]+nx_v[ii]+ncl-1)/ncl*ncl;
+//		cng_v[ii] = (ng_v[ii]+ncl-1)/ncl*ncl;
+		nxM = nx_v[ii]>nxM ? nx_v[ii] : nxM;
+		nu2 += nu_v[ii];
+		}
+	ii = N;
+//	pnb_v[ii] = (nb_v[ii]+bs-1)/bs*bs;
+//	png_v[ii] = (ng_v[ii]+bs-1)/bs*bs;
+	pnx_v[ii] = (nx_v[ii]+bs-1)/bs*bs;
+	pnz_v[ii] = (nx_v[ii]+1+bs-1)/bs*bs;
+	pnux_v[ii] = (nx_v[ii]+bs-1)/bs*bs;
+	cnx_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
+	cnux_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
+//	cng_v[ii] = (ng_v[ii]+ncl-1)/ncl*ncl;
 
+	int pnxM = (nxM+bs-1)/bs*bs;
+	int cnxM = (nxM+ncl-1)/ncl*ncl;
+	int pnz2 = (nu2+nx_v[0]+1+bs-1)/bs*bs;
 
 /************************************************
 * dynamical system
 ************************************************/	
 
-		double *A; d_zeros(&A, nx, nx); // states update matrix
+	double *A; d_zeros(&A, nx, nx); // states update matrix
 
-		double *B; d_zeros(&B, nx, nu); // inputs matrix
+	double *B; d_zeros(&B, nx, nu); // inputs matrix
 
-		double *b; d_zeros_align(&b, pnx, 1); // states offset
-		double *x0; d_zeros_align(&x0, pnx, 1); // initial state
+	double *b; d_zeros_align(&b, nx, 1); // states offset
+	double *x0; d_zeros_align(&x0, nx, 1); // initial state
 
-		double Ts = 0.5; // sampling time
-		mass_spring_system(Ts, nx, nu, N, A, B, b, x0);
+	double Ts = 0.5; // sampling time
+	mass_spring_system(Ts, nx, nu, N, A, B, b, x0);
 	
-		for(jj=0; jj<nx; jj++)
-			b[jj] = 0.1;
+	for(jj=0; jj<nx; jj++)
+		b[jj] = 0.1;
 	
-		for(jj=0; jj<nx; jj++)
-			x0[jj] = 0;
-		x0[0] = 3.5;
-		x0[1] = 3.5;
+	for(jj=0; jj<nx; jj++)
+		x0[jj] = 0;
+	x0[0] = 2.5;
+	x0[1] = 2.5;
 
-#if defined(PRINT_ON)
-		printf("\nA = \n"); d_print_mat(nx, nx, A, nx);
-		printf("\nB = \n"); d_print_mat(nx, nu, B, nx);
-		printf("\nb = \n"); d_print_mat(1, nx, b, 1);
-		printf("\nx0 = \n"); d_print_mat(1, nx, x0, 1);
+#if MHE!=1
+	double *pA; d_zeros_align(&pA, pnx, cnx);
+	d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
+	double *b0; d_zeros_align(&b0, pnx, 1);
+	dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
+
+	double *pBAbt0; 
+	d_zeros_align(&pBAbt0, pnz_v[0], cnx_v[1]);
+	d_cvt_tran_mat2pmat(nx_v[1], nu_v[0], B, nx_v[1], 0, pBAbt0, cnx_v[1]);
+	d_cvt_tran_mat2pmat(nx_v[1], nx_v[0], A, nx_v[1], nu_v[0], pBAbt0+nu_v[0]/bs*bs*cnx_v[1]+nu_v[0]%bs, cnx_v[1]);
+	d_cvt_tran_mat2pmat(nx_v[1], 1, b0, nx_v[1], nu_v[0]+nx_v[0], pBAbt0+(nu_v[0]+nx_v[0])/bs*bs*cnx_v[1]+(nu_v[0]+nx_v[0])%bs, cnx_v[1]);
+//	d_print_pmat(nu_v[0]+nx_v[0]+1, nx_v[1], bs, pBAbt0, cnx_v[1]);
 #endif
 
-
-		double *pA; d_zeros_align(&pA, pnx, cnx);
-		d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
-		//d_print_pmat(nx, nx, bs, pA, cnx);
-
-		double *pAt; d_zeros_align(&pAt, pnx, cnx);
-		d_cvt_tran_mat2pmat(nx, nx, A, nx, 0, pAt, cnx);
-		//d_print_pmat(nx, nx, bs, pA, cnx);
-
-		double *pBt; d_zeros_align(&pBt, pnu, cnx);
-		d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBt, cnx);
-		//d_print_pmat(nu, nx, bs, pBt, cnx);
-
-		double *pBAt; d_zeros_align(&pBAt, pnz, cnx);
-		dgecp_lib(nu, nx, 0, pBt, cnx, 0, pBAt, cnx);
-		dgecp_lib(nx, nx, 0, pAt, cnx, nu, pBAt+nu/bs*bs*cnx+nu%bs, cnx);
-		//d_print_pmat(nz, nx, bs, pBAt, cnx);
-
+	double *pBAbt1; 
+	if(N>1)
+		{
+		d_zeros_align(&pBAbt1, pnz_v[1], cnx_v[2]);
+		d_cvt_tran_mat2pmat(nx_v[2], nu_v[1], B, nx_v[2], 0, pBAbt1, cnx_v[2]);
+		d_cvt_tran_mat2pmat(nx_v[2], nx_v[1], A, nx_v[2], nu_v[1], pBAbt1+nu_v[1]/bs*bs*cnx_v[2]+nu_v[1]%bs, cnx_v[2]);
+		d_cvt_tran_mat2pmat(nx_v[2], 1, b, nx_v[2], nu_v[1]+nx_v[1], pBAbt1+(nu_v[1]+nx_v[1])/bs*bs*cnx_v[2]+(nu_v[1]+nx_v[1])%bs, cnx_v[2]);
+		d_print_pmat(nu_v[1]+nx_v[1]+1, nx_v[2], bs, pBAbt1, cnx_v[2]);
+		}
+	
 /************************************************
-* cost function
-************************************************/
+* array of matrices & work space
+************************************************/	
 
-		double *Q; d_zeros(&Q, nx, nx);
-		for(ii=0; ii<nx; ii++)
-			Q[ii*(nx+1)] = 1.0;
+	double *hpBAbt[N];
+	double *hpGamma_x0[N];
+	double *hpGamma_u[N];
+	double *hpGamma_b[N];
+	double *pBAbt2;
+	double *work;
 
-		double *R; d_zeros(&R, nu, nu);
-		for(ii=0; ii<nu; ii++)
-			R[ii*(nu+1)] = 2.0;
+	int nu_tmp = 0;
 
-		double *S; d_zeros(&S, nu, nx);
-		for(ii=0; ii<nu; ii++)
-			S[ii*(nu+1)] = 0.0;
-
-		double *q; d_zeros_align(&q, pnx, 1);
-		for(ii=0; ii<nx; ii++)
-			q[ii] = 0.1;
-
-		double *r; d_zeros_align(&r, pnu, 1);
-		for(ii=0; ii<nu; ii++)
-			r[ii] = 0.2;
-
-#if defined(PRINT_ON)
-		printf("\nQ = \n"); d_print_mat(nx, nx, Q, nx);
-		printf("\nR = \n"); d_print_mat(nu, nu, R, nu);
-		printf("\nS = \n"); d_print_mat(nu, nx, S, nu);
-		printf("\nq = \n"); d_print_mat(1, nx, q, 1);
-		printf("\nr = \n"); d_print_mat(1, nu, r, 1);
+	nu_tmp += nu_v[0];
+#if MHE!=1
+	hpBAbt[0] = pBAbt0;
+#else
+	hpBAbt[0] = pBAbt1;
 #endif
+	d_zeros_align(&hpGamma_x0[0], pnx_v[0], cnx_v[1]);
+	d_zeros_align(&hpGamma_u[0], (nu_tmp+bs-1)/bs*bs, cnx_v[1]);
+	d_zeros_align(&hpGamma_b[0], pnx_v[1], 1);
+	for(ii=1; ii<N; ii++)
+		{
+		nu_tmp += nu_v[ii];
+		hpBAbt[ii] = pBAbt1;
+		d_zeros_align(&hpGamma_x0[ii], pnx_v[0], cnx_v[ii+1]);
+		d_zeros_align(&hpGamma_u[ii], (nu_tmp+bs-1)/bs*bs, cnx_v[ii+1]);
+		d_zeros_align(&hpGamma_b[ii], pnx_v[ii+1], 1);
+		}
 
-		double *pQ; d_zeros_align(&pQ, pnx, cnx);
-		d_cvt_mat2pmat(nx, nx, Q, nx, 0, pQ, cnx);
-		//d_print_pmat(nx, nx, bs, pQ, cnx);
+	d_zeros_align(&pBAbt2, pnz2, cnx_v[N]);
 
-		double *dQ; d_zeros_align(&dQ, pnx, 1);
-		for(ii=0; ii<nx; ii++) dQ[ii] = Q[ii*(nx+1)];
-		//d_print_mat(1, nx, dQ, 1);
-
-		double *pR; d_zeros_align(&pR, pnu, cnu);
-		d_cvt_mat2pmat(nu, nu, R, nu, 0, pR, cnu);
-		//d_print_pmat(nu, nu, bs, pR, cnu);
-
-		double *dR; d_zeros_align(&dR, pnu, 1);
-		for(ii=0; ii<nu; ii++) dR[ii] = R[ii*(nu+1)];
-		//d_print_mat(1, nu, dR, 1);
-
-		double *pS; d_zeros_align(&pS, pnu, cnx); // TODO change definition to transposed !!!!!!!!!!
-		d_cvt_mat2pmat(nu, nx, S, nu, 0, pS, cnx);
-		//d_print_pmat(nu, nx, bs, pS, cnx);
-
-		double *pRSQ; d_zeros_align(&pRSQ, pny, cny);
-		dgecp_lib(nu, nu, 0, pR, cnu, 0, pRSQ, cny);
-		dgetr_lib(nu, nx, 0, pS, cnx, nu, pRSQ+nu/bs*bs*cny+nu%bs, cny);
-		dgecp_lib(nx, nx, 0, pQ, cnx, nu, pRSQ+nu/bs*bs*cny+nu%bs+nu*bs, cny);
-		//d_print_pmat(nz, nz, bs, pRSQ, cny);
-
-		double *dRSQ; d_zeros_align(&dRSQ, pnu+pnx, 1);
-		for(ii=0; ii<nu; ii++) dRSQ[ii] = R[ii*(nu+1)];
-		for(ii=0; ii<nx; ii++) dRSQ[nu+ii] = Q[ii*(nx+1)];
-		//d_print_mat(1, nu, dR, 1);
-
-//		exit(1);
-
+	d_zeros_align(&work, pnxM, cnxM);
+	
+//	for(ii=0; ii<N; ii++)
+//		{
+//		d_print_pmat(nu_v[ii]+nx_v[ii]+1, nx_v[ii+1], bs, hpBAbt[ii], cnx_v[ii]);
+//		}
+	
 /************************************************
-* matrix series
-************************************************/
-
-		double *hpA[N];
-		double *hpAt[N];
-		double *hpBt[N];
-		double *hpBAt[N];
-		double *hpQ[N+1];
-		double *hdQ[N+1];
-		double *hpR[N];
-		double *hdR[N];
-		double *hpS[N];
-		double *hpRSQ_MPC[N+1];
-		double *hpRSQ_MHE[N+1];
-		double *hdRSQ_MPC[N+1];
-		double *hdRSQ_MHE[N+1];
-		double *hpGamma_u[N];
-		double *hpGamma_u_Q[N];
-		double *hpGamma_u_Q_A[N];
-		double *hpGamma_v[N];
-		double *hpGamma_v_Q[N];
-		double *hpGamma_v_Q_A[N];
-		for(ii=0; ii<N; ii++)
-			{
-			hpA[ii] = pA;
-			hpAt[ii] = pAt;
-			hpBt[ii] = pBt;
-			hpBAt[ii] = pBAt;
-			hpQ[ii] = pQ;
-			hdQ[ii] = dQ;
-			hpR[ii] = pR;
-			hdR[ii] = dR;
-			hpS[ii] = pS;
-			hpRSQ_MPC[ii] = pRSQ;
-			hpRSQ_MHE[ii] = pRSQ;
-			hdRSQ_MPC[ii] = dRSQ;
-			hdRSQ_MHE[ii] = dRSQ;
-			d_zeros_align(&hpGamma_u[ii], ((ii+1)*nu+bs-1)/bs*bs, cnx);
-			d_zeros_align(&hpGamma_u_Q[ii], ((ii+2)*nu+bs-1)/bs*bs, cnx); //((ii+1)*nu+bs-1)/bs*bs, cnx);
-			d_zeros_align(&hpGamma_u_Q_A[ii], ((ii+2)*nu+bs-1)/bs*bs, cnx); //((ii+1)*nu+bs-1)/bs*bs, cnx);
-			d_zeros_align(&hpGamma_v[ii], (nx+(ii+1)*nu+bs-1)/bs*bs, cnx);
-			d_zeros_align(&hpGamma_v_Q[ii], (nx+(ii+2)*nu+bs-1)/bs*bs, cnx); //((ii+1)*nu+bs-1)/bs*bs, cnx);
-			d_zeros_align(&hpGamma_v_Q_A[ii], (nx+(ii+2)*nu+bs-1)/bs*bs, cnx); //((ii+1)*nu+bs-1)/bs*bs, cnx);
-			}
-		hpQ[N] = pQ;
-		hdQ[N] = dQ;
-		hpRSQ_MPC[N] = pR;
-		hpRSQ_MHE[N] = pRSQ;
-		hdRSQ_MPC[N] = dR;
-		hdRSQ_MHE[N] = dRSQ;
-		hpRSQ_MPC[N] = pQ;
-		hpRSQ_MHE[N] = pQ;
-		hdRSQ_MPC[N] = dQ;
-		hdRSQ_MHE[N] = dQ;
-
-		double *pL; d_zeros_align(&pL, pnx, cnx);
-		double *dL; d_zeros_align(&dL, pnx, 1);
-		double *pD; d_zeros_align(&pD, pnu+pnx, cnu);
-		double *pM; d_zeros_align(&pM, pnu, cnx);
-		double *pQs; d_zeros_align(&pQs, pnx, cnx);
-		double *pLam; d_zeros_align(&pLam, pny, cny);
-		double *diag_ric; d_zeros_align(&diag_ric, nz, 1);
-		double *pBAtL; d_zeros_align(&pBAtL, pnz, cnx);
-
-		const int N2 = 1;
-		double *pH_R[N2];
-		double *pH_Rx[N2];
-		for(ii=0; ii<N2; ii++)
-			{
-			d_zeros_align(&pH_R[ii], pNnu, cNnu);
-			d_zeros_align(&pH_Rx[ii], pnxNnu, cnxNnu);
-			}
-
-/************************************************
-* condensing
-************************************************/
-		
-#define DIAG_HESSIAN 0 // diagonal Hessian of the cost function
-#define Q_N_NOT_ZERO 0 // Q_N is not zero
-
-#if defined(PRINT_ON)
-#if (DIAG_HESSIAN==0)
-		printf("\nDense Hessian of the cost function\n");
-#else
-		printf("\nDiagonal Hessian of the cost function\n");
-#endif
-#endif
-		
-		int cond_alg;
-		double **ppdummy;
-		double *pdummy;
-
-		struct timeval tv0, tv1;
-
-
-
-// N^3 n_x^2 condensing algorithm for MPC
-#if defined(PRINT_ON)
-		printf("\nN^3 n_x^2 condensing algorithm, MPC case\n");
-#endif
-
-		dgeset_lib(N*nu, N*nu, 0.0, 0, pH_R[0], cNnu);
-
-		gettimeofday(&tv0, NULL); // start
-
-		for(rep=0; rep<nrep; rep++)
-			{
-
-			d_cond_Gamma_u_T(N, nx, nu, 0, hpA, hpBt, hpGamma_u);
-
-#if (DIAG_HESSIAN==0)
-			d_cond_R_N3_nx2(N, nx, nu, 0, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pdummy, pdummy, hpGamma_u, hpGamma_u_Q, pH_R[0]);
-#else
-			d_cond_R_N3_nx2(N, nx, nu, 0, hpAt, hpBt, 1, Q_N_NOT_ZERO, hdQ, ppdummy, hdR, pdummy, pdummy, hpGamma_u, hpGamma_u_Q, pH_R[0]);
-#endif
-
-			}
-
-		gettimeofday(&tv1, NULL); // start
-
-		double time_cond_0 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
-
-#if defined(PRINT_ON)
-		printf("\nH_R MPC = \n"); d_print_pmat(Nnu, Nnu, bs, pH_R[0], cNnu);
-#endif
-
-
-
-// N^3 n_x^2 condensing algorithm for MHE
-#if defined(PRINT_ON)
-		printf("\nN^3 n_x^2 condensing algorithm, MHE case\n");
-#endif
-
-		dgeset_lib(nx+N*nu, nx+N*nu, 0.0, 0, pH_Rx[0], cnxNnu);
-
-		gettimeofday(&tv0, NULL); // start
-
-		for(rep=0; rep<nrep; rep++)
-			{
-
-			d_cond_Gamma_u_T(N, nx, nu, 1, hpA, hpBt, hpGamma_v);
-
-#if (DIAG_HESSIAN==0)
-			d_cond_R_N3_nx2(N, nx, nu, 1, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pL, dL, hpGamma_v, hpGamma_v_Q, pH_Rx[0]);
-#else
-			d_cond_R_N3_nx2(N, nx, nu, 1, hpAt, hpBt, 1, Q_N_NOT_ZERO, hdQ, hpS, hdR, pdummy, pdummy, hpGamma_v, hpGamma_v_Q, pH_Rx[0]);
-#endif
-
-			}
-
-		gettimeofday(&tv1, NULL); // start
-
-		double time_cond_3 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
-
-#if defined(PRINT_ON)
-//		printf("\nGamma_v^T = \n"); for(ii=0; ii<N; ii++) d_print_pmat(nx+(ii+1)*nu, nx, bs, hpGamma_v[ii], cnx);
-		printf("\nH_R MHE = \n"); d_print_pmat(nx+Nnu, nx+Nnu, bs, pH_Rx[0], cnxNnu);
-#endif
-
-
-
-// N^2 n_x^2 condensing algorithm for MPC
-#if defined(PRINT_ON)
-		printf("\nN^2 n_x^2 condensing algorithm, MPC case\n");
-#endif
-
-		dgeset_lib(N*nu, N*nu, 0.0, 0, pH_R[0], cNnu);
-
-		gettimeofday(&tv0, NULL); // start
-
-		for(rep=0; rep<nrep; rep++)
-			{
-
-			d_cond_Gamma_u_T(N, nx, nu, 0, hpA, hpBt, hpGamma_u);
-
-#if (DIAG_HESSIAN==0)
-			d_cond_R_N2_nx2(N, nx, nu, 0, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pD, pM, pLam, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
-#else
-			d_cond_R_N2_nx2(N, nx, nu, 0, hpAt, hpBt, 1, Q_N_NOT_ZERO, hdQ, ppdummy, hdR, pD, pM, pLam, hpGamma_u, hpGamma_u_Q, hpGamma_u_Q_A, pH_R[0]);
-#endif
-
-			}
-
-		gettimeofday(&tv1, NULL); // start
-
-		double time_cond_1 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
-
-#if defined(PRINT_ON)
-//		printf("\nGamma_u^T = \n"); for(ii=0; ii<N; ii++) d_print_pmat((ii+1)*nu, nx, bs, hpGamma_u[ii], cnx);
-//		printf("\nGamma_u^T Q = \n"); for(ii=0; ii<N; ii++) d_print_pmat((ii+1)*nu, nx, bs, hpGamma_u_Q[ii], cnx);
-//		printf("\nGamma_u^T Q A = \n"); for(ii=0; ii<N; ii++) d_print_pmat((ii+1)*nu, nx, bs, hpGamma_u_Q_A[ii], cnx);
-		printf("\nH_R MPC = \n"); d_print_pmat(Nnu, Nnu, bs, pH_R[0], cNnu);
-#endif
-
-
-
-// N^2 n_x^2 condensing algorithm for MHE
-#if defined(PRINT_ON)
-		printf("\nN^2 n_x^2 condensing algorithm, MHE case\n");
-#endif
-
-		dgeset_lib(nx+N*nu, nx+N*nu, 0.0, 0, pH_Rx[0], cnxNnu);
-
-		gettimeofday(&tv0, NULL); // start
-
-		for(rep=0; rep<nrep; rep++)
-			{
-
-			d_cond_Gamma_u_T(N, nx, nu, 1, hpA, hpBt, hpGamma_v);
-
-#if (DIAG_HESSIAN==0)
-			d_cond_R_N2_nx2(N, nx, nu, 1, hpAt, hpBt, 0, Q_N_NOT_ZERO, hpQ, hpS, hpR, pD, pM, pLam, hpGamma_v, hpGamma_v_Q, hpGamma_v_Q_A, pH_Rx[0]);
-#else
-			d_cond_R_N2_nx2(N, nx, nu, 1, hpAt, hpBt, 1, Q_N_NOT_ZERO, hdQ, ppdummy, hdR, pD, pM, pLam, hpGamma_v, hpGamma_v_Q, hpGamma_v_Q_A, pH_Rx[0]);
-#endif
-
-			}
-
-		gettimeofday(&tv1, NULL); // start
-
-		double time_cond_4 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
-
-#if defined(PRINT_ON)
-//		printf("\nGamma_u^T = \n"); for(ii=0; ii<N; ii++) d_print_pmat((ii+1)*nu, nx, bs, hpGamma_u[ii], cnx);
-//		printf("\nGamma_u^T Q = \n"); for(ii=0; ii<N; ii++) d_print_pmat((ii+1)*nu, nx, bs, hpGamma_u_Q[ii], cnx);
-//		printf("\nGamma_u^T Q A = \n"); for(ii=0; ii<N; ii++) d_print_pmat((ii+1)*nu, nx, bs, hpGamma_u_Q_A[ii], cnx);
-		printf("\nH_R MHE = \n"); d_print_pmat(nx+Nnu, nx+Nnu, bs, pH_Rx[0], cnxNnu);
-#endif
-
-
-
-// N^2 n_x^3 condensing algorithm for MPC
-#if defined(PRINT_ON)
-		printf("\nN^2 n_x^3 condensing algorithm, MPC case\n");
-#endif
-
-		dgeset_lib(N*nu, N*nu, 0.0, 0, pH_R[0], cNnu);
-
-		gettimeofday(&tv0, NULL); // start
-
-		for(rep=0; rep<nrep; rep++)
-			{
-
-			d_cond_Gamma_u_T(N, nx, nu, 0, hpA, hpBt, hpGamma_u);
-
-#if (DIAG_HESSIAN==0)
-			d_cond_R_N2_nx3(N, nx, nu, 0, hpBAt, 0, Q_N_NOT_ZERO, hpRSQ_MPC, pD, pM, pQs, pLam, diag_ric, pBAtL, hpGamma_u, pH_R[0]);
-#else
-			d_cond_R_N2_nx3(N, nx, nu, 0, hpBAt, 1, Q_N_NOT_ZERO, hdRSQ_MPC, pD, pM, pQs, pLam, diag_ric, pBAtL, hpGamma_u, pH_R[0]);
-#endif
-
-			}
-
-		gettimeofday(&tv1, NULL); // start
-
-		double time_cond_2 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
-
-#if defined(PRINT_ON)
-		printf("\nH_R MPC = \n"); d_print_pmat(Nnu, Nnu, bs, pH_R[0], cNnu);
-#endif
-
-
-
-// N^2 n_x^3 condensing algorithm for MHE
-#if defined(PRINT_ON)
-		printf("\nN^2 n_x^3 condensing algorithm, MHE case\n");
-#endif
-
-		dgeset_lib(nx+N*nu, nx+N*nu, 0.0, 0, pH_Rx[0], cnxNnu);
-
-		gettimeofday(&tv0, NULL); // start
-
-		for(rep=0; rep<nrep; rep++)
-			{
-
-			d_cond_Gamma_u_T(N, nx, nu, 1, hpA, hpBt, hpGamma_v);
-
-#if (DIAG_HESSIAN==0)
-			d_cond_R_N2_nx3(N, nx, nu, 1, hpBAt, 0, Q_N_NOT_ZERO, hpRSQ_MHE, pD, pM, pQs, pLam, diag_ric, pBAtL, hpGamma_v, pH_Rx[0]);
-#else
-			d_cond_R_N2_nx3(N, nx, nu, 1, hpBAt, 1, Q_N_NOT_ZERO, hdRSQ_MHE, pD, pM, pQs, pLam, diag_ric, pBAtL, hpGamma_v, pH_Rx[0]);
-#endif
-
-			}
-
-		gettimeofday(&tv1, NULL); // start
-
-		double time_cond_5 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
-
-#if defined(PRINT_ON)
-		printf("\nH_R MHE = \n"); d_print_pmat(nx+Nnu, nx+Nnu, bs, pH_Rx[0], cnxNnu);
-#endif
-
-/************************************************
-* print restults
-************************************************/
-
-		if(ll_max==1)
-			{
-			printf("\ntime condensing N^3 n_x^2 MPC = %e seconds\n", time_cond_0);
-			printf("\ntime condensing N^2 n_x^2 MPC = %e seconds\n", time_cond_1);
-			printf("\ntime condensing N^2 n_x^3 MPC = %e seconds\n", time_cond_2);
-			printf("\ntime condensing N^3 n_x^2 MHE = %e seconds\n", time_cond_3);
-			printf("\ntime condensing N^2 n_x^2 MHE = %e seconds\n", time_cond_4);
-			printf("\ntime condensing N^2 n_x^3 MHE = %e seconds\n", time_cond_5);
-			}
-		else
-			{
-			if(ll==0)
-				printf("\nN\tnx\tnu\tN3Nx2MPC\tN2nx3MPC\tN2nx3MPC\tN3nx2MHE\tN2nx2MHE\tN2nx3MHE\n");
-			printf("%d\t%d\t%d\t%e\t%e\t%e\t%e\t%e\t%e\n", N, nx, nu, time_cond_0, time_cond_1, time_cond_2, time_cond_3, time_cond_4, time_cond_5);
-			}
+* solver call
+************************************************/	
+
+//	d_cond_B(N, nx_v, nu_v, hpBAbt, work, hpGamma_u, pBAbt2);
+//	d_cond_A(N, nx_v, nu_v, hpBAbt, work, hpGamma_x0, pBAbt2);
+//	d_cond_b(N, nx_v, nu_v, hpBAbt, work, hpGamma_b, pBAbt2);
+	d_cond_BAb(N, nx_v, nu_v, hpBAbt, work, hpGamma_u, hpGamma_x0, hpGamma_b, pBAbt2);
+	
+	printf("\nGamma_x0\n\n");
+	for(ii=0; ii<N; ii++)
+		d_print_pmat(nx_v[0], nx_v[ii+1], bs, hpGamma_x0[ii], cnx_v[ii+1]);
+	
+	printf("\nGamma_u\n\n");
+	nu_tmp = 0;
+	for(ii=0; ii<N; ii++)
+		{
+		nu_tmp += nu_v[ii];
+		d_print_pmat(nu_tmp, nx_v[ii+1], bs, hpGamma_u[ii], cnx_v[ii+1]);
+		}
+	
+	printf("\nGamma_b\n\n");
+	for(ii=0; ii<N; ii++)
+		d_print_mat(1, nx_v[ii+1], hpGamma_b[ii], 1);
+	
+	printf("\nBAbt2\n\n");
+	d_print_pmat(nu2+nx_v[0]+1, nx_v[N], bs, pBAbt2, cnx_v[N]);
 
 /************************************************
 * free memory
-************************************************/
-
-		free(A);
-		free(B);
-		free(b);
-		free(x0);
-		free(Q);
-		free(S);
-		free(R);
-		free(q);
-		free(r);
-
-		free(pA);
-		free(pAt);
-		free(pBt);
-		free(pBAt);
-		free(pQ);
-		free(dQ);
-		free(pR);
-		free(dR);
-		free(pS);
-		free(pRSQ);
-		free(dRSQ);
-
-		for(ii=0; ii<N; ii++)
-			{
-			free(hpGamma_u[ii]);
-			free(hpGamma_u_Q[ii]);
-			free(hpGamma_u_Q_A[ii]);
-			free(hpGamma_v[ii]);
-			free(hpGamma_v_Q[ii]);
-			free(hpGamma_v_Q_A[ii]);
-			}
-
-		free(pL);
-		free(dL);
-		free(pD);
-		free(pM);
-		free(pQs);
-		free(pLam);
-		free(diag_ric);
-		free(pBAtL);
-
-		for(ii=0; ii<N2; ii++)
-			{
-			free(pH_R[ii]);
-			free(pH_Rx[ii]);
-			}
-		
+************************************************/	
+	
+#if MHE!=1
+	free(pBAbt0);
+	free(b0);
+	free(pA);
+#endif
+	free(pBAbt1);
+	free(pBAbt2);
+	free(work);
+	for(ii=0; ii<N; ii++)
+		{
+		free(hpGamma_x0[ii]);
+		free(hpGamma_u[ii]);
+		free(hpGamma_b[ii]);
 		}
+
+/************************************************
+* return
+************************************************/	
 
 	return 0;
 
 	}
-
