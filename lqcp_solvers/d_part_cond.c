@@ -273,6 +273,10 @@ void d_cond_BAb(int N, int *nx, int *nu, double **hpBAbt, double *work, double *
 void d_cond_RSQrq(int N, int *nx, int *nu, double **hpBAbt, double **hpRSQrq, double **hpGamma, double *work, double *pRSQrq2)
 	{
 
+	// early return
+	if(N<1)
+		return;
+
 	const int bs = D_MR;
 	const int ncl = D_NCL;
 	
@@ -349,6 +353,15 @@ void d_cond_RSQrq(int N, int *nx, int *nu, double **hpBAbt, double **hpRSQrq, do
 
 	double *dLx = work;
 	work += pnzM;
+
+
+
+	// early return
+	if(N==1)
+		{
+		dgecp_lib(nu[N-1]+nx[N-1]+1, nu[N-1]+nx[N-1], 0, hpRSQrq[N-1], cnux[N-1], 0, pRSQrq2, cnux[N-1]);
+		return;
+		}
 
 
 

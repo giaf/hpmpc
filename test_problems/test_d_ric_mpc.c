@@ -283,7 +283,7 @@ int main()
 	int *nx_v, *nu_v, *nb_v, *ng_v;
 
 	int ll;
-#if 1
+#if 0
 	int ll_max = 77;
 #else
 	int ll_max = 1;
@@ -297,7 +297,7 @@ int main()
 			nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 			nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 			N  = NN; // horizon lenght
-			nrep = NREP;
+			nrep = 1;//NREP;
 			//nx = 25;
 			//nu = 1;
 			//N = 11;
@@ -311,18 +311,29 @@ int main()
 //			nrep = nnrep[ll]/4;
 			}
 
+		
+
+		int pnx = (nx+bs-1)/bs*bs;
+		int cnx = (nx+ncl-1)/ncl*ncl;
+
+
+#define MHE 1
 
 
 		// define time-varian problem size
 		int nx_v[N+1];
+#if MHE==1
+		nx_v[0] = nx;
+#else
 		nx_v[0] = 0;
+#endif
 		for(ii=1; ii<N; ii++) nx_v[ii] = nx;
 		nx_v[N] = nx;
 
 		int nu_v[N+1];
 		nu_v[0] = nu;
 		for(ii=1; ii<N; ii++) nu_v[ii] = nu;
-		nu_v[N] = 0;
+		nu_v[N] = 0; // XXX
 
 		int nb_v[N+1];
 		for(ii=0; ii<=N; ii++) nb_v[ii] = 0;
@@ -346,33 +357,43 @@ int main()
 
 		double *B; d_zeros(&B, nx, nu); // inputs matrix
 
-		double *b; d_zeros_align(&b, pnx_v[2], 1); // states offset
+		double *b; d_zeros_align(&b, nx, 1); // states offset
 		double *x0; d_zeros(&x0, nx, 1); // initial state
 
 		double Ts = 0.5; // sampling time
 		mass_spring_system(Ts, nx, nu, N, A, B, b, x0);
 	
 		for(jj=0; jj<nx; jj++)
-			b[jj] = 0.0;
+			b[jj] = 0.1;
 	
 		for(jj=0; jj<nx; jj++)
 			x0[jj] = 0;
-		x0[0] = 3.5;
-		x0[1] = 3.5;
+		x0[0] = 2.5;
+		x0[1] = 2.5;
 	
-		double *pA; d_zeros_align(&pA, pnx_v[1], cnx_v[1]); // XXX pnx_v[1] !!!!! (pnx_v[0]=0)
-		d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx_v[1]);
-		double *b0; d_zeros_align(&b0, pnx_v[1], 1);
-		dgemv_n_lib(nx_v[0], nx_v[1], pA, cnx_v[1], x0, 1, b, b0);
+#if MHE!=1
+		double *pA; d_zeros_align(&pA, pnx, cnx); // XXX pnx_v[1] !!!!! (pnx_v[0]=0)
+		d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
+		double *b0; d_zeros_align(&b0, pnx, 1);
+		dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
+		d_print_pmat(nx, nx, bs, pA, pnx);
+		d_print_mat(1, nx, x0, 1);
+		d_print_mat(1, nx, b, 1);
+		d_print_mat(1, nx, b0, 1);
 
 		double *pBAbt0; d_zeros_align(&pBAbt0, pnz_v[0], cnx_v[1]);
 		d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt0, cnx_v[1]);
 		d_cvt_tran_mat2pmat(nx, 1, b0, nx, nu_v[0], pBAbt0+nu_v[0]/bs*bs*cnx_v[1]+nu_v[0]%bs, cnx_v[1]);
+#endif
 
-		double *pBAbt1; d_zeros_align(&pBAbt1, pnz_v[1], cnx_v[2]);
-		d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt1, cnx_v[2]);
-		d_cvt_tran_mat2pmat(nx, nx, A, nx, nu_v[1], pBAbt1+nu_v[1]/bs*bs*cnx_v[2]+nu_v[1]%bs, cnx_v[2]);
-		d_cvt_tran_mat2pmat(nx, 1, b, nx, nu_v[1]+nx_v[1], pBAbt1+(nu_v[1]+nx_v[1])/bs*bs*cnx_v[2]+(nu_v[1]+nx_v[1])%bs, cnx_v[2]);
+		double *pBAbt1; 
+		if(N>1)
+			{
+			d_zeros_align(&pBAbt1, pnz_v[1], cnx_v[2]);
+			d_cvt_tran_mat2pmat(nx, nu, B, nx, 0, pBAbt1, cnx_v[2]);
+			d_cvt_tran_mat2pmat(nx, nx, A, nx, nu_v[1], pBAbt1+nu_v[1]/bs*bs*cnx_v[2]+nu_v[1]%bs, cnx_v[2]);
+			d_cvt_tran_mat2pmat(nx, 1, b, nx, nu_v[1]+nx_v[1], pBAbt1+(nu_v[1]+nx_v[1])/bs*bs*cnx_v[2]+(nu_v[1]+nx_v[1])%bs, cnx_v[2]);
+			}
 
 /************************************************
 * cost function
@@ -392,23 +413,35 @@ int main()
 		double *r; d_zeros(&r, nu, 1);
 		for(ii=0; ii<nu; ii++) r[ii] = 0.2;
 
-		double  *pQ0; d_zeros_align(&pQ0, pnz_v[0], cnux_v[0]);
+#if MHE!=1
+		double *pS; d_zeros_align(&pS, pnu, cnx);
+		d_cvt_mat2pmat(nu, nx, S, nu, 0, pS, cnx);
+		double *r0; d_zeros_align(&r0, pnu, 1);
+		dgemv_n_lib(nu, nx, pS, cnx, x0, 1, r, r0);
+
+		double *pQ0; d_zeros_align(&pQ0, pnz_v[0], cnux_v[0]);
 		d_cvt_mat2pmat(nu, nu, R, nu, 0, pQ0, cnux_v[0]);
-		d_cvt_tran_mat2pmat(nu, 1, r, nu, nu_v[0], pQ0+nu_v[0]/bs*bs*cnux_v[0]+nu_v[0]%bs, cnux_v[0]);
+		d_cvt_tran_mat2pmat(nu, 1, r0, nu, nu_v[0], pQ0+nu_v[0]/bs*bs*cnux_v[0]+nu_v[0]%bs, cnux_v[0]);
 		double *q0; d_zeros_align(&q0, pnux_v[0], 1);
-		d_copy_mat(nu, 1, r, nu, q0, pnux_v[0]);
+		d_copy_mat(nu, 1, r0, nu, q0, pnux_v[0]);
+#endif
 
-		double  *pQ1; d_zeros_align(&pQ1, pnz_v[1], cnux_v[1]);
-		d_cvt_mat2pmat(nu, nu, R, nu, 0, pQ1, cnux_v[1]);
-		d_cvt_tran_mat2pmat(nu, nx, S, nu, nu_v[1], pQ1+nu_v[1]/bs*bs*cnux_v[1]+nu_v[1]%bs, cnux_v[1]);
-		d_cvt_tran_mat2pmat(nu, 1, r, nu, nu_v[1]+nx_v[1], pQ1+(nu_v[1]+nx_v[1])/bs*bs*cnux_v[1]+(nu_v[1]+nx_v[1])%bs, cnux_v[1]);
-		d_cvt_mat2pmat(nx, nx, Q, nx, nu_v[1], pQ1+nu_v[1]/bs*bs*cnux_v[1]+nu_v[1]%bs+nu*bs, cnux_v[1]);
-		d_cvt_tran_mat2pmat(nx, 1, q, nx, nu_v[1]+nx_v[1], pQ1+(nu_v[1]+nx_v[1])/bs*bs*cnux_v[1]+(nu_v[1]+nx_v[1])%bs+nu_v[1]*bs, cnux_v[1]);
-		double *q1; d_zeros_align(&q1, pnux_v[1], 1);
-		d_copy_mat(nu, 1, r, nu, q1, pnux_v[1]);
-		d_copy_mat(nx, 1, q, nx, q1+nu_v[1], pnux_v[1]);
+		double *pQ1; 
+		double *q1; 
+		if(N>1)
+			{
+			d_zeros_align(&pQ1, pnz_v[1], cnux_v[1]);
+			d_cvt_mat2pmat(nu, nu, R, nu, 0, pQ1, cnux_v[1]);
+			d_cvt_tran_mat2pmat(nu, nx, S, nu, nu_v[1], pQ1+nu_v[1]/bs*bs*cnux_v[1]+nu_v[1]%bs, cnux_v[1]);
+			d_cvt_tran_mat2pmat(nu, 1, r, nu, nu_v[1]+nx_v[1], pQ1+(nu_v[1]+nx_v[1])/bs*bs*cnux_v[1]+(nu_v[1]+nx_v[1])%bs, cnux_v[1]);
+			d_cvt_mat2pmat(nx, nx, Q, nx, nu_v[1], pQ1+nu_v[1]/bs*bs*cnux_v[1]+nu_v[1]%bs+nu*bs, cnux_v[1]);
+			d_cvt_tran_mat2pmat(nx, 1, q, nx, nu_v[1]+nx_v[1], pQ1+(nu_v[1]+nx_v[1])/bs*bs*cnux_v[1]+(nu_v[1]+nx_v[1])%bs+nu_v[1]*bs, cnux_v[1]);
+			d_zeros_align(&q1, pnux_v[1], 1);
+			d_copy_mat(nu, 1, r, nu, q1, pnux_v[1]);
+			d_copy_mat(nx, 1, q, nx, q1+nu_v[1], pnux_v[1]);
+			}
 
-		double  *pQN; d_zeros_align(&pQN, pnz_v[N], cnux_v[N]);
+		double *pQN; d_zeros_align(&pQN, pnz_v[N], cnux_v[N]);
 		d_cvt_mat2pmat(nx, nx, Q, nx, 0, pQN, cnux_v[N]);
 		d_cvt_tran_mat2pmat(nx, 1, q, nx, nx_v[N], pQN+(nx_v[N])/bs*bs*cnux_v[N]+(nx_v[N])%bs, cnux_v[N]);
 		double *qN; d_zeros_align(&qN, pnx_v[N], 1);
@@ -428,10 +461,17 @@ int main()
 		double *hPb[N];
 		double *hrb[N];
 		double *hrq[N+1];
+#if MHE!=1
 		hpBAbt[0] = pBAbt0;
 		hb[0] = b0;
 		hpQ[0] = pQ0;
 		hq[0] = q0;
+#else
+		hpBAbt[0] = pBAbt1;
+		hb[0] = b;
+		hpQ[0] = pQ1;
+		hq[0] = q1;
+#endif
 		d_zeros_align(&hux[0], pnux_v[0], 1);
 		d_zeros_align(&hpi[0], pnx_v[0], 1);
 		d_zeros_align(&hPb[0], pnx_v[1], 1);
@@ -535,7 +575,7 @@ int main()
 		printf("%d\t%d\t%d\t%e\t%f\t%f\t%e\t%f\t%f\t%e\t%f\t%f\n", nx, nu, N, time_sv, Gflops_sv, 100.0*Gflops_sv/Gflops_max, time_trf, Gflops_trf, 100.0*Gflops_trf/Gflops_max, time_trs, Gflops_trs, 100.0*Gflops_trs/Gflops_max);
 
 /************************************************
-* return
+* free memory TODO
 ************************************************/
 
 		} // increase size
