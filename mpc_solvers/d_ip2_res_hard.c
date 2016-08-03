@@ -100,6 +100,7 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 	size *= sizeof(double);
 
 	size += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng);
+	size += d_back_ric_rec_sv_tv_memory_space_size_bytes(N, nx, nu, nb, ng);
 
 	return size;
 	}
@@ -168,10 +169,8 @@ exit(2);
 	double *ptr;
 	ptr = double_work_memory; // supposed to be aligned to cache line boundaries
 
-	double *pL[N+1];
-	double *dL[N+1];
-	double *l[N+1];
 	double *work;
+	double *memory;
 	double *b[N];
 	double *q[N+1];
 	double *dux[N+1];
@@ -213,27 +212,12 @@ exit(2);
 #endif
 
 	// work space
-	for(jj=0; jj<=N; jj++)
-		{
-		pL[jj] = ptr;
-		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] );
-		}
-
-	// work space
 	work = ptr;
 	ptr += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
 
-	for(jj=0; jj<=N; jj++)
-		{
-		dL[jj] = ptr;
-		ptr += pnz[jj];
-		}
-
-	for(jj=0; jj<=N; jj++)
-		{
-		l[jj] = ptr;
-		ptr += pnz[jj];
-		}
+	// memory space
+	memory = ptr;
+	ptr += d_back_ric_rec_sv_tv_memory_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
 
 	// b as vector
 	for(jj=0; jj<N; jj++)
@@ -443,7 +427,7 @@ exit(2);
 	else // call the riccati solver and return
 		{
 		double **dummy;
-		d_back_ric_rec_sv_tv_res(N, nx, nu, 0, pBAbt, b, 0, pQ, q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, dummy, ng, dummy, dummy, dummy);
+		d_back_ric_rec_sv_tv_res(N, nx, nu, nb, idxb, ng, 0, pBAbt, b, 0, pQ, q, dummy, dummy, dummy, dummy, dux, compute_mult, dpi, 1, Pb, memory, work);
 		// backup solution
 		for(ii=0; ii<=N; ii++)
 			for(jj=0; jj<nu[ii]+nx[ii]; jj++)
@@ -532,7 +516,7 @@ exit(1);
 		// compute the search direction: factorize and solve the KKT system
 //		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
 #if 1
-		d_back_ric_rec_sv_tv_res(N, nx, nu, 0, pBAbt, b, 1, pQ, q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
+		d_back_ric_rec_sv_tv_res(N, nx, nu, nb, idxb, ng, 0, pBAbt, b, 1, pQ, q, bd, pDCt, Qx, qx, dux, compute_mult, dpi, 1, Pb, memory, work);
 #else
 		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
 		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
@@ -635,7 +619,7 @@ exit(1);
 
 		// solve the system
 //		d_back_ric_rec_trs_tv(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
-		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
+		d_back_ric_rec_trs_tv_res(N, nx, nu, nb, idxb, ng, pBAbt, b, q, pDCt, qx, dux, compute_mult, dpi, 0, Pb, memory, work);
 
 #if 0
 printf("\ndux\n");
@@ -865,7 +849,7 @@ for(ii=0; ii<=N; ii++)
 //		exit(2);
 
 		// factorize & solve KKT system
-		d_back_ric_rec_sv_tv_res(N, nx, nu, 1, pBAbt, res_b, 0, pQ2, res_q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb2, idxb, ppdummy, ng2, ppdummy, ppdummy, ppdummy);
+		d_back_ric_rec_sv_tv_res(N, nx, nu, nb2, idxb, ng2, 1, pBAbt, res_b, 0, pQ2, res_q, ppdummy, ppdummy, ppdummy, ppdummy, dux, compute_mult, dpi, 1, Pb, memory, work);
 
 #if CORRECTOR_HIGH==1
 		if(0)
@@ -893,7 +877,7 @@ for(ii=0; ii<=N; ii++)
 #endif
 
 			// solve for residuals
-			d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b2, pL, dL, res_q2, l, dux2, work, 1, Pb2, compute_mult, dpi2, nb2, idxb, ng2, ppdummy, ppdummy);
+			d_back_ric_rec_trs_tv_res(N, nx, nu, nb2, idxb, ng2, pBAbt, res_b2, res_q2, ppdummy, ppdummy, dux2, compute_mult, dpi2, 1, Pb2, memory, work);
 
 	//		printf("\nux2\n");
 	//		for(ii=0; ii<=N; ii++)
@@ -1074,7 +1058,7 @@ exit(1);
 			}
 
 		// solve the KKT system
-		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, q2, l, dux, work, 0, Pb, compute_mult, dpi, nb2, idxb, ng2, ppdummy, ppdummy);
+		d_back_ric_rec_trs_tv_res(N, nx, nu, nb2, idxb, ng2, pBAbt, res_b, q2, ppdummy, ppdummy, dux, compute_mult, dpi, 0, Pb, memory, work);
 
 #if 0
 printf("\ndux\n");
@@ -1112,7 +1096,7 @@ exit(1);
 #endif
 
 			// solve for residuals
-			d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b2, pL, dL, res_q2, l, dux2, work, 1, Pb2, compute_mult, dpi2, nb2, idxb, ng2, ppdummy, ppdummy);
+			d_back_ric_rec_trs_tv_res(N, nx, nu, nb2, idxb, ng2, pBAbt, res_b2, res_q2, ppdummy, ppdummy, dux2, compute_mult, dpi2, 1, Pb2, memory, work);
 
 	//		printf("\nux2\n");
 	//		for(ii=0; ii<=N; ii++)
@@ -1379,10 +1363,8 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu_N, int *nb, int
 	double *ptr;
 	ptr = double_work_memory; // supposed to be aligned to cache line boundaries
 
-	double *pL[N+1];
-	double *dL[N+1];
-	double *l[N+1];
 	double *work;
+	double *memory;
 	double *b_old[N];
 	double *q_old[N+1];
 	double *dux[N+1];
@@ -1407,27 +1389,12 @@ void d_kkt_solve_new_rhs_res_mpc_hard_tv(int N, int *nx, int *nu_N, int *nb, int
 	double *lam_bkp[N+1];
 
 	// work space
-	for(jj=0; jj<=N; jj++)
-		{
-		pL[jj] = ptr;
-		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] );
-		}
-
-	// work space
 	work = ptr;
 	ptr += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
 
-	for(jj=0; jj<=N; jj++)
-		{
-		dL[jj] = ptr;
-		ptr += pnz[jj];
-		}
-
-	for(jj=0; jj<=N; jj++)
-		{
-		l[jj] = ptr;
-		ptr += pnz[jj];
-		}
+	// work space
+	memory = ptr;
+	ptr += d_back_ric_rec_sv_tv_memory_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
 
 	// b as vector
 	for(jj=0; jj<N; jj++)
@@ -1648,7 +1615,7 @@ exit(2);
 #endif
 
 	// solve the system
-	d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
+	d_back_ric_rec_trs_tv_res(N, nx, nu, nb, idxb, ng, pBAbt, res_b, res_q, pDCt, qx, dux, compute_mult, dpi, 1, Pb, memory, work);
 
 #if 0
 printf("\nNEW dux\n");

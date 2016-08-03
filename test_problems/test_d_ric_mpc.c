@@ -425,9 +425,6 @@ int main()
 		double *hq[N+1];
 		double *hux[N+1];
 		double *hpi[N+1];
-		double *hpL[N+1];
-		double *hdL[N+1];
-		double *hl[N+1];
 		double *hPb[N];
 		double *hrb[N];
 		double *hrq[N+1];
@@ -437,9 +434,6 @@ int main()
 		hq[0] = q0;
 		d_zeros_align(&hux[0], pnux_v[0], 1);
 		d_zeros_align(&hpi[0], pnx_v[0], 1);
-		d_zeros_align(&hpL[0], pnz_v[0] * ( cnx_v[0]+ncl>cnux_v[0] ? cnx_v[0]+ncl : cnux_v[0]), 1);
-		d_zeros_align(&hdL[0], pnux_v[0], 1);
-		d_zeros_align(&hl[0], pnux_v[0], 1);
 		d_zeros_align(&hPb[0], pnx_v[1], 1);
 		d_zeros_align(&hrb[0], pnx_v[1], 1);
 		d_zeros_align(&hrq[0], pnz_v[0], 1);
@@ -451,9 +445,6 @@ int main()
 			hq[ii] = q1;
 			d_zeros_align(&hux[ii], pnux_v[ii], 1);
 			d_zeros_align(&hpi[ii], pnx_v[ii], 1);
-			d_zeros_align(&hpL[ii], pnz_v[ii] * ( cnx_v[ii]+ncl>cnux_v[ii] ? cnx_v[ii]+ncl : cnux_v[ii]), 1);
-			d_zeros_align(&hdL[ii], pnux_v[ii], 1);
-			d_zeros_align(&hl[ii], pnux_v[ii], 1);
 			d_zeros_align(&hrb[ii], pnx_v[ii+1], 1);
 			d_zeros_align(&hPb[ii], pnx_v[ii+1], 1);
 			d_zeros_align(&hrq[ii], pnz_v[ii], 1);
@@ -462,12 +453,10 @@ int main()
 		hq[N] = qN;
 		d_zeros_align(&hux[N], pnx_v[N], 1);
 		d_zeros_align(&hpi[N], pnx_v[N], 1);
-		d_zeros_align(&hpL[N], pnz_v[N] * ( cnx_v[N]+ncl>cnux_v[N] ? cnx_v[N]+ncl : cnux_v[N]), 1);
-		d_zeros_align(&hdL[N], pnux_v[N], 1);
-		d_zeros_align(&hl[N], pnux_v[N], 1);
 		d_zeros_align(&hrq[N], pnz_v[N], 1);
 
-		double *work; d_zeros_align(&work, d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx_v, nu_v, nb_v, ng_v)/sizeof(double), 1); // TODO
+		double *work; d_zeros_align(&work, d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx_v, nu_v, nb_v, ng_v)/sizeof(double), 1);
+		double *memory; d_zeros_align(&memory, d_back_ric_rec_sv_tv_memory_space_size_bytes(N, nx_v, nu_v, nb_v, ng_v)/sizeof(double), 1);
 
 
 /************************************************
@@ -482,21 +471,21 @@ int main()
 
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_back_ric_rec_sv_tv(N, nx_v, nu_v, hpBAbt, hpQ, hux, hpL, hdL, work, 0, dummy, COMPUTE_MULT, hpi, nb_v, 0, dummy, dummy, ng_v, dummy, dummy, dummy);
+			d_back_ric_rec_sv_tv_res(N, nx_v, nu_v, nb_v, 0, ng_v, 0, hpBAbt, dummy, 0, hpQ, dummy, dummy, dummy, dummy, dummy, hux, COMPUTE_MULT, hpi, 0, dummy, memory, work);
 			}
 
 		gettimeofday(&tv1, NULL); // start
 
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_back_ric_rec_trf_tv(N, nx_v, nu_v, hpBAbt, hpQ, hpL, hdL, work, nb_v, 0, dummy, ng_v, dummy, dummy);
+			d_back_ric_rec_trf_tv_res(N, nx_v, nu_v, nb_v, 0, ng_v, hpBAbt, hpQ, dummy, dummy, dummy, memory, work);
 			}
 
 		gettimeofday(&tv2, NULL); // start
 
 		for(rep=0; rep<nrep; rep++)
 			{
-			d_back_ric_rec_trs_tv(N, nx_v, nu_v, hpBAbt, hb, hpL, hdL, hq, hl, hux, work, 1, hPb, 1, hpi, nb_v, 0, dummy, ng_v, dummy, dummy);
+			d_back_ric_rec_trs_tv_res(N, nx_v, nu_v, nb_v, 0, ng_v, hpBAbt, hb, hq, dummy, dummy, hux, 1, hpi, 1, hPb, memory, work);
 			}
 
 		gettimeofday(&tv3, NULL); // start

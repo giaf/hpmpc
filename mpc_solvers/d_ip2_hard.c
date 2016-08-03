@@ -57,7 +57,7 @@ int d_ip2_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, in
 		cnux = (nu[ii]+nx[ii]+ncl-1)/ncl*ncl;
 		pnx = (nx[ii]+bs-1)/bs*bs;
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
-		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 3*pnx + 4*pnz + 11*pnb + 10*png;
+		size += 3*pnx + 3*pnz + 11*pnb + 10*png;
 		}
 	ii = N;
 	pnz = (nx[ii]+1+bs-1)/bs*bs;
@@ -68,17 +68,12 @@ int d_ip2_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, in
 	cnux = (nx[ii]+ncl-1)/ncl*ncl;
 	pnx = (nx[ii]+bs-1)/bs*bs;
 	pnz = (nx[ii]+1+bs-1)/bs*bs;
-	size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 3*pnx + 4*pnz + 11*pnb + 10*png;
-
-	int nxgM = ng[N];
-	for(ii=0; ii<N; ii++)
-		{
-		if(nx[ii+1]+ng[ii]>nxgM) nxgM = nx[ii+1]+ng[ii];
-		}
-
-	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
+	size += 3*pnx + 3*pnz + 11*pnb + 10*png;
 
 	size *= sizeof(double);
+
+	size += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng);
+	size += d_back_ric_rec_sv_tv_memory_space_size_bytes(N, nx, nu, nb, ng);
 
 	return size;
 	}
@@ -127,11 +122,6 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		if(nu[jj]+nx[jj]+1>nzM) nzM = nu[jj]+nx[jj]+1;
 		}
 
-	int nxgM = ng[N];
-	for(jj=0; jj<N; jj++)
-		{
-		if(nx[jj+1]+ng[jj]>nxgM) nxgM = nx[jj+1]+ng[jj];
-		}
 
 
 	// initialize work space
@@ -140,10 +130,8 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	double *ptr;
 	ptr = double_work_memory; // supposed to be aligned to cache line boundaries
 
-	double *pL[N+1];
-	double *dL[N+1];
-	double *l[N+1];
 	double *work;
+	double *memory;
 	double *b[N];
 	double *q[N+1];
 	double *dux[N+1];
@@ -165,26 +153,11 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 	// work space
 	work = ptr;
-	ptr += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl) + (nzM+bs-1)/bs*bs;
+	ptr += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
 
-	// work space
-	for(jj=0; jj<=N; jj++)
-		{
-		pL[jj] = ptr;
-		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] );
-		}
-
-	for(jj=0; jj<=N; jj++)
-		{
-		dL[jj] = ptr;
-		ptr += pnz[jj];
-		}
-
-	for(jj=0; jj<=N; jj++)
-		{
-		l[jj] = ptr;
-		ptr += pnz[jj];
-		}
+	// memory space
+	memory = ptr;
+	ptr += d_back_ric_rec_sv_tv_memory_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
 
 	// b as vector
 	for(jj=0; jj<N; jj++)
@@ -308,7 +281,7 @@ int d_ip2_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	else // call the riccati solver and return
 		{
 		double **dummy;
-		d_back_ric_rec_sv_tv_res(N, nx, nu, 0, pBAbt, b, 0, pQ, q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, dummy, ng, dummy, dummy, dummy);
+		d_back_ric_rec_sv_tv_res(N, nx, nu, nb, idxb, ng, 0, pBAbt, b, 0, pQ, q, dummy, dummy, dummy, dummy, dux, compute_mult, dpi, 1, Pb, memory, work);
 //		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, ux, pL, dL, work, 1, Pb, compute_mult, pi, nb, idxb, dummy, dummy, ng, dummy, dummy, dummy);
 		*kk = 0;
 		return 0;
@@ -386,11 +359,28 @@ for(ii=0; ii<=N; ii++)
 exit(1);
 #endif
 
+#if 0
+int cnl[N+1];
+for(ii=0; ii<N; ii++)
+	{
+	cnl[ii] = cnux[ii]<cnx[ii]+ncl ? cnx[ii]+ncl : cnux[ii];
+	}
+double *ptr = memory;
+double *hpL[N+1];
+for(ii=0; ii<=N; ii++)
+	{
+	hpL[ii] = ptr;
+	ptr += pnz[ii]*cnl[ii];
+	}
+for(ii=0; ii<=N; ii++)
+	d_print_pmat(pnz[ii], cnl[ii], bs, hpL[ii], cnl[ii]);
+exit(1);
+#endif
 
 		// compute the search direction: factorize and solve the KKT system
 //		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
 #if 1
-		d_back_ric_rec_sv_tv_res(N, nx, nu, 0, pBAbt, b, 1, pQ, q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
+		d_back_ric_rec_sv_tv_res(N, nx, nu, nb, idxb, ng, 0, pBAbt, b, 1, pQ, q, bd, pDCt, Qx, qx, dux, compute_mult, dpi, 1, Pb, memory, work);
 #else
 		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
 		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
@@ -403,9 +393,21 @@ for(ii=0; ii<=N; ii++)
 exit(1);
 #endif
 #if 0
+int cnl[N+1];
+for(ii=0; ii<N; ii++)
+	{
+	cnl[ii] = cnux[ii]<cnx[ii]+ncl ? cnx[ii]+ncl : cnux[ii];
+	}
+double *ptr = memory;
+double *hpL[N+1];
 for(ii=0; ii<=N; ii++)
-	d_print_pmat(pnz[ii], cnz[ii], bs, pL[ii], cnz[ii]);
-//exit(1);
+	{
+	hpL[ii] = ptr;
+	ptr += pnz[ii]*cnl[ii];
+	}
+for(ii=0; ii<=N; ii++)
+	d_print_pmat(2*pnz[ii], cnl[ii], bs, hpL[ii], cnl[ii]);
+exit(1);
 #endif
 #if 0
 printf("\ndux\n");
@@ -493,7 +495,7 @@ exit(1);
 
 		// solve the system
 //		d_back_ric_rec_trs_tv(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, pl, ng, pDCt, qx);
-		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
+		d_back_ric_rec_trs_tv_res(N, nx, nu, nb, idxb, ng, pBAbt, b, q, pDCt, qx, dux, compute_mult, dpi, 0, Pb, memory, work);
 
 #if 0
 printf("\ndux\n");
@@ -666,11 +668,6 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu_N, int *nb, int **i
 //		if(nx[jj]+ng[jj]>nxgM) nxgM = nx[jj]+ng[jj];
 		}
 
-	int nxgM = ng[N];
-	for(jj=0; jj<N; jj++)
-		{
-		if(nx[jj+1]+ng[jj]>nxgM) nxgM = nx[jj+1]+ng[jj];
-		}
 
 
 	// initialize work space
@@ -679,10 +676,8 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu_N, int *nb, int **i
 	double *ptr;
 	ptr = double_work_memory; // supposed to be aligned to cache line boundaries
 
-	double *pL[N+1];
-	double *dL[N+1];
-	double *l[N+1];
 	double *work;
+	double *memory;
 	double *b[N];
 	double *q[N+1];
 	double *dux[N+1];
@@ -705,26 +700,11 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu_N, int *nb, int **i
 
 	// work space
 	work = ptr;
-	ptr += ((nzM+bs-1)/bs*bs) * ((nxgM+ncl-1)/ncl*ncl) + (nzM+bs-1)/bs*bs;
+	ptr += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
 
-	// work space
-	for(jj=0; jj<=N; jj++)
-		{
-		pL[jj] = ptr;
-		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] );
-		}
-
-	for(jj=0; jj<=N; jj++)
-		{
-		dL[jj] = ptr;
-		ptr += pnz[jj];
-		}
-
-	for(jj=0; jj<=N; jj++)
-		{
-		l[jj] = ptr;
-		ptr += pnz[jj];
-		}
+	// memory space
+	memory = ptr;
+	ptr += d_back_ric_rec_sv_tv_memory_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
 
 	// b as vector
 	for(jj=0; jj<N; jj++)
@@ -825,7 +805,7 @@ void d_kkt_solve_new_rhs_mpc_hard_tv(int N, int *nx, int *nu_N, int *nb, int **i
 
 	// solve the system
 //	d_back_ric_rec_trs_tv(N, nx, nu, pBAbt, r_A, pL, dL, r_H, l, ux, work, 1, Pb, compute_mult, pi, nb, idxb, pl, ng, pDCt, qx);
-	d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, r_A, pL, dL, r_H, l, ux, work, 1, Pb, compute_mult, pi, nb, idxb, ng, pDCt, qx);
+	d_back_ric_rec_trs_tv_res(N, nx, nu, nb, idxb, ng, pBAbt, r_A, r_H, pDCt, qx, ux, compute_mult, pi, 1, Pb, memory, work);
 
 
 	// compute t & lam 
