@@ -158,7 +158,7 @@ void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 
 // IPM with no residuals
 
-void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double **db, double sigma_mu, double **t, double **tinv, double **lam, double **lamt, double **dlam, double **Qx, double **qx)
+void d_update_hessian_mpc_hard_tv(int N, int const *nx, int const *nu, int const *nb, int const *ng, double **db, double sigma_mu, double **t, double **tinv, double **lam, double **lamt, double **dlam, double **Qx, double **qx)
 	{
 	
 	// constants

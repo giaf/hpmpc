@@ -1,0 +1,2 @@
+file(GLOB_RECURSE src *.c)
+HPMPC_ADD_SOURCE_FILES(${src})

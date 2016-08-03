@@ -26,7 +26,9 @@
 #include "target.h"
 #include "block_size.h"
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // work space: dynamic definition as function return value
 
@@ -49,9 +51,21 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(int N, int nx, int nu, int nb
 
 
 // new interfaces
-int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng);
+int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int const *nx, int const *nu, int const *nb, int const *ng);
 
-int c_order_d_ip_ocp_hard_tv(int *kk, int k_max, double mu0, double mu_tol,	int N, int *nx, int *nu, int *nb, int *ng, int warm_start, double **A, double **B, double **b, double **Q, double **S, double **R, double **q, double **r, double **lb, double **ub, double **C, double **D, double **lg, double **ug, double **x, double **u, double **pi, double **lam, double **t, double *inf_norm_res, void *work0, double *stat);
+int c_order_d_ip_ocp_hard_tv(
+							int *kk, int k_max, double mu0, double mu_tol,
+							int N, int const *nx, int const *nu, int const *nb, int const *ng,
+							int warm_start,
+							double const * const *A, double const * const *B, double const * const *b,
+							double const * const *Q, double const * const *S, double const * const *R, double const * const *q, double const * const *r,
+							double const * const *lb, double const * const *ub,
+							double const * const *C, double const * const *D, double const * const *lg, double const * const *ug,
+							double * const *x, double * const *u, double * const *pi, double * const *lam, double * const *t,
+							double *inf_norm_res,
+							void *work0,
+							double *stat);
+
 void c_order_d_solve_kkt_new_rhs_ocp_hard_tv(int N, int *nx, int *nu, int *nb, int *ng,	double **A, double **B, double **b, double **Q, double **S, double **R, double **q, double **r, double **lb, double **ub, double **C, double **D, double **lg, double **ug,	double **x, double **u, double **pi, double **lam, double **t, double *inf_norm_res, double *work0);
 
 int fortran_order_d_ip_ocp_hard_tv(int *kk, int k_max, double mu0, double mu_tol, int N, int *nx, int *nu, int *nb, int *ng, int warm_start, double **A, double **B, double **b, double **Q, double **S, double **R, double **q, double **r, double **lb, double **ub, double **C, double **D, double **lg, double **ug, double **x, double **u, double **pi, double **lam, double **t, double *inf_norm_res, void *work0, double *stat);
@@ -59,5 +73,6 @@ void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(int N, int *nx, int *nu, int 
 
 
 
-
-
+#ifdef __cplusplus
+}	// extern "C"
+#endif

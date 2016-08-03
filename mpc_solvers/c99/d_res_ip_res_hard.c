@@ -30,7 +30,7 @@
 
 
 /* supports the problem size to change stage-wise */
-void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **hpBAbt, double **hb, double **hpQ, double **hq, double **hux, double **hpDCt, double **hd, double **hpi, double **hlam, double **ht, double *work, double **hrq, double **hrb, double **hrd, double **hrm, double *mu)
+void d_res_res_mpc_hard_tv(int N, int const * nx, int const * nu, int const * nb, int **idxb, int const * ng, double **hpBAbt, double **hb, double **hpQ, double **hq, double **hux, double **hpDCt, double **hd, double **hpi, double **hlam, double **ht, double *work, double **hrq, double **hrb, double **hrd, double **hrm, double *mu)
 	{
 
 	const int bs = D_MR;
