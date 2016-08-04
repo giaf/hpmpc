@@ -27,8 +27,8 @@ HPMPC -- A library for High-Performance implementation of solvers for MPC.
 HPMPC has been developed with the aim of providing extremely fast building blocks to implement algorithms for Model Predictive Control (MPC). 
 This has been achieved by carefully implementing the linear algebra routines using high-performance computing techniques with a focus on small-medium scale problems, typical of MPC applications.
 
-The current version of the library contains Interior-Point Method (IPM) and Alternating Direction Methods of Multipliers (ADMM) solvers for the linear MPC (LMPC) problem with box constraints, and a Riccati-based solver for the unconstrained MPC problem, that is used as a routine in the IPM.
-A basic API is provided for these solvers, while lower level interfaces provide access to kernels, linear-algebra routines and MPC solvers.
+The current version of the library contains a Mehrotra predictor-corrector Interior-Point Method (IPM) solver for the linear MPC problem with box and general affine constraints, and a Riccati-based solver for the unconstrained MPC problem, that is used as a routine in the IPM.
+A simple API is provided for these solvers, while lower level interfaces provide access to kernels, linear-algebra routines and MPC solvers.
 The library is self-contained, not requiring any other library beside the standard C library.
 
 The code is highly-optimized for a number of common architectures, plus a reference version in plain C code (C99 standard).
@@ -196,17 +196,17 @@ on a terminal.
 
 A number of Octave test problems is vailable in the folder {\tt interfaces/octave}.
 
-A {\tt mex} interface is used as a wrapper around the solvers.
+A {\tt mex} interface is used as a wrapper around the high-level API for the solvers.
 Octave test problems call the {\tt mex} wrappers.
 
 %%%%%%%%
-\subsection{Linear MPC problem example}
+\subsection{Constrained MPC problem example}
 %%%%%%%%
 
-Here the Octave interface of the IPM solver is used to solve a linear MPC problem.
+Here the Octave interface of the IPM solver is used to solve the constrained linear MPC problem.
 The test problem is {\tt interfaces/octave/test\_ip\_hard.m}.
 
-The wrapper to the IPM solver is contained in the file {\tt interfaces/octave/HPMPC\_ip\_hard.c}.
+The mex wrapper to the IPM solver is contained in the file {\tt interfaces/octave/HPMPC\_ip\_hard.c}.
 The interface to solve hard-constrained linear MPC problems looks like
 \begin{verbatim}
 HPMPC_ip_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, 
@@ -433,12 +433,59 @@ on a terminal opened on the main HPMPC folder.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In this chapter the high-level API is presented. 
-It is intended to give accesso to the higher level routines in the library, namely the Riccati solver for the unconstrained problem (\ref{lqcp}), and the IPM solver for the MPC problem (\ref{eq:lmpc}).
+It is intended to give access to the higher level routines in the library, namely the Riccati solver for the unconstrained problem (\ref{lqcp}), and the IPM solver for the MPC problem (\ref{eq:lmpc}).
 
 For performance purposes, internally the library makes use of a packed matrix format, and routines are provided to convert to and from this packed format and standard column- and row-major orders.
 
-In this high-level API, all matrices are passed using standard column- or row-major orders, and wrappers take care of the conversions.
-For the best performance, users may consider to skip the wrappers and directly call the solvers using the packed matrix format (low-level API).
+In this high-level API, all matrices are passed using standard column- or row-major orders, and wrappers take care of the conversions into the panel-major order used internally by all solvers.
+For the best performance, users may consider to skip the wrappers and directly call the underlying solvers (low-level API).
+
+%%%%%%%%
+\subsection{Constrained MPC problem example}
+%%%%%%%%
+
+The wrapper to the IPM solver is contained in the files {\tt interfaces/c/fortran\_oder\_interface.c} (assuming matrices to be passed in column-major order) and {\tt interfaces/c/c\_order\_interface.c} (assuming matrices to be passed in row-major order).
+In the file {\tt interfaces/c/c\_interface\_work\_space.c} there are functions returing the amount of memory to be allocated (either dynamically or statically) and passes to the solvers.
+No memory allocation takes place in the solvers.
+
+The interface assuming the matrices to be passed in column-major order (the one assuming the matrices to be passed in row-major order) is
+\begin{verbatim}
+int fortran_order_d_ip_ocp_hard_tv( 
+    int *kk, int k_max, double mu0, double mu_tol,
+    int N, int *nx, int *nu, int *nb, int *ng,
+    int warm_start,
+    double **A, double **B, double **b, 
+    double **Q, double **S, double **R, double **q, double **r, 
+    double **lb, double **ub,
+    double **C, double **D, double **lg, double **ug,
+    double **x, double **u, double **pi, double **lam, double **t,
+    double *inf_norm_res,
+    void *work0, 
+    double *stat)
+\end{verbatim}
+where
+\begin{description}
+
+\item[\tt int *kk] Output: point to int, returing the number of performed IPM iterations.
+
+\item[\tt int k\_max] Input: int fixing the maximum number of IPM iterations.
+
+\item[\tt double mu0] Input: initial value of the duality measure, used in the initialization of the slack variables and of the Lagrangian multipliers of the inequality constraints.
+
+\item[\tt double mu\_tol] Input: minimum value of the duality measure to return from the IPM before the maximum number of iterations is reached.
+
+\item[\tt int N] Input: control horizon length in the MPC problem.
+
+\item[\tt int *nx] Input: array of length $N+1$, where {\tt nx[i]} is the number of states at stage $i$.
+
+\item[\tt int *nu] Input: array of length $N$, where {\tt nu[i]} is the number of controls at stage $i$.
+
+\item[\tt int *nb] Input: array of length $N+1$, where {\tt nb[i]} is the number of two-sided box constraints at stage $i$.
+
+\item[\tt int *ng] Input: array of length $N+1$, where {\tt ng[i]} is the number of two-sided general affine constraints at stage $i$.
+
+\end{description}
+
 
 
 
