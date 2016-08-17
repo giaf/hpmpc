@@ -313,11 +313,12 @@ int main()
 
 		
 
+		int pnu = (nu+bs-1)/bs*bs;
 		int pnx = (nx+bs-1)/bs*bs;
 		int cnx = (nx+ncl-1)/ncl*ncl;
 
 
-#define MHE 1
+#define MHE 0
 
 
 		// define time-varian problem size

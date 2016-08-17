@@ -154,7 +154,10 @@ int d_ip2_res_mpc_hard_tv(int *kk, int k_max, double mu0, double mu_tol, double 
 
 
 #if 0
-printf("\nQ\n");
+printf("\nBAbt\n");
+for(ii=0; ii<N; ii++)
+	d_print_pmat(nu[ii]+nx[ii]+1, nx[ii+1], bs, pBAbt[ii], cnux[ii+1]);
+printf("\nRSQrq\n");
 for(ii=0; ii<=N; ii++)
 	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], bs, pQ[ii], cnux[ii]);
 printf("\nd\n");
@@ -427,7 +430,7 @@ exit(2);
 	else // call the riccati solver and return
 		{
 		double **dummy;
-		d_back_ric_rec_sv_tv_res(N, nx, nu, nb, idxb, ng, 0, pBAbt, b, 0, pQ, q, dummy, dummy, dummy, dummy, dux, compute_mult, dpi, 1, Pb, memory, work);
+		d_back_ric_rec_sv_tv_res(N, nx, nu, nb, idxb, ng, 0, pBAbt, b, 0, pQ, q, dummy, dummy, dummy, dummy, ux, compute_mult, pi, 1, Pb, memory, work);
 		// backup solution
 		for(ii=0; ii<=N; ii++)
 			for(jj=0; jj<nu[ii]+nx[ii]; jj++)

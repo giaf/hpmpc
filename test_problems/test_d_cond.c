@@ -45,7 +45,7 @@
 
 
 // XXX
-#include "../lqcp_solvers/d_part_cond.c"
+//#include "../lqcp_solvers/d_part_cond.c"
 
 
 
@@ -170,7 +170,7 @@ int main()
 //	int ngN = nx; // number of general constraints at the last stage
 	printf("\nN = %d, nx = %d, nu = %d\n\n", N, nx, nu);
 
-#define MHE 1
+#define MHE 0
 
 
 //	int nbu = nu<nb ? nu : nb ;
@@ -192,11 +192,11 @@ int main()
 		nu_v[ii] = nu;
 	nu_v[N] = 0; // XXX
 
-//	int nb_v[N+1];
-//	nb_v[0] = nbu;
-//	for(ii=1; ii<N; ii++)
-//		nb_v[ii] = nb;
-//	nb_v[N] = nbx;
+	int nb_v[N+1];
+	nb_v[0] = nu_v[0] + nx_v[0]/2;
+	for(ii=1; ii<N; ii++)
+		nb_v[ii] = nu_v[1] + nx_v[ii]/2;
+	nb_v[N] = nu_v[N] + nx_v[N]/2;
 
 //	int ng_v[N+1];
 //	for(ii=0; ii<N; ii++)
@@ -221,11 +221,11 @@ int main()
 	int cnu = (nu+ncl-1)/ncl*ncl;
 	int cnux = (nu+nx+ncl-1)/ncl*ncl;
 
-//	int pnb_v[N+1]; 
 //	int png_v[N+1]; 
 	int pnx_v[N+1]; 
 	int pnz_v[N+1]; 
 	int pnux_v[N+1]; 
+	int pnb_v[N+1]; 
 	int cnx_v[N+1]; 
 	int cnux_v[N+1]; 
 //	int cng_v[N+1]; 
@@ -236,11 +236,11 @@ int main()
 
 	for(ii=0; ii<N; ii++) 
 		{
-//		pnb_v[ii] = (nb_v[ii]+bs-1)/bs*bs;
 //		png_v[ii] = (ng_v[ii]+bs-1)/bs*bs;
 		pnx_v[ii] = (nx_v[ii]+bs-1)/bs*bs;
 		pnz_v[ii] = (nu_v[ii]+nx_v[ii]+1+bs-1)/bs*bs;
 		pnux_v[ii] = (nu_v[ii]+nx_v[ii]+bs-1)/bs*bs;
+		pnb_v[ii] = (nb_v[ii]+bs-1)/bs*bs;
 		cnx_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
 		cnux_v[ii] = (nu_v[ii]+nx_v[ii]+ncl-1)/ncl*ncl;
 //		cng_v[ii] = (ng_v[ii]+ncl-1)/ncl*ncl;
@@ -250,11 +250,11 @@ int main()
 		nu2 += nu_v[ii];
 		}
 	ii = N;
-//	pnb_v[ii] = (nb_v[ii]+bs-1)/bs*bs;
 //	png_v[ii] = (ng_v[ii]+bs-1)/bs*bs;
 	pnx_v[ii] = (nx_v[ii]+bs-1)/bs*bs;
 	pnz_v[ii] = (nx_v[ii]+1+bs-1)/bs*bs;
 	pnux_v[ii] = (nx_v[ii]+bs-1)/bs*bs;
+	pnb_v[ii] = (nb_v[ii]+bs-1)/bs*bs;
 	cnx_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
 	cnux_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
 //	cng_v[ii] = (ng_v[ii]+ncl-1)/ncl*ncl;
@@ -372,17 +372,79 @@ int main()
 	d_print_pmat(nx_v[N]+1, nx_v[N], bs, pRSQrqN, cnux_v[N]);
 
 /************************************************
+* constraints
+************************************************/	
+
+#if MHE!=1
+	double *d0; d_zeros_align(&d0, 2*pnb_v[0], 1);
+	int *idxb0; i_zeros(&idxb0, nb_v[0], 1);
+	// inputs
+	for(ii=0; ii<nu_v[0]; ii++)
+		{
+		d0[0*pnb_v[0]+ii] = - 0.5; // u_min
+		d0[1*pnb_v[0]+ii] = + 0.5; // u_max
+		idxb0[ii] = ii;
+		}
+	// states
+	for( ; ii<nb_v[0]; ii++)
+		{
+		d0[0*pnb_v[0]+ii] = - 4.0; // x_min
+		d0[1*pnb_v[0]+ii] = + 4.0; // x_max
+		idxb0[ii] = ii;
+		}
+#endif
+
+	double *d1; 
+	int *idxb1; 
+	if(N>1)
+		{
+		d_zeros_align(&d1, 2*pnb_v[1], 1);
+		i_zeros(&idxb1, nb_v[1], 1);
+		// inputs
+		for(ii=0; ii<nu_v[1]; ii++)
+			{
+			d1[0*pnb_v[1]+ii] = - 0.5; // u_min
+			d1[1*pnb_v[1]+ii] = + 0.5; // u_max
+			idxb1[ii] = ii;
+			}
+		// states
+		for( ; ii<nb_v[1]; ii++)
+			{
+			d1[0*pnb_v[1]+ii] = - 4.0; // x_min
+			d1[1*pnb_v[1]+ii] = + 4.0; // x_max
+			idxb1[ii] = ii;
+			}
+		}
+
+	double *dN; d_zeros_align(&dN, 2*pnb_v[N], 1);
+	int *idxbN; i_zeros(&idxbN, nb_v[N], 1);
+	// no inputs
+	// states
+	for(ii=0 ; ii<nb_v[N]; ii++)
+		{
+		dN[0*pnb_v[N]+ii] = - 4.0; // x_min
+		dN[1*pnb_v[N]+ii] = + 4.0; // x_max
+		idxbN[ii] = ii;
+		}
+
+/************************************************
 * array of matrices & work space
 ************************************************/	
 
 	double *hpBAbt[N];
 	double *hpRSQrq[N+1];
+	double *hpDCt[N+1];
+	double *hd[N+1];
+	int *hidxb[N+1];
 //	double *hpGamma_x0[N];
 //	double *hpGamma_u[N];
 //	double *hpGamma_b[N];
 	double *hpGamma[N];
 	double *pBAbt2;
 	double *pRSQrq2;
+	double *pDCt2;
+	double *d2;
+	int *idxb2;
 	double *work0;
 	double *work1;
 
@@ -392,9 +454,13 @@ int main()
 #if MHE!=1
 	hpBAbt[0] = pBAbt0;
 	hpRSQrq[0] = pRSQrq0;
+	hd[0] = d0;
+	hidxb[0] = idxb0;
 #else
 	hpBAbt[0] = pBAbt1;
 	hpRSQrq[0] = pRSQrq1;
+	hd[0] = d1;
+	hidxb[0] = idxb1;
 #endif
 //	d_zeros_align(&hpGamma_x0[0], pnx_v[0], cnx_v[1]);
 //	d_zeros_align(&hpGamma_u[0], (nu_tmp+bs-1)/bs*bs, cnx_v[1]);
@@ -405,15 +471,38 @@ int main()
 		nu_tmp += nu_v[ii];
 		hpBAbt[ii] = pBAbt1;
 		hpRSQrq[ii] = pRSQrq1;
+		hd[ii] = d1;
+		hidxb[ii] = idxb1;
 //		d_zeros_align(&hpGamma_x0[ii], pnx_v[0], cnx_v[ii+1]);
 //		d_zeros_align(&hpGamma_u[ii], (nu_tmp+bs-1)/bs*bs, cnx_v[ii+1]);
 //		d_zeros_align(&hpGamma_b[ii], pnx_v[ii+1], 1);
 		d_zeros_align(&hpGamma[ii], (nx+1+nu_tmp+bs-1)/bs*bs, cnx_v[ii+1]);
 		}
 	hpRSQrq[N] = pRSQrqN;
+	hd[N] = dN;
+	hidxb[N] = idxbN;
 
+	// data matrices for the condensed problem
 	d_zeros_align(&pBAbt2, pnz2, cnx_v[N]);
 	d_zeros_align(&pRSQrq2, pnz2, cnux2);
+
+	int nbb = nb_v[0]; // box that remain box constraints
+	int nbg = 0; // box that become general constraints
+	for(ii=1; ii<N; ii++)
+		for(jj=0; jj<nb_v[ii]; jj++)
+			if(hidxb[ii][jj]<nu_v[ii])
+				nbb++;
+			else
+				nbg++;
+
+	int cnbg = (nbg+ncl-1)/ncl*ncl;
+	int pnbb = (nbb+bs-1)/bs*bs;
+	int pnbg = (nbg+bs-1)/bs*bs;
+
+	d_zeros_align(&pDCt2, pnz2, cnbg);
+	d_zeros_align(&d2, 2*pnbb+2*pnbg, 1);
+	i_zeros(&idxb2, nbb, 1);
+
 
 	d_zeros_align(&work0, pnxM*cnxM+pnz2*cnxM, 1);
 	d_zeros_align(&work1, pnx1M*cnxM+pnzM*cnuxM+pnzM*cnxM+pnuM*cnxM+pnz2*cnuM+pnzM, 1);
@@ -455,7 +544,7 @@ int main()
 	// zero the solution
 	for(ii=0; ii<pnz2*cnx_v[N]; ii++) pBAbt2[ii] = 0;
 
-	d_cond_BAb(N, nx_v, nu_v, hpBAbt, work0, hpGamma, pBAbt2);
+	d_cond_BAbt(N, nx_v, nu_v, hpBAbt, work0, hpGamma, pBAbt2);
 	
 	printf("\nGamma\n\n");
 	nu_tmp = 0;
@@ -473,6 +562,16 @@ int main()
 	printf("\nRSQrq2\n\n");
 	d_print_pmat(nu2+nx_v[0]+1, nu2+nx_v[0], bs, pRSQrq2, cnux2);
 
+	d_cond_DCtd(N, nx_v, nu_v, nb_v, hidxb, hd, hpGamma, pDCt2, d2, idxb2);
+
+	printf("\nDCt2\n\n");
+	d_print_pmat(nu2+nx_v[0], nbg, bs, pDCt2, cnbg);
+	d_print_mat(1, nbb, d2, 1);
+	d_print_mat(1, nbb, d2+pnbb, 1);
+	d_print_mat(1, nbg, d2+2*pnbb, 1);
+	d_print_mat(1, nbg, d2+2*pnbb+pnbg, 1);
+	i_print_mat(1, nbb, idxb2, 1);
+
 /************************************************
 * solve condensing system using Riccati
 ************************************************/	
@@ -489,26 +588,34 @@ int main()
 	nu2_v[1] = 0; // XXX
 
 	int nb2_v[N2+1];
-	nb2_v[0] = 0;
-	nb2_v[1] = 0;
+	nb2_v[0] = nbb;
+	nb2_v[1] = nb_v[N];
 
 	int ng2_v[N2+1];
-	ng2_v[0] = 0;
-	ng2_v[1] = 0;
+	ng2_v[0] = nbg; // + ng...
+	ng2_v[1] = 0; // ng[N];
 
-	int **idxb2;
+	int *hidxb2[N2+1];
+	hidxb2[0] = idxb2;
+	hidxb2[1] = hidxb[N];
 
 
 	int pnux2_v[N2+1];
 	int pnx2_v[N2+1];
+	int pnb2_v[N2+1];
+	int png2_v[N2+1];
 	for(ii=0; ii<N2; ii++)
 		{
 		pnux2_v[ii] = (nu2_v[ii]+nx2_v[ii]+bs-1)/bs*bs;
 		pnx2_v[ii] = (nx2_v[ii]+bs-1)/bs*bs;
+		pnb2_v[ii] = (nb2_v[ii]+bs-1)/bs*bs;
+		png2_v[ii] = (ng2_v[ii]+bs-1)/bs*bs;
 		}
 	ii = N2;
 	pnux2_v[ii] = (nx2_v[ii]+bs-1)/bs*bs;
 	pnx2_v[ii] = (nx2_v[ii]+bs-1)/bs*bs;
+	pnb2_v[ii] = (nb2_v[ii]+bs-1)/bs*bs;
+	png2_v[ii] = (ng2_v[ii]+bs-1)/bs*bs;
 
 	
 	// data matrices
@@ -520,28 +627,67 @@ int main()
 	hpRSQrq2[0] = pRSQrq2;
 	hpRSQrq2[1] = hpRSQrq[N];
 
+	double *hpDCt2[N2+1];
+	hpDCt2[0] = pDCt2;
+	hpDCt2[1] = hpDCt[N];
+
+	double *hd2[N+1];
+	hd2[0] = d2;
+	hd2[1] = hd[N];
+
 	double *hux2[N2+1];
 	double *hpi2[N2];
+	double *hlam2[N2+1];
+	double *ht2[N2+1];
 	for(ii=0; ii<N2; ii++)
 		{
 		d_zeros_align(&hux2[ii], pnux2_v[ii], 1);
 		d_zeros_align(&hpi2[ii], pnx2_v[ii+1], 1);
+		d_zeros_align(&hlam2[ii], 2*pnb2_v[ii]+2*png2_v[ii], 1);
+		d_zeros_align(&ht2[ii], 2*pnb2_v[ii]+2*png2_v[ii], 1);
 		}
 	ii = N2;
 	d_zeros_align(&hux2[ii], pnux2_v[ii], 1);
+	d_zeros_align(&hlam2[ii], 2*pnb2_v[ii]+2*png2_v[ii], 1);
+	d_zeros_align(&ht2[ii], 2*pnb2_v[ii]+2*png2_v[ii], 1);
 
 
 	// work space
 
 	double *work_ric_cond; d_zeros_align(&work_ric_cond, d_back_ric_rec_sv_tv_work_space_size_bytes(N2, nx2_v, nu2_v, nb2_v, ng2_v)/sizeof(double), 1);
 	double *memory_ric_cond; d_zeros_align(&memory_ric_cond, d_back_ric_rec_sv_tv_memory_space_size_bytes(N2, nx2_v, nu2_v, nb2_v, ng2_v)/sizeof(double), 1);
+	double *work_ipm; d_zeros_align(&work_ipm, d_ip2_res_mpc_hard_tv_work_space_size_bytes(N2, nx2_v, nu2_v, nb2_v, ng2_v)/sizeof(double), 1);
 
 	double **dummy;
 
-	printf("\nsolving...\n");
-	d_back_ric_rec_sv_tv_res(N2, nx2_v, nu2_v, nb2_v, idxb2, ng2_v, 0, hpBAbt2, dummy, 0, hpRSQrq2, dummy, dummy, dummy, dummy, dummy, hux2, 1, hpi2, 0, dummy, memory_ric_cond, work_ric_cond);
-	printf("\ndone!\n");
 
+
+	// IPM stuff
+	int hpmpc_status;
+	int kk = -1;
+	int k_max = 10;
+	double mu0 = 2.0;
+	double mu_tol = 1e-20;
+	double alpha_min = 1e-8;
+	int warm_start = 0; // read initial guess from x and u
+	double *stat; d_zeros(&stat, k_max, 5);
+	int compute_res = 1;
+	int compute_mult = 1;
+
+
+
+
+	// call solver
+	printf("\nsolving...\n");
+//	d_back_ric_rec_sv_tv_res(N2, nx2_v, nu2_v, nb2_v, idxb2, ng2_v, 0, hpBAbt2, dummy, 0, hpRSQrq2, dummy, dummy, dummy, dummy, dummy, hux2, 1, hpi2, 0, dummy, memory_ric_cond, work_ric_cond);
+	hpmpc_status = d_ip2_res_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N2, nx2_v, nu2_v, nb2_v, hidxb2, ng2_v, hpBAbt2, hpRSQrq2, hpDCt2, hd2, hux2, compute_mult, hpi2, hlam2, ht2, work_ipm);
+	printf("\ndone! (status = %d)\n", hpmpc_status);
+
+	printf("\nstatistics from last run\n\n");
+	for(jj=0; jj<kk; jj++)
+		printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, stat[5*jj], stat[5*jj+1], stat[5*jj+2], stat[5*jj+2], stat[5*jj+3], stat[5*jj+4], stat[5*jj+4]);
+	printf("\n");
+	
 	printf("\nux2 =\n");
 	d_print_mat(1, nu2_v[0]+nx2_v[0], hux2[0], 1);
 	d_print_mat(1, nx2_v[1], hux2[1], 1);
@@ -578,13 +724,24 @@ int main()
 	free(b0);
 	free(pA);
 	free(pRSQrq0);
+	free(d0);
+	free(idxb0);
 #endif
 	if(N>1) free(pBAbt1);
 	if(N>1) free(pRSQrq1);
+	if(N>1) free(d1);
+	if(N>1) free(idxb1);
 	free(pRSQrqN);
+	free(dN);
+	free(idxbN);
+	//
 	free(pBAbt2);
+	free(pRSQrq2);
+	free(pDCt2);
+	free(d2);
 	free(work0);
 	free(work1);
+	free(work_ipm);
 	for(ii=0; ii<N; ii++)
 		{
 	//	free(hpGamma_x0[ii]);

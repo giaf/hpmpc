@@ -25,7 +25,7 @@
 
 include ../Makefile.rule
 
-OBJS = d_back_ric_rec.o d_for_schur_rec.o d_res.o #d_cond.o s_ric_sv.o s_res.o
+OBJS = d_back_ric_rec.o d_for_schur_rec.o d_res.o d_part_cond.o #s_ric_sv.o s_res.o
 
 obj: $(OBJS)
 

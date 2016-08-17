@@ -30,6 +30,13 @@
 #include "../include/lqcp_aux.h"
 #include "../include/block_size.h"
 
+#ifdef BLASFEO
+#include <blasfeo_d_blas.h>
+#endif
+//#else
+#include "../include/blas_d.h"
+//#endif
+
 
 
 #if 0
@@ -202,7 +209,7 @@ void d_cond_BAb(int N, int *nx, int *nu, double **pBAbt, double *work, double **
 
 
 
-void d_cond_BAb(int N, int *nx, int *nu, double **hpBAbt, double *work, double **hpGamma, double *pBAbt2)
+void d_cond_BAbt(int N, int *nx, int *nu, double **hpBAbt, double *work, double **hpGamma, double *pBAbt2)
 	{
 
 	const int bs = D_MR;
@@ -250,7 +257,11 @@ void d_cond_BAb(int N, int *nx, int *nu, double **hpBAbt, double *work, double *
 		dgetr_lib(nx[ii], nx[ii+1], nu[ii], hpBAbt[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1], 0, pA, cnx[ii]); // pA in work
 
 		// Gamma * A^T
+#ifdef BLASFEO
+		dgemm_ntnn_lib(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], hpGamma[ii-1], cnx[ii], pA, cnx[ii], 0, buffer, cnx[ii+1], buffer, cnx[ii+1]); // Gamma * A^T // TODO in BLASFEO, store to unaligned !!!!!
+#else
 		dgemm_nt_lib(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], hpGamma[ii-1], cnx[ii], pA, cnx[ii], 0, buffer, cnx[ii+1], buffer, cnx[ii+1], 0, 0); // Gamma * A^T // TODO in BLASFEO, store to unaligned !!!!!
+#endif
 
 		dgecp_lib(nu[ii], nx[ii+1], 0, hpBAbt[ii], cnx[ii+1], 0, hpGamma[ii], cnx[ii+1]);
 
@@ -375,7 +386,11 @@ void d_cond_RSQrq(int N, int *nx, int *nu, double **hpBAbt, double **hpRSQrq, do
 	// M
 	dgetr_lib(nx[N-1], nu[N-1], nu[N-1], pL+nu[N-1]/bs*bs*cnux[N-1]+nu[N-1]%bs, cnux[N-1], 0, pM, cnu[N-1]);
 
+#ifdef BLASFEO
+	dgemm_ntnn_lib(nu2[N-1]+nx[0]+1, nu[N-1], nx[N-1], hpGamma[N-2], cnx[N-1], pM, cnu[N-1], 0, buffer, cnu[N-1], buffer, cnu[N-1]);
+#else
 	dgemm_nt_lib(nu2[N-1]+nx[0]+1, nu[N-1], nx[N-1], hpGamma[N-2], cnx[N-1], pM, cnu[N-1], 0, buffer, cnu[N-1], buffer, cnu[N-1], 0, 0);
+#endif
 
 	dgecp_lib(nu2[N-1]+nx[0]+1, nu[N-1], 0, buffer, cnu[N-1], nu3[1], pRSQrq2+nu3[1]/bs*bs*cnux2+nu3[1]%bs+nu3[0]*bs, cnux2);
 
@@ -421,7 +436,11 @@ void d_cond_RSQrq(int N, int *nx, int *nu, double **hpBAbt, double **hpRSQrq, do
 		// M
 		dgetr_lib(nx[N-nn-1], nu[N-nn-1], nu[N-nn-1], pL+nu[N-nn-1]/bs*bs*cnux[N-nn-1]+nu[N-nn-1]%bs, cnux[N-nn-1], 0, pM, cnu[N-nn-1]);
 
+#ifdef BLASFEO
+		dgemm_ntnn_lib(nu2[N-nn-1]+nx[0]+1, nu[N-nn-1], nx[N-nn-1], hpGamma[N-nn-2], cnx[N-nn-1], pM, cnu[N-nn-1], 0, buffer, cnu[N-nn-1], buffer, cnu[N-nn-1]); // add unaligned stores in BLASFEO !!!!!!
+#else
 		dgemm_nt_lib(nu2[N-nn-1]+nx[0]+1, nu[N-nn-1], nx[N-nn-1], hpGamma[N-nn-2], cnx[N-nn-1], pM, cnu[N-nn-1], 0, buffer, cnu[N-nn-1], buffer, cnu[N-nn-1], 0, 0); // add unaligned stores in BLASFEO !!!!!!
+#endif
 
 		dgecp_lib(nu2[N-nn-1]+nx[0]+1, nu[N-nn-1], 0, buffer, cnu[N-nn-1], nu3[nn+1], pRSQrq2+nu3[nn+1]/bs*bs*cnux2+nu3[nn+1]%bs+nu3[nn]*bs, cnux2);
 
@@ -469,3 +488,118 @@ void d_cond_RSQrq(int N, int *nx, int *nu, double **hpBAbt, double **hpRSQrq, do
 	return;
 
 	}
+
+
+
+// TODO general constraints !!!!!
+void d_cond_DCtd(int N, int *nx, int *nu, int *nb, int **hidxb, double **hd, double **hpGamma, double *pDCt2, double *d2, int *idxb2)
+	{
+
+	// early return
+	if(N<1)
+		return;
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int ii, jj;
+
+	int pnb[N+1];
+	int cnx[N+1];
+	for(ii=0; ii<=N; ii++)
+		{
+		pnb[ii] = (nb[ii]+bs-1)/bs*bs;
+		cnx[ii] = (nx[ii]+ncl-1)/ncl*ncl;
+		}
+
+	int nbb = nb[0]; // box that remain box constraints
+	int nbg = 0; // box that becomes general constraints
+	for(ii=1; ii<N; ii++)
+		for(jj=0; jj<nb[ii]; jj++)
+			if(hidxb[ii][jj]<nu[ii])
+				nbb++;
+			else
+				nbg++;
+	
+	int pnbb = (nbb+bs-1)/bs*bs;
+	int pnbg = (nbg+bs-1)/bs*bs;
+	int cnbg = (nbg+ncl-1)/ncl*ncl;
+
+//	int nx_tmp = 0;
+//	for(ii=1; ii<N; ii++)
+//		nx_tmp += nx[ii];
+	
+//	int cnxm2 = (nx_tmp+ncl-1)/ncl*ncl;
+
+//	int nu2 = 0;
+//	for(ii=0; ii<N; ii++)
+//		nu2 += nu[ii];
+
+//	nx_tmp = 0;
+
+	int nu_tmp = 0;
+
+	int idx_gammab = nx[0];
+	for(ii=0; ii<N-1; ii++)
+		idx_gammab += nu[ii];
+
+	int ib = 0;
+	int ig = 0;
+
+	double tmp;
+	int idx_g;
+
+	// middle stages
+	for(ii=0; ii<N-1; ii++)
+		{
+		nu_tmp += nu[N-ii-1];
+		for(jj=0; jj<nb[N-1-ii]; jj++)
+			{
+			if(hidxb[N-1-ii][jj]<nu[N-1-ii]) // input: box constraint
+				{
+				d2[0*pnbb+ib] = hd[N-1-ii][0*pnb[N-1-ii]+jj];
+				d2[1*pnbb+ib] = hd[N-1-ii][1*pnb[N-1-ii]+jj];
+				idxb2[ib] = nu_tmp - nu[N-1-ii] + hidxb[N-1-ii][jj];
+				ib++;
+				}
+			else // state: general constraint
+				{
+				idx_g = hidxb[N-1-ii][jj]-nu[N-1-ii];
+				tmp = hpGamma[N-2-ii][idx_gammab/bs*bs*cnx[N-1-ii]+idx_gammab%bs+idx_g*bs];
+				d2[2*pnbb+0*pnbg+ig] = hd[N-1-ii][0*pnb[N-1-ii]+jj] - tmp;
+				d2[2*pnbb+1*pnbg+ig] = hd[N-1-ii][1*pnb[N-1-ii]+jj] - tmp;
+				dgecp_lib(idx_gammab, 1, 0, hpGamma[N-ii-2]+idx_g*bs, cnx[N-ii-1], nu_tmp, pDCt2+nu_tmp/bs*bs*cnbg+nu_tmp%bs+ig*bs, cnbg);
+				ig++;
+				}
+			}
+//		d_print_pmat(idx_gammab+1, nx[N-1-ii], bs, hpGamma[N-2-ii], cnx[N-1-ii]);
+//		printf("\n%d %d\n", idx_gammab, cnx[N-1-ii]);
+		idx_gammab -= nu[N-2-ii];
+//		printf("\n%d\n", idx_gammab);
+//		return;
+		}
+
+	// initial stage: both inputs and states as box constraints
+	nu_tmp += nu[0];
+	for(jj=0; jj<nb[0]; jj++)
+		{
+		d2[0*pnbb+ib] = hd[0][0*pnb[0]+jj];
+		d2[1*pnbb+ib] = hd[0][1*pnb[0]+jj];
+		idxb2[ib] = nu_tmp - nu[0] + hidxb[N-1-ii][jj];
+		ib++;
+		}
+
+//	for(ii=0; ii<N-1; ii++)
+//		{
+//		nu_tmp += nu[N-ii-1];
+//		dgecp_lib(nu2-nu_tmp+nx[0], nx[N-ii-1], 0, hpGamma[N-ii-2], cnx[N-ii-1], nu_tmp, pDCt2+nu_tmp/bs*bs*cnxm2+nu_tmp%bs+nx_tmp*bs, cnxm2);
+//		nx_tmp += nx[N-ii-1];
+//		}
+
+	return;
+
+	}
+
+
+
+//void d_part_cond(int N, int *nx, int *nu, int *nb, int **hidxb, 
