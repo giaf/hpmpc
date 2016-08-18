@@ -198,10 +198,10 @@ int main()
 		nb_v[ii] = nu_v[1] + nx_v[ii]/2;
 	nb_v[N] = nu_v[N] + nx_v[N]/2;
 
-//	int ng_v[N+1];
-//	for(ii=0; ii<N; ii++)
-//		ng_v[ii] = ng;
-//	ng_v[N] = ngN;
+	int ng_v[N+1];
+	for(ii=0; ii<N; ii++)
+		ng_v[ii] = 0; //ng;
+	ng_v[N] = 0; //ngN;
 //	ng_v[M] = nx; // XXX
 	
 
@@ -436,9 +436,6 @@ int main()
 	double *hpDCt[N+1];
 	double *hd[N+1];
 	int *hidxb[N+1];
-//	double *hpGamma_x0[N];
-//	double *hpGamma_u[N];
-//	double *hpGamma_b[N];
 	double *hpGamma[N];
 	double *pBAbt2;
 	double *pRSQrq2;
@@ -462,10 +459,7 @@ int main()
 	hd[0] = d1;
 	hidxb[0] = idxb1;
 #endif
-//	d_zeros_align(&hpGamma_x0[0], pnx_v[0], cnx_v[1]);
-//	d_zeros_align(&hpGamma_u[0], (nu_tmp+bs-1)/bs*bs, cnx_v[1]);
-//	d_zeros_align(&hpGamma_b[0], pnx_v[1], 1);
-	d_zeros_align(&hpGamma[0], (nx+1+nu_tmp+bs-1)/bs*bs, cnx_v[1]);
+	d_zeros_align(&hpGamma[0], (nx_v[0]+1+nu_tmp+bs-1)/bs*bs, cnx_v[1]);
 	for(ii=1; ii<N; ii++)
 		{
 		nu_tmp += nu_v[ii];
@@ -473,10 +467,7 @@ int main()
 		hpRSQrq[ii] = pRSQrq1;
 		hd[ii] = d1;
 		hidxb[ii] = idxb1;
-//		d_zeros_align(&hpGamma_x0[ii], pnx_v[0], cnx_v[ii+1]);
-//		d_zeros_align(&hpGamma_u[ii], (nu_tmp+bs-1)/bs*bs, cnx_v[ii+1]);
-//		d_zeros_align(&hpGamma_b[ii], pnx_v[ii+1], 1);
-		d_zeros_align(&hpGamma[ii], (nx+1+nu_tmp+bs-1)/bs*bs, cnx_v[ii+1]);
+		d_zeros_align(&hpGamma[ii], (nx_v[0]+1+nu_tmp+bs-1)/bs*bs, cnx_v[ii+1]);
 		}
 	hpRSQrq[N] = pRSQrqN;
 	hd[N] = dN;
@@ -551,7 +542,7 @@ int main()
 	for(ii=0; ii<N; ii++)
 		{
 		nu_tmp += nu_v[ii];
-		d_print_pmat(nx+1+nu_tmp, nx_v[ii+1], bs, hpGamma[ii], cnx_v[ii+1]);
+		d_print_pmat(nx_v[0]+1+nu_tmp, nx_v[ii+1], bs, hpGamma[ii], cnx_v[ii+1]);
 		}
 	
 	printf("\nBAbt2\n\n");
@@ -573,7 +564,7 @@ int main()
 	i_print_mat(1, nbb, idxb2, 1);
 
 /************************************************
-* solve condensing system using Riccati
+* solve condensed system using Riccati / IPM
 ************************************************/	
 	
 	// problem size
@@ -676,7 +667,6 @@ int main()
 
 
 
-
 	// call solver
 	printf("\nsolving...\n");
 //	d_back_ric_rec_sv_tv_res(N2, nx2_v, nu2_v, nb2_v, idxb2, ng2_v, 0, hpBAbt2, dummy, 0, hpRSQrq2, dummy, dummy, dummy, dummy, dummy, hux2, 1, hpi2, 0, dummy, memory_ric_cond, work_ric_cond);
@@ -692,7 +682,7 @@ int main()
 	d_print_mat(1, nu2_v[0]+nx2_v[0], hux2[0], 1);
 	d_print_mat(1, nx2_v[1], hux2[1], 1);
 
-	double *hux[N];
+	double *hux[N+1];
 	for(ii=0; ii<=N; ii++)
 		d_zeros_align(&hux[ii], pnux_v[ii], 1);
 	
@@ -701,6 +691,160 @@ int main()
 	
 	// copy x0
 	for(jj=0; jj<nx_v[0]; jj++) hux[0][nu_v[0]+jj] = hux2[0][nu2_v[0]+jj];
+
+	// simulate the system
+	for(ii=0; ii<N; ii++)
+		{
+		for(jj=0; jj<nx_v[ii+1]; jj++)
+			hux[ii+1][nu_v[ii+1]+jj] = hpBAbt[ii][(nu_v[ii]+nx_v[ii])/bs*bs*cnx_v[ii+1]+(nu_v[ii]+nx_v[ii])%bs+jj*bs];
+		dgemv_t_lib(nu_v[ii]+nx_v[ii], nx_v[ii+1], hpBAbt[ii], cnx_v[ii+1], hux[ii], 1, hux[ii+1]+nu_v[ii+1], hux[ii+1]+nu_v[ii+1]);
+		}
+	// compute lagrangian multipliers TODO
+	
+	printf("\nux =\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, nu_v[ii]+nx_v[ii], hux[ii], 1);
+
+/************************************************
+* partial condensing
+************************************************/	
+	
+	int N3 = 3;
+	int nx3_v[N3+1];
+	int nu3_v[N3+1];
+	int nb3_v[N3+1];
+	int ng3_v[N3+1];
+
+	int *hidxb3[N3+1];
+
+	double *hpBAbt3[N3];
+	double *hpRSQrq3[N3+1];
+	double *hpDCt3[N3+1];
+	double *hd3[N3+1];
+
+	void *memory_part_cond;
+	v_zeros_align(&memory_part_cond, d_part_cond_memory_space_size_bytes(N, nx_v, nu_v, nb_v, hidxb, ng_v, N3));
+
+	void *work_part_cond;
+	v_zeros_align(&work_part_cond, d_part_cond_work_space_size_bytes(N, nx_v, nu_v, nb_v, hidxb, ng_v, N3));
+
+	d_part_cond(N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQrq, hpDCt, hd, N3, nx3_v, nu3_v, nb3_v, hidxb3, ng3_v, hpBAbt3, hpRSQrq3, hpDCt3, hd3, memory_part_cond, work_part_cond);
+
+	for(ii=0; ii<=N3; ii++)
+		printf("\n%d %d %d %d\n", nx3_v[ii], nu3_v[ii], nb3_v[ii], ng3_v[ii]);
+	
+	int pnx3_v[N3+1];
+	int pnb3_v[N3+1];
+	int png3_v[N3+1];
+	int pnux3_v[N3+1];
+	int cnx3_v[N3+1];
+	int cnux3_v[N3+1];
+	int cng3_v[N3+1];
+	for(ii=0; ii<=N3; ii++)
+		{
+		pnx3_v[ii] = (nx3_v[ii]+bs-1)/bs*bs;
+		pnb3_v[ii] = (nb3_v[ii]+bs-1)/bs*bs;
+		png3_v[ii] = (ng3_v[ii]+bs-1)/bs*bs;
+		pnux3_v[ii] = (nu3_v[ii]+nx3_v[ii]+bs-1)/bs*bs;
+		cnx3_v[ii] = (nx3_v[ii]+ncl-1)/ncl*ncl;
+		cnux3_v[ii] = (nu3_v[ii]+nx3_v[ii]+ncl-1)/ncl*ncl;
+		cng3_v[ii] = (ng3_v[ii]+ncl-1)/ncl*ncl;
+		}
+	
+	printf("\nBAbt3 =\n");
+	for(ii=0; ii<N3; ii++)
+		d_print_pmat(nu3_v[ii]+nx3_v[ii]+1, nx3_v[ii+1], bs, hpBAbt3[ii], cnx3_v[ii+1]);
+	
+	printf("\nRSQrq3 =\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_pmat(nu3_v[ii]+nx3_v[ii]+1, nu3_v[ii]+nx3_v[ii], bs, hpRSQrq3[ii], cnux3_v[ii]);
+	
+	printf("\nDCt3 =\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_pmat(nu3_v[ii]+nx3_v[ii], ng3_v[ii], bs, hpDCt3[ii], cng3_v[ii]);
+	
+	printf("\nd3 =\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_mat(1, 2*pnb3_v[ii]+2*png3_v[ii], hd3[ii], 1);
+	
+	printf("\nidxb3 = \n");
+	for(ii=0; ii<=N3; ii++)
+		i_print_mat(1, nb3_v[ii], hidxb3[ii], 1);
+	
+/************************************************
+* solve partially condensed system using IPM
+************************************************/	
+	
+	double *hux3[N3+1];
+	double *hpi3[N3];
+	double *hlam3[N3+1];
+	double *ht3[N3+1];
+	for(ii=0; ii<N3; ii++)
+		{
+		d_zeros_align(&hux3[ii], pnux3_v[ii], 1);
+		d_zeros_align(&hpi3[ii], pnx3_v[ii+1], 1);
+		d_zeros_align(&hlam3[ii], 2*pnb3_v[ii]+2*png3_v[ii], 1);
+		d_zeros_align(&ht3[ii], 2*pnb3_v[ii]+2*png3_v[ii], 1);
+		}
+	ii = N3;
+	d_zeros_align(&hux3[ii], pnux3_v[ii], 1);
+	d_zeros_align(&hlam3[ii], 2*pnb3_v[ii]+2*png3_v[ii], 1);
+	d_zeros_align(&ht3[ii], 2*pnb3_v[ii]+2*png3_v[ii], 1);
+
+
+	// work space
+	double *work_ipm3; d_zeros_align(&work_ipm3, d_ip2_res_mpc_hard_tv_work_space_size_bytes(N3, nx3_v, nu3_v, nb3_v, ng3_v)/sizeof(double), 1);
+
+
+
+	// same IPM stuff
+
+
+
+	// call solver
+	printf("\nsolving (partial condensed system)...\n");
+//	d_back_ric_rec_sv_tv_res(N2, nx2_v, nu2_v, nb2_v, idxb2, ng2_v, 0, hpBAbt2, dummy, 0, hpRSQrq2, dummy, dummy, dummy, dummy, dummy, hux2, 1, hpi2, 0, dummy, memory_ric_cond, work_ric_cond);
+	hpmpc_status = d_ip2_res_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N3, nx3_v, nu3_v, nb3_v, hidxb3, ng3_v, hpBAbt3, hpRSQrq3, hpDCt3, hd3, hux3, compute_mult, hpi3, hlam3, ht3, work_ipm);
+	printf("\ndone! (status = %d)\n", hpmpc_status);
+
+	printf("\nstatistics from last run\n\n");
+	for(jj=0; jj<kk; jj++)
+		printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, stat[5*jj], stat[5*jj+1], stat[5*jj+2], stat[5*jj+2], stat[5*jj+3], stat[5*jj+4], stat[5*jj+4]);
+	printf("\n");
+	
+	printf("\nux3 =\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_mat(1, nu3_v[ii]+nx3_v[ii], hux3[ii], 1);
+
+//	double *hux[N];
+//	for(ii=0; ii<=N; ii++)
+//		d_zeros_align(&hux[ii], pnux_v[ii], 1);
+	for(ii=0; ii<=N; ii++)
+		for(jj=0; jj<pnux_v[ii]; jj++)
+			hux[ii][jj] = 0.0;
+	
+//	for(ii=0; ii<N; ii++)
+//		d_copy_mat(nu, 1, hux2[0]+(N-ii-1)*nu, nu, hux[ii], nu);
+	int N1 = N/N3; // (floor) horizon of small blocks
+	int R1 = N - N3*N1; // the first R1 blocks have horizion N1+1
+	int M1 = R1>0 ? N1+1 : N1; // (ceil) horizon of large blocks
+	int T1; // horizon of current block
+	int N_tmp = 0;
+	for(ii=0; ii<N3; ii++)
+		{
+		T1 = ii<R1 ? M1 : N1;
+		nu_tmp = 0;
+		for(jj=0; jj<T1; jj++)
+			{
+			for(kk=0; kk<nu_v[N_tmp+T1-1-jj]; kk++)
+				hux[N_tmp+T1-1-jj][kk] = hux3[ii][nu_tmp+kk];
+			nu_tmp += nu_v[N_tmp+T1-1-jj];
+			}
+		N_tmp += T1;
+		}
+	
+	// copy x0
+	for(jj=0; jj<nx_v[0]; jj++) hux[0][nu_v[0]+jj] = hux3[0][nu3_v[0]+jj];
 
 	// simulate the system
 	for(ii=0; ii<N; ii++)
@@ -741,7 +885,12 @@ int main()
 	free(d2);
 	free(work0);
 	free(work1);
+	free(memory_ric_cond);
+	free(work_ric_cond);
 	free(work_ipm);
+	free(work_ipm3);
+	free(memory_part_cond);
+	free(work_part_cond);
 	for(ii=0; ii<N; ii++)
 		{
 	//	free(hpGamma_x0[ii]);

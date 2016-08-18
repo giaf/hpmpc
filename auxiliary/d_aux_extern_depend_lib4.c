@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "../include/block_size.h"
 #include "../include/kernel_d_lib4.h"
@@ -60,9 +61,29 @@ void d_zeros_align(double **pA, int row, int col)
 		}
 	*pA = temp;
 #endif
-	double *A = *pA;
-	int i;
-	for(i=0; i<row*col; i++) A[i] = 0.0;
+//	double *A = *pA;
+//	int i;
+//	for(i=0; i<row*col; i++) A[i] = 0.0;
+	memset(temp, 0, row*col*sizeof(double));
+	}
+
+
+
+/* allocates memory aligned to a cache line */
+void v_zeros_align(void **pA, int size_in_bytes)
+	{
+#if defined(OS_WINDOWS)
+	*pA = _aligned_malloc( size_in_bytes, 64 );
+#else
+	void *temp;
+	int err = posix_memalign(pA, 64, size_in_bytes);
+	if(err!=0)
+		{
+		printf("Memory allocation error");
+		exit(1);
+		}
+#endif
+	memset(*pA, 0, size_in_bytes);
 	}
 
 
@@ -77,6 +98,18 @@ void d_free(double *pA)
 
 /* frees aligned memory */
 void d_free_align(double *pA)
+	{
+#if defined(OS_WINDOWS)
+	_aligned_free( pA );
+#else
+	free( pA );
+#endif
+	}
+
+
+
+/* frees aligned memory */
+void v_free_align(void *pA)
 	{
 #if defined(OS_WINDOWS)
 	_aligned_free( pA );
