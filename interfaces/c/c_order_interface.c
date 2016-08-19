@@ -45,7 +45,7 @@
 // TODO add indx to the interface ????
 int c_order_d_ip_ocp_hard_tv( 
 							int *kk, int k_max, double mu0, double mu_tol,
-							int N, int *nx, int *nu_N, int *nb, int *ng,
+							int N, int *nx, int *nu_N, int *nb, int **hidxb, int *ng,
 							int warm_start,
 							double **A, double **B, double **b, 
 							double **Q, double **S, double **R, double **q, double **r, 
@@ -63,7 +63,7 @@ int c_order_d_ip_ocp_hard_tv(
 	int hpmpc_status = -1;
 
 
-	int ii, jj, ll, nbu;
+	int ii, jj, ll, idx;
 
 
 	// nu with nu[N]=0
@@ -120,25 +120,25 @@ int c_order_d_ip_ocp_hard_tv(
 
 
 	// time-variant quantities
-	int *ptr_int;
-	ptr_int = (int *) work0;
+//	int *ptr_int;
+//	ptr_int = (int *) work0;
 
-	int *idxb[N+1];
+//	int *idxb[N+1];
 
-	idxb[0] = ptr_int;
-	ptr_int += nb[0];
-	for(jj=0; jj<nb[0]; jj++) idxb[0][jj] = jj;
-	for(ii=1; ii<N; ii++)
-		{
-		idxb[ii] = ptr_int;
-		ptr_int += nb[ii];
-		for(jj=0; jj<nb[ii]; jj++) idxb[ii][jj] = jj;
-		}
-	idxb[N] = ptr_int;
-	ptr_int += nb[N];
-	for(jj=0; jj<nb[N]; jj++) idxb[N][jj] = nu[N]+jj;
+//	idxb[0] = ptr_int;
+//	ptr_int += nb[0];
+//	for(jj=0; jj<nb[0]; jj++) idxb[0][jj] = jj;
+//	for(ii=1; ii<N; ii++)
+//		{
+//		idxb[ii] = ptr_int;
+//		ptr_int += nb[ii];
+//		for(jj=0; jj<nb[ii]; jj++) idxb[ii][jj] = jj;
+//		}
+//	idxb[N] = ptr_int;
+//	ptr_int += nb[N];
+//	for(jj=0; jj<nb[N]; jj++) idxb[N][jj] = nu[N]+jj;
 
-	work0 = (double *) ptr_int;
+//	work0 = (double *) ptr_int;
 
 
 
@@ -330,41 +330,41 @@ int c_order_d_ip_ocp_hard_tv(
 //	printf("%f\n", mu0);
 //	exit(1);
 
-	// input box constraints
-	for(ii=0; ii<N; ii++)
+	// box constraints
+	for(ii=0; ii<=N; ii++)
 		{
-		nbu = nb[ii]<nu[ii] ? nb[ii] : nu[ii];
-		for(jj=0; jj<nbu; jj++)
+		for(jj=0; jj<nb[ii]; jj++)
 			{
-			if(lb[ii][jj]!=ub[ii][jj]) // equality constraint
+			if(hidxb[ii][jj]<nu[ii]) // input
+				{
+// XXX it has to work also with the re-solve routine !!!!!
+//				if(lb[ii][jj]!=ub[ii][jj]) // box constraint
+//					{
+					hd[ii][jj+0]       = lb[ii][jj];
+					hd[ii][jj+pnb[ii]] = ub[ii][jj];
+//					}
+//				else // equality constraint
+//					{
+//					for(ll=0; ll<nx[ii+1]; ll++)
+//						{
+//						idx = hidxb[ii][jj];
+//						// update linear term
+//						hpBAbt[ii][(nx[ii]+nu[ii])/bs*cnx[ii+1]*bs+(nx[ii]+nu[ii])%bs+ll*bs] += hpBAbt[ii][idx/bs*cnx[ii+1]*bs+idx%bs+ll*bs]*lb[ii][jj];
+//						// zero corresponding B column TODO remove variable instead !!!!!
+//						hpBAbt[ii][idx/bs*cnx[ii+1]*bs+idx%bs+ll*bs] = 0.0;
+//						}
+//					
+//					// inactive box constraints TODO remove from constraints istead !!!!!
+//					hd[ii][jj+0]       = lb[ii][jj] + 1e3;
+//					hd[ii][jj+pnb[ii]] = ub[ii][jj] - 1e3;
+//
+//					}
+				}
+			else // state
 				{
 				hd[ii][jj+0]       = lb[ii][jj];
 				hd[ii][jj+pnb[ii]] = ub[ii][jj];
 				}
-			else
-				{
-				for(ll=0; ll<nx[ii+1]; ll++)
-					{
-					// update linear term
-					hpBAbt[ii][(nx[ii]+nu[ii])/bs*cnx[ii+1]*bs+(nx[ii]+nu[ii])%bs+ll*bs] += hpBAbt[ii][jj/bs*cnx[ii+1]*bs+jj%bs+ll*bs]*lb[ii][jj];
-					// zero corresponding B column
-					hpBAbt[ii][jj/bs*cnx[ii+1]*bs+jj%bs+ll*bs] = 0.0;
-					}
-				
-				// inactive box constraints
-				hd[ii][jj+0]       = lb[ii][jj] + 1e3;
-				hd[ii][jj+pnb[ii]] = ub[ii][jj] - 1e3;
-
-				}
-			}
-		}
-	// state box constraints 
-	for(ii=0; ii<=N; ii++)
-		{
-		for(jj=nu[ii]; jj<nb[ii]; jj++)
-			{
-			hd[ii][jj+0]       = lb[ii][jj];
-			hd[ii][jj+pnb[ii]] = ub[ii][jj];
 			}
 		}
 	// general constraints
@@ -402,7 +402,7 @@ int c_order_d_ip_ocp_hard_tv(
 
 
 	// call the IP solver
-	hpmpc_status = d_ip2_res_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, hpBAbt, hpQ, hpDCt, hd, hux, 1, hpi, hlam, ht, work);
+	hpmpc_status = d_ip2_res_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hpBAbt, hpQ, hpDCt, hd, hux, 1, hpi, hlam, ht, work);
 //	for(ii=0; ii<=N; ii++)
 //		d_print_mat(1, nu[ii]+nx[ii], hux[ii], 1);
 //	exit(1);
@@ -423,12 +423,11 @@ int c_order_d_ip_ocp_hard_tv(
 	// check for input equality constraints
 	for(ii=0; ii<N; ii++)
 		{
-		nbu = nb[ii]<nu[ii] ? nb[ii] : nu[ii];
-		for(jj=0; jj<nbu; jj++)
+		for(jj=0; jj<nb[ii] && hidxb[ii][jj]<nu[ii]; jj++)
 			{
 			if(lb[ii][jj]==ub[ii][jj]) // equality constraint
 				{
-				u[ii][jj] = lb[ii][jj];
+				u[ii][hidxb[ii][jj]] = lb[ii][jj];
 				}
 			}
 		}
@@ -439,7 +438,7 @@ int c_order_d_ip_ocp_hard_tv(
 
 	double mu;
 
-	d_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, hpBAbt, hb, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+	d_res_mpc_hard_tv(N, nx, nu, nb, hidxb, ng, hpBAbt, hb, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 #if 0
 	printf("\nres_q\n");
@@ -525,7 +524,7 @@ int c_order_d_ip_ocp_hard_tv(
 
 
 void c_order_d_solve_kkt_new_rhs_ocp_hard_tv(
-							int N, int *nx, int *nu, int *nb, int *ng,
+							int N, int *nx, int *nu, int *nb, int **hidxb, int *ng,
 							double **A, double **B, double **b, 
 							double **Q, double **S, double **R, double **q, double **r, 
 							double **lb, double **ub,
@@ -574,25 +573,25 @@ void c_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 
 
 	// time-variant quantities
-	int *ptr_int;
-	ptr_int = (int *) work0;
+//	int *ptr_int;
+//	ptr_int = (int *) work0;
 
-	int *(idxb[N+1]);
+//	int *(idxb[N+1]);
 
-	idxb[0] = ptr_int;
-	ptr_int += nb[0];
-	for(jj=0; jj<nb[0]; jj++) idxb[0][jj] = jj;
-	for(ii=1; ii<N; ii++)
-		{
-		idxb[ii] = ptr_int;
-		ptr_int += nb[ii];
-		for(jj=0; jj<nb[ii]; jj++) idxb[ii][jj] = jj;
-		}
-	idxb[N] = ptr_int;
-	ptr_int += nb[N];
-	for(jj=0; jj<nb[N]; jj++) idxb[N][jj] = nu[N]+jj;
+//	idxb[0] = ptr_int;
+//	ptr_int += nb[0];
+//	for(jj=0; jj<nb[0]; jj++) idxb[0][jj] = jj;
+//	for(ii=1; ii<N; ii++)
+//		{
+//		idxb[ii] = ptr_int;
+//		ptr_int += nb[ii];
+//		for(jj=0; jj<nb[ii]; jj++) idxb[ii][jj] = jj;
+//		}
+//	idxb[N] = ptr_int;
+//	ptr_int += nb[N];
+//	for(jj=0; jj<nb[N]; jj++) idxb[N][jj] = nu[N]+jj;
 
-	work0 = (double *) ptr_int;
+//	work0 = (double *) ptr_int;
 
 
 
@@ -731,23 +730,21 @@ void c_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 	for(jj=0; jj<nx[ii]; jj++)
 		hq[ii][nu[ii]+jj] = q[ii][jj];
 
-	// input box constraints
-	for(ii=0; ii<N; ii++)
-		{
-		nbu = nb[ii]<nu[ii] ? nb[ii] : nu[ii];
-		for(jj=0; jj<nbu; jj++)
-			{
-			hd[ii][jj+0]       = lb[ii][jj];
-			hd[ii][jj+pnb[ii]] = ub[ii][jj];
-			}
-		}
-	// state box constraints 
+	// box constraints
 	for(ii=0; ii<=N; ii++)
 		{
-		for(jj=nu[ii]; jj<nb[ii]; jj++)
+		for(jj=0; jj<nb[ii]; jj++)
 			{
-			hd[ii][jj+0]       = lb[ii][jj];
-			hd[ii][jj+pnb[ii]] = ub[ii][jj];
+			if(hidxb[ii][jj]<nu[ii]) // input
+				{
+				hd[ii][jj+0]       = lb[ii][jj];
+				hd[ii][jj+pnb[ii]] = ub[ii][jj];
+				}
+			else // state
+				{
+				hd[ii][jj+0]       = lb[ii][jj];
+				hd[ii][jj+pnb[ii]] = ub[ii][jj];
+				}
 			}
 		}
 	// general constraints
@@ -777,7 +774,7 @@ void c_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 
 	// call the IP solver
 //	hpmpc_status = d_ip2_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, hpBAbt, hpQ, hpDCt, hd, hux, 1, hpi, hlam, ht, work);
-	d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, hpBAbt, hb, hpQ, hq, hpDCt, hd, hux, 1, hpi, hlam, ht, work); // TODO B 
+	d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx, nu, nb, hidxb, ng, hpBAbt, hb, hpQ, hq, hpDCt, hd, hux, 1, hpi, hlam, ht, work); // TODO B 
 //	for(ii=0; ii<=N; ii++)
 //		d_print_mat(1, nu[ii]+nx[ii], hux[ii], 1);
 //	exit(1);
@@ -799,7 +796,7 @@ void c_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 
 	double mu;
 
-	d_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, hpBAbt, hb, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+	d_res_mpc_hard_tv(N, nx, nu, nb, hidxb, ng, hpBAbt, hb, hpQ, hq, hux, hpDCt, hd, hpi, hlam, ht, hrq, hrb, hrd, &mu);
 
 #if 0
 	for(ii=0; ii<=N; ii++)

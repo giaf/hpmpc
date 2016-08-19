@@ -110,7 +110,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 
 	// 
-	int ii;
+	int ii, jj;
 
 
 
@@ -139,6 +139,15 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	for(ii=0; ii<N; ii++)
 		ng_v[ii] = ng;
 	ng_v[N] = ngN;
+
+	int *hidxb[N+1];
+	int *ptr_idx = (int *) malloc((N+1)*nb*sizeof(int));
+	for(ii=0; ii<=N; ii++)
+		{
+		hidxb[ii] = ptr_idx+ii*nb;
+		for(jj=0; jj<nb_v[ii]; jj++)
+			hidxb[ii][jj] = jj;
+		}
 
 
 
@@ -341,13 +350,14 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 
 	// call solver 
-	fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, tol, N, nx_v, nu_v, nb_v, ng_v, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi, hlam, ht, inf_norm_res, work, stat);
+	fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, tol, N, nx_v, nu_v, nb_v, hidxb, ng_v, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi, hlam, ht, inf_norm_res, work, stat);
 
 
 	*kkk = (double) kk;
 
 
 	free(work);
+	free(ptr_idx);
 
 
 	return;
