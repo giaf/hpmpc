@@ -282,8 +282,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 				v_qx1   = _mm256_sub_pd( v_lam1, v_qx1 );
 				v_Qx0   = _mm256_add_pd( v_lamt0, v_lamt1 );
 				v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
-				_mm256_maskstore_pd( &Qx[jj][ii], i_mask, v_Qx0 );
-				_mm256_maskstore_pd( &qx[jj][ii], i_mask, v_qx0 );
+				_mm256_maskstore_pd( &ptr_Qx[ii], i_mask, v_Qx0 );
+				_mm256_maskstore_pd( &ptr_qx[ii], i_mask, v_qx0 );
 
 				}
 		
@@ -372,8 +372,8 @@ void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 				v_qx1   = _mm256_sub_pd( v_lam1, v_qx1 );
 				v_Qx0   = _mm256_add_pd( v_lamt0, v_lamt1 );
 				v_qx0   = _mm256_sub_pd( v_qx1, v_qx0 );
-				_mm256_maskstore_pd( &Qx[jj][ii], i_mask, v_Qx0 );
-				_mm256_maskstore_pd( &qx[jj][ii], i_mask, v_qx0 );
+				_mm256_maskstore_pd( &ptr_Qx[ii], i_mask, v_Qx0 );
+				_mm256_maskstore_pd( &ptr_qx[ii], i_mask, v_qx0 );
 
 				}
 
