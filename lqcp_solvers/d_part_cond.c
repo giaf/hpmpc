@@ -29,15 +29,12 @@
 
 #include "../include/aux_d.h"
 #include "../include/blas_d.h"
-#include "../include/lqcp_aux.h"
 #include "../include/block_size.h"
+#include "../include/lqcp_aux.h"
 
 #ifdef BLASFEO
 #include <blasfeo_d_blas.h>
 #endif
-//#else
-#include "../include/blas_d.h"
-//#endif
 
 
 
@@ -272,7 +269,7 @@ void d_cond_BAbt(int N, int *nx, int *nu, double **hpBAbt, double *work, double 
 
 		// Gamma * A^T
 #ifdef BLASFEO
-		dgemm_ntnn_lib(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], hpGamma[ii-1], cnx[ii], pA, cnx[ii], 0, buffer, cnx[ii+1], buffer, cnx[ii+1]); // Gamma * A^T // TODO in BLASFEO, store to unaligned !!!!!
+		dgemm_nt_lib(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], hpGamma[ii-1], cnx[ii], pA, cnx[ii], 0, buffer, cnx[ii+1], buffer, cnx[ii+1]); // Gamma * A^T // TODO in BLASFEO, store to unaligned !!!!!
 #else
 		dgemm_nt_lib(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], hpGamma[ii-1], cnx[ii], pA, cnx[ii], 0, buffer, cnx[ii+1], buffer, cnx[ii+1], 0, 0); // Gamma * A^T // TODO in BLASFEO, store to unaligned !!!!!
 #endif
@@ -429,7 +426,7 @@ for(nn=0; nn<=N; nn++)
 	dgetr_lib(nx[N-1], nu[N-1], nu[N-1], pL+nu[N-1]/bs*bs*cnux[N-1]+nu[N-1]%bs, cnux[N-1], 0, pM, cnu[N-1]);
 
 #ifdef BLASFEO
-	dgemm_ntnn_lib(nu2[N-1]+nx[0]+1, nu[N-1], nx[N-1], hpGamma[N-2], cnx[N-1], pM, cnu[N-1], 0, buffer, cnu[N-1], buffer, cnu[N-1]);
+	dgemm_nt_lib(nu2[N-1]+nx[0]+1, nu[N-1], nx[N-1], hpGamma[N-2], cnx[N-1], pM, cnu[N-1], 0, buffer, cnu[N-1], buffer, cnu[N-1]);
 #else
 	dgemm_nt_lib(nu2[N-1]+nx[0]+1, nu[N-1], nx[N-1], hpGamma[N-2], cnx[N-1], pM, cnu[N-1], 0, buffer, cnu[N-1], buffer, cnu[N-1], 0, 0);
 #endif
@@ -449,7 +446,7 @@ for(nn=0; nn<=N; nn++)
 //		d_print_pmat(nx[N-nn]+1, nx[N-nn], bs, pLx, cnx[N-nn]);
 
 #ifdef BLASFEO
-		dpotrf_ntnn_l_lib(nx[N-nn]+1, nx[N-nn], pLx, cnx[N-nn], pLx, cnx[N-nn], dLx);
+		dpotrf_nt_l_lib(nx[N-nn]+1, nx[N-nn], pLx, cnx[N-nn], pLx, cnx[N-nn], dLx);
 #else
 		dpotrf_lib(nx[N-nn]+1, nx[N-nn], pLx, cnx[N-nn], pLx, cnx[N-nn], dLx);
 #endif
@@ -458,7 +455,7 @@ for(nn=0; nn<=N; nn++)
 //		d_print_pmat(nx[N]+1, nx[N], bs, pLx, cnx[N-nn]);
 
 #ifdef BLASFEO
-		dtrmm_ntnn_ru_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], pLx, cnx[N-nn], 0, pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn]);
+		dtrmm_nt_ru_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], pLx, cnx[N-nn], 0, pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn]);
 #else
 		dtrmm_nt_u_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], pLx, cnx[N-nn], pBAbtL, cnx[N-nn]);
 #endif
@@ -466,7 +463,7 @@ for(nn=0; nn<=N; nn++)
 		dgead_lib(1, nx[N-nn], 1.0, nx[N-nn], pLx+nx[N-nn]/bs*bs*cnx[N-nn]+nx[N-nn]%bs, cnx[N-nn], nux[N-nn-1], pBAbtL+nux[N-nn-1]/bs*bs*cnx[N-nn]+nux[N-nn-1]%bs, cnx[N-nn]);
 
 #ifdef BLASFEO
-		dsyrk_ntnn_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn], pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], pL, cnux[N-nn-1]);
+		dsyrk_nt_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn], pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], pL, cnux[N-nn-1]);
 #else
 		dsyrk_nt_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn], pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], pL, cnux[N-nn-1]);
 #endif
@@ -479,7 +476,7 @@ for(nn=0; nn<=N; nn++)
 		dgetr_lib(nx[N-nn-1], nu[N-nn-1], nu[N-nn-1], pL+nu[N-nn-1]/bs*bs*cnux[N-nn-1]+nu[N-nn-1]%bs, cnux[N-nn-1], 0, pM, cnu[N-nn-1]);
 
 #ifdef BLASFEO
-		dgemm_ntnn_lib(nu2[N-nn-1]+nx[0]+1, nu[N-nn-1], nx[N-nn-1], hpGamma[N-nn-2], cnx[N-nn-1], pM, cnu[N-nn-1], 0, buffer, cnu[N-nn-1], buffer, cnu[N-nn-1]); // add unaligned stores in BLASFEO !!!!!!
+		dgemm_nt_lib(nu2[N-nn-1]+nx[0]+1, nu[N-nn-1], nx[N-nn-1], hpGamma[N-nn-2], cnx[N-nn-1], pM, cnu[N-nn-1], 0, buffer, cnu[N-nn-1], buffer, cnu[N-nn-1]); // add unaligned stores in BLASFEO !!!!!!
 #else
 		dgemm_nt_lib(nu2[N-nn-1]+nx[0]+1, nu[N-nn-1], nx[N-nn-1], hpGamma[N-nn-2], cnx[N-nn-1], pM, cnu[N-nn-1], 0, buffer, cnu[N-nn-1], buffer, cnu[N-nn-1], 0, 0); // add unaligned stores in BLASFEO !!!!!!
 #endif
@@ -501,7 +498,7 @@ for(nn=0; nn<=N; nn++)
 //	d_print_pmat(nx[N-nn]+1, nx[N-nn], bs, pLx, cnx[N-nn]);
 
 #ifdef BLASFEO
-	dpotrf_ntnn_l_lib(nx[N-nn]+1, nx[N-nn], pLx, cnx[N-nn], pLx, cnx[N-nn], dLx);
+	dpotrf_nt_l_lib(nx[N-nn]+1, nx[N-nn], pLx, cnx[N-nn], pLx, cnx[N-nn], dLx);
 #else
 	dpotrf_lib(nx[N-nn]+1, nx[N-nn], pLx, cnx[N-nn], pLx, cnx[N-nn], dLx);
 #endif
@@ -510,7 +507,7 @@ for(nn=0; nn<=N; nn++)
 //	d_print_pmat(nx[N]+1, nx[N], bs, pLx, cnx[N-nn]);
 
 #ifdef BLASFEO
-	dtrmm_ntnn_ru_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], pLx, cnx[N-nn], 0, pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn]);
+	dtrmm_nt_ru_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], pLx, cnx[N-nn], 0, pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn]);
 #else
 	dtrmm_nt_u_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], pLx, cnx[N-nn], pBAbtL, cnx[N-nn]);
 #endif
@@ -518,7 +515,7 @@ for(nn=0; nn<=N; nn++)
 	dgead_lib(1, nx[N-nn], 1.0, nx[N-nn], pLx+nx[N-nn]/bs*bs*cnx[N-nn]+nx[N-nn]%bs, cnx[N-nn], nux[N-nn-1], pBAbtL+nux[N-nn-1]/bs*bs*cnx[N-nn]+nux[N-nn-1]%bs, cnx[N-nn]);
 
 #ifdef BLASFEO
-	dsyrk_ntnn_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn], pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], pL, cnux[N-nn-1]);
+	dsyrk_nt_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn], pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], pL, cnux[N-nn-1]);
 #else
 	dsyrk_nt_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn], pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], pL, cnux[N-nn-1]);
 #endif
@@ -644,7 +641,53 @@ void d_cond_DCtd(int N, int *nx, int *nu, int *nb, int **hidxb, double **hd, dou
 
 
 
-int d_part_cond_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2)
+// XXX does not compute hidxb2
+void d_part_cond_compute_problem_size(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2)
+	{
+
+	int ii, jj, kk;
+
+	int N1 = N/N2; // (floor) horizon of small blocks
+	int R1 = N - N2*N1; // the first R1 blocks have horizon N1+1
+	int M1 = R1>0 ? N1+1 : N1; // (ceil) horizon of large blocks
+	int T1; // horizon of current block
+
+	int N_tmp = 0; // temporary sum of horizons
+	int nbb; // box constr that remain box constr
+	int nbg; // box constr that becomes general constr
+	for(ii=0; ii<N2; ii++)
+		{
+		T1 = ii<R1 ? M1 : N1;
+		nx2[ii] = nx[N_tmp+0];
+		nu2[ii] = nu[N_tmp+0];
+		nb2[ii] = nb[N_tmp+0];
+		ng2[ii] = ng[N_tmp+0];
+		for(jj=1; jj<T1; jj++)
+			{
+			nbb = 0;
+			nbg = 0;
+			for(kk=0; kk<nb[N_tmp+jj]; kk++)
+				if(hidxb[N_tmp+jj][kk]<nu[N_tmp+jj])
+					nbb++;
+				else
+					nbg++;
+			nx2[ii] += 0;
+			nu2[ii] += nu[N_tmp+jj];
+			nb2[ii] += nbb;
+			ng2[ii] += ng[N_tmp+jj] + nbg;
+			}
+		N_tmp += T1;
+		}
+	nx2[N2] = nx[N];
+	nu2[N2] = nu[N];
+	nb2[N2] = nb[N];
+	ng2[N2] = ng[N];
+
+	}
+
+
+
+int d_part_cond_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2)
 	{
 
 	const int bs = D_MR;
@@ -668,73 +711,14 @@ int d_part_cond_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hi
 		cnu[ii] = (nu[ii]+ncl-1)/ncl*ncl;
 		}
 
-	// compute problem size
-	int nx2[N2+1];
-	int nu2[N2+1];
-	int nb2[N2+1];
-	int ng2[N2+1];
-
 	int N1 = N/N2; // (floor) horizon of small blocks
 	int R1 = N - N2*N1; // the first R1 blocks have horizon N1+1
 	int M1 = R1>0 ? N1+1 : N1; // (ceil) horizon of large blocks
 	int T1; // horizon of current block
-
-	int NN = 0; // temporary sum of horizons
-	int nbb; // box constr that remain box constr
-	int nbg; // box constr that becomes general constr
-	for(ii=0; ii<N2; ii++)
-		{
-		T1 = ii<R1 ? M1 : N1;
-		nx2[ii] = nx[NN+0];
-		nu2[ii] = nu[NN+0];
-		nb2[ii] = nb[NN+0];
-		ng2[ii] = ng[NN+0];
-		for(jj=1; jj<T1; jj++)
-			{
-			nbb = 0;
-			nbg = 0;
-			for(kk=0; kk<nb[NN+jj]; kk++)
-				if(hidxb[NN+jj][kk]<nu[NN+jj])
-					nbb++;
-				else
-					nbg++;
-			nx2[ii] += 0;
-			nu2[ii] += nu[NN+jj];
-			nb2[ii] += nbb;
-			ng2[ii] += ng[NN+jj] + nbg;
-			}
-		NN += T1;
-		}
-	nx2[N2] = nx[N];
-	nu2[N2] = nu[N];
-	nb2[N2] = nb[N];
-	ng2[N2] = ng[N];
-
-	// packing quantities - 2
-//	int pnz2[N2+1];
-//	int pnux2[N2+1];
-//	int pnb2[N2+1];
-//	int png2[N2+1];
-//	int cnx2[N2+1];
-//	int cnux2[N2+1];
-//	int cng2[N2+1];
-	for(ii=0; ii<=N2; ii++)
-		{
-//		pnz2[ii] = (nu2[ii]+nx2[ii]+1+bs-1)/bs*bs;
-//		pnux2[ii] = (nu2[ii]+nx2[ii]+bs-1)/bs*bs;
-//		pnb2[ii] = (nb2[ii]+bs-1)/bs*bs;
-//		png2[ii] = (ng2[ii]+bs-1)/bs*bs;
-//		cnx2[ii] = (nx2[ii]+ncl-1)/ncl*ncl;
-//		cnux2[ii] = (nu2[ii]+nx2[ii]+ncl-1)/ncl*ncl;
-//		cng2[ii] = (ng2[ii]+ncl-1)/ncl*ncl;
-		}
+	int N_tmp; // temporary sum of horizons
 
 	// data matrices
-	int size = 0;
-	for(ii=0; ii<N2; ii++)
-		{
-		}
-	ii = N2;
+	int d_size = 0;
 
 	int Gamma_size;
 	int pA_size;
@@ -748,7 +732,7 @@ int d_part_cond_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hi
 
 	int stage_size = 0;
 
-	NN = 0;
+	N_tmp = 0;
 	for(ii=0; ii<N2; ii++)
 		{
 		T1 = ii<R1 ? M1 : N1;
@@ -760,15 +744,15 @@ int d_part_cond_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hi
 		for(jj=0; jj<T1; jj++)
 			{
 			// hpGamma
-			Gamma_size += ((nx[NN+0]+nu_tmp+nu[NN+jj]+1+bs-1)/bs*bs) * cnx[NN+jj+1];
+			Gamma_size += ((nx[N_tmp+0]+nu_tmp+nu[N_tmp+jj]+1+bs-1)/bs*bs) * cnx[N_tmp+jj+1];
 			// pA
-			tmp_size = pnx[NN+jj] * cnx[NN+jj+1];
+			tmp_size = pnx[N_tmp+jj] * cnx[N_tmp+jj+1];
 			pA_size = tmp_size > pA_size ? tmp_size : pA_size;
 			// buffer
-			tmp_size += ((nx[NN+0]+nu_tmp+1+bs-1)/bs*bs) * cnx[NN+jj+1];
+			tmp_size += ((nx[N_tmp+0]+nu_tmp+1+bs-1)/bs*bs) * cnx[N_tmp+jj+1];
 			buffer_size = tmp_size > buffer_size ? tmp_size : buffer_size;
 			//
-			nu_tmp += nu[NN+jj];
+			nu_tmp += nu[N_tmp+jj];
 			}
 
 		tmp_size = Gamma_size + pA_size + buffer_size;
@@ -784,20 +768,20 @@ int d_part_cond_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hi
 		for(jj=0; jj<T1; jj++)
 			{
 			// nu
-			nuM = nu[NN+jj] > nuM ? nu[NN+jj] : nuM;
-			nxM = nx[NN+jj] > nxM ? nx[NN+jj] : nxM;
-			nuxM = nu[NN+jj]+nx[NN+jj] > nxM ? nu[NN+jj]+nx[NN+jj] : nxM;
+			nuM = nu[N_tmp+jj] > nuM ? nu[N_tmp+jj] : nuM;
+			nxM = nx[N_tmp+jj] > nxM ? nx[N_tmp+jj] : nxM;
+			nuxM = nu[N_tmp+jj]+nx[N_tmp+jj] > nxM ? nu[N_tmp+jj]+nx[N_tmp+jj] : nxM;
 			// pBAbtL
-			tmp_size = pnz[NN+jj]*cnx[NN+jj+1];
+			tmp_size = pnz[N_tmp+jj]*cnx[N_tmp+jj+1];
 			pBAbtL_size = tmp_size > pBAbtL_size ? tmp_size : pBAbtL_size;
 			// buffer
-			tmp_size = ((nu_tmp+nx[NN+0]+1+bs-1)/bs*bs) * cnu[NN+jj+1];
+			tmp_size = ((nu_tmp+nx[N_tmp+0]+1+bs-1)/bs*bs) * cnu[N_tmp+jj+1];
 			buffer_size = tmp_size > buffer_size ? tmp_size : buffer_size;
 			// pM
-			tmp_size = pnu[NN+jj]*cnx[NN+jj];
+			tmp_size = pnu[N_tmp+jj]*cnx[N_tmp+jj];
 			pM_size = tmp_size > pM_size ? tmp_size : pM_size;
 			//
-			nu_tmp += nu[NN+jj];
+			nu_tmp += nu[N_tmp+jj];
 			}
 
 		pnzM = (nuM+nxM+1+bs-1)/bs*bs;
@@ -807,14 +791,16 @@ int d_part_cond_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hi
 		tmp_size = Gamma_size + pBAbtL_size + buffer_size + pM_size + pnzM*cnuxM + pnx1M*cnxM + pnx1M;
 		stage_size = tmp_size > stage_size ? tmp_size : stage_size;
 
-		NN += T1;
+		N_tmp += T1;
 		}
 	
-	size += stage_size;
+	d_size += stage_size;
 
-//	printf("\nwork size = %d\n", stage_size);
+	int size = d_size*sizeof(double);
 
-	return size*sizeof(double);
+	size = (size + 63) / 64 * 64; // make work space multiple of (typical) cache line size
+
+	return size;
 
 	}
 
@@ -822,7 +808,7 @@ int d_part_cond_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hi
 
 
 
-int d_part_cond_memory_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2)
+int d_part_cond_memory_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2)
 	{
 
 	// early return
@@ -835,48 +821,6 @@ int d_part_cond_memory_space_size_bytes(int N, int *nx, int *nu, int *nb, int **
 	const int ncl = D_NCL;
 
 	int ii, jj, kk;
-
-	// compute problem size
-	int nx2[N2+1];
-	int nu2[N2+1];
-	int nb2[N2+1];
-	int ng2[N2+1];
-
-	int N1 = N/N2; // (floor) horizon of small blocks
-	int R1 = N - N2*N1; // the first R1 blocks have horizon N1+1
-	int M1 = R1>0 ? N1+1 : N1; // (ceil) horizon of large blocks
-	int T1; // horizon of current block
-
-	int NN = 0; // temporary sum of horizons
-	int nbb; // box constr that remain box constr
-	int nbg; // box constr that becomes general constr
-	for(ii=0; ii<N2; ii++)
-		{
-		T1 = ii<R1 ? M1 : N1;
-		nx2[ii] = nx[NN+0];
-		nu2[ii] = nu[NN+0];
-		nb2[ii] = nb[NN+0];
-		ng2[ii] = ng[NN+0];
-		for(jj=1; jj<T1; jj++)
-			{
-			nbb = 0;
-			nbg = 0;
-			for(kk=0; kk<nb[NN+jj]; kk++)
-				if(hidxb[NN+jj][kk]<nu[NN+jj])
-					nbb++;
-				else
-					nbg++;
-			nx2[ii] += 0;
-			nu2[ii] += nu[NN+jj];
-			nb2[ii] += nbb;
-			ng2[ii] += ng[NN+jj] + nbg;
-			}
-		NN += T1;
-		}
-	nx2[N2] = nx[N];
-	nu2[N2] = nu[N];
-	nb2[N2] = nb[N];
-	ng2[N2] = ng[N];
 
 	// packing quantities
 	int pnz2[N2+1];
@@ -898,17 +842,17 @@ int d_part_cond_memory_space_size_bytes(int N, int *nx, int *nu, int *nb, int **
 		}
 
 	// data matrices
-	int size = 0;
+	int d_size = 0;
 	for(ii=0; ii<N2; ii++)
 		{
 		// hpBAbt2
-		size += pnz2[ii]*cnx2[ii+1];
+		d_size += pnz2[ii]*cnx2[ii+1];
 		// hpRSQrq2
-		size += pnz2[ii]*cnux2[ii];
+		d_size += pnz2[ii]*cnux2[ii];
 		// hDCt2
-		size += pnux2[ii]*cng2[ii];
+		d_size += pnux2[ii]*cng2[ii];
 		// hd2
-		size += 2*pnb2[ii]+2*png2[ii];
+		d_size += 2*pnb2[ii]+2*png2[ii];
 		}
 	// no last stage !!!!!
 	int i_size = 0;
@@ -918,7 +862,11 @@ int d_part_cond_memory_space_size_bytes(int N, int *nx, int *nu, int *nb, int **
 		i_size += nb2[ii];
 		}
 
-	return size*sizeof(double) + i_size*sizeof(int);
+	int size = d_size*sizeof(double) + i_size*sizeof(int);
+
+	size = (size + 63) / 64 * 64; // make memory space multiple of (typical) cache line size
+
+	return size;
 
 	}
 
@@ -984,42 +932,11 @@ void d_part_cond(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, double 
 		cnx[ii] = (nx[ii]+ncl-1)/ncl*ncl;
 		}
 
-	// compute problem size
 	int N1 = N/N2; // (floor) horizon of small blocks
 	int R1 = N - N2*N1; // the first R1 blocks have horizon N1+1
 	int M1 = R1>0 ? N1+1 : N1; // (ceil) horizon of large blocks
 	int T1; // horizon of current block
-
-	int NN = 0; // temporary sum of horizons
-	int nbb; // box constr that remain box constr
-	int nbg; // box constr that becomes general constr
-	for(ii=0; ii<N2; ii++)
-		{
-		T1 = ii<R1 ? M1 : N1;
-		nx2[ii] = nx[NN+0];
-		nu2[ii] = nu[NN+0];
-		nb2[ii] = nb[NN+0];
-		ng2[ii] = ng[NN+0];
-		for(jj=1; jj<T1; jj++)
-			{
-			nbb = 0;
-			nbg = 0;
-			for(kk=0; kk<nb[NN+jj]; kk++)
-				if(hidxb[NN+jj][kk]<nu[NN+jj])
-					nbb++;
-				else
-					nbg++;
-			nx2[ii] += 0;
-			nu2[ii] += nu[NN+jj];
-			nb2[ii] += nbb;
-			ng2[ii] += ng[NN+jj] + nbg;
-			}
-		NN += T1;
-		}
-	nx2[N2] = nx[N];
-	nu2[N2] = nu[N];
-	nb2[N2] = nb[N];
-	ng2[N2] = ng[N];
+	int N_tmp = 0; // temporary sum of horizons
 
 	// packing quantities - 2
 	int pnz2[N2+1];
@@ -1073,22 +990,22 @@ void d_part_cond(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, double 
 	double *hpGamma[M1];
 
 	// other stages
-	NN = 0;
+	N_tmp = 0;
 	for(ii=0; ii<N2; ii++)
 		{
 		T1 = ii<R1 ? M1 : N1;
 		ptr = work;
-		nu_tmp = nu[NN+0];
+		nu_tmp = nu[N_tmp+0];
 		for(jj=0; jj<T1; jj++)
 			{
 			hpGamma[jj] = ptr;
-			ptr += ((nx[NN+0]+nu_tmp+1+bs-1)/bs*bs) * cnx[NN+jj+1];
-			nu_tmp += nu[NN+jj+1];
+			ptr += ((nx[N_tmp+0]+nu_tmp+1+bs-1)/bs*bs) * cnx[N_tmp+jj+1];
+			nu_tmp += nu[N_tmp+jj+1];
 			}
-		d_cond_BAbt(T1, &nx[NN], &nu[NN], &hpBAbt[NN], ptr, hpGamma, hpBAbt2[ii]);
-		d_cond_RSQrq(T1, &nx[NN], &nu[NN], &hpBAbt[NN], &hpRSQrq[NN], hpGamma, ptr, hpRSQrq2[ii]);
-		d_cond_DCtd(T1, &nx[NN], &nu[NN], &nb[NN], &hidxb[NN], &hd[NN], hpGamma, hpDCt2[ii], hd2[ii], hidxb2[ii]);
-		NN += T1;
+		d_cond_BAbt(T1, &nx[N_tmp], &nu[N_tmp], &hpBAbt[N_tmp], ptr, hpGamma, hpBAbt2[ii]);
+		d_cond_RSQrq(T1, &nx[N_tmp], &nu[N_tmp], &hpBAbt[N_tmp], &hpRSQrq[N_tmp], hpGamma, ptr, hpRSQrq2[ii]);
+		d_cond_DCtd(T1, &nx[N_tmp], &nu[N_tmp], &nb[N_tmp], &hidxb[N_tmp], &hd[N_tmp], hpGamma, hpDCt2[ii], hd2[ii], hidxb2[ii]);
+		N_tmp += T1;
 		}
 
 	// last stage
@@ -1096,6 +1013,233 @@ void d_part_cond(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, double 
 	hpDCt2[N2] = hpDCt[N];
 	hd2[N2] = hd[N];
 	hidxb2[N2] = hidxb[N];
+
+	return;
+
+	}
+
+
+
+int d_part_expand_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng)
+	{
+
+	const int bs = D_MR;
+
+	int ii;
+
+	int nzM = nu[0]+nx[0]+1;
+	int ngM = ng[0];
+
+	for(ii=1; ii<=N; ii++)
+		{
+		nzM = nu[ii]+nx[ii]+1>nzM ? nu[ii]+nx[ii]+1 : nzM;
+		ngM = ng[ii]>ngM ? ng[ii] : ngM;
+		}
+	
+	int pnzM = (nzM+bs-1)/bs*bs;
+	int pngM = (ngM+bs-1)/bs*bs;
+
+	int d_size = pnzM + pngM;
+
+	int size = d_size*sizeof(double);
+
+	size = (size + 63) / 64 * 64; // make multiple of (typical) cache line size
+
+	return size;
+
+	}
+
+
+
+void d_part_expand_solution(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, double **hpBAbt, double **hb, double **hpRSQrq, double **hrq, double **hpDCt, double **hux, double **hpi, double **hlam, double **ht, int N2, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, double **hux2, double **hpi2, double **hlam2, double **ht2, void *work)
+	{
+
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int ii, jj, ll;
+
+	int pnb[N+1];
+	int png[N+1];
+	int cnx[N+1];
+	int cnux[N+1];
+	int cng[N+1];
+	int nzM = 0;
+	int ngM = 0;
+
+	for(ii=0; ii<=N; ii++)
+		{
+		pnb[ii] = (nb[ii]+bs-1)/bs*bs;
+		png[ii] = (ng[ii]+bs-1)/bs*bs;
+		cnx[ii] = (nx[ii]+ncl-1)/ncl*ncl;
+		cnux[ii] = (nu[ii]+nx[ii]+ncl-1)/ncl*ncl;
+		cng[ii] = (ng[ii]+ncl-1)/ncl*ncl;
+		nzM = nu[ii]+nx[ii]+1>nzM ? nu[ii]+nx[ii]+1 : nzM;
+		ngM = ng[ii]>ngM ? ng[ii] : ngM;
+		}
+	
+	int pnzM = (nzM+bs-1)/bs*bs;
+	int pngM = (ngM+bs-1)/bs*bs;
+
+	int pnb2[N2+1];
+	int png2[N2+1];
+
+	for(ii=0; ii<=N2; ii++)
+		{
+		pnb2[ii] = (nb2[ii]+bs-1)/bs*bs;
+		png2[ii] = (ng2[ii]+bs-1)/bs*bs;
+		}
+
+	double *pi_work0;
+	double *pi_work1;
+
+	double *ptr = (double *) work;
+
+	pi_work0 = ptr;
+	ptr += pnzM;
+
+	pi_work1 = ptr;
+	ptr += pngM;
+
+
+	int N1 = N/N2; // (floor) horizon of small blocks
+	int R1 = N - N2*N1; // the first R1 blocks have horizion N1+1
+	int M1 = R1>0 ? N1+1 : N1; // (ceil) horizon of large blocks
+	int T1; // horizon of current block
+	int N_tmp, nu_tmp;
+	int nbb2, nbg2, nbb2_tmp, nbg2_tmp;
+	int stg;
+
+	// inputs & initial states
+	N_tmp = 0;
+	for(ii=0; ii<N2; ii++)
+		{
+		T1 = ii<R1 ? M1 : N1;
+		nu_tmp = 0;
+		// final stages: copy only input
+		for(jj=0; jj<T1-1; jj++)
+			{
+			for(ll=0; ll<nu[N_tmp+T1-1-jj]; ll++)
+				hux[N_tmp+T1-1-jj][ll] = hux2[ii][nu_tmp+ll];
+			nu_tmp += nu[N_tmp+T1-1-jj];
+			}
+		// first stage: copy input and state
+		for(ll=0; ll<nu[N_tmp+0]+nx[N_tmp+0]; ll++)
+			hux[N_tmp+0][ll] = hux2[ii][nu_tmp+ll];
+		//
+		N_tmp += T1;
+		}
+
+	// copy final state
+	for(ll=0; ll<nx[N]; ll++)
+		hux[N][ll] = hux2[N2][ll];
+
+	// compute missing states by simulation within each block
+	N_tmp = 0;
+	for(ii=0; ii<N2; ii++)
+		{
+		T1 = ii<R1 ? M1 : N1;
+		for(jj=0; jj<T1-1; jj++) // last stage is already there !!!
+			{
+			for(ll=0; ll<nx[N_tmp+jj+1]; ll++)
+				hux[N_tmp+jj+1][nu[N_tmp+jj+1]+ll] = hb[N_tmp+jj][ll];
+			dgemv_t_lib(nu[N_tmp+jj]+nx[N_tmp+jj], nx[N_tmp+jj+1], hpBAbt[N_tmp+jj], cnx[N_tmp+jj+1], hux[N_tmp+jj], 1, hux[N_tmp+jj+1]+nu[N_tmp+jj+1], hux[N_tmp+jj+1]+nu[N_tmp+jj+1]);
+			}
+		//
+		N_tmp += T1;
+		}
+
+	// slack variables and ineq lagrange multipliers
+	N_tmp = 0;
+	for(ii=0; ii<N2; ii++)
+		{
+		nbb2_tmp = 0;
+		nbg2_tmp = 0;
+		T1 = ii<R1 ? M1 : N1;
+		// final stages
+		for(jj=0; jj<T1-1; jj++)
+			{
+			nbb2 = 0;
+			nbg2 = 0;
+			for(ll=0; ll<nb[N_tmp+T1-1-jj]; ll++)
+				if(hidxb[N_tmp+T1-1-jj][ll]<nu[N_tmp+T1-1-jj])
+					nbb2++;
+				else
+					nbg2++;
+			for(ll=0; ll<nbb2; ll++) // box as box
+				{
+				hlam[N_tmp+T1-1-jj][0*pnb[N_tmp+T1-1-jj]+ll] = hlam2[ii][0*pnb2[ii]+nbb2_tmp+ll];
+				hlam[N_tmp+T1-1-jj][1*pnb[N_tmp+T1-1-jj]+ll] = hlam2[ii][1*pnb2[ii]+nbb2_tmp+ll];
+				ht[N_tmp+T1-1-jj][0*pnb[N_tmp+T1-1-jj]+ll] = ht2[ii][0*pnb2[ii]+nbb2_tmp+ll];
+				ht[N_tmp+T1-1-jj][1*pnb[N_tmp+T1-1-jj]+ll] = ht2[ii][1*pnb2[ii]+nbb2_tmp+ll];
+				}
+			for(ll=0; ll<nbg2; ll++) // box as general XXX change when decide where nbg are placed wrt ng
+				{
+				hlam[N_tmp+T1-1-jj][0*pnb[N_tmp+T1-1-jj]+nbb2+ll] = hlam2[ii][2*pnb2[ii]+0*png2[ii]+nbg2_tmp+ll];
+				hlam[N_tmp+T1-1-jj][1*pnb[N_tmp+T1-1-jj]+nbb2+ll] = hlam2[ii][2*pnb2[ii]+1*png2[ii]+nbg2_tmp+ll];
+				ht[N_tmp+T1-1-jj][0*pnb[N_tmp+T1-1-jj]+nbb2+ll] = ht2[ii][2*pnb2[ii]+0*png2[ii]+nbg2_tmp+ll];
+				ht[N_tmp+T1-1-jj][1*pnb[N_tmp+T1-1-jj]+nbb2+ll] = ht2[ii][2*pnb2[ii]+1*png2[ii]+nbg2_tmp+ll];
+				}
+			nbb2_tmp += nbb2;
+			nbg2_tmp += nbg2;
+			}
+		// first stage
+		for(ll=0; ll<nb[N_tmp+0]; ll++) // all remain box
+			{
+			hlam[N_tmp+T1-1-jj][0*pnb[N_tmp+T1-1-jj]+ll] = hlam2[ii][0*pnb2[ii]+nbb2_tmp+ll];
+			hlam[N_tmp+T1-1-jj][1*pnb[N_tmp+T1-1-jj]+ll] = hlam2[ii][1*pnb2[ii]+nbb2_tmp+ll];
+			ht[N_tmp+T1-1-jj][0*pnb[N_tmp+T1-1-jj]+ll] = ht2[ii][0*pnb2[ii]+nbb2_tmp+ll];
+			ht[N_tmp+T1-1-jj][1*pnb[N_tmp+T1-1-jj]+ll] = ht2[ii][1*pnb2[ii]+nbb2_tmp+ll];
+			}
+//		nbb2_tmp += nbb2;
+//		nbg2_tmp += nbg2;
+		//
+		N_tmp += T1;
+		}
+	// last stage: just copy
+	for(jj=0; jj<nb[N]; jj++)
+		{
+		hlam[N][0*pnb[N]+jj] = hlam2[N2][0*pnb2[N2]+jj];
+		hlam[N][1*pnb[N]+jj] = hlam2[N2][1*pnb2[N2]+jj];
+		ht[N][0*pnb[N]+jj] = ht2[N2][0*pnb2[N2]+jj];
+		ht[N][1*pnb[N]+jj] = ht2[N2][1*pnb2[N2]+jj];
+		}
+	for(jj=0; jj<ng[N]; jj++)
+		{
+		hlam[N][2*pnb[N]+0*png[N]+jj] = hlam2[N2][2*pnb2[N2]+0*png2[N2]+jj];
+		hlam[N][2*pnb[N]+1*png[N]+jj] = hlam2[N2][2*pnb2[N2]+1*png2[N2]+jj];
+		ht[N][2*pnb[N]+0*png[N]+jj] = ht2[N2][2*pnb2[N2]+0*png2[N2]+jj];
+		ht[N][2*pnb[N]+1*png[N]+jj] = ht2[N2][2*pnb2[N2]+1*png2[N2]+jj];
+		}
+
+	// lagrange multipliers of equality constraints
+	N_tmp = 0;
+	for(ii=0; ii<N2; ii++)
+		{
+		T1 = ii<R1 ? M1 : N1;
+		// last stage: just copy
+		for(ll=0; ll<nx[N_tmp+T1]; ll++)
+			hpi[N_tmp+T1-1][ll] = hpi2[ii][ll];
+		// middle stages: backward simulation
+		for(jj=0; jj<T1-1; jj++)
+			{
+			stg = N_tmp+T1-1-jj;
+			for(ll=0; ll<nu[stg]+nx[stg]; ll++)
+				pi_work0[ll] = hrq[stg][ll];
+			for(ll=0; ll<nb[stg]; ll++)
+				pi_work0[hidxb[stg][ll]] += - hlam[stg][0*pnb[stg]+ll] + hlam[stg][1*pnb[stg]+ll];
+			dsymv_lib(nu[stg]+nx[stg], nu[stg]+nx[stg], hpRSQrq[stg], cnux[stg], hux[stg], 1, pi_work0, pi_work0);
+			dgemv_n_lib(nu[stg]+nx[stg], nx[stg+1], hpBAbt[stg], cnx[stg+1], hpi[stg], 1, pi_work0, pi_work0);
+			for(ll=0; ll<ng[stg]; ll++)
+				pi_work1[ll] = hlam[stg][2*pnb[stg]+1*png[stg]+ll] - hlam[stg][2*pnb[stg]+0*png[stg]+ll];
+			dgemv_n_lib(nu[stg]+nx[stg], ng[stg], hpDCt[stg], cng[stg], pi_work1, 1, pi_work0, pi_work0);
+			//
+			for(ll=0; ll<nx[stg]; ll++)
+				hpi[stg-1][ll] = + pi_work0[nu[stg]+ll];
+			}
+		//
+		N_tmp += T1;
+		}
 
 	return;
 

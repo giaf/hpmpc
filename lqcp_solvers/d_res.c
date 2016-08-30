@@ -28,6 +28,9 @@
 #include "../include/blas_d.h"
 #include "../include/block_size.h"
 
+#ifdef BLASFEO
+#include <blasfeo_d_blas.h>
+#endif
 
 
 void d_back_ric_res_tv(int N, int *nx, int *nu, double **hpBAbt, double **hb, double **hpQ, double **hq, double **hux, double **hpi, double **hrq, double **hrb)

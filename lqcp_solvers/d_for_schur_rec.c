@@ -105,7 +105,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 
 		// assume that A is aligned to a panel boundary, and that the lower part of A is copied between Q and A
 #ifdef BLASFEO
-		dpotrf_ntnn_l_lib(nve0, nv0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
+		dpotrf_nt_l_lib(nve0, nv0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
 #else
 		dpotrf_lib(nve0, nv0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
 #endif
@@ -124,7 +124,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 	dgeset_lib(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
 	ddiareg_lib(ne0, reg, 0, hpLe_tmp, cne0);
 #ifdef BLASFEO
-	dsyrk_dpotrf_ntnn_l_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
+	dsyrk_dpotrf_nt_l_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
 #else
 	dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
 #endif
@@ -184,7 +184,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 
 			// assume that A is aligned to a panel boundary, and that the lower part of A is copied between Q and A
 #ifdef BLASFEO
-			dpotrf_ntnn_l_lib(2*nx0, nx0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
+			dpotrf_nt_l_lib(2*nx0, nx0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
 #else
 			dpotrf_lib(2*nx0, nx0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
 #endif
@@ -237,7 +237,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 			dlauum_lib(ne1, hpLe[ii-1], cne1, hpLe[ii-1], cne1, 1, hpLA[ii], cnv0, hpLA[ii], cnv0);
 //			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
 #ifdef BLASFEO
-			dpotrf_ntnn_l_lib(nve0, nv0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
+			dpotrf_nt_l_lib(nve0, nv0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
 #else
 			dpotrf_lib(nve0, nv0, hpLA[ii], cnv0, hpLA[ii], cnv0, hdLA[ii]);
 #endif
@@ -260,7 +260,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 		dgeset_lib(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
 		ddiareg_lib(ne0, reg, 0, hpLe_tmp, cne0);
 #ifdef BLASFEO
-		dsyrk_dpotrf_ntnn_l_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
+		dsyrk_dpotrf_nt_l_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
 #else
 		dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
 #endif
@@ -320,7 +320,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 	ddiareg_lib(nv0, reg, 0, hpLA[N], cnv0);
 
 #ifdef BLASFEO
-	dpotrf_ntnn_l_lib(nve0, nv0, hpLA[N], cnv0, hpLA[N], cnv0, hdLA[N]);
+	dpotrf_nt_l_lib(nve0, nv0, hpLA[N], cnv0, hpLA[N], cnv0, hdLA[N]);
 #else
 	dpotrf_lib(nve0, nv0, hpLA[N], cnv0, hpLA[N], cnv0, hdLA[N]);
 #endif
@@ -340,7 +340,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 		dgeset_lib(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);
 		ddiareg_lib(ne0, reg, 0, hpLe_tmp, cne0);
 #ifdef BLASFEO
-		dsyrk_dpotrf_ntnn_l_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
+		dsyrk_dpotrf_nt_l_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
 #else
 		dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, 1, hpLe_tmp, cne0, hpLe_tmp, cne0, hdLe_tmp);
 #endif
@@ -353,7 +353,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 		dgeset_lib(ne0, ne0, 0.0, 0, hpLe[N], cne0);
 		ddiareg_lib(ne0, reg, 0, hpLe[N], cne0);
 #ifdef BLASFEO
-		dsyrk_dpotrf_ntnn_l_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, 1, hpLe[N], cne0, hpLe[N], cne0, hdLe_tmp);
+		dsyrk_dpotrf_nt_l_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, hpLe[N], cne0, hpLe[N], cne0, hdLe_tmp);
 #else
 		dsyrk_dpotrf_lib(ne0, ne0, nv0, hpLA[N]+pnv0*cnv0, cnv0, hpLA[N]+pnv0*cnv0, cnv0, 1, hpLe[N], cne0, hpLe[N], cne0, hdLe_tmp);
 #endif
@@ -519,7 +519,7 @@ void d_forward_schur_trs_tv(int N, int *nv, int *ne, int *diag_hessian, double *
 	ii = N;
 #if 1
 #ifdef BLASFEO
-	dtrmv_u_t_lib(ne0, hpLe[N], cne0, hxupi[ii]+pnv0, 0, tmp);
+	dtrmv_ut_lib(ne0, hpLe[N], cne0, hxupi[ii]+pnv0, 0, tmp, tmp);
 #else
 	dtrmv_u_t_lib(ne0, hpLe[N], cne0, hxupi[ii]+pnv0, 0, tmp);
 #endif

@@ -27,6 +27,9 @@
 #include "../include/blas_d.h"
 #include "../include/block_size.h"
 
+#ifdef BLASFEO
+#include <blasfeo_d_blas.h>
+#endif
 
 
 /* supports the problem size to change stage-wise */

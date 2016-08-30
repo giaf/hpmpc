@@ -35,6 +35,10 @@
 #include "../../include/lqcp_solvers.h"
 #include "../../include/mpc_solvers.h"
 
+#ifdef BLASFEO
+#include <blasfeo_d_blas.h>
+#endif
+
 // Debug flag
 #ifndef PC_DEBUG
 #define PC_DEBUG 0

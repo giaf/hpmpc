@@ -61,7 +61,7 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 
 	int pnx, pnz, pnb, png, cnx, cnux; 
 
-	int size = 0;
+	int d_size = 0;
 	int pnzM = 0;
 	int pngM = 0;
 	for(ii=0; ii<N; ii++)
@@ -75,9 +75,9 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 		cnux = (nu[ii]+nx[ii]+ncl-1)/ncl*ncl;
 		pnx = (nx[ii]+bs-1)/bs*bs;
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
-		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 5*pnx + 6*pnz + 19*pnb + 18*png;
+		d_size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 5*pnx + 6*pnz + 19*pnb + 18*png;
 #if ITER_REF>0
-		size += pnz*cnux + 3*pnx + 3*pnz;
+		d_size += pnz*cnux + 3*pnx + 3*pnz;
 #endif
 		}
 	ii = N;
@@ -90,17 +90,19 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb
 	cnux = (nx[ii]+ncl-1)/ncl*ncl;
 	pnx = (nx[ii]+bs-1)/bs*bs;
 	pnz = (nx[ii]+1+bs-1)/bs*bs;
-	size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 5*pnx + 6*pnz + 19*pnb + 18*png;
+	d_size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 5*pnx + 6*pnz + 19*pnb + 18*png;
 #if ITER_REF>0
-	size += pnz*cnux + 3*pnx + 3*pnz;
+	d_size += pnz*cnux + 3*pnx + 3*pnz;
 #endif
 
-	size += 2*pngM;
+	d_size += 2*pngM;
 
-	size *= sizeof(double);
+	int size = d_size*sizeof(double);
 
 	size += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng);
 	size += d_back_ric_rec_sv_tv_memory_space_size_bytes(N, nx, nu, nb, ng);
+
+	size = (size + 63) / 64 * 64; // make work space multiple of (typical) cache line size
 
 	return size;
 	}
@@ -836,7 +838,7 @@ for(ii=0; ii<=N; ii++)
 //					work[(nu[ii]+nx[ii])/bs*cng[ii]*bs+(nu[ii]+nx[ii])%bs+jj*bs] /= Qx[ii][pnb[ii]+jj];
 				dgecp_lib(nu[ii]+nx[ii], ng[ii], 0, pDCt[ii], cng[ii], 0, work2, png[ii]);
 #ifdef BLASFEO
-				dsyrk_ntnn_l_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work2, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
+				dsyrk_nt_l_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work2, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
 #else
 				dsyrk_nt_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work2, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
 #endif

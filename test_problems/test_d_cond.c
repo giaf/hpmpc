@@ -1032,16 +1032,6 @@ int main()
 		nbb3_tmp = 0;
 		nbg3_tmp = 0;
 		T1 = ii<R1 ? M1 : N1;
-//		nbb3 = nb_v[N_tmp+0];
-//		nbg3 = 0;
-//		for(jj=1; jj<T1; jj++)
-//			{
-//			for(kk=0; kk<nb_v[N_tmp+jj]; kk++)
-//				if(hidxb[N_tmp+jj][kk]<nu_v[N_tmp+jj])
-//					nbb3++;
-//				else
-//					nbg3++;
-//			}
 		// final stages
 		for(jj=0; jj<T1-1; jj++)
 			{
