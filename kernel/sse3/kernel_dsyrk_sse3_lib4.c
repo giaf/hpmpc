@@ -41,6 +41,7 @@
 //#include <immintrin.h>  // AVX
 
 
+#if ! defined(BLASFEO)
 
 // normal-transposed, 4x4 with data packed in 4
 void kernel_dsyrk_nt_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B, double *C, double *D, int alg)
@@ -1461,6 +1462,7 @@ void kernel_dsyrk_nn_2x2_lib4(int kmax, double *A, double *B, int sdb, double *C
 
 	}
 
+#endif
 
 
 // Al and Ar are the diagonal of two matrices

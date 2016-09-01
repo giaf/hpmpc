@@ -312,7 +312,7 @@ int main()
 		for(rep=0; rep<nrep; rep++)
 			{
 #if defined(BLASFEO)
-			dgemm_ntnn_lib(n, n, n, pA, cnd, pB, cnd, 1, pC, cnd, pC, cnd);
+			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 1, pC, cnd, pC, cnd);
 #else
 			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 1, pC, cnd, pC, cnd, 1, 1);
 #endif
@@ -582,8 +582,8 @@ int main()
 #else
 
 #if defined(BLASFEO)
-//			dgemm_ntnn_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd);
-			dgemv_n_lib(n, n, pA, cnd, x, 0, y, y);
+			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd);
+//			dgemv_n_lib(n, n, pA, cnd, x, 0, y, y);
 //			dgemv_t_lib(n, n, pA, cnd, x, 0, y, y);
 #else
 			dgemm_nt_lib(n, n, n, pA, cnd, pB, cnd, 0, pC, cnd, pC, cnd, 0, 0);
