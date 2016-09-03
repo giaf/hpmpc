@@ -27,15 +27,13 @@
 
 #include "../include/aux_d.h"
 #include "../include/block_size.h"
-#include "../include/lqcp_aux.h"
+#include "../include/blas_d.h"
 #include "../include/d_blas_aux.h"
+#include "../include/lqcp_aux.h"
 
 #ifdef BLASFEO
 #include <blasfeo_d_blas.h>
 #endif
-//#else
-#include "../include/blas_d.h"
-//#endif
 
 
 
@@ -64,9 +62,13 @@ int d_back_ric_rec_sv_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb,
 	int pnzM = (nzM+bs-1)/bs*bs;
 	int cnxgM = (nxgM+ncl-1)/ncl*ncl;
 	
-	int size = 2*pnzM*cnxgM + pnzM;
+	int d_size = 2*pnzM*cnxgM + pnzM;
 
-	return size*sizeof(double);
+	int size = d_size*sizeof(double);
+
+	size = (size + 63) / 64 * 64; // make work space multiple of (typical) cache line size
+
+	return size;
 	}
 
 
@@ -79,7 +81,7 @@ int d_back_ric_rec_sv_tv_memory_space_size_bytes(int N, int *nx, int *nu, int *n
 
 	int nn;
 
-	int size = 0;
+	int d_size = 0;
 
 	int pnz;
 	int cnux;
@@ -91,10 +93,14 @@ int d_back_ric_rec_sv_tv_memory_space_size_bytes(int N, int *nx, int *nu, int *n
 		cnx = (nx[nn]+ncl-1)/ncl*ncl;
 		cnux = (nu[nn]+nx[nn]+ncl-1)/ncl*ncl;
 		cnl = cnux>cnx+ncl ? cnux : cnx+ncl;
-		size += pnz*cnl + pnz;
+		d_size += pnz*cnl + pnz;
 		}
+	
+	int size = d_size*sizeof(double);
 
-	return size*sizeof(double);
+	size = (size + 63) / 64 * 64; // make memory space multiple of (typical) cache line size
+
+	return size;
 
 	}
 
@@ -204,8 +210,8 @@ d_print_pmat(nx[nn]+1, nx[nn], bs, hpRSQrq[nn], cnux[nn]);
 //			work0[nux[N]/bs*cng[N]*bs+nux[N]%bs+ii*bs] /= Qx[N][pnb+ii];
 		dgecp_lib(nux[N], ng[N], 0, hpDCt[N], cng[N], 0, work2, cng[N]);
 #ifdef BLASFEO
-//		dsyrk_dpotrf_ntnn_l_lib(nz[N], nux[N], ng[N], work0, cng[N], work0, cng[N], 1, hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
-		dsyrk_dpotrf_ntnn_l_lib(nz[N], nux[N], ng[N], work0, cng[N], work2, cng[N], 1, hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
+//		dsyrk_dpotrf_nt_l_lib(nz[N], nux[N], ng[N], work0, cng[N], work0, cng[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
+		dsyrk_dpotrf_nt_l_lib(nz[N], nux[N], ng[N], work0, cng[N], work2, cng[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 #else
 //		dsyrk_dpotrf_lib(nz[N], nux[N], ng[N], work0, cng[N], work0, cng[N], 1, hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 		dsyrk_dpotrf_lib(nz[N], nux[N], ng[N], work0, cng[N], work2, cng[N], 1, hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
@@ -214,7 +220,7 @@ d_print_pmat(nx[nn]+1, nx[nn], bs, hpRSQrq[nn], cnux[nn]);
 	else
 		{
 #ifdef BLASFEO
-		dpotrf_ntnn_l_lib(nz[N], nux[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
+		dpotrf_nt_l_lib(nz[N], nux[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 #else
 		dpotrf_lib(nz[N], nux[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 #endif
@@ -238,7 +244,7 @@ d_print_pmat(nx[nn]+1, nx[nn], bs, hpRSQrq[nn], cnux[nn]);
 				hpBAbt[N-nn-1][nux[N-nn-1]/bs*bs*cnx[N-nn]+nux[N-nn-1]%bs+ii*bs] = b[N-nn-1][ii];
 			}
 #ifdef BLASFEO
-		dtrmm_ntnn_ru_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], 0, work0, cnxg[N-nn-1], work0, cnxg[N-nn-1]);
+		dtrmm_nt_ru_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], 0, work0, cnxg[N-nn-1], work0, cnxg[N-nn-1]);
 #else
 		dtrmm_nt_u_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], work0, cnxg[N-nn-1]);
 #endif
@@ -280,8 +286,8 @@ d_print_pmat(nx[nn]+1, nx[nn], bs, hpRSQrq[nn], cnux[nn]);
 			dgecp_lib(nux[N-nn-1], ng[N-nn-1], 0, hpDCt[N-nn-1], cng[N-nn-1], 0, work2+nx[N-nn]*bs, cnxg[N-nn-1]);
 
 #ifdef BLASFEO
-//			dsyrk_dpotrf_ntnn_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work0, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
-			dsyrk_dpotrf_ntnn_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work2, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
+//			dsyrk_dpotrf_nt_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work0, cnxg[N-nn-1], hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
+			dsyrk_dpotrf_nt_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work2, cnxg[N-nn-1], hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 #else
 //			dsyrk_dpotrf_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work0, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 			dsyrk_dpotrf_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work2, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
@@ -290,8 +296,8 @@ d_print_pmat(nx[nn]+1, nx[nn], bs, hpRSQrq[nn], cnux[nn]);
 		else
 			{
 #ifdef BLASFEO
-//			dsyrk_dpotrf_ntnn_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work0, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
-			dsyrk_dpotrf_ntnn_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work0, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
+//			dsyrk_dpotrf_nt_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work0, cnxg[N-nn-1], hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
+			dsyrk_dpotrf_nt_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work0, cnxg[N-nn-1], hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 #else
 //			dsyrk_dpotrf_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work0, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 			dsyrk_dpotrf_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work0, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
@@ -444,8 +450,8 @@ void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, int *nb, int **idxb, int
 		dgemm_diag_right_lib(nux[N], ng[N], hpDCt[N], cng[N], Qx[N]+pnb, 0, work, cng[N], work, cng[N]);
 		dgecp_lib(nux[N], ng[N], 0, hpDCt[N], cng[N], 0, work2, cng[N]);
 #ifdef BLASFEO
-//		dsyrk_dpotrf_ntnn_l_lib(nux[N], nux[N], ng[N], work, cng[N], work, cng[N], 1, hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
-		dsyrk_dpotrf_ntnn_l_lib(nux[N], nux[N], ng[N], work, cng[N], work2, cng[N], 1, hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
+//		dsyrk_dpotrf_nt_l_lib(nux[N], nux[N], ng[N], work, cng[N], work, cng[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
+		dsyrk_dpotrf_nt_l_lib(nux[N], nux[N], ng[N], work, cng[N], work2, cng[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 #else
 //		dsyrk_dpotrf_lib(nux[N], nux[N], ng[N], work, cng[N], work, cng[N], 1, hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 		dsyrk_dpotrf_lib(nux[N], nux[N], ng[N], work, cng[N], work2, cng[N], 1, hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
@@ -454,7 +460,7 @@ void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, int *nb, int **idxb, int
 	else
 		{
 #ifdef BLASFEO
-		dpotrf_ntnn_l_lib(nux[N], nux[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
+		dpotrf_nt_l_lib(nux[N], nux[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 #else
 		dpotrf_lib(nux[N], nux[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 #endif
@@ -469,7 +475,7 @@ void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, int *nb, int **idxb, int
 		{	
 
 #ifdef BLASFEO
-		dtrmm_ntnn_ru_lib(nux[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], 0, work, cnxg[N-nn-1], work, cnxg[N-nn-1]);
+		dtrmm_nt_ru_lib(nux[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], 0, work, cnxg[N-nn-1], work, cnxg[N-nn-1]);
 #else
 		dtrmm_nt_u_lib(nux[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], hpL[N-nn]+ncl*bs, cnl[N-nn], work, cnxg[N-nn-1]);
 #endif
@@ -492,8 +498,8 @@ void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, int *nb, int **idxb, int
 			dgecp_lib(nux[N-nn-1], nx[N-nn], 0, work, cnxg[N-nn-1], 0, work2, cnxg[N-nn-1]);
 			dgecp_lib(nux[N-nn-1], ng[N-nn-1], 0, hpDCt[N-nn-1], cng[N-nn-1], 0, work2+nx[N-nn]*bs, cnxg[N-nn-1]);
 #ifdef BLASFEO
-//			dsyrk_dpotrf_ntnn_l_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
-			dsyrk_dpotrf_ntnn_l_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work2, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
+//			dsyrk_dpotrf_nt_l_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work, cnxg[N-nn-1], hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
+			dsyrk_dpotrf_nt_l_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work2, cnxg[N-nn-1], hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 #else
 //			dsyrk_dpotrf_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 			dsyrk_dpotrf_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work2, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
@@ -502,7 +508,7 @@ void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, int *nb, int **idxb, int
 		else
 			{
 #ifdef BLASFEO
-			dsyrk_dpotrf_ntnn_l_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn], work, cnxg[N-nn-1], work, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
+			dsyrk_dpotrf_nt_l_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn], work, cnxg[N-nn-1], work, cnxg[N-nn-1], hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 #else
 			dsyrk_dpotrf_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn], work, cnxg[N-nn-1], work, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 #endif

@@ -25,8 +25,10 @@
 
 void d_zeros(double **pA, int row, int col);
 void d_zeros_align(double **pA, int row, int col);
+void v_zeros_align(void **pA, int size_in_bytes);
 void d_free(double *pA);
 void d_free_align(double *pA);
+void v_free_align(void *pA);
 void d_ones(double **pA, int row, int col);
 void d_ones_align(double **pA, int row, int col);
 void d_eye(double **pA, int row);

@@ -25,6 +25,7 @@
 
 #include "../../include/target.h"
 #include "../../include/block_size.h"
+#include "../../include/lqcp_solvers.h"
 #include "../../include/mpc_solvers.h"
 
 
@@ -61,8 +62,13 @@ int hpmpc_d_ip_mpc_hard_tv_work_space_size_bytes(int N, int nx, int nu, int nb, 
 
 
 
-int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng)
+// TODO !!!!!!!!!!!
+int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2)
 	{
+
+	// XXX sequential update not implemented
+	if(N2>N)
+		N2 = N;
 
 	const int bs  = D_MR; //d_get_mr();
 	const int ncl = D_NCL;
@@ -96,21 +102,68 @@ int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *n
 	cnux[ii] = (nx[ii]+ncl-1)/ncl*ncl;
 	cng[ii] = (ng[ii]+ncl-1)/ncl*ncl;
 
-	int size_doubles = bs;
-	int size_ints = 0;
+	int d_size = bs; // ???????
 
 	for(ii=0; ii<N; ii++)
 		{
-		size_doubles += pnz[ii]*cnx[ii+1] + pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + 3*pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii];
-		size_ints += nb[ii];
+		d_size += pnz[ii]*cnx[ii+1] + pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + 3*pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii];
 		}
 	ii = N;
-	size_doubles += pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + 3*pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii];
-	size_ints += nb[ii];
+	d_size += pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + 3*pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii];
 
-	int work_space_size = 64 + d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng) + size_doubles*sizeof(double) + size_ints*sizeof(int);
+	int size = 2*64; // align twice
 
-	return work_space_size;
+	if(N2<N) // partial condensing
+		{
+
+		// compute problem size
+		int nx2[N2+1];
+		int nu2[N2+1];
+		int nb2[N2+1];
+		int ng2[N2+1];
+
+		d_part_cond_compute_problem_size(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2);
+
+		int pnx2[N2+1];
+		int pnz2[N2+1];
+		int pnb2[N2+1];
+		int png2[N2+1];
+
+		for(ii=0; ii<=N2; ii++)
+			{
+			pnx2[ii] = (nx2[ii]+bs-1)/bs*bs;
+			pnz2[ii] = (nu2[ii]+nx2[ii]+1+bs-1)/bs*bs;
+			pnb2[ii] = (nb2[ii]+bs-1)/bs*bs;
+			png2[ii] = (ng2[ii]+bs-1)/bs*bs;
+			}
+
+		// partial condensing
+		size += d_part_cond_memory_space_size_bytes(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2);
+		size += d_part_cond_work_space_size_bytes(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2);
+
+		// partial expanding
+		size += d_part_expand_work_space_size_bytes(N, nx, nu, nb, ng);
+
+		// IPM
+		size += d_ip2_res_mpc_hard_tv_work_space_size_bytes(N2, nx2, nu2, nb2, ng2);
+
+		for(ii=0; ii<=N2; ii++)
+			d_size += pnz2[ii] + pnx2[ii] + 4*pnb2[ii] + 4*png2[ii];
+
+		}
+	else //
+		{
+
+		// IPM
+		size += d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng);
+
+		}
+
+	size += d_size*sizeof(double);
+
+	size = (size + 63) / 64 * 64; // make multiple of (typical) cache line size
+
+	return size;
 
 	}
 
