@@ -55,7 +55,7 @@ void d_zeros_align(double **pA, int row, int col)
 	int err = posix_memalign(&temp, 64, (row*col)*sizeof(double));
 	if(err!=0)
 		{
-		printf("Memory allocation error");
+		printf("\nMemory allocation error\n");
 		exit(1);
 		}
 	*pA = temp;
@@ -221,4 +221,108 @@ void d_print_pmat_e(int row, int col, int bs, double *A, int sda)
 	printf("\n");
 
 	}	
+
+
+
+// prints a banded matrix of band size nb, stored panel-wise in squared blocks of size bs
+void d_print_bmat(int nt, int nd, double *pB)
+	{
+
+	const int bs = 4;
+
+	int ii, jj, j0, j1;
+
+	double *ptrB = pB;
+	double *ptrT = ptrB;
+
+	for(ii=0; ii<nt; ii+=bs)
+		{
+		j0 = ii-nd+bs; if(j0<0) j0=0;
+		j1 = ii+nd; if(j1>nt) j1=nt;
+
+		ptrB = ptrT;
+		for(jj=0; jj<j0; jj+=bs)
+			{
+			// print a row of zeros block
+			printf("%9.5f %9.5f %9.5f %9.5f ", 0.0, 0.0, 0.0, 0.0);
+			}
+		for(jj=j0; jj<j1; jj+=bs)
+			{
+			// print a row of a block
+			printf("%9.5f %9.5f %9.5f %9.5f ", ptrB[0+bs*0], ptrB[0+bs*1], ptrB[0+bs*2], ptrB[0+bs*3]);
+			ptrB += bs*bs;
+			}
+		for(jj=j1; jj<nt; jj+=bs)
+			{
+			// print a row of zeros block
+			printf("%9.5f %9.5f %9.5f %9.5f ", 0.0, 0.0, 0.0, 0.0);
+			}
+		printf("\n");
+
+		ptrB = ptrT;
+		for(jj=0; jj<j0; jj+=bs)
+			{
+			// print a row of zeros block
+			printf("%9.5f %9.5f %9.5f %9.5f ", 0.0, 0.0, 0.0, 0.0);
+			}
+		for(jj=j0; jj<j1; jj+=bs)
+			{
+			// print a row of a block
+			printf("%9.5f %9.5f %9.5f %9.5f ", ptrB[1+bs*0], ptrB[1+bs*1], ptrB[1+bs*2], ptrB[1+bs*3]);
+			ptrB += bs*bs;
+			}
+		for(jj=j1; jj<nt; jj+=bs)
+			{
+			// print a row of zeros block
+			printf("%9.5f %9.5f %9.5f %9.5f ", 0.0, 0.0, 0.0, 0.0);
+			}
+		printf("\n");
+
+		ptrB = ptrT;
+		for(jj=0; jj<j0; jj+=bs)
+			{
+			// print a row of zeros block
+			printf("%9.5f %9.5f %9.5f %9.5f ", 0.0, 0.0, 0.0, 0.0);
+			}
+		for(jj=j0; jj<j1; jj+=bs)
+			{
+			// print a row of a block
+			printf("%9.5f %9.5f %9.5f %9.5f ", ptrB[2+bs*0], ptrB[2+bs*1], ptrB[2+bs*2], ptrB[2+bs*3]);
+			ptrB += bs*bs;
+			}
+		for(jj=j1; jj<nt; jj+=bs)
+			{
+			// print a row of zeros block
+			printf("%9.5f %9.5f %9.5f %9.5f ", 0.0, 0.0, 0.0, 0.0);
+			}
+		printf("\n");
+
+		ptrB = ptrT;
+		for(jj=0; jj<j0; jj+=bs)
+			{
+			// print a row of zeros block
+			printf("%9.5f %9.5f %9.5f %9.5f ", 0.0, 0.0, 0.0, 0.0);
+			}
+		for(jj=j0; jj<j1; jj+=bs)
+			{
+			// print a row of a block
+			printf("%9.5f %9.5f %9.5f %9.5f ", ptrB[3+bs*0], ptrB[3+bs*1], ptrB[3+bs*2], ptrB[3+bs*3]);
+			ptrB += bs*bs;
+			}
+		for(jj=j1; jj<nt; jj+=bs)
+			{
+			// print a row of zeros block
+			printf("%9.5f %9.5f %9.5f %9.5f ", 0.0, 0.0, 0.0, 0.0);
+			}
+		printf("\n");
+
+		ptrT = ptrB;
+
+		}
+	printf("\n");
+	
+	}
+
+
+
 
