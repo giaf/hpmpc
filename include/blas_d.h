@@ -26,9 +26,7 @@
 void dgemm_kernel_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, int tc, int td);
 #if ! defined(BLASFEO)
 void dgemm_nt_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, int tc, int td);
-#endif
 void dgemm_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, int tc, int td);
-#if ! defined(BLASFEO)
 void dtrmm_nt_u_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);
 #endif
 void dtrmm_nt_l_lib(int m, int n, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);

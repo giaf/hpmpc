@@ -66,16 +66,28 @@ void d_back_ric_res_tv(int N, int *nx, int *nu, double **hpBAbt, double **hb, do
 			temp[jj] = hux[ii][nu0/bs*bs+jj]; 
 			hux[ii][nu0/bs*bs+jj] = 0.0; 
 			}
+#if defined(BLASFEO)
+		dgemv_t_lib(nx0+nu0%bs, nu0, -1.0, hpQ[ii]+nu0/bs*bs*cnux0, cnux0, hux[ii]+nu0/bs*bs, 1.0, hrq[ii], hrq[ii]);
+#else
 		dgemv_t_lib(nx0+nu0%bs, nu0, hpQ[ii]+nu0/bs*bs*cnux0, cnux0, hux[ii]+nu0/bs*bs, -1, hrq[ii], hrq[ii]);
+#endif
 		for(jj=0; jj<nu0%bs; jj++) 
 			hux[ii][nu0/bs*bs+jj] = temp[jj];
 		}
 	dsymv_lib(nu0, nu0, hpQ[ii], cnux0, hux[ii], -1, hrq[ii], hrq[ii]);
+#if defined(BLASFEO)
+	dgemv_n_lib(nu0, nx1, -1.0, hpBAbt[ii], cnx1, hpi[ii], 1.0, hrq[ii], hrq[ii]);
+#else
 	dgemv_n_lib(nu0, nx1, hpBAbt[ii], cnx1, hpi[ii], -1, hrq[ii], hrq[ii]);
+#endif
 	
 	for(jj=0; jj<nx1; jj++) 
 		hrb[ii][jj] = hux[ii+1][nu1+jj] - hb[ii][jj];
+#if defined(BLASFEO)
+	dgemv_t_lib(nu0+nx0, nx1, -1.0, hpBAbt[ii], cnx1, hux[ii], 1.0, hrb[ii], hrb[ii]);
+#else
 	dgemv_t_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hux[ii], -1, hrb[ii], hrb[ii]);
+#endif
 
 
 

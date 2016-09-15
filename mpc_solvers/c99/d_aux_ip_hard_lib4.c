@@ -132,7 +132,7 @@ void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 			ptr_lam = lam[jj];
 			ptr_db  = db[jj];
 #ifdef BLASFEO
-			dgemv_t_lib(nu[jj]+nx[jj], ng0, pDCt[jj], cng, ux[jj], 0, ptr_t+2*pnb, ptr_t+2*pnb);
+			dgemv_t_lib(nu[jj]+nx[jj], ng0, 1.0, pDCt[jj], cng, ux[jj], 0.0, ptr_t+2*pnb, ptr_t+2*pnb);
 #else
 			dgemv_t_lib(nu[jj]+nx[jj], ng0, pDCt[jj], cng, ux[jj], 0, ptr_t+2*pnb, ptr_t+2*pnb);
 #endif
@@ -512,7 +512,7 @@ void d_compute_alpha_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			cng = (ng0+ncl-1)/ncl*ncl;
 
 #ifdef BLASFEO
-			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
+			dgemv_t_lib(nx0+nu0, ng0, 1.0, pDCt[jj], cng, ptr_dux, 0.0, ptr_dt, ptr_dt);
 #else
 			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
 #endif
@@ -866,7 +866,7 @@ void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 			cng = (ng0+ncl-1)/ncl*ncl;
 
 #ifdef BLASFEO
-			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_t_aff, ptr_t_aff);
+			dgemv_t_lib(nx0+nu0, ng0, 1.0, pDCt[jj], cng, ptr_dux, 0.0, ptr_t_aff, ptr_t_aff);
 #else
 			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_t_aff, ptr_t_aff);
 #endif
@@ -1090,7 +1090,7 @@ void d_compute_dt_dlam_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **i
 			cng = (ng0+ncl-1)/ncl*ncl;
 
 #ifdef BLASFEO
-			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
+			dgemv_t_lib(nx0+nu0, ng0, 1.0, pDCt[jj], cng, ptr_dux, 0.0, ptr_dt, ptr_dt);
 #else
 			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
 #endif
@@ -1207,7 +1207,7 @@ void d_compute_alpha_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 			cng = (ng0+ncl-1)/ncl*ncl;
 
 #ifdef BLASFEO
-			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
+			dgemv_t_lib(nx0+nu0, ng0, 1.0, pDCt[jj], cng, ptr_dux, 0.0, ptr_dt, ptr_dt);
 #else
 			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
 #endif

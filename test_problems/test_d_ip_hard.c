@@ -299,7 +299,11 @@ int main()
 	double *b0; d_zeros_align(&b0, pnx, 1);
 	for(ii=0; ii<nx; ii++) b0[ii] = b[ii];
 #if ! KEEP_X0
+#if defined(BLASFEO)
+	dgemv_n_lib(nx, nx, 1.0, pA, cnx, x0, 1.0, b0, b0);
+#else
 	dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b0, b0);
+#endif
 #endif
 
 	double *pBAbt0; 

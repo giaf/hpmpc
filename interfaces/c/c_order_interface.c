@@ -1293,7 +1293,11 @@ int c_order_d_ip_mpc_hard_tv(
 		// compute A_0 * x_0 + b_0
 		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
 		d_cvt_tran_mat2pmat(nx, nx, A, nx, 0, hpBAbt[0], cnx); // pack A into (temporary) buffer
+#if defined(BLASFEO)
+		dgemv_n_lib(nx, nx, 1.0, hpBAbt[0], cnx, hux[1], 1.0, b, hb[0]); // result 
+#else
 		dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b, hb[0]); // result 
+#endif
 
 		ii = 0;
 		d_cvt_mat2pmat(nu, nx, B, nu, 0, hpBAbt[0], cnx);
@@ -1357,7 +1361,11 @@ int c_order_d_ip_mpc_hard_tv(
 		// first stage
 		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
 		d_cvt_tran_mat2pmat(nx, nu, S, nx, 0, hpRSQrq[0], cnx); // pack S into a (temporary) buffer
+#if defined(BLASFEO)
+		dgemv_n_lib(nu, nx, 1.0, hpRSQrq[0], cnx, hux[1], 1.0, r, hpi[1]); // result in (temporary) buffer
+#else
 		dgemv_n_lib(nu, nx, hpRSQrq[0], cnx, hux[1], 1, r, hpi[1]); // result in (temporary) buffer
+#endif
 
 		jj = 0;
 		d_cvt_tran_mat2pmat(nu, nu, R, nu, 0, hpRSQrq[0], cnu);
@@ -1625,7 +1633,11 @@ int c_order_d_ip_mpc_hard_tv(
 		// compute A_0 * x_0 + b_0
 		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
 		d_cvt_tran_mat2pmat(nx, nx, A, nx, 0, hpBAbt[0], cnx);
+#if defined(BLASFEO)
+		dgemv_n_lib(nx, nx, 1.0, hpBAbt[0], cnx, hux[1], 1.0, b, hpi[1]);
+#else
 		dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b, hpi[1]);
+#endif
 
 		ii = 0;
 		d_cvt_mat2pmat(nu, nx, B, nu, 0, hpBAbt[0], cnx);
@@ -1684,7 +1696,11 @@ int c_order_d_ip_mpc_hard_tv(
 		// first stage
 		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
 		d_cvt_tran_mat2pmat(nx, nu, S, nx, 0, hpRSQrq[0], cnx);
+#if defined(BLASFEO)
+		dgemv_n_lib(nu, nx, 1.0, hpRSQrq[0], cnx, hux[1], 1.0, r, hpi[1]);
+#else
 		dgemv_n_lib(nu, nx, hpRSQrq[0], cnx, hux[1], 1, r, hpi[1]);
+#endif
 
 		jj = 0;
 		d_cvt_tran_mat2pmat(nu, nu, R, nu, 0, hpRSQrq[0], cnu);
@@ -2301,7 +2317,11 @@ void c_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 		// compute A_0 * x_0 + b_0
 		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
 		d_cvt_tran_mat2pmat(nx, nx, A, nx, 0, hpBAbt[0], cnx); // pack A into (temporary) buffer
+#if defined(BLASFEO)
+		dgemv_n_lib(nx, nx, 1.0, hpBAbt[0], cnx, hux[1], 1.0, b, hb[0]); // result 
+#else
 		dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b, hb[0]); // result 
+#endif
 
 		ii = 0;
 		d_cvt_mat2pmat(nu, nx, B, nu, 0, hpBAbt[0], cnx); // restore B0
@@ -2318,7 +2338,11 @@ void c_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 		// first stage
 		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
 		d_cvt_tran_mat2pmat(nx, nu, S, nx, 0, hpRSQrq[0], cnx); // pack S into a (temporary) buffer
+#if defined(BLASFEO)
+		dgemv_n_lib(nu, nx, 1.0, hpRSQrq[0], cnx, hux[1], 1.0, r, hrq[0]); // result
+#else
 		dgemv_n_lib(nu, nx, hpRSQrq[0], cnx, hux[1], 1, r, hrq[0]); // result
+#endif
 
 		jj = 0;
 		d_cvt_mat2pmat(nu, nu, R, nu, 0, hpRSQrq[0], cnu); // restore R0
@@ -2515,7 +2539,11 @@ void c_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 		// compute A_0 * x_0 + b_0
 		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
 		d_cvt_tran_mat2pmat(nx, nx, A, nx, 0, hpBAbt[0], cnx);
+#if defined(BLASFEO)
+		dgemv_n_lib(nx, nx, 1.0, hpBAbt[0], cnx, hux[1], 1.0, b+0*nx, hb[0]);
+#else
 		dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b+0*nx, hb[0]);
+#endif
 
 		ii = 0;
 		d_cvt_mat2pmat(nu, nx, B+0*nx*nu, nu, 0, hpBAbt[0], cnx); // restore B0
@@ -2531,7 +2559,11 @@ void c_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 		// first stage
 		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
 		d_cvt_tran_mat2pmat(nx, nu, S, nx, 0, hpRSQrq[0], cnx);
+#if defined(BLASFEO)
+		dgemv_n_lib(nu, nx, 1.0, hpRSQrq[0], cnx, hux[1], 1.0, r+0*nu, hrq[0]);
+#else
 		dgemv_n_lib(nu, nx, hpRSQrq[0], cnx, hux[1], 1, r+0*nu, hrq[0]);
+#endif
 
 		jj = 0;
 		d_cvt_mat2pmat(nu, nu, R, nu, 0, hpRSQrq[0], cnu); // restore Q0

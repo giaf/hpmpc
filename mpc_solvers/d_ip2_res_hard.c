@@ -838,7 +838,7 @@ for(ii=0; ii<=N; ii++)
 //					work[(nu[ii]+nx[ii])/bs*cng[ii]*bs+(nu[ii]+nx[ii])%bs+jj*bs] /= Qx[ii][pnb[ii]+jj];
 				dgecp_lib(nu[ii]+nx[ii], ng[ii], 0, pDCt[ii], cng[ii], 0, work2, png[ii]);
 #ifdef BLASFEO
-				dsyrk_nt_l_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work2, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
+				dsyrk_nt_l_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], 1.0, work, cng[ii], work2, cng[ii], 1.0, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
 #else
 				dsyrk_nt_lib(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], ng[ii], work, cng[ii], work2, cng[ii], 1, pQ2[ii], cnux[ii], pQ2[ii], cnux[ii]);
 #endif
@@ -1056,7 +1056,7 @@ exit(1);
 			// general constraints
 			if(ng[ii]>0)
 #ifdef BLASFEO
-				dgemv_n_lib(nu[ii]+nx[ii], ng[ii], pDCt[ii], cng[ii], qx[ii]+pnb[ii], 1, q2[ii], q2[ii]);
+				dgemv_n_lib(nu[ii]+nx[ii], ng[ii], 1.0, pDCt[ii], cng[ii], qx[ii]+pnb[ii], 1.0, q2[ii], q2[ii]);
 #else
 				dgemv_n_lib(nu[ii]+nx[ii], ng[ii], pDCt[ii], cng[ii], qx[ii]+pnb[ii], 1, q2[ii], q2[ii]);
 #endif

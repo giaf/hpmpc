@@ -269,7 +269,7 @@ void d_cond_BAbt(int N, int *nx, int *nu, double **hpBAbt, double *work, double 
 
 		// Gamma * A^T
 #ifdef BLASFEO
-		dgemm_nt_lib(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], hpGamma[ii-1], cnx[ii], pA, cnx[ii], 0, buffer, cnx[ii+1], buffer, cnx[ii+1]); // Gamma * A^T // TODO in BLASFEO, store to unaligned !!!!!
+		dgemm_nt_lib(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], 1.0, hpGamma[ii-1], cnx[ii], pA, cnx[ii], 0.0, buffer, cnx[ii+1], buffer, cnx[ii+1]); // Gamma * A^T // TODO in BLASFEO, store to unaligned !!!!!
 #else
 		dgemm_nt_lib(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], hpGamma[ii-1], cnx[ii], pA, cnx[ii], 0, buffer, cnx[ii+1], buffer, cnx[ii+1], 0, 0); // Gamma * A^T // TODO in BLASFEO, store to unaligned !!!!!
 #endif
@@ -426,7 +426,7 @@ for(nn=0; nn<=N; nn++)
 	dgetr_lib(nx[N-1], nu[N-1], nu[N-1], pL+nu[N-1]/bs*bs*cnux[N-1]+nu[N-1]%bs, cnux[N-1], 0, pM, cnu[N-1]);
 
 #ifdef BLASFEO
-	dgemm_nt_lib(nu2[N-1]+nx[0]+1, nu[N-1], nx[N-1], hpGamma[N-2], cnx[N-1], pM, cnu[N-1], 0, buffer, cnu[N-1], buffer, cnu[N-1]);
+	dgemm_nt_lib(nu2[N-1]+nx[0]+1, nu[N-1], nx[N-1], 1.0, hpGamma[N-2], cnx[N-1], pM, cnu[N-1], 0.0, buffer, cnu[N-1], buffer, cnu[N-1]);
 #else
 	dgemm_nt_lib(nu2[N-1]+nx[0]+1, nu[N-1], nx[N-1], hpGamma[N-2], cnx[N-1], pM, cnu[N-1], 0, buffer, cnu[N-1], buffer, cnu[N-1], 0, 0);
 #endif
@@ -455,7 +455,7 @@ for(nn=0; nn<=N; nn++)
 //		d_print_pmat(nx[N]+1, nx[N], bs, pLx, cnx[N-nn]);
 
 #ifdef BLASFEO
-		dtrmm_nt_ru_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], pLx, cnx[N-nn], 0, pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn]);
+		dtrmm_nt_ru_lib(nz[N-nn-1], nx[N-nn], 1.0, hpBAbt[N-nn-1], cnx[N-nn], pLx, cnx[N-nn], 0.0, pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn]);
 #else
 		dtrmm_nt_u_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], pLx, cnx[N-nn], pBAbtL, cnx[N-nn]);
 #endif
@@ -463,7 +463,7 @@ for(nn=0; nn<=N; nn++)
 		dgead_lib(1, nx[N-nn], 1.0, nx[N-nn], pLx+nx[N-nn]/bs*bs*cnx[N-nn]+nx[N-nn]%bs, cnx[N-nn], nux[N-nn-1], pBAbtL+nux[N-nn-1]/bs*bs*cnx[N-nn]+nux[N-nn-1]%bs, cnx[N-nn]);
 
 #ifdef BLASFEO
-		dsyrk_nt_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn], pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], pL, cnux[N-nn-1]);
+		dsyrk_nt_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn], 1.0, pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn], 1.0, hpRSQrq[N-nn-1], cnux[N-nn-1], pL, cnux[N-nn-1]);
 #else
 		dsyrk_nt_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn], pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], pL, cnux[N-nn-1]);
 #endif
@@ -476,7 +476,7 @@ for(nn=0; nn<=N; nn++)
 		dgetr_lib(nx[N-nn-1], nu[N-nn-1], nu[N-nn-1], pL+nu[N-nn-1]/bs*bs*cnux[N-nn-1]+nu[N-nn-1]%bs, cnux[N-nn-1], 0, pM, cnu[N-nn-1]);
 
 #ifdef BLASFEO
-		dgemm_nt_lib(nu2[N-nn-1]+nx[0]+1, nu[N-nn-1], nx[N-nn-1], hpGamma[N-nn-2], cnx[N-nn-1], pM, cnu[N-nn-1], 0, buffer, cnu[N-nn-1], buffer, cnu[N-nn-1]); // add unaligned stores in BLASFEO !!!!!!
+		dgemm_nt_lib(nu2[N-nn-1]+nx[0]+1, nu[N-nn-1], nx[N-nn-1], 1.0, hpGamma[N-nn-2], cnx[N-nn-1], pM, cnu[N-nn-1], 0.0, buffer, cnu[N-nn-1], buffer, cnu[N-nn-1]); // add unaligned stores in BLASFEO !!!!!!
 #else
 		dgemm_nt_lib(nu2[N-nn-1]+nx[0]+1, nu[N-nn-1], nx[N-nn-1], hpGamma[N-nn-2], cnx[N-nn-1], pM, cnu[N-nn-1], 0, buffer, cnu[N-nn-1], buffer, cnu[N-nn-1], 0, 0); // add unaligned stores in BLASFEO !!!!!!
 #endif
@@ -507,7 +507,7 @@ for(nn=0; nn<=N; nn++)
 //	d_print_pmat(nx[N]+1, nx[N], bs, pLx, cnx[N-nn]);
 
 #ifdef BLASFEO
-	dtrmm_nt_ru_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], pLx, cnx[N-nn], 0, pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn]);
+	dtrmm_nt_ru_lib(nz[N-nn-1], nx[N-nn], 1.0, hpBAbt[N-nn-1], cnx[N-nn], pLx, cnx[N-nn], 0.0, pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn]);
 #else
 	dtrmm_nt_u_lib(nz[N-nn-1], nx[N-nn], hpBAbt[N-nn-1], cnx[N-nn], pLx, cnx[N-nn], pBAbtL, cnx[N-nn]);
 #endif
@@ -515,7 +515,7 @@ for(nn=0; nn<=N; nn++)
 	dgead_lib(1, nx[N-nn], 1.0, nx[N-nn], pLx+nx[N-nn]/bs*bs*cnx[N-nn]+nx[N-nn]%bs, cnx[N-nn], nux[N-nn-1], pBAbtL+nux[N-nn-1]/bs*bs*cnx[N-nn]+nux[N-nn-1]%bs, cnx[N-nn]);
 
 #ifdef BLASFEO
-	dsyrk_nt_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn], pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], pL, cnux[N-nn-1]);
+	dsyrk_nt_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn], 1.0, pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn], 1.0, hpRSQrq[N-nn-1], cnux[N-nn-1], pL, cnux[N-nn-1]);
 #else
 	dsyrk_nt_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn], pBAbtL, cnx[N-nn], pBAbtL, cnx[N-nn], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], pL, cnux[N-nn-1]);
 #endif
@@ -1143,7 +1143,11 @@ void d_part_expand_solution(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 			{
 			for(ll=0; ll<nx[N_tmp+jj+1]; ll++)
 				hux[N_tmp+jj+1][nu[N_tmp+jj+1]+ll] = hb[N_tmp+jj][ll];
+#if defined(BLASFEO)
+			dgemv_t_lib(nu[N_tmp+jj]+nx[N_tmp+jj], nx[N_tmp+jj+1], 1.0, hpBAbt[N_tmp+jj], cnx[N_tmp+jj+1], hux[N_tmp+jj], 1.0, hux[N_tmp+jj+1]+nu[N_tmp+jj+1], hux[N_tmp+jj+1]+nu[N_tmp+jj+1]);
+#else
 			dgemv_t_lib(nu[N_tmp+jj]+nx[N_tmp+jj], nx[N_tmp+jj+1], hpBAbt[N_tmp+jj], cnx[N_tmp+jj+1], hux[N_tmp+jj], 1, hux[N_tmp+jj+1]+nu[N_tmp+jj+1], hux[N_tmp+jj+1]+nu[N_tmp+jj+1]);
+#endif
 			}
 		//
 		N_tmp += T1;
@@ -1229,10 +1233,18 @@ void d_part_expand_solution(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 			for(ll=0; ll<nb[stg]; ll++)
 				pi_work0[hidxb[stg][ll]] += - hlam[stg][0*pnb[stg]+ll] + hlam[stg][1*pnb[stg]+ll];
 			dsymv_lib(nu[stg]+nx[stg], nu[stg]+nx[stg], hpRSQrq[stg], cnux[stg], hux[stg], 1, pi_work0, pi_work0);
+#if defined(BLASFEO)
+			dgemv_n_lib(nu[stg]+nx[stg], nx[stg+1], 1.0, hpBAbt[stg], cnx[stg+1], hpi[stg], 1.0, pi_work0, pi_work0);
+#else
 			dgemv_n_lib(nu[stg]+nx[stg], nx[stg+1], hpBAbt[stg], cnx[stg+1], hpi[stg], 1, pi_work0, pi_work0);
+#endif
 			for(ll=0; ll<ng[stg]; ll++)
 				pi_work1[ll] = hlam[stg][2*pnb[stg]+1*png[stg]+ll] - hlam[stg][2*pnb[stg]+0*png[stg]+ll];
+#if defined(BLASFEO)
+			dgemv_n_lib(nu[stg]+nx[stg], ng[stg], 1.0, hpDCt[stg], cng[stg], pi_work1, 1.0, pi_work0, pi_work0);
+#else
 			dgemv_n_lib(nu[stg]+nx[stg], ng[stg], hpDCt[stg], cng[stg], pi_work1, 1, pi_work0, pi_work0);
+#endif
 			//
 			for(ll=0; ll<nx[stg]; ll++)
 				hpi[stg-1][ll] = + pi_work0[nu[stg]+ll];
