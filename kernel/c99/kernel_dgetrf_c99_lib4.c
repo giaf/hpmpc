@@ -595,7 +595,7 @@ void kernel_dgetrf_nn_4x4_vs_lib4(int km, int kn, int kmax, double *A, double *B
 
 	d_33 -= d_32 * d_23;
 
-	tmp = 1.0 / tmp;
+	tmp = 1.0 / d_33;
 
 	inv_diag_D[3] = tmp;
 	D[0+bs*3] = d_03;
