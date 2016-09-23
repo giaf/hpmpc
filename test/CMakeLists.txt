@@ -16,6 +16,13 @@ set(SRC
    
 add_executable(hpmpc_test ${SRC})
 
+if (${CMAKE_CXX_COMPILER_ID} MATCHES "(GNU|Clang)")
+	target_compile_options(hpmpc_test
+		PRIVATE	-std=c++14
+	)
+endif()
+	
+
 target_link_libraries(hpmpc_test 
 	hpmpc 
 	gtest
