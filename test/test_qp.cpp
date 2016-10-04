@@ -167,17 +167,58 @@ template <typename QP_>
 class QPTest : public ::testing::Test
 {
 protected:
-	typedef QP_ QP;
-
-/*
 	QPTest()
-	:	qp_(new QP::ProblemStruct)
+	:	wrapper_(new Wrapper)
+	,	qp_(*wrapper_)
+	,	workBuffer_(hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(qp_.N, qp_.nx, qp_.nu, qp_.nb, qp_.ng))
+	,	work_(workBuffer_.data())
+	,	statBuffer_(qp_.k_max * 5)
+	,	stat_(statBuffer_.data())
+	,	lam_(alloc_lambda(qp_.N, qp_.nb, qp_.ng))
+	,	t_(alloc_lambda(qp_.N, qp_.nb, qp_.ng))
+	,	pi_(alloc_pi(qp_.N, qp_.nx))
 	{
-		memset(qp, sizeof(ProblemStruct), 0xff);
 	}
 
-	std::unique_ptr<QP::ProblemStruct> qp_;
-*/
+	~QPTest() noexcept
+	{
+		free_pi(pi_, qp_.N);
+		free_lambda(t_, qp_.N);
+		free_lambda(lam_, qp_.N);
+	}
+
+private:
+	typedef ProblemStructWrapper<QP_> Wrapper;
+	std::unique_ptr<Wrapper const> const wrapper_;
+
+protected:
+	// QP data for HPMPC
+	QpData qp_;
+
+private:
+	// Manages the work buffer
+	std::vector<char> workBuffer_;
+
+protected:
+	// Work buffer for HPMPC
+	void * const work_;
+
+private:
+	// Manages data for stat
+	std::vector<double> statBuffer_;
+
+protected:
+	// Pointer to stat data for HPMPC
+	double * const stat_;
+
+	// Pointer to lam data for HPMPC
+	double ** lam_;
+
+	// Pointer to t data for HPMPC
+	double ** t_;
+
+	// Pointer to pi data for HPMPC
+	double ** pi_;
 };
 
 /*
@@ -210,20 +251,10 @@ TYPED_TEST_CASE(QPTest, QPTypes);
 
 TYPED_TEST(QPTest, return_code_ok)
 {
-	typedef ProblemStructWrapper<typename TestFixture::QP> Wrapper;
-
-	std::unique_ptr<Wrapper const> const wrapper(new Wrapper);
-	QpData qp(*wrapper);
+	auto& qp = this->qp_;
 
 	int num_iter = -1;
 	double inf_norm_res[4];
-	int const work_size = hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(qp.N, qp.nx, qp.nu, qp.nb, qp.ng);
-
-	void * const work = malloc(work_size);
-	double * const stat = (double *)malloc(qp.k_max * 5 * sizeof(double));
-	double ** lam = alloc_lambda(qp.N, qp.nb, qp.ng);
-	double ** t = alloc_lambda(qp.N, qp.nb, qp.ng);
-	double ** pi = alloc_pi(qp.N, qp.nx);
 
 	int const ret = c_order_d_ip_ocp_hard_tv(&num_iter,
 					qp.k_max, qp.mu0, qp.mu_tol,
@@ -233,17 +264,12 @@ TYPED_TEST(QPTest, return_code_ok)
 					qp.Q, qp.S, qp.R, qp.q, qp.r,
 					qp.lb, qp.ub,
 					qp.C, qp.D, qp.lg, qp.ug,
-					qp.x, qp.u, pi, lam, t,
+					qp.x, qp.u, this->pi_, this->lam_, this->t_,
 					inf_norm_res,
-					work,
-					stat);
+					this->work_,
+					this->stat_);
 
-	std::cout << "ret = " << ret << "\tnum_iter = " << num_iter << std::endl;
-	free_pi(pi, qp.N);
-	free_lambda(t, qp.N);
-	free_lambda(lam, qp.N);
-	free(stat);
-	free(work);
+	//std::cout << "ret = " << ret << "\tnum_iter = " << num_iter << std::endl;
 
 	EXPECT_EQ(ret, 0);
 }
