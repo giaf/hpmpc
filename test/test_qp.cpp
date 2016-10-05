@@ -241,11 +241,18 @@ struct qp0012_relaxed {
 	#include "data/test_qp/qp0012_relaxed.c"
 };
 
+// https://github.com/giaf/hpmpc/issues/15
+struct qp0015 {
+	#include "data/test_qp/qp0015.c"
+};
+
+
 typedef ::testing::Types<
-		qp0010,
-		qp0012,
-		qp0012_relaxed
-	> QPTypes;
+	qp0010,
+	qp0012,
+	qp0012_relaxed,
+	qp0015
+> QPTypes;
 
 TYPED_TEST_CASE(QPTest, QPTypes);
 
