@@ -196,6 +196,13 @@ INSTALL(
         lib
 )
 
+INSTALL(
+	FILES
+	    "${CMAKE_CURRENT_BINARY_DIR}/include/target.h"
+    DESTINATION
+        "include/hpmpc"
+)
+
 ################################################################################
 #
 # Build examples
