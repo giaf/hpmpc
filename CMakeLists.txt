@@ -123,7 +123,7 @@ SET( TARGET_DEF TARGET_${TARGET_DEF})
 
 CONFIGURE_FILE(
 	"${PROJECT_SOURCE_DIR}/include/target.h.in"
-	"${PROJECT_SOURCE_DIR}/include/target.h"
+	"${CMAKE_CURRENT_BINARY_DIR}/include/target.h"    # Spit target.h in the build dir, don't pollute the source folder.
 	@ONLY
 )
 
@@ -134,6 +134,7 @@ CONFIGURE_FILE(
 ################################################################################
 
 INCLUDE_DIRECTORIES( include )
+INCLUDE_DIRECTORIES( "${CMAKE_CURRENT_BINARY_DIR}/include" )    # Make target.h accessible
 
 ################################################################################
 #

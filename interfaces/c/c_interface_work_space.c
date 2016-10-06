@@ -23,7 +23,7 @@
 *                                                                                                 *
 **************************************************************************************************/
 
-#include "../../include/target.h"
+#include "target.h"
 #include "../../include/block_size.h"
 #include "../../include/mpc_solvers.h"
 

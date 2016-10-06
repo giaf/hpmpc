@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "../../include/target.h"
+#include "target.h"
 #include "../../include/block_size.h"
 #include "../../include/aux_d.h"
 #include "../../include/aux_s.h"
