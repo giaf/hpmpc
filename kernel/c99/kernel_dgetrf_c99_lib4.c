@@ -29,6 +29,7 @@
 #include "../../include/blas_d.h"
 
 
+#if ! defined(BLASFEO)
 void kernel_dgetrf_nn_4x4_lib4(int kmax, double *A, double *B, int sdb, int alg, double *C, double *D, double *inv_diag_D)
 	{
 
@@ -1999,7 +2000,7 @@ printf("\n%d %d\n", m, n);
 	return;
 
 	}
-
+#endif
 
 	
 

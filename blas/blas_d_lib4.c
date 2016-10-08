@@ -5312,6 +5312,7 @@ void dtrsv_t_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *
 
 
 
+#if ! defined(BLASFEO)
 // y = y + alpha*x, with increments equal to 1
 void daxpy_lib(int kmax, double alpha, double *x, double *y)
 	{
@@ -5375,6 +5376,7 @@ void daxpy_lib(int kmax, double alpha, double *x, double *y)
 	return;
 
 	}
+#endif
 
 
 
@@ -5452,6 +5454,7 @@ void daxpy_bkp_lib(int kmax, double alpha, double *x, double *y, double *z)
 
 
 
+#if ! defined(BLASFEO)
 // regularize diagonal 
 void ddiareg_lib(int kmax, double reg, int offset, double *pD, int sdd)
 	{
@@ -5485,9 +5488,11 @@ void ddiareg_lib(int kmax, double reg, int offset, double *pD, int sdd)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // insert vector to diagonal 
 void ddiain_lib(int kmax, double *x, int offset, double *pD, int sdd)
 	{
@@ -5522,9 +5527,11 @@ void ddiain_lib(int kmax, double *x, int offset, double *pD, int sdd)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // insert sqrt of vector to diagonal 
 void ddiain_sqrt_lib(int kmax, double *x, int offset, double *pD, int sdd)
 	{
@@ -5559,9 +5566,11 @@ void ddiain_sqrt_lib(int kmax, double *x, int offset, double *pD, int sdd)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // extract diagonal to vector 
 void ddiaex_lib(int kmax, int offset, double *pD, int sdd, double *x)
 	{
@@ -5596,9 +5605,11 @@ void ddiaex_lib(int kmax, int offset, double *pD, int sdd, double *x)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // add scaled vector to diagonal 
 void ddiaad_lib(int kmax, double alpha, double *x, int offset, double *pD, int sdd)
 	{
@@ -5633,9 +5644,11 @@ void ddiaad_lib(int kmax, double alpha, double *x, int offset, double *pD, int s
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // insert vector to diagonal, sparse formulation 
 void ddiain_libsp(int kmax, int *idx, double *x, double *pD, int sdd)
 	{
@@ -5651,9 +5664,11 @@ void ddiain_libsp(int kmax, int *idx, double *x, double *pD, int sdd)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // add scaled vector to diagonal, sparse formulation 
 void ddiaad_libsp(int kmax, int *idx, double alpha, double *x, double *pD, int sdd)
 	{
@@ -5669,9 +5684,11 @@ void ddiaad_libsp(int kmax, int *idx, double alpha, double *x, double *pD, int s
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // add scaled vector to another vector and insert to diagonal, sparse formulation 
 void ddiaadin_libsp(int kmax, int *idx, double alpha, double *x, double *y, double *pD, int sdd)
 	{
@@ -5687,9 +5704,11 @@ void ddiaadin_libsp(int kmax, int *idx, double alpha, double *x, double *y, doub
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // insert vector to row 
 void drowin_lib(int kmax, double *x, double *pD)
 	{
@@ -5711,9 +5730,11 @@ void drowin_lib(int kmax, double *x, double *pD)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // extract row to vector
 void drowex_lib(int kmax, double *pD, double *x)
 	{
@@ -5735,9 +5756,11 @@ void drowex_lib(int kmax, double *pD, double *x)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // add scaled vector to row 
 void drowad_lib(int kmax, double alpha, double *x, double *pD)
 	{
@@ -5759,9 +5782,11 @@ void drowad_lib(int kmax, double alpha, double *x, double *pD)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // insert vector to row, sparse formulation 
 void drowin_libsp(int kmax, int *idx, double *x, double *pD)
 	{
@@ -5777,9 +5802,11 @@ void drowin_libsp(int kmax, int *idx, double *x, double *pD)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // add scaled vector to row, sparse formulation 
 void drowad_libsp(int kmax, int *idx, double alpha, double *x, double *pD)
 	{
@@ -5795,9 +5822,11 @@ void drowad_libsp(int kmax, int *idx, double alpha, double *x, double *pD)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // add scaled vector to another vector and insert to row, sparse formulation 
 void drowadin_libsp(int kmax, int *idx, double alpha, double *x, double *y, double *pD)
 	{
@@ -5813,9 +5842,11 @@ void drowadin_libsp(int kmax, int *idx, double alpha, double *x, double *y, doub
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // swap two rows
 void drowsw_lib(int kmax, double *pA, double *pC)
 	{
@@ -5852,9 +5883,11 @@ void drowsw_lib(int kmax, double *pA, double *pC)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // insert vector to column 
 void dcolin_lib(int kmax, double *x, int offset, double *pD, int sdd)
 	{
@@ -5889,9 +5922,11 @@ void dcolin_lib(int kmax, double *x, int offset, double *pD, int sdd)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // add scaled vector to column 
 void dcolad_lib(int kmax, double alpha, double *x, int offset, double *pD, int sdd)
 	{
@@ -5926,9 +5961,11 @@ void dcolad_lib(int kmax, double alpha, double *x, int offset, double *pD, int s
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // insert vector to diagonal, sparse formulation 
 void dcolin_libsp(int kmax, int *idx, double *x, double *pD, int sdd)
 	{
@@ -5944,9 +5981,11 @@ void dcolin_libsp(int kmax, int *idx, double *x, double *pD, int sdd)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // add scaled vector to diagonal, sparse formulation 
 void dcolad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int sdd)
 	{
@@ -5962,9 +6001,11 @@ void dcolad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int s
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // insert vector to vector, sparse formulation
 void dvecin_libsp(int kmax, int *idx, double *x, double *y)
 	{
@@ -5977,9 +6018,11 @@ void dvecin_libsp(int kmax, int *idx, double *x, double *y)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // adds vector to vector, sparse formulation
 void dvecad_libsp(int kmax, int *idx, double alpha, double *x, double *y)
 	{
@@ -5992,9 +6035,11 @@ void dvecad_libsp(int kmax, int *idx, double alpha, double *x, double *y)
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // copies a packed matrix into a packed matrix
 void dgecp_lib(int m, int n, int offsetA, double *A, int sda, int offsetB, double *B, int sdb)
 	{
@@ -6293,9 +6338,11 @@ void dgecp_lib(int m, int n, int offsetA, double *A, int sda, int offsetB, doubl
 		}
 
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // copies a lower triangular packed matrix into a lower triangular packed matrix
 void dtrcp_l_lib(int m, int offsetA, double *A, int sda, int offsetB, double *B, int sdb)
 	{
@@ -6596,9 +6643,11 @@ void dtrcp_l_lib(int m, int offsetA, double *A, int sda, int offsetB, double *B,
 		}
 
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // scaled and adds a packed matrix into a packed matrix: B = B + alpha*A
 void dgead_lib(int m, int n, double alpha, int offsetA, double *A, int sda, int offsetB, double *B, int sdb)
 	{
@@ -6897,9 +6946,11 @@ void dgead_lib(int m, int n, double alpha, int offsetA, double *A, int sda, int 
 		}
 
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // transpose general matrix; m and n are referred to the original matrix
 void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc)
 	{
@@ -6983,9 +7034,11 @@ C =
 	return;
 	
 	}	
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // transpose lower triangular matrix
 void dtrtr_l_lib(int m, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc)
 	{
@@ -7117,9 +7170,11 @@ C =
 	return;
 
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // transpose an aligned upper triangular matrix into an aligned lower triangular matrix
 void dtrtr_u_lib(int m, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc)
 	{
@@ -7436,6 +7491,7 @@ C =
 	return;
 
 	}
+#endif
 
 
 
@@ -7895,6 +7951,7 @@ void dgemv_diag_lib(int m, double *dA, double *x, int alg, double *y, double *z)
 
 	
 
+#if ! defined(BLASFEO)
 void dgetrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D)
 	{
 
@@ -8186,9 +8243,11 @@ void dgetrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *
 #endif
 
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D, int *ipiv)
 	{
 
@@ -8898,6 +8957,7 @@ void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, do
 #endif
 
 	}
+#endif
 
 
 

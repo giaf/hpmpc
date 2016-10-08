@@ -1305,6 +1305,7 @@ void d_align_pmat(int row, int col, int offset, int bs_dummy, double *A, int sda
 
 
 
+#if ! defined(BLASFEO)
 /* converts a matrix into a packed matrix */
 void d_cvt_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA, int sda)
 	{
@@ -1520,9 +1521,11 @@ void d_cvt_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA
 #endif
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 /* converts a matrix into a packed matrix */
 // row and col of the source matrix, offsett in the destination matrix
 void d_cvt_tran_mat2pmat(int row, int col, double *A, int lda, int offset, double *pA, int sda)
@@ -1674,9 +1677,11 @@ void d_cvt_tran_mat2pmat(int row, int col, double *A, int lda, int offset, doubl
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 /* converts a packed matrix into a matrix */
 void d_cvt_pmat2mat(int row, int col, int offset, double *pA, int sda, double *A, int lda)
 	{
@@ -1722,9 +1727,11 @@ void d_cvt_pmat2mat(int row, int col, int offset, double *pA, int sda, double *A
 		}
 
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 /* converts a packed matrix into a matrix */
 void d_cvt_tran_pmat2mat(int row, int col, int offset, double *pA, int sda, double *A, int lda)
 	{
@@ -1770,5 +1777,6 @@ void d_cvt_tran_pmat2mat(int row, int col, int offset, double *pA, int sda, doub
 		}
 
 	}
+#endif
 
 

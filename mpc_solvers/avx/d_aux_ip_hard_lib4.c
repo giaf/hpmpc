@@ -36,6 +36,8 @@
 #include "../../include/block_size.h"
 
 #ifdef BLASFEO
+#include <blasfeo_target.h>
+#include <blasfeo_common.h>
 #include <blasfeo_d_blas.h>
 #endif
 //#else
