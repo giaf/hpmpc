@@ -58,7 +58,7 @@ int c_order_d_ip_ocp_hard_tv(
 							double **Q, double **S, double **R, double **q, double **r, 
 							double **lb, double **ub,
 							double **C, double **D, double **lg, double **ug,
-							double **x, double **u, double **pi, double **lam, double **t,
+							double **x, double **u, double **pi, double **lam, //double **t,
 							double *inf_norm_res,
 							void *work0, 
 							double *stat)
@@ -664,8 +664,8 @@ int c_order_d_ip_ocp_hard_tv(
 			{
 			lam[ii][jj+0]      = hlam[ii][jj+0];
 			lam[ii][jj+nb[ii]] = hlam[ii][jj+pnb[ii]];
-			t[ii][jj+0]      = ht[ii][jj+0];
-			t[ii][jj+nb[ii]] = ht[ii][jj+pnb[ii]];
+//			t[ii][jj+0]      = ht[ii][jj+0];
+//			t[ii][jj+nb[ii]] = ht[ii][jj+pnb[ii]];
 			}
 		}
 
@@ -675,8 +675,8 @@ int c_order_d_ip_ocp_hard_tv(
 			{
 			lam[ii][2*nb[ii]+jj+0]      = hlam[ii][2*pnb[ii]+jj+0];
 			lam[ii][2*nb[ii]+jj+ng[ii]] = hlam[ii][2*pnb[ii]+jj+png[ii]];
-			t[ii][2*nb[ii]+jj+0]      = ht[ii][2*pnb[ii]+jj+0];
-			t[ii][2*nb[ii]+jj+ng[ii]] = ht[ii][2*pnb[ii]+jj+png[ii]];
+//			t[ii][2*nb[ii]+jj+0]      = ht[ii][2*pnb[ii]+jj+0];
+//			t[ii][2*nb[ii]+jj+ng[ii]] = ht[ii][2*pnb[ii]+jj+png[ii]];
 			}
 		}
 
@@ -694,7 +694,7 @@ void c_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 							double **Q, double **S, double **R, double **q, double **r, 
 							double **lb, double **ub,
 							double **C, double **D, double **lg, double **ug,
-							double **x, double **u, double **pi, double **lam, double **t,
+							double **x, double **u, double **pi, double **lam, //double **t,
 							double *inf_norm_res,
 							double *work0) 
 
@@ -1024,8 +1024,8 @@ void c_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 			{
 			lam[ii][jj+0]      = hlam[ii][jj+0];
 			lam[ii][jj+nb[ii]] = hlam[ii][jj+pnb[ii]];
-			t[ii][jj+0]      = ht[ii][jj+0];
-			t[ii][jj+nb[ii]] = ht[ii][jj+pnb[ii]];
+//			t[ii][jj+0]      = ht[ii][jj+0];
+//			t[ii][jj+nb[ii]] = ht[ii][jj+pnb[ii]];
 			}
 		}
 
@@ -1035,8 +1035,8 @@ void c_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 			{
 			lam[ii][2*nb[ii]+jj+0]      = hlam[ii][2*pnb[ii]+jj+0];
 			lam[ii][2*nb[ii]+jj+ng[ii]] = hlam[ii][2*pnb[ii]+jj+png[ii]];
-			t[ii][2*nb[ii]+jj+0]      = ht[ii][2*pnb[ii]+jj+0];
-			t[ii][2*nb[ii]+jj+ng[ii]] = ht[ii][2*pnb[ii]+jj+png[ii]];
+//			t[ii][2*nb[ii]+jj+0]      = ht[ii][2*pnb[ii]+jj+0];
+//			t[ii][2*nb[ii]+jj+ng[ii]] = ht[ii][2*pnb[ii]+jj+png[ii]];
 			}
 		}
 
