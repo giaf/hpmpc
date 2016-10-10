@@ -1,6 +1,6 @@
 % compile the C code
-mex HPMPC_ip_mpc_hard.c /opt/hpmpc/lib/libhpmpc.a                                % linear algebra in HPMPC 
-%mex HPMPC_ip_mpc_hard.c /opt/hpmpc/lib/libhpmpc.a /opt/blasfeo/lib/libblasfeo.a   % linear algebra in BLASFEO
+%mex HPMPC_ip_mpc_hard.c /opt/hpmpc/lib/libhpmpc.a                                % linear algebra in HPMPC 
+mex HPMPC_ip_mpc_hard.c /opt/hpmpc/lib/libhpmpc.a /opt/blasfeo/lib/libblasfeo.a   % linear algebra in BLASFEO
 
 % import cool graphic toolkit if in octave
 if is_octave()
