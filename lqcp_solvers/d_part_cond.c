@@ -1234,10 +1234,11 @@ void d_part_expand_solution(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 				pi_work0[ll] = hrq[stg][ll];
 			for(ll=0; ll<nb[stg]; ll++)
 				pi_work0[hidxb[stg][ll]] += - hlam[stg][0*pnb[stg]+ll] + hlam[stg][1*pnb[stg]+ll];
-			dsymv_lib(nu[stg]+nx[stg], nu[stg]+nx[stg], hpRSQrq[stg], cnux[stg], hux[stg], 1, pi_work0, pi_work0);
 #if defined(BLASFEO)
+			dsymv_l_lib(nu[stg]+nx[stg], nu[stg]+nx[stg], 1.0, hpRSQrq[stg], cnux[stg], hux[stg], 1.0, pi_work0, pi_work0);
 			dgemv_n_lib(nu[stg]+nx[stg], nx[stg+1], 1.0, hpBAbt[stg], cnx[stg+1], hpi[stg], 1.0, pi_work0, pi_work0);
 #else
+			dsymv_lib(nu[stg]+nx[stg], nu[stg]+nx[stg], hpRSQrq[stg], cnux[stg], hux[stg], 1, pi_work0, pi_work0);
 			dgemv_n_lib(nu[stg]+nx[stg], nx[stg+1], hpBAbt[stg], cnx[stg+1], hpi[stg], 1, pi_work0, pi_work0);
 #endif
 			for(ll=0; ll<ng[stg]; ll++)

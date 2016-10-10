@@ -38,18 +38,14 @@ void dsyrk_nn_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb,
 void dpotrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D);
 //void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pC, int sdc, double *diag, int alg);
 void dsyrk_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D);
-#endif
 void dgetrf_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D);
 void dgetrf_pivot_lib(int m, int n, double *pC, int sdc, double *pD, int sdd, double *inv_diag_D, int *ipiv);
-#if ! defined(BLASFEO)
 void dgemv_n_lib(int n, int m, double *pA, int sda, double *x, int alg, double *y, double *z);
 void dgemv_t_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y, double *z);
 void dtrmv_u_n_lib(int m, double *pA, int sda, double *x, int alg, double *y);
 void dtrmv_u_t_lib(int m, double *pA, int sda, double *x, int alg, double *y);
-#endif
 void dsymv_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y, double *z);
 void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, int alg_n, int alg_t, double *y_n, double *y_t, double *z_n, double *z_t);
-#if ! defined(BLASFEO)
 void dtrsv_n_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y);
 void dtrsv_t_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y);
 #endif

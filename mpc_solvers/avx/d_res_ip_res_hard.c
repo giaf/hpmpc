@@ -117,12 +117,20 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 			}
 		}
 
+#if defined(BLASFEO)
+	dsymv_l_lib(nu0+nx0, nu0+nx0, 1.0, hpQ[ii], cnux0, hux[ii], 1.0, hrq[ii], hrq[ii]);
+#else
 	dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnux0, hux[ii], 1, hrq[ii], hrq[ii]);
+#endif
 
 	for(jj=0; jj<nx1; jj++) 
 		hrb[ii][jj] = hb[ii][jj] - hux[ii+1][nu1+jj];
 
+#if defined(BLASFEO)
+	dgemv_nt_lib(nu0+nx0, nx1, 1.0, 1.0, hpBAbt[ii], cnx1, hpi[ii], hux[ii], 1.0, 1.0, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+#else
 	dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii], hux[ii], 1, 1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+#endif
 
 	if(ng0>0)
 		{
@@ -141,7 +149,11 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 			mu2 += hrm[ii][2*pnb+jj] + hrm[ii][2*pnb+png+jj];
 			}
 
+#if defined(BLASFEO)
+		dgemv_nt_lib(nu0+nx0, ng0, 1.0, 1.0, hpDCt[ii], cng, work, hux[ii], 1.0, 0.0, hrq[ii], work+png, hrq[ii], work+png);
+#else
 		dgemv_nt_lib(nu0+nx0, ng0, hpDCt[ii], cng, work, hux[ii], 1, 0, hrq[ii], work+png, hrq[ii], work+png);
+#endif
 
 		for(jj=0; jj<ng0; jj++)
 			{
@@ -298,12 +310,20 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 				}
 			}
 
+#if defined(BLASFEO)
+		dsymv_l_lib(nu0+nx0, nu0+nx0, 1.0, hpQ[ii], cnux0, hux[ii], 1.0, hrq[ii], hrq[ii]);
+#else
 		dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnux0, hux[ii], 1, hrq[ii], hrq[ii]);
+#endif
 
 		for(jj=0; jj<nx1; jj++) // TODO
 			hrb[ii][jj] = hb[ii][jj] - hux[ii+1][nu1+jj];
 
+#if defined(BLASFEO)
+		dgemv_nt_lib(nu0+nx0, nx1, 1.0, 1.0, hpBAbt[ii], cnx1, hpi[ii], hux[ii], 1.0, 1.0, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+#else
 		dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii], hux[ii], 1, 1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+#endif
 
 		if(ng0>0)
 			{
@@ -363,7 +383,11 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 				u_mu1  = _mm_add_sd( u_mu1, u_tmp1 );
 				}
 
+#if defined(BLASFEO)
+			dgemv_nt_lib(nu0+nx0, ng0, 1.0, 1.0, hpDCt[ii], cng, work, hux[ii], 1.0, 0.0, hrq[ii], work+png, hrq[ii], work+png);
+#else
 			dgemv_nt_lib(nu0+nx0, ng0, hpDCt[ii], cng, work, hux[ii], 1, 0, hrq[ii], work+png, hrq[ii], work+png);
+#endif
 
 			for(jj=0; jj<ng0-3; jj+=4)
 				{
@@ -424,7 +448,11 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 			}
 		}
 
+#if defined(BLASFEO)
+	dsymv_l_lib(nx0+nu0%bs, nx0+nu0%bs, 1.0, hpQ[ii]+nu0/bs*bs*cnux0+nu0/bs*bs*bs, cnux0, hux[ii]+nu0/bs*bs, 1.0, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs);
+#else
 	dsymv_lib(nx0+nu0%bs, nx0+nu0%bs, hpQ[ii]+nu0/bs*bs*cnux0+nu0/bs*bs*bs, cnux0, hux[ii]+nu0/bs*bs, 1, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs);
+#endif
 	
 	if(ng0>0)
 		{
@@ -443,7 +471,11 @@ void d_res_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng
 			mu2 += hrm[ii][2*pnb+jj] + hrm[ii][2*pnb+png+jj];
 			}
 
+#if defined(BLASFEO)
+		dgemv_nt_lib(nu0+nx0, ng0, 1.0, 1.0, hpDCt[ii], cng, work, hux[ii], 1.0, 0.0, hrq[ii], work+png, hrq[ii], work+png);
+#else
 		dgemv_nt_lib(nu0+nx0, ng0, hpDCt[ii], cng, work, hux[ii], 1, 0, hrq[ii], work+png, hrq[ii], work+png);
+#endif
 
 		for(jj=0; jj<ng0; jj++)
 			{

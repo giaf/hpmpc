@@ -25,6 +25,7 @@
 
 
 
+#if ! defined(BLASFEO)
 void kernel_dsymv_4_lib4(int kmax, double *A, int sda, double *x_n, double *y_n, double *z_n, double *x_t, double *y_t, double *z_t, int tri, int alg_n, int alg_t)
 	{
 	
@@ -979,6 +980,7 @@ void kernel_dsymv_1_lib4(int kmax, double *A, int sda, double *x_n, double *y_n,
 		}
 	
 	}
+#endif
 	
 	
 	

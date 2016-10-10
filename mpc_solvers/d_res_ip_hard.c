@@ -102,7 +102,11 @@ void d_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, do
 		hrq[ii][jj] = - hq[ii][jj];
 	for(jj=0; jj<nb0; jj++) 
 		hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
+#if defined(BLASFEO)
+	dsymv_l_lib(nu0+nx0, nu0+nx0, -1.0, hpQ[ii], cnux0, hux[ii], 1.0, hrq[ii], hrq[ii]);
+#else
 	dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnux0, hux[ii], -1, hrq[ii], hrq[ii]);
+#endif
 	if(ng0>0)
 		{
 		// TODO work space + one dgemv call
@@ -117,7 +121,11 @@ void d_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, do
 
 	for(jj=0; jj<nx1; jj++) 
 		hrb[ii][jj] = hux[ii+1][nu1+jj] - hb[ii][jj];
+#if defined(BLASFEO)
+	dgemv_nt_lib(nu0+nx0, nx1, -1.0, -1.0, hpBAbt[ii], cnx1, hpi[ii], hux[ii], 1.0, 1.0, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+#else
 	dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii], hux[ii], -1, -1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+#endif
 
 
 
@@ -169,7 +177,11 @@ void d_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, do
 			hrq[ii][nu0+jj] = - hq[ii][nu0+jj] + hpi[ii-1][jj];
 		for(jj=0; jj<nb0; jj++) 
 			hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
+#if defined(BLASFEO)
+		dsymv_l_lib(nu0+nx0, nu0+nx0, -1.0, hpQ[ii], cnux0, hux[ii], 1.0, hrq[ii], hrq[ii]);
+#else
 		dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnux0, hux[ii], -1, hrq[ii], hrq[ii]);
+#endif
 		if(ng0>0)
 			{
 			// TODO work space + one dgemv call
@@ -184,7 +196,11 @@ void d_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, do
 
 		for(jj=0; jj<nx1; jj++) 
 			hrb[ii][jj] = hux[ii+1][nu1+jj] - hb[ii][jj];
+#if defined(BLASFEO)
+		dgemv_nt_lib(nu0+nx0, nx1, -1.0, -1.0, hpBAbt[ii], cnx1, hpi[ii], hux[ii], 1.0, 1.0, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+#else
 		dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii], hux[ii], -1, -1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+#endif
 
 		}
 	
@@ -231,7 +247,11 @@ void d_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, do
 		hrq[ii][nu0+jj] = hpi[ii-1][jj] - hq[ii][nu0+jj];
 	for(jj=0; jj<nb0; jj++) 
 		hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
+#if defined(BLASFEO)
+	dsymv_l_lib(nx0+nu0%bs, nx0+nu0%bs, -1.0, hpQ[ii]+nu0/bs*bs*cnux0+nu0/bs*bs*bs, cnux0, hux[ii]+nu0/bs*bs, 1.0, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs);
+#else
 	dsymv_lib(nx0+nu0%bs, nx0+nu0%bs, hpQ[ii]+nu0/bs*bs*cnux0+nu0/bs*bs*bs, cnux0, hux[ii]+nu0/bs*bs, -1, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs);
+#endif
 	if(ng0>0)
 		{
 		// TODO work space + one dgemv call

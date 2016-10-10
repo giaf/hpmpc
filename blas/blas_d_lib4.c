@@ -5072,6 +5072,7 @@ void dtrmv_u_t_lib(int m, double *pA, int sda, double *x, int alg, double *y)
 
 
 
+#if ! defined(BLASFEO)
 // it moves vertically across block // TODO allow rectangular matrices
 void dsymv_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y, double *z)
 	{
@@ -5130,9 +5131,11 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y,
 		}
 
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 // it moves vertically across block
 void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, int alg_n, int alg_t, double *y_n, double *y_t, double *z_n, double *z_t)
 	{
@@ -5193,6 +5196,7 @@ void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, i
 		}
 
 	}
+#endif
 
 
 
