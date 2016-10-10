@@ -343,14 +343,16 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		ht[ii] = t+ii*(2*nb+2*ng);
 
 
+	// Partial condensing horizon
+	int N2 = N;
 
-	int work_space_size = hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(N, nx_v, nu_v, nb_v, ng_v);
+	int work_space_size = hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(N, nx_v, nu_v, nb_v, hidxb, ng_v, N2);
 	void *work = malloc( work_space_size );
 
 
 
 	// call solver 
-	fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, tol, N, nx_v, nu_v, nb_v, hidxb, ng_v, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi, hlam, ht, inf_norm_res, work, stat);
+	fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, tol, N, nx_v, nu_v,   nb_v, hidxb, ng_v, N2, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD,     hlg, hug, hx, hu, hpi, hlam, /*ht,*/ inf_norm_res, work, stat);
 
 
 	*kkk = (double) kk;
