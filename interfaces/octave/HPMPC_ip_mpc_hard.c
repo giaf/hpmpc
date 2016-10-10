@@ -62,7 +62,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 		
 	// get data 
 	int k_max;
-	double mu0, tol, *A, *B, *b, *Q, *Qf, *R, *S, *q, *qf, *r, *x, *u, *lb, *ub, *C, *D, *lg, *ug, *CN, *lgN, *ugN, *stat, *kkk, *inf_norm_res, *pi, *lam, *t;
+	double mu0, tol, *A, *B, *b, *Q, *Qf, *R, *S, *q, *qf, *r, *x, *u, *lb, *ub, *C, *D, *lg, *ug, *CN, *lgN, *ugN, *stat, *kkk, *inf_norm_res, *pi, *lam/*, *t*/;
 	
 	kkk   = mxGetPr(prhs[0]);
 	k_max = (int) mxGetScalar(prhs[1]);
@@ -101,9 +101,11 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	u    = mxGetPr(prhs[33]);
 	pi  = mxGetPr(prhs[34]);
 	lam = mxGetPr(prhs[35]);
-	t   = mxGetPr(prhs[36]);
-	inf_norm_res = mxGetPr(prhs[37]);
-	stat = mxGetPr(prhs[38]);
+//	t   = mxGetPr(prhs[36]);
+//	inf_norm_res = mxGetPr(prhs[37]);
+//	stat = mxGetPr(prhs[38]);
+	inf_norm_res = mxGetPr(prhs[36]);
+	stat = mxGetPr(prhs[37]);
 	
 	int kk = -1;
 
@@ -339,8 +341,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	for(ii=0; ii<=N; ii++)
 		hlam[ii] = lam+ii*(2*nb+2*ng);
 
-	for(ii=0; ii<=N; ii++)
-		ht[ii] = t+ii*(2*nb+2*ng);
+//	for(ii=0; ii<=N; ii++)
+//		ht[ii] = t+ii*(2*nb+2*ng);
 
 
 	// Partial condensing horizon
@@ -352,7 +354,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 
 	// call solver 
-	fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, tol, N, nx_v, nu_v,   nb_v, hidxb, ng_v, N2, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD,     hlg, hug, hx, hu, hpi, hlam, /*ht,*/ inf_norm_res, work, stat);
+	fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, tol, N, nx_v, nu_v, nb_v, hidxb, ng_v, N2, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi, hlam, /*ht,*/ inf_norm_res, work, stat);
 
 
 	*kkk = (double) kk;

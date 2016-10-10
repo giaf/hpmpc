@@ -170,13 +170,15 @@ tic
 if time_invariant==0 % time-variant interface
 
 	for ii=1:nrep
-		HPMPC_ip_mpc_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, CC, DD, llg, uug, CN, lgN, ugN, x, u, mult_pi, mult_lam, mult_t, inf_norm_res, infos);
+%		HPMPC_ip_mpc_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, CC, DD, llg, uug, CN, lgN, ugN, x, u, mult_pi, mult_lam, mult_t, inf_norm_res, infos);
+		HPMPC_ip_mpc_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, AA, BB, bb, QQ, Qf, RR, SS, qq, qf, rr, llb, uub, CC, DD, llg, uug, CN, lgN, ugN, x, u, mult_pi, mult_lam, inf_norm_res, infos);
 	end
 
 else % time-invariant interface
 
 	for ii=1:nrep
-		HPMPC_ip_mpc_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, A, B, b, Q, Qf, R, S, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, mult_pi, mult_lam, mult_t, inf_norm_res, infos);
+%		HPMPC_ip_mpc_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, A, B, b, Q, Qf, R, S, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, mult_pi, mult_lam, mult_t, inf_norm_res, infos);
+		HPMPC_ip_mpc_hard(kk, k_max, mu0, tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, A, B, b, Q, Qf, R, S, q, qf, r, lb, ub, C, D, lg, ug, CN, lgN, ugN, x, u, mult_pi, mult_lam, inf_norm_res, infos);
 	end
 
 end
