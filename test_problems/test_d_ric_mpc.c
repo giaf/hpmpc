@@ -376,7 +376,11 @@ int main()
 		double *pA; d_zeros_align(&pA, pnx, cnx); // XXX pnx_v[1] !!!!! (pnx_v[0]=0)
 		d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
 		double *b0; d_zeros_align(&b0, pnx, 1);
+#if defined(BLASFEO)
+		dgemv_n_lib(nx, nx, 1.0, pA, cnx, x0, 1.0, b, b0);
+#else
 		dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
+#endif
 		d_print_pmat(nx, nx, bs, pA, pnx);
 		d_print_mat(1, nx, x0, 1);
 		d_print_mat(1, nx, b, 1);
@@ -418,7 +422,11 @@ int main()
 		double *pS; d_zeros_align(&pS, pnu, cnx);
 		d_cvt_mat2pmat(nu, nx, S, nu, 0, pS, cnx);
 		double *r0; d_zeros_align(&r0, pnu, 1);
+#if defined(BLASFEO)
+		dgemv_n_lib(nu, nx, 1.0, pS, cnx, x0, 1.0, r, r0);
+#else
 		dgemv_n_lib(nu, nx, pS, cnx, x0, 1, r, r0);
+#endif
 
 		double *pQ0; d_zeros_align(&pQ0, pnz_v[0], cnux_v[0]);
 		d_cvt_mat2pmat(nu, nu, R, nu, 0, pQ0, cnux_v[0]);
