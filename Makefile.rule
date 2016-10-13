@@ -61,6 +61,9 @@ OS = LINUX
 # Installation directory
 PREFIX = /opt
 
+# top directory
+TOP = $(dir $(lastword $(MAKEFILE_LIST)))
+
 # Common optimization/debugging flags
 COMMON_FLAGS = -O2 -fPIC #-std=c99
 ifeq ($(CC), /opt/gcc/bin/gcc )
@@ -71,7 +74,7 @@ COMMON_FLAGS += -I/opt/gcc/lib/gcc/x86_64-pc-linux-gnu/6.0.0/include
 endif
 endif
 ifeq ($(USE_BLASFEO), 1)
-COMMON_FLAGS += -DBLASFEO -I/opt/blasfeo/include
+COMMON_FLAGS += -DBLASFEO -I/opt/blasfeo/include -I$(TOP)../blasfeo/include
 endif
 ifeq ($(OS), WINDOWS)
 COMMON_FLAGS += -DOS_WINDOWS
