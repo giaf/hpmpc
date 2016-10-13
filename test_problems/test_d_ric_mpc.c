@@ -297,7 +297,7 @@ int main()
 			nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 			nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 			N  = NN; // horizon lenght
-			nrep = 1;//NREP;
+			nrep = 1000;//NREP;
 			//nx = 25;
 			//nu = 1;
 			//N = 11;
@@ -548,11 +548,11 @@ int main()
 		if(PRINTRES==1 && ll_max==1)
 			{
 			/* print result */
-			printf("\n\nsv\n\n");
+			printf("\n\nux\n\n");
 			for(ii=0; ii<=N; ii++)
 				d_print_mat(1, nu_v[ii]+nx_v[ii], hux[ii], 1);
-			printf("\n");
-			for(ii=1; ii<=N; ii++)
+			printf("\npi\n\n");
+			for(ii=0; ii<N; ii++)
 				d_print_mat(1, nx, hpi[ii], 1);
 //			exit(1);
 			}
