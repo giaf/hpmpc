@@ -255,12 +255,12 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			hD[ii] = D;
 
 		hlg[0] = lg0;
-		for(ii=0; ii<N; ii++)
+		for(ii=1; ii<N; ii++)
 			hlg[ii] = lg;
 		hlg[N] = lgN;
 
 		hug[0] = ug0;
-		for(ii=0; ii<N; ii++)
+		for(ii=1; ii<N; ii++)
 			hug[ii] = ug;
 		hug[N] = ugN;
 
@@ -318,12 +318,12 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 			hD[ii] = D+ii*ng*nu;
 
 		hlg[0] = lg0;
-		for(ii=0; ii<N; ii++)
+		for(ii=1; ii<N; ii++)
 			hlg[ii] = lg+ii*ng;
 		hlg[N] = lgN;
 
 		hug[0] = ug0;
-		for(ii=0; ii<N; ii++)
+		for(ii=1; ii<N; ii++)
 			hug[ii] = ug+ii*ng;
 		hug[N] = ugN;
 
