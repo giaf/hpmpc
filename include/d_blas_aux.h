@@ -26,12 +26,15 @@
 
 
 // level 1 BLAS
+#if ! defined(BLASFEO)
 void daxpy_lib(int kmax, double alpha, double *x, double *y);
+#endif
 void daxpy_bkp_lib(int kmax, double alpha, double *x, double *y, double *z);
 
 
 
 // auxiliary routines
+#if ! defined(BLASFEO)
 void ddiareg_lib(int kmax, double reg, int offset, double *pD, int sdd);
 void ddiain_lib(int kmax, double *x, int offset, double *pD, int sdd);
 void ddiain_sqrt_lib(int kmax, double *x, int offset, double *pD, int sdd);
@@ -51,6 +54,7 @@ void dcolad_lib(int kmax, double alpha, double *x, int offset, double *pD, int s
 void dcolin_libsp(int kmax, int *idx, double *x, double *pD, int sdd);
 void dcolad_libsp(int kmax, double alpha, int *idx, double *x, double *pD, int sdd);
 void dvecad_libsp(int kmax, int *idx, double alpha, double *x, double *y);
+#endif
 
 
 

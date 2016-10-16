@@ -31,6 +31,13 @@
 #include <xmmintrin.h> // needed to flush to zero sub-normals with _MM_SET_FLUSH_ZERO_MODE (_MM_FLUSH_ZERO_ON); in the main()
 #endif
 
+#ifdef BLASFEO
+#include <blasfeo_target.h>
+#include <blasfeo_common.h>
+#include <blasfeo_d_blas.h>
+#include <blasfeo_d_aux.h>
+#endif
+
 #include "../include/aux_d.h"
 #include "../include/aux_s.h"
 #include "../include/blas_d.h"
@@ -41,12 +48,6 @@
 #include "tools.h"
 #include "test_param.h"
 #include "../include/c_interface.h"
-
-#ifdef BLASFEO
-#include <blasfeo_target.h>
-#include <blasfeo_common.h>
-#include <blasfeo_d_blas.h>
-#endif
 
 
 
@@ -923,6 +924,7 @@ exit(2);
 
 #if USE_IPM_RES
 		hpmpc_status = d_ip2_res_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+//		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 #else
 		hpmpc_status = d_ip2_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 #endif
@@ -1019,6 +1021,7 @@ exit(1);
 
 	gettimeofday(&tv3, NULL); // stop
 
+#if 0
 	printf("\nsolution from low-level interface (resolve final kkt)\n\n");
 	printf("\nux\n\n");
 	for(ii=0; ii<=N; ii++)
@@ -1032,6 +1035,7 @@ exit(1);
 //	printf("\nux\n\n");
 //	for(ii=0; ii<=N; ii++)
 //		d_print_mat(1, 2*pnb_v[ii]+2*png_v[ii], ht[ii], 1);
+#endif
 
 	// residuals
 	if(compute_res)
@@ -1039,6 +1043,7 @@ exit(1);
 		// compute residuals
 		d_res_mpc_hard_tv(N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hb, hpRSQ, hrq, hux, hpDCt, hd, hpi, hlam, ht, hrrq, hrb, hrd, &mu);
 
+#if 0
 		// print residuals
 		printf("\nhrrq\n\n");
 		for(ii=0; ii<=N; ii++)
@@ -1055,6 +1060,7 @@ exit(1);
 		printf("\nhrd up\n\n");
 		for(ii=0; ii<=N; ii++)
 			d_print_mat_e(1, nb_v[ii], hrd[ii]+pnb_v[ii], 1);
+#endif
 
 		}
 

@@ -26,6 +26,11 @@
 #include <stdlib.h>
 #include <math.h>
 
+#if defined(BLASFEO)
+#include <blasfeo_target.h>
+#include <blasfeo_common.h>
+#endif
+
 #include "../include/aux_d.h"
 #include "../include/aux_s.h"
 #include "../include/lqcp_solvers.h"

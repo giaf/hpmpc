@@ -34,6 +34,8 @@ int posix_memalign(void **memptr, size_t alignment, size_t size);
 
 
 
+#if ! defined(BLASFEO)
+
 /* creates a zero matrix aligned */
 void d_zeros(double **pA, int row, int col)
 	{
@@ -152,6 +154,8 @@ void d_ones_align(double **pA, int row, int col)
 	for(i=0; i<row*col; i++) A[i] = 1.0;
 	}
 
+#endif
+
 
 
 /* creates a zero matrix aligned */
@@ -166,6 +170,8 @@ void d_eye(double **pA, int row)
 	}
 
 
+
+#if ! defined(BLASFEO)
 
 /* prints a matrix */
 void d_print_mat(int row, int col, double *A, int lda)
@@ -356,6 +362,7 @@ void d_print_bmat(int nt, int nd, double *pB)
 	
 	}
 
+#endif
 
 
 

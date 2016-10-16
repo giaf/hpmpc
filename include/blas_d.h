@@ -48,13 +48,13 @@ void dsymv_lib(int m, int n, double *pA, int sda, double *x, int alg, double *y,
 void dgemv_nt_lib(int m, int n, double *pA, int sda, double *x_n, double *x_t, int alg_n, int alg_t, double *y_n, double *y_t, double *z_n, double *z_t);
 void dtrsv_n_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y);
 void dtrsv_t_lib(int m, int n, double *pA, int sda, int use_inv_diag_A, double *inv_diag_A, double *x, double *y);
-#endif
 void dgecp_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
 void dtrcp_l_lib(int m, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
 void dgead_lib(int m, int n, double alpha, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
 void dgetr_lib(int m, int n, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
 void dtrtr_l_lib(int m, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
 void dtrtr_u_lib(int m, int offsetA, double *pA, int sda, int offsetC, double *pC, int sdc);
+#endif
 void dsyttmm_lu_lib(int m, double *pA, int sda, double *pC, int sdc);
 void dsyttmm_ul_lib(int m, double *pA, int sda, int alg, double *pC, int sdc, double *pD, int sdd);
 void dttmm_uu_lib(int m, double *pA, int sda, double *pB, int sdb, double *pC, int sdc);

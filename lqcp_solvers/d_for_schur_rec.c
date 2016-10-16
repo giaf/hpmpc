@@ -34,6 +34,7 @@
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
 #include <blasfeo_d_blas.h>
+#include <blasfeo_d_aux.h>
 #endif
 //#else
 #include "../include/blas_d.h"
@@ -94,13 +95,25 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 	else
 		{
 
+#ifdef BLASFEO
+		dgecp_lib(pnv0+pne0, nv0, 1.0, 0, hpQA[ii], cnv0, 0, hpLA[ii], cnv0); // copy entire panels
+#else
 		dgecp_lib(pnv0+pne0, nv0, 0, hpQA[ii], cnv0, 0, hpLA[ii], cnv0); // copy entire panels
+#endif
 
 		// copy the lower part of A in the padd space
 		if(ne0>pnv0-nv0)
+#ifdef BLASFEO
+			dgecp_lib(pnv0-nv0, nv0, 1.0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+#else
 			dgecp_lib(pnv0-nv0, nv0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+#endif
 		else
+#ifdef BLASFEO
+			dgecp_lib(ne0, nv0, 1.0, 0, hpLA[ii]+pnv0*cnv0, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+#else
 			dgecp_lib(ne0, nv0, 0, hpLA[ii]+pnv0*cnv0, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+#endif
 
 		// regularize 
 		ddiareg_lib(nv0, reg, 0, hpLA[ii], cnv0);
@@ -117,9 +130,17 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 
 		// copy back the lower part of A
 		if(ne0>pnv0-nv0)
+#ifdef BLASFEO
+			dgecp_lib(pnv0-nv0, nv0, 1.0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0);
+#else
 			dgecp_lib(pnv0-nv0, nv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0);
+#endif
 		else
+#ifdef BLASFEO
+			dgecp_lib(ne0, nv0, 1.0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0);
+#else
 			dgecp_lib(ne0, nv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0);
+#endif
 
 		}
 		
@@ -171,15 +192,24 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 			if(ne0>pnv0-nx0)
 				{
 				ncp = ne0-pnv0+nx0;
+#ifdef BLASFEO
+				dgecp_lib(ncp, nx0, 1.0, 0, hpQA[ii]+pnv0, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0);
+				dgecp_lib(pnv0-nx0, 1.0, nx0, ncp, hpQA[ii]+pnv0+ncp/bs*bs*cnv0+ncp%bs, cnv0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0);
+#else
 				dgecp_lib(ncp, nx0, 0, hpQA[ii]+pnv0, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0);
 				dgecp_lib(pnv0-nx0, nx0, ncp, hpQA[ii]+pnv0+ncp/bs*bs*cnv0+ncp%bs, cnv0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0);
+#endif
 //				d_print_pmat(pne0, cnv0, bs, hpQA[ii]+pnv0, cnv0);
 //				d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
 //				exit(2);
 				}
 			else // copy all A in the pad space
 				{
-				dgecp_lib(ne0, nx0, 0, hpQA[ii]+pnv0, cnv0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0);
+#ifdef BLASFEO
+				dgecp_lib(ne0, nx0, 1.0, 0, hpQA[ii]+pnv0, cnv0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0);
+#else
+				dgecp_lib(ne0, nx0, 1.0, 0, hpQA[ii]+pnv0, cnv0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0);
+#endif
 				}
 
 //			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
@@ -198,9 +228,17 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 
 			// copy back the lower part of A
 			if(ne0>pnv0-nx0)
+#ifdef BLASFEO
+				dgecp_lib(pnv0-nx0, nx0, 1.0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0, 2*nx0, hpLA[ii]+2*nx0/bs*bs*cnv0+2*nx0%bs, cnv0);
+#else
 				dgecp_lib(pnv0-nx0, nx0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0, 2*nx0, hpLA[ii]+2*nx0/bs*bs*cnv0+2*nx0%bs, cnv0);
+#endif
 			else
+#ifdef BLASFEO
+				dgecp_lib(ne0, nx0, 1.0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0);
+#else
 				dgecp_lib(ne0, nx0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0);
+#endif
 
 //			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
 
@@ -221,13 +259,25 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 		else
 			{
 
+#ifdef BLASFEO
+			dgecp_lib(pnv0+ne0, nv0, 1.0, 0, hpQA[ii], cnv0, 0, hpLA[ii], cnv0); // copy entire panels
+#else
 			dgecp_lib(pnv0+ne0, nv0, 0, hpQA[ii], cnv0, 0, hpLA[ii], cnv0); // copy entire panels
+#endif
 
 			// copy the lower part of A in the padd space
 			if(ne0>pnv0-nv0)
+#ifdef BLASFEO
+				dgecp_lib(pnv0-nv0, nv0, 1.0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+#else
 				dgecp_lib(pnv0-nv0, nv0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+#endif
 			else
+#ifdef BLASFEO
+				dgecp_lib(ne0, nv0, 1.0, 0, hpLA[ii]+pnv0*cnv0, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+#else
 				dgecp_lib(ne0, nv0, 0, hpLA[ii]+pnv0*cnv0, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+#endif
 
 			// regularize 
 			ddiareg_lib(nv0, reg, 0, hpLA[ii], cnv0);
@@ -250,9 +300,17 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 
 			// copy back the lower part of A
 			if(ne0>pnv0-nv0)
+#ifdef BLASFEO
+				dgecp_lib(pnv0-nv0, nv0, 1.0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0);
+#else
 				dgecp_lib(pnv0-nv0, nv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0);
+#endif
 			else
+#ifdef BLASFEO
+				dgecp_lib(ne0, nv0, 1.0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0);
+#else
 				dgecp_lib(ne0, nv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0);
+#endif
 
 //			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
 //			exit(1);
@@ -300,13 +358,21 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 
 		ddiaad_lib(nv0, 1.0, hpQA[ii], 0, hpLA[ii], cnv0);
 
+#ifdef BLASFEO
+		dgecp_lib(ne0, nv0, 1.0, 0, hpQA[ii]+pnv0, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0); // copy entire panels
+#else
 		dgecp_lib(ne0, nv0, 0, hpQA[ii]+pnv0, cnv0, 0, hpLA[ii]+pnv0*cnv0, cnv0); // copy entire panels
+#endif
 
 		}
 	else
 		{
 
+#ifdef BLASFEO
+		dgecp_lib(pnv0+pne0, nv0, 1.0, 0, hpQA[ii], cnv0, 0, hpLA[ii], cnv0); // copy entire panels
+#else
 		dgecp_lib(pnv0+pne0, nv0, 0, hpQA[ii], cnv0, 0, hpLA[ii], cnv0); // copy entire panels
+#endif
 
 		dlauum_lib(ne1, hpLe[ii-1], cne1, hpLe[ii-1], cne1, 1, hpLA[ii], cnv0, hpLA[ii], cnv0);
 
@@ -314,9 +380,17 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 
 	// copy the lower part of A in the padd space
 	if(ne0>pnv0-nv0)
+#ifdef BLASFEO
+		dgecp_lib(pnv0-nv0, nv0, 1.0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+#else
 		dgecp_lib(pnv0-nv0, nv0, nve0, hpLA[ii]+nve0/bs*bs*cnv0+nve0%bs, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+#endif
 	else
+#ifdef BLASFEO
+		dgecp_lib(ne0, nv0, 1.0, 0, hpLA[ii]+pnv0*cnv0, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+#else
 		dgecp_lib(ne0, nv0, 0, hpLA[ii]+pnv0*cnv0, cnv0, nv0, hpLA[ii]+nv0/bs*bs*cnv0+nv0%bs, cnv0);
+#endif
 
 	// regularize 
 	ddiareg_lib(nv0, reg, 0, hpLA[N], cnv0);
@@ -334,9 +408,17 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 		{
 		// copy back the lower part of A
 		if(ne0>pnv0-nv0)
+#ifdef BLASFEO
+			dgecp_lib(pnv0-nv0, nv0, 1.0, nv0, hpLA[N]+nv0/bs*bs*cnv0+nv0%bs, cnv0, nve0, hpLA[N]+nve0/bs*bs*cnv0+nve0%bs, cnv0);
+#else
 			dgecp_lib(pnv0-nv0, nv0, nv0, hpLA[N]+nv0/bs*bs*cnv0+nv0%bs, cnv0, nve0, hpLA[N]+nve0/bs*bs*cnv0+nve0%bs, cnv0);
+#endif
 		else
+#ifdef BLASFEO
+			dgecp_lib(ne0, nv0, 1.0, nv0, hpLA[N]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[N]+pnv0*cnv0, cnv0);
+#else
 			dgecp_lib(ne0, nv0, nv0, hpLA[N]+nv0/bs*bs*cnv0+nv0%bs, cnv0, 0, hpLA[N]+pnv0*cnv0, cnv0);
+#endif
 
 #if 1
 		dgeset_lib(ne0, ne0, 0.0, 0, hpLe_tmp, cne0);

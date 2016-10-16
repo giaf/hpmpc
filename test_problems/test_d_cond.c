@@ -31,6 +31,13 @@
 #include <xmmintrin.h> // needed to flush to zero sub-normals with _MM_SET_FLUSH_ZERO_MODE (_MM_FLUSH_ZERO_ON); in the main()
 #endif
 
+#ifdef BLASFEO
+#include <blasfeo_target.h>
+#include <blasfeo_common.h>
+#include <blasfeo_d_blas.h>
+#include <blasfeo_d_aux.h>
+#endif
+
 #include "../include/aux_d.h"
 #include "../include/aux_s.h"
 #include "../include/blas_d.h"
@@ -297,7 +304,11 @@ int main()
 	double *pA; d_zeros_align(&pA, pnx, cnx);
 	d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
 	double *b0; d_zeros_align(&b0, pnx, 1);
+#ifdef BLASFEO
+	dgemv_n_lib(nx, nx, 1.0, pA, cnx, x0, 1.0, b, b0);
+#else
 	dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
+#endif
 
 	double *pBAbt0; 
 	d_zeros_align(&pBAbt0, pnz_v[0], cnx_v[1]);
@@ -341,7 +352,11 @@ int main()
 	double *pS; d_zeros_align(&pS, pnu, cnx);
 	d_cvt_mat2pmat(nu, nx, S, nu, 0, pS, cnx);
 	double *r0; d_zeros_align(&r0, pnu, 1);
+#ifdef BLASFEO
+	dgemv_n_lib(nu, nx, 1.0, pS, cnx, x0, 1.0, r, r0);
+#else
 	dgemv_n_lib(nu, nx, pS, cnx, x0, 1, r, r0);
+#endif
 
 	double *pRSQrq0;
 	d_zeros_align(&pRSQrq0, pnz_v[0], cnux_v[0]);
@@ -805,7 +820,11 @@ int main()
 		{
 		for(jj=0; jj<nx_v[ii+1]; jj++)
 			hux[ii+1][nu_v[ii+1]+jj] = hpBAbt[ii][(nu_v[ii]+nx_v[ii])/bs*bs*cnx_v[ii+1]+(nu_v[ii]+nx_v[ii])%bs+jj*bs];
+#ifdef BLASFEO
+		dgemv_t_lib(nu_v[ii]+nx_v[ii], nx_v[ii+1], 1.0, hpBAbt[ii], cnx_v[ii+1], hux[ii], 1.0, hux[ii+1]+nu_v[ii+1], hux[ii+1]+nu_v[ii+1]);
+#else
 		dgemv_t_lib(nu_v[ii]+nx_v[ii], nx_v[ii+1], hpBAbt[ii], cnx_v[ii+1], hux[ii], 1, hux[ii+1]+nu_v[ii+1], hux[ii+1]+nu_v[ii+1]);
+#endif
 		}
 	// compute lagrangian multipliers TODO
 	
@@ -831,10 +850,10 @@ int main()
 	double *hd3[N3+1];
 
 	void *memory_part_cond;
-	v_zeros_align(&memory_part_cond, d_part_cond_memory_space_size_bytes(N, nx_v, nu_v, nb_v, hidxb, ng_v, N3));
+	v_zeros_align(&memory_part_cond, d_part_cond_memory_space_size_bytes(N, nx_v, nu_v, nb_v, hidxb, ng_v, N3, nx3_v, nu3_v, nb3_v, ng3_v));
 
 	void *work_part_cond;
-	v_zeros_align(&work_part_cond, d_part_cond_work_space_size_bytes(N, nx_v, nu_v, nb_v, hidxb, ng_v, N3));
+	v_zeros_align(&work_part_cond, d_part_cond_work_space_size_bytes(N, nx_v, nu_v, nb_v, hidxb, ng_v, N3, nx3_v, nu3_v, nb3_v, ng3_v));
 
 	d_part_cond(N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQrq, hpDCt, hd, N3, nx3_v, nu3_v, nb3_v, hidxb3, ng3_v, hpBAbt3, hpRSQrq3, hpDCt3, hd3, memory_part_cond, work_part_cond);
 
@@ -1007,7 +1026,11 @@ int main()
 			{
 			for(kk=0; kk<nx_v[N_tmp+jj+1]; kk++)
 				hux[N_tmp+jj+1][nu_v[N_tmp+jj+1]+kk] = hpBAbt[N_tmp+jj][(nu_v[N_tmp+jj]+nx_v[N_tmp+jj])/bs*bs*cnx_v[N_tmp+jj+1]+(nu_v[N_tmp+jj]+nx_v[N_tmp+jj])%bs+kk*bs];
+#ifdef BLASFEO
+			dgemv_t_lib(nu_v[N_tmp+jj]+nx_v[N_tmp+jj], nx_v[N_tmp+jj+1], 1.0, hpBAbt[N_tmp+jj], cnx_v[N_tmp+jj+1], hux[N_tmp+jj], 1.0, hux[N_tmp+jj+1]+nu_v[N_tmp+jj+1], hux[N_tmp+jj+1]+nu_v[N_tmp+jj+1]);
+#else
 			dgemv_t_lib(nu_v[N_tmp+jj]+nx_v[N_tmp+jj], nx_v[N_tmp+jj+1], hpBAbt[N_tmp+jj], cnx_v[N_tmp+jj+1], hux[N_tmp+jj], 1, hux[N_tmp+jj+1]+nu_v[N_tmp+jj+1], hux[N_tmp+jj+1]+nu_v[N_tmp+jj+1]);
+#endif
 			}
 		//
 		N_tmp += T1;
@@ -1105,11 +1128,20 @@ int main()
 				pi_work[kk] = hrq[N_tmp+T1-1-jj][kk];
 			for(kk=0; kk<nb_v[N_tmp+T1-1-jj]; kk++)
 				pi_work[hidxb[N_tmp+T1-1-jj][kk]] += - hlam[N_tmp+T1-1-jj][0*pnb_v[N_tmp+T1-1-jj]+kk] + hlam[N_tmp+T1-1-jj][1*pnb_v[N_tmp+T1-1-jj]+kk];
+#ifdef BLASFEO
+			dsymv_l_lib(nu_v[N_tmp+T1-1-jj]+nx_v[N_tmp+T1-1-jj], nu_v[N_tmp+T1-1-jj]+nx_v[N_tmp+T1-1-jj], 1.0, hpRSQrq[N_tmp+T1-1-jj], cnux_v[N_tmp+T1-1-jj], hux[N_tmp+T1-1-jj], 1.0, pi_work, pi_work);
+			dgemv_n_lib(nu_v[N_tmp+T1-1-jj]+nx_v[N_tmp+T1-1-jj], 1.0, nx_v[N_tmp+T1-jj], hpBAbt[N_tmp+T1-1-jj], cnx_v[N_tmp+T1-jj], hpi[N_tmp+T1-1-jj], 1.0, pi_work, pi_work);
+#else
 			dsymv_lib(nu_v[N_tmp+T1-1-jj]+nx_v[N_tmp+T1-1-jj], nu_v[N_tmp+T1-1-jj]+nx_v[N_tmp+T1-1-jj], hpRSQrq[N_tmp+T1-1-jj], cnux_v[N_tmp+T1-1-jj], hux[N_tmp+T1-1-jj], 1, pi_work, pi_work);
 			dgemv_n_lib(nu_v[N_tmp+T1-1-jj]+nx_v[N_tmp+T1-1-jj], nx_v[N_tmp+T1-jj], hpBAbt[N_tmp+T1-1-jj], cnx_v[N_tmp+T1-jj], hpi[N_tmp+T1-1-jj], 1, pi_work, pi_work);
+#endif
 			for(kk=0; kk<ng_v[N_tmp+T1-1-jj]; kk++)
 				work_tmp[kk] = hlam[N_tmp+T1-1-jj][2*pnb_v[N_tmp+T1-1-jj]+1*png_v[N_tmp+T1-1-jj]+kk] - hlam[N_tmp+T1-1-jj][2*pnb_v[N_tmp+T1-1-jj]+0*png_v[N_tmp+T1-1-jj]+kk];
+#ifdef BLASFEO
+			dgemv_n_lib(nu_v[N_tmp+T1-1-jj]+nx_v[N_tmp+T1-1-jj], ng_v[N_tmp+T1-1-jj], 1.0, hpDCt[N_tmp+T1-1-jj], cng_v[N_tmp+T1-1-jj], work_tmp, 1.0, pi_work, pi_work);
+#else
 			dgemv_n_lib(nu_v[N_tmp+T1-1-jj]+nx_v[N_tmp+T1-1-jj], ng_v[N_tmp+T1-1-jj], hpDCt[N_tmp+T1-1-jj], cng_v[N_tmp+T1-1-jj], work_tmp, 1, pi_work, pi_work);
+#endif
 			//
 			for(kk=0; kk<nx_v[N_tmp+T1-1-jj]; kk++)
 				hpi[N_tmp+T1-2-jj][kk] = + pi_work[nu_v[N_tmp+T1-1-jj]+kk];

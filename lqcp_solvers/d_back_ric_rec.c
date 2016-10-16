@@ -35,6 +35,7 @@
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
 #include <blasfeo_d_blas.h>
+#include <blasfeo_d_aux.h>
 #endif
 
 
@@ -207,14 +208,21 @@ d_print_pmat(nx[nn]+1, nx[nn], bs, hpRSQrq[nn], cnux[nn]);
 //		for(ii=0; ii<ng[N]; ii++) 
 //			Qx[N][pnb+ii] = sqrt(Qx[N][pnb+ii]); // XXX
 		dgemm_diag_right_lib(nux[N], ng[N], hpDCt[N], cng[N], Qx[N]+pnb, 0, work0, cng[N], work0, cng[N]);
+#ifdef BLASFEO
+		dgecp_lib(nux[N], 1.0, ng[N], 0, hpDCt[N], cng[N], 0, work2, cng[N]);
+		drowin_lib(ng[N], 1.0, qx[N]+pnb, work0+nux[N]/bs*cng[N]*bs+nux[N]%bs);
+#else
+		dgecp_lib(nux[N], ng[N], 0, hpDCt[N], cng[N], 0, work2, cng[N]);
 		drowin_lib(ng[N], qx[N]+pnb, work0+nux[N]/bs*cng[N]*bs+nux[N]%bs);
+#endif
 //		for(ii=0; ii<ng[N]; ii++) 
 //			work0[nux[N]/bs*cng[N]*bs+nux[N]%bs+ii*bs] /= Qx[N][pnb+ii];
-		dgecp_lib(nux[N], ng[N], 0, hpDCt[N], cng[N], 0, work2, cng[N]);
 #ifdef BLASFEO
+		dgecp_lib(nux[N], 1.0, ng[N], 0, hpDCt[N], cng[N], 0, work2, cng[N]);
 //		dsyrk_dpotrf_nt_l_lib(nz[N], nux[N], ng[N], work0, cng[N], work0, cng[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 		dsyrk_dpotrf_nt_l_lib(nz[N], nux[N], ng[N], work0, cng[N], work2, cng[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 #else
+		dgecp_lib(nux[N], ng[N], 0, hpDCt[N], cng[N], 0, work2, cng[N]);
 //		dsyrk_dpotrf_lib(nz[N], nux[N], ng[N], work0, cng[N], work0, cng[N], 1, hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 		dsyrk_dpotrf_lib(nz[N], nux[N], ng[N], work0, cng[N], work2, cng[N], 1, hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 #endif
@@ -281,16 +289,22 @@ d_print_pmat(nx[nn]+1, nx[nn], bs, hpRSQrq[nn], cnux[nn]);
 //			for(ii=0; ii<ng[N-nn-1]; ii++) 
 //				Qx[N-nn-1][pnb+ii] = sqrt(Qx[N-nn-1][pnb+ii]); // XXX
 			dgemm_diag_right_lib(nux[N-nn-1], ng[N-nn-1], hpDCt[N-nn-1], cng[N-nn-1], Qx[N-nn-1]+pnb, 0, work0+nx[N-nn]*bs, cnxg[N-nn-1], work0+nx[N-nn]*bs, cnxg[N-nn-1]);
+#ifdef BLASFEO
+			drowin_lib(ng[N-nn-1], 1.0, qx[N-nn-1]+pnb, work0+nux[N-nn-1]/bs*cnxg[N-nn-1]*bs+nux[N-nn-1]%bs+nx[N-nn]*bs);
+#else
 			drowin_lib(ng[N-nn-1], qx[N-nn-1]+pnb, work0+nux[N-nn-1]/bs*cnxg[N-nn-1]*bs+nux[N-nn-1]%bs+nx[N-nn]*bs);
+#endif
 //			for(ii=0; ii<ng[N-nn-1]; ii++) 
 //				work0[nux[N-nn-1]/bs*cnxg[N-nn-1]*bs+nux[N-nn-1]%bs+(ii+nx[N-nn])*bs] /= Qx[N-nn-1][pnb+ii];
-			dgecp_lib(nux[N-nn-1], nx[N-nn], 0, work0, cnxg[N-nn-1], 0, work2, cnxg[N-nn-1]);
-			dgecp_lib(nux[N-nn-1], ng[N-nn-1], 0, hpDCt[N-nn-1], cng[N-nn-1], 0, work2+nx[N-nn]*bs, cnxg[N-nn-1]);
 
 #ifdef BLASFEO
+			dgecp_lib(nux[N-nn-1], 1.0, nx[N-nn], 0, work0, cnxg[N-nn-1], 0, work2, cnxg[N-nn-1]);
+			dgecp_lib(nux[N-nn-1], 1.0, ng[N-nn-1], 0, hpDCt[N-nn-1], cng[N-nn-1], 0, work2+nx[N-nn]*bs, cnxg[N-nn-1]);
 //			dsyrk_dpotrf_nt_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work0, cnxg[N-nn-1], hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 			dsyrk_dpotrf_nt_l_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work2, cnxg[N-nn-1], hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 #else
+			dgecp_lib(nux[N-nn-1], nx[N-nn], 0, work0, cnxg[N-nn-1], 0, work2, cnxg[N-nn-1]);
+			dgecp_lib(nux[N-nn-1], ng[N-nn-1], 0, hpDCt[N-nn-1], cng[N-nn-1], 0, work2+nx[N-nn]*bs, cnxg[N-nn-1]);
 //			dsyrk_dpotrf_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work0, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 			dsyrk_dpotrf_lib(nz[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work0, cnxg[N-nn-1], work2, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 #endif
@@ -450,11 +464,12 @@ void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, int *nb, int **idxb, int
 		work2 = work + pnux[N]*cng[N];
 //		for(ii=0; ii<ng[N]; ii++) Qx[N][pnb+ii] = sqrt(Qx[N][pnb+ii]); // XXX
 		dgemm_diag_right_lib(nux[N], ng[N], hpDCt[N], cng[N], Qx[N]+pnb, 0, work, cng[N], work, cng[N]);
-		dgecp_lib(nux[N], ng[N], 0, hpDCt[N], cng[N], 0, work2, cng[N]);
 #ifdef BLASFEO
+		dgecp_lib(nux[N], 1.0, ng[N], 0, hpDCt[N], cng[N], 0, work2, cng[N]);
 //		dsyrk_dpotrf_nt_l_lib(nux[N], nux[N], ng[N], work, cng[N], work, cng[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 		dsyrk_dpotrf_nt_l_lib(nux[N], nux[N], ng[N], work, cng[N], work2, cng[N], hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 #else
+		dgecp_lib(nux[N], ng[N], 0, hpDCt[N], cng[N], 0, work2, cng[N]);
 //		dsyrk_dpotrf_lib(nux[N], nux[N], ng[N], work, cng[N], work, cng[N], 1, hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 		dsyrk_dpotrf_lib(nux[N], nux[N], ng[N], work, cng[N], work2, cng[N], 1, hpRSQrq[N], cnux[N], hpL[N], cnl[N], hdL[N]);
 #endif
@@ -497,12 +512,14 @@ void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, int *nb, int **idxb, int
 //			for(ii=0; ii<ng[nn]; ii++) 
 //				Qx[N-nn-1][pnb+ii] = sqrt(Qx[N-nn-1][pnb+ii]); // XXX
 			dgemm_diag_right_lib(nux[N-nn-1], ng[N-nn-1], hpDCt[N-nn-1], cng[N-nn-1], Qx[N-nn-1]+pnb, 0, work+nx[N-nn]*bs, cnxg[N-nn-1], work+nx[N-nn]*bs, cnxg[N-nn-1]);
-			dgecp_lib(nux[N-nn-1], nx[N-nn], 0, work, cnxg[N-nn-1], 0, work2, cnxg[N-nn-1]);
-			dgecp_lib(nux[N-nn-1], ng[N-nn-1], 0, hpDCt[N-nn-1], cng[N-nn-1], 0, work2+nx[N-nn]*bs, cnxg[N-nn-1]);
 #ifdef BLASFEO
+			dgecp_lib(nux[N-nn-1], 1.0, nx[N-nn], 0, work, cnxg[N-nn-1], 0, work2, cnxg[N-nn-1]);
+			dgecp_lib(nux[N-nn-1], 1.0, ng[N-nn-1], 0, hpDCt[N-nn-1], cng[N-nn-1], 0, work2+nx[N-nn]*bs, cnxg[N-nn-1]);
 //			dsyrk_dpotrf_nt_l_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work, cnxg[N-nn-1], hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 			dsyrk_dpotrf_nt_l_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work2, cnxg[N-nn-1], hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 #else
+			dgecp_lib(nux[N-nn-1], nx[N-nn], 0, work, cnxg[N-nn-1], 0, work2, cnxg[N-nn-1]);
+			dgecp_lib(nux[N-nn-1], ng[N-nn-1], 0, hpDCt[N-nn-1], cng[N-nn-1], 0, work2+nx[N-nn]*bs, cnxg[N-nn-1]);
 //			dsyrk_dpotrf_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 			dsyrk_dpotrf_lib(nux[N-nn-1], nux[N-nn-1], nx[N-nn]+ng[N-nn-1], work, cnxg[N-nn-1], work2, cnxg[N-nn-1], 1, hpRSQrq[N-nn-1], cnux[N-nn-1], hpL[N-nn-1], cnl[N-nn-1], hdL[N-nn-1]);
 #endif
