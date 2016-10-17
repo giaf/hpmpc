@@ -31,7 +31,7 @@ AUX_OBJS = ./auxiliary/d_aux_lib4.o ./auxiliary/d_aux_extern_depend_lib4.o #./au
 KERNEL_OBJS_DOUBLE = ./kernel/avx2/kernel_dgemm_avx2_lib4.o ./kernel/avx2/kernel_dtrmm_avx2_lib4.o  ./kernel/avx2/kernel_dtrsm_avx2_lib4.o ./kernel/avx2/kernel_dsyrk_avx2_lib4.o  ./kernel/avx2/kernel_dpotrf_avx2_lib4.o ./kernel/avx2/kernel_dgemv_avx2_lib4.o ./kernel/avx2/kernel_dtrmv_avx2_lib4.o ./kernel/avx2/kernel_dtrsv_avx2_lib4.o ./kernel/avx2/kernel_dsymv_avx2_lib4.o ./kernel/avx2/kernel_dtran_avx2_lib4.o ./kernel/avx2/kernel_dttmm_avx2_lib4.o ./kernel/avx2/kernel_dtrinv_avx2_lib4.o ./kernel/avx/kernel_dcopy_avx_lib4.o ./kernel/avx2/kernel_dgetrf_avx2_lib4.o
 KERNEL_OBJS_SINGLE = #./kernel/avx2/kernel_sgemm_avx2_lib8.o ./kernel/avx2/kernel_strmm_avx2_lib8.o ./kernel/avx2/kernel_sgemm_strsm_avx2_lib8.o ./kernel/avx2/kernel_ssyrk_spotrf_avx2_lib8.o ./kernel/avx2/kernel_sgemv_avx_lib8.o ./kernel/avx2/kernel_strmv_avx_lib8.o ./kernel/avx2/kernel_strsv_avx_lib8.o ./kernel/avx2/kernel_ssymv_avx_lib8.o ./kernel/avx2/kernel_stran_avx2_lib8.o
 BLAS_OBJS = ./blas/blas_d_lib4.o #./blas/blas_s_lib8.o
-MPC_AUX_OBJS = ./mpc_solvers/avx/d_aux_ip_hard_lib4.o ./mpc_solvers/avx/d_res_ip_res_hard.o #./mpc_solvers/avx/s_aux_ip_avx_lib8.o ./mpc_solvers/avx/d_aux_ip_soft_lib4.o
+MPC_AUX_OBJS = ./mpc_solvers/avx/d_aux_ip_hard_lib4.o ./mpc_solvers/avx/d_res_ip_res_hard.o  ./mpc_solvers/avx/d_aux_ip_hard_libstr.o ./mpc_solvers/avx/d_res_ip_res_hard_libstr.o #./mpc_solvers/avx/s_aux_ip_avx_lib8.o ./mpc_solvers/avx/d_aux_ip_soft_lib4.o
 endif
 ifeq ($(TARGET), X64_AVX)
 AUX_OBJS = ./auxiliary/d_aux_lib4.o ./auxiliary/d_aux_extern_depend_lib4.o #./auxiliary/s_aux_lib8.o

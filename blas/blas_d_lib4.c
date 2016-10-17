@@ -5402,12 +5402,12 @@ void daxpy_bkp_lib(int kmax, double alpha, double *x, double *y, double *z)
 	v_alpha = _mm256_broadcast_sd( &alpha );
 	for( ; ii<kmax-7; ii+=8)
 		{
-		v_y0  = _mm256_load_pd( &y[ii+0] );
-		v_y1  = _mm256_load_pd( &y[ii+4] );
-		v_x0  = _mm256_load_pd( &x[ii+0] );
-		v_x1  = _mm256_load_pd( &x[ii+4] );
-		_mm256_store_pd( &z[ii+0], v_y0 );
-		_mm256_store_pd( &z[ii+4], v_y1 );
+		v_y0  = _mm256_loadu_pd( &y[ii+0] );
+		v_y1  = _mm256_loadu_pd( &y[ii+4] );
+		v_x0  = _mm256_loadu_pd( &x[ii+0] );
+		v_x1  = _mm256_loadu_pd( &x[ii+4] );
+		_mm256_storeu_pd( &z[ii+0], v_y0 );
+		_mm256_storeu_pd( &z[ii+4], v_y1 );
 #if defined(TARGET_X64_AVX2)
 		v_y0  = _mm256_fmadd_pd( v_alpha, v_x0, v_y0 );
 		v_y1  = _mm256_fmadd_pd( v_alpha, v_x1, v_y1 );
@@ -5417,21 +5417,21 @@ void daxpy_bkp_lib(int kmax, double alpha, double *x, double *y, double *z)
 		v_tmp = _mm256_mul_pd( v_alpha, v_x1 );
 		v_y1  = _mm256_add_pd( v_tmp, v_y1 );
 #endif
-		_mm256_store_pd( &y[ii+0], v_y0 );
-		_mm256_store_pd( &y[ii+4], v_y1 );
+		_mm256_storeu_pd( &y[ii+0], v_y0 );
+		_mm256_storeu_pd( &y[ii+4], v_y1 );
 		}
 	for( ; ii<kmax-3; ii+=4)
 		{
-		v_y0  = _mm256_load_pd( &y[ii] );
-		v_x0  = _mm256_load_pd( &x[ii] );
-		_mm256_store_pd( &z[ii], v_y0 );
+		v_y0  = _mm256_loadu_pd( &y[ii] );
+		v_x0  = _mm256_loadu_pd( &x[ii] );
+		_mm256_storeu_pd( &z[ii], v_y0 );
 #if defined(TARGET_X64_AVX2)
 		v_y0  = _mm256_fmadd_pd( v_alpha, v_x0, v_y0 );
 #else
 		v_tmp = _mm256_mul_pd( v_alpha, v_x0 );
 		v_y0  = _mm256_add_pd( v_tmp, v_y0 );
 #endif
-		_mm256_store_pd( &y[ii], v_y0 );
+		_mm256_storeu_pd( &y[ii], v_y0 );
 		}
 #else
 	for( ; ii<kmax-3; ii+=4)
