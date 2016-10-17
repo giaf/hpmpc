@@ -46,7 +46,7 @@
 
 // use iterative refinement to increase accuracy of the solution of the equality constrained sub-problems
 #define ITER_REF 1
-#define THR_ITER_REF 1e-3
+#define THR_ITER_REF 1e-25
 //#define ITER_REF_REG 0.0
 #define CORRECTOR_LOW 1
 #define CORRECTOR_HIGH 1

@@ -49,6 +49,9 @@ endif
 #OBJS_TEST = test_blas_d.o
 #OBJS_TEST = tools.o test_d_ric_mpc.o
 OBJS_TEST = tools.o test_d_ip_hard.o
+#OBJS_TEST = tools.o test_d_ip_hard_libstr.o
+#OBJS_TEST = tools.o test_d_tree_ip_hard_libstr.o
+#OBJS_TEST = tools.o test_d_cond.o
 
 # old
 #OBJS_TEST = test_blas_d_debug.o
@@ -103,4 +106,5 @@ test_d_admm_box.o: test_d_admm_box.c test_param.h ../problem_size.h
 test_s_admm_box.o: test_s_admm_box.c test_param.h ../problem_size.h
 test_d_admm_soft.o: test_d_admm_soft.c test_param.h ../problem_size.h
 test_s_admm_soft.o: test_s_admm_soft.c test_param.h ../problem_size.h
-
+# TODO remove below !!!!!
+test_d_cond.o: ./../lqcp_solvers/d_part_cond.c
