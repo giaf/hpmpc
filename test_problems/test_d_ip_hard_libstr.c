@@ -615,10 +615,10 @@ exit(2);
 * low level interface work space
 ************************************************/	
 
-	double *hpBAbt[N];
+	double *hpBAbt[N+1];
 	double *hpDCt[N+1];
-	double *hb[N];
-	double *hpRSQ[N+1];
+	double *hb[N+1];
+	double *hpRSQrq[N+1];
 	double *hrq[N+1];
 	double *hd[N+1];
 	int *hidxb[N+1];
@@ -626,13 +626,14 @@ exit(2);
 	double *hpi[N+1];
 	double *hlam[N+1];
 	double *ht[N+1];
-	double *hrb[N];
+	double *hrb[N+1];
 	double *hrrq[N+1];
 	double *hrd[N+1];
-	hpBAbt[0] = pBAbt0;
+	double *hrm[N+1];
+	hpBAbt[1] = pBAbt0;
 	hpDCt[0] = pDCt0;
-	hb[0] = b0;
-	hpRSQ[0] = pRSQ0;
+	hb[1] = b0;
+	hpRSQrq[0] = pRSQ0;
 	hrq[0] = rq0;
 	hd[0] = d0;
 	hidxb[0] = idxb0;
@@ -640,17 +641,18 @@ exit(2);
 	d_zeros_align(&hpi[1], pnx_v[1], 1);
 	d_zeros_align(&hlam[0], 2*nb_v[0]+2*ng_v[0], 1);
 	d_zeros_align(&ht[0], 2*nb_v[0]+2*ng_v[0], 1);
-	d_zeros_align(&hrb[0], pnx_v[1], 1);
+	d_zeros_align(&hrb[1], pnx_v[1], 1);
 	d_zeros_align(&hrrq[0], pnz_v[0], 1);
 	d_zeros_align(&hrd[0], 2*nb_v[0]+2*ng_v[0], 1);
+	d_zeros_align(&hrm[0], 2*nb_v[0]+2*ng_v[0], 1);
 	for(ii=1; ii<N; ii++)
 		{
-		hpBAbt[ii] = pBAbt1;
+		hpBAbt[ii+1] = pBAbt1;
 //		d_zeros_align(&hpBAbt[ii], pnz_v[ii], cnx_v[ii+1]); for(jj=0; jj<pnz_v[ii]*cnx_v[ii+1]; jj++) hpBAbt[ii][jj] = pBAbt1[jj];
 		hpDCt[ii] = pDCt1;
-		hb[ii] = b;
-		hpRSQ[ii] = pRSQ1;
-//		d_zeros_align(&hpRSQ[ii], pnz_v[ii], cnux_v[ii]); for(jj=0; jj<pnz_v[ii]*cnux_v[ii]; jj++) hpRSQ[ii][jj] = pRSQ1[jj];
+		hb[ii+1] = b;
+		hpRSQrq[ii] = pRSQ1;
+//		d_zeros_align(&hpRSQrq[ii], pnz_v[ii], cnux_v[ii]); for(jj=0; jj<pnz_v[ii]*cnux_v[ii]; jj++) hpRSQrq[ii][jj] = pRSQ1[jj];
 		hrq[ii] = rq1;
 		hd[ii] = d1;
 		hidxb[ii] = idxb1;
@@ -658,12 +660,13 @@ exit(2);
 		d_zeros_align(&hpi[ii+1], pnx_v[ii+1], 1);
 		d_zeros_align(&hlam[ii], 2*nb_v[ii]+2*ng_v[ii], 1);
 		d_zeros_align(&ht[ii], 2*nb_v[ii]+2*ng_v[ii], 1);
-		d_zeros_align(&hrb[ii], pnx_v[ii+1], 1);
+		d_zeros_align(&hrb[ii+1], pnx_v[ii+1], 1);
 		d_zeros_align(&hrrq[ii], pnz_v[ii], 1);
 		d_zeros_align(&hrd[ii], 2*nb_v[ii]+2*ng_v[ii], 1);
+		d_zeros_align(&hrm[ii], 2*nb_v[ii]+2*ng_v[ii], 1);
 		}
 	hpDCt[N] = pDCtN;
-	hpRSQ[N] = pRSQN;
+	hpRSQrq[N] = pRSQN;
 	hrq[N] = rqN;
 	hd[N] = dN;
 	hidxb[N] = idxbN;
@@ -672,6 +675,7 @@ exit(2);
 	d_zeros_align(&ht[N], 2*nb_v[N]+2*ng_v[N], 1);
 	d_zeros_align(&hrrq[N], pnz_v[N], 1);
 	d_zeros_align(&hrd[N], 2*nb_v[N]+2*ng_v[N], 1);
+	d_zeros_align(&hrm[N], 2*nb_v[N]+2*ng_v[N], 1);
 
 //	hpDCt[M] = pDCtM;
 //	hd[M] = dM;
@@ -731,6 +735,7 @@ exit(2);
 	// data matrices
 	double *hA[N];
 	double *hB[N];
+	double *hbb[N];
 	double *hC[N+1];
 	double *hD[N];
 	double *hQ[N+1];
@@ -752,6 +757,7 @@ exit(2);
 	ii = 0;
 	hA[0] = A;
 	hB[0] = B;
+	hbb[0] = b;
 	hC[0] = C;
 	hD[0] = D;
 	hQ[0] = Q;
@@ -772,6 +778,7 @@ exit(2);
 		{
 		hA[ii] = A;
 		hB[ii] = B;
+		hbb[ii] = b;
 		hC[ii] = C;
 		hD[ii] = D;
 		hQ[ii] = Q;
@@ -843,7 +850,7 @@ exit(2);
 		{
 
 //		hpmpc_status = fortran_order_d_ip_mpc_hard_tv(&kk, k_max, mu0, mu_tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, rx, ru, rpi, rlam, rt, inf_norm_res, rwork, stat);
-		hpmpc_status = fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, mu_tol, N, nx_v, nu_v, nb_v, hidxb, ng_v, N2, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi1, hlam1, /*ht1,*/ inf_norm_res, work1, stat);
+		hpmpc_status = fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, mu_tol, N, nx_v, nu_v, nb_v, hidxb, ng_v, N2, warm_start, hA, hB, hbb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi1, hlam1, /*ht1,*/ inf_norm_res, work1, stat);
 
 		kk_avg += kk;
 
@@ -882,7 +889,7 @@ exit(2);
 		{
 
 //		fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(N, nx, nu, nb, ng, ngN, time_invariant, free_x0, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, rx, ru, rpi, rlam, rt, inf_norm_res, rwork);
-		fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(N, nx_v, nu_v, nb_v, hidxb, ng_v, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi1, hlam1, /*ht1,*/ inf_norm_res, work1);
+		fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(N, nx_v, nu_v, nb_v, hidxb, ng_v, hA, hB, hbb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi1, hlam1, /*ht1,*/ inf_norm_res, work1);
 
 		kk_avg += kk;
 
@@ -923,10 +930,10 @@ exit(2);
 		{
 
 #if USE_IPM_RES
-//		hpmpc_status = d_ip2_res_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
-		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+//		hpmpc_status = d_ip2_res_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 #else
-		hpmpc_status = d_ip2_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQ, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+		hpmpc_status = d_ip2_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 #endif
 		
 		kk_avg += kk;
@@ -953,8 +960,48 @@ exit(2);
 	// residuals
 	if(compute_res)
 		{
+
+		int pnzM = (nx+bs-1)/bs*bs;
+
+		struct d_strmat hsBAbt[N+1];
+		struct d_strvec hsb[N+1];
+		struct d_strmat hsRSQrq[N+1];
+		struct d_strvec hsrq[N+1];
+		struct d_strmat hsDCt[N+1];
+		struct d_strvec hsd[N+1];
+		struct d_strvec hsux[N+1];
+		struct d_strvec hspi[N+1];
+		struct d_strvec hst[N+1];
+		struct d_strvec hslam[N+1];
+		struct d_strvec hsres_q[N+1];
+		struct d_strvec hsres_b[N+1];
+		struct d_strvec hsres_d[N+1];
+		struct d_strvec hsres_m[N+1];
+		struct d_strvec hsres_work[2];
+
+		for(ii=0; ii<=N; ii++)
+			{
+			d_create_strmat(nu_v[ii]+nx_v[ii]+1, nx_v[ii+1], &hsBAbt[ii], (void *) hpBAbt[ii]);
+			hsBAbt[ii].cn = cnx_v[ii];
+			d_create_strvec(nx_v[ii], &hsb[ii], (void *) hb[ii]);
+			d_create_strmat(nu_v[ii]+nx_v[ii]+1, nu_v[ii]+nx_v[ii], &hsRSQrq[ii], (void *) hpRSQrq[ii]);
+			hsRSQrq[ii].cn = cnux_v[ii];
+			d_create_strvec(nu_v[ii]+nx_v[ii], &hsrq[ii], (void *) hrq[ii]);
+			d_create_strvec(nb_v[ii]+ng_v[ii], &hsd[ii], (void *) hd[ii]);
+			d_create_strvec(nu_v[ii]+nx_v[ii], &hsux[ii], (void *) hux[ii]);
+			d_create_strvec(nx_v[ii], &hspi[ii], (void *) hpi[ii]);
+			d_create_strvec(2*nb_v[ii]+2*ng_v[ii], &hst[ii], (void *) ht[ii]);
+			d_create_strvec(2*nb_v[ii]+2*ng_v[ii], &hslam[ii], (void *) hlam[ii]);
+			d_create_strvec(nu_v[ii]+nx_v[ii], &hsres_q[ii], (void *) hrrq[ii]);
+			d_create_strvec(nx_v[ii], &hsres_b[ii], (void *) hrb[ii]);
+			d_create_strvec(2*nb_v[ii]+2*ng_v[ii], &hsres_d[ii], (void *) hrd[ii]);
+			d_create_strvec(2*nb_v[ii]+2*ng_v[ii], &hsres_m[ii], (void *) hrm[ii]);
+			}
+		d_allocate_strvec(pnzM, &hsres_work[0]);
+		d_allocate_strvec(pnzM, &hsres_work[1]);
+
 		// compute residuals
-		d_res_mpc_hard_tv(N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hb, hpRSQ, hrq, hux, hpDCt, hd, hpi, hlam, ht, hrrq, hrb, hrd, &mu);
+		d_res_res_mpc_hard_libstr(N, nx_v, nu_v, nb_v, hidxb, ng_v, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsres_work, hsres_q, hsres_b, hsres_d, hsres_m, &mu);
 
 		// print residuals
 		printf("\nhrrq\n\n");
@@ -962,8 +1009,8 @@ exit(2);
 			d_print_mat_e(1, nu_v[ii]+nx_v[ii], hrrq[ii], 1);
 
 		printf("\nhrb\n\n");
-		for(ii=0; ii<N; ii++)
-			d_print_mat_e(1, nx_v[ii+1], hrb[ii], 1);
+		for(ii=1; ii<=N; ii++)
+			d_print_mat_e(1, nx_v[ii], hrb[ii], 1);
 
 		printf("\nhrd low\n\n");
 		for(ii=0; ii<=N; ii++)
@@ -975,7 +1022,6 @@ exit(2);
 
 		}
 
-return;
 
 	// zero the solution again
 	for(ii=0; ii<=N; ii++)
@@ -998,7 +1044,7 @@ return;
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_pmat(nu_v[ii]+nx_v[ii]+1, nu_v[ii]+nx_v[ii], bs, hpRSQ[ii], cnux_v[ii]);
+	d_print_pmat(nu_v[ii]+nx_v[ii]+1, nu_v[ii]+nx_v[ii], bs, hpRSQrq[ii], cnux_v[ii]);
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nu_v[ii]+nx_v[ii], hrq[ii], 1);
 exit(1);
@@ -1011,9 +1057,9 @@ exit(1);
 		{
 
 #if USE_IPM_RES
-		d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hb, hpRSQ, hrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+//		d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hb, hpRSQrq, hrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 #else
-		d_kkt_solve_new_rhs_mpc_hard_tv(N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hb, hpRSQ, hrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+//		d_kkt_solve_new_rhs_mpc_hard_tv(N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hb, hpRSQrq, hrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 #endif
 
 		}
@@ -1041,7 +1087,7 @@ exit(1);
 	if(compute_res)
 		{
 		// compute residuals
-		d_res_mpc_hard_tv(N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hb, hpRSQ, hrq, hux, hpDCt, hd, hpi, hlam, ht, hrrq, hrb, hrd, &mu);
+//		d_res_mpc_hard_tv(N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hb, hpRSQrq, hrq, hux, hpDCt, hd, hpi, hlam, ht, hrrq, hrb, hrd, &mu);
 
 #if 0
 		// print residuals

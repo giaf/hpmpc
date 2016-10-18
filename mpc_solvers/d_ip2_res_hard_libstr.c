@@ -193,7 +193,7 @@ exit(2);
 	double *lamt[N+1];
 	double *Qx[N+1];
 	double *qx[N+1];
-	double *Pb[N];
+	double *Pb[N+1];
 	double *res_work;
 	double *res_q[N+1];
 	double *res_b[N+1];
@@ -210,7 +210,7 @@ exit(2);
 	double *res_b2[N+1];
 	double *dux2[N+1];
 	double *dpi2[N+1];
-	double *Pb2[N];
+	double *Pb2[N+1];
 
 	int nb2[N+1]; for(ii=0; ii<=N; ii++) nb2[ii] = 0;
 	int ng2[N+1]; for(ii=0; ii<=N; ii++) ng2[ii] = 0;
@@ -230,13 +230,13 @@ exit(2);
 	ptr += d_back_ric_rec_sv_tv_memory_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
 
 	// b as vector
-	for(jj=0; jj<N; jj++)
+	for(jj=1; jj<=N; jj++)
 		{
-		b[jj+1] = ptr;
-		ptr += pnx[jj+1];
+		b[jj] = ptr;
+		ptr += pnx[jj];
 //		d_copy_mat(1, nx[jj+1], pBAbt[jj]+(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs, bs, b[jj], 1);
-		for(ii=0; ii<nx[jj+1]; ii++)
-			b[jj+1][ii] = pBAbt[jj][(nu[jj]+nx[jj])/bs*bs*cnx[jj+1]+(nu[jj]+nx[jj])%bs+ii*bs];
+		for(ii=0; ii<nx[jj]; ii++)
+			b[jj][ii] = pBAbt[jj][(nu[jj-1]+nx[jj-1])/bs*bs*cnx[jj]+(nu[jj-1]+nx[jj-1])%bs+ii*bs];
 		}
 
 	// inputs and states
@@ -254,10 +254,10 @@ exit(2);
 		}
 	
 	// backup of P*b
-	for(jj=0; jj<N; jj++)
+	for(jj=1; jj<=N; jj++)
 		{
 		Pb[jj] = ptr;
-		ptr += pnx[jj+1];
+		ptr += pnx[jj];
 		}
 
 	// linear part of cost function (and copy it)
@@ -401,10 +401,10 @@ exit(2);
 		ptr += pnx[jj];
 		}
 
-	for(jj=0; jj<N; jj++)
+	for(jj=1; jj<=N; jj++)
 		{
 		Pb2[jj] = ptr;
-		ptr += pnx[jj+1];
+		ptr += pnx[jj];
 		}
 
 #endif
@@ -468,8 +468,8 @@ exit(2);
 			memory2 += pnz[ii];
 			}
 		
-		struct d_strmat hsBAbt[N];
-		struct d_strvec hsb[N];
+		struct d_strmat hsBAbt[N+1];
+		struct d_strvec hsb[N+1];
 		struct d_strmat hsRSQrq[N+1];
 		struct d_strmat hsRSQrq2[N+1];
 		struct d_strvec hsrq[N+1];
@@ -491,8 +491,8 @@ exit(2);
 		struct d_strvec hsdux2[N+1];
 		struct d_strvec hsdpi[N+1];
 		struct d_strvec hsdpi2[N+1];
-		struct d_strvec hsPb[N];
-		struct d_strvec hsPb2[N];
+		struct d_strvec hsPb[N+1];
+		struct d_strvec hsPb2[N+1];
 		struct d_strmat hsL[N+1];
 		struct d_strmat hsLxt[N+1];
 		struct d_strvec hsres_q[N+1];
@@ -524,6 +524,8 @@ exit(2);
 			d_create_strvec(nb[ii]+ng[ii], &hsd[ii], (void *) d[ii]);
 			d_create_strvec(nb[ii]+ng[ii], &hsQx[ii], (void *) Qx[ii]);
 			d_create_strvec(nb[ii]+ng[ii], &hsqx[ii], (void *) qx[ii]);
+			d_create_strvec(nx[ii], &hsPb[ii], (void *) Pb[ii]);
+			d_create_strvec(nx[ii], &hsPb2[ii], (void *) Pb2[ii]);
 			d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) hpL[ii]);
 			hsL[ii].dA = hdL[ii];
 			hsL[ii].cn = cnl[ii];
@@ -552,12 +554,10 @@ exit(2);
 			d_create_strvec(2*nb[ii]+2*ng[ii], &hst_bkp[ii], (void *) t_bkp[ii]);
 			d_create_strvec(2*nb[ii]+2*ng[ii], &hslam_bkp[ii], (void *) lam_bkp[ii]);
 			}
-		for(ii=0; ii<N; ii++) // TODO remove
+		for(ii=1; ii<=N; ii++) // TODO remove
 			{
-			d_create_strmat(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], (void *) pBAbt[ii]);
-			hsBAbt[ii].cn = cnx[ii+1];
-			d_create_strvec(nx[ii+1], &hsPb[ii], (void *) Pb[ii]);
-			d_create_strvec(nx[ii+1], &hsPb2[ii], (void *) Pb2[ii]);
+			d_create_strmat(nu[ii-1]+nx[ii-1]+1, nx[ii], &hsBAbt[ii], (void *) pBAbt[ii]);
+			hsBAbt[ii].cn = cnx[ii];
 			}
 		d_create_strmat(pnzM, nxgM, &hswork_mat[0], (void *) work);
 		hswork_mat[0].cn = cnxgM;
@@ -1394,9 +1394,9 @@ exit(1);
 		for(ii=0; ii<=N; ii++)
 			for(jj=0; jj<nu[ii]+nx[ii]; jj++)
 				pQ[ii][(nu[ii]+nx[ii])/bs*bs*cnux[ii]+(nu[ii]+nx[ii])%bs+jj*bs] = q[ii][jj];
-		for(ii=0; ii<N; ii++)
-			for(jj=0; jj<nx[ii+1]; jj++)
-				pBAbt[ii][(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs+jj*bs] = b[ii+1][jj];
+		for(ii=1; ii<=N; ii++)
+			for(jj=0; jj<nx[ii]; jj++)
+				pBAbt[ii][(nu[ii-1]+nx[ii-1])/bs*bs*cnx[ii]+(nu[ii-1]+nx[ii-1])%bs+jj*bs] = b[ii][jj];
 		d_res_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsres_work, hsres_q, hsres_b, hsres_d, hsres_m, &mu);
 #if 0
 		printf("\nres_q\n");
