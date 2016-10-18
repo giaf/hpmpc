@@ -223,7 +223,7 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 			{
 			dgemv_n_libstr(nu[N-nn-1]+nx[N-nn-1], ng[N-nn-1], 1.0, &hsDCt[N-nn-1], 0, 0, &hsqx[N-nn-1], nb[N-nn-1], 1.0, &hsux[N-nn-1], 0, &hsux[N-nn-1], 0);
 			}
-		dveccp_libstr(nx[N-nn], 1.0, &hsPb[N-nn-1], 0, &hswork_vec[0], 0);
+		dveccp_libstr(nx[N-nn], 1.0, &hsPb[N-nn], 0, &hswork_vec[0], 0);
 		daxpy_libstr(nx[N-nn], 1.0, &hsux[N-nn], nu[N-nn], &hswork_vec[0], 0);
 		dgemv_n_libstr(nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &hsBAbt[N-nn], 0, 0, &hswork_vec[0], 0, 1.0, &hsux[N-nn-1], 0, &hsux[N-nn-1], 0);
 		dtrsv_lnn_libstr(nu[N-nn-1]+nx[N-nn-1], nu[N-nn-1], &hsL[N-nn-1], 0, 0, &hsux[N-nn-1], 0, &hsux[N-nn-1], 0);

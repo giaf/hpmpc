@@ -44,6 +44,11 @@
 #include "../include/d_blas_aux.h"
 
 
+
+#define CORRECTOR_LOW 1
+
+
+
 /* primal-dual interior-point method computing residuals at each iteration, hard constraints, time variant matrices, time variant size (mpc version) */
 int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int N, int *nx, int *nu_N, int *nb, int **idxb, int *ng, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsd, struct d_strvec *hsux, int compute_mult, struct d_strvec *hspi, struct d_strvec *hslam, struct d_strvec *hst, double *double_work_memory)
 	{
@@ -142,7 +147,7 @@ exit(2);
 	for(jj=1; jj<=N; jj++)
 		{
 		b[jj] = ptr;
-		ptr += pnx[jj+1];
+		ptr += pnx[jj];
 //		for(ii=0; ii<nx[jj+1]; ii++)
 //			b[jj][ii] = pBAbt[jj][(nu[jj]+nx[jj])/bs*bs*cnx[jj]+(nu[jj]+nx[jj])%bs+ii*bs];
 		}
@@ -372,7 +377,7 @@ exit(2);
 	// extract b
 	for(jj=1; jj<=N; jj++)
 		{
-		drowex_libstr(nx[jj], 1.0, &hsBAbt[jj], nu[jj]+nx[jj], 0, &hsb[jj], 0);
+		drowex_libstr(nx[jj], 1.0, &hsBAbt[jj], nu[jj-1]+nx[jj-1], 0, &hsb[jj], 0);
 		}
 
 	// extract q
@@ -591,6 +596,7 @@ exit(1);
 #endif
 
 
+
 //		// copy b into x
 //		for(ii=0; ii<N; ii++)
 //			for(jj=0; jj<nx[ii+1]; jj++) 
@@ -645,16 +651,16 @@ exit(2);
 #if 0
 printf("\nux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nu[ii]+nx[ii], ux[ii], 1);
+	d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
 printf("\npi\n");
 for(ii=1; ii<=N; ii++)
-	d_print_mat(1, nx[ii], pi[ii], 1);
+	d_print_tran_strvec(nx[ii], &hspi[ii], 0);
 printf("\nlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], lam[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 printf("\nt\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], t[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 //if(*kk==1)
 exit(1);
 #endif

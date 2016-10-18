@@ -610,10 +610,8 @@ for(ii=0; ii<=N; ii++)
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii], pl[ii], 1);
-for(ii=0; ii<=N; ii++)
-	d_print_mat(1, ng[ii], qx[ii], 1);
-if(*kk==1)
+	d_print_mat(1, nb[ii], qx[ii], 1);
+//if(*kk==1)
 exit(1);
 #endif
 
@@ -633,7 +631,7 @@ exit(1);
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
-if(*kk==1)
+//if(*kk==1)
 exit(1);
 #endif
 
