@@ -37,7 +37,6 @@
 
 #include "../include/tree.h" 
 #include "../include/lqcp_solvers.h" 
-#include "../include/mpc_solvers.h" 
 
 
 
@@ -475,7 +474,6 @@ int main()
 	struct d_strvec hsrq[N+1];
 	struct d_strvec hsdRSQ[N+1];
 	struct d_strmat hsDCt[N+1];
-	struct d_strvec hsd[N+1];
 	struct d_strvec hsQx[N+1];
 	struct d_strvec hsqx[N+1];
 	struct d_strmat hsL[N+1];
@@ -483,8 +481,6 @@ int main()
 	struct d_strvec hsPb[N+1];
 	struct d_strvec hsux[N+1];
 	struct d_strvec hspi[N+1];
-	struct d_strvec hslam[N+1];
-	struct d_strvec hst[N+1];
 	struct d_strmat hswork_mat[1];
 	struct d_strvec hswork_vec[1];
 	int *hidxb[N+1];
@@ -523,24 +519,9 @@ int main()
 //	return 0;
 
 /************************************************
-* call IPM solver
+* call Riccati solver
 ************************************************/	
 	
-	// IPM args
-	int hpmpc_status;
-	int kk, kk_avg;
-	int k_max = 10;
-	int mu0 = 2.0; // max element value in cost function
-	double mu_tol = 1e-20;
-	double alpha_min = 1e-8;
-	int warm_start = 0; // read initial guess from x and u
-	double *stat; d_zeros(&stat, k_max, 5);
-	int compute_res = 1;
-	int compute_mult = 1;
-
-	// IPM work space
-	double *work; d_zeros_align(&work, d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng)/sizeof(double), 1);
-
 	// timing 
 	struct timeval tv0, tv1, tv2, tv3;
 	int nrep = 1000;
@@ -550,12 +531,28 @@ int main()
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, compute_mult, hspi, hslam, hst, work);
+//		d_back_ric_sv_libstr(N, nx, nu, hsBAbt, hsRSQrq, hsL, hsLxt, hsux, hspi, hswork_mat, hswork_vec);
 		}
 
 	gettimeofday(&tv1, NULL); // time
 
-	float time_ipm  = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+	for(rep=0; rep<nrep; rep++)
+		{
+		d_back_ric_rec_trf_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsdRSQ, hsDCt, hsQx, hsL, hsLxt, hswork_mat);
+		}
+
+	gettimeofday(&tv2, NULL); // time
+
+	for(rep=0; rep<nrep; rep++)
+		{
+		d_back_ric_rec_trs_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsux, 1, hspi, 1, hsPb, hsL, hsLxt, hswork_vec);
+		}
+
+	gettimeofday(&tv3, NULL); // time
+
+	float time_sv  = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+	float time_trf = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
+	float time_trs = (float) (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
 
 	// print sol
 	printf("\nux = \n\n");
@@ -566,8 +563,12 @@ int main()
 	for(ii=1; ii<=N; ii++)
 		d_print_tran_strvec(nx[ii], &hspi[ii], 0);
 
-	printf("\ntime ipm\n");
-	printf("\n%e\n", time_ipm);
+	printf("\nL = \n\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], 0, 0);
+
+	printf("\ntime sv\t\ttime trf\t\ttime trs\n");
+	printf("\n%e\t%e\t%e\n", time_sv, time_trf, time_trs);
 	printf("\n");
 
 /************************************************
@@ -670,10 +671,6 @@ int main()
 		t_hsrq[ii] = tmp_hsrq[stage];
 		}
 
-	// general constraints indexed by node
-	struct d_strmat t_hsDCt[Nn];
-	struct d_strvec t_hsd[Nn];
-
 	// store factorization indexed by node
 	struct d_strmat t_hsL[Nn];
 	for(ii=0; ii<Nn; ii++)
@@ -702,24 +699,29 @@ int main()
 		{
 		d_allocate_strvec(t_nx[ii], &t_hspi[ii]);
 		}
-	struct d_strvec t_hslam[Nn];
-	struct d_strvec t_hst[Nn];
 	
-	// idxn indexed by node
+	// dummy
 	int *t_hidxb[Nn];
+	struct d_strmat hsmatdummy[Nn];
+	struct d_strvec hsvecdummy[Nn];
 
-	// IPM work space
-	double *t_work; d_zeros_align(&t_work, d_ip2_res_mpc_hard_tv_work_space_size_bytes(Nn, t_nx, t_nu, t_nb, t_ng)/sizeof(double), 1);
 
 	// call riccati
-	gettimeofday(&tv0, NULL); // time
+	gettimeofday(&tv1, NULL); // time
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		hpmpc_status = d_tree_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsRSQrq, t_hsDCt, t_hsd, t_hsux, compute_mult, t_hspi, t_hslam, t_hst, t_work);
+		d_tree_back_ric_rec_trf_libstr(Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, t_hsL, t_hsLxt, hswork_mat);
 		}
 
-	gettimeofday(&tv1, NULL); // time
+	gettimeofday(&tv2, NULL); // time
+
+	for(rep=0; rep<nrep; rep++)
+		{
+		d_tree_back_ric_rec_trs_libstr(Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsb, t_hsrq, hsmatdummy, hsvecdummy, t_hsux, 1, t_hspi, 1, t_hsPb, t_hsL, t_hsLxt, hswork_vec);
+		}
+
+	gettimeofday(&tv3, NULL); // time
 
 	// print factorization
 	for(ii=0; ii<Nn; ii++)
@@ -740,10 +742,11 @@ int main()
 		d_print_strvec(t_nx[ii], &t_hspi[ii], 0);
 		}
 
-	float time_tree_ipm = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+	float time_tree_trf = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
+	float time_tree_trs = (float) (tv3.tv_sec-tv2.tv_sec)/(nrep+0.0)+(tv3.tv_usec-tv2.tv_usec)/(nrep*1e6);
 
-	printf("\ntime tree ipm\n");
-	printf("\n%e\n", time_tree_ipm);
+	printf("\ntime sv\t\ttime trf\t\ttime trs\n");
+	printf("\n%e\t%e\t%e\n", 0.0, time_tree_trf, time_tree_trs);
 	printf("\n");
 
 	// free memory allocated in the tree
