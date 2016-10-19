@@ -496,21 +496,21 @@ exit(2);
 
 	// initialize ux & pi & t>0 & lam>0
 	// TODO version for tree, using Nn, and idxkid for pi
-	d_init_var_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsux, hspi, hsDCt, hsd, hst, hslam, mu0, warm_start);
+	d_init_var_tree_mpc_hard_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsux, hspi, hsDCt, hsd, hst, hslam, mu0, warm_start);
 
 #if 0
 printf("\nux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nu[ii]+nx[ii], ux[ii], 1);
+	d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
 printf("\npi\n");
-for(ii=0; ii<N; ii++)
-	d_print_mat(1, nx[ii+1], pi[ii+1], 1);
+//for(ii=0; ii<N; ii++)
+//	d_print_mat(1, nx[ii+1], pi[ii+1], 1);
 printf("\nlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], lam[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 printf("\nt\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], t[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 exit(1);
 #endif
 
@@ -550,16 +550,18 @@ exit(1);
 		d_update_hessian_mpc_hard_libstr(N, nx, nu, nb, ng, hsd, 0.0, hst, hstinv, hslam, hslamt, hsdlam, hsQx, hsqx);
 
 #if 0
+//for(ii=0; ii<=N; ii++)
+//	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+//for(ii=0; ii<=N; ii++)
+//	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
+printf("\nQx\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], lam[ii], 1);
+	d_print_tran_strvec(nb[ii]+ng[ii], &hsQx[ii], 0);
+printf("\nqx\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], t[ii], 1);
-for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii]+ng[ii], Qx[ii], 1);
-for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii]+ng[ii], qx[ii], 1);
+	d_print_tran_strvec(nb[ii]+ng[ii], &hsqx[ii], 0);
 //if(*kk==1)
-exit(1);
+//exit(1);
 #endif
 
 
@@ -586,12 +588,12 @@ exit(1);
 #if 0
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
-printf("\ndpi\n");
-for(ii=1; ii<=N; ii++)
-	d_print_mat(1, nx[ii], dpi[ii], 1);
+	d_print_tran_strvec(nu[ii]+nx[ii], &hsdux[ii], 0);
+//printf("\ndpi\n");
+//for(ii=1; ii<=N; ii++)
+//	d_print_mat(1, nx[ii], dpi[ii], 1);
 //if(*kk==2)
-exit(1);
+//exit(1);
 #endif
 
 
@@ -706,7 +708,7 @@ exit(2);
 
 		// compute step & update x, u, lam, t & compute the duality gap mu
 		// TODO version for tree, using Nn, and idxkid for pi
-		d_update_var_mpc_hard_libstr(N, nx, nu, nb, ng, &mu, mu_scal, alpha, hsux, hsdux, hst, hsdt, hslam, hsdlam, hspi, hsdpi);
+		d_update_var_tree_mpc_hard_libstr(Nn, tree, nx, nu, nb, ng, &mu, mu_scal, alpha, hsux, hsdux, hst, hsdt, hslam, hsdlam, hspi, hsdpi);
 
 		stat[5*(*kk)+4] = mu;
 		

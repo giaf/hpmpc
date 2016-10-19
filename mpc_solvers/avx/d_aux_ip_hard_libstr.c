@@ -75,12 +75,7 @@ void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, i
 	// cold start
 	if(warm_start==0)
 		{
-		jj=0;
-		for(ll=0; ll<nu[jj]; ll++)
-			{
-			hux[jj][ll] = 0.0;
-			}
-		for(jj=1; jj<=N; jj++)
+		for(jj=0; jj<=N; jj++)
 			{
 			for(ll=0; ll<nu[jj]+nx[jj]; ll++)
 				{

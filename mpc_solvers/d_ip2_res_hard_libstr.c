@@ -2319,13 +2319,13 @@ exit(1);
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], lam[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], t[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii]+ng[ii], Qx[ii], 1);
+	d_print_tran_strvec(nb[ii]+ng[ii], &hsQx[ii], 0);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii]+ng[ii], qx[ii], 1);
+	d_print_tran_strvec(nb[ii]+ng[ii], &hsqx[ii], 0);
 //if(*kk==1)
 exit(1);
 #endif
@@ -2354,10 +2354,10 @@ exit(1);
 #if 0
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
+	d_print_tran_strvec(nu[ii]+nx[ii], &hsdux[ii], 0);
 printf("\ndpi\n");
 for(ii=1; ii<=N; ii++)
-	d_print_mat(1, nx[ii], dpi[ii], 1);
+	d_print_tran_strvec(nx[ii], &hsdpi[ii], 0);
 //if(*kk==2)
 exit(1);
 #endif

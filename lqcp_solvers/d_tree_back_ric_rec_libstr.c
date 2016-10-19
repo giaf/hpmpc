@@ -205,16 +205,27 @@ void d_back_ric_trs_back_legN_libstr(int nx0, int nu0, int nb0, int *hidxb0, int
 
 
 
-void d_back_ric_trs_back_funnel0_libstr(int nkids, int nx0, int nx1, int nu0, int nu1, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsrq, struct d_strmat *hsL, struct d_strmat *hsLxt, struct d_strvec *hsPb, struct d_strvec *hsux0, struct d_strvec *hsux1, struct d_strvec *hswork_vec)
+void d_back_ric_trs_back_funnel0_libstr(int nkids, int nx0, int nx1, int nu0, int nu1, int nb0, int *hidxb0, int ng0, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsqx, struct d_strmat *hsL, struct d_strmat *hsLxt, int compute_Pb, struct d_strvec *hsPb, struct d_strvec *hsux0, struct d_strvec *hsux1, struct d_strvec *hswork_vec)
 	{
 
 	int ii;
 
 	// first kid: initialize with gradient
 	ii = 0;
-	dtrmv_unn_libstr(nx1, &hsLxt[ii], 0, 0, &hsb[ii], 0, &hsPb[ii], 0);
-	dtrmv_utn_libstr(nx1, &hsLxt[ii], 0, 0, &hsPb[ii], 0, &hsPb[ii], 0);
+	if(compute_Pb)
+		{
+		dtrmv_unn_libstr(nx1, &hsLxt[ii], 0, 0, &hsb[ii], 0, &hsPb[ii], 0);
+		dtrmv_utn_libstr(nx1, &hsLxt[ii], 0, 0, &hsPb[ii], 0, &hsPb[ii], 0);
+		}
 	dveccp_libstr(nu0+nx0, 1.0, &hsrq[0], 0, &hsux0[0], 0);
+	if(nb0>0)
+		{
+		dvecad_libspstr(nb0, hidxb0, 1.0, &hsqx[0], 0, &hsux0[0], 0);
+		}
+	if(ng0>0)
+		{
+		dgemv_n_libstr(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsqx[0], nb0, 1.0, &hsux0[0], 0, &hsux0[0], 0);
+		}
 	dveccp_libstr(nx1, 1.0, &hsPb[ii], 0, &hswork_vec[0], 0);
 	daxpy_libstr(nx1, 1.0, &hsux1[ii], nu1, &hswork_vec[0], 0);
 	dgemv_n_libstr(nu0+nx0, nx1, 1.0, &hsBAbt[ii], 0, 0, &hswork_vec[0], 0, 1.0, &hsux0[0], 0, &hsux0[0], 0);
@@ -222,8 +233,11 @@ void d_back_ric_trs_back_funnel0_libstr(int nkids, int nx0, int nx1, int nu0, in
 	// other kids: update
 	for(ii=1; ii<nkids; ii++)
 		{
-		dtrmv_unn_libstr(nx1, &hsLxt[ii], 0, 0, &hsb[ii], 0, &hsPb[ii], 0);
-		dtrmv_utn_libstr(nx1, &hsLxt[ii], 0, 0, &hsPb[ii], 0, &hsPb[ii], 0);
+		if(compute_Pb)
+			{
+			dtrmv_unn_libstr(nx1, &hsLxt[ii], 0, 0, &hsb[ii], 0, &hsPb[ii], 0);
+			dtrmv_utn_libstr(nx1, &hsLxt[ii], 0, 0, &hsPb[ii], 0, &hsPb[ii], 0);
+			}
 //		dveccp_libstr(nu0+nx0, 1.0, &hsrq[0], 0, &hsux0[0], 0);
 		dveccp_libstr(nx1, 1.0, &hsPb[ii], 0, &hswork_vec[0], 0);
 		daxpy_libstr(nx1, 1.0, &hsux1[ii], nu1, &hswork_vec[0], 0);
@@ -463,7 +477,7 @@ void d_tree_back_ric_rec_trs_libstr(int Nn, struct node *tree, int *nx, int *nu,
 			if(nkids>1) // has many kids => funnel
 				{
 				idxkid = tree[nn].kids[0];
-				d_back_ric_trs_back_funnel0_libstr(nkids, nx[nn], nx[idxkid], nu[nn], nu[idxkid], &hsBAbt[idxkid], &hsb[idxkid], &hsrq[nn], &hsL[nn], &hsLxt[idxkid], &hsPb[idxkid], &hsux[nn], &hsux[idxkid], hswork_vec);
+				d_back_ric_trs_back_funnel0_libstr(nkids, nx[nn], nx[idxkid], nu[nn], nu[idxkid], nb[nn], hidxb[nn], ng[nn], &hsBAbt[idxkid], &hsb[idxkid], &hsrq[nn], &hsDCt[nn], &hsqx[nn], &hsL[nn], &hsLxt[idxkid], compute_Pb, &hsPb[idxkid], &hsux[nn], &hsux[idxkid], hswork_vec);
 				}
 			else if(nkids==1) // has one kid => leg
 				{
