@@ -33,11 +33,11 @@
 #include <immintrin.h>  // AVX
 
 #ifdef BLASFEO
+
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
 #include <blasfeo_d_aux.h>
 #include <blasfeo_d_blas.h>
-#endif
 
 #include "../../include/block_size.h" // TODO remove !!!!!
 
@@ -3400,4 +3400,5 @@ void d_update_gradient_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int
 
 
 
+#endif
 

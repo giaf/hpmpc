@@ -208,7 +208,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 #ifdef BLASFEO
 				dgecp_lib(ne0, nx0, 1.0, 0, hpQA[ii]+pnv0, cnv0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0);
 #else
-				dgecp_lib(ne0, nx0, 1.0, 0, hpQA[ii]+pnv0, cnv0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0);
+				dgecp_lib(ne0, nx0, 0, hpQA[ii]+pnv0, cnv0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs, cnv0);
 #endif
 				}
 

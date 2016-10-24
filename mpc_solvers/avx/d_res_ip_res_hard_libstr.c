@@ -32,11 +32,11 @@
 #include <immintrin.h>  // AVX
 
 #ifdef BLASFEO
+
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
 #include <blasfeo_d_blas.h>
 #include <blasfeo_d_aux.h>
-#endif
 
 #include "../../include/blas_d.h"
 #include "../../include/block_size.h"
@@ -452,7 +452,7 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	nx0 = nx1;
 	cnux0  = (nu0+nx0+ncl-1)/ncl*ncl;
 	nb0 = nb[ii];
-	pnb = nb0; (nb0+bs-1)/bs*bs;
+	pnb = nb0; //(nb0+bs-1)/bs*bs;
 	ng0 = ng[ii];
 	png = ng0; //(ng0+bs-1)/bs*bs;
 	cng = (ng0+ncl-1)/ncl*ncl;
@@ -542,3 +542,5 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	}
 
 
+
+#endif

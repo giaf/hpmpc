@@ -27,11 +27,12 @@
 #include <math.h>
 
 #ifdef BLASFEO
+
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
 #include <blasfeo_d_aux.h>
 #include <blasfeo_d_blas.h>
-#endif
+
 //#else
 #include "../include/blas_d.h"
 //#endif
@@ -2576,5 +2577,9 @@ exit(2);
 	return -1;
 
 	} // end of ipsolver
+
+#endif
+
+
 
 #endif

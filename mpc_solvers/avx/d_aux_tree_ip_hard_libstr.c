@@ -33,11 +33,11 @@
 #include <immintrin.h>  // AVX
 
 #ifdef BLASFEO
+
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
 #include <blasfeo_d_aux.h>
 #include <blasfeo_d_blas.h>
-#endif
 
 #include "../../include/tree.h"
 
@@ -509,4 +509,6 @@ void d_update_var_tree_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *
 	}
 
 
+
+#endif
 

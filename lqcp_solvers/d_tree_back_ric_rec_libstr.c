@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef BLASFEO
+
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
 #include <blasfeo_i_aux.h>
@@ -559,4 +561,4 @@ void d_tree_back_ric_rec_trs_libstr(int Nn, struct node *tree, int *nx, int *nu,
 
 
 
-
+#endif

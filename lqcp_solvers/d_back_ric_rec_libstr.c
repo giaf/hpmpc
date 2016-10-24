@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef BLASFEO
+
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
 #include <blasfeo_i_aux.h>
@@ -293,4 +295,4 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	}
 
 
-
+#endif
