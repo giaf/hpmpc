@@ -212,7 +212,7 @@ void free_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 /************************************************ 
 Mass-spring system: nx/2 masses connected each other with springs (in a row), and the first and the last one to walls. nu (<=nx) controls act on the first nu masses. The system is sampled with sampling time Ts. 
 ************************************************/
-void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, double *b, double *x0)
+void mass_spring_system(double Ts, int nx, int nu, int N, double k_m, double *A, double *B, double *b, double *x0)
 	{
 
 	int nx2 = nx*nx;
@@ -227,9 +227,9 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	
 	double *T; d_zeros(&T, pp, pp);
 	int ii;
-	for(ii=0; ii<pp; ii++) T[ii*(pp+1)] = -2;
-	for(ii=0; ii<pp-1; ii++) T[ii*(pp+1)+1] = 1;
-	for(ii=1; ii<pp; ii++) T[ii*(pp+1)-1] = 1;
+	for(ii=0; ii<pp; ii++) T[ii*(pp+1)] = -2.0*k_m;
+	for(ii=0; ii<pp-1; ii++) T[ii*(pp+1)+1] = 1.0*k_m;
+	for(ii=1; ii<pp; ii++) T[ii*(pp+1)-1] = 1.0*k_m;
 
 	double *Z; d_zeros(&Z, pp, pp);
 	double *I; d_zeros(&I, pp, pp); for(ii=0; ii<pp; ii++) I[ii*(pp+1)]=1.0; // = eye(pp);
@@ -279,19 +279,19 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 * initial state 
 ************************************************/
 	
-	if(nx==4)
-		{
-		x0[0] = 5;
-		x0[1] = 10;
-		x0[2] = 15;
-		x0[3] = 20;
-		}
-	else
-		{
-		int jj;
-		for(jj=0; jj<nx; jj++)
-			x0[jj] = 1;
-		}
+//	if(nx==4)
+//		{
+//		x0[0] = 5;
+//		x0[1] = 10;
+//		x0[2] = 15;
+//		x0[3] = 20;
+//		}
+//	else
+//		{
+//		int jj;
+//		for(jj=0; jj<nx; jj++)
+//			x0[jj] = 1;
+//		}
 
 	}
 
@@ -326,8 +326,8 @@ int main()
 
 	// problem size
 	int N = 4;
-	int nx_ = 8;
-	int nu_ = 3;
+	int nx_ = 4;
+	int nu_ = 1;
 
 	// stage-wise variant size
 	int nx[N+1];
@@ -364,15 +364,20 @@ int main()
 	double *x0; d_zeros_align(&x0, nx_, 1); // initial state
 
 	double Ts = 0.5; // sampling time
-	mass_spring_system(Ts, nx_, nu_, N, A, B, b, x0);
+	mass_spring_system(Ts, nx_, nu_, N, 1.0, A, B, b, x0);
 	
 	for(ii=0; ii<nx_; ii++)
 		b[ii] = 0.1;
 	
 	for(ii=0; ii<nx_; ii++)
 		x0[ii] = 0;
+#if 1
 	x0[0] = 2.5;
 	x0[1] = 2.5;
+#else
+	x0[nx_-1] = 1.0;
+//	x0[nx_/2+1] = 5.0;
+#endif
 
 	d_print_mat(nx_, nx_, A, nx_);
 	d_print_mat(nx_, nu_, B, nx_);
@@ -602,7 +607,7 @@ int main()
 	int kk, kk_avg;
 	int k_max = 10;
 	int mu0 = 2.0; // max element value in cost function
-	double mu_tol = 1e-20;
+	double mu_tol = 1e-28;
 	double alpha_min = 1e-8;
 	int warm_start = 0; // read initial guess from x and u
 	double *stat; d_zeros(&stat, k_max, 5);
@@ -651,7 +656,7 @@ int main()
 	printf("\n");
 
 /************************************************
-* scenario-tree MPC
+* scenario-tree MPC with tailroed solver
 ************************************************/	
 	
 	int Nh = N; // control horizion
@@ -832,14 +837,16 @@ int main()
 //		stage = tree[ii].stage;
 //		d_print_strmat(t_nx[stage], t_nx[stage], &t_hsLxt[ii], 0, 0);
 //		}
+#if 1
 	for(ii=0; ii<Nn; ii++)
 		{
-		d_print_strvec(t_nu[ii]+t_nx[ii], &t_hsux[ii], 0);
+		d_print_tran_strvec(t_nu[ii]+t_nx[ii], &t_hsux[ii], 0);
 		}
 	for(ii=0; ii<Nn; ii++)
 		{
-		d_print_strvec(t_nx[ii], &t_hspi[ii], 0);
+		d_print_tran_strvec(t_nx[ii], &t_hspi[ii], 0);
 		}
+#endif
 
 	printf("\nstatistics from last run\n\n");
 	for(jj=0; jj<kk; jj++)
@@ -852,11 +859,217 @@ int main()
 	printf("\n%e\n", time_tree_ipm);
 	printf("\n");
 
-	// free memory allocated in the tree
-	free_tree(md, Nr, Nh, Nn, tree);
+/************************************************
+* scenario-tree MPC with standard solver
+************************************************/	
+
+	int nx2[N+1];
+	int nu2[N+1];
+	for(ii=0; ii<=N; ii++)
+		{
+		nx2[ii] = 0;
+		nu2[ii] = 0;
+		}
+	for(ii=Nn-1; ii>=0; ii--)
+		{
+		stage = tree[ii].stage;
+		nx2[stage] += t_nx[ii];
+		nu2[stage] += t_nu[ii];
+		}
+	for(ii=0; ii<=N; ii++)
+		printf("\n%d\n", nx2[ii]);
+	for(ii=0; ii<=N; ii++)
+		printf("\n%d\n", nu2[ii]);
+	
+	// cost function
+	struct d_strmat hsRSQrq2[N+1];
+	int tmp0[N+1];
+	int tmp1[N+1];
+	// allocate
+	for(ii=0; ii<=N; ii++)
+		{
+		d_allocate_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsRSQrq2[ii]);
+		}
+	// zero index
+	for(ii=0; ii<=N; ii++)
+		{
+		tmp0[ii] = 0;
+		tmp1[ii] = 0;
+		}
+	// R
+	for(ii=0; ii<Nn; ii++)
+		{
+		stage = tree[ii].stage;
+		dgecp_libstr(t_nu[ii], t_nu[ii], 1.0, &t_hsRSQrq[ii], 0, 0, &hsRSQrq2[stage], tmp0[stage], tmp0[stage]);
+		tmp0[stage] += t_nu[ii];
+		}
+	// Q
+	for(ii=0; ii<Nn; ii++)
+		{
+		stage = tree[ii].stage;
+		dgecp_libstr(t_nx[ii], t_nx[ii], 1.0, &t_hsRSQrq[ii], t_nu[ii], t_nu[ii], &hsRSQrq2[stage], tmp0[stage], tmp0[stage]);
+		tmp0[stage] += t_nx[ii];
+		}
+	// r
+	for(ii=0; ii<Nn; ii++)
+		{
+		stage = tree[ii].stage;
+		dgecp_libstr(1, t_nu[ii], 1.0, &t_hsRSQrq[ii], t_nu[ii]+t_nx[ii], 0, &hsRSQrq2[stage], tmp0[stage], tmp1[stage]);
+		tmp1[stage] += t_nu[ii];
+		}
+	// q
+	for(ii=0; ii<Nn; ii++)
+		{
+		stage = tree[ii].stage;
+		dgecp_libstr(1, t_nx[ii], 1.0, &t_hsRSQrq[ii], t_nu[ii]+t_nx[ii], t_nu[ii], &hsRSQrq2[stage], tmp0[stage], tmp1[stage]);
+		tmp1[stage] += t_nx[ii];
+		}
+	// print
+	for(ii=0; ii<=N; ii++)
+		{
+		d_print_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsRSQrq2[ii], 0, 0);
+		}
+	
+	// dynamical system
+	struct d_strmat hsBAbt2[N+1];
+	int kid_stage;
+//	int tmp0;
+	for(ii=0; ii<N; ii++)
+		{
+		d_allocate_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii]);
+		}
+	// zero index
+	for(ii=0; ii<=N; ii++)
+		{
+		tmp0[ii] = 0;
+		tmp1[ii] = 0;
+		}
+	// B
+	for(ii=0; ii<Nn; ii++)
+		{
+		stage = tree[ii].stage;
+		for(jj=0; jj<tree[ii].nkids; jj++)
+			{
+			idxkid = tree[ii].kids[jj];
+			kid_stage = tree[idxkid].stage;
+			dgecp_libstr(t_nu[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], 0, 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
+			tmp0[kid_stage] += t_nx[idxkid];
+			}
+		tmp1[stage] += t_nu[ii];
+		}
+	// zero index
+	for(ii=0; ii<=N; ii++)
+		{
+		tmp0[ii] = 0;
+		}
+	// A
+	for(ii=0; ii<Nn; ii++)
+		{
+		stage = tree[ii].stage;
+		for(jj=0; jj<tree[ii].nkids; jj++)
+			{
+			idxkid = tree[ii].kids[jj];
+			kid_stage = tree[idxkid].stage;
+			dgecp_libstr(t_nx[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
+			tmp0[kid_stage] += t_nx[idxkid];
+			}
+		tmp1[stage] += t_nx[ii];
+		}
+	// zero index
+	for(ii=0; ii<=N; ii++)
+		{
+		tmp0[ii] = 0;
+		}
+	// b
+	for(ii=0; ii<Nn; ii++)
+		{
+		stage = tree[ii].stage;
+		for(jj=0; jj<tree[ii].nkids; jj++)
+			{
+			idxkid = tree[ii].kids[jj];
+			kid_stage = tree[idxkid].stage;
+			dgecp_libstr(1, t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii]+t_nx[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
+			tmp0[kid_stage] += t_nx[idxkid];
+			}
+//		tmp1[stage] += 1;
+		}
+	// print
+	for(ii=0; ii<N; ii++)
+		{
+		d_print_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii], 0, 0);
+		}
+	
+	// call Riccati solver
+	
+	return 0;
 
 /************************************************
-* free memory
+* closed loop simulation
+************************************************/	
+
+	// new dynamical system with model mismatch
+	mass_spring_system(Ts, nx_, nu_, N, 0.5, A, B, b, x0);
+	struct d_strmat sA_plant;
+	d_allocate_strmat(nx_, nx_, &sA_plant);
+	d_cvt_mat2strmat(nx_, nx_, A, nx_, &sA_plant, 0, 0);
+	struct d_strmat sB_plant;
+	d_allocate_strmat(nx_, nu_, &sB_plant);
+	d_cvt_mat2strmat(nx_, nu_, B, nx_, &sB_plant, 0, 0);
+
+	struct d_strvec sx_next;
+	d_allocate_strvec(nx[1], &sx_next);
+	struct d_strvec sx_now;
+	d_allocate_strvec(nx[1], &sx_now);
+
+	// initialize with x0
+	d_cvt_vec2strvec(nx_, x0, &sx_now, 0);
+
+	struct d_strmat sB;
+	d_allocate_strmat(nx_, nu_, &sB);
+	d_cvt_mat2strmat(nx_, nu_, B, nx_, &sB, 0, 0);
+
+	// file to print results
+	FILE *file_u;
+	file_u = fopen("./test_problems/results/file_u.m", "w"); // a
+	fprintf(file_u, "u = [\n");
+	FILE *file_x;
+	file_x = fopen("./test_problems/results/file_x.m", "w"); // a
+	fprintf(file_x, "x = [\n");
+	d_print_tran_to_file_strvec(file_x, nx_, &sx_now, 0);
+
+	int sim_steps = 40;
+	for(ii=0; ii<sim_steps; ii++)
+		{
+		dgemv_n_libstr(nx_, nx_, 1.0, &sA, 0, 0, &sx_now, 0, 1.0, &sb, 0, &sb0, 0);
+		drowin_libstr(nx_, 1.0, &sb0, 0, &sBbt0, nu_, 0);
+#if 1 // nominal MPC
+		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, compute_mult, hspi, hslam, hst, work);
+		printf("\nstep %d %e\n", ii, stat[5*kk-1]);
+		printf("\nu = \n");
+		d_print_tran_strvec(nu_, &hsux[0], 0);
+		d_print_tran_to_file_strvec(file_u, nu_, &hsux[0], 0);
+		dgemv_n_libstr(nx_, nu_, 1.0, &sB_plant, 0, 0, &hsux[0], 0, 1.0, &sb, 0, &sx_next, 0);
+#else
+		d_print_strmat(nu_+1, nx_, &t_hsBAbt[1], 0, 0);
+		hpmpc_status = d_tree_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsRSQrq, t_hsDCt, t_hsd, t_hsux, compute_mult, t_hspi, t_hslam, t_hst, t_work);
+		printf("\nu = \n");
+		d_print_tran_strvec(nu_, &t_hsux[0], 0);
+		dgemv_n_libstr(nx_, nu_, 1.0, &sB_plant, 0, 0, &t_hsux[0], 0, 1.0, &sb, 0, &sx_next, 0);
+#endif
+		dgemv_n_libstr(nx_, nx_, 1.0, &sA_plant, 0, 0, &sx_now, 0, 1.0, &sx_next, 0, &sx_next, 0);
+		dveccp_libstr(nx_, 1.0, &sx_next, 0, &sx_now, 0);
+		printf("\nx = \n");
+		d_print_tran_strvec(nx_, &sx_now, 0);
+		d_print_tran_to_file_strvec(file_x, nx_, &sx_now, 0);
+		}
+
+	fprintf(file_u, "];\n");
+	fclose(file_u);
+	fprintf(file_x, "];\n");
+	fclose(file_x);
+
+/************************************************
+* closed loop simulation
 ************************************************/	
 
 	d_free(A);
@@ -909,6 +1122,9 @@ int main()
 	d_free_strvec(&hst[N]);
 //	d_free_strmat(&hswork_mat[0]);
 //	d_free_strvec(&hswork_vec[0]);
+
+	// free memory allocated in the tree
+	free_tree(md, Nr, Nh, Nn, tree);
 
 
 /************************************************
