@@ -86,7 +86,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 
 		dgeset_lib(pnv0, nv0, 0.0, 0, hpLA[ii], cnv0);
 		for(jj=0; jj<nv0; jj++) hdLA[ii][jj] = sqrt(hpQA[ii][jj]+reg);
-		ddiain_lib(nv0, hdLA[ii], 0, hpLA[ii], cnv0);
+		ddiain_lib(nv0, 1.0, hdLA[ii], 0, hpLA[ii], cnv0);
 		for(jj=0; jj<nv0; jj++) hdLA[ii][jj] = 1.0/hdLA[ii][jj];
 
 		dgemm_diag_right_lib(ne0, nv0, hpQA[ii]+pnv0, cnv0, hdLA[ii], 0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0);
@@ -244,7 +244,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 
 			dgeset_lib(nu0, nu0, 0.0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs+nx0*bs, cnv0);
 			for(jj=0; jj<nu0; jj++) hdLA[ii][nx0+jj] = sqrt(hpQA[ii][nx0+jj]+reg);
-			ddiain_lib(nu0, hdLA[ii]+nx0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs+nx0*bs, cnv0);
+			ddiain_lib(nu0, 1.0, hdLA[ii]+nx0, nx0, hpLA[ii]+nx0/bs*bs*cnv0+nx0%bs+nx0*bs, cnv0);
 			for(jj=0; jj<nu0; jj++) hdLA[ii][nx0+jj] = 1.0/hdLA[ii][nx0+jj];
 			
 //			d_print_mat(1, nv0, hdLA[ii], 1);
