@@ -175,6 +175,11 @@ ifeq ($(TARGET), CORTEX_A7)
 	echo "#define TARGET_CORTEX_A7" >> ./include/target.h
 	echo "#endif" >> ./include/target.h
 endif
+ifeq ($(USE_BLASFEO), 1)
+	echo "#ifndef BLASFEO" >> ./include/target.h
+	echo "#define BLASFEO" >> ./include/target.h
+	echo "#endif" >> ./include/target.h
+endif
 
 test_problem:
 	cp libhpmpc.a ./test_problems/libhpmpc.a

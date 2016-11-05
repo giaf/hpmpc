@@ -1073,7 +1073,8 @@ int main()
 				}
 			else // state
 				{
-				hidxb2[stage][tmp1[stage]] = t_hidxb[ii][jj]+tmp2[stage];
+//				hidxb2[stage][tmp1[stage]] = t_hidxb[ii][jj]+tmp2[stage];
+				hidxb2[stage][tmp1[stage]] = t_hidxb[ii][jj]+nu2[stage]-t_nu[ii]+tmp2[stage];
 				tmp1[stage] += 1;
 				}
 			}
