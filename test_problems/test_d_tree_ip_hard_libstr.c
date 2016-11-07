@@ -123,7 +123,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 		else // nkids==1
 			{
 			idxkid = 1;
-			tree[idx].kids[ii] = idxkid;
+			tree[idx].kids[0] = idxkid;
 			tree[idxkid].dad = idx;
 			tree[idxkid].real = 0;
 			}

@@ -114,7 +114,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 			for(ii=0; ii<nkids; ii++)
 				{
 				idxkid = ii+1;
-				tree[idx].kids[ii] = idxkid;
+				tree[idx].kids[0] = idxkid;
 				tree[idxkid].dad = idx;
 				tree[idxkid].real = ii;
 				}
