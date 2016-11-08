@@ -1,7 +1,6 @@
 
 IF ( ${HPMPC_TARGET} STREQUAL "C99_4X4" )
-	HPMPC_ADD_SOURCE_FILES
-	(
+	HPMPC_ADD_SOURCE_FILES(
 	# Double precision
     kernel_dgemm_c99_lib4.c kernel_dtrmm_c99_lib4.c kernel_dtrsm_c99_lib4.c kernel_dsyrk_c99_lib4.c kernel_dpotrf_c99_lib4.c kernel_dgemv_c99_lib4.c kernel_dtrmv_c99_lib4.c kernel_dtrsv_c99_lib4.c kernel_dsymv_c99_lib4.c kernel_dtran_c99_lib4.c kernel_dttmm_c99_lib4.c kernel_dtrinv_c99_lib4.c kernel_dcopy_c99_lib4.c kernel_dgetrf_c99_lib4.c
 	# Single precision
@@ -9,16 +8,14 @@ IF ( ${HPMPC_TARGET} STREQUAL "C99_4X4" )
 	)
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "X64_SSE3" )
-	HPMPC_ADD_SOURCE_FILES
-	(
+	HPMPC_ADD_SOURCE_FILES(
 	# Double precision
 	kernel_dgemv_c99_lib4.c kernel_dtrmv_c99_lib4.c kernel_dtrsv_c99_lib4.c kernel_dsymv_c99_lib4.c kernel_dtran_c99_lib4.c kernel_dttmm_c99_lib4.c kernel_dtrinv_c99_lib4.c kernel_dcopy_c99_lib4.c kernel_dgetrf_c99_lib4.c
 	# Single precision
 	)
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "C99_4X4_PREFETCH" )
-	HPMPC_ADD_SOURCE_FILES
-	(
+	HPMPC_ADD_SOURCE_FILES(
 	# Double precision
     kernel_dgemm_c99_lib4.c kernel_dtrmm_c99_lib4.c kernel_dtrsm_c99_lib4.c kernel_dsyrk_c99_lib4.c kernel_dpotrf_c99_lib4.c kernel_dgemv_c99_lib4.c kernel_dtrmv_c99_lib4.c kernel_dtrsv_c99_lib4.c kernel_dsymv_c99_lib4.c kernel_dtran_c99_lib4.c kernel_dttmm_c99_lib4.c kernel_dtrinv_c99_lib4.c kernel_dcopy_c99_lib4.c kernel_dgetrf_c99_lib4.c
 	# Single precision
@@ -26,8 +23,7 @@ ELSEIF ( ${HPMPC_TARGET} STREQUAL "C99_4X4_PREFETCH" )
 	)
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "CORTEX_A57" )
-	HPMPC_ADD_SOURCE_FILES
-	(
+	HPMPC_ADD_SOURCE_FILES(
 	# Double precision
 	kernel_dtrmm_c99_lib4.c kernel_dtrsm_c99_lib4.c kernel_dsyrk_c99_lib4.c kernel_dpotrf_c99_lib4.c kernel_dgemv_c99_lib4.c kernel_dtrmv_c99_lib4.c kernel_dtrsv_c99_lib4.c kernel_dsymv_c99_lib4.c kernel_dtran_c99_lib4.c kernel_dttmm_c99_lib4.c kernel_dtrinv_c99_lib4.c kernel_dcopy_c99_lib4.c kernel_dgetrf_c99_lib4.c
 	# Single precision
@@ -35,24 +31,21 @@ ELSEIF ( ${HPMPC_TARGET} STREQUAL "CORTEX_A57" )
 	)
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "CORTEX_A15" )
-	HPMPC_ADD_SOURCE_FILES
-	(
+	HPMPC_ADD_SOURCE_FILES(
 	# Double precision
 	kernel_dsymv_c99_lib4.c kernel_dtran_c99_lib4.c kernel_dttmm_c99_lib4.c kernel_dtrinv_c99_lib4.c kernel_dcopy_c99_lib4.c kernel_dgetrf_c99_lib4.c
 	# Single precision
 	)
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "CORTEX_A9" )
-	HPMPC_ADD_SOURCE_FILES
-	(
+	HPMPC_ADD_SOURCE_FILES(
 	# Double precision
 	kernel_dsymv_c99_lib4.c kernel_dtran_c99_lib4.c kernel_dttmm_c99_lib4.c kernel_dtrinv_c99_lib4.c kernel_dcopy_c99_lib4.c kernel_dgetrf_c99_lib4.c
 	# Single precision
 	)
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "CORTEX_A7" )
-	HPMPC_ADD_SOURCE_FILES
-	(
+	HPMPC_ADD_SOURCE_FILES(
 	# Double precision
 	kernel_dsymv_c99_lib4.c kernel_dtran_c99_lib4.c kernel_dttmm_c99_lib4.c kernel_dtrinv_c99_lib4.c kernel_dcopy_c99_lib4.c kernel_dgetrf_c99_lib4.c
 	# Single precision
