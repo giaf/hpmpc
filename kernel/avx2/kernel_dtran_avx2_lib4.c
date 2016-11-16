@@ -33,6 +33,7 @@
 
 
 
+#if ! defined(BLASFEO)
 // TODO tri !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 void kernel_dgetr_8_lib4(int tri, int kmax, int kna, double *A0, int sda, double *C, int sdc)
 	{
@@ -674,5 +675,6 @@ void kernel_dgetr_1_lib4(int tri, int kmax, int kna, double *A, double *C, int s
 		}
 
 	}
+#endif
 
 
