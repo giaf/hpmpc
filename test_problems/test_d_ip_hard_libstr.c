@@ -50,6 +50,8 @@
 #include "../include/c_interface.h"
 
 
+#define USE_IPM_RES 1
+#define KEEP_X0 0
 
 /************************************************ 
 Mass-spring system: nx/2 masses connected each other with springs (in a row), and the first and the last one to walls. nu (<=nx) controls act on the first nu masses. The system is sampled with sampling time Ts. 
@@ -164,171 +166,151 @@ int main()
 	
 	int rep, nrep=1000;//NREP;
 
-	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
-	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+	int nx_ = NX; // number of states (it has to be even for the mass-spring system test problem)
+	int nu_ = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
-	int nb  = nu+nx/2; // number of box constrained inputs and states
-	int ng  = 0; //nx; //4;  // number of general constraints
+	int nb_  = nu_+nx_/2; // number of box constrained inputs and states
+	int ng_  = 0; //nx; //4;  // number of general constraints
 	int ngN = 0; //nx; // number of general constraints at the last stage
 
 	// partial condensing horizon
 	int N2 = N; //N/2;
 
-# define USE_IPM_RES 1
-	
-//	int M = 32; // where the equality constraint hold
 
-	int nbu = nu<nb ? nu : nb ;
-	int nbx = nb-nu>0 ? nb-nu : 0;
-
-#define KEEP_X0 0
+	int nbu = nb_<nu_ ? nb_ : nu_;
+	int nbx = nb_-nu_<nx_ ? nb_-nu_ : nx_;
+	nbx = nbx<0 ? 0 : nbx;
 
 	// stage-wise variant size
-	int nx_v[N+1];
+	int nx[N+1];
 #if KEEP_X0
-	nx_v[0] = nx;
+	nx[0] = nx_;
 #else
-	nx_v[0] = 0;
+	nx[0] = 0;
 #endif
 	for(ii=1; ii<=N; ii++)
-		nx_v[ii] = nx;
+		nx[ii] = nx_;
 
-	int nu_v[N+1];
+	int nu[N+1];
 	for(ii=0; ii<N; ii++)
-		nu_v[ii] = nu;
-	nu_v[N] = 0;
+		nu[ii] = nu_;
+	nu[N] = 0;
 
-	int nb_v[N+1];
+	int nb[N+1];
 #if KEEP_X0
-	nb_v[0] = nb;
+	nb[0] = nb_;
 #else
-	nb_v[0] = nbu;
+	nb[0] = nbu;
 #endif
 	for(ii=1; ii<N; ii++)
-		nb_v[ii] = nb;
-	nb_v[N] = nbx;
+		nb[ii] = nb_;
+	nb[N] = nbx;
 
-	int ng_v[N+1];
+	int ng[N+1];
 	for(ii=0; ii<N; ii++)
-		ng_v[ii] = ng;
-	ng_v[N] = ngN;
-//	ng_v[M] = nx; // XXX
+		ng[ii] = ng_;
+	ng[N] = ngN;
 	
 
 
-
-	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx/2, nu);
+	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx_/2, nu_);
 	printf("\n");
-	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints, %d two-sided general constraints.\n", nx, nu, N, nb, ng);
+	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints, %d two-sided general constraints.\n", nx_, nu_, N, nb_, ng_);
 	printf("\n");
-#if IP == 1
-	printf(" IP method parameters: primal-dual IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_param.c to change them).\n", K_MAX, MU_TOL);
-#elif IP == 2
 	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_param.c to change them).\n", K_MAX, MU_TOL);
-#else
-	printf(" Wrong value for IP solver choice: %d\n", IP);
-#endif
 
-	int info = 0;
-		
-	const int bs  = D_MR; //d_get_mr();
-	const int ncl = D_NCL;
-
-	int pnz = (nu+nx+1+bs-1)/bs*bs;
-	int pnu = (nu+bs-1)/bs*bs;
-	int pnu1 = (nu+1+bs-1)/bs*bs;
-	int pnx = (nx+bs-1)/bs*bs;
-	int pnx1 = (nx+1+bs-1)/bs*bs;
-	int pnux = (nu+nx+bs-1)/bs*bs;
-	int cnx = (nx+ncl-1)/ncl*ncl;
-	int cnu = (nu+ncl-1)/ncl*ncl;
-	int cnux = (nu+nx+ncl-1)/ncl*ncl;
-
-//	int pnb_v[N+1]; 
-//	int png_v[N+1]; 
-	int pnx_v[N+1]; 
-	int pnz_v[N+1]; 
-	int pnux_v[N+1]; 
-	int cnx_v[N+1]; 
-	int cnux_v[N+1]; 
-	int cng_v[N+1]; 
-
-	for(ii=0; ii<N; ii++) 
-		{
-//		pnb_v[ii] = (nb_v[ii]+bs-1)/bs*bs;
-//		png_v[ii] = (ng_v[ii]+bs-1)/bs*bs;
-		pnx_v[ii] = (nx_v[ii]+bs-1)/bs*bs;
-		pnz_v[ii] = (nu_v[ii]+nx_v[ii]+1+bs-1)/bs*bs;
-		pnux_v[ii] = (nu_v[ii]+nx_v[ii]+bs-1)/bs*bs;
-		cnx_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
-		cnux_v[ii] = (nu_v[ii]+nx_v[ii]+ncl-1)/ncl*ncl;
-		cng_v[ii] = (ng_v[ii]+ncl-1)/ncl*ncl;
-		}
-	ii = N;
-//	pnb_v[ii] = (nb_v[ii]+bs-1)/bs*bs;
-//	png_v[ii] = (ng_v[ii]+bs-1)/bs*bs;
-	pnx_v[ii] = (nx_v[ii]+bs-1)/bs*bs;
-	pnz_v[ii] = (nx_v[ii]+1+bs-1)/bs*bs;
-	pnux_v[ii] = (nx_v[ii]+bs-1)/bs*bs;
-	cnx_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
-	cnux_v[ii] = (nx_v[ii]+ncl-1)/ncl*ncl;
-	cng_v[ii] = (ng_v[ii]+ncl-1)/ncl*ncl;
 
 
 /************************************************
 * dynamical system
 ************************************************/	
 
-	double *A; d_zeros(&A, nx, nx); // states update matrix
+	double *A; d_zeros(&A, nx_, nx_); // states update matrix
 
-	double *B; d_zeros(&B, nx, nu); // inputs matrix
+	double *B; d_zeros(&B, nx_, nu_); // inputs matrix
 
-	double *b; d_zeros_align(&b, nx, 1); // states offset
-	double *x0; d_zeros_align(&x0, nx, 1); // initial state
+	double *b; d_zeros_align(&b, nx_, 1); // states offset
+	double *x0; d_zeros_align(&x0, nx_, 1); // initial state
 
 	double Ts = 0.5; // sampling time
-	mass_spring_system(Ts, nx, nu, N, A, B, b, x0);
+	mass_spring_system(Ts, nx_, nu_, N, A, B, b, x0);
 	
-	for(jj=0; jj<nx; jj++)
+	for(jj=0; jj<nx_; jj++)
 		b[jj] = 0.1;
 	
-	for(jj=0; jj<nx; jj++)
+	for(jj=0; jj<nx_; jj++)
 		x0[jj] = 0;
 	x0[0] = 2.5;
 	x0[1] = 2.5;
 
-	double *pA; d_zeros_align(&pA, pnx, cnx);
-	d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
-	double *b0; d_zeros_align(&b0, pnx, 1);
-	for(ii=0; ii<nx; ii++) b0[ii] = b[ii];
+	d_print_mat(nx_, nx_, A, nx_);
+	d_print_mat(nx_, nu_, B, nu_);
+	d_print_mat(1, nx_, b, 1);
+	d_print_mat(1, nx_, x0, 1);
+
+	struct d_strmat sA;
+	d_allocate_strmat(nx_, nx_, &sA);
+	d_cvt_mat2strmat(nx_, nx_, A, nx_, &sA, 0, 0);
+	d_print_strmat(nx_, nx_, &sA, 0, 0);
+
+	struct d_strvec sx0;
+	d_allocate_strvec(nx_, &sx0);
+	d_cvt_vec2strvec(nx_, x0, &sx0, 0);
+	d_print_tran_strvec(nx_, &sx0, 0);
+
+	struct d_strvec sb0;
+	d_allocate_strvec(nx_, &sb0);
+	d_cvt_vec2strvec(nx_, b, &sb0, 0);
+	d_print_tran_strvec(nx_, &sb0, 0);
 #if ! KEEP_X0
-#if defined(BLASFEO)
-	dgemv_n_lib(nx, nx, 1.0, pA, cnx, x0, 1.0, b0, b0);
-#else
-	dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b0, b0);
+	dgemv_n_libstr(nx_, nx_, 1.0, &sA, 0, 0, &sx0, 0, 1.0, &sb0, 0, &sb0, 0);
 #endif
-#endif
+	d_print_tran_strvec(nx_, &sb0, 0);
 
-	double *pBAbt0; 
-	d_zeros_align(&pBAbt0, pnz_v[0], cnx_v[1]);
-	d_cvt_tran_mat2pmat(nx_v[1], nu_v[0], B, nx_v[1], 0, pBAbt0, cnx_v[1]);
-	d_cvt_tran_mat2pmat(nx_v[1], nx_v[0], A, nx_v[1], nu_v[0], pBAbt0+nu_v[0]/bs*bs*cnx_v[1]+nu_v[0]%bs, cnx_v[1]);
-	d_cvt_tran_mat2pmat(nx_v[1], 1, b0, nx_v[1], nu_v[0]+nx_v[0], pBAbt0+(nu_v[0]+nx_v[0])/bs*bs*cnx_v[1]+(nu_v[0]+nx_v[0])%bs, cnx_v[1]);
+	struct d_strmat sBAbt0;
+	d_allocate_strmat(nu[0]+nx[0]+1, nx[1], &sBAbt0);
+	d_cvt_tran_mat2strmat(nx[1], nu[0], B, nx_, &sBAbt0, 0, 0);
+	d_cvt_tran_mat2strmat(nx[1], nx[0], A, nx_, &sBAbt0, nu[0], 0);
+	drowin_libstr(nx[1], 1.0, &sb0, 0, &sBAbt0, nu[0]+nx[0], 0);
+	d_print_strmat(nu[0]+nx[0]+1, nx[1], &sBAbt0, 0, 0);
 
-	double *pBAbt1; 
+	struct d_strmat sBAbt1;
 	if(N>1)
 		{
-		d_zeros_align(&pBAbt1, pnz_v[1], cnx_v[2]);
-		d_cvt_tran_mat2pmat(nx_v[2], nu_v[1], B, nx_v[2], 0, pBAbt1, cnx_v[2]);
-		d_cvt_tran_mat2pmat(nx_v[2], nx_v[1], A, nx_v[2], nu_v[1], pBAbt1+nu_v[1]/bs*bs*cnx_v[2]+nu_v[1]%bs, cnx_v[2]);
-		d_cvt_tran_mat2pmat(nx_v[2], 1, b, nx_v[2], nu_v[1]+nx_v[1], pBAbt1+(nu_v[1]+nx_v[1])/bs*bs*cnx_v[2]+(nu_v[1]+nx_v[1])%bs, cnx_v[2]);
+		d_allocate_strmat(nu[1]+nx[1]+1, nx[2], &sBAbt1);
+		d_cvt_tran_mat2strmat(nx[2], nu[1], B, nx_, &sBAbt1, 0, 0);
+		d_cvt_tran_mat2strmat(nx[2], nx[1], A, nx_, &sBAbt1, nu[1], 0);
+		d_cvt_tran_mat2strmat(nx[2], 1, b, nx_, &sBAbt1, nu[1]+nx[1], 0);
+		d_print_strmat(nu[1]+nx[1]+1, nx[2], &sBAbt1, 0, 0);
 		}
 
+
+/************************************************
+* free memory
+************************************************/	
+
+	d_free(A);
+	d_free(B);
+	d_free(b);
+	d_free(x0);
+
+	d_free_strmat(&sA);
+	d_free_strvec(&sx0);
+	d_free_strvec(&sb0);
+	d_free_strmat(&sBAbt0);
+	if(N>1)
+		{
+		d_free_strmat(&sBAbt1);
+		}
+
+/************************************************
+* return
+************************************************/	
+
+	return 0;
+	}
 #if 0
-d_print_pmat(nu_v[0]+nx_v[0]+1, nx_v[1], bs, pBAbt0, cnx_v[1]);
-d_print_pmat(nu_v[1]+nx_v[1]+1, nx_v[2], bs, pBAbt1, cnx_v[2]);
-exit(2);
-#endif
+
 
 /************************************************
 * box & general constraints
@@ -931,7 +913,7 @@ exit(2);
 
 #if USE_IPM_RES
 //		hpmpc_status = d_ip2_res_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
-		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
+		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, compute_mult, hspi, hslam, hst, work);
 #else
 		hpmpc_status = d_ip2_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work);
 #endif
@@ -1244,4 +1226,4 @@ exit(1);
 	
 	}
 
-
+#endif
