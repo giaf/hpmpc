@@ -1891,7 +1891,7 @@ for(ii=0; ii<=N; ii++)
 #if 1
 
 /* primal-dual interior-point method computing residuals at each iteration, hard constraints, time variant matrices, time variant size (mpc version) */
-int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsd, struct d_strvec *hsux, int compute_mult, struct d_strvec *hspi, struct d_strvec *hslam, struct d_strvec *hst, double *double_work_memory)
+int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsd, struct d_strvec *hsux, int compute_mult, struct d_strvec *hspi, struct d_strvec *hslam, struct d_strvec *hst, void *work_memory)
 	{
 
 	// indeces
@@ -1945,7 +1945,7 @@ exit(2);
 
 	// initialize work space
 	double *ptr;
-	ptr = double_work_memory; // supposed to be aligned to cache line boundaries
+	ptr = (double *) work_memory; // supposed to be aligned to cache line boundaries
 
 	double *work;
 	double *memory;
