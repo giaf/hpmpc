@@ -508,7 +508,8 @@ int main()
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hst[N]);
 	
 	void *work_memory; // TODO
-	v_zeros_align(&work_memory, d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng)); // XXX TODO implement its own
+	v_zeros_align(&work_memory, d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx, nu, nb, ng)); // XXX TODO implement its own
+	printf("\nwork space size (in bytes): %d\n", d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
 	// IP options
 	int kk = -1;
@@ -520,7 +521,18 @@ int main()
 
 	int hpmpc_exit;
 
-	hpmpc_exit = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, 1, hspi, hslam, hst, work_memory);
+	struct timeval tv0, tv1;
+
+	gettimeofday(&tv0, NULL); // start
+
+	for(rep=0; rep<nrep; rep++)
+		{
+
+		hpmpc_exit = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, 1, hspi, hslam, hst, work_memory);
+
+		}
+
+	gettimeofday(&tv1, NULL); // stop
 
 	printf("\nstat =\n\nsigma\t\talpha1\t\tmu1\t\talpha2\t\tmu2\n\n");
 	d_print_e_tran_mat(5, kk, stat, 5);
@@ -528,6 +540,8 @@ int main()
 	printf("\nux =\n\n");
 	for(ii=0; ii<=N; ii++)
 		d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+
+	double time_ipm = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
 /************************************************
 * libstr ip2 residuals
@@ -588,6 +602,8 @@ int main()
 	 printf("\nres_m\n");
 	 for(ii=0; ii<=N; ii++)
 		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
+
+	printf(" Average solution time over %d runs: %5.2e seconds (IPM)\n", nrep, time_ipm);
 
 /************************************************
 * free memory
