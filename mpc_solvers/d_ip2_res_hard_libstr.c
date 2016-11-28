@@ -55,7 +55,6 @@
 
 
 /* computes work space size */
-// TODO !!!!!
 int d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int *ng)
 	{
 
@@ -1940,7 +1939,7 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 	{
 
 	// indeces
-	int jj, ll, ii, bs0, it_ref;
+	int jj, ll, ii, it_ref;
 
 
 	// max sizes
@@ -2127,7 +2126,7 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		drowex_libstr(nu[jj]+nx[jj], 1.0, &hsRSQrq[jj], nu[jj]+nx[jj], 0, &hsrq[jj], 0);
 		}
 
-	// extract diagonal of Hessian and gradient 
+	// extract diagonal of Hessian
 	for(jj=0; jj<=N; jj++)
 		{
 		ddiaex_libspstr(nb[jj], idxb[jj], 1.0, &hsRSQrq[jj], 0, 0, &hsdRSQ[jj], 0);
