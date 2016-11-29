@@ -523,7 +523,7 @@ void d_compute_alpha_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idx
 void d_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double *ptr_mu, double mu_scal, double alpha, struct d_strvec *hsux, struct d_strvec *hsdux, struct d_strvec *hst, struct d_strvec *hsdt, struct d_strvec *hslam, struct d_strvec *hsdlam, struct d_strvec *hspi, struct d_strvec *hsdpi)
 	{
 
-	int nu0, nx0, nx1, nb0, ng0;
+	int nu0, nx0, nb0, ng0;
 
 	int jj, ll;
 	
@@ -541,14 +541,14 @@ void d_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, dou
 		ptr_dpi  = hsdpi[jj].pa;
 
 		// update equality constrained multipliers
-		for(ll=0; ll<nx1-3; ll+=4)
+		for(ll=0; ll<nx0-3; ll+=4)
 			{
 			ptr_pi[ll+0] += alpha*(ptr_dpi[ll+0] - ptr_pi[ll+0]);
 			ptr_pi[ll+1] += alpha*(ptr_dpi[ll+1] - ptr_pi[ll+1]);
 			ptr_pi[ll+2] += alpha*(ptr_dpi[ll+2] - ptr_pi[ll+2]);
 			ptr_pi[ll+3] += alpha*(ptr_dpi[ll+3] - ptr_pi[ll+3]);
 			}
-		for(; ll<nx1; ll++)
+		for(; ll<nx0; ll++)
 			ptr_pi[ll] += alpha*(ptr_dpi[ll] - ptr_pi[ll]);
 
 		}
@@ -560,10 +560,6 @@ void d_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, dou
 		nu0 = nu[jj];
 		nb0 = nb[jj];
 		ng0 = ng[jj];
-		if(jj<N)
-			nx1 = nx[jj+1];
-		else
-			nx1 = 0;
 		
 		ptr_ux   = hsux[jj].pa;
 		ptr_dux  = hsdux[jj].pa;

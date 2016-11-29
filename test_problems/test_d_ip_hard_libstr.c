@@ -541,6 +541,10 @@ int main()
 	for(ii=0; ii<=N; ii++)
 		d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
 
+	printf("\npi =\n\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_tran_strvec(nx[ii], &hspi[ii], 0);
+
 	double time_ipm = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
 /************************************************
@@ -585,22 +589,22 @@ int main()
 	d_allocate_strvec(ngM, &hswork[0]);
 	d_allocate_strvec(ngM, &hswork[1]);
 
-	 d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hswork, hsrrq, hsrb, hsrd, hsrm, &mu);
+	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hswork, hsrrq, hsrb, hsrd, hsrm, &mu);
 
-	 printf("\nres_rq\n");
-	 for(ii=0; ii<=N; ii++)
+	printf("\nres_rq\n");
+	for(ii=0; ii<=N; ii++)
 		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
 
-	 printf("\nres_b\n");
-	 for(ii=0; ii<=N; ii++)
+	printf("\nres_b\n");
+	for(ii=0; ii<=N; ii++)
 		d_print_e_tran_strvec(nx[ii], &hsrb[ii], 0);
 
-	 printf("\nres_d\n");
-	 for(ii=0; ii<=N; ii++)
+	printf("\nres_d\n");
+	for(ii=0; ii<=N; ii++)
 		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
 
-	 printf("\nres_m\n");
-	 for(ii=0; ii<=N; ii++)
+	printf("\nres_m\n");
+	for(ii=0; ii<=N; ii++)
 		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
 
 	printf(" Average solution time over %d runs: %5.2e seconds (IPM)\n", nrep, time_ipm);
