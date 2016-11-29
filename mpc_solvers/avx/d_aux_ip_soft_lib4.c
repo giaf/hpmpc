@@ -35,6 +35,12 @@
 #include "../../include/blas_d.h"
 #include "../../include/block_size.h"
 
+#ifdef BLASFEO
+#include <blasfeo_target.h>
+#include <blasfeo_common.h>
+#include <blasfeo_d_blas.h>
+#endif
+
 
 
 void d_init_var_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, int *ns, double **ux, double **pi, double **pDCt, double **db, double **t, double **lam, double mu0, int warm_start)
@@ -148,7 +154,11 @@ void d_init_var_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 			ptr_t   = t[jj];
 			ptr_lam = lam[jj];
 			ptr_db  = db[jj];
+#ifdef BLASFEO
+			dgemv_t_lib(nu[jj]+nx[jj], ng0, 1.0, pDCt[jj], cng, ux[jj], 0.0, ptr_t+2*pnb, ptr_t+2*pnb);
+#else
 			dgemv_t_lib(nu[jj]+nx[jj], ng0, pDCt[jj], cng, ux[jj], 0, ptr_t+2*pnb, ptr_t+2*pnb);
+#endif
 			for(ll=2*pnb; ll<2*pnb+ng0; ll++)
 				{
 				ptr_t[ll+png] = - ptr_t[ll];
@@ -977,7 +987,11 @@ void d_compute_alpha_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 			png = (ng0+bs-1)/bs*bs;
 			cng = (ng0+ncl-1)/ncl*ncl;
 
+#ifdef BLASFEO
+			dgemv_t_lib(nx0+nu0, ng0, 1.0, pDCt[jj], cng, ptr_dux, 0.0, ptr_dt, ptr_dt);
+#else
 			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
+#endif
 
 			for(ll=0; ll<ng0-3; ll+=4)
 				{

@@ -31,6 +31,13 @@
 #include <xmmintrin.h> // needed to flush to zero sub-normals with _MM_SET_FLUSH_ZERO_MODE (_MM_FLUSH_ZERO_ON); in the main()
 #endif
 
+#ifdef BLASFEO
+#include <blasfeo_target.h>
+#include <blasfeo_common.h>
+#include <blasfeo_d_blas.h>
+#include <blasfeo_d_aux.h>
+#endif
+
 #include "../include/aux_d.h"
 #include "../include/aux_s.h"
 #include "../include/blas_d.h"
@@ -404,6 +411,8 @@ int main()
 	hux[0][nu+0] = xx0[0];
 	hux[0][nu+1] = xx0[1];
 
+// TODO
+#if 0 
 	// call the IP solver
 //	if(FREE_X0==0)
 //		{
@@ -419,6 +428,7 @@ int main()
 //		else
 //			hpmpc_status = d_ip2_box_mhe_old(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 //		}
+#endif
 
 #if 0
 	if(PRINTSTAT==1)
@@ -571,10 +581,13 @@ int main()
 		huxs[0][nus+0] = xx0[2*idx];
 		huxs[0][nus+1] = xx0[2*idx+1];
 
+// TODO
+#if 0
 		if(IP==1)
 			hpmpc_status = d_ip_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nus, N, nbs, ngs, ngs, hpBAbts, hpQs, hpDCts, hds, huxs, compute_mult, hpis, hlams, hts, works);
 		else
 			hpmpc_status = d_ip2_hard_mpc(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, nx, nus, N, nbs, ngs, ngs, hpBAbts, hpQs, hpDCts, hds, huxs, compute_mult, hpis, hlams, hts, works);
+#endif
 
 		kks_avg += kk;
 
@@ -654,6 +667,8 @@ int main()
 		hux[0][nu+0] = xx0[2*idx];
 		hux[0][nu+1] = xx0[2*idx+1];
 
+// TODO
+#if 0
 		// call the IP solver
 //		if(FREE_X0==0)
 //			{
@@ -669,6 +684,7 @@ int main()
 //			else
 //				hpmpc_status = d_ip2_box_mhe_old(&kk, k_max, mu_tol, alpha_min, warm_start, sigma, stat, nx, nu, N, nb, hpBAbt, hpQ, hdb, hux, compute_mult, hpi, hlam, ht, work);
 //			}
+#endif
 
 		kk_avg += kk;
 
@@ -685,11 +701,14 @@ int main()
 		}
 	for(jj=0; jj<nx+nu; jj++) hq[N][jj] = Q[nx+nu+nz*jj];
 
+// TODO
+#if 0
 	// residuals computation
 //	if(FREE_X0==0)
 		d_res_ip_soft_mpc(nx, nu, N, nh, ns, hpBAbt, hpQ, hq, hZ, hz, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, hrz, &mu);
 //	else
 //		d_res_ip_box_mhe_old(nx, nu, N, nb, hpBAbt, hpQ, hq, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, &mu);
+#endif
 
 
 	if(PRINTSTAT==1)
@@ -860,7 +879,11 @@ int main()
 	double *pA; d_zeros_align(&pA, pnx, cnx);
 	d_cvt_mat2pmat(nx, nx, A, nx, 0, pA, cnx);
 	double *b0; d_zeros_align(&b0, pnx, 1);
+#if defined(BLASFEO)
+	dgemv_n_lib(nx, nx, 1.0, pA, cnx, x0, 1.0, b, b0);
+#else
 	dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
+#endif
 	//d_print_pmat(nx, nx, bs, pA, cnx);
 	//d_print_mat(nx, 1, b0, nx);
 
@@ -894,7 +917,11 @@ int main()
 	//d_print_pmat(nu, nx, bs, pS, cnx);
 
 	double *q0; d_zeros_align(&q0, pnz_tv[0], 1);
+#if defined(BLASFEO)
+	dgemv_n_lib(nu, nx, 1.0, pS, cnx, x0, 1.0, q, q0);
+#else
 	dgemv_n_lib(nu, nx, pS, cnx, x0, 1, q, q0);
+#endif
 	//d_print_mat(nu, 1, q0, nu);
 
 	double *pQ0; d_zeros_align(&pQ0, pnz_tv[0], cnz_tv[0]);
@@ -1084,10 +1111,10 @@ int main()
 
 
 	// ip soft work space
-	double *ip_soft_tv_work; d_zeros_align(&ip_soft_tv_work, d_ip2_soft_mpc_tv_work_space_size_double(N, nx_tv, nu_tv, nb_tv, ng_tv, ns_tv), 1);
+	double *ip_soft_tv_work; d_zeros_align(&ip_soft_tv_work, d_ip2_mpc_soft_tv_work_space_size_bytes(N, nx_tv, nu_tv, nb_tv, ng_tv, ns_tv)/sizeof(double), 1);
 
 	// call the ip soft solver
-	d_ip2_soft_mpc_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, N, nx_tv, nu_tv, nb_tv, idxb_tv, ng_tv, ns_tv, hpBAbt_tv, hpQ_tv, hZ_tv, hz_tv, pdummyd, hdb_tv, hux_tv, 1, hpi_tv, hlam_tv, ht_tv, ip_soft_tv_work);
+	d_ip2_mpc_soft_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_tv, nu_tv, nb_tv, idxb_tv, ng_tv, ns_tv, hpBAbt_tv, hpQ_tv, hZ_tv, hz_tv, pdummyd, hdb_tv, hux_tv, 1, hpi_tv, hlam_tv, ht_tv, ip_soft_tv_work);
 
 
 
@@ -1113,13 +1140,21 @@ int main()
 		x0[1] = xx0[2*idx+1];
 
 		// update initial state embedded in b and r
+#if defined(BLASFEO)
+		dgemv_n_lib(nx, nx, 1.0, pA, cnx, x0, 1.0, b, b0);
+#else
 		dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
+#endif
 		d_cvt_tran_mat2pmat(nx, 1, b0, nx, nu, pBAbt0+nu/bs*bs*cnx_tv[1]+nu%bs, cnx_tv[1]);
+#if defined(BLASFEO)
+		dgemv_n_lib(nu, nx, 1.0, pS, cnx, x0, 1.0, q, q0);
+#else
 		dgemv_n_lib(nu, nx, pS, cnx, x0, 1, q, q0);
+#endif
 		d_cvt_tran_mat2pmat(nu, 1, q0, nu, nu, pQ0+nu/bs*bs*cnz_tv[0]+nu%bs, cnz_tv[0]);
 
 		// call the IP solver
-		d_ip2_soft_mpc_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, sigma, stat, N, nx_tv, nu_tv, nb_tv, idxb_tv, ng_tv, ns_tv, hpBAbt_tv, hpQ_tv, hZ_tv, hz_tv, pdummyd, hdb_tv, hux_tv, 1, hpi_tv, hlam_tv, ht_tv, ip_soft_tv_work);
+		d_ip2_mpc_soft_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_tv, nu_tv, nb_tv, idxb_tv, ng_tv, ns_tv, hpBAbt_tv, hpQ_tv, hZ_tv, hz_tv, pdummyd, hdb_tv, hux_tv, 1, hpi_tv, hlam_tv, ht_tv, ip_soft_tv_work);
 
 		kk_avg_tv += kk;
 
@@ -1152,14 +1187,17 @@ int main()
 	// restore linear part of cost function 
 	for(ii=0; ii<=N; ii++)
 		{
-		drowex_lib(nu_tv[ii]+nx_tv[ii], hpQ_tv[ii]+(nu_tv[ii]+nx_tv[ii])/bs*bs*cnz_tv[ii]+(nu_tv[ii]+nx_tv[ii])%bs, hq_tv[ii]);
+		drowex_lib(nu_tv[ii]+nx_tv[ii], 1.0, hpQ_tv[ii]+(nu_tv[ii]+nx_tv[ii])/bs*bs*cnz_tv[ii]+(nu_tv[ii]+nx_tv[ii])%bs, hq_tv[ii]);
 		}
 
 
 
+// TODO
+#if 0
 	// residuals computation
 //	d_res_ip_soft_mpc(nx, nu, N, nh, ns, hpBAbt, hpQ, hq, hZ, hz, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, hrz, &mu);
 	d_res_ip_soft_mpc_tv(N, nx_tv, nu_tv, nb_tv, idxb_tv, ng_tv, ns_tv, hpBAbt_tv, hpQ_tv, hq_tv, hZ_tv, hz_tv, hux_tv, pdummyd, hdb_tv, hpi_tv, hlam_tv, ht_tv, hrq_tv, hrb_tv, hrd_tv, hrz_tv, &mu);
+#endif
 
 
 
