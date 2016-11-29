@@ -79,9 +79,8 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		}
 
 	const int bs = D_MR;
-	const int ncl = D_NCL;
 
-	int nu0, nu1, cnux0, nx0, nx1, nxm, cnx0, cnx1, nb0, pnb, ng0, png, cng, nb_tot;
+	int nu0, nu1, nx0, nx1, nxm, nb0, ng0, nb_tot;
 
 	__m256d
 		v_ux, v_tmp2,
@@ -118,13 +117,8 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	nu1 = nu[ii+1];
 	nx0 = nx[ii]; // nx1;
 	nx1 = nx[ii+1];
-	cnx1  = (nx1+ncl-1)/ncl*ncl;
-	cnux0 = (nu0+nx0+ncl-1)/ncl*ncl;
 	nb0 = nb[ii];
-	pnb = nb0; //(nb0+bs-1)/bs*bs;
 	ng0 = ng[ii];
-	png = ng0; //(ng0+bs-1)/bs*bs;
-	cng = (ng0+ncl-1)/ncl*ncl;
 
 	if(nb0>0 | ng0>0)
 		{
@@ -151,14 +145,14 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 
 		for(jj=0; jj<nb0; jj++) 
 			{
-			hrq[ii][idxb[ii][jj]] += - hlam[ii][jj] + hlam[ii][pnb+jj];
+			hrq[ii][idxb[ii][jj]] += - hlam[ii][jj] + hlam[ii][nb0+jj]; // XXX it is nb now (in place of pnb) ?????
 
 			hrd[ii][jj]     = hd[ii][jj]     - hux[ii][idxb[ii][jj]] + ht[ii][jj];
-			hrd[ii][pnb+jj] = hd[ii][pnb+jj] - hux[ii][idxb[ii][jj]] - ht[ii][pnb+jj];
+			hrd[ii][nb0+jj] = hd[ii][nb0+jj] - hux[ii][idxb[ii][jj]] - ht[ii][nb0+jj];
 
 			hrm[ii][jj]     = hlam[ii][jj]     * ht[ii][jj];
-			hrm[ii][pnb+jj] = hlam[ii][pnb+jj] * ht[ii][pnb+jj];
-			mu2 += hrm[ii][jj] + hrm[ii][pnb+jj];
+			hrm[ii][nb0+jj] = hlam[ii][nb0+jj] * ht[ii][nb0+jj];
+			mu2 += hrm[ii][jj] + hrm[ii][nb0+jj];
 			}
 		}
 
@@ -176,22 +170,22 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 
 		for(jj=0; jj<ng0; jj++)
 			{
-			work0[jj] = hlam[ii][jj+2*pnb+png] - hlam[ii][jj+2*pnb+0];
+			work0[jj] = hlam[ii][jj+2*nb0+ng0] - hlam[ii][jj+2*nb0+0];
 
-			hrd[ii][2*pnb+jj]     = hd[ii][2*pnb+jj]     + ht[ii][2*pnb+jj];
-			hrd[ii][2*pnb+png+jj] = hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
+			hrd[ii][2*nb0+jj]     = hd[ii][2*nb0+jj]     + ht[ii][2*nb0+jj];
+			hrd[ii][2*nb0+ng0+jj] = hd[ii][2*nb0+ng0+jj] - ht[ii][2*nb0+ng0+jj];
 
-			hrm[ii][2*pnb+jj]     = hlam[ii][2*pnb+jj]     * ht[ii][2*pnb+jj];
-			hrm[ii][2*pnb+png+jj] = hlam[ii][2*pnb+png+jj] * ht[ii][2*pnb+png+jj];
-			mu2 += hrm[ii][2*pnb+jj] + hrm[ii][2*pnb+png+jj];
+			hrm[ii][2*nb0+jj]     = hlam[ii][2*nb0+jj]     * ht[ii][2*nb0+jj];
+			hrm[ii][2*nb0+ng0+jj] = hlam[ii][2*nb0+ng0+jj] * ht[ii][2*nb0+ng0+jj];
+			mu2 += hrm[ii][2*nb0+jj] + hrm[ii][2*nb0+ng0+jj];
 			}
 
 		dgemv_nt_libstr(nu0+nx0, ng0, 1.0, 1.0, &hsDCt[ii], 0, 0, &hswork[0], 0, &hsux[ii], 0, 1.0, 0.0, &hsrq[ii], 0, &hswork[1], 0, &hsrq[ii], 0, &hswork[1], 0);
 
 		for(jj=0; jj<ng0; jj++)
 			{
-			hrd[ii][2*pnb+jj]     -= work1[jj];
-			hrd[ii][2*pnb+png+jj] -= work1[jj];
+			hrd[ii][2*nb0+jj]     -= work1[jj];
+			hrd[ii][2*nb0+ng0+jj] -= work1[jj];
 			}
 
 		}
@@ -207,14 +201,8 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		nu1 = nu[ii+1];
 		nx0 = nx1;
 		nx1 = nx[ii+1];
-		cnx0 = cnx1;
-		cnx1  = (nx1+ncl-1)/ncl*ncl;
-		cnux0  = (nu0+nx0+ncl-1)/ncl*ncl;
 		nb0 = nb[ii];
-		pnb = nb0; //(nb0+bs-1)/bs*bs;
 		ng0 = ng[ii];
-		png = ng0; //(ng0+bs-1)/bs*bs;
-		cng = (ng0+ncl-1)/ncl*ncl;
 
 		if(nb0>0 | ng0>0)
 			{
@@ -274,7 +262,7 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 			for(jj=0; jj<nb0-3; jj+=4)
 				{
 				v_lam0 = _mm256_loadu_pd( &ptr_lam[jj+0] );
-				v_lam1 = _mm256_loadu_pd( &ptr_lam[jj+pnb] );
+				v_lam1 = _mm256_loadu_pd( &ptr_lam[jj+nb0] );
 				v_tmp0 = _mm256_sub_pd( v_lam1, v_lam0 );
 
 				u_tmp0 = _mm_load_sd( &ptr_rq[ptr_idxb[jj+0]] );
@@ -302,28 +290,28 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 				v_ux   = _mm256_insertf128_pd( v_ux, u_tmp1, 0x1 );
 
 				v_t0   = _mm256_loadu_pd( &ptr_t[jj+0] );
-				v_t1   = _mm256_loadu_pd( &ptr_t[jj+pnb] );
+				v_t1   = _mm256_loadu_pd( &ptr_t[jj+nb0] );
 
 				v_tmp0   = _mm256_loadu_pd( &ptr_d[jj+0] );
-				v_tmp1   = _mm256_loadu_pd( &ptr_d[jj+pnb] );
+				v_tmp1   = _mm256_loadu_pd( &ptr_d[jj+nb0] );
 				v_tmp0   = _mm256_sub_pd( v_tmp0, v_ux );
 				v_tmp1   = _mm256_sub_pd( v_tmp1, v_ux );
 				v_tmp0   = _mm256_add_pd( v_tmp0, v_t0 );
 				v_tmp1   = _mm256_sub_pd( v_tmp1, v_t1 );
 				_mm256_storeu_pd( &ptr_rd[jj+0], v_tmp0 );
-				_mm256_storeu_pd( &ptr_rd[jj+pnb], v_tmp1 );
+				_mm256_storeu_pd( &ptr_rd[jj+nb0], v_tmp1 );
 
 				v_tmp0 = _mm256_mul_pd( v_lam0, v_t0 );
 				v_tmp1 = _mm256_mul_pd( v_lam1, v_t1 );
 				_mm256_storeu_pd( &ptr_rm[jj+0], v_tmp0 );
-				_mm256_storeu_pd( &ptr_rm[jj+pnb], v_tmp1 );
+				_mm256_storeu_pd( &ptr_rm[jj+nb0], v_tmp1 );
 				v_mu0  = _mm256_add_pd( v_mu0, v_tmp0 );
 				v_mu1  = _mm256_add_pd( v_mu1, v_tmp1 );
 				}
 			for(; jj<nb0; jj++)
 				{
 				u_lam0 = _mm_load_sd( &ptr_lam[jj+0] );
-				u_lam1 = _mm_load_sd( &ptr_lam[jj+pnb] );
+				u_lam1 = _mm_load_sd( &ptr_lam[jj+nb0] );
 				u_tmp0 = _mm_sub_sd( u_lam1, u_lam0 );
 				u_tmp1 = _mm_load_sd( &ptr_rq[ptr_idxb[jj]] );
 				u_tmp0 = _mm_add_sd( u_tmp0, u_tmp1 );
@@ -332,21 +320,21 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 				u_ux   = _mm_load_sd( &ptr_ux[ptr_idxb[jj]] );
 
 				u_t0   = _mm_load_sd( &ptr_t[jj+0] );
-				u_t1   = _mm_load_sd( &ptr_t[jj+pnb] );
+				u_t1   = _mm_load_sd( &ptr_t[jj+nb0] );
 
 				u_tmp0   = _mm_load_sd( &ptr_d[jj+0] );
-				u_tmp1   = _mm_load_sd( &ptr_d[jj+pnb] );
+				u_tmp1   = _mm_load_sd( &ptr_d[jj+nb0] );
 				u_tmp0   = _mm_sub_sd( u_tmp0, u_ux );
 				u_tmp1   = _mm_sub_sd( u_tmp1, u_ux );
 				u_tmp0   = _mm_add_sd( u_tmp0, u_t0 );
 				u_tmp1   = _mm_sub_sd( u_tmp1, u_t1 );
 				_mm_store_sd( &ptr_rd[jj+0], u_tmp0 );
-				_mm_store_sd( &ptr_rd[jj+pnb], u_tmp1 );
+				_mm_store_sd( &ptr_rd[jj+nb0], u_tmp1 );
 
 				u_tmp0 = _mm_mul_sd( u_lam0, u_t0 );
 				u_tmp1 = _mm_mul_sd( u_lam1, u_t1 );
 				_mm_store_sd( &ptr_rm[jj+0], u_tmp0 );
-				_mm_store_sd( &ptr_rm[jj+pnb], u_tmp1 );
+				_mm_store_sd( &ptr_rm[jj+nb0], u_tmp1 );
 				u_mu0  = _mm_add_sd( u_mu0, u_tmp0 );
 				u_mu1  = _mm_add_sd( u_mu1, u_tmp1 );
 				}
@@ -362,57 +350,57 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		if(ng0>0)
 			{
 
-			ptr_d   += 2*pnb;
-			ptr_lam += 2*pnb;
-			ptr_t   += 2*pnb;
-			ptr_rd  += 2*pnb;
-			ptr_rm  += 2*pnb;
+			ptr_d   += 2*nb0;
+			ptr_lam += 2*nb0;
+			ptr_t   += 2*nb0;
+			ptr_rd  += 2*nb0;
+			ptr_rm  += 2*nb0;
 
 			nb_tot += ng0;
 
 			for(jj=0; jj<ng0-3; jj+=4)
 				{
 				v_lam0 = _mm256_loadu_pd( &ptr_lam[jj+0] );
-				v_lam1 = _mm256_loadu_pd( &ptr_lam[jj+png] );
+				v_lam1 = _mm256_loadu_pd( &ptr_lam[jj+ng0] );
 				v_tmp0 = _mm256_sub_pd( v_lam1, v_lam0 );
 				_mm256_storeu_pd( &work0[jj], v_tmp0 );
 
 				v_t0   = _mm256_loadu_pd( &ptr_t[jj+0] );
-				v_t1   = _mm256_loadu_pd( &ptr_t[jj+png] );
+				v_t1   = _mm256_loadu_pd( &ptr_t[jj+ng0] );
 				v_tmp0 = _mm256_loadu_pd( &ptr_d[jj+0] );
-				v_tmp1 = _mm256_loadu_pd( &ptr_d[jj+png] );
+				v_tmp1 = _mm256_loadu_pd( &ptr_d[jj+ng0] );
 				v_tmp0 = _mm256_add_pd( v_tmp0, v_t0 );
 				v_tmp1 = _mm256_sub_pd( v_tmp1, v_t1 );
 				_mm256_storeu_pd( &ptr_rd[jj+0], v_tmp0 );
-				_mm256_storeu_pd( &ptr_rd[jj+png], v_tmp1 );
+				_mm256_storeu_pd( &ptr_rd[jj+ng0], v_tmp1 );
 
 				v_tmp0 = _mm256_mul_pd( v_lam0, v_t0 );
 				v_tmp1 = _mm256_mul_pd( v_lam1, v_t1 );
 				_mm256_storeu_pd( &ptr_rm[jj+0], v_tmp0 );
-				_mm256_storeu_pd( &ptr_rm[jj+png], v_tmp1 );
+				_mm256_storeu_pd( &ptr_rm[jj+ng0], v_tmp1 );
 				v_mu0  = _mm256_add_pd( v_mu0, v_tmp0 );
 				v_mu1  = _mm256_add_pd( v_mu1, v_tmp1 );
 				}
 			for(; jj<ng0; jj++) // TODO mask ?
 				{
 				u_lam0 = _mm_load_sd( &ptr_lam[jj+0] );
-				u_lam1 = _mm_load_sd( &ptr_lam[jj+png] );
+				u_lam1 = _mm_load_sd( &ptr_lam[jj+ng0] );
 				u_tmp0 = _mm_sub_sd( u_lam1, u_lam0 );
 				_mm_store_sd( &work0[jj], u_tmp0 );
 
 				u_t0   = _mm_load_sd( &ptr_t[jj+0] );
-				u_t1   = _mm_load_sd( &ptr_t[jj+png] );
+				u_t1   = _mm_load_sd( &ptr_t[jj+ng0] );
 				u_tmp0 = _mm_load_sd( &ptr_d[jj+0] );
-				u_tmp1 = _mm_load_sd( &ptr_d[jj+png] );
+				u_tmp1 = _mm_load_sd( &ptr_d[jj+ng0] );
 				u_tmp0 = _mm_add_sd( u_tmp0, u_t0 );
 				u_tmp1 = _mm_sub_sd( u_tmp1, u_t1 );
 				_mm_store_sd( &ptr_rd[jj+0], u_tmp0 );
-				_mm_store_sd( &ptr_rd[jj+png], u_tmp1 );
+				_mm_store_sd( &ptr_rd[jj+ng0], u_tmp1 );
 
 				u_tmp0 = _mm_mul_sd( u_lam0, u_t0 );
 				u_tmp1 = _mm_mul_sd( u_lam1, u_t1 );
 				_mm_store_sd( &ptr_rm[jj+0], u_tmp0 );
-				_mm_store_sd( &ptr_rm[jj+png], u_tmp1 );
+				_mm_store_sd( &ptr_rm[jj+ng0], u_tmp1 );
 				u_mu0  = _mm_add_sd( u_mu0, u_tmp0 );
 				u_mu1  = _mm_add_sd( u_mu1, u_tmp1 );
 				}
@@ -423,21 +411,21 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 				{
 				v_tmp2 = _mm256_loadu_pd( &work1[jj] );
 				v_tmp0 = _mm256_loadu_pd( &ptr_rd[jj+0] );
-				v_tmp1 = _mm256_loadu_pd( &ptr_rd[jj+png] );
+				v_tmp1 = _mm256_loadu_pd( &ptr_rd[jj+ng0] );
 				v_tmp0 = _mm256_sub_pd( v_tmp0, v_tmp2 );
 				v_tmp1 = _mm256_sub_pd( v_tmp1, v_tmp2 );
 				_mm256_storeu_pd( &ptr_rd[jj+0], v_tmp0 );
-				_mm256_storeu_pd( &ptr_rd[jj+png], v_tmp1 );
+				_mm256_storeu_pd( &ptr_rd[jj+ng0], v_tmp1 );
 				}
 			for(; jj<ng0; jj++) // TODO mask ?
 				{
 				u_tmp2 = _mm_load_sd( &work1[jj] );
 				u_tmp0 = _mm_load_sd( &ptr_rd[jj+0] );
-				u_tmp1 = _mm_load_sd( &ptr_rd[jj+png] );
+				u_tmp1 = _mm_load_sd( &ptr_rd[jj+ng0] );
 				u_tmp0 = _mm_sub_sd( u_tmp0, u_tmp2 );
 				u_tmp1 = _mm_sub_sd( u_tmp1, u_tmp2 );
 				_mm_store_sd( &ptr_rd[jj+0], u_tmp0 );
-				_mm_store_sd( &ptr_rd[jj+png], u_tmp1 );
+				_mm_store_sd( &ptr_rd[jj+ng0], u_tmp1 );
 				}
 
 			}
@@ -450,12 +438,8 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	ii = N;
 	nu0 = nu1;
 	nx0 = nx1;
-	cnux0  = (nu0+nx0+ncl-1)/ncl*ncl;
 	nb0 = nb[ii];
-	pnb = nb0; //(nb0+bs-1)/bs*bs;
 	ng0 = ng[ii];
-	png = ng0; //(ng0+bs-1)/bs*bs;
-	cng = (ng0+ncl-1)/ncl*ncl;
 
 	if(nb0>0 | ng0>0)
 		{
@@ -476,14 +460,14 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 
 		for(jj=0; jj<nb0; jj++) 
 			{
-			hrq[ii][idxb[ii][jj]] += - hlam[ii][jj] + hlam[ii][pnb+jj];
+			hrq[ii][idxb[ii][jj]] += - hlam[ii][jj] + hlam[ii][nb0+jj];
 
 			hrd[ii][jj]     = hd[ii][jj]     - hux[ii][idxb[ii][jj]] + ht[ii][jj];
-			hrd[ii][pnb+jj] = hd[ii][pnb+jj] - hux[ii][idxb[ii][jj]] - ht[ii][pnb+jj];
+			hrd[ii][nb0+jj] = hd[ii][nb0+jj] - hux[ii][idxb[ii][jj]] - ht[ii][nb0+jj];
 
 			hrm[ii][jj]     = hlam[ii][jj]     * ht[ii][jj];
-			hrm[ii][pnb+jj] = hlam[ii][pnb+jj] * ht[ii][pnb+jj];
-			mu2 += hrm[ii][jj] + hrm[ii][pnb+jj];
+			hrm[ii][nb0+jj] = hlam[ii][nb0+jj] * ht[ii][nb0+jj];
+			mu2 += hrm[ii][jj] + hrm[ii][nb0+jj];
 			}
 		}
 
@@ -496,22 +480,22 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 
 		for(jj=0; jj<ng0; jj++)
 			{
-			work0[jj] = hlam[ii][jj+2*pnb+png] - hlam[ii][jj+2*pnb+0];
+			work0[jj] = hlam[ii][jj+2*nb0+ng0] - hlam[ii][jj+2*nb0+0];
 
-			hrd[ii][2*pnb+jj]     = hd[ii][2*pnb+jj]     + ht[ii][2*pnb+jj];
-			hrd[ii][2*pnb+png+jj] = hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
+			hrd[ii][2*nb0+jj]     = hd[ii][2*nb0+jj]     + ht[ii][2*nb0+jj];
+			hrd[ii][2*nb0+ng0+jj] = hd[ii][2*nb0+ng0+jj] - ht[ii][2*nb0+ng0+jj];
 
-			hrm[ii][2*pnb+jj]     = hlam[ii][2*pnb+jj]     * ht[ii][2*pnb+jj];
-			hrm[ii][2*pnb+png+jj] = hlam[ii][2*pnb+png+jj] * ht[ii][2*pnb+png+jj];
-			mu2 += hrm[ii][2*pnb+jj] + hrm[ii][2*pnb+png+jj];
+			hrm[ii][2*nb0+jj]     = hlam[ii][2*nb0+jj]     * ht[ii][2*nb0+jj];
+			hrm[ii][2*nb0+ng0+jj] = hlam[ii][2*nb0+ng0+jj] * ht[ii][2*nb0+ng0+jj];
+			mu2 += hrm[ii][2*nb0+jj] + hrm[ii][2*nb0+ng0+jj];
 			}
 
 		dgemv_nt_libstr(nu0+nx0, ng0, 1.0, 1.0, &hsDCt[ii], 0, 0, &hswork[0], 0, &hsux[ii], 0, 1.0, 0.0, &hsrq[ii], 0, &hswork[1], 0, &hsrq[ii], 0, &hswork[1], 0);
 
 		for(jj=0; jj<ng0; jj++)
 			{
-			hrd[ii][2*pnb+jj]     -= work1[jj];
-			hrd[ii][2*pnb+png+jj] -= work1[jj];
+			hrd[ii][2*nb0+jj]     -= work1[jj];
+			hrd[ii][2*nb0+ng0+jj] -= work1[jj];
 			}
 
 		}

@@ -53,48 +53,36 @@
 
 
 /* primal-dual interior-point method computing residuals at each iteration, hard constraints, time variant matrices, time variant size (mpc version) */
-int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int Nn, struct node *tree, int *nx, int *nu, int *nb, int **idxb, int *ng, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsd, struct d_strvec *hsux, int compute_mult, struct d_strvec *hspi, struct d_strvec *hslam, struct d_strvec *hst, double *double_work_memory)
+int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int Nn, struct node *tree, int *nx, int *nu, int *nb, int **idxb, int *ng, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsd, struct d_strvec *hsux, int compute_mult, struct d_strvec *hspi, struct d_strvec *hslam, struct d_strvec *hst, void *work_memory)
 	{
 
 	// adjust number of nodes
 	int N = Nn-1;
 
 	// indeces
-	int jj, ll, ii, bs0, it_ref;
-
-	// constants
-	const int bs = D_MR;
-	const int ncl = D_NCL;
-
-	// navigate a tree
+	int jj, ll, ii, it_ref;
 	int nkids, idxkid;
 
 
-
-	// matrices size
-	int idx;
-
-	int pnx[N+1];
-	int pnz[N+1];
-	int pnb[N+1];
-	int png[N+1];
-	int cnx[N+1];
-	int cnux[N+1];
-
-	int pngM = 0;
-
-	for(jj=0; jj<=N; jj++)
+	// max sizes
+	int ngM = 0;
+	for(ii=0; ii<=N; ii++)
 		{
-		pnx[jj] = (nx[jj]+bs-1)/bs*bs;
-		pnz[jj] = (nu[jj]+nx[jj]+1+bs-1)/bs*bs;
-		pnb[jj] = (nb[jj]+bs-1)/bs*bs;
-		png[jj] = (ng[jj]+bs-1)/bs*bs;
-		if(png[jj]>pngM) pngM = png[jj];
-		cnx[jj] = (nx[jj]+ncl-1)/ncl*ncl;
-		cnux[jj] = (nu[jj]+nx[jj]+ncl-1)/ncl*ncl;
+		ngM = ng[ii]>ngM ? ng[ii] : ngM;
 		}
 
+	int nzM  = 0;
+	for(ii=0; ii<=N; ii++)
+		{
+		nzM = nu[ii]+nx[ii]+1>nzM ? nu[ii]+nx[ii]+1 : nzM;
+		}
 
+	int nxgM = ng[N];
+	for(ii=0; ii<N; ii++)
+		{
+		nxgM = nx[ii+1]+ng[ii]>nxgM ? nx[ii+1]+ng[ii] : nxgM;
+		}
+	
 
 #if 0
 printf("\nBAbt\n");
@@ -118,323 +106,193 @@ exit(2);
 
 
 
-	// initialize work space
-	double *ptr;
-	ptr = double_work_memory; // supposed to be aligned to cache line boundaries
+	struct d_strmat *hsmatdummy;
+	struct d_strvec *hsvecdummy;
 
-	double *work;
-	double *memory;
-	double *b[N+1];
-	double *q[N+1];
-	double *dux[N+1];
-	double *dpi[N+1];
-	double *bd[N+1]; // backup diagonal of Hessian
-//	double *bl[N+1]; // backup gradient
-	double *dlam[N+1];
-	double *dt[N+1];
-	double *t_inv[N+1];
-	double *lamt[N+1];
-	double *Qx[N+1];
-	double *qx[N+1];
-	double *Pb[N+1];
-	double *res_work;
-	double *res_q[N+1];
-	double *res_b[N+1];
-	double *res_d[N+1];
-	double *res_m[N+1];
+	struct d_strvec hsb[N+1];
+	struct d_strvec hsrq[N+1];
+	struct d_strvec hsdRSQ[N+1];
+	struct d_strvec hsQx[N+1];
+	struct d_strvec hsqx[N+1];
+	struct d_strvec hsdux[N+1];
+	struct d_strvec hsdpi[N+1];
+	struct d_strvec hsdt[N+1];
+	struct d_strvec hsdlam[N+1];
+	struct d_strvec hstinv[N+1];
+	struct d_strvec hslamt[N+1];
+	struct d_strvec hsPb[N+1];
+	struct d_strmat hsL[N+1];
+	struct d_strmat hsLxt[N+1];
+	struct d_strvec hsres_rq[N+1];
+	struct d_strvec hsres_b[N+1];
+	struct d_strvec hsres_d[N+1];
+	struct d_strvec hsres_m[N+1];
+	struct d_strmat hsric_work_mat[2];
+	struct d_strvec hsric_work_vec[1];
+	struct d_strvec hsres_work[2];
 
-	// work space
-	work = ptr;
-	ptr += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
+	// L
+	for(ii=0; ii<=N; ii++)
+		{
+		d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], work_memory);
+		work_memory += hsL[ii].memory_size;
+		}
 
-	// memory space
-	memory = ptr;
-	ptr += d_back_ric_rec_sv_tv_memory_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
+	// Lxt
+	for(ii=0; ii<=N; ii++)
+		{
+		d_create_strmat(nx[ii], nx[ii], &hsLxt[ii], work_memory);
+		work_memory += hsLxt[ii].memory_size;
+		}
 
 	// b as vector
-//	for(jj=1; jj<=N; jj++)
-//		{
-//		b[jj] = ptr;
-//		ptr += pnx[jj];
-//		}
 	for(ii=0; ii<Nn; ii++)
 		{
 		nkids = tree[ii].nkids;
 		for(jj=0; jj<nkids; jj++)
 			{
 			idxkid = tree[ii].kids[jj];
-			b[idxkid] = ptr;
-			ptr += pnx[idxkid];
+//			b[idxkid] = ptr;
+//			ptr += pnx[idxkid];
+			d_create_strvec(nx[idxkid], &hsb[idxkid], work_memory);
+			work_memory += hsb[idxkid].memory_size;
 			}
 		}
 
-	// inputs and states
-	for(jj=0; jj<=N; jj++)
+	// inputs and states step
+	for(ii=0; ii<=N; ii++)
 		{
-		dux[jj] = ptr;
-		ptr += pnz[jj];
+		d_create_strvec(nu[ii]+nx[ii], &hsdux[ii], work_memory);
+		work_memory += hsdux[ii].memory_size;
 		}
 
 	// equality constr multipliers
-//	for(jj=1; jj<=N; jj++)
-//		{
-//		dpi[jj] = ptr;
-//		ptr += pnx[jj];
-//		}
 	for(ii=0; ii<Nn; ii++)
 		{
 		nkids = tree[ii].nkids;
 		for(jj=0; jj<nkids; jj++)
 			{
 			idxkid = tree[ii].kids[jj];
-			dpi[idxkid] = ptr;
-			ptr += pnx[idxkid];
+			d_create_strvec(nx[idxkid], &hsdpi[idxkid], work_memory);
+			work_memory += hsdpi[idxkid].memory_size;
 			}
 		}
 	
 	// backup of P*b
-//	for(jj=1; jj<=N; jj++)
-//		{
-//		Pb[jj] = ptr;
-//		ptr += pnx[jj];
-//		}
 	for(ii=0; ii<Nn; ii++)
 		{
 		nkids = tree[ii].nkids;
 		for(jj=0; jj<nkids; jj++)
 			{
 			idxkid = tree[ii].kids[jj];
-			Pb[idxkid] = ptr;
-			ptr += pnx[idxkid];
+			d_create_strvec(nx[idxkid], &hsPb[idxkid], work_memory);
+			work_memory += hsPb[idxkid].memory_size;
 			}
 		}
 	
-	// linear part of cost function (and copy it)
-	for(jj=0; jj<=N; jj++)
+	// linear part of cost function
+	for(ii=0; ii<=N; ii++)
 		{
-		q[jj] = ptr;
-		ptr += pnz[jj];
-//		for(ll=0; ll<nu[jj]+nx[jj]; ll++) 
-//			q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
+		d_create_strvec(nu[ii]+nx[ii], &hsrq[ii], work_memory);
+		work_memory += hsrq[ii].memory_size;
 		}
 
 	// diagonal of Hessian and gradient backup
-	for(jj=0; jj<=N; jj++)
+	for(ii=0; ii<=N; ii++)
 		{
-		bd[jj] = ptr;
-//		bl[jj] = ptr+pnb[jj];
-//		ptr += 2*pnb[jj];
-		ptr += pnb[jj];
-		// backup
-//		for(ll=0; ll<nb[jj]; ll++)
-//			{
-//			idx = idxb[jj][ll];
-//			bd[jj][ll] = pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs];
-//			bl[jj][ll] = q[jj][idx]; // XXX this has to come after q !!!
-//			}
+		d_create_strvec(nb[ii], &hsdRSQ[ii], work_memory);
+		work_memory += hsdRSQ[ii].memory_size;
 		}
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space
-	for(jj=0; jj<=N; jj++)
+	for(ii=0; ii<=N; ii++)
 		{
-		dlam[jj] = ptr;
-		dt[jj]   = ptr + 2*pnb[jj]+2*png[jj];
-		ptr += 4*pnb[jj]+4*png[jj];
+		d_create_strvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], work_memory);
+		work_memory += hsdlam[ii].memory_size;
+		d_create_strvec(2*nb[ii]+2*ng[ii], &hsdt[ii], work_memory);
+		work_memory += hsdt[ii].memory_size;
 		}
 
-	for(jj=0; jj<=N; jj++)
+	for(ii=0; ii<=N; ii++)
 		{
-		t_inv[jj] = ptr;
-		ptr += 2*pnb[jj]+2*png[jj];
+		d_create_strvec(2*nb[ii]+2*ng[ii], &hstinv[ii], work_memory);
+		work_memory += hstinv[ii].memory_size;
 		}
 
-	for(jj=0; jj<=N; jj++)
+	for(ii=0; ii<=N; ii++)
 		{
-		lamt[jj] = ptr;
-		ptr += 2*pnb[jj]+2*png[jj];
+		d_create_strvec(2*nb[ii]+2*ng[ii], &hslamt[ii], work_memory);
+		work_memory += hslamt[ii].memory_size;
 		}
 
-	for(jj=0; jj<=N; jj++)
+	for(ii=0; ii<=N; ii++)
 		{
-		Qx[jj] = ptr;
-		qx[jj] = ptr+pnb[jj]+png[jj];
-		ptr += 2*pnb[jj]+2*png[jj];
+		d_create_strvec(nb[ii]+ng[ii], &hsQx[ii], work_memory);
+		work_memory += hsQx[ii].memory_size;
+		d_create_strvec(nb[ii]+ng[ii], &hsqx[ii], work_memory);
+		work_memory += hsqx[ii].memory_size;
 		}
-	
+
+
 	// residuals
-	res_work = ptr;
-	ptr += 2*pngM;
+	d_create_strvec(ngM, &hsres_work[0], work_memory);
+	work_memory += hsres_work[0].memory_size;
+	d_create_strvec(ngM, &hsres_work[1], work_memory);
+	work_memory += hsres_work[1].memory_size;
 
-	for(jj=0; jj<=N; jj++)
+	for(ii=0; ii<=N; ii++)
 		{
-		res_q[jj] = ptr;
-		ptr += pnz[jj];
+		d_create_strvec(nu[ii]+nx[ii], &hsres_rq[ii], work_memory);
+		work_memory += hsres_rq[ii].memory_size;
 		}
 
-//	for(jj=1; jj<=N; jj++)
-//		{
-//		res_b[jj] = ptr;
-//		ptr += pnx[jj];
-//		}
 	for(ii=0; ii<Nn; ii++)
 		{
 		nkids = tree[ii].nkids;
 		for(jj=0; jj<nkids; jj++)
 			{
 			idxkid = tree[ii].kids[jj];
-			res_b[idxkid] = ptr;
-			ptr += pnx[idxkid];
+			d_create_strvec(nx[idxkid], &hsres_b[idxkid], work_memory);
+			work_memory += hsres_b[idxkid].memory_size;
 			}
 		}
 
-	for(jj=0; jj<=N; jj++)
+	for(ii=0; ii<=N; ii++)
 		{
-		res_d[jj] = ptr;
-		ptr += 2*pnb[jj]+2*png[jj];
+		d_create_strvec(2*nb[ii]+2*ng[ii], &hsres_d[ii], work_memory);
+		work_memory += hsres_d[ii].memory_size;
 		}
 
-	for(jj=0; jj<=N; jj++)
+	for(ii=0; ii<=N; ii++)
 		{
-		res_m[jj] = ptr;
-		ptr += 2*pnb[jj]+2*png[jj];
+		d_create_strvec(2*nb[ii]+2*ng[ii], &hsres_m[ii], work_memory);
+		work_memory += hsres_m[ii].memory_size;
 		}
+
+	// riccati work space
+	d_create_strmat(nzM, nxgM, &hsric_work_mat[0], work_memory);
+	work_memory += hsric_work_mat[0].memory_size;
+	d_create_strmat(nzM, nxgM, &hsric_work_mat[1], work_memory);
+	work_memory += hsric_work_mat[1].memory_size;
+
+	d_create_strvec(nzM, &hsric_work_vec[0], work_memory);
+	work_memory += hsric_work_vec[0].memory_size;
+
 	
-#if 1 // libstr interface
-
-		int cnl[N+1];
-		for(ii=0; ii<N; ii++)
-			{
-			cnl[ii] = cnux[ii]<cnx[ii]+ncl ? cnx[ii]+ncl : cnux[ii];
-			}
-		cnl[ii] = cnux[ii]<cnx[ii]+ncl ? cnx[ii]+ncl : cnux[ii];
-
-		int nzM  = 0;
-		for(ii=0; ii<N; ii++)
-			{
-			if(nu[ii]+nx[ii]+1>nzM) nzM = nu[ii]+nx[ii]+1;
-			}
-		ii = N;
-		if(nx[ii]+1>nzM) nzM = nx[ii]+1;
-
-		int nxgM = ng[N];
-		for(ii=0; ii<N; ii++)
-			{
-			if(nx[ii+1]+ng[ii]>nxgM) nxgM = nx[ii+1]+ng[ii];
-			}
-		
-		int pnzM = (nzM+bs-1)/bs*bs;
-		int cnxgM = (nxgM+ncl-1)/ncl*ncl;
-
-		double *hpL[N+1];
-		double *memory2 = memory;
-		for(ii=0; ii<=N; ii++)
-			{
-			hpL[ii] = memory2;
-			memory2 += pnz[ii]*cnl[ii];
-			}
-
-		double *hdL[N+1];
-		for(ii=0; ii<=N; ii++)
-			{
-			hdL[ii] = memory2;
-			memory2 += pnz[ii];
-			}
-		
-//		struct d_strmat hsBAbt[N+1];
-		struct d_strvec hsb[N+1];
-//		struct d_strmat hsRSQrq[N+1];
-		struct d_strvec hsrq[N+1];
-		struct d_strvec hsdRSQ[N+1];
-//		struct d_strmat hsDCt[N+1];
-//		struct d_strvec hsd[N+1];
-		struct d_strvec hsQx[N+1];
-		struct d_strvec hsqx[N+1];
-//		struct d_strvec hsux[N+1];
-//		struct d_strvec hspi[N+1];
-//		struct d_strvec hst[N+1];
-//		struct d_strvec hslam[N+1];
-		struct d_strvec hsdux[N+1];
-		struct d_strvec hsdpi[N+1];
-		struct d_strvec hsdt[N+1];
-		struct d_strvec hsdlam[N+1];
-		struct d_strvec hstinv[N+1];
-		struct d_strvec hslamt[N+1];
-		struct d_strvec hsPb[N+1];
-		struct d_strmat hsL[N+1];
-		struct d_strmat hsLxt[N+1];
-		struct d_strvec hsres_q[N+1];
-		struct d_strvec hsres_b[N+1];
-		struct d_strvec hsres_d[N+1];
-		struct d_strvec hsres_m[N+1];
-		struct d_strmat hswork_mat[2];
-		struct d_strvec hswork_vec[1];
-		struct d_strvec hsres_work[2];
-		struct d_strmat *hsmatdummy;
-		struct d_strvec *hsvecdummy;
-
-		for(ii=0; ii<=N; ii++)
-			{
-//			d_create_strmat(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], (void *) pBAbt[ii]);
-//			hsBAbt[ii].cn = cnx[ii];
-			d_create_strvec(nx[ii], &hsb[ii], (void *) b[ii]);
-//			d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], (void *) pQ[ii]);
-//			hsRSQrq[ii].cn = cnux[ii];
-			d_create_strvec(nu[ii]+nx[ii], &hsrq[ii], (void *) q[ii]);
-			d_create_strvec(nb[ii], &hsdRSQ[ii], (void *) bd[ii]);
-//			d_create_strvec(nb[ii]+ng[ii], &hsd[ii], (void *) d[ii]);
-			d_create_strvec(nb[ii]+ng[ii], &hsQx[ii], (void *) Qx[ii]);
-			d_create_strvec(nb[ii]+ng[ii], &hsqx[ii], (void *) qx[ii]);
-			d_create_strvec(nx[ii+1], &hsPb[ii], (void *) Pb[ii]);
-			d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) hpL[ii]);
-			hsL[ii].dA = hdL[ii];
-			hsL[ii].cn = cnl[ii];
-			d_create_strmat(nx[ii], nx[ii], &hsLxt[ii], (void *) (hpL[ii]+ncl*bs));
-			hsLxt[ii].cn = cnl[ii];
-//			d_create_strvec(nu[ii]+nx[ii], &hsux[ii], (void *) ux[ii]);
-//			d_create_strvec(nx[ii], &hspi[ii], (void *) pi[ii]);
-//			d_create_strvec(2*nb[ii]+2*ng[ii], &hst[ii], (void *) t[ii]);
-//			d_create_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], (void *) lam[ii]);
-			d_create_strvec(2*nb[ii]+2*ng[ii], &hsdt[ii], (void *) dt[ii]);
-			d_create_strvec(2*nb[ii]+2*ng[ii], &hstinv[ii], (void *) t_inv[ii]);
-			d_create_strvec(2*nb[ii]+2*ng[ii], &hslamt[ii], (void *) lamt[ii]);
-			d_create_strvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], (void *) dlam[ii]);
-			d_create_strvec(nu[ii]+nx[ii], &hsdux[ii], (void *) dux[ii]);
-			d_create_strvec(nx[ii], &hsdpi[ii], (void *) dpi[ii]);
-			d_create_strvec(nu[ii]+nx[ii], &hsres_q[ii], (void *) res_q[ii]);
-			d_create_strvec(nx[ii], &hsres_b[ii], (void *) res_b[ii]);
-			d_create_strvec(2*nb[ii]+2*ng[ii], &hsres_d[ii], (void *) res_d[ii]);
-			d_create_strvec(2*nb[ii]+2*ng[ii], &hsres_m[ii], (void *) res_m[ii]);
-			}
-		d_create_strmat(pnzM, nxgM, &hswork_mat[0], (void *) work);
-		hswork_mat[0].cn = cnxgM;
-		d_create_strmat(pnzM, nxgM, &hswork_mat[1], (void *) (work+pnzM*cnxgM));
-		hswork_mat[1].cn = cnxgM;
-		d_create_strvec(pnzM, &hswork_vec[0], (void *) (work+2*pnzM*cnxgM));
-		d_create_strvec(pnzM, &hsres_work[0], (void *) res_work);
-		d_create_strvec(pnzM, &hsres_work[1], (void *) (res_work+pngM));
-
-#endif
-
 	// extract arrays
 	double *hpRSQrq[N+1];
 	for(jj=0; jj<=N; jj++)
 		hpRSQrq[jj] = hsRSQrq[jj].pA;
 
 	// extract b
-//	for(jj=1; jj<=N; jj++)
-//		{
-//		drowex_libstr(nx[jj], 1.0, &hsBAbt[jj], nu[jj-1]+nx[jj-1], 0, &hsb[jj], 0);
-//		}
 	for(ii=0; ii<Nn; ii++)
 		{
 		nkids = tree[ii].nkids;
 		for(jj=0; jj<nkids; jj++)
 			{
 			idxkid = tree[ii].kids[jj];
-//			printf("\n%d %d %d\n", idxkid, nu[ii]+nx[ii]+1, nx[idxkid]);
-//			d_print_strmat(nu[ii]+nx[ii]+1, nx[idxkid], &hsBAbt[idxkid], 0, 0);
 			drowex_libstr(nx[idxkid], 1.0, &hsBAbt[idxkid], nu[ii]+nx[ii], 0, &hsb[idxkid], 0);
-//			d_print_tran_strvec(nx[idxkid], &hsb[idxkid], 0);
+			drowex_libstr(nx[idxkid], 1.0, &hsBAbt[idxkid], nu[ii]+nx[ii], 0, &hsb[idxkid], 0);
 			}
 		}
 	
@@ -444,22 +302,11 @@ exit(2);
 		drowex_libstr(nu[jj]+nx[jj], 1.0, &hsRSQrq[jj], nu[jj]+nx[jj], 0, &hsrq[jj], 0);
 		}
 
-	// extract diagonal of Hessian and gradient 
+	// extract diagonal of Hessian
 	for(jj=0; jj<=N; jj++)
 		{
-		for(ll=0; ll<nb[jj]; ll++)
-			{
-			idx = idxb[jj][ll];
-			bd[jj][ll] = hpRSQrq[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs];
-//			bl[jj][ll] = q[jj][idx]; // XXX this has to come after q !!!
-			}
+		ddiaex_libspstr(nb[jj], idxb[jj], 1.0, &hsRSQrq[jj], 0, 0, &hsdRSQ[jj], 0);
 		}
-
-
-
-
-
-
 
 
 	double temp0, temp1;
@@ -476,10 +323,10 @@ exit(2);
 		{
 		double **dummy;
 #if 0
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 0, hsRSQrq, hsrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, hsLxt, hswork_mat, hswork_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 0, hsRSQrq, hsrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
 #else
-		d_tree_back_ric_rec_trf_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsRSQrq, hsdRSQ, hsmatdummy, hsvecdummy, hsL, hsLxt, hswork_mat);
-		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsmatdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, hsLxt, hswork_vec);
+		d_tree_back_ric_rec_trf_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsRSQrq, hsdRSQ, hsmatdummy, hsvecdummy, hsL, hsLxt, hsric_work_mat);
+		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsmatdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, hsLxt, hsric_work_vec);
 #endif
 		// no IPM iterations
 		*kk = 0;
@@ -568,10 +415,10 @@ for(ii=0; ii<=N; ii++)
 
 		// compute the search direction: factorize and solve the KKT system
 #if 0
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsdRSQ, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, hswork_mat, hswork_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsdRSQ, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
 #else
-		d_tree_back_ric_rec_trf_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsRSQrq, hsdRSQ, hsDCt, hsQx, hsL, hsLxt, hswork_mat);
-		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, hswork_vec);
+		d_tree_back_ric_rec_trf_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsRSQrq, hsdRSQ, hsDCt, hsQx, hsL, hsLxt, hsric_work_mat);
+		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, hsric_work_vec);
 #endif
 
 
@@ -670,7 +517,7 @@ exit(1);
 
 
 		// solve the system
-		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 0, hsPb, hsL, hsLxt, hswork_vec);
+		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 0, hsPb, hsL, hsLxt, hsric_work_vec);
 
 #if 0
 printf("\ndux\n");
@@ -742,14 +589,8 @@ exit(1);
 	// restore Hessian
 	for(jj=0; jj<=N; jj++)
 		{
-		for(ll=0; ll<nb[jj]; ll++)
-			{
-			idx = idxb[jj][ll];
-			hpRSQrq[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs] = bd[jj][ll];
-//			pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+idx*bs] = bl[jj][ll];
-			}
-		for(ll=0; ll<nu[jj]+nx[jj]; ll++) 
-			hpRSQrq[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs] = q[jj][ll];
+		ddiain_libspstr(nb[jj], idxb[jj], 1.0, &hsdRSQ[jj], 0, &hsRSQrq[jj], 0, 0);
+		drowin_libstr(nu[jj]+nx[jj], 1.0, &hsrq[jj], 0, &hsRSQrq[jj], nu[jj]+nx[jj], 0);
 		}
 
 #if 0
@@ -774,11 +615,11 @@ exit(2);
 	//
 
 	// compute residuals
-	d_res_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsres_work, hsres_q, hsres_b, hsres_d, hsres_m, &mu);
+	d_res_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsres_work, hsres_rq, hsres_b, hsres_d, hsres_m, &mu);
 #if 0
-	printf("\nres_q\n");
+	printf("\nres_rq\n");
 	for(jj=0; jj<=N; jj++)
-		d_print_mat_e(1, nu[jj]+nx[jj], res_q[jj], 1);
+		d_print_mat_e(1, nu[jj]+nx[jj], res_rq[jj], 1);
 	printf("\nres_b\n");
 	for(jj=1; jj<=N; jj++)
 		d_print_mat_e(1, nx[jj], res_b[jj], 1);

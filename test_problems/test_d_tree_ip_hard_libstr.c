@@ -310,6 +310,10 @@ int main()
 
 	printf("\nLA provided by BLAS\n\n");
 
+#elif defined(LA_REFERENCE)
+
+	printf("\nLA provided by REFERENCE\n\n");
+
 #else
 
 	printf("\nLA provided by ???\n\n");
@@ -615,7 +619,8 @@ int main()
 	int compute_mult = 1;
 
 	// IPM work space
-	double *work; d_zeros_align(&work, d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng)/sizeof(double), 1);
+	printf("\nnominal work space size %d\n\n", d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
+	void *work; v_zeros_align(&work, d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
 	// timing 
 	struct timeval tv0, tv1, tv2, tv3;
@@ -810,8 +815,8 @@ int main()
 		}
 
 	// IPM work space
-	printf("\ntree work space size %d\n\n", d_ip2_res_mpc_hard_tv_work_space_size_bytes(Nn-1, t_nx, t_nu, t_nb, t_ng));
-	double *t_work; d_zeros_align(&t_work, d_ip2_res_mpc_hard_tv_work_space_size_bytes(Nn-1, t_nx, t_nu, t_nb, t_ng)/sizeof(double), 1);
+	printf("\ntree work space size %d\n\n", d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(Nn-1, t_nx, t_nu, t_nb, t_ng));
+	void *t_work; v_zeros_align(&t_work, d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(Nn-1, t_nx, t_nu, t_nb, t_ng));
 
 	// zero stat
 	for(ii=0; ii<5*k_max; ii++)
@@ -1106,8 +1111,8 @@ int main()
 //		printf("\n%d %d\n", nu2[ii], nx2[ii]);
 
 	// IPM work space
-	printf("\ntree work space size %d\n\n", d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx2, nu2, nb2, ng2));
-	double *work2; d_zeros_align(&work2, d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx2, nu2, nb2, ng2)/sizeof(double), 1);
+	printf("\ntree work space size %d\n\n", d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx2, nu2, nb2, ng2));
+	void *work2; v_zeros_align(&work2, d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx2, nu2, nb2, ng2));
 
 	// zero stat
 	for(ii=0; ii<5*k_max; ii++)
