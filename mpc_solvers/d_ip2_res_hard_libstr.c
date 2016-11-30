@@ -2163,7 +2163,7 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		}
 	else // call the riccati solver and return
 		{
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 0, hsRSQrq, hsrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 0, hsRSQrq, hsrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, 1, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
 		// no IPM iterations
 		*kk = 0;
 		// return success
@@ -2249,7 +2249,7 @@ exit(1);
 
 		// compute the search direction: factorize and solve the KKT system
 #if 1
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsdRSQ, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsdRSQ, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, 1, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
 #else
 		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
 		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
@@ -2565,7 +2565,7 @@ exit(1);
 
 		// factorize & solve KKT system
 //		d_back_ric_rec_sv_libstr(N, nx, nu, nb2, idxb, ng2, 1, hsBAbt, res_b, 0, hsRSQrq2, res_q, hsmatdummy, hsvecdummy, hsvecdummy, hsvecdummy, dux, compute_mult, dpi, 1, Pb, memory, work);
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb2, idxb, ng2, 1, hsBAbt, hsres_b, 0, hsRSQrq2, hsres_q, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, hswork_mat, hswork_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb2, idxb, ng2, 1, hsBAbt, hsres_b, 0, hsRSQrq2, hsres_q, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsdux, compute_mult, hsdpi, 1, hsPb, 1, hsL, hsLxt, hswork_mat, hswork_vec);
 
 #if CORRECTOR_HIGH==1
 		if(0)
@@ -2631,7 +2631,7 @@ exit(1);
 #else // no iterative refinement
 #if 1
 //		d_back_ric_rec_sv_libstr(N, nx, nu, 1, pBAbt, res_b, 1, pQ, res_q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 1, hsBAbt, hsres_b, 1, hsRSQrq, hsres_rq, hsdRSQ, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 1, hsBAbt, hsres_b, 1, hsRSQrq, hsres_rq, hsdRSQ, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, 1, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
 #else
 		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
 		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);

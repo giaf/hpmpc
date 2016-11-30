@@ -37,7 +37,7 @@
 
 
 
-void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int update_b, struct d_strmat *hsBAbt, struct d_strvec *hsb, int update_q, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strvec *hsdRSQ, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strvec *hsqx, struct d_strvec *hsux, int compute_pi, struct d_strvec *hspi, int compute_Pb, struct d_strvec *hsPb, struct d_strmat *hsL, struct d_strmat *hsLxt, struct d_strmat *hswork_mat, struct d_strvec *hswork_vec)
+void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int update_b, struct d_strmat *hsBAbt, struct d_strvec *hsb, int update_q, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strvec *hsdRSQ, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strvec *hsqx, struct d_strvec *hsux, int compute_pi, struct d_strvec *hspi, int compute_Pb, struct d_strvec *hsPb, int fact_QN, struct d_strmat *hsL, struct d_strmat *hsLxt, struct d_strmat *hswork_mat, struct d_strvec *hswork_vec)
 	{
 
 	int nn;
@@ -61,7 +61,10 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 		}
 	else
 		{
-		dpotrf_l_libstr(nx[N]+1, nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
+		if(fact_QN)
+			{
+			dpotrf_l_libstr(nx[N]+1, nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
+			}
 		}
 	dtrtr_l_libstr(nx[N], &hsL[N], 0, 0, &hsLxt[N], 0, 0);
 
