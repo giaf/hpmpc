@@ -50,6 +50,7 @@ endif
 # tested
 #OBJS_TEST = test_blas_d.o
 #OBJS_TEST = tools.o test_d_ric_mpc.o
+#OBJS_TEST = tools.o test_d_ric_libstr.o
 OBJS_TEST = tools.o test_d_ip_hard.o
 #OBJS_TEST = tools.o test_d_ip_hard_libstr.o
 #OBJS_TEST = tools.o test_d_tree_ric_libstr.o

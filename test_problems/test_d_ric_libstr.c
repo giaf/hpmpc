@@ -41,6 +41,7 @@
 #include "../include/aux_d.h"
 #include "../include/aux_s.h"
 #include "../include/lqcp_solvers.h"
+#include "../include/mpc_solvers.h"
 #include "../problem_size.h"
 #include "tools.h"
 #include "test_param.h"
@@ -368,6 +369,7 @@ int main()
 	struct d_strmat hsric_work_mat[2];
 	struct d_strvec hsric_work_vec[1];
 
+
 	hsBAbt[1] = sBAbt0;
 	hsRSQrq[0] = sRSQrq0;
 	d_allocate_strvec(nu[0]+nx[0], &hsux[0]);
@@ -398,6 +400,14 @@ int main()
 
 
 
+	int M = 3;
+
+	int nxM;
+
+	struct d_strmat hstmpmat0;
+
+
+
 	struct timeval tv0, tv1;
 
 	gettimeofday(&tv0, NULL); // start
@@ -405,7 +415,16 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
+#if 0
+		d_back_ric_rec_sv_back_libstr(N-M, &nx[M], &nu[M], nb, hidxb, ng, 0, &hsBAbt[M], hsvecdummy, 0, &hsRSQrq[M], hsvecdummy, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[M], 1, &hspi[M], 1, &hsPb[M], 1, &hsL[M], &hsLxt[M], hsric_work_mat, hsric_work_vec);
+		hstmpmat0 = hsRSQrq[M];
+		hsRSQrq[M] = hsL[M];
+		d_back_ric_rec_sv_libstr(M, &nx[0], &nu[0], nb, hidxb, ng, 0, &hsBAbt[0], hsvecdummy, 0, &hsRSQrq[0], hsvecdummy, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[0], 1, &hspi[0], 1, &hsPb[0], 0, &hsL[0], &hsLxt[0], hsric_work_mat, hsric_work_vec);
+		hsRSQrq[M] = hstmpmat0;
+		d_back_ric_rec_sv_forw_libstr(N-M, &nx[M], &nu[M], nb, hidxb, ng, 0, &hsBAbt[M], hsvecdummy, 0, &hsRSQrq[M], hsvecdummy, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[M], 1, &hspi[M], 1, &hsPb[M], 1, &hsL[M], &hsLxt[M], hsric_work_mat, hsric_work_vec);
+#else
 		d_back_ric_rec_sv_libstr(N, nx, nu, nb, hidxb, ng, 0, hsBAbt, hsvecdummy, 0, hsRSQrq, hsvecdummy, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, 1, hspi, 1, hsPb, 1, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
+#endif
 
 		}
 
@@ -418,6 +437,10 @@ int main()
 	printf("\npi =\n\n");
 	for(ii=0; ii<=N; ii++)
 		d_print_tran_strvec(nx[ii], &hspi[ii], 0);
+
+	printf("\nL =\n\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], 0, 0);
 
 	double time_ipm = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
