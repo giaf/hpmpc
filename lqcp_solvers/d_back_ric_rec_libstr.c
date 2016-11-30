@@ -65,6 +65,10 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 			{
 			dpotrf_l_libstr(nx[N]+1, nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
 			}
+		else
+			{
+			dgecp_libstr(nx[N]+1, nx[N], 1.0, &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
+			}
 		}
 	dtrtr_l_libstr(nx[N], &hsL[N], 0, 0, &hsLxt[N], 0, 0);
 
