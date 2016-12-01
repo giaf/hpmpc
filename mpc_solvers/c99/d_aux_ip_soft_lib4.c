@@ -193,6 +193,8 @@ void d_update_hessian_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int *ng, int
 		ptr_dlam  = dlam[jj];
 		ptr_tinv  = tinv[jj];
 		ptr_db    = db[jj];
+		ptr_Qx    = Qx[jj];
+		ptr_qx    = qx[jj];
 
 		// box constraints
 		nb0 = nb[jj];
@@ -204,9 +206,7 @@ void d_update_hessian_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int *ng, int
 			for(ii=0; ii<nb0-3; ii+=4)
 				{
 
-printf("\nciao\n");
 				ptr_tinv[ii+0] = 1.0/ptr_t[ii+0];
-printf("\nciao\n");
 				ptr_tinv[ii+pnb+0] = 1.0/ptr_t[ii+pnb+0];
 				ptr_lamt[ii+0] = ptr_lam[ii+0]*ptr_tinv[ii+0];
 				ptr_lamt[ii+pnb+0] = ptr_lam[ii+pnb+0]*ptr_tinv[ii+pnb+0];
@@ -252,8 +252,8 @@ printf("\nciao\n");
 				ptr_lamt[ii+pnb+0] = ptr_lam[ii+pnb+0]*ptr_tinv[ii+pnb+0];
 				ptr_dlam[ii+0] = ptr_tinv[ii+0]*sigma_mu; // !!!!!
 				ptr_dlam[ii+pnb+0] = ptr_tinv[ii+pnb+0]*sigma_mu; // !!!!!
-				ptr_Qx[ii] = ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
-				ptr_qx[ii] = ptr_lam[ii+pnb+0] - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
+				ptr_Qx[ii+0] = ptr_lamt[ii+0] + ptr_lamt[ii+pnb+0];
+				ptr_qx[ii+0] = ptr_lam[ii+pnb+0] - ptr_lamt[ii+pnb+0]*ptr_db[ii+pnb+0] + ptr_dlam[ii+pnb+0] - ptr_lam[ii+0] - ptr_lamt[ii+0]*ptr_db[ii+0] - ptr_dlam[ii+0];
 
 				}
 

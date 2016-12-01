@@ -160,14 +160,14 @@ int main()
 
 	int ii, jj, idx;
 	
-	int rep, nrep=NREP;
+	int rep, nrep=1;//NREP;
 
 	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
 //	int nb = NB; // number of box constrained inputs and states
-	int nh = nu;//nu+nx/2; // number of hard box constraints
-	int ns = nx;//nx/2;//nx; // number of soft box constraints
+	int nh = nu+nx/2;//nu+nx/2; // number of hard box constraints
+	int ns = 0;//nx;//nx/2;//nx; // number of soft box constraints
 	int nb = nh + ns;
 
 	int nhu = nu<nh ? nu : nh ;
@@ -959,9 +959,9 @@ int main()
 	for(ii=0; ii<=N; ii++)
 		d_zeros_align(&hux_tv[ii], (nu_tv[ii]+nx_tv[ii]+bs-1)/bs*bs, 1);
 	
-	double *hpi_tv[N+1];
-	for(ii=0; ii<=N; ii++)
-		d_zeros_align(&hpi_tv[ii], pnx_tv[ii], 1);
+	double *hpi_tv[N];
+	for(ii=0; ii<N; ii++)
+		d_zeros_align(&hpi_tv[ii], pnx_tv[ii+1], 1);
 	
 
 	// dummy variables
@@ -1286,6 +1286,7 @@ int main()
 	for(ii=0; ii<=N; ii++) free(hdL_tv[ii]);
 	for(ii=0; ii<=N; ii++) free(hux_tv[ii]);
 	for(ii=0; ii<=N; ii++) free(hpi_tv[ii]);
+	return 0;
 	for(ii=0; ii<=N; ii++) free(hlam_tv[ii]);
 	for(ii=0; ii<=N; ii++) free(ht_tv[ii]);
 	for(ii=0; ii<=N; ii++) free(hrq_tv[ii]);

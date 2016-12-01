@@ -64,7 +64,7 @@ int d_ip2_mpc_soft_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, in
 		cnux = (nx[ii]+nu[ii]+ncl-1)/ncl*ncl;
 		pnx = (nx[ii]+bs-1)/bs*bs;
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
-		size += 3*pnx + 2*pnz + 11*pnb + 10*png + 21*pns;
+		size += 3*pnx + 2*pnz + 11*pnb + 10*png + 23*pns;
 		}
 	
 //	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
@@ -243,8 +243,8 @@ int d_ip2_mpc_soft_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 //		qx[jj] = ptr+png[jj];
 //		qx2[jj] = ptr+2*png[jj];
 //		ptr += 3*png[jj];
-		qx[jj] = ptr+pnb[jj]+png[jj];
-		ptr += 2*pnb[jj]+2*png[jj];
+		qx[jj] = ptr+pnb[jj]+png[jj]+pns[jj];
+		ptr += 2*pnb[jj]+2*png[jj]+2*pns[jj];
 		}
 
 	// updated cost function of soft constraint slack variables
@@ -331,25 +331,23 @@ exit(1);
 		{
 						
 
-printf("\nhola\n");
 
 		//update cost function matrices and vectors (box constraints)
 		d_update_hessian_mpc_soft_tv(N, nx, nu, nb, ng, ns, d, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx, Z, z, Zl, zl);
-printf("\nhola\n");
 
 #if 0
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pns[ii], Z[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, 2*pns[ii], z[ii], 1);
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, 2*pns[ii], Zl[ii], 1);
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, 2*pns[ii], zl[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii]+ns[ii], pd[ii], 1);
+	d_print_mat(1, ng[ii], Qx[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii]+ns[ii], pl[ii], 1);
-//for(ii=0; ii<=N; ii++)
-//	d_print_mat(1, ng[ii], Qx[ii], 1);
-//for(ii=0; ii<=N; ii++)
-//	d_print_mat(1, ng[ii], qx[ii], 1);
+	d_print_mat(1, ng[ii], qx[ii], 1);
 //for(ii=0; ii<=N; ii++)
 //	d_print_mat(1, ng[ii], qx2[ii], 1);
 //if(*kk==1)
@@ -377,12 +375,15 @@ exit(1);
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
+printf("\ndpi\n");
+for(ii=0; ii<N; ii++)
+	d_print_mat(1, nx[ii+1], dpi[ii], 1);
 //if(*kk==1)
 exit(1);
 #endif
 
 
-#if 1
+#if 0
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1.0;
