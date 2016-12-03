@@ -389,7 +389,7 @@ exit(1);
 #endif
 
 
-#if 0
+#if 1
 
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1.0;
@@ -470,7 +470,7 @@ exit(1);
 
 		// solve the system
 //		d_back_ric_rec_trs_tv(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nbs, idxb, pl, ng, pDCt, qx);
-		d_back_ric_rec_trs_tv_res(N, nx, nu, nb, idxb, ng, pBAbt, b, q, pDCt, qx, dux, compute_mult, dpi, 0, Pb, memory, work);
+		d_back_ric_rec_trs_tv_res(N, nx, nu, nbs, idxb, ng, pBAbt, b, q, pDCt, qx, dux, compute_mult, dpi, 0, Pb, memory, work);
 		// XXX nbs
 
 #if 0
