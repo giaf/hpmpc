@@ -166,8 +166,8 @@ int main()
 	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
 //	int nb = NB; // number of box constrained inputs and states
-	int nh = nu+nx/2;//nu+nx/2; // number of hard box constraints
-	int ns = 0;//nx;//nx/2;//nx; // number of soft box constraints
+	int nh = nu;//nu+nx/2; // number of hard box constraints
+	int ns = nx;//nx/2;//nx; // number of soft box constraints
 	int nb = nh + ns;
 
 	int nhu = nu<nh ? nu : nh ;
@@ -848,6 +848,7 @@ int main()
 	int png_tv[N+1];
 	int pns_tv[N+1];
 	int cnz_tv[N+1];
+	int cnux_tv[N+1];
 	int cnx_tv[N+1];
 	int cnl_tv[N+1];
 
@@ -859,6 +860,7 @@ int main()
 		png_tv[ii] = (ng_tv[ii]+bs-1)/bs*bs;
 		pns_tv[ii] = (ns_tv[ii]+bs-1)/bs*bs;
 		cnz_tv[ii] = (nu_tv[ii]+nx_tv[ii]+1+ncl-1)/ncl*ncl;
+		cnux_tv[ii] = (nu_tv[ii]+nx_tv[ii]+ncl-1)/ncl*ncl;
 		cnx_tv[ii] = (nx_tv[ii]+ncl-1)/ncl*ncl;
 		cnl_tv[ii] = cnz_tv[ii]<cnx_tv[ii]+ncl ? cnx_tv[ii]+ncl : cnz_tv[ii];
 		}
@@ -924,18 +926,18 @@ int main()
 #endif
 	//d_print_mat(nu, 1, q0, nu);
 
-	double *pQ0; d_zeros_align(&pQ0, pnz_tv[0], cnz_tv[0]);
-	d_cvt_mat2pmat(nu, nu, Q, nz, 0, pQ0, cnz_tv[0]);
-	d_cvt_tran_mat2pmat(nu, 1, q0, nu, nu, pQ0+nu/bs*bs*cnz_tv[0]+nu%bs, cnz_tv[0]);
+	double *pQ0; d_zeros_align(&pQ0, pnz_tv[0], cnux_tv[0]);
+	d_cvt_mat2pmat(nu, nu, Q, nz, 0, pQ0, cnux_tv[0]);
+	d_cvt_tran_mat2pmat(nu, 1, q0, nu, nu, pQ0+nu/bs*bs*cnux_tv[0]+nu%bs, cnux_tv[0]);
 	//d_print_pmat(nu_tv[0]+nx_tv[0]+1, nu_tv[0]+nx_tv[0]+1, bs, pQ0, pnz_tv[0]);
 	
-	double *pQ1; d_zeros_align(&pQ1, pnz_tv[1], cnz_tv[1]);
-	d_cvt_mat2pmat(nz, nz, Q, nz, 0, pQ1, cnz_tv[1]);
+	double *pQ1; d_zeros_align(&pQ1, pnz_tv[1], cnux_tv[1]);
+	d_cvt_mat2pmat(nz, nu+nx, Q, nz, 0, pQ1, cnux_tv[1]);
 	//d_print_pmat(nu_tv[1]+nx_tv[1]+1, nu_tv[1]+nx_tv[1]+1, bs, pQ1, pnz_tv[1]);
 
-	double *pQN; d_zeros_align(&pQN, pnz_tv[N], cnz_tv[N]);
-	d_cvt_mat2pmat(nx+1, nx+1, Q+nu*(nz+1), nz, 0, pQN, cnz_tv[N]);
-	//d_print_pmat(nu_tv[N]+nx_tv[N]+1, nu_tv[N]+nx_tv[N]+1, bs, pQN, cnz_tv[N]);
+	double *pQN; d_zeros_align(&pQN, pnz_tv[N], cnux_tv[N]);
+	d_cvt_mat2pmat(nx+1, nx, Q+nu*(nz+1), nz, 0, pQN, cnux_tv[N]);
+	//d_print_pmat(nu_tv[N]+nx_tv[N]+1, nu_tv[N]+nx_tv[N], pQN, cnux_tv[N]);
 
 	double *(hpQ_tv[N+1]);
 	hpQ_tv[0] = pQ0;
@@ -993,7 +995,7 @@ int main()
 		{
 		idxb0[idx] = idx;
 		db0[0*pnb_tv[0]+jj] = - 0.5; // umin_hard
-		db0[1*pnb_tv[0]+jj] = - 0.5; // umax_hard
+		db0[1*pnb_tv[0]+jj] =   0.5; // umax_hard
 		idx++;
 		}
 
@@ -1005,21 +1007,21 @@ int main()
 		{
 		idxb1[idx] = idx;
 		db1[0*pnb_tv[1]+jj] = - 0.5; // umin_hard
-		db1[1*pnb_tv[1]+jj] = - 0.5; // umax_hard
+		db1[1*pnb_tv[1]+jj] =   0.5; // umax_hard
 		idx++;
 		}
 	for(jj=nu_tv[1]; jj<nb_tv[1]; jj++)
 		{
 		idxb1[idx] = idx;
 		db1[0*pnb_tv[1]+jj] = - 4.0; // xmin_hard
-		db1[1*pnb_tv[1]+jj] = - 4.0; // xmax_hard
+		db1[1*pnb_tv[1]+jj] =   4.0; // xmax_hard
 		idx++;
 		}
 	for(jj=0; jj<ns_tv[1]; jj++)
 		{
 		idxb1[idx] = idx;
 		db1[2*pnb_tv[1]+0*pns_tv[1]+jj] = - 1.0; // xmin_soft
-		db1[2*pnb_tv[1]+1*pns_tv[1]+jj] = - 1.0; // xmax soft
+		db1[2*pnb_tv[1]+1*pns_tv[1]+jj] =   1.0; // xmax soft
 		idx++;
 		}
 
@@ -1030,14 +1032,14 @@ int main()
 		{
 		idxbN[idx] = idx;
 		dbN[0*pnb_tv[N]+jj] = - 4.0; // xmin_hard
-		dbN[1*pnb_tv[N]+jj] = - 4.0; // xmax_hard
+		dbN[1*pnb_tv[N]+jj] =   4.0; // xmax_hard
 		idx++;
 		}
 	for(jj=0; jj<ns_tv[N]; jj++)
 		{
 		idxbN[idx] = idx;
 		dbN[2*pnb_tv[N]+0*pns_tv[N]+jj] = - 1.0; // xmin_soft
-		dbN[2*pnb_tv[N]+1*pns_tv[N]+jj] = - 1.0; // xmax soft
+		dbN[2*pnb_tv[N]+1*pns_tv[N]+jj] =   1.0; // xmax soft
 		idx++;
 		}
 	
@@ -1151,7 +1153,7 @@ int main()
 #else
 		dgemv_n_lib(nu, nx, pS, cnx, x0, 1, q, q0);
 #endif
-		d_cvt_tran_mat2pmat(nu, 1, q0, nu, nu, pQ0+nu/bs*bs*cnz_tv[0]+nu%bs, cnz_tv[0]);
+		d_cvt_tran_mat2pmat(nu, 1, q0, nu, nu, pQ0+nu/bs*bs*cnux_tv[0]+nu%bs, cnux_tv[0]);
 
 		// call the IP solver
 		d_ip2_mpc_soft_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_tv, nu_tv, nb_tv, idxb_tv, ng_tv, ns_tv, hpBAbt_tv, hpQ_tv, hZ_tv, hz_tv, pdummyd, hdb_tv, hux_tv, 1, hpi_tv, hlam_tv, ht_tv, ip_soft_tv_work);
@@ -1187,7 +1189,7 @@ int main()
 	// restore linear part of cost function 
 	for(ii=0; ii<=N; ii++)
 		{
-		drowex_lib(nu_tv[ii]+nx_tv[ii], 1.0, hpQ_tv[ii]+(nu_tv[ii]+nx_tv[ii])/bs*bs*cnz_tv[ii]+(nu_tv[ii]+nx_tv[ii])%bs, hq_tv[ii]);
+		drowex_lib(nu_tv[ii]+nx_tv[ii], 1.0, hpQ_tv[ii]+(nu_tv[ii]+nx_tv[ii])/bs*bs*cnux_tv[ii]+(nu_tv[ii]+nx_tv[ii])%bs, hq_tv[ii]);
 		}
 
 

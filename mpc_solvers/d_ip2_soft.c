@@ -123,7 +123,11 @@ int d_ip2_mpc_soft_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		if(ng[jj]>ngM) ngM = ng[jj];
 		}
 
-
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, pQ[ii], cnux[ii]);
+exit(1);
+#endif
 
 	// initialize work space
 	// work_space_double_size_per_stage = pnz*cnl + 2*pnz + 2*pnx + 14*pnb + 10*png
@@ -243,8 +247,8 @@ int d_ip2_mpc_soft_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 //		qx[jj] = ptr+png[jj];
 //		qx2[jj] = ptr+2*png[jj];
 //		ptr += 3*png[jj];
-		qx[jj] = ptr+pnb[jj]+png[jj]+pns[jj];
-		ptr += 2*pnb[jj]+2*png[jj]+2*pns[jj];
+		qx[jj] = ptr+pnb[jj]+png[jj]+pns[jj]; // XXX to be changed
+		ptr += 2*pnb[jj]+2*png[jj]+2*pns[jj]; // XXX to be changed
 		}
 
 	// updated cost function of soft constraint slack variables
@@ -262,10 +266,10 @@ int d_ip2_mpc_soft_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 	// check if there are inequality constraints
 	double mu_scal = 0.0; 
-	for(jj=0; jj<=N; jj++) mu_scal += 2*nb[jj] + 2*ng[jj] + 4*ns[jj];
-	mu_scal = 1.0 / mu_scal;
-//	printf("\nmu_scal = %f\n", mu_scal);
-//	exit(2);
+	for(jj=0; jj<=N; jj++) 
+		{
+		mu_scal += 2*nb[jj] + 2*ng[jj] + 4*ns[jj];
+		}
 	if(mu_scal!=0.0) // there are some constraints
 		{
 		mu_scal = 1.0 / mu_scal;
@@ -336,18 +340,18 @@ exit(1);
 		d_update_hessian_mpc_soft_tv(N, nx, nu, nb, ng, ns, d, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx, Z, z, Zl, zl);
 
 #if 0
-for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*pns[ii], Z[ii], 1);
-for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*pns[ii], z[ii], 1);
+//for(ii=0; ii<=N; ii++)
+//	d_print_mat(1, 2*pns[ii], Z[ii], 1);
+//for(ii=0; ii<=N; ii++)
+//	d_print_mat(1, 2*pns[ii], z[ii], 1);
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, 2*pns[ii], Zl[ii], 1);
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, 2*pns[ii], zl[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, ng[ii], Qx[ii], 1);
+	d_print_mat(1, nbs[ii], Qx[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, ng[ii], qx[ii], 1);
+	d_print_mat(1, nbs[ii], qx[ii], 1);
 //for(ii=0; ii<=N; ii++)
 //	d_print_mat(1, ng[ii], qx2[ii], 1);
 //if(*kk==1)
@@ -363,8 +367,10 @@ exit(1);
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, bs, pQ[ii], cnux[ii]);
-//exit(1);
+	printf("\n%d %d\n", ii, cnux[ii]);
+for(ii=0; ii<=N; ii++)
+	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, pQ[ii], cnux[ii]);
+exit(1);
 #endif
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -395,6 +401,7 @@ for(ii=0; ii<=N; ii++)
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, 2*pnb[ii]+2*png[ii]+4*pns[ii], dlam[ii], 1);
 printf("\nalpha = %f\n", alpha);
+if(*kk==1)
 exit(1);
 #endif
 
@@ -415,6 +422,7 @@ exit(1);
 #if 0
 printf("\nmu = %f\n", mu_aff);
 printf("\nmu_scal = %f\n", mu_scal);
+if(*kk==1)
 exit(1);
 #endif
 
