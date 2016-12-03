@@ -860,7 +860,7 @@ exit(2);
 		d_print_mat(1, nu_v[ii], hu[ii], 1);
 
 	printf("\ninfinity norm of residuals\n\n");
-	d_print_mat_e(1, 4, inf_norm_res, 1);
+	d_print_e_mat(1, 4, inf_norm_res, 1);
 
 	time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
@@ -899,7 +899,7 @@ exit(2);
 		d_print_mat(1, nu_v[ii], hu[ii], 1);
 
 	printf("\ninfinity norm of residuals\n\n");
-	d_print_mat_e(1, 4, inf_norm_res, 1);
+	d_print_e_mat(1, 4, inf_norm_res, 1);
 
 	time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
@@ -958,19 +958,19 @@ exit(2);
 		// print residuals
 		printf("\nhrrq\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat_e(1, nu_v[ii]+nx_v[ii], hrrq[ii], 1);
+			d_print_e_mat(1, nu_v[ii]+nx_v[ii], hrrq[ii], 1);
 
 		printf("\nhrb\n\n");
 		for(ii=0; ii<N; ii++)
-			d_print_mat_e(1, nx_v[ii+1], hrb[ii], 1);
+			d_print_e_mat(1, nx_v[ii+1], hrb[ii], 1);
 
 		printf("\nhrd low\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat_e(1, nb_v[ii], hrd[ii], 1);
+			d_print_e_mat(1, nb_v[ii], hrd[ii], 1);
 
 		printf("\nhrd up\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat_e(1, nb_v[ii], hrd[ii]+pnb_v[ii], 1);
+			d_print_e_mat(1, nb_v[ii], hrd[ii]+pnb_v[ii], 1);
 
 		}
 
@@ -1046,19 +1046,19 @@ exit(1);
 		// print residuals
 		printf("\nhrrq\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat_e(1, nu_v[ii]+nx_v[ii], hrrq[ii], 1);
+			d_print_e_mat(1, nu_v[ii]+nx_v[ii], hrrq[ii], 1);
 
 		printf("\nhrb\n\n");
 		for(ii=0; ii<N; ii++)
-			d_print_mat_e(1, nx_v[ii+1], hrb[ii], 1);
+			d_print_e_mat(1, nx_v[ii+1], hrb[ii], 1);
 
 		printf("\nhrd low\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat_e(1, nb_v[ii], hrd[ii], 1);
+			d_print_e_mat(1, nb_v[ii], hrd[ii], 1);
 
 		printf("\nhrd up\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_mat_e(1, nb_v[ii], hrd[ii]+pnb_v[ii], 1);
+			d_print_e_mat(1, nb_v[ii], hrd[ii]+pnb_v[ii], 1);
 #endif
 
 		}
