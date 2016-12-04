@@ -1191,14 +1191,17 @@ int main()
 		{
 		drowex_lib(nu_tv[ii]+nx_tv[ii], 1.0, hpQ_tv[ii]+(nu_tv[ii]+nx_tv[ii])/bs*bs*cnux_tv[ii]+(nu_tv[ii]+nx_tv[ii])%bs, hq_tv[ii]);
 		}
+	
+	for(ii=0; ii<=N; ii++)
+		d_print_pmat(nu_tv[ii]+nx_tv[ii]+1, nu_tv[ii]+nx_tv[ii], hpQ_tv[ii], cnux_tv[ii]);
 
 
 
 // TODO
-#if 0
+#if 1
 	// residuals computation
 //	d_res_ip_soft_mpc(nx, nu, N, nh, ns, hpBAbt, hpQ, hq, hZ, hz, hux, hdb, hpi, hlam, ht, hrq, hrb, hrd, hrz, &mu);
-	d_res_ip_soft_mpc_tv(N, nx_tv, nu_tv, nb_tv, idxb_tv, ng_tv, ns_tv, hpBAbt_tv, hpQ_tv, hq_tv, hZ_tv, hz_tv, hux_tv, pdummyd, hdb_tv, hpi_tv, hlam_tv, ht_tv, hrq_tv, hrb_tv, hrd_tv, hrz_tv, &mu);
+	d_res_mpc_soft_tv(N, nx_tv, nu_tv, nb_tv, idxb_tv, ng_tv, ns_tv, hpBAbt_tv, hpQ_tv, hq_tv, hZ_tv, hz_tv, hux_tv, pdummyd, hdb_tv, hpi_tv, hlam_tv, ht_tv, hrq_tv, hrb_tv, hrd_tv, hrz_tv, &mu);
 #endif
 
 
@@ -1230,6 +1233,10 @@ int main()
 		printf("\nhux_tv = \n\n");
 		for(ii=0; ii<=N; ii++)
 			d_print_mat(1, nu_tv[ii]+nx_tv[ii], hux_tv[ii], 1);
+		
+		printf("\nhpi = \n\n");
+		for(ii=0; ii<N; ii++)
+			d_print_mat(1, nx_tv[ii+1], hpi_tv[ii], 1);
 		
 		}
 

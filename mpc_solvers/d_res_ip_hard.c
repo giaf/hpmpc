@@ -248,9 +248,9 @@ void d_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, do
 	for(jj=0; jj<nb0; jj++) 
 		hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
 #if defined(BLASFEO)
-	dsymv_l_lib(nx0+nu0%bs, nx0+nu0%bs, -1.0, hpQ[ii]+nu0/bs*bs*cnux0+nu0/bs*bs*bs, cnux0, hux[ii]+nu0/bs*bs, 1.0, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs);
+	dsymv_l_lib(nx0, nx0, -1.0, hpQ[ii], cnux0, hux[ii], 1.0, hrq[ii], hrq[ii]);
 #else
-	dsymv_lib(nx0+nu0%bs, nx0+nu0%bs, hpQ[ii]+nu0/bs*bs*cnux0+nu0/bs*bs*bs, cnux0, hux[ii]+nu0/bs*bs, -1, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs);
+	dsymv_lib(nx0, nx0, hpQ[ii], cnux0, hux[ii], -1, hrq[ii], hrq[ii]);
 #endif
 	if(ng0>0)
 		{

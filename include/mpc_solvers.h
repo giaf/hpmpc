@@ -54,3 +54,4 @@ int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol
 // soft constraints // TODO old version
 int d_ip2_mpc_soft_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng, int *ns);
 int d_ip2_mpc_soft_tv(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int N, int *nx, int *nu, int *nb, int **idxb, int *ng, int *ns, double **pBAbt, double **pQ, double **Z, double **z, double **pDCt, double **d, double **ux, int compute_mult, double **pi, double **lam, double **t, double *double_work_memory);
+void d_res_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, int *ns, double **hpBAbt, double **hpQ, double **hq, double **hZ, double **hz, double **hux, double **hpDCt, double **hd, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double **hrz, double *mu);

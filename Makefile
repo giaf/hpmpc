@@ -91,7 +91,7 @@ MPC_AUX_OBJS = ./mpc_solvers/c99/d_aux_ip_hard_lib4.o ./mpc_solvers/c99/d_res_ip
 endif
 AUX_OBJS += ./auxiliary/i_aux.o
 LQCP_OBJS = ./lqcp_solvers/d_back_ric_rec.o ./lqcp_solvers/d_back_ric_rec_libstr.o ./lqcp_solvers/d_tree_back_ric_rec_libstr.o ./lqcp_solvers/d_for_schur_rec.o ./lqcp_solvers/d_res.o ./lqcp_solvers/d_part_cond.o #./lqcp_solvers/s_ric_sv.o ./lqcp_solvers/s_res.o
-MPC_OBJS = $(MPC_AUX_OBJS) ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d_ip2_res_hard.o ./mpc_solvers/d_ip2_res_hard_libstr.o ./mpc_solvers/d_tree_ip2_res_hard_libstr.o  ./mpc_solvers/d_ip2_soft.o
+MPC_OBJS = $(MPC_AUX_OBJS) ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d_ip2_res_hard.o ./mpc_solvers/d_ip2_res_hard_libstr.o ./mpc_solvers/d_tree_ip2_res_hard_libstr.o  ./mpc_solvers/d_ip2_soft.o ./mpc_solvers/d_res_ip_soft.o
 INTERFACE_OBJS = ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/fortran_order_interface.o
 REFERENCE_CODE = #./reference_code/dsyrk_dpotrf_codegen.o
 #ifeq ($(TARGET), X64_AVX)
