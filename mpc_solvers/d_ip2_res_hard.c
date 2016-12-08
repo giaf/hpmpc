@@ -43,7 +43,6 @@
 #include "../include/mpc_aux.h"
 #include "../include/d_blas_aux.h"
 
-
 // use iterative refinement to increase accuracy of the solution of the equality constrained sub-problems
 #define ITER_REF 1
 #define THR_ITER_REF 1e-25
@@ -1634,8 +1633,9 @@ exit(2);
 
 		double sigma = 0.0;
 
+		// Andrea: skip init, all variables should be initialized in acados.
 		// initialize ux & pi & t>0 & lam>0
-		d_init_var_mpc_hard_tv(N, nx, nu, nb, idxb, ng, ux, pi, pDCt, d, t, lam, mu0, warm_start);
+		d_init_var_mpc_hard_tv_single_newton(N, nx, nu, nb, idxb, ng, ux, pi, pDCt, d, t, lam, ux0, pi0, lam0, t0);
 
 		// compute the duality gap
 		mu = mu0;
@@ -1645,12 +1645,6 @@ exit(2);
 
 		// larger than minimum accepted step size
 		alpha = 1.0;
-
-		//
-		// loop without residuals compuation at early iterations
-		//
-
-		double mu_tol_low = mu_tol<THR_ITER_REF ? THR_ITER_REF : mu_tol ;
 
 		// restore Hessian
 		for(jj=0; jj<=N; jj++)
@@ -1673,7 +1667,6 @@ exit(2);
 		d_res_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, pBAbt, b, pQ, q, ux, pDCt, d, pi, lam, t, res_work, res_q, res_b, res_d, res_m, &mu);
 
 		// IP loop
-
 		while( *kk<k_max && mu>mu_tol && alpha>=alpha_min ) // XXX exit conditions on residuals???
 			{
 			// compute the update of Hessian and gradient from box and general constraints
@@ -1774,14 +1767,12 @@ exit(2);
 
 			stat[5*(*kk)+2] = mu_aff;
 
+			// Andrea: computation of sigma is moved one level up, in acados. Keep sigma = 1.
 			// compute sigma
-			sigma = mu_aff/mu;
-			sigma = sigma*sigma*sigma;
+			sigma = 1.0;
 
 			// update res_m
 			d_compute_centering_correction_res_mpc_hard_tv(N, nb, ng, sigma*mu, dt, dlam, res_m);
-
-
 
 			// update gradient
 			d_update_gradient_res_mpc_hard_tv(N, nx, nu, nb, ng, res_d, res_m, lam, t_inv, qx);

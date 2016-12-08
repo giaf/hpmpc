@@ -36,10 +36,7 @@
 #include "../../include/blas_d.h"
 //#endif
 
-
-
 // initialize variables
-
 void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **ux, double **pi, double **pDCt, double **db, double **t, double **lam, double mu0, int warm_start)
 	{
 
@@ -50,7 +47,7 @@ void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 	int jj, ll, ii;
 
 	int nb0, pnb, ng0, png, cng;
-	
+
 	double
 		*ptr_t, *ptr_lam, *ptr_db;
 
@@ -154,24 +151,24 @@ void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 
 void d_update_hessian_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double **db, double sigma_mu, double **t, double **t_inv, double **lam, double **lamt, double **dlam, double **Qx, double **qx)
 	{
-	
+
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
 
 	int nb0, pnb, ng0, png;
-	
+
 	double temp0, temp1;
-	
-	double 
+
+	double
 		*ptr_db, *ptr_Qx, *ptr_qx,
 		*ptr_t, *ptr_lam, *ptr_lamt, *ptr_dlam, *ptr_tinv;
-	
+
 	int ii, jj, bs0;
-	
+
 	for(jj=0; jj<=N; jj++)
 		{
-		
+
 		ptr_t     = t[jj];
 		ptr_lam   = lam[jj];
 		ptr_lamt  = lamt[jj];
@@ -426,7 +423,7 @@ void d_update_gradient_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, do
 
 void d_compute_alpha_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double *ptr_alpha, double **t, double **dt, double **lam, double **dlam, double **lamt, double **dux, double **pDCt, double **db)
 	{
-	
+
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
@@ -434,13 +431,13 @@ void d_compute_alpha_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 	int nu0, nx0, nb0, pnb, ng0, png, cng;
 
 	double alpha = ptr_alpha[0];
-	
+
 	double
 		*ptr_db, *ptr_dux, *ptr_t, *ptr_dt, *ptr_lamt, *ptr_lam, *ptr_dlam;
-	
+
 	int
 		*ptr_idxb;
-	
+
 	int jj, ll;
 
 	for(jj=0; jj<=N; jj++)
@@ -542,13 +539,13 @@ void d_compute_alpha_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, i
 
 			}
 
-		}		
+		}
 
 	// store alpha
 	ptr_alpha[0] = alpha;
 
 	return;
-	
+
 	}
 
 
@@ -563,7 +560,7 @@ void d_update_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double 
 	int nu0, nx0, nx1, nb0, pnb, ng0, png;
 
 	int jj, ll;
-	
+
 	double
 		*ptr_pi, *ptr_dpi, *ptr_ux, *ptr_dux, *ptr_t, *ptr_dt, *ptr_lam, *ptr_dlam;
 
@@ -582,7 +579,7 @@ void d_update_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double 
 			nx1 = nx[jj+1];
 		else
 			nx1 = 0;
-		
+
 		ptr_pi   = pi[jj];
 		ptr_dpi  = dpi[jj];
 		ptr_ux   = ux[jj];
@@ -645,14 +642,14 @@ void d_update_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double 
 	ptr_mu[0] = mu;
 
 	return;
-	
+
 	}
 
 
 
 void d_compute_mu_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double *ptr_mu, double mu_scal, double alpha, double **lam, double **dlam, double **t, double **dt)
 	{
-	
+
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
@@ -660,20 +657,20 @@ void d_compute_mu_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double 
 	int nb0, pnb, ng0, png;
 
 	int jj, ll;
-	
+
 	double
 		*ptr_t, *ptr_lam, *ptr_dt, *ptr_dlam;
-		
+
 	double mu = 0;
-	
+
 	for(jj=0; jj<=N; jj++)
 		{
-		
+
 		nb0 = nb[jj];
 		pnb = (nb0+bs-1)/bs*bs;
 		ng0 = ng[jj];
 		png = (ng0+bs-1)/bs*bs;
-		
+
 		ptr_t    = t[jj];
 		ptr_lam  = lam[jj];
 		ptr_dt   = dt[jj];
@@ -700,7 +697,7 @@ void d_compute_mu_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double 
 
 	// scale mu
 	mu *= mu_scal;
-		
+
 	ptr_mu[0] = mu;
 
 	return;
@@ -711,24 +708,24 @@ void d_compute_mu_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double 
 
 void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double **db, double **lamt, double **qx)
 	{
-	
+
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
 
 	int nb0, pnb, ng0, png;
-	
+
 	double temp0, temp1;
-	
-	double 
+
+	double
 		*ptr_db, *ptr_Qx, *ptr_qx,
 		*ptr_lamt;
-	
+
 	int ii, jj, bs0;
-	
+
 	for(jj=0; jj<=N; jj++)
 		{
-		
+
 		ptr_lamt  = lamt[jj];
 		ptr_db    = db[jj];
 		ptr_qx    = qx[jj];
@@ -801,7 +798,7 @@ void d_update_gradient_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int
 
 void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **t_aff, double **lam_aff, double **lamt, double **tinv, double **dux, double **pDCt, double **db)
 	{
-	
+
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
@@ -810,10 +807,10 @@ void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 
 	double
 		*ptr_db, *ptr_dux, *ptr_t_aff, *ptr_lam_aff, *ptr_lamt, *ptr_tinv;
-	
+
 	int
 		*ptr_idxb;
-	
+
 	int jj, ll;
 
 	for(jj=0; jj<=N; jj++)
@@ -879,10 +876,10 @@ void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 
 			}
 
-		}		
+		}
 
 	return;
-	
+
 	}
 
 
@@ -891,23 +888,23 @@ void d_compute_t_lam_new_rhs_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 
 void d_update_hessian_gradient_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double **res_d, double **res_m, double **t, double **lam, double **t_inv, double **Qx, double **qx)
 	{
-	
+
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
 
 	int nb0, pnb, ng0, png;
-	
+
 	double temp0, temp1;
-	
-	double 
+
+	double
 		*ptr_res_d, *ptr_Qx, *ptr_qx, *ptr_t, *ptr_lam, *ptr_res_m, *ptr_t_inv;
-	
+
 	int ii, jj, bs0;
-	
+
 	for(jj=0; jj<=N; jj++)
 		{
-		
+
 		ptr_t     = t[jj];
 		ptr_lam   = lam[jj];
 		ptr_t_inv = t_inv[jj];
@@ -972,7 +969,7 @@ void d_update_hessian_gradient_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb,
 		if(ng0>0)
 			{
 
-		
+
 			png = (ng0+bs-1)/bs*bs; // simd aligned number of general constraints
 
 			for(ii=0; ii<ng0-3; ii+=4)
@@ -1001,7 +998,7 @@ void d_update_hessian_gradient_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb,
 				}
 			for(; ii<ng0; ii++)
 				{
-				
+
 				ptr_t_inv[ii+0] = 1.0/ptr_t[ii+0];
 				ptr_t_inv[ii+png+0] = 1.0/ptr_t[ii+png+0];
 				ptr_Qx[ii+0] = ptr_t_inv[ii+0]*ptr_lam[ii+0] + ptr_t_inv[ii+png+0]*ptr_lam[ii+png+0];
@@ -1019,7 +1016,7 @@ void d_update_hessian_gradient_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb,
 
 void d_compute_dt_dlam_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **dux, double **t, double **t_inv, double **lam, double **pDCt, double **res_d, double **res_m, double **dt, double **dlam)
 	{
-	
+
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
@@ -1028,10 +1025,10 @@ void d_compute_dt_dlam_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **i
 
 	double
 		*ptr_res_d, *ptr_res_m, *ptr_dux, *ptr_t, *ptr_t_inv, *ptr_dt, *ptr_lam, *ptr_dlam;
-	
+
 	int
 		*ptr_idxb;
-	
+
 	int jj, ll;
 
 	for(jj=0; jj<=N; jj++)
@@ -1057,7 +1054,7 @@ void d_compute_dt_dlam_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **i
 			// box constraints
 			for(ll=0; ll<nb0; ll++)
 				{
-				
+
 				ptr_dt[ll+0]   =   ptr_dux[ptr_idxb[ll]] - ptr_res_d[ll+0];
 				ptr_dt[ll+pnb] = - ptr_dux[ptr_idxb[ll]] + ptr_res_d[ll+pnb];
 
@@ -1107,17 +1104,17 @@ void d_compute_dt_dlam_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **i
 
 			}
 
-		}		
+		}
 
 	return;
-	
+
 	}
 
 
 
 void d_compute_alpha_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **dux, double **t, double **t_inv, double **lam, double **pDCt, double **res_d, double **res_m, double **dt, double **dlam, double *ptr_alpha)
 	{
-	
+
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
@@ -1125,13 +1122,13 @@ void d_compute_alpha_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 	int nu0, nx0, nb0, pnb, ng0, png, cng;
 
 	double alpha = ptr_alpha[0];
-	
+
 	double
 		*ptr_res_d, *ptr_res_m, *ptr_dux, *ptr_t, *ptr_t_inv, *ptr_dt, *ptr_lam, *ptr_dlam;
-	
+
 	int
 		*ptr_idxb;
-	
+
 	int jj, ll;
 
 	for(jj=0; jj<=N; jj++)
@@ -1157,7 +1154,7 @@ void d_compute_alpha_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 			// box constraints
 			for(ll=0; ll<nb0; ll++)
 				{
-				
+
 				ptr_dt[ll+0]   =   ptr_dux[ptr_idxb[ll]] - ptr_res_d[ll+0];
 				ptr_dt[ll+pnb] = - ptr_dux[ptr_idxb[ll]] + ptr_res_d[ll+pnb];
 
@@ -1241,13 +1238,13 @@ void d_compute_alpha_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idx
 
 			}
 
-		}		
+		}
 
 	// store alpha
 	ptr_alpha[0] = alpha;
 
 	return;
-	
+
 	}
 
 
@@ -1261,7 +1258,7 @@ void d_update_var_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 	int nu0, nx0, nx1, nb0, pnb, ng0, png;
 
 	int jj, ll;
-	
+
 	double
 		*ptr_ux, *ptr_dux, *ptr_pi, *ptr_dpi, *ptr_t, *ptr_dt, *ptr_lam, *ptr_dlam;
 
@@ -1278,7 +1275,7 @@ void d_update_var_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 			nx1 = nx[jj+1];
 		else
 			nx1 = 0;
-		
+
 		// update inputs and states
 		ptr_ux     = ux[jj];
 		ptr_dux    = dux[jj];
@@ -1312,7 +1309,7 @@ void d_update_var_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 		}
 
 	return;
-	
+
 	}
 
 
@@ -1326,7 +1323,7 @@ void d_backup_update_var_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 	int nu0, nx0, nx1, nb0, pnb, ng0, png;
 
 	int jj, ll;
-	
+
 	double
 		*ptr_ux_bkp, *ptr_ux, *ptr_dux, *ptr_pi_bkp, *ptr_pi, *ptr_dpi, *ptr_t_bkp, *ptr_t, *ptr_dt, *ptr_lam_bkp, *ptr_lam, *ptr_dlam;
 
@@ -1343,7 +1340,7 @@ void d_backup_update_var_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 			nx1 = nx[jj+1];
 		else
 			nx1 = 0;
-		
+
 		// update inputs and states
 		ptr_ux_bkp = ux_bkp[jj];
 		ptr_ux     = ux[jj];
@@ -1383,14 +1380,14 @@ void d_backup_update_var_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *
 		}
 
 	return;
-	
+
 	}
 
 
 
 void d_compute_mu_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double alpha, double **lam, double **dlam, double **t, double **dt, double *ptr_mu, double mu_scal)
 	{
-	
+
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
@@ -1398,20 +1395,20 @@ void d_compute_mu_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 	int nb0, pnb, ng0, png;
 
 	int jj, ll;
-	
+
 	double
 		*ptr_t, *ptr_lam, *ptr_dt, *ptr_dlam;
-		
+
 	double mu = 0;
-	
+
 	for(jj=0; jj<=N; jj++)
 		{
-		
+
 		nb0 = nb[jj];
 		pnb = (nb0+bs-1)/bs*bs;
 		ng0 = ng[jj];
 		png = (ng0+bs-1)/bs*bs;
-		
+
 		ptr_t    = t[jj];
 		ptr_lam  = lam[jj];
 		ptr_dt   = dt[jj];
@@ -1438,7 +1435,7 @@ void d_compute_mu_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, dou
 
 	// scale mu
 	mu *= mu_scal;
-		
+
 	ptr_mu[0] = mu;
 
 	return;
@@ -1458,7 +1455,7 @@ void d_compute_centering_correction_res_mpc_hard_tv(int N, int *nb, int *ng, dou
 
 	double
 		*ptr_res_m, *ptr_dt, *ptr_dlam;
-	
+
 	for(ii=0; ii<=N; ii++)
 		{
 
@@ -1487,23 +1484,23 @@ void d_compute_centering_correction_res_mpc_hard_tv(int N, int *nb, int *ng, dou
 
 void d_update_gradient_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng, double **res_d, double **res_m, double **lam, double **t_inv, double **qx)
 	{
-	
+
 	// constants
 	const int bs = D_MR;
 	const int ncl = D_NCL;
 
 	int nb0, pnb, ng0, png;
-	
+
 	double temp0, temp1;
-	
-	double 
+
+	double
 		*ptr_res_d, *ptr_Qx, *ptr_qx, *ptr_lam, *ptr_res_m, *ptr_t_inv;
-	
+
 	int ii, jj, bs0;
-	
+
 	for(jj=0; jj<=N; jj++)
 		{
-		
+
 		ptr_lam   = lam[jj];
 		ptr_t_inv = t_inv[jj];
 		ptr_res_d = res_d[jj];
@@ -1565,7 +1562,7 @@ void d_update_gradient_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng
 				}
 			for(; ii<ng0; ii++)
 				{
-				
+
 				ptr_qx[ii+0] = ptr_t_inv[ii+0]*(ptr_res_m[ii+0]-ptr_lam[ii+0]*ptr_res_d[ii+0]) - ptr_t_inv[ii+png+0]*(ptr_res_m[ii+png+0]+ptr_lam[ii+png+0]*ptr_res_d[ii+png+0]);
 
 				}
@@ -1575,7 +1572,3 @@ void d_update_gradient_res_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int *ng
 		}
 
 	}
-
-
-
-

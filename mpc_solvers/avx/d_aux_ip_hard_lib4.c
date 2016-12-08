@@ -47,7 +47,6 @@
 
 
 // initialize variables
-
 void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **ux, double **pi, double **pDCt, double **db, double **t, double **lam, double mu0, int warm_start)
 	{
 
@@ -151,7 +150,86 @@ void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 
 	}
 
+	// initialize variables
+	void d_init_var_mpc_hard_tv_single_newton(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **ux, double **pi, double **pDCt, double **db, double **t, double **lam, double **ux0, double **pi0, double **lam0, double **t0)
+		{
 
+		// constants
+		const int bs = D_MR;
+		const int ncl = D_NCL;
+
+		int jj, ll, ii;
+
+		int nb0, pnb, ng0, png, cng;
+
+		double
+			*ptr_t, *ptr_lam, *ptr_db;
+
+		double thr0 = 0.1; // minimum vale of t (minimum distance from a constraint)
+
+		// initialize states and controls
+		for(jj=0; jj<=N; jj++)
+		{
+			for(ll=0; ll<nu[jj]+nx[jj]; ll++)
+			{
+				ux[jj][ll] = ux0[jj][ii];
+			}
+		}
+
+		// check bounds & initialize multipliers
+		for(jj=0; jj<=N; jj++)
+			{
+			nb0 = nb[jj];
+			pnb  = (nb0+bs-1)/bs*bs; // simd aligned number of box constraints
+			for(ll=0; ll<nb0; ll++)
+				{
+				t[jj][ll]     = t[jj][ll];
+				t[jj][pnb+ll] = t[jj][nb0+ll];
+
+				lam[jj][ll]     = lam0[jj][ll];
+				lam[jj][pnb+ll] = lam0[jj][nb0+ll];
+				}
+			}
+
+		// initialize equality multipliers
+		for(jj=0; jj<N; jj++)
+			for(ll=0; ll<nx[jj+1]; ll++)
+				pi[jj][ll] = pi0[jj][ll];
+
+
+		// TODO find a better way to initialize general constraints
+		for(jj=0; jj<=N; jj++)
+			{
+			nb0 = nb[jj];
+			pnb = (nb0+bs-1)/bs*bs;
+			ng0 = ng[jj];
+			png = (ng0+bs-1)/bs*bs;
+			cng = (ng0+ncl-1)/ncl*ncl;
+			if(ng0>0)
+				{
+				printf("General constraints not supported yet!!")
+				ptr_t   = t[jj];
+				ptr_lam = lam[jj];
+				ptr_db  = db[jj];
+	#ifdef BLASFEO
+				dgemv_t_lib(nu[jj]+nx[jj], ng0, 1.0, pDCt[jj], cng, ux[jj], 0.0, ptr_t+2*pnb, ptr_t+2*pnb);
+	#else
+				dgemv_t_lib(nu[jj]+nx[jj], ng0, pDCt[jj], cng, ux[jj], 0, ptr_t+2*pnb, ptr_t+2*pnb);
+	#endif
+				for(ll=2*pnb; ll<2*pnb+ng0; ll++)
+					{
+					ptr_t[ll+png] = - ptr_t[ll];
+					ptr_t[ll]      += - ptr_db[ll];
+					ptr_t[ll+png] += ptr_db[ll+png];
+					ptr_t[ll]      = fmax( thr0, ptr_t[ll] );
+					ptr_t[png+ll] = fmax( thr0, ptr_t[png+ll] );
+					ptr_lam[ll]      = mu0/ptr_t[ll];
+					ptr_lam[png+ll] = mu0/ptr_t[png+ll];
+					}
+				}
+			}
+
+		}
 
 // IPM with no residuals
 
