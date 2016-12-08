@@ -25,7 +25,32 @@
 
 include ../../Makefile.rule
 
-OBJS = d_aux_ip_hard_lib4.o d_res_ip_res_hard.o #s_aux_ip_c99_lib4.o d_aux_ip_soft_lib4.o
+ifeq ($(TARGET), X64_AVX2)
+endif
+ifeq ($(TARGET), X64_AVX)
+endif
+ifeq ($(TARGET), X64_SSE3)
+OBJS = d_aux_ip_hard_lib4.o d_res_ip_res_hard.o d_aux_ip_hard_libstr.o d_res_ip_res_hard_libstr.o #s_aux_ip_c99_lib4.o 
+endif
+ifeq ($(TARGET), C99_4X4)
+OBJS = d_aux_ip_hard_lib4.o d_res_ip_res_hard.o d_aux_ip_hard_libstr.o d_res_ip_res_hard_libstr.o #s_aux_ip_c99_lib4.o 
+endif
+ifeq ($(TARGET), C99_4X4_PREFETCH)
+OBJS = d_aux_ip_hard_lib4.o d_res_ip_res_hard.o d_aux_ip_hard_libstr.o d_res_ip_res_hard_libstr.o #s_aux_ip_c99_lib4.o 
+endif
+ifeq ($(TARGET), CORTEX_A57)
+OBJS = d_aux_ip_hard_lib4.o d_res_ip_res_hard.o d_aux_ip_hard_libstr.o d_res_ip_res_hard_libstr.o #s_aux_ip_c99_lib4.o 
+endif
+ifeq ($(TARGET), CORTEX_A15)
+OBJS = d_aux_ip_hard_lib4.o d_res_ip_res_hard.o d_aux_ip_hard_libstr.o d_res_ip_res_hard_libstr.o #s_aux_ip_c99_lib4.o 
+endif
+ifeq ($(TARGET), CORTEX_A9)
+OBJS = d_aux_ip_hard_lib4.o d_res_ip_res_hard.o d_aux_ip_hard_libstr.o d_res_ip_res_hard_libstr.o #s_aux_ip_c99_lib4.o 
+endif
+ifeq ($(TARGET), CORTEX_A7)
+OBJS = d_aux_ip_hard_lib4.o d_res_ip_res_hard.o d_aux_ip_hard_libstr.o d_res_ip_res_hard_libstr.o #s_aux_ip_c99_lib4.o 
+endif
+OBJS += d_aux_ip_soft_lib4.o
 
 obj: $(OBJS)
 

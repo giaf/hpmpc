@@ -23,6 +23,11 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#if defined(BLASFEO)
+#include <blasfeo_target.h>
+#include <blasfeo_common.h>
+#endif
+
 #include "../../include/target.h"
 #include "../../include/block_size.h"
 #include "../../include/lqcp_solvers.h"

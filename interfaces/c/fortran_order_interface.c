@@ -27,6 +27,13 @@
 #include <stdlib.h>
 #include <math.h>
 
+#ifdef BLASFEO
+#include <blasfeo_target.h>
+#include <blasfeo_common.h>
+#include <blasfeo_d_blas.h>
+#include <blasfeo_d_aux.h>
+#endif
+
 #include "../../include/target.h"
 #include "../../include/block_size.h"
 #include "../../include/aux_d.h"
@@ -34,12 +41,6 @@
 #include "../../include/blas_d.h"
 #include "../../include/lqcp_solvers.h"
 #include "../../include/mpc_solvers.h"
-
-#ifdef BLASFEO
-#include <blasfeo_target.h>
-#include <blasfeo_common.h>
-#include <blasfeo_d_blas.h>
-#endif
 
 // Debug flag
 #ifndef PC_DEBUG

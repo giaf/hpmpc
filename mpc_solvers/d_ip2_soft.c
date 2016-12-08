@@ -25,6 +25,11 @@
 
 #include <math.h>
 
+#if defined(BLASFEO)
+#include <blasfeo_target.h>
+#include <blasfeo_common.h>
+#endif
+
 #include "../include/aux_d.h"
 #include "../include/aux_s.h"
 #include "../include/lqcp_solvers.h"
@@ -34,7 +39,7 @@
 
 
 /* computes work space size */
-int d_ip2_mpc_soft_tv_work_space_size_doubles(int N, int *nx, int *nu, int *nb, int *ng, int *ns)
+int d_ip2_mpc_soft_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng, int *ns)
 	{
 
 	const int bs = D_MR;
@@ -59,9 +64,15 @@ int d_ip2_mpc_soft_tv_work_space_size_doubles(int N, int *nx, int *nu, int *nb, 
 		cnux = (nx[ii]+nu[ii]+ncl-1)/ncl*ncl;
 		pnx = (nx[ii]+bs-1)/bs*bs;
 		pnz = (nx[ii]+nu[ii]+1+bs-1)/bs*bs;
-		size += pnz*(cnx+ncl>cnux ? cnx+ncl : cnux) + 3*pnx + 4*pnz + 12*pnb + 11*png + 24*pns;
+		size += 3*pnx + 2*pnz + 11*pnb + 10*png + 23*pns;
 		}
-	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
+	
+//	size += pnzM*((nxgM+ncl-1)/ncl*ncl) + pnzM;
+
+	size *= sizeof(double);
+
+	size += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng);
+	size += d_back_ric_rec_sv_tv_memory_space_size_bytes(N, nx, nu, nb, ng);
 
 	return size;
 	}
@@ -112,7 +123,11 @@ int d_ip2_mpc_soft_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		if(ng[jj]>ngM) ngM = ng[jj];
 		}
 
-
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, pQ[ii], cnux[ii]);
+exit(1);
+#endif
 
 	// initialize work space
 	// work_space_double_size_per_stage = pnz*cnl + 2*pnz + 2*pnx + 14*pnb + 10*png
@@ -120,50 +135,34 @@ int d_ip2_mpc_soft_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	double *ptr;
 	ptr = double_work_memory; // supposed to be aligned to cache line boundaries
 
-	double *pL[N+1];
-	double *dL[N+1];
-	double *l[N+1];
 	double *work;
+	double *memory;
 	double *b[N];
 	double *q[N+1];
 	double *dux[N+1];
 	double *dpi[N];
-	double *pd[N+1]; // pointer to diagonal of Hessian
-	double *pl[N+1]; // pointer to linear part of Hessian
+//	double *pd[N+1]; // pointer to diagonal of Hessian
+//	double *pl[N+1]; // pointer to linear part of Hessian
 	double *bd[N+1]; // backup diagonal of Hessian
-	double *bl[N+1]; // backup linear part of Hessian
+//	double *bl[N+1]; // backup linear part of Hessian
 	double *dlam[N+1];
 	double *dt[N+1];
 	double *lamt[N+1];
 	double *t_inv[N+1];
 	double *Qx[N+1];
 	double *qx[N+1];
-	double *qx2[N+1];
+//	double *qx2[N+1];
 	double *Pb[N];
 	double *Zl[N+1]; // inverse of the diagonal of the matrix of the cost funciton of the soft constraint slack variables as updated in the IP
 	double *zl[N+1]; // linear part of the cost funciton of the soft constraint slack variables as updated in the IP
 
 	// work space
-	for(jj=0; jj<=N; jj++)
-		{
-		pL[jj] = ptr;
-		ptr += pnz[jj] * ( cnx[jj]+ncl>cnux[jj] ? cnx[jj]+ncl : cnux[jj] ); // pnz*cnl
-		}
-
-	for(jj=0; jj<=N; jj++)
-		{
-		dL[jj] = ptr;
-		ptr += pnz[jj];
-		}
-
-	for(jj=0; jj<=N; jj++)
-		{
-		l[jj] = ptr;
-		ptr += pnz[jj];
-		}
-
 	work = ptr;
-	ptr += ((nzM+bs-1)/bs*bs) * ((nxM+ngM+ncl-1)/ncl*ncl) + (nzM+bs-1)/bs*bs; // pnzM*cnxgM + pnzM
+	ptr += d_back_ric_rec_sv_tv_work_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
+
+	// memory space
+	memory = ptr;
+	ptr += d_back_ric_rec_sv_tv_memory_space_size_bytes(N, nx, nu, nb, ng) / sizeof(double);
 
 	// b as vector
 	for(jj=0; jj<N; jj++)
@@ -199,23 +198,26 @@ int d_ip2_mpc_soft_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 		{
 		q[jj] = ptr;
 		ptr += pnz[jj];
-		for(ll=0; ll<nu[jj]+nx[jj]; ll++) q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
+		for(ll=0; ll<nu[jj]+nx[jj]; ll++) 
+			q[jj][ll] = pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs];
 		}
 
 	// Hessian backup
 	for(jj=0; jj<=N; jj++)
 		{
-		pd[jj] = ptr;
-		pl[jj] = ptr + pnb[jj] + pns[jj];
-		bd[jj] = ptr + 2*pnb[jj] + 2*pns[jj];
-		bl[jj] = ptr + 3*pnb[jj] + 3*pns[jj];
-		ptr += 4*pnb[jj] + 4*pns[jj];
+//		pd[jj] = ptr;
+//		pl[jj] = ptr + pnb[jj] + pns[jj];
+//		bd[jj] = ptr + 2*pnb[jj] + 2*pns[jj];
+//		bl[jj] = ptr + 3*pnb[jj] + 3*pns[jj];
+		bd[jj] = ptr;
+//		ptr += 4*pnb[jj] + 4*pns[jj];
+		ptr += pnb[jj] + pns[jj];
 		// backup
 		for(ll=0; ll<nb[jj]+ns[jj]; ll++)
 			{
 			idx = idxb[jj][ll];
 			bd[jj][ll] = pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs];
-			bl[jj][ll] = q[jj][idx];
+//			bl[jj][ll] = q[jj][idx];
 			}
 		}
 
@@ -242,9 +244,11 @@ int d_ip2_mpc_soft_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 	for(jj=0; jj<=N; jj++)
 		{
 		Qx[jj] = ptr;
-		qx[jj] = ptr+png[jj];
-		qx2[jj] = ptr+2*png[jj];
-		ptr += 3*png[jj];
+//		qx[jj] = ptr+png[jj];
+//		qx2[jj] = ptr+2*png[jj];
+//		ptr += 3*png[jj];
+		qx[jj] = ptr+pnb[jj]+png[jj]+pns[jj]; // XXX to be changed
+		ptr += 2*pnb[jj]+2*png[jj]+2*pns[jj]; // XXX to be changed
 		}
 
 	// updated cost function of soft constraint slack variables
@@ -262,19 +266,21 @@ int d_ip2_mpc_soft_tv(int *kk, int k_max, double mu0, double mu_tol, double alph
 
 	// check if there are inequality constraints
 	double mu_scal = 0.0; 
-	for(jj=0; jj<=N; jj++) mu_scal += 2*nb[jj] + 2*ng[jj] + 4*ns[jj];
-	mu_scal = 1.0 / mu_scal;
-//	printf("\nmu_scal = %f\n", mu_scal);
-//	exit(2);
+	for(jj=0; jj<=N; jj++) 
+		{
+		mu_scal += 2*nb[jj] + 2*ng[jj] + 4*ns[jj];
+		}
 	if(mu_scal!=0.0) // there are some constraints
 		{
 		mu_scal = 1.0 / mu_scal;
 		}
 	else // call the riccati solver and return
 		{
-		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, ux, pL, dL, work, 1, Pb, compute_mult, pi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
+		double **dummy;
+		d_back_ric_rec_sv_tv_res(N, nx, nu, nb, idxb, ng, 0, pBAbt, b, 0, pQ, q, dummy, dummy, dummy, dummy, dux, compute_mult, dpi, 1, Pb, memory, work);
+//		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, ux, pL, dL, work, 1, Pb, compute_mult, pi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
 		*kk = 0;
-		return;
+		return 0;
 		}
 
 	double sigma = 1.0;
@@ -331,21 +337,21 @@ exit(1);
 
 
 		//update cost function matrices and vectors (box constraints)
-		d_update_hessian_mpc_soft_tv(N, nx, nu, nb, ng, ns, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx, qx2, bd, bl, pd, pl, d, Z, z, Zl, zl);
+		d_update_hessian_mpc_soft_tv(N, nx, nu, nb, ng, ns, d, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx, Z, z, Zl, zl);
 
 #if 0
+//for(ii=0; ii<=N; ii++)
+//	d_print_mat(1, 2*pns[ii], Z[ii], 1);
+//for(ii=0; ii<=N; ii++)
+//	d_print_mat(1, 2*pns[ii], z[ii], 1);
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, 2*pns[ii], Zl[ii], 1);
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, 2*pns[ii], zl[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii]+ns[ii], pd[ii], 1);
+	d_print_mat(1, nbs[ii], Qx[ii], 1);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii]+ns[ii], pl[ii], 1);
-//for(ii=0; ii<=N; ii++)
-//	d_print_mat(1, ng[ii], Qx[ii], 1);
-//for(ii=0; ii<=N; ii++)
-//	d_print_mat(1, ng[ii], qx[ii], 1);
+	d_print_mat(1, nbs[ii], qx[ii], 1);
 //for(ii=0; ii<=N; ii++)
 //	d_print_mat(1, ng[ii], qx2[ii], 1);
 //if(*kk==1)
@@ -354,12 +360,17 @@ exit(1);
 
 
 		// compute the search direction: factorize and solve the KKT system
-		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nbs, idxb, pd, pl, ng, pDCt, Qx, qx2);
+//		d_back_ric_rec_sv_tv(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nbs, idxb, pd, pl, ng, pDCt, Qx, qx2);
+		d_back_ric_rec_sv_tv_res(N, nx, nu, nbs, idxb, ng, 0, pBAbt, b, 1, pQ, q, bd, pDCt, Qx, qx, dux, compute_mult, dpi, 1, Pb, memory, work);
+		// XXX qx vs qx2
+		// XXX nbs
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, bs, pQ[ii], cnux[ii]);
-//exit(1);
+	printf("\n%d %d\n", ii, cnux[ii]);
+for(ii=0; ii<=N; ii++)
+	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, pQ[ii], cnux[ii]);
+exit(1);
 #endif
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -370,6 +381,9 @@ exit(1);
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
+printf("\ndpi\n");
+for(ii=0; ii<N; ii++)
+	d_print_mat(1, nx[ii+1], dpi[ii], 1);
 //if(*kk==1)
 exit(1);
 #endif
@@ -387,6 +401,7 @@ for(ii=0; ii<=N; ii++)
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, 2*pnb[ii]+2*png[ii]+4*pns[ii], dlam[ii], 1);
 printf("\nalpha = %f\n", alpha);
+if(*kk==1)
 exit(1);
 #endif
 
@@ -407,6 +422,7 @@ exit(1);
 #if 0
 printf("\nmu = %f\n", mu_aff);
 printf("\nmu_scal = %f\n", mu_scal);
+if(*kk==1)
 exit(1);
 #endif
 
@@ -433,7 +449,7 @@ exit(1);
 #endif
 
 
-		d_update_gradient_mpc_soft_tv(N, nx, nu, nb, ng, ns, sigma*mu, dt, dlam, t_inv, lamt, pl, qx, Zl, zl);
+		d_update_gradient_mpc_soft_tv(N, nx, nu, nb, ng, ns, sigma*mu, dt, dlam, t_inv, lamt, qx, Zl, zl);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -453,7 +469,9 @@ exit(1);
 
 
 		// solve the system
-		d_back_ric_rec_trs_tv(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nbs, idxb, pl, ng, pDCt, qx);
+//		d_back_ric_rec_trs_tv(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 0, Pb, compute_mult, dpi, nbs, idxb, pl, ng, pDCt, qx);
+		d_back_ric_rec_trs_tv_res(N, nx, nu, nbs, idxb, ng, pBAbt, b, q, pDCt, qx, dux, compute_mult, dpi, 0, Pb, memory, work);
+		// XXX nbs
 
 #if 0
 printf("\ndux\n");
@@ -500,8 +518,10 @@ exit(1);
 			{
 			idx = idxb[jj][ll];
 			pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs] = bd[jj][ll];
-			pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+idx*bs] = bl[jj][ll];
+//			pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+idx*bs] = bl[jj][ll];
 			}
+		for(ll=0; ll<nu[jj]+nx[jj]; ll++) 
+			pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+ll*bs] = q[jj][ll];
 		}
 
 

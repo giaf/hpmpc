@@ -25,30 +25,37 @@
 
 include ../Makefile.rule
 
-ifeq ($(REF_BLAS), 0)
-LIBS = -lm 
-endif
-ifeq ($(REF_BLAS), OPENBLAS)
-LIBS = /opt/openblas/lib/libopenblas.a -pthread -lm
-endif
-ifeq ($(REF_BLAS), BLIS)
-LIBS = -lblis -lm -fopenmp
-endif
-ifeq ($(REF_BLAS), NETLIB)
-LIBS = /opt/netlib/liblapack.a /opt/netlib/libblas.a -lgfortran -lm
-endif
-ifeq ($(REF_BLAS), MKL)
-LIBS = -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_gf_lp64.a /opt/intel/mkl/lib/intel64/libmkl_core.a /opt/intel/mkl/lib/intel64/libmkl_sequential.a -Wl,--end-group -ldl -lpthread -lm
-endif
+LIBS = 
 
 ifeq ($(USE_BLASFEO), 1)
 LIBS += /opt/blasfeo/lib/libblasfeo.a
 endif
 
+ifeq ($(REF_BLAS), 0)
+LIBS += -lm 
+endif
+ifeq ($(REF_BLAS), OPENBLAS)
+LIBS += /opt/openblas/lib/libopenblas.a -pthread -lm
+endif
+ifeq ($(REF_BLAS), BLIS)
+LIBS += -lblis -lm -fopenmp
+endif
+ifeq ($(REF_BLAS), NETLIB)
+LIBS += /opt/netlib/liblapack.a /opt/netlib/libblas.a -lgfortran -lm
+endif
+ifeq ($(REF_BLAS), MKL)
+LIBS += -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_gf_lp64.a /opt/intel/mkl/lib/intel64/libmkl_core.a /opt/intel/mkl/lib/intel64/libmkl_sequential.a -Wl,--end-group -ldl -lpthread -lm
+endif
+
 # tested
 #OBJS_TEST = test_blas_d.o
 #OBJS_TEST = tools.o test_d_ric_mpc.o
+#OBJS_TEST = tools.o test_d_ric_libstr.o
 OBJS_TEST = tools.o test_d_ip_hard.o
+#OBJS_TEST = tools.o test_d_ip_hard_libstr.o
+#OBJS_TEST = tools.o test_d_tree_ric_libstr.o
+#OBJS_TEST = tools.o test_d_tree_ip_hard_libstr.o
+#OBJS_TEST = tools.o test_d_cond.o
 
 # old
 #OBJS_TEST = test_blas_d_debug.o
@@ -103,4 +110,5 @@ test_d_admm_box.o: test_d_admm_box.c test_param.h ../problem_size.h
 test_s_admm_box.o: test_s_admm_box.c test_param.h ../problem_size.h
 test_d_admm_soft.o: test_d_admm_soft.c test_param.h ../problem_size.h
 test_s_admm_soft.o: test_s_admm_soft.c test_param.h ../problem_size.h
-
+# TODO remove below !!!!!
+test_d_cond.o: ./../lqcp_solvers/d_part_cond.c

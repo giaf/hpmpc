@@ -25,7 +25,8 @@
 
 include ../../Makefile.rule
 
-OBJS = d_aux_ip_hard_lib4.o d_res_ip_res_hard.o #s_aux_ip_avx_lib8.o d_aux_ip_soft_lib4.o
+OBJS = d_aux_ip_hard_lib4.o d_res_ip_res_hard.o d_aux_ip_hard_libstr.o d_aux_tree_ip_hard_libstr.o d_res_ip_res_hard_libstr.o #s_aux_ip_avx_lib8.o 
+#OBJS += d_aux_ip_soft_lib4.o
 
 obj: $(OBJS)
 

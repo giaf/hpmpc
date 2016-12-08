@@ -25,6 +25,7 @@
 
 
 
+#if ! defined(BLASFEO)
 // transposed of general matrices, read along panels, write across panels
 void kernel_dgetr_4_lib4(int tri, int kmax, int kna, double *A, double *C, int sdc)
 	{
@@ -361,6 +362,7 @@ void kernel_dgetr_1_lib4(int tri, int kmax, int kna, double *A, double *C, int s
 		}
 
 	}
+#endif
 
 
 

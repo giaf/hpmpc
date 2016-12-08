@@ -34,6 +34,13 @@
 /*#define _GNU_SOURCE*/
 /*#include <fenv.h>*/
 
+#ifdef BLASFEO
+#include <blasfeo_target.h>
+#include <blasfeo_common.h>
+#include <blasfeo_d_blas.h>
+#include <blasfeo_d_aux.h>
+#endif
+
 #include "test_param.h"
 #include "../problem_size.h"
 #include "../include/aux_d.h"
@@ -381,7 +388,11 @@ int main()
 #else
 		dgemv_n_lib(nx, nx, pA, cnx, x0, 1, b, b0);
 #endif
+#ifdef BLASFEO
+		d_print_pmat(nx, nx, pA, pnx);
+#else
 		d_print_pmat(nx, nx, bs, pA, pnx);
+#endif
 		d_print_mat(1, nx, x0, 1);
 		d_print_mat(1, nx, b, 1);
 		d_print_mat(1, nx, b0, 1);
