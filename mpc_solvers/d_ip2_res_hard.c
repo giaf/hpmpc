@@ -1328,7 +1328,7 @@ exit(2);
 	} // end of ipsolver
 
 	/* primal-dual interior-point method computing residuals at each iteration, hard constraints, time variant matrices, time variant size, single newton step (for NLP solver) */
-	int d_ip2_res_mpc_hard_tv_single_newton_step(double mu, double *stat, int N, int *nx, int *nu_N, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, double **pi, double **lam, double **t, double *double_work_memory);
+	int d_ip2_res_mpc_hard_tv_single_newton_step(double mu, double *stat, int N, int *nx, int *nu_N, int *nb, int **idxb, int *ng, double **pBAbt, double **pQ, double **pDCt, double **d, double **ux, double **pi, double **lam, double **t, double *double_work_memory)
 		{
 
 		// indeces
