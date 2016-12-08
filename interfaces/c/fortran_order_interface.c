@@ -688,9 +688,10 @@ int fortran_order_d_ip_ocp_hard_tv(
 	}
 
 	int fortran_order_d_ip_ocp_hard_tv_single_newton_step(
-								double mu
+								int *kk, int k_max, double mu0, double mu_tol,
 								int N, int *nx, int *nu_N, int *nb, int **hidxb, int *ng,
 								int N2,
+								int warm_start,
 								double **A, double **B, double **b,
 								double **Q, double **S, double **R, double **q, double **r,
 								double **lb, double **ub,
@@ -1144,7 +1145,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 
 			// IPM solver on partially condensed system
-			hpmpc_status = d_ip2_res_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N2, nx2, nu2, nb2, hidxb2, ng2, hpBAbt2, hpRSQrq2, hpDCt2, hd2, hux2, 1, hpi2, hlam2, ht2, work_ipm);
+			hpmpc_status = d_ip2_res_mpc_hard_tv_single_newton_step(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N2, nx2, nu2, nb2, hidxb2, ng2, hpBAbt2, hpRSQrq2, hpDCt2, hd2, hux2, 1, hpi2, hlam2, ht2, work_ipm);
 
 	#if 0
 			for(ii=0; ii<=N2; ii++)
@@ -1322,8 +1323,6 @@ int fortran_order_d_ip_ocp_hard_tv(
 	    return hpmpc_status;
 
 		}
-
-
 
 void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 							int N, int *nx, int *nu, int *nb, int **hidxb, int *ng,
