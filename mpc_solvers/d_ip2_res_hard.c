@@ -1667,7 +1667,7 @@ exit(2);
 		d_res_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, pBAbt, b, pQ, q, ux, pDCt, d, pi, lam, t, res_work, res_q, res_b, res_d, res_m, &mu);
 
 		// IP loop
-		while( *kk<k_max && mu>mu_tol && alpha>=alpha_min ) // XXX exit conditions on residuals???
+		while( *kk<k_max ) // XXX exit conditions on residuals???
 			{
 			// compute the update of Hessian and gradient from box and general constraints
 			d_update_hessian_gradient_res_mpc_hard_tv(N, nx, nu, nb, ng, res_d, res_m, t, lam, t_inv, Qx, qx);
@@ -1768,11 +1768,8 @@ exit(2);
 			stat[5*(*kk)+2] = mu_aff;
 
 			// Andrea: computation of sigma is moved one level up, in acados. Keep sigma = 1.
-			// compute sigma
-			sigma = 1.0;
-
 			// update res_m
-			d_compute_centering_correction_res_mpc_hard_tv(N, nb, ng, sigma*mu, dt, dlam, res_m);
+			d_compute_centering_correction_res_mpc_hard_tv(N, nb, ng, mu0, dt, dlam, res_m);
 
 			// update gradient
 			d_update_gradient_res_mpc_hard_tv(N, nx, nu, nb, ng, res_d, res_m, lam, t_inv, qx);
@@ -1890,10 +1887,6 @@ exit(2);
 			} // end of IP loop
 
 	//exit(2);
-
-		// successful exit
-		if(mu<=mu_tol)
-			return 0;
 
 		// max number of iterations reached
 		if(*kk>=k_max)

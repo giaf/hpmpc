@@ -707,8 +707,6 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 		{
 
-		printf("init wrapper\n");
-
 		int hpmpc_status = -1;
 
 
@@ -895,7 +893,6 @@ int fortran_order_d_ip_ocp_hard_tv(
 		/* pack matrices */
 
 		// TODO use pointers to exploit time invariant !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		printf("pack matrices\n");
 
 		// dynamic system
 		for(ii=0; ii<N; ii++)
@@ -942,20 +939,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 			hrq[ii][nu[ii]+jj] = q[ii][jj];
 			hpRSQrq[ii][nx[ii]/bs*cnux[ii]*bs+nx[ii]%bs+jj*bs] = q[ii][jj];
 			}
-		if(mu0<=0)
-			{
-			for(ii=0; ii<N; ii++)
-				{
-				for(jj=0; jj<nu[ii]; jj++) for(ll=0; ll<nu[ii]; ll++) mu0 = fmax(mu0, R[ii][jj*nu[ii]+ll]);
-				for(jj=0; jj<nx[ii]*nu[ii]; jj++) mu0 = fmax(mu0, S[ii][jj]);
-				for(jj=0; jj<nx[ii]; jj++) for(ll=0; ll<nx[ii]; ll++) mu0 = fmax(mu0, Q[ii][jj*nx[ii]+ll]);
-				for(jj=0; jj<nu[ii]; jj++) mu0 = fmax(mu0, r[ii][jj]);
-				for(jj=0; jj<nx[ii]; jj++) mu0 = fmax(mu0, q[ii][jj]);
-				}
-			ii=N;
-			for(jj=0; jj<nx[ii]; jj++) for(ll=0; ll<nx[ii]; ll++) mu0 = fmax(mu0, Q[ii][jj*nx[ii]+ll]);
-			for(jj=0; jj<nx[ii]; jj++) mu0 = fmax(mu0, q[ii][jj]);
-			}
+
 		// box constraints
 		for(ii=0; ii<=N; ii++)
 			{
@@ -994,8 +978,6 @@ int fortran_order_d_ip_ocp_hard_tv(
 		work_ipm = char_ptr;
 		char_ptr += d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng);
 		ptr = (double *) char_ptr;
-
-		printf("IP iteration\n");
 
 		// IPM solver on full space system
 		// hpmpc_status = d_ip2_res_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat,
