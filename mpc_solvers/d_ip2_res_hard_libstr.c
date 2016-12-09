@@ -47,7 +47,7 @@
 
 // use iterative refinement to increase accuracy of the solution of the equality constrained sub-problems
 #define ITER_REF 0
-#define THR_ITER_REF 1e-5
+#define THR_ITER_REF 1e-25
 //#define ITER_REF_REG 0.0
 #define CORRECTOR_LOW 1
 #define CORRECTOR_HIGH 0
@@ -89,7 +89,6 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(int N, int *nx, int *nu, 
 		size += d_size_strmat(nx[ii], nx[ii]); // Lxt
 		size += 5*d_size_strvec(nx[ii]); // b, dpi, Pb, res_b, pi_bkp
 		size += 4*d_size_strvec(nu[ii]+nx[ii]); // dux, rq, res_rq, ux_bkp
-		size += d_size_strvec(nb[ii]); // dRSQ
 		size += 8*d_size_strvec(2*nb[ii]+2*ng[ii]); // dlam, dt, tinv, lamt, res_d, res_m, t_bkp, lam_bkp
 		size += 2*d_size_strvec(nb[ii]+ng[ii]); // Qx, qx
 		}
@@ -517,7 +516,6 @@ exit(2);
 		struct d_strmat hsRSQrq2[N+1];
 		struct d_strvec hsrq[N+1];
 		struct d_strvec hsrq2[N+1];
-		struct d_strvec hsdRSQ[N+1];
 		struct d_strmat hsDCt[N+1];
 		struct d_strvec hsd[N+1];
 		struct d_strvec hsQx[N+1];
@@ -563,7 +561,6 @@ exit(2);
 			hsRSQrq2[ii].cn = cnux[ii];
 			d_create_strvec(nu[ii]+nx[ii], &hsrq[ii], (void *) q[ii]);
 			d_create_strvec(nu[ii]+nx[ii], &hsrq2[ii], (void *) q2[ii]);
-			d_create_strvec(nb[ii], &hsdRSQ[ii], (void *) bd[ii]);
 			d_create_strvec(nb[ii]+ng[ii], &hsd[ii], (void *) d[ii]);
 			d_create_strvec(nb[ii]+ng[ii], &hsQx[ii], (void *) Qx[ii]);
 			d_create_strvec(nb[ii]+ng[ii], &hsqx[ii], (void *) qx[ii]);
@@ -726,7 +723,7 @@ exit(1);
 //		d_back_ric_rec_sv_tv_res(N, nx, nu, pBAbt, pQ, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, pd, pl, ng, pDCt, Qx, qx2);
 #if 1
 #if 1 // libstr interface
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsdRSQ, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, hswork_mat, hswork_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, hswork_mat, hswork_vec);
 #else
 		d_back_ric_rec_sv_tv_res(N, nx, nu, nb, idxb, ng, 0, pBAbt, b, 1, pQ, q, bd, pDCt, Qx, qx, dux, compute_mult, dpi, 1, Pb, memory, work);
 #endif
@@ -1077,7 +1074,7 @@ exit(1);
 
 		// factorize & solve KKT system
 //		d_back_ric_rec_sv_libstr(N, nx, nu, nb2, idxb, ng2, 1, hsBAbt, res_b, 0, hsRSQrq2, res_q, hsmatdummy, hsvecdummy, hsvecdummy, hsvecdummy, dux, compute_mult, dpi, 1, Pb, memory, work);
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb2, idxb, ng2, 1, hsBAbt, hsres_b, 0, hsRSQrq2, hsres_q, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, hswork_mat, hswork_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb2, idxb, ng2, 1, hsBAbt, hsres_b, 0, hsRSQrq2, hsres_q, hsmatdummy, hsvecdummy, hsvecdummy, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, hswork_mat, hswork_vec);
 
 #if CORRECTOR_HIGH==1
 		if(0)
@@ -1968,7 +1965,6 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 
 	struct d_strvec hsb[N+1];
 	struct d_strvec hsrq[N+1];
-	struct d_strvec hsdRSQ[N+1];
 	struct d_strvec hsQx[N+1];
 	struct d_strvec hsqx[N+1];
 	struct d_strvec hsdux[N+1];
@@ -2039,13 +2035,6 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		{
 		d_create_strvec(nu[ii]+nx[ii], &hsrq[ii], work_memory);
 		work_memory += hsrq[ii].memory_size;
-		}
-
-	// diagonal of Hessian and gradient backup
-	for(ii=0; ii<=N; ii++)
-		{
-		d_create_strvec(nb[ii], &hsdRSQ[ii], work_memory);
-		work_memory += hsdRSQ[ii].memory_size;
 		}
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space
@@ -2143,12 +2132,6 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		drowex_libstr(nu[jj]+nx[jj], 1.0, &hsRSQrq[jj], nu[jj]+nx[jj], 0, &hsrq[jj], 0);
 		}
 
-	// extract diagonal of Hessian
-	for(jj=0; jj<=N; jj++)
-		{
-		ddiaex_libspstr(nb[jj], idxb[jj], 1.0, &hsRSQrq[jj], 0, 0, &hsdRSQ[jj], 0);
-		}
-
 
 
 	double temp0, temp1;
@@ -2163,7 +2146,7 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		}
 	else // call the riccati solver and return
 		{
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 0, hsRSQrq, hsrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, 1, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 0, hsRSQrq, hsrq, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, 1, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
 		// no IPM iterations
 		*kk = 0;
 		// return success
@@ -2184,16 +2167,16 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 #if 0
 printf("\nux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nu[ii]+nx[ii], ux[ii], 1);
+	d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
 printf("\npi\n");
 for(ii=0; ii<N; ii++)
-	d_print_mat(1, nx[ii+1], pi[ii+1], 1);
+	d_print_tran_strvec(nx[ii+1], &hspi[ii+1], 0);
 printf("\nlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], lam[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 printf("\nt\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], t[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 exit(1);
 #endif
 
@@ -2249,7 +2232,7 @@ exit(1);
 
 		// compute the search direction: factorize and solve the KKT system
 #if 1
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsdRSQ, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, 1, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, 1, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
 #else
 		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
 		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
@@ -2258,8 +2241,8 @@ exit(1);
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, bs, pQ[ii], cnux[ii]);
-exit(1);
+	d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0);
+//exit(1);
 #endif
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -2387,6 +2370,23 @@ exit(2);
 		alpha *= 0.995;
 
 
+#if 0
+printf("\ndux\n");
+for(ii=0; ii<=N; ii++)
+	d_print_tran_strvec(nu[ii]+nx[ii], &hsdux[ii], 0);
+printf("\ndpi\n");
+for(ii=1; ii<=N; ii++)
+	d_print_tran_strvec(nx[ii], &hsdpi[ii], 0);
+printf("\ndlam\n");
+for(ii=0; ii<=N; ii++)
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
+printf("\ndt\n");
+for(ii=0; ii<=N; ii++)
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
+//if(*kk==1)
+exit(1);
+#endif
+
 
 		// compute step & update x, u, lam, t & compute the duality gap mu
 		d_update_var_mpc_hard_libstr(N, nx, nu, nb, ng, &mu, mu_scal, alpha, hsux, hsdux, hst, hsdt, hslam, hsdlam, hspi, hsdpi);
@@ -2408,7 +2408,7 @@ printf("\nt\n");
 for(ii=0; ii<=N; ii++)
 	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 //if(*kk==1)
-exit(1);
+//exit(1);
 #endif
 
 
@@ -2419,12 +2419,6 @@ exit(1);
 		} // end of IP loop
 	
 
-	// restore Hessian
-	for(jj=0; jj<=N; jj++)
-		{
-		ddiain_libspstr(nb[jj], idxb[jj], 1.0, &hsdRSQ[jj], 0, &hsRSQrq[jj], 0, 0);
-		drowin_libstr(nu[jj]+nx[jj], 1.0, &hsrq[jj], 0, &hsRSQrq[jj], nu[jj]+nx[jj], 0);
-		}
 
 #if 0
 printf("\nux\n");
@@ -2565,7 +2559,7 @@ exit(1);
 
 		// factorize & solve KKT system
 //		d_back_ric_rec_sv_libstr(N, nx, nu, nb2, idxb, ng2, 1, hsBAbt, res_b, 0, hsRSQrq2, res_q, hsmatdummy, hsvecdummy, hsvecdummy, hsvecdummy, dux, compute_mult, dpi, 1, Pb, memory, work);
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb2, idxb, ng2, 1, hsBAbt, hsres_b, 0, hsRSQrq2, hsres_q, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsdux, compute_mult, hsdpi, 1, hsPb, 1, hsL, hsLxt, hswork_mat, hswork_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb2, idxb, ng2, 1, hsBAbt, hsres_b, 0, hsRSQrq2, hsres_q, hsmatdummy, hsvecdummy, hsvecdummy, hsdux, compute_mult, hsdpi, 1, hsPb, 1, hsL, hsLxt, hswork_mat, hswork_vec);
 
 #if CORRECTOR_HIGH==1
 		if(0)
@@ -2631,7 +2625,7 @@ exit(1);
 #else // no iterative refinement
 #if 1
 //		d_back_ric_rec_sv_libstr(N, nx, nu, 1, pBAbt, res_b, 1, pQ, res_q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 1, hsBAbt, hsres_b, 1, hsRSQrq, hsres_rq, hsdRSQ, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, 1, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 1, hsBAbt, hsres_b, 1, hsRSQrq, hsres_rq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, 1, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
 #else
 		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
 		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
@@ -2908,13 +2902,6 @@ for(ii=0; ii<=N; ii++)
 //exit(1);
 #endif
 
-
-		// restore Hessian
-		for(jj=0; jj<=N; jj++)
-			{
-			ddiain_libspstr(nb[jj], idxb[jj], 1.0, &hsdRSQ[jj], 0, &hsRSQrq[jj], 0, 0);
-			drowin_libstr(nu[jj]+nx[jj], 1.0, &hsrq[jj], 0, &hsRSQrq[jj], nu[jj]+nx[jj], 0);
-			}
 
 		// restore dynamics
 		for(jj=1; jj<=N; jj++)

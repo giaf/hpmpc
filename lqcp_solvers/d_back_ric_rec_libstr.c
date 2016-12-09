@@ -37,7 +37,7 @@
 
 
 
-void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int update_b, struct d_strmat *hsBAbt, struct d_strvec *hsb, int update_q, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strvec *hsdRSQ, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strvec *hsqx, struct d_strvec *hsux, int compute_pi, struct d_strvec *hspi, int compute_Pb, struct d_strvec *hsPb, int fact_QN, struct d_strmat *hsL, struct d_strmat *hsLxt, struct d_strmat *hswork_mat, struct d_strvec *hswork_vec)
+void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int update_b, struct d_strmat *hsBAbt, struct d_strvec *hsb, int update_q, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strvec *hsqx, struct d_strvec *hsux, int compute_pi, struct d_strvec *hspi, int compute_Pb, struct d_strvec *hsPb, int fact_QN, struct d_strmat *hsL, struct d_strmat *hsLxt, struct d_strmat *hswork_mat, struct d_strvec *hswork_vec)
 	{
 
 	int nn;
@@ -45,14 +45,19 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 	// factorization and backward substitution
 
 	// last stage
+	dtrcp_l_libstr(nu[N]+nx[N], 1.0, &hsRSQrq[N], 0, 0, &hsL[N], 0, 0); // TODO dtrcp_l_libstr with m and n, for m>=n
 	if(update_q)
 		{
-		drowin_libstr(nu[N]+nx[N], 1.0, &hsrq[N], 0, &hsRSQrq[N], nx[N], 0);
+		drowin_libstr(nu[N]+nx[N], 1.0, &hsrq[N], 0, &hsL[N], nu[N]+nx[N], 0);
+		}
+	else
+		{
+		dgecp_libstr(1, nu[N]+nx[N], 1.0, &hsRSQrq[N], nu[N]+nx[N], 0, &hsL[N], nu[N]+nx[N], 0);
 		}
 	if(nb[N]>0)
 		{
-		ddiaadin_libspstr(nb[N], hidxb[N], 1.0, &hsQx[N], 0, &hsdRSQ[N], 0, &hsRSQrq[N], 0, 0);
-		drowad_libspstr(nb[N], hidxb[N], 1.0, &hsqx[N], 0, &hsRSQrq[N], nx[N], 0);
+		ddiaad_libspstr(nb[N], hidxb[N], 1.0, &hsQx[N], 0, &hsL[N], 0, 0);
+		drowad_libspstr(nb[N], hidxb[N], 1.0, &hsqx[N], 0, &hsL[N], nu[N]+nx[N], 0);
 		}
 	if(ng[N]>0)
 		{
@@ -63,11 +68,7 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 		{
 		if(fact_QN)
 			{
-			dpotrf_l_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
-			}
-		else
-			{
-			dgecp_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], 1.0, &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
+			dpotrf_l_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsL[N], 0, 0, &hsL[N], 0, 0);
 			}
 		}
 	dtrtr_l_libstr(nx[N], &hsL[N], nu[N], nu[N], &hsLxt[N], 0, 0);
@@ -86,14 +87,19 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 			dtrmv_utn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hswork_vec[0], 0, &hsPb[N-nn], 0);
 			}
 		dgead_libstr(1, nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn]+nx[N-nn], nu[N-nn], &hswork_mat[0], nu[N-nn-1]+nx[N-nn-1], 0);
+		dtrcp_l_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 		if(update_q)
 			{
-			drowin_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &hsrq[N-nn-1], 0, &hsRSQrq[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
+			drowin_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &hsrq[N-nn-1], 0, &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
+			}
+		else
+			{
+			dgecp_libstr(1, nu[N-nn-1]+nx[N-nn-1], 1.0, &hsRSQrq[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0, &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
 			}
 		if(nb[N-nn-1]>0)
 			{
-			ddiaadin_libspstr(nb[N-nn-1], hidxb[N-nn-1], 1.0, &hsQx[N-nn-1], 0, &hsdRSQ[N-nn-1], 0, &hsRSQrq[N-nn-1], 0, 0);
-			drowad_libspstr(nb[N-nn-1], hidxb[N-nn-1], 1.0, &hsqx[N-nn-1], 0, &hsRSQrq[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
+			ddiaad_libspstr(nb[N-nn-1], hidxb[N-nn-1], 1.0, &hsQx[N-nn-1], 0, &hsL[N-nn-1], 0, 0);
+			drowad_libspstr(nb[N-nn-1], hidxb[N-nn-1], 1.0, &hsqx[N-nn-1], 0, &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
 			}
 		if(ng[N-nn-1]>0)
 			{
@@ -102,7 +108,7 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 			}
 		else
 			{
-			dsyrk_dpotrf_ln_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], &hswork_mat[0], 0, 0, &hswork_mat[0], 0, 0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
+			dsyrk_dpotrf_ln_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], &hswork_mat[0], 0, 0, &hswork_mat[0], 0, 0, &hsL[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 			}
 		dtrtr_l_libstr(nx[N-nn-1], &hsL[N-nn-1], nu[N-nn-1], nu[N-nn-1], &hsLxt[N-nn-1], 0, 0);
 		}
@@ -147,7 +153,7 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 
 
 
-void d_back_ric_rec_trf_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strvec *hsdRSQ, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strmat *hsL, struct d_strmat *hsLxt, struct d_strmat *hswork_mat)
+void d_back_ric_rec_trf_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strvec *hsdRSQ, struct d_strmat *hsDCt, struct d_strvec *hsQx, int fact_QN, struct d_strmat *hsL, struct d_strmat *hsLxt, struct d_strmat *hswork_mat)
 	{
 
 	int nn;
@@ -155,9 +161,10 @@ void d_back_ric_rec_trf_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 	// factorization
 
 	// last stage
+	dtrcp_l_libstr(nu[N]+nx[N], 1.0, &hsRSQrq[N], 0, 0, &hsL[N], 0, 0); // TODO dtrcp_l_libstr with m and n, for m>=n
 	if(nb[N]>0)
 		{
-		ddiaadin_libspstr(nb[N], hidxb[N], 1.0, &hsQx[N], 0, &hsdRSQ[N], 0, &hsRSQrq[N], 0, 0);
+		ddiaad_libspstr(nb[N], hidxb[N], 1.0, &hsQx[N], 0, &hsL[N], 0, 0);
 		}
 	if(ng[N]>0)
 		{
@@ -166,17 +173,21 @@ void d_back_ric_rec_trf_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 		}
 	else
 		{
-		dpotrf_l_libstr(nx[N], nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
+		if(fact_QN)
+			{
+			dpotrf_l_libstr(nu[N]+nx[N], nu[N]+nx[N], &hsL[N], 0, 0, &hsL[N], 0, 0);
+			}
 		}
-	dtrtr_l_libstr(nx[N], &hsL[N], 0, 0, &hsLxt[N], 0, 0);
+	dtrtr_l_libstr(nx[N], &hsL[N], nu[N], nu[N], &hsLxt[N], 0, 0);
 
 	// middle stages
 	for(nn=0; nn<N; nn++)
 		{
 		dtrmm_rutn_libstr(nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &hsBAbt[N-nn], 0, 0, &hsLxt[N-nn], 0, 0, 0.0, &hswork_mat[0], 0, 0, &hswork_mat[0], 0, 0);
+		dtrcp_l_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 		if(nb[N-nn-1]>0)
 			{
-			ddiaadin_libspstr(nb[N-nn-1], hidxb[N-nn-1], 1.0, &hsQx[N-nn-1], 0, &hsdRSQ[N-nn-1], 0, &hsRSQrq[N-nn-1], 0, 0);
+			ddiaad_libspstr(nb[N-nn-1], hidxb[N-nn-1], 1.0, &hsQx[N-nn-1], 0, &hsL[N-nn-1], 0, 0);
 			}
 		if(ng[N-nn-1]>0)
 			{
@@ -185,7 +196,7 @@ void d_back_ric_rec_trf_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 			}
 		else
 			{
-			dsyrk_dpotrf_ln_libstr(nu[N-nn-1]+nx[N-nn-1], nu[N-nn-1]+nx[N-nn-1], nx[N-nn], &hswork_mat[0], 0, 0, &hswork_mat[0], 0, 0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
+			dsyrk_dpotrf_ln_libstr(nu[N-nn-1]+nx[N-nn-1], nu[N-nn-1]+nx[N-nn-1], nx[N-nn], &hswork_mat[0], 0, 0, &hswork_mat[0], 0, 0, &hsL[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 			}
 		dtrtr_l_libstr(nx[N-nn-1], &hsL[N-nn-1], nu[N-nn-1], nu[N-nn-1], &hsLxt[N-nn-1], 0, 0);
 		}
@@ -303,7 +314,7 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 
 
 
-void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int update_b, struct d_strmat *hsBAbt, struct d_strvec *hsb, int update_q, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strvec *hsdRSQ, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strvec *hsqx, struct d_strvec *hsux, int compute_pi, struct d_strvec *hspi, int compute_Pb, struct d_strvec *hsPb, int fact_QN, struct d_strmat *hsL, struct d_strmat *hsLxt, struct d_strmat *hswork_mat, struct d_strvec *hswork_vec)
+void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int update_b, struct d_strmat *hsBAbt, struct d_strvec *hsb, int update_q, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strvec *hsqx, struct d_strvec *hsux, int compute_pi, struct d_strvec *hspi, int compute_Pb, struct d_strvec *hsPb, int fact_QN, struct d_strmat *hsL, struct d_strmat *hsLxt, struct d_strmat *hswork_mat, struct d_strvec *hswork_vec)
 	{
 
 	int nn;
@@ -311,14 +322,19 @@ void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 	// factorization and backward substitution
 
 	// last stage
+	dtrcp_l_libstr(nu[N]+nx[N], 1.0, &hsRSQrq[N], 0, 0, &hsL[N], 0, 0); // TODO dtrcp_l_libstr with m and n, for m>=n
 	if(update_q)
 		{
-		drowin_libstr(nu[N]+nx[N], 1.0, &hsrq[N], 0, &hsRSQrq[N], nx[N], 0);
+		drowin_libstr(nu[N]+nx[N], 1.0, &hsrq[N], 0, &hsL[N], nu[N]+nx[N], 0);
+		}
+	else
+		{
+		dgecp_libstr(1, nu[N]+nx[N], 1.0, &hsRSQrq[N], nu[N]+nx[N], 0, &hsL[N], nu[N]+nx[N], 0);
 		}
 	if(nb[N]>0)
 		{
-		ddiaadin_libspstr(nb[N], hidxb[N], 1.0, &hsQx[N], 0, &hsdRSQ[N], 0, &hsRSQrq[N], 0, 0);
-		drowad_libspstr(nb[N], hidxb[N], 1.0, &hsqx[N], 0, &hsRSQrq[N], nx[N], 0);
+		ddiaad_libspstr(nb[N], hidxb[N], 1.0, &hsQx[N], 0, &hsL[N], 0, 0);
+		drowad_libspstr(nb[N], hidxb[N], 1.0, &hsqx[N], 0, &hsL[N], nu[N]+nx[N], 0);
 		}
 	if(ng[N]>0)
 		{
@@ -329,11 +345,7 @@ void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 		{
 		if(fact_QN)
 			{
-			dpotrf_l_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
-			}
-		else
-			{
-			dgecp_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], 1.0, &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
+			dpotrf_l_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsL[N], 0, 0, &hsL[N], 0, 0);
 			}
 		}
 	dtrtr_l_libstr(nx[N], &hsL[N], nu[N], nu[N], &hsLxt[N], 0, 0);
@@ -352,14 +364,19 @@ void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 			dtrmv_utn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hswork_vec[0], 0, &hsPb[N-nn], 0);
 			}
 		dgead_libstr(1, nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn]+nx[N-nn], nu[N-nn], &hswork_mat[0], nu[N-nn-1]+nx[N-nn-1], 0);
+		dtrcp_l_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 		if(update_q)
 			{
-			drowin_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &hsrq[N-nn-1], 0, &hsRSQrq[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
+			drowin_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &hsrq[N-nn-1], 0, &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
+			}
+		else
+			{
+			dgecp_libstr(1, nu[N-nn-1]+nx[N-nn-1], 1.0, &hsRSQrq[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0, &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
 			}
 		if(nb[N-nn-1]>0)
 			{
-			ddiaadin_libspstr(nb[N-nn-1], hidxb[N-nn-1], 1.0, &hsQx[N-nn-1], 0, &hsdRSQ[N-nn-1], 0, &hsRSQrq[N-nn-1], 0, 0);
-			drowad_libspstr(nb[N-nn-1], hidxb[N-nn-1], 1.0, &hsqx[N-nn-1], 0, &hsRSQrq[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
+			ddiaad_libspstr(nb[N-nn-1], hidxb[N-nn-1], 1.0, &hsQx[N-nn-1], 0, &hsL[N-nn-1], 0, 0);
+			drowad_libspstr(nb[N-nn-1], hidxb[N-nn-1], 1.0, &hsqx[N-nn-1], 0, &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
 			}
 		if(ng[N-nn-1]>0)
 			{
@@ -368,10 +385,11 @@ void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 			}
 		else
 			{
-			dsyrk_dpotrf_ln_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], &hswork_mat[0], 0, 0, &hswork_mat[0], 0, 0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
+			dsyrk_dpotrf_ln_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], &hswork_mat[0], 0, 0, &hswork_mat[0], 0, 0, &hsL[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 			}
 		dtrtr_l_libstr(nx[N-nn-1], &hsL[N-nn-1], nu[N-nn-1], nu[N-nn-1], &hsLxt[N-nn-1], 0, 0);
 		}
+
 
 	return;
 
@@ -379,7 +397,7 @@ void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 
 
 
-void d_back_ric_rec_sv_forw_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int update_b, struct d_strmat *hsBAbt, struct d_strvec *hsb, int update_q, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strvec *hsdRSQ, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strvec *hsqx, struct d_strvec *hsux, int compute_pi, struct d_strvec *hspi, int compute_Pb, struct d_strvec *hsPb, int fact_QN, struct d_strmat *hsL, struct d_strmat *hsLxt, struct d_strmat *hswork_mat, struct d_strvec *hswork_vec)
+void d_back_ric_rec_sv_forw_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int update_b, struct d_strmat *hsBAbt, struct d_strvec *hsb, int update_q, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strvec *hsqx, struct d_strvec *hsux, int compute_pi, struct d_strvec *hspi, int compute_Pb, struct d_strvec *hsPb, int fact_QN, struct d_strmat *hsL, struct d_strmat *hsLxt, struct d_strmat *hswork_mat, struct d_strvec *hswork_vec)
 	{
 
 	int nn;
