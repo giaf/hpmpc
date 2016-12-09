@@ -65,7 +65,7 @@ PREFIX = /opt
 TOP = $(dir $(lastword $(MAKEFILE_LIST)))
 
 # Common optimization/debugging flags
-COMMON_FLAGS = -O2 -fPIC #-std=c99
+COMMON_FLAGS = -g -fPIC #-std=c99
 ifeq ($(CC), /opt/gcc/bin/gcc )
 COMMON_FLAGS += -DCUSTOM_GCC
 ifeq ($(TARGET), X64_AVX2)
