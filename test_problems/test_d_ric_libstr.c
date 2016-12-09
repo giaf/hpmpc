@@ -415,7 +415,7 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, hidxb, ng, 0, hsBAbt, hsvecdummy, 0, hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, 1, hspi, 1, hsPb, 1, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, hidxb, ng, 0, hsBAbt, hsvecdummy, 0, hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, 1, hspi, 1, hsPb, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
 
 		}
 
