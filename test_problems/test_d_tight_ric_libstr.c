@@ -188,8 +188,8 @@ int main()
 
 	int nb[N+1];
 	for(ii=0; ii<M; ii++) // XXX not M !!!
-//		nb[ii] = nu[ii] + nx[ii]/2;
-		nb[ii] = 0;
+		nb[ii] = nu[ii] + nx[ii]/2;
+//		nb[ii] = 0;
 	for(; ii<=N; ii++)
 		nb[ii] = 0;
 
@@ -492,10 +492,13 @@ int main()
 	struct d_strmat hsric_work_mat[2];
 	struct d_strvec hsric_work_vec[1];
 
+	int nuM;
+	int nbM;
 	struct d_strmat sRSQrqM;
 	struct d_strvec srqM;
 	struct d_strvec srqM_tmp;
 	struct d_strmat sLxM;
+	struct d_strmat sPpM;
 
 	void *work_memory;
 
@@ -546,6 +549,7 @@ int main()
 	d_allocate_strvec(nu[M]+nx[M], &srqM);
 	d_allocate_strvec(nu[M]+nx[M], &srqM_tmp);
 	d_allocate_strmat(nx[M]+1, nx[M], &sLxM);
+	d_allocate_strmat(nx[M]+1, nx[M], &sPpM);
 
 	// riccati work space
 	d_allocate_strmat(nzM, nxgM, &hsric_work_mat[0]);
@@ -584,7 +588,37 @@ int main()
 		{
 
 #if 1
+		// backward riccati factorization and solution at the end
 		d_back_ric_rec_sv_back_libstr(N-M, &nx[M], &nu[M], &nb[M], &hidxb[M], &ng[M], 0, &hsBAbt[M], hsvecdummy, 0, &hsRSQrq[M], hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[M], 1, &hspi[M], 1, &hsPb[M], &hsL[M], &hsLxt[M], hsric_work_mat, hsric_work_vec);
+		// extract chol factor of [P p; p' *]
+		d_print_strmat(nu[M]+nx[M]+1, nu[M]+nx[M], &hsL[M], 0, 0);
+		dtrcp_l_libstr(nx[M], 1.0, &hsL[M], nu[M], nu[M], &sLxM, 0, 0); // TODO have m and n !!!!!
+		dgecp_libstr(1, nx[M], 1.0, &hsL[M], nu[M]+nx[M], nu[M], &sLxM, nx[M], 0);
+		d_print_strmat(nx[M]+1, nx[M], &sLxM, 0, 0);
+		// recover [P p; p' *]
+		dsyrk_ln_libstr(nx[M]+1, nx[M], nx[M], 1.0, &sLxM, 0, 0, &sLxM, 0, 0, 0.0, &sPpM, 0, 0, &sPpM, 0, 0);
+		d_print_strmat(nx[M]+1, nx[M], &sPpM, 0, 0);
+		// backup stage M
+		nuM = nu[M];
+		nbM = nb[M];
+		hstmpmat0 = hsRSQrq[M];
+		// update new terminal cost
+		nu[M] = 0;
+		nb[M] = 0;
+		hsRSQrq[M] = sPpM;
+		hsux[M].pa += nuM;
+		// IPM at the beginning
+		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, M, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, compute_mult, hspi, hslam, hst, work_memory);
+		// recover original stage M
+		nu[M] = nuM;
+		nb[M] = nbM;
+		hsRSQrq[M] = hstmpmat0;
+		hsux[M].pa -= nuM;
+		// forward riccati solution at the beginning
+		d_back_ric_rec_sv_forw_libstr(N-M, &nx[M], &nu[M], &nb[M], &hidxb[M], &ng[M], 0, &hsBAbt[M], hsvecdummy, 0, &hsRSQrq[M], hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[M], 1, &hspi[M], 1, &hsPb[M], &hsL[M], &hsLxt[M], hsric_work_mat, hsric_work_vec);
+//		exit(1);
+
+#if 0
 		drowex_libstr(nu[M]+nx[M], 1.0, &hsL[M], nu[M]+nx[M], 0, &srqM, 0);
 		dsyrk_ln_libstr(nu[M]+nx[M]+1, nu[M]+nx[M], nu[M]+nx[M], 1.0, &hsL[M], 0, 0, &hsL[M], 0, 0, 0.0, &sRSQrqM, 0, 0, &sRSQrqM, 0, 0);
 //		d_print_strmat(nu[M]+nx[M]+1, nu[M]+nx[M], &sRSQrqM, 0, 0);
@@ -594,8 +628,8 @@ int main()
 		dveccp_libstr(nx[M], 1.0, &srqM, nu[M], &srqM_tmp, 0);
 //		d_print_strmat(nx[M], nx[M], &sLxM, 0, 0);
 		dgemv_n_libstr(nx[M], nx[M], 1.0, &sLxM, 0, 0, &srqM_tmp, 0, 0.0, &srqM, nu[M], &srqM, nu[M]); // TODO implement dtrmv !!!!!
-//		d_print_tran_strvec(nu[M]+nx[M], &srqM, 0);
-//		exit(1);
+		d_print_tran_strvec(nu[M]+nx[M], &srqM, 0);
+		exit(1);
 		hstmpmat0 = hsRSQrq[M];
 		hstmpvec0 = hsrq[M];
 		hsRSQrq[M] = sRSQrqM;
@@ -606,10 +640,11 @@ int main()
 		hsRSQrq[M] = hstmpmat0;
 		hsrq[M] = hstmpvec0;
 		d_back_ric_rec_sv_forw_libstr(N-M, &nx[M], &nu[M], &nb[M], &hidxb[M], &ng[M], 0, &hsBAbt[M], hsvecdummy, 0, &hsRSQrq[M], hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[M], 1, &hspi[M], 1, &hsPb[M], &hsL[M], &hsLxt[M], hsric_work_mat, hsric_work_vec);
+#endif
 #else
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, hidxb, ng, 0, hsBAbt, hsvecdummy, 0, hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, 1, hspi, 1, hsPb, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
-		d_back_ric_rec_trs_libstr(N, &nx[0], &nu[0], nb, hidxb, ng, &hsBAbt[0], &hsb[0], &hsrq[0], hsmatdummy, hsvecdummy, &hsux[0], 1, &hspi[0], 1, &hsPb[0], &hsL[0], &hsLxt[0], hsric_work_vec);
-//		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, compute_mult, hspi, hslam, hst, work_memory);
+//		d_back_ric_rec_sv_libstr(N, nx, nu, nb, hidxb, ng, 0, hsBAbt, hsvecdummy, 0, hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, 1, hspi, 1, hsPb, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
+//		d_back_ric_rec_trs_libstr(N, &nx[0], &nu[0], nb, hidxb, ng, &hsBAbt[0], &hsb[0], &hsrq[0], hsmatdummy, hsvecdummy, &hsux[0], 1, &hspi[0], 1, &hsPb[0], &hsL[0], &hsLxt[0], hsric_work_vec);
+		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, compute_mult, hspi, hslam, hst, work_memory);
 #endif
 
 		}
