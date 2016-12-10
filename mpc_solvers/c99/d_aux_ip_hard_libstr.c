@@ -43,25 +43,10 @@ void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, i
 
 	int jj, ll, ii;
 
-	double *hux[N+1];
-	double *hpi[N+1];
-	double *hdb[N+1];
-	double *ht[N+1];
-	double *hlam[N+1];
-	for(ii=0; ii<=N; ii++)
-		{
-		hux[ii] = hsux[ii].pa;
-		hpi[ii] = hspi[ii].pa;
-		hdb[ii] = hsdb[ii].pa;
-		ht[ii] = hst[ii].pa;
-		hlam[ii] = hslam[ii].pa;
-		}
+	double *ptr_ux, *ptr_pi, *ptr_db, *ptr_t, *ptr_lam;
 
 	int nb0, ng0;
 	
-	double
-		*ptr_t, *ptr_lam, *ptr_db;
-
 	double thr0 = 0.1; // minimum vale of t (minimum distance from a constraint)
 
 
@@ -70,9 +55,10 @@ void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, i
 		{
 		for(jj=0; jj<=N; jj++)
 			{
+			ptr_ux = hsux[jj].pa;
 			for(ll=0; ll<nu[jj]+nx[jj]; ll++)
 				{
-				hux[jj][ll] = 0.0;
+				ptr_ux[ll] = 0.0;
 				}
 			}
 		}
@@ -82,39 +68,46 @@ void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, i
 	for(jj=0; jj<=N; jj++)
 		{
 		nb0 = nb[jj];
+		ptr_ux = hsux[jj].pa;
+		ptr_db = hsdb[jj].pa;
+		ptr_lam = hslam[jj].pa;
+		ptr_t = hst[jj].pa;
 		for(ll=0; ll<nb0; ll++)
 			{
-			ht[jj][ll]     = - hdb[jj][ll]     + hux[jj][hidxb[jj][ll]];
-			ht[jj][nb0+ll] =   hdb[jj][nb0+ll] - hux[jj][hidxb[jj][ll]];
-			if(ht[jj][ll] < thr0)
+			ptr_t[ll]     = - ptr_db[ll]     + ptr_ux[hidxb[jj][ll]];
+			ptr_t[nb0+ll] =   ptr_db[nb0+ll] - ptr_ux[hidxb[jj][ll]];
+			if(ptr_t[ll] < thr0)
 				{
-				if(ht[jj][nb0+ll] < thr0)
+				if(ptr_t[nb0+ll] < thr0)
 					{
-					hux[jj][hidxb[jj][ll]] = ( - hdb[jj][nb0+ll] + hdb[jj][ll])*0.5;
-					ht[jj][ll]     = thr0; //- hdb[jj][ll]     + hux[jj][hidxb[jj][ll]];
-					ht[jj][nb0+ll] = thr0; //  hdb[jj][nb0+ll] - hux[jj][hidxb[jj][ll]];
+					ptr_ux[hidxb[jj][ll]] = ( - ptr_db[nb0+ll] + ptr_db[ll])*0.5;
+					ptr_t[ll]     = thr0; //- hdb[jj][ll]     + hux[jj][hidxb[jj][ll]];
+					ptr_t[nb0+ll] = thr0; //  hdb[jj][nb0+ll] - hux[jj][hidxb[jj][ll]];
 					}
 				else
 					{
-					ht[jj][ll] = thr0;
-					hux[jj][hidxb[jj][ll]] = hdb[jj][ll] + thr0;
+					ptr_t[ll] = thr0;
+					ptr_ux[hidxb[jj][ll]] = ptr_db[ll] + thr0;
 					}
 				}
-			else if(ht[jj][nb0+ll] < thr0)
+			else if(ptr_t[nb0+ll] < thr0)
 				{
-				ht[jj][nb0+ll] = thr0;
-				hux[jj][hidxb[jj][ll]] = hdb[jj][nb0+ll] - thr0;
+				ptr_t[nb0+ll] = thr0;
+				ptr_ux[hidxb[jj][ll]] = ptr_db[nb0+ll] - thr0;
 				}
-			hlam[jj][ll]     = mu0/ht[jj][ll];
-			hlam[jj][nb0+ll] = mu0/ht[jj][nb0+ll];
+			ptr_lam[ll]     = mu0/ptr_t[ll];
+			ptr_lam[nb0+ll] = mu0/ptr_t[nb0+ll];
 			}
 		}
 
 
 	// initialize pi
 	for(jj=1; jj<=N; jj++)
+		{
+		ptr_pi = hspi[jj].pa;
 		for(ll=0; ll<nx[jj]; ll++)
-			hpi[jj][ll] = 0.0; // initialize multipliers to zero
+			ptr_pi[ll] = 0.0; // initialize multipliers to zero
+		}
 
 
 	// TODO find a better way to initialize general constraints
@@ -124,9 +117,9 @@ void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, i
 		ng0 = ng[jj];
 		if(ng0>0)
 			{
-			ptr_t   = ht[jj];
-			ptr_lam = hlam[jj];
-			ptr_db  = hdb[jj];
+			ptr_t   = hst[jj].pa;
+			ptr_lam = hslam[jj].pa;
+			ptr_db  = hsdb[jj].pa;
 			dgemv_t_libstr(nu[jj]+nx[jj], ng0, 1.0, &hsDCt[jj], 0, 0, &hsux[jj], 0, 0.0, &hst[jj], 2*nb0, &hst[jj], 2*nb0);
 			for(ll=2*nb0; ll<2*nb0+ng0; ll++)
 				{

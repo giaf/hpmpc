@@ -50,25 +50,10 @@ void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, i
 
 	int jj, ll, ii;
 
-	double *hux[N+1];
-	double *hpi[N+1];
-	double *hdb[N+1];
-	double *ht[N+1];
-	double *hlam[N+1];
-	for(ii=0; ii<=N; ii++)
-		{
-		hux[ii] = hsux[ii].pa;
-		hpi[ii] = hspi[ii].pa;
-		hdb[ii] = hsdb[ii].pa;
-		ht[ii] = hst[ii].pa;
-		hlam[ii] = hslam[ii].pa;
-		}
+	double *ptr_ux, *ptr_pi, *ptr_db, *ptr_t, *ptr_lam;
 
 	int nb0, ng0;
 	
-	double
-		*ptr_t, *ptr_lam, *ptr_db;
-
 	double thr0 = 0.1; // minimum vale of t (minimum distance from a constraint)
 
 
@@ -77,9 +62,10 @@ void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, i
 		{
 		for(jj=0; jj<=N; jj++)
 			{
+			ptr_ux = hsux[jj].pa;
 			for(ll=0; ll<nu[jj]+nx[jj]; ll++)
 				{
-				hux[jj][ll] = 0.0;
+				ptr_ux[ll] = 0.0;
 				}
 			}
 		}
@@ -89,39 +75,46 @@ void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, i
 	for(jj=0; jj<=N; jj++)
 		{
 		nb0 = nb[jj];
+		ptr_ux = hsux[jj].pa;
+		ptr_db = hsdb[jj].pa;
+		ptr_lam = hslam[jj].pa;
+		ptr_t = hst[jj].pa;
 		for(ll=0; ll<nb0; ll++)
 			{
-			ht[jj][ll]     = - hdb[jj][ll]     + hux[jj][hidxb[jj][ll]];
-			ht[jj][nb0+ll] =   hdb[jj][nb0+ll] - hux[jj][hidxb[jj][ll]];
-			if(ht[jj][ll] < thr0)
+			ptr_t[ll]     = - ptr_db[ll]     + ptr_ux[hidxb[jj][ll]];
+			ptr_t[nb0+ll] =   ptr_db[nb0+ll] - ptr_ux[hidxb[jj][ll]];
+			if(ptr_t[ll] < thr0)
 				{
-				if(ht[jj][nb0+ll] < thr0)
+				if(ptr_t[nb0+ll] < thr0)
 					{
-					hux[jj][hidxb[jj][ll]] = ( - hdb[jj][nb0+ll] + hdb[jj][ll])*0.5;
-					ht[jj][ll]     = thr0; //- hdb[jj][ll]     + hux[jj][hidxb[jj][ll]];
-					ht[jj][nb0+ll] = thr0; //  hdb[jj][nb0+ll] - hux[jj][hidxb[jj][ll]];
+					ptr_ux[hidxb[jj][ll]] = ( - ptr_db[nb0+ll] + ptr_db[ll])*0.5;
+					ptr_t[ll]     = thr0; //- hdb[jj][ll]     + hux[jj][hidxb[jj][ll]];
+					ptr_t[nb0+ll] = thr0; //  hdb[jj][nb0+ll] - hux[jj][hidxb[jj][ll]];
 					}
 				else
 					{
-					ht[jj][ll] = thr0;
-					hux[jj][hidxb[jj][ll]] = hdb[jj][ll] + thr0;
+					ptr_t[ll] = thr0;
+					ptr_ux[hidxb[jj][ll]] = ptr_db[ll] + thr0;
 					}
 				}
-			else if(ht[jj][nb0+ll] < thr0)
+			else if(ptr_t[nb0+ll] < thr0)
 				{
-				ht[jj][nb0+ll] = thr0;
-				hux[jj][hidxb[jj][ll]] = hdb[jj][nb0+ll] - thr0;
+				ptr_t[nb0+ll] = thr0;
+				ptr_ux[hidxb[jj][ll]] = ptr_db[nb0+ll] - thr0;
 				}
-			hlam[jj][ll]     = mu0/ht[jj][ll];
-			hlam[jj][nb0+ll] = mu0/ht[jj][nb0+ll];
+			ptr_lam[ll]     = mu0/ptr_t[ll];
+			ptr_lam[nb0+ll] = mu0/ptr_t[nb0+ll];
 			}
 		}
 
 
 	// initialize pi
 	for(jj=1; jj<=N; jj++)
+		{
+		ptr_pi = hspi[jj].pa;
 		for(ll=0; ll<nx[jj]; ll++)
-			hpi[jj][ll] = 0.0; // initialize multipliers to zero
+			ptr_pi[ll] = 0.0; // initialize multipliers to zero
+		}
 
 
 	// TODO find a better way to initialize general constraints
@@ -131,9 +124,9 @@ void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, i
 		ng0 = ng[jj];
 		if(ng0>0)
 			{
-			ptr_t   = ht[jj];
-			ptr_lam = hlam[jj];
-			ptr_db  = hdb[jj];
+			ptr_t   = hst[jj].pa;
+			ptr_lam = hslam[jj].pa;
+			ptr_db  = hsdb[jj].pa;
 			dgemv_t_libstr(nu[jj]+nx[jj], ng0, 1.0, &hsDCt[jj], 0, 0, &hsux[jj], 0, 0.0, &hst[jj], 2*nb0, &hst[jj], 2*nb0);
 			for(ll=2*nb0; ll<2*nb0+ng0; ll++)
 				{
@@ -1577,24 +1570,6 @@ void d_update_hessian_gradient_res_mpc_hard_libstr(int N, int *nx, int *nu, int 
 	
 	int ii, jj, bs0;
 	
-	double *res_d[N+1];
-	double *res_m[N+1];
-	double *t[N+1];
-	double *t_inv[N+1];
-	double *lam[N+1];
-	double *Qx[N+1];
-	double *qx[N+1];
-	for(ii=0; ii<=N; ii++)
-		{
-		res_d[ii] = hsres_d[ii].pa;
-		res_m[ii] = hsres_m[ii].pa;
-		t[ii] = hst[ii].pa;
-		t_inv[ii] = hstinv[ii].pa;
-		lam[ii] = hslam[ii].pa;
-		Qx[ii] = hsQx[ii].pa;
-		qx[ii] = hsqx[ii].pa;
-		}
-
 	int nb0, ng0;
 	
 	double 
@@ -1617,13 +1592,13 @@ void d_update_hessian_gradient_res_mpc_hard_libstr(int N, int *nx, int *nu, int 
 	for(jj=0; jj<=N; jj++)
 		{
 		
-		ptr_t     = t[jj];
-		ptr_lam   = lam[jj];
-		ptr_t_inv = t_inv[jj];
-		ptr_res_d = res_d[jj];
-		ptr_res_m = res_m[jj];
-		ptr_Qx    = Qx[jj];
-		ptr_qx    = qx[jj];
+		ptr_t     = hst[jj].pa;
+		ptr_lam   = hslam[jj].pa;
+		ptr_t_inv = hstinv[jj].pa;
+		ptr_res_d = hsres_d[jj].pa;
+		ptr_res_m = hsres_m[jj].pa;
+		ptr_Qx    = hsQx[jj].pa;
+		ptr_qx    = hsqx[jj].pa;
 
 		// box constraints
 		nb0 = nb[jj];
@@ -1782,26 +1757,6 @@ void d_compute_alpha_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *
 	
 	int ii, jj, ll;
 
-	double *dux[N+1];
-	double *t[N+1];
-	double *t_inv[N+1];
-	double *lam[N+1];
-	double *res_d[N+1];
-	double *res_m[N+1];
-	double *dt[N+1];
-	double *dlam[N+1];
-	for(ii=0; ii<=N; ii++)
-		{
-		dux[ii] = hsdux[ii].pa;
-		t[ii] = hst[ii].pa;
-		t_inv[ii] = hstinv[ii].pa;
-		lam[ii] = hslam[ii].pa;
-		res_d[ii] = hsres_d[ii].pa;
-		res_m[ii] = hsres_m[ii].pa;
-		dlam[ii] = hsdlam[ii].pa;
-		dt[ii] = hsdt[ii].pa;
-		}
-
 	int nu0, nx0, nb0, ng0, cng;
 
 	double alpha = ptr_alpha[0];
@@ -1852,14 +1807,14 @@ void d_compute_alpha_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *
 	for(jj=0; jj<=N; jj++)
 		{
 
-		ptr_res_d = res_d[jj];
-		ptr_res_m = res_m[jj];
-		ptr_dux   = dux[jj];
-		ptr_t     = t[jj];
-		ptr_t_inv = t_inv[jj];
-		ptr_dt    = dt[jj];
-		ptr_lam   = lam[jj];
-		ptr_dlam  = dlam[jj];
+		ptr_res_d = hsres_d[jj].pa;
+		ptr_res_m = hsres_m[jj].pa;
+		ptr_dux   = hsdux[jj].pa;
+		ptr_t     = hst[jj].pa;
+		ptr_t_inv = hstinv[jj].pa;
+		ptr_dt    = hsdt[jj].pa;
+		ptr_lam   = hslam[jj].pa;
+		ptr_dlam  = hsdlam[jj].pa;
 		ptr_idxb  = idxb[jj];
 
 		// box constraints
@@ -2636,34 +2591,6 @@ void d_backup_update_var_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, i
 
 	int ii;
 
-	double *ux_bkp[N+1];
-	double *ux[N+1];
-	double *dux[N+1];
-	double *pi_bkp[N+1];
-	double *pi[N+1];
-	double *dpi[N+1];
-	double *t_bkp[N+1];
-	double *t[N+1];
-	double *dt[N+1];
-	double *lam_bkp[N+1];
-	double *lam[N+1];
-	double *dlam[N+1];
-	for(ii=0; ii<=N; ii++)
-		{
-		ux_bkp[ii] = hsux_bkp[ii].pa;
-		ux[ii] = hsux[ii].pa;
-		dux[ii] = hsdux[ii].pa;
-		pi_bkp[ii] = hspi_bkp[ii].pa;
-		pi[ii] = hspi[ii].pa;
-		dpi[ii] = hsdpi[ii].pa;
-		t_bkp[ii] = hst_bkp[ii].pa;
-		t[ii] = hst[ii].pa;
-		dt[ii] = hsdt[ii].pa;
-		lam_bkp[ii] = hslam_bkp[ii].pa;
-		lam[ii] = hslam[ii].pa;
-		dlam[ii] = hsdlam[ii].pa;
-		}
-
 	int nu0, nx0, nx1, nb0, ng0;
 
 	int jj, ll;
@@ -2677,9 +2604,9 @@ void d_backup_update_var_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, i
 		nx0 = nx[jj];
 
 		// update equality constrained multipliers
-		ptr_pi_bkp = pi_bkp[jj];
-		ptr_pi     = pi[jj];
-		ptr_dpi    = dpi[jj];
+		ptr_pi_bkp = hspi_bkp[jj].pa;
+		ptr_pi     = hspi[jj].pa;
+		ptr_dpi    = hsdpi[jj].pa;
 		daxpy_bkp_lib(nx0, alpha, ptr_dpi, ptr_pi, ptr_pi_bkp);
 
 		}
@@ -2697,18 +2624,18 @@ void d_backup_update_var_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, i
 			nx1 = 0;
 		
 		// update inputs and states
-		ptr_ux_bkp = ux_bkp[jj];
-		ptr_ux     = ux[jj];
-		ptr_dux    = dux[jj];
+		ptr_ux_bkp = hsux_bkp[jj].pa;
+		ptr_ux     = hsux[jj].pa;
+		ptr_dux    = hsdux[jj].pa;
 		daxpy_bkp_lib(nu0+nx0, alpha, ptr_dux, ptr_ux, ptr_ux_bkp);
 
 		// box constraints
-		ptr_t_bkp   = t_bkp[jj];
-		ptr_t       = t[jj];
-		ptr_dt      = dt[jj];
-		ptr_lam_bkp = lam_bkp[jj];
-		ptr_lam     = lam[jj];
-		ptr_dlam    = dlam[jj];
+		ptr_t_bkp   = hst_bkp[jj].pa;
+		ptr_t       = hst[jj].pa;
+		ptr_dt      = hsdt[jj].pa;
+		ptr_lam_bkp = hslam_bkp[jj].pa;
+		ptr_lam     = hslam[jj].pa;
+		ptr_dlam    = hsdlam[jj].pa;
 		daxpy_bkp_lib(nb0, alpha, &ptr_dlam[0], &ptr_lam[0], &ptr_lam_bkp[0]);
 		daxpy_bkp_lib(nb0, alpha, &ptr_dlam[nb0], &ptr_lam[nb0], &ptr_lam_bkp[nb0]);
 		daxpy_bkp_lib(nb0, alpha, &ptr_dt[0], &ptr_t[0], &ptr_t_bkp[0]);
@@ -2739,18 +2666,6 @@ void d_compute_mu_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng,
 
 	int ii;
 	
-	double *t[N+1];
-	double *dt[N+1];
-	double *lam[N+1];
-	double *dlam[N+1];
-	for(ii=0; ii<=N; ii++)
-		{
-		t[ii] = hst[ii].pa;
-		dt[ii] = hsdt[ii].pa;
-		lam[ii] = hslam[ii].pa;
-		dlam[ii] = hsdlam[ii].pa;
-		}
-
 	int jj, ll, ll_bkp, ll_end;
 	double ll_left;
 	
@@ -2778,10 +2693,10 @@ void d_compute_mu_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng,
 	for(jj=0; jj<=N; jj++)
 		{
 		
-		ptr_t    = t[jj];
-		ptr_lam  = lam[jj];
-		ptr_dt   = dt[jj];
-		ptr_dlam = dlam[jj];
+		ptr_t    = hst[jj].pa;
+		ptr_lam  = hslam[jj].pa;
+		ptr_dt   = hsdt[jj].pa;
+		ptr_dlam = hsdlam[jj].pa;
 
 		// box constraints
 		nb0 = nb[jj];
@@ -2964,16 +2879,6 @@ void d_compute_centering_correction_res_mpc_hard_libstr(int N, int *nb, int *ng,
 
 	int ii, jj;
 
-	double *dt[N+1];
-	double *dlam[N+1];
-	double *res_m[N+1];
-	for(ii=0; ii<=N; ii++)
-		{
-		dt[ii] = hsdt[ii].pa;
-		dlam[ii] = hsdlam[ii].pa;
-		res_m[ii] = hsres_m[ii].pa;
-		}
-
 	int nb0, ng0;
 
 	double
@@ -3000,9 +2905,9 @@ void d_compute_centering_correction_res_mpc_hard_libstr(int N, int *nb, int *ng,
 
 		ng0 = ng[ii]; //(ng[ii]+bs-1)/bs*bs;
 
-		ptr_res_m = res_m[ii];
-		ptr_dt    = dt[ii];
-		ptr_dlam  = dlam[ii];
+		ptr_res_m = hsres_m[ii].pa;
+		ptr_dt    = hsdt[ii].pa;
+		ptr_dlam  = hsdlam[ii].pa;
 
 		for(jj=0; jj<nb[ii]-3; jj+=4)
 			{
@@ -3095,20 +3000,6 @@ void d_update_gradient_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int
 	
 	int ii, jj, bs0;
 
-	double *res_d[N+1];
-	double *res_m[N+1];
-	double *t_inv[N+1];
-	double *lam[N+1];
-	double *qx[N+1];
-	for(ii=0; ii<=N; ii++)
-		{
-		res_d[ii] = hsres_d[ii].pa;
-		res_m[ii] = hsres_m[ii].pa;
-		t_inv[ii] = hstinv[ii].pa;
-		lam[ii] = hslam[ii].pa;
-		qx[ii] = hsqx[ii].pa;
-		}
-
 	int nb0, ng0;
 	
 	double temp0, temp1;
@@ -3133,11 +3024,11 @@ void d_update_gradient_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int
 	for(jj=0; jj<=N; jj++)
 		{
 		
-		ptr_lam   = lam[jj];
-		ptr_t_inv = t_inv[jj];
-		ptr_res_d = res_d[jj];
-		ptr_res_m = res_m[jj];
-		ptr_qx    = qx[jj];
+		ptr_lam   = hslam[jj].pa;
+		ptr_t_inv = hstinv[jj].pa;
+		ptr_res_d = hsres_d[jj].pa;
+		ptr_res_m = hsres_m[jj].pa;
+		ptr_qx    = hsqx[jj].pa;
 
 		// box constraints
 		nb0 = nb[jj];
