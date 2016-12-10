@@ -46,7 +46,7 @@
 
 // use iterative refinement to increase accuracy of the solution of the equality constrained sub-problems
 #define ITER_REF 1
-#define THR_ITER_REF 1e-25
+#define THR_ITER_REF 1e-5
 //#define ITER_REF_REG 0.0
 #define CORRECTOR_LOW 1
 #define CORRECTOR_HIGH 1
@@ -757,18 +757,18 @@ exit(2);
 #if 0
 	printf("\nres_q\n");
 	for(jj=0; jj<=N; jj++)
-		d_print_mat_e(1, nu[jj]+nx[jj], res_q[jj], 1);
+		d_print_e_mat(1, nu[jj]+nx[jj], res_q[jj], 1);
 	printf("\nres_b\n");
 	for(jj=0; jj<N; jj++)
-		d_print_mat_e(1, nx[jj+1], res_b[jj], 1);
+		d_print_e_mat(1, nx[jj+1], res_b[jj], 1);
 	printf("\nres_d\n");
 	for(jj=0; jj<=N; jj++)
-		d_print_mat_e(1, 2*pnb[jj]+2*png[jj], res_d[jj], 1);
+		d_print_e_mat(1, 2*pnb[jj]+2*png[jj], res_d[jj], 1);
 	printf("\nres_m\n");
 	for(jj=0; jj<=N; jj++)
-		d_print_mat_e(1, 2*pnb[jj]+2*png[jj], res_m[jj], 1);
+		d_print_e_mat(1, 2*pnb[jj]+2*png[jj], res_m[jj], 1);
 	printf("\nmu\n");
-	d_print_mat_e(1, 1, &mu, 1);
+	d_print_e_mat(1, 1, &mu, 1);
 	exit(2);
 #endif
 
@@ -801,7 +801,7 @@ for(ii=0; ii<=N; ii++)
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, pnb[ii]+png[ii], qx[ii], 1);
 //if(*kk==1)
-//exit(1);
+exit(1);
 #endif
 
 
@@ -928,8 +928,23 @@ for(ii=0; ii<=N; ii++)
 
 
 #else // no iterative refinement
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_e_mat(1, nu[ii]+nx[ii], res_q[ii], 1);
+for(ii=0; ii<N; ii++)
+	d_print_e_mat(1, nx[ii+1], res_b[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, pnb[ii]+png[ii], Qx[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_mat(1, pnb[ii]+png[ii], qx[ii], 1);
+for(ii=0; ii<=N; ii++)
+	d_print_pmat(nu[ii]+nx[ii], nu[ii]+nx[ii], pQ[ii], cnux[ii]);
+for(ii=0; ii<N; ii++)
+	d_print_pmat(nu[ii]+nx[ii], nx[ii+1], pBAbt[ii], cnx[ii+1]);
+exit(1);
+#endif
 #if 1
-		d_back_ric_rec_sv_tv_res(N, nx, nu, 1, pBAbt, res_b, 1, pQ, res_q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
+		d_back_ric_rec_sv_tv_res(N, nx, nu, nb, idxb, ng, 1, pBAbt, res_b, 1, pQ, res_q, bd, pDCt, Qx, qx, dux, compute_mult, dpi, 1, Pb, memory, work);
 #else
 		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
 		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
@@ -947,17 +962,17 @@ for(ii=0; ii<=N; ii++)
 //exit(1);
 #endif
 #if 0
-if(*kk==1)
-{
+//if(*kk==1)
+//{
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, nu[ii]+nx[ii], dux[ii], 1);
 printf("\ndpi\n");
 for(ii=0; ii<N; ii++)
 	d_print_mat(1, nx[ii+1], dpi[ii], 1);
-}
+//}
 //if(*kk==1)
-//exit(1);
+exit(1);
 #endif
 
 

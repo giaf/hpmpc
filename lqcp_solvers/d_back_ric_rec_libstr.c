@@ -75,7 +75,7 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 		{
 		if(update_b)
 			{
-			drowin_libstr(nx[N-nn], 1.0, &hsb[N-nn], 0, &hsBAbt[N-nn], nu[N-nn-1]+nu[N-nn-1], 0);
+			drowin_libstr(nx[N-nn], 1.0, &hsb[N-nn], 0, &hsBAbt[N-nn], nu[N-nn-1]+nx[N-nn-1], 0);
 			}
 		dtrmm_rutn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &hsBAbt[N-nn], 0, 0, &hsLxt[N-nn], 0, 0, 0.0, &hswork_mat[0], 0, 0, &hswork_mat[0], 0, 0);
 		if(compute_Pb)

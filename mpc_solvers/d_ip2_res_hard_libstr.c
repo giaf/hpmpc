@@ -47,7 +47,7 @@
 
 // use iterative refinement to increase accuracy of the solution of the equality constrained sub-problems
 #define ITER_REF 0
-#define THR_ITER_REF 1e-25
+#define THR_ITER_REF 1e-5
 //#define ITER_REF_REG 0.0
 #define CORRECTOR_LOW 1
 #define CORRECTOR_HIGH 0
@@ -2423,16 +2423,16 @@ for(ii=0; ii<=N; ii++)
 #if 0
 printf("\nux\n");
 for(jj=0; jj<=N; jj++)
-	d_print_mat(1, nu[jj]+nx[jj], ux[jj], 1);
+	d_print_tran_strvec(nu[jj]+nx[jj], &hsux[jj], 0);
 printf("\npi\n");
 for(jj=1; jj<=N; jj++)
-	d_print_mat(1, nx[jj], pi[jj], 1);
+	d_print_tran_strvec(nx[jj], &hspi[jj], 0);
 printf("\nlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], lam[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 printf("\nt\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], t[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 exit(2);
 #endif
 
@@ -2489,9 +2489,9 @@ printf("\nIPM it %d\n", *kk);
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, pnb[ii]+png[ii], Qx[ii], 1);
+	d_print_tran_strvec(nb[ii]+ng[ii], &hsQx[ii], 0);
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, pnb[ii]+png[ii], qx[ii], 1);
+	d_print_tran_strvec(nb[ii]+ng[ii], &hsqx[ii], 0);
 //if(*kk==1)
 exit(1);
 #endif
@@ -2622,6 +2622,21 @@ exit(1);
 
 
 #else // no iterative refinement
+#if 0
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(nu[ii]+nx[ii], &hsres_rq[ii], 0);
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(nx[ii], &hsres_b[ii], 0);
+for(ii=0; ii<=N; ii++)
+	d_print_tran_strvec(nb[ii]+ng[ii], &hsQx[ii], 0);
+for(ii=0; ii<=N; ii++)
+	d_print_tran_strvec(nb[ii]+ng[ii], &hsqx[ii], 0);
+for(ii=0; ii<=N; ii++)
+	d_print_strmat(nu[ii]+nx[ii], nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0);
+for(ii=0; ii<N; ii++)
+	d_print_strmat(nu[ii]+nx[ii], nx[ii+1], &hsBAbt[ii+1], 0, 0);
+exit(1);
+#endif
 #if 1
 		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 1, hsBAbt, hsres_b, 1, hsRSQrq, hsres_rq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
 #else
@@ -2840,7 +2855,7 @@ exit(1);
 
 		// solve the KKT system
 //		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
-		d_back_ric_rec_trs_libstr(N, nx, nu, nb2, idxb, ng, hsBAbt, hsres_b, hsres_q, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 0, hsPb, hsL, hsLxt, hswork_vec);
+		d_back_ric_rec_trs_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsres_b, hsres_rq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 0, hsPb, hsL, hsLxt, hsric_work_vec);
 
 
 #endif
@@ -2883,7 +2898,7 @@ exit(2);
 //		d_update_var_res_mpc_hard_tv(N, nx, nu, nb, ng, alpha, ux, dux, pi, dpi, t, dt, lam, dlam);
 
 
-#if 1
+#if 0
 printf("\nux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
@@ -2907,7 +2922,7 @@ for(ii=0; ii<=N; ii++)
 
 		d_res_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsres_work, hsres_rq, hsres_b, hsres_d, hsres_m, &mu);
 
-#if 1
+#if 0
 	printf("\nres_q\n");
 	for(jj=0; jj<=N; jj++)
 		d_print_e_tran_strvec(nu[jj]+nx[jj], &hsres_rq[jj], 0);

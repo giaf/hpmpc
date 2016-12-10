@@ -378,8 +378,8 @@ exit(2);
 		}
 	for(; jj<nb; jj++)
 		{
-		d1[jj]          = - 10.0;   //   xmin
-		d1[pnb_v[1]+jj] =   10.0;   //   xmax
+		d1[jj]          = - 4.0;   //   xmin
+		d1[pnb_v[1]+jj] =   4.0;   //   xmax
 		idxb1[jj] = jj;
 		}
 	for(jj=0; jj<ng_v[1]; jj++)
@@ -393,8 +393,8 @@ exit(2);
 	double *dN; d_zeros_align(&dN, 2*pnb_v[N]+2*png_v[N], 1);
 	for(jj=0; jj<nbx; jj++)
 		{
-		dN[jj]          = - 10.0;   //   xmin
-		dN[pnb_v[N]+jj] =   10.0;   //   xmax
+		dN[jj]          = - 4.0;   //   xmin
+		dN[pnb_v[N]+jj] =   4.0;   //   xmax
 		idxbN[jj] = jj;
 		}
 	for(jj=0; jj<ng_v[N]; jj++)
