@@ -50,7 +50,7 @@
 #define THR_ITER_REF 1e-5
 //#define ITER_REF_REG 0.0
 #define CORRECTOR_LOW 1
-#define CORRECTOR_HIGH 0
+#define CORRECTOR_HIGH 1
 
 
 
