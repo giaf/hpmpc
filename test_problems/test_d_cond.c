@@ -171,7 +171,7 @@ int main()
 
 	int nx = 8;//NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu = 3;//NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = 10;//NN; // horizon lenght
+	int N  = 5;//NN; // horizon lenght
 //	int nb  = nu+nx; // number of box constrained inputs and states
 //	int ng  = nx; //4;  // number of general constraints
 //	int ngN = nx; // number of general constraints at the last stage
@@ -543,6 +543,49 @@ int main()
 //		d_print_pmat(nu_v[ii]+nx_v[ii]+1, nx_v[ii+1], bs, hpBAbt[ii], cnx_v[ii]);
 //		}
 	
+	// libstr
+	struct d_strmat sBAbt0;
+	d_allocate_strmat(nu_v[0]+1, nx_v[1], &sBAbt0);
+	d_cvt_tran_mat2strmat(nx, nu, B, nx, &sBAbt0, 0, 0);
+	d_cvt_tran_mat2strmat(nx, 1, b0, nx, &sBAbt0, nu_v[0], 0);
+	d_print_strmat(nu_v[0]+1, nx_v[1], &sBAbt0, 0, 0);
+
+	struct d_strmat sBAbt1;
+	d_allocate_strmat(nu_v[1]+nx_v[1]+1, nx_v[2], &sBAbt1);
+	d_cvt_tran_mat2strmat(nx, nu, B, nx, &sBAbt1, 0, 0);
+	d_cvt_tran_mat2strmat(nx, nx, A, nx, &sBAbt1, nu_v[1], 0);
+	d_cvt_tran_mat2strmat(nx, 1, b, nx, &sBAbt1, nu_v[1]+nx_v[1], 0);
+	d_print_strmat(nu_v[1]+nx_v[1]+1, nx_v[2], &sBAbt1, 0, 0);
+
+	// original MPC
+	struct d_strmat hsBAbt[N];
+	// condensed MPC
+	struct d_strmat sBAbt2;
+	struct d_strmat hsGamma[N];
+
+	int i_tmp, size_sA;
+
+	ii = 0;
+	size_sA = d_size_strmat(nx_v[ii+1], nx_v[ii]);
+	nu_tmp = nu_v[ii];
+#if MHE!=1
+	hsBAbt[ii] = sBAbt0;
+#else
+	hsBAbt[ii] = sBAbt1;
+#endif
+	d_allocate_strmat(nu_tmp+nx_v[ii]+1, nx_v[ii+1], &hsGamma[ii]);
+	for(ii=1; ii<N; ii++)
+		{
+		i_tmp = d_size_strmat(nx_v[ii+1], nx_v[ii]);
+		size_sA = i_tmp > size_sA ? i_tmp : size_sA;
+		nu_tmp += nu_v[ii];
+		hsBAbt[ii] = sBAbt1;
+		d_allocate_strmat(nu_tmp+nx_v[0]+1, nx_v[ii+1], &hsGamma[ii]);
+		}
+
+	d_allocate_strmat(nu2+nx_v[0]+1, nx_v[N], &sBAbt2);
+	void *work_sA; v_zeros_align(&work_sA, size_sA);
+
 /************************************************
 * solve full spase system using Riccati / IPM
 ************************************************/	
@@ -654,21 +697,34 @@ int main()
 
 	d_cond_BAbt(N, nx_v, nu_v, hpBAbt, work0, hpGamma, pBAbt2);
 	
-//	printf("\nGamma\n\n");
-//	nu_tmp = 0;
-//	for(ii=0; ii<N; ii++)
-//		{
-//		nu_tmp += nu_v[ii];
-//		d_print_pmat(nx_v[0]+1+nu_tmp, nx_v[ii+1], bs, hpGamma[ii], cnx_v[ii+1]);
-//		}
+	printf("\nGamma\n\n");
+	nu_tmp = 0;
+	for(ii=0; ii<N; ii++)
+		{
+		nu_tmp += nu_v[ii];
+		d_print_pmat(nx_v[0]+1+nu_tmp, nx_v[ii+1], hpGamma[ii], cnx_v[ii+1]);
+		}
 	
-//	printf("\nBAbt2\n\n");
-//	d_print_pmat(nu2+nx_v[0]+1, nx_v[N], bs, pBAbt2, cnx_v[N]);
+	printf("\nBAbt2\n\n");
+	d_print_pmat(nu2+nx_v[0]+1, nx_v[N], pBAbt2, cnx_v[N]);
+
+	// libstr
+	d_cond_BAbt_libstr(N, nx_v, nu_v, hsBAbt, work_sA, hsGamma, &sBAbt2);
+
+	printf("\nGamma libstr\n\n");
+	for(ii=0; ii<N; ii++)
+		d_print_strmat(hsGamma[ii].m, hsGamma[ii].n, &hsGamma[ii], 0, 0);
+
+	printf("\nBAbt2 libstr\n\n");
+	d_print_strmat(sBAbt2.m, sBAbt2.n, &sBAbt2, 0, 0);
+
 
 	d_cond_RSQrq(N, nx_v, nu_v, hpBAbt, hpRSQrq, hpGamma, work1, pRSQrq2);
 
-//	printf("\nRSQrq2\n\n");
-//	d_print_pmat(nu2+nx_v[0]+1, nu2+nx_v[0], bs, pRSQrq2, cnux2);
+	printf("\nRSQrq2\n\n");
+	d_print_pmat(nu2+nx_v[0]+1, nu2+nx_v[0], pRSQrq2, cnux2);
+
+	exit(1);
 
 	d_cond_DCtd(N, nx_v, nu_v, nb_v, hidxb, hd, hpGamma, pDCt2, d2, idxb2);
 
@@ -880,7 +936,7 @@ int main()
 	
 //	printf("\nBAbt3 =\n");
 //	for(ii=0; ii<N3; ii++)
-//		d_print_pmat(nu3_v[ii]+nx3_v[ii]+1, nx3_v[ii+1], bs, hpBAbt3[ii], cnx3_v[ii+1]);
+//		d_print_pmat(nu3_v[ii]+nx3_v[ii]+1, nx3_v[ii+1], hpBAbt3[ii], cnx3_v[ii+1]);
 	
 //	printf("\nRSQrq3 =\n");
 //	for(ii=0; ii<=N3; ii++)

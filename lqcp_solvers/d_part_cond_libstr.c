@@ -32,12 +32,10 @@
 #include "../include/block_size.h"
 #include "../include/lqcp_aux.h"
 
-#ifdef BLASFEO
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
 #include <blasfeo_d_blas.h>
 #include <blasfeo_d_aux.h>
-#endif
 
 
 
@@ -211,58 +209,17 @@ void d_cond_BAb(int N, int *nx, int *nu, double **pBAbt, double *work, double **
 
 
 
-void d_cond_BAbt(int N, int *nx, int *nu, double **hpBAbt, double *work, double **hpGamma, double *pBAbt2)
+void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, void *work, struct d_strmat *hsGamma, struct d_strmat *sBAbt2)
 	{
 
-	const int bs = D_MR;
-	const int ncl = D_NCL;
-
 	int ii, jj;
+
 	int nu_tmp;
 
-	int pnx[N+1];
-	int cnx[N+1];
-	int nu2 = 0;
-	for(ii=0; ii<=N; ii++)
-		{
-		pnx[ii] = (nx[ii]+bs-1)/bs*bs;
-		cnx[ii] = (nx[ii]+ncl-1)/ncl*ncl;
-		nu2 += nu[ii];
-		}
-
-	int pnz2 = (nu2+nx[0]+1+bs-1)/bs*bs;
-
-	int pA_size = 0;
-	int buffer_size = 0;
-	int tmp_size;
 	nu_tmp = 0;
-	for(ii=0; ii<N; ii++)
-		{
-		// pA
-		tmp_size = pnx[ii]*cnx[ii+1];
-		pA_size = tmp_size > pA_size ? tmp_size : pA_size;
-		// buffer
-		tmp_size = ((nu_tmp+nx[0]+1+bs-1)/bs*bs) * cnx[ii+1];
-		buffer_size = tmp_size > buffer_size ? tmp_size : buffer_size;
-		//
-		nu_tmp += nu[ii];
-		}
-	
-	double *pA = work;
-	work += pA_size;
-
-	double *buffer = work;
-	work += buffer_size;
-
-	nu_tmp = 0;
-
 	ii = 0;
 	// B & A & b
-#ifdef BLASFEO
-	dgecp_lib(nu[0]+nx[0]+1, nx[1], 1.0, 0, hpBAbt[0], cnx[1], 0, hpGamma[0], cnx[1]);
-#else
-	dgecp_lib(nu[0]+nx[0]+1, nx[1], 0, hpBAbt[0], cnx[1], 0, hpGamma[0], cnx[1]);
-#endif
+	dgecp_libstr(nu[0]+nx[0]+1, nx[1], 1.0, &hsBAbt[0], 0, 0, &hsGamma[0], 0, 0);
 	//
 	nu_tmp += nu[0];
 	ii++;
@@ -270,37 +227,25 @@ void d_cond_BAbt(int N, int *nx, int *nu, double **hpBAbt, double *work, double 
 	for(ii=1; ii<N; ii++)
 		{
 		// TODO check for equal pointers and avoid copy
+
+		struct d_strmat sA;
+		d_create_strmat(nx[ii+1], nx[ii], &sA, work);
 		
 		// pA in work space
-		dgetr_lib(nx[ii], nx[ii+1], 1.0, nu[ii], hpBAbt[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1], 0, pA, cnx[ii]); // pA in work
+		dgetr_libstr(nx[ii], nx[ii+1], 1.0, &hsBAbt[ii], nu[ii], 0, &sA, 0, 0); // pA in work // TODO avoid copy for LA_BLAS and LA_REFERENCE
 
 		// Gamma * A^T
-#ifdef BLASFEO
-		dgemm_nt_lib(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], 1.0, hpGamma[ii-1], cnx[ii], pA, cnx[ii], 0.0, buffer, cnx[ii+1], buffer, cnx[ii+1]); // Gamma * A^T // TODO in BLASFEO, store to unaligned !!!!!
-#else
-		dgemm_nt_lib(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], hpGamma[ii-1], cnx[ii], pA, cnx[ii], 0, buffer, cnx[ii+1], buffer, cnx[ii+1], 0, 0); // Gamma * A^T // TODO in BLASFEO, store to unaligned !!!!!
-#endif
+		dgemm_nt_libstr(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], 1.0, &hsGamma[ii-1], 0, 0, &sA, 0, 0, 0.0, &hsGamma[ii], nu[ii], 0, &hsGamma[ii], nu[ii], 0); // Gamma * A^T
 
-#ifdef BLASFEO
-		dgecp_lib(nu[ii], nx[ii+1], 1.0, 0, hpBAbt[ii], cnx[ii+1], 0, hpGamma[ii], cnx[ii+1]);
-		dgecp_lib(nu_tmp+nx[0]+1, nx[ii+1], 1.0, 0, buffer, cnx[ii+1], nu[ii], hpGamma[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1]);
-#else
-		dgecp_lib(nu[ii], nx[ii+1], 0, hpBAbt[ii], cnx[ii+1], 0, hpGamma[ii], cnx[ii+1]);
-		dgecp_lib(nu_tmp+nx[0]+1, nx[ii+1], 0, buffer, cnx[ii+1], nu[ii], hpGamma[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1]);
-#endif
-
+		dgecp_libstr(nu[ii], nx[ii+1], 1.0, &hsBAbt[ii], 0, 0, &hsGamma[ii], 0, 0);
 
 		nu_tmp += nu[ii];
 
-		for(jj=0; jj<nx[ii+1]; jj++) hpGamma[ii][(nu_tmp+nx[0])/bs*bs*cnx[ii+1]+(nu_tmp+nx[0])%bs+jj*bs] += hpBAbt[ii][(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs+jj*bs];
+		dgead_libstr(1, nx[ii+1], 1.0, &hsBAbt[ii], nu[ii]+nx[ii], 0, &hsGamma[ii], nu_tmp+nx[0], 0);
 		}
 	
 	// B & A & b
-#ifdef BLASFEO
-	dgecp_lib(nu_tmp+nx[0]+1, nx[N], 1.0, 0, hpGamma[N-1], cnx[N], 0, pBAbt2, cnx[N]);
-#else
-	dgecp_lib(nu_tmp+nx[0]+1, nx[N], 0, hpGamma[N-1], cnx[N], 0, pBAbt2, cnx[N]);
-#endif
+	dgecp_libstr(nu_tmp+nx[0]+1, nx[N], 1.0, &hsGamma[N-1], 0, 0, sBAbt2, 0, 0);
 
 	return;
 
@@ -308,7 +253,7 @@ void d_cond_BAbt(int N, int *nx, int *nu, double **hpBAbt, double *work, double 
 
 
 
-void d_cond_RSQrq(int N, int *nx, int *nu, double **hpBAbt, double **hpRSQrq, double **hpGamma, double *work, double *pRSQrq2)
+void d_cond_RSQrq_libstr(int N, int *nx, int *nu, double **hpBAbt, double **hpRSQrq, double **hpGamma, double *work, double *pRSQrq2)
 	{
 	// early return
 	if(N<1)
@@ -455,7 +400,7 @@ for(nn=0; nn<=N; nn++)
 #ifdef BLASFEO
 	dgemm_nt_lib(nu2[N-1]+nx[0]+1, nu[N-1], nx[N-1], 1.0, hpGamma[N-2], cnx[N-1], pM, cnu[N-1], 0.0, buffer, cnu[N-1], buffer, cnu[N-1]);
 
-	dgecp_lib(nu2[N-1]+nx[0]+1, nu[N-1], 1.0, 0, buffer, cnu[N-1], nu3[1], pRSQrq2+nu3[1]/bs*bs*cnux2+nu3[1]%bs+nu3[0]*bs, cnux2);
+	dgecp_lib(nu2[N-1]+nx[0]+1, nu[N-1], 0, 1.0, buffer, cnu[N-1], nu3[1], pRSQrq2+nu3[1]/bs*bs*cnux2+nu3[1]%bs+nu3[0]*bs, cnux2);
 #else
 	dgemm_nt_lib(nu2[N-1]+nx[0]+1, nu[N-1], nx[N-1], hpGamma[N-2], cnx[N-1], pM, cnu[N-1], 0, buffer, cnu[N-1], buffer, cnu[N-1], 0, 0);
 
@@ -576,7 +521,7 @@ for(nn=0; nn<=N; nn++)
 
 
 // TODO general constraints !!!!!
-void d_cond_DCtd(int N, int *nx, int *nu, int *nb, int **hidxb, double **hd, double **hpGamma, double *pDCt2, double *d2, int *idxb2)
+void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, double **hd, double **hpGamma, double *pDCt2, double *d2, int *idxb2)
 	{
 
 	// early return
@@ -691,7 +636,7 @@ void d_cond_DCtd(int N, int *nx, int *nu, int *nb, int **hidxb, double **hd, dou
 
 
 // XXX does not compute hidxb2
-void d_part_cond_compute_problem_size(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2)
+void d_part_cond_compute_problem_size_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2)
 	{
 
 	int ii, jj, kk;
@@ -736,7 +681,7 @@ void d_part_cond_compute_problem_size(int N, int *nx, int *nu, int *nb, int **hi
 
 
 
-int d_part_cond_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2)
+int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2)
 	{
 
 	const int bs = D_MR;
@@ -857,7 +802,7 @@ int d_part_cond_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hi
 
 
 
-int d_part_cond_memory_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2)
+int d_part_cond_memory_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2)
 	{
 
 	// early return
@@ -923,7 +868,7 @@ int d_part_cond_memory_space_size_bytes(int N, int *nx, int *nu, int *nb, int **
 
 
 
-void d_part_cond(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, double **hpBAbt, double **hpRSQrq, double **hpDCt, double **hd, int N2, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, double **hpBAbt2, double **hpRSQrq2, double **hpDCt2, double **hd2, void *memory, void *work)
+void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, double **hpBAbt, double **hpRSQrq, double **hpDCt, double **hd, int N2, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, double **hpBAbt2, double **hpRSQrq2, double **hpDCt2, double **hd2, void *memory, void *work)
 	{
 
 	const int bs = D_MR;
@@ -1069,7 +1014,7 @@ void d_part_cond(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, double 
 
 
 
-int d_part_expand_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng)
+int d_part_expand_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int *ng)
 	{
 
 	const int bs = D_MR;
@@ -1100,7 +1045,7 @@ int d_part_expand_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *n
 
 
 
-void d_part_expand_solution(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, double **hpBAbt, double **hb, double **hpRSQrq, double **hrq, double **hpDCt, double **hux, double **hpi, double **hlam, double **ht, int N2, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, double **hux2, double **hpi2, double **hlam2, double **ht2, void *work)
+void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, double **hpBAbt, double **hb, double **hpRSQrq, double **hrq, double **hpDCt, double **hux, double **hpi, double **hlam, double **ht, int N2, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, double **hux2, double **hpi2, double **hlam2, double **ht2, void *work)
 	{
 
 	const int bs = D_MR;
