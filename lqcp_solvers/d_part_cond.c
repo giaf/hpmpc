@@ -66,7 +66,7 @@ void d_cond_A(int N, int *nx, int *nu, double **pBAbt, double *work, double **pG
 	for(ii=1; ii<N; ii++)
 		{
 		// TODO check for equal pointers and avoid copy
-		dgetr_lib(nx[ii], nx[ii+1], nu[ii], pBAbt[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1], 0, work, cnx[ii]); // pA in work
+		dgetr_lib(nx[ii], nx[ii+1], 1.0, nu[ii], pBAbt[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1], 0, work, cnx[ii]); // pA in work
 		dgemm_nt_lib(nx[0], nx[ii+1], nx[ii], pGamma_x0[ii-1], cnx[ii], work, cnx[ii], 0, pGamma_x0[ii], cnx[ii+1], pGamma_x0[ii], cnx[ii+1], 0, 0);
 		}
 	
@@ -101,7 +101,7 @@ void d_cond_B(int N, int *nx, int *nu, double **pBAbt, double *work, double **pG
 
 	for(ii=1; ii<N; ii++)
 		{
-		dgetr_lib(nx[ii], nx[ii+1], nu[ii], pBAbt[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1], 0, work, cnx[ii]); // pA in work
+		dgetr_lib(nx[ii], nx[ii+1], 1.0, nu[ii], pBAbt[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1], 0, work, cnx[ii]); // pA in work
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
 		dgemm_nt_lib(nx[ii+1], nu_tmp, nx[ii], work, cnx[ii], pGamma_u[ii-1], cnx[ii], 0, pGamma_u[ii], cnx[ii+1], pGamma_u[ii], cnx[ii+1], 0, 1); // (A * Gamma_u^T)^T
 #else
@@ -135,15 +135,15 @@ void d_cond_b(int N, int *nx, int *nu, double **pBAbt, double *work, double **Ga
 	
 	// Gamma_b
 	ii = 0;
-	dgetr_lib(1, nx[ii+1], nu[ii]+nx[ii], pBAbt[ii]+(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs, cnx[ii+1], 0, Gamma_b[ii], 1);
+	dgetr_lib(1, nx[ii+1], 1.0, nu[ii]+nx[ii], pBAbt[ii]+(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs, cnx[ii+1], 0, Gamma_b[ii], 1);
 	for(ii=1; ii<N; ii++)
 		{
-		dgetr_lib(nx[ii], nx[ii+1], nu[ii], pBAbt[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1], 0, work, cnx[ii]); // pA in work
-		dgetr_lib(1, nx[ii+1], nu[ii]+nx[ii], pBAbt[ii]+(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs, cnx[ii+1], 0, Gamma_b[ii], 1);
+		dgetr_lib(nx[ii], nx[ii+1], 1.0, nu[ii], pBAbt[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1], 0, work, cnx[ii]); // pA in work
+		dgetr_lib(1, nx[ii+1], 1.0, nu[ii]+nx[ii], pBAbt[ii]+(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs, cnx[ii+1], 0, Gamma_b[ii], 1);
 		dgemv_n_lib(nx[ii], nx[ii+1], work, cnx[ii+1], Gamma_b[ii-1], 1, Gamma_b[ii], Gamma_b[ii]);
 		}
 	
-	dgetr_lib(nx[N], 1, 0, Gamma_b[N-1], 1, nu2+nx[0], pBAbt2+(nu2+nx[0])/bs*bs*cnx[N]+(nu2+nx[0])%bs, cnx[N]);
+	dgetr_lib(nx[N], 1, 1.0, 0, Gamma_b[N-1], 1, nu2+nx[0], pBAbt2+(nu2+nx[0])/bs*bs*cnx[N]+(nu2+nx[0])%bs, cnx[N]);
 	
 	}
 	
@@ -175,14 +175,14 @@ void d_cond_BAb(int N, int *nx, int *nu, double **pBAbt, double *work, double **
 	// A
 	dgecp_lib(nx[ii], nx[ii+1], nu[ii], pBAbt[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1], 0, pGamma_x0[ii], cnx[ii+1]);
 	// b
-	dgetr_lib(1, nx[ii+1], nu[ii]+nx[ii], pBAbt[ii]+(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs, cnx[ii+1], 0, Gamma_b[ii], 1);
+	dgetr_lib(1, nx[ii+1], 1.0, nu[ii]+nx[ii], pBAbt[ii]+(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs, cnx[ii+1], 0, Gamma_b[ii], 1);
 	//
 	nu_tmp += nu[0];
 
 	for(ii=1; ii<N; ii++)
 		{
 		// TODO check for equal pointers and avoid copy
-		dgetr_lib(nx[ii], nx[ii+1], nu[ii], pBAbt[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1], 0, work, cnx[ii]); // pA in work
+		dgetr_lib(nx[ii], nx[ii+1], 1.0, nu[ii], pBAbt[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1], 0, work, cnx[ii]); // pA in work
 		// B
 #if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX) || defined(TARGET_C99_4X4)
 		dgemm_nt_lib(nx[ii+1], nu_tmp, nx[ii], work, cnx[ii], pGamma_u[ii-1], cnx[ii], 0, pGamma_u[ii], cnx[ii+1], pGamma_u[ii], cnx[ii+1], 0, 1); // (A * Gamma_u^T)^T
@@ -193,7 +193,7 @@ void d_cond_BAb(int N, int *nx, int *nu, double **pBAbt, double *work, double **
 		// A
 		dgemm_nt_lib(nx[0], nx[ii+1], nx[ii], pGamma_x0[ii-1], cnx[ii], work, cnx[ii], 0, pGamma_x0[ii], cnx[ii+1], pGamma_x0[ii], cnx[ii+1], 0, 0);
 		// b
-		dgetr_lib(1, nx[ii+1], nu[ii]+nx[ii], pBAbt[ii]+(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs, cnx[ii+1], 0, Gamma_b[ii], 1);
+		dgetr_lib(1, nx[ii+1], 1.0, nu[ii]+nx[ii], pBAbt[ii]+(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs, cnx[ii+1], 0, Gamma_b[ii], 1);
 		dgemv_n_lib(nx[ii], nx[ii+1], work, cnx[ii+1], Gamma_b[ii-1], 1, Gamma_b[ii], Gamma_b[ii]);
 		//
 		nu_tmp += nu[ii];
@@ -204,7 +204,7 @@ void d_cond_BAb(int N, int *nx, int *nu, double **pBAbt, double *work, double **
 	// A
 	dgecp_lib(nx[0], nx[N], 0, pGamma_x0[N-1], cnx[N], nu2, pBAbt2+nu2/bs*bs*cnx[N]+nu2%bs, cnx[N]);
 	// b
-	dgetr_lib(nx[N], 1, 0, Gamma_b[N-1], 1, nu2+nx[0], pBAbt2+(nu2+nx[0])/bs*bs*cnx[N]+(nu2+nx[0])%bs, cnx[N]);
+	dgetr_lib(nx[N], 1, 1.0, 0, Gamma_b[N-1], 1, nu2+nx[0], pBAbt2+(nu2+nx[0])/bs*bs*cnx[N]+(nu2+nx[0])%bs, cnx[N]);
 
 	}
 #endif
@@ -272,7 +272,7 @@ void d_cond_BAbt(int N, int *nx, int *nu, double **hpBAbt, double *work, double 
 		// TODO check for equal pointers and avoid copy
 		
 		// pA in work space
-		dgetr_lib(nx[ii], nx[ii+1], nu[ii], hpBAbt[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1], 0, pA, cnx[ii]); // pA in work
+		dgetr_lib(nx[ii], nx[ii+1], 1.0, nu[ii], hpBAbt[ii]+nu[ii]/bs*bs*cnx[ii+1]+nu[ii]%bs, cnx[ii+1], 0, pA, cnx[ii]); // pA in work
 
 		// Gamma * A^T
 #ifdef BLASFEO
@@ -450,7 +450,7 @@ for(nn=0; nn<=N; nn++)
 #endif
 
 	// M
-	dgetr_lib(nx[N-1], nu[N-1], nu[N-1], pL+nu[N-1]/bs*bs*cnux[N-1]+nu[N-1]%bs, cnux[N-1], 0, pM, cnu[N-1]);
+	dgetr_lib(nx[N-1], nu[N-1], 1.0, nu[N-1], pL+nu[N-1]/bs*bs*cnux[N-1]+nu[N-1]%bs, cnux[N-1], 0, pM, cnu[N-1]);
 
 #ifdef BLASFEO
 	dgemm_nt_lib(nu2[N-1]+nx[0]+1, nu[N-1], nx[N-1], 1.0, hpGamma[N-2], cnx[N-1], pM, cnu[N-1], 0.0, buffer, cnu[N-1], buffer, cnu[N-1]);
@@ -483,7 +483,7 @@ for(nn=0; nn<=N; nn++)
 		dpotrf_lib(nx[N-nn]+1, nx[N-nn], pLx, cnx[N-nn], pLx, cnx[N-nn], dLx);
 #endif
 
-		dtrtr_l_lib(nx[N-nn], 0, pLx, cnx[N-nn], 0, pLx, cnx[N-nn]);	
+		dtrtr_l_lib(nx[N-nn], 1.0, 0, pLx, cnx[N-nn], 0, pLx, cnx[N-nn]);	
 //		d_print_pmat(nx[N]+1, nx[N], bs, pLx, cnx[N-nn]);
 
 #ifdef BLASFEO
@@ -508,7 +508,7 @@ for(nn=0; nn<=N; nn++)
 //		d_print_pmat(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], bs, pL, cnux[N-nn-1]);
 
 		// M
-		dgetr_lib(nx[N-nn-1], nu[N-nn-1], nu[N-nn-1], pL+nu[N-nn-1]/bs*bs*cnux[N-nn-1]+nu[N-nn-1]%bs, cnux[N-nn-1], 0, pM, cnu[N-nn-1]);
+		dgetr_lib(nx[N-nn-1], nu[N-nn-1], 1.0, nu[N-nn-1], pL+nu[N-nn-1]/bs*bs*cnux[N-nn-1]+nu[N-nn-1]%bs, cnux[N-nn-1], 0, pM, cnu[N-nn-1]);
 
 #ifdef BLASFEO
 		dgemm_nt_lib(nu2[N-nn-1]+nx[0]+1, nu[N-nn-1], nx[N-nn-1], 1.0, hpGamma[N-nn-2], cnx[N-nn-1], pM, cnu[N-nn-1], 0.0, buffer, cnu[N-nn-1], buffer, cnu[N-nn-1]); // add unaligned stores in BLASFEO !!!!!!
@@ -544,7 +544,7 @@ for(nn=0; nn<=N; nn++)
 	dpotrf_lib(nx[N-nn]+1, nx[N-nn], pLx, cnx[N-nn], pLx, cnx[N-nn], dLx);
 #endif
 
-	dtrtr_l_lib(nx[N-nn], 0, pLx, cnx[N-nn], 0, pLx, cnx[N-nn]);	
+	dtrtr_l_lib(nx[N-nn], 1.0, 0, pLx, cnx[N-nn], 0, pLx, cnx[N-nn]);	
 //	d_print_pmat(nx[N]+1, nx[N], bs, pLx, cnx[N-nn]);
 
 #ifdef BLASFEO

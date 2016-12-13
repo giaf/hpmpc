@@ -236,7 +236,7 @@ d_print_pmat(nx[nn]+1, nx[nn], bs, hpRSQrq[nn], cnux[nn]);
 #endif
 		}
 
-	dtrtr_l_lib(nx[N], 0, hpL[N], cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
+	dtrtr_l_lib(nx[N], 1.0, 0, hpL[N], cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
 
 
 
@@ -320,7 +320,7 @@ d_print_pmat(nx[nn]+1, nx[nn], bs, hpRSQrq[nn], cnux[nn]);
 #endif
 			}
 
-		dtrtr_l_lib(nx[N-nn-1], nu[N-nn-1], hpL[N-nn-1]+nu[N-nn-1]/bs*bs*cnl[N-nn-1]+nu[N-nn-1]%bs+nu[N-nn-1]*bs, cnl[N-nn-1], 0, hpL[N-nn-1]+ncl*bs, cnl[N-nn-1]);	
+		dtrtr_l_lib(nx[N-nn-1], 1.0, nu[N-nn-1], hpL[N-nn-1]+nu[N-nn-1]/bs*bs*cnl[N-nn-1]+nu[N-nn-1]%bs+nu[N-nn-1]*bs, cnl[N-nn-1], 0, hpL[N-nn-1]+ncl*bs, cnl[N-nn-1]);	
 
 		}
 
@@ -483,7 +483,7 @@ void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, int *nb, int **idxb, int
 #endif
 		}
 
-	dtrtr_l_lib(nx[N], 0, hpL[N], cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
+	dtrtr_l_lib(nx[N], 1.0, 0, hpL[N], cnl[N], 0, hpL[N]+ncl*bs, cnl[N]);	
 
 
 
@@ -533,7 +533,7 @@ void d_back_ric_rec_trf_tv_res(int N, int *nx, int *nu, int *nb, int **idxb, int
 #endif
 			}
 
-		dtrtr_l_lib(nx[N-nn-1], nu[N-nn-1], hpL[N-nn-1]+nu[N-nn-1]/bs*bs*cnl[N-nn-1]+nu[N-nn-1]%bs+nu[N-nn-1]*bs, cnl[N-nn-1], 0, hpL[N-nn-1]+ncl*bs, cnl[N-nn-1]);	
+		dtrtr_l_lib(nx[N-nn-1], 1.0, nu[N-nn-1], hpL[N-nn-1]+nu[N-nn-1]/bs*bs*cnl[N-nn-1]+nu[N-nn-1]%bs+nu[N-nn-1]*bs, cnl[N-nn-1], 0, hpL[N-nn-1]+ncl*bs, cnl[N-nn-1]);	
 
 		}
 

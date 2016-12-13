@@ -72,7 +72,7 @@ void d_back_ric_trf_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, int nb0
 	
 	// factorize at the end
 	dpotrf_l_libstr(nu0+nx0, nu0+nx0, &hsL[0], 0, 0, &hsL[0], 0, 0);
-	dtrtr_l_libstr(nx0, &hsL[0], nu0, nu0, &hsLxt0[0], 0, 0);
+	dtrtr_l_libstr(nx0, 1.0, &hsL[0], nu0, nu0, &hsLxt0[0], 0, 0);
 
 	return;
 
@@ -99,7 +99,7 @@ void d_back_ric_trf_leg1_libstr(int nx0, int nx1, int nu0, int nb0, int *hidxb0,
 		dsyrk_ln_libstr(nu0+nx0, nu0+nx0, nx1, 1.0, &hswork_mat[0], 0, 0, &hswork_mat[0], 0, 0, 1.0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
 		dpotrf_l_libstr(nu0+nx0, nu0+nx0, &hsL[0], 0, 0, &hsL[0], 0, 0);
 		}
-	dtrtr_l_libstr(nx0, &hsL[0], nu0, nu0, &hsLxt0[0], 0, 0);
+	dtrtr_l_libstr(nx0, 1.0, &hsL[0], nu0, nu0, &hsLxt0[0], 0, 0);
 
 	return;
 
@@ -123,7 +123,7 @@ void d_back_ric_trf_legN_libstr(int nx0, int nb0, int *hidxb0, int ng0, struct d
 		{
 		dpotrf_l_libstr(nx0, nx0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
 		}
-	dtrtr_l_libstr(nx0, &hsL[0], 0, 0, &hsLxt[0], 0, 0);
+	dtrtr_l_libstr(nx0, 1.0, &hsL[0], 0, 0, &hsLxt[0], 0, 0);
 
 
 	return;
