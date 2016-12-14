@@ -371,12 +371,17 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 
 
 // TODO general constraints !!!!!
-void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, double **hd, double **hpGamma, double *pDCt2, double *d2, int *idxb2)
+void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, struct d_strvec *hsd, struct d_strmat *hsGamma, struct d_strmat *sDCt2, struct d_strvec *sd2, int *idxb2)
 	{
+
+double **hd, **hpGamma, *pDCt2;
 
 	// early return
 	if(N<1)
 		return;
+
+	double *d2 = sd2->pa;
+	double *ptr_d;
 
 	const int bs = D_MR;
 	const int ncl = D_NCL;
@@ -432,26 +437,23 @@ void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, double **
 	for(ii=0; ii<N-1; ii++)
 		{
 		nu_tmp += nu[N-1-ii];
+		ptr_d = hsd[N-1-ii].pa;
 		for(jj=0; jj<nb[N-1-ii]; jj++)
 			{
 			if(hidxb[N-1-ii][jj]<nu[N-1-ii]) // input: box constraint
 				{
-				d2[0*pnbb+ib] = hd[N-1-ii][0*pnb[N-1-ii]+jj];
-				d2[1*pnbb+ib] = hd[N-1-ii][1*pnb[N-1-ii]+jj];
+				d2[0*nbb+ib] = ptr_d[0*nb[N-1-ii]+jj];
+				d2[1*nbb+ib] = ptr_d[1*nb[N-1-ii]+jj];
 				idxb2[ib] = nu_tmp - nu[N-1-ii] + hidxb[N-1-ii][jj];
 				ib++;
 				}
 			else // state: general constraint
 				{
 				idx_g = hidxb[N-1-ii][jj]-nu[N-1-ii];
-				tmp = hpGamma[N-2-ii][idx_gammab/bs*bs*cnx[N-1-ii]+idx_gammab%bs+idx_g*bs];
-				d2[2*pnbb+0*pnbg+ig] = hd[N-1-ii][0*pnb[N-1-ii]+jj] - tmp;
-				d2[2*pnbb+1*pnbg+ig] = hd[N-1-ii][1*pnb[N-1-ii]+jj] - tmp;
-#ifdef BLASFEO
-				dgecp_lib(idx_gammab, 1, 1.0, 0, hpGamma[N-ii-2]+idx_g*bs, cnx[N-ii-1], nu_tmp, pDCt2+nu_tmp/bs*bs*cnbg+nu_tmp%bs+ig*bs, cnbg);
-#else
-				dgecp_lib(idx_gammab, 1, 0, hpGamma[N-ii-2]+idx_g*bs, cnx[N-ii-1], nu_tmp, pDCt2+nu_tmp/bs*bs*cnbg+nu_tmp%bs+ig*bs, cnbg);
-#endif
+				tmp = dmatex1_libstr(&hsGamma[N-2-ii], idx_gammab, idx_g);
+				d2[2*nbb+0*nbg+ig] = ptr_d[0*nb[N-1-ii]+jj] - tmp;
+				d2[2*nbb+1*nbg+ig] = ptr_d[1*nb[N-1-ii]+jj] - tmp;
+				dgecp_libstr(idx_gammab, 1, 1.0, &hsGamma[N-ii-2], 0, idx_g, sDCt2, nu_tmp, ig);
 				ig++;
 				}
 			}
@@ -464,10 +466,11 @@ void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, double **
 
 	// initial stage: both inputs and states as box constraints
 	nu_tmp += nu[0];
+	ptr_d = hsd[0].pa;
 	for(jj=0; jj<nb[0]; jj++)
 		{
-		d2[0*pnbb+ib] = hd[0][0*pnb[0]+jj];
-		d2[1*pnbb+ib] = hd[0][1*pnb[0]+jj];
+		d2[0*nbb+ib] = ptr_d[0*nb[0]+jj];
+		d2[1*nbb+ib] = ptr_d[1*nb[0]+jj];
 		idxb2[ib] = nu_tmp - nu[0] + hidxb[0][jj];
 		ib++;
 		}
