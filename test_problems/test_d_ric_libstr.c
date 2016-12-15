@@ -356,7 +356,7 @@ int main()
 	struct d_strmat *hsmatdummy;
 	struct d_strvec *hsvecdummy;
 
-	struct d_strmat hsBAbt[N+1];
+	struct d_strmat hsBAbt[N];
 	struct d_strmat hsRSQrq[N+1];
 	struct d_strmat hsDCt[N+1];
 	struct d_strvec hsd[N+1];
@@ -370,7 +370,7 @@ int main()
 	struct d_strvec hsric_work_vec[1];
 
 
-	hsBAbt[1] = sBAbt0;
+	hsBAbt[0] = sBAbt0;
 	hsRSQrq[0] = sRSQrq0;
 	d_allocate_strvec(nu[0]+nx[0], &hsux[0]);
 	d_allocate_strvec(nx[1], &hspi[1]);
@@ -379,7 +379,7 @@ int main()
 	d_allocate_strmat(nx[0], nx[0], &hsLxt[0]);
 	for(ii=1; ii<N; ii++)
 		{
-		hsBAbt[ii+1] = sBAbt1;
+		hsBAbt[ii] = sBAbt1;
 		hsRSQrq[ii] = sRSQrq1;
 		d_allocate_strvec(nu[ii]+nx[ii], &hsux[ii]);
 		d_allocate_strvec(nx[ii+1], &hspi[ii+1]);
@@ -439,32 +439,31 @@ int main()
 * libstr ip2 residuals
 ************************************************/	
 
-	struct d_strvec hsb[N+1];
+	struct d_strvec hsb[N];
 	struct d_strvec hsrq[N+1];
 	struct d_strvec hsrrq[N+1];
-	struct d_strvec hsrb[N+1];
+	struct d_strvec hsrb[N];
 	struct d_strvec hsrd[N+1];
 	struct d_strvec hsrm[N+1];
 	double mu;
 
-	hsb[1] = sb0;
+	hsb[0] = sb0;
 	hsrq[0] = srq0;
 	d_allocate_strvec(nu[0]+nx[0], &hsrrq[0]);
-	d_allocate_strvec(nx[0], &hsrb[0]);
+	d_allocate_strvec(nx[1], &hsrb[0]);
 	d_allocate_strvec(2*nb[0]+2*ng[0], &hsrd[0]);
 	d_allocate_strvec(2*nb[0]+2*ng[0], &hsrm[0]);
 	for(ii=1; ii<N; ii++)
 		{
-		hsb[ii+1] = sb1;
+		hsb[ii] = sb1;
 		hsrq[ii] = srq1;
 		d_allocate_strvec(nu[ii]+nx[ii], &hsrrq[ii]);
-		d_allocate_strvec(nx[ii], &hsrb[ii]);
+		d_allocate_strvec(nx[ii+1], &hsrb[ii]);
 		d_allocate_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii]);
 		d_allocate_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii]);
 		}
 	hsrq[N] = srqN;
 	d_allocate_strvec(nu[N]+nx[N], &hsrrq[N]);
-	d_allocate_strvec(nx[N], &hsrb[N]);
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hsrd[N]);
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hsrm[N]);
 
@@ -479,8 +478,8 @@ int main()
 		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
 
 	printf("\nres_b\n");
-	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(nx[ii], &hsrb[ii], 0);
+	for(ii=0; ii<N; ii++)
+		d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
 
 	printf("\nres_d\n");
 	for(ii=0; ii<=N; ii++)
@@ -529,7 +528,6 @@ int main()
 		}
 	d_free_strvec(&hsux[N]);
 	d_free_strvec(&hsrrq[N]);
-	d_free_strvec(&hsrb[N]);
 
 /************************************************
 * return

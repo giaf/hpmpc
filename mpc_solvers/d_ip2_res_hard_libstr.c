@@ -1963,7 +1963,7 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 	struct d_strmat *hsmatdummy;
 	struct d_strvec *hsvecdummy;
 
-	struct d_strvec hsb[N+1];
+	struct d_strvec hsb[N];
 	struct d_strvec hsrq[N+1];
 	struct d_strvec hsQx[N+1];
 	struct d_strvec hsqx[N+1];
@@ -1977,7 +1977,7 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 	struct d_strmat hsL[N+1];
 	struct d_strmat hsLxt[N+1];
 	struct d_strvec hsres_rq[N+1];
-	struct d_strvec hsres_b[N+1];
+	struct d_strvec hsres_b[N];
 	struct d_strvec hsres_d[N+1];
 	struct d_strvec hsres_m[N+1];
 	struct d_strmat hsric_work_mat[2];
@@ -2003,9 +2003,9 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		}
 
 	// b as vector
-	for(ii=0; ii<=N; ii++)
+	for(ii=0; ii<N; ii++)
 		{
-		d_create_strvec(nx[ii], &hsb[ii], work_memory);
+		d_create_strvec(nx[ii+1], &hsb[ii], work_memory);
 		work_memory += hsb[ii].memory_size;
 		}
 
@@ -2078,9 +2078,9 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		work_memory += hsres_rq[ii].memory_size;
 		}
 
-	for(ii=0; ii<=N; ii++)
+	for(ii=0; ii<N; ii++)
 		{
-		d_create_strvec(nx[ii], &hsres_b[ii], work_memory);
+		d_create_strvec(nx[ii+1], &hsres_b[ii], work_memory);
 		work_memory += hsres_b[ii].memory_size;
 		}
 
@@ -2121,9 +2121,9 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 	
 
 	// extract b
-	for(jj=1; jj<=N; jj++)
+	for(jj=0; jj<N; jj++)
 		{
-		drowex_libstr(nx[jj], 1.0, &hsBAbt[jj], nu[jj-1]+nx[jj-1], 0, &hsb[jj], 0);
+		drowex_libstr(nx[jj+1], 1.0, &hsBAbt[jj], nu[jj]+nx[jj], 0, &hsb[jj], 0);
 		}
 
 	// extract q
@@ -2449,8 +2449,8 @@ exit(2);
 	for(jj=0; jj<=N; jj++)
 		d_print_e_tran_strvec(nu[jj]+nx[jj], &hsres_rq[jj], 0);
 	printf("\nres_b\n");
-	for(jj=0; jj<=N; jj++)
-		d_print_e_tran_strvec(nx[jj], &hsres_b[jj], 0);
+	for(jj=0; jj<N; jj++)
+		d_print_e_tran_strvec(nx[jj+1], &hsres_b[jj], 0);
 	printf("\nres_d\n");
 	for(jj=0; jj<=N; jj++)
 		d_print_e_tran_strvec(2*nb[jj]+2*ng[jj], &hsres_d[jj], 0);
@@ -2625,8 +2625,8 @@ exit(1);
 #if 0
 for(ii=0; ii<=N; ii++)
 	d_print_e_tran_strvec(nu[ii]+nx[ii], &hsres_rq[ii], 0);
-for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(nx[ii], &hsres_b[ii], 0);
+for(ii=0; ii<N; ii++)
+	d_print_e_tran_strvec(nx[ii+1], &hsres_b[ii], 0);
 for(ii=0; ii<=N; ii++)
 	d_print_tran_strvec(nb[ii]+ng[ii], &hsQx[ii], 0);
 for(ii=0; ii<=N; ii++)
@@ -2917,8 +2917,8 @@ for(ii=0; ii<=N; ii++)
 
 
 		// restore dynamics
-		for(jj=1; jj<=N; jj++)
-			drowin_libstr(nx[jj], 1.0, &hsb[jj], 0, &hsBAbt[jj], nu[jj-1]+nx[jj-1], 0);
+		for(jj=0; jj<N; jj++)
+			drowin_libstr(nx[jj+1], 1.0, &hsb[jj], 0, &hsBAbt[jj], nu[jj]+nx[jj], 0);
 
 		d_res_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsres_work, hsres_rq, hsres_b, hsres_d, hsres_m, &mu);
 
@@ -2927,8 +2927,8 @@ for(ii=0; ii<=N; ii++)
 	for(jj=0; jj<=N; jj++)
 		d_print_e_tran_strvec(nu[jj]+nx[jj], &hsres_rq[jj], 0);
 	printf("\nres_b\n");
-	for(jj=0; jj<=N; jj++)
-		d_print_e_tran_strvec(nx[jj], &hsres_b[jj], 0);
+	for(jj=0; jj<N; jj++)
+		d_print_e_tran_strvec(nx[jj+1], &hsres_b[jj], 0);
 	printf("\nres_d\n");
 	for(jj=0; jj<=N; jj++)
 		d_print_e_tran_strvec(2*nb[jj]+2*ng[jj], &hsres_d[jj], 0);

@@ -69,12 +69,12 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	nb0 = nb[ii];
 	ng0 = ng[ii];
 
-	ptr_b = hsb[ii+1].pa;
+	ptr_b = hsb[ii].pa;
 	ptr_q = hsq[ii].pa;
 	ptr_ux = hsux[ii].pa;
 	ptr_pi = hspi[ii].pa;
 	ptr_rq = hsrq[ii].pa;
-	ptr_rb = hsrb[ii+1].pa;
+	ptr_rb = hsrb[ii].pa;
 
 	if(nb0>0 | ng0>0)
 		{
@@ -113,7 +113,7 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	for(jj=0; jj<nx1; jj++) 
 		ptr_rb[jj] = ptr_b[jj] - ptr_ux[nu1+jj];
 
-	dgemv_nt_libstr(nu0+nx0, nx1, 1.0, 1.0, &hsBAbt[ii+1], 0, 0, &hspi[ii+1], 0, &hsux[ii], 0, 1.0, 1.0, &hsrq[ii], 0, &hsrb[ii+1], 0, &hsrq[ii], 0, &hsrb[ii+1], 0);
+	dgemv_nt_libstr(nu0+nx0, nx1, 1.0, 1.0, &hsBAbt[ii], 0, 0, &hspi[ii+1], 0, &hsux[ii], 0, 1.0, 1.0, &hsrq[ii], 0, &hsrb[ii], 0, &hsrq[ii], 0, &hsrb[ii], 0);
 
 	if(ng0>0)
 		{
@@ -155,12 +155,12 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		nb0 = nb[ii];
 		ng0 = ng[ii];
 
-		ptr_b = hsb[ii+1].pa;
+		ptr_b = hsb[ii].pa;
 		ptr_q = hsq[ii].pa;
 		ptr_ux = hsux[ii].pa;
 		ptr_pi = hspi[ii].pa;
 		ptr_rq = hsrq[ii].pa;
-		ptr_rb = hsrb[ii+1].pa;
+		ptr_rb = hsrb[ii].pa;
 
 		if(nb0>0 | ng0>0)
 			{
@@ -202,7 +202,7 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		for(jj=0; jj<nx1; jj++) 
 			ptr_rb[jj] = ptr_b[jj] - ptr_ux[nu1+jj];
 
-		dgemv_nt_libstr(nu0+nx0, nx1, 1.0, 1.0, &hsBAbt[ii+1], 0, 0, &hspi[ii+1], 0, &hsux[ii], 0, 1.0, 1.0, &hsrq[ii], 0, &hsrb[ii+1], 0, &hsrq[ii], 0, &hsrb[ii+1], 0);
+		dgemv_nt_libstr(nu0+nx0, nx1, 1.0, 1.0, &hsBAbt[ii], 0, 0, &hspi[ii+1], 0, &hsux[ii], 0, 1.0, 1.0, &hsrq[ii], 0, &hsrb[ii], 0, &hsrq[ii], 0, &hsrb[ii], 0);
 
 		if(ng0>0)
 			{
