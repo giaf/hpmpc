@@ -67,7 +67,6 @@ int hpmpc_d_ip_mpc_hard_tv_work_space_size_bytes(int N, int nx, int nu, int nb, 
 
 
 
-// TODO !!!!!!!!!!!
 int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2)
 	{
 
@@ -163,6 +162,69 @@ int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *n
 		size += d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng);
 
 		}
+
+	size += d_size*sizeof(double);
+
+	size = (size + 63) / 64 * 64; // make multiple of (typical) cache line size
+
+	return size;
+
+	}
+
+
+
+// TODO
+int hpmpc_d_ip_ocp_soft_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int *ns)
+	{
+
+	const int bs  = D_MR; //d_get_mr();
+	const int ncl = D_NCL;
+
+	int ii;
+
+	int pnx[N+1];
+	int pnz[N+1];
+	int pnb[N+1];
+	int png[N+1];
+	int pns[N+1];
+	int cnx[N+1];
+	int cnux[N+1];
+	int cng[N+1];
+
+	for(ii=0; ii<N; ii++)
+		{
+		pnx[ii] = (nx[ii]+bs-1)/bs*bs;
+		pnz[ii] = (nu[ii]+nx[ii]+1+bs-1)/bs*bs;
+		pnb[ii] = (nb[ii]+bs-1)/bs*bs;
+		png[ii] = (ng[ii]+bs-1)/bs*bs;
+		pns[ii] = (ns[ii]+bs-1)/bs*bs;
+		cnx[ii] = (nx[ii]+ncl-1)/ncl*ncl;
+		cnux[ii] = (nu[ii]+nx[ii]+ncl-1)/ncl*ncl;
+		cng[ii] = (ng[ii]+ncl-1)/ncl*ncl;
+		}
+	ii = N;
+	pnx[ii] = (nx[ii]+bs-1)/bs*bs;
+	pnz[ii] = (nx[ii]+1+bs-1)/bs*bs;
+	pnb[ii] = (nb[ii]+bs-1)/bs*bs;
+	png[ii] = (ng[ii]+bs-1)/bs*bs;
+	pns[ii] = (ns[ii]+bs-1)/bs*bs;
+	cnx[ii] = (nx[ii]+ncl-1)/ncl*ncl;
+	cnux[ii] = (nx[ii]+ncl-1)/ncl*ncl;
+	cng[ii] = (ng[ii]+ncl-1)/ncl*ncl;
+
+	int d_size = bs; // ???????
+
+	for(ii=0; ii<N; ii++)
+		{
+		d_size += pnz[ii]*cnx[ii+1] + pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + 3*pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii] + 16*pns[ii]; // TODO
+		}
+	ii = N;
+	d_size += pnz[ii]*cng[ii] + pnz[ii]*cnux[ii] + 3*pnx[ii] + 3*pnz[ii] + 8*pnb[ii] + 8*png[ii] + 16*pns[ii]; // TODO
+
+	int size = 2*64; // align twice
+
+	// IPM
+	size += d_ip2_res_mpc_soft_tv_work_space_size_bytes(N, nx, nu, nb, ng, ns);
 
 	size += d_size*sizeof(double);
 
