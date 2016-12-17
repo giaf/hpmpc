@@ -61,6 +61,11 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 		}
 	if(ng[N]>0)
 		{
+		dgemm_r_diag_libstr(nu[N]+nx[N], ng[N], 1.0, &hsDCt[N], 0, 0, &hsQx[N], nb[N], 0.0, &hswork_mat[0], 0, 0, &hswork_mat[0], 0, 0);
+		drowin_libstr(ng[N], 1.0, &hsqx[N], nb[N], &hswork_mat[0], nu[N]+nx[N], 0);
+//		dgecp_libstr(nu[N]+nx[N], ng[N], 1.0, &hsDCt[N], 0, 0, &hswork_mat[1], 0, 0);
+//		dsyrk_dpotrf_ln_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], ng[N], &hswork_mat[0], 0, 0, &hswork_mat[1], 0, 0, &hsL[N], 0, 0, &hsL[N], 0, 0);
+		dsyrk_dpotrf_ln_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], ng[N], &hswork_mat[0], 0, 0, &hsDCt[N], 0, 0, &hsL[N], 0, 0, &hsL[N], 0, 0);
 		printf("\nfeature not implemented yet\n\n");
 		exit(1);
 		}
@@ -100,6 +105,11 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 			}
 		if(ng[N-nn-1]>0)
 			{
+			dgemm_r_diag_libstr(nu[N-nn-1]+nx[N-nn-1], ng[N-nn-1], 1.0, &hsDCt[N-nn-1], 0, 0, &hsQx[N-nn-1], nb[N], 0.0, &hswork_mat[0], 0, nx[N-nn], &hswork_mat[0], 0, nx[N-nn]);
+			drowin_libstr(ng[N-nn-1], 1.0, &hsqx[N-nn-1], nb[N-nn-1], &hswork_mat[0], nu[N-nn-1]+nx[N-nn-1], nx[N-nn]);
+			dgecp_libstr(nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &hswork_mat[0], 0, 0, &hswork_mat[1], 0, 0);
+			dgecp_libstr(nu[N-nn-1]+nx[N-nn-1], ng[N-nn-1], 1.0, &hsDCt[N-nn-1], 0, 0, &hswork_mat[1], 0, nx[N-nn]);
+			dsyrk_dpotrf_ln_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn]+ng[N-nn-1], &hswork_mat[0], 0, 0, &hswork_mat[1], 0, 0, &hsL[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 			printf("\nfeature not implemented yet\n\n");
 			exit(1);
 			}
@@ -165,6 +175,10 @@ void d_back_ric_rec_trf_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 		}
 	if(ng[N]>0)
 		{
+		dgemm_r_diag_libstr(nu[N]+nx[N], ng[N], 1.0, &hsDCt[N], 0, 0, &hsQx[N], nb[N], 0.0, &hswork_mat[0], 0, 0, &hswork_mat[0], 0, 0);
+//		dgecp_libstr(nu[N]+nx[N], ng[N], 1.0, &hsDCt[N], 0, 0, &hswork_mat[1], 0, 0);
+//		dsyrk_dpotrf_ln_libstr(nu[N]+nx[N], nu[N]+nx[N], ng[N], &hswork_mat[0], 0, 0, &hswork_mat[1], 0, 0, &hsL[N], 0, 0, &hsL[N], 0, 0);
+		dsyrk_dpotrf_ln_libstr(nu[N]+nx[N], nu[N]+nx[N], ng[N], &hswork_mat[0], 0, 0, &hsDCt[N], 0, 0, &hsL[N], 0, 0, &hsL[N], 0, 0);
 		printf("\nfeature not implemented yet\n\n");
 		exit(1);
 		}
@@ -185,6 +199,10 @@ void d_back_ric_rec_trf_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 			}
 		if(ng[N-nn-1]>0)
 			{
+			dgemm_r_diag_libstr(nu[N-nn-1]+nx[N-nn-1], ng[N-nn-1], 1.0, &hsDCt[N-nn-1], 0, 0, &hsQx[N-nn-1], nb[N], 0.0, &hswork_mat[0], 0, nx[N-nn], &hswork_mat[0], 0, nx[N-nn]);
+			dgecp_libstr(nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &hswork_mat[0], 0, 0, &hswork_mat[1], 0, 0);
+			dgecp_libstr(nu[N-nn-1]+nx[N-nn-1], ng[N-nn-1], 1.0, &hsDCt[N-nn-1], 0, 0, &hswork_mat[1], 0, nx[N-nn]);
+			dsyrk_dpotrf_ln_libstr(nu[N-nn-1]+nx[N-nn-1], nu[N-nn-1]+nx[N-nn-1], nx[N-nn]+ng[N-nn-1], &hswork_mat[0], 0, 0, &hswork_mat[1], 0, 0, &hsL[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 			printf("\nfeature not implemented yet\n\n");
 			exit(1);
 			}
@@ -335,6 +353,11 @@ void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 		}
 	if(ng[N]>0)
 		{
+		dgemm_r_diag_libstr(nu[N]+nx[N], ng[N], 1.0, &hsDCt[N], 0, 0, &hsQx[N], nb[N], 0.0, &hswork_mat[0], 0, 0, &hswork_mat[0], 0, 0);
+		drowin_libstr(ng[N], 1.0, &hsqx[N], nb[N], &hswork_mat[0], nu[N]+nx[N], 0);
+//		dgecp_libstr(nu[N]+nx[N], ng[N], 1.0, &hsDCt[N], 0, 0, &hswork_mat[1], 0, 0);
+//		dsyrk_dpotrf_ln_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], ng[N], &hswork_mat[0], 0, 0, &hswork_mat[1], 0, 0, &hsL[N], 0, 0, &hsL[N], 0, 0);
+		dsyrk_dpotrf_ln_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], ng[N], &hswork_mat[0], 0, 0, &hsDCt[N], 0, 0, &hsL[N], 0, 0, &hsL[N], 0, 0);
 		printf("\nfeature not implemented yet\n\n");
 		exit(1);
 		}
@@ -374,6 +397,11 @@ void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 			}
 		if(ng[N-nn-1]>0)
 			{
+			dgemm_r_diag_libstr(nu[N-nn-1]+nx[N-nn-1], ng[N-nn-1], 1.0, &hsDCt[N-nn-1], 0, 0, &hsQx[N-nn-1], nb[N], 0.0, &hswork_mat[0], 0, nx[N-nn], &hswork_mat[0], 0, nx[N-nn]);
+			drowin_libstr(ng[N-nn-1], 1.0, &hsqx[N-nn-1], nb[N-nn-1], &hswork_mat[0], nu[N-nn-1]+nx[N-nn-1], nx[N-nn]);
+			dgecp_libstr(nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &hswork_mat[0], 0, 0, &hswork_mat[1], 0, 0);
+			dgecp_libstr(nu[N-nn-1]+nx[N-nn-1], ng[N-nn-1], 1.0, &hsDCt[N-nn-1], 0, 0, &hswork_mat[1], 0, nx[N-nn]);
+			dsyrk_dpotrf_ln_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn]+ng[N-nn-1], &hswork_mat[0], 0, 0, &hswork_mat[1], 0, 0, &hsL[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 			printf("\nfeature not implemented yet\n\n");
 			exit(1);
 			}

@@ -2097,9 +2097,9 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		}
 
 	// riccati work space
-	d_create_strmat(nzM, nxgM, &hsric_work_mat[0], work_memory);
+	d_create_strmat(nzM, nxgM, &hsric_work_mat[0], work_memory); // TODO use void ** and create_strmat in riccati at each stage ???
 	work_memory += hsric_work_mat[0].memory_size;
-	d_create_strmat(nzM, nxgM, &hsric_work_mat[1], work_memory);
+	d_create_strmat(nzM, nxgM, &hsric_work_mat[1], work_memory); // TODO use void ** and create_strmat in riccati at each stage ???
 	work_memory += hsric_work_mat[1].memory_size;
 
 	d_create_strvec(nzM, &hsric_work_vec[0], work_memory);
