@@ -10273,17 +10273,17 @@ void kernel_dgemm_diag_right_4_lib4(int kmax, double *A, int sda, double *B, dou
 	else
 		{
 
-		for(k=0; k<kmax-3; k++)
+		for(k=0; k<kmax-3; k+=4)
 			{
 
 			a_00 = _mm256_load_pd( &A[0] );
 			d_00 = _mm256_mul_pd( a_00, b_00 );
 			a_00 = _mm256_load_pd( &A[4] );
-			d_01 = _mm256_mul_pd( a_00, b_00 );
+			d_01 = _mm256_mul_pd( a_00, b_11 );
 			a_00 = _mm256_load_pd( &A[8] );
-			d_02 = _mm256_mul_pd( a_00, b_00 );
+			d_02 = _mm256_mul_pd( a_00, b_22 );
 			a_00 = _mm256_load_pd( &A[12] );
-			d_03 = _mm256_mul_pd( a_00, b_00 );
+			d_03 = _mm256_mul_pd( a_00, b_33 );
 
 			c_00 = _mm256_load_pd( &C[0] );
 			d_00 = _mm256_add_pd( c_00, d_00 );
@@ -10315,11 +10315,11 @@ void kernel_dgemm_diag_right_4_lib4(int kmax, double *A, int sda, double *B, dou
 			a_00 = _mm256_load_pd( &A[0] );
 			d_00 = _mm256_mul_pd( a_00, b_00 );
 			a_00 = _mm256_load_pd( &A[4] );
-			d_01 = _mm256_mul_pd( a_00, b_00 );
+			d_01 = _mm256_mul_pd( a_00, b_11 );
 			a_00 = _mm256_load_pd( &A[8] );
-			d_02 = _mm256_mul_pd( a_00, b_00 );
+			d_02 = _mm256_mul_pd( a_00, b_22 );
 			a_00 = _mm256_load_pd( &A[12] );
-			d_03 = _mm256_mul_pd( a_00, b_00 );
+			d_03 = _mm256_mul_pd( a_00, b_33 );
 
 			c_00 = _mm256_load_pd( &C[0] );
 			d_00 = _mm256_add_pd( c_00, d_00 );
@@ -10429,15 +10429,15 @@ void kernel_dgemm_diag_right_3_lib4(int kmax, double *A, int sda, double *B, dou
 	else
 		{
 
-		for(k=0; k<kmax-3; k++)
+		for(k=0; k<kmax-3; k+=4)
 			{
 
 			a_00 = _mm256_load_pd( &A[0] );
 			d_00 = _mm256_mul_pd( a_00, b_00 );
 			a_00 = _mm256_load_pd( &A[4] );
-			d_01 = _mm256_mul_pd( a_00, b_00 );
+			d_01 = _mm256_mul_pd( a_00, b_11 );
 			a_00 = _mm256_load_pd( &A[8] );
-			d_02 = _mm256_mul_pd( a_00, b_00 );
+			d_02 = _mm256_mul_pd( a_00, b_22 );
 
 			c_00 = _mm256_load_pd( &C[0] );
 			d_00 = _mm256_add_pd( c_00, d_00 );
@@ -10466,9 +10466,9 @@ void kernel_dgemm_diag_right_3_lib4(int kmax, double *A, int sda, double *B, dou
 			a_00 = _mm256_load_pd( &A[0] );
 			d_00 = _mm256_mul_pd( a_00, b_00 );
 			a_00 = _mm256_load_pd( &A[4] );
-			d_01 = _mm256_mul_pd( a_00, b_00 );
+			d_01 = _mm256_mul_pd( a_00, b_11 );
 			a_00 = _mm256_load_pd( &A[8] );
-			d_02 = _mm256_mul_pd( a_00, b_00 );
+			d_02 = _mm256_mul_pd( a_00, b_22 );
 
 			c_00 = _mm256_load_pd( &C[0] );
 			d_00 = _mm256_add_pd( c_00, d_00 );
@@ -10566,13 +10566,13 @@ void kernel_dgemm_diag_right_2_lib4(int kmax, double *A, int sda, double *B, dou
 	else
 		{
 
-		for(k=0; k<kmax-3; k++)
+		for(k=0; k<kmax-3; k+=4)
 			{
 
 			a_00 = _mm256_load_pd( &A[0] );
 			d_00 = _mm256_mul_pd( a_00, b_00 );
 			a_00 = _mm256_load_pd( &A[4] );
-			d_01 = _mm256_mul_pd( a_00, b_00 );
+			d_01 = _mm256_mul_pd( a_00, b_11 );
 
 			c_00 = _mm256_load_pd( &C[0] );
 			d_00 = _mm256_add_pd( c_00, d_00 );
@@ -10598,7 +10598,7 @@ void kernel_dgemm_diag_right_2_lib4(int kmax, double *A, int sda, double *B, dou
 			a_00 = _mm256_load_pd( &A[0] );
 			d_00 = _mm256_mul_pd( a_00, b_00 );
 			a_00 = _mm256_load_pd( &A[4] );
-			d_01 = _mm256_mul_pd( a_00, b_00 );
+			d_01 = _mm256_mul_pd( a_00, b_11 );
 
 			c_00 = _mm256_load_pd( &C[0] );
 			d_00 = _mm256_add_pd( c_00, d_00 );
@@ -10684,7 +10684,7 @@ void kernel_dgemm_diag_right_1_lib4(int kmax, double *A, int sda, double *B, dou
 	else
 		{
 
-		for(k=0; k<kmax-3; k++)
+		for(k=0; k<kmax-3; k+=4)
 			{
 
 			a_00 = _mm256_load_pd( &A[0] );
