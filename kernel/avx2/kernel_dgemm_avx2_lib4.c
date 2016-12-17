@@ -6359,6 +6359,8 @@ void kernel_dgemm_nn_2x2_lib4(int kmax, double *A, double *B, int sdb, int alg, 
 
 
 
+#if ! defined(BLASFEO)
+
 // B is the diagonal of a matrix
 void kernel_dgemm_diag_right_4_lib4(int kmax, double *A, int sda, double *B, double *C, int sdc, double *D, int sdd, int alg)
 	{
@@ -7643,5 +7645,5 @@ void kernel_dgemm_diag_left_1_lib4(int kmax, double *A, double *B, double *C, do
 		
 	}
 
-
+#endif
 

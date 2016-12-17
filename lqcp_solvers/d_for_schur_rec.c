@@ -89,7 +89,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 		ddiain_lib(nv0, 1.0, hdLA[ii], 0, hpLA[ii], cnv0);
 		for(jj=0; jj<nv0; jj++) hdLA[ii][jj] = 1.0/hdLA[ii][jj];
 
-		dgemm_diag_right_lib(ne0, nv0, hpQA[ii]+pnv0, cnv0, hdLA[ii], 0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0);
+		dgemm_diag_right_lib(ne0, nv0, 1.0, hpQA[ii]+pnv0, cnv0, hdLA[ii], 0.0, hpLA[ii]+pnv0*cnv0, cnv0, hpLA[ii]+pnv0*cnv0, cnv0);
 
 		}
 	else
@@ -249,7 +249,7 @@ int d_forward_schur_trf_tv(int N, int *nv, int *ne, double reg, int *diag_hessia
 			
 //			d_print_mat(1, nv0, hdLA[ii], 1);
 
-			dgemm_diag_right_lib(ne0, nu0, hpQA[ii]+pnv0+nx0*bs, cnv0, hdLA[ii]+nx0, 0, hpLA[ii]+pnv0*cnv0+nx0*bs, cnv0, hpLA[ii]+pnv0*cnv0+nx0*bs, cnv0);
+			dgemm_diag_right_lib(ne0, nu0, 1.0, hpQA[ii]+pnv0+nx0*bs, cnv0, hdLA[ii]+nx0, 0.0, hpLA[ii]+pnv0*cnv0+nx0*bs, cnv0, hpLA[ii]+pnv0*cnv0+nx0*bs, cnv0);
 
 //			d_print_pmat(pnv0+pne0, cnv0, bs, hpLA[ii], cnv0);
 

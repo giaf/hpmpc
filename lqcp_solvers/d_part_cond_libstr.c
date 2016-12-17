@@ -296,7 +296,8 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 	dgecp_libstr(nu[N-1]+nx[N-1]+1, nu[N-1]+nx[N-1], 1.0, &hsRSQrq[N-1], 0, 0, &sL, 0, 0);
 
 	// D
-	dgecp_libstr(nu[N-1], nu[N-1], 1.0, &sL, 0, 0, sRSQrq2, nu3[0], nu3[0]);
+//	dgecp_libstr(nu[N-1], nu[N-1], 1.0, &sL, 0, 0, sRSQrq2, nu3[0], nu3[0]);
+	dtrcp_l_libstr(nu[N-1], 1.0, &sL, 0, 0, sRSQrq2, nu3[0], nu3[0]);
 
 	// M
 	dgetr_libstr(nx[N-1], nu[N-1], 1.0, &sL, nu[N-1], 0, &sM, 0, 0);
@@ -331,7 +332,8 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 		dsyrk_ln_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &sL, 0, 0);
 
 		// D
-		dgecp_libstr(nu[N-nn-1], nu[N-nn-1], 1.0, &sL, 0, 0, sRSQrq2, nu3[nn], nu3[nn]);
+//		dgecp_libstr(nu[N-nn-1], nu[N-nn-1], 1.0, &sL, 0, 0, sRSQrq2, nu3[nn], nu3[nn]);
+		dtrcp_l_libstr(nu[N-nn-1], 1.0, &sL, 0, 0, sRSQrq2, nu3[nn], nu3[nn]);
 
 		// M
 		dgetr_libstr(nx[N-nn-1], nu[N-nn-1], 1.0, &sL, nu[N-nn-1], 0, &sM, 0, 0);
@@ -359,10 +361,14 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 
 	dgead_libstr(1, nx[N-nn], 1.0, &sLx, nx[N-nn], 0, &sBAbtL, nu[N-nn-1]+nx[N-nn-1], 0);
 
+	d_create_strmat(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], &sL, (void *) work[0]);
+
 	dsyrk_ln_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &sL, 0, 0);
 
 	// D, M, m, P, p
-	dgecp_libstr(nu[0]+nx[0]+1, nu[0]+nx[0], 1.0, &sL, 0, 0, sRSQrq2, nu3[N-1], nu3[N-1]); // TODO dtrcp for 'rectangular' matrices
+//	dgecp_libstr(nu[0]+nx[0]+1, nu[0]+nx[0], 1.0, &sL, 0, 0, sRSQrq2, nu3[N-1], nu3[N-1]); // TODO dtrcp for 'rectangular' matrices
+	dtrcp_l_libstr(nu[0]+nx[0], 1.0, &sL, 0, 0, sRSQrq2, nu3[N-1], nu3[N-1]); // TODO dtrcp for 'rectangular' matrices
+	dgecp_libstr(1, nu[0]+nx[0], 1.0, &sL, nu[0]+nx[0], 0, sRSQrq2, nu3[N-1]+nu[0]+nx[0], nu3[N-1]); // TODO dtrcp for 'rectangular' matrices
 
 	return;
 

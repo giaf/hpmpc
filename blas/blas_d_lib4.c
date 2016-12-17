@@ -7857,6 +7857,7 @@ void dtrtri_lib(int m, double *pA, int sda, int use_inv_diag_A, double *inv_diag
 
 
 
+#if ! defined(BLASFEO)
 void dgemm_diag_left_lib(int m, int n, double *dA, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd)
 	{
 
@@ -7883,9 +7884,11 @@ void dgemm_diag_left_lib(int m, int n, double *dA, double *pB, int sdb, int alg,
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 void dgemm_diag_right_lib(int m, int n, double *pA, int sda, double *dB, int alg, double *pC, int sdc, double *pD, int sdd)
 	{
 
@@ -7912,6 +7915,7 @@ void dgemm_diag_right_lib(int m, int n, double *pA, int sda, double *dB, int alg
 		}
 	
 	}
+#endif
 
 
 
