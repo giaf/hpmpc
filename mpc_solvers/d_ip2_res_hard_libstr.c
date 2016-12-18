@@ -2357,10 +2357,10 @@ exit(1);
 printf("\nalpha = %f\n", alpha);
 printf("\ndt\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], dt[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
 printf("\ndlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], dlam[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
 exit(2);
 #endif
 
