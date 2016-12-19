@@ -168,10 +168,10 @@ int main()
 
 	int nx_ = NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu_ = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = NN; // horizon lenght
+	int N  = 15; //NN; // horizon lenght
 	int nb_  = nu_+nx_/2; // number of box constrained inputs and states
 	int ng_  = 0; //nx; //4;  // number of general constraints
-	int ngN = 0; //nx; // number of general constraints at the last stage
+	int ngN = nx_/2; //nx; // number of general constraints at the last stage
 
 	// partial condensing horizon
 	int N2 = N; //N/2;
@@ -423,8 +423,8 @@ int main()
 		}
 	for(ii=0; ii<ng[N]; ii++)
 		{
-		dN[2*nb[N]+ii]       = - 100.0; // dmin
-		dN[2*nb[N]+ng[N]+ii] =   100.0; // dmax
+		dN[2*nb[N]+ii]       = - 0.0; // dmin
+		dN[2*nb[N]+ng[N]+ii] =   0.0; // dmax
 		}
 	i_print_mat(1, nb[N], idxbN, 1);
 	d_print_mat(1, 2*nb[N]+2*ng[N], dN, 1);
@@ -433,6 +433,9 @@ int main()
 	for(ii=0; ii<ng_; ii++)
 		C[ii*(ng_+1)] = 1.0;
 	double *D; d_zeros(&D, ng_, nu_);
+	double *CN; d_zeros(&CN, ngN, nx_);
+	for(ii=0; ii<ngN; ii++)
+		CN[ii*(ngN+1)] = 1.0;
 
 	struct d_strmat sDCt0;
 	d_allocate_strmat(nu[0]+nx[0], ng[0], &sDCt0);
@@ -455,10 +458,9 @@ int main()
 	d_print_tran_strvec(2*nb[1]+2*ng[1], &sd1, 0);
 
 	struct d_strmat sDCtN;
-	d_allocate_strmat(nu[N]+nx[N], ng[N], &sDCtN);
-	d_cvt_tran_mat2strmat(ng[N], nu[N], D, ng_, &sDCtN, 0, 0);
-	d_cvt_tran_mat2strmat(ng[N], nx[N], C, ng_, &sDCtN, nu[N], 0);
-	d_print_strmat(nu[N]+nx[N], ng[N], &sDCtN, 0, 0);
+	d_allocate_strmat(nx[N], ng[N], &sDCtN);
+	d_cvt_tran_mat2strmat(ng[N], nx[N], CN, ngN, &sDCtN, 0, 0);
+	d_print_strmat(nx[N], ng[N], &sDCtN, 0, 0);
 	struct d_strvec sdN;
 	d_allocate_strvec(2*nb[N]+2*ng[N], &sdN);
 	d_cvt_vec2strvec(2*nb[N]+2*ng[N], dN, &sdN, 0);
@@ -544,6 +546,10 @@ int main()
 	printf("\npi =\n\n");
 	for(ii=0; ii<=N; ii++)
 		d_print_tran_strvec(nx[ii], &hspi[ii], 0);
+
+	printf("\nt =\n\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 
 	double time_ipm = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 

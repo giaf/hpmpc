@@ -755,6 +755,7 @@ exit(2);
 	// compute residuals
 	d_res_res_mpc_hard_tv(N, nx, nu, nb, idxb, ng, pBAbt, b, pQ, q, ux, pDCt, d, pi, lam, t, res_work, res_q, res_b, res_d, res_m, &mu);
 #if 0
+	printf("kk = %d\n", *kk);
 	printf("\nres_q\n");
 	for(jj=0; jj<=N; jj++)
 		d_print_e_mat(1, nu[jj]+nx[jj], res_q[jj], 1);
@@ -1164,7 +1165,7 @@ exit(1);
 #else // no iter res
 
 		// solve the KKT system
-		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
+		d_back_ric_rec_trs_tv_res(N, nx, nu, nb, idxb, ng, pBAbt, res_b, res_q, pDCt, qx, dux, compute_mult, dpi, 0, Pb, memory, work);
 
 
 #endif

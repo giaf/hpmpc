@@ -2445,6 +2445,7 @@ exit(2);
 	d_res_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsres_work, hsres_rq, hsres_b, hsres_d, hsres_m, &mu);
 
 #if 0
+	printf("kk = %d\n", *kk);
 	printf("\nres_q\n");
 	for(jj=0; jj<=N; jj++)
 		d_print_e_tran_strvec(nu[jj]+nx[jj], &hsres_rq[jj], 0);
@@ -2873,16 +2874,16 @@ exit(1);
 printf("\nalpha = %f\n", alpha);
 printf("\nd\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], d[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
 printf("\nres_d\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], res_d[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsres_d[ii], 0);
 printf("\ndt\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], dt[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
 printf("\ndlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, 2*nb[ii]+2*ng[ii], dlam[ii], 1);
+	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
 exit(2);
 #endif
 
