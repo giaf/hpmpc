@@ -224,7 +224,7 @@ int hpmpc_d_ip_ocp_soft_tv_work_space_size_bytes(int N, int *nx, int *nu, int *n
 	int size = 2*64; // align twice
 
 	// IPM
-	size += d_ip2_res_mpc_soft_tv_work_space_size_bytes(N, nx, nu, nb, ng, ns);
+	size += d_ip2_mpc_soft_tv_work_space_size_bytes(N, nx, nu, nb, ng, ns);
 
 	size += d_size*sizeof(double);
 
