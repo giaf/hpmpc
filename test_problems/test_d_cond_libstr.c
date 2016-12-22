@@ -492,9 +492,7 @@ int main()
 
 	for(rep=0; rep<nrep; rep++)
 		{
-
-		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, 1, hspi, hslam, hst, work_memory);
-
+//		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, 1, hspi, hslam, hst, work_memory);
 		}
 
 	gettimeofday(&tv1, NULL); // stop
@@ -715,7 +713,7 @@ int main()
 ************************************************/	
 	
 	// TODO general constraints in IPM !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	ng2[0] = 0; // XXX !!!!!!!!!!!!!!!!!!!!
+//	ng2[0] = 0; // XXX !!!!!!!!!!!!!!!!!!!!
 
 	// result vectors
 	struct d_strvec hsux2[N2+1];
@@ -740,9 +738,7 @@ int main()
 
 	for(rep=0; rep<nrep; rep++)
 		{
-
 		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N2, nx2, nu2, nb2, hidxb2, ng2, hsBAbt2, hsRSQrq2, hsDCt2, hsd2, hsux2, 1, hspi2, hslam2, hst2, work_memory2);
-
 		}
 
 	gettimeofday(&tv1, NULL); // stop
@@ -800,6 +796,7 @@ int main()
 	d_allocate_strvec(ngM2, &hswork2[0]);
 	d_allocate_strvec(ngM2, &hswork2[1]);
 
+	// compute residuals on condensed system
 	d_res_res_mpc_hard_libstr(N2, nx2, nu2, nb2, hidxb2, ng2, hsBAbt2, hsb2, hsRSQrq2, hsrq2, hsux2, hsDCt2, hsd2, hspi2, hslam2, hst2, hswork2, hsrrq2, hsrb2, hsrd2, hsrm2, &mu);
 
 	printf("\nres_rq2\n");
@@ -817,6 +814,30 @@ int main()
 	printf("\nres_m2\n");
 	for(ii=0; ii<=N2; ii++)
 		d_print_e_tran_strvec(2*nb2[ii]+2*ng2[ii], &hsrm2[ii], 0);
+
+	// convert result vectors to full space formulation (using simulation)
+	for(ii=0; ii<=N; ii++)
+		dvecse_libstr(nu[ii]+nx[ii], 0.0, &hsux[ii], 0);
+
+	int nu_sum = 0;
+	for(ii=0; ii<N; ii++)
+		{
+		dveccp_libstr(nu[N-ii-1], 1.0, &hsux2[0], nu_sum, &hsux[N-ii-1], 0);
+		nu_sum += nu[N-ii-1];
+		}
+	dveccp_libstr(nx[0], 1.0, &hsux2[0], nu2[0], &hsux[0], nu[0]);
+
+	for(ii=0; ii<N; ii++)
+		{
+		drowex_libstr(nx[ii+1], 1.0, &hsBAbt[ii], nu[ii]+nx[ii], 0, &hsux[ii+1], nu[ii+1]);
+		dgemv_t_libstr(nu[ii]+nx[ii], nx[ii+1], 1.0, &hsBAbt[ii], 0, 0, &hsux[ii], 0, 1.0, &hsux[ii+1], nu[ii+1], &hsux[ii+1], nu[ii+1]);
+		}
+
+	// TODO compute lagrangian multipliers 
+
+	printf("\nux =\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
 
 /************************************************
 * free memory
