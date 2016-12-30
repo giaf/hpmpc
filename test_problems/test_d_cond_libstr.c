@@ -573,6 +573,7 @@ int main()
 * full condensing
 ************************************************/	
 
+	// condensed problem size
 	int N2 = 1;
 
 	int nu2[N2+1];
@@ -606,6 +607,8 @@ int main()
 	ng2[0] = nbg; // XXX
 	ng2[N2] = ng[N];
 
+
+
 	// condensed MPC
 	struct d_strmat hsBAbt2[N2];
 	struct d_strvec hsb2[N2];
@@ -619,14 +622,16 @@ int main()
 
 	int i_tmp, size_sA, size_sL, size_sM, size_sLx, size_sBAbtL;
 
+	// first stage
 	ii = 0;
 	size_sA = d_size_strmat(nx[ii+1], nx[ii]);
 	size_sL = d_size_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]);
 	size_sM = d_size_strmat(nu[ii], nx[ii]);
-	size_sLx = d_size_strmat(nx[ii]+1, nx[ii]);
+	size_sLx = 0; //d_size_strmat(nx[ii]+1, nx[ii]);
 	size_sBAbtL = d_size_strmat(nu[ii]+nx[ii]+1, nx[ii+1]);
 	nu_tmp = nu[ii];
 	d_allocate_strmat(nu_tmp+nx[0]+1, nx[ii+1], &hsGamma[ii]);
+	// middle stages
 	for(ii=1; ii<N; ii++)
 		{
 		i_tmp = d_size_strmat(nx[ii+1], nx[ii]);
@@ -642,11 +647,12 @@ int main()
 		nu_tmp += nu[ii];
 		d_allocate_strmat(nu_tmp+nx[0]+1, nx[ii+1], &hsGamma[ii]);
 		}
+	// last stage
 	ii = N;
-	i_tmp = d_size_strmat(nx[ii]+1, nx[ii]);
-	size_sL = i_tmp > size_sL ? i_tmp : size_sL;
-	i_tmp = d_size_strmat(nx[ii]+1, nx[ii]);
-	size_sLx = i_tmp > size_sLx ? i_tmp : size_sLx;
+//	i_tmp = d_size_strmat(nx[ii]+1, nx[ii]);
+//	size_sL = i_tmp > size_sL ? i_tmp : size_sL;
+//	i_tmp = d_size_strmat(nx[ii]+1, nx[ii]);
+//	size_sLx = i_tmp > size_sLx ? i_tmp : size_sLx;
 
 	d_allocate_strmat(nu2[0]+nx2[0]+1, nx2[1], &hsBAbt2[0]);
 	d_allocate_strvec(nx2[1], &hsb2[0]);
@@ -661,14 +667,15 @@ int main()
 	i_zeros(&hidxb2[0], nbb, 1);
 	hidxb2[N2] = hidxb[N];
 
-	void *work_sA; v_zeros_align(&work_sA, size_sA);
+	void *work_d_cond_BAbt_libstr[1]; 
+	v_zeros_align(&work_d_cond_BAbt_libstr[0], size_sA);
 	void *work_d_cond_RSQrq_libstr[4]; 
 	v_zeros_align(&work_d_cond_RSQrq_libstr[0], size_sL);
 	v_zeros_align(&work_d_cond_RSQrq_libstr[1], size_sM);
 	v_zeros_align(&work_d_cond_RSQrq_libstr[2], size_sLx);
 	v_zeros_align(&work_d_cond_RSQrq_libstr[3], size_sBAbtL);
 
-	d_cond_BAbt_libstr(N, nx, nu, hsBAbt, work_sA, hsGamma, &hsBAbt2[0]);
+	d_cond_BAbt_libstr(N, nx, nu, hsBAbt, work_d_cond_BAbt_libstr, hsGamma, &hsBAbt2[0]);
 	drowex_libstr(nx2[1], 1.0, &hsBAbt2[0], nu2[0]+nx2[0], 0, &hsb2[0], 0);
 
 	printf("\nGamma\n\n");
@@ -709,12 +716,9 @@ int main()
 		i_print_mat(1, nb2[ii], hidxb2[ii], 1);
 
 /************************************************
-* solve condensed system using Riccati / IPM
+* solve condensed system using IPM
 ************************************************/	
 	
-	// TODO general constraints in IPM !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//	ng2[0] = 0; // XXX !!!!!!!!!!!!!!!!!!!!
-
 	// result vectors
 	struct d_strvec hsux2[N2+1];
 	struct d_strvec hspi2[N2+1];
@@ -838,6 +842,220 @@ int main()
 	printf("\nux =\n");
 	for(ii=0; ii<=N; ii++)
 		d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+
+/************************************************
+* partial condensing
+************************************************/	
+
+	int N3 = 3;
+
+	// compute problem size
+	int nx3[N3+1];
+	int nu3[N3+1];
+	int nb3[N3+1];
+	int ng3[N3+1];
+
+	d_part_cond_compute_problem_size_libstr(N, nx, nu, nb, hidxb, ng, N3, nx3, nu3, nb3, ng3);
+	
+	for(ii=0; ii<=N3; ii++)
+		printf("\n%d %d %d %d\n", nx3[ii], nu3[ii], nb3[ii], ng3[ii]);
+
+	int work_space_sizes[4];
+	int work_space_size_part_cond = d_part_cond_work_space_size_bytes_libstr(N, nx, nu, nb, hidxb, ng, N3, nx3, nu3, nb3, ng3, work_space_sizes);
+	void *work_space_part_cond;
+	v_zeros_align(&work_space_part_cond, work_space_size_part_cond);
+	printf("\n%d %d %d %d %d\n", work_space_size_part_cond, work_space_sizes[0], work_space_sizes[1], work_space_sizes[2], work_space_sizes[3]); 
+
+	int memory_space_size_part_cond = d_part_cond_memory_space_size_bytes_libstr(N, nx, nu, nb, hidxb, ng, N3, nx3, nu3, nb3, ng3);
+	void *memory_space_part_cond;
+	v_zeros_align(&memory_space_part_cond, memory_space_size_part_cond);
+	printf("\n%d\n", memory_space_size_part_cond);
+
+	struct d_strmat hsBAbt3[N3];
+	struct d_strvec hsb3[N3];
+	struct d_strmat hsRSQrq3[N3+1];
+	struct d_strvec hsrq3[N3+1];
+	struct d_strmat hsDCt3[N3+1];
+	struct d_strvec hsd3[N3+1];
+	int *hidxb3[N3+1];
+
+	d_part_cond_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, N3, nx3, nu3, nb3, hidxb3, ng3, hsBAbt3, hsRSQrq3, hsDCt3, hsd3, memory_space_part_cond, work_space_part_cond, work_space_sizes);
+
+	printf("\nhBAbt3\n\n");
+	for(ii=0; ii<N3; ii++)
+		d_print_strmat(nu3[ii]+nx3[ii]+1, nx3[ii+1], &hsBAbt3[ii], 0, 0);
+	
+	for(ii=0; ii<N3; ii++)
+		{
+		d_allocate_strvec(nx3[ii+1], &hsb3[ii]);
+		drowex_libstr(nx3[ii+1], 1.0, &hsBAbt3[ii], nu3[ii]+nx3[ii], 0, &hsb3[ii], 0);
+		}
+
+	printf("\nhb3\n\n");
+	for(ii=0; ii<N3; ii++)
+		d_print_strvec(nx3[ii+1], &hsb3[ii], 0);
+	
+	printf("\nhRSQrq3\n\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_strmat(nu3[ii]+nx3[ii]+1, nu3[ii]+nx3[ii], &hsRSQrq3[ii], 0, 0);
+
+	for(ii=0; ii<=N3; ii++)
+		{
+		d_allocate_strvec(nu3[ii]+nx3[ii], &hsrq3[ii]);
+		drowex_libstr(nu3[ii]+nx3[ii], 1.0, &hsRSQrq3[ii], nu3[ii]+nx3[ii], 0, &hsrq3[ii], 0);
+		}
+
+	printf("\nhrq3\n\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_strvec(nu3[ii]+nx3[ii], &hsrq3[ii], 0);
+	
+	printf("\nhDCt3\n\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_strmat(nu3[ii]+nx3[ii], ng3[ii], &hsDCt3[ii], 0, 0);
+
+	printf("\nhd3\n\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_tran_strvec(2*nb3[ii]+2*ng3[ii], &hsd3[ii], 0);
+
+	printf("\nhidxb3\n\n");
+	for(ii=0; ii<=N3; ii++)
+		i_print_mat(1, nb3[ii], hidxb3[ii], 1);
+
+/************************************************
+* solve partially condensed system using IPM
+************************************************/	
+	
+	// result vectors
+	struct d_strvec hsux3[N3+1];
+	struct d_strvec hspi3[N3+1];
+	struct d_strvec hslam3[N3+1];
+	struct d_strvec hst3[N3+1];
+	for(ii=0; ii<=N3; ii++)
+		{
+		d_allocate_strvec(nu3[ii]+nx3[ii], &hsux3[ii]);
+		d_allocate_strvec(nx3[ii], &hspi3[ii]);
+		d_allocate_strvec(2*nb3[ii]+2*ng3[ii], &hslam3[ii]);
+		d_allocate_strvec(2*nb3[ii]+2*ng3[ii], &hst3[ii]);
+		}
+
+	// work space
+	void *work_space_ipm_3;
+	v_zeros_align(&work_space_ipm_3, d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N3, nx3, nu3, nb3, ng3));
+
+	printf("\nsolving... (partially condensed system)\n");
+
+	gettimeofday(&tv0, NULL); // stop
+
+	for(rep=0; rep<nrep; rep++)
+		{
+		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N3, nx3, nu3, nb3, hidxb3, ng3, hsBAbt3, hsRSQrq3, hsDCt3, hsd3, hsux3, 1, hspi3, hslam3, hst3, work_space_ipm_3);
+		}
+
+	gettimeofday(&tv1, NULL); // stop
+
+	float time_ipm_part_cond = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+	printf("\nstatistics from last run\n\n");
+	for(jj=0; jj<kk; jj++)
+		printf("k = %d\tsigma = %f\talpha = %f\tmu = %f\t\tmu = %e\talpha = %f\tmu = %f\tmu = %e\n", jj, stat[5*jj], stat[5*jj+1], stat[5*jj+2], stat[5*jj+2], stat[5*jj+3], stat[5*jj+4], stat[5*jj+4]);
+	printf("\n");
+	
+	printf("\nux3 =\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_tran_strvec(nu3[ii]+nx3[ii], &hsux3[ii], 0);
+
+	printf("\npi3 =\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_tran_strvec(nx3[ii], &hspi3[ii], 0);
+
+	printf("\nlam3 =\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_tran_strvec(2*nb3[ii]+2*ng3[ii], &hslam3[ii], 0);
+
+	printf("\nt3 =\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_tran_strvec(2*nb3[ii]+2*ng3[ii], &hst3[ii], 0);
+
+	// residuals vectors
+	struct d_strvec hsrrq3[N3+1];
+	struct d_strvec hsrb3[N3];
+	struct d_strvec hsrd3[N3+1];
+	struct d_strvec hsrm3[N3+1];
+
+	d_allocate_strvec(nu3[0]+nx3[0], &hsrrq3[0]);
+	d_allocate_strvec(nx3[1], &hsrb3[0]);
+	d_allocate_strvec(2*nb3[0]+2*ng3[0], &hsrd3[0]);
+	d_allocate_strvec(2*nb3[0]+2*ng3[0], &hsrm3[0]);
+	for(ii=1; ii<N3; ii++)
+		{
+		d_allocate_strvec(nu3[ii]+nx3[ii], &hsrrq3[ii]);
+		d_allocate_strvec(nx3[ii+1], &hsrb3[ii]);
+		d_allocate_strvec(2*nb3[ii]+2*ng3[ii], &hsrd3[ii]);
+		d_allocate_strvec(2*nb3[ii]+2*ng3[ii], &hsrm3[ii]);
+		}
+	d_allocate_strvec(nu3[N3]+nx3[N3], &hsrrq3[N3]);
+	d_allocate_strvec(2*nb3[N3]+2*ng3[N3], &hsrd3[N3]);
+	d_allocate_strvec(2*nb3[N3]+2*ng3[N3], &hsrm3[N3]);
+
+	int ngM3 = ng3[0];
+	for(ii=1; ii<=N; ii++)
+		{
+		ngM3 = ng3[ii]>ngM3 ? ng3[ii] : ngM3;
+		}
+	struct d_strvec hswork3[2];
+	d_allocate_strvec(ngM3, &hswork3[0]);
+	d_allocate_strvec(ngM3, &hswork3[1]);
+
+	// compute residuals on condensed system
+	d_res_res_mpc_hard_libstr(N3, nx3, nu3, nb3, hidxb3, ng3, hsBAbt3, hsb3, hsRSQrq3, hsrq3, hsux3, hsDCt3, hsd3, hspi3, hslam3, hst3, hswork3, hsrrq3, hsrb3, hsrd3, hsrm3, &mu);
+
+	printf("\nres_rq3\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_e_tran_strvec(nu3[ii]+nx3[ii], &hsrrq3[ii], 0);
+
+	printf("\nres_b3\n");
+	for(ii=0; ii<N3; ii++)
+		d_print_e_tran_strvec(nx3[ii+1], &hsrb3[ii], 0);
+
+	printf("\nres_d3\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_e_tran_strvec(2*nb3[ii]+2*ng3[ii], &hsrd3[ii], 0);
+
+	printf("\nres_m3\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_e_tran_strvec(2*nb3[ii]+2*ng3[ii], &hsrm3[ii], 0);
+
+	// convert result vectors to full space formulation
+
+/************************************************
+* free memory partial condensing
+************************************************/	
+
+	v_free_align(work_space_part_cond);
+	v_free_align(memory_space_part_cond);
+	v_free_align(work_space_ipm_3);
+	for(ii=0; ii<N3; ii++)
+		{
+		d_free_strvec(&hsb3[ii]);
+		d_free_strvec(&hsrq3[ii]);
+		d_free_strvec(&hsux3[ii]);
+		d_free_strvec(&hspi3[ii]);
+		d_free_strvec(&hslam3[ii]);
+		d_free_strvec(&hst3[ii]);
+		d_free_strvec(&hsrq3[ii]);
+		d_free_strvec(&hsrb3[ii]);
+		d_free_strvec(&hsrd3[ii]);
+		d_free_strvec(&hsrm3[ii]);
+		}
+	ii = N3;
+	d_free_strvec(&hsrq3[ii]);
+	d_free_strvec(&hsux3[ii]);
+	d_free_strvec(&hspi3[ii]);
+	d_free_strvec(&hslam3[ii]);
+	d_free_strvec(&hst3[ii]);
+	d_free_strvec(&hsrq3[ii]);
+	d_free_strvec(&hsrd3[ii]);
+	d_free_strvec(&hsrm3[ii]);
 
 /************************************************
 * free memory

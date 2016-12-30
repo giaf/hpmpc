@@ -66,7 +66,7 @@ void d_tree_back_ric_rec_trs_libstr(int Nn, struct node *tree, int *nx, int *nu,
 
 // condense state space
 void d_cond_BAbt(int N, int *nx, int *nu, double **hpBAbt, double *work, double **hpGamma, double *pBAbt2);
-void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, void *work, struct d_strmat *hsGamma, struct d_strmat *sBAbt2);
+void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, void **work, struct d_strmat *hsGamma, struct d_strmat *sBAbt2);
 // condense Hessian and gradient (N^2 n_x^3 algorithm)
 void d_cond_RSQrq(int N, int *nx, int *nu, double **hpBAbt, double **hpRSQrq, double **hpGamma, double *work, double *pRSQrq2);
 void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsGamma, void *work, struct d_strmat *sRSQrq2);
@@ -75,12 +75,16 @@ void d_cond_DCtd(int N, int *nx, int *nu, int *nb, int **hidxb, double **hd, dou
 void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, struct d_strvec *hsd, struct d_strmat *hsGamma, struct d_strmat *sDCt2, struct d_strvec *sd2, int *idxb2);
 // computes problem size (not hidxb2)
 void d_part_cond_compute_problem_size(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2);
+void d_part_cond_compute_problem_size_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2);
 // work space for partially condensing routine
 int d_part_cond_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2);
-// work space for partially condensing routine
+int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2, int *work_space_sizes);
+// memory space for partially condensing routine
 int d_part_cond_memory_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2);
+int d_part_cond_memory_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2);
 // partial condensing routine
 void d_part_cond(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, double **hpBAbt, double **hpRSQrq, double **hpDCt, double **hd, int N2, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, double **hpBAbt2, double **hpRSQrq2, double **hpDCt2, double **hd2, void *memory, void *work);
+void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsd, int N2, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, struct d_strmat *hsBAbt2, struct d_strmat *hsRSQrq2, struct d_strmat *hsDCt2, struct d_strvec *hsd2, void *memory, void *work, int *work_space_sizes);
 // work space for partial expand
 int d_part_expand_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int *ng);
 // partial expand routine (recovers the solution to the full space problem)
