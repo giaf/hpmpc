@@ -42,6 +42,7 @@
 #include "../include/aux_s.h"
 #include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
+#include "../include/mpc_aux.h"
 #include "../include/mpc_solvers.h"
 #include "../problem_size.h"
 #include "../include/block_size.h"
@@ -510,8 +511,8 @@ int main()
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hst[N]);
 	
 	void *work_memory;
-	v_zeros_align(&work_memory, d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
-	printf("\nwork space size (in bytes): %d\n", d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
+	v_zeros_align(&work_memory, d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
+	printf("\nwork space size (in bytes): %d\n", d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
 	// IP options
 	int kk = -1;
@@ -585,16 +586,10 @@ int main()
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hsrd[N]);
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hsrm[N]);
 
-	int ngM = ng[0];
-	for(ii=1; ii<=N; ii++)
-		{
-		ngM = ng[ii]>ngM ? ng[ii] : ngM;
-		}
-	struct d_strvec hswork[2];
-	d_allocate_strvec(ngM, &hswork[0]);
-	d_allocate_strvec(ngM, &hswork[1]);
+	void *work_res;
+	v_zeros_align(&work_res, d_res_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
-	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hswork, hsrrq, hsrb, hsrd, hsrm, &mu);
+	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsrrq, hsrb, hsrd, hsrm, &mu, work_res);
 
 	printf("\nres_rq\n");
 	for(ii=0; ii<=N; ii++)

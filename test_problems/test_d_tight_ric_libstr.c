@@ -41,6 +41,7 @@
 #include "../include/aux_d.h"
 #include "../include/aux_s.h"
 #include "../include/lqcp_solvers.h"
+#include "../include/mpc_aux.h"
 #include "../include/mpc_solvers.h"
 #include "../problem_size.h"
 #include "tools.h"
@@ -475,8 +476,8 @@ int main()
 	struct d_strmat *hsmatdummy;
 	struct d_strvec *hsvecdummy;
 
-	struct d_strmat hsBAbt[N+1];
-	struct d_strvec hsb[N+1];
+	struct d_strmat hsBAbt[N];
+	struct d_strvec hsb[N];
 	struct d_strmat hsRSQrq[N+1];
 	struct d_strvec hsrq[N+1];
 	struct d_strmat hsDCt[N+1];
@@ -489,8 +490,6 @@ int main()
 	struct d_strvec hsPb[N+1];
 	struct d_strmat hsL[N+1];
 	struct d_strmat hsLxt[N+1];
-	struct d_strmat hsric_work_mat[2];
-	struct d_strvec hsric_work_vec[1];
 
 	int nuM;
 	int nbM;
@@ -503,8 +502,8 @@ int main()
 	void *work_memory;
 
 
-	hsBAbt[1] = sBAbt0;
-	hsb[1] = sb0;
+	hsBAbt[0] = sBAbt0;
+	hsb[0] = sb0;
 	hsRSQrq[0] = sRSQrq0;
 	hsrq[0] = srq0;
 	hsDCt[0] = sDCt0;
@@ -519,8 +518,8 @@ int main()
 	d_allocate_strmat(nx[0], nx[0], &hsLxt[0]);
 	for(ii=1; ii<N; ii++)
 		{
-		hsBAbt[ii+1] = sBAbt1;
-		hsb[ii+1] = sb1;
+		hsBAbt[ii] = sBAbt1;
+		hsb[ii] = sb1;
 		hsRSQrq[ii] = sRSQrq1;
 		hsrq[ii] = srq1;
 		hsDCt[ii] = sDCt1;
@@ -552,12 +551,10 @@ int main()
 	d_allocate_strmat(nx[M]+1, nx[M], &sPpM);
 
 	// riccati work space
-	d_allocate_strmat(nzM, nxgM, &hsric_work_mat[0]);
-	d_allocate_strmat(nzM, nxgM, &hsric_work_mat[1]);
+	void *work_ric;
+	v_zeros_align(&work_ric, d_back_ric_rec_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
-	d_allocate_strvec(nzM, &hsric_work_vec[0]);
-
-	v_zeros_align(&work_memory, d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
+	v_zeros_align(&work_memory, d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
 	struct d_strmat hstmpmat0;
 	struct d_strvec hstmpvec0;
@@ -566,7 +563,7 @@ int main()
 	int hpmpc_status;
 	int kk, kk_avg;
 	int k_max = 10;
-	double mu_tol = 1e-6;
+	double mu_tol = 1e-12;
 	double alpha_min = 1e-8;
 	int warm_start = 0; // read initial guess from x and u
 	double *stat; d_zeros(&stat, k_max, 5);
@@ -589,7 +586,7 @@ int main()
 
 #if 1
 		// backward riccati factorization and solution at the end
-		d_back_ric_rec_sv_back_libstr(N-M, &nx[M], &nu[M], &nb[M], &hidxb[M], &ng[M], 0, &hsBAbt[M], hsvecdummy, 0, &hsRSQrq[M], hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[M], 1, &hspi[M], 1, &hsPb[M], &hsL[M], &hsLxt[M], hsric_work_mat, hsric_work_vec);
+		d_back_ric_rec_sv_back_libstr(N-M, &nx[M], &nu[M], &nb[M], &hidxb[M], &ng[M], 0, &hsBAbt[M], hsvecdummy, 0, &hsRSQrq[M], hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[M], 1, &hspi[M], 1, &hsPb[M], &hsL[M], &hsLxt[M], work_ric);
 		// extract chol factor of [P p; p' *]
 		d_print_strmat(nu[M]+nx[M]+1, nu[M]+nx[M], &hsL[M], 0, 0);
 		dtrcp_l_libstr(nx[M], 1.0, &hsL[M], nu[M], nu[M], &sLxM, 0, 0); // TODO have m and n !!!!!
@@ -615,7 +612,7 @@ int main()
 		hsRSQrq[M] = hstmpmat0;
 		hsux[M].pa -= nuM;
 		// forward riccati solution at the beginning
-		d_back_ric_rec_sv_forw_libstr(N-M, &nx[M], &nu[M], &nb[M], &hidxb[M], &ng[M], 0, &hsBAbt[M], hsvecdummy, 0, &hsRSQrq[M], hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[M], 1, &hspi[M], 1, &hsPb[M], &hsL[M], &hsLxt[M], hsric_work_mat, hsric_work_vec);
+		d_back_ric_rec_sv_forw_libstr(N-M, &nx[M], &nu[M], &nb[M], &hidxb[M], &ng[M], 0, &hsBAbt[M], hsvecdummy, 0, &hsRSQrq[M], hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[M], 1, &hspi[M], 1, &hsPb[M], &hsL[M], &hsLxt[M], work_ric);
 //		exit(1);
 
 #if 0
@@ -634,16 +631,16 @@ int main()
 		hstmpvec0 = hsrq[M];
 		hsRSQrq[M] = sRSQrqM;
 		hsrq[M] = srqM;
-		d_back_ric_rec_sv_libstr(M, &nx[0], &nu[0], nb, hidxb, ng, 0, &hsBAbt[0], hsvecdummy, 0, &hsRSQrq[0], hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[0], 1, &hspi[0], 1, &hsPb[0], &hsL[0], &hsLxt[0], hsric_work_mat, hsric_work_vec);
-		d_back_ric_rec_trs_libstr(M, &nx[0], &nu[0], nb, hidxb, ng, &hsBAbt[0], &hsb[0], &hsrq[0], hsmatdummy, hsvecdummy, &hsux[0], 1, &hspi[0], 1, &hsPb[0], &hsL[0], &hsLxt[0], hsric_work_vec);
+		d_back_ric_rec_sv_libstr(M, &nx[0], &nu[0], nb, hidxb, ng, 0, &hsBAbt[0], hsvecdummy, 0, &hsRSQrq[0], hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[0], 1, &hspi[0], 1, &hsPb[0], &hsL[0], &hsLxt[0], work_ric);
+		d_back_ric_rec_trs_libstr(M, &nx[0], &nu[0], nb, hidxb, ng, &hsBAbt[0], &hsb[0], &hsrq[0], hsmatdummy, hsvecdummy, &hsux[0], 1, &hspi[0], 1, &hsPb[0], &hsL[0], &hsLxt[0], work_ric);
 //		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, M, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, compute_mult, hspi, hslam, hst, work_memory);
 		hsRSQrq[M] = hstmpmat0;
 		hsrq[M] = hstmpvec0;
-		d_back_ric_rec_sv_forw_libstr(N-M, &nx[M], &nu[M], &nb[M], &hidxb[M], &ng[M], 0, &hsBAbt[M], hsvecdummy, 0, &hsRSQrq[M], hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[M], 1, &hspi[M], 1, &hsPb[M], &hsL[M], &hsLxt[M], hsric_work_mat, hsric_work_vec);
+		d_back_ric_rec_sv_forw_libstr(N-M, &nx[M], &nu[M], &nb[M], &hidxb[M], &ng[M], 0, &hsBAbt[M], hsvecdummy, 0, &hsRSQrq[M], hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, &hsux[M], 1, &hspi[M], 1, &hsPb[M], &hsL[M], &hsLxt[M], work_ric);
 #endif
 #else
-//		d_back_ric_rec_sv_libstr(N, nx, nu, nb, hidxb, ng, 0, hsBAbt, hsvecdummy, 0, hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, 1, hspi, 1, hsPb, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
-//		d_back_ric_rec_trs_libstr(N, &nx[0], &nu[0], nb, hidxb, ng, &hsBAbt[0], &hsb[0], &hsrq[0], hsmatdummy, hsvecdummy, &hsux[0], 1, &hspi[0], 1, &hsPb[0], &hsL[0], &hsLxt[0], hsric_work_vec);
+//		d_back_ric_rec_sv_libstr(N, nx, nu, nb, hidxb, ng, 0, hsBAbt, hsvecdummy, 0, hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, 1, hspi, 1, hsPb, hsL, hsLxt, work_ric);
+//		d_back_ric_rec_trs_libstr(N, &nx[0], &nu[0], nb, hidxb, ng, &hsBAbt[0], &hsb[0], &hsrq[0], hsmatdummy, hsvecdummy, &hsux[0], 1, &hspi[0], 1, &hsPb[0], &hsL[0], &hsLxt[0], work_ric);
 		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, compute_mult, hspi, hslam, hst, work_memory);
 #endif
 
@@ -673,43 +670,41 @@ int main()
 ************************************************/	
 
 	struct d_strvec hsrrq[N+1];
-	struct d_strvec hsrb[N+1];
+	struct d_strvec hsrb[N];
 	struct d_strvec hsrd[N+1];
 	struct d_strvec hsrm[N+1];
 	double mu;
 
 	d_allocate_strvec(nu[0]+nx[0], &hsrrq[0]);
-	d_allocate_strvec(nx[0], &hsrb[0]);
+	d_allocate_strvec(nx[1], &hsrb[0]);
 	d_allocate_strvec(2*nb[0]+2*ng[0], &hsrd[0]);
 	d_allocate_strvec(2*nb[0]+2*ng[0], &hsrm[0]);
 	for(ii=1; ii<N; ii++)
 		{
 		d_allocate_strvec(nu[ii]+nx[ii], &hsrrq[ii]);
-		d_allocate_strvec(nx[ii], &hsrb[ii]);
+		d_allocate_strvec(nx[ii+1], &hsrb[ii]);
 		d_allocate_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii]);
 		d_allocate_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii]);
 		}
 	d_allocate_strvec(nu[N]+nx[N], &hsrrq[N]);
-	d_allocate_strvec(nx[N], &hsrb[N]);
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hsrd[N]);
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hsrm[N]);
 
-	struct d_strvec hswork[2];
-	d_allocate_strvec(ngM, &hswork[0]);
-	d_allocate_strvec(ngM, &hswork[1]);
+	void *work_res;
+	v_zeros_align(&work_res, d_res_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
 //	printf("\nRSQrq =\n\n");
 //	for(ii=0; ii<=N; ii++)
 //		d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0);
 
-	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hswork, hsrrq, hsrb, hsrd, hsrm, &mu);
+	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsrrq, hsrb, hsrd, hsrm, &mu, work_res);
 
 	printf("\nres_rq\n");
 	for(ii=0; ii<=N; ii++)
 		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
 
 	printf("\nres_b\n");
-	for(ii=0; ii<=N; ii++)
+	for(ii=0; ii<N; ii++)
 		d_print_e_tran_strvec(nx[ii], &hsrb[ii], 0);
 
 	printf("\nres_d\n");
@@ -759,7 +754,6 @@ int main()
 		}
 	d_free_strvec(&hsux[N]);
 	d_free_strvec(&hsrrq[N]);
-	d_free_strvec(&hsrb[N]);
 
 /************************************************
 * return

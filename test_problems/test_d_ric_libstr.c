@@ -41,6 +41,7 @@
 #include "../include/aux_d.h"
 #include "../include/aux_s.h"
 #include "../include/lqcp_solvers.h"
+#include "../include/mpc_aux.h"
 #include "../include/mpc_solvers.h"
 #include "../problem_size.h"
 #include "tools.h"
@@ -366,8 +367,6 @@ int main()
 	struct d_strvec hsPb[N+1];
 	struct d_strmat hsL[N+1];
 	struct d_strmat hsLxt[N+1];
-	struct d_strmat hsric_work_mat[2];
-	struct d_strvec hsric_work_vec[1];
 
 
 	hsBAbt[0] = sBAbt0;
@@ -393,10 +392,8 @@ int main()
 	d_allocate_strmat(nx[N], nx[N], &hsLxt[N]);
 	
 	// riccati work space
-	d_allocate_strmat(nzM, nxgM, &hsric_work_mat[0]);
-	d_allocate_strmat(nzM, nxgM, &hsric_work_mat[1]);
-
-	d_allocate_strvec(nzM, &hsric_work_vec[0]);
+	void *work_ric;
+	v_zeros_align(&work_ric, d_back_ric_rec_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
 
 
@@ -415,7 +412,7 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, hidxb, ng, 0, hsBAbt, hsvecdummy, 0, hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, 1, hspi, 1, hsPb, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, hidxb, ng, 0, hsBAbt, hsvecdummy, 0, hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, 1, hspi, 1, hsPb, hsL, hsLxt, work_ric);
 
 		}
 
@@ -467,11 +464,10 @@ int main()
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hsrd[N]);
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hsrm[N]);
 
-	struct d_strvec hswork[2];
-	d_allocate_strvec(ngM, &hswork[0]);
-	d_allocate_strvec(ngM, &hswork[1]);
+	void *work_res;
+	v_zeros_align(&work_res, d_res_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
-	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hsvecdummy, hsvecdummy, hswork, hsrrq, hsrb, hsrd, hsrm, &mu);
+	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hsvecdummy, hsvecdummy, hsrrq, hsrb, hsrd, hsrm, &mu, work_res);
 
 	printf("\nres_rq\n");
 	for(ii=0; ii<=N; ii++)
