@@ -55,7 +55,7 @@
 
 
 /* computes work space size */
-int d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int *ng)
+int d_ip2_res_mpc_hard_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int *ng)
 	{
 
 	int ii;
@@ -79,8 +79,8 @@ int d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(int N, int *nx, int *nu, 
 		size += 2*d_size_strvec(nb[ii]+ng[ii]); // Qx, qx
 		}
 
-	// residuals work space size // TODO
-	size += 2*d_size_strvec(ngM); // res_work[0], res_work[1]
+	// residuals work space size
+	size += d_res_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng);
 
 	// riccati work space size
 	size += d_back_ric_rec_work_space_size_bytes_libstr(N, nx, nu, nb, ng);
@@ -100,30 +100,10 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 	int jj, ll, ii, it_ref;
 
 
-	// max sizes // TODO remove using work_space_sizes
-	int ngM = 0;
-	for(ii=0; ii<=N; ii++)
-		{
-		ngM = ng[ii]>ngM ? ng[ii] : ngM;
-		}
-
-	int nzM  = 0;
-	for(ii=0; ii<=N; ii++)
-		{
-		nzM = nu[ii]+nx[ii]+1>nzM ? nu[ii]+nx[ii]+1 : nzM;
-		}
-
-	int nxgM = ng[N];
-	for(ii=0; ii<N; ii++)
-		{
-		nxgM = nx[ii+1]+ng[ii]>nxgM ? nx[ii+1]+ng[ii] : nxgM;
-		}
-	
-
-
 	struct d_strmat *hsmatdummy;
 	struct d_strvec *hsvecdummy;
 
+	// TODO do not use variable size arrays !!!!!
 	struct d_strvec hsb[N];
 	struct d_strvec hsrq[N+1];
 	struct d_strvec hsQx[N+1];
@@ -143,11 +123,13 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 	struct d_strvec hsres_m[N+1];
 	struct d_strmat hsric_work_mat[2];
 	struct d_strvec hsric_work_vec[1];
-	struct d_strvec hsres_work[2];
 	struct d_strvec hsux_bkp[N+1];
 	struct d_strvec hspi_bkp[N+1];
 	struct d_strvec hst_bkp[N+1];
 	struct d_strvec hslam_bkp[N+1];
+
+	void *d_back_ric_rec_work_space;
+	void *d_res_res_mpc_hard_work_space;
 
 	char *c_ptr = work;
 
@@ -164,6 +146,10 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		d_create_strmat(nx[ii], nx[ii], &hsLxt[ii], (void *) c_ptr);
 		c_ptr += hsLxt[ii].memory_size;
 		}
+
+	// riccati work space
+	d_back_ric_rec_work_space = (void *) c_ptr;
+	c_ptr += d_back_ric_rec_work_space_size_bytes_libstr(N, nx, nu, nb, ng);
 
 	// b as vector
 	for(ii=0; ii<N; ii++)
@@ -229,11 +215,10 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		c_ptr += hsqx[ii].memory_size;
 		}
 
-	// residuals
-	d_create_strvec(ngM, &hsres_work[0], (void *) c_ptr);
-	c_ptr += hsres_work[0].memory_size;
-	d_create_strvec(ngM, &hsres_work[1], (void *) c_ptr);
-	c_ptr += hsres_work[1].memory_size;
+	// residuals work space
+	d_res_res_mpc_hard_work_space = (void *) c_ptr;
+	c_ptr += d_res_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng);
+
 
 	for(ii=0; ii<=N; ii++)
 		{
@@ -258,10 +243,6 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		d_create_strvec(2*nb[ii]+2*ng[ii], &hsres_m[ii], (void *) c_ptr);
 		c_ptr += hsres_m[ii].memory_size;
 		}
-
-	// riccati work space
-	void *d_back_ric_rec_work_space = (void *) c_ptr;
-	c_ptr += d_back_ric_rec_work_space_size_bytes_libstr(N, nx, nu, nb, ng); // XXX
 
 	// backup solution
 	for(ii=0; ii<=N; ii++)
@@ -600,7 +581,7 @@ exit(2);
 	//
 
 	// compute residuals
-	d_res_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsres_work, hsres_rq, hsres_b, hsres_d, hsres_m, &mu);
+	d_res_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsres_rq, hsres_b, hsres_d, hsres_m, &mu, d_res_res_mpc_hard_work_space);
 
 #if 0
 	printf("kk = %d\n", *kk);
@@ -731,7 +712,7 @@ exit(1);
 //				ddiareg_lib(nu[ii]+nx[ii], -ITER_REF_REG, 0, pQ2[ii], cnux[ii]);
 
 			// compute residuals
-			d_res_res_mpc_hard_libstr(N, nx, nu, nb2, idxb, ng2, hsBAbt, hsres_b, hsRSQrq2, hsrq2, hsdux, hsmatdummy, hsvecdummy, hsdpi, hsvecdummy, hsvecdummy, hsres_work, hsres_q2, hsres_b2, hsvecdummy, hsvecdummy, pdummy);
+			d_res_res_mpc_hard_libstr(N, nx, nu, nb2, idxb, ng2, hsBAbt, hsres_b, hsRSQrq2, hsrq2, hsdux, hsmatdummy, hsvecdummy, hsdpi, hsvecdummy, hsvecdummy, hsres_q2, hsres_b2, hsvecdummy, hsvecdummy, pdummy, d_res_res_mpc_hard_work_space);
 
 #if 0
 			printf("\niterative refinemet %d\n", it_ref);
@@ -768,7 +749,7 @@ exit(1);
 
 #if 0
 		// compute residuals again
-		d_res_res_mpc_hard_libstr(N, nx, nu, nb2, idxb, ng2, hsBAbt, hsres_b, hsRSQrq2, hsrq2, hsdux, hsmatdummy, hsvecdummy, hsdpi, hsvecdummy, hsvecdummy, hsres_work, hsres_q2, hsres_b2, hsvecdummy, hsvecdummy, pdummy);
+		d_res_res_mpc_hard_libstr(N, nx, nu, nb2, idxb, ng2, hsBAbt, hsres_b, hsRSQrq2, hsrq2, hsdux, hsmatdummy, hsvecdummy, hsdpi, hsvecdummy, hsvecdummy, hsres_q2, hsres_b2, hsvecdummy, hsvecdummy, pdummy, d_res_res_mpc_hard_work_space);
 
 		printf("\nres_q2\n");
 		for(ii=0; ii<=N; ii++)
@@ -961,7 +942,7 @@ exit(1);
 //				ddiareg_lib(nu[ii]+nx[ii], -ITER_REF_REG, 0, pQ2[ii], cnux[ii]);
 
 			// compute residuals
-			d_res_res_mpc_hard_libstr(N, nx, nu, nb2, idxb, ng2, hsBAbt, hsres_b, hsRSQrq2, hsrq2, hsdux, hsmatdummy, hsvecdummy, hsdpi, hsvecdummy, hsvecdummy, hsres_work, hsres_q2, hsres_b2, hsvecdummy, hsvecdummy, pdummy);
+			d_res_res_mpc_hard_libstr(N, nx, nu, nb2, idxb, ng2, hsBAbt, hsres_b, hsRSQrq2, hsrq2, hsdux, hsmatdummy, hsvecdummy, hsdpi, hsvecdummy, hsvecdummy, hsres_q2, hsres_b2, hsvecdummy, hsvecdummy, pdummy, d_res_res_mpc_hard_work_space);
 
 #if 0
 			printf("\niterative refinemet %d\n", it_ref);
@@ -1079,7 +1060,7 @@ for(ii=0; ii<=N; ii++)
 		for(jj=0; jj<N; jj++)
 			drowin_libstr(nx[jj+1], 1.0, &hsb[jj], 0, &hsBAbt[jj], nu[jj]+nx[jj], 0);
 
-		d_res_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsres_work, hsres_rq, hsres_b, hsres_d, hsres_m, &mu);
+		d_res_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsres_rq, hsres_b, hsres_d, hsres_m, &mu, d_res_res_mpc_hard_work_space);
 
 #if 0
 	printf("\nres_q\n");

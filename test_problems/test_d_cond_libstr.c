@@ -42,6 +42,7 @@
 #include "../include/aux_s.h"
 #include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
+#include "../include/mpc_aux.h"
 #include "../include/mpc_solvers.h"
 #include "../problem_size.h"
 #include "../include/block_size.h"
@@ -167,7 +168,7 @@ int main()
 
 	int ii, jj;
 	
-	int rep, nrep=10; //000;//NREP;
+	int rep, nrep=1000; //000;//NREP;
 
 	int nx_ = 8;//NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu_ = 3;//NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
@@ -482,7 +483,7 @@ int main()
 
 	// work space
 	void *work_space_ipm;
-	v_zeros_align(&work_space_ipm, d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
+	v_zeros_align(&work_space_ipm, d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
 	struct timeval tv0, tv1;
 
@@ -543,11 +544,11 @@ int main()
 		{
 		ngM = ng[ii]>ngM ? ng[ii] : ngM;
 		}
-	struct d_strvec hswork[2];
-	d_allocate_strvec(ngM, &hswork[0]);
-	d_allocate_strvec(ngM, &hswork[1]);
 
-	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hswork, hsrrq, hsrb, hsrd, hsrm, &mu);
+	void *work_space_res;
+	v_zeros_align(&work_space_res, d_res_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
+
+	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsrrq, hsrb, hsrd, hsrm, &mu, work_space_res);
 
 	printf("\nres_rq\n");
 	for(ii=0; ii<=N; ii++)
@@ -673,8 +674,8 @@ int main()
 		}
 
 	// work space
-	void *work_space_ipm_3;
-	v_zeros_align(&work_space_ipm_3, d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N3, nx3, nu3, nb3, ng3));
+	void *work_space_ipm3;
+	v_zeros_align(&work_space_ipm3, d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N3, nx3, nu3, nb3, ng3));
 
 	printf("\nsolving... (partially condensed system)\n");
 
@@ -682,7 +683,7 @@ int main()
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N3, nx3, nu3, nb3, hidxb3, ng3, hsBAbt3, hsRSQrq3, hsDCt3, hsd3, hsux3, 1, hspi3, hslam3, hst3, work_space_ipm_3);
+		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N3, nx3, nu3, nb3, hidxb3, ng3, hsBAbt3, hsRSQrq3, hsDCt3, hsd3, hsux3, 1, hspi3, hslam3, hst3, work_space_ipm3);
 		}
 
 	gettimeofday(&tv1, NULL); // stop
@@ -736,12 +737,12 @@ int main()
 		{
 		ngM3 = ng3[ii]>ngM3 ? ng3[ii] : ngM3;
 		}
-	struct d_strvec hswork3[2];
-	d_allocate_strvec(ngM3, &hswork3[0]);
-	d_allocate_strvec(ngM3, &hswork3[1]);
+
+	void *work_space_res3;
+	v_zeros_align(&work_space_res3, d_res_res_mpc_hard_work_space_size_bytes_libstr(N3, nx3, nu3, nb3, ng3));
 
 	// compute residuals on condensed system
-	d_res_res_mpc_hard_libstr(N3, nx3, nu3, nb3, hidxb3, ng3, hsBAbt3, hsb3, hsRSQrq3, hsrq3, hsux3, hsDCt3, hsd3, hspi3, hslam3, hst3, hswork3, hsrrq3, hsrb3, hsrd3, hsrm3, &mu);
+	d_res_res_mpc_hard_libstr(N3, nx3, nu3, nb3, hidxb3, ng3, hsBAbt3, hsb3, hsRSQrq3, hsrq3, hsux3, hsDCt3, hsd3, hspi3, hslam3, hst3, hsrrq3, hsrb3, hsrd3, hsrm3, &mu, work_space_res3);
 
 	printf("\nres_rq3\n");
 	for(ii=0; ii<=N3; ii++)
@@ -802,8 +803,9 @@ int main()
 
 	v_free_align(work_space_part_cond);
 	v_free_align(memory_space_part_cond);
-	v_free_align(work_space_ipm_3);
+	v_free_align(work_space_ipm3);
 	v_free_align(work_space_part_expand);
+	v_free_align(work_space_res3);
 	for(ii=0; ii<N3; ii++)
 		{
 		d_free_strvec(&hsb3[ii]);
@@ -890,6 +892,8 @@ int main()
 	d_free_strvec(&hsrrq[ii]);
 	d_free_strvec(&hsrd[ii]);
 	d_free_strvec(&hsrm[ii]);
+
+	v_free_align(work_space_res);
 
 /************************************************
 * print timings
