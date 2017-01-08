@@ -54,20 +54,13 @@
 
 
 
-/* computes work space size */
+// work space size 
 int d_ip2_res_mpc_hard_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int *ng)
 	{
 
 	int ii;
 
 	int size = 0;
-
-	// max sizes
-	int ngM = 0;
-	for(ii=0; ii<=N; ii++)
-		{
-		ngM = ng[ii]>ngM ? ng[ii] : ngM;
-		}
 
 	for(ii=0; ii<=N; ii++)
 		{

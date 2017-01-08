@@ -114,7 +114,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 			for(ii=0; ii<nkids; ii++)
 				{
 				idxkid = ii+1;
-				tree[idx].kids[0] = idxkid;
+				tree[idx].kids[ii] = idxkid;
 				tree[idxkid].dad = idx;
 				tree[idxkid].real = ii;
 				}
@@ -122,7 +122,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 		else // nkids==1
 			{
 			idxkid = 1;
-			tree[idx].kids[ii] = idxkid;
+			tree[idx].kids[0] = idxkid;
 			tree[idxkid].dad = idx;
 			tree[idxkid].real = 0;
 			}
@@ -468,11 +468,10 @@ int main()
 * array of matrices
 ************************************************/	
 	
-	struct d_strmat hsBAbt[N+1];
-	struct d_strvec hsb[N+1];
+	struct d_strmat hsBAbt[N];
+	struct d_strvec hsb[N];
 	struct d_strmat hsRSQrq[N+1];
 	struct d_strvec hsrq[N+1];
-	struct d_strvec hsdRSQ[N+1];
 	struct d_strmat hsDCt[N+1];
 	struct d_strvec hsQx[N+1];
 	struct d_strvec hsqx[N+1];
@@ -487,17 +486,17 @@ int main()
 
 	// a different matrix per stage !!!!!
 #if 1
-	d_allocate_strmat(nu_+1, nx_, &hsBAbt[1]);
-	dgecp_libstr(nu_+1, nx_, 1.0, &sBbt0, 0, 0, &hsBAbt[1], 0, 0);
-	d_allocate_strvec(nx_, &hsb[1]);
-	dveccp_libstr(nx_, 1.0, &sb0, 0, &hsb[1], 0);
+	d_allocate_strmat(nu_+1, nx_, &hsBAbt[0]);
+	dgecp_libstr(nu_+1, nx_, 1.0, &sBbt0, 0, 0, &hsBAbt[0], 0, 0);
+	d_allocate_strvec(nx_, &hsb[0]);
+	dveccp_libstr(nx_, 1.0, &sb0, 0, &hsb[0], 0);
 	d_allocate_strmat(nu_+nx_+1, nu_+nx_, &hsRSQrq[0]);
 	dgecp_libstr(nu_+1, nu_, 1.0, &sRr0, 0, 0, &hsRSQrq[0], 0, 0);
 	d_allocate_strvec(nu_, &hsrq[0]);
 	dveccp_libstr(nu_, 1.0, &sr0, 0, &hsrq[0], 0);
 #else
-	hsBAbt[1] = sBbt0;
-	hsb[1] = sb0;
+	hsBAbt[0] = sBbt0;
+	hsb[0] = sb0;
 	hsRSQrq[0] = sRr0;
 	hsrq[0] = sr0;
 #endif
@@ -509,17 +508,17 @@ int main()
 	for(ii=1; ii<N; ii++)
 		{
 #if 1
-		d_allocate_strmat(nu_+nx_+1, nx_, &hsBAbt[ii+1]);
-		dgecp_libstr(nu_+nx_+1, nx_, 1.0, &sBAbt1, 0, 0, &hsBAbt[ii+1], 0, 0);
-		d_allocate_strvec(nx_, &hsb[ii+1]);
-		dveccp_libstr(nx_, 1.0, &sb, 0, &hsb[ii+1], 0);
+		d_allocate_strmat(nu_+nx_+1, nx_, &hsBAbt[ii]);
+		dgecp_libstr(nu_+nx_+1, nx_, 1.0, &sBAbt1, 0, 0, &hsBAbt[ii], 0, 0);
+		d_allocate_strvec(nx_, &hsb[ii]);
+		dveccp_libstr(nx_, 1.0, &sb, 0, &hsb[ii], 0);
 		d_allocate_strmat(nu_+nx_+1, nu_+nx_, &hsRSQrq[ii]);
 		dgecp_libstr(nu_+nx_+1, nu_+nx_, 1.0, &sRSQrq1, 0, 0, &hsRSQrq[ii], 0, 0);
 		d_allocate_strvec(nu_+nx_, &hsrq[ii]);
 		dveccp_libstr(nu_+nx_, 1.0, &srq1, 0, &hsrq[ii], 0);
 #else
-		hsBAbt[ii+1] = sBAbt1;
-		hsb[ii+1] = sb;
+		hsBAbt[ii] = sBAbt1;
+		hsb[ii] = sb;
 		hsRSQrq[ii] = sRSQrq1;
 		hsrq[ii] = srq1;
 #endif
@@ -541,8 +540,10 @@ int main()
 	d_allocate_strmat(nx_+1, nx_, &hsL[N]);
 	d_allocate_strmat(nx_, nx_, &hsLxt[N]);
 	d_allocate_strvec(nx_+nu_+1, &hsux[N]);
-	d_allocate_strmat(nu_+nx_+1, nx_, &hswork_mat[0]);
-	d_allocate_strvec(nx_, &hswork_vec[0]);
+
+	// riccati work space
+	void *work_ric;
+	v_zeros_align(&work_ric, d_back_ric_rec_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
 //	for(ii=0; ii<N; ii++)
 //		d_print_strmat(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0);
@@ -563,7 +564,7 @@ int main()
 	// warm up ???
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_back_ric_rec_trf_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsdRSQ, hsDCt, hsQx, hsL, hsLxt, hswork_mat);
+		d_back_ric_rec_trf_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsQx, hsL, hsLxt, work_ric);
 		}
 
 	gettimeofday(&tv0, NULL); // time
@@ -577,14 +578,14 @@ int main()
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_back_ric_rec_trf_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsdRSQ, hsDCt, hsQx, hsL, hsLxt, hswork_mat);
+		d_back_ric_rec_trf_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsQx, hsL, hsLxt, work_ric);
 		}
 
 	gettimeofday(&tv2, NULL); // time
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_back_ric_rec_trs_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsux, 1, hspi, 1, hsPb, hsL, hsLxt, hswork_vec);
+		d_back_ric_rec_trs_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsux, 1, hspi, 1, hsPb, hsL, hsLxt, work_ric);
 		}
 
 	gettimeofday(&tv3, NULL); // time
@@ -624,7 +625,9 @@ int main()
 	struct node tree[Nn];
 
 	// setup the tree
+printf("\n%d %d %d %d\n", md, Nr, Nh, Nn);
 	setup_tree(md, Nr, Nh, Nn, tree);
+printf("\nciao\n");
 
 	// print the tree
 //	for(ii=0; ii<Nn; ii++)
@@ -653,9 +656,12 @@ int main()
 	struct d_strvec t_hsb[Nn];
 	for(ii=0; ii<Nn; ii++)
 		{
-		stage = tree[ii].stage;
-		t_hsBAbt[ii] = hsBAbt[stage];
-		t_hsb[ii] = hsb[stage];
+		stage = tree[ii].stage-1;
+		if(stage<=N)
+			{
+			t_hsBAbt[ii] = hsBAbt[stage];
+			t_hsb[ii] = hsb[stage];
+			}
 		}
 //	for(ii=1; ii<Nn; ii++)
 //		{
@@ -750,14 +756,14 @@ int main()
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_tree_back_ric_rec_trf_libstr(Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, t_hsL, t_hsLxt, hswork_mat);
+		d_tree_back_ric_rec_trf_libstr(Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsRSQrq, hsmatdummy, hsvecdummy, t_hsL, t_hsLxt, work_ric);
 		}
 
 	gettimeofday(&tv2, NULL); // time
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_tree_back_ric_rec_trs_libstr(Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsb, t_hsrq, hsmatdummy, hsvecdummy, t_hsux, 1, t_hspi, 1, t_hsPb, t_hsL, t_hsLxt, hswork_vec);
+		d_tree_back_ric_rec_trs_libstr(Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsb, t_hsrq, hsmatdummy, hsvecdummy, t_hsux, 1, t_hspi, 1, t_hsPb, t_hsL, t_hsLxt, work_ric);
 		}
 
 	gettimeofday(&tv3, NULL); // time
@@ -865,14 +871,14 @@ int main()
 //		}
 	
 	// dynamical system
-	struct d_strmat hsBAbt2[N+1];
-	struct d_strvec hsb2[N+1];
+	struct d_strmat hsBAbt2[N];
+	struct d_strvec hsb2[N];
 	int idxkid, kid_stage;
 //	int tmp0;
 	for(ii=0; ii<N; ii++)
 		{
-		d_allocate_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii+1]);
-		d_allocate_strvec(nx2[ii+1], &hsb2[ii+1]);
+		d_allocate_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii]);
+		d_allocate_strvec(nx2[ii+1], &hsb2[ii]);
 		}
 	// zero index
 	for(ii=0; ii<=N; ii++)
@@ -888,7 +894,7 @@ int main()
 			{
 			idxkid = tree[ii].kids[jj];
 			kid_stage = tree[idxkid].stage;
-			dgecp_libstr(t_nu[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], 0, 0, &hsBAbt2[stage+1], tmp1[stage], tmp0[kid_stage]);
+			dgecp_libstr(t_nu[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], 0, 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
 			tmp0[kid_stage] += t_nx[idxkid];
 			}
 		tmp1[stage] += t_nu[ii];
@@ -906,7 +912,7 @@ int main()
 			{
 			idxkid = tree[ii].kids[jj];
 			kid_stage = tree[idxkid].stage;
-			dgecp_libstr(t_nx[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii], 0, &hsBAbt2[stage+1], tmp1[stage], tmp0[kid_stage]);
+			dgecp_libstr(t_nx[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
 			tmp0[kid_stage] += t_nx[idxkid];
 			}
 		tmp1[stage] += t_nx[ii];
@@ -924,8 +930,8 @@ int main()
 			{
 			idxkid = tree[ii].kids[jj];
 			kid_stage = tree[idxkid].stage;
-			dgecp_libstr(1, t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii]+t_nx[ii], 0, &hsBAbt2[stage+1], tmp1[stage], tmp0[kid_stage]);
-			dveccp_libstr(t_nx[idxkid], 1.0, &t_hsb[idxkid], 0, &hsb2[stage+1], tmp0[kid_stage]);
+			dgecp_libstr(1, t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii]+t_nx[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
+			dveccp_libstr(t_nx[idxkid], 1.0, &t_hsb[idxkid], 0, &hsb2[stage], tmp0[kid_stage]);
 			tmp0[kid_stage] += t_nx[idxkid];
 			}
 //		tmp1[stage] += 1;
@@ -933,8 +939,8 @@ int main()
 	// print
 //	for(ii=0; ii<N; ii++)
 //		{
-//		d_print_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii+1], 0, 0);
-//		d_print_tran_strvec(nx2[ii+1], &hsb2[ii+1], 0);
+//		d_print_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii], 0, 0);
+//		d_print_tran_strvec(nx2[ii+1], &hsb2[ii], 0);
 //		}
 	
 	// work space
@@ -943,8 +949,6 @@ int main()
 	struct d_strmat hsL2[N+1];
 	struct d_strmat hsLxt2[N+1];
 	struct d_strvec hsPb2[N+1];
-	struct d_strmat hswork_mat2[1];
-	struct d_strvec hswork_vec2[1];
 	for(ii=0; ii<=N; ii++)
 		{
 		d_allocate_strvec(nu2[ii]+nx2[ii], &hsux2[ii]);
@@ -953,9 +957,10 @@ int main()
 		d_allocate_strmat(nx2[ii], nx2[ii], &hsLxt2[ii]);
 		d_allocate_strvec(nx2[ii], &hsPb2[ii]);
 		}
-	d_allocate_strmat(nu2[N-1]+nx2[N-1]+1, nx2[N], &hswork_mat2[0]);
-	d_allocate_strvec(nx2[N], &hswork_vec2[0]);
-//	printf("\n%d %d\n", nu2[N-1]+nx2[N-1]+1, nx2[N]);
+
+	// riccati work space
+	void *work_ric2;
+	v_zeros_align(&work_ric2, d_back_ric_rec_work_space_size_bytes_libstr(N, nx2, nu2, nb, ng));
 
 	// call Riccati solver
 	
@@ -974,14 +979,14 @@ int main()
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_back_ric_rec_trf_libstr(N, nx2, nu2, nb, hidxb, ng, hsBAbt2, hsRSQrq2, hsdRSQ, hsDCt, hsQx, hsL2, hsLxt2, hswork_mat2);
+		d_back_ric_rec_trf_libstr(N, nx2, nu2, nb, hidxb, ng, hsBAbt2, hsRSQrq2, hsDCt, hsQx, hsL2, hsLxt2, work_ric2);
 		}
 
 	gettimeofday(&tv2, NULL); // time
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_back_ric_rec_trs_libstr(N, nx2, nu2, nb, hidxb, ng, hsBAbt2, hsb2, hsrq2, hsDCt, hsqx, hsux2, 1, hspi2, 1, hsPb2, hsL2, hsLxt2, hswork_vec2);
+		d_back_ric_rec_trs_libstr(N, nx2, nu2, nb, hidxb, ng, hsBAbt2, hsb2, hsrq2, hsDCt, hsqx, hsux2, 1, hspi2, 1, hsPb2, hsL2, hsLxt2, work_ric2);
 		}
 
 	gettimeofday(&tv3, NULL); // time

@@ -477,7 +477,7 @@ int main()
 	struct d_strvec hsd[N+1];
 	int *hidxb[N+1];
 	struct d_strvec hsux[N+1];
-	struct d_strvec hspi[N+1];
+	struct d_strvec hspi[N];
 	struct d_strvec hslam[N+1];
 	struct d_strvec hst[N+1];
 

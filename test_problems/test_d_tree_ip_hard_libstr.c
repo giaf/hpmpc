@@ -537,8 +537,8 @@ int main()
 * array of matrices
 ************************************************/	
 	
-	struct d_strmat hsBAbt[N+1];
-	struct d_strvec hsb[N+1];
+	struct d_strmat hsBAbt[N];
+	struct d_strvec hsb[N];
 	struct d_strmat hsRSQrq[N+1];
 	struct d_strvec hsrq[N+1];
 	struct d_strvec hsdRSQ[N+1];
@@ -557,31 +557,31 @@ int main()
 //	struct d_strvec hswork_vec[1];
 	int *hidxb[N+1];
 
-	hsBAbt[1] = sBbt0;
-	hsb[1] = sb0;
+	hsBAbt[0] = sBbt0;
+	hsb[0] = sb0;
 	hsRSQrq[0] = sRr0;
 	hsrq[0] = sr0;
 	hsd[0] = sd0;
 //	d_allocate_strmat(nu_+1, nu_, &hsL[0]);
 //	d_allocate_strmat(nu_+1, nu_, &hsLxt[0]);
 //	d_allocate_strvec(nx_, &hsPb[1]);
-	d_allocate_strvec(nx_+nu_+1, &hsux[0]);
-	d_allocate_strvec(nx_, &hspi[1]);
+	d_allocate_strvec(nx[0]+nu[0]+1, &hsux[0]);
+	d_allocate_strvec(nx[1], &hspi[1]);
 	d_allocate_strvec(2*nb[0]+2*ng[0], &hslam[0]);
 	d_allocate_strvec(2*nb[0]+2*ng[0], &hst[0]);
 	hidxb[0] = idxb0;
 	for(ii=1; ii<N; ii++)
 		{
-		hsBAbt[ii+1] = sBAbt1;
-		hsb[ii+1] = sb;
+		hsBAbt[ii] = sBAbt1;
+		hsb[ii] = sb;
 		hsRSQrq[ii] = sRSQrq1;
 		hsrq[ii] = srq1;
 		hsd[ii] = sd1;
 //		d_allocate_strmat(nu_+nx_+1, nu_+nx_, &hsL[ii]);
 //		d_allocate_strmat(nx_, nu_+nx_, &hsLxt[ii]);
 //		d_allocate_strvec(nx_, &hsPb[ii+1]);
-		d_allocate_strvec(nx_+nu_+1, &hsux[ii]);
-		d_allocate_strvec(nx_, &hspi[ii+1]);
+		d_allocate_strvec(nx[0]+nu[0]+1, &hsux[ii]);
+		d_allocate_strvec(nx[ii+1], &hspi[ii+1]);
 		d_allocate_strvec(2*nb[ii]+2*ng[ii], &hslam[ii]);
 		d_allocate_strvec(2*nb[ii]+2*ng[ii], &hst[ii]);
 		hidxb[ii] = idxb1;
@@ -591,7 +591,7 @@ int main()
 	hsd[N] = sdN;
 //	d_allocate_strmat(nx_+1, nx_, &hsL[N]);
 //	d_allocate_strmat(nx_, nx_, &hsLxt[N]);
-	d_allocate_strvec(nx_+nu_+1, &hsux[N]);
+	d_allocate_strvec(nx[N]+nu[N]+1, &hsux[N]);
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hslam[N]);
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hst[N]);
 //	d_allocate_strmat(nu_+nx_+1, nx_, &hswork_mat[0]);
@@ -619,8 +619,8 @@ int main()
 	int compute_mult = 1;
 
 	// IPM work space
-	printf("\nnominal work space size %d\n\n", d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
-	void *work; v_zeros_align(&work, d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
+	printf("\nnominal work space size %d\n\n", d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
+	void *work; v_zeros_align(&work, d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
 	// timing 
 	struct timeval tv0, tv1, tv2, tv3;
@@ -661,7 +661,7 @@ int main()
 	printf("\n");
 
 /************************************************
-* scenario-tree MPC with tailroed solver
+* scenario-tree MPC with tailored solver
 ************************************************/	
 	
 	int Nh = N; // control horizion
@@ -705,10 +705,14 @@ int main()
 	struct d_strvec t_hsb[Nn];
 	for(ii=0; ii<Nn; ii++)
 		{
-		stage = tree[ii].stage;
-		t_hsBAbt[ii] = hsBAbt[stage];
-		t_hsb[ii] = hsb[stage];
+		stage = tree[ii].stage-1;
+		if(stage<=N)
+			{
+			t_hsBAbt[ii] = hsBAbt[stage];
+			t_hsb[ii] = hsb[stage];
+			}
 		}
+//	printf("\n%d %d\n", N, Nn);
 //	for(ii=1; ii<Nn; ii++)
 //		{
 //		stage = tree[ii].stage;
@@ -815,8 +819,8 @@ int main()
 		}
 
 	// IPM work space
-	printf("\ntree work space size %d\n\n", d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(Nn-1, t_nx, t_nu, t_nb, t_ng));
-	void *t_work; v_zeros_align(&t_work, d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(Nn-1, t_nx, t_nu, t_nb, t_ng));
+	printf("\ntree work space size %d\n\n", d_tree_ip2_res_mpc_hard_work_space_size_bytes_libstr(Nn, tree, t_nx, t_nu, t_nb, t_ng));
+	void *t_work; v_zeros_align(&t_work, d_tree_ip2_res_mpc_hard_work_space_size_bytes_libstr(Nn, tree, t_nx, t_nu, t_nb, t_ng));
 
 	// zero stat
 	for(ii=0; ii<5*k_max; ii++)
@@ -960,14 +964,14 @@ int main()
 //		}
 	
 	// dynamical system
-	struct d_strmat hsBAbt2[N+1];
-	struct d_strvec hsb2[N+1];
+	struct d_strmat hsBAbt2[N];
+	struct d_strvec hsb2[N];
 	int kid_stage;
 //	int tmp0;
 	for(ii=0; ii<N; ii++)
 		{
-		d_allocate_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii+1]);
-		d_allocate_strvec(nx2[ii+1], &hsb2[ii+1]);
+		d_allocate_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii]);
+		d_allocate_strvec(nx2[ii+1], &hsb2[ii]);
 		}
 	// zero index
 	for(ii=0; ii<=N; ii++)
@@ -983,7 +987,7 @@ int main()
 			{
 			idxkid = tree[ii].kids[jj];
 			kid_stage = tree[idxkid].stage;
-			dgecp_libstr(t_nu[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], 0, 0, &hsBAbt2[stage+1], tmp1[stage], tmp0[kid_stage]);
+			dgecp_libstr(t_nu[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], 0, 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
 			tmp0[kid_stage] += t_nx[idxkid];
 			}
 		tmp1[stage] += t_nu[ii];
@@ -1001,7 +1005,7 @@ int main()
 			{
 			idxkid = tree[ii].kids[jj];
 			kid_stage = tree[idxkid].stage;
-			dgecp_libstr(t_nx[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii], 0, &hsBAbt2[stage+1], tmp1[stage], tmp0[kid_stage]);
+			dgecp_libstr(t_nx[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
 			tmp0[kid_stage] += t_nx[idxkid];
 			}
 		tmp1[stage] += t_nx[ii];
@@ -1019,8 +1023,8 @@ int main()
 			{
 			idxkid = tree[ii].kids[jj];
 			kid_stage = tree[idxkid].stage;
-			dgecp_libstr(1, t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii]+t_nx[ii], 0, &hsBAbt2[stage+1], tmp1[stage], tmp0[kid_stage]);
-			dveccp_libstr(t_nx[idxkid], 1.0, &t_hsb[idxkid], 0, &hsb2[stage+1], tmp0[kid_stage]);
+			dgecp_libstr(1, t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii]+t_nx[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
+			dveccp_libstr(t_nx[idxkid], 1.0, &t_hsb[idxkid], 0, &hsb2[stage], tmp0[kid_stage]);
 			tmp0[kid_stage] += t_nx[idxkid];
 			}
 //		tmp1[stage] += 1;
@@ -1028,8 +1032,8 @@ int main()
 	// print
 //	for(ii=0; ii<N; ii++)
 //		{
-//		d_print_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii+1], 0, 0);
-//		d_print_tran_strvec(nx2[ii+1], &hsb2[ii+1], 0);
+//		d_print_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii], 0, 0);
+//		d_print_tran_strvec(nx2[ii+1], &hsb2[ii], 0);
 //		}
 	
 	// constraints
@@ -1111,8 +1115,8 @@ int main()
 //		printf("\n%d %d\n", nu2[ii], nx2[ii]);
 
 	// IPM work space
-	printf("\ntree work space size %d\n\n", d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx2, nu2, nb2, ng2));
-	void *work2; v_zeros_align(&work2, d_ip2_res_mpc_hard_tv_work_space_size_bytes_libstr(N, nx2, nu2, nb2, ng2));
+	printf("\ntree work space size %d\n\n", d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx2, nu2, nb2, ng2));
+	void *work2; v_zeros_align(&work2, d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx2, nu2, nb2, ng2));
 
 	// zero stat
 	for(ii=0; ii<5*k_max; ii++)
