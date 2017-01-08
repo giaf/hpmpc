@@ -358,7 +358,7 @@ int main()
 * box & general constraints
 ************************************************/	
 
-	int *idxb0; i_zeros(&idxb0, nb[0], 1);
+	int *idxb0; int_zeros(&idxb0, nb[0], 1);
 	double *d0; d_zeros(&d0, 2*nb[0]+2*ng[0], 1);
 	for(ii=0; ii<nb[0]; ii++)
 		{
@@ -379,10 +379,10 @@ int main()
 		d0[2*nb[0]+ii]       = - 100.0; // dmin
 		d0[2*nb[0]+ng[0]+ii] =   100.0; // dmax
 		}
-	i_print_mat(1, nb[0], idxb0, 1);
+	int_print_mat(1, nb[0], idxb0, 1);
 	d_print_mat(1, 2*nb[0]+2*ng[0], d0, 1);
 
-	int *idxb1; i_zeros(&idxb1, nb[1], 1);
+	int *idxb1; int_zeros(&idxb1, nb[1], 1);
 	double *d1; d_zeros(&d1, 2*nb[1]+2*ng[1], 1);
 	for(ii=0; ii<nb[1]; ii++)
 		{
@@ -403,10 +403,10 @@ int main()
 		d1[2*nb[1]+ii]       = - 100.0; // dmin
 		d1[2*nb[1]+ng[1]+ii] =   100.0; // dmax
 		}
-	i_print_mat(1, nb[1], idxb1, 1);
+	int_print_mat(1, nb[1], idxb1, 1);
 	d_print_mat(1, 2*nb[1]+2*ng[1], d1, 1);
 
-	int *idxbN; i_zeros(&idxbN, nb[N], 1);
+	int *idxbN; int_zeros(&idxbN, nb[N], 1);
 	double *dN; d_zeros(&dN, 2*nb[N]+2*ng[N], 1);
 	for(ii=0; ii<nb[N]; ii++)
 		{
@@ -427,7 +427,7 @@ int main()
 		dN[2*nb[N]+ii]       = - 0.0; // dmin
 		dN[2*nb[N]+ng[N]+ii] =   0.0; // dmax
 		}
-	i_print_mat(1, nb[N], idxbN, 1);
+	int_print_mat(1, nb[N], idxbN, 1);
 	d_print_mat(1, 2*nb[N]+2*ng[N], dN, 1);
 
 	double *C; d_zeros(&C, ng_, nx_);
@@ -617,11 +617,11 @@ int main()
 	d_free(B);
 	d_free(b);
 	d_free(x0);
-	i_free(idxb0);
+	int_free(idxb0);
 	d_free(d0);
-	i_free(idxb1);
+	int_free(idxb1);
 	d_free(d1);
-	i_free(idxbN);
+	int_free(idxbN);
 	d_free(dN);
 
 	d_free_strmat(&sA);

@@ -334,7 +334,7 @@ exit(2);
 * box & general constraints
 ************************************************/	
 
-	int *idxb0; i_zeros(&idxb0, nb_v[0], 1);
+	int *idxb0; int_zeros(&idxb0, nb_v[0], 1);
 	double *d0; d_zeros_align(&d0, 2*pnb_v[0]+2*png_v[0], 1);
 #if KEEP_X0
 	for(jj=0; jj<nbu; jj++)
@@ -363,12 +363,12 @@ exit(2);
 		d0[2*pnb_v[0]+png_v[0]+jj] =   100.0;   //   xmax
 		}
 #if 0
-	i_print_mat(1, nb_v[0], idxb0, 1);
+	int_print_mat(1, nb_v[0], idxb0, 1);
 	d_print_mat(1, 2*pnb_v[0]+2*png_v[0], d0, 1);
 	exit(2);
 #endif
 
-	int *idxb1; i_zeros(&idxb1, nb_v[1], 1);
+	int *idxb1; int_zeros(&idxb1, nb_v[1], 1);
 	double *d1; d_zeros_align(&d1, 2*pnb_v[1]+2*png_v[1], 1);
 	for(jj=0; jj<nbu; jj++)
 		{
@@ -387,9 +387,9 @@ exit(2);
 		d1[2*pnb_v[1]+jj]          = - 100.0;   //   xmin
 		d1[2*pnb_v[1]+png_v[1]+jj] =   100.0;   //   xmax
 		}
-//	i_print_mat(nb, 1, idxb1, nb);
+//	int_print_mat(nb, 1, idxb1, nb);
 
-	int *idxbN; i_zeros(&idxbN, nb_v[N], 1);
+	int *idxbN; int_zeros(&idxbN, nb_v[N], 1);
 	double *dN; d_zeros_align(&dN, 2*pnb_v[N]+2*png_v[N], 1);
 	for(jj=0; jj<nbx; jj++)
 		{

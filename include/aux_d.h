@@ -69,6 +69,6 @@ void dtrset_lib(int row, double alpha, int offset, double *pA, int sda);
 
 
 // integer stuff
-void i_zeros(int **pA, int row, int col);
-void i_free(int *pA);
-void i_print_mat(int row, int col, int *A, int lda);
+void int_zeros(int **pA, int row, int col);
+void int_free(int *pA);
+void int_print_mat(int row, int col, int *A, int lda);
