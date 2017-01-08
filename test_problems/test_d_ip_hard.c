@@ -169,7 +169,7 @@ int main()
 	int N  = NN; // horizon lenght
 	int nb  = nu+nx/2; // number of box constrained inputs and states
 	int ng  = 0; //nx; //4;  // number of general constraints
-	int ngN = 0; //nx; // number of general constraints at the last stage
+	int ngN = nx/2; //nx; // number of general constraints at the last stage
 
 	// partial condensing horizon
 	int N2 = N; //N/2;
@@ -815,7 +815,7 @@ exit(2);
 	int hpmpc_status;
 	int kk, kk_avg;
 	int k_max = 10;
-	double mu_tol = 1e-20;
+	double mu_tol = 1e-12;
 	double alpha_min = 1e-8;
 	int warm_start = 0; // read initial guess from x and u
 	double *stat; d_zeros(&stat, k_max, 5);
@@ -842,8 +842,8 @@ exit(2);
 	for(rep=0; rep<nrep; rep++)
 		{
 
-//		hpmpc_status = fortran_order_d_ip_mpc_hard_tv(&kk, k_max, mu0, mu_tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, rx, ru, rpi, rlam, rt, inf_norm_res, rwork, stat);
-		hpmpc_status = fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, mu_tol, N, nx_v, nu_v, nb_v, hidxb, ng_v, N2, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi1, hlam1, /*ht1,*/ inf_norm_res, work1, stat);
+////		hpmpc_status = fortran_order_d_ip_mpc_hard_tv(&kk, k_max, mu0, mu_tol, N, nx, nu, nb, ng, ngN, time_invariant, free_x0, warm_start, rA, rB, rb, rQ, rQf, rS, rR, rq, rqf, rr, rlb, rub, rC, rD, rlg, rug, CN, lgN, ugN, rx, ru, rpi, rlam, rt, inf_norm_res, rwork, stat);
+//		hpmpc_status = fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, mu_tol, N, nx_v, nu_v, nb_v, hidxb, ng_v, N2, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi1, hlam1, /*ht1,*/ inf_norm_res, work1, stat);
 
 		kk_avg += kk;
 
@@ -860,7 +860,11 @@ exit(2);
 		d_print_mat(1, nu_v[ii], hu[ii], 1);
 
 	printf("\ninfinity norm of residuals\n\n");
+#ifdef BLASFEO
 	d_print_e_mat(1, 4, inf_norm_res, 1);
+#else
+	d_print_mat_e(1, 4, inf_norm_res, 1);
+#endif
 
 	time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
@@ -899,7 +903,11 @@ exit(2);
 		d_print_mat(1, nu_v[ii], hu[ii], 1);
 
 	printf("\ninfinity norm of residuals\n\n");
+#ifdef BLASFEO
 	d_print_e_mat(1, 4, inf_norm_res, 1);
+#else
+	d_print_mat_e(1, 4, inf_norm_res, 1);
+#endif
 
 	time = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
@@ -958,19 +966,35 @@ exit(2);
 		// print residuals
 		printf("\nhrrq\n\n");
 		for(ii=0; ii<=N; ii++)
+#ifdef BLASFEO
 			d_print_e_mat(1, nu_v[ii]+nx_v[ii], hrrq[ii], 1);
+#else
+			d_print_mat_e(1, nu_v[ii]+nx_v[ii], hrrq[ii], 1);
+#endif
 
 		printf("\nhrb\n\n");
 		for(ii=0; ii<N; ii++)
+#ifdef BLASFEO
 			d_print_e_mat(1, nx_v[ii+1], hrb[ii], 1);
+#else
+			d_print_mat_e(1, nx_v[ii+1], hrb[ii], 1);
+#endif
 
 		printf("\nhrd low\n\n");
 		for(ii=0; ii<=N; ii++)
+#ifdef BLASFEO
 			d_print_e_mat(1, nb_v[ii], hrd[ii], 1);
+#else
+			d_print_mat_e(1, nb_v[ii], hrd[ii], 1);
+#endif
 
 		printf("\nhrd up\n\n");
 		for(ii=0; ii<=N; ii++)
+#ifdef BLASFEO
 			d_print_e_mat(1, nb_v[ii], hrd[ii]+pnb_v[ii], 1);
+#else
+			d_print_mat_e(1, nb_v[ii], hrd[ii]+pnb_v[ii], 1);
+#endif
 
 		}
 

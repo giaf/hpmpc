@@ -45,7 +45,7 @@
 
 
 // use iterative refinement to increase accuracy of the solution of the equality constrained sub-problems
-#define ITER_REF 1
+#define ITER_REF 0
 #define THR_ITER_REF 1e-5
 //#define ITER_REF_REG 0.0
 #define CORRECTOR_LOW 1
@@ -838,10 +838,11 @@ exit(1);
 				work2 = work + pnz[ii]*cng[ii];
 //				for(jj=0; jj<ng[ii]; jj++) 
 //					Qx[ii][pnb[ii]+jj] = sqrt(Qx[ii][pnb[ii]+jj]); // XXX
-				dgemm_diag_right_lib(nu[ii]+nx[ii], ng[ii], 1.0, pDCt[ii], cng[ii], Qx[ii]+pnb[ii], 0.0, work, cng[ii], work, cng[ii]);
 #ifdef BLASFEO
+				dgemm_diag_right_lib(nu[ii]+nx[ii], ng[ii], 1.0, pDCt[ii], cng[ii], Qx[ii]+pnb[ii], 0.0, work, cng[ii], work, cng[ii]);
 				drowin_lib(ng[ii], 1.0, qx[ii]+pnb[ii], work+(nu[ii]+nx[ii])/bs*cng[ii]*bs+(nu[ii]+nx[ii])%bs);
 #else
+				dgemm_diag_right_lib(nu[ii]+nx[ii], ng[ii], pDCt[ii], cng[ii], Qx[ii]+pnb[ii], 0, work, cng[ii], work, cng[ii]);
 				drowin_lib(ng[ii], qx[ii]+pnb[ii], work+(nu[ii]+nx[ii])/bs*cng[ii]*bs+(nu[ii]+nx[ii])%bs);
 #endif
 //				for(jj=0; jj<ng[ii]; jj++) 

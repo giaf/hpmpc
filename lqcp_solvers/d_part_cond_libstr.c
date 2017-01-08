@@ -32,6 +32,8 @@
 #include "../include/block_size.h"
 #include "../include/lqcp_aux.h"
 
+#ifdef BLASFEO
+
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
 #include <blasfeo_d_blas.h>
@@ -760,3 +762,5 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 	return;
 
 	}
+
+#endif
