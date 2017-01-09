@@ -41,9 +41,6 @@ endif
 ifeq ($(TARGET), C99_4X4)
 	( cd c99; $(MAKE) obj)
 endif
-ifeq ($(TARGET), C99_4X4_PREFETCH)
-	( cd c99; $(MAKE) obj)
-endif
 ifeq ($(TARGET), CORTEX_A57)
 	( cd armv8a; $(MAKE) obj)
 	( cd c99; $(MAKE) obj)

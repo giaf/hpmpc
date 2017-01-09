@@ -5384,6 +5384,7 @@ void daxpy_lib(int kmax, double alpha, double *x, double *y)
 
 
 
+#if ! defined(BLASFEO)
 // z = y, y = y + alpha*x, with increments equal to 1
 void daxpy_bkp_lib(int kmax, double alpha, double *x, double *y, double *z)
 	{
@@ -5455,6 +5456,7 @@ void daxpy_bkp_lib(int kmax, double alpha, double *x, double *y, double *z)
 	return;
 
 	}
+#endif
 
 
 

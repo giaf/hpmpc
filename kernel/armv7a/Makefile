@@ -25,20 +25,33 @@
 
 include ../../Makefile.rule
 
+OBJS = 
+
 ifeq ($(TARGET), CORTEX_A15)
-OBJS_DOUBLE = kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_vfpv3_lib4.o kernel_dtrsm_vfpv3_lib4.o kernel_dsyrk_vfpv3_lib4.o kernel_dpotrf_vfpv3_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4.o 
-OBJS_SINGLE = #kernel_sgemm_neon_lib4.o kernel_strmm_neon_lib4.o kernel_sgemm_strsm_neon_lib4.o kernel_ssyrk_spotrf_neon_lib4.o kernel_sgemv_neon_lib4.o kernel_strmv_neon_lib4.o kernel_strsv_neon_lib4.o kernel_ssymv_c99_lib4.o kernel_stran_neon_lib4.o
+ifeq ($(USE_BLASFEO), 1)
+else
+OBJS += kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_vfpv3_lib4.o kernel_dtrsm_vfpv3_lib4.o kernel_dsyrk_vfpv3_lib4.o kernel_dpotrf_vfpv3_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4. 
+OBJS += 
 endif
-ifeq ($(TARGET), CORTEX_A9)
-OBJS_DOUBLE = kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_vfpv3_lib4.o kernel_dtrsm_vfpv3_lib4.o kernel_dsyrk_vfpv3_lib4.o kernel_dpotrf_vfpv3_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4.o 
-OBJS_SINGLE = #kernel_sgemm_neon_lib4.o kernel_strmm_neon_lib4.o kernel_sgemm_strsm_neon_lib4.o kernel_ssyrk_spotrf_neon_lib4.o kernel_sgemv_neon_lib4.o kernel_strmv_neon_lib4.o kernel_strsv_neon_lib4.o kernel_ssymv_c99_lib4.o kernel_stran_neon_lib4.o
-endif
-ifeq ($(TARGET), CORTEX_A7)
-OBJS_DOUBLE = kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_vfpv3_lib4.o kernel_dtrsm_vfpv3_lib4.o kernel_dsyrk_vfpv3_lib4.o kernel_dpotrf_vfpv3_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4.o 
-OBJS_SINGLE = #kernel_sgemm_neon_lib4.o kernel_strmm_neon_lib4.o kernel_sgemm_strsm_neon_lib4.o kernel_ssyrk_spotrf_neon_lib4.o kernel_sgemv_neon_lib4.o kernel_strmv_neon_lib4.o kernel_strsv_neon_lib4.o kernel_ssymv_c99_lib4.o kernel_stran_neon_lib4.o
 endif
 
-obj: $(OBJS_DOUBLE) $(OBJS_SINGLE)
+ifeq ($(TARGET), CORTEX_A9)
+ifeq ($(USE_BLASFEO), 1)
+else
+OBJS += kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_vfpv3_lib4.o kernel_dtrsm_vfpv3_lib4.o kernel_dsyrk_vfpv3_lib4.o kernel_dpotrf_vfpv3_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4. 
+OBJS += 
+endif
+endif
+
+ifeq ($(TARGET), CORTEX_A7)
+ifeq ($(USE_BLASFEO), 1)
+else
+OBJS += kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_vfpv3_lib4.o kernel_dtrsm_vfpv3_lib4.o kernel_dsyrk_vfpv3_lib4.o kernel_dpotrf_vfpv3_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4.o
+OBJS += 
+endif
+endif
+
+obj: $(OBJS)
 
 clean:
 	rm -f *.o
