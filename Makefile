@@ -72,7 +72,11 @@ OBJS += ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d
 OBJS +=
 endif
 # C/fortran interface
+ifeq ($(USE_BLASFEO), 1)
+OBJS += ./interfaces/c/fortran_order_interface_libstr.o
+else
 OBJS += ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/fortran_order_interface.o
+endif
 endif
 
 ifeq ($(TARGET), X64_AVX)
@@ -119,7 +123,11 @@ OBJS += ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d
 OBJS +=
 endif
 # C/fortran interface
+ifeq ($(USE_BLASFEO), 1)
+OBJS += ./interfaces/c/fortran_order_interface_libstr.o
+else
 OBJS += ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/fortran_order_interface.o
+endif
 endif
 
 ifeq ($(TARGET), X64_SSE3)
@@ -166,7 +174,11 @@ OBJS += ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d
 OBJS +=
 endif
 # C/fortran interface
+ifeq ($(USE_BLASFEO), 1)
+OBJS += ./interfaces/c/fortran_order_interface_libstr.o
+else
 OBJS += ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/fortran_order_interface.o
+endif
 endif
 
 ifeq ($(TARGET), C99_4X4)
@@ -213,7 +225,11 @@ OBJS += ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d
 OBJS +=
 endif
 # C/fortran interface
+ifeq ($(USE_BLASFEO), 1)
+OBJS += ./interfaces/c/fortran_order_interface_libstr.o
+else
 OBJS += ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/fortran_order_interface.o
+endif
 endif
 
 ifeq ($(TARGET), CORTEX_A57)
@@ -260,7 +276,11 @@ OBJS += ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d
 OBJS +=
 endif
 # C/fortran interface
+ifeq ($(USE_BLASFEO), 1)
+OBJS += ./interfaces/c/fortran_order_interface_libstr.o
+else
 OBJS += ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/fortran_order_interface.o
+endif
 endif
 
 ifeq ($(TARGET), CORTEX_A15)
@@ -307,7 +327,11 @@ OBJS += ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d
 OBJS +=
 endif
 # C/fortran interface
+ifeq ($(USE_BLASFEO), 1)
+OBJS += ./interfaces/c/fortran_order_interface_libstr.o
+else
 OBJS += ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/fortran_order_interface.o
+endif
 endif
 
 ifeq ($(TARGET), CORTEX_A9)
@@ -354,7 +378,11 @@ OBJS += ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d
 OBJS +=
 endif
 # C/fortran interface
+ifeq ($(USE_BLASFEO), 1)
+OBJS += ./interfaces/c/fortran_order_interface_libstr.o
+else
 OBJS += ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/fortran_order_interface.o
+endif
 endif
 
 ifeq ($(TARGET), CORTEX_A7)
@@ -401,7 +429,11 @@ OBJS += ./mpc_solvers/d_ip2_hard.o ./mpc_solvers/d_res_ip_hard.o ./mpc_solvers/d
 OBJS +=
 endif
 # C/fortran interface
+ifeq ($(USE_BLASFEO), 1)
+OBJS += ./interfaces/c/fortran_order_interface_libstr.o
+else
 OBJS += ./interfaces/c/c_interface_work_space.o ./interfaces/c/c_order_interface.o ./interfaces/c/fortran_order_interface.o
+endif
 endif
 
 
