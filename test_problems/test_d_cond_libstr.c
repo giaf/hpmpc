@@ -342,7 +342,7 @@ int main()
 
 #if MHE!=1
 	double *d0; d_zeros(&d0, 2*nb[0], 1);
-	int *idxb0; i_zeros(&idxb0, nb[0], 1);
+	int *idxb0; int_zeros(&idxb0, nb[0], 1);
 	// inputs
 	for(ii=0; ii<nu[0]; ii++)
 		{
@@ -364,7 +364,7 @@ int main()
 	if(N>1)
 		{
 		d_zeros(&d1, 2*nb[1], 1);
-		i_zeros(&idxb1, nb[1], 1);
+		int_zeros(&idxb1, nb[1], 1);
 		// inputs
 		for(ii=0; ii<nu[1]; ii++)
 			{
@@ -382,7 +382,7 @@ int main()
 		}
 
 	double *dN; d_zeros(&dN, 2*nb[N], 1);
-	int *idxbN; i_zeros(&idxbN, nb[N], 1);
+	int *idxbN; int_zeros(&idxbN, nb[N], 1);
 	// no inputs
 	// states
 	for(ii=0 ; ii<nb[N]; ii++)
@@ -654,7 +654,7 @@ int main()
 
 //	printf("\nhidxb3\n\n");
 //	for(ii=0; ii<=N3; ii++)
-//		i_print_mat(1, nb3[ii], hidxb3[ii], 1);
+//		int_print_mat(1, nb3[ii], hidxb3[ii], 1);
 
 /************************************************
 * solve partially condensed system using IPM
@@ -844,11 +844,11 @@ int main()
 	d_free(r);
 	d_free(q);
 	d_free(d0);
-	i_free(idxb0);
+	int_free(idxb0);
 	d_free(d1);
-	i_free(idxb1);
+	int_free(idxb1);
 	d_free(dN);
-	i_free(idxbN);
+	int_free(idxbN);
 
 	v_free_align(work_space_ipm);
 
