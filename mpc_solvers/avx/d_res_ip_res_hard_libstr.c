@@ -45,15 +45,18 @@ int d_res_res_mpc_hard_work_space_size_bytes_libstr(int N, int *nx, int *nu, int
 
 	int ii;
 
-	int size = 0;
-
 	int ngM = 0;
 	for(ii=0; ii<=N; ii++)
 		{
 		ngM = ng[ii]>ngM ? ng[ii] : ngM;
 		}
 
+	int size = 0;
+
 	size += 2*d_size_strvec(ngM); // res_work[0], res_work[1]
+
+	// make multiple of (typical) cache line size
+//	size = (size+63)/64*64;
 
 	return size;
 

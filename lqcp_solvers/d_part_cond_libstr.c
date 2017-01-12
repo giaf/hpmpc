@@ -418,7 +418,7 @@ int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, i
 	tmp_size = work_space_sizes[0] + work_space_sizes[1] + work_space_sizes[2] + work_space_sizes[3];
 	int size = tmp_size>pA_size ? Gamma_size+tmp_size : Gamma_size+pA_size;
 	
-//	size = (size + 63) / 64 * 64; // make work space multiple of (typical) cache line size
+	size = (size + 63) / 64 * 64; // make work space multiple of (typical) cache line size
 
 	return size;
 
@@ -458,7 +458,8 @@ int d_part_cond_memory_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb,
 
 	size = size + i_size*sizeof(int);
 
-//	size = (size + 63) / 64 * 64; // make memory space multiple of (typical) cache line size
+	// make memory space multiple of (typical) cache line size
+	size = (size + 63) / 64 * 64;
 
 	return size;
 

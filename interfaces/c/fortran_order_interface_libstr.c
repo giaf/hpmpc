@@ -63,8 +63,36 @@ int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *n
 		size += 3*d_size_strvec(nu[ii]+nx[ii]); // rq, rrq, ux
 		size += 5*d_size_strvec(2*nb[ii]+2*ng[ii]); // d, lam, t, rd, rm
 		}
-	size += d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng);
-	size += 64; // typical cache line size, used for alignement
+	ii = N;
+	size += d_size_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]); // RSQrq
+	size += d_size_strmat(nu[ii]+nx[ii]+1, ng[ii]); // DCt
+	size += 3*d_size_strvec(nx[ii]); // b, rb, pi
+	size += 3*d_size_strvec(nu[ii]+nx[ii]); // rq, rrq, ux
+	size += 5*d_size_strvec(2*nb[ii]+2*ng[ii]); // d, lam, t, rd, rm
+	if(N2<N) // partial condensing
+		{
+		int nx2[N2+1];
+		int nu2[N2+1];
+		int nb2[N2+1];
+		int ng2[N2+1];
+		int work_space_sizes[4];
+		d_part_cond_compute_problem_size_libstr(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2);
+		size += d_part_cond_work_space_size_bytes_libstr(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2, work_space_sizes);
+		size += d_part_cond_memory_space_size_bytes_libstr(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2);
+		size += d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N2, nx2, nu2, nb2, ng2); // TODO remove 2 and find bug !!!!!!
+		for(ii=0; ii<=N2; ii++)
+			{
+			size += 1*d_size_strvec(nx2[ii]); // pi2
+			size += 1*d_size_strvec(nu2[ii]+nx2[ii]); // ux2
+			size += 2*d_size_strvec(2*nb2[ii]+2*ng2[ii]); // lam2, t2
+			}
+		size += 2*64; // typical cache line size, used for alignement
+		}
+	else // fully sparse solver
+		{
+		size += d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng);
+		size += 2*64; // typical cache line size, used for alignement
+		}
 	return size;
 	}
 
@@ -176,9 +204,6 @@ int fortran_order_d_ip_ocp_hard_tv(
 		c_ptr += hsDCt[ii].memory_size;
 		}
 	
-	work_ipm = (void *) c_ptr;
-	c_ptr += d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng);
-
 	for(ii=0; ii<N; ii++)
 		{
 		d_create_strvec(nx[ii+1], &hsb[ii], (void *) c_ptr);
@@ -338,7 +363,6 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 
 
-#if 0
 	if(N2<N) // partial condensing
 		{
 
@@ -348,98 +372,77 @@ int fortran_order_d_ip_ocp_hard_tv(
 		int nb2[N2+1];
 		int ng2[N2+1];
 
-		d_part_cond_compute_problem_size(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2);
+		d_part_cond_compute_problem_size_libstr(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2);
 
-
+//		for(ii=0; ii<=N2; ii++)
+//			printf("\n%d %d %d %d\n", nu2[ii], nx2[ii], nb2[ii], ng2[ii]);
+//		exit(1);
 
 		// data structure of partially condensed system
-		double *hpBAbt2[N2];
-		double *hpRSQrq2[N2+1];
-		double *hpDCt2[N2+1];
-		double *hd2[N2+1];
-		double *hux2[N2+1];
-		double *hpi2[N2];
-		double *hlam2[N2+1];
-		double *ht2[N2+1];
+		struct d_strmat hsBAbt2[N2];
+		struct d_strmat hsRSQrq2[N2+1];
+		struct d_strmat hsDCt2[N2+1];
+		struct d_strvec hsd2[N2+1];
+		struct d_strvec hsux2[N2+1];
+		struct d_strvec hspi2[N2+1];
+		struct d_strvec hslam2[N2+1];
+		struct d_strvec hst2[N2+1];
+		int *hidxb2[N2+1];
 		void *memory_part_cond;
 		void *work_part_cond;
 		void *work_part_expand;
-
-		int *hidxb2[N2+1];
-
+		int work_part_cond_sizes[4];
+		int work_part_expand_sizes[2];
 
 		// align (again) to (typical) cache line size
-		addr = (( (size_t) ptr ) + 63 ) / 64 * 64;
-		ptr = (double *) addr;
+		addr = (( (size_t) c_ptr ) + 63 ) / 64 * 64;
+		c_ptr = (char *) addr;
 
+		work_part_cond = (void *) c_ptr;
+		c_ptr += d_part_cond_work_space_size_bytes_libstr(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2, work_part_cond_sizes);
 
-		// partial condensing memory and work space
-		char_ptr = (char *) ptr;
-		memory_part_cond = char_ptr;
-		char_ptr += d_part_cond_memory_space_size_bytes(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2);
-
-		work_part_cond = char_ptr;
-		char_ptr += d_part_cond_work_space_size_bytes(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2);
-		ptr = (double *) char_ptr;
-
+		memory_part_cond = (void *) c_ptr;
+		c_ptr += d_part_cond_memory_space_size_bytes_libstr(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2);
 
 		// partial condensing routine (computing also hidxb2) !!!
-		d_part_cond(N, nx, nu, nb, hidxb, ng, hpBAbt, hpRSQrq, hpDCt, hd, N2, nx2, nu2, nb2, hidxb2, ng2, hpBAbt2, hpRSQrq2, hpDCt2, hd2, memory_part_cond, work_part_cond);
+		d_part_cond_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, N2, nx2, nu2, nb2, hidxb2, ng2, hsBAbt2, hsRSQrq2, hsDCt2, hsd2, memory_part_cond, work_part_cond, work_part_cond_sizes);
 
-
-		// packed quantities
-		int pnx2[N2+1];
-		int pnz2[N2+1];
-		int pnb2[N2+1];
-		int png2[N2+1];
-		int cnx2[N2+1];
-		int cnux2[N2+1];
-		int cng2[N2+1];
-
-		for(ii=0; ii<=N2; ii++)
-			{
-			pnx2[ii] = (nx2[ii]+bs-1)/bs*bs;
-			pnz2[ii] = (nu2[ii]+nx2[ii]+1+bs-1)/bs*bs;
-			pnb2[ii] = (nb2[ii]+bs-1)/bs*bs;
-			png2[ii] = (ng2[ii]+bs-1)/bs*bs;
-			cnx2[ii] = (nx2[ii]+ncl-1)/ncl*ncl;
-			cnux2[ii] = (nu2[ii]+nx2[ii]+ncl-1)/ncl*ncl;
-			cng2[ii] = (ng2[ii]+ncl-1)/ncl*ncl;
-			}
-
+//	for(ii=0; ii<N2; ii++)
+//		d_print_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii], 0, 0);
+//	for(ii=0; ii<=N2; ii++)
+//		d_print_strmat(nu2[ii]+nx2[ii], ng2[ii], &hsDCt2[ii], 0, 0);
+//	for(ii=0; ii<=N2; ii++)
+//		d_print_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsRSQrq2[ii], 0, 0);
+//	exit(1);
 
 		// IPM work space
-		char_ptr = (char *) ptr;
-		work_ipm = char_ptr;
-		char_ptr += d_ip2_res_mpc_hard_tv_work_space_size_bytes(N2, nx2, nu2, nb2, ng2);
-		ptr = (double *) char_ptr;
-
+		work_ipm = (void *) c_ptr;
+		c_ptr += d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N2, nx2, nu2, nb2, ng2);
 
 		// solution vectors & relative work space
 		for(ii=0; ii<=N2; ii++)
 			{
-			hux2[ii] = ptr;
-			ptr += pnz2[ii];
-			}
-
-		for(ii=0; ii<N2; ii++)
-			{
-			hpi2[ii] = ptr;
-			ptr += pnx2[ii+1];
+			d_create_strvec(nu2[ii]+nx2[ii], &hsux2[ii], (void *) c_ptr);
+			c_ptr += hsux2[ii].memory_size;
 			}
 
 		for(ii=0; ii<=N2; ii++)
 			{
-			hlam2[ii] = ptr;
-			ptr += 2*pnb2[ii]+2*png2[ii];
+			d_create_strvec(nx2[ii], &hspi2[ii], (void *) c_ptr);
+			c_ptr += hspi2[ii].memory_size;
 			}
 
 		for(ii=0; ii<=N2; ii++)
 			{
-			ht2[ii] = ptr;
-			ptr += 2*pnb2[ii]+2*png2[ii];
+			d_create_strvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii], (void *) c_ptr);
+			c_ptr += hslam2[ii].memory_size;
 			}
 
+		for(ii=0; ii<=N2; ii++)
+			{
+			d_create_strvec(2*nb2[ii]+2*ng2[ii], &hst2[ii], (void *) c_ptr);
+			c_ptr += hst2[ii].memory_size;
+			}
 
 
 		// initial guess TODO part cond
@@ -461,36 +464,35 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 
 		// IPM solver on partially condensed system
-		hpmpc_status = d_ip2_res_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N2, nx2, nu2, nb2, hidxb2, ng2, hpBAbt2, hpRSQrq2, hpDCt2, hd2, hux2, 1, hpi2, hlam2, ht2, work_ipm);
+		hpmpc_status = d_ip2_res_mpc_hard_libstr(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N2, nx2, nu2, nb2, hidxb2, ng2, hsBAbt2, hsRSQrq2, hsDCt2, hsd2, hsux2, 1, hspi2, hslam2, hst2, work_ipm);
 
-#if 0
-		for(ii=0; ii<=N2; ii++)
-			d_print_mat(1, nu2[ii]+nx2[ii], hux2[ii], 1);
-		exit(2);
-#endif
-
+//		for(ii=0; ii<=N2; ii++)
+//			d_print_tran_strvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
+//		exit(2);
 
 		// expand work space
-		char_ptr = (char *) ptr;
-		work_part_expand = char_ptr;
-		char_ptr += d_part_expand_work_space_size_bytes(N, nx, nu, nb, ng);
-		ptr = (double *) char_ptr;
+		work_part_expand = (void *) c_ptr;
+		c_ptr += d_part_expand_work_space_size_bytes_libstr(N, nx, nu, nb, ng, work_part_expand_sizes);
 
 
 		// expand solution of full space system
-		d_part_expand_solution(N, nx, nu, nb, hidxb, ng, hpBAbt, hb, hpRSQrq, hrq, hpDCt, hux, hpi, hlam, ht, N2, nx2, nu2, nb2, hidxb2, ng2, hux2, hpi2, hlam2, ht2, work_part_expand);
+		d_part_expand_solution_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsDCt, hsux, hspi, hslam, hst, N2, nx2, nu2, nb2, hidxb2, ng2, hsux2, hspi2, hslam2, hst2, work_part_expand, work_part_expand_sizes);
 
-#if 0
-		for(ii=0; ii<=N; ii++)
-			d_print_mat(1, nu[ii]+nx[ii], hux[ii], 1);
-		exit(2);
-#endif
+//		for(ii=0; ii<=N; ii++)
+//			d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+//		exit(2);
 
 		}
 	else // full space system
 		{
-#endif
 
+		// align (again) to (typical) cache line size
+		addr = (( (size_t) c_ptr ) + 63 ) / 64 * 64;
+		c_ptr = (char *) addr;
+
+		// ipm work space
+		work_ipm = (void *) c_ptr;
+		c_ptr += d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng);
 
 		// initial guess
 		if(warm_start)
@@ -504,29 +506,14 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 			}
 
-#if 0
-		printf("\n%d\n", N);
-		for(ii=0; ii<=N; ii++)
-			printf("\n%d %d\n", nu[ii], nx[ii]);
-//			d_print_mat(1, nu[ii]+nx[ii], hux[ii], 1);
-		exit(1);
-#endif
-
-
-
 		// IPM solver on full space system
 		hpmpc_status = d_ip2_res_mpc_hard_libstr(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, 1, hspi, hslam, hst, work_ipm);
-//		hpmpc_status = d_ip2_res_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hpBAbt, hpRSQrq, hpDCt, hd, hux, 1, hpi, hlam, ht, work_ipm);
 
-#if 0
 		}
-#endif
 
 //	for(ii=0; ii<=N; ii++)
 //		d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
 //	exit(1);
-
-
 
 	// copy back inputs and states
 	for(ii=0; ii<N; ii++)

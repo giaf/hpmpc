@@ -42,25 +42,32 @@ int d_back_ric_rec_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb
 
 	int ii;
 
-	int size = 0;
-
 	// max sizes
 	int nxM  = 0;
 	int ngM = 0;
 	int nuxM  = 0;
 	int nxgM = ng[N];
-	for(ii=0; ii<=N; ii++)
+	for(ii=0; ii<N; ii++)
 		{
 		nxM = nx[ii]>nxM ? nx[ii] : nxM;
 		ngM = ng[ii]>ngM ? ng[ii] : ngM;
 		nuxM = nu[ii]+nx[ii]>nuxM ? nu[ii]+nx[ii]+1 : nuxM;
 		nxgM = nx[ii+1]+ng[ii]>nxgM ? nx[ii+1]+ng[ii] : nxgM;
 		}
+	ii = N;
+	nxM = nx[ii]>nxM ? nx[ii] : nxM;
+	ngM = ng[ii]>ngM ? ng[ii] : ngM;
+	nuxM = nu[ii]+nx[ii]>nuxM ? nu[ii]+nx[ii]+1 : nuxM;
 	
+	int size = 0;
+
 	size += d_size_strmat(nuxM+1, nxgM); // ric_work_mat[0]
 	if(ngM>0)
 		size += d_size_strmat(nuxM, nxgM); // ric_work_mat[1]
 	size += d_size_strvec(nxM); // ric_work_vec[0]
+
+	// make multiple of (typical) cache line size
+//	size = (size+63)/64*64;
 
 	return size;
 	}

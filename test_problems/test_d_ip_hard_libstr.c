@@ -175,7 +175,7 @@ int main()
 	int ngN = nx_/2; //nx; // number of general constraints at the last stage
 
 	// partial condensing horizon
-	int N2 = N; //N/2;
+	int N2 = 3; //N/2;
 
 
 	int nbu = nb_<nu_ ? nb_ : nu_;
@@ -729,6 +729,7 @@ int main()
 	
 	void *work_ipm_high;
 	v_zeros(&work_ipm_high, hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(N, nx, nu, nb, hidxb, ng, N2));
+	printf("\nwork space size 2 (in bytes): %d\n", hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(N, nx, nu, nb, hidxb, ng, N2));
 
 	gettimeofday(&tv0, NULL); // start
 
