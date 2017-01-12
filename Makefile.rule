@@ -73,7 +73,7 @@ COMMON_FLAGS += -I/opt/gcc/lib/gcc/x86_64-pc-linux-gnu/6.0.0/include
 endif
 endif
 ifeq ($(USE_BLASFEO), 1)
-COMMON_FLAGS += -DBLASFEOe -I$(TOP)../blasfeo/include -I/opt/blasfeo/includ
+COMMON_FLAGS += -DBLASFEO -I$(TOP)../blasfeo/include -I/opt/blasfeo/include
 endif
 ifeq ($(OS), WINDOWS)
 COMMON_FLAGS += -DOS_WINDOWS
