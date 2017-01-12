@@ -683,7 +683,7 @@ int main()
 	double *hu[N];
 	double *hpi[N];
 	double *hlam[N+1];
-	double inf_norm_res[4];
+	double inf_norm_res[5];
 
 	ii = 0;
 	hB[ii] = B;
@@ -751,6 +751,8 @@ int main()
 	printf("\nx = \n");
 	for(ii=0; ii<=N; ii++)
 		d_print_mat(1, nx[ii], hx[ii], 1);
+	
+	printf("\ninf norm res = %e, %e, %e, %e, %e\n\n", inf_norm_res[0], inf_norm_res[1], inf_norm_res[2], inf_norm_res[3], inf_norm_res[4]); 
 
 	double time_ipm_high = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 

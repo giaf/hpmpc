@@ -93,6 +93,7 @@ int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *n
 		size += d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng);
 		size += 2*64; // typical cache line size, used for alignement
 		}
+	size += d_res_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng);
 	return size;
 	}
 
@@ -185,6 +186,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 	struct d_strvec hsrd[N+1];
 	struct d_strvec hsrm[N+1];
 	void *work_ipm;
+	void *work_res;
 
 	for(ii=0; ii<N; ii++)
 		{
@@ -252,9 +254,9 @@ int fortran_order_d_ip_ocp_hard_tv(
 		c_ptr += hsrrq[ii].memory_size;
 		}
 
-	for(ii=0; ii<=N; ii++)
+	for(ii=0; ii<N; ii++)
 		{
-		d_create_strvec(2*nb[ii]+2*ng[ii], &hsrb[ii], (void *) c_ptr);
+		d_create_strvec(nx[ii+1], &hsrb[ii], (void *) c_ptr);
 		c_ptr += hsrb[ii].memory_size;
 		}
 
@@ -269,6 +271,9 @@ int fortran_order_d_ip_ocp_hard_tv(
 		d_create_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], (void *) c_ptr);
 		c_ptr += hsrm[ii].memory_size;
 		}
+	
+	work_res = (void *) c_ptr;
+	c_ptr += d_res_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng);
 
 
 
@@ -524,50 +529,61 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 
 
-#if 0
 	// compute infinity norm of residuals on exit
 
 	double mu;
 
-	d_res_mpc_hard_tv(N, nx, nu, nb, hidxb, ng, hpBAbt, hb, hpRSQrq, hrq, hux, hpDCt, hd, hpi, hlam, ht, hrrq, hrb, hrd, &mu);
+	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsrrq, hsrb, hsrd, hsrm, &mu, work_res);
 
-	temp = fabs(hrrq[0][0]);
-	for(ii=0; ii<N; ii++)
+	double *ptr;
+
+	ptr = hsrrq[0].pa;
+	temp = fabs(ptr[0]);
+	for(ii=0; ii<=N; ii++)
+		{
+		ptr = hsrrq[ii].pa;
 		for(jj=0; jj<nu[ii]+nx[ii]; jj++) 
-			temp = fmax( temp, fabs(hrrq[ii][jj]) );
-	ii = N;
-	for(jj=0; jj<nx[ii]; jj++) 
-		temp = fmax( temp, fabs(hrrq[ii][jj]) );
+			temp = fmax( temp, fabs(ptr[jj]) );
+		}
 	inf_norm_res[0] = temp;
 
-	temp = fabs(hrb[0][0]);
+	ptr = hsrb[0].pa;
+	temp = fabs(ptr[0]);
 	for(ii=0; ii<N; ii++)
+		{
+		ptr = hsrb[ii].pa;
 		for(jj=0; jj<nx[ii+1]; jj++) 
-			temp = fmax( temp, fabs(hrb[ii][jj]) );
+			temp = fmax( temp, fabs(ptr[jj]) );
+		}
 	inf_norm_res[1] = temp;
 
-	temp = fabs(hrd[0][0]);
+	ptr = hsrd[0].pa;
+	temp = fabs(ptr[0]);
 	for(ii=0; ii<=N; ii++)
 		{
-		for(jj=0; jj<nb[ii]; jj++) 
+		ptr = hsrd[ii].pa;
+		for(jj=0; jj<2*nb[ii]+2*ng[ii]; jj++) 
 			{
-			temp = fmax( temp, fabs(hrd[ii][jj+0]) );
-			temp = fmax( temp, fabs(hrd[ii][jj+pnb[ii]]) );
-			}
-		}
-	for(ii=0; ii<=N; ii++)
-		{
-		for(jj=0; jj<ng[ii]; jj++) 
-			{
-			temp = fmax( temp, fabs(hrd[ii][2*pnb[ii]+jj+0]) );
-			temp = fmax( temp, fabs(hrd[ii][2*pnb[ii]+jj+png[ii]]) );
+			temp = fmax( temp, fabs(ptr[jj]) );
 			}
 		}
 	inf_norm_res[2] = temp;
 
-	inf_norm_res[3] = mu;
+	ptr = hsrm[0].pa;
+	temp = fabs(ptr[0]);
+	for(ii=0; ii<=N; ii++)
+		{
+		ptr = hsrm[ii].pa;
+		for(jj=0; jj<2*nb[ii]+2*ng[ii]; jj++) 
+			{
+			temp = fmax( temp, fabs(ptr[jj]) );
+			}
+		}
+	inf_norm_res[3] = temp;
 
+	inf_norm_res[4] = mu;
 
+#if 0
 
 	// copy back multipliers
 
