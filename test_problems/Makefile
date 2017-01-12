@@ -28,7 +28,7 @@ include ../Makefile.rule
 LIBS = 
 
 ifeq ($(USE_BLASFEO), 1)
-LIBS += /opt/blasfeo/lib/libblasfeo.a
+LIBS += $(BLASFEO_PATH)/lib/libblasfeo.a
 endif
 
 ifeq ($(REF_BLAS), 0)
@@ -52,8 +52,8 @@ endif
 #OBJS_TEST = tools.o test_d_ric_mpc.o
 #OBJS_TEST = tools.o test_d_tight_ric_libstr.o
 #OBJS_TEST = tools.o test_d_ric_libstr.o
-OBJS_TEST = tools.o test_d_ip_hard.o
-#OBJS_TEST = tools.o test_d_ip_hard_libstr.o
+#OBJS_TEST = tools.o test_d_ip_hard.o
+OBJS_TEST = tools.o test_d_ip_hard_libstr.o
 #OBJS_TEST = tools.o test_d_tree_ric_libstr.o
 #OBJS_TEST = tools.o test_d_tree_ip_hard_libstr.o
 #OBJS_TEST = tools.o test_d_cond.o
