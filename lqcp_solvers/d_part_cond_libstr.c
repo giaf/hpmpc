@@ -616,7 +616,7 @@ int d_part_expand_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb,
 	
 	int size = work_space_sizes[0] + work_space_sizes[1];
 
-//	size = (size + 63) / 64 * 64; // make multiple of (typical) cache line size
+	size = (size + 63) / 64 * 64; // make multiple of (typical) cache line size
 
 	return size;
 
@@ -631,7 +631,7 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 
 	struct d_strvec workvec[2];
 
-	double *ptr_work0, *ptr_work1, *ptr_lam;
+	double *ptr_work0, *ptr_work1, *ptr_lam, *ptr_t, *ptr_lam2, *ptr_t2;
 
 	char *c_ptr[2];
 	c_ptr[0] = (char *) work_space;
@@ -642,7 +642,7 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 	int M1 = R1>0 ? N1+1 : N1; // (ceil) horizon of large blocks
 	int T1; // horizon of current block
 	int N_tmp, nu_tmp;
-	int nbb2, nbg2, nbb2_tmp, nbg2_tmp;
+	int nbb2, nbg2;
 	int stg;
 
 	// inputs & initial states
@@ -683,39 +683,44 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 	N_tmp = 0;
 	for(ii=0; ii<N2; ii++)
 		{
-		nbb2_tmp = 0;
-		nbg2_tmp = 0;
+		ptr_lam2 = hslam2[ii].pa;
+		ptr_t2 = hst2[ii].pa;
+		nbb2 = 0;
+		nbg2 = 0;
 		T1 = ii<R1 ? M1 : N1;
 		// final stages
 		for(jj=0; jj<T1-1; jj++)
 			{
-			nbb2 = 0;
-			nbg2 = 0;
-			for(ll=0; ll<nb[N_tmp+T1-1-jj]; ll++)
-				if(hidxb[N_tmp+T1-1-jj][ll]<nu[N_tmp+T1-1-jj])
+			stg = N_tmp+T1-1-jj;
+			ptr_lam = hslam[stg].pa;
+			ptr_t = hst[stg].pa;
+			for(ll=0; ll<nb[stg]; ll++)
+				{
+				if(hidxb[stg][ll]<nu[stg])
+					{
+					// box as box
+					ptr_lam[0*nb[stg]+ll] = ptr_lam2[0*nb2[ii]+nbb2];
+					ptr_lam[1*nb[stg]+ll] = ptr_lam2[1*nb2[ii]+nbb2];
+					ptr_t[0*nb[stg]+ll] = ptr_t2[0*nb2[ii]+nbb2];
+					ptr_t[1*nb[stg]+ll] = ptr_t2[1*nb2[ii]+nbb2];
 					nbb2++;
+					}
 				else
+					{
+					// box as general XXX change when decide where nbg are placed wrt ng
+					ptr_lam[0*nb[stg]+ll] = ptr_lam2[2*nb2[ii]+0*ng2[ii]+nbg2];
+					ptr_lam[1*nb[stg]+ll] = ptr_lam2[2*nb2[ii]+1*ng2[ii]+nbg2];
+					ptr_t[0*nb[stg]+ll] = ptr_t2[2*nb2[ii]+0*ng2[ii]+nbg2];
+					ptr_t[1*nb[stg]+ll] = ptr_t2[2*nb2[ii]+1*ng2[ii]+nbg2];
 					nbg2++;
-			// box as box
-			dveccp_libstr(nbb2, 1.0, &hslam2[ii], 0*nb2[ii]+nbb2_tmp, &hslam[N_tmp+T1-1-jj], 0*nb[N_tmp+T1-1-jj]);
-			dveccp_libstr(nbb2, 1.0, &hslam2[ii], 1*nb2[ii]+nbb2_tmp, &hslam[N_tmp+T1-1-jj], 1*nb[N_tmp+T1-1-jj]);
-			dveccp_libstr(nbb2, 1.0, &hst2[ii], 0*nb2[ii]+nbb2_tmp, &hst[N_tmp+T1-1-jj], 0*nb[N_tmp+T1-1-jj]);
-			dveccp_libstr(nbb2, 1.0, &hst2[ii], 1*nb2[ii]+nbb2_tmp, &hst[N_tmp+T1-1-jj], 1*nb[N_tmp+T1-1-jj]);
-			// box as general XXX change when decide where nbg are placed wrt ng
-			dveccp_libstr(nbg2, 1.0, &hslam2[ii], 2*nb2[ii]+0*ng2[ii]+nbg2_tmp, &hslam[N_tmp+T1-1-jj], 0*nb[N_tmp+T1-1-jj]+nbb2);
-			dveccp_libstr(nbg2, 1.0, &hslam2[ii], 2*nb2[ii]+1*ng2[ii]+nbg2_tmp, &hslam[N_tmp+T1-1-jj], 1*nb[N_tmp+T1-1-jj]+nbb2);
-			dveccp_libstr(nbg2, 1.0, &hst2[ii], 2*nb2[ii]+0*ng2[ii]+nbg2_tmp, &hst[N_tmp+T1-1-jj], 0*nb[N_tmp+T1-1-jj]+nbb2);
-			dveccp_libstr(nbg2, 1.0, &hst2[ii], 2*nb2[ii]+1*ng2[ii]+nbg2_tmp, &hst[N_tmp+T1-1-jj], 1*nb[N_tmp+T1-1-jj]+nbb2);
-			nbb2_tmp += nbb2;
-			nbg2_tmp += nbg2;
+					}
+				}
 			}
-		// first stage
-		dveccp_libstr(nb[N_tmp+0], 1.0, &hslam2[ii], 0*nb2[ii]+nbb2_tmp, &hslam[N_tmp+T1-1-jj], 0*nb[N_tmp+T1-1-jj]);
-		dveccp_libstr(nb[N_tmp+0], 1.0, &hslam2[ii], 1*nb2[ii]+nbb2_tmp, &hslam[N_tmp+T1-1-jj], 1*nb[N_tmp+T1-1-jj]);
-		dveccp_libstr(nb[N_tmp+0], 1.0, &hst2[ii], 0*nb2[ii]+nbb2_tmp, &hst[N_tmp+T1-1-jj], 0*nb[N_tmp+T1-1-jj]);
-		dveccp_libstr(nb[N_tmp+0], 1.0, &hst2[ii], 1*nb2[ii]+nbb2_tmp, &hst[N_tmp+T1-1-jj], 1*nb[N_tmp+T1-1-jj]);
-//		nbb2_tmp += nbb2;
-//		nbg2_tmp += nbg2;
+		// first stage: all box as box
+		dveccp_libstr(nb[N_tmp+0], 1.0, &hslam2[ii], 0*nb2[ii]+nbb2, &hslam[N_tmp+T1-1-jj], 0*nb[N_tmp+T1-1-jj]);
+		dveccp_libstr(nb[N_tmp+0], 1.0, &hslam2[ii], 1*nb2[ii]+nbb2, &hslam[N_tmp+T1-1-jj], 1*nb[N_tmp+T1-1-jj]);
+		dveccp_libstr(nb[N_tmp+0], 1.0, &hst2[ii], 0*nb2[ii]+nbb2, &hst[N_tmp+T1-1-jj], 0*nb[N_tmp+T1-1-jj]);
+		dveccp_libstr(nb[N_tmp+0], 1.0, &hst2[ii], 1*nb2[ii]+nbb2, &hst[N_tmp+T1-1-jj], 1*nb[N_tmp+T1-1-jj]);
 		//
 		N_tmp += T1;
 		}
@@ -765,3 +770,4 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 	}
 
 #endif
+

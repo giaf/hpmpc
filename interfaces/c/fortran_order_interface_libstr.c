@@ -473,6 +473,12 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 //		for(ii=0; ii<=N2; ii++)
 //			d_print_tran_strvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
+//		for(ii=0; ii<N2; ii++)
+//			d_print_tran_strvec(nx2[ii+1], &hspi2[ii], 0);
+//		for(ii=0; ii<=N2; ii++)
+//			d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii], 0);
+//		for(ii=0; ii<=N2; ii++)
+//			d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hst2[ii], 0);
 //		exit(2);
 
 		// expand work space
@@ -518,6 +524,12 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 //	for(ii=0; ii<=N; ii++)
 //		d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+//	for(ii=0; ii<N; ii++)
+//		d_print_tran_strvec(nx[ii+1], &hspi[ii], 0);
+//	for(ii=0; ii<=N; ii++)
+//		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+//	for(ii=0; ii<=N; ii++)
+//		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 //	exit(1);
 
 	// copy back inputs and states
