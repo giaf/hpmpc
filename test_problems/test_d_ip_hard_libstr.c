@@ -537,7 +537,7 @@ int main()
 
 	gettimeofday(&tv1, NULL); // stop
 
-	printf("\nstat =\n\nsigma\t\talpha1\t\tmu1\t\talpha2\t\tmu2\n\n");
+	printf("\nstat = (%d iter)\n\nsigma\t\talpha1\t\tmu1\t\talpha2\t\tmu2\n\n", kk);
 	d_print_e_tran_mat(5, kk, stat, 5);
 
 	printf("\nux =\n\n");
@@ -698,6 +698,8 @@ int main()
 	hug[ii] = ug0;
 	d_zeros(&hu[ii], nu[ii], 1);
 	d_zeros(&hx[ii], nx[ii], 1);
+	d_zeros(&hpi[ii], nx[ii+1], 1);
+	d_zeros(&hlam[ii], 2*nb[ii]+2*ng[ii], 1);
 	for(ii=1; ii<N; ii++)
 		{
 		hA[ii] = A;
@@ -716,6 +718,8 @@ int main()
 		hug[ii] = ug1;
 		d_zeros(&hu[ii], nu[ii], 1);
 		d_zeros(&hx[ii], nx[ii], 1);
+		d_zeros(&hpi[ii], nx[ii+1], 1);
+		d_zeros(&hlam[ii], 2*nb[ii]+2*ng[ii], 1);
 		}
 	ii = N;
 	hC[ii] = CN;
@@ -726,6 +730,7 @@ int main()
 	hlg[ii] = lgN;
 	hug[ii] = ugN;
 	d_zeros(&hx[ii], nx[ii], 1);
+	d_zeros(&hlam[ii], 2*nb[ii]+2*ng[ii], 1);
 	
 	void *work_ipm_high;
 	v_zeros(&work_ipm_high, hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(N, nx, nu, nb, hidxb, ng, N2));
@@ -741,7 +746,7 @@ int main()
 
 	gettimeofday(&tv1, NULL); // stop
 
-	printf("\nstat =\n\nsigma\t\talpha1\t\tmu1\t\talpha2\t\tmu2\n\n");
+	printf("\nstat = (%d iter)\n\nsigma\t\talpha1\t\tmu1\t\talpha2\t\tmu2\n\n", kk);
 	d_print_e_tran_mat(5, kk, stat, 5);
 
 	printf("\nu = \n");

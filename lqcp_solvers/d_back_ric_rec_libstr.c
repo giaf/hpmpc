@@ -67,7 +67,7 @@ int d_back_ric_rec_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb
 	size += d_size_strvec(nxM); // ric_work_vec[0]
 
 	// make multiple of (typical) cache line size
-//	size = (size+63)/64*64;
+	size = (size+63)/64*64;
 
 	return size;
 	}

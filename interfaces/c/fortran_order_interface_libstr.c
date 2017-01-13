@@ -535,6 +535,16 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsrrq, hsrb, hsrd, hsrm, &mu, work_res);
 
+//	for(ii=0; ii<=N; ii++)
+//		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
+//	for(ii=0; ii<N; ii++)
+//		d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
+//	for(ii=0; ii<=N; ii++)
+//		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
+//	for(ii=0; ii<=N; ii++)
+//		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
+//	exit(1);
+	
 	double *ptr;
 
 	ptr = hsrrq[0].pa;
@@ -583,38 +593,18 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 	inf_norm_res[4] = mu;
 
-#if 0
-
 	// copy back multipliers
 
 	for(ii=0; ii<N; ii++)
-		for(jj=0; jj<nx[ii+1]; jj++)
-			pi[ii][jj] = hpi[ii][jj];
+		d_cvt_strvec2vec(nx[ii+1], &hspi[ii], 0, pi[ii]);
 
 	for(ii=0; ii<=N; ii++)
 		{
-		for(jj=0; jj<nb[ii]; jj++)
-			{
-			lam[ii][jj+0]      = hlam[ii][jj+0];
-			lam[ii][jj+nb[ii]] = hlam[ii][jj+pnb[ii]];
-//			t[ii][jj+0]      = ht[ii][jj+0];
-//			t[ii][jj+nb[ii]] = ht[ii][jj+pnb[ii]];
-			}
-		}
-
-	for(ii=0; ii<=N; ii++)
-		{
-		for(jj=0; jj<ng[ii]; jj++)
-			{
-			lam[ii][2*nb[ii]+jj+0]      = hlam[ii][2*pnb[ii]+jj+0];
-			lam[ii][2*nb[ii]+jj+ng[ii]] = hlam[ii][2*pnb[ii]+jj+png[ii]];
-//			t[ii][2*nb[ii]+jj+0]      = ht[ii][2*pnb[ii]+jj+0];
-//			t[ii][2*nb[ii]+jj+ng[ii]] = ht[ii][2*pnb[ii]+jj+png[ii]];
-			}
+		d_cvt_strvec2vec(2*nb[ii]+2*ng[ii], &hslam[ii], 0, lam[ii]);
+//		d_cvt_strvec2vec(2*nb[ii]+2*ng[ii], &hst[ii], 0, t[ii]);
 		}
 
 //	printf("\nend of wrapper\n");
-#endif
 
     return hpmpc_status;
 
