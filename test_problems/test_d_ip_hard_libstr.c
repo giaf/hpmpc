@@ -172,7 +172,7 @@ int main()
 	int N  = NN; // horizon lenght
 
 	// partial condensing horizon
-	int N2 = 3; //N/2;
+	int N2 = 3; //N/2; // TODO debug haswell for N2=5 !!!!!!!!!!!!!!!
 
 
 
