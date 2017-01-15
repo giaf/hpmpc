@@ -216,7 +216,7 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 
 
 // TODO general constraints !!!!!
-void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, struct d_strvec *hsd, struct d_strmat *hsGamma, struct d_strmat *sDCt2, struct d_strvec *sd2, int *idxb2)
+void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct d_strmat *hsDCt, struct d_strvec *hsd, struct d_strmat *hsGamma, struct d_strmat *sDCt2, struct d_strvec *sd2, int *idxb2, void *work_space)
 	{
 
 	// early return
@@ -225,8 +225,12 @@ void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, struct d_
 
 	double *d2 = sd2->pa;
 	double *ptr_d;
+	
+	int nu_tmp, ng_tmp;
 
 	int ii, jj;
+
+	// box constraints
 
 	int nbb = nb[0]; // box that remain box constraints
 	int nbg = 0; // box that becomes general constraints
@@ -237,7 +241,7 @@ void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, struct d_
 			else
 				nbg++;
 	
-	int nu_tmp = 0;
+	nu_tmp = 0;
 
 	int idx_gammab = nx[0];
 	for(ii=0; ii<N-1; ii++)
@@ -286,6 +290,54 @@ void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, struct d_
 		idxb2[ib] = nu_tmp - nu[0] + hidxb[0][jj];
 		ib++;
 		}
+
+	// XXX for now, just shift after box-to-general constraints
+	// better interleave them, to keep the block lower trianlgular structure !!!
+
+	// general constraints
+
+#if 0
+	int nx2 = nx[0];
+	int nu2 = nu[0];
+	int ngg = ng[0];
+	for(ii=1; ii<N; ii++)
+		{
+		nu2 += nu[ii];
+		ngg += ng[ii];
+		}
+	int ng2 = nbg + ngg;
+	int nb2 = nbb;
+
+	struct d_strmat sC;
+
+	dmatse_libstr(nu2+nx2, ngg, -2.0, sDCt2, 0, nbg); // XXX 0.0
+
+	nu_tmp = 0;
+	ng_tmp = 0;
+	for(ii=0; ii<N; ii++)
+		{
+
+		d_create_strmat(ng[N-1-ii], nx[N-1-ii], &sC, work_space);
+		dgetr_libstr(nx[N-1-ii], ng[N-1-ii], 1.0, &hsDCt[N-1-ii], nu[N-1-ii], 0, &sC, 0, 0);
+//		d_print_strmat(ng[N-1-ii], nx[N-1-ii], &sC, 0, 0);
+
+		dgemm_nt_libstr(nu2-nu_tmp, ng[N-1-ii], nx[N-1-ii], 1.0, &hsGamma[N-1-ii], 0, 0, &sC, 0, 0, 0.0, sDCt2, nu_tmp, ng_tmp, sDCt2, nu_tmp, nbg+ng_tmp);
+
+		dgead_libstr(nu[N-1-ii], ng[N-1-ii], 1.0, &hsDCt[N-1-ii], 0, 0, sDCt2, nu_tmp, nbg+ng_tmp);
+
+		dveccp_libstr(ng[N-1-ii], 1.0, &hsd[N-1-ii], 2*nb[N-1-ii]+0, sd2, 2*nb2+nbg+ng_tmp);
+		dveccp_libstr(ng[N-1-ii], 1.0, &hsd[N-1-ii], 2*nb[N-1-ii]+ng[N-1-ii], sd2, 2*nb2+ng2+nbg+ng_tmp);
+
+		nu_tmp += nu[N-1-ii];
+		ng_tmp += ng[N-1-ii];
+
+//		d_print_strmat(nu2+nx2, ng2, sDCt2, 0, 0);
+//		d_print_tran_strvec(ng2, sd2, 2*nb2+0);
+//		d_print_tran_strvec(ng2, sd2, 2*nb2+ng2);
+		}
+
+//	exit(1);
+#endif
 
 	return;
 
@@ -353,6 +405,7 @@ int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, i
 
 	int Gamma_size = 0;
 	int pA_size = 0;
+	int pC_size = 0;
 	work_space_sizes[0] = 0;
 	work_space_sizes[1] = 0;
 	work_space_sizes[2] = 0;
@@ -379,8 +432,15 @@ int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, i
 		// sA
 		for(jj=0; jj<T1; jj++)
 			{
-			tmp_size = d_size_strmat(nx[N_tmp+jj], nx[N_tmp+jj+1]);
+			tmp_size = d_size_strmat(nx[N_tmp+jj+1], nx[N_tmp+jj]);
 			pA_size = tmp_size > pA_size ? tmp_size : pA_size;
+			}
+
+		// sC
+		for(jj=0; jj<T1; jj++)
+			{
+			tmp_size = d_size_strmat(ng[N_tmp+jj], nx[N_tmp+jj]);
+			pC_size = tmp_size > pC_size ? tmp_size : pC_size;
 			}
 
 		// sL : 0 => N-1
@@ -416,7 +476,9 @@ int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, i
 		}
 	
 	tmp_size = work_space_sizes[0] + work_space_sizes[1] + work_space_sizes[2] + work_space_sizes[3];
-	int size = tmp_size>pA_size ? Gamma_size+tmp_size : Gamma_size+pA_size;
+	tmp_size = tmp_size>pA_size ? tmp_size : pA_size;
+	tmp_size = tmp_size>pC_size ? tmp_size : pC_size;
+	int size = Gamma_size+tmp_size;
 	
 	size = (size + 63) / 64 * 64; // make work space multiple of (typical) cache line size
 
@@ -576,11 +638,14 @@ void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 		// sA
 		// no c_ptr += ... : overwrite sA
 		d_cond_BAbt_libstr(T1, &nx[N_tmp], &nu[N_tmp], &hsBAbt[N_tmp], hsGamma, &hsBAbt2[ii], (void *) c_ptr);
+//for(jj=0; jj<T1; jj++)
+//	d_print_strmat(hsGamma[jj].m, hsGamma[jj].n, &hsGamma[jj], 0, 0);
 
 		d_cond_RSQrq_libstr(T1, &nx[N_tmp], &nu[N_tmp], &hsBAbt[N_tmp], &hsRSQrq[N_tmp], hsGamma, &hsRSQrq2[ii], (void *) c_ptr, work_space_sizes);
 
-		d_cond_DCtd_libstr(T1, &nx[N_tmp], &nu[N_tmp], &nb[N_tmp], &hidxb[N_tmp], &hsd[N_tmp], hsGamma, &hsDCt2[ii], &hsd2[ii], hidxb2[ii]);
+		d_cond_DCtd_libstr(T1, &nx[N_tmp], &nu[N_tmp], &nb[N_tmp], &hidxb[N_tmp], &ng[N_tmp], &hsDCt[N_tmp], &hsd[N_tmp], hsGamma, &hsDCt2[ii], &hsd2[ii], hidxb2[ii], (void *) c_ptr);
 		N_tmp += T1;
+//exit(1);
 		}
 
 	// last stage
