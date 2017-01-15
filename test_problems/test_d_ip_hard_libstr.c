@@ -170,17 +170,11 @@ int main()
 	int nx_ = NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu_ = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
-	int nb_  = nu_+nx_/2; // number of box constrained inputs and states
-	int ng_  = 0; //nx; //4;  // number of general constraints
-	int ngN = nx_/2; //nx; // number of general constraints at the last stage
 
 	// partial condensing horizon
 	int N2 = 3; //N/2;
 
 
-	int nbu = nb_<nu_ ? nb_ : nu_;
-	int nbx = nb_-nu_<nx_ ? nb_-nu_ : nx_;
-	nbx = nbx<0 ? 0 : nbx;
 
 	// stage-wise variant size
 	int nx[N+1];
@@ -197,26 +191,49 @@ int main()
 		nu[ii] = nu_;
 	nu[N] = 0;
 
+#if 1
 	int nb[N+1];
 #if KEEP_X0
-	nb[0] = nb_;
+	nb[0] = nu[0]+nx[0];
 #else
-	nb[0] = nbu;
+	nb[0] = nu[0];
 #endif
 	for(ii=1; ii<N; ii++)
-		nb[ii] = nb_;
-	nb[N] = nbx;
+		nb[ii] = nu[1]+nx[1];
+	nb[N] = nx[N]/2;
 
 	int ng[N+1];
-	for(ii=0; ii<N; ii++)
-		ng[ii] = ng_;
-	ng[N] = ngN;
+	ng[0] = 0;
+	for(ii=1; ii<N; ii++)
+		ng[ii] = 0;
+	ng[N] = 0;
+#else
+	int nb[N+1];
+#if KEEP_X0
+	nb[0] = 0;
+#else
+	nb[0] = 0;
+#endif
+	for(ii=1; ii<N; ii++)
+		nb[ii] = 0;
+	nb[N] = 0;
+
+	int ng[N+1];
+#if KEEP_X0
+	ng[0] = nu[0]+nx[0];
+#else
+	ng[0] = nu[0];
+#endif
+	for(ii=1; ii<N; ii++)
+		ng[ii] = nu[1]+nx[1];
+	ng[N] = nx[N]/2;
+#endif
 	
 
 
 	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx_/2, nu_);
 	printf("\n");
-	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints, %d two-sided general constraints.\n", nx_, nu_, N, nb_, ng_);
+	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints, %d two-sided general constraints.\n", nx[1], nu[1], N, nb[1], ng[1]);
 	printf("\n");
 	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_param.c to change them).\n", K_MAX, MU_TOL);
 
@@ -376,8 +393,16 @@ int main()
 		}
 	for(ii=0; ii<ng[0]; ii++)
 		{
-		d0[2*nb[0]+ii]       = - 100.0; // dmin
-		d0[2*nb[0]+ng[0]+ii] =   100.0; // dmax
+		if(ii<nu[0]) // input
+			{
+			d0[2*nb[0]+ii]       = - 0.5; // umin
+			d0[2*nb[0]+ng[0]+ii] =   0.5; // umax
+			}
+		else // state
+			{
+			d0[2*nb[0]+ii]       = - 4.0; // xmin
+			d0[2*nb[0]+ng[0]+ii] =   4.0; // xmax
+			}
 		}
 	int_print_mat(1, nb[0], idxb0, 1);
 	d_print_mat(1, 2*nb[0]+2*ng[0], d0, 1);
@@ -400,8 +425,16 @@ int main()
 		}
 	for(ii=0; ii<ng[1]; ii++)
 		{
-		d1[2*nb[1]+ii]       = - 100.0; // dmin
-		d1[2*nb[1]+ng[1]+ii] =   100.0; // dmax
+		if(ii<nu[1]) // input
+			{
+			d1[2*nb[1]+ii]       = - 0.5; // umin
+			d1[2*nb[1]+ng[1]+ii] =   0.5; // umax
+			}
+		else // state
+			{
+			d1[2*nb[1]+ii]       = - 4.0; // xmin
+			d1[2*nb[1]+ng[1]+ii] =   4.0; // xmax
+			}
 		}
 	int_print_mat(1, nb[1], idxb1, 1);
 	d_print_mat(1, 2*nb[1]+2*ng[1], d1, 1);
@@ -410,16 +443,8 @@ int main()
 	double *dN; d_zeros(&dN, 2*nb[N]+2*ng[N], 1);
 	for(ii=0; ii<nb[N]; ii++)
 		{
-		if(ii<nu[N]) // input
-			{
-			dN[ii]       = - 0.5; // umin
-			dN[nb[N]+ii] =   0.5; // umax
-			}
-		else // state
-			{
-			dN[ii]       = - 4.0; // xmin
-			dN[nb[N]+ii] =   4.0; // xmax
-			}
+		dN[ii]       = - 0.0; // xmin
+		dN[nb[N]+ii] =   0.0; // xmax
 		idxbN[ii] = ii;
 		}
 	for(ii=0; ii<ng[N]; ii++)
@@ -430,18 +455,19 @@ int main()
 	int_print_mat(1, nb[N], idxbN, 1);
 	d_print_mat(1, 2*nb[N]+2*ng[N], dN, 1);
 
-	double *C; d_zeros(&C, ng_, nx_);
-	for(ii=0; ii<ng_; ii++)
-		C[ii*(ng_+1)] = 1.0;
-	double *D; d_zeros(&D, ng_, nu_);
-	double *CN; d_zeros(&CN, ngN, nx_);
-	for(ii=0; ii<ngN; ii++)
-		CN[ii*(ngN+1)] = 1.0;
+	double *DC0; d_zeros(&DC0, ng[0], nu[0]+nx[0]);
+	for(ii=0; ii<ng[0]; ii++)
+		DC0[ii*(ng[0]+1)] = 1.0;
+	double *DC1; d_zeros(&DC1, ng[1], nu[1]+nx[1]);
+	for(ii=0; ii<ng[1]; ii++)
+		DC1[ii*(ng[1]+1)] = 1.0;
+	double *DCN; d_zeros(&DCN, ng[N], nx[N]);
+	for(ii=0; ii<ng[N]; ii++)
+		DCN[ii*(ng[N]+1)] = 1.0;
 
 	struct d_strmat sDCt0;
 	d_allocate_strmat(nu[0]+nx[0], ng[0], &sDCt0);
-	d_cvt_tran_mat2strmat(ng[0], nu[0], D, ng_, &sDCt0, 0, 0);
-	d_cvt_tran_mat2strmat(ng[0], nx[0], C, ng_, &sDCt0, nu[0], 0);
+	d_cvt_tran_mat2strmat(ng[0], nu[0]+nx[0], DC0, ng[0], &sDCt0, 0, 0);
 	d_print_strmat(nu[0]+nx[0], ng[0], &sDCt0, 0, 0);
 	struct d_strvec sd0;
 	d_allocate_strvec(2*nb[0]+2*ng[0], &sd0);
@@ -450,8 +476,7 @@ int main()
 
 	struct d_strmat sDCt1;
 	d_allocate_strmat(nu[1]+nx[1], ng[1], &sDCt1);
-	d_cvt_tran_mat2strmat(ng[1], nu[1], D, ng_, &sDCt1, 0, 0);
-	d_cvt_tran_mat2strmat(ng[1], nx[1], C, ng_, &sDCt1, nu[1], 0);
+	d_cvt_tran_mat2strmat(ng[1], nu[1]+nx[1], DC1, ng[1], &sDCt1, 0, 0);
 	d_print_strmat(nu[1]+nx[1], ng[1], &sDCt1, 0, 0);
 	struct d_strvec sd1;
 	d_allocate_strvec(2*nb[1]+2*ng[1], &sd1);
@@ -460,7 +485,7 @@ int main()
 
 	struct d_strmat sDCtN;
 	d_allocate_strmat(nx[N], ng[N], &sDCtN);
-	d_cvt_tran_mat2strmat(ng[N], nx[N], CN, ngN, &sDCtN, 0, 0);
+	d_cvt_tran_mat2strmat(ng[N], nx[N], DCN, ng[N], &sDCtN, 0, 0);
 	d_print_strmat(nx[N], ng[N], &sDCtN, 0, 0);
 	struct d_strvec sdN;
 	d_allocate_strvec(2*nb[N]+2*ng[N], &sdN);
@@ -665,6 +690,26 @@ int main()
 	d_zeros(&ugN, ng[N], 1);
 	d_cvt_strvec2vec(ng[N], &sdN, 2*nb[N]+ng[N], ugN);
 
+	double *D0;
+	d_zeros(&D0, ng[0], nu[0]);
+	d_cvt_tran_strmat2mat(nu[0], ng[0], &sDCt0, 0, 0, D0, ng[0]);
+
+	double *C0;
+	d_zeros(&C0, ng[0], nx[0]);
+	d_cvt_tran_strmat2mat(nx[0], ng[0], &sDCt0, nu[0], 0, C0, ng[0]);
+
+	double *D1;
+	d_zeros(&D1, ng[1], nu[1]);
+	d_cvt_tran_strmat2mat(nu[1], ng[1], &sDCt1, 0, 0, D1, ng[1]);
+
+	double *C1;
+	d_zeros(&C1, ng[1], nx[1]);
+	d_cvt_tran_strmat2mat(nx[1], ng[1], &sDCt1, nu[1], 0, C1, ng[1]);
+
+	double *CN;
+	d_zeros(&CN, ng[N], nx[N]);
+	d_cvt_tran_strmat2mat(nx[N], ng[N], &sDCtN, 0, 0, CN, ng[N]);
+
 	double *hA[N];
 	double *hB[N];
 	double *hb[N];
@@ -688,8 +733,8 @@ int main()
 	ii = 0;
 	hB[ii] = B;
 	hb[ii] = b0;
-	hC[ii] = C;
-	hD[ii] = D;
+	hC[ii] = C0;
+	hD[ii] = D0;
 	hR[ii] = R;
 	hr[ii] = r; // XXX r0
 	hlb[ii] = lb0;
@@ -705,8 +750,8 @@ int main()
 		hA[ii] = A;
 		hB[ii] = B;
 		hb[ii] = b;
-		hC[ii] = C;
-		hD[ii] = D;
+		hC[ii] = C1;
+		hD[ii] = D1;
 		hR[ii] = R;
 		hS[ii] = S;
 		hQ[ii] = Q;
