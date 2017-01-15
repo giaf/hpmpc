@@ -40,6 +40,7 @@
 #include "../../include/aux_s.h"
 #include "../../include/blas_d.h"
 #include "../../include/lqcp_solvers.h"
+#include "../../include/mpc_aux.h"
 #include "../../include/mpc_solvers.h"
 
 // Debug flag
@@ -49,7 +50,7 @@
 
 
 
-// TODO partial condensing
+// TODO partial condensing for general constraints
 int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2)
 	{
 	int ii;
@@ -79,7 +80,7 @@ int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *n
 		d_part_cond_compute_problem_size_libstr(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2);
 		size += d_part_cond_work_space_size_bytes_libstr(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2, work_space_sizes);
 		size += d_part_cond_memory_space_size_bytes_libstr(N, nx, nu, nb, hidxb, ng, N2, nx2, nu2, nb2, ng2);
-		size += d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N2, nx2, nu2, nb2, ng2); // TODO remove 2 and find bug !!!!!!
+		size += d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N2, nx2, nu2, nb2, ng2);
 		for(ii=0; ii<=N2; ii++)
 			{
 			size += 1*d_size_strvec(nx2[ii]); // pi2
@@ -99,7 +100,7 @@ int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *n
 
 
 
-// TODO partial condensing
+// TODO partial condensing for general constraints
 int fortran_order_d_ip_ocp_hard_tv( 
 							int *kk, int k_max, double mu0, double mu_tol,
 							int N, int *nx, int *nu, int *nb, int **hidxb, int *ng,
@@ -412,13 +413,13 @@ int fortran_order_d_ip_ocp_hard_tv(
 		// partial condensing routine (computing also hidxb2) !!!
 		d_part_cond_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, N2, nx2, nu2, nb2, hidxb2, ng2, hsBAbt2, hsRSQrq2, hsDCt2, hsd2, memory_part_cond, work_part_cond, work_part_cond_sizes);
 
-//	for(ii=0; ii<N2; ii++)
-//		d_print_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii], 0, 0);
-//	for(ii=0; ii<=N2; ii++)
-//		d_print_strmat(nu2[ii]+nx2[ii], ng2[ii], &hsDCt2[ii], 0, 0);
-//	for(ii=0; ii<=N2; ii++)
-//		d_print_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsRSQrq2[ii], 0, 0);
-//	exit(1);
+//		for(ii=0; ii<N2; ii++)
+//			d_print_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii], 0, 0);
+//		for(ii=0; ii<=N2; ii++)
+//			d_print_strmat(nu2[ii]+nx2[ii], ng2[ii], &hsDCt2[ii], 0, 0);
+//		for(ii=0; ii<=N2; ii++)
+//			d_print_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsRSQrq2[ii], 0, 0);
+//		exit(1);
 
 		// IPM work space
 		work_ipm = (void *) c_ptr;
