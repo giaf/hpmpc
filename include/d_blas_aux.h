@@ -25,6 +25,12 @@
 
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
 // level 1 BLAS
 #if ! defined(BLASFEO)
 void daxpy_lib(int kmax, double alpha, double *x, double *y);
@@ -66,3 +72,9 @@ void dgemm_diag_left_lib(int m, int n, double *dA, double *pB, int sdb, int alg,
 #endif
 void dsyrk_diag_left_right_lib(int m, double *Al, double *Ar, double *B, int sdb, int alg, double *C, int sdc, double *D, int sdd);
 void dgemv_diag_lib(int m, double *dA, double *x, int alg, double *y, double *z);
+
+
+
+#ifdef __cpluspluc
+}
+#endif

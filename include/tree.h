@@ -23,6 +23,12 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
 #define TREE_MPC
 
 struct node
@@ -35,3 +41,9 @@ struct node
 	int real;  // 32 bits
 	// total     224 bits
 	};
+
+
+
+#ifdef __cpluspluc
+}
+#endif

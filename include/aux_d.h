@@ -23,6 +23,12 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
 #if ! defined(BLASFEO)
 void d_zeros(double **pA, int row, int col);
 void d_zeros_align(double **pA, int row, int col);
@@ -72,3 +78,9 @@ void dtrset_lib(int row, double alpha, int offset, double *pA, int sda);
 void int_zeros(int **pA, int row, int col);
 void int_free(int *pA);
 void int_print_mat(int row, int col, int *A, int lda);
+
+
+
+#ifdef __cpluspluc
+}
+#endif

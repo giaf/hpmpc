@@ -23,6 +23,12 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
 void sgemm_nt_lib(int m, int n, int k, float *pA, int sda, float *pB, int sdb, int alg, float *pC, int sdc);
 void strmm_lib(int m, int n, float *pA, int sda, float *pB, int sdb, float *pC, int sdc);
 void ssyrk_spotrf_lib(int m, int n, int k, float *pA, int sda, float *pC, int sdc, float *diag);
@@ -36,3 +42,8 @@ void strsv_sgemv_n_lib(int n, int m, float *pA, int sda, float *x);
 void strsv_sgemv_t_lib(int n, int m, float *pA, int sda, float *x);
 void strtr_l_lib(int m, int offset, float *pA, int sda, float *pC, int sdc);
 
+
+
+#ifdef __cpluspluc
+}
+#endif

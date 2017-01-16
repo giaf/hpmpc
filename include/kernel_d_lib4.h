@@ -23,6 +23,12 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
 //#if defined(TARGET_X64_AVX2) || defined(TARGET_X64_AVX)
 //#include <mmintrin.h>
 //#include <xmmintrin.h>  // SSE
@@ -379,3 +385,8 @@ void kernel_dsyr4_3_lib4(int kmax, int tri, double *A, double *B, int sdb, int a
 void kernel_dsyr4_2_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
 void kernel_dsyr4_1_lib4(int kmax, int tri, double *A, double *B, int sdb, int alg, double *C, double *D);
 
+
+
+#ifdef __cpluspluc
+}
+#endif

@@ -28,6 +28,12 @@
 
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
 // work space: dynamic definition as function return value
 
 // Riccati-based IP method for hard-constrained MPC, double precision
@@ -60,6 +66,10 @@ void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(int N, int *nx, int *nu, int 
 
 // soft constrains
 int hpmpc_d_ip_ocp_soft_tv_work_space_size_bytes(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int *ns);
+int fortran_order_d_ip_ocp_soft_tv(int *kk, int k_max, double mu0, double mu_tol, int N, int *nx, int *nu_N, int *nb, int **hidxb, int *ng, int *ns, int warm_start, double **A, double **B, double **b, double **Q, double **S, double **R, double **q, double **r, double **Z, double **z, double **lb, double **ub, double **C, double **D, double **lg, double **ug, double **x, double **u, double **pi, double **lam, /* double **t,*/ double *inf_norm_res, void *work0, double *stat);
 
 
 
+#ifdef __cpluspluc
+}
+#endif
