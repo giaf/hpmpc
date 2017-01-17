@@ -133,12 +133,12 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 
 	// if ng>0, disable partial condensing (TODO implement this case)
-	int ngM = ng[0];
-	for(ii=1; ii<N; ii++)
-		ngM = ng[ii]> ngM ? ng[ii] : ngM;
+//	int ngM = ng[0];
+//	for(ii=1; ii<N; ii++)
+//		ngM = ng[ii]> ngM ? ng[ii] : ngM;
 	
-	if(ngM>0)
-		N2 = N;
+//	if(ngM>0)
+//		N2 = N;
 
 
 

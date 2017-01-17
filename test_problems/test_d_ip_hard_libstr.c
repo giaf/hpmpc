@@ -165,14 +165,14 @@ int main()
 
 	int ii, jj;
 	
-	int rep, nrep=1000;//NREP;
+	int rep, nrep=1;//NREP;
 
 	int nx_ = NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu_ = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
 	int N  = NN; // horizon lenght
 
 	// partial condensing horizon
-	int N2 = 3; //N/2; // TODO debug haswell for N2=5 !!!!!!!!!!!!!!!
+	int N2 = 5; //N/2; // TODO debug haswell for N2=5 !!!!!!!!!!!!!!!
 
 
 
@@ -207,7 +207,7 @@ int main()
 	for(ii=1; ii<N; ii++)
 		ng[ii] = 0;
 	ng[N] = 0;
-#else
+#elif 0
 	int nb[N+1];
 #if KEEP_X0
 	nb[0] = 0;
@@ -226,6 +226,26 @@ int main()
 #endif
 	for(ii=1; ii<N; ii++)
 		ng[ii] = nu[1]+nx[1];
+	ng[N] = nx[N]/2;
+#elif 1
+	int nb[N+1];
+#if KEEP_X0
+	nb[0] = nx[0]/2;
+#else
+	nb[0] = 0;
+#endif
+	for(ii=1; ii<N; ii++)
+		nb[ii] = nx[1]/2;
+	nb[N] = 0;
+
+	int ng[N+1];
+#if KEEP_X0
+	ng[0] = nu[0]+nx[0]/2;
+#else
+	ng[0] = nu[0];
+#endif
+	for(ii=1; ii<N; ii++)
+		ng[ii] = nu[1]+nx[1]/2;
 	ng[N] = nx[N]/2;
 #endif
 	
@@ -379,6 +399,7 @@ int main()
 	double *d0; d_zeros(&d0, 2*nb[0]+2*ng[0], 1);
 	for(ii=0; ii<nb[0]; ii++)
 		{
+//		if(0) // input
 		if(ii<nu[0]) // input
 			{
 			d0[ii]       = - 0.5; // umin
@@ -389,6 +410,7 @@ int main()
 			d0[ii]       = - 4.0; // xmin
 			d0[nb[0]+ii] =   4.0; // xmax
 			}
+//		idxb0[ii] = nu[0]+nx[0]/2+ii;
 		idxb0[ii] = ii;
 		}
 	for(ii=0; ii<ng[0]; ii++)
@@ -411,6 +433,7 @@ int main()
 	double *d1; d_zeros(&d1, 2*nb[1]+2*ng[1], 1);
 	for(ii=0; ii<nb[1]; ii++)
 		{
+//		if(0) // input
 		if(ii<nu[1]) // input
 			{
 			d1[ii]       = - 0.5; // umin
@@ -422,6 +445,7 @@ int main()
 			d1[nb[1]+ii] =   4.0; // xmax
 			}
 		idxb1[ii] = ii;
+//		idxb1[ii] = nu[1]+nx[1]/2+ii;
 		}
 	for(ii=0; ii<ng[1]; ii++)
 		{
