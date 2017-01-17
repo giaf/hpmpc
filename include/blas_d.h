@@ -84,6 +84,6 @@ void dlauum_dpotrf_lib(int m, int n, int k, double *pA, int sda, double *pB, int
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif

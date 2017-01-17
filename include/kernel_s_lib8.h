@@ -81,6 +81,6 @@ void kernel_stran_8_lib8(int kmax, int kna, float *A, int sda, float *C);
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif

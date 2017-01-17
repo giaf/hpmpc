@@ -40,6 +40,6 @@ void dpotrf_diag_lib(int m, int n, double *C, int sdc, double *D, int sdd);
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif

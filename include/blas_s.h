@@ -44,6 +44,6 @@ void strtr_l_lib(int m, int offset, float *pA, int sda, float *pC, int sdc);
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif

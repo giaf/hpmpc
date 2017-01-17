@@ -44,6 +44,6 @@ struct node
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif

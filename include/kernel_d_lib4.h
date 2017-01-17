@@ -387,6 +387,6 @@ void kernel_dsyr4_1_lib4(int kmax, int tri, double *A, double *B, int sdb, int a
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif

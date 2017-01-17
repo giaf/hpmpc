@@ -116,6 +116,6 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif

@@ -75,6 +75,6 @@ void dgemv_diag_lib(int m, double *dA, double *x, int alg, double *y, double *z)
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif

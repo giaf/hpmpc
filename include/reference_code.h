@@ -39,6 +39,6 @@ int d_forward_schur_trs_tv_blas(int N, int *nv, int *ne, int *diag_hessian, doub
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif

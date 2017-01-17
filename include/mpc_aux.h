@@ -116,6 +116,6 @@ void d_compute_mu_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int *ng, int *ns
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif

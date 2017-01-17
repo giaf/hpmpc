@@ -66,6 +66,6 @@ void d_res_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, in
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif

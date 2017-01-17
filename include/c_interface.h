@@ -70,6 +70,6 @@ int fortran_order_d_ip_ocp_soft_tv(int *kk, int k_max, double mu0, double mu_tol
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif

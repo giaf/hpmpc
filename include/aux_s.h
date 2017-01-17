@@ -48,6 +48,6 @@ void s_print_pmat(int row, int col, int bs, float *A, int sda);
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif

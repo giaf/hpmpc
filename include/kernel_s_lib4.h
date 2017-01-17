@@ -90,6 +90,6 @@ void corner_stran_2_lib4(int kna, float *A, int sda, float *C);
 
 
 
-#ifdef __cpluspluc
+#ifdef __cplusplus
 }
 #endif
