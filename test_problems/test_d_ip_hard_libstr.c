@@ -165,7 +165,7 @@ int main()
 
 	int ii, jj;
 	
-	int rep, nrep=1;//NREP;
+	int rep, nrep=1000;//NREP;
 
 	int nx_ = NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu_ = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
