@@ -2351,16 +2351,10 @@ void d_compute_alpha_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *
 
 
 
-// TODO
-#if 0
-void d_compute_dt_dlam_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **dux, double **t, double **t_inv, double **lam, double **pDCt, double **res_d, double **res_m, double **dt, double **dlam)
+void d_compute_dt_dlam_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, struct d_strvec *hsdux, struct d_strvec *hst, struct d_strvec *hst_inv, struct d_strvec *hslam, struct d_strmat *hsDCt, struct d_strvec *hsres_d, struct d_strvec *hsres_m, struct d_strvec *hsdt, struct d_strvec *hsdlam)
 	{
 	
-	// constants
-	const int bs = D_MR;
-	const int ncl = D_NCL;
-
-	int nu0, nx0, nb0, ng0, cng;
+	int nu0, nx0, nb0, ng0;
 
 	double
 		*ptr_res_d, *ptr_res_m, *ptr_dux, *ptr_t, *ptr_t_inv, *ptr_dt, *ptr_lam, *ptr_dlam;
@@ -2385,14 +2379,14 @@ void d_compute_dt_dlam_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int
 	for(jj=0; jj<=N; jj++)
 		{
 
-		ptr_res_d = res_d[jj];
-		ptr_res_m = res_m[jj];
-		ptr_dux   = dux[jj];
-		ptr_t     = t[jj];
-		ptr_t_inv = t_inv[jj];
-		ptr_dt    = dt[jj];
-		ptr_lam   = lam[jj];
-		ptr_dlam  = dlam[jj];
+		ptr_res_d = hsres_d[jj].pa;
+		ptr_res_m = hsres_m[jj].pa;
+		ptr_dux   = hsdux[jj].pa;
+		ptr_t     = hst[jj].pa;
+		ptr_t_inv = hst_inv[jj].pa;
+		ptr_dt    = hsdt[jj].pa;
+		ptr_lam   = hslam[jj].pa;
+		ptr_dlam  = hsdlam[jj].pa;
 		ptr_idxb  = idxb[jj];
 
 		// box constraints
@@ -2464,13 +2458,8 @@ void d_compute_dt_dlam_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int
 
 			nu0 = nu[jj];
 			nx0 = nx[jj];
-			cng = (ng0+ncl-1)/ncl*ncl;
 
-#ifdef BLASFEO
-			dgemv_t_lib(nx0+nu0, ng0, 1.0, pDCt[jj], cng, ptr_dux, 0.0, ptr_dt, ptr_dt);
-#else
-			dgemv_t_lib(nx0+nu0, ng0, pDCt[jj], cng, ptr_dux, 0, ptr_dt, ptr_dt);
-#endif
+			dgemv_t_libstr(nx0+nu0, ng0, 1.0, &hsDCt[jj], 0, 0, &hsdux[jj], 0, 0.0, &hsdt[jj], 0, &hsdt[jj], 0);
 
 			ll = 0;
 			for(; ll<ng0-3; ll+=4)
@@ -2522,76 +2511,33 @@ void d_compute_dt_dlam_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int
 	return;
 	
 	}
-#endif
 
 
 
-// TODO
-#if 0
-void d_update_var_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double alpha, double **ux, double **dux, double **pi, double **dpi, double **t, double **dt, double **lam, double **dlam)
+void d_update_var_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double alpha, struct d_strvec *hsux, struct d_strvec *hsdux, struct d_strvec *hspi, struct d_strvec *hsdpi, struct d_strvec *hst, struct d_strvec *hsdt, struct d_strvec *hslam, struct d_strvec *hsdlam)
 	{
 
-	// constants
-	const int bs = D_MR;
-
-	int nu0, nx0, nx1, nb0, ng0;
-
-	int jj, ll;
+	int ii;
 	
-	double
-		*ptr_ux, *ptr_dux, *ptr_pi, *ptr_dpi, *ptr_t, *ptr_dt, *ptr_lam, *ptr_dlam;
+	// update equality constrains multipliers
+	for(ii=1; ii<=N; ii++)
+		daxpy_libstr(nx[ii], alpha, &hsdpi[ii], 0, &hspi[ii], 0);
 
-	for(jj=1; jj<=N; jj++)
-		{
+	// update inputs and states
+	for(ii=0; ii<=N; ii++)
+		daxpy_libstr(nu[ii]+nx[ii], alpha, &hsdux[ii], 0, &hsux[ii], 0);
 
-		nx0 = nx[jj];
+	// update inequality constraints multipliers
+	for(ii=0; ii<=N; ii++)
+		daxpy_libstr(2*nb[ii]+2*ng[ii], alpha, &hsdlam[ii], 0, &hslam[ii], 0);
 
-		// update equality constrained multipliers
-		ptr_pi     = pi[jj];
-		ptr_dpi    = dpi[jj];
-		daxpy_lib(nx1, alpha, ptr_dpi, ptr_pi);
-
-		}
-
-	for(jj=0; jj<=N; jj++)
-		{
-
-		nx0 = nx[jj];
-		nu0 = nu[jj];
-		nb0 = nb[jj];
-		ng0 = ng[jj];
-		
-		// update inputs and states
-		ptr_ux     = ux[jj];
-		ptr_dux    = dux[jj];
-		daxpy_lib(nu0+nx0, alpha, ptr_dux, ptr_ux);
-
-		// box constraints
-		ptr_t       = t[jj];
-		ptr_dt      = dt[jj];
-		ptr_lam     = lam[jj];
-		ptr_dlam    = dlam[jj];
-		daxpy_lib(nb0, alpha, &ptr_dlam[0], &ptr_lam[0]);
-		daxpy_lib(nb0, alpha, &ptr_dlam[nb0], &ptr_lam[nb0]);
-		daxpy_lib(nb0, alpha, &ptr_dt[0], &ptr_t[0]);
-		daxpy_lib(nb0, alpha, &ptr_dt[nb0], &ptr_t[nb0]);
-
-		// general constraints
-		ptr_t       += 2*nb0;
-		ptr_dt      += 2*nb0;
-		ptr_lam     += 2*nb0;
-		ptr_dlam    += 2*nb0;
-		daxpy_lib(ng0, alpha, &ptr_dlam[0], &ptr_lam[0]);
-		daxpy_lib(ng0, alpha, &ptr_dlam[ng0], &ptr_lam[ng0]);
-		daxpy_lib(ng0, alpha, &ptr_dt[0], &ptr_t[0]);
-		daxpy_lib(ng0, alpha, &ptr_dt[ng0], &ptr_t[ng0]);
-
-		}
+	// update slack variables
+	for(ii=0; ii<=N; ii++)
+		daxpy_libstr(2*nb[ii]+2*ng[ii], alpha, &hsdt[ii], 0, &hst[ii], 0);
 
 	return;
 	
 	}
-#endif
 
 
 
@@ -2599,49 +2545,22 @@ void d_backup_update_var_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, i
 	{
 
 	int ii;
-
-	int nu0, nx0, nx1, nb0, ng0;
-
-	int jj, ll;
 	
-	for(jj=1; jj<=N; jj++)
-		{
+	// backup and update equality constrains multipliers
+	for(ii=1; ii<=N; ii++)
+		daxpy_bkp_libstr(nx[ii], alpha, &hsdpi[ii], 0, &hspi[ii], 0, &hspi_bkp[ii], 0);
 
-		nx0 = nx[jj];
+	// backup and update inputs and states
+	for(ii=0; ii<=N; ii++)
+		daxpy_bkp_libstr(nu[ii]+nx[ii], alpha, &hsdux[ii], 0, &hsux[ii], 0, &hsux_bkp[ii], 0);
 
-		// update equality constrained multipliers
-		daxpy_bkp_libstr(nx0, alpha, &hsdpi[jj], 0, &hspi[jj], 0, &hspi_bkp[jj], 0);
+	// backup and update inequality constraints multipliers
+	for(ii=0; ii<=N; ii++)
+		daxpy_bkp_libstr(2*nb[ii]+2*ng[ii], alpha, &hsdlam[ii], 0, &hslam[ii], 0, &hslam_bkp[ii], 0);
 
-		}
-
-	for(jj=0; jj<=N; jj++)
-		{
-
-		nx0 = nx[jj];
-		nu0 = nu[jj];
-		nb0 = nb[jj];
-		ng0 = ng[jj];
-		if(jj<N)
-			nx1 = nx[jj+1];
-		else
-			nx1 = 0;
-		
-		// update inputs and states
-		daxpy_bkp_libstr(nu0+nx0, alpha, &hsdux[jj], 0, &hsux[jj], 0, &hsux_bkp[jj], 0);
-
-		// box constraints
-		daxpy_bkp_libstr(nb0, alpha, &hsdlam[jj], 0, &hslam[jj], 0, &hslam_bkp[jj], 0);
-		daxpy_bkp_libstr(nb0, alpha, &hsdlam[jj], nb0, &hslam[jj], nb0, &hslam_bkp[jj], nb0);
-		daxpy_bkp_libstr(nb0, alpha, &hsdt[jj], 0, &hst[jj], 0, &hst_bkp[jj], 0);
-		daxpy_bkp_libstr(nb0, alpha, &hsdt[jj], nb0, &hst[jj], nb0, &hst_bkp[jj], nb0);
-
-		// general constraints
-		daxpy_bkp_libstr(ng0, alpha, &hsdlam[jj], 2*nb0+0, &hslam[jj], 2*nb0+0, &hslam_bkp[jj], 2*nb0+0);
-		daxpy_bkp_libstr(ng0, alpha, &hsdlam[jj], 2*nb0+ng0, &hslam[jj], 2*nb0+ng0, &hslam_bkp[jj], 2*nb0+ng0);
-		daxpy_bkp_libstr(ng0, alpha, &hsdt[jj], 2*nb0+0, &hst[jj], 2*nb0+0, &hst_bkp[jj], 2*nb0+0);
-		daxpy_bkp_libstr(ng0, alpha, &hsdt[jj], 2*nb0+ng0, &hst[jj], 2*nb0+ng0, &hst_bkp[jj], 2*nb0+ng0);
-
-		}
+	// backup and update slack variables
+	for(ii=0; ii<=N; ii++)
+		daxpy_bkp_libstr(2*nb[ii]+2*ng[ii], alpha, &hsdt[ii], 0, &hst[ii], 0, &hst_bkp[ii], 0);
 
 	return;
 	

@@ -566,7 +566,7 @@ int main()
 	// IP options
 	int kk = -1;
 	int k_max = 10;
-	double mu_tol = 1e-12;
+	double mu_tol = 1e-10;
 	double alpha_min = 1e-8;
 	int warm_start = 0;
 	double stat[5*k_max];
@@ -596,6 +596,10 @@ int main()
 	printf("\npi =\n\n");
 	for(ii=0; ii<=N; ii++)
 		d_print_tran_strvec(nx[ii], &hspi[ii], 0);
+
+	printf("\nlam =\n\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 
 	printf("\nt =\n\n");
 	for(ii=0; ii<=N; ii++)
@@ -657,6 +661,88 @@ int main()
 		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
 
 	printf(" Average solution time over %d runs: %5.2e seconds (IPM)\n\n", nrep, time_ipm);
+
+/************************************************
+* libstr ip2 solver - resolve last kkt system for new rhs
+************************************************/	
+	
+	// change constraints
+	dvecse_libstr(nb[0], -0.51, &sd0, 0);
+	dvecse_libstr(nb[0], 0.51, &sd0, nb[0]);
+
+	struct d_strvec hsux2[N+1];
+	struct d_strvec hspi2[N+1];
+	struct d_strvec hslam2[N+1];
+	struct d_strvec hst2[N+1];
+
+	d_allocate_strvec(nu[0]+nx[0], &hsux2[0]);
+	d_allocate_strvec(nx[1], &hspi2[1]);
+	d_allocate_strvec(2*nb[0]+2*ng[0], &hslam2[0]);
+	d_allocate_strvec(2*nb[0]+2*ng[0], &hst2[0]);
+	for(ii=1; ii<N; ii++)
+		{
+		d_allocate_strvec(nu[ii]+nx[ii], &hsux2[ii]);
+		d_allocate_strvec(nx[ii+1], &hspi2[ii+1]);
+		d_allocate_strvec(2*nb[ii]+2*ng[ii], &hslam2[ii]);
+		d_allocate_strvec(2*nb[ii]+2*ng[ii], &hst2[ii]);
+		}
+	d_allocate_strvec(nu[N]+nx[N], &hsux2[N]);
+	d_allocate_strvec(2*nb[N]+2*ng[N], &hslam2[N]);
+	d_allocate_strvec(2*nb[N]+2*ng[N], &hst2[N]);
+	
+	gettimeofday(&tv0, NULL); // start
+
+	for(rep=0; rep<nrep; rep++)
+		{
+
+		d_kkt_solve_new_rhs_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsDCt, hsd, hsux2, 1, hspi2, hslam2, hst2, work_memory);
+
+		}
+
+	gettimeofday(&tv1, NULL); // stop
+
+	printf("\nux2 =\n\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_tran_strvec(nu[ii]+nx[ii], &hsux2[ii], 0);
+
+	printf("\npi2 =\n\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_tran_strvec(nx[ii], &hspi2[ii], 0);
+
+	printf("\nlam2 =\n\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam2[ii], 0);
+
+	printf("\nt2 =\n\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst2[ii], 0);
+
+	double time_ipm2 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+/************************************************
+* libstr ip2 residuals - resolve last kkt system for new rhs
+************************************************/	
+
+	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux2, hsDCt, hsd, hspi2, hslam2, hst2, hsrrq, hsrb, hsrd, hsrm, &mu, work_res);
+
+	printf("\nres_rq2\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
+
+	printf("\nres_b2\n");
+	for(ii=0; ii<N; ii++)
+		d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
+
+	printf("\nres_d2\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
+
+	printf("\nres_m2\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
+
+	printf(" Average solution time over %d runs: %5.2e seconds (IPM resolve last kkt for new rhs)\n\n", nrep, time_ipm2);
+
 
 /************************************************
 * high-level interface
