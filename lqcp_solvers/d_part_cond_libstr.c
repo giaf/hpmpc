@@ -86,6 +86,36 @@ void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct
 
 
 
+void d_cond_b_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsGammax, struct d_strvec *sb2)
+	{
+
+	int ii, jj;
+
+	ii = 0;
+	// B & A & b
+	dveccp_libstr(nx[1], 1.0, &hsb[0], 0, &hsGammax[0], 0);
+	//
+	ii++;
+
+	for(ii=1; ii<N; ii++)
+		{
+		// TODO check for equal pointers and avoid copy
+
+		// A * Gammax
+		dgemv_t_libstr(nx[ii], nx[ii+1], 1.0, &hsBAbt[ii], nu[ii], 0, &hsGammax[ii-1], 0, 0.0, &hsGammax[ii], 0, &hsGammax[ii], 0);
+
+		dvecad_libstr(nx[ii+1], 1.0, &hsb[ii], 0, &hsGammax[ii], 0);
+		}
+	
+	// B & A & b
+	dveccp_libstr(nx[N], 1.0, &hsGammax[N-1], 0, sb2, 0);
+
+	return;
+
+	}
+
+
+
 void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsGamma, struct d_strmat *sRSQrq2, void *work_space, int *work_space_sizes)
 	{
 

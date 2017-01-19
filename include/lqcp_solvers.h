@@ -96,6 +96,7 @@ void d_part_expand_solution(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 #ifdef BLASFEO
 // condense state space
 void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strmat *hsGamma, struct d_strmat *sBAbt2, void *work_space);
+void d_cond_b_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsGammax, struct d_strvec *sb2);
 // condense Hessian and gradient (N^2 n_x^3 algorithm)
 void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsGamma, struct d_strmat *sRSQrq2, void *work_space, int *work_space_sizes);
 // condense constraints (TODO general constraints)
