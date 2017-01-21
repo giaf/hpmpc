@@ -216,7 +216,7 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 			dveccp_libstr(nx[nn+1], 1.0, &hsux[nn+1], nu[nn+1], &hspi[nn+1], 0);
 			drowex_libstr(nx[nn+1], 1.0, &hsL[nn+1], nu[nn+1]+nx[nn+1], nu[nn+1], &hswork_vec_0, 0);
 #if defined(LA_REFERENCE) | defined(LA_BLAS)
-			dtrmv_ltn_libstr(nx[nn+1], &hsL[nn+1], 0, nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
+			dtrmv_ltn_libstr(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
 #else
 			dtrmv_unn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
 #endif

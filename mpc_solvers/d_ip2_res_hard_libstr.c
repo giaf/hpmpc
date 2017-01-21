@@ -380,8 +380,8 @@ for(ii=0; ii<=N; ii++)
 #endif
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_pmat(pnz[ii], cnux[ii], hpL[ii], cnux[ii]);
-if(*kk==2)
+	d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], 0, 0);
+//if(*kk==2)
 exit(1);
 #endif
 #if 0
@@ -793,12 +793,12 @@ for(ii=0; ii<=N; ii++)
 #if 0
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nu[ii]+nx[ii], &hsdux[ii], 0);
+	d_print_e_tran_strvec(nu[ii]+nx[ii], &hsdux[ii], 0);
 printf("\ndpi\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nx[ii], &hsdpi[ii], 0);
+	d_print_e_tran_strvec(nx[ii], &hsdpi[ii], 0);
 //if(*kk==1)
-exit(1);
+//exit(1);
 #endif
 
 
@@ -827,10 +827,38 @@ exit(1);
 
 #if CORRECTOR_HIGH==1 // IPM1
 
+#if 0
+printf("\nres_d\n");
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsres_d[ii], 0);
+printf("\nres_m\n");
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsres_m[ii], 0);
+//exit(1);
+#endif
+#if 0
+printf("\nt_inv\n");
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hstinv[ii], 0);
+printf("\nlam\n");
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+//exit(1);
+#endif
+
 		// compute t_aff & dlam_aff & dt_aff & alpha
 		alpha = 1.0;
 		d_compute_alpha_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsdux, hst, hstinv, hslam, hsDCt, hsres_d, hsres_m, hsdt, hsdlam, &alpha);
 
+#if 0
+printf("\ndlam\n");
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
+printf("\ndt\n");
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
+//exit(1);
+#endif
 		
 
 		stat[5*(*kk)] = sigma;
@@ -887,7 +915,7 @@ for(ii=0; ii<=N; ii++)
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii]+ng[ii], qx[ii], 1);
+	d_print_tran_strvec(nb[ii]+ng[ii], &hsqx[ii], 0);
 if(*kk==1)
 exit(1);
 #endif
@@ -1396,8 +1424,7 @@ void d_kkt_solve_new_rhs_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, i
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_mat(1, nb[ii]+ng[ii], qx[ii], 1);
-if(*kk==1)
+	d_print_tran_strvec(nb[ii]+ng[ii], &hsqx[ii], 0);
 exit(1);
 #endif
 
@@ -1407,16 +1434,53 @@ exit(1);
 #if 0
 printf("\nNEW dux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nu[ii]+nx[ii], shdux[ii], 0);
-//if(*kk==1)
-//exit(1);
+	d_print_e_tran_strvec(nu[ii]+nx[ii], &hsdux[ii], 0);
+printf("\nNEW dpi\n");
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(nx[ii], &hsdpi[ii], 0);
+exit(1);
+#endif
+
+#if 0
+printf("\nNEW res_d\n");
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsres_d[ii], 0);
+printf("\nNEW res_m\n");
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsres_m[ii], 0);
+exit(1);
+#endif
+#if 0
+printf("\nNEW t_inv\n");
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hstinv[ii], 0);
+printf("\nNEW lam\n");
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+exit(1);
 #endif
 
 	// compute t & dlam & dt
-	d_compute_dt_dlam_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsdux, hst, hstinv, hslam, hsDCt, hsres_d, hsres_m, hsdt, hsdlam);
+//	d_compute_dt_dlam_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsdux, hst, hstinv, hslam, hsDCt, hsres_d, hsres_m, hsdt, hsdlam);
+	double alpha = 1.0;
+	d_compute_alpha_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsdux, hst, hstinv, hslam, hsDCt, hsres_d, hsres_m, hsdt, hsdlam, &alpha);
+//	printf("\nalpha = %f\n", alpha);
+
+#if 0
+printf("\nNEW dlam\n");
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
+printf("\nNEW dt\n");
+for(ii=0; ii<=N; ii++)
+	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
+exit(1);
+#endif
+
+//	alpha *= 0.995; // XXX use this ??????
 
 	// update x, u, lam, t & compute the duality gap mu
 	d_update_var_res_mpc_hard_libstr(N, nx, nu, nb, ng, 1.0, hsux, hsdux, hspi, hsdpi, hst, hsdt, hslam, hsdlam);
+//	d_update_var_res_mpc_hard_libstr(N, nx, nu, nb, ng, alpha, hsux, hsdux, hspi, hsdpi, hst, hsdt, hslam, hsdlam);
 
 	return;
 

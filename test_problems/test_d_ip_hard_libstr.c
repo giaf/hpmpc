@@ -167,12 +167,12 @@ int main()
 	
 	int rep, nrep=1000;//NREP;
 
-	int nx_ = NX; // number of states (it has to be even for the mass-spring system test problem)
-	int nu_ = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = NN; // horizon lenght
+	int nx_ = 8;//NX; // number of states (it has to be even for the mass-spring system test problem)
+	int nu_ = 3;//NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+	int N  = 15;//NN; // horizon lenght
 
 	// partial condensing horizon
-	int N2 = 5; //N/2; // TODO debug haswell for N2=5 !!!!!!!!!!!!!!!
+	int N2 = 5; //N/2;
 
 
 
@@ -207,7 +207,7 @@ int main()
 	for(ii=1; ii<N; ii++)
 		ng[ii] = 0;
 	ng[N] = 0;
-#elif 0
+#elif 1
 	int nb[N+1];
 #if KEEP_X0
 	nb[0] = 0;
@@ -227,7 +227,7 @@ int main()
 	for(ii=1; ii<N; ii++)
 		ng[ii] = nu[1]+nx[1];
 	ng[N] = nx[N]/2;
-#elif 1
+#elif 0
 	int nb[N+1];
 #if KEEP_X0
 	nb[0] = nx[0]/2;
@@ -467,14 +467,14 @@ int main()
 	double *dN; d_zeros(&dN, 2*nb[N]+2*ng[N], 1);
 	for(ii=0; ii<nb[N]; ii++)
 		{
-		dN[ii]       = - 0.0; // xmin
-		dN[nb[N]+ii] =   0.0; // xmax
+		dN[ii]       = - 4.0; // xmin
+		dN[nb[N]+ii] =   4.0; // xmax
 		idxbN[ii] = ii;
 		}
 	for(ii=0; ii<ng[N]; ii++)
 		{
-		dN[2*nb[N]+ii]       = - 0.0; // dmin
-		dN[2*nb[N]+ng[N]+ii] =   0.0; // dmax
+		dN[2*nb[N]+ii]       = - 4.0; // dmin
+		dN[2*nb[N]+ng[N]+ii] =   4.0; // dmax
 		}
 	int_print_mat(1, nb[N], idxbN, 1);
 	d_print_mat(1, 2*nb[N]+2*ng[N], dN, 1);
@@ -667,8 +667,8 @@ int main()
 ************************************************/	
 	
 	// change constraints
-	dvecse_libstr(nb[0], -0.51, &sd0, 0);
-	dvecse_libstr(nb[0], 0.51, &sd0, nb[0]);
+//	dvecse_libstr(nb[0], -0.51, &sd0, 0);
+//	dvecse_libstr(nb[0], 0.51, &sd0, nb[0]);
 
 	struct d_strvec hsux2[N+1];
 	struct d_strvec hspi2[N+1];
@@ -695,7 +695,7 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		d_kkt_solve_new_rhs_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsDCt, hsd, hsux2, 1, hspi2, hslam2, hst2, work_memory);
+//		d_kkt_solve_new_rhs_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsDCt, hsd, hsux2, 1, hspi2, hslam2, hst2, work_memory);
 
 		}
 
@@ -748,6 +748,10 @@ int main()
 * high-level interface
 ************************************************/	
 	
+	// change (back) constraints
+	dvecse_libstr(nb[0], -0.50, &sd0, 0);
+	dvecse_libstr(nb[0], 0.50, &sd0, nb[0]);
+
 	double *b0;
 	d_zeros(&b0, nx_, 1);
 	d_cvt_strvec2vec(nx_, &sb0, 0, b0);
@@ -917,6 +921,46 @@ int main()
 	double time_ipm_high = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
 	printf(" Average solution time over %d runs: %5.2e seconds (IPM high)\n\n", nrep, time_ipm_high);
+
+/************************************************
+* high-level interface (resolve last kkt new rhs)
+************************************************/	
+	
+	// change constraints
+//	for(ii=0; ii<nb[0]; ii++) lb0[ii] = -0.51;
+//	for(ii=0; ii<nb[0]; ii++) ub0[ii] =  0.51;
+
+	// zero solution
+	for(ii=0; ii<N; ii++)
+		for(jj=0; jj<nu[ii]; jj++)
+			hu[ii][jj] = 0.0;
+	for(ii=0; ii<=N; ii++)
+		for(jj=0; jj<nx[ii]; jj++)
+			hx[ii][jj] = 0.0;
+
+	gettimeofday(&tv0, NULL); // start
+
+	for(rep=0; rep<nrep; rep++)
+		{
+
+//		fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(N, nx, nu, nb, hidxb, ng, N2, hb, hq, hr, hlb, hub, hlg, hug, hx, hu, hpi, hlam, inf_norm_res, work_ipm_high);
+		}
+
+	gettimeofday(&tv1, NULL); // stop
+
+	printf("\nu = \n");
+	for(ii=0; ii<N; ii++)
+		d_print_mat(1, nu[ii], hu[ii], 1);
+
+	printf("\nx = \n");
+	for(ii=0; ii<=N; ii++)
+		d_print_mat(1, nx[ii], hx[ii], 1);
+	
+	printf("\ninf norm res = %e, %e, %e, %e, %e\n\n", inf_norm_res[0], inf_norm_res[1], inf_norm_res[2], inf_norm_res[3], inf_norm_res[4]); 
+
+	double time_ipm_high_kkt = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
+
+	printf(" Average solution time over %d runs: %5.2e seconds (IPM high kkt last rhs)\n\n", nrep, time_ipm_high_kkt);
 
 /************************************************
 * free memory

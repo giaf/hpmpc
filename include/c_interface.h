@@ -70,6 +70,12 @@ int fortran_order_d_ip_ocp_soft_tv(int *kk, int k_max, double mu0, double mu_tol
 
 
 
+// listr interfaces
+void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, double **b, double **q, double **r, double **lb, double **ub, double **lg, double **ug, double **x, double **u, double **pi, double **lam, /*double **t, */ double *inf_norm_res, void *work0);
+
+
+
+
 #ifdef __cplusplus
 }
 #endif
