@@ -523,7 +523,7 @@ exit(1);
 
 
 		// compute step & update x, u, lam, t & compute the duality gap mu
-		d_update_var_mpc_hard_libstr(N, nx, nu, nb, ng, &mu, mu_scal, alpha, hsux, hsdux, hst, hsdt, hslam, hsdlam, hspi, hsdpi);
+		d_update_var_mpc_hard_libstr(N, nx, nu, nb, ng, &mu, mu_scal, alpha, hsux, hsdux, hst, hsdt, hslam, hsdlam, hspi, hsdpi); // TODO backup variables before updating !!!!!
 
 		stat[5*(*kk)+4] = mu;
 		
