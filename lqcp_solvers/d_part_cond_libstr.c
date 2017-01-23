@@ -472,6 +472,8 @@ void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 		dveccp_libstr(ng[0], 1.0, &hsd[0], 2*nb[0]+0, sd2, 2*nb2+nbg+ng_tmp);
 		dveccp_libstr(ng[0], 1.0, &hsd[0], 2*nb[0]+ng[0], sd2, 2*nb2+ng2+nbg+ng_tmp);
 
+//		ng_tmp += ng[N-1-ii];
+
 		}
 
 	return;
@@ -580,26 +582,36 @@ void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, str
 
 		nu_tmp += nu[N-1-ii];
 
-		dveccp_libstr(ng[N-1-ii], 1.0, &hsd[N-1-ii], 2*nb[N-1-ii]+0*ng[N-1-ii], sd2, 2*nb2+0*ng2+nbg+ng_tmp);
-		dveccp_libstr(ng[N-1-ii], 1.0, &hsd[N-1-ii], 2*nb[N-1-ii]+1*ng[N-1-ii], sd2, 2*nb2+1*ng2+nbg+ng_tmp);
+		if(ng[N-1-ii]>0)
+			{
 
-		d_create_strvec(ng[N-1-ii], &sCGammab, (void *) c_ptr);
+			dveccp_libstr(ng[N-1-ii], 1.0, &hsd[N-1-ii], 2*nb[N-1-ii]+0*ng[N-1-ii], sd2, 2*nb2+0*ng2+nbg+ng_tmp);
+			dveccp_libstr(ng[N-1-ii], 1.0, &hsd[N-1-ii], 2*nb[N-1-ii]+1*ng[N-1-ii], sd2, 2*nb2+1*ng2+nbg+ng_tmp);
 
-		dgemv_t_libstr(nx[N-1-ii], ng[N-1-ii], 1.0, &hsDCt[N-1-ii], nu[N-1-ii], 0, &hsGammab[N-2-ii], 0, 0.0, &sCGammab, 0, &sCGammab, 0);
+			d_create_strvec(ng[N-1-ii], &sCGammab, (void *) c_ptr);
 
-		daxpy_libstr(ng[N-1-ii], -1.0, &sCGammab, 0, sd2, 2*nb2+nbg+ng_tmp);
-		daxpy_libstr(ng[N-1-ii], -1.0, &sCGammab, 0, sd2, 2*nb2+ng2+nbg+ng_tmp);
+			dgemv_t_libstr(nx[N-1-ii], ng[N-1-ii], 1.0, &hsDCt[N-1-ii], nu[N-1-ii], 0, &hsGammab[N-2-ii], 0, 0.0, &sCGammab, 0, &sCGammab, 0);
 
-		ng_tmp += ng[N-1-ii];
+			daxpy_libstr(ng[N-1-ii], -1.0, &sCGammab, 0, sd2, 2*nb2+nbg+ng_tmp);
+			daxpy_libstr(ng[N-1-ii], -1.0, &sCGammab, 0, sd2, 2*nb2+ng2+nbg+ng_tmp);
+
+			ng_tmp += ng[N-1-ii];
+
+			}
 
 		}
 
 	ii = N-1;
 
-	dveccp_libstr(ng[0], 1.0, &hsd[0], 2*nb[0]+0, sd2, 2*nb2+nbg+ng_tmp);
-	dveccp_libstr(ng[0], 1.0, &hsd[0], 2*nb[0]+ng[0], sd2, 2*nb2+ng2+nbg+ng_tmp);
+	if(ng[0]>0)
+		{
 
-//	ng_tmp += ng[N-1-ii];
+		dveccp_libstr(ng[0], 1.0, &hsd[0], 2*nb[0]+0, sd2, 2*nb2+nbg+ng_tmp);
+		dveccp_libstr(ng[0], 1.0, &hsd[0], 2*nb[0]+ng[0], sd2, 2*nb2+ng2+nbg+ng_tmp);
+
+//		ng_tmp += ng[N-1-ii];
+
+		}
 
 	return;
 
