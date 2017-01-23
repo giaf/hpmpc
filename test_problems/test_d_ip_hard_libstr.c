@@ -36,19 +36,16 @@
 #include <blasfeo_common.h>
 #include <blasfeo_d_blas.h>
 #include <blasfeo_d_aux.h>
+#include <blasfeo_i_aux.h>
 #endif
 
-#include "../include/aux_d.h"
-#include "../include/aux_s.h"
-#include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_aux.h"
 #include "../include/mpc_solvers.h"
+#include "../include/c_interface.h"
 #include "../problem_size.h"
-#include "../include/block_size.h"
 #include "tools.h"
 #include "test_param.h"
-#include "../include/c_interface.h"
 
 
 #define USE_IPM_RES 1
