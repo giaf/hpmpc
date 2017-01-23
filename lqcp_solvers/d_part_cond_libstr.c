@@ -453,6 +453,12 @@ void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 			ng_tmp += ng[N-1-ii];
 			
 			}
+		else
+			{
+
+			nu_tmp += nu[N-1-ii];
+
+			}
 
 		}
 
@@ -465,8 +471,6 @@ void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 
 		dveccp_libstr(ng[0], 1.0, &hsd[0], 2*nb[0]+0, sd2, 2*nb2+nbg+ng_tmp);
 		dveccp_libstr(ng[0], 1.0, &hsd[0], 2*nb[0]+ng[0], sd2, 2*nb2+ng2+nbg+ng_tmp);
-
-//		ng_tmp += ng[N-1-ii];
 
 		}
 
