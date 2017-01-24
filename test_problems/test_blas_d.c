@@ -276,7 +276,7 @@ int main()
 		double *x2; d_zeros_align(&x2, pnd, 1);
 		double *y2; d_zeros_align(&y2, pnd, 1);
 		double *diag; d_zeros_align(&diag, pnd, 1);
-		int *ipiv; i_zeros(&ipiv, n, 1);
+		int *ipiv; int_zeros(&ipiv, n, 1);
 
 #if defined(LOW_RANK)
 		int pmd = ((m+bsd-1)/bsd)*bsd;	
