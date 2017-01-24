@@ -46,8 +46,6 @@ void d_zeros(double **pA, int row, int col)
 	for(i=0; i<row*col; i++) A[i] = 0.0;
 	}
 
-
-
 /* creates a zero matrix aligned to a cache line */
 void d_zeros_align(double **pA, int row, int col)
 	{
@@ -122,7 +120,7 @@ void v_free_align(void *pA)
 
 
 
-/* creates a zero matrix aligned */
+/* creates an aligned matrix of ones */
 void d_ones(double **pA, int row, int col)
 	{
 	void *temp = malloc((row*col)*sizeof(double));
@@ -192,7 +190,7 @@ void d_print_mat(int row, int col, double *A, int lda)
 		printf("\n");
 		}
 	printf("\n");
-	}	
+	}
 
 void d_print_mat_e(int row, int col, double *A, int lda)
 	{
@@ -206,7 +204,7 @@ void d_print_mat_e(int row, int col, double *A, int lda)
 		printf("\n");
 		}
 	printf("\n");
-	}	
+	}
 
 
 
@@ -237,7 +235,7 @@ void d_print_pmat(int row, int col, int bs, double *A, int sda)
 		}
 	printf("\n");
 
-	}	
+	}
 
 void d_print_pmat_e(int row, int col, int bs, double *A, int sda)
 	{
@@ -259,7 +257,7 @@ void d_print_pmat_e(int row, int col, int bs, double *A, int sda)
 		}
 	printf("\n");
 
-	}	
+	}
 
 
 
@@ -359,10 +357,7 @@ void d_print_bmat(int nt, int nd, double *pB)
 
 		}
 	printf("\n");
-	
+
 	}
 
 #endif
-
-
-
