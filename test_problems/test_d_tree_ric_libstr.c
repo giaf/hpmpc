@@ -35,8 +35,8 @@
 #include <blasfeo_d_aux.h>
 #include <blasfeo_d_blas.h>
 
-#include "../include/tree.h" 
-#include "../include/lqcp_solvers.h" 
+#include "../include/tree.h"
+#include "../include/lqcp_solvers.h"
 
 
 
@@ -99,7 +99,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 		nkids = md;
 	else if(stage<Nh)
 		nkids = 1;
-	else 
+	else
 		nkids = 0;
 	tree[idx].idx = idx;
 	tree[idx].dad = dad;
@@ -135,7 +135,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 			nkids = md;
 		else if(stage<Nh)
 			nkids = 1;
-		else 
+		else
 			nkids = 0;
 		tree[idx].idx = idx;
 		tree[idx].stage = stage;
@@ -181,7 +181,7 @@ void free_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 		nkids = md;
 	else if(stage<Nh)
 		nkids = 1;
-	else 
+	else
 		nkids = 0;
 	if(nkids>0)
 		{
@@ -195,7 +195,7 @@ void free_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 			nkids = md;
 		else if(stage<Nh)
 			nkids = 1;
-		else 
+		else
 			nkids = 0;
 		if(nkids>0)
 			{
@@ -208,8 +208,8 @@ void free_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 
 
 
-/************************************************ 
-Mass-spring system: nx/2 masses connected each other with springs (in a row), and the first and the last one to walls. nu (<=nx) controls act on the first nu masses. The system is sampled with sampling time Ts. 
+/************************************************
+Mass-spring system: nx/2 masses connected each other with springs (in a row), and the first and the last one to walls. nu (<=nx) controls act on the first nu masses. The system is sampled with sampling time Ts.
 ************************************************/
 void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, double *b, double *x0)
 	{
@@ -219,11 +219,11 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	int info = 0;
 
 	int pp = nx/2; // number of masses
-	
+
 /************************************************
-* build the continuous time system 
+* build the continuous time system
 ************************************************/
-	
+
 	double *T; d_zeros(&T, pp, pp);
 	int ii;
 	for(ii=0; ii<pp; ii++) T[ii*(pp+1)] = -2;
@@ -236,27 +236,27 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	dmcopy(pp, pp, Z, pp, Ac, nx);
 	dmcopy(pp, pp, T, pp, Ac+pp, nx);
 	dmcopy(pp, pp, I, pp, Ac+pp*nx, nx);
-	dmcopy(pp, pp, Z, pp, Ac+pp*(nx+1), nx); 
+	dmcopy(pp, pp, Z, pp, Ac+pp*(nx+1), nx);
 	free(T);
 	free(Z);
 	free(I);
-	
+
 	d_zeros(&I, nu, nu); for(ii=0; ii<nu; ii++) I[ii*(nu+1)]=1.0; //I = eye(nu);
 	double *Bc; d_zeros(&Bc, nx, nu);
 	dmcopy(nu, nu, I, nu, Bc+pp, nx);
 	free(I);
-	
+
 /************************************************
-* compute the discrete time system 
+* compute the discrete time system
 ************************************************/
 
 	double *bb; d_zeros(&bb, nx, 1);
 	dmcopy(nx, 1, bb, nx, b, nx);
-		
+
 	dmcopy(nx, nx, Ac, nx, A, nx);
 	dscal_3l(nx2, Ts, A);
 	expm(nx, A);
-	
+
 	d_zeros(&T, nx, nx);
 	d_zeros(&I, nx, nx); for(ii=0; ii<nx; ii++) I[ii*(nx+1)]=1.0; //I = eye(nx);
 	dmcopy(nx, nx, A, nx, T, nx);
@@ -264,7 +264,7 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	dgemm_nn_3l(nx, nu, nx, T, nx, Bc, nx, B, nx);
 	free(T);
 	free(I);
-	
+
 	int *ipiv = (int *) malloc(nx*sizeof(int));
 	dgesv_3l(nx, nu, Ac, nx, ipiv, B, nx, &info);
 	free(ipiv);
@@ -272,12 +272,12 @@ void mass_spring_system(double Ts, int nx, int nu, int N, double *A, double *B, 
 	free(Ac);
 	free(Bc);
 	free(bb);
-	
-			
+
+
 /************************************************
-* initial state 
+* initial state
 ************************************************/
-	
+
 	if(nx==4)
 		{
 		x0[0] = 5;
@@ -301,13 +301,17 @@ int main()
 
 	printf("\nExample of LU factorization and backsolve\n\n");
 
-#if defined(LA_BLASFEO)
+#if defined(LA_HIGH_PERFORMANCE)
 
-	printf("\nLA provided by BLASFEO\n\n");
+	printf("\nLA provided by HIGH_PERFORMANCE\n\n");
 
 #elif defined(LA_BLAS)
 
 	printf("\nLA provided by BLAS\n\n");
+
+#elif defined(LA_REFERENCE)
+
+	printf("\nLA provided by REFERENCE\n\n");
 
 #else
 
@@ -321,7 +325,7 @@ int main()
 
 /************************************************
 * problem size
-************************************************/	
+************************************************/
 
 	// problem size
 	int N = 5;
@@ -347,10 +351,10 @@ int main()
 	int ng[N+1];
 	for(ii=0; ii<=N; ii++)
 		ng[ii] = 0;
-	
+
 /************************************************
 * dynamical system
-************************************************/	
+************************************************/
 
 	double *A; d_zeros(&A, nx_, nx_); // states update matrix
 
@@ -361,10 +365,10 @@ int main()
 
 	double Ts = 0.5; // sampling time
 	mass_spring_system(Ts, nx_, nu_, N, A, B, b, x0);
-	
+
 	for(ii=0; ii<nx_; ii++)
 		b[ii] = 0.1;
-	
+
 	for(ii=0; ii<nx_; ii++)
 		x0[ii] = 0;
 	x0[0] = 2.5;
@@ -377,7 +381,7 @@ int main()
 
 /************************************************
 * cost function
-************************************************/	
+************************************************/
 
 	double *R; d_zeros(&R, nu_, nu_);
 	for(ii=0; ii<nu_; ii++) R[ii*(nu_+1)] = 2.0;
@@ -401,7 +405,7 @@ int main()
 
 /************************************************
 * matrices as strmat
-************************************************/	
+************************************************/
 
 	struct d_strmat sA;
 	d_allocate_strmat(nx_, nx_, &sA);
@@ -466,8 +470,8 @@ int main()
 
 /************************************************
 * array of matrices
-************************************************/	
-	
+************************************************/
+
 	struct d_strmat hsBAbt[N];
 	struct d_strvec hsb[N];
 	struct d_strmat hsRSQrq[N+1];
@@ -551,9 +555,9 @@ int main()
 
 /************************************************
 * call Riccati solver
-************************************************/	
-	
-	// timing 
+************************************************/
+
+	// timing
 	struct timeval tv0, tv1, tv2, tv3;
 	int nrep = 1000;
 	int rep;
@@ -613,8 +617,8 @@ int main()
 
 /************************************************
 * scenario-tree MPC
-************************************************/	
-	
+************************************************/
+
 	int Nh = N; // control horizion
 	int Nr = 2; // robust horizion
 	int md = 3; // number of realizations
@@ -732,7 +736,7 @@ printf("\nciao\n");
 		{
 		d_allocate_strvec(t_nx[ii], &t_hsPb[ii]);
 		}
-	
+
 	// solution indexed by node
 	struct d_strvec t_hsux[Nn];
 	for(ii=0; ii<Nn; ii++)
@@ -744,7 +748,7 @@ printf("\nciao\n");
 		{
 		d_allocate_strvec(t_nx[ii], &t_hspi[ii]);
 		}
-	
+
 	// dummy
 	int *t_hidxb[Nn];
 	struct d_strmat hsmatdummy[Nn];
@@ -796,7 +800,7 @@ printf("\nciao\n");
 
 /************************************************
 * scenario-tree MPC with standard solver
-************************************************/	
+************************************************/
 
 	int nx2[N+1];
 	int nu2[N+1];
@@ -815,7 +819,7 @@ printf("\nciao\n");
 //		printf("\n%d\n", nx2[ii]);
 //	for(ii=0; ii<=N; ii++)
 //		printf("\n%d\n", nu2[ii]);
-	
+
 	// cost function
 	struct d_strmat hsRSQrq2[N+1];
 	struct d_strvec hsrq2[N+1];
@@ -869,7 +873,7 @@ printf("\nciao\n");
 //		d_print_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsRSQrq2[ii], 0, 0);
 //		d_print_tran_strvec(nu2[ii]+nx2[ii], &hsrq2[ii], 0);
 //		}
-	
+
 	// dynamical system
 	struct d_strmat hsBAbt2[N];
 	struct d_strvec hsb2[N];
@@ -942,7 +946,7 @@ printf("\nciao\n");
 //		d_print_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii], 0, 0);
 //		d_print_tran_strvec(nx2[ii+1], &hsb2[ii], 0);
 //		}
-	
+
 	// work space
 	struct d_strvec hsux2[N+1];
 	struct d_strvec hspi2[N+1];
@@ -963,7 +967,7 @@ printf("\nciao\n");
 	v_zeros_align(&work_ric2, d_back_ric_rec_work_space_size_bytes_libstr(N, nx2, nu2, nb, ng));
 
 	// call Riccati solver
-	
+
 
 //	for(ii=0; ii<=N; ii++)
 //		printf("\n%d %d\n", nu2[ii], nx2[ii]);
@@ -1020,7 +1024,7 @@ printf("\nciao\n");
 
 /************************************************
 * free memory
-************************************************/	
+************************************************/
 
 	d_free(A);
 	d_free(B);
@@ -1068,11 +1072,8 @@ printf("\nciao\n");
 
 /************************************************
 * return
-************************************************/	
+************************************************/
 
 	return 0;
 
 	}
-
-
-
