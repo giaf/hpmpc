@@ -6110,7 +6110,6 @@ void kernel_dgemm_dtrsm_nt_4x4_vs_lib4(int km, int kn, int tri, int kadd, int ks
 		kernel_dgemm_dtrsm_nt_4x4_lib4(tri, kadd, ksub, Ap, Bp, Am, Bm, C, D, fact, alg);
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 
 	int k;
 
@@ -6741,7 +6740,6 @@ void kernel_dgemm_dtrsm_nt_4x2_vs_lib4(int km, int kn, int tri, int kadd, int ks
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 
 	int k;
 
@@ -7146,7 +7144,6 @@ void kernel_dgemm_dtrsm_nt_2x4_vs_lib4(int km, int kn, int tri, int kadd, int ks
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 
 	int k;
 
@@ -7528,7 +7525,6 @@ void kernel_dgemm_dtrsm_nt_2x2_vs_lib4(int km, int kn, int tri, int kadd, int ks
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 
 	int k;
 

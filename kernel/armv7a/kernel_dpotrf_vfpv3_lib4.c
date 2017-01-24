@@ -2799,7 +2799,6 @@ void kernel_dsyrk_dpotrf_nt_4x4_vs_lib4(int km, int kn, int tri, int kadd, int k
 		kernel_dsyrk_dpotrf_nt_4x4_lib4(tri, kadd, ksub, Ap, Bp, Am, Bm, C, D, fact, alg, fast_rsqrt);
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 
 	int k;
 
@@ -3329,7 +3328,6 @@ void kernel_dsyrk_dpotrf_nt_4x2_vs_lib4(int km, int kn, int tri, int kadd, int k
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 
 	int k;
 
@@ -3737,7 +3735,6 @@ void kernel_dsyrk_dpotrf_nt_2x2_vs_lib4(int km, int kn, int tri, int kadd, int k
 	{
 
 	const int bs = 4;
-	const int d_ncl = D_NCL;
 
 	int k;
 

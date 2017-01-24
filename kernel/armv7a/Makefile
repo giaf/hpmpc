@@ -30,7 +30,7 @@ OBJS =
 ifeq ($(TARGET), CORTEX_A15)
 ifeq ($(USE_BLASFEO), 1)
 else
-OBJS += kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_vfpv3_lib4.o kernel_dtrsm_vfpv3_lib4.o kernel_dsyrk_vfpv3_lib4.o kernel_dpotrf_vfpv3_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4. 
+OBJS += kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_vfpv3_lib4.o kernel_dtrsm_vfpv3_lib4.o kernel_dsyrk_vfpv3_lib4.o kernel_dpotrf_vfpv3_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4.o
 OBJS += 
 endif
 endif
@@ -38,7 +38,7 @@ endif
 ifeq ($(TARGET), CORTEX_A9)
 ifeq ($(USE_BLASFEO), 1)
 else
-OBJS += kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_vfpv3_lib4.o kernel_dtrsm_vfpv3_lib4.o kernel_dsyrk_vfpv3_lib4.o kernel_dpotrf_vfpv3_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4. 
+OBJS += kernel_dgemm_vfpv3_lib4.o kernel_dtrmm_vfpv3_lib4.o kernel_dtrsm_vfpv3_lib4.o kernel_dsyrk_vfpv3_lib4.o kernel_dpotrf_vfpv3_lib4.o kernel_dgemv_c99_lib4.o kernel_dtrmv_c99_lib4.o kernel_dtrsv_c99_lib4.o
 OBJS += 
 endif
 endif
