@@ -44,6 +44,7 @@
 #include "../include/lqcp_solvers.h"
 #include "../include/block_size.h"
 #include "../include/mpc_aux.h"
+#include "../include/mpc_solvers.h"
 #include "../include/d_blas_aux.h"
 
 
