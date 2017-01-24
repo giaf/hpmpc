@@ -40,7 +40,7 @@
 #endif
 
 #include "../include/lqcp_solvers.h"
-#include "../include/mpc_aux.h"
+//#include "../include/mpc_aux.h"
 #include "../include/mpc_solvers.h"
 #include "../include/c_interface.h"
 #include "../problem_size.h"
