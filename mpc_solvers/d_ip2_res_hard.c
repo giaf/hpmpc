@@ -41,6 +41,7 @@
 #include "../include/lqcp_solvers.h"
 #include "../include/block_size.h"
 #include "../include/mpc_aux.h"
+#include "../include/mpc_solvers.h"
 #include "../include/d_blas_aux.h"
 
 // use iterative refinement to increase accuracy of the solution of the equality constrained sub-problems
@@ -1759,7 +1760,7 @@ exit(2);
 
 	#else // no iterative refinement
 	#if 1
-			d_back_ric_rec_sv_tv_res(N, nx, nu, 1, pBAbt, res_b, 1, pQ, res_q, dux, pL, dL, work, 1, Pb, compute_mult, dpi, nb, idxb, bd, ng, pDCt, Qx, qx);
+			d_back_ric_rec_sv_tv_res(N, nx, nu, nb, idxb, ng, 0, pBAbt, b, 1, pQ, q, bd, pDCt, Qx, qx, dux, compute_mult, dpi, 1, Pb, memory, work);
 	#else
 			d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
 			d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
@@ -1850,7 +1851,7 @@ exit(2);
 	#else // no iter res
 
 			// solve the KKT system
-			d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
+			d_back_ric_rec_trs_tv_res(N, nx, nu, nb, idxb, ng, pBAbt, res_b, res_q, pDCt, qx, dux, compute_mult, dpi, 0, Pb, memory, work);
 
 
 	#endif

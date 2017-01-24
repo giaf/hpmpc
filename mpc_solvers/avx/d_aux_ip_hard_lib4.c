@@ -23,6 +23,8 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <math.h> // TODO remove if not needed
 
 #include <mmintrin.h>
@@ -150,67 +152,69 @@ void d_init_var_mpc_hard_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *n
 
 	}
 
-	// initialize variables
-	void d_init_var_mpc_hard_tv_single_newton(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **ux, double **pi, double **pDCt, double **db, double **t, double **lam, double **ux0, double **pi0, double **lam0, double **t0)
+
+
+// initialize variables (single newton step)
+void d_init_var_mpc_hard_tv_single_newton(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double **ux, double **pi, double **pDCt, double **db, double **t, double **lam, double **ux0, double **pi0, double **lam0, double **t0)
+	{
+
+	// constants
+	const int bs = D_MR;
+	const int ncl = D_NCL;
+
+	int jj, ll, ii;
+
+	int nb0, pnb, ng0, png, cng;
+
+	double
+		*ptr_t, *ptr_lam, *ptr_db;
+
+	// initialize states and controls
+	for(jj=0; jj<=N; jj++)
 		{
-
-		// constants
-		const int bs = D_MR;
-		const int ncl = D_NCL;
-
-		int jj, ll, ii;
-
-		int nb0, pnb, ng0, png, cng;
-
-		double
-			*ptr_t, *ptr_lam, *ptr_db;
-
-		// initialize states and controls
-		for(jj=0; jj<=N; jj++)
-		{
-			for(ll=0; ll<nu[jj]+nx[jj]; ll++)
+		for(ll=0; ll<nu[jj]+nx[jj]; ll++)
 			{
-				ux[jj][ll] = ux0[jj][ll];
+			ux[jj][ll] = ux0[jj][ll];
 			}
 		}
 
-		// check bounds & initialize multipliers
-		for(jj=0; jj<=N; jj++)
-			{
-			nb0 = nb[jj];
-			pnb  = (nb0+bs-1)/bs*bs; // simd aligned number of box constraints
-			for(ll=0; ll<nb0; ll++)
-				{
-				t[jj][ll]     = t[jj][ll];
-				t[jj][pnb+ll] = t[jj][nb0+ll];
-
-				lam[jj][ll]     = lam0[jj][ll];
-				lam[jj][pnb+ll] = lam0[jj][nb0+ll];
-				t[jj][ll]     = t0[jj][ll];
-				t[jj][pnb+ll] = t0[jj][nb0+ll];
-				}
-			}
-
-		// initialize equality multipliers
-		for(jj=0; jj<N; jj++)
-			for(ll=0; ll<nx[jj+1]; ll++)
-				pi[jj][ll] = pi0[jj][ll];
-
-
-		// TODO find a better way to initialize general constraints
-		for(jj=0; jj<=N; jj++)
+	// check bounds & initialize multipliers
+	for(jj=0; jj<=N; jj++)
 		{
-			nb0 = nb[jj];
-			pnb = (nb0+bs-1)/bs*bs;
-			ng0 = ng[jj];
-			png = (ng0+bs-1)/bs*bs;
-			cng = (ng0+ncl-1)/ncl*ncl;
-			if(ng0>0)
+		nb0 = nb[jj];
+		pnb  = (nb0+bs-1)/bs*bs; // simd aligned number of box constraints
+		for(ll=0; ll<nb0; ll++)
 			{
-				printf("General constraints not supported yet!!");
+			lam[jj][ll]     = lam0[jj][ll];
+			lam[jj][pnb+ll] = lam0[jj][nb0+ll];
+			t[jj][ll]     = t0[jj][ll];
+			t[jj][pnb+ll] = t0[jj][nb0+ll];
+			}
+		}
+
+	// initialize equality multipliers
+	for(jj=0; jj<N; jj++)
+		for(ll=0; ll<nx[jj+1]; ll++)
+			pi[jj][ll] = pi0[jj][ll];
+
+
+	// TODO find a better way to initialize general constraints
+	for(jj=0; jj<=N; jj++)
+		{
+		nb0 = nb[jj];
+		pnb = (nb0+bs-1)/bs*bs;
+		ng0 = ng[jj];
+		png = (ng0+bs-1)/bs*bs;
+		cng = (ng0+ncl-1)/ncl*ncl;
+		if(ng0>0)
+			{
+			printf("General constraints not supported yet!!");
+			exit(1);
 			}
 		}
 	}
+
+
 
 // IPM with no residuals
 
