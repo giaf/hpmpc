@@ -23,6 +23,12 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
 void kernel_sgemm_nt_12x4_lib4(int kmax, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, int alg);
 void kernel_sgemm_nt_8x4_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int alg);
 void kernel_sgemm_nt_8x2_lib4(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int alg);
@@ -82,3 +88,8 @@ void corner_strmm_nt_4x1_lib4(float *A, float *B, float *C);
 void corner_stran_3_lib4(int kna, float *A, int sda, float *C);
 void corner_stran_2_lib4(int kna, float *A, int sda, float *C);
 
+
+
+#ifdef __cplusplus
+}
+#endif

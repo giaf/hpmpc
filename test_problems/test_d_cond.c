@@ -171,7 +171,7 @@ int main()
 
 	int nx = 8;//NX; // number of states (it has to be even for the mass-spring system test problem)
 	int nu = 3;//NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = 10;//NN; // horizon lenght
+	int N  = 5;//NN; // horizon lenght
 //	int nb  = nu+nx; // number of box constrained inputs and states
 //	int ng  = nx; //4;  // number of general constraints
 //	int ngN = nx; // number of general constraints at the last stage
@@ -591,7 +591,7 @@ int main()
 		{
 
 //		d_back_ric_rec_sv_tv_res(N2, nx2_v, nu2_v, nb2_v, idxb2, ng2_v, 0, hpBAbt2, dummy, 0, hpRSQrq2, dummy, dummy, dummy, dummy, dummy, hux2, 1, hpi2, 0, dummy, memory_ric_cond, work_ric_cond);
-		hpmpc_status = d_ip2_res_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work_ipm_full);
+//		hpmpc_status = d_ip2_res_mpc_hard_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx_v, nu_v, nb_v, hidxb, ng_v, hpBAbt, hpRSQrq, hpDCt, hd, hux, compute_mult, hpi, hlam, ht, work_ipm_full);
 
 		}
 
@@ -654,31 +654,33 @@ int main()
 
 	d_cond_BAbt(N, nx_v, nu_v, hpBAbt, work0, hpGamma, pBAbt2);
 	
-//	printf("\nGamma\n\n");
-//	nu_tmp = 0;
-//	for(ii=0; ii<N; ii++)
-//		{
-//		nu_tmp += nu_v[ii];
-//		d_print_pmat(nx_v[0]+1+nu_tmp, nx_v[ii+1], bs, hpGamma[ii], cnx_v[ii+1]);
-//		}
+	printf("\nGamma\n\n");
+	nu_tmp = 0;
+	for(ii=0; ii<N; ii++)
+		{
+		nu_tmp += nu_v[ii];
+		d_print_pmat(nx_v[0]+1+nu_tmp, nx_v[ii+1], hpGamma[ii], cnx_v[ii+1]);
+		}
 	
-//	printf("\nBAbt2\n\n");
-//	d_print_pmat(nu2+nx_v[0]+1, nx_v[N], bs, pBAbt2, cnx_v[N]);
+	printf("\nBAbt2\n\n");
+	d_print_pmat(nu2+nx_v[0]+1, nx_v[N], pBAbt2, cnx_v[N]);
+
 
 	d_cond_RSQrq(N, nx_v, nu_v, hpBAbt, hpRSQrq, hpGamma, work1, pRSQrq2);
 
-//	printf("\nRSQrq2\n\n");
-//	d_print_pmat(nu2+nx_v[0]+1, nu2+nx_v[0], bs, pRSQrq2, cnux2);
+	printf("\nRSQrq2\n\n");
+	d_print_pmat(nu2+nx_v[0]+1, nu2+nx_v[0], pRSQrq2, cnux2);
+
 
 	d_cond_DCtd(N, nx_v, nu_v, nb_v, hidxb, hd, hpGamma, pDCt2, d2, idxb2);
 
-//	printf("\nDCt2\n\n");
-//	d_print_pmat(nu2+nx_v[0], nbg, bs, pDCt2, cnbg);
-//	d_print_mat(1, nbb, d2, 1);
-//	d_print_mat(1, nbb, d2+pnbb, 1);
-//	d_print_mat(1, nbg, d2+2*pnbb, 1);
-//	d_print_mat(1, nbg, d2+2*pnbb+pnbg, 1);
-//	i_print_mat(1, nbb, idxb2, 1);
+	printf("\nDCt2\n\n");
+	d_print_pmat(nu2+nx_v[0], nbg, pDCt2, cnbg);
+	d_print_mat(1, nbb, d2, 1);
+	d_print_mat(1, nbb, d2+pnbb, 1);
+	d_print_mat(1, nbg, d2+2*pnbb, 1);
+	d_print_mat(1, nbg, d2+2*pnbb+pnbg, 1);
+	i_print_mat(1, nbb, idxb2, 1);
 
 /************************************************
 * solve condensed system using Riccati / IPM
@@ -880,7 +882,7 @@ int main()
 	
 //	printf("\nBAbt3 =\n");
 //	for(ii=0; ii<N3; ii++)
-//		d_print_pmat(nu3_v[ii]+nx3_v[ii]+1, nx3_v[ii+1], bs, hpBAbt3[ii], cnx3_v[ii+1]);
+//		d_print_pmat(nu3_v[ii]+nx3_v[ii]+1, nx3_v[ii+1], hpBAbt3[ii], cnx3_v[ii+1]);
 	
 //	printf("\nRSQrq3 =\n");
 //	for(ii=0; ii<=N3; ii++)

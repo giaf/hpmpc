@@ -25,7 +25,13 @@
 
 include ../Makefile.rule
 
-OBJS = d_back_ric_rec.o d_back_ric_rec_libstr.o d_for_schur_rec.o d_res.o d_part_cond.o d_tree_back_ric_rec_libstr.o #s_ric_sv.o s_res.o
+OBJS = 
+
+ifeq ($(USE_BLASFEO), 1)
+OBJS += d_back_ric_rec_libstr.o d_part_cond_libstr.o d_tree_back_ric_rec_libstr.o
+else
+OBJS += d_back_ric_rec.o d_for_schur_rec.o d_res.o d_part_cond.o
+endif
 
 obj: $(OBJS)
 

@@ -42,10 +42,10 @@ TARGET = X64_AVX
 #TARGET = CORTEX_A9
 #TARGET = CORTEX_A7
 #TARGET = C99_4X4
-#TARGET = C99_4X4_PREFETCH
 
 # use BLASFEO for the linear algebra
 USE_BLASFEO = 1
+BLASFEO_PATH = /opt/blasfeo
 
 # C Compiler
 CC = gcc
@@ -74,12 +74,12 @@ COMMON_FLAGS += -I/opt/gcc/lib/gcc/x86_64-pc-linux-gnu/6.0.0/include
 endif
 endif
 ifeq ($(USE_BLASFEO), 1)
-COMMON_FLAGS += -DBLASFEO -I/opt/blasfeo/include -I$(TOP)../blasfeo/include
+COMMON_FLAGS += -DBLASFEO -I$(BLASFEO_PATH)/include
 endif
 ifeq ($(OS), WINDOWS)
 COMMON_FLAGS += -DOS_WINDOWS
 endif
-DEBUG = #-Wall -pedantic -Wfloat-equal #-pg
+DEBUG = #-g #-Wall -pedantic -Wfloat-equal #-pg
 LDFLAGS =
 
 # Reference code linking to standard BLAS and LAPACK

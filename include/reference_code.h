@@ -23,6 +23,10 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 
 void d_ric_trf_mhe_if_blas(int nx, int nw, int ndN, int N, double **A, double **G, double **Q, double **R, double **AGU, double **Up, double **Ue, double **Ur, double *Ud);
@@ -32,3 +36,9 @@ void d_back_ric_trf_tv_blas(int N, int *nx, int *nu, double **BAbt, double **Q, 
 void d_back_ric_trs_tv_blas(int N, int *nx, int *nu, double **BAbt, double **b, double **Lp, double **q, double **l, double **ux, double *work, int compute_Pb, double ** Pb, int compute_pi, double **pi);
 int d_forward_schur_trf_tv_blas(int N, int *nv, int *ne, double reg, int *diag_hessian, double **QA, double **LA, double **Le, double *Le_tmp);
 int d_forward_schur_trs_tv_blas(int N, int *nv, int *ne, int *diag_hessian, double **qb, double **LA, double **Le, double **xupi, double *work);
+
+
+
+#ifdef __cplusplus
+}
+#endif

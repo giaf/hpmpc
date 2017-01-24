@@ -25,7 +25,17 @@
 
 include ../../Makefile.rule
 
-OBJS = c_interface_work_space.o c_order_interface.o fortran_order_interface.o
+OBJS =
+
+ifeq ($(USE_BLASFEO), 1)
+
+OBJS += fortran_order_interface_libstr.o
+
+else
+
+OBJS += c_interface_work_space.o c_order_interface.o fortran_order_interface.o
+
+endif
 
 obj: $(OBJS)
 

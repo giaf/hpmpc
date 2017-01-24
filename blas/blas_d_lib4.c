@@ -5384,6 +5384,7 @@ void daxpy_lib(int kmax, double alpha, double *x, double *y)
 
 
 
+#if ! defined(BLASFEO)
 // z = y, y = y + alpha*x, with increments equal to 1
 void daxpy_bkp_lib(int kmax, double alpha, double *x, double *y, double *z)
 	{
@@ -5455,6 +5456,7 @@ void daxpy_bkp_lib(int kmax, double alpha, double *x, double *y, double *z)
 	return;
 
 	}
+#endif
 
 
 
@@ -7857,6 +7859,7 @@ void dtrtri_lib(int m, double *pA, int sda, int use_inv_diag_A, double *inv_diag
 
 
 
+#if ! defined(BLASFEO)
 void dgemm_diag_left_lib(int m, int n, double *dA, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd)
 	{
 
@@ -7883,9 +7886,11 @@ void dgemm_diag_left_lib(int m, int n, double *dA, double *pB, int sdb, int alg,
 		}
 	
 	}
+#endif
 
 
 
+#if ! defined(BLASFEO)
 void dgemm_diag_right_lib(int m, int n, double *pA, int sda, double *dB, int alg, double *pC, int sdc, double *pD, int sdd)
 	{
 
@@ -7912,6 +7917,7 @@ void dgemm_diag_right_lib(int m, int n, double *pA, int sda, double *dB, int alg
 		}
 	
 	}
+#endif
 
 
 

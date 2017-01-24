@@ -27,6 +27,12 @@
 #include "../include/blas_d.h"
 #include "../include/block_size.h"
 
+#ifdef BLASFEO
+#include <blasfeo_target.h>
+#include <blasfeo_common.h>
+#include <blasfeo_d_blas.h>
+#endif
+
 
 
 void d_res_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, int *ns, double **hpBAbt, double **hpQ, double **hq, double **hZ, double **hz, double **hux, double **hpDCt, double **hd, double **hpi, double **hlam, double **ht, double **hrq, double **hrb, double **hrd, double **hrz, double *mu)
@@ -39,7 +45,7 @@ void d_res_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, in
 
 	int ii, jj;
 	
-	int nu0, nu1, cnz0, nx0, nx1, nxm, cnx0, cnx1, nb0, pnb, ng0, png, cng, ns0, pns, nb_tot;
+	int nu0, nu1, cnux0, nx0, nx1, nxm, cnx0, cnx1, nb0, pnb, ng0, png, cng, ns0, pns, nb_tot;
 
 
 	// initialize mu
@@ -60,7 +66,7 @@ void d_res_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, in
 		nx1 = nx[ii+1];
 		cnx0 = cnx1;
 		cnx1  = (nx1+ncl-1)/ncl*ncl;
-		cnz0  = (nu0+nx0+1+ncl-1)/ncl*ncl;
+		cnux0  = (nu0+nx0+ncl-1)/ncl*ncl;
 		nb0 = nb[ii];
 		pnb = (nb0+bs-1)/bs*bs;
 		ng0 = ng[ii];
@@ -80,42 +86,59 @@ void d_res_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, in
 		for(jj=0; jj<nb0; jj++)
 			{
 			hrd[ii][jj]     =   hux[ii][idxb[ii][jj]] - hd[ii][jj]     - ht[ii][jj];
-			hrd[ii][pnb+jj] = - hux[ii][idxb[ii][jj]] - hd[ii][pnb+jj] - ht[ii][pnb+jj];
+			hrd[ii][pnb+jj] = - hux[ii][idxb[ii][jj]] + hd[ii][pnb+jj] - ht[ii][pnb+jj];
 			}
 		if(ng0>0)
 			{
+#if defined(BLASFEO)
+			dgemv_t_lib(nu0+nx0, ng0, 1.0, hpDCt[ii], cng, hux[ii], 0.0, hrd[ii]+2*pnb, hrd[ii]+2*pnb);
+#else
 			dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], 0, hrd[ii]+2*pnb, hrd[ii]+2*pnb);
+#endif
 			for(jj=0; jj<ng0; jj++)
 				{
 				hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+jj];
 				hrd[ii][2*pnb+jj] += - hd[ii][2*pnb+jj] - ht[ii][2*pnb+jj];
-				hrd[ii][2*pnb+png+jj] += - hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
+				hrd[ii][2*pnb+png+jj] += + hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
 				}
 			}
 		for(jj=0; jj<ns0; jj++)
 			{
 			hrd[ii][2*pnb+2*png+0*pns+jj] = ht[ii][2*pnb+2*png+2*pns+jj] + hux[ii][idxb[ii][nu0+jj]] - hd[ii][2*pnb+2*png+0*pns+jj] - ht[ii][2*pnb+2*png+0*pns+jj];
-			hrd[ii][2*pnb+2*png+1*pns+jj] = ht[ii][2*pnb+2*png+3*pns+jj] - hux[ii][idxb[ii][nu0+jj]] - hd[ii][2*pnb+2*png+1*pns+jj] - ht[ii][2*pnb+2*png+1*pns+jj];
+			hrd[ii][2*pnb+2*png+1*pns+jj] = ht[ii][2*pnb+2*png+3*pns+jj] - hux[ii][idxb[ii][nu0+jj]] + hd[ii][2*pnb+2*png+1*pns+jj] - ht[ii][2*pnb+2*png+1*pns+jj];
 			}
 
 		for(jj=0; jj<nu0; jj++) 
 			hrq[ii][jj] = - hq[ii][jj];
 		for(jj=0; jj<nx0; jj++) 
-			hrq[ii][nu0+jj] = - hq[ii][nu0+jj] + hpi[ii][jj];
-		dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnz0, hux[ii], -1, hrq[ii], hrq[ii]);
+			hrq[ii][nu0+jj] = - hq[ii][nu0+jj] + hpi[ii-1][jj];
+#if defined(BLASFEO)
+		dsymv_l_lib(nu0+nx0, nu0+nx0, -1.0, hpQ[ii], cnux0, hux[ii], 1.0, hrq[ii], hrq[ii]);
+#else
+		dsymv_lib(nu0+nx0, nu0+nx0, hpQ[ii], cnux0, hux[ii], -1, hrq[ii], hrq[ii]);
+#endif
 		for(jj=0; jj<nb0; jj++) 
 			hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
 		if(ng0>0)
 			{
 			// TODO work space + one dgemv call
+#if defined(BLASFEO)
+			dgemv_n_lib(nu0+nx0, ng0, 1.0, hpDCt[ii], cng, hlam[ii]+2*pnb, 1.0, hrq[ii], hrq[ii]);
+			dgemv_n_lib(nu0+nx0, ng0, -1.0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, 1.0, hrq[ii], hrq[ii]);
+#else
 			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, 1, hrq[ii], hrq[ii]);
 			dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, -1, hrq[ii], hrq[ii]);
+#endif
 			}
 		for(jj=0; jj<ns0; jj++) 
 			hrq[ii][idxb[ii][nu0+jj]] += hlam[ii][2*pnb+2*png+0*pns+jj] - hlam[ii][2*pnb+2*png+1*pns+jj];
 		for(jj=0; jj<nx1; jj++) 
 			hrb[ii][jj] = hux[ii+1][nu1+jj] - hpBAbt[ii][(nu0+nx0)/bs*bs*cnx1+(nu0+nx0)%bs+bs*jj];
-		dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii+1], hux[ii], -1, -1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+#if defined(BLASFEO)
+		dgemv_nt_lib(nu0+nx0, nx1, -1.0, -1.0, hpBAbt[ii], cnx1, hpi[ii], hux[ii], 1.0, 1.0, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+#else
+		dgemv_nt_lib(nu0+nx0, nx1, hpBAbt[ii], cnx1, hpi[ii], hux[ii], -1, -1, hrq[ii], hrb[ii], hrq[ii], hrb[ii]);
+#endif
 
 		for(jj=0; jj<ns0; jj++) 
 			{ 
@@ -130,7 +153,7 @@ void d_res_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, in
 	ii = N;
 	nu0 = nu1;
 	nx0 = nx1;
-	cnz0  = (nu0+nx0+1+ncl-1)/ncl*ncl;
+	cnux0  = (nu0+nx0+ncl-1)/ncl*ncl;
 	nb0 = nb[ii];
 	pnb = (nb0+bs-1)/bs*bs;
 	ng0 = ng[ii];
@@ -150,35 +173,48 @@ void d_res_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, in
 	for(jj=0; jj<nb0; jj++)
 		{
 		hrd[ii][jj]     =   hux[ii][idxb[ii][jj]] - hd[ii][jj]     - ht[ii][jj];
-		hrd[ii][pnb+jj] = - hux[ii][idxb[ii][jj]] - hd[ii][pnb+jj] - ht[ii][pnb+jj];
+		hrd[ii][pnb+jj] = - hux[ii][idxb[ii][jj]] + hd[ii][pnb+jj] - ht[ii][pnb+jj];
 		}
 	if(ng0>0)
 		{
+#if defined(BLASFEO)
+		dgemv_t_lib(nu0+nx0, ng0, 1.0, hpDCt[ii], cng, hux[ii], 0.0, hrd[ii]+2*pnb, hrd[ii]+2*pnb);
+#else
 		dgemv_t_lib(nu0+nx0, ng0, hpDCt[ii], cng, hux[ii], 0, hrd[ii]+2*pnb, hrd[ii]+2*pnb);
+#endif
 		for(jj=0; jj<ng0; jj++)
 			{
 			hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+jj];
 			hrd[ii][2*pnb+jj] += - hd[ii][2*pnb+jj] - ht[ii][2*pnb+jj];
-			hrd[ii][2*pnb+png+jj] += - hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
+			hrd[ii][2*pnb+png+jj] += + hd[ii][2*pnb+png+jj] - ht[ii][2*pnb+png+jj];
 			}
 		}
 	for(jj=0; jj<ns0; jj++)
 		{
 		hrd[ii][2*pnb+2*png+0*pns+jj] = ht[ii][2*pnb+2*png+2*pns+jj] + hux[ii][idxb[ii][nu0+jj]] - hd[ii][2*pnb+2*png+0*pns+jj] - ht[ii][2*pnb+2*png+0*pns+jj];
-		hrd[ii][2*pnb+2*png+1*pns+jj] = ht[ii][2*pnb+2*png+3*pns+jj] - hux[ii][idxb[ii][nu0+jj]] - hd[ii][2*pnb+2*png+1*pns+jj] - ht[ii][2*pnb+2*png+1*pns+jj];
+		hrd[ii][2*pnb+2*png+1*pns+jj] = ht[ii][2*pnb+2*png+3*pns+jj] - hux[ii][idxb[ii][nu0+jj]] + hd[ii][2*pnb+2*png+1*pns+jj] - ht[ii][2*pnb+2*png+1*pns+jj];
 		}
 
 
 	for(jj=0; jj<nx0; jj++) 
-		hrq[ii][nu0+jj] = hpi[ii][jj] - hq[ii][nu0+jj];
+		hrq[ii][nu0+jj] = hpi[ii-1][jj] - hq[ii][nu0+jj];
 	for(jj=0; jj<nb0; jj++) 
 		hrq[ii][idxb[ii][jj]] += hlam[ii][jj] - hlam[ii][pnb+jj];
-	dsymv_lib(nx0+nu0%bs, nx0+nu0%bs, hpQ[ii]+nu0/bs*bs*cnz0+nu0/bs*bs*bs, cnz0, hux[ii]+nu0/bs*bs, -1, hrq[ii]+nu0/bs*bs, hrq[ii]+nu0/bs*bs);
+#if defined(BLASFEO)
+	dsymv_l_lib(nx0, nx0, -1.0, hpQ[ii], cnux0, hux[ii], 1.0, hrq[ii], hrq[ii]);
+#else
+	dsymv_lib(nx0, nx0, hpQ[ii], cnux0, hux[ii], -1, hrq[ii], hrq[ii]);
+#endif
 	if(ng0>0)
 		{
 		// TODO work space + one dgemv call
+#if defined(BLASFEO)
+		dgemv_n_lib(nu0+nx0, ng0, 1.0, hpDCt[ii], cng, hlam[ii]+2*pnb, 1.0, hrq[ii], hrq[ii]);
+		dgemv_n_lib(nu0+nx0, ng0, -1.0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, 1.0, hrq[ii], hrq[ii]);
+#else
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb, 1, hrq[ii], hrq[ii]);
 		dgemv_n_lib(nu0+nx0, ng0, hpDCt[ii], cng, hlam[ii]+2*pnb+png, -1, hrq[ii], hrq[ii]);
+#endif
 		}
 	for(jj=0; jj<ns0; jj++) 
 		hrq[ii][idxb[ii][nu0+jj]] += - hlam[ii][2*pnb+2*png+2*pns+jj] + hlam[ii][2*pnb+2*png+3*pns+jj];
@@ -194,6 +230,40 @@ void d_res_mpc_soft_tv(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, in
 	// normalize mu
 	if(nb_tot!=0)
 		mu[0] /= 2.0*nb_tot;
+
+
+
+#if 1
+	// change sign of residuals
+	for(ii=0; ii<=N; ii++)
+		for(jj=0; jj<nu[ii]+nx[ii]; jj++)
+			hrq[ii][jj] = - hrq[ii][jj];
+	for(ii=0; ii<N; ii++)
+		for(jj=0; jj<nx[ii+1]; jj++)
+			hrb[ii][jj] = - hrb[ii][jj];
+	for(ii=0; ii<=N; ii++)
+		{
+		pnb = (nb[ii]+bs-1)/bs*bs;
+		png = (ng[ii]+bs-1)/bs*bs;
+		pns = (ns[ii]+bs-1)/bs*bs;
+		for(jj=0; jj<nb[ii]; jj++)
+			{
+			hrd[ii][jj]     = - hrd[ii][jj];
+			hrd[ii][pnb+jj] = - hrd[ii][pnb+jj];
+			}
+		for(jj=0; jj<ng[ii]; jj++)
+			{
+			hrd[ii][2*pnb+jj]     = - hrd[ii][2*pnb+jj];
+			hrd[ii][2*pnb+png+jj] = - hrd[ii][2*pnb+png+jj];
+			}
+		for(jj=0; jj<ns[ii]; jj++)
+			{
+			hrd[ii][2*pnb+2*png+jj]     = - hrd[ii][2*pnb+2*png+jj];
+			hrd[ii][2*pnb+2*png+pns+jj] = - hrd[ii][2*pnb+2*png+pns+jj];
+			}
+		}
+
+#endif
 
 	}
 

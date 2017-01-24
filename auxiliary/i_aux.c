@@ -30,7 +30,7 @@
 
 
 /* creates a zero integer matrix */
-void i_zeros(int **pA, int row, int col)
+void int_zeros(int **pA, int row, int col)
 	{
 	void *temp = malloc((row*col)*sizeof(int));
 	*pA = temp;
@@ -42,14 +42,14 @@ void i_zeros(int **pA, int row, int col)
 
 
 /* frees memory */
-void i_free(int *pA)
+void int_free(int *pA)
 	{
 	free( pA );
 	}
 
 
 
-void i_print_mat(int row, int col, int *A, int lda)
+void int_print_mat(int row, int col, int *A, int lda)
 	{
 	int i, j;
 	for(i=0; i<row; i++)

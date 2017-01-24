@@ -23,6 +23,12 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
 void s_zeros(float **pA, int row, int col);
 void s_zeros_align(float **pA, int row, int col);
 void s_eye(float **pA, int row);
@@ -40,3 +46,8 @@ void s_cvt_pmat2mat(int row, int col, int offset, int bs, float *pA, int sda, fl
 void s_print_mat(int row, int col, float *A, int lda);
 void s_print_pmat(int row, int col, int bs, float *A, int sda);
 
+
+
+#ifdef __cplusplus
+}
+#endif

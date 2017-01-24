@@ -25,6 +25,12 @@
 
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
 // level 1 BLAS
 #if ! defined(BLASFEO)
 void daxpy_lib(int kmax, double alpha, double *x, double *y);
@@ -60,7 +66,15 @@ void dvecad_libsp(int kmax, int *idx, double alpha, double *x, double *y);
 
 
 // diagonal routines
+#if ! defined(BLASFEO)
 void dgemm_diag_right_lib(int m, int n, double *pA, int sda, double *dB, int alg, double *pC, int sdc, double *pD, int sdd);
 void dgemm_diag_left_lib(int m, int n, double *dA, double *pB, int sdb, int alg, double *pC, int sdc, double *pD, int sdd);
+#endif
 void dsyrk_diag_left_right_lib(int m, double *Al, double *Ar, double *B, int sdb, int alg, double *C, int sdc, double *D, int sdd);
 void dgemv_diag_lib(int m, double *dA, double *x, int alg, double *y, double *z);
+
+
+
+#ifdef __cplusplus
+}
+#endif

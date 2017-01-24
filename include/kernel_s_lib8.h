@@ -23,6 +23,12 @@
 *                                                                                                 *
 **************************************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
 void kernel_sgemm_nt_24x4_lib8(int kmax, float *A0, float *A1, float *A2, float *B, float *C0, float *C1, float *C2, float *D0, float *D1, float *D2, int alg);
 void kernel_sgemm_nt_16x4_lib8(int kmax, float *A0, float *A1, float *B, float *C0, float *C1, float *D0, float *D1, int alg);
 void kernel_sgemm_nt_8x8_lib8(int kmax, float *A0, float *B, float *C0, float *D0, int alg);
@@ -73,3 +79,8 @@ void kernel_ssymv_2_lib8(int kmax, int kna, float *A, int sda, float *x_n, float
 void kernel_ssymv_1_lib8(int kmax, int kna, float *A, int sda, float *x_n, float *y_n, float *x_t, float *y_t, int tri, int alg);
 void kernel_stran_8_lib8(int kmax, int kna, float *A, int sda, float *C);
 
+
+
+#ifdef __cplusplus
+}
+#endif
