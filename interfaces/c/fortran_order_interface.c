@@ -50,18 +50,18 @@
 
 
 // TODO add indx to the interface ????
-int fortran_order_d_ip_ocp_hard_tv( 
+int fortran_order_d_ip_ocp_hard_tv(
 							int *kk, int k_max, double mu0, double mu_tol,
 							int N, int *nx, int *nu_N, int *nb, int **hidxb, int *ng,
 							int N2,
 							int warm_start,
-							double **A, double **B, double **b, 
-							double **Q, double **S, double **R, double **q, double **r, 
+							double **A, double **B, double **b,
+							double **Q, double **S, double **R, double **q, double **r,
 							double **lb, double **ub,
 							double **C, double **D, double **lg, double **ug,
 							double **x, double **u, double **pi, double **lam, //double **t,
 							double *inf_norm_res,
-							void *work0, 
+							void *work0,
 							double *stat)
 
 	{
@@ -92,7 +92,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 	int ngM = ng[0];
 	for(ii=1; ii<N; ii++)
 		ngM = ng[ii]> ngM ? ng[ii] : ngM;
-	
+
 	if(ngM>0)
 		N2 = N;
 
@@ -134,13 +134,13 @@ int fortran_order_d_ip_ocp_hard_tv(
 		cnux[ii] = (nu[ii]+nx[ii]+ncl-1)/ncl*ncl;
 		cng[ii] = (ng[ii]+ncl-1)/ncl*ncl;
 		}
-	
-	
+
+
 
 
 	double alpha_min = 1e-8; // minimum accepted step length
 	double temp;
-	
+
 	int info = 0;
 
 
@@ -355,7 +355,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 //						// zero corresponding B column TODO remove variable instead !!!!!
 //						hpBAbt[ii][idx/bs*cnx[ii+1]*bs+idx%bs+ll*bs] = 0.0;
 //						}
-//					
+//
 //					// inactive box constraints TODO remove from constraints istead !!!!!
 //					hd[ii][jj+0]       = lb[ii][jj] + 1e3;
 //					hd[ii][jj+pnb[ii]] = ub[ii][jj] - 1e3;
@@ -382,7 +382,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 //		d_print_mat(1, 2*pnb[ii]+2*png[ii], hd[ii], 1);
 //	exit(1);
 
-	
+
 
 
 
@@ -599,7 +599,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 	for(ii=0; ii<N; ii++)
 		{
 		for(jj=0; jj<nb[ii] && hidxb[ii][jj]<nu[ii]; jj++)
-			{
+		{
 			if(lb[ii][jj]==ub[ii][jj]) // equality constraint
 				{
 				u[ii][hidxb[ii][jj]] = lb[ii][jj];
@@ -617,23 +617,23 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 	temp = fabs(hrrq[0][0]);
 	for(ii=0; ii<N; ii++)
-		for(jj=0; jj<nu[ii]+nx[ii]; jj++) 
+		for(jj=0; jj<nu[ii]+nx[ii]; jj++)
 			temp = fmax( temp, fabs(hrrq[ii][jj]) );
 	ii = N;
-	for(jj=0; jj<nx[ii]; jj++) 
+	for(jj=0; jj<nx[ii]; jj++)
 		temp = fmax( temp, fabs(hrrq[ii][jj]) );
 	inf_norm_res[0] = temp;
 
 	temp = fabs(hrb[0][0]);
 	for(ii=0; ii<N; ii++)
-		for(jj=0; jj<nx[ii+1]; jj++) 
+		for(jj=0; jj<nx[ii+1]; jj++)
 			temp = fmax( temp, fabs(hrb[ii][jj]) );
 	inf_norm_res[1] = temp;
 
 	temp = fabs(hrd[0][0]);
 	for(ii=0; ii<=N; ii++)
 		{
-		for(jj=0; jj<nb[ii]; jj++) 
+		for(jj=0; jj<nb[ii]; jj++)
 			{
 			temp = fmax( temp, fabs(hrd[ii][jj+0]) );
 			temp = fmax( temp, fabs(hrd[ii][jj+pnb[ii]]) );
@@ -641,7 +641,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 		}
 	for(ii=0; ii<=N; ii++)
 		{
-		for(jj=0; jj<ng[ii]; jj++) 
+		for(jj=0; jj<ng[ii]; jj++)
 			{
 			temp = fmax( temp, fabs(hrd[ii][2*pnb[ii]+jj+0]) );
 			temp = fmax( temp, fabs(hrd[ii][2*pnb[ii]+jj+png[ii]]) );
@@ -687,17 +687,407 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 	}
 
+	int fortran_order_d_ip_ocp_hard_tv_single_newton_step(
+								int *kk, int k_max, double mu0, double mu_tol,
+								int N, int *nx, int *nu_N, int *nb, int **hidxb, int *ng,
+								int N2,
+								int warm_start,
+								double **A, double **B, double **b,
+								double **Q, double **S, double **R, double **q, double **r,
+								double **lb, double **ub,
+								double **C, double **D, double **lg, double **ug,
+								double **x, double **u, double **pi, double **lam, double **t,
+								double *inf_norm_res,
+								void *work0,
+								double *stat,
+								double **ux0,
+								double **pi0,
+								double **lam0,
+								double **t0)
 
+		{
+
+		int hpmpc_status = -1;
+
+
+		int ii, jj, ll, idx;
+
+
+		// nu with nu[N]=0
+		int nu[N+1];
+		for(ii=0; ii<N; ii++)
+			nu[ii] = nu_N[ii];
+		nu[N] = 0;
+
+
+
+		// XXX sequential update not implemented
+		if(N2>N)
+			N2 = N;
+
+
+
+		// if ng>0, disable partial condensing (TODO implement this case)
+		int ngM = ng[0];
+		for(ii=1; ii<N; ii++)
+			ngM = ng[ii]> ngM ? ng[ii] : ngM;
+
+		if(ngM>0)
+			N2 = N;
+
+
+
+		// check for consistency of problem size
+		// nb <= nu+nx
+		for(ii=0; ii<=N; ii++)
+			{
+			if(nb[ii]>nu[ii]+nx[ii])
+				{
+				printf("\nERROR: At stage %d, the number of bounds nb=%d can not be larger than the number of variables nu+nx=%d.\n\n", ii, nb[ii], nu[ii]+nx[ii]);
+				exit(1);
+				}
+			}
+
+
+		// constant for panel-wise matrix format
+		const int bs = D_MR;
+		const int ncl = D_NCL;
+
+
+		// full space system
+		int pnx[N+1];
+		int pnz[N+1];
+		int pnb[N+1];
+		int png[N+1];
+		int cnx[N+1];
+		int cnux[N+1];
+		int cng[N+1];
+
+		for(ii=0; ii<=N; ii++)
+			{
+			pnx[ii] = (nx[ii]+bs-1)/bs*bs;
+			pnz[ii] = (nu[ii]+nx[ii]+1+bs-1)/bs*bs;
+			pnb[ii] = (nb[ii]+bs-1)/bs*bs;
+			png[ii] = (ng[ii]+bs-1)/bs*bs;
+			cnx[ii] = (nx[ii]+ncl-1)/ncl*ncl;
+			cnux[ii] = (nu[ii]+nx[ii]+ncl-1)/ncl*ncl;
+			cng[ii] = (ng[ii]+ncl-1)/ncl*ncl;
+			}
+
+
+
+
+		double alpha_min = 1e-8; // minimum accepted step length
+		double temp;
+
+		int info = 0;
+
+
+
+
+	//printf("\n%d\n", ((size_t) work0) & 63);
+
+		// align to (typical) cache line size
+		size_t addr = (( (size_t) work0 ) + 63 ) / 64 * 64;
+		double *ptr = (double *) addr;
+
+
+	//printf("\n%d\n", ((size_t) ptr) & 63);
+
+		/* array or pointers */
+		double *hpBAbt[N];
+		double *hb[N];
+		double *hpRSQrq[N+1];
+		double *hrq[N+1];
+		double *hpDCt[N+1];
+		double *hd[N+1];
+		double *hux[N+1];
+		double *hpi[N];
+		double *hlam[N+1];
+		double *ht[N+1];
+		double *hrb[N];
+		double *hrrq[N+1];
+		double *hrd[N+1];
+		void *work_ipm;
+
+		char *char_ptr;
+
+		for(ii=0; ii<N; ii++)
+			{
+			hpBAbt[ii] = ptr;
+			ptr += pnz[ii]*cnx[ii+1];
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hpDCt[ii] = ptr;
+			ptr += pnz[ii]*cng[ii];
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hpRSQrq[ii] = ptr;
+			ptr += pnz[ii]*cnux[ii];
+			}
+
+		for(ii=0; ii<N; ii++)
+			{
+			hb[ii] = ptr;
+			ptr += pnx[ii+1];
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hrq[ii] = ptr;
+			ptr += pnz[ii];
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hd[ii] = ptr;
+			ptr += 2*pnb[ii]+2*png[ii];
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hux[ii] = ptr;
+			ptr += pnz[ii];
+			}
+
+		for(ii=0; ii<N; ii++)
+			{
+			hpi[ii] = ptr;
+			ptr += pnx[ii+1];
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hlam[ii] = ptr;
+			ptr += 2*pnb[ii]+2*png[ii];
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			ht[ii] = ptr;
+			ptr += 2*pnb[ii]+2*png[ii];
+			}
+
+		for(ii=0; ii<N; ii++)
+			{
+			hrb[ii] = ptr;
+			ptr += pnx[ii+1];
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hrrq[ii] = ptr;
+			ptr += pnz[ii];
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			hrd[ii] = ptr;
+			ptr += 2*pnb[ii]+2*png[ii];
+			}
+
+		/* pack matrices */
+
+		// TODO use pointers to exploit time invariant !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+		// dynamic system
+		for(ii=0; ii<N; ii++)
+			{
+			d_cvt_tran_mat2pmat(nx[ii+1], nu[ii], B[ii], nx[ii+1], 0, hpBAbt[ii], cnx[ii+1]);
+			d_cvt_tran_mat2pmat(nx[ii+1], nx[ii], A[ii], nx[ii+1], nu[ii], hpBAbt[ii]+nu[ii]/bs*cnx[ii+1]*bs+nu[ii]%bs, cnx[ii+1]);
+			for(jj=0; jj<nx[ii+1]; jj++)
+				{
+				hb[ii][jj] = b[ii][jj];
+				hpBAbt[ii][(nx[ii]+nu[ii])/bs*cnx[ii+1]*bs+(nx[ii]+nu[ii])%bs+jj*bs] = b[ii][jj];
+				}
+			}
+
+		// general constraints
+		for(ii=0; ii<N; ii++)
+			{
+			d_cvt_tran_mat2pmat(ng[ii], nu[ii], D[ii], ng[ii], 0, hpDCt[ii], cng[ii]);
+			d_cvt_tran_mat2pmat(ng[ii], nx[ii], C[ii], ng[ii], nu[ii], hpDCt[ii]+nu[ii]/bs*cng[ii]*bs+nu[ii]%bs, cng[ii]);
+			}
+		ii = N;
+		d_cvt_tran_mat2pmat(ng[ii], nx[ii], C[ii], ng[ii], 0, hpDCt[ii], cng[ii]);
+
+		// cost function
+		for(ii=0; ii<N; ii++)
+			{
+			d_cvt_mat2pmat(nu[ii], nu[ii], R[ii], nu[ii], 0, hpRSQrq[ii], cnux[ii]);
+			d_cvt_tran_mat2pmat(nu[ii], nx[ii], S[ii], nu[ii], nu[ii], hpRSQrq[ii]+nu[ii]/bs*cnux[ii]*bs+nu[ii]%bs, cnux[ii]);
+			d_cvt_mat2pmat(nx[ii], nx[ii], Q[ii], nx[ii], nu[ii], hpRSQrq[ii]+nu[ii]/bs*cnux[ii]*bs+nu[ii]%bs+nu[ii]*bs, cnux[ii]);
+			for(jj=0; jj<nu[ii]; jj++)
+				{
+				hrq[ii][jj] = r[ii][jj];
+				hpRSQrq[ii][(nx[ii]+nu[ii])/bs*cnux[ii]*bs+(nx[ii]+nu[ii])%bs+jj*bs] = r[ii][jj];
+				}
+			for(jj=0; jj<nx[ii]; jj++)
+				{
+				hrq[ii][nu[ii]+jj] = q[ii][jj];
+				hpRSQrq[ii][(nx[ii]+nu[ii])/bs*cnux[ii]*bs+(nx[ii]+nu[ii])%bs+(nu[ii]+jj)*bs] = q[ii][jj];
+				}
+			}
+		ii = N;
+		d_cvt_mat2pmat(nx[ii], nx[ii], Q[ii], nx[ii], 0, hpRSQrq[ii], cnux[ii]);
+		for(jj=0; jj<nx[ii]; jj++)
+			{
+			hrq[ii][nu[ii]+jj] = q[ii][jj];
+			hpRSQrq[ii][nx[ii]/bs*cnux[ii]*bs+nx[ii]%bs+jj*bs] = q[ii][jj];
+			}
+
+		// box constraints
+		for(ii=0; ii<=N; ii++)
+			{
+			for(jj=0; jj<nb[ii]; jj++)
+				{
+				if(hidxb[ii][jj]<nu[ii]) // input
+					{
+
+						hd[ii][jj+0]       = lb[ii][jj];
+						hd[ii][jj+pnb[ii]] = ub[ii][jj];
+					}
+				else // state
+					{
+					hd[ii][jj+0]       = lb[ii][jj];
+					hd[ii][jj+pnb[ii]] = ub[ii][jj];
+					}
+				}
+			}
+
+		// general constraints
+		for(ii=0; ii<=N; ii++)
+		{
+		for(jj=0; jj<ng[ii]; jj++)
+			{
+			hd[ii][2*pnb[ii]+jj+0]       = lg[ii][jj];
+			hd[ii][2*pnb[ii]+jj+png[ii]] = ug[ii][jj];
+			}
+		}
+
+		// align (again) to (typical) cache line size
+		addr = (( (size_t) ptr ) + 63 ) / 64 * 64;
+		ptr = (double *) addr;
+
+		// IPM work space
+		char_ptr = (char *) ptr;
+		work_ipm = char_ptr;
+		char_ptr += d_ip2_res_mpc_hard_tv_work_space_size_bytes(N, nx, nu, nb, ng);
+		ptr = (double *) char_ptr;
+
+		// IPM solver on full space system
+		// hpmpc_status = d_ip2_res_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat,
+		// N, nx, nu, nb, hidxb, ng, hpBAbt, hpRSQrq, hpDCt, hd, hux, 1, hpi, hlam, ht, work_ipm);
+		hpmpc_status = d_ip2_res_mpc_hard_tv_single_newton_step(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat,
+			N,	nx, nu, nb, hidxb, ng, hpBAbt, hpRSQrq, hpDCt, hd, hux, 1, hpi, hlam, ht, work_ipm, ux0, pi0, lam0, t0);
+
+
+		// copy back inputs and states
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nu[ii]; jj++)
+				u[ii][jj] = hux[ii][jj];
+
+		for(ii=0; ii<=N; ii++)
+			for(jj=0; jj<nx[ii]; jj++)
+				x[ii][jj] = hux[ii][nu[ii]+jj];
+
+		// check for input equality constraints
+		for(ii=0; ii<N; ii++)
+			{
+			for(jj=0; jj<nb[ii] && hidxb[ii][jj]<nu[ii]; jj++)
+			{
+				if(lb[ii][jj]==ub[ii][jj]) // equality constraint
+					{
+					u[ii][hidxb[ii][jj]] = lb[ii][jj];
+					}
+				}
+			}
+
+		// compute infinity norm of residuals on exit
+		double mu;
+
+		d_res_mpc_hard_tv(N, nx, nu, nb, hidxb, ng, hpBAbt, hb, hpRSQrq, hrq, hux, hpDCt, hd, hpi, hlam, ht, hrrq, hrb, hrd, &mu);
+
+		temp = fabs(hrrq[0][0]);
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nu[ii]+nx[ii]; jj++)
+				temp = fmax( temp, fabs(hrrq[ii][jj]) );
+		ii = N;
+		for(jj=0; jj<nx[ii]; jj++)
+			temp = fmax( temp, fabs(hrrq[ii][jj]) );
+		inf_norm_res[0] = temp;
+
+		temp = fabs(hrb[0][0]);
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nx[ii+1]; jj++)
+				temp = fmax( temp, fabs(hrb[ii][jj]) );
+		inf_norm_res[1] = temp;
+
+		temp = fabs(hrd[0][0]);
+		for(ii=0; ii<=N; ii++)
+			{
+			for(jj=0; jj<nb[ii]; jj++)
+				{
+				temp = fmax( temp, fabs(hrd[ii][jj+0]) );
+				temp = fmax( temp, fabs(hrd[ii][jj+pnb[ii]]) );
+				}
+			}
+		for(ii=0; ii<=N; ii++)
+			{
+			for(jj=0; jj<ng[ii]; jj++)
+				{
+				temp = fmax( temp, fabs(hrd[ii][2*pnb[ii]+jj+0]) );
+				temp = fmax( temp, fabs(hrd[ii][2*pnb[ii]+jj+png[ii]]) );
+				}
+			}
+		inf_norm_res[2] = temp;
+
+		inf_norm_res[3] = mu;
+
+		// copy back multipliers
+		for(ii=0; ii<N; ii++)
+			for(jj=0; jj<nx[ii+1]; jj++)
+				pi[ii][jj] = hpi[ii][jj];
+
+		for(ii=0; ii<=N; ii++)
+			{
+			for(jj=0; jj<nb[ii]; jj++)
+				{
+				lam[ii][jj+0]      = hlam[ii][jj+0];
+				lam[ii][jj+nb[ii]] = hlam[ii][jj+pnb[ii]];
+				t[ii][jj+0]      = ht[ii][jj+0];
+				t[ii][jj+nb[ii]] = ht[ii][jj+pnb[ii]];
+				}
+			}
+
+		for(ii=0; ii<=N; ii++)
+			{
+			for(jj=0; jj<ng[ii]; jj++)
+				{
+				lam[ii][2*nb[ii]+jj+0]      = hlam[ii][2*pnb[ii]+jj+0];
+				lam[ii][2*nb[ii]+jj+ng[ii]] = hlam[ii][2*pnb[ii]+jj+png[ii]];
+				t[ii][2*nb[ii]+jj+0]      = ht[ii][2*pnb[ii]+jj+0];
+				t[ii][2*nb[ii]+jj+ng[ii]] = ht[ii][2*pnb[ii]+jj+png[ii]];
+				}
+			}
+
+	    return hpmpc_status;
+
+		}
 
 void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 							int N, int *nx, int *nu, int *nb, int **hidxb, int *ng,
-							double **A, double **B, double **b, 
-							double **Q, double **S, double **R, double **q, double **r, 
+							double **A, double **B, double **b,
+							double **Q, double **S, double **R, double **q, double **r,
 							double **lb, double **ub,
 							double **C, double **D, double **lg, double **ug,
 							double **x, double **u, double **pi, double **lam, //double **t,
 							double *inf_norm_res,
-							double *work0) 
+							double *work0)
 
 	{
 
@@ -732,7 +1122,7 @@ void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 
 
 	double temp;
-	
+
 	int info = 0;
 
 
@@ -940,7 +1330,7 @@ void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 
 	// call the IP solver
 //	hpmpc_status = d_ip2_mpc_hard_tv(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, hpBAbt, hpRSQrq, hpDCt, hd, hux, 1, hpi, hlam, ht, work);
-	d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx, nu, nb, hidxb, ng, hpBAbt, hb, hpRSQrq, hrq, hpDCt, hd, hux, 1, hpi, hlam, ht, work); // TODO B 
+	d_kkt_solve_new_rhs_res_mpc_hard_tv(N, nx, nu, nb, hidxb, ng, hpBAbt, hb, hpRSQrq, hrq, hpDCt, hd, hux, 1, hpi, hlam, ht, work); // TODO B
 //	for(ii=0; ii<=N; ii++)
 //		d_print_mat(1, nu[ii]+nx[ii], hux[ii], 1);
 //	exit(1);
@@ -977,23 +1367,23 @@ void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 
 	temp = fabs(hrrq[0][0]);
 	for(ii=0; ii<N; ii++)
-		for(jj=0; jj<nu[ii]+nx[ii]; jj++) 
+		for(jj=0; jj<nu[ii]+nx[ii]; jj++)
 			temp = fmax( temp, fabs(hrrq[ii][jj]) );
 	ii = N;
-	for(jj=0; jj<nx[ii]; jj++) 
+	for(jj=0; jj<nx[ii]; jj++)
 		temp = fmax( temp, fabs(hrrq[ii][jj]) );
 	inf_norm_res[0] = temp;
 
 	temp = fabs(hrb[0][0]);
 	for(ii=0; ii<N; ii++)
-		for(jj=0; jj<nx[ii+1]; jj++) 
+		for(jj=0; jj<nx[ii+1]; jj++)
 			temp = fmax( temp, fabs(hrb[ii][jj]) );
 	inf_norm_res[1] = temp;
 
 	temp = fabs(hrd[0][0]);
 	for(ii=0; ii<=N; ii++)
 		{
-		for(jj=0; jj<nb[ii]; jj++) 
+		for(jj=0; jj<nb[ii]; jj++)
 			{
 			temp = fmax( temp, fabs(hrd[ii][jj+0]) );
 			temp = fmax( temp, fabs(hrd[ii][jj+pnb[ii]]) );
@@ -1001,7 +1391,7 @@ void fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(
 		}
 	for(ii=0; ii<=N; ii++)
 		{
-		for(jj=0; jj<ng[ii]; jj++) 
+		for(jj=0; jj<ng[ii]; jj++)
 			{
 			temp = fmax( temp, fabs(hrd[ii][2*pnb[ii]+jj+0]) );
 			temp = fmax( temp, fabs(hrd[ii][2*pnb[ii]+jj+png[ii]]) );
@@ -1582,19 +1972,19 @@ int fortran_order_d_ip_ocp_soft_tv(
 
 
 
-int fortran_order_d_ip_mpc_hard_tv( 
+int fortran_order_d_ip_mpc_hard_tv(
 							int *kk, int k_max, double mu0, double mu_tol,
-							int N, int nx, int nu, int nb, int ng, int ngN, 
+							int N, int nx, int nu, int nb, int ng, int ngN,
 							int time_invariant, int free_x0, int warm_start,
-							double* A, double* B, double* b, 
-							double* Q, double* Qf, double* S, double* R, 
-							double* q, double* qf, double* r, 
+							double* A, double* B, double* b,
+							double* Q, double* Qf, double* S, double* R,
+							double* q, double* qf, double* r,
 							double *lb, double *ub,
 							double *C, double *D, double *lg, double *ug,
 							double *Cf, double *lgf, double *ugf,
 							double* x, double* u, double *pi, double *lam, double *t,
 							double *inf_norm_res,
-							double *work0, 
+							double *work0,
 							double *stat)
 
 	{
@@ -1629,7 +2019,7 @@ int fortran_order_d_ip_mpc_hard_tv(
 
 	double alpha_min = 1e-8; // minimum accepted step length
 	double temp;
-	
+
 	int info = 0;
 
 	int i, ii, jj, ll;
@@ -1973,7 +2363,7 @@ int fortran_order_d_ip_mpc_hard_tv(
 					// zero corresponding B column
 					hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs] = 0;
 					}
-				
+
 				// inactive box constraints
 				hd[jj][ii+0]    = lb[ii] + 1e3;
 				hd[jj][ii+pnb0] = ub[ii] - 1e3;
@@ -2000,7 +2390,7 @@ int fortran_order_d_ip_mpc_hard_tv(
 						// zero corresponding B column
 						hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs] = 0;
 						}
-					
+
 					// inactive box constraints
 					hd[jj][ii+0]    = lb[ii] + 1e3;
 					hd[jj][ii+pnb0] = ub[ii] - 1e3;
@@ -2008,7 +2398,7 @@ int fortran_order_d_ip_mpc_hard_tv(
 					}
 				}
 			}
-		// state constraints 
+		// state constraints
 		jj=1;
 		if(jj<N)
 			{
@@ -2309,7 +2699,7 @@ int fortran_order_d_ip_mpc_hard_tv(
 						// zero corresponding B column
 						hpBAbt[jj][ii/bs*cnx*bs+ii%bs+ll*bs] = 0;
 						}
-					
+
 					// inactive box constraints
 					hd[jj][ii+0]    = lb[ii+nb*jj] + 1e3;
 					hd[jj][ii+pnb0] = ub[ii+nb*jj] - 1e3;
@@ -2317,7 +2707,7 @@ int fortran_order_d_ip_mpc_hard_tv(
 					}
 				}
 			}
-		// state constraints 
+		// state constraints
 		for(jj=1; jj<N; jj++)
 			{
 			pnb0 = (nbb[jj]+bs-1)/bs*bs;
@@ -2370,7 +2760,7 @@ int fortran_order_d_ip_mpc_hard_tv(
 
 
 
-	// initial guess 
+	// initial guess
 	if(warm_start)
 		{
 
@@ -2452,14 +2842,14 @@ exit(1);
 
 	// compute infinity norm of residuals on exit
 
-	// restore linear part of cost function 
+	// restore linear part of cost function
 	if(time_invariant)
 		{
 		for(ii=0; ii<N; ii++)
 			{
-			for(jj=0; jj<nuu[ii]; jj++) 
+			for(jj=0; jj<nuu[ii]; jj++)
 				hrq[ii][jj]    = r[jj];
-			for(jj=0; jj<nxx[ii]; jj++) 
+			for(jj=0; jj<nxx[ii]; jj++)
 				hrq[ii][nuu[ii]+jj] = q[jj];
 			}
 		}
@@ -2467,13 +2857,13 @@ exit(1);
 		{
 		for(ii=0; ii<N; ii++)
 			{
-			for(jj=0; jj<nuu[ii]; jj++) 
+			for(jj=0; jj<nuu[ii]; jj++)
 				hrq[ii][jj]    = r[jj+nu*ii];
-			for(jj=0; jj<nxx[ii]; jj++) 
+			for(jj=0; jj<nxx[ii]; jj++)
 				hrq[ii][nuu[ii]+jj] = q[jj+nx*ii];
 			}
 		}
-	for(jj=0; jj<nx; jj++) 
+	for(jj=0; jj<nx; jj++)
 		hrq[N][jj] = qf[jj];
 
 	double mu;
@@ -2496,24 +2886,24 @@ exit(1);
 #endif
 
 	temp = fabs(hrrq[0][0]);
-	for(jj=0; jj<nu; jj++) 
+	for(jj=0; jj<nu; jj++)
 		temp = fmax( temp, fabs(hrrq[0][jj]) );
 	for(ii=1; ii<N; ii++)
-		for(jj=0; jj<nu+nx; jj++) 
+		for(jj=0; jj<nu+nx; jj++)
 			temp = fmax( temp, fabs(hrrq[ii][jj]) );
-	for(jj=0; jj<nx; jj++) 
+	for(jj=0; jj<nx; jj++)
 		temp = fmax( temp, fabs(hrrq[N][jj]) );
 	inf_norm_res[0] = temp;
 
 	temp = fabs(hrb[0][0]);
 	for(ii=0; ii<N; ii++)
-		for(jj=0; jj<nx; jj++) 
+		for(jj=0; jj<nx; jj++)
 			temp = fmax( temp, fabs(hrb[ii][jj]) );
 	inf_norm_res[1] = temp;
 
 	temp = fabs(hrd[0][0]);
 	pnb0 = (nbb[0]+bs-1)/bs*bs;
-	for(jj=0; jj<nbu; jj++) 
+	for(jj=0; jj<nbu; jj++)
 		{
 		temp = fmax( temp, fabs(hrd[0][jj]) );
 		temp = fmax( temp, fabs(hrd[0][pnb0+jj]) );
@@ -2521,14 +2911,14 @@ exit(1);
 	for(ii=1; ii<N; ii++)
 		{
 		pnb0 = (nbb[ii]+bs-1)/bs*bs;
-		for(jj=0; jj<nb; jj++) 
+		for(jj=0; jj<nb; jj++)
 			{
 			temp = fmax( temp, fabs(hrd[ii][jj]) );
 			temp = fmax( temp, fabs(hrd[ii][pnb0+jj]) );
 			}
 		}
 	pnb0 = (nbb[N]+bs-1)/bs*bs;
-	for(jj=0; jj<nbb[N]; jj++) 
+	for(jj=0; jj<nbb[N]; jj++)
 		{
 		temp = fmax( temp, fabs(hrrq[N][jj]) );
 		temp = fmax( temp, fabs(hrrq[N][pnb0+jj]) );
@@ -2537,7 +2927,7 @@ exit(1);
 		{
 		pnb0 = (nbb[ii]+bs-1)/bs*bs;
 		png0 = (ngg[ii]+bs-1)/bs*bs;
-		for(jj=2*pnb0; jj<2*pnb0+ng; jj++) 
+		for(jj=2*pnb0; jj<2*pnb0+ng; jj++)
 			{
 			temp = fmax( temp, fabs(hrd[ii][jj]) );
 			temp = fmax( temp, fabs(hrd[ii][png0+jj]) );
@@ -2545,7 +2935,7 @@ exit(1);
 		}
 	pnb0 = (nbb[N]+bs-1)/bs*bs;
 	png0 = (ngg[N]+bs-1)/bs*bs;
-	for(jj=2*pnb0; jj<2*pnb0+ngg[N]; jj++) 
+	for(jj=2*pnb0; jj<2*pnb0+ngg[N]; jj++)
 		{
 		temp = fmax( temp, fabs(hrd[N][jj]) );
 		temp = fmax( temp, fabs(hrd[N][png0+jj]) );
@@ -2625,17 +3015,17 @@ exit(1);
 
 
 void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
-							int N, int nx, int nu, int nb, int ng, int ngN, 
+							int N, int nx, int nu, int nb, int ng, int ngN,
 							int time_invariant, int free_x0,
-							double* A, double* B, double* b, 
-							double* Q, double* Qf, double* S, double* R, 
-							double* q, double* qf, double* r, 
+							double* A, double* B, double* b,
+							double* Q, double* Qf, double* S, double* R,
+							double* q, double* qf, double* r,
 							double *lb, double *ub,
 							double *C, double *D, double *lg, double *ug,
 							double *Cf, double *lgf, double *ugf,
 							double* x, double* u, double *pi, double *lam, double *t,
 							double *inf_norm_res,
-							double *work0) 
+							double *work0)
 
 	{
 
@@ -2865,9 +3255,9 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 		for(ii=0; ii<nx; ii++) hux[1][ii] = x[ii]; // copy x0 into aligned memory
 		d_cvt_mat2pmat(nx, nx, A, nx, 0, hpBAbt[0], cnx); // pack A into (temporary) buffer
 #if defined(BLASFEO)
-		dgemv_n_lib(nx, nx, 1.0, hpBAbt[0], cnx, hux[1], 1.0, b, hb[0]); // result 
+		dgemv_n_lib(nx, nx, 1.0, hpBAbt[0], cnx, hux[1], 1.0, b, hb[0]); // result
 #else
-		dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b, hb[0]); // result 
+		dgemv_n_lib(nx, nx, hpBAbt[0], cnx, hux[1], 1, b, hb[0]); // result
 #endif
 
 		ii = 0;
@@ -2924,7 +3314,7 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 				hd[jj][ii+pnb0] = ub[ii];
 				}
 			}
-		// state constraints 
+		// state constraints
 		jj=1;
 		if(jj<N)
 			{
@@ -3136,7 +3526,7 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 				hd[jj][ii+pnb0] = ub[ii+nb*jj];
 				}
 			}
-		// state constraints 
+		// state constraints
 		for(jj=1; jj<N; jj++)
 			{
 			pnb0 = (nbb[jj]+bs-1)/bs*bs;
@@ -3201,7 +3591,7 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 
 
 	// call the IP solver
-	d_kkt_solve_new_rhs_mpc_hard_tv(N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hb, hpRSQrq, hrq, hpDCt, hd, hux, 1, hpi, hlam, ht, work); // TODO B 
+	d_kkt_solve_new_rhs_mpc_hard_tv(N, nxx, nuu, nbb, idxb, ngg, hpBAbt, hb, hpRSQrq, hrq, hpDCt, hd, hux, 1, hpi, hlam, ht, work); // TODO B
 
 
 
@@ -3218,14 +3608,14 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 
 	// compute infinity norm of residuals on exit
 
-	// restore linear part of cost function 
+	// restore linear part of cost function
 	if(time_invariant)
 		{
 		for(ii=0; ii<N; ii++)
 			{
-			for(jj=0; jj<nuu[ii]; jj++) 
+			for(jj=0; jj<nuu[ii]; jj++)
 				hrq[ii][jj]    = r[jj];
-			for(jj=0; jj<nxx[ii]; jj++) 
+			for(jj=0; jj<nxx[ii]; jj++)
 				hrq[ii][nuu[ii]+jj] = q[jj];
 			}
 		}
@@ -3233,13 +3623,13 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 		{
 		for(ii=0; ii<N; ii++)
 			{
-			for(jj=0; jj<nuu[ii]; jj++) 
+			for(jj=0; jj<nuu[ii]; jj++)
 				hrq[ii][jj]    = r[jj+nu*ii];
-			for(jj=0; jj<nxx[ii]; jj++) 
+			for(jj=0; jj<nxx[ii]; jj++)
 				hrq[ii][nuu[ii]+jj] = q[jj+nx*ii];
 			}
 		}
-	for(jj=0; jj<nx; jj++) 
+	for(jj=0; jj<nx; jj++)
 		hrq[N][jj] = qf[jj];
 
 	double mu;
@@ -3262,24 +3652,24 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 #endif
 
 	temp = fabs(hrrq[0][0]);
-	for(jj=0; jj<nu; jj++) 
+	for(jj=0; jj<nu; jj++)
 		temp = fmax( temp, fabs(hrrq[0][jj]) );
 	for(ii=1; ii<N; ii++)
-		for(jj=0; jj<nu+nx; jj++) 
+		for(jj=0; jj<nu+nx; jj++)
 			temp = fmax( temp, fabs(hrrq[ii][jj]) );
-	for(jj=0; jj<nx; jj++) 
+	for(jj=0; jj<nx; jj++)
 		temp = fmax( temp, fabs(hrrq[N][jj]) );
 	inf_norm_res[0] = temp;
 
 	temp = fabs(hrb[0][0]);
 	for(ii=0; ii<N; ii++)
-		for(jj=0; jj<nx; jj++) 
+		for(jj=0; jj<nx; jj++)
 			temp = fmax( temp, fabs(hrb[ii][jj]) );
 	inf_norm_res[1] = temp;
 
 	temp = fabs(hrd[0][0]);
 	pnb0 = (nbb[0]+bs-1)/bs*bs;
-	for(jj=0; jj<nbu; jj++) 
+	for(jj=0; jj<nbu; jj++)
 		{
 		temp = fmax( temp, fabs(hrd[0][jj]) );
 		temp = fmax( temp, fabs(hrd[0][pnb0+jj]) );
@@ -3287,14 +3677,14 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 	for(ii=1; ii<N; ii++)
 		{
 		pnb0 = (nbb[ii]+bs-1)/bs*bs;
-		for(jj=0; jj<nb; jj++) 
+		for(jj=0; jj<nb; jj++)
 			{
 			temp = fmax( temp, fabs(hrd[ii][jj]) );
 			temp = fmax( temp, fabs(hrd[ii][pnb0+jj]) );
 			}
 		}
 	pnb0 = (nbb[N]+bs-1)/bs*bs;
-	for(jj=0; jj<nbb[N]; jj++) 
+	for(jj=0; jj<nbb[N]; jj++)
 		{
 		temp = fmax( temp, fabs(hrrq[N][jj]) );
 		temp = fmax( temp, fabs(hrrq[N][pnb0+jj]) );
@@ -3303,7 +3693,7 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 		{
 		pnb0 = (nbb[ii]+bs-1)/bs*bs;
 		png0 = (ngg[ii]+bs-1)/bs*bs;
-		for(jj=2*pnb0; jj<2*pnb0+ng; jj++) 
+		for(jj=2*pnb0; jj<2*pnb0+ng; jj++)
 			{
 			temp = fmax( temp, fabs(hrd[ii][jj]) );
 			temp = fmax( temp, fabs(hrd[ii][png0+jj]) );
@@ -3311,7 +3701,7 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
 		}
 	pnb0 = (nbb[N]+bs-1)/bs*bs;
 	png0 = (ngg[N]+bs-1)/bs*bs;
-	for(jj=2*pnb0; jj<2*pnb0+ngg[N]; jj++) 
+	for(jj=2*pnb0; jj<2*pnb0+ngg[N]; jj++)
 		{
 		temp = fmax( temp, fabs(hrd[N][jj]) );
 		temp = fmax( temp, fabs(hrd[N][png0+jj]) );
@@ -3387,5 +3777,3 @@ void fortran_order_d_solve_kkt_new_rhs_mpc_hard_tv(
     return;
 
 	}
-
-
