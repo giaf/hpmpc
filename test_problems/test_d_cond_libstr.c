@@ -44,10 +44,8 @@
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_aux.h"
 #include "../include/mpc_solvers.h"
-#include "../problem_size.h"
 #include "../include/block_size.h"
 #include "tools.h"
-#include "test_param.h"
 #include "../include/c_interface.h"
 
 
