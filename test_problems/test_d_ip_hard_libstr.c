@@ -43,12 +43,9 @@
 //#include "../include/mpc_aux.h"
 #include "../include/mpc_solvers.h"
 #include "../include/c_interface.h"
-#include "../problem_size.h"
 #include "tools.h"
-#include "test_param.h"
 
 
-#define USE_IPM_RES 1
 #define KEEP_X0 0
 
 // printing
@@ -165,14 +162,26 @@ int main()
 
 	int ii, jj;
 	
-	int rep, nrep=1000;//NREP;
+	int rep;
 
-	int nx_ = 8;//NX; // number of states (it has to be even for the mass-spring system test problem)
-	int nu_ = 3;//NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = 15;//NN; // horizon lenght
+	int nx_ = 8; // number of states (it has to be even for the mass-spring system test problem)
+	int nu_ = 3; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+	int N  = 10; // horizon lenght
 
 	// partial condensing horizon
 	int N2 = 5; //N/2;
+
+	// maximum number of IPM iterations
+	int k_max = 10;
+
+	// exit tolerance in duality measure
+	double mu_tol = 1e-10;
+
+	// minimum step size lenght 
+	double alpha_min = 1e-8;
+
+	// number of calls to solver (for more accurate timings)
+	int nrep=1000;
 
 
 
@@ -255,7 +264,7 @@ int main()
 	printf("\n");
 	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints, %d two-sided general constraints.\n", nx[1], nu[1], N, nb[1], ng[1]);
 	printf("\n");
-	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_param.c to change them).\n", K_MAX, MU_TOL);
+	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_param.c to change them).\n", k_max, mu_tol);
 
 
 
@@ -609,9 +618,6 @@ int main()
 
 	// IP options
 	int kk = -1;
-	int k_max = 10;
-	double mu_tol = 1e-10;
-	double alpha_min = 1e-8;
 	int warm_start = 0;
 	double stat[5*k_max];
 

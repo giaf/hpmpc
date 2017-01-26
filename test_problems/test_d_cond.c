@@ -43,10 +43,8 @@
 #include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_solvers.h"
-#include "../problem_size.h"
 #include "../include/block_size.h"
 #include "tools.h"
-#include "test_param.h"
 #include "../include/c_interface.h"
 
 
@@ -167,11 +165,11 @@ int main()
 
 	int ii, jj;
 	
-	int rep, nrep=1000;//NREP;
+	int rep, nrep=1000;
 
-	int nx = 8;//NX; // number of states (it has to be even for the mass-spring system test problem)
-	int nu = 3;//NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = 5;//NN; // horizon lenght
+	int nx = 8; // number of states (it has to be even for the mass-spring system test problem)
+	int nu = 3; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+	int N  = 5; // horizon lenght
 //	int nb  = nu+nx; // number of box constrained inputs and states
 //	int ng  = nx; //4;  // number of general constraints
 //	int ngN = nx; // number of general constraints at the last stage

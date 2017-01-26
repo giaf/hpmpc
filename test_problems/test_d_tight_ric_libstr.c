@@ -43,9 +43,7 @@
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_aux.h"
 #include "../include/mpc_solvers.h"
-#include "../problem_size.h"
 #include "tools.h"
-#include "test_param.h"
 
 
 #define KEEP_X0 0
@@ -164,9 +162,9 @@ int main()
 	
 	int rep, nrep=1;//NREP;
 
-	int nx_ = NX; // number of states (it has to be even for the mass-spring system test problem)
-	int nu_ = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = NN; // horizon lenght
+	int nx_ = 8; // number of states (it has to be even for the mass-spring system test problem)
+	int nu_ = 3; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+	int N  = 10; // horizon lenght
 
 	int M = 3; // not-tightened horizon (the last N-M stages are tightened)
 	M = N<M ? N : M;
@@ -218,13 +216,6 @@ int main()
 		nxgM = nx[ii+1]+ng[ii]>nxgM ? nx[ii+1]+ng[ii] : nxgM;
 		}
 	
-
-	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx_/2, nu_);
-	printf("\n");
-	printf(" MPC problem size: %d states, %d inputs, %d horizon length.\n", nx_, nu_, N);
-	printf("\n");
-	printf(" Backward Riccati recursion\n");
-
 
 
 /************************************************
@@ -593,7 +584,7 @@ int main()
 		dgecp_libstr(1, nx[M], 1.0, &hsL[M], nu[M]+nx[M], nu[M], &sLxM, nx[M], 0);
 		d_print_strmat(nx[M]+1, nx[M], &sLxM, 0, 0);
 		// recover [P p; p' *]
-		dsyrk_ln_libstr(nx[M]+1, nx[M], nx[M], 1.0, &sLxM, 0, 0, &sLxM, 0, 0, 0.0, &sPpM, 0, 0, &sPpM, 0, 0);
+		dsyrk_ln_libstr(nx[M]+1, nx[M], nx[M], 1.0, &sLxM, 0, 0, &sLxM, 0, 0, 0.0, &sPpM, 0, 0);
 		d_print_strmat(nx[M]+1, nx[M], &sPpM, 0, 0);
 		// backup stage M
 		nuM = nu[M];

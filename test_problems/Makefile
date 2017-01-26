@@ -47,41 +47,20 @@ ifeq ($(REF_BLAS), MKL)
 LIBS += -Wl,--start-group /opt/intel/mkl/lib/intel64/libmkl_gf_lp64.a /opt/intel/mkl/lib/intel64/libmkl_core.a /opt/intel/mkl/lib/intel64/libmkl_sequential.a -Wl,--end-group -ldl -lpthread -lm
 endif
 
-# tested
+# tests for USE_BLASFEO = 0
 #OBJS_TEST = test_blas_d.o
 #OBJS_TEST = tools.o test_d_ric_mpc.o
+#OBJS_TEST = tools.o test_d_ip_hard.o
+#OBJS_TEST = tools.o test_d_cond.o
+
+# tests for USE_BLASFEO = 1
 #OBJS_TEST = tools.o test_d_tight_ric_libstr.o
 #OBJS_TEST = tools.o test_d_ric_libstr.o
-#OBJS_TEST = tools.o test_d_ip_hard.o
 OBJS_TEST = tools.o test_d_ip_hard_libstr.o
 #OBJS_TEST = tools.o test_d_ip_hard_car_new_libstr.o
 #OBJS_TEST = tools.o test_d_tree_ric_libstr.o
 #OBJS_TEST = tools.o test_d_tree_ip_hard_libstr.o
-#OBJS_TEST = tools.o test_d_cond.o
 #OBJS_TEST = tools.o test_d_cond_libstr.o
-
-# old
-#OBJS_TEST = test_blas_d_debug.o
-#OBJS_TEST = test_blas_s_debug.o
-#OBJS_TEST = test_blas_dsyrk_dpotrf.o
-#OBJS_TEST = test_blas_d_low_rank.o
-#OBJS_TEST = test_blas_s.o
-#OBJS_TEST = tools.o test_d_forward_schur.o
-#OBJS_TEST = tools.o test_s_ric_mpc.o
-#OBJS_TEST = tools.o test_d_ric_mhe.o
-#OBJS_TEST = tools.o test_d_ric_mpc_tim.o
-#OBJS_TEST = tools.o test_d_cond.o
-#OBJS_TEST = tools.o test_d_fact.o
-#OBJS_TEST = tools.o test_d_cond_fact.o
-#OBJS_TEST = tools.o test_d_part_cond.o
-#OBJS_TEST = tools.o test_d_cond_mpc.o
-#OBJS_TEST = tools.o test_s_ip_box.o
-#OBJS_TEST = tools.o test_d_ip_soft.o
-#OBJS_TEST = tools.o test_d_ip_diag_box.o
-#OBJS_TEST = tools.o test_d_admm_box.o
-#OBJS_TEST = tools.o test_s_admm_box.o
-#OBJS_TEST = tools.o test_d_admm_soft.o
-#OBJS_TEST = tools.o test_s_admm_soft.o
 
 obj: $(OBJS_TEST)
 	$(CC) -o test.out $(OBJS_TEST) -L. libhpmpc.a $(LIBS) #-pg
@@ -90,28 +69,3 @@ clean:
 	rm -f *.o
 	rm -f test.out
 	rm -f libhpmpc.a
-
-test_blas_d_debug.o: test_blas_d_debug.c test_param.h ../problem_size.h
-test_blas_s_debug.o: test_blas_s_debug.c test_param.h ../problem_size.h
-test_blas_d.o: test_blas_d.c test_param.h ../problem_size.h
-test_blas_dsyrk_dpotrf.o: test_blas_dsyrk_dpotrf.c test_param.h ../problem_size.h
-test_blas_s.o: test_blas_s.c test_param.h ../problem_size.h
-test_d_ric_mpc.o: test_d_ric_mpc.c test_param.h ../problem_size.h
-test_d_forward_schur.o: test_d_forward_schur.c test_param.h ../problem_size.h
-test_s_ric_mpc.o: test_s_ric_mpc.c test_param.h ../problem_size.h
-test_d_ric_mhe.o: test_d_ric_mhe.c test_param.h ../problem_size.h
-test_d_ric_mpc_tim.o: test_d_ric_mpc_tim.c test_param.h ../problem_size.h
-test_d_cond.o: test_d_cond.c test_param.h ../problem_size.h
-test_d_fact.o: test_d_fact.c test_param.h ../problem_size.h
-test_d_cond_fact.o: test_d_cond_fact.c test_param.h ../problem_size.h
-test_d_part_cond.o: test_d_part_cond.c test_param.h ../problem_size.h
-test_d_cond_mpc.o: test_d_cond_mpc.c test_param.h ../problem_size.h
-test_d_ip_hard.o: test_d_ip_hard.c test_param.h ../problem_size.h
-test_s_ip_box.o: test_s_ip_box.c test_param.h ../problem_size.h
-test_d_ip_soft.o: test_d_ip_soft.c test_param.h ../problem_size.h
-test_d_admm_box.o: test_d_admm_box.c test_param.h ../problem_size.h
-test_s_admm_box.o: test_s_admm_box.c test_param.h ../problem_size.h
-test_d_admm_soft.o: test_d_admm_soft.c test_param.h ../problem_size.h
-test_s_admm_soft.o: test_s_admm_soft.c test_param.h ../problem_size.h
-# TODO remove below !!!!!
-test_d_cond.o: ./../lqcp_solvers/d_part_cond.c

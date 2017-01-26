@@ -43,9 +43,7 @@
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_aux.h"
 #include "../include/mpc_solvers.h"
-#include "../problem_size.h"
 #include "tools.h"
-#include "test_param.h"
 
 
 #define KEEP_X0 0
@@ -164,9 +162,9 @@ int main()
 	
 	int rep, nrep=1000;//NREP;
 
-	int nx_ = NX; // number of states (it has to be even for the mass-spring system test problem)
-	int nu_ = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = NN; // horizon lenght
+	int nx_ = 8; // number of states (it has to be even for the mass-spring system test problem)
+	int nu_ = 3; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+	int N  = 10; // horizon lenght
 
 
 	// stage-wise variant size

@@ -43,10 +43,8 @@
 #include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_solvers.h"
-#include "../problem_size.h"
 #include "../include/block_size.h"
 #include "tools.h"
-#include "test_param.h"
 #include "../include/c_interface.h"
 
 
@@ -162,17 +160,31 @@ int main()
 
 	int ii, jj;
 	
-	int rep, nrep=1000;//NREP;
+	int rep;
 
-	int nx = NX; // number of states (it has to be even for the mass-spring system test problem)
-	int nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = NN; // horizon lenght
+	int nx = 8; // number of states (it has to be even for the mass-spring system test problem)
+	int nu = 3; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+	int N  = 10; // horizon lenght
 	int nb  = nu+nx/2; // number of box constrained inputs and states
 	int ng  = 0; //nx; //4;  // number of general constraints
-	int ngN = nx/2; //nx; // number of general constraints at the last stage
+	int ngN = 0;//nx/2; //nx; // number of general constraints at the last stage
 
 	// partial condensing horizon
 	int N2 = N; //N/2;
+
+	// maximum number of IPM iterations
+	int k_max = 10;
+
+	// exit tolerance in duality measure
+	double mu_tol = 1e-12;
+
+	// minimum step size length
+	double alpha_min = 1e-8;
+
+	// number of calls to solver (for more accurate timings)
+	int nrep = 1000;
+
+
 
 # define USE_IPM_RES 1
 	
@@ -221,13 +233,7 @@ int main()
 	printf("\n");
 	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints, %d two-sided general constraints.\n", nx, nu, N, nb, ng);
 	printf("\n");
-#if IP == 1
-	printf(" IP method parameters: primal-dual IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_param.c to change them).\n", K_MAX, MU_TOL);
-#elif IP == 2
-	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_param.c to change them).\n", K_MAX, MU_TOL);
-#else
-	printf(" Wrong value for IP solver choice: %d\n", IP);
-#endif
+	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_param.c to change them).\n", k_max, mu_tol);
 
 	int info = 0;
 		
@@ -814,9 +820,6 @@ exit(2);
 
 	int hpmpc_status;
 	int kk, kk_avg;
-	int k_max = 10;
-	double mu_tol = 1e-12;
-	double alpha_min = 1e-8;
 	int warm_start = 0; // read initial guess from x and u
 	double *stat; d_zeros(&stat, k_max, 5);
 	int compute_res = 1;

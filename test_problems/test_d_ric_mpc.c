@@ -41,8 +41,6 @@
 #include <blasfeo_d_aux.h>
 #endif
 
-#include "test_param.h"
-#include "../problem_size.h"
 #include "../include/aux_d.h"
 #include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
@@ -50,6 +48,10 @@
 #include "../include/block_size.h"
 #include "../include/reference_code.h"
 #include "tools.h"
+
+
+#define PRINTRES 1
+#define COMPUTE_MULT 1
 
 
 
@@ -162,8 +164,8 @@ int main()
 	printf("\n");
 
 	// maximum frequency of the processor
-	const float GHz_max = GHZ_MAX;
-	printf("Frequency used to compute theoretical peak: %5.1f GHz (edit test_param.h to modify this value).\n", GHz_max);
+	const float GHz_max = 3.6;
+	printf("Frequency used to compute theoretical peak: %5.1f GHz (edit test problem to modify this value).\n", GHz_max);
 	printf("\n");
 
 	// maximum flops per cycle, double precision
@@ -301,10 +303,10 @@ int main()
 
 		if(ll_max==1)
 			{
-			nx = NX; // number of states (it has to be even for the mass-spring system test problem)
-			nu = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-			N  = NN; // horizon lenght
-			nrep = 1000;//NREP;
+			nx = 8; // number of states (it has to be even for the mass-spring system test problem)
+			nu = 3; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+			N  = 10; // horizon lenght
+			nrep = 1000;
 			//nx = 25;
 			//nu = 1;
 			//N = 11;

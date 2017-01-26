@@ -40,12 +40,9 @@
 #endif
 
 #include "../include/lqcp_solvers.h"
-//#include "../include/mpc_aux.h"
 #include "../include/mpc_solvers.h"
-#include "../problem_size.h"
 #include "../include/c_interface.h"
 #include "tools.h"
-#include "test_param.h"
 
 
 
@@ -131,7 +128,7 @@ int main()
 
 	int ii, jj;
 	
-	int rep, nrep=NREP;
+	int rep, nrep=100;
 
 	int nx_ = 2; // number of states (it has to be even for the mass-spring system test problem)
 	int nu_ = 1; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
