@@ -49,7 +49,7 @@
 #define KEEP_X0 0
 
 // printing
-#define PRINT 1
+#define PRINT 0
 
 /************************************************ 
 Mass-spring system: nx/2 masses connected each other with springs (in a row), and the first and the last one to walls. nu (<=nx) controls act on the first nu masses. The system is sampled with sampling time Ts. 
@@ -164,21 +164,21 @@ int main()
 	
 	int rep;
 
-	int nx_ = 8; // number of states (it has to be even for the mass-spring system test problem)
-	int nu_ = 3; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = 10; // horizon lenght
+	int nx_ = 60; //8; // number of states (it has to be even for the mass-spring system test problem)
+	int nu_ = 6; //3; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+	int N  = 50; // horizon lenght
 
 	// partial condensing horizon
-	int N2 = 5; //N/2;
+	int N2 = N*nu_/(0.94224*nx_); //N/2;
 
 	// maximum number of IPM iterations
-	int k_max = 10;
+	int k_max = 100;
 
 	// exit tolerance in duality measure
-	double mu_tol = 1e-10;
+	double mu_tol = 1e-6;
 
 	// minimum step size lenght 
-	double alpha_min = 1e-8;
+	double alpha_min = 1e-6;
 
 	// number of calls to solver (for more accurate timings)
 	int nrep=1000;
@@ -262,7 +262,7 @@ int main()
 
 	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx_/2, nu_);
 	printf("\n");
-	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints, %d two-sided general constraints.\n", nx[1], nu[1], N, nb[1], ng[1]);
+	printf(" MPC problem size: %d states, %d inputs, %d horizon length, %d two-sided box constraints, %d two-sided general constraints, %d condensed horizon.\n", nx[1], nu[1], N, nb[1], ng[1], N2);
 	printf("\n");
 	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_param.c to change them).\n", k_max, mu_tol);
 
@@ -283,7 +283,7 @@ int main()
 	mass_spring_system(Ts, nx_, nu_, N, A, B, b, x0);
 	
 	for(jj=0; jj<nx_; jj++)
-		b[jj] = 0.1;
+		b[jj] = 0;  //0.1;
 	
 	for(jj=0; jj<nx_; jj++)
 		x0[jj] = 0;
@@ -623,15 +623,17 @@ int main()
 
 	int hpmpc_exit;
 
-	struct timeval tv0, tv1;
+	struct timeval tv0, tv1, tv2, tv3;
+	double maxtime = 0.0;
 
 	gettimeofday(&tv0, NULL); // start
 
 	for(rep=0; rep<nrep; rep++)
 		{
-
+		gettimeofday(&tv2, NULL); // start
 		hpmpc_exit = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, 1, hspi, hslam, hst, work_memory);
-
+		gettimeofday(&tv3, NULL); // end
+		maxtime = fmax(maxtime,(tv3.tv_sec-tv2.tv_sec)+(tv3.tv_usec-tv2.tv_usec)/1e6);
 		}
 
 	gettimeofday(&tv1, NULL); // stop
@@ -715,6 +717,7 @@ int main()
 #endif
 
 	printf(" Average solution time over %d runs: %5.2e seconds (IPM)\n\n", nrep, time_ipm);
+	printf(" Max time was %5.2e seconds\n", maxtime);
 
 /************************************************
 * libstr ip2 solver - resolve last kkt system for new rhs
@@ -954,12 +957,16 @@ int main()
 	printf("\nwork space size 2 (in bytes): %d\n", hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(N, nx, nu, nb, hidxb, ng, N2));
 
 	gettimeofday(&tv0, NULL); // start
+	
+	maxtime = 0.0;
 
 	for(rep=0; rep<nrep; rep++)
-		{
-
+	{
+		gettimeofday(&tv2, NULL); // start
 		hpmpc_exit = fortran_order_d_ip_ocp_hard_tv(&kk, k_max, mu0, mu_tol, N, nx, nu, nb, hidxb, ng, N2, warm_start, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, hx, hu, hpi, hlam, inf_norm_res, work_ipm_high, stat);
-		}
+		gettimeofday(&tv3, NULL); // end
+		maxtime = fmax(maxtime,(tv3.tv_sec-tv2.tv_sec)+(tv3.tv_usec-tv2.tv_usec)/1e6);
+	}
 
 	gettimeofday(&tv1, NULL); // stop
 
@@ -981,6 +988,25 @@ int main()
 	double time_ipm_high = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
 	printf(" Average solution time over %d runs: %5.2e seconds (IPM high)\n\n", nrep, time_ipm_high);
+	printf(" Max time was %5.2e seconds\n", maxtime);
+	
+	printf("Exit code: %d\n", hpmpc_exit);
+	
+	switch(hpmpc_exit)
+	{
+		case 0: 
+			printf("Successful solution!\n");
+			break;
+		case 1: 
+			printf("Max number of iterations reached\n");
+			break;
+		case 2: 
+			printf("No improvement...\n");
+			break;
+		case -1: 
+			printf("Infeasible problem!\n");
+			break;
+	}
 
 /************************************************
 * high-level interface (resolve last kkt new rhs)
@@ -1001,10 +1027,11 @@ int main()
 	gettimeofday(&tv0, NULL); // start
 
 	for(rep=0; rep<nrep; rep++)
-		{
+	{
 
 		fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(N, nx, nu, nb, hidxb, ng, N2, hb, hq, hr, hlb, hub, hlg, hug, hx, hu, hpi, hlam, inf_norm_res, work_ipm_high);
-		}
+
+	}
 
 	gettimeofday(&tv1, NULL); // stop
 
