@@ -137,11 +137,8 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 		if(compute_Pb)
 			{
 			drowex_libstr(nx[N-nn], 1.0, &hswork_mat_0, nu[N-nn-1]+nx[N-nn-1], 0, &hswork_vec_0, 0);
-#if defined(LA_REFERENCE) | defined(LA_BLAS)
-			dtrmv_lnn_libstr(nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hswork_vec_0, 0, &hsPb[N-nn], 0);
-#else
-			dtrmv_utn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hswork_vec_0, 0, &hsPb[N-nn], 0);
-#endif
+//			dtrmv_utn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hswork_vec_0, 0, &hsPb[N-nn], 0);
+			dtrmv_lnn_libstr(nx[N-nn], nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hswork_vec_0, 0, &hsPb[N-nn], 0);
 			}
 		dgead_libstr(1, nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn]+nx[N-nn], nu[N-nn], &hswork_mat_0, nu[N-nn-1]+nx[N-nn-1], 0);
 		dtrcp_l_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
@@ -188,17 +185,11 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 		c_ptr += hswork_vec_0.memory_size;
 		dveccp_libstr(nx[nn+1], 1.0, &hsux[nn+1], nu[nn+1], &hspi[nn+1], 0);
 		drowex_libstr(nx[nn+1], 1.0, &hsL[nn+1], nu[nn+1]+nx[nn+1], nu[nn+1], &hswork_vec_0, 0);
-#if defined(LA_REFERENCE) | defined(LA_BLAS)
-		dtrmv_ltn_libstr(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
-#else
-		dtrmv_unn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
-#endif
+//		dtrmv_unn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
+		dtrmv_ltn_libstr(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
 		daxpy_libstr(nx[nn+1], 1.0, &hswork_vec_0, 0, &hspi[nn+1], 0);
-#if defined(LA_REFERENCE) | defined(LA_BLAS)
-		dtrmv_lnn_libstr(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
-#else
-		dtrmv_utn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
-#endif
+//		dtrmv_utn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
+		dtrmv_lnn_libstr(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
 		}
 
 	// middle stages
@@ -215,17 +206,11 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 			c_ptr += hswork_vec_0.memory_size;
 			dveccp_libstr(nx[nn+1], 1.0, &hsux[nn+1], nu[nn+1], &hspi[nn+1], 0);
 			drowex_libstr(nx[nn+1], 1.0, &hsL[nn+1], nu[nn+1]+nx[nn+1], nu[nn+1], &hswork_vec_0, 0);
-#if defined(LA_REFERENCE) | defined(LA_BLAS)
-			dtrmv_ltn_libstr(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
-#else
-			dtrmv_unn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
-#endif
+//			dtrmv_unn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
+			dtrmv_ltn_libstr(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
 			daxpy_libstr(nx[nn+1], 1.0, &hswork_vec_0, 0, &hspi[nn+1], 0);
-#if defined(LA_REFERENCE) | defined(LA_BLAS)
-			dtrmv_lnn_libstr(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
-#else
-			dtrmv_utn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
-#endif
+//			dtrmv_utn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
+			dtrmv_lnn_libstr(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
 			}
 		}
 
@@ -335,13 +320,10 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		c_ptr += hswork_vec_0.memory_size;
 		if(compute_Pb)
 			{
-#if defined(LA_REFERENCE) | defined(LA_BLAS)
-			dtrmv_ltn_libstr(nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, &hsPb[N-nn], 0);
-			dtrmv_lnn_libstr(nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsPb[N-nn], 0, &hsPb[N-nn], 0);
-#else
-			dtrmv_unn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hsb[N-nn-1], 0, &hsPb[N-nn], 0);
-			dtrmv_utn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hsPb[N-nn], 0, &hsPb[N-nn], 0);
-#endif
+//			dtrmv_unn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hsb[N-nn-1], 0, &hsPb[N-nn], 0);
+			dtrmv_ltn_libstr(nx[N-nn], nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, &hsPb[N-nn], 0);
+//			dtrmv_utn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hsPb[N-nn], 0, &hsPb[N-nn], 0);
+			dtrmv_lnn_libstr(nx[N-nn], nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsPb[N-nn], 0, &hsPb[N-nn], 0);
 			}
 		dveccp_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &hsrq[N-nn-1], 0, &hsux[N-nn-1], 0);
 		if(nb[N-nn-1]>0)
@@ -366,13 +348,10 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	c_ptr += hswork_vec_0.memory_size;
 	if(compute_Pb)
 		{
-#if defined(LA_REFERENCE) | defined(LA_BLAS)
-		dtrmv_ltn_libstr(nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, &hsPb[N-nn], 0);
-		dtrmv_lnn_libstr(nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsPb[N-nn], 0, &hsPb[N-nn], 0);
-#else
-		dtrmv_unn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hsb[N-nn-1], 0, &hsPb[N-nn], 0);
-		dtrmv_utn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hsPb[N-nn], 0, &hsPb[N-nn], 0);
-#endif
+//		dtrmv_unn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hsb[N-nn-1], 0, &hsPb[N-nn], 0);
+		dtrmv_ltn_libstr(nx[N-nn], nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, &hsPb[N-nn], 0);
+//		dtrmv_utn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hsPb[N-nn], 0, &hsPb[N-nn], 0);
+		dtrmv_lnn_libstr(nx[N-nn], nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsPb[N-nn], 0, &hsPb[N-nn], 0);
 		}
 	dveccp_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &hsrq[N-nn-1], 0, &hsux[N-nn-1], 0);
 	if(nb[N-nn-1]>0)
@@ -406,13 +385,10 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		d_create_strvec(nx[nn+1], &hswork_vec_0, (void *) c_ptr);
 		c_ptr += hswork_vec_0.memory_size;
 		dveccp_libstr(nx[nn+1], 1.0, &hsux[nn+1], nu[nn+1], &hswork_vec_0, 0);
-#if defined(LA_REFERENCE) | defined(LA_BLAS)
-		dtrmv_ltn_libstr(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
-		dtrmv_lnn_libstr(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
-#else
-		dtrmv_unn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hswork_vec_0, 0, &hswork_vec_0, 0);
-		dtrmv_utn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hswork_vec_0, 0, &hswork_vec_0, 0);
-#endif
+//		dtrmv_unn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hswork_vec_0, 0, &hswork_vec_0, 0);
+		dtrmv_ltn_libstr(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
+//		dtrmv_utn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hswork_vec_0, 0, &hswork_vec_0, 0);
+		dtrmv_lnn_libstr(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
 		daxpy_libstr(nx[nn+1], 1.0, &hswork_vec_0, 0, &hspi[nn+1], 0);
 		}
 
@@ -432,13 +408,10 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 			d_create_strvec(nx[nn+1], &hswork_vec_0, (void *) c_ptr);
 			c_ptr += hswork_vec_0.memory_size;
 			dveccp_libstr(nx[nn+1], 1.0, &hsux[nn+1], nu[nn+1], &hswork_vec_0, 0);
-#if defined(LA_REFERENCE) | defined(LA_BLAS)
-			dtrmv_ltn_libstr(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
-			dtrmv_lnn_libstr(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
-#else
-			dtrmv_unn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hswork_vec_0, 0, &hswork_vec_0, 0);
-			dtrmv_utn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hswork_vec_0, 0, &hswork_vec_0, 0);
-#endif
+//			dtrmv_unn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hswork_vec_0, 0, &hswork_vec_0, 0);
+			dtrmv_ltn_libstr(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
+//			dtrmv_utn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hswork_vec_0, 0, &hswork_vec_0, 0);
+			dtrmv_lnn_libstr(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
 			daxpy_libstr(nx[nn+1], 1.0, &hswork_vec_0, 0, &hspi[nn+1], 0);
 			}
 		}
@@ -512,11 +485,8 @@ void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 		if(compute_Pb)
 			{
 			drowex_libstr(nx[N-nn], 1.0, &hswork_mat_0, nu[N-nn-1]+nx[N-nn-1], 0, &hswork_vec_0, 0);
-#if defined(LA_REFERENCE) | defined(LA_BLAS)
-			dtrmv_lnn_libstr(nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hswork_vec_0, 0, &hsPb[N-nn], 0);
-#else
-			dtrmv_utn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hswork_vec_0, 0, &hsPb[N-nn], 0);
-#endif
+//			dtrmv_utn_libstr(nx[N-nn], &hsLxt[N-nn], 0, 0, &hswork_vec_0, 0, &hsPb[N-nn], 0);
+			dtrmv_lnn_libstr(nx[N-nn], nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hswork_vec_0, 0, &hsPb[N-nn], 0);
 			}
 		dgead_libstr(1, nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn]+nx[N-nn], nu[N-nn], &hswork_mat_0, nu[N-nn-1]+nx[N-nn-1], 0);
 		dtrcp_l_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
@@ -580,17 +550,11 @@ void d_back_ric_rec_sv_forw_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 			c_ptr += hswork_vec_0.memory_size;
 			dveccp_libstr(nx[nn+1], 1.0, &hsux[nn+1], nu[nn+1], &hspi[nn+1], 0);
 			drowex_libstr(nx[nn+1], 1.0, &hsL[nn+1], nu[nn+1]+nx[nn+1], nu[nn+1], &hswork_vec_0, 0);
-#if defined(LA_REFERENCE) | defined(LA_BLAS)
-			dtrmv_ltn_libstr(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
-#else
-			dtrmv_unn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
-#endif
+//			dtrmv_unn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
+			dtrmv_ltn_libstr(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
 			daxpy_libstr(nx[nn+1], 1.0, &hswork_vec_0, 0, &hspi[nn+1], 0);
-#if defined(LA_REFERENCE) | defined(LA_BLAS)
-			dtrmv_lnn_libstr(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
-#else
-			dtrmv_utn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
-#endif
+//			dtrmv_utn_libstr(nx[nn+1], &hsLxt[nn+1], 0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
+			dtrmv_lnn_libstr(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
 			}
 		}
 
