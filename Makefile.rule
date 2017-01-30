@@ -35,8 +35,8 @@
 # CORTEX_A7  : machine with ARMv7a processor with VPFv3 (D32 versions) and NEON, code optimized for ARM Cortex A7.
 # C99_4X4    : c99 reference code, performing better on a machine with at least 32 scalar registers.
 #TARGET = X64_AVX2
-#TARGET = X64_AVX
-TARGET = X64_SSE3
+TARGET = X64_AVX
+#TARGET = X64_SSE3
 #TARGET = CORTEX_A57
 #TARGET = CORTEX_A15
 #TARGET = CORTEX_A9
