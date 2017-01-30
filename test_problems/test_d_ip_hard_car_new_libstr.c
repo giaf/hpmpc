@@ -46,7 +46,7 @@
 
 
 
-#define PRINT 0
+#define PRINT 1
 
 
 
@@ -351,8 +351,8 @@ int main()
 
 	double *lgi; d_zeros(&lgi, nb[ki], 1);
 	double *ugi; d_zeros(&ugi, nb[ki], 1);
-	lgi[0] =      0.0; //   dmin
-	ugi[0] =      0.0; //   dmax
+	lgi[0] =      0.0-1e-6; //   dmin
+	ugi[0] =      0.0+1e-6; //   dmax
 	struct d_strvec slgi; d_create_strvec(nb[ki], &slgi, lgi);
 	struct d_strvec sugi; d_create_strvec(nb[ki], &sugi, ugi);
 	dgemv_n_libstr(ng[ki], nx_, -1.0, &sCi, 0, 0, &sx_bar, 0, 1.0, &slgi, 0, &slgi, 0);
@@ -360,8 +360,8 @@ int main()
 
 	double *lgo; d_zeros(&lgo, ng[ko], 1);
 	double *ugo; d_zeros(&ugo, ng[ko], 1);
-	lgo[0] =      8.0; //   dmin
-	ugo[0] =      8.0; //   dmax
+	lgo[0] =      8.0-1e-6; //   dmin
+	ugo[0] =      8.0+1e-6; //   dmax
 	struct d_strvec slgo; d_create_strvec(nb[ko], &slgo, lgo);
 	struct d_strvec sugo; d_create_strvec(nb[ko], &sugo, ugo);
 	dgemv_n_libstr(ng[ko], nx_, -1.0, &sCo, 0, 0, &sx_bar, 0, 1.0, &slgo, 0, &slgo, 0);
@@ -539,7 +539,7 @@ int main()
 	int hpmpc_status;
 	int kk, kk_avg;
 	int k_max = 30;
-	double mu_tol = 1e-8;
+	double mu_tol = 1e-12;
 	double *stat; d_zeros(&stat, k_max, 5);
 	double inf_norm_res[5];
 
@@ -575,6 +575,9 @@ int main()
 	printf("\nu = \n");
 	for(ii=0; ii<N; ii++)
 		d_print_mat(1, nu[ii], hu[ii], 1);
+	printf("\nlam = \n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_mat(1, 2*nb[ii]+2*ng[ii], hlam[ii], 1);
 #endif
 
 	printf("\ninfinity norm of residuals\n\n");
@@ -624,6 +627,9 @@ int main()
 	printf("\nu = \n");
 	for(ii=0; ii<N; ii++)
 		d_print_mat(1, nu[ii], hu[ii], 1);
+	printf("\nlam = \n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_mat(1, 2*nb[ii]+2*ng[ii], hlam[ii], 1);
 #endif
 
 
