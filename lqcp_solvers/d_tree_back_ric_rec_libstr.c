@@ -88,7 +88,7 @@ void d_back_ric_trf_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, int nb0
 	// all kids: update
 	for(ii=0; ii<nkids; ii++)
 		{
-		dtrmm_rutn_libstr(nu0+nx0, nx1, 1.0, &hsBAbt[ii], 0, 0, &hsLxt1[ii], 0, 0, 0.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0);
+		dtrmm_rutn_libstr(nu0+nx0, nx1, 1.0, &hsBAbt[ii], 0, 0, &hsLxt1[ii], 0, 0, &hswork_mat_0, 0, 0);
 		dsyrk_ln_libstr(nu0+nx0, nu0+nx0, nx1, 1.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, 1.0, &hsL[0], 0, 0, &hsL[0], 0, 0);
 		}
 	

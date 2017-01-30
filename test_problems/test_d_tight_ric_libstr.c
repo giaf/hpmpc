@@ -584,7 +584,7 @@ int main()
 		dgecp_libstr(1, nx[M], 1.0, &hsL[M], nu[M]+nx[M], nu[M], &sLxM, nx[M], 0);
 		d_print_strmat(nx[M]+1, nx[M], &sLxM, 0, 0);
 		// recover [P p; p' *]
-		dsyrk_ln_libstr(nx[M]+1, nx[M], nx[M], 1.0, &sLxM, 0, 0, &sLxM, 0, 0, 0.0, &sPpM, 0, 0);
+		dsyrk_ln_libstr(nx[M]+1, nx[M], nx[M], 1.0, &sLxM, 0, 0, &sLxM, 0, 0, 0.0, &sPpM, 0, 0, &sPpM, 0, 0);
 		d_print_strmat(nx[M]+1, nx[M], &sPpM, 0, 0);
 		// backup stage M
 		nuM = nu[M];
