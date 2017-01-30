@@ -187,13 +187,14 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 
 		dpotrf_l_libstr(nx[N-nn]+1, nx[N-nn], &sLx, 0, 0, &sLx, 0, 0);
 
-		dtrtr_l_libstr(nx[N-nn], 1.0, &sLx, 0, 0, &sLx, 0, 0);
+//		dtrtr_l_libstr(nx[N-nn], 1.0, &sLx, 0, 0, &sLx, 0, 0);
 
-		dtrmm_rutn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &hsBAbt[N-nn-1], 0, 0, &sLx, 0, 0, &sBAbtL, 0, 0);
+//		dtrmm_rutn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
+		dtrmm_rlnn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
 #else
 		dpotrf_l_libstr(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
 
-		dtrmm_rlnn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &hsBAbt[N-nn-1], 0, 0, &sLx, 0, 0, &sBAbtL, 0, 0);
+		dtrmm_rlnn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
 #endif
 		dgead_libstr(1, nx[N-nn], 1.0, &sLx, nx[N-nn], 0, &sBAbtL, nu[N-nn-1]+nx[N-nn-1], 0);
 
@@ -226,13 +227,14 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 
 	dpotrf_l_libstr(nx[N-nn]+1, nx[N-nn], &sLx, 0, 0, &sLx, 0, 0);
 
-	dtrtr_l_libstr(nx[N-nn], 1.0, &sLx, 0, 0, &sLx, 0, 0);	
+//	dtrtr_l_libstr(nx[N-nn], 1.0, &sLx, 0, 0, &sLx, 0, 0);	
 
-	dtrmm_rutn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &hsBAbt[N-nn-1], 0, 0, &sLx, 0, 0, &sBAbtL, 0, 0);
+//	dtrmm_rutn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
+	dtrmm_rlnn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
 #else
 	dpotrf_l_libstr(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
 
-	dtrmm_rlnn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &hsBAbt[N-nn-1], 0, 0, &sLx, 0, 0, &sBAbtL, 0, 0);
+	dtrmm_rlnn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
 #endif
 	dgead_libstr(1, nx[N-nn], 1.0, &sLx, nx[N-nn], 0, &sBAbtL, nu[N-nn-1]+nx[N-nn-1], 0);
 
