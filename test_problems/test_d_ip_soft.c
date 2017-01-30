@@ -43,12 +43,11 @@
 #include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_solvers.h"
-#include "../problem_size.h"
 #include "../include/block_size.h"
 #include "tools.h"
-#include "test_param.h"
 
-
+#define PRINTSTAT 1
+#define PRINTRES 1
 
 /************************************************ 
 Mass-spring system: nx/2 masses connected each other with springs (in a row), and the first and the last one to walls. nu (<=nx) controls act on the first nu masses. The system is sampled with sampling time Ts. 
@@ -162,17 +161,23 @@ int main()
 	
 	int rep, nrep=1;//NREP;
 
-	int nx_ = NX; // number of states (it has to be even for the mass-spring system test problem)
-	int nu_ = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = NN; // horizon lenght
+	int nx_ = 8; // number of states (it has to be even for the mass-spring system test problem)
+	int nu_ = 3; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+	int N  = 10; // horizon lenght
 	int nb_ = nu_;//nu+nx/2; // number of hard box constraints
 	int ns_ = nx_;//nx/2;//nx; // number of soft box constraints
+	
+	// IPM arguments
+	int kk = 0; // acutal number of iterations
+	int k_max = 10; // maximum number of iterations in the IP method
+	double mu_tol = 1e-6; // tolerance in the duality measure
+	double alpha_min = 1e-6; // minimum accepted step length
 
 	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx_/2, nu_);
 	printf("\n");
 	printf(" MPC problem size: %d horizon length, %d states, %d inputs, %d two-sided box constraints on inputs and states, %d two-sided soft constraints on states.\n", N, nx_, nu_, nb_, ns_);
 	printf("\n");
-	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_d_ip_box.c to change them).\n", K_MAX, MU_TOL);
+	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_d_ip_box.c to change them).\n", k_max, mu_tol);
 
 	// size of help matrices in panel-major format
 	const int bs = D_MR; //d_get_mr();
@@ -281,15 +286,11 @@ int main()
 	ns[N] = nx_;
 
 
-	// IPM arguments
-	int kk = 0; // acutal number of iterations
-	int k_max = K_MAX; // maximum number of iterations in the IP method
-	double mu_tol = MU_TOL; // tolerance in the duality measure
-	double alpha_min = ALPHA_MIN; // minimum accepted step length
+	// more IPM arguments
 	double sigma[] = {0.4, 0.3, 0.01}; // control primal-dual IP behaviour
 	double *stat; d_zeros(&stat, 5, k_max); // stats from the IP routine
-	int compute_mult = COMPUTE_MULT;
-	int warm_start = WARM_START;
+	int compute_mult = 1;
+	int warm_start = 0;
 	double mu = -1.0;
 	int hpmpc_status;
 	
@@ -640,8 +641,8 @@ int main()
 		drowex_lib(nu[ii]+nx[ii], 1.0, hpQ[ii]+(nu[ii]+nx[ii])/bs*bs*cnux[ii]+(nu[ii]+nx[ii])%bs, hq[ii]);
 		}
 	
-	for(ii=0; ii<=N; ii++)
-		d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], hpQ[ii], cnux[ii]);
+	//for(ii=0; ii<=N; ii++)
+		//d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], hpQ[ii], cnux[ii]);
 
 
 
@@ -688,7 +689,7 @@ int main()
 		
 		}
 
-	if(PRINTRES==1 && COMPUTE_MULT==1)
+	if(PRINTRES==1 && compute_mult==1)
 		{
 		// print result 
 		// print result 
