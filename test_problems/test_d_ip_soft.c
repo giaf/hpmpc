@@ -159,7 +159,7 @@ int main()
 
 	int ii, jj, idx;
 	
-	int rep, nrep=1;//NREP;
+	int rep, nrep=100;//NREP;
 
 	int nx_ = 8; // number of states (it has to be even for the mass-spring system test problem)
 	int nu_ = 3; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
@@ -169,7 +169,7 @@ int main()
 	
 	// IPM arguments
 	int kk = 0; // acutal number of iterations
-	int k_max = 10; // maximum number of iterations in the IP method
+	int k_max = 500; // maximum number of iterations in the IP method
 	double mu_tol = 1e-6; // tolerance in the duality measure
 	double alpha_min = 1e-6; // minimum accepted step length
 
@@ -219,8 +219,8 @@ int main()
 	double u_max_hard =   0.5;
 	double x_min_hard = - 4.0;
 	double x_max_hard =   4.0;
-	double x_min_soft = - 1.0;
-	double x_max_soft =   1.0;
+	double x_min_soft = - 2.0;
+	double x_max_soft =   2.0;
 
 /************************************************
 * cost function
@@ -243,12 +243,12 @@ int main()
 	
 	// cost function wrt slack variables of the soft constraints
 	double *Z; d_zeros(&Z, 2*ns_, 1); // quadratic penalty
-	for(ii=0; ii<2*ns_; ii++) Z[ii] = 0.0;
+	for(ii=0; ii<2*ns_; ii++) Z[ii] = 10.0;
 	double *z; d_zeros(&z, 2*ns_, 1); // linear penalty
-	for(ii=0; ii<2*ns_; ii++) z[ii] = 100.0;
+	for(ii=0; ii<2*ns_; ii++) z[ii] = 0.0;
 
 	// maximum element in cost functions
-	double mu0 = 100.0;
+	double mu0 = 10.0;
 
 /************************************************
 * IPM settings
@@ -299,10 +299,11 @@ int main()
 
 	// timing
 	struct timeval tv0, tv1;
+	
 
 /**************************************************************************************************
 *
-*	high-level interace
+*	high-level interface
 *
 **************************************************************************************************/
 
@@ -530,7 +531,6 @@ int main()
 		}
 #endif
 	
-
 	// cost function of the soft contraint slack variables
 	double *Z1; d_zeros_align(&Z1, 2*pns[1], 1);
 	for(ii=0; ii<ns[1]; ii++)
@@ -566,16 +566,14 @@ int main()
 
 	// ip soft work space
 	double *ip_soft_work; d_zeros_align(&ip_soft_work, d_ip2_mpc_soft_tv_work_space_size_bytes(N, nx, nu, nb, ng, ns)/sizeof(double), 1);
-
+	
 	// call the ip soft solver
 	d_ip2_mpc_soft_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, ns, hpBAbt, hpQ, hZ, hz, pdummyd, hdb, hux, 1, hpi, hlam, ht, ip_soft_work);
-
-
-
+	
 	// start timer
 	gettimeofday(&tv0, NULL); // start
 
-
+	int hpmpc_exit;
 
 	for(rep=0; rep<nrep; rep++)
 		{
@@ -607,13 +605,27 @@ int main()
 		d_cvt_tran_mat2pmat(nu_, 1, rq0, nu_, nu_, pRSQrq0+nu_/bs*bs*cnux[0]+nu_%bs, cnux[0]);
 
 		// call the IP solver
-		d_ip2_mpc_soft_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, ns, hpBAbt, hpQ, hZ, hz, pdummyd, hdb, hux, 1, hpi, hlam, ht, ip_soft_work);
+		hpmpc_exit = d_ip2_mpc_soft_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, ns, hpBAbt, hpQ, hZ, hz, pdummyd, hdb, hux, 1, hpi, hlam, ht, ip_soft_work);
 
 		}
 	
 	gettimeofday(&tv1, NULL); // stop
 	
-
+	switch(hpmpc_exit)
+	{
+		case 0: 
+			printf("Successful solution!\n");
+			break;
+		case 1: 
+			printf("Max number of iterations reached\n");
+			break;
+		case 2: 
+			printf("No improvement...\n");
+			break;
+		case -1: 
+			printf("This is impossible!\n");
+			break;
+	}
 	
 	double *hrq[N+1];
 	double *hrb[N];
@@ -744,7 +756,7 @@ int main()
 	for(ii=0; ii<=N; ii++) free(hdL[ii]);
 	for(ii=0; ii<=N; ii++) free(hux[ii]);
 	for(ii=0; ii<=N; ii++) free(hpi[ii]);
-	return 0;
+	//return 0;
 	for(ii=0; ii<=N; ii++) free(hlam[ii]);
 	for(ii=0; ii<=N; ii++) free(ht[ii]);
 	for(ii=0; ii<=N; ii++) free(hrq[ii]);

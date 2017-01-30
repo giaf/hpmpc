@@ -339,7 +339,7 @@ exit(1);
 		//update cost function matrices and vectors (box constraints)
 		d_update_hessian_mpc_soft_tv(N, nx, nu, nb, ng, ns, d, 0.0, t, t_inv, lam, lamt, dlam, Qx, qx, Z, z, Zl, zl);
 
-#if 1
+#if 0
 for(ii=0; ii<=N; ii++)
 	d_print_mat(1, 2*pns[ii], Z[ii], 1);
 for(ii=0; ii<=N; ii++)
