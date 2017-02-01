@@ -66,7 +66,6 @@ int d_ip2_res_mpc_hard_work_space_size_bytes_libstr(int N, int *nx, int *nu, int
 	for(ii=0; ii<=N; ii++)
 		{
 		size += d_size_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]); // L
-		size += d_size_strmat(nx[ii], nx[ii]); // Lxt
 		size += 5*d_size_strvec(nx[ii]); // b, dpi, Pb, res_b, pi_bkp
 		size += 4*d_size_strvec(nu[ii]+nx[ii]); // dux, rq, res_rq, ux_bkp
 		size += 8*d_size_strvec(2*nb[ii]+2*ng[ii]); // dlam, dt, tinv, lamt, res_d, res_m, t_bkp, lam_bkp
@@ -113,7 +112,6 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 	struct d_strvec hslamt[N+1];
 	struct d_strvec hsPb[N+1];
 	struct d_strmat hsL[N+1];
-	struct d_strmat hsLxt[N+1];
 	struct d_strvec hsres_rq[N+1];
 	struct d_strvec hsres_b[N];
 	struct d_strvec hsres_d[N+1];
@@ -143,13 +141,6 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		{
 		d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
 		c_ptr += hsL[ii].memory_size;
-		}
-
-	// Lxt
-	for(ii=0; ii<=N; ii++)
-		{
-		d_create_strmat(nx[ii], nx[ii], &hsLxt[ii], (void *) c_ptr);
-		c_ptr += hsLxt[ii].memory_size;
 		}
 
 	// b as vector
@@ -281,7 +272,7 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		}
 	else // call the riccati solver and return
 		{
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 0, hsRSQrq, hsrq, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, hsLxt, d_back_ric_rec_work_space);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 0, hsRSQrq, hsrq, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, d_back_ric_rec_work_space);
 		// no IPM iterations
 		*kk = 0;
 		// return success
@@ -367,7 +358,7 @@ exit(1);
 
 		// compute the search direction: factorize and solve the KKT system
 #if 1
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, d_back_ric_rec_work_space);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, d_back_ric_rec_work_space);
 #else
 		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
 		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, b, pL, dL, q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
@@ -469,7 +460,7 @@ exit(1);
 
 
 		// solve the system
-		d_back_ric_rec_trs_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 0, hsPb, hsL, hsLxt, d_back_ric_rec_work_space);
+		d_back_ric_rec_trs_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 0, hsPb, hsL, d_back_ric_rec_work_space);
 
 #if 0
 printf("\ndux\n");
@@ -694,7 +685,7 @@ exit(1);
 //		exit(2);
 
 		// factorize & solve KKT system
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb2, idxb, ng2, 1, hsBAbt, hsres_b, 0, hsRSQrq2, hsres_q, hsmatdummy, hsvecdummy, hsvecdummy, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, d_back_ric_rec_work_space);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb2, idxb, ng2, 1, hsBAbt, hsres_b, 0, hsRSQrq2, hsres_q, hsmatdummy, hsvecdummy, hsvecdummy, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, d_back_ric_rec_work_space);
 
 #if CORRECTOR_HIGH==1
 		if(0)
@@ -723,7 +714,7 @@ exit(1);
 
 			// solve for residuals
 //			d_back_ric_rec_trs_tv_res(N, nx, nu, nb2, idxb, ng2, pBAbt, res_b2, res_q2, ppdummy, ppdummy, dux2, compute_mult, dpi2, 1, Pb2, memory, work);
-			d_back_ric_rec_trs_libstr(N, nx, nu, nb2, idxb, ng2, hsBAbt, hsres_b2, hsres_q2, hsmatdummy, hsvecdummy, hsdux2, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, d_back_ric_rec_work_space);
+			d_back_ric_rec_trs_libstr(N, nx, nu, nb2, idxb, ng2, hsBAbt, hsres_b2, hsres_q2, hsmatdummy, hsvecdummy, hsdux2, compute_mult, hsdpi, 1, hsPb, hsL, d_back_ric_rec_work_space);
 
 	//		printf("\nux2\n");
 	//		for(ii=0; ii<=N; ii++)
@@ -774,7 +765,7 @@ for(ii=0; ii<N; ii++)
 exit(1);
 #endif
 #if 1
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 1, hsBAbt, hsres_b, 1, hsRSQrq, hsres_rq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, d_back_ric_rec_work_space);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 1, hsBAbt, hsres_b, 1, hsRSQrq, hsres_rq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, d_back_ric_rec_work_space);
 #else
 		d_back_ric_rec_trf_tv_res(N, nx, nu, pBAbt, pQ, pL, dL, work, nb, idxb, ng, pDCt, Qx, bd);
 		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 1, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
@@ -942,7 +933,7 @@ exit(1);
 
 		// solve the KKT system
 //		d_back_ric_rec_trs_libstr(N, nx, nu, nb2, idxb, ng2, hsBAbt, hsres_b, hsq2, hsvecdummy, hsvecdummy, hsdux, compute_mult, hsdpi, 0, hsPb, memory, work);
-		d_back_ric_rec_trs_libstr(N, nx, nu, nb2, idxb, ng2, hsBAbt, hsres_b, hsrq2, hsmatdummy, hsvecdummy, hsdux, compute_mult, hsdpi, 0, hsPb, hsL, hsLxt, d_back_ric_rec_work_space);
+		d_back_ric_rec_trs_libstr(N, nx, nu, nb2, idxb, ng2, hsBAbt, hsres_b, hsrq2, hsmatdummy, hsvecdummy, hsdux, compute_mult, hsdpi, 0, hsPb, hsL, d_back_ric_rec_work_space);
 
 #if 0
 printf("\ndux\n");
@@ -981,7 +972,7 @@ exit(1);
 
 			// solve for residuals
 //			d_back_ric_rec_trs_tv_res(N, nx, nu, nb2, idxb, ng2, pBAbt, res_b2, res_q2, ppdummy, ppdummy, dux2, compute_mult, dpi2, 1, Pb2, memory, work);
-			d_back_ric_rec_trs_libstr(N, nx, nu, nb2, idxb, ng2, hsBAbt, hsres_b, hsrq2, hsmatdummy, hsvecdummy, hsdux2, compute_mult, hsdpi2, 0, hsPb2, hsL, hsLxt, d_back_ric_rec_work_space);
+			d_back_ric_rec_trs_libstr(N, nx, nu, nb2, idxb, ng2, hsBAbt, hsres_b, hsrq2, hsmatdummy, hsvecdummy, hsdux2, compute_mult, hsdpi2, 0, hsPb2, hsL, d_back_ric_rec_work_space);
 
 	//		printf("\nux2\n");
 	//		for(ii=0; ii<=N; ii++)
@@ -1019,7 +1010,7 @@ exit(1);
 
 		// solve the KKT system
 //		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
-		d_back_ric_rec_trs_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsres_b, hsres_rq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 0, hsPb, hsL, hsLxt, d_back_ric_rec_work_space);
+		d_back_ric_rec_trs_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsres_b, hsres_rq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 0, hsPb, hsL, d_back_ric_rec_work_space);
 
 
 #endif
@@ -1221,7 +1212,6 @@ void d_kkt_solve_new_rhs_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, i
 	struct d_strvec hslamt[N+1];
 	struct d_strvec hsPb[N+1];
 	struct d_strmat hsL[N+1];
-	struct d_strmat hsLxt[N+1];
 	struct d_strvec hsres_rq[N+1];
 	struct d_strvec hsres_b[N];
 	struct d_strvec hsres_d[N+1];
@@ -1251,13 +1241,6 @@ void d_kkt_solve_new_rhs_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, i
 		{
 		d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
 		c_ptr += hsL[ii].memory_size;
-		}
-
-	// Lxt
-	for(ii=0; ii<=N; ii++)
-		{
-		d_create_strmat(nx[ii], nx[ii], &hsLxt[ii], (void *) c_ptr);
-		c_ptr += hsLxt[ii].memory_size;
 		}
 
 	// b as vector
@@ -1430,7 +1413,7 @@ exit(1);
 #endif
 
 	// solve the system
-	d_back_ric_rec_trs_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsres_b, hsres_rq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, d_back_ric_rec_work_space);
+	d_back_ric_rec_trs_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsres_b, hsres_rq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, d_back_ric_rec_work_space);
 
 #if 0
 printf("\nNEW dux\n");

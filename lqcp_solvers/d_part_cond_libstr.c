@@ -162,7 +162,6 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 	dgecp_libstr(nu[N-1]+nx[N-1]+1, nu[N-1]+nx[N-1], 1.0, &hsRSQrq[N-1], 0, 0, &hsL[N-1], 0, 0);
 
 	// D
-//	dgecp_libstr(nu[N-1], nu[N-1], 1.0, &hsL[N-1], 0, 0, sRSQrq2, nu3[0], nu3[0]);
 	dtrcp_l_libstr(nu[N-1], 1.0, &hsL[N-1], 0, 0, sRSQrq2, nu3[0], nu3[0]);
 
 	// M
@@ -187,9 +186,6 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 
 		dpotrf_l_libstr(nx[N-nn]+1, nx[N-nn], &sLx, 0, 0, &sLx, 0, 0);
 
-//		dtrtr_l_libstr(nx[N-nn], 1.0, &sLx, 0, 0, &sLx, 0, 0);
-
-//		dtrmm_rutn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
 		dtrmm_rlnn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
 #else
 		dpotrf_l_libstr(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
@@ -203,7 +199,6 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 		dsyrk_ln_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 
 		// D
-//		dgecp_libstr(nu[N-nn-1], nu[N-nn-1], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nu3[nn], nu3[nn]);
 		dtrcp_l_libstr(nu[N-nn-1], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nu3[nn], nu3[nn]);
 
 		// M
@@ -227,9 +222,6 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 
 	dpotrf_l_libstr(nx[N-nn]+1, nx[N-nn], &sLx, 0, 0, &sLx, 0, 0);
 
-//	dtrtr_l_libstr(nx[N-nn], 1.0, &sLx, 0, 0, &sLx, 0, 0);	
-
-//	dtrmm_rutn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
 	dtrmm_rlnn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
 #else
 	dpotrf_l_libstr(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);

@@ -364,7 +364,6 @@ int main()
 	struct d_strvec hspi[N+1];
 	struct d_strvec hsPb[N+1];
 	struct d_strmat hsL[N+1];
-	struct d_strmat hsLxt[N+1];
 
 
 	hsBAbt[0] = sBAbt0;
@@ -373,7 +372,6 @@ int main()
 	d_allocate_strvec(nx[1], &hspi[1]);
 	d_allocate_strvec(nx[1], &hsPb[1]);
 	d_allocate_strmat(nu[0]+nx[0]+1, nu[0]+nx[0], &hsL[0]);
-	d_allocate_strmat(nx[0], nx[0], &hsLxt[0]);
 	for(ii=1; ii<N; ii++)
 		{
 		hsBAbt[ii] = sBAbt1;
@@ -382,12 +380,10 @@ int main()
 		d_allocate_strvec(nx[ii+1], &hspi[ii+1]);
 		d_allocate_strvec(nx[ii+1], &hsPb[ii+1]);
 		d_allocate_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii]);
-		d_allocate_strmat(nx[ii], nx[ii], &hsLxt[ii]);
 		}
 	hsRSQrq[N] = sRSQrqN;
 	d_allocate_strvec(nu[N]+nx[N], &hsux[N]);
 	d_allocate_strmat(nu[N]+nx[N]+1, nu[N]+nx[N], &hsL[N]);
-	d_allocate_strmat(nx[N], nx[N], &hsLxt[N]);
 	
 	// riccati work space
 	void *work_ric;
@@ -410,7 +406,7 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, hidxb, ng, 0, hsBAbt, hsvecdummy, 0, hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, 1, hspi, 1, hsPb, hsL, hsLxt, work_ric);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, hidxb, ng, 0, hsBAbt, hsvecdummy, 0, hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, 1, hspi, 1, hsPb, hsL, work_ric);
 
 		}
 

@@ -480,7 +480,6 @@ int main()
 	struct d_strvec hsQx[N+1];
 	struct d_strvec hsqx[N+1];
 	struct d_strmat hsL[N+1];
-	struct d_strmat hsLxt[N+1];
 	struct d_strvec hsPb[N+1];
 	struct d_strvec hsux[N+1];
 	struct d_strvec hspi[N+1];
@@ -505,7 +504,6 @@ int main()
 	hsrq[0] = sr0;
 #endif
 	d_allocate_strmat(nu_+1, nu_, &hsL[0]);
-//	d_allocate_strmat(nu_+1, nu_, &hsLxt[0]);
 	d_allocate_strvec(nx_, &hsPb[1]);
 	d_allocate_strvec(nx_+nu_+1, &hsux[0]);
 	d_allocate_strvec(nx_, &hspi[1]);
@@ -527,7 +525,6 @@ int main()
 		hsrq[ii] = srq1;
 #endif
 		d_allocate_strmat(nu_+nx_+1, nu_+nx_, &hsL[ii]);
-		d_allocate_strmat(nx_, nu_+nx_, &hsLxt[ii]);
 		d_allocate_strvec(nx_, &hsPb[ii+1]);
 		d_allocate_strvec(nx_+nu_+1, &hsux[ii]);
 		d_allocate_strvec(nx_, &hspi[ii+1]);
@@ -542,7 +539,6 @@ int main()
 	hsrq[N] = sqN;
 #endif
 	d_allocate_strmat(nx_+1, nx_, &hsL[N]);
-	d_allocate_strmat(nx_, nx_, &hsLxt[N]);
 	d_allocate_strvec(nx_+nu_+1, &hsux[N]);
 
 	// riccati work space
@@ -568,28 +564,28 @@ int main()
 	// warm up ???
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_back_ric_rec_trf_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsQx, hsL, hsLxt, work_ric);
+		d_back_ric_rec_trf_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsQx, hsL, work_ric);
 		}
 
 	gettimeofday(&tv0, NULL); // time
 
 	for(rep=0; rep<nrep; rep++)
 		{
-//		d_back_ric_sv_libstr(N, nx, nu, hsBAbt, hsRSQrq, hsL, hsLxt, hsux, hspi, hswork_mat, hswork_vec);
+//		d_back_ric_sv_libstr(N, nx, nu, hsBAbt, hsRSQrq, hsL, hsux, hspi, hswork_mat, hswork_vec);
 		}
 
 	gettimeofday(&tv1, NULL); // time
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_back_ric_rec_trf_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsQx, hsL, hsLxt, work_ric);
+		d_back_ric_rec_trf_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsQx, hsL, work_ric);
 		}
 
 	gettimeofday(&tv2, NULL); // time
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_back_ric_rec_trs_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsux, 1, hspi, 1, hsPb, hsL, hsLxt, work_ric);
+		d_back_ric_rec_trs_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsux, 1, hspi, 1, hsPb, hsL, work_ric);
 		}
 
 	gettimeofday(&tv3, NULL); // time
@@ -726,11 +722,6 @@ printf("\nciao\n");
 		{
 		d_allocate_strmat(t_nu[ii]+t_nx[ii]+1, t_nu[ii]+t_nx[ii], &t_hsL[ii]);
 		}
-	struct d_strmat t_hsLxt[Nn];
-	for(ii=0; ii<Nn; ii++)
-		{
-		d_allocate_strmat(t_nx[ii], t_nx[ii], &t_hsLxt[ii]);
-		}
 	struct d_strvec t_hsPb[Nn];
 	for(ii=0; ii<Nn; ii++)
 		{
@@ -760,14 +751,14 @@ printf("\nciao\n");
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_tree_back_ric_rec_trf_libstr(Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsRSQrq, hsmatdummy, hsvecdummy, t_hsL, t_hsLxt, work_ric);
+		d_tree_back_ric_rec_trf_libstr(Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsRSQrq, hsmatdummy, hsvecdummy, t_hsL, work_ric);
 		}
 
 	gettimeofday(&tv2, NULL); // time
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_tree_back_ric_rec_trs_libstr(Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsb, t_hsrq, hsmatdummy, hsvecdummy, t_hsux, 1, t_hspi, 1, t_hsPb, t_hsL, t_hsLxt, work_ric);
+		d_tree_back_ric_rec_trs_libstr(Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsb, t_hsrq, hsmatdummy, hsvecdummy, t_hsux, 1, t_hspi, 1, t_hsPb, t_hsL, work_ric);
 		}
 
 	gettimeofday(&tv3, NULL); // time
@@ -776,11 +767,6 @@ printf("\nciao\n");
 //	for(ii=0; ii<Nn; ii++)
 //		{
 //		d_print_strmat(t_nu[ii]+t_nx[ii]+1, t_nu[ii]+t_nx[ii], &t_hsL[ii], 0, 0);
-//		}
-//	for(ii=0; ii<Nn; ii++)
-//		{
-//		stage = tree[ii].stage;
-//		d_print_strmat(t_nx[stage], t_nx[stage], &t_hsLxt[ii], 0, 0);
 //		}
 	for(ii=0; ii<Nn; ii++)
 		{
@@ -951,14 +937,12 @@ printf("\nciao\n");
 	struct d_strvec hsux2[N+1];
 	struct d_strvec hspi2[N+1];
 	struct d_strmat hsL2[N+1];
-	struct d_strmat hsLxt2[N+1];
 	struct d_strvec hsPb2[N+1];
 	for(ii=0; ii<=N; ii++)
 		{
 		d_allocate_strvec(nu2[ii]+nx2[ii], &hsux2[ii]);
 		d_allocate_strvec(nx2[ii], &hspi2[ii]);
 		d_allocate_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsL2[ii]);
-		d_allocate_strmat(nx2[ii], nx2[ii], &hsLxt2[ii]);
 		d_allocate_strvec(nx2[ii], &hsPb2[ii]);
 		}
 
@@ -976,21 +960,21 @@ printf("\nciao\n");
 
 	for(rep=0; rep<nrep; rep++)
 		{
-//		d_back_ric_sv_libstr(N, nx, nu, hsBAbt, hsRSQrq, hsL, hsLxt, hsux, hspi, hswork_mat, hswork_vec);
+//		d_back_ric_sv_libstr(N, nx, nu, hsBAbt, hsRSQrq, hsL, hsux, hspi, hswork_mat, hswork_vec);
 		}
 
 	gettimeofday(&tv1, NULL); // time
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_back_ric_rec_trf_libstr(N, nx2, nu2, nb, hidxb, ng, hsBAbt2, hsRSQrq2, hsDCt, hsQx, hsL2, hsLxt2, work_ric2);
+		d_back_ric_rec_trf_libstr(N, nx2, nu2, nb, hidxb, ng, hsBAbt2, hsRSQrq2, hsDCt, hsQx, hsL2, work_ric2);
 		}
 
 	gettimeofday(&tv2, NULL); // time
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		d_back_ric_rec_trs_libstr(N, nx2, nu2, nb, hidxb, ng, hsBAbt2, hsb2, hsrq2, hsDCt, hsqx, hsux2, 1, hspi2, 1, hsPb2, hsL2, hsLxt2, work_ric2);
+		d_back_ric_rec_trs_libstr(N, nx2, nu2, nb, hidxb, ng, hsBAbt2, hsb2, hsrq2, hsDCt, hsqx, hsux2, 1, hspi2, 1, hsPb2, hsL2, work_ric2);
 		}
 
 	gettimeofday(&tv3, NULL); // time
@@ -1048,20 +1032,17 @@ printf("\nciao\n");
 	d_free_strmat(&sQqN);
 	d_free_strvec(&sqN);
 	d_free_strmat(&hsL[0]);
-//	d_free_strmat(&hsLxt[0]);
 	d_free_strvec(&hsPb[1]);
 	d_free_strvec(&hsux[0]);
 	d_free_strvec(&hspi[1]);
 	for(ii=1; ii<N; ii++)
 		{
 		d_free_strmat(&hsL[ii]);
-		d_free_strmat(&hsLxt[ii]);
 		d_free_strvec(&hsPb[ii+1]);
 		d_free_strvec(&hsux[ii]);
 		d_free_strvec(&hspi[ii+1]);
 		}
 	d_free_strmat(&hsL[N]);
-	d_free_strmat(&hsLxt[N]);
 	d_free_strvec(&hsux[N]);
 	d_free_strmat(&hswork_mat[0]);
 	d_free_strvec(&hswork_vec[0]);

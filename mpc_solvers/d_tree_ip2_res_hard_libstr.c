@@ -64,7 +64,6 @@ int d_tree_ip2_res_mpc_hard_work_space_size_bytes_libstr(int Nn, struct node *tr
 	for(ii=0; ii<Nn; ii++)
 		{
 		size += d_size_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]); // L
-		size += d_size_strmat(nx[ii], nx[ii]); // Lxt
 		size += 5*d_size_strvec(nx[ii]); // b, dpi, Pb, res_b, pi_bkp
 		size += 4*d_size_strvec(nu[ii]+nx[ii]); // dux, rq, res_rq, ux_bkp
 		size += 8*d_size_strvec(2*nb[ii]+2*ng[ii]); // dlam, dt, tinv, lamt, res_d, res_m, t_bkp, lam_bkp
@@ -132,7 +131,6 @@ exit(2);
 	struct d_strvec hslamt[N+1];
 	struct d_strvec hsPb[N+1];
 	struct d_strmat hsL[N+1];
-	struct d_strmat hsLxt[N+1];
 	struct d_strvec hsres_rq[N+1];
 	struct d_strvec hsres_b[N+1];
 	struct d_strvec hsres_d[N+1];
@@ -151,13 +149,6 @@ exit(2);
 		{
 		d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
 		c_ptr += hsL[ii].memory_size;
-		}
-
-	// Lxt
-	for(ii=0; ii<=N; ii++)
-		{
-		d_create_strmat(nx[ii], nx[ii], &hsLxt[ii], (void *) c_ptr);
-		c_ptr += hsLxt[ii].memory_size;
 		}
 
 	// riccati work space
@@ -318,10 +309,10 @@ exit(2);
 		{
 		double **dummy;
 #if 0
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 0, hsRSQrq, hsrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 0, hsRSQrq, hsrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, hsric_work_mat, hsric_work_vec);
 #else
-		d_tree_back_ric_rec_trf_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsRSQrq, hsmatdummy, hsvecdummy, hsL, hsLxt, d_tree_back_ric_rec_work_space);
-		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsmatdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, hsLxt, d_tree_back_ric_rec_work_space);
+		d_tree_back_ric_rec_trf_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsRSQrq, hsmatdummy, hsvecdummy, hsL, d_tree_back_ric_rec_work_space);
+		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsmatdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, d_tree_back_ric_rec_work_space);
 #endif
 		// no IPM iterations
 		*kk = 0;
@@ -410,10 +401,10 @@ for(ii=0; ii<=N; ii++)
 
 		// compute the search direction: factorize and solve the KKT system
 #if 0
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, hsric_work_mat, hsric_work_vec);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsric_work_mat, hsric_work_vec);
 #else
-		d_tree_back_ric_rec_trf_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsRSQrq, hsDCt, hsQx, hsL, hsLxt, d_tree_back_ric_rec_work_space);
-		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsLxt, d_tree_back_ric_rec_work_space);
+		d_tree_back_ric_rec_trf_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsRSQrq, hsDCt, hsQx, hsL, d_tree_back_ric_rec_work_space);
+		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, d_tree_back_ric_rec_work_space);
 #endif
 
 
@@ -512,7 +503,7 @@ exit(1);
 
 
 		// solve the system
-		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 0, hsPb, hsL, hsLxt, d_tree_back_ric_rec_work_space);
+		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 0, hsPb, hsL, d_tree_back_ric_rec_work_space);
 
 #if 0
 printf("\ndux\n");
