@@ -31,7 +31,9 @@
 
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
-#include <blasfeo_i_aux.h>
+#include <blasfeo_v_aux_ext_dep.h>
+#include <blasfeo_d_aux_ext_dep.h>
+#include <blasfeo_i_aux_ext_dep.h>
 #include <blasfeo_d_aux.h>
 #include <blasfeo_d_blas.h>
 
@@ -701,12 +703,12 @@ int main()
 		}
 
 	// dynamics indexed by node (ecluding the root) // no real atm
-	struct d_strmat t_hsBAbt[Nn];
-	struct d_strvec t_hsb[Nn];
-	for(ii=0; ii<Nn; ii++)
+	struct d_strmat t_hsBAbt[Nn-1]; // XXX defined on the edges !!!!!
+	struct d_strvec t_hsb[Nn-1]; // XXX defined on the edges !!!!!
+	for(ii=0; ii<Nn-1; ii++)
 		{
-		stage = tree[ii].stage-1;
-		if(stage<=N)
+		stage = tree[ii+1].stage-1;
+		if(stage<N)
 			{
 			t_hsBAbt[ii] = hsBAbt[stage];
 			t_hsb[ii] = hsb[stage];
@@ -987,7 +989,7 @@ int main()
 			{
 			idxkid = tree[ii].kids[jj];
 			kid_stage = tree[idxkid].stage;
-			dgecp_libstr(t_nu[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], 0, 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
+			dgecp_libstr(t_nu[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid-1], 0, 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
 			tmp0[kid_stage] += t_nx[idxkid];
 			}
 		tmp1[stage] += t_nu[ii];
@@ -1005,7 +1007,7 @@ int main()
 			{
 			idxkid = tree[ii].kids[jj];
 			kid_stage = tree[idxkid].stage;
-			dgecp_libstr(t_nx[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
+			dgecp_libstr(t_nx[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid-1], t_nu[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
 			tmp0[kid_stage] += t_nx[idxkid];
 			}
 		tmp1[stage] += t_nx[ii];
@@ -1023,8 +1025,8 @@ int main()
 			{
 			idxkid = tree[ii].kids[jj];
 			kid_stage = tree[idxkid].stage;
-			dgecp_libstr(1, t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii]+t_nx[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
-			dveccp_libstr(t_nx[idxkid], 1.0, &t_hsb[idxkid], 0, &hsb2[stage], tmp0[kid_stage]);
+			dgecp_libstr(1, t_nx[idxkid], 1.0, &t_hsBAbt[idxkid-1], t_nu[ii]+t_nx[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
+			dveccp_libstr(t_nx[idxkid], 1.0, &t_hsb[idxkid-1], 0, &hsb2[stage], tmp0[kid_stage]);
 			tmp0[kid_stage] += t_nx[idxkid];
 			}
 //		tmp1[stage] += 1;

@@ -30,7 +30,6 @@
 
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
-#include <blasfeo_i_aux.h>
 #include <blasfeo_d_aux.h>
 #include <blasfeo_d_kernel.h>
 #include <blasfeo_d_blas.h>
@@ -496,7 +495,7 @@ void d_tree_back_ric_rec_trf_libstr(int Nn, struct node *tree, int *nx, int *nu,
 		else // has one kid: middle stages
 			{
 			idxkid = tree[nn].kids[0];
-			d_back_ric_trf_funnel1_libstr(nkids, nx[nn], nx[idxkid], nu[nn], nu[idxkid], nb[nn], hidxb[nn], ng[nn], &hsBAbt[idxkid], &hsRSQrq[nn], &hsDCt[nn], &hsQx[nn], &hsL[nn], &hsL[idxkid], work);
+			d_back_ric_trf_funnel1_libstr(nkids, nx[nn], nx[idxkid], nu[nn], nu[idxkid], nb[nn], hidxb[nn], ng[nn], &hsBAbt[idxkid-1], &hsRSQrq[nn], &hsDCt[nn], &hsQx[nn], &hsL[nn], &hsL[idxkid], work);
 			}
 		}
 
@@ -525,12 +524,12 @@ void d_tree_back_ric_rec_trs_libstr(int Nn, struct node *tree, int *nx, int *nu,
 			if(nkids>1) // has many kids => funnel
 				{
 				idxkid = tree[nn].kids[0];
-				d_back_ric_trs_back_funnel0_libstr(nkids, nx[nn], nx[idxkid], nu[nn], nu[idxkid], nb[nn], hidxb[nn], ng[nn], &hsBAbt[idxkid], &hsb[idxkid], &hsrq[nn], &hsDCt[nn], &hsqx[nn], &hsL[nn], &hsL[idxkid], compute_Pb, &hsPb[idxkid], &hsux[nn], &hsux[idxkid], work);
+				d_back_ric_trs_back_funnel0_libstr(nkids, nx[nn], nx[idxkid], nu[nn], nu[idxkid], nb[nn], hidxb[nn], ng[nn], &hsBAbt[idxkid-1], &hsb[idxkid-1], &hsrq[nn], &hsDCt[nn], &hsqx[nn], &hsL[nn], &hsL[idxkid], compute_Pb, &hsPb[idxkid], &hsux[nn], &hsux[idxkid], work);
 				}
 			else if(nkids==1) // has one kid => leg
 				{
 				idxkid = tree[nn].kids[0];
-				d_back_ric_trs_back_leg0_libstr(nx[nn], nx[idxkid], nu[nn], nu[idxkid], nb[nn], hidxb[nn], ng[nn], &hsBAbt[idxkid], &hsb[idxkid], &hsrq[nn], &hsDCt[nn], &hsqx[nn], &hsL[nn], &hsL[idxkid], compute_Pb, &hsPb[idxkid], &hsux[nn], &hsux[idxkid], work);
+				d_back_ric_trs_back_leg0_libstr(nx[nn], nx[idxkid], nu[nn], nu[idxkid], nb[nn], hidxb[nn], ng[nn], &hsBAbt[idxkid-1], &hsb[idxkid-1], &hsrq[nn], &hsDCt[nn], &hsqx[nn], &hsL[nn], &hsL[idxkid], compute_Pb, &hsPb[idxkid], &hsux[nn], &hsux[idxkid], work);
 				}
 			else // has no kids: last stage
 				{
@@ -542,12 +541,12 @@ void d_tree_back_ric_rec_trs_libstr(int Nn, struct node *tree, int *nx, int *nu,
 			if(nkids>1) // has many kids => funnel
 				{
 				idxkid = tree[nn].kids[0];
-				d_back_ric_trs_back_funnel1_libstr(nkids, nx[nn], nx[idxkid], nu[nn], nu[idxkid], nb[nn], hidxb[nn], ng[nn], &hsBAbt[idxkid], &hsb[idxkid], &hsrq[nn], &hsDCt[nn], &hsqx[nn], &hsL[nn], &hsL[idxkid], compute_Pb, &hsPb[idxkid], &hsux[nn], &hsux[idxkid], work);
+				d_back_ric_trs_back_funnel1_libstr(nkids, nx[nn], nx[idxkid], nu[nn], nu[idxkid], nb[nn], hidxb[nn], ng[nn], &hsBAbt[idxkid-1], &hsb[idxkid-1], &hsrq[nn], &hsDCt[nn], &hsqx[nn], &hsL[nn], &hsL[idxkid], compute_Pb, &hsPb[idxkid], &hsux[nn], &hsux[idxkid], work);
 				}
 			else if(nkids==1)// has one kid => leg
 				{
 				idxkid = tree[nn].kids[0];
-				d_back_ric_trs_back_leg1_libstr(nx[nn], nx[idxkid], nu[nn], nu[idxkid], nb[nn], hidxb[nn], ng[nn], &hsBAbt[idxkid], &hsb[idxkid], &hsrq[nn], &hsDCt[nn], &hsqx[nn], &hsL[nn], &hsL[idxkid], compute_Pb, &hsPb[idxkid], &hsux[nn], &hsux[idxkid], work);
+				d_back_ric_trs_back_leg1_libstr(nx[nn], nx[idxkid], nu[nn], nu[idxkid], nb[nn], hidxb[nn], ng[nn], &hsBAbt[idxkid-1], &hsb[idxkid-1], &hsrq[nn], &hsDCt[nn], &hsqx[nn], &hsL[nn], &hsL[idxkid], compute_Pb, &hsPb[idxkid], &hsux[nn], &hsux[idxkid], work);
 				}
 			else // has no kids: last stage
 				{
@@ -568,12 +567,12 @@ void d_tree_back_ric_rec_trs_libstr(int Nn, struct node *tree, int *nx, int *nu,
 			if(nkids>1) // has many kids: funnel
 				{
 				idxkid = tree[nn].kids[0];
-				d_back_ric_trs_forw_funnel0_libstr(nkids, nx[nn], nx[idxkid], nu[nn], nu[idxkid], &hsBAbt[idxkid], &hsb[idxkid], &hsL[nn], &hsL[idxkid], &hsux[nn], &hsux[idxkid], compute_pi, &hspi[idxkid], work);
+				d_back_ric_trs_forw_funnel0_libstr(nkids, nx[nn], nx[idxkid], nu[nn], nu[idxkid], &hsBAbt[idxkid-1], &hsb[idxkid-1], &hsL[nn], &hsL[idxkid], &hsux[nn], &hsux[idxkid], compute_pi, &hspi[idxkid], work);
 				}
 			else if(nkids==1) // has one kid: leg
 				{
 				idxkid = tree[nn].kids[0];
-				d_back_ric_trs_forw_leg0_libstr(nx[nn], nx[idxkid], nu[nn], nu[idxkid], &hsBAbt[idxkid], &hsb[idxkid], &hsL[nn], &hsL[idxkid], &hsux[nn], &hsux[idxkid], compute_pi, &hspi[idxkid], work);
+				d_back_ric_trs_forw_leg0_libstr(nx[nn], nx[idxkid], nu[nn], nu[idxkid], &hsBAbt[idxkid-1], &hsb[idxkid-1], &hsL[nn], &hsL[idxkid], &hsux[nn], &hsux[idxkid], compute_pi, &hspi[idxkid], work);
 				}
 			else // no kids
 				{
@@ -585,12 +584,12 @@ void d_tree_back_ric_rec_trs_libstr(int Nn, struct node *tree, int *nx, int *nu,
 			if(nkids>1) // has many kids: funnel
 				{
 				idxkid = tree[nn].kids[0];
-				d_back_ric_trs_forw_funnel1_libstr(nkids, nx[nn], nx[idxkid], nu[nn], nu[idxkid], &hsBAbt[idxkid], &hsb[idxkid], &hsL[nn], &hsL[idxkid], &hsux[nn], &hsux[idxkid], compute_pi, &hspi[idxkid], work);
+				d_back_ric_trs_forw_funnel1_libstr(nkids, nx[nn], nx[idxkid], nu[nn], nu[idxkid], &hsBAbt[idxkid-1], &hsb[idxkid-1], &hsL[nn], &hsL[idxkid], &hsux[nn], &hsux[idxkid], compute_pi, &hspi[idxkid], work);
 				}
 			else if(nkids==1) // has one kid: leg
 				{
 				idxkid = tree[nn].kids[0];
-				d_back_ric_trs_forw_leg1_libstr(nx[nn], nx[idxkid], nu[nn], nu[idxkid], &hsBAbt[idxkid], &hsb[idxkid], &hsL[nn], &hsL[idxkid], &hsux[nn], &hsux[idxkid], compute_pi, &hspi[idxkid], work);
+				d_back_ric_trs_forw_leg1_libstr(nx[nn], nx[idxkid], nu[nn], nu[idxkid], &hsBAbt[idxkid-1], &hsb[idxkid-1], &hsL[nn], &hsL[idxkid], &hsux[nn], &hsux[idxkid], compute_pi, &hspi[idxkid], work);
 				}
 			else // has no kids: last stage
 				{

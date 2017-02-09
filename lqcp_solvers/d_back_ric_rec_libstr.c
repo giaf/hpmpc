@@ -30,7 +30,6 @@
 
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
-#include <blasfeo_i_aux.h>
 #include <blasfeo_d_aux.h>
 #include <blasfeo_d_kernel.h>
 #include <blasfeo_d_blas.h>

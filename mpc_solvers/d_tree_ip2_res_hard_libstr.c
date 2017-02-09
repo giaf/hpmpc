@@ -119,7 +119,7 @@ exit(2);
 	struct d_strmat *hsmatdummy;
 	struct d_strvec *hsvecdummy;
 
-	struct d_strvec hsb[N+1];
+	struct d_strvec hsb[N];
 	struct d_strvec hsrq[N+1];
 	struct d_strvec hsQx[N+1];
 	struct d_strvec hsqx[N+1];
@@ -164,8 +164,8 @@ exit(2);
 			idxkid = tree[ii].kids[jj];
 //			b[idxkid] = ptr;
 //			ptr += pnx[idxkid];
-			d_create_strvec(nx[idxkid], &hsb[idxkid], (void *) c_ptr);
-			c_ptr += hsb[idxkid].memory_size;
+			d_create_strvec(nx[idxkid], &hsb[idxkid-1], (void *) c_ptr);
+			c_ptr += hsb[idxkid-1].memory_size;
 			}
 		}
 
@@ -282,8 +282,8 @@ exit(2);
 		for(jj=0; jj<nkids; jj++)
 			{
 			idxkid = tree[ii].kids[jj];
-			drowex_libstr(nx[idxkid], 1.0, &hsBAbt[idxkid], nu[ii]+nx[ii], 0, &hsb[idxkid], 0);
-			drowex_libstr(nx[idxkid], 1.0, &hsBAbt[idxkid], nu[ii]+nx[ii], 0, &hsb[idxkid], 0);
+			drowex_libstr(nx[idxkid], 1.0, &hsBAbt[idxkid-1], nu[ii]+nx[ii], 0, &hsb[idxkid-1], 0);
+			drowex_libstr(nx[idxkid], 1.0, &hsBAbt[idxkid-1], nu[ii]+nx[ii], 0, &hsb[idxkid-1], 0);
 			}
 		}
 	

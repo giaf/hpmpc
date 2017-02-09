@@ -57,7 +57,7 @@ int d_res_res_mpc_hard_work_space_size_bytes_libstr(int N, int *nx, int *nu, int
 
 
 
-void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsQ, struct d_strvec *hsq, struct d_strvec *hsux, struct d_strmat *hsDCt, struct d_strvec *hsd, struct d_strvec *hspi, struct d_strvec *hslam, struct d_strvec *hst, struct d_strvec *hsrq, struct d_strvec *hsrb, struct d_strvec *hsrd, struct d_strvec *hsrm, double *mu, void *work)
+void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsRSQrq, struct d_strvec *hsq, struct d_strvec *hsux, struct d_strmat *hsDCt, struct d_strvec *hsd, struct d_strvec *hspi, struct d_strvec *hslam, struct d_strvec *hst, struct d_strvec *hsres_q, struct d_strvec *hsres_b, struct d_strvec *hsres_d, struct d_strvec *hsres_m, double *mu, void *work)
 	{
 
 	int ii, jj;
@@ -98,16 +98,16 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	ptr_q = hsq[ii].pa;
 	ptr_ux = hsux[ii].pa;
 	ptr_pi = hspi[ii].pa;
-	ptr_rq = hsrq[ii].pa;
-	ptr_rb = hsrb[ii].pa;
+	ptr_rq = hsres_q[ii].pa;
+	ptr_rb = hsres_b[ii].pa;
 
 	if(nb0>0 | ng0>0)
 		{
 		ptr_d = hsd[ii].pa;
 		ptr_lam = hslam[ii].pa;
 		ptr_t = hst[ii].pa;
-		ptr_rd = hsrd[ii].pa;
-		ptr_rm = hsrm[ii].pa;
+		ptr_rd = hsres_d[ii].pa;
+		ptr_rm = hsres_m[ii].pa;
 		}
 
 	for(jj=0; jj<nu0+nx0; jj++) 
@@ -132,13 +132,13 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 			}
 		}
 
-	dsymv_l_libstr(nu0+nx0, nu0+nx0, 1.0, &hsQ[ii], 0, 0, &hsux[ii], 0, 1.0, &hsrq[ii], 0, &hsrq[ii], 0);
+	dsymv_l_libstr(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[ii], 0, 0, &hsux[ii], 0, 1.0, &hsres_q[ii], 0, &hsres_q[ii], 0);
 
 	ptr_ux = hsux[ii+1].pa;
 	for(jj=0; jj<nx1; jj++) 
 		ptr_rb[jj] = ptr_b[jj] - ptr_ux[nu1+jj];
 
-	dgemv_nt_libstr(nu0+nx0, nx1, 1.0, 1.0, &hsBAbt[ii], 0, 0, &hspi[ii+1], 0, &hsux[ii], 0, 1.0, 1.0, &hsrq[ii], 0, &hsrb[ii], 0, &hsrq[ii], 0, &hsrb[ii], 0);
+	dgemv_nt_libstr(nu0+nx0, nx1, 1.0, 1.0, &hsBAbt[ii], 0, 0, &hspi[ii+1], 0, &hsux[ii], 0, 1.0, 1.0, &hsres_q[ii], 0, &hsres_b[ii], 0, &hsres_q[ii], 0, &hsres_b[ii], 0);
 
 	if(ng0>0)
 		{
@@ -171,7 +171,7 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 			mu2 += ptr_rm[jj] + ptr_rm[ng0+jj];
 			}
 
-		dgemv_nt_libstr(nu0+nx0, ng0, 1.0, 1.0, &hsDCt[ii], 0, 0, &hswork_0, 0, &hsux[ii], 0, 1.0, 0.0, &hsrq[ii], 0, &hswork_1, 0, &hsrq[ii], 0, &hswork_1, 0);
+		dgemv_nt_libstr(nu0+nx0, ng0, 1.0, 1.0, &hsDCt[ii], 0, 0, &hswork_0, 0, &hsux[ii], 0, 1.0, 0.0, &hsres_q[ii], 0, &hswork_1, 0, &hsres_q[ii], 0, &hswork_1, 0);
 
 		for(jj=0; jj<ng0; jj++)
 			{
@@ -198,16 +198,16 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		ptr_q = hsq[ii].pa;
 		ptr_ux = hsux[ii].pa;
 		ptr_pi = hspi[ii].pa;
-		ptr_rq = hsrq[ii].pa;
-		ptr_rb = hsrb[ii].pa;
+		ptr_rq = hsres_q[ii].pa;
+		ptr_rb = hsres_b[ii].pa;
 
 		if(nb0>0 | ng0>0)
 			{
 			ptr_d = hsd[ii].pa;
 			ptr_lam = hslam[ii].pa;
 			ptr_t = hst[ii].pa;
-			ptr_rd = hsrd[ii].pa;
-			ptr_rm = hsrm[ii].pa;
+			ptr_rd = hsres_d[ii].pa;
+			ptr_rm = hsres_m[ii].pa;
 			}
 
 		for(jj=0; jj<nu0; jj++) 
@@ -235,13 +235,13 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 				}
 			}
 
-		dsymv_l_libstr(nu0+nx0, nu0+nx0, 1.0, &hsQ[ii], 0, 0, &hsux[ii], 0, 1.0, &hsrq[ii], 0, &hsrq[ii], 0);
+		dsymv_l_libstr(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[ii], 0, 0, &hsux[ii], 0, 1.0, &hsres_q[ii], 0, &hsres_q[ii], 0);
 
 		ptr_ux = hsux[ii+1].pa;
 		for(jj=0; jj<nx1; jj++) 
 			ptr_rb[jj] = ptr_b[jj] - ptr_ux[nu1+jj];
 
-		dgemv_nt_libstr(nu0+nx0, nx1, 1.0, 1.0, &hsBAbt[ii], 0, 0, &hspi[ii+1], 0, &hsux[ii], 0, 1.0, 1.0, &hsrq[ii], 0, &hsrb[ii], 0, &hsrq[ii], 0, &hsrb[ii], 0);
+		dgemv_nt_libstr(nu0+nx0, nx1, 1.0, 1.0, &hsBAbt[ii], 0, 0, &hspi[ii+1], 0, &hsux[ii], 0, 1.0, 1.0, &hsres_q[ii], 0, &hsres_b[ii], 0, &hsres_q[ii], 0, &hsres_b[ii], 0);
 
 		if(ng0>0)
 			{
@@ -274,7 +274,7 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 				mu2 += ptr_rm[jj] + ptr_rm[ng0+jj];
 				}
 
-			dgemv_nt_libstr(nu0+nx0, ng0, 1.0, 1.0, &hsDCt[ii], 0, 0, &hswork_0, 0, &hsux[ii], 0, 1.0, 0.0, &hsrq[ii], 0, &hswork_1, 0, &hsrq[ii], 0, &hswork_1, 0);
+			dgemv_nt_libstr(nu0+nx0, ng0, 1.0, 1.0, &hsDCt[ii], 0, 0, &hswork_0, 0, &hsux[ii], 0, 1.0, 0.0, &hsres_q[ii], 0, &hswork_1, 0, &hsres_q[ii], 0, &hswork_1, 0);
 
 			for(jj=0; jj<ng0; jj++)
 				{
@@ -298,15 +298,15 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	ptr_q = hsq[ii].pa;
 	ptr_ux = hsux[ii].pa;
 	ptr_pi = hspi[ii].pa;
-	ptr_rq = hsrq[ii].pa;
+	ptr_rq = hsres_q[ii].pa;
 
 	if(nb0>0 | ng0>0)
 		{
 		ptr_d = hsd[ii].pa;
 		ptr_lam = hslam[ii].pa;
 		ptr_t = hst[ii].pa;
-		ptr_rd = hsrd[ii].pa;
-		ptr_rm = hsrm[ii].pa;
+		ptr_rd = hsres_d[ii].pa;
+		ptr_rm = hsres_m[ii].pa;
 		}
 
 	for(jj=0; jj<nx0; jj++) 
@@ -331,7 +331,7 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 			}
 		}
 
-	dsymv_l_libstr(nx0, nx0, 1.0, &hsQ[ii], 0, 0, &hsux[ii], 0, 1.0, &hsrq[ii], 0, &hsrq[ii], 0);
+	dsymv_l_libstr(nx0, nx0, 1.0, &hsRSQrq[ii], 0, 0, &hsux[ii], 0, 1.0, &hsres_q[ii], 0, &hsres_q[ii], 0);
 	
 	if(ng0>0)
 		{
@@ -364,7 +364,7 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 			mu2 += ptr_rm[jj] + ptr_rm[ng0+jj];
 			}
 
-		dgemv_nt_libstr(nu0+nx0, ng0, 1.0, 1.0, &hsDCt[ii], 0, 0, &hswork_0, 0, &hsux[ii], 0, 1.0, 0.0, &hsrq[ii], 0, &hswork_1, 0, &hsrq[ii], 0, &hswork_1, 0);
+		dgemv_nt_libstr(nu0+nx0, ng0, 1.0, 1.0, &hsDCt[ii], 0, 0, &hswork_0, 0, &hsux[ii], 0, 1.0, 0.0, &hsres_q[ii], 0, &hswork_1, 0, &hsres_q[ii], 0, &hswork_1, 0);
 
 		for(jj=0; jj<ng0; jj++)
 			{
