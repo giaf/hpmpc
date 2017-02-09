@@ -582,7 +582,7 @@ int main()
 * partial condensing
 ************************************************/	
 
-	int N3 = 3;
+	int N3 = 4;
 
 	// compute problem size
 	int nx3[N3+1];
@@ -596,7 +596,7 @@ int main()
 	for(ii=0; ii<=N3; ii++)
 		printf("\n%d %d %d %d\n", nx3[ii], nu3[ii], nb3[ii], ng3[ii]);
 
-	int work_space_sizes[4];
+	int work_space_sizes[5];
 	int work_space_size_part_cond = d_part_cond_work_space_size_bytes_libstr(N, nx, nu, nb, hidxb, ng, N3, nx3, nu3, nb3, ng3, work_space_sizes);
 	void *work_space_part_cond;
 	v_zeros_align(&work_space_part_cond, work_space_size_part_cond);
@@ -617,9 +617,21 @@ int main()
 
 	d_part_cond_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, N3, nx3, nu3, nb3, hidxb3, ng3, hsBAbt3, hsRSQrq3, hsDCt3, hsd3, memory_space_part_cond, work_space_part_cond, work_space_sizes);
 
-//	printf("\nhBAbt3\n\n");
-//	for(ii=0; ii<N3; ii++)
-//		d_print_strmat(nu3[ii]+nx3[ii]+1, nx3[ii+1], &hsBAbt3[ii], 0, 0);
+#if 0
+	printf("\nhBAbt3\n\n");
+	for(ii=0; ii<N3; ii++)
+		d_print_strmat(nu3[ii]+nx3[ii]+1, nx3[ii+1], &hsBAbt3[ii], 0, 0);
+	printf("\nhRSQrq3\n\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_strmat(nu3[ii]+nx3[ii]+1, nu3[ii]+nx3[ii], &hsRSQrq3[ii], 0, 0);
+	printf("\nhDCt3\n\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_strmat(nu3[ii]+nx3[ii]+1, ng3[ii], &hsDCt3[ii], 0, 0);
+	printf("\nhd3\n\n");
+	for(ii=0; ii<=N3; ii++)
+		d_print_tran_strvec(2*nb3[ii]+2*ng3[ii], &hsd3[ii], 0);
+	exit(1);
+#endif
 	
 	for(ii=0; ii<N3; ii++)
 		{
