@@ -57,6 +57,7 @@ ifeq ($(TARGET), CORTEX_A7)
 OBJS += d_aux_ip_hard_lib4.o d_res_ip_res_hard.o d_aux_ip_hard_libstr.o d_res_ip_res_hard_libstr.o
 endif
 
+OBJS += d_tree_res_ip_res_hard_libstr.o
 OBJS += d_aux_ip_soft_lib4.o
 
 obj: $(OBJS)

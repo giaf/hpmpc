@@ -71,7 +71,7 @@ int d_tree_ip2_res_mpc_hard_work_space_size_bytes_libstr(int Nn, struct node *tr
 		}
 
 	// residuals work space size
-	size += d_res_res_mpc_hard_work_space_size_bytes_libstr(Nn-1, nx, nu, nb, ng); // TODO
+	size += d_tree_res_res_mpc_hard_work_space_size_bytes_libstr(Nn, tree, nx, nu, nb, ng); // TODO
 
 	// riccati work space size
 	size += d_tree_back_ric_rec_work_space_size_bytes_libstr(Nn, tree, nx, nu, nb, ng);
