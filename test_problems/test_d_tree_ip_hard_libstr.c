@@ -844,25 +844,21 @@ int main()
 	void *t_work_ipm; 
 	void *t_work_res;
 
-	for(ii=0; ii<Nn-1; ii++)
+	for(ii=0; ii<Nn; ii++)
 		{
 		d_allocate_strvec(t_nu[ii]+t_nx[ii], &t_hsux[ii]);
 		d_allocate_strvec(t_nx[ii], &t_hspi[ii]);
 		d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hslam[ii]);
 		d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hst[ii]);
 		d_allocate_strvec(t_nu[ii]+t_nx[ii], &t_hsrrq[ii]);
-		d_allocate_strvec(t_nx[ii+1], &t_hsrb[ii]);
 		d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hsrd[ii]);
 		d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hsrm[ii]);
+		for(jj=0; jj<tree[ii].nkids; jj++)
+			{
+			idxkid = tree[ii].kids[jj];
+			d_allocate_strvec(t_nx[idxkid], &t_hsrb[idxkid-1]);
+			}
 		}
-	ii = Nn-1;
-	d_allocate_strvec(t_nu[ii]+t_nx[ii], &t_hsux[ii]);
-	d_allocate_strvec(t_nx[ii], &t_hspi[ii]);
-	d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hslam[ii]);
-	d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hst[ii]);
-	d_allocate_strvec(t_nu[ii]+t_nx[ii], &t_hsrrq[ii]);
-	d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hsrd[ii]);
-	d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hsrm[ii]);
 	
 	v_zeros_align(&t_work_ipm, d_tree_ip2_res_mpc_hard_work_space_size_bytes_libstr(Nn, tree, t_nx, t_nu, t_nb, t_ng));
 	v_zeros_align(&t_work_res, d_tree_res_res_mpc_hard_work_space_size_bytes_libstr(Nn, tree, t_nx, t_nu, t_nb, t_ng));
