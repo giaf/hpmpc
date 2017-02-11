@@ -51,7 +51,7 @@
 #define THR_ITER_REF 1e-5
 //#define ITER_REF_REG 0.0
 #define CORRECTOR_LOW 1
-#define CORRECTOR_HIGH 1
+#define CORRECTOR_HIGH 0
 
 
 
@@ -272,18 +272,14 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 		}
 	else // call the riccati solver and return
 		{
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 0, hsRSQrq, hsrq, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, d_back_ric_rec_work_space);
+		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsvecdummy, 0, hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 0, hsvecdummy, hsL, d_back_ric_rec_work_space);
 		// no IPM iterations
 		*kk = 0;
 		// return success
 		return 0;
 		}
 
-	//printf("\nmu_scal = %f\n", mu_scal);
 	double sigma = 0.0;
-	//for(ii=0; ii<=N; ii++)
-	//	printf("\n%d %d\n", nb[ii], ng[ii]);
-	//exit(1);
 
 
 
@@ -367,11 +363,6 @@ exit(1);
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0);
-//exit(1);
-#endif
-#if 0
-for(ii=0; ii<=N; ii++)
 	d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], 0, 0);
 //if(*kk==2)
 exit(1);
@@ -422,10 +413,6 @@ exit(1);
 		// compute sigma
 		sigma = mu_aff/mu;
 		sigma = sigma*sigma*sigma;
-//		if(sigma<sigma_min)
-//			sigma = sigma_min;
-//printf("\n%f %f %f %f\n", mu_aff, mu, sigma, mu_scal);
-//exit(1);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -440,7 +427,6 @@ for(ii=0; ii<=N; ii++)
 #endif
 
 
-//		d_update_gradient_mpc_hard_tv(N, nx, nu, nb, ng, sigma*mu, dt, dlam, t_inv, pl, qx);
 		d_update_gradient_mpc_hard_libstr(N, nx, nu, nb, ng, sigma*mu, hsdt, hsdlam, hstinv, hsqx);
 
 #if 0
@@ -449,13 +435,6 @@ for(ii=0; ii<=N; ii++)
 //if(*kk==1)
 exit(1);
 #endif
-
-
-
-//		// copy b into x
-//		for(ii=0; ii<N; ii++)
-//			for(jj=0; jj<nx[ii+1]; jj++) 
-//				dux[ii+1][nu[ii+1]+jj] = pBAbt[ii][(nu[ii]+nx[ii])/bs*bs*cnx[ii+1]+(nu[ii]+nx[ii])%bs+bs*jj]; // copy b
 
 
 
@@ -516,6 +495,8 @@ exit(1);
 
 		// compute step & update x, u, lam, t & compute the duality gap mu
 		d_update_var_mpc_hard_libstr(N, nx, nu, nb, ng, &mu, mu_scal, alpha, hsux, hsdux, hst, hsdt, hslam, hsdlam, hspi, hsdpi); // TODO backup variables before updating !!!!!
+
+
 
 		stat[5*(*kk)+4] = mu;
 		
@@ -1006,14 +987,13 @@ exit(1);
 #endif
 
 
-#else // no iter res
+#else // no iter ref
 
 		// solve the KKT system
-//		d_back_ric_rec_trs_tv_res(N, nx, nu, pBAbt, res_b, pL, dL, res_q, l, dux, work, 0, Pb, compute_mult, dpi, nb, idxb, ng, pDCt, qx);
 		d_back_ric_rec_trs_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsres_b, hsres_rq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 0, hsPb, hsL, d_back_ric_rec_work_space);
 
 
-#endif
+#endif // iter ref
 
 
 
@@ -1050,7 +1030,6 @@ exit(2);
 
 		// backup & update x, u, pi, lam, t 
 		d_backup_update_var_res_mpc_hard_libstr(N, nx, nu, nb, ng, alpha, hsux_bkp, hsux, hsdux, hspi_bkp, hspi, hsdpi, hst_bkp, hst, hsdt, hslam_bkp, hslam, hsdlam);
-//		d_update_var_res_mpc_hard_tv(N, nx, nu, nb, ng, alpha, ux, dux, pi, dpi, t, dt, lam, dlam);
 
 
 #if 0
@@ -1075,6 +1054,9 @@ for(ii=0; ii<=N; ii++)
 		for(jj=0; jj<N; jj++)
 			drowin_libstr(nx[jj+1], 1.0, &hsb[jj], 0, &hsBAbt[jj], nu[jj]+nx[jj], 0);
 
+
+
+		// compute residuals
 		d_res_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsres_rq, hsres_b, hsres_d, hsres_m, &mu, d_res_res_mpc_hard_work_space);
 
 #if 0
@@ -1107,30 +1089,6 @@ for(ii=0; ii<=N; ii++)
 		} // end of IP loop
 	
 
-
-	// restore Hessian XXX and gradient
-//	for(jj=0; jj<=N; jj++)
-//		{
-//		for(ll=0; ll<nb[jj]; ll++)
-//			{
-//			idx = idxb[jj][ll];
-//			pQ[jj][idx/bs*bs*cnux[jj]+idx%bs+idx*bs] = bd[jj][ll];
-//			pQ[jj][(nu[jj]+nx[jj])/bs*bs*cnux[jj]+(nu[jj]+nx[jj])%bs+idx*bs] = bl[jj][ll];
-//			}
-//		}
-
-#if 0
-printf("\nABb\n");
-for(jj=0; jj<N; jj++)
-	d_print_pmat(nu[jj]+nx[jj]+1, nx[jj+1], bs, pBAbt[jj], cnx[jj+1]);
-printf("\nQ\n");
-for(jj=0; jj<=N; jj++)
-	d_print_pmat(nu[jj]+nx[jj]+1, nu[jj]+nx[jj], bs, pQ[jj], cnux[jj]);
-//printf("\nux\n");
-//for(jj=0; jj<=N; jj++)
-//	d_print_mat(1, nu[jj]+nx[jj], ux[jj], 1);
-//exit(2);
-#endif
 
 #if 0
 printf("\nux\n");
