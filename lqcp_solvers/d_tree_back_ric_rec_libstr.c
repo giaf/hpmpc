@@ -68,7 +68,7 @@ int d_tree_back_ric_rec_work_space_size_bytes_libstr(int Nn, struct node *tree, 
 
 // help routines
 
-void d_back_ric_trf_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, int nu1, int nb0, int *hidxb0, int ng0, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strmat *hsL0, struct d_strmat *hsL1, void *work)
+static void d_back_ric_trf_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, int nu1, int nb0, int *hidxb0, int ng0, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strmat *hsL0, struct d_strmat *hsL1, void *work)
 	{
 
 	char *c_ptr;
@@ -116,7 +116,7 @@ void d_back_ric_trf_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, int nu1
 
 
 
-void d_back_ric_trf_legN_libstr(int nx0, int nb0, int *hidxb0, int ng0, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strmat *hsL, void *work)
+static void d_back_ric_trf_legN_libstr(int nx0, int nb0, int *hidxb0, int ng0, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strmat *hsL, void *work)
 	{
 
 	char *c_ptr;
@@ -147,7 +147,7 @@ void d_back_ric_trf_legN_libstr(int nx0, int nb0, int *hidxb0, int ng0, struct d
 
 
 
-void d_back_ric_trs_back_leg0_libstr(int nx0, int nx1, int nu0, int nu1, int nb0, int *hidxb0, int ng0, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsqx, struct d_strmat *hsL0, struct d_strmat *hsL1, int compute_Pb, struct d_strvec *hsPb, struct d_strvec *hsux0, struct d_strvec *hsux1, void *work)
+static void d_back_ric_trs_back_leg0_libstr(int nx0, int nx1, int nu0, int nu1, int nb0, int *hidxb0, int ng0, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsqx, struct d_strmat *hsL0, struct d_strmat *hsL1, int compute_Pb, struct d_strvec *hsPb, struct d_strvec *hsux0, struct d_strvec *hsux1, void *work)
 	{
 
 	char *c_ptr;
@@ -182,7 +182,7 @@ void d_back_ric_trs_back_leg0_libstr(int nx0, int nx1, int nu0, int nu1, int nb0
 
 
 
-void d_back_ric_trs_back_leg1_libstr(int nx0, int nx1, int nu0, int nu1, int nb0, int *hidxb0, int ng0, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsqx, struct d_strmat *hsL0, struct d_strmat *hsL1, int compute_Pb, struct d_strvec *hsPb, struct d_strvec *hsux0, struct d_strvec *hsux1, void *work)
+static void d_back_ric_trs_back_leg1_libstr(int nx0, int nx1, int nu0, int nu1, int nb0, int *hidxb0, int ng0, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsqx, struct d_strmat *hsL0, struct d_strmat *hsL1, int compute_Pb, struct d_strvec *hsPb, struct d_strvec *hsux0, struct d_strvec *hsux1, void *work)
 	{
 
 	char *c_ptr;
@@ -217,7 +217,7 @@ void d_back_ric_trs_back_leg1_libstr(int nx0, int nx1, int nu0, int nu1, int nb0
 
 
 
-void d_back_ric_trs_back_legN_libstr(int nx0, int nu0, int nb0, int *hidxb0, int ng0, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsqx, struct d_strvec *hsux)
+static void d_back_ric_trs_back_legN_libstr(int nx0, int nu0, int nb0, int *hidxb0, int ng0, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsqx, struct d_strvec *hsux)
 	{
 
 	dveccp_libstr(nu0+nx0, 1.0, &hsrq[0], 0, &hsux[0], 0);
@@ -236,7 +236,7 @@ void d_back_ric_trs_back_legN_libstr(int nx0, int nu0, int nb0, int *hidxb0, int
 
 
 
-void d_back_ric_trs_back_funnel0_libstr(int nkids, int nx0, int nx1, int nu0, int nu1, int nb0, int *hidxb0, int ng0, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsqx, struct d_strmat *hsL0, struct d_strmat *hsL1, int compute_Pb, struct d_strvec *hsPb, struct d_strvec *hsux0, struct d_strvec *hsux1, void *work)
+static void d_back_ric_trs_back_funnel0_libstr(int nkids, int nx0, int nx1, int nu0, int nu1, int nb0, int *hidxb0, int ng0, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsqx, struct d_strmat *hsL0, struct d_strmat *hsL1, int compute_Pb, struct d_strvec *hsPb, struct d_strvec *hsux0, struct d_strvec *hsux1, void *work)
 	{
 
 	int ii;
@@ -284,7 +284,7 @@ void d_back_ric_trs_back_funnel0_libstr(int nkids, int nx0, int nx1, int nu0, in
 
 
 
-void d_back_ric_trs_back_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, int nu1, int nb0, int *hidxb0, int ng0, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsqx, struct d_strmat *hsL0, struct d_strmat *hsL1, int compute_Pb, struct d_strvec *hsPb, struct d_strvec *hsux0, struct d_strvec *hsux1, void *work)
+static void d_back_ric_trs_back_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, int nu1, int nb0, int *hidxb0, int ng0, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsqx, struct d_strmat *hsL0, struct d_strmat *hsL1, int compute_Pb, struct d_strvec *hsPb, struct d_strvec *hsux0, struct d_strvec *hsux1, void *work)
 	{
 
 	int ii;
@@ -332,7 +332,7 @@ void d_back_ric_trs_back_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, in
 
 
 
-void d_back_ric_trs_forw_leg0_libstr(int nx0, int nx1, int nu0, int nu1, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsL0, struct d_strmat *hsL1, struct d_strvec *hsux0, struct d_strvec *hsux1, int compute_pi, struct d_strvec *hspi, void *work)
+static void d_back_ric_trs_forw_leg0_libstr(int nx0, int nx1, int nu0, int nu1, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsL0, struct d_strmat *hsL1, struct d_strvec *hsux0, struct d_strvec *hsux1, int compute_pi, struct d_strvec *hspi, void *work)
 	{
 
 	char *c_ptr;
@@ -363,7 +363,7 @@ void d_back_ric_trs_forw_leg0_libstr(int nx0, int nx1, int nu0, int nu1, struct 
 
 
 
-void d_back_ric_trs_forw_leg1_libstr(int nx0, int nx1, int nu0, int nu1, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsL0, struct d_strmat *hsL1, struct d_strvec *hsux0, struct d_strvec *hsux1, int compute_pi, struct d_strvec *hspi, void *work)
+static void d_back_ric_trs_forw_leg1_libstr(int nx0, int nx1, int nu0, int nu1, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsL0, struct d_strmat *hsL1, struct d_strvec *hsux0, struct d_strvec *hsux1, int compute_pi, struct d_strvec *hspi, void *work)
 	{
 
 	char *c_ptr;
@@ -394,7 +394,7 @@ void d_back_ric_trs_forw_leg1_libstr(int nx0, int nx1, int nu0, int nu1, struct 
 
 
 
-void d_back_ric_trs_forw_funnel0_libstr(int nkids, int nx0, int nx1, int nu0, int nu1, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsL0, struct d_strmat *hsL1, struct d_strvec *hsux0, struct d_strvec *hsux1, int compute_pi, struct d_strvec *hspi, void *work)
+static void d_back_ric_trs_forw_funnel0_libstr(int nkids, int nx0, int nx1, int nu0, int nu1, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsL0, struct d_strmat *hsL1, struct d_strvec *hsux0, struct d_strvec *hsux1, int compute_pi, struct d_strvec *hspi, void *work)
 	{
 
 	char *c_ptr;
@@ -433,7 +433,7 @@ void d_back_ric_trs_forw_funnel0_libstr(int nkids, int nx0, int nx1, int nu0, in
 
 
 
-void d_back_ric_trs_forw_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, int nu1, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsL0, struct d_strmat *hsL1, struct d_strvec *hsux0, struct d_strvec *hsux1, int compute_pi, struct d_strvec *hspi, void *work)
+static void d_back_ric_trs_forw_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, int nu1, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsL0, struct d_strmat *hsL1, struct d_strvec *hsux0, struct d_strvec *hsux1, int compute_pi, struct d_strvec *hspi, void *work)
 	{
 
 	char *c_ptr;

@@ -109,7 +109,7 @@ void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, i
 
 
 	// initialize pi
-	for(jj=1; jj<=N; jj++)
+	for(jj=1; jj<=N; jj++) // TODO 0 and check that nothing crashes !!!!!
 		{
 		ptr_pi = hspi[jj].pa;
 		for(ll=0; ll<nx[jj]; ll++)
