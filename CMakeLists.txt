@@ -13,6 +13,7 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.8 )
 # Project name and programming languages used
 #
 PROJECT( HPMPC )
+set(CMAKE_C_STANDARD 99)
 
 #
 # Folder path for generated executables
@@ -68,39 +69,39 @@ SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC" )
 
 IF ( ${HPMPC_TARGET} STREQUAL "X64_AVX2" )
     ADD_DEFINITIONS( -DTARGET_X64_AVX2 )
-	SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -m64 -mavx2 -mfma")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64 -mavx2 -mfma")
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "X64_AVX" )
     ADD_DEFINITIONS( -DTARGET_X64_AVX )
-	SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -m64 -mavx")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64 -mavx")
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "X64_SSE3" )
     ADD_DEFINITIONS( -DTARGET_X64_SSE3 )
-	SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -m64 -msse3")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64 -msse3")
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "CORTEX_A57" )
     ADD_DEFINITIONS( -DTARGET_CORTEX_A57 )
-	SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=armv8-a+fp+simd -mcpu=cortex-a57")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv8-a+fp+simd -mcpu=cortex-a57")
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "CORTEX_A15" )
     ADD_DEFINITIONS( -DTARGET_CORTEX_A15 )
-	SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -marm -mfloat-abi=hard -mfpu=neon-vfpv4 -mcpu=cortex-a15")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -marm -mfloat-abi=hard -mfpu=neon-vfpv4 -mcpu=cortex-a15")
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "CORTEX_A9" )
     ADD_DEFINITIONS( -DTARGET_CORTEX_A9 )
-	SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a9")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -marm -mfloat-abi=hard -mfpu=neon -mcpu=cortex-a9")
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "CORTEX_A7" )
     ADD_DEFINITIONS( -DTARGET_CORTEX_A7 )
-	SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -marm -mfloat-abi=hard -mfpu=neon-vfpv4 -mcpu=cortex-a7")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -marm -mfloat-abi=hard -mfpu=neon-vfpv4 -mcpu=cortex-a7")
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "C99_4X4" )
     ADD_DEFINITIONS( -DTARGET_C99_4X4 )
-	SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
 
 ELSEIF ( ${HPMPC_TARGET} STREQUAL "C99_4X4_PREFETCH" )
     ADD_DEFINITIONS( -DTARGET_C99_4X4_PREFETCH )
-	SET(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native")
 
 ELSE( )
     MESSAGE( ERROR "You chose unsupported target ${HPMPC_TARGET}")	  
