@@ -42,22 +42,30 @@
 int d_tree_back_ric_rec_work_space_size_bytes_libstr(int Nn, struct node *tree, int *nx, int *nu, int *nb, int *ng)
 	{
 
-	int ii;
+	int ii, jj;
+
+	int idxkid, tmp;
 
 	int size = 0;
 
 	// max sizes
-	int nxM  = 0;
-	int ngM = 0;
+	int nxM   = 0;
 	int nuxM  = 0;
+	int nxgM  = 0;
 	for(ii=0; ii<Nn; ii++)
 		{
 		nxM = nx[ii]>nxM ? nx[ii] : nxM;
-		ngM = ng[ii]>ngM ? ng[ii] : ngM;
-		nuxM = nu[ii]+nx[ii]>nuxM ? nu[ii]+nx[ii]+1 : nuxM;
+		nuxM = nu[ii]+nx[ii]>nuxM ? nu[ii]+nx[ii] : nuxM;
+		tmp = 0;
+		for(jj=0; jj<tree[ii].nkids; jj++)
+			{
+			idxkid = tree[ii].kids[jj];
+			tmp += nx[idxkid];
+			}
+		nxgM = tmp>nxgM ? tmp : nxgM;
+		nxgM = ng[ii]>nxgM ? ng[ii] : nxgM;
 		}
-	int nxgM = nxM>ngM ? nxM : ngM;
-	
+
 	size += d_size_strmat(nuxM+1, nxgM); // ric_work_mat[0]
 	size += d_size_strvec(nxM); // ric_work_vec[0]
 
@@ -68,6 +76,7 @@ int d_tree_back_ric_rec_work_space_size_bytes_libstr(int Nn, struct node *tree, 
 
 // help routines
 
+// TODO allow nx1 to be different for different kids !!!!!!!!!!!!!!!!!!!!!!
 static void d_back_ric_trf_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, int nu1, int nb0, int *hidxb0, int ng0, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strmat *hsL0, struct d_strmat *hsL1, void *work)
 	{
 
@@ -77,9 +86,10 @@ static void d_back_ric_trf_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, 
 
 	int ii;
 
-	c_ptr = (char *) work;
-	d_create_strmat(nu0+nx0, nx1, &hswork_mat_0, (void *) c_ptr);
-	c_ptr += hswork_mat_0.memory_size;
+//	c_ptr = (char *) work;
+//	d_create_strmat(nu0+nx0, nkids*nx1+ng0, &hswork_mat_0, (void *) c_ptr);
+//	c_ptr += hswork_mat_0.memory_size;
+	d_create_strmat(nu0+nx0, nkids*nx1, &hswork_mat_0, work);
 		
 	// initialize with hessian
 	dtrcp_l_libstr(nu0+nx0, 1.0, &hsRSQrq[0], 0, 0, &hsL0[0], 0, 0);
@@ -87,8 +97,7 @@ static void d_back_ric_trf_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, 
 	// all kids: update
 	for(ii=0; ii<nkids; ii++)
 		{
-		dtrmm_rlnn_libstr(nu0+nx0, nx1, 1.0, &hsL1[ii], nu1, nu1, &hsBAbt[ii], 0, 0, &hswork_mat_0, 0, 0);
-		dsyrk_ln_libstr(nu0+nx0, nu0+nx0, nx1, 1.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, 1.0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
+		dtrmm_rlnn_libstr(nu0+nx0, nx1, 1.0, &hsL1[ii], nu1, nu1, &hsBAbt[ii], 0, 0, &hswork_mat_0, 0, ii*nx1);
 		}
 	
 	// update with box constraints
@@ -99,15 +108,14 @@ static void d_back_ric_trf_funnel1_libstr(int nkids, int nx0, int nx1, int nu0, 
 	// update with general constraints and factorize at the end
 	if(ng0>0)
 		{
-		c_ptr = (char *) work;
-		d_create_strmat(nu0+nx0, ng0, &hswork_mat_0, (void *) c_ptr);
-		c_ptr += hswork_mat_0.memory_size;
+		dsyrk_ln_libstr(nu0+nx0, nu0+nx0, nkids*nx1, 1.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, 1.0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
+		d_create_strmat(nu0+nx0, ng0, &hswork_mat_0, work);
 		dgemm_r_diag_libstr(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsQx[0], nb0, 0.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0);
 		dsyrk_dpotrf_ln_libstr(nu0+nx0, nu0+nx0, ng0, &hsDCt[0], 0, 0, &hswork_mat_0, 0, 0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
 		}
 	else
 		{
-		dpotrf_l_libstr(nu0+nx0, nu0+nx0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
+		dsyrk_dpotrf_ln_libstr(nu0+nx0, nu0+nx0, nkids*nx1, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
 		}
 
 	return;
@@ -130,9 +138,10 @@ static void d_back_ric_trf_legN_libstr(int nx0, int nb0, int *hidxb0, int ng0, s
 		}
 	if(ng0>0)
 		{
-		c_ptr = (char *) work;
-		d_create_strmat(nx0, ng0, &hswork_mat_0, (void *) c_ptr);
-		c_ptr += hswork_mat_0.memory_size;
+//		c_ptr = (char *) work;
+//		d_create_strmat(nx0, ng0, &hswork_mat_0, (void *) c_ptr);
+//		c_ptr += hswork_mat_0.memory_size;
+		d_create_strmat(nx0, ng0, &hswork_mat_0, work);
 		dgemm_r_diag_libstr(nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsQx[0], nb0, 0.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0);
 		dsyrk_dpotrf_ln_libstr(nx0, nx0, ng0, &hswork_mat_0, 0, 0, &hsDCt[0], 0, 0, &hsL[0], 0, 0, &hsL[0], 0, 0);
 		}
