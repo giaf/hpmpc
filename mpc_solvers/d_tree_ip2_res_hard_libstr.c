@@ -324,9 +324,8 @@ exit(2);
 		}
 	else // call the riccati solver and return
 		{
-		double **dummy;
-#if 0
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 0, hsRSQrq, hsrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, hsric_work_mat, hsric_work_vec);
+#if 1
+		d_tree_back_ric_rec_sv_libstr(Nn, tree, nx, nu, nb, idxb, ng, 0, hsBAbt, hsvecdummy, 0, hsRSQrq, hsvecdummy, hsmatdummy, hsvecdummy, hsvecdummy, hsux, compute_mult, hspi, 0, hsvecdummy, hsL, d_tree_back_ric_rec_work_space);
 #else
 		d_tree_back_ric_rec_trf_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsRSQrq, hsmatdummy, hsvecdummy, hsL, d_tree_back_ric_rec_work_space);
 		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsmatdummy, hsvecdummy, hsux, compute_mult, hspi, 1, hsPb, hsL, d_tree_back_ric_rec_work_space);
@@ -417,19 +416,14 @@ for(ii=0; ii<=N; ii++)
 
 
 		// compute the search direction: factorize and solve the KKT system
-#if 0
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, hsric_work_mat, hsric_work_vec);
+#if 1
+		d_tree_back_ric_rec_sv_libstr(Nn, tree, nx, nu, nb, idxb, ng, 0, hsBAbt, hsb, 1, hsRSQrq, hsrq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, d_tree_back_ric_rec_work_space);
 #else
 		d_tree_back_ric_rec_trf_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsRSQrq, hsDCt, hsQx, hsL, d_tree_back_ric_rec_work_space);
 		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsrq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, d_tree_back_ric_rec_work_space);
 #endif
 
 
-#if 0
-for(ii=0; ii<=N; ii++)
-	d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]+1, bs, pQ[ii], cnux[ii]);
-exit(1);
-#endif
 #if 0
 for(ii=0; ii<=N; ii++)
 	d_print_pmat(pnz[ii], cnux[ii], hpL[ii], cnux[ii]);
@@ -440,11 +434,11 @@ exit(1);
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
 	d_print_tran_strvec(nu[ii]+nx[ii], &hsdux[ii], 0);
-//printf("\ndpi\n");
-//for(ii=1; ii<=N; ii++)
-//	d_print_mat(1, nx[ii], dpi[ii], 1);
+printf("\ndpi\n");
+for(ii=0; ii<=N; ii++)
+	d_print_tran_strvec(nx[ii], &hsdpi[ii], 0);
 //if(*kk==2)
-//exit(1);
+exit(1);
 #endif
 
 
@@ -671,8 +665,8 @@ exit(1);
 
 
 		// compute the search direction: factorize and solve the KKT system
-#if 0
-		d_back_ric_rec_sv_libstr(N, nx, nu, nb, idxb, ng, 1, hsBAbt, hsres_b, 1, hsRSQrq, hsres_rq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, d_back_ric_rec_work_space);
+#if 1
+		d_tree_back_ric_rec_sv_libstr(Nn, tree, nx, nu, nb, idxb, ng, 1, hsBAbt, hsres_b, 1, hsRSQrq, hsres_rq, hsDCt, hsQx, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, d_tree_back_ric_rec_work_space);
 #else
 		d_tree_back_ric_rec_trf_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsRSQrq, hsDCt, hsQx, hsL, d_tree_back_ric_rec_work_space);
 		d_tree_back_ric_rec_trs_libstr(Nn, tree, nx, nu, nb, idxb, ng, hsBAbt, hsres_b, hsres_rq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, d_tree_back_ric_rec_work_space);
