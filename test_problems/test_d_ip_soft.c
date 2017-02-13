@@ -43,12 +43,11 @@
 #include "../include/blas_d.h"
 #include "../include/lqcp_solvers.h"
 #include "../include/mpc_solvers.h"
-#include "../problem_size.h"
 #include "../include/block_size.h"
 #include "tools.h"
-#include "test_param.h"
 
-
+#define PRINTSTAT 1
+#define PRINTRES 1
 
 /************************************************ 
 Mass-spring system: nx/2 masses connected each other with springs (in a row), and the first and the last one to walls. nu (<=nx) controls act on the first nu masses. The system is sampled with sampling time Ts. 
@@ -160,19 +159,25 @@ int main()
 
 	int ii, jj, idx;
 	
-	int rep, nrep=1;//NREP;
+	int rep, nrep=100;//NREP;
 
-	int nx_ = NX; // number of states (it has to be even for the mass-spring system test problem)
-	int nu_ = NU; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = NN; // horizon lenght
+	int nx_ = 8; // number of states (it has to be even for the mass-spring system test problem)
+	int nu_ = 3; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
+	int N  = 10; // horizon lenght
 	int nb_ = nu_;//nu+nx/2; // number of hard box constraints
 	int ns_ = nx_;//nx/2;//nx; // number of soft box constraints
+	
+	// IPM arguments
+	int kk = 0; // acutal number of iterations
+	int k_max = 500; // maximum number of iterations in the IP method
+	double mu_tol = 1e-6; // tolerance in the duality measure
+	double alpha_min = 1e-6; // minimum accepted step length
 
 	printf(" Test problem: mass-spring system with %d masses and %d controls.\n", nx_/2, nu_);
 	printf("\n");
 	printf(" MPC problem size: %d horizon length, %d states, %d inputs, %d two-sided box constraints on inputs and states, %d two-sided soft constraints on states.\n", N, nx_, nu_, nb_, ns_);
 	printf("\n");
-	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_d_ip_box.c to change them).\n", K_MAX, MU_TOL);
+	printf(" IP method parameters: predictor-corrector IP, double precision, %d maximum iterations, %5.1e exit tolerance in duality measure (edit file test_d_ip_box.c to change them).\n", k_max, mu_tol);
 
 	// size of help matrices in panel-major format
 	const int bs = D_MR; //d_get_mr();
@@ -214,8 +219,8 @@ int main()
 	double u_max_hard =   0.5;
 	double x_min_hard = - 4.0;
 	double x_max_hard =   4.0;
-	double x_min_soft = - 1.0;
-	double x_max_soft =   1.0;
+	double x_min_soft = - 2.0;
+	double x_max_soft =   2.0;
 
 /************************************************
 * cost function
@@ -238,12 +243,12 @@ int main()
 	
 	// cost function wrt slack variables of the soft constraints
 	double *Z; d_zeros(&Z, 2*ns_, 1); // quadratic penalty
-	for(ii=0; ii<2*ns_; ii++) Z[ii] = 0.0;
+	for(ii=0; ii<2*ns_; ii++) Z[ii] = 10.0;
 	double *z; d_zeros(&z, 2*ns_, 1); // linear penalty
-	for(ii=0; ii<2*ns_; ii++) z[ii] = 100.0;
+	for(ii=0; ii<2*ns_; ii++) z[ii] = 0.0;
 
 	// maximum element in cost functions
-	double mu0 = 100.0;
+	double mu0 = 10.0;
 
 /************************************************
 * IPM settings
@@ -281,15 +286,11 @@ int main()
 	ns[N] = nx_;
 
 
-	// IPM arguments
-	int kk = 0; // acutal number of iterations
-	int k_max = K_MAX; // maximum number of iterations in the IP method
-	double mu_tol = MU_TOL; // tolerance in the duality measure
-	double alpha_min = ALPHA_MIN; // minimum accepted step length
+	// more IPM arguments
 	double sigma[] = {0.4, 0.3, 0.01}; // control primal-dual IP behaviour
 	double *stat; d_zeros(&stat, 5, k_max); // stats from the IP routine
-	int compute_mult = COMPUTE_MULT;
-	int warm_start = WARM_START;
+	int compute_mult = 1;
+	int warm_start = 0;
 	double mu = -1.0;
 	int hpmpc_status;
 	
@@ -298,10 +299,11 @@ int main()
 
 	// timing
 	struct timeval tv0, tv1;
+	
 
 /**************************************************************************************************
 *
-*	high-level interace
+*	high-level interface
 *
 **************************************************************************************************/
 
@@ -529,7 +531,6 @@ int main()
 		}
 #endif
 	
-
 	// cost function of the soft contraint slack variables
 	double *Z1; d_zeros_align(&Z1, 2*pns[1], 1);
 	for(ii=0; ii<ns[1]; ii++)
@@ -565,16 +566,14 @@ int main()
 
 	// ip soft work space
 	double *ip_soft_work; d_zeros_align(&ip_soft_work, d_ip2_mpc_soft_tv_work_space_size_bytes(N, nx, nu, nb, ng, ns)/sizeof(double), 1);
-
+	
 	// call the ip soft solver
 	d_ip2_mpc_soft_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, ns, hpBAbt, hpQ, hZ, hz, pdummyd, hdb, hux, 1, hpi, hlam, ht, ip_soft_work);
-
-
-
+	
 	// start timer
 	gettimeofday(&tv0, NULL); // start
 
-
+	int hpmpc_exit;
 
 	for(rep=0; rep<nrep; rep++)
 		{
@@ -606,13 +605,27 @@ int main()
 		d_cvt_tran_mat2pmat(nu_, 1, rq0, nu_, nu_, pRSQrq0+nu_/bs*bs*cnux[0]+nu_%bs, cnux[0]);
 
 		// call the IP solver
-		d_ip2_mpc_soft_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, ns, hpBAbt, hpQ, hZ, hz, pdummyd, hdb, hux, 1, hpi, hlam, ht, ip_soft_work);
+		hpmpc_exit = d_ip2_mpc_soft_tv(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, idxb, ng, ns, hpBAbt, hpQ, hZ, hz, pdummyd, hdb, hux, 1, hpi, hlam, ht, ip_soft_work);
 
 		}
 	
 	gettimeofday(&tv1, NULL); // stop
 	
-
+	switch(hpmpc_exit)
+	{
+		case 0: 
+			printf("Successful solution!\n");
+			break;
+		case 1: 
+			printf("Max number of iterations reached\n");
+			break;
+		case 2: 
+			printf("No improvement...\n");
+			break;
+		case -1: 
+			printf("This is impossible!\n");
+			break;
+	}
 	
 	double *hrq[N+1];
 	double *hrb[N];
@@ -640,8 +653,8 @@ int main()
 		drowex_lib(nu[ii]+nx[ii], 1.0, hpQ[ii]+(nu[ii]+nx[ii])/bs*bs*cnux[ii]+(nu[ii]+nx[ii])%bs, hq[ii]);
 		}
 	
-	for(ii=0; ii<=N; ii++)
-		d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], hpQ[ii], cnux[ii]);
+	//for(ii=0; ii<=N; ii++)
+		//d_print_pmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], hpQ[ii], cnux[ii]);
 
 
 
@@ -688,7 +701,7 @@ int main()
 		
 		}
 
-	if(PRINTRES==1 && COMPUTE_MULT==1)
+	if(PRINTRES==1 && compute_mult==1)
 		{
 		// print result 
 		// print result 
@@ -743,7 +756,7 @@ int main()
 	for(ii=0; ii<=N; ii++) free(hdL[ii]);
 	for(ii=0; ii<=N; ii++) free(hux[ii]);
 	for(ii=0; ii<=N; ii++) free(hpi[ii]);
-	return 0;
+	//return 0;
 	for(ii=0; ii<=N; ii++) free(hlam[ii]);
 	for(ii=0; ii<=N; ii++) free(ht[ii]);
 	for(ii=0; ii<=N; ii++) free(hrq[ii]);
