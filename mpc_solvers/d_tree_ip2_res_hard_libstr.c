@@ -52,7 +52,7 @@
 
 #define THR_ITER_REF 1e-5
 #define CORRECTOR_LOW 1
-#define CORRECTOR_HIGH 0
+#define CORRECTOR_HIGH 1
 
 
 
