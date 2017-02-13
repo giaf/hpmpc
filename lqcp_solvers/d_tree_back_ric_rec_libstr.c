@@ -98,7 +98,6 @@ static void d_back_ric_sv_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 	d_create_strvec(nx1t, &hswork_vec_0, (void *) c_ptr);
 	c_ptr += hswork_vec_0.memory_size;
 		
-	// all kids: update
 	tmp = 0;
 	for(ii=0; ii<nkids; ii++)
 		{
@@ -115,10 +114,8 @@ static void d_back_ric_sv_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 		dgead_libstr(1, nx1[ii], 1.0, &hsL1[ii], nu1[ii]+nx1[ii], nu1[ii], &hswork_mat_0, nu0+nx0, tmp);
 		tmp += nx1[ii];
 		}
-	
 	if(nb0>0 | ng0>0 | update_rq)
 		{
-
 		// initialize with hessian
 		dtrcp_l_libstr(nu0+nx0, 1.0, &hsRSQrq[0], 0, 0, &hsL0[0], 0, 0);
 		if(update_rq)
@@ -129,14 +126,12 @@ static void d_back_ric_sv_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 			{
 			dgecp_libstr(1, nu0+nx0, 1.0, &hsRSQrq[0], nu0+nx0, 0, &hsL0[0], nu0+nx0, 0);
 			}
-
 		// update with box constraints
 		if(nb0>0)
 			{
 			ddiaad_libspstr(nb0, hidxb0, 1.0, &hsQx[0], 0, &hsL0[0], 0, 0);
 			drowad_libspstr(nb0, hidxb0, 1.0, &hsqx[0], 0, &hsL0[0], nu0+nx0, 0);
 			}
-
 		// update with general constraints and factorize at the end
 		if(ng0>0)
 			{
@@ -150,13 +145,10 @@ static void d_back_ric_sv_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 			{
 			dsyrk_dpotrf_ln_libstr(nu0+nx0+1, nu0+nx0, nx1t, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
 			}
-
 		}
 	else
 		{
-
 		dsyrk_dpotrf_ln_libstr(nu0+nx0+1, nu0+nx0, nx1t, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, &hsRSQrq[0], 0, 0, &hsL0[0], 0, 0);
-
 		}
 
 	return;
@@ -165,35 +157,42 @@ static void d_back_ric_sv_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 
 
 
-static void d_back_ric_sv_back_N_libstr(int nx0, int nb0, int *hidxb0, int ng0, int update_rq, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strvec *hsqx, struct d_strmat *hsL, void *work)
+static void d_back_ric_sv_back_N_libstr(int nx0, int nu0, int nb0, int *hidxb0, int ng0, int update_rq, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strvec *hsqx, struct d_strmat *hsL, void *work)
 	{
 
 	struct d_strmat hswork_mat_0;
 
-	dtrcp_l_libstr(nx0, 1.0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
-	if(update_rq)
+	if(nb0>0 | ng0>0 | update_rq)
 		{
-		drowin_libstr(nx0, 1.0, &hsrq[0], 0, &hsL[0], nx0, 0);
+		dtrcp_l_libstr(nu0+nx0, 1.0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
+		if(update_rq)
+			{
+			drowin_libstr(nu0+nx0, 1.0, &hsrq[0], 0, &hsL[0], nu0+nx0, 0);
+			}
+		else
+			{
+			dgecp_libstr(1, nu0+nx0, 1.0, &hsRSQrq[0], nu0+nx0, 0, &hsL[0], nu0+nx0, 0);
+			}
+		if(nb0>0)
+			{
+			ddiaad_libspstr(nb0, hidxb0, 1.0, &hsQx[0], 0, &hsL[0], 0, 0);
+			drowad_libspstr(nb0, hidxb0, 1.0, &hsqx[0], 0, &hsL[0], nu0+nx0, 0);
+			}
+		if(ng0>0)
+			{
+			d_create_strmat(nu0+nx0+1, ng0, &hswork_mat_0, work);
+			dgemm_r_diag_libstr(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsQx[0], nb0, 0.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0);
+			drowin_libstr(ng0, 1.0, &hsqx[0], nb0, &hswork_mat_0, nu0+nx0, 0);
+			dsyrk_dpotrf_ln_libstr(nu0+nx0+1, nu0+nx0, ng0, &hswork_mat_0, 0, 0, &hsDCt[0], 0, 0, &hsL[0], 0, 0, &hsL[0], 0, 0);
+			}
+		else
+			{
+			dpotrf_l_libstr(nu0+nx0+1, nu0+nx0, &hsL[0], 0, 0, &hsL[0], 0, 0);
+			}
 		}
 	else
 		{
-		dgecp_libstr(1, nx0, 1.0, &hsRSQrq[0], nx0, 0, &hsL[0], nx0, 0);
-		}
-	if(nb0>0)
-		{
-		ddiaad_libspstr(nb0, hidxb0, 1.0, &hsQx[0], 0, &hsL[0], 0, 0);
-		drowad_libspstr(nb0, hidxb0, 1.0, &hsqx[0], 0, &hsL[0], nx0, 0);
-		}
-	if(ng0>0)
-		{
-		d_create_strmat(nx0+1, ng0, &hswork_mat_0, work);
-		dgemm_r_diag_libstr(nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsQx[0], nb0, 0.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0);
-		drowin_libstr(ng0, 1.0, &hsqx[0], nb0, &hswork_mat_0, nx0, 0);
-		dsyrk_dpotrf_ln_libstr(nx0+1, nx0, ng0, &hswork_mat_0, 0, 0, &hsDCt[0], 0, 0, &hsL[0], 0, 0, &hsL[0], 0, 0);
-		}
-	else
-		{
-		dpotrf_l_libstr(nx0+1, nx0, &hsL[0], 0, 0, &hsL[0], 0, 0);
+		dpotrf_l_libstr(nu0+nx0+1, nu0+nx0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
 		}
 
 	return;
@@ -284,19 +283,15 @@ static void d_back_ric_trf_1_libstr(int nkids, int nx0, int *nx1, int nu0, int *
 		dtrmm_rlnn_libstr(nu0+nx0, nx1[ii], 1.0, &hsL1[ii], nu1[ii], nu1[ii], &hsBAbt[ii], 0, 0, &hswork_mat_0, 0, tmp);
 		tmp += nx1[ii];
 		}
-	
 	if(nb0>0 | ng0>0)
 		{
-
 		// initialize with hessian
 		dtrcp_l_libstr(nu0+nx0, 1.0, &hsRSQrq[0], 0, 0, &hsL0[0], 0, 0);
-
 		// update with box constraints
 		if(nb0>0)
 			{
 			ddiaad_libspstr(nb0, hidxb0, 1.0, &hsQx[0], 0, &hsL0[0], 0, 0);
 			}
-
 		// update with general constraints and factorize at the end
 		if(ng0>0)
 			{
@@ -309,13 +304,10 @@ static void d_back_ric_trf_1_libstr(int nkids, int nx0, int *nx1, int nu0, int *
 			{
 			dsyrk_dpotrf_ln_libstr(nu0+nx0, nu0+nx0, nx1t, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
 			}
-
 		}
 	else
 		{
-
 		dsyrk_dpotrf_ln_libstr(nu0+nx0, nu0+nx0, nx1t, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, &hsRSQrq[0], 0, 0, &hsL0[0], 0, 0);
-
 		}
 
 	return;
@@ -324,27 +316,34 @@ static void d_back_ric_trf_1_libstr(int nkids, int nx0, int *nx1, int nu0, int *
 
 
 
-static void d_back_ric_trf_N_libstr(int nx0, int nb0, int *hidxb0, int ng0, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strmat *hsL, void *work)
+static void d_back_ric_trf_N_libstr(int nx0, int nu0, int nb0, int *hidxb0, int ng0, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsQx, struct d_strmat *hsL, void *work)
 	{
 
 	char *c_ptr;
 
 	struct d_strmat hswork_mat_0;
 
-	dtrcp_l_libstr(nx0, 1.0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
-	if(nb0>0)
+	if(nb0>0 | ng0>0)
 		{
-		ddiaad_libspstr(nb0, hidxb0, 1.0, &hsQx[0], 0, &hsL[0], 0, 0);
-		}
-	if(ng0>0)
-		{
-		d_create_strmat(nx0, ng0, &hswork_mat_0, work);
-		dgemm_r_diag_libstr(nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsQx[0], nb0, 0.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0);
-		dsyrk_dpotrf_ln_libstr(nx0, nx0, ng0, &hswork_mat_0, 0, 0, &hsDCt[0], 0, 0, &hsL[0], 0, 0, &hsL[0], 0, 0);
+		dtrcp_l_libstr(nu0+nx0, 1.0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
+		if(nb0>0)
+			{
+			ddiaad_libspstr(nb0, hidxb0, 1.0, &hsQx[0], 0, &hsL[0], 0, 0);
+			}
+		if(ng0>0)
+			{
+			d_create_strmat(nu0+nx0, ng0, &hswork_mat_0, work);
+			dgemm_r_diag_libstr(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsQx[0], nb0, 0.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0);
+			dsyrk_dpotrf_ln_libstr(nu0+nx0, nu0+nx0, ng0, &hswork_mat_0, 0, 0, &hsDCt[0], 0, 0, &hsL[0], 0, 0, &hsL[0], 0, 0);
+			}
+		else
+			{
+			dpotrf_l_libstr(nu0+nx0, nu0+nx0, &hsL[0], 0, 0, &hsL[0], 0, 0);
+			}
 		}
 	else
 		{
-		dpotrf_l_libstr(nx0, nx0, &hsL[0], 0, 0, &hsL[0], 0, 0);
+		dpotrf_l_libstr(nu0+nx0, nu0+nx0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
 		}
 
 	return;
@@ -363,7 +362,7 @@ static void d_back_ric_trs_back_N_libstr(int nx0, int nu0, int nb0, int *hidxb0,
 		}
 	if(ng0>0)
 		{
-		dgemv_n_libstr(nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsqx[0], nb0, 1.0, &hsux[0], 0, &hsux[0], 0);
+		dgemv_n_libstr(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsqx[0], nb0, 1.0, &hsux[0], 0, &hsux[0], 0);
 		}
 
 	return;
@@ -543,7 +542,7 @@ void d_tree_back_ric_rec_sv_libstr(int Nn, struct node *tree, int *nx, int *nu, 
 
 		if(nkids==0) // has no kids: last stage
 			{
-			d_back_ric_sv_back_N_libstr(nx[nn], nb[nn], hidxb[nn], ng[nn], update_rq, &hsRSQrq[nn], &hsrq[nn], &hsDCt[nn], &hsQx[nn], &hsqx[nn], &hsL[nn], work);
+			d_back_ric_sv_back_N_libstr(nx[nn], nu[nn], nb[nn], hidxb[nn], ng[nn], update_rq, &hsRSQrq[nn], &hsrq[nn], &hsDCt[nn], &hsQx[nn], &hsqx[nn], &hsL[nn], work);
 			}
 		else // has at least one kid
 			{
@@ -610,7 +609,7 @@ void d_tree_back_ric_rec_trf_libstr(int Nn, struct node *tree, int *nx, int *nu,
 
 		if(nkids==0) // has no kids: last stage
 			{
-			d_back_ric_trf_N_libstr(nx[nn], nb[nn], hidxb[nn], ng[nn], &hsRSQrq[nn], &hsDCt[nn], &hsQx[nn], &hsL[nn], work);
+			d_back_ric_trf_N_libstr(nx[nn], nu[nn], nb[nn], hidxb[nn], ng[nn], &hsRSQrq[nn], &hsDCt[nn], &hsQx[nn], &hsL[nn], work);
 			}
 		else // has at least one kid
 			{
