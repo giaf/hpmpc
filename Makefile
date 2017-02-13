@@ -57,7 +57,7 @@ OBJS +=
 endif
 # mpc auxiliary
 ifeq ($(USE_BLASFEO), 1)
-OBJS += ./mpc_solvers/avx/d_aux_ip_hard_libstr.o ./mpc_solvers/avx/d_aux_tree_ip_hard_libstr.o ./mpc_solvers/avx/d_res_ip_res_hard_libstr.o ./mpc_solvers/c99/d_tree_res_ip_res_hard_libstr.o
+OBJS += ./mpc_solvers/avx/d_aux_ip_hard_libstr.o ./mpc_solvers/avx/d_res_ip_res_hard_libstr.o ./mpc_solvers/c99/d_tree_res_ip_res_hard_libstr.o
 OBJS +=
 else
 OBJS += ./mpc_solvers/avx/d_aux_ip_hard_lib4.o ./mpc_solvers/avx/d_res_ip_res_hard.o ./mpc_solvers/c99/d_aux_ip_soft_lib4.o
@@ -108,7 +108,7 @@ OBJS +=
 endif
 # mpc auxiliary
 ifeq ($(USE_BLASFEO), 1)
-OBJS += ./mpc_solvers/avx/d_aux_ip_hard_libstr.o ./mpc_solvers/avx/d_aux_tree_ip_hard_libstr.o ./mpc_solvers/avx/d_res_ip_res_hard_libstr.o ./mpc_solvers/c99/d_tree_res_ip_res_hard_libstr.o
+OBJS += ./mpc_solvers/avx/d_aux_ip_hard_libstr.o ./mpc_solvers/avx/d_res_ip_res_hard_libstr.o ./mpc_solvers/c99/d_tree_res_ip_res_hard_libstr.o
 OBJS +=
 else
 OBJS += ./mpc_solvers/avx/d_aux_ip_hard_lib4.o ./mpc_solvers/avx/d_res_ip_res_hard.o ./mpc_solvers/c99/d_aux_ip_soft_lib4.o
