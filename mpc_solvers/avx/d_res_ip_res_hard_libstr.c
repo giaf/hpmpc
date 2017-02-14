@@ -103,115 +103,11 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	v_mu0 = _mm256_setzero_pd();
 	v_mu1 = _mm256_setzero_pd();
 
-
-
-	// first stage
-	ii = 0;
-	nu0 = nu[ii];
-	nu1 = nu[ii+1];
-	nx0 = nx[ii]; // nx1;
-	nx1 = nx[ii+1];
-	nb0 = nb[ii];
-	ng0 = ng[ii];
-
-	ptr_b = hsb[ii].pa;
-	ptr_q = hsq[ii].pa;
-	ptr_ux = hsux[ii].pa;
-	ptr_pi = hspi[ii].pa;
-	ptr_rq = hsrq[ii].pa;
-	ptr_rb = hsrb[ii].pa;
-
-	if(nb0>0 | ng0>0)
+	// loop over stages
+	for(ii=0; ii<=N; ii++)
 		{
-		ptr_d = hsd[ii].pa;
-		ptr_lam = hslam[ii].pa;
-		ptr_t = hst[ii].pa;
-		ptr_rd = hsrd[ii].pa;
-		ptr_rm = hsrm[ii].pa;
-		}
-
-	for(jj=0; jj<nu0+nx0; jj++) 
-		ptr_rq[jj] = ptr_q[jj];
-
-	if(nb0>0)
-		{
-
-		ptr_idxb = idxb[ii];
-		nb_tot += nb0;
-
-		for(jj=0; jj<nb0; jj++) 
-			{
-			ptr_rq[ptr_idxb[jj]] += - ptr_lam[jj] + ptr_lam[nb0+jj];
-
-			ptr_rd[jj]     = ptr_d[jj]     - ptr_ux[ptr_idxb[jj]] + ptr_t[jj];
-			ptr_rd[nb0+jj] = ptr_d[nb0+jj] - ptr_ux[ptr_idxb[jj]] - ptr_t[nb0+jj];
-
-			ptr_rm[jj]     = ptr_lam[jj]     * ptr_t[jj];
-			ptr_rm[nb0+jj] = ptr_lam[nb0+jj] * ptr_t[nb0+jj];
-			mu2 += ptr_rm[jj] + ptr_rm[nb0+jj];
-			}
-		}
-
-	dsymv_l_libstr(nu0+nx0, nu0+nx0, 1.0, &hsQ[ii], 0, 0, &hsux[ii], 0, 1.0, &hsrq[ii], 0, &hsrq[ii], 0);
-
-	ptr_ux = hsux[ii+1].pa;
-	for(jj=0; jj<nx1; jj++) 
-		ptr_rb[jj] = ptr_b[jj] - ptr_ux[nu1+jj];
-
-	dgemv_nt_libstr(nu0+nx0, nx1, 1.0, 1.0, &hsBAbt[ii], 0, 0, &hspi[ii+1], 0, &hsux[ii], 0, 1.0, 1.0, &hsrq[ii], 0, &hsrb[ii], 0, &hsrq[ii], 0, &hsrb[ii], 0);
-
-	if(ng0>0)
-		{
-
-		c_ptr = (char *) work;
-		d_create_strvec(ng0, &hswork_0, (void *) c_ptr);
-		c_ptr += hswork_0.memory_size;
-		d_create_strvec(ng0, &hswork_1, (void *) c_ptr);
-		c_ptr += hswork_1.memory_size;
-		work0 = hswork_0.pa;
-		work1 = hswork_1.pa;
-
-		ptr_d   += 2*nb0;
-		ptr_lam += 2*nb0;
-		ptr_t   += 2*nb0;
-		ptr_rd  += 2*nb0;
-		ptr_rm  += 2*nb0;
-
-		nb_tot += ng0;
-
-		for(jj=0; jj<ng0; jj++)
-			{
-			work0[jj] = ptr_lam[jj+ng0] - ptr_lam[jj+0];
-
-			ptr_rd[jj]     = ptr_d[jj]     + ptr_t[jj];
-			ptr_rd[ng0+jj] = ptr_d[ng0+jj] - ptr_t[ng0+jj];
-
-			ptr_rm[jj]     = ptr_lam[jj]     * ptr_t[jj];
-			ptr_rm[ng0+jj] = ptr_lam[ng0+jj] * ptr_t[ng0+jj];
-			mu2 += ptr_rm[jj] + ptr_rm[ng0+jj];
-			}
-
-		dgemv_nt_libstr(nu0+nx0, ng0, 1.0, 1.0, &hsDCt[ii], 0, 0, &hswork_0, 0, &hsux[ii], 0, 1.0, 0.0, &hsrq[ii], 0, &hswork_1, 0, &hsrq[ii], 0, &hswork_1, 0);
-
-		for(jj=0; jj<ng0; jj++)
-			{
-			ptr_rd[jj]     -= work1[jj];
-			ptr_rd[ng0+jj] -= work1[jj];
-			}
-
-		}
-
-
-	
-
-
-	// middle stages
-	for(ii=1; ii<N; ii++)
-		{
-		nu0 = nu1;
-		nu1 = nu[ii+1];
-		nx0 = nx1;
-		nx1 = nx[ii+1];
+		nu0 = nu[ii];
+		nx0 = nx[ii];
 		nb0 = nb[ii];
 		ng0 = ng[ii];
 
@@ -231,31 +127,11 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 			ptr_rm = hsrm[ii].pa;
 			}
 
-		for(jj=0; jj<nu0-3; jj+=4)
-			{
-			v_tmp0 = _mm256_loadu_pd( &ptr_q[jj] );
-			_mm256_storeu_pd( &ptr_rq[jj], v_tmp0 );
-			}
-		for(; jj<nu0; jj++) // TODO mask ?
-			{
-			u_tmp0 = _mm_load_sd( &ptr_q[jj] );
-			_mm_store_sd( &ptr_rq[jj], u_tmp0 );
-			}
+		dveccp_libstr(nu0+nx0, 1.0, &hsq[ii], 0, &hsrq[ii], 0);
 
-		for(jj=0; jj<nx0-3; jj+=4)
-			{
-			v_tmp0 = _mm256_loadu_pd( &ptr_q[nu0+jj] );
-			v_tmp1 = _mm256_loadu_pd( &ptr_pi[jj] );
-			v_tmp0 = _mm256_sub_pd( v_tmp0, v_tmp1 );
-			_mm256_storeu_pd( &ptr_rq[nu0+jj], v_tmp0 );
-			}
-		for(; jj<nx0; jj++) // TODO mask ?
-			{
-			u_tmp0 = _mm_load_sd( &ptr_q[nu0+jj] );
-			u_tmp1 = _mm_load_sd( &ptr_pi[jj] );
-			u_tmp0 = _mm_sub_sd( u_tmp0, u_tmp1 );
-			_mm_store_sd( &ptr_rq[nu0+jj], u_tmp0 );
-			}
+		// no previous multiplier at the first stage
+		if(ii>0)
+			daxpy_libstr(nx0, -1.0, &hspi[ii], 0, &hsrq[ii], nu[ii], &hsrq[ii], nu[ii]);
 
 		if(nb0>0)
 			{
@@ -346,11 +222,16 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 
 		dsymv_l_libstr(nu0+nx0, nu0+nx0, 1.0, &hsQ[ii], 0, 0, &hsux[ii], 0, 1.0, &hsrq[ii], 0, &hsrq[ii], 0);
 
-		ptr_ux = hsux[ii+1].pa;
-		for(jj=0; jj<nx1; jj++) // TODO
-			ptr_rb[jj] = ptr_b[jj] - ptr_ux[nu1+jj];
+		// no dynamic at the last stage
+		if(ii<N)
+			{
+			nu1 = nu[ii+1];
+			nx1 = nx[ii+1];
 
-		dgemv_nt_libstr(nu0+nx0, nx1, 1.0, 1.0, &hsBAbt[ii], 0, 0, &hspi[ii+1], 0, &hsux[ii], 0, 1.0, 1.0, &hsrq[ii], 0, &hsrb[ii], 0, &hsrq[ii], 0, &hsrb[ii], 0);
+			daxpy_libstr(nx1, -1.0, &hsux[ii+1], nu1, &hsb[ii], 0, &hsrb[ii], 0);
+
+			dgemv_nt_libstr(nu0+nx0, nx1, 1.0, 1.0, &hsBAbt[ii], 0, 0, &hspi[ii+1], 0, &hsux[ii], 0, 1.0, 1.0, &hsrq[ii], 0, &hsrb[ii], 0, &hsrq[ii], 0, &hsrb[ii], 0);
+			}
 
 		if(ng0>0)
 			{
@@ -445,95 +326,6 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 
 		}
 	
-
-
-	// last stage
-	ii = N;
-	nu0 = nu1;
-	nx0 = nx1;
-	nb0 = nb[ii];
-	ng0 = ng[ii];
-
-	ptr_q = hsq[ii].pa;
-	ptr_ux = hsux[ii].pa;
-	ptr_pi = hspi[ii].pa;
-	ptr_rq = hsrq[ii].pa;
-
-	if(nb0>0 | ng0>0)
-		{
-		ptr_d = hsd[ii].pa;
-		ptr_lam = hslam[ii].pa;
-		ptr_t = hst[ii].pa;
-		ptr_rd = hsrd[ii].pa;
-		ptr_rm = hsrm[ii].pa;
-		}
-
-	for(jj=0; jj<nx0; jj++) 
-		ptr_rq[nu0+jj] = - ptr_pi[jj] + ptr_q[nu0+jj];
-
-	if(nb0>0)
-		{
-
-		ptr_idxb = idxb[ii];
-		nb_tot += nb0;
-
-		for(jj=0; jj<nb0; jj++) 
-			{
-			ptr_rq[ptr_idxb[jj]] += - ptr_lam[jj] + ptr_lam[nb0+jj];
-
-			ptr_rd[jj]     = ptr_d[jj]     - ptr_ux[ptr_idxb[jj]] + ptr_t[jj];
-			ptr_rd[nb0+jj] = ptr_d[nb0+jj] - ptr_ux[ptr_idxb[jj]] - ptr_t[nb0+jj];
-
-			ptr_rm[jj]     = ptr_lam[jj]     * ptr_t[jj];
-			ptr_rm[nb0+jj] = ptr_lam[nb0+jj] * ptr_t[nb0+jj];
-			mu2 += ptr_rm[jj] + ptr_rm[nb0+jj];
-			}
-		}
-
-	dsymv_l_libstr(nx0, nx0, 1.0, &hsQ[ii], 0, 0, &hsux[ii], 0, 1.0, &hsrq[ii], 0, &hsrq[ii], 0);
-	
-	if(ng0>0)
-		{
-
-		c_ptr = (char *) work;
-		d_create_strvec(ng0, &hswork_0, (void *) c_ptr);
-		c_ptr += hswork_0.memory_size;
-		d_create_strvec(ng0, &hswork_1, (void *) c_ptr);
-		c_ptr += hswork_1.memory_size;
-		work0 = hswork_0.pa;
-		work1 = hswork_1.pa;
-
-		ptr_d   += 2*nb0;
-		ptr_lam += 2*nb0;
-		ptr_t   += 2*nb0;
-		ptr_rd  += 2*nb0;
-		ptr_rm  += 2*nb0;
-
-		nb_tot += ng0;
-
-		for(jj=0; jj<ng0; jj++)
-			{
-			work0[jj] = ptr_lam[jj+ng0] - ptr_lam[jj+0];
-
-			ptr_rd[jj]     = ptr_d[jj]     + ptr_t[jj];
-			ptr_rd[ng0+jj] = ptr_d[ng0+jj] - ptr_t[ng0+jj];
-
-			ptr_rm[jj]     = ptr_lam[jj]     * ptr_t[jj];
-			ptr_rm[ng0+jj] = ptr_lam[ng0+jj] * ptr_t[ng0+jj];
-			mu2 += ptr_rm[jj] + ptr_rm[ng0+jj];
-			}
-
-		dgemv_nt_libstr(nu0+nx0, ng0, 1.0, 1.0, &hsDCt[ii], 0, 0, &hswork_0, 0, &hsux[ii], 0, 1.0, 0.0, &hsrq[ii], 0, &hswork_1, 0, &hsrq[ii], 0, &hswork_1, 0);
-
-		for(jj=0; jj<ng0; jj++)
-			{
-			ptr_rd[jj]     -= work1[jj];
-			ptr_rd[ng0+jj] -= work1[jj];
-			}
-
-		}
-
-
 	// normalize mu
 	double mu_scal = 0.0;
 	if(nb_tot!=0)
@@ -551,8 +343,6 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		u_mu0  = _mm_mul_sd( u_mu0, u_tmp0 );
 		_mm_store_sd( &mu[0], u_mu0 );
 		}
-
-
 
 	return;
 

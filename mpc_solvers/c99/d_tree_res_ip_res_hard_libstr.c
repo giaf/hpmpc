@@ -37,17 +37,22 @@
 int d_tree_res_res_mpc_hard_work_space_size_bytes_libstr(int Nn, struct node *tree, int *nx, int *nu, int *nb, int *ng)
 	{
 
-	int ii;
+	int ii, tmp0, tmp1;
 
 	int size = 0;
 
 	int ngM = 0;
+	int nbM = 0;
 	for(ii=0; ii<Nn; ii++)
 		{
 		ngM = ng[ii]>ngM ? ng[ii] : ngM;
+		nbM = nb[ii]>nbM ? nb[ii] : nbM;
 		}
 
-	size += 2*d_size_strvec(ngM); // res_work[0], res_work[1]
+	tmp0 = 2*d_size_strvec(ngM); // res_work[0], res_work[1]
+	tmp1 = d_size_strvec(nbM);
+	
+	size += tmp0>tmp1 ? tmp0 : tmp1;
 
 	// make multiple of (typical) cache line size
 	size = (size+63)/64*64;
@@ -58,7 +63,7 @@ int d_tree_res_res_mpc_hard_work_space_size_bytes_libstr(int Nn, struct node *tr
 
 
 
-void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu, int *nb, int **idxb, int *ng, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsRSQrq, struct d_strvec *hsq, struct d_strvec *hsux, struct d_strmat *hsDCt, struct d_strvec *hsd, struct d_strvec *hspi, struct d_strvec *hslam, struct d_strvec *hst, struct d_strvec *hsres_q, struct d_strvec *hsres_b, struct d_strvec *hsres_d, struct d_strvec *hsres_m, double *mu, void *work)
+void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu, int *nb, int **idxb, int *ng, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strvec *hsux, struct d_strmat *hsDCt, struct d_strvec *hsd, struct d_strvec *hspi, struct d_strvec *hslam, struct d_strvec *hst, struct d_strvec *hsres_rq, struct d_strvec *hsres_b, struct d_strvec *hsres_d, struct d_strvec *hsres_m, double *mu, void *work)
 	{
 
 	int ii, jj, ll;
@@ -70,7 +75,7 @@ void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu,
 
 
 	double
-		*ptr_b, *ptr_q, *ptr_d, *ptr_ux, *ptr_pi, *ptr_lam, *ptr_t, *ptr_rb, *ptr_rq, *ptr_rd, *ptr_rm;
+		*ptr_d, *ptr_ux, *ptr_pi, *ptr_lam, *ptr_t, *ptr_rb, *ptr_rq, *ptr_rd, *ptr_rm;
 	
 	int
 		*ptr_idxb;
@@ -86,8 +91,6 @@ void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu,
 	nb_tot = 0;
 	mu2 = 0;
 
-
-
 	// loop over nodes
 	for(ii=0; ii<Nn; ii++)
 		{
@@ -99,10 +102,17 @@ void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu,
 		nb0 = nb[ii];
 		ng0 = ng[ii];
 
-		ptr_q = hsq[ii].pa;
 		ptr_ux = hsux[ii].pa;
 		ptr_pi = hspi[ii].pa;
-		ptr_rq = hsres_q[ii].pa;
+		ptr_rq = hsres_rq[ii].pa;
+
+		dveccp_libstr(nu0+nx0, 1.0, &hsrq[ii], 0, &hsres_rq[ii], 0);
+
+		// no previous multiplier at the first stage
+		if(ii>0)
+			daxpy_libstr(nx0, -1.0, &hspi[ii], 0, &hsres_rq[ii], nu0, &hsres_rq[ii], nu0);
+
+		dsymv_l_libstr(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[ii], 0, 0, &hsux[ii], 0, 1.0, &hsres_rq[ii], 0, &hsres_rq[ii], 0);
 
 		if(nb0>0 | ng0>0)
 			{
@@ -113,31 +123,22 @@ void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu,
 			ptr_rm = hsres_m[ii].pa;
 			}
 
-		for(jj=0; jj<nu0; jj++) 
-			ptr_rq[jj] = ptr_q[jj];
-
-		for(jj=0; jj<nx0; jj++) 
-			ptr_rq[nu0+jj] = ptr_q[nu0+jj] - ptr_pi[jj];
-
-		dsymv_l_libstr(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[ii], 0, 0, &hsux[ii], 0, 1.0, &hsres_q[ii], 0, &hsres_q[ii], 0);
-
 		if(nb0>0)
 			{
 
 			ptr_idxb = idxb[ii];
 			nb_tot += nb0;
 
-			for(jj=0; jj<nb0; jj++) 
-				{
-				ptr_rq[ptr_idxb[jj]] += - ptr_lam[jj] + ptr_lam[nb0+jj];
+			d_create_strvec(nb0, &hswork_0, work);
+			daxpy_libstr(nb0, -1.0, &hslam[ii], 0, &hslam[ii], nb0, &hswork_0, 0);
+			dvecad_sp_libstr(nb0, 1.0, &hswork_0, 0, idxb[ii], &hsres_rq[ii], 0);
 
-				ptr_rd[jj]     = ptr_d[jj]     - ptr_ux[ptr_idxb[jj]] + ptr_t[jj];
-				ptr_rd[nb0+jj] = ptr_d[nb0+jj] - ptr_ux[ptr_idxb[jj]] - ptr_t[nb0+jj];
+			dvecex_sp_libstr(nb0, -1.0, idxb[ii], &hsux[ii], 0, &hsres_d[ii], 0);
+			dveccp_libstr(nb0, 1.0, &hsres_d[ii], 0, &hsres_d[ii], nb0);
+			daxpy_libstr(2*nb0, 1.0, &hsd[ii], 0, &hsres_d[ii], 0, &hsres_d[ii], 0);
+			daxpy_libstr(nb0, 1.0, &hst[ii], 0, &hsres_d[ii], 0, &hsres_d[ii], 0);
+			daxpy_libstr(nb0,- 1.0, &hst[ii], nb0, &hsres_d[ii], nb0, &hsres_d[ii], nb0);
 
-				ptr_rm[jj]     = ptr_lam[jj]     * ptr_t[jj];
-				ptr_rm[nb0+jj] = ptr_lam[nb0+jj] * ptr_t[nb0+jj];
-				mu2 += ptr_rm[jj] + ptr_rm[nb0+jj];
-				}
 			}
 
 		if(ng0>0)
@@ -159,27 +160,19 @@ void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu,
 
 			nb_tot += ng0;
 
-			for(jj=0; jj<ng0; jj++)
-				{
-				work0[jj] = ptr_lam[jj+ng0] - ptr_lam[jj+0];
+			daxpy_libstr(ng0, -1.0, &hslam[ii], 2*nb0, &hslam[ii], 2*nb0+ng0, &hswork_0, 0);
 
-				ptr_rd[jj]     = ptr_d[jj]     + ptr_t[jj];
-				ptr_rd[ng0+jj] = ptr_d[ng0+jj] - ptr_t[ng0+jj];
+			daxpy_libstr(ng0, 1.0, &hst[ii], 2*nb0, &hsd[ii], 2*nb0, &hsres_d[ii], 2*nb0);
+			daxpy_libstr(ng0, -1.0, &hst[ii], 2*nb0+ng0, &hsd[ii], 2*nb0+ng0, &hsres_d[ii], 2*nb0+ng0);
 
-				ptr_rm[jj]     = ptr_lam[jj]     * ptr_t[jj];
-				ptr_rm[ng0+jj] = ptr_lam[ng0+jj] * ptr_t[ng0+jj];
-				mu2 += ptr_rm[jj] + ptr_rm[ng0+jj];
-				}
+			dgemv_nt_libstr(nu0+nx0, ng0, 1.0, 1.0, &hsDCt[ii], 0, 0, &hswork_0, 0, &hsux[ii], 0, 1.0, 0.0, &hsres_rq[ii], 0, &hswork_1, 0, &hsres_rq[ii], 0, &hswork_1, 0);
 
-			dgemv_nt_libstr(nu0+nx0, ng0, 1.0, 1.0, &hsDCt[ii], 0, 0, &hswork_0, 0, &hsux[ii], 0, 1.0, 0.0, &hsres_q[ii], 0, &hswork_1, 0, &hsres_q[ii], 0, &hswork_1, 0);
-
-			for(jj=0; jj<ng0; jj++)
-				{
-				ptr_rd[jj]     -= work1[jj];
-				ptr_rd[ng0+jj] -= work1[jj];
-				}
+			daxpy_libstr(ng0, -1.0, &hswork_1, 0, &hsres_d[ii], 2*nb0, &hsres_d[ii], 2*nb0);
+			daxpy_libstr(ng0, -1.0, &hswork_1, 0, &hsres_d[ii], 2*nb0+ng0, &hsres_d[ii], 2*nb0+ng0);
 
 			}
+
+		mu2 += dvecmuldot_libstr(2*nb0+2*ng0, &hslam[ii], 0, &hst[ii], 0, &hsres_m[ii], 0);
 
 		// work on kids
 
@@ -193,21 +186,13 @@ void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu,
 			nu1 = nu[idxkid];
 			nx1 = nx[idxkid];
 
-			ptr_b  = hsb[idxkid-1].pa;
-			ptr_rb = hsres_b[idxkid-1].pa;
-			ptr_ux = hsux[idxkid].pa;
+			daxpy_libstr(nx1, -1.0, &hsux[idxkid], nu1, &hsb[idxkid-1], 0, &hsres_b[idxkid-1], 0);
 
-			for(ll=0; ll<nx1; ll++) 
-				ptr_rb[ll] = ptr_b[ll] - ptr_ux[nu1+ll];
-
-			dgemv_nt_libstr(nu0+nx0, nx1, 1.0, 1.0, &hsBAbt[idxkid-1], 0, 0, &hspi[idxkid], 0, &hsux[ii], 0, 1.0, 1.0, &hsres_q[ii], 0, &hsres_b[idxkid-1], 0, &hsres_q[ii], 0, &hsres_b[idxkid-1], 0);
+			dgemv_nt_libstr(nu0+nx0, nx1, 1.0, 1.0, &hsBAbt[idxkid-1], 0, 0, &hspi[idxkid], 0, &hsux[ii], 0, 1.0, 1.0, &hsres_rq[ii], 0, &hsres_b[idxkid-1], 0, &hsres_rq[ii], 0, &hsres_b[idxkid-1], 0);
 
 			}
 
 		}
-	
-
-
 
 	// normalize mu
 	if(nb_tot!=0)
@@ -215,8 +200,6 @@ void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu,
 		mu2 /= 2.0*nb_tot;
 		mu[0] = mu2;
 		}
-
-
 
 	return;
 
