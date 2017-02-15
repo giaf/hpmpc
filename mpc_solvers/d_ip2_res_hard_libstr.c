@@ -336,7 +336,7 @@ exit(1);
 
 
 		//update cost function matrices and vectors (box constraints)
-		d_update_hessian_mpc_hard_libstr(N, nx, nu, nb, ng, hsd, 0.0, hst, hstinv, hslam, hslamt, hsdlam, hsQx, hsqx);
+		d_update_hessian_gradient_mpc_hard_libstr(N, nx, nu, nb, ng, hsd, 0.0, hst, hstinv, hslam, hslamt, hsdlam, hsQx, hsqx);
 
 #if 0
 for(ii=0; ii<=N; ii++)
@@ -493,8 +493,8 @@ exit(1);
 #endif
 
 
-		// compute step & update x, u, lam, t & compute the duality gap mu
-		d_update_var_mpc_hard_libstr(N, nx, nu, nb, ng, &mu, mu_scal, alpha, hsux, hsdux, hst, hsdt, hslam, hsdlam, hspi, hsdpi); // TODO backup variables before updating !!!!!
+		// compute step dux, dpi & update ux, pi, lam, t & compute the duality gap mu
+		d_backup_update_var_mpc_hard_libstr(N, nx, nu, nb, ng, &mu, mu_scal, alpha, hsux_bkp, hsux, hsdux, hspi_bkp, hspi, hsdpi, hst_bkp, hst, hsdt, hslam_bkp, hslam, hsdlam);
 
 
 
@@ -846,7 +846,7 @@ exit(1);
 
 
 		// compute the affine duality gap
-		d_compute_mu_res_mpc_hard_libstr(N, nx, nu, nb, ng, alpha, hslam, hsdlam, hst, hsdt, &mu_aff, mu_scal);
+		d_compute_mu_mpc_hard_libstr(N, nx, nu, nb, ng, &mu_aff, mu_scal, alpha, hslam, hsdlam, hst, hsdt);
 
 		stat[5*(*kk)+2] = mu_aff;
 
@@ -1324,105 +1324,38 @@ void d_kkt_solve_new_rhs_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, i
 	for(ii=0; ii<=N; ii++)
 		dveccp_libstr(2*nb[ii]+2*ng[ii], 1.0, &hst_bkp[ii], 0, &hst[ii], 0);
 	
-#if 0
-	printf("\nux_bkp\n");
-	for(jj=0; jj<=N; jj++)
-		d_print_tran_strvec(nu[jj]+nx[jj], &hsux[jj], 0);
-	printf("\npi_bkp\n");
-	for(jj=1; jj<=N; jj++)
-		d_print_tran_strvec(nx[jj], &hspi[jj], 0);
-	printf("\nlam_bkp\n");
-	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
-	printf("\nt_bkp\n");
-	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
-	exit(2);
-#endif
+
 
 	// compute residuals
 	d_res_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsb, hsRSQrq, hsq, hsux, hsDCt, hsd, hspi, hslam, hst, hsres_rq, hsres_b, hsres_d, hsres_m, &mu, d_res_res_mpc_hard_work_space);
 
-#if 0
-	printf("\nres_q\n");
-	for(jj=0; jj<=N; jj++)
-		d_print_e_tran_strvec(nu[jj]+nx[jj], &hsres_rq[jj], 0);
-	printf("\nres_b\n");
-	for(jj=0; jj<N; jj++)
-		d_print_e_tran_strvec(nx[jj+1], &hsres_b[jj], 0);
-	printf("\nres_d\n");
-	for(jj=0; jj<=N; jj++)
-		d_print_e_tran_strvec(2*nb[jj]+2*ng[jj], &hsres_d[jj], 0);
-	printf("\nres_m\n");
-	for(jj=0; jj<=N; jj++)
-		d_print_e_tran_strvec(2*nb[jj]+2*ng[jj], &hsres_m[jj], 0);
-	printf("\nmu\n");
-	d_print_e_mat(1, 1, &mu, 1);
-	exit(2);
-#endif
+
 
 	// update gradient
 	d_update_gradient_res_mpc_hard_libstr(N, nx, nu, nb, ng, hsres_d, hsres_m, hslam, hstinv, hsqx);
 
-#if 0
-for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nb[ii]+ng[ii], &hsqx[ii], 0);
-exit(1);
-#endif
+
 
 	// solve the system
 	d_back_ric_rec_trs_libstr(N, nx, nu, nb, idxb, ng, hsBAbt, hsres_b, hsres_rq, hsDCt, hsqx, hsdux, compute_mult, hsdpi, 1, hsPb, hsL, d_back_ric_rec_work_space);
 
-#if 0
-printf("\nNEW dux\n");
-for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(nu[ii]+nx[ii], &hsdux[ii], 0);
-printf("\nNEW dpi\n");
-for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(nx[ii], &hsdpi[ii], 0);
-exit(1);
-#endif
 
-#if 0
-printf("\nNEW res_d\n");
-for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsres_d[ii], 0);
-printf("\nNEW res_m\n");
-for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsres_m[ii], 0);
-exit(1);
-#endif
-#if 0
-printf("\nNEW t_inv\n");
-for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hstinv[ii], 0);
-printf("\nNEW lam\n");
-for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
-exit(1);
-#endif
 
 	// compute t & dlam & dt
-//	d_compute_dt_dlam_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsdux, hst, hstinv, hslam, hsDCt, hsres_d, hsres_m, hsdt, hsdlam);
 	double alpha = 1.0;
 	d_compute_alpha_res_mpc_hard_libstr(N, nx, nu, nb, idxb, ng, hsdux, hst, hstinv, hslam, hsDCt, hsres_d, hsres_m, hsdt, hsdlam, &alpha);
-//	printf("\nalpha = %f\n", alpha);
 
-#if 0
-printf("\nNEW dlam\n");
-for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
-printf("\nNEW dt\n");
-for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
-exit(1);
-#endif
+
 
 //	alpha *= 0.995; // XXX use this ??????
 
-	// update x, u, lam, t & compute the duality gap mu
+
+
+	// update ux, pi, lam, t & compute the duality gap mu
 	d_update_var_res_mpc_hard_libstr(N, nx, nu, nb, ng, 1.0, hsux, hsdux, hspi, hsdpi, hst, hsdt, hslam, hsdlam);
 //	d_update_var_res_mpc_hard_libstr(N, nx, nu, nb, ng, alpha, hsux, hsdux, hspi, hsdpi, hst, hsdt, hslam, hsdlam);
+
+
 
 	return;
 
