@@ -31,7 +31,7 @@
 #include <blasfeo_d_blas.h>
 #include <blasfeo_d_aux.h>
 
-#include "../../include/tree.h"
+#include "../include/tree.h"
 
 
 int d_tree_res_res_mpc_hard_work_space_size_bytes_libstr(int Nn, struct node *tree, int *nx, int *nu, int *nb, int *ng)
@@ -73,13 +73,6 @@ void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu,
 	struct d_strvec hswork_0, hswork_1;
 	double *work0, *work1;
 
-
-	double
-		*ptr_d, *ptr_ux, *ptr_pi, *ptr_lam, *ptr_t, *ptr_rb, *ptr_rq, *ptr_rd, *ptr_rm;
-	
-	int
-		*ptr_idxb;
-	
 	int nu0, nu1, nx0, nx1, nxm, nb0, ng0, nb_tot;
 
 	int nkids, idxkid;
@@ -102,10 +95,6 @@ void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu,
 		nb0 = nb[ii];
 		ng0 = ng[ii];
 
-		ptr_ux = hsux[ii].pa;
-		ptr_pi = hspi[ii].pa;
-		ptr_rq = hsres_rq[ii].pa;
-
 		dveccp_libstr(nu0+nx0, 1.0, &hsrq[ii], 0, &hsres_rq[ii], 0);
 
 		// no previous multiplier at the first stage
@@ -114,19 +103,9 @@ void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu,
 
 		dsymv_l_libstr(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[ii], 0, 0, &hsux[ii], 0, 1.0, &hsres_rq[ii], 0, &hsres_rq[ii], 0);
 
-		if(nb0>0 | ng0>0)
-			{
-			ptr_d = hsd[ii].pa;
-			ptr_lam = hslam[ii].pa;
-			ptr_t = hst[ii].pa;
-			ptr_rd = hsres_d[ii].pa;
-			ptr_rm = hsres_m[ii].pa;
-			}
-
 		if(nb0>0)
 			{
 
-			ptr_idxb = idxb[ii];
 			nb_tot += nb0;
 
 			d_create_strvec(nb0, &hswork_0, work);
@@ -151,12 +130,6 @@ void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu,
 			c_ptr += hswork_1.memory_size;
 			work0 = hswork_0.pa;
 			work1 = hswork_1.pa;
-
-			ptr_d   += 2*nb0;
-			ptr_lam += 2*nb0;
-			ptr_t   += 2*nb0;
-			ptr_rd  += 2*nb0;
-			ptr_rm  += 2*nb0;
 
 			nb_tot += ng0;
 

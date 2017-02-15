@@ -72,13 +72,6 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	struct d_strvec hswork_0, hswork_1;
 	double *work0, *work1;
 
-
-	double
-		*ptr_d, *ptr_ux, *ptr_pi, *ptr_lam, *ptr_t, *ptr_rb, *ptr_rq, *ptr_rd, *ptr_rm;
-	
-	int
-		*ptr_idxb;
-	
 	int nu0, nu1, nx0, nx1, nxm, nb0, ng0, nb_tot;
 
 	double
@@ -97,11 +90,6 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		nb0 = nb[ii];
 		ng0 = ng[ii];
 
-		ptr_ux = hsux[ii].pa;
-		ptr_pi = hspi[ii].pa;
-		ptr_rq = hsres_rq[ii].pa;
-		ptr_rb = hsres_b[ii].pa;
-
 		dveccp_libstr(nu0+nx0, 1.0, &hsrq[ii], 0, &hsres_rq[ii], 0);
 
 		// no previous multiplier at the first stage
@@ -110,19 +98,9 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 
 		dsymv_l_libstr(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[ii], 0, 0, &hsux[ii], 0, 1.0, &hsres_rq[ii], 0, &hsres_rq[ii], 0);
 
-		if(nb0>0 | ng0>0)
-			{
-			ptr_d = hsd[ii].pa;
-			ptr_lam = hslam[ii].pa;
-			ptr_t = hst[ii].pa;
-			ptr_rd = hsres_d[ii].pa;
-			ptr_rm = hsres_m[ii].pa;
-			}
-
 		if(nb0>0)
 			{
 
-			ptr_idxb = idxb[ii];
 			nb_tot += nb0;
 
 			d_create_strvec(nb0, &hswork_0, work);

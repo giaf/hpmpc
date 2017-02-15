@@ -27,7 +27,7 @@ include ../../Makefile.rule
 
 OBJS = 
 ifeq ($(USE_BLASFEO), 1)
-OBJS +=
+OBJS += d_aux_ip_hard_libstr.o
 else
 OBJS += d_aux_ip_hard_lib4.o d_res_ip_res_hard.o 
 endif
