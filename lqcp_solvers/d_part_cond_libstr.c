@@ -125,20 +125,17 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 
 	int nn;
 
-	int nu2[N+1]; // TODO avoid variable size arrays
-	int nu3[N+1]; // TODO avoid variable size arrays
-	nu2[0]= 0; // sum
-	nu3[0]= 0; // reverse sum
-	for(nn=0; nn<=N; nn++)
-		{
-		nu2[nn+1] = nu2[nn] + nu[nn];
-		nu3[nn+1] = nu3[nn] + nu[N-nn-1];
-		}
-
 	struct d_strmat sL;
 	struct d_strmat sM;
 	struct d_strmat sLx;
 	struct d_strmat sBAbtL;
+
+	int nu2 = 0; // sum of all nu
+	for(nn=0; nn<N; nn++)
+		nu2 += nu[nn];
+	
+	int nub = nu2;
+	int nuf = 0;
 
 
 
@@ -157,26 +154,35 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 
 
 	// final stage 
-	d_create_strmat(nu[N-1], nx[N-1], &sM, (void *) c_ptr[0]);
+	nub -= nu[N-1];
 
 	dgecp_libstr(nu[N-1]+nx[N-1]+1, nu[N-1]+nx[N-1], 1.0, &hsRSQrq[N-1], 0, 0, &hsL[N-1], 0, 0);
 
 	// D
-	dtrcp_l_libstr(nu[N-1], 1.0, &hsL[N-1], 0, 0, sRSQrq2, nu3[0], nu3[0]);
+	dtrcp_l_libstr(nu[N-1], 1.0, &hsL[N-1], 0, 0, sRSQrq2, nuf, nuf);
 
+#if defined(LA_HIGH_PERFORMANCE)
 	// M
+	d_create_strmat(nu[N-1], nx[N-1], &sM, (void *) c_ptr[0]);
+
 	dgetr_libstr(nx[N-1], nu[N-1], 1.0, &hsL[N-1], nu[N-1], 0, &sM, 0, 0);
 
-	dgemm_nt_libstr(nu2[N-1]+nx[0]+1, nu[N-1], nx[N-1], 1.0, &hsGamma[N-2], 0, 0, &sM, 0, 0, 0.0, sRSQrq2, nu3[1], nu3[0], sRSQrq2, nu3[1], nu3[0]);
+	dgemm_nt_libstr(nub+nx[0]+1, nu[N-1], nx[N-1], 1.0, &hsGamma[N-2], 0, 0, &sM, 0, 0, 0.0, sRSQrq2, nuf+nu[N-1], nuf, sRSQrq2, nuf+nu[N-1], nuf);
+#else
+	dgemm_nn_libstr(nub+nx[0]+1, nu[N-1], nx[N-1], 1.0, &hsGamma[N-2], 0, 0, &hsL[N-1], nu[N-1], 0, 0.0, sRSQrq2, nuf+nu[N-1], nuf, sRSQrq2, nuf+nu[N-1], nuf);
+#endif
 
 	// m
-	dgead_libstr(1, nu[N-1], 1.0, &hsL[N-1], nu[N-1]+nx[N-1], 0, sRSQrq2, nu2[N]+nx[0], nu3[0]);
+	dgead_libstr(1, nu[N-1], 1.0, &hsL[N-1], nu[N-1]+nx[N-1], 0, sRSQrq2, nu2+nx[0], nuf);
+
+	nuf += nu[N-1];
 
 
 
 	// middle stages 
 	for(nn=1; nn<N-1; nn++)
 		{	
+		nub -= nu[N-nn-1];
 
 		d_create_strmat(nx[N-nn]+1, nx[N-nn], &sLx, (void *) c_ptr[1]);
 		d_create_strmat(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], &sBAbtL, (void *) c_ptr[2]);
@@ -194,20 +200,26 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 #endif
 		dgead_libstr(1, nx[N-nn], 1.0, &sLx, nx[N-nn], 0, &sBAbtL, nu[N-nn-1]+nx[N-nn-1], 0);
 
-		d_create_strmat(nu[N-nn-1], nx[N-nn-1], &sM, (void *) c_ptr[0]);
-
 		dsyrk_ln_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 
 		// D
-		dtrcp_l_libstr(nu[N-nn-1], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nu3[nn], nu3[nn]);
+		dtrcp_l_libstr(nu[N-nn-1], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf);
 
+#if defined(LA_HIGH_PERFORMANCE)
 		// M
+		d_create_strmat(nu[N-nn-1], nx[N-nn-1], &sM, (void *) c_ptr[0]);
+
 		dgetr_libstr(nx[N-nn-1], nu[N-nn-1], 1.0, &hsL[N-nn-1], nu[N-nn-1], 0, &sM, 0, 0);
 
-		dgemm_nt_libstr(nu2[N-nn-1]+nx[0]+1, nu[N-nn-1], nx[N-nn-1], 1.0, &hsGamma[N-nn-2], 0, 0, &sM, 0, 0, 0.0, sRSQrq2, nu3[nn+1], nu3[nn], sRSQrq2, nu3[nn+1], nu3[nn]);
+		dgemm_nt_libstr(nub+nx[0]+1, nu[N-nn-1], nx[N-nn-1], 1.0, &hsGamma[N-nn-2], 0, 0, &sM, 0, 0, 0.0, sRSQrq2, nuf+nu[N-nn-1], nuf, sRSQrq2, nuf+nu[N-nn-1], nuf);
+#else
+		dgemm_nn_libstr(nub+nx[0]+1, nu[N-nn-1], nx[N-nn-1], 1.0, &hsGamma[N-nn-2], 0, 0, &hsL[N-nn-1], nu[N-nn-1], 0, 0.0, sRSQrq2, nuf+nu[N-nn-1], nuf, sRSQrq2, nuf+nu[N-nn-1], nuf);
+#endif
 
 		// m
-		dgead_libstr(1, nu[N-nn-1], 1.0, &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0, sRSQrq2, nu2[N]+nx[0], nu3[nn]);
+		dgead_libstr(1, nu[N-nn-1], 1.0, &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0, sRSQrq2, nu2+nx[0], nuf);
+
+		nuf += nu[N-nn-1];
 
 		}
 
@@ -233,9 +245,9 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 	dsyrk_ln_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 
 	// D, M, m, P, p
-//	dgecp_libstr(nu[0]+nx[0]+1, nu[0]+nx[0], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nu3[N-1], nu3[N-1]); // TODO dtrcp for 'rectangular' matrices
-	dtrcp_l_libstr(nu[0]+nx[0], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nu3[N-1], nu3[N-1]); // TODO dtrcp for 'rectangular' matrices
-	dgecp_libstr(1, nu[0]+nx[0], 1.0, &hsL[N-nn-1], nu[0]+nx[0], 0, sRSQrq2, nu3[N-1]+nu[0]+nx[0], nu3[N-1]); // TODO dtrcp for 'rectangular' matrices
+//	dgecp_libstr(nu[0]+nx[0]+1, nu[0]+nx[0], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf); // TODO dtrcp for 'rectangular' matrices
+	dtrcp_l_libstr(nu[0]+nx[0], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf); // TODO dtrcp for 'rectangular' matrices
+	dgecp_libstr(1, nu[0]+nx[0], 1.0, &hsL[N-nn-1], nu[0]+nx[0], 0, sRSQrq2, nuf+nu[0]+nx[0], nuf); // TODO dtrcp for 'rectangular' matrices
 
 	return;
 
