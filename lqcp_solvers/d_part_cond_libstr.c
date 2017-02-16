@@ -256,13 +256,13 @@ void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d
 	{
 
 	// early return
-	if(N<1)
+	if(N<0)
 		return;
 
 	// early return
-	if(N==1)
+	if(N==0)
 		{
-		dveccp_libstr(nu[N-1]+nx[N-1], 1.0, &hsrq[N-1], 0, srq2, 0);
+		dveccp_libstr(nu[0]+nx[0], 1.0, &hsrq[0], 0, srq2, 0);
 		return;
 		}
 
@@ -280,17 +280,17 @@ void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d
 
 	// final stage
 
-	d_create_strvec(nu[N-1]+nx[N-1], &sl, (void *) c_ptr[0]);
+	d_create_strvec(nu[N]+nx[N], &sl, (void *) c_ptr[0]);
 
-	dveccp_libstr(nu[N-1]+nx[N-1], 1.0, &hsrq[N-1], 0, &sl, 0);
+	dveccp_libstr(nu[N]+nx[N], 1.0, &hsrq[N], 0, &sl, 0);
 
-	dgemv_t_libstr(nx[N-1], nu[N-1], 1.0, &hsL[N-1], nu[N-1], 0, &hsGammab[N-2], 0, 1.0, &sl, 0, srq2, nuf);
+	dgemv_t_libstr(nx[N], nu[N], 1.0, &hsL[N], nu[N], 0, &hsGammab[N-1], 0, 1.0, &sl, 0, srq2, nuf);
 
-	nuf += nu[N-1];
+	nuf += nu[N];
 
 
 	// middle stages 
-	for(nn=1; nn<N-1; nn++)
+	for(nn=0; nn<N-1; nn++)
 		{
 
 		d_create_strvec(nx[N-nn], &sPbp, (void *) c_ptr[1]);
@@ -1134,7 +1134,7 @@ void d_part_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 			}
 		d_cond_b_libstr(T1, &nx[N_tmp], &nu[N_tmp], &hsBAbt[N_tmp], &hsb[N_tmp], hsGammab, &hsb2[ii]);
 
-		d_cond_rq_libstr(T1, &nx[N_tmp], &nu[N_tmp], &hsBAbt[N_tmp], &hsb[N_tmp], &hsrq[N_tmp], &hsL[N_tmp], hsGammab, &hsrq2[ii], (void *) c_ptr, work_space_sizes);
+		d_cond_rq_libstr(T1-1, &nx[N_tmp], &nu[N_tmp], &hsBAbt[N_tmp], &hsb[N_tmp], &hsrq[N_tmp], &hsL[N_tmp], hsGammab, &hsrq2[ii], (void *) c_ptr, work_space_sizes);
 
 		d_cond_d_libstr(T1, &nx[N_tmp], &nu[N_tmp], &nb[N_tmp], &hidxb[N_tmp], &ng[N_tmp], &hsDCt[N_tmp], &hsd[N_tmp], hsGammab, &hsd2[ii], (void *) c_ptr);
 		N_tmp += T1;
