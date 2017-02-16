@@ -259,16 +259,6 @@ void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d
 	if(N<1)
 		return;
 
-	int nn;
-
-	int nu3[N+1]; // TODO avoid variable size arrays
-	nu3[0]= 0; // reverse sum
-	for(nn=0; nn<=N; nn++)
-		nu3[nn+1] = nu3[nn] + nu[N-nn-1];
-
-	struct d_strvec sl;
-	struct d_strvec sPbp;
-
 	// early return
 	if(N==1)
 		{
@@ -276,6 +266,12 @@ void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d
 		return;
 		}
 
+	int nn;
+
+	struct d_strvec sl;
+	struct d_strvec sPbp;
+
+	int nuf = 0;
 
 	char *c_ptr[2];
 	c_ptr[0] = (char *) work_space;
@@ -288,7 +284,9 @@ void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d
 
 	dveccp_libstr(nu[N-1]+nx[N-1], 1.0, &hsrq[N-1], 0, &sl, 0);
 
-	dgemv_t_libstr(nx[N-1], nu[N-1], 1.0, &hsL[N-1], nu[N-1], 0, &hsGammab[N-2], 0, 1.0, &sl, 0, srq2, nu3[0]);
+	dgemv_t_libstr(nx[N-1], nu[N-1], 1.0, &hsL[N-1], nu[N-1], 0, &hsGammab[N-2], 0, 1.0, &sl, 0, srq2, nuf);
+
+	nuf += nu[N-1];
 
 
 	// middle stages 
@@ -303,7 +301,9 @@ void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d
 
 		dgemv_n_libstr(nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &hsBAbt[N-nn-1], 0, 0, &sPbp, 0, 1.0, &hsrq[N-nn-1], 0, &sl, 0);
 
-		dgemv_t_libstr(nx[N-nn-1], nu[N-nn-1], 1.0, &hsL[N-nn-1], nu[N-nn-1], 0, &hsGammab[N-nn-2], 0, 1.0, &sl, 0, srq2, nu3[nn]);
+		dgemv_t_libstr(nx[N-nn-1], nu[N-nn-1], 1.0, &hsL[N-nn-1], nu[N-nn-1], 0, &hsGammab[N-nn-2], 0, 1.0, &sl, 0, srq2, nuf);
+
+		nuf += nu[N-nn-1];
 
 		}
 
@@ -318,7 +318,7 @@ void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d
 
 	dgemv_n_libstr(nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &hsBAbt[N-nn-1], 0, 0, &sPbp, 0, 1.0, &hsrq[N-nn-1], 0, &sl, 0);
 
-	dveccp_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &sl, 0, srq2, nu3[N-1]);
+	dveccp_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &sl, 0, srq2, nuf);
 
 	return;
 
