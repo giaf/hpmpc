@@ -342,20 +342,20 @@ int main()
 ************************************************/	
 
 #if MHE!=1
-	double *d0; d_zeros(&d0, 2*nb[0], 1);
+	double *d0; d_zeros(&d0, 2*nb[0]+2*ng[0], 1);
 	int *idxb0; int_zeros(&idxb0, nb[0], 1);
 	// inputs
 	for(ii=0; ii<nu[0]; ii++)
 		{
-		d0[0*nb[0]+ii] = - 0.5; // u_min
-		d0[1*nb[0]+ii] = + 0.5; // u_max
+		d0[ii]             = - 0.5; // u_min
+		d0[nb[0]+ng[0]+ii] = + 0.5; // u_max
 		idxb0[ii] = ii;
 		}
 	// states
 	for( ; ii<nb[0]; ii++)
 		{
-		d0[0*nb[0]+ii] = - 4.0; // x_min
-		d0[1*nb[0]+ii] = + 4.0; // x_max
+		d0[ii]             = - 4.0; // x_min
+		d0[nb[0]+ng[0]+ii] = + 4.0; // x_max
 		idxb0[ii] = ii;
 		}
 #endif
@@ -364,48 +364,48 @@ int main()
 	int *idxb1; 
 	if(N>1)
 		{
-		d_zeros(&d1, 2*nb[1], 1);
+		d_zeros(&d1, 2*nb[1]+2*ng[1], 1);
 		int_zeros(&idxb1, nb[1], 1);
 		// inputs
 		for(ii=0; ii<nu[1]; ii++)
 			{
-			d1[0*nb[1]+ii] = - 0.5; // u_min
-			d1[1*nb[1]+ii] = + 0.5; // u_max
+			d1[ii]             = - 0.5; // u_min
+			d1[nb[1]+ng[1]+ii] = + 0.5; // u_max
 			idxb1[ii] = ii;
 			}
 		// states
 		for( ; ii<nb[1]; ii++)
 			{
-			d1[0*nb[1]+ii] = - 4.0; // x_min
-			d1[1*nb[1]+ii] = + 4.0; // x_max
+			d1[ii]             = - 4.0; // x_min
+			d1[nb[1]+ng[1]+ii] = + 4.0; // x_max
 			idxb1[ii] = ii;
 			}
 		}
 
-	double *dN; d_zeros(&dN, 2*nb[N], 1);
+	double *dN; d_zeros(&dN, 2*nb[N]+2*ng[N], 1);
 	int *idxbN; int_zeros(&idxbN, nb[N], 1);
 	// no inputs
 	// states
 	for(ii=0 ; ii<nb[N]; ii++)
 		{
-		dN[0*nb[N]+ii] = - 4.0; // x_min
-		dN[1*nb[N]+ii] = + 4.0; // x_max
+		dN[ii]             = - 4.0; // x_min
+		dN[nb[N]+ng[N]+ii] = + 4.0; // x_max
 		idxbN[ii] = ii;
 		}
 
 	struct d_strvec sd0;
-	d_allocate_strvec(2*nb[0], &sd0);
-	d_cvt_vec2strvec(2*nb[0], d0, &sd0, 0);
+	d_allocate_strvec(2*nb[0]+2*ng[0], &sd0);
+	d_cvt_vec2strvec(2*nb[0]+2*ng[0], d0, &sd0, 0);
 //	d_print_tran_strvec(2*nb[0], &sd0, 0);
 
 	struct d_strvec sd1;
-	d_allocate_strvec(2*nb[1], &sd1);
-	d_cvt_vec2strvec(2*nb[1], d1, &sd1, 0);
+	d_allocate_strvec(2*nb[1]+2*ng[1], &sd1);
+	d_cvt_vec2strvec(2*nb[1]+2*ng[1], d1, &sd1, 0);
 //	d_print_tran_strvec(2*nb[1], &sd1, 0);
 
 	struct d_strvec sdN;
-	d_allocate_strvec(2*nb[N], &sdN);
-	d_cvt_vec2strvec(2*nb[N], dN, &sdN, 0);
+	d_allocate_strvec(2*nb[N]+2*ng[N], &sdN);
+	d_cvt_vec2strvec(2*nb[N]+2*ng[N], dN, &sdN, 0);
 //	d_print_tran_strvec(2*nb[N], &sdN, 0);
 
 /************************************************

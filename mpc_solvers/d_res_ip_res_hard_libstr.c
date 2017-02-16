@@ -72,7 +72,7 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	struct d_strvec hswork_0, hswork_1;
 	double *work0, *work1;
 
-	int nu0, nu1, nx0, nx1, nxm, nb0, ng0, nb_tot;
+	int nu0, nu1, nx0, nx1, nxm, nb0, ng0, nt0, nb_tot;
 
 	double
 		mu2;
@@ -89,6 +89,7 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		nx0 = nx[ii];
 		nb0 = nb[ii];
 		ng0 = ng[ii];
+		nt0 = nb0 + ng0;
 
 		dveccp_libstr(nu0+nx0, 1.0, &hsrq[ii], 0, &hsres_rq[ii], 0);
 
@@ -104,18 +105,19 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 			nb_tot += nb0;
 
 			d_create_strvec(nb0, &hswork_0, work);
-			daxpy_libstr(nb0, -1.0, &hslam[ii], 0, &hslam[ii], nb0, &hswork_0, 0);
+			daxpy_libstr(nb0, -1.0, &hslam[ii], 0, &hslam[ii], nt0, &hswork_0, 0);
 			dvecad_sp_libstr(nb0, 1.0, &hswork_0, 0, idxb[ii], &hsres_rq[ii], 0);
 
 			dvecex_sp_libstr(nb0, -1.0, idxb[ii], &hsux[ii], 0, &hsres_d[ii], 0);
-			dveccp_libstr(nb0, 1.0, &hsres_d[ii], 0, &hsres_d[ii], nb0);
-			daxpy_libstr(2*nb0, 1.0, &hsd[ii], 0, &hsres_d[ii], 0, &hsres_d[ii], 0);
+			dveccp_libstr(nb0, 1.0, &hsres_d[ii], 0, &hsres_d[ii], nt0);
+			daxpy_libstr(nb0, 1.0, &hsd[ii], 0, &hsres_d[ii], 0, &hsres_d[ii], 0);
+			daxpy_libstr(nb0, 1.0, &hsd[ii], nt0, &hsres_d[ii], nt0, &hsres_d[ii], nt0);
 			daxpy_libstr(nb0, 1.0, &hst[ii], 0, &hsres_d[ii], 0, &hsres_d[ii], 0);
-			daxpy_libstr(nb0,- 1.0, &hst[ii], nb0, &hsres_d[ii], nb0, &hsres_d[ii], nb0);
+			daxpy_libstr(nb0, -1.0, &hst[ii], nt0, &hsres_d[ii], nt0, &hsres_d[ii], nt0);
 
 			}
 
-		if(ng0>0)
+		if(ng0>0) // TODO merge with bounds as much as possible
 			{
 
 			c_ptr = (char *) work;
@@ -128,16 +130,16 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 
 			nb_tot += ng0;
 
-			daxpy_libstr(ng0, -1.0, &hslam[ii], 2*nb0, &hslam[ii], 2*nb0+ng0, &hswork_0, 0);
+			daxpy_libstr(ng0, -1.0, &hslam[ii], nb0, &hslam[ii], nt0+nb0, &hswork_0, 0);
 
-			daxpy_libstr(ng0, 1.0, &hst[ii], 2*nb0, &hsd[ii], 2*nb0, &hsres_d[ii], 2*nb0);
-			daxpy_libstr(ng0, -1.0, &hst[ii], 2*nb0+ng0, &hsd[ii], 2*nb0+ng0, &hsres_d[ii], 2*nb0+ng0);
+			daxpy_libstr(ng0, 1.0, &hst[ii], nb0, &hsd[ii], nb0, &hsres_d[ii], nb0);
+			daxpy_libstr(ng0, -1.0, &hst[ii], nt0+nb0, &hsd[ii], nt0+nb0, &hsres_d[ii], nt0+nb0);
 
 
 			dgemv_nt_libstr(nu0+nx0, ng0, 1.0, 1.0, &hsDCt[ii], 0, 0, &hswork_0, 0, &hsux[ii], 0, 1.0, 0.0, &hsres_rq[ii], 0, &hswork_1, 0, &hsres_rq[ii], 0, &hswork_1, 0);
 
-			daxpy_libstr(ng0, -1.0, &hswork_1, 0, &hsres_d[ii], 2*nb0, &hsres_d[ii], 2*nb0);
-			daxpy_libstr(ng0, -1.0, &hswork_1, 0, &hsres_d[ii], 2*nb0+ng0, &hsres_d[ii], 2*nb0+ng0);
+			daxpy_libstr(ng0, -1.0, &hswork_1, 0, &hsres_d[ii], nb0, &hsres_d[ii], nb0);
+			daxpy_libstr(ng0, -1.0, &hswork_1, 0, &hsres_d[ii], nt0+nb0, &hsres_d[ii], nt0+nb0);
 
 			}
 

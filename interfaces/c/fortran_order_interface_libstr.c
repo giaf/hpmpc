@@ -341,13 +341,13 @@ int fortran_order_d_ip_ocp_hard_tv(
 	for(ii=0; ii<=N; ii++)
 		{
 		d_cvt_vec2strvec(nb[ii], lb[ii], &hsd[ii], 0);
-		d_cvt_vec2strvec(nb[ii], ub[ii], &hsd[ii], nb[ii]);
+		d_cvt_vec2strvec(nb[ii], ub[ii], &hsd[ii], nb[ii]+ng[ii]);
 		}
 	// general constraints
 	for(ii=0; ii<=N; ii++)
 		{
-		d_cvt_vec2strvec(ng[ii], lg[ii], &hsd[ii], 2*nb[ii]+0);
-		d_cvt_vec2strvec(ng[ii], ug[ii], &hsd[ii], 2*nb[ii]+ng[ii]);
+		d_cvt_vec2strvec(ng[ii], lg[ii], &hsd[ii], nb[ii]+0);
+		d_cvt_vec2strvec(ng[ii], ug[ii], &hsd[ii], nb[ii]+nb[ii]+ng[ii]);
 		}
 //	for(ii=0; ii<=N; ii++)
 //		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
@@ -401,17 +401,19 @@ int fortran_order_d_ip_ocp_hard_tv(
 		// partial condensing routine (computing also hidxb2) !!!
 		d_part_cond_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, N2, nx2, nu2, nb2, hidxb2, ng2, hsBAbt2, hsRSQrq2, hsDCt2, hsd2, memory_part_cond, work_part_cond, &work_part_cond_sizes[0]);
 
-//		for(ii=0; ii<N2; ii++)
-//			d_print_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii], 0, 0);
-//		for(ii=0; ii<=N2; ii++)
-//			d_print_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsRSQrq2[ii], 0, 0);
-//		for(ii=0; ii<=N2; ii++)
-//			d_print_strmat(nu2[ii]+nx2[ii], ng2[ii], &hsDCt2[ii], 0, 0);
-//		for(ii=0; ii<=N2; ii++)
-//			d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hsd2[ii], 0);
-//		for(ii=0; ii<=N2; ii++)
-//			int_print_mat(1, nb2[ii], hidxb2[ii], 1);
-//		exit(1);
+#if 0
+		for(ii=0; ii<N2; ii++)
+			d_print_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii], 0, 0);
+		for(ii=0; ii<=N2; ii++)
+			d_print_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsRSQrq2[ii], 0, 0);
+		for(ii=0; ii<=N2; ii++)
+			d_print_strmat(nu2[ii]+nx2[ii], ng2[ii], &hsDCt2[ii], 0, 0);
+		for(ii=0; ii<=N2; ii++)
+			d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hsd2[ii], 0);
+		for(ii=0; ii<=N2; ii++)
+			int_print_mat(1, nb2[ii], hidxb2[ii], 1);
+		exit(1);
+#endif
 
 		// IPM work space
 		work_ipm = (void *) c_ptr;
@@ -464,15 +466,21 @@ int fortran_order_d_ip_ocp_hard_tv(
 		// IPM solver on partially condensed system
 		hpmpc_status = d_ip2_res_mpc_hard_libstr(kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N2, nx2, nu2, nb2, hidxb2, ng2, hsBAbt2, hsRSQrq2, hsDCt2, hsd2, hsux2, 1, hspi2, hslam2, hst2, work_ipm);
 
-//		for(ii=0; ii<=N2; ii++)
-//			d_print_tran_strvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
-//		for(ii=0; ii<N2; ii++)
-//			d_print_tran_strvec(nx2[ii+1], &hspi2[ii], 0);
-//		for(ii=0; ii<=N2; ii++)
-//			d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii], 0);
-//		for(ii=0; ii<=N2; ii++)
-//			d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hst2[ii], 0);
-//		exit(2);
+#if 0
+		printf("\nux\n");
+		for(ii=0; ii<=N2; ii++)
+			d_print_e_tran_strvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
+		printf("\npi\n");
+		for(ii=0; ii<N2; ii++)
+			d_print_e_tran_strvec(nx2[ii+1], &hspi2[ii], 0);
+		printf("\nlam\n");
+		for(ii=0; ii<=N2; ii++)
+			d_print_e_tran_strvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii], 0);
+		printf("\nt\n");
+		for(ii=0; ii<=N2; ii++)
+			d_print_e_tran_strvec(2*nb2[ii]+2*ng2[ii], &hst2[ii], 0);
+		exit(2);
+#endif
 
 		// expand work space
 		work_part_expand = (void *) c_ptr;
@@ -515,15 +523,21 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 		}
 
-//	for(ii=0; ii<=N; ii++)
-//		d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
-//	for(ii=0; ii<N; ii++)
-//		d_print_tran_strvec(nx[ii+1], &hspi[ii], 0);
-//	for(ii=0; ii<=N; ii++)
-//		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
-//	for(ii=0; ii<=N; ii++)
-//		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
-//	exit(1);
+#if 0
+	printf("\nux\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+	printf("\npi\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(nx[ii], &hspi[ii], 0);
+	printf("\nlam\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+	printf("\nt\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
+	exit(1);
+#endif
 
 	// copy back inputs and states
 	for(ii=0; ii<N; ii++)
@@ -540,15 +554,17 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsrrq, hsrb, hsrd, hsrm, &mu, work_res);
 
-//	for(ii=0; ii<=N; ii++)
-//		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
-//	for(ii=0; ii<N; ii++)
-//		d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
-//	for(ii=0; ii<=N; ii++)
-//		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
-//	for(ii=0; ii<=N; ii++)
-//		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
-//	exit(1);
+#if 0
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
+	for(ii=0; ii<N; ii++)
+		d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
+	exit(1);
+#endif
 	
 	double *ptr;
 
@@ -818,13 +834,13 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 	for(ii=0; ii<=N; ii++)
 		{
 		d_cvt_vec2strvec(nb[ii], lb[ii], &hsd[ii], 0);
-		d_cvt_vec2strvec(nb[ii], ub[ii], &hsd[ii], nb[ii]);
+		d_cvt_vec2strvec(nb[ii], ub[ii], &hsd[ii], nb[ii]+ng[ii]);
 		}
 	// general constraints
 	for(ii=0; ii<=N; ii++)
 		{
-		d_cvt_vec2strvec(ng[ii], lg[ii], &hsd[ii], 2*nb[ii]+0);
-		d_cvt_vec2strvec(ng[ii], ug[ii], &hsd[ii], 2*nb[ii]+ng[ii]);
+		d_cvt_vec2strvec(ng[ii], lg[ii], &hsd[ii], nb[ii]+0);
+		d_cvt_vec2strvec(ng[ii], ug[ii], &hsd[ii], nb[ii]+nb[ii]+ng[ii]);
 		}
 //	for(ii=0; ii<=N; ii++)
 //		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);

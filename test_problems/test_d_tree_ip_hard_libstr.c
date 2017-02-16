@@ -450,8 +450,8 @@ int main()
 	nbu = nu[0]<nb[0] ? nu[0] : nb[0];
 	for(ii=0; ii<nbu; ii++)
 		{
-		d0[ii]       = - 0.5; // u_min
-		d0[nb[0]+ii] =   0.5; // u_min
+		d0[ii]             = - 0.5; // u_min
+		d0[nb[0]+ng[0]+ii] =   0.5; // u_min
 		idxb0[ii] = ii;
 		}
 //	d_print_mat(1, 2*nb[0]+2*ng[0], d0, 1);
@@ -461,14 +461,14 @@ int main()
 	nbu = nu[1]<nb[1] ? nu[1] : nb[1];
 	for(ii=0; ii<nbu; ii++)
 		{
-		d1[ii]       = - 0.5; // u_min
-		d1[nb[1]+ii] =   0.5; // u_min
+		d1[ii]             = - 0.5; // u_min
+		d1[nb[1]+ng[1]+ii] =   0.5; // u_min
 		idxb1[ii] = ii;
 		}
 	for(; ii<nb[1]; ii++)
 		{
-		d1[ii]       = - 4.0; // x_min
-		d1[nb[1]+ii] =   4.0; // x_min
+		d1[ii]             = - 4.0; // x_min
+		d1[nb[1]+ng[1]+ii] =   4.0; // x_min
 		idxb1[ii] = ii;
 		}
 //	d_print_mat(1, 2*nb[1]+2*ng[1], d1, 1);
@@ -477,8 +477,8 @@ int main()
 	int *idxbN; int_zeros(&idxbN, nb[N]+ng[N], 1);
 	for(ii=0; ii<nb[N]; ii++)
 		{
-		dN[ii]       = - 4.0; // x_min
-		dN[nb[N]+ii] =   4.0; // x_min
+		dN[ii]             = - 4.0; // x_min
+		dN[nb[N]+ng[N]+ii] =   4.0; // x_min
 		idxbN[ii] = ii;
 		}
 //	d_print_mat(1, 2*nb[N]+2*ng[N], dN, 1);

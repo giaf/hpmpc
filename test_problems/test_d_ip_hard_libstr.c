@@ -171,7 +171,7 @@ int main()
 	int N  = 10; // horizon lenght
 
 	// partial condensing horizon
-	int N2 = 5; //N/2;
+	int N2 = 2; //N/2;
 
 	// maximum number of IPM iterations
 	int k_max = 10;
@@ -439,13 +439,13 @@ int main()
 //		if(0) // input
 		if(ii<nu[0]) // input
 			{
-			d0[ii]       = - 0.5; // umin
-			d0[nb[0]+ii] =   0.5; // umax
+			d0[ii]             = - 0.5; // umin
+			d0[nb[0]+ng[0]+ii] =   0.5; // umax
 			}
 		else // state
 			{
-			d0[ii]       = - 4.0; // xmin
-			d0[nb[0]+ii] =   4.0; // xmax
+			d0[ii]             = - 4.0; // xmin
+			d0[nb[0]+ng[0]+ii] =   4.0; // xmax
 			}
 //		idxb0[ii] = nu[0]+nx[0]/2+ii;
 		idxb0[ii] = ii;
@@ -454,13 +454,13 @@ int main()
 		{
 		if(ii<nu[0]) // input
 			{
-			d0[2*nb[0]+ii]       = - 0.5; // umin
-			d0[2*nb[0]+ng[0]+ii] =   0.5; // umax
+			d0[nb[0]+ii]             = - 0.5; // umin
+			d0[nb[0]+ng[0]+nb[0]+ii] =   0.5; // umax
 			}
 		else // state
 			{
-			d0[2*nb[0]+ii]       = - 4.0; // xmin
-			d0[2*nb[0]+ng[0]+ii] =   4.0; // xmax
+			d0[nb[0]+ii]             = - 4.0; // xmin
+			d0[nb[0]+ng[0]+nb[0]+ii] =   4.0; // xmax
 			}
 		}
 #if PRINT
@@ -475,13 +475,13 @@ int main()
 //		if(0) // input
 		if(ii<nu[1]) // input
 			{
-			d1[ii]       = - 0.5; // umin
-			d1[nb[1]+ii] =   0.5; // umax
+			d1[ii]             = - 0.5; // umin
+			d1[nb[1]+ng[1]+ii] =   0.5; // umax
 			}
 		else // state
 			{
-			d1[ii]       = - 4.0; // xmin
-			d1[nb[1]+ii] =   4.0; // xmax
+			d1[ii]             = - 4.0; // xmin
+			d1[nb[1]+ng[1]+ii] =   4.0; // xmax
 			}
 		idxb1[ii] = ii;
 //		idxb1[ii] = nu[1]+nx[1]/2+ii;
@@ -490,13 +490,13 @@ int main()
 		{
 		if(ii<nu[1]) // input
 			{
-			d1[2*nb[1]+ii]       = - 0.5; // umin
-			d1[2*nb[1]+ng[1]+ii] =   0.5; // umax
+			d1[nb[1]+ii]             = - 0.5; // umin
+			d1[nb[1]+ng[1]+nb[1]+ii] =   0.5; // umax
 			}
 		else // state
 			{
-			d1[2*nb[1]+ii]       = - 4.0; // xmin
-			d1[2*nb[1]+ng[1]+ii] =   4.0; // xmax
+			d1[nb[1]+ii]             = - 4.0; // xmin
+			d1[nb[1]+ng[1]+nb[1]+ii] =   4.0; // xmax
 			}
 		}
 #if PRINT
@@ -508,14 +508,14 @@ int main()
 	double *dN; d_zeros(&dN, 2*nb[N]+2*ng[N], 1);
 	for(ii=0; ii<nb[N]; ii++)
 		{
-		dN[ii]       = - 4.0; // xmin
-		dN[nb[N]+ii] =   4.0; // xmax
+		dN[ii]             = - 4.0; // xmin
+		dN[nb[N]+ng[N]+ii] =   4.0; // xmax
 		idxbN[ii] = ii;
 		}
 	for(ii=0; ii<ng[N]; ii++)
 		{
-		dN[2*nb[N]+ii]       = - 4.0; // dmin
-		dN[2*nb[N]+ng[N]+ii] =   4.0; // dmax
+		dN[nb[N]+ii]             = - 4.0; // dmin
+		dN[nb[N]+ng[N]+nb[N]+ii] =   4.0; // dmax
 		}
 #if PRINT
 	int_print_mat(1, nb[N], idxbN, 1);
