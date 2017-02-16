@@ -120,8 +120,15 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 	{
 
 	// early return
-	if(N<1)
+	if(N<0)
 		return;
+
+	// early return
+	if(N==0)
+		{
+		dgecp_libstr(nu[0]+nx[0]+1, nu[0]+nx[0], 1.0, &hsRSQrq[0], 0, 0, sRSQrq2, 0, 0);
+		return;
+		}
 
 	int nn;
 
@@ -131,21 +138,11 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 	struct d_strmat sBAbtL;
 
 	int nu2 = 0; // sum of all nu
-	for(nn=0; nn<N; nn++)
+	for(nn=0; nn<=N; nn++)
 		nu2 += nu[nn];
 	
-	int nub = nu2;
-	int nuf = 0;
-
-
-
-	// early return
-	if(N==1)
-		{
-		dgecp_libstr(nu[N-1]+nx[N-1]+1, nu[N-1]+nx[N-1], 1.0, &hsRSQrq[N-1], 0, 0, sRSQrq2, 0, 0);
-		return;
-		}
-
+	int nub = nu2; // backward partial sum
+	int nuf = 0; // forward partial sum
 
 	char *c_ptr[3];
 	c_ptr[0] = (char *) work_space;
@@ -154,33 +151,33 @@ void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struc
 
 
 	// final stage 
-	nub -= nu[N-1];
+	nub -= nu[N];
 
-	dgecp_libstr(nu[N-1]+nx[N-1]+1, nu[N-1]+nx[N-1], 1.0, &hsRSQrq[N-1], 0, 0, &hsL[N-1], 0, 0);
+	dgecp_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], 1.0, &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
 
 	// D
-	dtrcp_l_libstr(nu[N-1], 1.0, &hsL[N-1], 0, 0, sRSQrq2, nuf, nuf);
+	dtrcp_l_libstr(nu[N], 1.0, &hsL[N], 0, 0, sRSQrq2, nuf, nuf);
 
 #if defined(LA_HIGH_PERFORMANCE)
 	// M
-	d_create_strmat(nu[N-1], nx[N-1], &sM, (void *) c_ptr[0]);
+	d_create_strmat(nu[N], nx[N], &sM, (void *) c_ptr[0]);
 
-	dgetr_libstr(nx[N-1], nu[N-1], 1.0, &hsL[N-1], nu[N-1], 0, &sM, 0, 0);
+	dgetr_libstr(nx[N], nu[N], 1.0, &hsL[N], nu[N], 0, &sM, 0, 0);
 
-	dgemm_nt_libstr(nub+nx[0]+1, nu[N-1], nx[N-1], 1.0, &hsGamma[N-2], 0, 0, &sM, 0, 0, 0.0, sRSQrq2, nuf+nu[N-1], nuf, sRSQrq2, nuf+nu[N-1], nuf);
+	dgemm_nt_libstr(nub+nx[0]+1, nu[N], nx[N], 1.0, &hsGamma[N-1], 0, 0, &sM, 0, 0, 0.0, sRSQrq2, nuf+nu[N], nuf, sRSQrq2, nuf+nu[N], nuf);
 #else
-	dgemm_nn_libstr(nub+nx[0]+1, nu[N-1], nx[N-1], 1.0, &hsGamma[N-2], 0, 0, &hsL[N-1], nu[N-1], 0, 0.0, sRSQrq2, nuf+nu[N-1], nuf, sRSQrq2, nuf+nu[N-1], nuf);
+	dgemm_nn_libstr(nub+nx[0]+1, nu[N], nx[N], 1.0, &hsGamma[N-1], 0, 0, &hsL[N], nu[N], 0, 0.0, sRSQrq2, nuf+nu[N], nuf, sRSQrq2, nuf+nu[N], nuf);
 #endif
 
 	// m
-	dgead_libstr(1, nu[N-1], 1.0, &hsL[N-1], nu[N-1]+nx[N-1], 0, sRSQrq2, nu2+nx[0], nuf);
+	dgead_libstr(1, nu[N], 1.0, &hsL[N], nu[N]+nx[N], 0, sRSQrq2, nu2+nx[0], nuf);
 
-	nuf += nu[N-1];
+	nuf += nu[N];
 
 
 
 	// middle stages 
-	for(nn=1; nn<N-1; nn++)
+	for(nn=0; nn<N-1; nn++)
 		{	
 		nub -= nu[N-nn-1];
 
@@ -1002,7 +999,7 @@ void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 		// no c_ptr += ... : overwrite sA
 		d_cond_BAbt_libstr(T1, &nx[N_tmp], &nu[N_tmp], &hsBAbt[N_tmp], hsGamma, &hsBAbt2[ii], (void *) c_ptr);
 
-		d_cond_RSQrq_libstr(T1, &nx[N_tmp], &nu[N_tmp], &hsBAbt[N_tmp], &hsRSQrq[N_tmp], hsGamma, &hsRSQrq2[ii], &hsL[N_tmp], (void *) c_ptr, work_space_sizes);
+		d_cond_RSQrq_libstr(T1-1, &nx[N_tmp], &nu[N_tmp], &hsBAbt[N_tmp], &hsRSQrq[N_tmp], hsGamma, &hsRSQrq2[ii], &hsL[N_tmp], (void *) c_ptr, work_space_sizes);
 
 		d_cond_DCtd_libstr(T1, &nx[N_tmp], &nu[N_tmp], &nb[N_tmp], &hidxb[N_tmp], &ng[N_tmp], &hsDCt[N_tmp], &hsd[N_tmp], hsGamma, &hsDCt2[ii], &hsd2[ii], hidxb2[ii], (void *) c_ptr);
 		N_tmp += T1;
