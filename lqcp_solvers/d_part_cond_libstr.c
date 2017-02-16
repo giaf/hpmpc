@@ -330,7 +330,7 @@ void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 	{
 
 	// early return
-	if(N<1)
+	if(N<0)
 		return;
 
 	double *d2 = sd2->pa;
@@ -520,7 +520,7 @@ void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, str
 	{
 
 	// early return
-	if(N<1)
+	if(N<0)
 		return;
 
 	double *d2 = sd2->pa;
@@ -536,7 +536,7 @@ void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, str
 
 	int nbb = nb[0]; // box that remain box constraints
 	int nbg = 0; // box that becomes general constraints
-	for(ii=1; ii<N; ii++)
+	for(ii=1; ii<=N; ii++)
 		for(jj=0; jj<nb[ii]; jj++)
 			if(hidxb[ii][jj]<nu[ii])
 				nbb++;
@@ -546,7 +546,7 @@ void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, str
 	int nx2 = nx[0];
 	int nu2 = nu[0];
 	int ngg = ng[0];
-	for(ii=1; ii<N; ii++)
+	for(ii=1; ii<=N; ii++)
 		{
 		nu2 += nu[ii];
 		ngg += ng[ii];
@@ -558,7 +558,7 @@ void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, str
 	// box constraints
 
 	int idx_gammab = nx[0];
-	for(ii=0; ii<N-1; ii++)
+	for(ii=0; ii<N; ii++)
 		idx_gammab += nu[ii];
 
 	int ib = 0;
@@ -569,17 +569,17 @@ void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, str
 
 	// middle stages
 	nu_tmp = 0;
-	for(ii=0; ii<N-1; ii++)
+	for(ii=0; ii<N; ii++)
 		{
-		nu0 = nu[N-1-ii];
-		nb0 = nb[N-1-ii];
-		ng0 = ng[N-1-ii];
+		nu0 = nu[N-ii];
+		nb0 = nb[N-ii];
+		ng0 = ng[N-ii];
 		nt0 = nb0 + ng0;
 		nu_tmp += nu0;
-		ptr_d = hsd[N-1-ii].pa;
+		ptr_d = hsd[N-ii].pa;
 		for(jj=0; jj<nb0; jj++)
 			{
-			if(hidxb[N-1-ii][jj]<nu[N-1-ii]) // input: box constraint
+			if(hidxb[N-ii][jj]<nu[N-ii]) // input: box constraint
 				{
 				d2[0*nt2+ib] = ptr_d[0*nt0+jj];
 				d2[1*nt2+ib] = ptr_d[1*nt0+jj];
@@ -587,8 +587,8 @@ void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, str
 				}
 			else // state: general constraint
 				{
-				idx_g = hidxb[N-1-ii][jj]-nu0;
-				tmp = dvecex1_libstr(&hsGammab[N-2-ii], idx_g);
+				idx_g = hidxb[N-ii][jj]-nu0;
+				tmp = dvecex1_libstr(&hsGammab[N-1-ii], idx_g);
 				d2[nb2+0*nt2+ig] = ptr_d[0*nt0+jj] - tmp;
 				d2[nb2+1*nt2+ig] = ptr_d[1*nt0+jj] - tmp;
 				ig++;
@@ -621,12 +621,12 @@ void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, str
 
 	nu_tmp = 0;
 	ng_tmp = 0;
-	for(ii=0; ii<N-1; ii++)
+	for(ii=0; ii<N; ii++)
 		{
 
-		nx0 = nx[N-1-ii];
-		nu0 = nu[N-1-ii];
-		ng0 = ng[N-1-ii];
+		nx0 = nx[N-ii];
+		nu0 = nu[N-ii];
+		ng0 = ng[N-ii];
 		nt0 = nb0 + ng0;
 
 		nu_tmp += nu0;
@@ -634,12 +634,12 @@ void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, str
 		if(ng0>0)
 			{
 
-			dveccp_libstr(ng0, 1.0, &hsd[N-1-ii], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
-			dveccp_libstr(ng0, 1.0, &hsd[N-1-ii], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
+			dveccp_libstr(ng0, 1.0, &hsd[N-ii], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
+			dveccp_libstr(ng0, 1.0, &hsd[N-ii], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
 
 			d_create_strvec(ng0, &sCGammab, (void *) c_ptr);
 
-			dgemv_t_libstr(nx0, ng0, 1.0, &hsDCt[N-1-ii], nu0, 0, &hsGammab[N-2-ii], 0, 0.0, &sCGammab, 0, &sCGammab, 0);
+			dgemv_t_libstr(nx0, ng0, 1.0, &hsDCt[N-ii], nu0, 0, &hsGammab[N-1-ii], 0, 0.0, &sCGammab, 0, &sCGammab, 0);
 
 			daxpy_libstr(ng0, -1.0, &sCGammab, 0, sd2, nb2+0*nt2+nbg+ng_tmp, sd2, nb2+0*nt2+nbg+ng_tmp);
 			daxpy_libstr(ng0, -1.0, &sCGammab, 0, sd2, nb2+1*nt2+nbg+ng_tmp, sd2, nb2+1*nt2+nbg+ng_tmp);
@@ -650,7 +650,7 @@ void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, str
 
 		}
 
-	ii = N-1;
+	ii = N;
 
 	nx0 = nx[0];
 	nu0 = nu[0];
@@ -663,7 +663,7 @@ void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, str
 		dveccp_libstr(ng0, 1.0, &hsd[0], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
 		dveccp_libstr(ng0, 1.0, &hsd[0], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
 
-//		ng_tmp += ng[N-1-ii];
+//		ng_tmp += ng[N-ii];
 
 		}
 
@@ -673,6 +673,7 @@ void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, str
 
 
 
+// TODO XXX update problem size when adding flag for condensing the last stage !!!!!!!!!!!!!!!
 // XXX does not compute hidxb2, since nb2 has to be known to allocate the right space for hidxb2 !!!
 void d_part_cond_compute_problem_size_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2)
 	{
@@ -874,7 +875,6 @@ int d_part_cond_memory_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb,
 	return size;
 
 	}
-
 
 
 
@@ -1136,7 +1136,7 @@ void d_part_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 
 		d_cond_rq_libstr(T1-1, &nx[N_tmp], &nu[N_tmp], &hsBAbt[N_tmp], &hsb[N_tmp], &hsrq[N_tmp], &hsL[N_tmp], hsGammab, &hsrq2[ii], (void *) c_ptr, work_space_sizes);
 
-		d_cond_d_libstr(T1, &nx[N_tmp], &nu[N_tmp], &nb[N_tmp], &hidxb[N_tmp], &ng[N_tmp], &hsDCt[N_tmp], &hsd[N_tmp], hsGammab, &hsd2[ii], (void *) c_ptr);
+		d_cond_d_libstr(T1-1, &nx[N_tmp], &nu[N_tmp], &nb[N_tmp], &hidxb[N_tmp], &ng[N_tmp], &hsDCt[N_tmp], &hsd[N_tmp], hsGammab, &hsd2[ii], (void *) c_ptr);
 		N_tmp += T1;
 //exit(1);
 		}
