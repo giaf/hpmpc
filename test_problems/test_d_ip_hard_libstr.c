@@ -171,7 +171,7 @@ int main()
 	int N  = 10; // horizon lenght
 
 	// partial condensing horizon
-	int N2 = 2; //N/2;
+	int N2 = 1; //N/2;
 
 	// maximum number of IPM iterations
 	int k_max = 10;
@@ -196,6 +196,7 @@ int main()
 #endif
 	for(ii=1; ii<=N; ii++)
 		nx[ii] = nx_;
+//	nx[N] = 0;
 
 	int nu[N+1];
 	for(ii=0; ii<N; ii++)
@@ -205,12 +206,12 @@ int main()
 #if 1
 	int nb[N+1];
 #if KEEP_X0
-	nb[0] = nu[0]+nx[0];
+	nb[0] = nu[0]+nx[0]/2;
 #else
 	nb[0] = nu[0];
 #endif
 	for(ii=1; ii<N; ii++)
-		nb[ii] = nu[1]+nx[1];
+		nb[ii] = nu[1]+nx[1]/2;
 	nb[N] = nx[N]/2;
 
 	int ng[N+1];
