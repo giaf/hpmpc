@@ -843,31 +843,11 @@ int d_part_cond_memory_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb,
 
 	// data matrices
 	int size = 0;
-	int i_size = 0;
 	for(ii=0; ii<N; ii++) // XXX not last stage !!!
 		{
 		// hsL
 		size += d_size_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]);
 		}
-	for(ii=0; ii<N2; ii++)
-		{
-		// hsBAbt2
-		size += d_size_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1]);
-		// hsRSQrq2
-		size += d_size_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii]);
-		// hsDCt2
-		size += d_size_strmat(nu2[ii]+nx2[ii], ng2[ii]);
-		// hsb2
-		size += d_size_strvec(nx2[ii+1]);
-		// hsrq2
-		size += d_size_strvec(nu2[ii]+nx2[ii]);
-		// hsd2
-		size += d_size_strvec(2*nb2[ii]+2*ng2[ii]);
-		// hidxb2
-		i_size += nb2[ii];
-		}
-
-	size = size + i_size*sizeof(int);
 
 	// make memory space multiple of (typical) cache line size
 	size = (size + 63) / 64 * 64;
@@ -890,25 +870,12 @@ void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 		{
 		for(ii=0; ii<N; ii++)
 			{
-			nx2[ii] = nx[ii];
-			nu2[ii] = nu[ii];
-			nb2[ii] = nb[ii];
-			hidxb2[ii] = hidxb[ii];
-			ng2[ii] = ng[ii];
-			hsBAbt2[ii] = hsBAbt[ii];
-			hsRSQrq2[ii] = hsRSQrq[ii];
-			hsDCt2[ii] = hsDCt[ii];
-			hsd2[ii] = hsd[ii];
+			for(jj=0; jj<nb[ii]; jj++) hidxb2[ii][jj] = hidxb[ii][jj];
+			dgecp_libstr(nu[ii]+nx[ii]+1, nx[ii+1], 1.0, &hsBAbt[ii], 0, 0, &hsBAbt2[ii], 0, 0);
+			dgecp_libstr(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], 1.0, &hsRSQrq[ii], 0, 0, &hsRSQrq2[ii], 0, 0);
+			dgecp_libstr(nu[ii]+nx[ii]+1, ng[ii], 1.0, &hsDCt[ii], 0, 0, &hsDCt2[ii], 0, 0);
+			dveccp_libstr(ng[ii], 1.0, &hsd[ii], 0, &hsd2[ii], 0);
 			}
-		ii = N;
-		nx2[ii] = nx[ii];
-		nu2[ii] = nu[ii];
-		nb2[ii] = nb[ii];
-		hidxb2[ii] = hidxb[ii];
-		ng2[ii] = ng[ii];
-		hsRSQrq2[ii] = hsRSQrq[ii];
-		hsDCt2[ii] = hsDCt[ii];
-		hsd2[ii] = hsd[ii];
 		return;
 		}
 	
@@ -933,45 +900,6 @@ void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 		{
 		d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
 		c_ptr += hsL[ii].memory_size;
-		}
-	// data matrices (memory space) no last stage !!!!!
-	for(ii=0; ii<N2; ii++)
-		{
-		d_create_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii], (void *) c_ptr);
-		c_ptr += hsBAbt2[ii].memory_size;
-		}
-	for(ii=0; ii<N2; ii++)
-		{
-		d_create_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsRSQrq2[ii], (void *) c_ptr);
-		c_ptr += hsRSQrq2[ii].memory_size;
-		}
-	for(ii=0; ii<N2; ii++)
-		{
-		d_create_strmat(nu2[ii]+nx2[ii], ng2[ii], &hsDCt2[ii], (void *) c_ptr);
-		c_ptr += hsDCt2[ii].memory_size;
-		}
-	for(ii=0; ii<N2; ii++)
-		{
-//		d_create_strvec(nx2[ii+1], &hsb2[ii], (void *) c_ptr);
-//		c_ptr += hsb2[ii].memory_size;
-		c_ptr += d_size_strvec(nx2[ii+1]);
-		}
-	for(ii=0; ii<N2; ii++)
-		{
-//		d_create_strvec(nu2[ii]+nx2[ii], &hsrq2[ii], (void *) c_ptr);
-//		c_ptr += hsrq2[ii].memory_size;
-		c_ptr += d_size_strvec(nu2[ii]+nx2[ii]);
-		}
-	for(ii=0; ii<N2; ii++)
-		{
-		d_create_strvec(2*nb2[ii]+2*ng2[ii], &hsd2[ii], (void *) c_ptr);
-		c_ptr += hsd2[ii].memory_size;
-		}
-	int *i_ptr = (int *) c_ptr;
-	for(ii=0; ii<N2; ii++)
-		{
-		hidxb2[ii] = i_ptr;
-		i_ptr += nb2[ii];
 		}
 
 	// work space
@@ -1006,11 +934,7 @@ void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 //exit(1);
 		}
 	
-	// last stage
-	hsRSQrq2[N2] = hsRSQrq[N];
-	hsDCt2[N2] = hsDCt[N];
-	hsd2[N2] = hsd[N];
-	hidxb2[N2] = hidxb[N];
+	// no last stage
 
 	return;
 
@@ -1028,28 +952,14 @@ void d_part_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 		{
 		for(ii=0; ii<N; ii++)
 			{
-			nx2[ii] = nx[ii];
-			nu2[ii] = nu[ii];
-			nb2[ii] = nb[ii];
-			hidxb2[ii] = hidxb[ii];
-			ng2[ii] = ng[ii];
-			hsBAbt2[ii] = hsBAbt[ii];
-			hsb2[ii] = hsb[ii];
-			hsRSQrq2[ii] = hsRSQrq[ii];
-			hsrq2[ii] = hsrq[ii];
-			hsDCt2[ii] = hsDCt[ii];
-			hsd2[ii] = hsd[ii];
+			for(jj=0; jj<nb[ii]; jj++) hidxb2[ii][jj] = hidxb[ii][jj];
+			dgecp_libstr(nu[ii]+nx[ii]+1, nx[ii+1], 1.0, &hsBAbt[ii], 0, 0, &hsBAbt2[ii], 0, 0);
+			dveccp_libstr(nx[ii+1], 1.0, &hsb[ii], 0, &hsb2[ii], 0);
+			dgecp_libstr(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], 1.0, &hsRSQrq[ii], 0, 0, &hsRSQrq2[ii], 0, 0);
+			dveccp_libstr(nu[ii]+nx[ii], 1.0, &hsrq[ii], 0, &hsrq2[ii], 0);
+			dgecp_libstr(nu[ii]+nx[ii]+1, ng[ii], 1.0, &hsDCt[ii], 0, 0, &hsDCt2[ii], 0, 0);
+			dveccp_libstr(ng[ii], 1.0, &hsd[ii], 0, &hsd2[ii], 0);
 			}
-		ii = N;
-		nx2[ii] = nx[ii];
-		nu2[ii] = nu[ii];
-		nb2[ii] = nb[ii];
-		hidxb2[ii] = hidxb[ii];
-		ng2[ii] = ng[ii];
-		hsRSQrq2[ii] = hsRSQrq[ii];
-		hsrq2[ii] = hsrq[ii];
-		hsDCt2[ii] = hsDCt[ii];
-		hsd2[ii] = hsd[ii];
 		return;
 		}
 	
@@ -1074,43 +984,6 @@ void d_part_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 		{
 		d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
 		c_ptr += hsL[ii].memory_size;
-		}
-	// data matrices (memory space) no last stage !!!!!
-	for(ii=0; ii<N2; ii++)
-		{
-		d_create_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii], (void *) c_ptr);
-		c_ptr += hsBAbt2[ii].memory_size;
-		}
-	for(ii=0; ii<N2; ii++)
-		{
-		d_create_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsRSQrq2[ii], (void *) c_ptr);
-		c_ptr += hsRSQrq2[ii].memory_size;
-		}
-	for(ii=0; ii<N2; ii++)
-		{
-		d_create_strmat(nu2[ii]+nx2[ii], ng2[ii], &hsDCt2[ii], (void *) c_ptr);
-		c_ptr += hsDCt2[ii].memory_size;
-		}
-	for(ii=0; ii<N2; ii++)
-		{
-		d_create_strvec(nx2[ii+1], &hsb2[ii], (void *) c_ptr);
-		c_ptr += hsb2[ii].memory_size;
-		}
-	for(ii=0; ii<N2; ii++)
-		{
-		d_create_strvec(nu2[ii]+nx2[ii], &hsrq2[ii], (void *) c_ptr);
-		c_ptr += hsrq2[ii].memory_size;
-		}
-	for(ii=0; ii<N2; ii++)
-		{
-		d_create_strvec(2*nb2[ii]+2*ng2[ii], &hsd2[ii], (void *) c_ptr);
-		c_ptr += hsd2[ii].memory_size;
-		}
-	int *i_ptr = (int *) c_ptr;
-	for(ii=0; ii<N2; ii++)
-		{
-		hidxb2[ii] = i_ptr;
-		i_ptr += nb2[ii];
 		}
 
 	// work space
@@ -1141,12 +1014,7 @@ void d_part_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 //exit(1);
 		}
 	
-	// last stage
-	hsRSQrq2[N2] = hsRSQrq[N];
-	hsrq2[N2] = hsrq[N];
-	hsDCt2[N2] = hsDCt[N];
-	hsd2[N2] = hsd[N];
-	hidxb2[N2] = hidxb[N];
+	// no last stage
 
 	return;
 
@@ -1223,9 +1091,7 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 		//
 		N_tmp += T1;
 		}
-
-	// copy final state
-	dveccp_libstr(nx[N], 1.0, &hsux2[N2], 0, &hsux[N], 0);
+	// no last stage
 
 	// compute missing states by simulation within each block
 	N_tmp = 0;
@@ -1318,21 +1184,7 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 		//
 		N_tmp += T1;
 		}
-	// last stage: just copy
-	nt2 = nb2[N2]+ng2[N2];
-	nb0 = nb[N];
-	ng0 = ng[N];
-	nt0 = nb0 + ng0;
-	// box
-	dveccp_libstr(nb0, 1.0, &hslam2[N2], 0*nt2, &hslam[N], 0*nt0);
-	dveccp_libstr(nb0, 1.0, &hslam2[N2], 1*nt2, &hslam[N], 1*nt0);
-	dveccp_libstr(nb0, 1.0, &hst2[N2], 0*nt2, &hst[N], 0*nt0);
-	dveccp_libstr(nb0, 1.0, &hst2[N2], 1*nt2, &hst[N], 1*nt0);
-	// general
-	dveccp_libstr(ng0, 1.0, &hslam2[N2], nb2[N2]+0*nt2, &hslam[N], nb0+0*nt0);
-	dveccp_libstr(ng0, 1.0, &hslam2[N2], nb2[N2]+1*nt2, &hslam[N], nb0+1*nt0);
-	dveccp_libstr(ng0, 1.0, &hst2[N2], nb2[N2]+0*nt2, &hst[N], nb0+0*nt0);
-	dveccp_libstr(ng0, 1.0, &hst2[N2], nb2[N2]+1*nt2, &hst[N], nb0+1*nt0);
+	// no last stage
 
 	// lagrange multipliers of equality constraints
 	N_tmp = 0;
