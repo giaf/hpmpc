@@ -41,7 +41,7 @@
 
 
 
-static void d_comp_Gamma_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strmat *hsGamma, void *work_space)
+static void d_comp_Gamma_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strmat *hsGamma)
 	{
 
 	int ii, jj;
@@ -62,18 +62,8 @@ static void d_comp_Gamma_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 		{
 		// TODO check for equal pointers and avoid copy
 
-#if defined(LA_HIGH_PERFORMANCE)
-		d_create_strmat(nx[ii+1], nx[ii], &sA, work_space);
-		
-		// pA in work space
-		dgetr_libstr(nx[ii], nx[ii+1], 1.0, &hsBAbt[ii], nu[ii], 0, &sA, 0, 0); // pA in work // TODO avoid copy for LA_BLAS and LA_REFERENCE
-
-		// Gamma * A^T
-		dgemm_nt_libstr(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], 1.0, &hsGamma[ii-1], 0, 0, &sA, 0, 0, 0.0, &hsGamma[ii], nu[ii], 0, &hsGamma[ii], nu[ii], 0); // Gamma * A^T
-#else
 		// Gamma * A^T
 		dgemm_nn_libstr(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], 1.0, &hsGamma[ii-1], 0, 0, &hsBAbt[ii], nu[ii], 0, 0.0, &hsGamma[ii], nu[ii], 0, &hsGamma[ii], nu[ii], 0); // Gamma * A^T
-#endif
 
 		dgecp_libstr(nu[ii], nx[ii+1], 1.0, &hsBAbt[ii], 0, 0, &hsGamma[ii], 0, 0);
 
@@ -115,7 +105,7 @@ static void d_comp_Gammab_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAb
 
 
 
-static void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strmat *hsGamma, struct d_strmat *sBAbt2, void *work_space)
+static void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strmat *hsGamma, struct d_strmat *sBAbt2)
 	{
 
 	int ii, jj;
@@ -136,18 +126,8 @@ static void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt,
 		{
 		// TODO check for equal pointers and avoid copy
 
-#if defined(LA_HIGH_PERFORMANCE)
-		d_create_strmat(nx[ii+1], nx[ii], &sA, work_space);
-		
-		// pA in work space
-		dgetr_libstr(nx[ii], nx[ii+1], 1.0, &hsBAbt[ii], nu[ii], 0, &sA, 0, 0); // pA in work // TODO avoid copy for LA_BLAS and LA_REFERENCE
-
-		// Gamma * A^T
-		dgemm_nt_libstr(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], 1.0, &hsGamma[ii-1], 0, 0, &sA, 0, 0, 0.0, &hsGamma[ii], nu[ii], 0, &hsGamma[ii], nu[ii], 0); // Gamma * A^T
-#else
 		// Gamma * A^T
 		dgemm_nn_libstr(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], 1.0, &hsGamma[ii-1], 0, 0, &hsBAbt[ii], nu[ii], 0, 0.0, &hsGamma[ii], nu[ii], 0, &hsGamma[ii], nu[ii], 0); // Gamma * A^T
-#endif
 
 		dgecp_libstr(nu[ii], nx[ii+1], 1.0, &hsBAbt[ii], 0, 0, &hsGamma[ii], 0, 0);
 
@@ -227,7 +207,6 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 	char *c_ptr[3];
 	c_ptr[0] = (char *) work_space;
 	c_ptr[1] = c_ptr[0] + work_space_sizes[0];
-	c_ptr[2] = c_ptr[1] + work_space_sizes[1];
 
 
 	// final stage 
@@ -238,16 +217,7 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 	// D
 	dtrcp_l_libstr(nu[N], 1.0, &hsL[N], 0, 0, sRSQrq2, nuf, nuf);
 
-#if defined(LA_HIGH_PERFORMANCE)
-	// M
-	d_create_strmat(nu[N], nx[N], &sM, (void *) c_ptr[0]);
-
-	dgetr_libstr(nx[N], nu[N], 1.0, &hsL[N], nu[N], 0, &sM, 0, 0);
-
-	dgemm_nt_libstr(nub+nx[0]+1, nu[N], nx[N], 1.0, &hsGamma[N-1], 0, 0, &sM, 0, 0, 0.0, sRSQrq2, nuf+nu[N], nuf, sRSQrq2, nuf+nu[N], nuf);
-#else
 	dgemm_nn_libstr(nub+nx[0]+1, nu[N], nx[N], 1.0, &hsGamma[N-1], 0, 0, &hsL[N], nu[N], 0, 0.0, sRSQrq2, nuf+nu[N], nuf, sRSQrq2, nuf+nu[N], nuf);
-#endif
 
 	// m
 	dgead_libstr(1, nu[N], 1.0, &hsL[N], nu[N]+nx[N], 0, sRSQrq2, nu2+nx[0], nuf);
@@ -261,8 +231,8 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 		{	
 		nub -= nu[N-nn-1];
 
-		d_create_strmat(nx[N-nn]+1, nx[N-nn], &sLx, (void *) c_ptr[1]);
-		d_create_strmat(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], &sBAbtL, (void *) c_ptr[2]);
+		d_create_strmat(nx[N-nn]+1, nx[N-nn], &sLx, (void *) c_ptr[0]);
+		d_create_strmat(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], &sBAbtL, (void *) c_ptr[1]);
 
 #if defined(LA_HIGH_PERFORMANCE)
 		dgecp_libstr(nx[N-nn]+1, nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
@@ -282,16 +252,7 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 		// D
 		dtrcp_l_libstr(nu[N-nn-1], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf);
 
-#if defined(LA_HIGH_PERFORMANCE)
-		// M
-		d_create_strmat(nu[N-nn-1], nx[N-nn-1], &sM, (void *) c_ptr[0]);
-
-		dgetr_libstr(nx[N-nn-1], nu[N-nn-1], 1.0, &hsL[N-nn-1], nu[N-nn-1], 0, &sM, 0, 0);
-
-		dgemm_nt_libstr(nub+nx[0]+1, nu[N-nn-1], nx[N-nn-1], 1.0, &hsGamma[N-nn-2], 0, 0, &sM, 0, 0, 0.0, sRSQrq2, nuf+nu[N-nn-1], nuf, sRSQrq2, nuf+nu[N-nn-1], nuf);
-#else
 		dgemm_nn_libstr(nub+nx[0]+1, nu[N-nn-1], nx[N-nn-1], 1.0, &hsGamma[N-nn-2], 0, 0, &hsL[N-nn-1], nu[N-nn-1], 0, 0.0, sRSQrq2, nuf+nu[N-nn-1], nuf, sRSQrq2, nuf+nu[N-nn-1], nuf);
-#endif
 
 		// m
 		dgead_libstr(1, nu[N-nn-1], 1.0, &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0, sRSQrq2, nu2+nx[0], nuf);
@@ -303,8 +264,8 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 	// first stage
 	nn = N-1;
 
-	d_create_strmat(nx[N-nn]+1, nx[N-nn], &sLx, (void *) c_ptr[1]);
-	d_create_strmat(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], &sBAbtL, (void *) c_ptr[2]);
+	d_create_strmat(nx[N-nn]+1, nx[N-nn], &sLx, (void *) c_ptr[0]);
+	d_create_strmat(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], &sBAbtL, (void *) c_ptr[1]);
 	
 #if defined(LA_HIGH_PERFORMANCE)
 	dgecp_libstr(nx[N-nn]+1, nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
@@ -819,13 +780,11 @@ int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, i
 	int N_tmp; // temporary sum of horizons
 
 	int Gamma_size = 0;
-	int pA_size = 0;
 	int pC_size = 0;
 	work_space_sizes[0] = 0;
 	work_space_sizes[1] = 0;
 	work_space_sizes[2] = 0;
 	work_space_sizes[3] = 0;
-	work_space_sizes[4] = 0;
 
 	int tmp_size;
 
@@ -845,13 +804,6 @@ int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, i
 			}
 		Gamma_size = tmp_size>Gamma_size ? tmp_size : Gamma_size;
 
-		// sA
-		for(jj=0; jj<T1; jj++)
-			{
-			tmp_size = d_size_strmat(nx[N_tmp+jj+1], nx[N_tmp+jj]);
-			pA_size = tmp_size > pA_size ? tmp_size : pA_size;
-			}
-
 		// sC
 		for(jj=0; jj<T1; jj++)
 			{
@@ -861,48 +813,40 @@ int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, i
 			pC_size = tmp_size > pC_size ? tmp_size : pC_size;
 			}
 
-		// sM : 1 => N-1
-		for(jj=1; jj<T1; jj++)
-			{
-			tmp_size = d_size_strmat(nu[N_tmp+jj], nx[N_tmp+jj]);
-			work_space_sizes[0] = tmp_size>work_space_sizes[0] ? tmp_size : work_space_sizes[0];
-			}
-
 		// sLx : 1 => N-1
 		for(jj=1; jj<T1; jj++)
 			{
 			tmp_size = d_size_strmat(nx[N_tmp+jj]+1, nx[N_tmp+jj]);
-			work_space_sizes[1] = tmp_size>work_space_sizes[1] ? tmp_size : work_space_sizes[1];
+			work_space_sizes[0] = tmp_size>work_space_sizes[0] ? tmp_size : work_space_sizes[0];
 			}
 
 		// sBAbtL : 0 => N-2
 		for(jj=0; jj<T1-1; jj++)
 			{
 			tmp_size = d_size_strmat(nu[N_tmp+jj]+nx[N_tmp+jj]+1, nx[N_tmp+1+jj]);
-			work_space_sizes[2] = tmp_size>work_space_sizes[2] ? tmp_size : work_space_sizes[2];
+			work_space_sizes[1] = tmp_size>work_space_sizes[1] ? tmp_size : work_space_sizes[1];
 			}
 
 		// sl : 0 => N-1
 		for(jj=0; jj<T1; jj++)
 			{
 			tmp_size = d_size_strvec(nu[N_tmp+jj]+nx[N_tmp+jj]);
-			work_space_sizes[3] = tmp_size>work_space_sizes[3] ? tmp_size : work_space_sizes[3];
+			work_space_sizes[2] = tmp_size>work_space_sizes[2] ? tmp_size : work_space_sizes[2];
 			}
 
 		// sPbp : 0 => N-2
 		for(jj=0; jj<T1-1; jj++)
 			{
 			tmp_size = d_size_strvec(nx[N_tmp+1+jj]);
-			work_space_sizes[4] = tmp_size>work_space_sizes[4] ? tmp_size : work_space_sizes[4];
+			work_space_sizes[3] = tmp_size>work_space_sizes[3] ? tmp_size : work_space_sizes[3];
 			}
 
 		N_tmp += T1;
 
 		}
 	
-	tmp_size = work_space_sizes[0] + work_space_sizes[1] + work_space_sizes[2];
-	tmp_size = work_space_sizes[3]+work_space_sizes[4]>tmp_size ? work_space_sizes[3]+work_space_sizes[4] : tmp_size;
-	tmp_size = tmp_size>pA_size ? tmp_size : pA_size;
+	tmp_size = work_space_sizes[0] + work_space_sizes[1];
+	tmp_size = work_space_sizes[2]+work_space_sizes[3]>tmp_size ? work_space_sizes[2]+work_space_sizes[3] : tmp_size;
 	tmp_size = tmp_size>pC_size ? tmp_size : pC_size;
 	int size = Gamma_size+tmp_size;
 	
@@ -1008,7 +952,7 @@ void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 			}
 		// sA
 		// no c_ptr += ... : overwrite sA
-		d_cond_BAbt_libstr(T1, &nx[N_tmp], &nu[N_tmp], &hsBAbt[N_tmp], hsGamma, &hsBAbt2[ii], (void *) c_ptr);
+		d_cond_BAbt_libstr(T1, &nx[N_tmp], &nu[N_tmp], &hsBAbt[N_tmp], hsGamma, &hsBAbt2[ii]);
 
 		d_cond_RSQrq_libstr(T1-1, &nx[N_tmp], &nu[N_tmp], &hsBAbt[N_tmp], &hsRSQrq[N_tmp], hsGamma, &hsRSQrq2[ii], &hsL[N_tmp], (void *) c_ptr, work_space_sizes);
 
@@ -1357,13 +1301,11 @@ int d_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int **
 	int nu_tmp;
 
 	int Gamma_size = 0;
-	int pA_size = 0;
 	int pC_size = 0;
 	work_space_sizes[0] = 0;
 	work_space_sizes[1] = 0;
 	work_space_sizes[2] = 0;
 	work_space_sizes[3] = 0;
-	work_space_sizes[4] = 0;
 
 	int tmp_size;
 
@@ -1377,13 +1319,6 @@ int d_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int **
 		}
 	Gamma_size = tmp_size>Gamma_size ? tmp_size : Gamma_size;
 
-	// sA
-	for(ii=0; ii<N; ii++)
-		{
-		tmp_size = d_size_strmat(nx[ii+1], nx[ii]);
-		pA_size = tmp_size > pA_size ? tmp_size : pA_size;
-		}
-
 	// sC
 	for(ii=0; ii<N; ii++)
 		{
@@ -1393,44 +1328,36 @@ int d_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int **
 		pC_size = tmp_size > pC_size ? tmp_size : pC_size;
 		}
 
-	// sM : 1 => N
-	for(ii=1; ii<=N; ii++)
-		{
-		tmp_size = d_size_strmat(nu[ii], nx[ii]);
-		work_space_sizes[0] = tmp_size>work_space_sizes[0] ? tmp_size : work_space_sizes[0];
-		}
-
 	// sLx : 1 => N
 	for(ii=1; ii<=N; ii++)
 		{
 		tmp_size = d_size_strmat(nx[ii]+1, nx[ii]);
-		work_space_sizes[1] = tmp_size>work_space_sizes[1] ? tmp_size : work_space_sizes[1];
+		work_space_sizes[0] = tmp_size>work_space_sizes[0] ? tmp_size : work_space_sizes[0];
 		}
 
 	// sBAbtL : 0 => N-1
 	for(ii=0; ii<N; ii++)
 		{
 		tmp_size = d_size_strmat(nu[ii]+nx[ii]+1, nx[1+ii]);
-		work_space_sizes[2] = tmp_size>work_space_sizes[2] ? tmp_size : work_space_sizes[2];
+		work_space_sizes[1] = tmp_size>work_space_sizes[1] ? tmp_size : work_space_sizes[1];
 		}
 
 	// sl : 0 => N
 	for(ii=0; ii<=N; ii++)
 		{
 		tmp_size = d_size_strvec(nu[ii]+nx[ii]);
-		work_space_sizes[3] = tmp_size>work_space_sizes[3] ? tmp_size : work_space_sizes[3];
+		work_space_sizes[2] = tmp_size>work_space_sizes[2] ? tmp_size : work_space_sizes[2];
 		}
 
 	// sPbp : 0 => N-1
 	for(ii=0; ii<N; ii++)
 		{
 		tmp_size = d_size_strvec(nx[1+ii]);
-		work_space_sizes[4] = tmp_size>work_space_sizes[4] ? tmp_size : work_space_sizes[4];
+		work_space_sizes[3] = tmp_size>work_space_sizes[3] ? tmp_size : work_space_sizes[3];
 		}
 	
-	tmp_size = work_space_sizes[0] + work_space_sizes[1] + work_space_sizes[2];
-	tmp_size = work_space_sizes[3]+work_space_sizes[4]>tmp_size ? work_space_sizes[3]+work_space_sizes[4] : tmp_size;
-	tmp_size = tmp_size>pA_size ? tmp_size : pA_size;
+	tmp_size = work_space_sizes[0] + work_space_sizes[1];
+	tmp_size = work_space_sizes[2]+work_space_sizes[3]>tmp_size ? work_space_sizes[2]+work_space_sizes[3] : tmp_size;
 	tmp_size = tmp_size>pC_size ? tmp_size : pC_size;
 	int size = Gamma_size+tmp_size;
 	
@@ -1501,7 +1428,7 @@ void d_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struc
 	// sA
 	// no c_ptr += ... : overwrite sA
 	// TODO avoid copying back BAbt2 !!!!!
-	d_comp_Gamma_libstr(N, nx, nu, hsBAbt, hsGamma, (void *) c_ptr);
+	d_comp_Gamma_libstr(N, nx, nu, hsBAbt, hsGamma);
 
 	d_cond_RSQrq_libstr(N, nx, nu, hsBAbt, hsRSQrq, hsGamma, &hsRSQrq2[0], hsL, (void *) c_ptr, work_space_sizes);
 
