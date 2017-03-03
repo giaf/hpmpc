@@ -673,7 +673,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 	// copy back multipliers
 
 	for(ii=0; ii<N; ii++)
-		d_cvt_strvec2vec(nx[ii+1], &hspi[ii], 0, pi[ii]);
+		d_cvt_strvec2vec(nx[ii+1], &hspi[ii+1], 0, pi[ii]);
 
 	for(ii=0; ii<=N; ii++)
 		{
@@ -1174,7 +1174,7 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 	// copy back multipliers
 
 	for(ii=0; ii<N; ii++)
-		d_cvt_strvec2vec(nx[ii+1], &hspi[ii], 0, pi[ii]);
+		d_cvt_strvec2vec(nx[ii+1], &hspi[ii+1], 0, pi[ii]);
 
 	for(ii=0; ii<=N; ii++)
 		{
