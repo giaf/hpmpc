@@ -209,7 +209,7 @@ static void d_back_ric_sv_forw_0_libstr(int nkids, int nx0, int *nx1, int nu0, i
 	int ii;
 
 	drowex_libstr(nu0+nx0, -1.0, &hsL0[0], nu0+nx0, 0, &hsux0[0], 0);
-	dtrsv_ltn_libstr(nu0+nx0, nu0+nx0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
+	dtrsv_ltn_ns_libstr(nu0+nx0, nu0+nx0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
 	for(ii=0; ii<nkids; ii++)
 		{
 		drowex_libstr(nx1[ii], 1.0, &hsBAbt[ii], nu0+nx0, 0, &hsux1[ii], nu1[ii]);
@@ -239,7 +239,7 @@ static void d_back_ric_sv_forw_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 	int ii;
 
 	drowex_libstr(nu0, -1.0, &hsL0[0], nu0+nx0, 0, &hsux0[0], 0);
-	dtrsv_ltn_libstr(nu0+nx0, nu0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
+	dtrsv_ltn_ns_libstr(nu0+nx0, nu0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
 	for(ii=0; ii<nkids; ii++)
 		{
 		drowex_libstr(nx1[ii], 1.0, &hsBAbt[ii], nu0+nx0, 0, &hsux1[ii], nu1[ii]);
@@ -405,7 +405,7 @@ static void d_back_ric_trs_back_0_libstr(int nkids, int nx0, int *nx1, int nu0, 
 		dgemv_n_libstr(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsqx[0], nb0, 1.0, &hsux0[0], 0, &hsux0[0], 0);
 		}
 	// solve at the end
-	dtrsv_lnn_libstr(nu0+nx0, nu0+nx0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
+	dtrsv_lnn_ns_libstr(nu0+nx0, nu0+nx0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
 
 	return;
 
@@ -447,7 +447,7 @@ static void d_back_ric_trs_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, 
 		dgemv_n_libstr(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsqx[0], nb0, 1.0, &hsux0[0], 0, &hsux0[0], 0);
 		}
 	// solve at the end
-	dtrsv_lnn_libstr(nu0+nx0, nu0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
+	dtrsv_lnn_ns_libstr(nu0+nx0, nu0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
 
 	return;
 
@@ -463,7 +463,7 @@ static void d_back_ric_trs_forw_0_libstr(int nkids, int nx0, int *nx1, int nu0, 
 	int ii;
 
 	dveccp_libstr(nu0+nx0, -1.0, &hsux0[0], 0, &hsux0[0], 0);
-	dtrsv_ltn_libstr(nu0+nx0, nu0+nx0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
+	dtrsv_ltn_ns_libstr(nu0+nx0, nu0+nx0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
 	for(ii=0; ii<nkids; ii++)
 		{
 		if(compute_pi)
@@ -495,7 +495,7 @@ static void d_back_ric_trs_forw_1_libstr(int nkids, int nx0, int *nx1, int nu0, 
 	int ii;
 
 	dveccp_libstr(nu0, -1.0, &hsux0[0], 0, &hsux0[0], 0);
-	dtrsv_ltn_libstr(nu0+nx0, nu0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
+	dtrsv_ltn_ns_libstr(nu0+nx0, nu0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
 	for(ii=0; ii<nkids; ii++)
 		{
 		if(compute_pi)
