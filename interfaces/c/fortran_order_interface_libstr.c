@@ -359,6 +359,20 @@ int fortran_order_d_ip_ocp_hard_tv(
 //		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
 //	exit(1);
 
+#if 0
+		for(ii=0; ii<N; ii++)
+			d_print_strmat(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0);
+		for(ii=0; ii<=N; ii++)
+			d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0);
+		for(ii=0; ii<=N; ii++)
+			d_print_strmat(nu[ii]+nx[ii], ng[ii], &hsDCt[ii], 0, 0);
+		for(ii=0; ii<=N; ii++)
+			d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
+		for(ii=0; ii<=N; ii++)
+			int_print_mat(1, nb[ii], hidxb[ii], 1);
+//		exit(1);
+#endif
+
 	
 
 
@@ -380,10 +394,10 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 		// data structure of partially condensed system
 		struct d_strmat hsBAbt2[N2];
-		struct d_strmat hsRSQrq2[N2+1];
-		struct d_strmat hsDCt2[N2+1];
 		struct d_strvec hsb2[N2];
+		struct d_strmat hsRSQrq2[N2+1];
 		struct d_strvec hsrq2[N2+1];
+		struct d_strmat hsDCt2[N2+1];
 		struct d_strvec hsd2[N2+1];
 		struct d_strvec hsux2[N2+1];
 		struct d_strvec hspi2[N2+1];
@@ -1030,7 +1044,7 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 		hidxb2[N2] = hidxb[N];
 
 		// partial condensing routine (computing also hidxb2) !!!
-		d_part_cond_rhs_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsDCt, hsd, N2, nx2, nu2, nb2, hidxb2, ng2, hsBAbt2, hsb2, hsRSQrq2, hsrq2, hsDCt2, hsd2, memory_part_cond, work_part_cond, &work_part_cond_sizes[3]);
+		d_part_cond_rhs_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsDCt, hsd, N2, nx2, nu2, nb2, hidxb2, ng2, hsBAbt2, hsb2, hsRSQrq2, hsrq2, hsDCt2, hsd2, memory_part_cond, work_part_cond, &work_part_cond_sizes[2]);
 
 #if 0
 		for(ii=0; ii<N2; ii++)

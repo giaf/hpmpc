@@ -901,7 +901,7 @@ void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 			dgecp_libstr(nu[ii]+nx[ii]+1, nx[ii+1], 1.0, &hsBAbt[ii], 0, 0, &hsBAbt2[ii], 0, 0);
 			dgecp_libstr(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], 1.0, &hsRSQrq[ii], 0, 0, &hsRSQrq2[ii], 0, 0);
 			dgecp_libstr(nu[ii]+nx[ii]+1, ng[ii], 1.0, &hsDCt[ii], 0, 0, &hsDCt2[ii], 0, 0);
-			dveccp_libstr(ng[ii], 1.0, &hsd[ii], 0, &hsd2[ii], 0);
+			dveccp_libstr(2*nb[ii]+2*ng[ii], 1.0, &hsd[ii], 0, &hsd2[ii], 0);
 			}
 		return;
 		}
@@ -985,7 +985,7 @@ void d_part_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 			dgecp_libstr(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], 1.0, &hsRSQrq[ii], 0, 0, &hsRSQrq2[ii], 0, 0);
 			dveccp_libstr(nu[ii]+nx[ii], 1.0, &hsrq[ii], 0, &hsrq2[ii], 0);
 			dgecp_libstr(nu[ii]+nx[ii]+1, ng[ii], 1.0, &hsDCt[ii], 0, 0, &hsDCt2[ii], 0, 0);
-			dveccp_libstr(ng[ii], 1.0, &hsd[ii], 0, &hsd2[ii], 0);
+			dveccp_libstr(2*nb[ii]+2*ng[ii], 1.0, &hsd[ii], 0, &hsd2[ii], 0);
 			}
 		return;
 		}
