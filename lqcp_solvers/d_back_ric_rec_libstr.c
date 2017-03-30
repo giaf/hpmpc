@@ -113,12 +113,12 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 			}
 		else
 			{
-			dpotrf_l_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsL[N], 0, 0, &hsL[N], 0, 0);
+			dpotrf_l_mn_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsL[N], 0, 0, &hsL[N], 0, 0);
 			}
 		}
 	else
 		{
-		dpotrf_l_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
+		dpotrf_l_mn_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
 		}
 
 	// middle stages
@@ -255,12 +255,12 @@ void d_back_ric_rec_trf_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 			}
 		else
 			{
-			dpotrf_l_libstr(nu[N]+nx[N], nu[N]+nx[N], &hsL[N], 0, 0, &hsL[N], 0, 0);
+			dpotrf_l_libstr(nu[N]+nx[N], &hsL[N], 0, 0, &hsL[N], 0, 0);
 			}
 		}
 	else
 		{
-		dpotrf_l_libstr(nu[N]+nx[N], nu[N]+nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
+		dpotrf_l_libstr(nu[N]+nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
 		}
 
 	// middle stages
@@ -465,12 +465,12 @@ void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 			}
 		else
 			{
-			dpotrf_l_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsL[N], 0, 0, &hsL[N], 0, 0);
+			dpotrf_l_mn_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsL[N], 0, 0, &hsL[N], 0, 0);
 			}
 		}
 	else
 		{
-		dpotrf_l_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
+		dpotrf_l_mn_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
 		}
 
 	// middle stages

@@ -187,12 +187,12 @@ static void d_back_ric_sv_back_N_libstr(int nx0, int nu0, int nb0, int *hidxb0, 
 			}
 		else
 			{
-			dpotrf_l_libstr(nu0+nx0+1, nu0+nx0, &hsL[0], 0, 0, &hsL[0], 0, 0);
+			dpotrf_l_mn_libstr(nu0+nx0+1, nu0+nx0, &hsL[0], 0, 0, &hsL[0], 0, 0);
 			}
 		}
 	else
 		{
-		dpotrf_l_libstr(nu0+nx0+1, nu0+nx0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
+		dpotrf_l_mn_libstr(nu0+nx0+1, nu0+nx0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
 		}
 
 	return;
@@ -338,12 +338,12 @@ static void d_back_ric_trf_N_libstr(int nx0, int nu0, int nb0, int *hidxb0, int 
 			}
 		else
 			{
-			dpotrf_l_libstr(nu0+nx0, nu0+nx0, &hsL[0], 0, 0, &hsL[0], 0, 0);
+			dpotrf_l_libstr(nu0+nx0, &hsL[0], 0, 0, &hsL[0], 0, 0);
 			}
 		}
 	else
 		{
-		dpotrf_l_libstr(nu0+nx0, nu0+nx0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
+		dpotrf_l_libstr(nu0+nx0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
 		}
 
 	return;
