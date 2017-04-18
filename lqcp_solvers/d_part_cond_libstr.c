@@ -407,7 +407,7 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 	int nt2 = nb2 + ng2;
 
 	// set constraint matrix to zero (it's 2 lower triangular matrices atm)
-	dmatse_libstr(nu2+nx2, ng2, 0.0, sDCt2, 0, 0);
+	dgese_libstr(nu2+nx2, ng2, 0.0, sDCt2, 0, 0);
 
 	// box constraints
 
@@ -443,7 +443,7 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 			else // state: general constraint
 				{
 				idx_g = hidxb[N-ii][jj]-nu0;
-				tmp = dmatex1_libstr(&hsGamma[N-1-ii], idx_gammab, idx_g);
+				tmp = dgeex1_libstr(&hsGamma[N-1-ii], idx_gammab, idx_g);
 				d2[nb2+0*nt2+ig] = ptr_d[0*nt0+jj] - tmp;
 				d2[nb2+1*nt2+ig] = ptr_d[1*nt0+jj] - tmp;
 				dgecp_libstr(idx_gammab, 1, 1.0, &hsGamma[N-ii-1], 0, idx_g, sDCt2, nu_tmp, ig);
