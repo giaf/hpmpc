@@ -83,6 +83,7 @@ void print_node(struct node *tree)
 	printf("\n");
 	printf("stage = \t%d\n", tree[0].stage);
 	printf("realization = \t%d\n", tree[0].real);
+	printf("index as a kid = \t%d\n", tree[0].idxkid);
 	printf("\n");
 	return;
 	}
@@ -109,6 +110,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 	tree[idx].stage = stage;
 	tree[idx].real = real;
 	tree[idx].nkids = nkids;
+	tree[idx].idxkid = 0;
 	if(nkids>0)
 		{
 		tree[idx].kids = (int *) malloc(nkids*sizeof(int));
@@ -120,6 +122,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 				tree[idx].kids[ii] = idxkid;
 				tree[idxkid].dad = idx;
 				tree[idxkid].real = ii;
+				tree[idxkid].idxkid = ii;
 				}
 			}
 		else // nkids==1
@@ -128,6 +131,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 			tree[idx].kids[0] = idxkid;
 			tree[idxkid].dad = idx;
 			tree[idxkid].real = 0;
+			tree[idxkid].idxkid = 0;
 			}
 		}
 	// kids
@@ -154,6 +158,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 					tree[idx].kids[ii] = idxkid;
 					tree[idxkid].dad = idx;
 					tree[idxkid].real = ii;
+					tree[idxkid].idxkid = ii;
 					}
 				}
 			else // nkids==1
@@ -162,6 +167,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 				tree[idx].kids[0] = idxkid;
 				tree[idxkid].dad = idx;
 				tree[idxkid].real = tree[idx].real;
+				tree[idxkid].idxkid = 0;
 				}
 			}
 		}
