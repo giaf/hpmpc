@@ -247,7 +247,7 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 #endif
 		dgead_libstr(1, nx[N-nn], 1.0, &sLx, nx[N-nn], 0, &sBAbtL, nu[N-nn-1]+nx[N-nn-1], 0);
 
-		dsyrk_ln_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
+		dsyrk_ln_mn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 
 		// D
 		dtrcp_l_libstr(nu[N-nn-1], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf);
@@ -280,7 +280,7 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 #endif
 	dgead_libstr(1, nx[N-nn], 1.0, &sLx, nx[N-nn], 0, &sBAbtL, nu[N-nn-1]+nx[N-nn-1], 0);
 
-	dsyrk_ln_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
+	dsyrk_ln_mn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 
 	// D, M, m, P, p
 //	dgecp_libstr(nu[0]+nx[0]+1, nu[0]+nx[0], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf); // TODO dtrcp for 'rectangular' matrices

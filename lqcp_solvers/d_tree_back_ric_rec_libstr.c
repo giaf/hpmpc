@@ -135,7 +135,7 @@ static void d_back_ric_sv_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 		// update with general constraints and factorize at the end
 		if(ng0>0)
 			{
-			dsyrk_ln_libstr(nu0+nx0+1, nu0+nx0, nx1t, 1.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, 1.0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
+			dsyrk_ln_mn_libstr(nu0+nx0+1, nu0+nx0, nx1t, 1.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, 1.0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
 			d_create_strmat(nu0+nx0, ng0, &hswork_mat_0, work);
 			dgemm_r_diag_libstr(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsQx[0], nb0, 0.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0);
 			drowin_libstr(ng0, 1.0, &hsqx[0], nb0, &hswork_mat_0, nu0+nx0, 0);
@@ -295,7 +295,7 @@ static void d_back_ric_trf_1_libstr(int nkids, int nx0, int *nx1, int nu0, int *
 		// update with general constraints and factorize at the end
 		if(ng0>0)
 			{
-			dsyrk_ln_libstr(nu0+nx0, nu0+nx0, nx1t, 1.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, 1.0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
+			dsyrk_ln_libstr(nu0+nx0, nx1t, 1.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, 1.0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
 			d_create_strmat(nu0+nx0, ng0, &hswork_mat_0, work);
 			dgemm_r_diag_libstr(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsQx[0], nb0, 0.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0);
 			dsyrk_dpotrf_ln_libstr(nu0+nx0, nu0+nx0, ng0, &hsDCt[0], 0, 0, &hswork_mat_0, 0, 0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
