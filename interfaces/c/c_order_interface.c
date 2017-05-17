@@ -486,7 +486,7 @@ int c_order_d_ip_ocp_hard_tv(
 
 	inf_norm_res[3] = mu;
 
-d_print_mat(1, 4, inf_norm_res, 1);
+	//d_print_mat(1, 4, inf_norm_res, 1);
 
 
 

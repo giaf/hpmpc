@@ -104,3 +104,8 @@ Session.vim
 ### Preconfigured target configuration file
 # include/target.h <-- must be built off-source
 
+### VS Code ###
+.vscode
+
+### CMake ###
+build
