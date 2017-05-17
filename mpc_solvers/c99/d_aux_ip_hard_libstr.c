@@ -366,6 +366,43 @@ void d_compute_alpha_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idx
 
 
 
+void d_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double *ptr_mu, double mu_scal, double alpha, struct d_strvec *hsux, struct d_strvec *hsdux, struct d_strvec *hspi, struct d_strvec *hsdpi, struct d_strvec *hst, struct d_strvec *hsdt, struct d_strvec *hslam, struct d_strvec *hsdlam)
+	{
+
+	int ii;
+
+	ptr_mu[0] = 0.0;
+	
+	// backup and update equality constrains multipliers
+	for(ii=1; ii<=N; ii++)
+		{
+		daxpy_libstr(nx[ii], -1.0, &hspi[ii], 0, &hsdpi[ii], 0, &hsdpi[ii], 0);
+		daxpy_libstr(nx[ii], alpha, &hsdpi[ii], 0, &hspi[ii], 0, &hspi[ii], 0);
+		}
+
+	// backup and update inputs and states
+	for(ii=0; ii<=N; ii++)
+		{
+		daxpy_libstr(nu[ii]+nx[ii], -1.0, &hsux[ii], 0, &hsdux[ii], 0, &hsdux[ii], 0);
+		daxpy_libstr(nu[ii]+nx[ii], alpha, &hsdux[ii], 0, &hsux[ii], 0, &hsux[ii], 0);
+		}
+
+	// backup and update inequality constraints multipliers and slack variables
+	for(ii=0; ii<=N; ii++)
+		{
+		daxpy_libstr(2*nb[ii]+2*ng[ii], alpha, &hsdlam[ii], 0, &hslam[ii], 0, &hslam[ii], 0);
+		daxpy_libstr(2*nb[ii]+2*ng[ii], alpha, &hsdt[ii], 0, &hst[ii], 0, &hst[ii], 0);
+		ptr_mu[0] += ddot_libstr(2*nb[ii]+2*ng[ii], &hst[ii], 0, &hslam[ii], 0);
+		}
+	
+	ptr_mu[0] *= mu_scal;
+
+	return;
+	
+	}
+
+
+
 void d_backup_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double *ptr_mu, double mu_scal, double alpha, struct d_strvec *hsux_bkp, struct d_strvec *hsux, struct d_strvec *hsdux, struct d_strvec *hspi_bkp, struct d_strvec *hspi, struct d_strvec *hsdpi, struct d_strvec *hst_bkp, struct d_strvec *hst, struct d_strvec *hsdt, struct d_strvec *hslam_bkp, struct d_strvec *hslam, struct d_strvec *hsdlam)
 	{
 
