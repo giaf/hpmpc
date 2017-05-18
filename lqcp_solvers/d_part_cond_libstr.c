@@ -53,7 +53,7 @@ static void d_comp_Gamma_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 	nu_tmp = 0;
 	ii = 0;
 	// B & A & b
-	dgecp_libstr(nu[0]+nx[0]+1, nx[1], 1.0, &hsBAbt[0], 0, 0, &hsGamma[0], 0, 0);
+	dgecp_libstr(nu[0]+nx[0]+1, nx[1], &hsBAbt[0], 0, 0, &hsGamma[0], 0, 0);
 	//
 	nu_tmp += nu[0];
 	ii++;
@@ -65,7 +65,7 @@ static void d_comp_Gamma_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 		// Gamma * A^T
 		dgemm_nn_libstr(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], 1.0, &hsGamma[ii-1], 0, 0, &hsBAbt[ii], nu[ii], 0, 0.0, &hsGamma[ii], nu[ii], 0, &hsGamma[ii], nu[ii], 0); // Gamma * A^T
 
-		dgecp_libstr(nu[ii], nx[ii+1], 1.0, &hsBAbt[ii], 0, 0, &hsGamma[ii], 0, 0);
+		dgecp_libstr(nu[ii], nx[ii+1], &hsBAbt[ii], 0, 0, &hsGamma[ii], 0, 0);
 
 		nu_tmp += nu[ii];
 
@@ -85,7 +85,7 @@ static void d_comp_Gammab_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAb
 
 	ii = 0;
 	// B & A & b
-	dveccp_libstr(nx[1], 1.0, &hsb[0], 0, &hsGammab[0], 0);
+	dveccp_libstr(nx[1], &hsb[0], 0, &hsGammab[0], 0);
 	//
 	ii++;
 
@@ -117,7 +117,7 @@ static void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt,
 	nu_tmp = 0;
 	ii = 0;
 	// B & A & b
-	dgecp_libstr(nu[0]+nx[0]+1, nx[1], 1.0, &hsBAbt[0], 0, 0, &hsGamma[0], 0, 0);
+	dgecp_libstr(nu[0]+nx[0]+1, nx[1], &hsBAbt[0], 0, 0, &hsGamma[0], 0, 0);
 	//
 	nu_tmp += nu[0];
 	ii++;
@@ -129,7 +129,7 @@ static void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt,
 		// Gamma * A^T
 		dgemm_nn_libstr(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], 1.0, &hsGamma[ii-1], 0, 0, &hsBAbt[ii], nu[ii], 0, 0.0, &hsGamma[ii], nu[ii], 0, &hsGamma[ii], nu[ii], 0); // Gamma * A^T
 
-		dgecp_libstr(nu[ii], nx[ii+1], 1.0, &hsBAbt[ii], 0, 0, &hsGamma[ii], 0, 0);
+		dgecp_libstr(nu[ii], nx[ii+1], &hsBAbt[ii], 0, 0, &hsGamma[ii], 0, 0);
 
 		nu_tmp += nu[ii];
 
@@ -137,7 +137,7 @@ static void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt,
 		}
 	
 	// B & A & b
-	dgecp_libstr(nu_tmp+nx[0]+1, nx[N], 1.0, &hsGamma[N-1], 0, 0, sBAbt2, 0, 0);
+	dgecp_libstr(nu_tmp+nx[0]+1, nx[N], &hsGamma[N-1], 0, 0, sBAbt2, 0, 0);
 	// TODO pass sBAbt2 as Gamma[N-1] !!!!!
 
 	return;
@@ -153,7 +153,7 @@ static void d_cond_b_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, st
 
 	ii = 0;
 	// B & A & b
-	dveccp_libstr(nx[1], 1.0, &hsb[0], 0, &hsGammab[0], 0);
+	dveccp_libstr(nx[1], &hsb[0], 0, &hsGammab[0], 0);
 	//
 	ii++;
 
@@ -168,7 +168,7 @@ static void d_cond_b_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, st
 		}
 	
 	// B & A & b
-	dveccp_libstr(nx[N], 1.0, &hsGammab[N-1], 0, sb2, 0);
+	dveccp_libstr(nx[N], &hsGammab[N-1], 0, sb2, 0);
 
 	return;
 
@@ -186,7 +186,7 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 	// early return
 	if(N==0)
 		{
-		dgecp_libstr(nu[0]+nx[0]+1, nu[0]+nx[0], 1.0, &hsRSQrq[0], 0, 0, sRSQrq2, 0, 0);
+		dgecp_libstr(nu[0]+nx[0]+1, nu[0]+nx[0], &hsRSQrq[0], 0, 0, sRSQrq2, 0, 0);
 		return;
 		}
 
@@ -212,10 +212,10 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 	// final stage 
 	nub -= nu[N];
 
-	dgecp_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], 1.0, &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
+	dgecp_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
 
 	// D
-	dtrcp_l_libstr(nu[N], 1.0, &hsL[N], 0, 0, sRSQrq2, nuf, nuf);
+	dtrcp_l_libstr(nu[N], &hsL[N], 0, 0, sRSQrq2, nuf, nuf);
 
 	dgemm_nn_libstr(nub+nx[0]+1, nu[N], nx[N], 1.0, &hsGamma[N-1], 0, 0, &hsL[N], nu[N], 0, 0.0, sRSQrq2, nuf+nu[N], nuf, sRSQrq2, nuf+nu[N], nuf);
 
@@ -235,7 +235,7 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 		d_create_strmat(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], &sBAbtL, (void *) c_ptr[1]);
 
 #if defined(LA_HIGH_PERFORMANCE)
-		dgecp_libstr(nx[N-nn]+1, nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
+		dgecp_libstr(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
 
 		dpotrf_l_mn_libstr(nx[N-nn]+1, nx[N-nn], &sLx, 0, 0, &sLx, 0, 0);
 
@@ -250,7 +250,7 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 		dsyrk_ln_mn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 
 		// D
-		dtrcp_l_libstr(nu[N-nn-1], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf);
+		dtrcp_l_libstr(nu[N-nn-1], &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf);
 
 		dgemm_nn_libstr(nub+nx[0]+1, nu[N-nn-1], nx[N-nn-1], 1.0, &hsGamma[N-nn-2], 0, 0, &hsL[N-nn-1], nu[N-nn-1], 0, 0.0, sRSQrq2, nuf+nu[N-nn-1], nuf, sRSQrq2, nuf+nu[N-nn-1], nuf);
 
@@ -268,7 +268,7 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 	d_create_strmat(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], &sBAbtL, (void *) c_ptr[1]);
 	
 #if defined(LA_HIGH_PERFORMANCE)
-	dgecp_libstr(nx[N-nn]+1, nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
+	dgecp_libstr(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
 
 	dpotrf_l_mn_libstr(nx[N-nn]+1, nx[N-nn], &sLx, 0, 0, &sLx, 0, 0);
 
@@ -283,9 +283,9 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 	dsyrk_ln_mn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 
 	// D, M, m, P, p
-//	dgecp_libstr(nu[0]+nx[0]+1, nu[0]+nx[0], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf); // TODO dtrcp for 'rectangular' matrices
-	dtrcp_l_libstr(nu[0]+nx[0], 1.0, &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf); // TODO dtrcp for 'rectangular' matrices
-	dgecp_libstr(1, nu[0]+nx[0], 1.0, &hsL[N-nn-1], nu[0]+nx[0], 0, sRSQrq2, nuf+nu[0]+nx[0], nuf); // TODO dtrcp for 'rectangular' matrices
+//	dgecp_libstr(nu[0]+nx[0]+1, nu[0]+nx[0], &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf); // TODO dtrcp for 'rectangular' matrices
+	dtrcp_l_libstr(nu[0]+nx[0], &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf); // TODO dtrcp for 'rectangular' matrices
+	dgecp_libstr(1, nu[0]+nx[0], &hsL[N-nn-1], nu[0]+nx[0], 0, sRSQrq2, nuf+nu[0]+nx[0], nuf); // TODO dtrcp for 'rectangular' matrices
 
 	return;
 
@@ -303,7 +303,7 @@ static void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, s
 	// early return
 	if(N==0)
 		{
-		dveccp_libstr(nu[0]+nx[0], 1.0, &hsrq[0], 0, srq2, 0);
+		dveccp_libstr(nu[0]+nx[0], &hsrq[0], 0, srq2, 0);
 		return;
 		}
 
@@ -323,7 +323,7 @@ static void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, s
 
 	d_create_strvec(nu[N]+nx[N], &sl, (void *) c_ptr[0]);
 
-	dveccp_libstr(nu[N]+nx[N], 1.0, &hsrq[N], 0, &sl, 0);
+	dveccp_libstr(nu[N]+nx[N], &hsrq[N], 0, &sl, 0);
 
 	dgemv_t_libstr(nx[N], nu[N], 1.0, &hsL[N], nu[N], 0, &hsGammab[N-1], 0, 1.0, &sl, 0, srq2, nuf);
 
@@ -359,7 +359,7 @@ static void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, s
 
 	dgemv_n_libstr(nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &hsBAbt[N-nn-1], 0, 0, &sPbp, 0, 1.0, &hsrq[N-nn-1], 0, &sl, 0);
 
-	dveccp_libstr(nu[N-nn-1]+nx[N-nn-1], 1.0, &sl, 0, srq2, nuf);
+	dveccp_libstr(nu[N-nn-1]+nx[N-nn-1], &sl, 0, srq2, nuf);
 
 	return;
 
@@ -446,7 +446,7 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 				tmp = dgeex1_libstr(&hsGamma[N-1-ii], idx_gammab, idx_g);
 				d2[nb2+0*nt2+ig] = ptr_d[0*nt0+jj] - tmp;
 				d2[nb2+1*nt2+ig] = ptr_d[1*nt0+jj] - tmp;
-				dgecp_libstr(idx_gammab, 1, 1.0, &hsGamma[N-ii-1], 0, idx_g, sDCt2, nu_tmp, ig);
+				dgecp_libstr(idx_gammab, 1, &hsGamma[N-ii-1], 0, idx_g, sDCt2, nu_tmp, ig);
 				ig++;
 				}
 			}
@@ -494,7 +494,7 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 
 			c_ptr = (char *) work_space;
 
-			dgecp_libstr(nu0, ng0, 1.0, &hsDCt[N-ii], 0, 0, sDCt2, nu_tmp, nbg+ng_tmp);
+			dgecp_libstr(nu0, ng0, &hsDCt[N-ii], 0, 0, sDCt2, nu_tmp, nbg+ng_tmp);
 
 			nu_tmp += nu0;
 
@@ -505,8 +505,8 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 
 			dgemm_nt_libstr(nu2+nx[0]-nu_tmp, ng0, nx0, 1.0, &hsGamma[N-1-ii], 0, 0, &sC, 0, 0, 0.0, sDCt2, nu_tmp, nbg+ng_tmp, sDCt2, nu_tmp, nbg+ng_tmp);
 
-			dveccp_libstr(ng0, 1.0, &hsd[N-ii], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
-			dveccp_libstr(ng0, 1.0, &hsd[N-ii], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
+			dveccp_libstr(ng0, &hsd[N-ii], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
+			dveccp_libstr(ng0, &hsd[N-ii], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
 
 			d_create_strvec(nx0, &sGammab, (void *) c_ptr);
 			c_ptr += sGammab.memory_size;
@@ -542,10 +542,10 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 	if(ng0>0)
 		{
 
-		dgecp_libstr(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, sDCt2, nu_tmp, nbg+ng_tmp);
+		dgecp_libstr(nu0+nx0, ng0, &hsDCt[0], 0, 0, sDCt2, nu_tmp, nbg+ng_tmp);
 
-		dveccp_libstr(ng0, 1.0, &hsd[0], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
-		dveccp_libstr(ng0, 1.0, &hsd[0], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
+		dveccp_libstr(ng0, &hsd[0], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
+		dveccp_libstr(ng0, &hsd[0], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
 
 //		ng_tmp += ng[N-ii];
 
@@ -675,8 +675,8 @@ static void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 		if(ng0>0)
 			{
 
-			dveccp_libstr(ng0, 1.0, &hsd[N-ii], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
-			dveccp_libstr(ng0, 1.0, &hsd[N-ii], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
+			dveccp_libstr(ng0, &hsd[N-ii], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
+			dveccp_libstr(ng0, &hsd[N-ii], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
 
 			d_create_strvec(ng0, &sCGammab, (void *) c_ptr);
 
@@ -701,8 +701,8 @@ static void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 	if(ng0>0)
 		{
 
-		dveccp_libstr(ng0, 1.0, &hsd[0], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
-		dveccp_libstr(ng0, 1.0, &hsd[0], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
+		dveccp_libstr(ng0, &hsd[0], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
+		dveccp_libstr(ng0, &hsd[0], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
 
 //		ng_tmp += ng[N-ii];
 
@@ -898,10 +898,10 @@ void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 		for(ii=0; ii<N; ii++)
 			{
 			for(jj=0; jj<nb[ii]; jj++) hidxb2[ii][jj] = hidxb[ii][jj];
-			dgecp_libstr(nu[ii]+nx[ii]+1, nx[ii+1], 1.0, &hsBAbt[ii], 0, 0, &hsBAbt2[ii], 0, 0);
-			dgecp_libstr(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], 1.0, &hsRSQrq[ii], 0, 0, &hsRSQrq2[ii], 0, 0);
-			dgecp_libstr(nu[ii]+nx[ii]+1, ng[ii], 1.0, &hsDCt[ii], 0, 0, &hsDCt2[ii], 0, 0);
-			dveccp_libstr(2*nb[ii]+2*ng[ii], 1.0, &hsd[ii], 0, &hsd2[ii], 0);
+			dgecp_libstr(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0, &hsBAbt2[ii], 0, 0);
+			dgecp_libstr(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0, &hsRSQrq2[ii], 0, 0);
+			dgecp_libstr(nu[ii]+nx[ii]+1, ng[ii], &hsDCt[ii], 0, 0, &hsDCt2[ii], 0, 0);
+			dveccp_libstr(2*nb[ii]+2*ng[ii], &hsd[ii], 0, &hsd2[ii], 0);
 			}
 		return;
 		}
@@ -980,12 +980,12 @@ void d_part_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 		for(ii=0; ii<N; ii++)
 			{
 			for(jj=0; jj<nb[ii]; jj++) hidxb2[ii][jj] = hidxb[ii][jj];
-			dgecp_libstr(nu[ii]+nx[ii]+1, nx[ii+1], 1.0, &hsBAbt[ii], 0, 0, &hsBAbt2[ii], 0, 0);
-			dveccp_libstr(nx[ii+1], 1.0, &hsb[ii], 0, &hsb2[ii], 0);
-			dgecp_libstr(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], 1.0, &hsRSQrq[ii], 0, 0, &hsRSQrq2[ii], 0, 0);
-			dveccp_libstr(nu[ii]+nx[ii], 1.0, &hsrq[ii], 0, &hsrq2[ii], 0);
-			dgecp_libstr(nu[ii]+nx[ii]+1, ng[ii], 1.0, &hsDCt[ii], 0, 0, &hsDCt2[ii], 0, 0);
-			dveccp_libstr(2*nb[ii]+2*ng[ii], 1.0, &hsd[ii], 0, &hsd2[ii], 0);
+			dgecp_libstr(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0, &hsBAbt2[ii], 0, 0);
+			dveccp_libstr(nx[ii+1], &hsb[ii], 0, &hsb2[ii], 0);
+			dgecp_libstr(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0, &hsRSQrq2[ii], 0, 0);
+			dveccp_libstr(nu[ii]+nx[ii], &hsrq[ii], 0, &hsrq2[ii], 0);
+			dgecp_libstr(nu[ii]+nx[ii]+1, ng[ii], &hsDCt[ii], 0, 0, &hsDCt2[ii], 0, 0);
+			dveccp_libstr(2*nb[ii]+2*ng[ii], &hsd[ii], 0, &hsd2[ii], 0);
 			}
 		return;
 		}
@@ -1110,11 +1110,11 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 		// final stages: copy only input
 		for(jj=0; jj<T1-1; jj++)
 			{
-			dveccp_libstr(nu[N_tmp+T1-1-jj], 1.0, &hsux2[ii], nu_tmp, &hsux[N_tmp+T1-1-jj], 0);
+			dveccp_libstr(nu[N_tmp+T1-1-jj], &hsux2[ii], nu_tmp, &hsux[N_tmp+T1-1-jj], 0);
 			nu_tmp += nu[N_tmp+T1-1-jj];
 			}
 		// first stage: copy input and state
-		dveccp_libstr(nu[N_tmp+0]+nx[N_tmp+0], 1.0, &hsux2[ii], nu_tmp, &hsux[N_tmp+0], 0);
+		dveccp_libstr(nu[N_tmp+0]+nx[N_tmp+0], &hsux2[ii], nu_tmp, &hsux[N_tmp+0], 0);
 		//
 		N_tmp += T1;
 		}
@@ -1199,15 +1199,15 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 		ng0 = ng[stg];
 		nt0 = nb0 + ng0;
 		// all box as box
-		dveccp_libstr(nb0, 1.0, &hslam2[ii], 0*nt2+nbb2, &hslam[stg], 0*nt0);
-		dveccp_libstr(nb0, 1.0, &hslam2[ii], 1*nt2+nbb2, &hslam[stg], 1*nt0);
-		dveccp_libstr(nb0, 1.0, &hst2[ii], 0*nt2+nbb2, &hst[stg], 0*nt0);
-		dveccp_libstr(nb0, 1.0, &hst2[ii], 1*nt2+nbb2, &hst[stg], 1*nt0);
+		dveccp_libstr(nb0, &hslam2[ii], 0*nt2+nbb2, &hslam[stg], 0*nt0);
+		dveccp_libstr(nb0, &hslam2[ii], 1*nt2+nbb2, &hslam[stg], 1*nt0);
+		dveccp_libstr(nb0, &hst2[ii], 0*nt2+nbb2, &hst[stg], 0*nt0);
+		dveccp_libstr(nb0, &hst2[ii], 1*nt2+nbb2, &hst[stg], 1*nt0);
 		// first stage: general
-		dveccp_libstr(ng0, 1.0, &hslam2[ii], nb2[ii]+0*nt2+nbg2+ngg2, &hslam[stg], nb0+0*nt0);
-		dveccp_libstr(ng0, 1.0, &hslam2[ii], nb2[ii]+1*nt2+nbg2+ngg2, &hslam[stg], nb0+1*nt0);
-		dveccp_libstr(ng0, 1.0, &hst2[ii], nb2[ii]+0*nt2+nbg2+ngg2, &hst[stg], nb0+0*nt0);
-		dveccp_libstr(ng0, 1.0, &hst2[ii], nb2[ii]+1*nt2+nbg2+ngg2, &hst[stg], nb0+1*nt0);
+		dveccp_libstr(ng0, &hslam2[ii], nb2[ii]+0*nt2+nbg2+ngg2, &hslam[stg], nb0+0*nt0);
+		dveccp_libstr(ng0, &hslam2[ii], nb2[ii]+1*nt2+nbg2+ngg2, &hslam[stg], nb0+1*nt0);
+		dveccp_libstr(ng0, &hst2[ii], nb2[ii]+0*nt2+nbg2+ngg2, &hst[stg], nb0+0*nt0);
+		dveccp_libstr(ng0, &hst2[ii], nb2[ii]+1*nt2+nbg2+ngg2, &hst[stg], nb0+1*nt0);
 		//
 		N_tmp += T1;
 		}
@@ -1220,7 +1220,7 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 		{
 		T1 = ii<R1 ? M1 : N1;
 		// last stage: just copy
-		dveccp_libstr(nx[N_tmp+T1], 1.0, &hspi2[ii+1], 0, &hspi[N_tmp+T1], 0);
+		dveccp_libstr(nx[N_tmp+T1], &hspi2[ii+1], 0, &hspi[N_tmp+T1], 0);
 		// middle stages: backward simulation
 		for(jj=0; jj<T1-1; jj++)
 			{
@@ -1232,7 +1232,7 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 			ng0 = ng[stg];
 			nt0 = nb0 + ng0;
 			d_create_strvec(nu0+nx0, &workvec[0], (void *) c_ptr[0]);
-			dveccp_libstr(nu0+nx0, 1.0, &hsrq[stg], 0, &workvec[0], 0);
+			dveccp_libstr(nu0+nx0, &hsrq[stg], 0, &workvec[0], 0);
 			ptr_work0 = workvec[0].pa;
 			ptr_lam = hslam[stg].pa;
 			for(ll=0; ll<nb0; ll++)
@@ -1244,7 +1244,7 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 			for(ll=0; ll<ng0; ll++)
 				ptr_work1[ll] = ptr_lam[nb0+1*nt0+ll] - ptr_lam[nb0+0*nt0+ll];
 			dgemv_n_libstr(nu0+nx0, ng0, 1.0, &hsDCt[stg], 0, 0, &workvec[1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
-			dveccp_libstr(nx0, 1.0, &workvec[0], nu0,  &hspi[stg], 0);
+			dveccp_libstr(nx0, &workvec[0], nu0,  &hspi[stg], 0);
 			}
 		N_tmp += T1;
 		}
@@ -1535,11 +1535,11 @@ void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 	for(jj=0; jj<N; jj++)
 		{
 		stg = N-jj;
-		dveccp_libstr(nu[stg], 1.0, &hsux2[0], nu_tmp, &hsux[stg], 0);
+		dveccp_libstr(nu[stg], &hsux2[0], nu_tmp, &hsux[stg], 0);
 		nu_tmp += nu[stg];
 		}
 	// first stage: copy input and state
-	dveccp_libstr(nu[0]+nx[0], 1.0, &hsux2[0], nu_tmp, &hsux[0], 0);
+	dveccp_libstr(nu[0]+nx[0], &hsux2[0], nu_tmp, &hsux[0], 0);
 
 	// compute missing states by simulation within each block
 	for(jj=0; jj<N; jj++)
@@ -1609,15 +1609,15 @@ void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 	ng0 = ng[0];
 	nt0 = nb0 + ng0;
 	// all box as box
-	dveccp_libstr(nb0, 1.0, &hslam2[0], 0*nt2+nbb2, &hslam[0], 0*nt0);
-	dveccp_libstr(nb0, 1.0, &hslam2[0], 1*nt2+nbb2, &hslam[0], 1*nt0);
-	dveccp_libstr(nb0, 1.0, &hst2[0], 0*nt2+nbb2, &hst[0], 0*nt0);
-	dveccp_libstr(nb0, 1.0, &hst2[0], 1*nt2+nbb2, &hst[0], 1*nt0);
+	dveccp_libstr(nb0, &hslam2[0], 0*nt2+nbb2, &hslam[0], 0*nt0);
+	dveccp_libstr(nb0, &hslam2[0], 1*nt2+nbb2, &hslam[0], 1*nt0);
+	dveccp_libstr(nb0, &hst2[0], 0*nt2+nbb2, &hst[0], 0*nt0);
+	dveccp_libstr(nb0, &hst2[0], 1*nt2+nbb2, &hst[0], 1*nt0);
 	// first stage: general
-	dveccp_libstr(ng0, 1.0, &hslam2[0], nb2[0]+0*nt2+nbg2+ngg2, &hslam[0], nb0+0*nt0);
-	dveccp_libstr(ng0, 1.0, &hslam2[0], nb2[0]+1*nt2+nbg2+ngg2, &hslam[0], nb0+1*nt0);
-	dveccp_libstr(ng0, 1.0, &hst2[0], nb2[0]+0*nt2+nbg2+ngg2, &hst[0], nb0+0*nt0);
-	dveccp_libstr(ng0, 1.0, &hst2[0], nb2[0]+1*nt2+nbg2+ngg2, &hst[0], nb0+1*nt0);
+	dveccp_libstr(ng0, &hslam2[0], nb2[0]+0*nt2+nbg2+ngg2, &hslam[0], nb0+0*nt0);
+	dveccp_libstr(ng0, &hslam2[0], nb2[0]+1*nt2+nbg2+ngg2, &hslam[0], nb0+1*nt0);
+	dveccp_libstr(ng0, &hst2[0], nb2[0]+0*nt2+nbg2+ngg2, &hst[0], nb0+0*nt0);
+	dveccp_libstr(ng0, &hst2[0], nb2[0]+1*nt2+nbg2+ngg2, &hst[0], nb0+1*nt0);
 
 	// lagrange multipliers of equality constraints
 	// TODO avoid to multiply by R and B (i.e. the u part)
@@ -1629,7 +1629,7 @@ void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 	ng0 = ng[stg];
 	nt0 = nb0 + ng0;
 	d_create_strvec(nu0+nx0, &workvec[0], (void *) c_ptr[0]);
-	dveccp_libstr(nu0+nx0, 1.0, &hsrq[stg], 0, &workvec[0], 0);
+	dveccp_libstr(nu0+nx0, &hsrq[stg], 0, &workvec[0], 0);
 	ptr_work0 = workvec[0].pa;
 	ptr_lam = hslam[stg].pa;
 	for(ll=0; ll<nb0; ll++)
@@ -1640,7 +1640,7 @@ void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 	for(ll=0; ll<ng0; ll++)
 		ptr_work1[ll] = ptr_lam[nb0+1*nt0+ll] - ptr_lam[nb0+0*nt0+ll];
 	dgemv_n_libstr(nu0+nx0, ng0, 1.0, &hsDCt[stg], 0, 0, &workvec[1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
-	dveccp_libstr(nx0, 1.0, &workvec[0], nu0,  &hspi[stg], 0);
+	dveccp_libstr(nx0, &workvec[0], nu0,  &hspi[stg], 0);
 	// middle stages: backward simulation
 	for(jj=0; jj<N-1; jj++)
 		{
@@ -1652,7 +1652,7 @@ void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 		ng0 = ng[stg];
 		nt0 = nb0 + ng0;
 		d_create_strvec(nu0+nx0, &workvec[0], (void *) c_ptr[0]);
-		dveccp_libstr(nu0+nx0, 1.0, &hsrq[stg], 0, &workvec[0], 0);
+		dveccp_libstr(nu0+nx0, &hsrq[stg], 0, &workvec[0], 0);
 		ptr_work0 = workvec[0].pa;
 		ptr_lam = hslam[stg].pa;
 		for(ll=0; ll<nb0; ll++)
@@ -1664,7 +1664,7 @@ void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 		for(ll=0; ll<ng0; ll++)
 			ptr_work1[ll] = ptr_lam[nb0+1*nt0+ll] - ptr_lam[nb0+0*nt0+ll];
 		dgemv_n_libstr(nu0+nx0, ng0, 1.0, &hsDCt[stg], 0, 0, &workvec[1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
-		dveccp_libstr(nx0, 1.0, &workvec[0], nu0,  &hspi[stg], 0);
+		dveccp_libstr(nx0, &workvec[0], nu0,  &hspi[stg], 0);
 		}
 
 	return;

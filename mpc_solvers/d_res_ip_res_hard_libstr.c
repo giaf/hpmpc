@@ -91,7 +91,7 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		ng0 = ng[ii];
 		nt0 = nb0 + ng0;
 
-		dveccp_libstr(nu0+nx0, 1.0, &hsrq[ii], 0, &hsres_rq[ii], 0);
+		dveccp_libstr(nu0+nx0, &hsrq[ii], 0, &hsres_rq[ii], 0);
 
 		// no previous multiplier at the first stage
 		if(ii>0)
@@ -109,7 +109,7 @@ void d_res_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 			dvecad_sp_libstr(nb0, 1.0, &hswork_0, 0, idxb[ii], &hsres_rq[ii], 0);
 
 			dvecex_sp_libstr(nb0, -1.0, idxb[ii], &hsux[ii], 0, &hsres_d[ii], 0);
-			dveccp_libstr(nb0, 1.0, &hsres_d[ii], 0, &hsres_d[ii], nt0);
+			dveccp_libstr(nb0, &hsres_d[ii], 0, &hsres_d[ii], nt0);
 			daxpy_libstr(nb0, 1.0, &hsd[ii], 0, &hsres_d[ii], 0, &hsres_d[ii], 0);
 			daxpy_libstr(nb0, 1.0, &hsd[ii], nt0, &hsres_d[ii], nt0, &hsres_d[ii], nt0);
 			daxpy_libstr(nb0, 1.0, &hst[ii], 0, &hsres_d[ii], 0, &hsres_d[ii], 0);

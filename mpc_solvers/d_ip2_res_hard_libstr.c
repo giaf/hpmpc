@@ -1310,19 +1310,19 @@ void d_kkt_solve_new_rhs_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, i
 
 	// bkp ux
 	for(ii=0; ii<=N; ii++)
-		dveccp_libstr(nu[ii]+nx[ii], 1.0, &hsux_bkp[ii], 0, &hsux[ii], 0);
+		dveccp_libstr(nu[ii]+nx[ii], &hsux_bkp[ii], 0, &hsux[ii], 0);
 
 	// bkp pi
 	for(ii=1; ii<=N; ii++)
-		dveccp_libstr(nx[ii], 1.0, &hspi_bkp[ii], 0, &hspi[ii], 0);
+		dveccp_libstr(nx[ii], &hspi_bkp[ii], 0, &hspi[ii], 0);
 
 	// bkp lam
 	for(ii=0; ii<=N; ii++)
-		dveccp_libstr(2*nb[ii]+2*ng[ii], 1.0, &hslam_bkp[ii], 0, &hslam[ii], 0);
+		dveccp_libstr(2*nb[ii]+2*ng[ii], &hslam_bkp[ii], 0, &hslam[ii], 0);
 
 	// bkp t
 	for(ii=0; ii<=N; ii++)
-		dveccp_libstr(2*nb[ii]+2*ng[ii], 1.0, &hst_bkp[ii], 0, &hst[ii], 0);
+		dveccp_libstr(2*nb[ii]+2*ng[ii], &hst_bkp[ii], 0, &hst[ii], 0);
 	
 
 

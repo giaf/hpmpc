@@ -117,14 +117,14 @@ static void d_back_ric_sv_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 	if(nb0>0 | ng0>0 | update_rq)
 		{
 		// initialize with hessian
-		dtrcp_l_libstr(nu0+nx0, 1.0, &hsRSQrq[0], 0, 0, &hsL0[0], 0, 0);
+		dtrcp_l_libstr(nu0+nx0, &hsRSQrq[0], 0, 0, &hsL0[0], 0, 0);
 		if(update_rq)
 			{
 			drowin_libstr(nu0+nx0, 1.0, &hsrq[0], 0, &hsL0[0], nu0+nx0, 0);
 			}
 		else
 			{
-			dgecp_libstr(1, nu0+nx0, 1.0, &hsRSQrq[0], nu0+nx0, 0, &hsL0[0], nu0+nx0, 0);
+			dgecp_libstr(1, nu0+nx0, &hsRSQrq[0], nu0+nx0, 0, &hsL0[0], nu0+nx0, 0);
 			}
 		// update with box constraints
 		if(nb0>0)
@@ -164,14 +164,14 @@ static void d_back_ric_sv_back_N_libstr(int nx0, int nu0, int nb0, int *hidxb0, 
 
 	if(nb0>0 | ng0>0 | update_rq)
 		{
-		dtrcp_l_libstr(nu0+nx0, 1.0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
+		dtrcp_l_libstr(nu0+nx0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
 		if(update_rq)
 			{
 			drowin_libstr(nu0+nx0, 1.0, &hsrq[0], 0, &hsL[0], nu0+nx0, 0);
 			}
 		else
 			{
-			dgecp_libstr(1, nu0+nx0, 1.0, &hsRSQrq[0], nu0+nx0, 0, &hsL[0], nu0+nx0, 0);
+			dgecp_libstr(1, nu0+nx0, &hsRSQrq[0], nu0+nx0, 0, &hsL[0], nu0+nx0, 0);
 			}
 		if(nb0>0)
 			{
@@ -217,7 +217,7 @@ static void d_back_ric_sv_forw_0_libstr(int nkids, int nx0, int *nx1, int nu0, i
 		if(compute_pi)
 			{
 			d_create_strvec(nx1[ii], &hswork_vec_0, work);
-			dveccp_libstr(nx1[ii], 1.0, &hsux1[ii], nu1[ii], &hspi[ii], 0);
+			dveccp_libstr(nx1[ii], &hsux1[ii], nu1[ii], &hspi[ii], 0);
 			drowex_libstr(nx1[ii], 1.0, &hsL1[ii], nu1[ii]+nx1[ii], nu1[ii], &hswork_vec_0, 0);
 			dtrmv_ltn_libstr(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hspi[ii], 0, &hspi[ii], 0);
 			daxpy_libstr(nx1[ii], 1.0, &hswork_vec_0, 0, &hspi[ii], 0, &hspi[ii], 0);
@@ -247,7 +247,7 @@ static void d_back_ric_sv_forw_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 		if(compute_pi)
 			{
 			d_create_strvec(nx1[ii], &hswork_vec_0, work);
-			dveccp_libstr(nx1[ii], 1.0, &hsux1[ii], nu1[ii], &hspi[ii], 0);
+			dveccp_libstr(nx1[ii], &hsux1[ii], nu1[ii], &hspi[ii], 0);
 			drowex_libstr(nx1[ii], 1.0, &hsL1[ii], nu1[ii]+nx1[ii], nu1[ii], &hswork_vec_0, 0);
 			dtrmv_ltn_libstr(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hspi[ii], 0, &hspi[ii], 0);
 			daxpy_libstr(nx1[ii], 1.0, &hswork_vec_0, 0, &hspi[ii], 0, &hspi[ii], 0);
@@ -286,7 +286,7 @@ static void d_back_ric_trf_1_libstr(int nkids, int nx0, int *nx1, int nu0, int *
 	if(nb0>0 | ng0>0)
 		{
 		// initialize with hessian
-		dtrcp_l_libstr(nu0+nx0, 1.0, &hsRSQrq[0], 0, 0, &hsL0[0], 0, 0);
+		dtrcp_l_libstr(nu0+nx0, &hsRSQrq[0], 0, 0, &hsL0[0], 0, 0);
 		// update with box constraints
 		if(nb0>0)
 			{
@@ -325,7 +325,7 @@ static void d_back_ric_trf_N_libstr(int nx0, int nu0, int nb0, int *hidxb0, int 
 
 	if(nb0>0 | ng0>0)
 		{
-		dtrcp_l_libstr(nu0+nx0, 1.0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
+		dtrcp_l_libstr(nu0+nx0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
 		if(nb0>0)
 			{
 			ddiaad_libspstr(nb0, hidxb0, 1.0, &hsQx[0], 0, &hsL[0], 0, 0);
@@ -355,7 +355,7 @@ static void d_back_ric_trf_N_libstr(int nx0, int nu0, int nb0, int *hidxb0, int 
 static void d_back_ric_trs_back_N_libstr(int nx0, int nu0, int nb0, int *hidxb0, int ng0, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsqx, struct d_strvec *hsux)
 	{
 
-	dveccp_libstr(nu0+nx0, 1.0, &hsrq[0], 0, &hsux[0], 0);
+	dveccp_libstr(nu0+nx0, &hsrq[0], 0, &hsux[0], 0);
 	if(nb0>0)
 		{
 		dvecad_libspstr(nb0, hidxb0, 1.0, &hsqx[0], 0, &hsux[0], 0);
@@ -379,7 +379,7 @@ static void d_back_ric_trs_back_0_libstr(int nkids, int nx0, int *nx1, int nu0, 
 	struct d_strvec hswork_vec_0;
 
 	// initialize with gradient
-	dveccp_libstr(nu0+nx0, 1.0, &hsrq[0], 0, &hsux0[0], 0);
+	dveccp_libstr(nu0+nx0, &hsrq[0], 0, &hsux0[0], 0);
 
 	// all kids: update
 	for(ii=0; ii<nkids; ii++)
@@ -421,7 +421,7 @@ static void d_back_ric_trs_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, 
 	struct d_strvec hswork_vec_0;
 
 	// initialize with gradient
-	dveccp_libstr(nu0+nx0, 1.0, &hsrq[0], 0, &hsux0[0], 0);
+	dveccp_libstr(nu0+nx0, &hsrq[0], 0, &hsux0[0], 0);
 
 	// all kids: update
 	for(ii=0; ii<nkids; ii++)
@@ -462,19 +462,19 @@ static void d_back_ric_trs_forw_0_libstr(int nkids, int nx0, int *nx1, int nu0, 
 
 	int ii;
 
-	dveccp_libstr(nu0+nx0, -1.0, &hsux0[0], 0, &hsux0[0], 0);
+	dvecsc_libstr(nu0+nx0, -1.0, &hsux0[0], 0);
 	dtrsv_ltn_mn_libstr(nu0+nx0, nu0+nx0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
 	for(ii=0; ii<nkids; ii++)
 		{
 		if(compute_pi)
 			{
-			dveccp_libstr(nx1[ii], 1.0, &hsux1[ii], nu1[ii], &hspi[ii], 0);
+			dveccp_libstr(nx1[ii], &hsux1[ii], nu1[ii], &hspi[ii], 0);
 			}
 		dgemv_t_libstr(nu0+nx0, nx1[ii], 1.0, &hsBAbt[ii], 0, 0, &hsux0[0], 0, 1.0, &hsb[ii], 0, &hsux1[ii], nu1[ii]);
 		if(compute_pi)
 			{
 			d_create_strvec(nx1[ii], &hswork_vec_0, work);
-			dveccp_libstr(nx1[ii], 1.0, &hsux1[ii], nu1[ii], &hswork_vec_0, 0);
+			dveccp_libstr(nx1[ii], &hsux1[ii], nu1[ii], &hswork_vec_0, 0);
 			dtrmv_ltn_libstr(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hswork_vec_0, 0);
 			dtrmv_lnn_libstr(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hswork_vec_0, 0);
 			daxpy_libstr(nx1[ii], 1.0, &hswork_vec_0, 0, &hspi[ii], 0, &hspi[ii], 0);
@@ -494,19 +494,19 @@ static void d_back_ric_trs_forw_1_libstr(int nkids, int nx0, int *nx1, int nu0, 
 
 	int ii;
 
-	dveccp_libstr(nu0, -1.0, &hsux0[0], 0, &hsux0[0], 0);
+	dvecsc_libstr(nu0, -1.0, &hsux0[0], 0);
 	dtrsv_ltn_mn_libstr(nu0+nx0, nu0, &hsL0[0], 0, 0, &hsux0[0], 0, &hsux0[0], 0);
 	for(ii=0; ii<nkids; ii++)
 		{
 		if(compute_pi)
 			{
-			dveccp_libstr(nx1[ii], 1.0, &hsux1[ii], nu1[ii], &hspi[ii], 0);
+			dveccp_libstr(nx1[ii], &hsux1[ii], nu1[ii], &hspi[ii], 0);
 			}
 		dgemv_t_libstr(nu0+nx0, nx1[ii], 1.0, &hsBAbt[ii], 0, 0, &hsux0[0], 0, 1.0, &hsb[ii], 0, &hsux1[ii], nu1[ii]);
 		if(compute_pi)
 			{
 			d_create_strvec(nx1[ii], &hswork_vec_0, work);
-			dveccp_libstr(nx1[ii], 1.0, &hsux1[ii], nu1[ii], &hswork_vec_0, 0);
+			dveccp_libstr(nx1[ii], &hsux1[ii], nu1[ii], &hswork_vec_0, 0);
 			dtrmv_ltn_libstr(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hswork_vec_0, 0);
 			dtrmv_lnn_libstr(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hswork_vec_0, 0);
 			daxpy_libstr(nx1[ii], 1.0, &hswork_vec_0, 0, &hspi[ii], 0, &hspi[ii], 0);
