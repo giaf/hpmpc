@@ -413,7 +413,7 @@ void d_backup_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *
 	// backup and update equality constrains multipliers
 	for(ii=1; ii<=N; ii++)
 		{
-		dveccp_libstr(nx[ii], 1.0, &hspi[ii], 0, &hspi_bkp[ii], 0);
+		dveccp_libstr(nx[ii], &hspi[ii], 0, &hspi_bkp[ii], 0);
 		daxpy_libstr(nx[ii], -1.0, &hspi[ii], 0, &hsdpi[ii], 0, &hsdpi[ii], 0);
 		daxpy_libstr(nx[ii], alpha, &hsdpi[ii], 0, &hspi[ii], 0, &hspi[ii], 0);
 		}
@@ -421,7 +421,7 @@ void d_backup_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *
 	// backup and update inputs and states
 	for(ii=0; ii<=N; ii++)
 		{
-		dveccp_libstr(nu[ii]+nx[ii], 1.0, &hsux[ii], 0, &hsux_bkp[ii], 0);
+		dveccp_libstr(nu[ii]+nx[ii], &hsux[ii], 0, &hsux_bkp[ii], 0);
 		daxpy_libstr(nu[ii]+nx[ii], -1.0, &hsux[ii], 0, &hsdux[ii], 0, &hsdux[ii], 0);
 		daxpy_libstr(nu[ii]+nx[ii], alpha, &hsdux[ii], 0, &hsux[ii], 0, &hsux[ii], 0);
 		}
@@ -429,9 +429,9 @@ void d_backup_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *
 	// backup and update inequality constraints multipliers and slack variables
 	for(ii=0; ii<=N; ii++)
 		{
-		dveccp_libstr(2*nb[ii]+2*ng[ii], 1.0, &hslam[ii], 0, &hslam_bkp[ii], 0);
+		dveccp_libstr(2*nb[ii]+2*ng[ii], &hslam[ii], 0, &hslam_bkp[ii], 0);
 		daxpy_libstr(2*nb[ii]+2*ng[ii], alpha, &hsdlam[ii], 0, &hslam[ii], 0, &hslam[ii], 0);
-		dveccp_libstr(2*nb[ii]+2*ng[ii], 1.0, &hst[ii], 0, &hst_bkp[ii], 0);
+		dveccp_libstr(2*nb[ii]+2*ng[ii], &hst[ii], 0, &hst_bkp[ii], 0);
 		daxpy_libstr(2*nb[ii]+2*ng[ii], alpha, &hsdt[ii], 0, &hst[ii], 0, &hst[ii], 0);
 		ptr_mu[0] += ddot_libstr(2*nb[ii]+2*ng[ii], &hst[ii], 0, &hslam[ii], 0);
 		}
@@ -682,28 +682,28 @@ void d_backup_update_var_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, i
 	// backup and update equality constrains multipliers
 	for(ii=1; ii<=N; ii++)
 		{
-		dveccp_libstr(nx[ii], 1.0, &hspi[ii], 0, &hspi_bkp[ii], 0);
+		dveccp_libstr(nx[ii], &hspi[ii], 0, &hspi_bkp[ii], 0);
 		daxpy_libstr(nx[ii], alpha, &hsdpi[ii], 0, &hspi[ii], 0, &hspi[ii], 0);
 		}
 
 	// backup and update inputs and states
 	for(ii=0; ii<=N; ii++)
 		{
-		dveccp_libstr(nu[ii]+nx[ii], 1.0, &hsux[ii], 0, &hsux_bkp[ii], 0);
+		dveccp_libstr(nu[ii]+nx[ii], &hsux[ii], 0, &hsux_bkp[ii], 0);
 		daxpy_libstr(nu[ii]+nx[ii], alpha, &hsdux[ii], 0, &hsux[ii], 0, &hsux[ii], 0);
 		}
 
 	// backup and update inequality constraints multipliers
 	for(ii=0; ii<=N; ii++)
 		{
-		dveccp_libstr(2*nb[ii]+2*ng[ii], 1.0, &hslam[ii], 0, &hslam_bkp[ii], 0);
+		dveccp_libstr(2*nb[ii]+2*ng[ii], &hslam[ii], 0, &hslam_bkp[ii], 0);
 		daxpy_libstr(2*nb[ii]+2*ng[ii], alpha, &hsdlam[ii], 0, &hslam[ii], 0, &hslam[ii], 0);
 		}
 
 	// backup and update slack variables
 	for(ii=0; ii<=N; ii++)
 		{
-		dveccp_libstr(2*nb[ii]+2*ng[ii], 1.0, &hst[ii], 0, &hst_bkp[ii], 0);
+		dveccp_libstr(2*nb[ii]+2*ng[ii], &hst[ii], 0, &hst_bkp[ii], 0);
 		daxpy_libstr(2*nb[ii]+2*ng[ii], alpha, &hsdt[ii], 0, &hst[ii], 0, &hst[ii], 0);
 		}
 
