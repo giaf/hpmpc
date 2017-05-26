@@ -501,7 +501,7 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 			d_create_strmat(ng0, nx0, &sC, (void *) c_ptr);
 			c_ptr += sC.memory_size;
 
-			dgetr_libstr(nx0, ng0, 1.0, &hsDCt[N-ii], nu0, 0, &sC, 0, 0);
+			dgetr_libstr(nx0, ng0, &hsDCt[N-ii], nu0, 0, &sC, 0, 0);
 
 			dgemm_nt_libstr(nu2+nx[0]-nu_tmp, ng0, nx0, 1.0, &hsGamma[N-1-ii], 0, 0, &sC, 0, 0, 0.0, sDCt2, nu_tmp, nbg+ng_tmp, sDCt2, nu_tmp, nbg+ng_tmp);
 
