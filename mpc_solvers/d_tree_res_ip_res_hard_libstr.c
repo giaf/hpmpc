@@ -110,9 +110,9 @@ void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu,
 
 			d_create_strvec(nb0, &hswork_0, work);
 			daxpy_libstr(nb0, -1.0, &hslam[ii], 0, &hslam[ii], nb0, &hswork_0, 0);
-			dvecad_sp_libstr(nb0, 1.0, &hswork_0, 0, idxb[ii], &hsres_rq[ii], 0);
+			dvecad_sp_libstr(nb0, 1.0, idxb[ii], &hswork_0, 0, &hsres_rq[ii], 0);
 
-			dvecex_sp_libstr(nb0, -1.0, idxb[ii], &hsux[ii], 0, &hsres_d[ii], 0);
+			dvecex_sp_libstr(nb0, -1.0, &hsux[ii], 0, idxb[ii], &hsres_d[ii], 0);
 			dveccp_libstr(nb0, &hsres_d[ii], 0, &hsres_d[ii], nb0);
 			daxpy_libstr(2*nb0, 1.0, &hsd[ii], 0, &hsres_d[ii], 0, &hsres_d[ii], 0);
 			daxpy_libstr(nb0, 1.0, &hst[ii], 0, &hsres_d[ii], 0, &hsres_d[ii], 0);
