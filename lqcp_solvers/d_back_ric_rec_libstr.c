@@ -99,8 +99,8 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 			}
 		if(nb[N]>0)
 			{
-			ddiaad_sp_libstr(nb[N], 1.0, hidxb[N], &hsQx[N], 0, &hsL[N], 0, 0);
-			drowad_sp_libstr(nb[N], 1.0, hidxb[N], &hsqx[N], 0, &hsL[N], nu[N]+nx[N], 0);
+			ddiaad_sp_libstr(nb[N], 1.0, &hsQx[N], 0, hidxb[N], &hsL[N], 0, 0);
+			drowad_sp_libstr(nb[N], 1.0, &hsqx[N], 0, hidxb[N], &hsL[N], nu[N]+nx[N], 0);
 			}
 		if(ng[N]>0)
 			{
@@ -158,8 +158,8 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 				}
 			if(nb[N-nn-1]>0)
 				{
-				ddiaad_sp_libstr(nb[N-nn-1], 1.0, hidxb[N-nn-1], &hsQx[N-nn-1], 0, &hsL[N-nn-1], 0, 0);
-				drowad_sp_libstr(nb[N-nn-1], 1.0, hidxb[N-nn-1], &hsqx[N-nn-1], 0, &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
+				ddiaad_sp_libstr(nb[N-nn-1], 1.0, &hsQx[N-nn-1], 0, hidxb[N-nn-1], &hsL[N-nn-1], 0, 0);
+				drowad_sp_libstr(nb[N-nn-1], 1.0, &hsqx[N-nn-1], 0, hidxb[N-nn-1], &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
 				}
 			if(ng[N-nn-1]>0)
 				{
@@ -243,7 +243,7 @@ void d_back_ric_rec_trf_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 		dtrcp_l_libstr(nu[N]+nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
 		if(nb[N]>0)
 			{
-			ddiaad_sp_libstr(nb[N], 1.0, hidxb[N], &hsQx[N], 0, &hsL[N], 0, 0);
+			ddiaad_sp_libstr(nb[N], 1.0, &hsQx[N], 0, hidxb[N], &hsL[N], 0, 0);
 			}
 		if(ng[N]>0)
 			{
@@ -280,7 +280,7 @@ void d_back_ric_rec_trf_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 			dtrcp_l_libstr(nu[N-nn-1]+nx[N-nn-1], &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 			if(nb[N-nn-1]>0)
 				{
-				ddiaad_sp_libstr(nb[N-nn-1], 1.0, hidxb[N-nn-1], &hsQx[N-nn-1], 0, &hsL[N-nn-1], 0, 0);
+				ddiaad_sp_libstr(nb[N-nn-1], 1.0, &hsQx[N-nn-1], 0, hidxb[N-nn-1], &hsL[N-nn-1], 0, 0);
 				}
 			if(ng[N-nn-1]>0)
 				{
@@ -321,7 +321,7 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	dveccp_libstr(nu[N]+nx[N], &hsrq[N], 0, &hsux[N], 0);
 	if(nb[N]>0)
 		{
-		dvecad_sp_libstr(nb[N], 1.0, idxb[N], &hsqx[N], 0, &hsux[N], 0);
+		dvecad_sp_libstr(nb[N], 1.0, &hsqx[N], 0, idxb[N], &hsux[N], 0);
 		}
 	// general constraints
 	if(ng[N]>0)
@@ -343,7 +343,7 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		dveccp_libstr(nu[N-nn-1]+nx[N-nn-1], &hsrq[N-nn-1], 0, &hsux[N-nn-1], 0);
 		if(nb[N-nn-1]>0)
 			{
-			dvecad_sp_libstr(nb[N-nn-1], 1.0, idxb[N-nn-1], &hsqx[N-nn-1], 0, &hsux[N-nn-1], 0);
+			dvecad_sp_libstr(nb[N-nn-1], 1.0, &hsqx[N-nn-1], 0, idxb[N-nn-1], &hsux[N-nn-1], 0);
 			}
 		if(ng[N-nn-1]>0)
 			{
@@ -367,7 +367,7 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	dveccp_libstr(nu[N-nn-1]+nx[N-nn-1], &hsrq[N-nn-1], 0, &hsux[N-nn-1], 0);
 	if(nb[N-nn-1]>0)
 		{
-		dvecad_sp_libstr(nb[N-nn-1], 1.0, idxb[N-nn-1], &hsqx[N-nn-1], 0, &hsux[N-nn-1], 0);
+		dvecad_sp_libstr(nb[N-nn-1], 1.0, &hsqx[N-nn-1], 0, idxb[N-nn-1], &hsux[N-nn-1], 0);
 		}
 	if(ng[N-nn-1]>0)
 		{
@@ -451,8 +451,8 @@ void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 			}
 		if(nb[N]>0)
 			{
-			ddiaad_sp_libstr(nb[N], 1.0, hidxb[N], &hsQx[N], 0, &hsL[N], 0, 0);
-			drowad_sp_libstr(nb[N], 1.0, hidxb[N], &hsqx[N], 0, &hsL[N], nu[N]+nx[N], 0);
+			ddiaad_sp_libstr(nb[N], 1.0, &hsQx[N], 0, hidxb[N], &hsL[N], 0, 0);
+			drowad_sp_libstr(nb[N], 1.0, &hsqx[N], 0, hidxb[N], &hsL[N], nu[N]+nx[N], 0);
 			}
 		if(ng[N]>0)
 			{
@@ -510,8 +510,8 @@ void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 				}
 			if(nb[N-nn-1]>0)
 				{
-				ddiaad_sp_libstr(nb[N-nn-1], 1.0, hidxb[N-nn-1], &hsQx[N-nn-1], 0, &hsL[N-nn-1], 0, 0);
-				drowad_sp_libstr(nb[N-nn-1], 1.0, hidxb[N-nn-1], &hsqx[N-nn-1], 0, &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
+				ddiaad_sp_libstr(nb[N-nn-1], 1.0, &hsQx[N-nn-1], 0, hidxb[N-nn-1], &hsL[N-nn-1], 0, 0);
+				drowad_sp_libstr(nb[N-nn-1], 1.0, &hsqx[N-nn-1], 0, hidxb[N-nn-1], &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0);
 				}
 			if(ng[N-nn-1]>0)
 				{

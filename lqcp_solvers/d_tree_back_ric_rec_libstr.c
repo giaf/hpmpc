@@ -129,8 +129,8 @@ static void d_back_ric_sv_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 		// update with box constraints
 		if(nb0>0)
 			{
-			ddiaad_sp_libstr(nb0, 1.0, hidxb0, &hsQx[0], 0, &hsL0[0], 0, 0);
-			drowad_sp_libstr(nb0, 1.0, hidxb0, &hsqx[0], 0, &hsL0[0], nu0+nx0, 0);
+			ddiaad_sp_libstr(nb0, 1.0, &hsQx[0], 0, hidxb0, &hsL0[0], 0, 0);
+			drowad_sp_libstr(nb0, 1.0, &hsqx[0], 0, hidxb0, &hsL0[0], nu0+nx0, 0);
 			}
 		// update with general constraints and factorize at the end
 		if(ng0>0)
@@ -175,8 +175,8 @@ static void d_back_ric_sv_back_N_libstr(int nx0, int nu0, int nb0, int *hidxb0, 
 			}
 		if(nb0>0)
 			{
-			ddiaad_sp_libstr(nb0, 1.0, hidxb0, &hsQx[0], 0, &hsL[0], 0, 0);
-			drowad_sp_libstr(nb0, 1.0, hidxb0, &hsqx[0], 0, &hsL[0], nu0+nx0, 0);
+			ddiaad_sp_libstr(nb0, 1.0, &hsQx[0], 0, hidxb0, &hsL[0], 0, 0);
+			drowad_sp_libstr(nb0, 1.0, &hsqx[0], 0, hidxb0, &hsL[0], nu0+nx0, 0);
 			}
 		if(ng0>0)
 			{
@@ -290,7 +290,7 @@ static void d_back_ric_trf_1_libstr(int nkids, int nx0, int *nx1, int nu0, int *
 		// update with box constraints
 		if(nb0>0)
 			{
-			ddiaad_sp_libstr(nb0, 1.0, hidxb0, &hsQx[0], 0, &hsL0[0], 0, 0);
+			ddiaad_sp_libstr(nb0, 1.0, &hsQx[0], 0, hidxb0, &hsL0[0], 0, 0);
 			}
 		// update with general constraints and factorize at the end
 		if(ng0>0)
@@ -328,7 +328,7 @@ static void d_back_ric_trf_N_libstr(int nx0, int nu0, int nb0, int *hidxb0, int 
 		dtrcp_l_libstr(nu0+nx0, &hsRSQrq[0], 0, 0, &hsL[0], 0, 0);
 		if(nb0>0)
 			{
-			ddiaad_sp_libstr(nb0, 1.0, hidxb0, &hsQx[0], 0, &hsL[0], 0, 0);
+			ddiaad_sp_libstr(nb0, 1.0, &hsQx[0], 0, hidxb0, &hsL[0], 0, 0);
 			}
 		if(ng0>0)
 			{
@@ -358,7 +358,7 @@ static void d_back_ric_trs_back_N_libstr(int nx0, int nu0, int nb0, int *hidxb0,
 	dveccp_libstr(nu0+nx0, &hsrq[0], 0, &hsux[0], 0);
 	if(nb0>0)
 		{
-		dvecad_sp_libstr(nb0, 1.0, hidxb0, &hsqx[0], 0, &hsux[0], 0);
+		dvecad_sp_libstr(nb0, 1.0, &hsqx[0], 0, hidxb0, &hsux[0], 0);
 		}
 	if(ng0>0)
 		{
@@ -397,7 +397,7 @@ static void d_back_ric_trs_back_0_libstr(int nkids, int nx0, int *nx1, int nu0, 
 	// update with box constraints
 	if(nb0>0)
 		{
-		dvecad_sp_libstr(nb0, 1.0, hidxb0, &hsqx[0], 0, &hsux0[0], 0);
+		dvecad_sp_libstr(nb0, 1.0, &hsqx[0], 0, hidxb0, &hsux0[0], 0);
 		}
 	// update with general constraints
 	if(ng0>0)
@@ -439,7 +439,7 @@ static void d_back_ric_trs_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, 
 	// update with box constraints
 	if(nb0>0)
 		{
-		dvecad_sp_libstr(nb0, 1.0, hidxb0, &hsqx[0], 0, &hsux0[0], 0);
+		dvecad_sp_libstr(nb0, 1.0, &hsqx[0], 0, hidxb0, &hsux0[0], 0);
 		}
 	// update with general constraints
 	if(ng0>0)
