@@ -473,7 +473,6 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 
 	// general constraints
 
-	struct d_strmat sC;
 	struct d_strvec sGammab;
 	struct d_strvec sCGammab;
 
@@ -498,12 +497,7 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 
 			nu_tmp += nu0;
 
-			d_create_strmat(ng0, nx0, &sC, (void *) c_ptr);
-			c_ptr += sC.memory_size;
-
-			dgetr_libstr(nx0, ng0, &hsDCt[N-ii], nu0, 0, &sC, 0, 0);
-
-			dgemm_nt_libstr(nu2+nx[0]-nu_tmp, ng0, nx0, 1.0, &hsGamma[N-1-ii], 0, 0, &sC, 0, 0, 0.0, sDCt2, nu_tmp, nbg+ng_tmp, sDCt2, nu_tmp, nbg+ng_tmp);
+			dgemm_nn_libstr(nu2+nx[0]-nu_tmp, ng0, nx0, 1.0, &hsGamma[N-1-ii], 0, 0, &hsDCt[N-ii], nu0, 0, 0.0, sDCt2, nu_tmp, nbg+ng_tmp, sDCt2, nu_tmp, nbg+ng_tmp);
 
 			dveccp_libstr(ng0, &hsd[N-ii], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
 			dveccp_libstr(ng0, &hsd[N-ii], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
@@ -515,7 +509,7 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 
 			drowex_libstr(nx0, 1.0, &hsGamma[N-1-ii], nu2+nx[0]-nu_tmp, 0, &sGammab, 0);
 
-			dgemv_n_libstr(ng0, nx0, 1.0, &sC, 0, 0, &sGammab, 0, 0.0, &sCGammab, 0, &sCGammab, 0);
+			dgemv_t_libstr(nx0, ng0, 1.0, &hsDCt[N-ii], nu0, 0, &sGammab, 0, 0.0, &sCGammab, 0, &sCGammab, 0);
 
 			daxpy_libstr(ng0, -1.0, &sCGammab, 0, sd2, nb2+0*nt2+nbg+ng_tmp, sd2, nb2+0*nt2+nbg+ng_tmp);
 			daxpy_libstr(ng0, -1.0, &sCGammab, 0, sd2, nb2+1*nt2+nbg+ng_tmp, sd2, nb2+1*nt2+nbg+ng_tmp);
@@ -780,7 +774,6 @@ int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, i
 	int N_tmp; // temporary sum of horizons
 
 	int Gamma_size = 0;
-	int pC_size = 0;
 	work_space_sizes[0] = 0;
 	work_space_sizes[1] = 0;
 	work_space_sizes[2] = 0;
@@ -803,15 +796,6 @@ int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, i
 			tmp_size += d_size_strmat(nx[N_tmp]+nu_tmp+1, nx[N_tmp+jj+1]);
 			}
 		Gamma_size = tmp_size>Gamma_size ? tmp_size : Gamma_size;
-
-		// sC
-		for(jj=0; jj<T1; jj++)
-			{
-			tmp_size = d_size_strmat(ng[N_tmp+jj], nx[N_tmp+jj]);
-			tmp_size += d_size_strvec(nx[N_tmp+jj]);
-			tmp_size += d_size_strvec(ng[N_tmp+jj]);
-			pC_size = tmp_size > pC_size ? tmp_size : pC_size;
-			}
 
 		// sLx : 1 => N-1
 		for(jj=1; jj<T1; jj++)
@@ -847,7 +831,6 @@ int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, i
 	
 	tmp_size = work_space_sizes[0] + work_space_sizes[1];
 	tmp_size = work_space_sizes[2]+work_space_sizes[3]>tmp_size ? work_space_sizes[2]+work_space_sizes[3] : tmp_size;
-	tmp_size = tmp_size>pC_size ? tmp_size : pC_size;
 	int size = Gamma_size+tmp_size;
 	
 	size = (size + 63) / 64 * 64; // make work space multiple of (typical) cache line size
@@ -1301,7 +1284,6 @@ int d_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int **
 	int nu_tmp;
 
 	int Gamma_size = 0;
-	int pC_size = 0;
 	work_space_sizes[0] = 0;
 	work_space_sizes[1] = 0;
 	work_space_sizes[2] = 0;
@@ -1318,15 +1300,6 @@ int d_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int **
 		tmp_size += d_size_strmat(nx[0]+nu_tmp+1, nx[ii+1]);
 		}
 	Gamma_size = tmp_size>Gamma_size ? tmp_size : Gamma_size;
-
-	// sC
-	for(ii=0; ii<N; ii++)
-		{
-		tmp_size = d_size_strmat(ng[ii], nx[ii]);
-		tmp_size += d_size_strvec(nx[ii]);
-		tmp_size += d_size_strvec(ng[ii]);
-		pC_size = tmp_size > pC_size ? tmp_size : pC_size;
-		}
 
 	// sLx : 1 => N
 	for(ii=1; ii<=N; ii++)
@@ -1358,7 +1331,6 @@ int d_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int **
 	
 	tmp_size = work_space_sizes[0] + work_space_sizes[1];
 	tmp_size = work_space_sizes[2]+work_space_sizes[3]>tmp_size ? work_space_sizes[2]+work_space_sizes[3] : tmp_size;
-	tmp_size = tmp_size>pC_size ? tmp_size : pC_size;
 	int size = Gamma_size+tmp_size;
 	
 	size = (size + 63) / 64 * 64; // make work space multiple of (typical) cache line size
