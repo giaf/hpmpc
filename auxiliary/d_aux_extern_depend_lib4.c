@@ -64,7 +64,7 @@ void d_zeros_align(double **pA, int row, int col)
 //	double *A = *pA;
 //	int i;
 //	for(i=0; i<row*col; i++) A[i] = 0.0;
-	memset(temp, 0, row*col*sizeof(double));
+	memset(*pA, 0, row*col*sizeof(double));
 	}
 
 

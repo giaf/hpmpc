@@ -31,7 +31,9 @@
 
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
-#include <blasfeo_i_aux.h>
+#include <blasfeo_v_aux_ext_dep.h>
+#include <blasfeo_d_aux_ext_dep.h>
+#include <blasfeo_i_aux_ext_dep.h>
 #include <blasfeo_d_aux.h>
 #include <blasfeo_d_blas.h>
 
@@ -81,6 +83,7 @@ void print_node(struct node *tree)
 	printf("\n");
 	printf("stage = \t%d\n", tree[0].stage);
 	printf("realization = \t%d\n", tree[0].real);
+	printf("index as a kid = \t%d\n", tree[0].idxkid);
 	printf("\n");
 	return;
 	}
@@ -107,6 +110,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 	tree[idx].stage = stage;
 	tree[idx].real = real;
 	tree[idx].nkids = nkids;
+	tree[idx].idxkid = 0;
 	if(nkids>0)
 		{
 		tree[idx].kids = (int *) malloc(nkids*sizeof(int));
@@ -118,6 +122,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 				tree[idx].kids[ii] = idxkid;
 				tree[idxkid].dad = idx;
 				tree[idxkid].real = ii;
+				tree[idxkid].idxkid = ii;
 				}
 			}
 		else // nkids==1
@@ -126,6 +131,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 			tree[idx].kids[0] = idxkid;
 			tree[idxkid].dad = idx;
 			tree[idxkid].real = 0;
+			tree[idxkid].idxkid = 0;
 			}
 		}
 	// kids
@@ -152,6 +158,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 					tree[idx].kids[ii] = idxkid;
 					tree[idxkid].dad = idx;
 					tree[idxkid].real = ii;
+					tree[idxkid].idxkid = ii;
 					}
 				}
 			else // nkids==1
@@ -160,6 +167,7 @@ void setup_tree(int md, int Nr, int Nh, int Nn, struct node *tree)
 				tree[idx].kids[0] = idxkid;
 				tree[idxkid].dad = idx;
 				tree[idxkid].real = tree[idx].real;
+				tree[idxkid].idxkid = 0;
 				}
 			}
 		}
@@ -345,6 +353,7 @@ int main()
 		nu[ii] = nu_;
 	nu[N] = 0;
 
+#if 1
 	int nb[N+1];
 	for(ii=0; ii<=N; ii++)
 		nb[ii] = nu[ii]+nx[ii]/2;
@@ -355,7 +364,31 @@ int main()
 	int ng[N+1];
 	for(ii=0; ii<=N; ii++)
 		ng[ii] = 0;
+#else
+	int nb[N+1];
+	for(ii=0; ii<=N; ii++)
+		nb[ii] = 0;
+
+	int ng[N+1];
+	for(ii=0; ii<=N; ii++)
+		ng[ii] = 0;
+#endif
 	
+/************************************************
+* IPM arguments
+************************************************/	
+
+	int hpmpc_status;
+	int kk, kk_avg;
+	int k_max = 10;
+	int mu0 = 2.0; // max element value in cost function
+	double mu_tol = 1e-10;
+	double alpha_min = 1e-8;
+	int warm_start = 0; // read initial guess from x and u
+	double *stat; d_zeros(&stat, k_max, 5);
+	int compute_res = 1;
+	int compute_mult = 1;
+
 /************************************************
 * dynamical system
 ************************************************/	
@@ -423,8 +456,8 @@ int main()
 	nbu = nu[0]<nb[0] ? nu[0] : nb[0];
 	for(ii=0; ii<nbu; ii++)
 		{
-		d0[ii]       = - 0.5; // u_min
-		d0[nb[0]+ii] =   0.5; // u_min
+		d0[ii]             = - 0.5; // u_min
+		d0[nb[0]+ng[0]+ii] =   0.5; // u_min
 		idxb0[ii] = ii;
 		}
 //	d_print_mat(1, 2*nb[0]+2*ng[0], d0, 1);
@@ -434,14 +467,14 @@ int main()
 	nbu = nu[1]<nb[1] ? nu[1] : nb[1];
 	for(ii=0; ii<nbu; ii++)
 		{
-		d1[ii]       = - 0.5; // u_min
-		d1[nb[1]+ii] =   0.5; // u_min
+		d1[ii]             = - 0.5; // u_min
+		d1[nb[1]+ng[1]+ii] =   0.5; // u_min
 		idxb1[ii] = ii;
 		}
 	for(; ii<nb[1]; ii++)
 		{
-		d1[ii]       = - 4.0; // x_min
-		d1[nb[1]+ii] =   4.0; // x_min
+		d1[ii]             = - 4.0; // x_min
+		d1[nb[1]+ng[1]+ii] =   4.0; // x_min
 		idxb1[ii] = ii;
 		}
 //	d_print_mat(1, 2*nb[1]+2*ng[1], d1, 1);
@@ -450,8 +483,8 @@ int main()
 	int *idxbN; int_zeros(&idxbN, nb[N]+ng[N], 1);
 	for(ii=0; ii<nb[N]; ii++)
 		{
-		dN[ii]       = - 4.0; // x_min
-		dN[nb[N]+ii] =   4.0; // x_min
+		dN[ii]             = - 4.0; // x_min
+		dN[nb[N]+ng[N]+ii] =   4.0; // x_min
 		idxbN[ii] = ii;
 		}
 //	d_print_mat(1, 2*nb[N]+2*ng[N], dN, 1);
@@ -537,6 +570,7 @@ int main()
 * array of matrices
 ************************************************/	
 	
+	// data
 	struct d_strmat hsBAbt[N];
 	struct d_strvec hsb[N];
 	struct d_strmat hsRSQrq[N+1];
@@ -544,32 +578,36 @@ int main()
 	struct d_strvec hsdRSQ[N+1];
 	struct d_strmat hsDCt[N+1];
 	struct d_strvec hsd[N+1];
-//	struct d_strvec hsQx[N+1];
-//	struct d_strvec hsqx[N+1];
-//	struct d_strmat hsL[N+1];
-//	struct d_strmat hsLxt[N+1];
-//	struct d_strvec hsPb[N+1];
+	int *hidxb[N+1];
+	// sol
 	struct d_strvec hsux[N+1];
 	struct d_strvec hspi[N+1];
 	struct d_strvec hslam[N+1];
 	struct d_strvec hst[N+1];
-//	struct d_strmat hswork_mat[1];
-//	struct d_strvec hswork_vec[1];
-	int *hidxb[N+1];
+	// res
+	struct d_strvec hsrrq[N+1];
+	struct d_strvec hsrb[N];
+	struct d_strvec hsrd[N+1];
+	struct d_strvec hsrm[N+1];
+	double mu;
+	// work
+	void *work_ipm; 
+	void *work_res;
 
 	hsBAbt[0] = sBbt0;
 	hsb[0] = sb0;
 	hsRSQrq[0] = sRr0;
 	hsrq[0] = sr0;
 	hsd[0] = sd0;
-//	d_allocate_strmat(nu_+1, nu_, &hsL[0]);
-//	d_allocate_strmat(nu_+1, nu_, &hsLxt[0]);
-//	d_allocate_strvec(nx_, &hsPb[1]);
 	d_allocate_strvec(nx[0]+nu[0]+1, &hsux[0]);
 	d_allocate_strvec(nx[1], &hspi[1]);
 	d_allocate_strvec(2*nb[0]+2*ng[0], &hslam[0]);
 	d_allocate_strvec(2*nb[0]+2*ng[0], &hst[0]);
 	hidxb[0] = idxb0;
+	d_allocate_strvec(nu[0]+nx[0], &hsrrq[0]);
+	d_allocate_strvec(nx[1], &hsrb[0]);
+	d_allocate_strvec(2*nb[0]+2*ng[0], &hsrd[0]);
+	d_allocate_strvec(2*nb[0]+2*ng[0], &hsrm[0]);
 	for(ii=1; ii<N; ii++)
 		{
 		hsBAbt[ii] = sBAbt1;
@@ -577,26 +615,29 @@ int main()
 		hsRSQrq[ii] = sRSQrq1;
 		hsrq[ii] = srq1;
 		hsd[ii] = sd1;
-//		d_allocate_strmat(nu_+nx_+1, nu_+nx_, &hsL[ii]);
-//		d_allocate_strmat(nx_, nu_+nx_, &hsLxt[ii]);
-//		d_allocate_strvec(nx_, &hsPb[ii+1]);
 		d_allocate_strvec(nx[0]+nu[0]+1, &hsux[ii]);
 		d_allocate_strvec(nx[ii+1], &hspi[ii+1]);
 		d_allocate_strvec(2*nb[ii]+2*ng[ii], &hslam[ii]);
 		d_allocate_strvec(2*nb[ii]+2*ng[ii], &hst[ii]);
 		hidxb[ii] = idxb1;
+		d_allocate_strvec(nu[ii]+nx[ii], &hsrrq[ii]);
+		d_allocate_strvec(nx[ii+1], &hsrb[ii]);
+		d_allocate_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii]);
+		d_allocate_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii]);
 		}
 	hsRSQrq[N] = sQqN;
 	hsrq[N] = sqN;
 	hsd[N] = sdN;
-//	d_allocate_strmat(nx_+1, nx_, &hsL[N]);
-//	d_allocate_strmat(nx_, nx_, &hsLxt[N]);
 	d_allocate_strvec(nx[N]+nu[N]+1, &hsux[N]);
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hslam[N]);
 	d_allocate_strvec(2*nb[N]+2*ng[N], &hst[N]);
-//	d_allocate_strmat(nu_+nx_+1, nx_, &hswork_mat[0]);
-//	d_allocate_strvec(nx_, &hswork_vec[0]);
 	hidxb[N] = idxbN;
+	d_allocate_strvec(nu[N]+nx[N], &hsrrq[N]);
+	d_allocate_strvec(2*nb[N]+2*ng[N], &hsrd[N]);
+	d_allocate_strvec(2*nb[N]+2*ng[N], &hsrm[N]);
+
+	v_zeros_align(&work_ipm, d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
+	v_zeros_align(&work_res, d_res_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
 //	for(ii=0; ii<N; ii++)
 //		d_print_strmat(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0);
@@ -606,21 +647,7 @@ int main()
 * call IPM solver
 ************************************************/	
 	
-	// IPM args
-	int hpmpc_status;
-	int kk, kk_avg;
-	int k_max = 10;
-	int mu0 = 2.0; // max element value in cost function
-	double mu_tol = 1e-10;
-	double alpha_min = 1e-8;
-	int warm_start = 0; // read initial guess from x and u
-	double *stat; d_zeros(&stat, k_max, 5);
-	int compute_res = 1;
-	int compute_mult = 1;
-
-	// IPM work space
 	printf("\nnominal work space size %d\n\n", d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
-	void *work; v_zeros_align(&work, d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng));
 
 	// timing 
 	struct timeval tv0, tv1, tv2, tv3;
@@ -631,14 +658,18 @@ int main()
 
 	gettimeofday(&tv0, NULL); // time
 
+	// solution
 	for(rep=0; rep<nrep; rep++)
 		{
-		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, compute_mult, hspi, hslam, hst, work);
+		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, compute_mult, hspi, hslam, hst, work_ipm);
 		}
 
 	gettimeofday(&tv1, NULL); // time
 
 	printf("\ndone\n\n");
+
+	// residuals
+	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsrrq, hsrb, hsrd, hsrm, &mu, work_res);
 
 	printf("\nstatistics from last run\n\n");
 	for(jj=0; jj<kk; jj++)
@@ -655,6 +686,23 @@ int main()
 	printf("\npi = \n\n");
 	for(ii=1; ii<=N; ii++)
 		d_print_tran_strvec(nx[ii], &hspi[ii], 0);
+
+	// print residuals
+	printf("\nres_rq\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
+
+	printf("\nres_b\n");
+	for(ii=0; ii<N; ii++)
+		d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
+
+	printf("\nres_d\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
+
+	printf("\nres_m\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
 
 	printf("\ntime ipm\n");
 	printf("\n%e\n", time_ipm);
@@ -701,12 +749,12 @@ int main()
 		}
 
 	// dynamics indexed by node (ecluding the root) // no real atm
-	struct d_strmat t_hsBAbt[Nn];
-	struct d_strvec t_hsb[Nn];
-	for(ii=0; ii<Nn; ii++)
+	struct d_strmat t_hsBAbt[Nn-1]; // XXX defined on the edges !!!!!
+	struct d_strvec t_hsb[Nn-1]; // XXX defined on the edges !!!!!
+	for(ii=0; ii<Nn-1; ii++)
 		{
-		stage = tree[ii].stage-1;
-		if(stage<=N)
+		stage = tree[ii+1].stage-1;
+		if(stage<N)
 			{
 			t_hsBAbt[ii] = hsBAbt[stage];
 			t_hsb[ii] = hsb[stage];
@@ -788,27 +836,39 @@ int main()
 //	for(ii=0; ii<Nn; ii++)
 //		d_allocate_strvec(t_nx[ii], &t_hsPb[ii]);
 	
-	// solution indexed by node
+	// solution
 	struct d_strvec t_hsux[Nn];
-	for(ii=0; ii<Nn; ii++)
-		d_allocate_strvec(t_nu[ii]+t_nx[ii], &t_hsux[ii]);
 	struct d_strvec t_hspi[Nn];
+	struct d_strvec t_hslam[Nn];
+	struct d_strvec t_hst[Nn];
+	// residuals
+	struct d_strvec t_hsrrq[Nn];
+	struct d_strvec t_hsrb[Nn-1];
+	struct d_strvec t_hsrd[Nn];
+	struct d_strvec t_hsrm[Nn];
+	// work
+	void *t_work_ipm; 
+	void *t_work_res;
+
 	for(ii=0; ii<Nn; ii++)
 		{
-		nkids = tree[ii].nkids;
-		for(jj=0; jj<nkids; jj++)
+		d_allocate_strvec(t_nu[ii]+t_nx[ii], &t_hsux[ii]);
+		d_allocate_strvec(t_nx[ii], &t_hspi[ii]);
+		d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hslam[ii]);
+		d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hst[ii]);
+		d_allocate_strvec(t_nu[ii]+t_nx[ii], &t_hsrrq[ii]);
+		d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hsrd[ii]);
+		d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hsrm[ii]);
+		for(jj=0; jj<tree[ii].nkids; jj++)
 			{
 			idxkid = tree[ii].kids[jj];
-			d_allocate_strvec(t_nx[idxkid], &t_hspi[idxkid]);
+			d_allocate_strvec(t_nx[idxkid], &t_hsrb[idxkid-1]);
 			}
 		}
-	struct d_strvec t_hslam[Nn];
-	for(ii=0; ii<Nn; ii++)
-		d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hslam[ii]);
-	struct d_strvec t_hst[Nn];
-	for(ii=0; ii<Nn; ii++)
-		d_allocate_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hst[ii]);
 	
+	v_zeros_align(&t_work_ipm, d_tree_ip2_res_mpc_hard_work_space_size_bytes_libstr(Nn, tree, t_nx, t_nu, t_nb, t_ng));
+	v_zeros_align(&t_work_res, d_tree_res_res_mpc_hard_work_space_size_bytes_libstr(Nn, tree, t_nx, t_nu, t_nb, t_ng));
+
 	// print stuff
 	for(ii=0; ii<Nn; ii++)
 		{
@@ -820,21 +880,27 @@ int main()
 
 	// IPM work space
 	printf("\ntree work space size %d\n\n", d_tree_ip2_res_mpc_hard_work_space_size_bytes_libstr(Nn, tree, t_nx, t_nu, t_nb, t_ng));
-	void *t_work; v_zeros_align(&t_work, d_tree_ip2_res_mpc_hard_work_space_size_bytes_libstr(Nn, tree, t_nx, t_nu, t_nb, t_ng));
 
 	// zero stat
 	for(ii=0; ii<5*k_max; ii++)
 		stat[ii] = 0.0;
+
+	printf("\nsolving...\n\n");
 
 	// call ipm
 	gettimeofday(&tv0, NULL); // time
 
 	for(rep=0; rep<nrep; rep++)
 		{
-		hpmpc_status = d_tree_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsRSQrq, t_hsDCt, t_hsd, t_hsux, compute_mult, t_hspi, t_hslam, t_hst, t_work);
+		hpmpc_status = d_tree_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsRSQrq, t_hsDCt, t_hsd, t_hsux, compute_mult, t_hspi, t_hslam, t_hst, t_work_ipm);
 		}
 
 	gettimeofday(&tv1, NULL); // time
+
+	printf("\ndone\n\n");
+
+	// residuals
+	d_tree_res_res_mpc_hard_libstr(Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsb, t_hsRSQrq, t_hsrq, t_hsux, t_hsDCt, t_hsd, t_hspi, t_hslam, t_hst, t_hsrrq, t_hsrb, t_hsrd, t_hsrm, &mu, t_work_res);
 
 	// print factorization
 //	for(ii=0; ii<Nn; ii++)
@@ -846,16 +912,31 @@ int main()
 //		stage = tree[ii].stage;
 //		d_print_strmat(t_nx[stage], t_nx[stage], &t_hsLxt[ii], 0, 0);
 //		}
-#if 1
+	// print sol
+	printf("\nt_ux = \n\n");
 	for(ii=0; ii<Nn; ii++)
-		{
 		d_print_tran_strvec(t_nu[ii]+t_nx[ii], &t_hsux[ii], 0);
-		}
+
+	printf("\nt_pi = \n\n");
 	for(ii=0; ii<Nn; ii++)
-		{
 		d_print_tran_strvec(t_nx[ii], &t_hspi[ii], 0);
-		}
-#endif
+
+	// print residuals
+	printf("\nt_res_rq\n");
+	for(ii=0; ii<Nn; ii++)
+		d_print_e_tran_strvec(t_nu[ii]+t_nx[ii], &t_hsrrq[ii], 0);
+
+	printf("\nt_res_b\n");
+	for(ii=0; ii<Nn-1; ii++)
+		d_print_e_tran_strvec(t_nx[ii+1], &t_hsrb[ii], 0);
+
+	printf("\nt_res_d\n");
+	for(ii=0; ii<Nn; ii++)
+		d_print_e_tran_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hsrd[ii], 0);
+
+	printf("\nt_res_m\n");
+	for(ii=0; ii<Nn; ii++)
+		d_print_e_tran_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hsrm[ii], 0);
 
 	printf("\nstatistics from last run\n\n");
 	for(jj=0; jj<kk; jj++)
@@ -987,7 +1068,7 @@ int main()
 			{
 			idxkid = tree[ii].kids[jj];
 			kid_stage = tree[idxkid].stage;
-			dgecp_libstr(t_nu[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], 0, 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
+			dgecp_libstr(t_nu[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid-1], 0, 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
 			tmp0[kid_stage] += t_nx[idxkid];
 			}
 		tmp1[stage] += t_nu[ii];
@@ -1005,7 +1086,7 @@ int main()
 			{
 			idxkid = tree[ii].kids[jj];
 			kid_stage = tree[idxkid].stage;
-			dgecp_libstr(t_nx[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
+			dgecp_libstr(t_nx[ii], t_nx[idxkid], 1.0, &t_hsBAbt[idxkid-1], t_nu[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
 			tmp0[kid_stage] += t_nx[idxkid];
 			}
 		tmp1[stage] += t_nx[ii];
@@ -1023,8 +1104,8 @@ int main()
 			{
 			idxkid = tree[ii].kids[jj];
 			kid_stage = tree[idxkid].stage;
-			dgecp_libstr(1, t_nx[idxkid], 1.0, &t_hsBAbt[idxkid], t_nu[ii]+t_nx[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
-			dveccp_libstr(t_nx[idxkid], 1.0, &t_hsb[idxkid], 0, &hsb2[stage], tmp0[kid_stage]);
+			dgecp_libstr(1, t_nx[idxkid], 1.0, &t_hsBAbt[idxkid-1], t_nu[ii]+t_nx[ii], 0, &hsBAbt2[stage], tmp1[stage], tmp0[kid_stage]);
+			dveccp_libstr(t_nx[idxkid], 1.0, &t_hsb[idxkid-1], 0, &hsb2[stage], tmp0[kid_stage]);
 			tmp0[kid_stage] += t_nx[idxkid];
 			}
 //		tmp1[stage] += 1;
@@ -1097,48 +1178,73 @@ int main()
 //		int_print_mat(1, nb2[ii], hidxb2[ii], 1);
 //		}
 	
-	// work space
+	// sol
 	struct d_strvec hsux2[N+1];
 	struct d_strvec hspi2[N+1];
 	struct d_strvec hslam2[N+1];
 	struct d_strvec hst2[N+1];
-	for(ii=0; ii<=N; ii++)
+	// res
+	struct d_strvec hsrrq2[N+1];
+	struct d_strvec hsrb2[N];
+	struct d_strvec hsrd2[N+1];
+	struct d_strvec hsrm2[N+1];
+	// work
+	void *work_ipm2; 
+	void *work_res2;
+
+	for(ii=0; ii<N; ii++)
 		{
 		d_allocate_strvec(nu2[ii]+nx2[ii], &hsux2[ii]);
 		d_allocate_strvec(nx2[ii], &hspi2[ii]);
 		d_allocate_strvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii]);
 		d_allocate_strvec(2*nb2[ii]+2*ng2[ii], &hst2[ii]);
+		d_allocate_strvec(nu2[ii]+nx2[ii], &hsrrq2[ii]);
+		d_allocate_strvec(nx2[ii+1], &hsrb2[ii]);
+		d_allocate_strvec(2*nb2[ii]+2*ng2[ii], &hsrd2[ii]);
+		d_allocate_strvec(2*nb2[ii]+2*ng2[ii], &hsrm2[ii]);
 		}
-//	printf("\n%d %d\n", nu2[N-1]+nx2[N-1]+1, nx2[N]);
+	ii = N;
+	d_allocate_strvec(nu2[ii]+nx2[ii], &hsux2[ii]);
+	d_allocate_strvec(nx2[ii], &hspi2[ii]);
+	d_allocate_strvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii]);
+	d_allocate_strvec(2*nb2[ii]+2*ng2[ii], &hst2[ii]);
+	d_allocate_strvec(nu2[ii]+nx2[ii], &hsrrq2[ii]);
+	d_allocate_strvec(2*nb2[ii]+2*ng2[ii], &hsrd2[ii]);
+	d_allocate_strvec(2*nb2[ii]+2*ng2[ii], &hsrm2[ii]);
+
+	v_zeros_align(&work_ipm2, d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx2, nu2, nb2, ng2));
+	v_zeros_align(&work_res2, d_res_res_mpc_hard_work_space_size_bytes_libstr(N, nx2, nu2, nb2, ng2));
 
 //	for(ii=0; ii<=N; ii++)
 //		printf("\n%d %d\n", nu2[ii], nx2[ii]);
 
 	// IPM work space
 	printf("\ntree work space size %d\n\n", d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx2, nu2, nb2, ng2));
-	void *work2; v_zeros_align(&work2, d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx2, nu2, nb2, ng2));
 
 	// zero stat
 	for(ii=0; ii<5*k_max; ii++)
 		stat[ii] = 0.0;
 
+	printf("\nsolving...\n\n");
+
 	gettimeofday(&tv0, NULL); // time
 
+	// solution
 	for(rep=0; rep<nrep; rep++)
 		{
-		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx2, nu2, nb2, hidxb2, ng2, hsBAbt2, hsRSQrq2, hsDCt2, hsd2, hsux2, compute_mult, hspi2, hslam2, hst2, work2);
+		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx2, nu2, nb2, hidxb2, ng2, hsBAbt2, hsRSQrq2, hsDCt2, hsd2, hsux2, compute_mult, hspi2, hslam2, hst2, work_ipm2);
 		}
 
 	gettimeofday(&tv1, NULL); // time
 
+	printf("\ndone\n\n");
+
+	// residuals
+	d_res_res_mpc_hard_libstr(N, nx2, nu2, nb2, hidxb2, ng2, hsBAbt2, hsb2, hsRSQrq2, hsrq2, hsux2, hsDCt2, hsd2, hspi2, hslam2, hst2, hsrrq2, hsrb2, hsrd2, hsrm2, &mu, work_res2);
+
 	float time_ipm2  = (float) (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
-	// print
-//	printf("\nL\n");
-//	for(ii=0; ii<=N; ii++)
-//		{
-//		d_print_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsL2[ii], 0, 0);
-//		}
+	// print sol
 	printf("\nux\n");
 	for(ii=0; ii<=N; ii++)
 		{
@@ -1149,6 +1255,23 @@ int main()
 		{
 		d_print_tran_strvec(nx2[ii], &hspi2[ii], 0);
 		}
+
+	// print residuals
+	printf("\nres_rq\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(nu2[ii]+nx2[ii], &hsrrq2[ii], 0);
+
+	printf("\nres_b\n");
+	for(ii=0; ii<N; ii++)
+		d_print_e_tran_strvec(nx2[ii+1], &hsrb2[ii], 0);
+
+	printf("\nres_d\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(2*nb2[ii]+2*ng2[ii], &hsrd2[ii], 0);
+
+	printf("\nres_m\n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_tran_strvec(2*nb2[ii]+2*ng2[ii], &hsrm2[ii], 0);
 
 	printf("\nstatistics from last run\n\n");
 	for(jj=0; jj<kk; jj++)
@@ -1202,7 +1325,7 @@ int main()
 		dgemv_n_libstr(nx_, nx_, 1.0, &sA, 0, 0, &sx_now, 0, 1.0, &sb, 0, &sb0, 0);
 		drowin_libstr(nx_, 1.0, &sb0, 0, &sBbt0, nu_, 0);
 #if 1 // nominal MPC
-		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, compute_mult, hspi, hslam, hst, work);
+		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, compute_mult, hspi, hslam, hst, work_ipm);
 		printf("\nstep %d %e\n", ii, stat[5*kk-1]);
 		printf("\nu = \n");
 		d_print_tran_strvec(nu_, &hsux[0], 0);
@@ -1257,30 +1380,25 @@ int main()
 	d_free_strvec(&srq1);
 	d_free_strmat(&sQqN);
 	d_free_strvec(&sqN);
-//	d_free_strmat(&hsL[0]);
-//	d_free_strmat(&hsLxt[0]);
-//	d_free_strvec(&hsPb[1]);
-	d_free_strvec(&hsux[0]);
-	d_free_strvec(&hspi[1]);
-	d_free_strvec(&hslam[0]);
-	d_free_strvec(&hst[0]);
-	for(ii=1; ii<N; ii++)
+	for(ii=0; ii<N; ii++)
 		{
-//		d_free_strmat(&hsL[ii]);
-//		d_free_strmat(&hsLxt[ii]);
-//		d_free_strvec(&hsPb[ii+1]);
 		d_free_strvec(&hsux[ii]);
 		d_free_strvec(&hspi[ii+1]);
 		d_free_strvec(&hslam[ii]);
 		d_free_strvec(&hst[ii]);
+		d_free_strvec(&hsrrq[ii]);
+		d_free_strvec(&hsrb[ii]);
+		d_free_strvec(&hsrd[ii]);
+		d_free_strvec(&hsrm[ii]);
 		}
-//	d_free_strmat(&hsL[N]);
-//	d_free_strmat(&hsLxt[N]);
 	d_free_strvec(&hsux[N]);
 	d_free_strvec(&hslam[N]);
 	d_free_strvec(&hst[N]);
-//	d_free_strmat(&hswork_mat[0]);
-//	d_free_strvec(&hswork_vec[0]);
+	d_free_strvec(&hsrrq[N]);
+	d_free_strvec(&hsrd[N]);
+	d_free_strvec(&hsrm[N]);
+	v_free_align(work_ipm);
+	v_free_align(work_res);
 
 	// free memory allocated in the tree
 	free_tree(md, Nr, Nh, Nn, tree);

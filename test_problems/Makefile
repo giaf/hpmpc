@@ -57,6 +57,7 @@ endif
 #OBJS_TEST = tools.o test_d_tight_ric_libstr.o
 #OBJS_TEST = tools.o test_d_ric_libstr.o
 OBJS_TEST = tools.o test_d_ip_hard_libstr.o
+#OBJS_TEST = tools.o test_d_ip_hard_no_ext_dep.o
 #OBJS_TEST = tools.o test_d_ip_hard_car_new_libstr.o
 #OBJS_TEST = tools.o test_d_tree_ric_libstr.o
 #OBJS_TEST = tools.o test_d_tree_ip_hard_libstr.o

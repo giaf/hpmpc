@@ -34,9 +34,11 @@
 #ifdef BLASFEO
 #include <blasfeo_target.h>
 #include <blasfeo_common.h>
-#include <blasfeo_d_blas.h>
+#include <blasfeo_v_aux_ext_dep.h>
+#include <blasfeo_d_aux_ext_dep.h>
+#include <blasfeo_i_aux_ext_dep.h>
 #include <blasfeo_d_aux.h>
-#include <blasfeo_i_aux.h>
+#include <blasfeo_d_blas.h>
 #endif
 
 #include "../include/lqcp_solvers.h"
@@ -46,7 +48,7 @@
 
 
 
-#define PRINT 0
+#define PRINT 1
 
 
 
@@ -137,7 +139,7 @@ int main()
 //	int ng  = nx; // number of general constraints
 //	int ngN = 0; // number of general constraints at the last stage
 	
-	int N2 = 15; // partial condensing
+	int N2 = N; // partial condensing
 	
 
 
@@ -224,7 +226,7 @@ int main()
 
 	struct d_strvec sx0; d_create_strvec(nx_, &sx0, x0);
 	d_print_tran_strvec(nx_, &sx0, 0);
-	daxpy_libstr(nx_, -1.0, &sx_bar, 0, &sx0, 0);
+	daxpy_libstr(nx_, -1.0, &sx_bar, 0, &sx0, 0, &sx0, 0);
 	d_print_tran_strvec(nx_, &sx0, 0);
 	d_print_mat(1, nx_, x0, 1);
 
@@ -238,7 +240,7 @@ int main()
 	d_cvt_vec2strvec(nx_, b, &sb, 0);
 	dgemv_n_libstr(nx_, nx_, 1.0, &sA, 0, 0, &sx_bar, 0, 1.0, &sb, 0, &sb, 0);
 	d_print_tran_strvec(nx_, &sb, 0);
-	daxpy_libstr(nx_, -1.0, &sx_bar, 0, &sb, 0);
+	daxpy_libstr(nx_, -1.0, &sx_bar, 0, &sb, 0, &sb, 0);
 	d_print_tran_strvec(nx_, &sb, 0);
 	d_print_mat(1, nx_, b, 1);
 
@@ -351,8 +353,8 @@ int main()
 
 	double *lgi; d_zeros(&lgi, nb[ki], 1);
 	double *ugi; d_zeros(&ugi, nb[ki], 1);
-	lgi[0] =      0.0; //   dmin
-	ugi[0] =      0.0; //   dmax
+	lgi[0] =      0.0-1e-6; //   dmin
+	ugi[0] =      0.0+1e-6; //   dmax
 	struct d_strvec slgi; d_create_strvec(nb[ki], &slgi, lgi);
 	struct d_strvec sugi; d_create_strvec(nb[ki], &sugi, ugi);
 	dgemv_n_libstr(ng[ki], nx_, -1.0, &sCi, 0, 0, &sx_bar, 0, 1.0, &slgi, 0, &slgi, 0);
@@ -360,8 +362,8 @@ int main()
 
 	double *lgo; d_zeros(&lgo, ng[ko], 1);
 	double *ugo; d_zeros(&ugo, ng[ko], 1);
-	lgo[0] =      8.0; //   dmin
-	ugo[0] =      8.0; //   dmax
+	lgo[0] =      8.0-1e-6; //   dmin
+	ugo[0] =      8.0+1e-6; //   dmax
 	struct d_strvec slgo; d_create_strvec(nb[ko], &slgo, lgo);
 	struct d_strvec sugo; d_create_strvec(nb[ko], &sugo, ugo);
 	dgemv_n_libstr(ng[ko], nx_, -1.0, &sCo, 0, 0, &sx_bar, 0, 1.0, &slgo, 0, &slgo, 0);
@@ -444,7 +446,6 @@ int main()
 	double *hu[N];
 	double *hpi[N];
 	double *hlam[N+1];
-	double *ht[N+1];
 
 	// first stage
 //	hA[0] = NULL;
@@ -466,7 +467,6 @@ int main()
 	d_zeros(&hu[0], nu[0], 1);
 	d_zeros(&hpi[0], nx[1], 1);
 	d_zeros(&hlam[0], 2*nb[0]+2*ng[0], 1);
-	d_zeros(&ht[0], 2*nb[0]+2*ng[0], 1);
 	// general stage
 	for(ii=1; ii<N; ii++)
 		{
@@ -489,7 +489,6 @@ int main()
 		d_zeros(&hu[ii], nu[ii], 1);
 		d_zeros(&hpi[ii], nx[ii+1], 1);
 		d_zeros(&hlam[ii], 2*nb[ii]+2*ng[ii], 1);
-		d_zeros(&ht[ii], 2*nb[ii]+2*ng[ii], 1);
 		}
 	// last stage
 	hQ[N] = Q;
@@ -503,7 +502,7 @@ int main()
 //	hug[N] = NULL;
 	d_zeros(&hx[N], nx[N], 1);
 	d_zeros(&hlam[N], 2*nb[N]+2*ng[N], 1);
-	d_zeros(&ht[N], 2*nb[N]+2*ng[N], 1);
+
 
 	// stage ki
 	hC[ki] = Ci;
@@ -516,7 +515,6 @@ int main()
 	hD[ko] = Do;
 	hlg[ko] = lgo;
 	hug[ko] = ugo;
-
 
 
 	double mu = 0.0;
@@ -539,7 +537,7 @@ int main()
 	int hpmpc_status;
 	int kk, kk_avg;
 	int k_max = 30;
-	double mu_tol = 1e-8;
+	double mu_tol = 1e-12;
 	double *stat; d_zeros(&stat, k_max, 5);
 	double inf_norm_res[5];
 
@@ -575,6 +573,9 @@ int main()
 	printf("\nu = \n");
 	for(ii=0; ii<N; ii++)
 		d_print_mat(1, nu[ii], hu[ii], 1);
+	printf("\nlam = \n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_mat(1, 2*nb[ii]+2*ng[ii], hlam[ii], 1);
 #endif
 
 	printf("\ninfinity norm of residuals\n\n");
@@ -607,7 +608,6 @@ int main()
 	for(rep=0; rep<nrep; rep++)
 		{
 
-//		fortran_order_d_solve_kkt_new_rhs_ocp_hard_tv(N, nx_v, nu_v, nb_v, ng_v, hA, hB, hb, hQ, hS, hR, hq, hr, hlb, hub, hC, hD, hlg, hug, 0.0, hx, hu, hpi, hlam, ht, inf_norm_res, work);
 		fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(N, nx, nu, nb, hidxb, ng, N2, hb, hq, hr, hlb, hub, hlg, hug, hx, hu, hpi, hlam, inf_norm_res, work_ipm);
 
 		kk_avg += kk;
@@ -624,6 +624,9 @@ int main()
 	printf("\nu = \n");
 	for(ii=0; ii<N; ii++)
 		d_print_mat(1, nu[ii], hu[ii], 1);
+	printf("\nlam = \n");
+	for(ii=0; ii<=N; ii++)
+		d_print_e_mat(1, 2*nb[ii]+2*ng[ii], hlam[ii], 1);
 #endif
 
 
@@ -672,11 +675,9 @@ int main()
 		d_free(hu[ii]);
 		d_free(hpi[ii]);
 		d_free(hlam[ii]);
-		d_free(ht[ii]);
 		}
 	d_free(hx[N]);
 	d_free(hlam[N]);
-	d_free(ht[N]);
 
 	free(work_ipm);
 	free(stat);

@@ -33,13 +33,14 @@ extern "C" {
 
 struct node
 	{
-	int *kids; // 64 bits
-	int idx;   // 32 bits
-	int dad;   // 32 bits
-	int nkids; // 32 bits
-	int stage; // 32 bits
-	int real;  // 32 bits
-	// total     224 bits
+	int *kids;  // 64 bits
+	int idx;    // 32 bits
+	int dad;    // 32 bits
+	int nkids;  // 32 bits
+	int stage;  // 32 bits
+	int real;   // 32 bits
+	int idxkid; // 32 bits
+	// total     256 bits
 	};
 
 

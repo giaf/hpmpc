@@ -1790,19 +1790,19 @@ void kernel_sgemm_nt_8x4_lib8(int kmax, float *A0, float *B, float *C0, float *D
 		B_03 = _mm256_broadcast_ps( (__m128 *) &B[8] );
 		A_07 = _mm256_load_ps( &A0[8] );
 		
-		b_1 = _mm256_shuffle_ps( b_03, b_03, 85 );
+		b_1 = _mm256_shuffle_ps( b_03, b_03, 85 ); // 0101 0101
 		temp = _mm256_mul_ps( a_07, b_0 );
 		c_00 = _mm256_add_ps( c_00, temp );
 		
-		b_2 = _mm256_shuffle_ps( b_03, b_03, 170 );
+		b_2 = _mm256_shuffle_ps( b_03, b_03, 170 ); // 1010 1010
 		temp = _mm256_mul_ps( a_07, b_1 );
 		c_01 = _mm256_add_ps( c_01, temp );
 		
-		b_3 = _mm256_shuffle_ps( b_03, b_03, 255 );
+		b_3 = _mm256_shuffle_ps( b_03, b_03, 255 ); // 1111 1111
 		temp = _mm256_mul_ps( a_07, b_2 );
 		c_02 = _mm256_add_ps( c_02, temp );
 	
-		b_0 = _mm256_shuffle_ps( B_03, B_03, 0 );
+		b_0 = _mm256_shuffle_ps( B_03, B_03, 0 ); // 0000 0000
 		temp = _mm256_mul_ps( a_07, b_3 );
 		c_03 = _mm256_add_ps( c_03, temp );
 

@@ -29,6 +29,8 @@
 
 
 
+#if ! defined(BLASFEO)
+
 /* creates a zero integer matrix */
 void int_zeros(int **pA, int row, int col)
 	{
@@ -63,4 +65,4 @@ void int_print_mat(int row, int col, int *A, int lda)
 	printf("\n");
 	}	
 
-
+#endif

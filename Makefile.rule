@@ -35,13 +35,13 @@
 # CORTEX_A7  : machine with ARMv7a processor with VPFv3 (D32 versions) and NEON, code optimized for ARM Cortex A7.
 # C99_4X4    : c99 reference code, performing better on a machine with at least 32 scalar registers.
 #TARGET = X64_AVX2
-TARGET = X64_AVX
+#TARGET = X64_AVX
 #TARGET = X64_SSE3
 #TARGET = CORTEX_A57
 #TARGET = CORTEX_A15
 #TARGET = CORTEX_A9
 #TARGET = CORTEX_A7
-#TARGET = C99_4X4
+TARGET = C99_4X4
 
 # use BLASFEO for the linear algebra
 USE_BLASFEO = 1
@@ -49,10 +49,11 @@ BLASFEO_PATH = /opt/blasfeo
 
 # C Compiler
 CC = gcc
+#CC = clang
 #MINGW_ROOT = ~/cross_compiler_windows  (can be obtained here: https://sourceforge.net/projects/mingw-w64/files/)
 #CC = $(MINGW_ROOT)/mingw-w64-bin_x86_64-linux_20131228/bin/x86_64-w64-mingw32-gcc
+#CC = x86_64-w64-mingw32-gcc
 #CC = /opt/gcc/bin/gcc # custom gcc
-#CC = clang
 
 # operative system
 OS = LINUX
@@ -116,7 +117,7 @@ ifeq ($(TARGET), X64_SSE3)
 CFLAGS = $(COMMON_FLAGS) -m64 -msse3 -DTARGET_X64_SSE3 $(REF_BLAS_FLAGS) $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4)
-CFLAGS = $(COMMON_FLAGS) -march=native -DTARGET_C99_4X4 $(REF_BLAS_FLAGS) $(DEBUG)
+CFLAGS = $(COMMON_FLAGS) -DTARGET_C99_4X4 $(REF_BLAS_FLAGS) $(DEBUG)
 endif
 ifeq ($(TARGET), C99_4X4_PREFETCH)
 CFLAGS = $(COMMON_FLAGS) -march=native -DTARGET_C99_4X4_PREFETCH $(REF_BLAS_FLAGS) $(DEBUG)
