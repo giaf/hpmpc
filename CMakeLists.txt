@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
+LQCPcmake_minimum_required(VERSION 2.8.11)
 project(hpmpc)
 
 # target architecture. currently supported (more architectures are available with the older v0.1 release):
@@ -131,7 +131,7 @@ else(${TARGET} MATCHES C99_4X4)
 endif(${TARGET} MATCHES C99_4X4)
 
 if(${USE_BLASFEO} MATCHES 1)
-	file(GLOB HPMPC_LCQP_SOLVERS_SRC
+	file(GLOB HPMPC_LQCP_SOLVERS_SRC
 		${PROJECT_SOURCE_DIR}/lqcp_solvers/d_back_ric_rec_libstr.c
 		${PROJECT_SOURCE_DIR}/lqcp_solvers/d_part_cond_libstr.c)
 
@@ -147,7 +147,7 @@ if(${USE_BLASFEO} MATCHES 1)
 
 	set(HPMPC_SRC
 		${HPMPC_AUXILIARY_SRC}
-		${HPMPC_LCQP_SOLVERS_SRC}
+		${HPMPC_LQCP_SOLVERS_SRC}
 		${HPMPC_MPC_AUXILIARY_SRC}
 		${HPMPC_MPC_SOLVERS_SRC}
 		${HPMPC_MPC_SOLVERS_C99_SRC}
@@ -201,7 +201,7 @@ else(${USE_BLASFEO} MATCHES 1)
 		${HPMPC_AUXILIARY_SRC}
 		${HPMPC_KERNEL_SRC}
 		${HPMPC_BLAS_SRC}
-		${HPMPC_LCQP_SOLVERS_SRC}
+		${HPMPC_LQCP_SOLVERS_SRC}
 		${HPMPC_MPC_AUXILIARY_SRC}
 		${HPMPC_MPC_SOLVERS_SRC}
 		${HPMPC_MPC_SOLVERS_C99_SRC}
@@ -210,5 +210,5 @@ else(${USE_BLASFEO} MATCHES 1)
 endif(${USE_BLASFEO} MATCHES 1)
 
 # add library
-add_library(hpmpc STATIC ${HPMPC_SRC})
+add_library(hpmpc ${HPMPC_SRC})
 target_link_libraries(hpmpc m)
