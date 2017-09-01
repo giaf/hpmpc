@@ -1,4 +1,4 @@
-LQCPcmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 2.8.11)
 project(hpmpc)
 
 # target architecture. currently supported (more architectures are available with the older v0.1 release):
