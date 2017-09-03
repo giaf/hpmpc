@@ -1,4 +1,4 @@
-LQCPcmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 2.8.11)
 project(hpmpc)
 
 # target architecture. currently supported (more architectures are available with the older v0.1 release):
@@ -31,6 +31,9 @@ set(OS LINUX)
 
 # installation directory
 set(PREFIX /usr)
+
+# clear compiler flags
+set(CMAKE_C_FLAGS "")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -fPIC -lm")
 
@@ -136,14 +139,16 @@ if(${USE_BLASFEO} MATCHES 1)
 		${PROJECT_SOURCE_DIR}/lqcp_solvers/d_part_cond_libstr.c)
 
 	file(GLOB HPMPC_MPC_AUXILIARY_SRC
-		${PROJECT_SOURCE_DIR}/mpc_solvers/c99/d_aux_ip_hard_libstr.c
-		${PROJECT_SOURCE_DIR}/mpc_solvers/c99/d_res_ip_res_hard_libstr.c)
+		${PROJECT_SOURCE_DIR}/mpc_solvers/c99/d_aux_ip_hard_libstr.c)
 
 	file(GLOB HPMPC_MPC_SOLVERS_SRC
 		${PROJECT_SOURCE_DIR}/mpc_solvers/d_ip2_res_hard_libstr.c)
 
 	file(GLOB HPMPC_MPC_INTERFACES_SRC
-		${PROJECT_SOURCE_DIR}/interfaces/c/fortran_order_interface_libstr.c)
+		${PROJECT_SOURCE_DIR}/interfaces/c/fortran_order_interface_libstr.c
+		${PROJECT_SOURCE_DIR}/mpc_solvers/d_tree_ip2_res_hard_libstr.c
+		${PROJECT_SOURCE_DIR}/mpc_solvers/d_res_ip_res_hard_libstr.c
+		${PROJECT_SOURCE_DIR}/mpc_solvers/d_tree_res_ip_res_hard_libstr.c)
 
 	set(HPMPC_SRC
 		${HPMPC_AUXILIARY_SRC}
@@ -185,12 +190,11 @@ else(${USE_BLASFEO} MATCHES 1)
 		${PROJECT_SOURCE_DIR}/mpc_solvers/c99/d_aux_ip_soft_lib4.c)
 
 	file(GLOB HPMPC_MPC_SOLVERS_SRC
-		${PROJECT_SOURCE_DIR}mpc_solvers/d_ip2_hard.c
-		${PROJECT_SOURCE_DIR}mpc_solvers/d_res_ip_hard.c
-		${PROJECT_SOURCE_DIR}mpc_solvers/d_ip2_res_hard.c
-		${PROJECT_SOURCE_DIR}mpc_solvers/d_ip2_soft.c
-		${PROJECT_SOURCE_DIR}mpc_solvers/d_res_ip_soft.c
-	)
+		${PROJECT_SOURCE_DIR}/mpc_solvers/d_ip2_hard.c
+		${PROJECT_SOURCE_DIR}/mpc_solvers/d_res_ip_hard.c
+		${PROJECT_SOURCE_DIR}/mpc_solvers/d_ip2_res_hard.c
+		${PROJECT_SOURCE_DIR}/mpc_solvers/d_ip2_soft.c
+		${PROJECT_SOURCE_DIR}/mpc_solvers/d_res_ip_soft.c)
 
 	file(GLOB HPMPC_MPC_INTERFACES_SRC
 		${PROJECT_SOURCE_DIR}/interfaces/c/c_interface_work_space.c
@@ -201,7 +205,7 @@ else(${USE_BLASFEO} MATCHES 1)
 		${HPMPC_AUXILIARY_SRC}
 		${HPMPC_KERNEL_SRC}
 		${HPMPC_BLAS_SRC}
-		${HPMPC_LQCP_SOLVERS_SRC}
+		${HPMPC_LCQP_SOLVERS_SRC}
 		${HPMPC_MPC_AUXILIARY_SRC}
 		${HPMPC_MPC_SOLVERS_SRC}
 		${HPMPC_MPC_SOLVERS_C99_SRC}
@@ -210,5 +214,5 @@ else(${USE_BLASFEO} MATCHES 1)
 endif(${USE_BLASFEO} MATCHES 1)
 
 # add library
-add_library(hpmpc ${HPMPC_SRC})
-target_link_libraries(hpmpc m)
+add_library(hpmpc STATIC ${HPMPC_SRC})
+target_link_libraries(hpmpc m blasfeo)
