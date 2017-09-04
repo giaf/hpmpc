@@ -4,3 +4,7 @@
 #ifndef @TARGET_DEF@
 #define @TARGET_DEF@
 #endif /* @TARGET_DEF@ */
+
+#ifndef @BLASFEO_DEF@
+#define @BLASFEO_DEF@
+#endif /* @BLASFEO_DEF@ */
