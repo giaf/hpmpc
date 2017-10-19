@@ -18,6 +18,9 @@ set(TARGET C99_4X4)
 set(USE_BLASFEO 1)
 set(BLASFEO_PATH ${PROJECT_SOURCE_DIR}/../blasfeo)
 
+# headers installation directory
+set(HPMPC_HEADERS_INSTALLATION_DIRECTORY "include" CACHE STRING "Headers local installation directory")
+
 # C Compiler
 # set(CC_COMPILER gcc)
 # set(MINGW_ROOT ~/cross_compiler_windows)  (can be obtained here: https://sourceforge.net/projects/mingw-w64/files/)
@@ -258,3 +261,13 @@ configure_file(${PROJECT_SOURCE_DIR}/include/target.h.in
 # add library
 add_library(hpmpc STATIC ${HPMPC_SRC})
 target_link_libraries(hpmpc m blasfeo)
+
+install(TARGETS hpmpc EXPORT hpmpcConfig
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	RUNTIME DESTINATION bin)
+
+install(EXPORT hpmpcConfig DESTINATION cmake)
+
+file(GLOB_RECURSE HPMPC_HEADERS "include/*.h")
+install(FILES ${HPMPC_HEADERS} DESTINATION ${HPMPC_HEADERS_INSTALLATION_DIRECTORY})
