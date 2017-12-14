@@ -107,6 +107,63 @@ int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes(int N, int *nx, int *nu, int *n
 
 
 
+int hpmpc_d_ip_ocp_hard_tv_work_space_size_bytes_noidxb(int N, int *nx, int *nu, int *nb, int *nbx, int *nbu, int *ng, int N2)
+	{
+	int ii;
+	int size = 0;
+	int i_size = 0;
+	for(ii=0; ii<N; ii++)
+		{
+		size += d_size_strmat(nu[ii]+nx[ii]+1, nx[ii+1]); // BAbt
+		size += d_size_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]); // RSQrq
+		size += d_size_strmat(nu[ii]+nx[ii]+1, ng[ii]); // DCt
+		size += 3*d_size_strvec(nx[ii]); // b, rb, pi
+		size += 3*d_size_strvec(nu[ii]+nx[ii]); // rq, rrq, ux
+		size += 5*d_size_strvec(2*nb[ii]+2*ng[ii]); // d, lam, t, rd, rm
+		}
+	ii = N;
+	size += d_size_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]); // RSQrq
+	size += d_size_strmat(nu[ii]+nx[ii]+1, ng[ii]); // DCt
+	size += 3*d_size_strvec(nx[ii]); // b, rb, pi
+	size += 3*d_size_strvec(nu[ii]+nx[ii]); // rq, rrq, ux
+	size += 5*d_size_strvec(2*nb[ii]+2*ng[ii]); // d, lam, t, rd, rm
+	if(N2<N) // partial condensing
+		{
+		int nx2[N2+1];
+		int nu2[N2+1];
+		int nb2[N2+1];
+		int ng2[N2+1];
+		int work_space_sizes[5];
+		d_part_cond_compute_problem_size_libstr_noidxb(N, nx, nu, nb, nbx, nbu, ng, N2, nx2, nu2, nb2, ng2);
+		size += d_part_cond_work_space_size_bytes_libstr(N, nx, nu, nb, NULL, ng, N2, nx2, nu2, nb2, ng2, &work_space_sizes[0]);
+		size += d_part_cond_memory_space_size_bytes_libstr(N, nx, nu, nb, NULL, ng, N2, nx2, nu2, nb2, ng2);
+		size += d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N2, nx2, nu2, nb2, ng2);
+		for(ii=0; ii<N2; ii++) // not last stage !!!!!
+			{
+			size += d_size_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1]); // BAbt2
+			size += d_size_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii]); // RSQrq2
+			size += d_size_strmat(nu2[ii]+nx2[ii]+1, ng2[ii]); // DCt2
+			size += 2*d_size_strvec(nx2[ii]); // b2, pi2
+			size += 2*d_size_strvec(nu2[ii]+nx2[ii]); // rq2, ux2
+			size += 3*d_size_strvec(2*nb2[ii]+2*ng2[ii]); // d2, lam2, t2
+			i_size += nb2[ii]; // idxb2
+			}
+		size += 2*64; // typical cache line size, used for alignement
+		}
+	else // fully sparse solver
+		{
+		size += d_ip2_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng);
+		size += 2*64; // typical cache line size, used for alignement
+		}
+	size += d_res_res_mpc_hard_work_space_size_bytes_libstr(N, nx, nu, nb, ng);
+	size += i_size * sizeof(double);
+	return size;
+	}
+
+
+
+
+
 int fortran_order_d_ip_ocp_hard_tv( 
 							int *kk, int k_max, double mu0, double mu_tol,
 							int N, int *nx, int *nu, int *nb, int **hidxb, int *ng,

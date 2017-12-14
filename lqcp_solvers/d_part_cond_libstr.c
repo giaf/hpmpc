@@ -755,6 +755,42 @@ void d_part_cond_compute_problem_size_libstr(int N, int *nx, int *nu, int *nb, i
 
 
 
+void d_part_cond_compute_problem_size_libstr_noidxb(int N, int *nx, int *nu, int *nb, int *nbx, int *nbu, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2)
+	{
+
+	int ii, jj, kk;
+
+	int N1 = N/N2; // (floor) horizon of small blocks
+	int R1 = N - N2*N1; // the first R1 blocks have horizon N1+1
+	int M1 = R1>0 ? N1+1 : N1; // (ceil) horizon of large blocks
+	int T1; // horizon of current block
+
+	int N_tmp = 0; // temporary sum of horizons
+	for(ii=0; ii<N2; ii++)
+		{
+		T1 = ii<R1 ? M1 : N1;
+		nx2[ii] = nx[N_tmp+0];
+		nu2[ii] = nu[N_tmp+0];
+		nb2[ii] = nb[N_tmp+0];
+		ng2[ii] = ng[N_tmp+0];
+		for(jj=1; jj<T1; jj++)
+			{
+			nx2[ii] += 0;
+			nu2[ii] += nu[N_tmp+jj];
+			nb2[ii] += nbu[N_tmp+jj];
+			ng2[ii] += ng[N_tmp+jj] + nbx[N_tmp+jj];
+			}
+		N_tmp += T1;
+		}
+	nx2[N2] = nx[N];
+	nu2[N2] = nu[N];
+	nb2[N2] = nb[N];
+	ng2[N2] = ng[N];
+
+	}
+
+
+
 int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2, int *work_space_sizes)
 	{
 

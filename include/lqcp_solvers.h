@@ -97,6 +97,7 @@ void d_part_expand_solution(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 #ifdef BLASFEO
 // computes problem size (not hidxb2)
 void d_part_cond_compute_problem_size_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2);
+void d_part_cond_compute_problem_size_libstr_noidxb(int N, int *nx, int *nu, int *nb, int *nbx, int *nbu, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2);
 // work space for partially condensing routine
 int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, int N2, int *nx2, int *nu2, int *nb2, int *ng2, int *work_space_sizes);
 // memory space for partially condensing routine
