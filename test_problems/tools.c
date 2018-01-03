@@ -27,6 +27,12 @@
 #include <stdlib.h>
 #include <math.h>
 
+#if defined(BLASFEO)
+#include <blasfeo_target.h>
+#include <blasfeo_common.h>
+#include <blasfeo_d_aux.h>
+#endif
+
 #include "../include/aux_d.h"
 
 //void dgemm_(char *transa, char *transb, int *m, int *n, int *k, double *alpha, double *A, int *lda, double *B, int *ldb, double *beta, double *C, int *ldc);

@@ -31,12 +31,12 @@ graphics_toolkit('gnuplot')
 
 f1 = figure()
 
-if 0
+if 1
 
 plot(B(:,1), B(:,2), 'k-.', 'LineWidth', 2)
 hold on
 plot(B(:,1), B(:,4), 'b-x', 'LineWidth', 2)
-%plot(B(:,1), B(:,6), 'r-o', 'LineWidth', 2)
+plot(B(:,1), B(:,6), 'r-o', 'LineWidth', 2)
 %plot(B(:,1), B(:,8), 'g-*', 'LineWidth', 2)
 %plot(B(:,1), B(:,10), 'r-^', 'LineWidth', 2)
 %plot(B(:,1), B(:,12), 'm-^', 'LineWidth', 2)
@@ -47,7 +47,7 @@ plot(B(:,1), B(:,4), 'b-x', 'LineWidth', 2)
 %plot(B(:,1), B(:,22), 'g-^', 'LineWidth', 2)
 %plot(B(:,1), B(:,24), 'm-*', 'LineWidth', 2)
 %plot(B(:,1), B(:,26), 'b-o', 'LineWidth', 2)
-%plot(B(:,1), B(:,28), 'k-x', 'LineWidth', 2)
+plot(B(:,1), B(:,28), 'k-x', 'LineWidth', 2)
 %plot(B(:,1), B(:,30), 'k-o', 'LineWidth', 2)
 %plot(B(:,1), B(:,32), 'k-*', 'LineWidth', 2)
 %plot(B(:,1), B(:,34), 'k-^', 'LineWidth', 2)

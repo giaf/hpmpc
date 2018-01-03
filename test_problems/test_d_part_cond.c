@@ -572,16 +572,14 @@ int main()
 
 	int nb[N+1];
 #if 0
-	nb[0] = nu;
-	for(ii=1; ii<N; ii++)
-		nb[ii] = nu+nx;
-	nb[N] = nx;
+	int nbx = nx;
 #else
+	int nbx = 0;
+#endif
 	nb[0] = nu;
 	for(ii=1; ii<N; ii++)
-		nb[ii] = nu;
-	nb[N] = 0;
-#endif
+		nb[ii] = nu+nbx;
+	nb[N] = nbx;
 //	for(ii=0; ii<=N; ii++)
 //		printf("%d\n", nb[ii]);
 
@@ -672,7 +670,7 @@ int main()
 * partial condensing
 ************************************************/
 
-	int Np = 1;
+	int Np = 19;
 
 	int Nc = N/Np; // minimum horizon length within each stage group
 
@@ -826,12 +824,10 @@ int main()
 			hpGamma_u_b[N_v[ll]-1] = hpBAbt2[ll];
 
 			d_cond_Gamma_u_b_T(N_v[ll], nx, nu, free_x0, hpA+N_tmp, hpBt+N_tmp, hb+N_tmp, pGamma_Lu, hpGamma_u_b);
-
-	//		d_print_pmat(nu_v[ll]+nx_v[ll]+1, nx_v[ll+1], bs, hpBAbt2[ll], cnx_v[ll+1]);
+//			d_print_pmat(nu_v[ll]+nx_v[ll]+1, nx_v[ll+1], bs, hpBAbt2[ll], cnx_v[ll+1]);
 
 			d_cond_Rr_N2_nx3(N_v[ll], nx, nu, free_x0, hpBAbt+N_tmp, DIAG_HESSIAN, Q_N_NOT_ZERO, hpRSQrq+N_tmp, pD, pM, pQs, pLam, diag_ric, pBAbtL, pGamma_Lu, hpGamma_u_b, hpRSQrq2[ll]); //pH_Rx);
-
-	//		d_print_pmat(nu_v[ll]+nx_v[ll]+1, nu_v[ll]+nx_v[ll], bs, hpRSQrq2[ll], cnux_v[ll]);
+//			d_print_pmat(nu_v[ll]+nx_v[ll]+1, nu_v[ll]+nx_v[ll], bs, hpRSQrq2[ll], cnux_v[ll]);
 
 
 //printf("\nGamma_u_b = \n");
@@ -841,10 +837,10 @@ int main()
 //	d_print_pmat(offset, nx, bs, hpGamma_u_b[ii], cnx);
 //	}
 
-
 			d_cond_d(N_v[ll], nx, nu, nb+N_tmp, free_x0, hd+N_tmp, hidx+N_tmp, hpGamma_u_b, hd2[ll], hidx2[ll], hpDCt2[ll]);
-	//		d_print_mat(1, 2*pnb_v[ll], hd2[ll], 1);
-	//		i_print_mat(1, pnb_v[ll], hidx2[ll], 1);
+//			d_print_pmat(nu_v[ll]+nx_v[ll], ng_v[ll], bs, hpDCt2[ll], cng_v[ll]);
+//			d_print_mat(1, 2*pnb_v[ll]+2*png_v[ll], hd2[ll], 1);
+//			i_print_mat(1, pnb_v[ll], hidx2[ll], 1);
 
 			hpGamma_u_b[N_v[ll]-1] = pGamma_tmp;
 
@@ -855,6 +851,9 @@ int main()
 		hpRSQrq2[Np] = pRSQrqN;
 		hd2[Np] = dN;
 		hidx2[Np] = idxN;
+
+//		exit(3);
+
 		}
 	
 	gettimeofday(&tv1, NULL); // stop

@@ -181,3 +181,5 @@ octave-workspace
 *.aux
 *.log
 *.toc
+
+test_problems/results

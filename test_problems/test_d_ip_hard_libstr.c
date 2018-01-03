@@ -168,10 +168,10 @@ int main()
 
 	int nx_ = 8; // number of states (it has to be even for the mass-spring system test problem)
 	int nu_ = 3; // number of inputs (controllers) (it has to be at least 1 and at most nx/2 for the mass-spring system test problem)
-	int N  = 10; // horizon lenght
+	int N  = 5; // horizon lenght
 
 	// partial condensing horizon
-	int N2 = 1; //N/2;
+	int N2 = 4; //N/2;
 
 	// maximum number of IPM iterations
 	int k_max = 10;
@@ -206,13 +206,13 @@ int main()
 #if 1
 	int nb[N+1];
 #if KEEP_X0
-	nb[0] = nu[0]+nx[0]/2;
+	nb[0] = nu[0]+nx[0];///2;
 #else
 	nb[0] = nu[0];
 #endif
 	for(ii=1; ii<N; ii++)
-		nb[ii] = nu[1]+nx[1]/2;
-	nb[N] = nx[N]/2;
+		nb[ii] = nu[1]+nx[1];///2;
+	nb[N] = nx[N];///2;
 
 	int ng[N+1];
 	ng[0] = 0;
@@ -983,7 +983,7 @@ int main()
 
 	double time_ipm_high = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
-	printf(" Average solution time over %d runs: %5.2e seconds (IPM high)\n\n", nrep, time_ipm_high);
+	printf(" Average solution time over %d runs: %5.2e seconds (IPM high, N2 = %d)\n\n", nrep, time_ipm_high, N2);
 
 /************************************************
 * high-level interface (resolve last kkt new rhs)
@@ -1025,7 +1025,7 @@ int main()
 
 	double time_ipm_high_kkt = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
 
-	printf(" Average solution time over %d runs: %5.2e seconds (IPM high kkt last rhs)\n\n", nrep, time_ipm_high_kkt);
+	printf(" Average solution time over %d runs: %5.2e seconds (IPM high kkt last rhs, N2 = %d)\n\n", nrep, time_ipm_high_kkt, N2);
 
 /************************************************
 * free memory
