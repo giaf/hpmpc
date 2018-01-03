@@ -58,11 +58,11 @@ int d_tree_ip2_res_mpc_hard_work_space_size_bytes_libstr(int Nn, struct node *tr
 
 	for(ii=0; ii<Nn; ii++)
 		{
-		size += d_size_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]); // L
-		size += 5*d_size_strvec(nx[ii]); // b, dpi, Pb, res_b, pi_bkp
-		size += 4*d_size_strvec(nu[ii]+nx[ii]); // dux, rq, res_rq, ux_bkp
-		size += 8*d_size_strvec(2*nb[ii]+2*ng[ii]); // dlam, dt, tinv, lamt, res_d, res_m, t_bkp, lam_bkp
-		size += 2*d_size_strvec(nb[ii]+ng[ii]); // Qx, qx
+		size += blasfeo_memsize_dmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]); // L
+		size += 5*blasfeo_memsize_dvec(nx[ii]); // b, dpi, Pb, res_b, pi_bkp
+		size += 4*blasfeo_memsize_dvec(nu[ii]+nx[ii]); // dux, rq, res_rq, ux_bkp
+		size += 8*blasfeo_memsize_dvec(2*nb[ii]+2*ng[ii]); // dlam, dt, tinv, lamt, res_d, res_m, t_bkp, lam_bkp
+		size += 2*blasfeo_memsize_dvec(nb[ii]+ng[ii]); // Qx, qx
 		}
 
 	// residuals work space size
@@ -77,7 +77,7 @@ int d_tree_ip2_res_mpc_hard_work_space_size_bytes_libstr(int Nn, struct node *tr
 
 
 /* primal-dual interior-point method computing residuals at each iteration, hard constraints, time variant matrices, time variant size (mpc version) */
-int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int Nn, struct node *tree, int *nx, int *nu, int *nb, int **idxb, int *ng, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsd, struct d_strvec *hsux, int compute_mult, struct d_strvec *hspi, struct d_strvec *hslam, struct d_strvec *hst, void *work)
+int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, double alpha_min, int warm_start, double *stat, int Nn, struct node *tree, int *nx, int *nu, int *nb, int **idxb, int *ng, struct blasfeo_dmat *hsBAbt, struct blasfeo_dmat *hsRSQrq, struct blasfeo_dmat *hsDCt, struct blasfeo_dvec *hsd, struct blasfeo_dvec *hsux, int compute_mult, struct blasfeo_dvec *hspi, struct blasfeo_dvec *hslam, struct blasfeo_dvec *hst, void *work)
 	{
 
 	// adjust number of nodes
@@ -89,32 +89,32 @@ int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol
 
 
 
-	struct d_strmat *hsmatdummy;
-	struct d_strvec *hsvecdummy;
+	struct blasfeo_dmat *hsmatdummy;
+	struct blasfeo_dvec *hsvecdummy;
 
-	struct d_strvec hsb[N];
-	struct d_strvec hsrq[N+1];
-	struct d_strvec hsQx[N+1];
-	struct d_strvec hsqx[N+1];
-	struct d_strvec hsdux[N+1];
-	struct d_strvec hsdpi[N+1];
-	struct d_strvec hsdt[N+1];
-	struct d_strvec hsdlam[N+1];
-	struct d_strvec hstinv[N+1];
-	struct d_strvec hslamt[N+1];
-	struct d_strvec hsPb[N+1];
-	struct d_strmat hsL[N+1];
-	struct d_strvec hsres_rq[N+1];
-	struct d_strvec hsres_b[N+1];
-	struct d_strvec hsres_d[N+1];
-	struct d_strvec hsres_m[N+1];
-	struct d_strmat hsric_work_mat[2];
-	struct d_strvec hsric_work_vec[1];
-	struct d_strvec hsres_work[2];
-	struct d_strvec hsux_bkp[N+1];
-	struct d_strvec hspi_bkp[N+1];
-	struct d_strvec hst_bkp[N+1];
-	struct d_strvec hslam_bkp[N+1];
+	struct blasfeo_dvec hsb[N];
+	struct blasfeo_dvec hsrq[N+1];
+	struct blasfeo_dvec hsQx[N+1];
+	struct blasfeo_dvec hsqx[N+1];
+	struct blasfeo_dvec hsdux[N+1];
+	struct blasfeo_dvec hsdpi[N+1];
+	struct blasfeo_dvec hsdt[N+1];
+	struct blasfeo_dvec hsdlam[N+1];
+	struct blasfeo_dvec hstinv[N+1];
+	struct blasfeo_dvec hslamt[N+1];
+	struct blasfeo_dvec hsPb[N+1];
+	struct blasfeo_dmat hsL[N+1];
+	struct blasfeo_dvec hsres_rq[N+1];
+	struct blasfeo_dvec hsres_b[N+1];
+	struct blasfeo_dvec hsres_d[N+1];
+	struct blasfeo_dvec hsres_m[N+1];
+	struct blasfeo_dmat hsric_work_mat[2];
+	struct blasfeo_dvec hsric_work_vec[1];
+	struct blasfeo_dvec hsres_work[2];
+	struct blasfeo_dvec hsux_bkp[N+1];
+	struct blasfeo_dvec hspi_bkp[N+1];
+	struct blasfeo_dvec hst_bkp[N+1];
+	struct blasfeo_dvec hslam_bkp[N+1];
 
 	void *d_tree_back_ric_rec_work_space;
 	void *d_tree_res_res_mpc_hard_work_space;
@@ -124,8 +124,8 @@ int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol
 	// L
 	for(ii=0; ii<=N; ii++)
 		{
-		d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
-		c_ptr += hsL[ii].memory_size;
+		blasfeo_create_dmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
+		c_ptr += hsL[ii].memsize;
 		}
 
 	// riccati work space
@@ -139,16 +139,16 @@ int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol
 		for(jj=0; jj<nkids; jj++)
 			{
 			idxkid = tree[ii].kids[jj];
-			d_create_strvec(nx[idxkid], &hsb[idxkid-1], (void *) c_ptr);
-			c_ptr += hsb[idxkid-1].memory_size;
+			blasfeo_create_dvec(nx[idxkid], &hsb[idxkid-1], (void *) c_ptr);
+			c_ptr += hsb[idxkid-1].memsize;
 			}
 		}
 
 	// inputs and states step
 	for(ii=0; ii<=N; ii++)
 		{
-		d_create_strvec(nu[ii]+nx[ii], &hsdux[ii], (void *) c_ptr);
-		c_ptr += hsdux[ii].memory_size;
+		blasfeo_create_dvec(nu[ii]+nx[ii], &hsdux[ii], (void *) c_ptr);
+		c_ptr += hsdux[ii].memsize;
 		}
 
 	// equality constr multipliers
@@ -158,8 +158,8 @@ int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol
 		for(jj=0; jj<nkids; jj++)
 			{
 			idxkid = tree[ii].kids[jj];
-			d_create_strvec(nx[idxkid], &hsdpi[idxkid], (void *) c_ptr);
-			c_ptr += hsdpi[idxkid].memory_size;
+			blasfeo_create_dvec(nx[idxkid], &hsdpi[idxkid], (void *) c_ptr);
+			c_ptr += hsdpi[idxkid].memsize;
 			}
 		}
 	
@@ -170,45 +170,45 @@ int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol
 		for(jj=0; jj<nkids; jj++)
 			{
 			idxkid = tree[ii].kids[jj];
-			d_create_strvec(nx[idxkid], &hsPb[idxkid], (void *) c_ptr);
-			c_ptr += hsPb[idxkid].memory_size;
+			blasfeo_create_dvec(nx[idxkid], &hsPb[idxkid], (void *) c_ptr);
+			c_ptr += hsPb[idxkid].memsize;
 			}
 		}
 	
 	// linear part of cost function
 	for(ii=0; ii<=N; ii++)
 		{
-		d_create_strvec(nu[ii]+nx[ii], &hsrq[ii], (void *) c_ptr);
-		c_ptr += hsrq[ii].memory_size;
+		blasfeo_create_dvec(nu[ii]+nx[ii], &hsrq[ii], (void *) c_ptr);
+		c_ptr += hsrq[ii].memsize;
 		}
 
 	// slack variables, Lagrangian multipliers for inequality constraints and work space
 	for(ii=0; ii<=N; ii++)
 		{
-		d_create_strvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], (void *) c_ptr);
-		c_ptr += hsdlam[ii].memory_size;
-		d_create_strvec(2*nb[ii]+2*ng[ii], &hsdt[ii], (void *) c_ptr);
-		c_ptr += hsdt[ii].memory_size;
+		blasfeo_create_dvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], (void *) c_ptr);
+		c_ptr += hsdlam[ii].memsize;
+		blasfeo_create_dvec(2*nb[ii]+2*ng[ii], &hsdt[ii], (void *) c_ptr);
+		c_ptr += hsdt[ii].memsize;
 		}
 
 	for(ii=0; ii<=N; ii++)
 		{
-		d_create_strvec(2*nb[ii]+2*ng[ii], &hstinv[ii], (void *) c_ptr);
-		c_ptr += hstinv[ii].memory_size;
+		blasfeo_create_dvec(2*nb[ii]+2*ng[ii], &hstinv[ii], (void *) c_ptr);
+		c_ptr += hstinv[ii].memsize;
 		}
 
 	for(ii=0; ii<=N; ii++)
 		{
-		d_create_strvec(2*nb[ii]+2*ng[ii], &hslamt[ii], (void *) c_ptr);
-		c_ptr += hslamt[ii].memory_size;
+		blasfeo_create_dvec(2*nb[ii]+2*ng[ii], &hslamt[ii], (void *) c_ptr);
+		c_ptr += hslamt[ii].memsize;
 		}
 
 	for(ii=0; ii<=N; ii++)
 		{
-		d_create_strvec(nb[ii]+ng[ii], &hsQx[ii], (void *) c_ptr);
-		c_ptr += hsQx[ii].memory_size;
-		d_create_strvec(nb[ii]+ng[ii], &hsqx[ii], (void *) c_ptr);
-		c_ptr += hsqx[ii].memory_size;
+		blasfeo_create_dvec(nb[ii]+ng[ii], &hsQx[ii], (void *) c_ptr);
+		c_ptr += hsQx[ii].memsize;
+		blasfeo_create_dvec(nb[ii]+ng[ii], &hsqx[ii], (void *) c_ptr);
+		c_ptr += hsqx[ii].memsize;
 		}
 
 
@@ -218,8 +218,8 @@ int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol
 
 	for(ii=0; ii<=N; ii++)
 		{
-		d_create_strvec(nu[ii]+nx[ii], &hsres_rq[ii], (void *) c_ptr);
-		c_ptr += hsres_rq[ii].memory_size;
+		blasfeo_create_dvec(nu[ii]+nx[ii], &hsres_rq[ii], (void *) c_ptr);
+		c_ptr += hsres_rq[ii].memsize;
 		}
 
 	for(ii=0; ii<Nn; ii++)
@@ -228,34 +228,34 @@ int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol
 		for(jj=0; jj<nkids; jj++)
 			{
 			idxkid = tree[ii].kids[jj];
-			d_create_strvec(nx[idxkid], &hsres_b[idxkid-1], (void *) c_ptr);
-			c_ptr += hsres_b[idxkid-1].memory_size;
+			blasfeo_create_dvec(nx[idxkid], &hsres_b[idxkid-1], (void *) c_ptr);
+			c_ptr += hsres_b[idxkid-1].memsize;
 			}
 		}
 
 	for(ii=0; ii<=N; ii++)
 		{
-		d_create_strvec(2*nb[ii]+2*ng[ii], &hsres_d[ii], (void *) c_ptr);
-		c_ptr += hsres_d[ii].memory_size;
+		blasfeo_create_dvec(2*nb[ii]+2*ng[ii], &hsres_d[ii], (void *) c_ptr);
+		c_ptr += hsres_d[ii].memsize;
 		}
 
 	for(ii=0; ii<=N; ii++)
 		{
-		d_create_strvec(2*nb[ii]+2*ng[ii], &hsres_m[ii], (void *) c_ptr);
-		c_ptr += hsres_m[ii].memory_size;
+		blasfeo_create_dvec(2*nb[ii]+2*ng[ii], &hsres_m[ii], (void *) c_ptr);
+		c_ptr += hsres_m[ii].memsize;
 		}
 
 	// backup solution
 	for(ii=0; ii<=N; ii++)
 		{
-		d_create_strvec(nu[ii]+nx[ii], &hsux_bkp[ii], (void *) c_ptr);
-		c_ptr += hsux_bkp[ii].memory_size;
-		d_create_strvec(nx[ii], &hspi_bkp[ii], (void *) c_ptr);
-		c_ptr += hspi_bkp[ii].memory_size;
-		d_create_strvec(2*nb[ii]+2*ng[ii], &hslam_bkp[ii], (void *) c_ptr);
-		c_ptr += hslam_bkp[ii].memory_size;
-		d_create_strvec(2*nb[ii]+2*ng[ii], &hst_bkp[ii], (void *) c_ptr);
-		c_ptr += hst_bkp[ii].memory_size;
+		blasfeo_create_dvec(nu[ii]+nx[ii], &hsux_bkp[ii], (void *) c_ptr);
+		c_ptr += hsux_bkp[ii].memsize;
+		blasfeo_create_dvec(nx[ii], &hspi_bkp[ii], (void *) c_ptr);
+		c_ptr += hspi_bkp[ii].memsize;
+		blasfeo_create_dvec(2*nb[ii]+2*ng[ii], &hslam_bkp[ii], (void *) c_ptr);
+		c_ptr += hslam_bkp[ii].memsize;
+		blasfeo_create_dvec(2*nb[ii]+2*ng[ii], &hst_bkp[ii], (void *) c_ptr);
+		c_ptr += hst_bkp[ii].memsize;
 		}
 
 	// extract arrays
@@ -270,14 +270,14 @@ int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol
 		for(jj=0; jj<nkids; jj++)
 			{
 			idxkid = tree[ii].kids[jj];
-			drowex_libstr(nx[idxkid], 1.0, &hsBAbt[idxkid-1], nu[ii]+nx[ii], 0, &hsb[idxkid-1], 0);
+			blasfeo_drowex(nx[idxkid], 1.0, &hsBAbt[idxkid-1], nu[ii]+nx[ii], 0, &hsb[idxkid-1], 0);
 			}
 		}
 	
 	// extract q
 	for(jj=0; jj<=N; jj++)
 		{
-		drowex_libstr(nu[jj]+nx[jj], 1.0, &hsRSQrq[jj], nu[jj]+nx[jj], 0, &hsrq[jj], 0);
+		blasfeo_drowex(nu[jj]+nx[jj], 1.0, &hsRSQrq[jj], nu[jj]+nx[jj], 0, &hsrq[jj], 0);
 		}
 
 
@@ -537,7 +537,7 @@ int d_tree_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol
 			for(jj=0; jj<nkids; jj++)
 				{
 				idxkid = tree[ii].kids[jj];
-				drowin_libstr(nx[idxkid], 1.0, &hsb[idxkid-1], 0, &hsBAbt[idxkid-1], nu[ii]+nx[ii], 0);
+				blasfeo_drowin(nx[idxkid], 1.0, &hsb[idxkid-1], 0, &hsBAbt[idxkid-1], nu[ii]+nx[ii], 0);
 				}
 			}
 

@@ -41,19 +41,19 @@
 
 
 
-static void d_comp_Gamma_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strmat *hsGamma)
+static void d_comp_Gamma_libstr(int N, int *nx, int *nu, struct blasfeo_dmat *hsBAbt, struct blasfeo_dmat *hsGamma)
 	{
 
 	int ii, jj;
 
-	struct d_strmat sA;
+	struct blasfeo_dmat sA;
 
 	int nu_tmp;
 
 	nu_tmp = 0;
 	ii = 0;
 	// B & A & b
-	dgecp_libstr(nu[0]+nx[0]+1, nx[1], &hsBAbt[0], 0, 0, &hsGamma[0], 0, 0);
+	blasfeo_dgecp(nu[0]+nx[0]+1, nx[1], &hsBAbt[0], 0, 0, &hsGamma[0], 0, 0);
 	//
 	nu_tmp += nu[0];
 	ii++;
@@ -63,13 +63,13 @@ static void d_comp_Gamma_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 		// TODO check for equal pointers and avoid copy
 
 		// Gamma * A^T
-		dgemm_nn_libstr(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], 1.0, &hsGamma[ii-1], 0, 0, &hsBAbt[ii], nu[ii], 0, 0.0, &hsGamma[ii], nu[ii], 0, &hsGamma[ii], nu[ii], 0); // Gamma * A^T
+		blasfeo_dgemm_nn(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], 1.0, &hsGamma[ii-1], 0, 0, &hsBAbt[ii], nu[ii], 0, 0.0, &hsGamma[ii], nu[ii], 0, &hsGamma[ii], nu[ii], 0); // Gamma * A^T
 
-		dgecp_libstr(nu[ii], nx[ii+1], &hsBAbt[ii], 0, 0, &hsGamma[ii], 0, 0);
+		blasfeo_dgecp(nu[ii], nx[ii+1], &hsBAbt[ii], 0, 0, &hsGamma[ii], 0, 0);
 
 		nu_tmp += nu[ii];
 
-		dgead_libstr(1, nx[ii+1], 1.0, &hsBAbt[ii], nu[ii]+nx[ii], 0, &hsGamma[ii], nu_tmp+nx[0], 0);
+		blasfeo_dgead(1, nx[ii+1], 1.0, &hsBAbt[ii], nu[ii]+nx[ii], 0, &hsGamma[ii], nu_tmp+nx[0], 0);
 		}
 	
 	return;
@@ -78,14 +78,14 @@ static void d_comp_Gamma_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 
 
 
-static void d_comp_Gammab_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsGammab)
+static void d_comp_Gammab_libstr(int N, int *nx, int *nu, struct blasfeo_dmat *hsBAbt, struct blasfeo_dvec *hsb, struct blasfeo_dvec *hsGammab)
 	{
 
 	int ii, jj;
 
 	ii = 0;
 	// B & A & b
-	dveccp_libstr(nx[1], &hsb[0], 0, &hsGammab[0], 0);
+	blasfeo_dveccp(nx[1], &hsb[0], 0, &hsGammab[0], 0);
 	//
 	ii++;
 
@@ -94,9 +94,9 @@ static void d_comp_Gammab_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAb
 		// TODO check for equal pointers and avoid copy
 
 		// A * Gammab
-		dgemv_t_libstr(nx[ii], nx[ii+1], 1.0, &hsBAbt[ii], nu[ii], 0, &hsGammab[ii-1], 0, 0.0, &hsGammab[ii], 0, &hsGammab[ii], 0);
+		blasfeo_dgemv_t(nx[ii], nx[ii+1], 1.0, &hsBAbt[ii], nu[ii], 0, &hsGammab[ii-1], 0, 0.0, &hsGammab[ii], 0, &hsGammab[ii], 0);
 
-		dvecad_libstr(nx[ii+1], 1.0, &hsb[ii], 0, &hsGammab[ii], 0);
+		blasfeo_dvecad(nx[ii+1], 1.0, &hsb[ii], 0, &hsGammab[ii], 0);
 		}
 	
 	return;
@@ -105,19 +105,19 @@ static void d_comp_Gammab_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAb
 
 
 
-static void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strmat *hsGamma, struct d_strmat *sBAbt2)
+static void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct blasfeo_dmat *hsBAbt, struct blasfeo_dmat *hsGamma, struct blasfeo_dmat *sBAbt2)
 	{
 
 	int ii, jj;
 
-	struct d_strmat sA;
+	struct blasfeo_dmat sA;
 
 	int nu_tmp;
 
 	nu_tmp = 0;
 	ii = 0;
 	// B & A & b
-	dgecp_libstr(nu[0]+nx[0]+1, nx[1], &hsBAbt[0], 0, 0, &hsGamma[0], 0, 0);
+	blasfeo_dgecp(nu[0]+nx[0]+1, nx[1], &hsBAbt[0], 0, 0, &hsGamma[0], 0, 0);
 	//
 	nu_tmp += nu[0];
 	ii++;
@@ -127,17 +127,17 @@ static void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt,
 		// TODO check for equal pointers and avoid copy
 
 		// Gamma * A^T
-		dgemm_nn_libstr(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], 1.0, &hsGamma[ii-1], 0, 0, &hsBAbt[ii], nu[ii], 0, 0.0, &hsGamma[ii], nu[ii], 0, &hsGamma[ii], nu[ii], 0); // Gamma * A^T
+		blasfeo_dgemm_nn(nu_tmp+nx[0]+1, nx[ii+1], nx[ii], 1.0, &hsGamma[ii-1], 0, 0, &hsBAbt[ii], nu[ii], 0, 0.0, &hsGamma[ii], nu[ii], 0, &hsGamma[ii], nu[ii], 0); // Gamma * A^T
 
-		dgecp_libstr(nu[ii], nx[ii+1], &hsBAbt[ii], 0, 0, &hsGamma[ii], 0, 0);
+		blasfeo_dgecp(nu[ii], nx[ii+1], &hsBAbt[ii], 0, 0, &hsGamma[ii], 0, 0);
 
 		nu_tmp += nu[ii];
 
-		dgead_libstr(1, nx[ii+1], 1.0, &hsBAbt[ii], nu[ii]+nx[ii], 0, &hsGamma[ii], nu_tmp+nx[0], 0);
+		blasfeo_dgead(1, nx[ii+1], 1.0, &hsBAbt[ii], nu[ii]+nx[ii], 0, &hsGamma[ii], nu_tmp+nx[0], 0);
 		}
 	
 	// B & A & b
-	dgecp_libstr(nu_tmp+nx[0]+1, nx[N], &hsGamma[N-1], 0, 0, sBAbt2, 0, 0);
+	blasfeo_dgecp(nu_tmp+nx[0]+1, nx[N], &hsGamma[N-1], 0, 0, sBAbt2, 0, 0);
 	// TODO pass sBAbt2 as Gamma[N-1] !!!!!
 
 	return;
@@ -146,14 +146,14 @@ static void d_cond_BAbt_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt,
 
 
 
-static void d_cond_b_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsGammab, struct d_strvec *sb2)
+static void d_cond_b_libstr(int N, int *nx, int *nu, struct blasfeo_dmat *hsBAbt, struct blasfeo_dvec *hsb, struct blasfeo_dvec *hsGammab, struct blasfeo_dvec *sb2)
 	{
 
 	int ii, jj;
 
 	ii = 0;
 	// B & A & b
-	dveccp_libstr(nx[1], &hsb[0], 0, &hsGammab[0], 0);
+	blasfeo_dveccp(nx[1], &hsb[0], 0, &hsGammab[0], 0);
 	//
 	ii++;
 
@@ -162,13 +162,13 @@ static void d_cond_b_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, st
 		// TODO check for equal pointers and avoid copy
 
 		// A * Gammab
-		dgemv_t_libstr(nx[ii], nx[ii+1], 1.0, &hsBAbt[ii], nu[ii], 0, &hsGammab[ii-1], 0, 0.0, &hsGammab[ii], 0, &hsGammab[ii], 0);
+		blasfeo_dgemv_t(nx[ii], nx[ii+1], 1.0, &hsBAbt[ii], nu[ii], 0, &hsGammab[ii-1], 0, 0.0, &hsGammab[ii], 0, &hsGammab[ii], 0);
 
-		dvecad_libstr(nx[ii+1], 1.0, &hsb[ii], 0, &hsGammab[ii], 0);
+		blasfeo_dvecad(nx[ii+1], 1.0, &hsb[ii], 0, &hsGammab[ii], 0);
 		}
 	
 	// B & A & b
-	dveccp_libstr(nx[N], &hsGammab[N-1], 0, sb2, 0);
+	blasfeo_dveccp(nx[N], &hsGammab[N-1], 0, sb2, 0);
 
 	return;
 
@@ -176,7 +176,7 @@ static void d_cond_b_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, st
 
 
 
-static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsGamma, struct d_strmat *sRSQrq2, struct d_strmat *hsL, void *work_space, int *work_space_sizes)
+static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct blasfeo_dmat *hsBAbt, struct blasfeo_dmat *hsRSQrq, struct blasfeo_dmat *hsGamma, struct blasfeo_dmat *sRSQrq2, struct blasfeo_dmat *hsL, void *work_space, int *work_space_sizes)
 	{
 
 	// early return
@@ -186,16 +186,16 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 	// early return
 	if(N==0)
 		{
-		dgecp_libstr(nu[0]+nx[0]+1, nu[0]+nx[0], &hsRSQrq[0], 0, 0, sRSQrq2, 0, 0);
+		blasfeo_dgecp(nu[0]+nx[0]+1, nu[0]+nx[0], &hsRSQrq[0], 0, 0, sRSQrq2, 0, 0);
 		return;
 		}
 
 	int nn;
 
-	struct d_strmat sL;
-	struct d_strmat sM;
-	struct d_strmat sLx;
-	struct d_strmat sBAbtL;
+	struct blasfeo_dmat sL;
+	struct blasfeo_dmat sM;
+	struct blasfeo_dmat sLx;
+	struct blasfeo_dmat sBAbtL;
 
 	int nu2 = 0; // sum of all nu
 	for(nn=0; nn<=N; nn++)
@@ -212,15 +212,15 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 	// final stage 
 	nub -= nu[N];
 
-	dgecp_libstr(nu[N]+nx[N]+1, nu[N]+nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
+	blasfeo_dgecp(nu[N]+nx[N]+1, nu[N]+nx[N], &hsRSQrq[N], 0, 0, &hsL[N], 0, 0);
 
 	// D
-	dtrcp_l_libstr(nu[N], &hsL[N], 0, 0, sRSQrq2, nuf, nuf);
+	blasfeo_dtrcp_l(nu[N], &hsL[N], 0, 0, sRSQrq2, nuf, nuf);
 
-	dgemm_nn_libstr(nub+nx[0]+1, nu[N], nx[N], 1.0, &hsGamma[N-1], 0, 0, &hsL[N], nu[N], 0, 0.0, sRSQrq2, nuf+nu[N], nuf, sRSQrq2, nuf+nu[N], nuf);
+	blasfeo_dgemm_nn(nub+nx[0]+1, nu[N], nx[N], 1.0, &hsGamma[N-1], 0, 0, &hsL[N], nu[N], 0, 0.0, sRSQrq2, nuf+nu[N], nuf, sRSQrq2, nuf+nu[N], nuf);
 
 	// m
-	dgead_libstr(1, nu[N], 1.0, &hsL[N], nu[N]+nx[N], 0, sRSQrq2, nu2+nx[0], nuf);
+	blasfeo_dgead(1, nu[N], 1.0, &hsL[N], nu[N]+nx[N], 0, sRSQrq2, nu2+nx[0], nuf);
 
 	nuf += nu[N];
 
@@ -231,31 +231,31 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 		{	
 		nub -= nu[N-nn-1];
 
-		d_create_strmat(nx[N-nn]+1, nx[N-nn], &sLx, (void *) c_ptr[0]);
-		d_create_strmat(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], &sBAbtL, (void *) c_ptr[1]);
+		blasfeo_create_dmat(nx[N-nn]+1, nx[N-nn], &sLx, (void *) c_ptr[0]);
+		blasfeo_create_dmat(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], &sBAbtL, (void *) c_ptr[1]);
 
 #if defined(LA_HIGH_PERFORMANCE)
-		dgecp_libstr(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
+		blasfeo_dgecp(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
 
-		dpotrf_l_mn_libstr(nx[N-nn]+1, nx[N-nn], &sLx, 0, 0, &sLx, 0, 0);
+		blasfeo_dpotrf_l_mn(nx[N-nn]+1, nx[N-nn], &sLx, 0, 0, &sLx, 0, 0);
 
-		dtrmm_rlnn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
+		blasfeo_dtrmm_rlnn(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
 #else
-		dpotrf_l_mn_libstr(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
+		blasfeo_dpotrf_l_mn(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
 
-		dtrmm_rlnn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
+		blasfeo_dtrmm_rlnn(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
 #endif
-		dgead_libstr(1, nx[N-nn], 1.0, &sLx, nx[N-nn], 0, &sBAbtL, nu[N-nn-1]+nx[N-nn-1], 0);
+		blasfeo_dgead(1, nx[N-nn], 1.0, &sLx, nx[N-nn], 0, &sBAbtL, nu[N-nn-1]+nx[N-nn-1], 0);
 
-		dsyrk_ln_mn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
+		blasfeo_dsyrk_ln_mn(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 
 		// D
-		dtrcp_l_libstr(nu[N-nn-1], &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf);
+		blasfeo_dtrcp_l(nu[N-nn-1], &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf);
 
-		dgemm_nn_libstr(nub+nx[0]+1, nu[N-nn-1], nx[N-nn-1], 1.0, &hsGamma[N-nn-2], 0, 0, &hsL[N-nn-1], nu[N-nn-1], 0, 0.0, sRSQrq2, nuf+nu[N-nn-1], nuf, sRSQrq2, nuf+nu[N-nn-1], nuf);
+		blasfeo_dgemm_nn(nub+nx[0]+1, nu[N-nn-1], nx[N-nn-1], 1.0, &hsGamma[N-nn-2], 0, 0, &hsL[N-nn-1], nu[N-nn-1], 0, 0.0, sRSQrq2, nuf+nu[N-nn-1], nuf, sRSQrq2, nuf+nu[N-nn-1], nuf);
 
 		// m
-		dgead_libstr(1, nu[N-nn-1], 1.0, &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0, sRSQrq2, nu2+nx[0], nuf);
+		blasfeo_dgead(1, nu[N-nn-1], 1.0, &hsL[N-nn-1], nu[N-nn-1]+nx[N-nn-1], 0, sRSQrq2, nu2+nx[0], nuf);
 
 		nuf += nu[N-nn-1];
 
@@ -264,28 +264,28 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 	// first stage
 	nn = N-1;
 
-	d_create_strmat(nx[N-nn]+1, nx[N-nn], &sLx, (void *) c_ptr[0]);
-	d_create_strmat(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], &sBAbtL, (void *) c_ptr[1]);
+	blasfeo_create_dmat(nx[N-nn]+1, nx[N-nn], &sLx, (void *) c_ptr[0]);
+	blasfeo_create_dmat(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], &sBAbtL, (void *) c_ptr[1]);
 	
 #if defined(LA_HIGH_PERFORMANCE)
-	dgecp_libstr(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
+	blasfeo_dgecp(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
 
-	dpotrf_l_mn_libstr(nx[N-nn]+1, nx[N-nn], &sLx, 0, 0, &sLx, 0, 0);
+	blasfeo_dpotrf_l_mn(nx[N-nn]+1, nx[N-nn], &sLx, 0, 0, &sLx, 0, 0);
 
-	dtrmm_rlnn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
+	blasfeo_dtrmm_rlnn(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
 #else
-	dpotrf_l_mn_libstr(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
+	blasfeo_dpotrf_l_mn(nx[N-nn]+1, nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &sLx, 0, 0);
 
-	dtrmm_rlnn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
+	blasfeo_dtrmm_rlnn(nu[N-nn-1]+nx[N-nn-1]+1, nx[N-nn], 1.0, &sLx, 0, 0, &hsBAbt[N-nn-1], 0, 0, &sBAbtL, 0, 0);
 #endif
-	dgead_libstr(1, nx[N-nn], 1.0, &sLx, nx[N-nn], 0, &sBAbtL, nu[N-nn-1]+nx[N-nn-1], 0);
+	blasfeo_dgead(1, nx[N-nn], 1.0, &sLx, nx[N-nn], 0, &sBAbtL, nu[N-nn-1]+nx[N-nn-1], 0);
 
-	dsyrk_ln_mn_libstr(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
+	blasfeo_dsyrk_ln_mn(nu[N-nn-1]+nx[N-nn-1]+1, nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &sBAbtL, 0, 0, &sBAbtL, 0, 0, 1.0, &hsRSQrq[N-nn-1], 0, 0, &hsL[N-nn-1], 0, 0);
 
 	// D, M, m, P, p
-//	dgecp_libstr(nu[0]+nx[0]+1, nu[0]+nx[0], &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf); // TODO dtrcp for 'rectangular' matrices
-	dtrcp_l_libstr(nu[0]+nx[0], &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf); // TODO dtrcp for 'rectangular' matrices
-	dgecp_libstr(1, nu[0]+nx[0], &hsL[N-nn-1], nu[0]+nx[0], 0, sRSQrq2, nuf+nu[0]+nx[0], nuf); // TODO dtrcp for 'rectangular' matrices
+//	blasfeo_dgecp(nu[0]+nx[0]+1, nu[0]+nx[0], &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf); // TODO dtrcp for 'rectangular' matrices
+	blasfeo_dtrcp_l(nu[0]+nx[0], &hsL[N-nn-1], 0, 0, sRSQrq2, nuf, nuf); // TODO dtrcp for 'rectangular' matrices
+	blasfeo_dgecp(1, nu[0]+nx[0], &hsL[N-nn-1], nu[0]+nx[0], 0, sRSQrq2, nuf+nu[0]+nx[0], nuf); // TODO dtrcp for 'rectangular' matrices
 
 	return;
 
@@ -293,7 +293,7 @@ static void d_cond_RSQrq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt
 
 
 
-static void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strvec *hsrq, struct d_strmat *hsL, struct d_strvec *hsGammab, struct d_strvec *srq2, void *work_space, int *work_space_sizes)
+static void d_cond_rq_libstr(int N, int *nx, int *nu, struct blasfeo_dmat *hsBAbt, struct blasfeo_dvec *hsb, struct blasfeo_dvec *hsrq, struct blasfeo_dmat *hsL, struct blasfeo_dvec *hsGammab, struct blasfeo_dvec *srq2, void *work_space, int *work_space_sizes)
 	{
 
 	// early return
@@ -303,14 +303,14 @@ static void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, s
 	// early return
 	if(N==0)
 		{
-		dveccp_libstr(nu[0]+nx[0], &hsrq[0], 0, srq2, 0);
+		blasfeo_dveccp(nu[0]+nx[0], &hsrq[0], 0, srq2, 0);
 		return;
 		}
 
 	int nn;
 
-	struct d_strvec sl;
-	struct d_strvec sPbp;
+	struct blasfeo_dvec sl;
+	struct blasfeo_dvec sPbp;
 
 	int nuf = 0;
 
@@ -321,11 +321,11 @@ static void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, s
 
 	// final stage
 
-	d_create_strvec(nu[N]+nx[N], &sl, (void *) c_ptr[0]);
+	blasfeo_create_dvec(nu[N]+nx[N], &sl, (void *) c_ptr[0]);
 
-	dveccp_libstr(nu[N]+nx[N], &hsrq[N], 0, &sl, 0);
+	blasfeo_dveccp(nu[N]+nx[N], &hsrq[N], 0, &sl, 0);
 
-	dgemv_t_libstr(nx[N], nu[N], 1.0, &hsL[N], nu[N], 0, &hsGammab[N-1], 0, 1.0, &sl, 0, srq2, nuf);
+	blasfeo_dgemv_t(nx[N], nu[N], 1.0, &hsL[N], nu[N], 0, &hsGammab[N-1], 0, 1.0, &sl, 0, srq2, nuf);
 
 	nuf += nu[N];
 
@@ -334,15 +334,15 @@ static void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, s
 	for(nn=0; nn<N-1; nn++)
 		{
 
-		d_create_strvec(nx[N-nn], &sPbp, (void *) c_ptr[1]);
+		blasfeo_create_dvec(nx[N-nn], &sPbp, (void *) c_ptr[1]);
 
-		dsymv_l_libstr(nx[N-nn], nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, 1.0, &sl, nu[N-nn], &sPbp, 0);
+		blasfeo_dsymv_l(nx[N-nn], nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, 1.0, &sl, nu[N-nn], &sPbp, 0);
 
-		d_create_strvec(nu[N-nn-1]+nx[N-nn-1], &sl, (void *) c_ptr[0]);
+		blasfeo_create_dvec(nu[N-nn-1]+nx[N-nn-1], &sl, (void *) c_ptr[0]);
 
-		dgemv_n_libstr(nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &hsBAbt[N-nn-1], 0, 0, &sPbp, 0, 1.0, &hsrq[N-nn-1], 0, &sl, 0);
+		blasfeo_dgemv_n(nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &hsBAbt[N-nn-1], 0, 0, &sPbp, 0, 1.0, &hsrq[N-nn-1], 0, &sl, 0);
 
-		dgemv_t_libstr(nx[N-nn-1], nu[N-nn-1], 1.0, &hsL[N-nn-1], nu[N-nn-1], 0, &hsGammab[N-nn-2], 0, 1.0, &sl, 0, srq2, nuf);
+		blasfeo_dgemv_t(nx[N-nn-1], nu[N-nn-1], 1.0, &hsL[N-nn-1], nu[N-nn-1], 0, &hsGammab[N-nn-2], 0, 1.0, &sl, 0, srq2, nuf);
 
 		nuf += nu[N-nn-1];
 
@@ -351,15 +351,15 @@ static void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, s
 	// first stage
 	nn = N-1;
 
-	d_create_strvec(nx[N-nn], &sPbp, (void *) c_ptr[1]);
+	blasfeo_create_dvec(nx[N-nn], &sPbp, (void *) c_ptr[1]);
 
-	dsymv_l_libstr(nx[N-nn], nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, 1.0, &sl, nu[N-nn], &sPbp, 0);
+	blasfeo_dsymv_l(nx[N-nn], nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, 1.0, &sl, nu[N-nn], &sPbp, 0);
 
-	d_create_strvec(nu[N-nn-1]+nx[N-nn-1], &sl, (void *) c_ptr[0]);
+	blasfeo_create_dvec(nu[N-nn-1]+nx[N-nn-1], &sl, (void *) c_ptr[0]);
 
-	dgemv_n_libstr(nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &hsBAbt[N-nn-1], 0, 0, &sPbp, 0, 1.0, &hsrq[N-nn-1], 0, &sl, 0);
+	blasfeo_dgemv_n(nu[N-nn-1]+nx[N-nn-1], nx[N-nn], 1.0, &hsBAbt[N-nn-1], 0, 0, &sPbp, 0, 1.0, &hsrq[N-nn-1], 0, &sl, 0);
 
-	dveccp_libstr(nu[N-nn-1]+nx[N-nn-1], &sl, 0, srq2, nuf);
+	blasfeo_dveccp(nu[N-nn-1]+nx[N-nn-1], &sl, 0, srq2, nuf);
 
 	return;
 
@@ -367,7 +367,7 @@ static void d_cond_rq_libstr(int N, int *nx, int *nu, struct d_strmat *hsBAbt, s
 
 
 
-static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct d_strmat *hsDCt, struct d_strvec *hsd, struct d_strmat *hsGamma, struct d_strmat *sDCt2, struct d_strvec *sd2, int *idxb2, void *work_space)
+static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct blasfeo_dmat *hsDCt, struct blasfeo_dvec *hsd, struct blasfeo_dmat *hsGamma, struct blasfeo_dmat *sDCt2, struct blasfeo_dvec *sd2, int *idxb2, void *work_space)
 	{
 
 	// early return
@@ -407,7 +407,7 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 	int nt2 = nb2 + ng2;
 
 	// set constraint matrix to zero (it's 2 lower triangular matrices atm)
-	dgese_libstr(nu2+nx2, ng2, 0.0, sDCt2, 0, 0);
+	blasfeo_dgese(nu2+nx2, ng2, 0.0, sDCt2, 0, 0);
 
 	// box constraints
 
@@ -443,10 +443,10 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 			else // state: general constraint
 				{
 				idx_g = hidxb[N-ii][jj]-nu0;
-				tmp = dgeex1_libstr(&hsGamma[N-1-ii], idx_gammab, idx_g);
+				tmp = blasfeo_dgeex1(&hsGamma[N-1-ii], idx_gammab, idx_g);
 				d2[nb2+0*nt2+ig] = ptr_d[0*nt0+jj] - tmp;
 				d2[nb2+1*nt2+ig] = ptr_d[1*nt0+jj] - tmp;
-				dgecp_libstr(idx_gammab, 1, &hsGamma[N-ii-1], 0, idx_g, sDCt2, nu_tmp, ig);
+				blasfeo_dgecp(idx_gammab, 1, &hsGamma[N-ii-1], 0, idx_g, sDCt2, nu_tmp, ig);
 				ig++;
 				}
 			}
@@ -473,8 +473,8 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 
 	// general constraints
 
-	struct d_strvec sGammab;
-	struct d_strvec sCGammab;
+	struct blasfeo_dvec sGammab;
+	struct blasfeo_dvec sCGammab;
 
 	char *c_ptr;
 
@@ -493,26 +493,26 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 
 			c_ptr = (char *) work_space;
 
-			dgecp_libstr(nu0, ng0, &hsDCt[N-ii], 0, 0, sDCt2, nu_tmp, nbg+ng_tmp);
+			blasfeo_dgecp(nu0, ng0, &hsDCt[N-ii], 0, 0, sDCt2, nu_tmp, nbg+ng_tmp);
 
 			nu_tmp += nu0;
 
-			dgemm_nn_libstr(nu2+nx[0]-nu_tmp, ng0, nx0, 1.0, &hsGamma[N-1-ii], 0, 0, &hsDCt[N-ii], nu0, 0, 0.0, sDCt2, nu_tmp, nbg+ng_tmp, sDCt2, nu_tmp, nbg+ng_tmp);
+			blasfeo_dgemm_nn(nu2+nx[0]-nu_tmp, ng0, nx0, 1.0, &hsGamma[N-1-ii], 0, 0, &hsDCt[N-ii], nu0, 0, 0.0, sDCt2, nu_tmp, nbg+ng_tmp, sDCt2, nu_tmp, nbg+ng_tmp);
 
-			dveccp_libstr(ng0, &hsd[N-ii], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
-			dveccp_libstr(ng0, &hsd[N-ii], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
+			blasfeo_dveccp(ng0, &hsd[N-ii], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
+			blasfeo_dveccp(ng0, &hsd[N-ii], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
 
-			d_create_strvec(nx0, &sGammab, (void *) c_ptr);
-			c_ptr += sGammab.memory_size;
-			d_create_strvec(ng0, &sCGammab, (void *) c_ptr);
-			c_ptr += sCGammab.memory_size;
+			blasfeo_create_dvec(nx0, &sGammab, (void *) c_ptr);
+			c_ptr += sGammab.memsize;
+			blasfeo_create_dvec(ng0, &sCGammab, (void *) c_ptr);
+			c_ptr += sCGammab.memsize;
 
-			drowex_libstr(nx0, 1.0, &hsGamma[N-1-ii], nu2+nx[0]-nu_tmp, 0, &sGammab, 0);
+			blasfeo_drowex(nx0, 1.0, &hsGamma[N-1-ii], nu2+nx[0]-nu_tmp, 0, &sGammab, 0);
 
-			dgemv_t_libstr(nx0, ng0, 1.0, &hsDCt[N-ii], nu0, 0, &sGammab, 0, 0.0, &sCGammab, 0, &sCGammab, 0);
+			blasfeo_dgemv_t(nx0, ng0, 1.0, &hsDCt[N-ii], nu0, 0, &sGammab, 0, 0.0, &sCGammab, 0, &sCGammab, 0);
 
-			daxpy_libstr(ng0, -1.0, &sCGammab, 0, sd2, nb2+0*nt2+nbg+ng_tmp, sd2, nb2+0*nt2+nbg+ng_tmp);
-			daxpy_libstr(ng0, -1.0, &sCGammab, 0, sd2, nb2+1*nt2+nbg+ng_tmp, sd2, nb2+1*nt2+nbg+ng_tmp);
+			blasfeo_daxpy(ng0, -1.0, &sCGammab, 0, sd2, nb2+0*nt2+nbg+ng_tmp, sd2, nb2+0*nt2+nbg+ng_tmp);
+			blasfeo_daxpy(ng0, -1.0, &sCGammab, 0, sd2, nb2+1*nt2+nbg+ng_tmp, sd2, nb2+1*nt2+nbg+ng_tmp);
 
 			ng_tmp += ng0;
 			
@@ -536,10 +536,10 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 	if(ng0>0)
 		{
 
-		dgecp_libstr(nu0+nx0, ng0, &hsDCt[0], 0, 0, sDCt2, nu_tmp, nbg+ng_tmp);
+		blasfeo_dgecp(nu0+nx0, ng0, &hsDCt[0], 0, 0, sDCt2, nu_tmp, nbg+ng_tmp);
 
-		dveccp_libstr(ng0, &hsd[0], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
-		dveccp_libstr(ng0, &hsd[0], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
+		blasfeo_dveccp(ng0, &hsd[0], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
+		blasfeo_dveccp(ng0, &hsd[0], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
 
 //		ng_tmp += ng[N-ii];
 
@@ -551,7 +551,7 @@ static void d_cond_DCtd_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, in
 
 
 
-static void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct d_strmat *hsDCt, struct d_strvec *hsd, struct d_strvec *hsGammab, struct d_strvec *sd2, void *work_space)
+static void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct blasfeo_dmat *hsDCt, struct blasfeo_dvec *hsd, struct blasfeo_dvec *hsGammab, struct blasfeo_dvec *sd2, void *work_space)
 	{
 
 	// early return
@@ -623,7 +623,7 @@ static void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 			else // state: general constraint
 				{
 				idx_g = hidxb[N-ii][jj]-nu0;
-				tmp = dvecex1_libstr(&hsGammab[N-1-ii], idx_g);
+				tmp = blasfeo_dvecex1(&hsGammab[N-1-ii], idx_g);
 				d2[nb2+0*nt2+ig] = ptr_d[0*nt0+jj] - tmp;
 				d2[nb2+1*nt2+ig] = ptr_d[1*nt0+jj] - tmp;
 				ig++;
@@ -650,7 +650,7 @@ static void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 
 	// general constraints
 
-	struct d_strvec sCGammab;
+	struct blasfeo_dvec sCGammab;
 
 	char *c_ptr = (char *) work_space;
 
@@ -669,15 +669,15 @@ static void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 		if(ng0>0)
 			{
 
-			dveccp_libstr(ng0, &hsd[N-ii], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
-			dveccp_libstr(ng0, &hsd[N-ii], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
+			blasfeo_dveccp(ng0, &hsd[N-ii], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
+			blasfeo_dveccp(ng0, &hsd[N-ii], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
 
-			d_create_strvec(ng0, &sCGammab, (void *) c_ptr);
+			blasfeo_create_dvec(ng0, &sCGammab, (void *) c_ptr);
 
-			dgemv_t_libstr(nx0, ng0, 1.0, &hsDCt[N-ii], nu0, 0, &hsGammab[N-1-ii], 0, 0.0, &sCGammab, 0, &sCGammab, 0);
+			blasfeo_dgemv_t(nx0, ng0, 1.0, &hsDCt[N-ii], nu0, 0, &hsGammab[N-1-ii], 0, 0.0, &sCGammab, 0, &sCGammab, 0);
 
-			daxpy_libstr(ng0, -1.0, &sCGammab, 0, sd2, nb2+0*nt2+nbg+ng_tmp, sd2, nb2+0*nt2+nbg+ng_tmp);
-			daxpy_libstr(ng0, -1.0, &sCGammab, 0, sd2, nb2+1*nt2+nbg+ng_tmp, sd2, nb2+1*nt2+nbg+ng_tmp);
+			blasfeo_daxpy(ng0, -1.0, &sCGammab, 0, sd2, nb2+0*nt2+nbg+ng_tmp, sd2, nb2+0*nt2+nbg+ng_tmp);
+			blasfeo_daxpy(ng0, -1.0, &sCGammab, 0, sd2, nb2+1*nt2+nbg+ng_tmp, sd2, nb2+1*nt2+nbg+ng_tmp);
 
 			ng_tmp += ng0;
 
@@ -695,8 +695,8 @@ static void d_cond_d_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 	if(ng0>0)
 		{
 
-		dveccp_libstr(ng0, &hsd[0], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
-		dveccp_libstr(ng0, &hsd[0], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
+		blasfeo_dveccp(ng0, &hsd[0], nb0+0*nt0, sd2, nb2+0*nt2+nbg+ng_tmp);
+		blasfeo_dveccp(ng0, &hsd[0], nb0+1*nt0, sd2, nb2+1*nt2+nbg+ng_tmp);
 
 //		ng_tmp += ng[N-ii];
 
@@ -829,35 +829,35 @@ int d_part_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, i
 		for(jj=0; jj<T1; jj++)
 			{
 			nu_tmp += nu[N_tmp+jj];
-			tmp_size += d_size_strmat(nx[N_tmp]+nu_tmp+1, nx[N_tmp+jj+1]);
+			tmp_size += blasfeo_memsize_dmat(nx[N_tmp]+nu_tmp+1, nx[N_tmp+jj+1]);
 			}
 		Gamma_size = tmp_size>Gamma_size ? tmp_size : Gamma_size;
 
 		// sLx : 1 => N-1
 		for(jj=1; jj<T1; jj++)
 			{
-			tmp_size = d_size_strmat(nx[N_tmp+jj]+1, nx[N_tmp+jj]);
+			tmp_size = blasfeo_memsize_dmat(nx[N_tmp+jj]+1, nx[N_tmp+jj]);
 			work_space_sizes[0] = tmp_size>work_space_sizes[0] ? tmp_size : work_space_sizes[0];
 			}
 
 		// sBAbtL : 0 => N-2
 		for(jj=0; jj<T1-1; jj++)
 			{
-			tmp_size = d_size_strmat(nu[N_tmp+jj]+nx[N_tmp+jj]+1, nx[N_tmp+1+jj]);
+			tmp_size = blasfeo_memsize_dmat(nu[N_tmp+jj]+nx[N_tmp+jj]+1, nx[N_tmp+1+jj]);
 			work_space_sizes[1] = tmp_size>work_space_sizes[1] ? tmp_size : work_space_sizes[1];
 			}
 
 		// sl : 0 => N-1
 		for(jj=0; jj<T1; jj++)
 			{
-			tmp_size = d_size_strvec(nu[N_tmp+jj]+nx[N_tmp+jj]);
+			tmp_size = blasfeo_memsize_dvec(nu[N_tmp+jj]+nx[N_tmp+jj]);
 			work_space_sizes[2] = tmp_size>work_space_sizes[2] ? tmp_size : work_space_sizes[2];
 			}
 
 		// sPbp : 0 => N-2
 		for(jj=0; jj<T1-1; jj++)
 			{
-			tmp_size = d_size_strvec(nx[N_tmp+1+jj]);
+			tmp_size = blasfeo_memsize_dvec(nx[N_tmp+1+jj]);
 			work_space_sizes[3] = tmp_size>work_space_sizes[3] ? tmp_size : work_space_sizes[3];
 			}
 
@@ -893,7 +893,7 @@ int d_part_cond_memory_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb,
 	for(ii=0; ii<N; ii++) // XXX not last stage !!!
 		{
 		// hsL
-		size += d_size_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]);
+		size += blasfeo_memsize_dmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]);
 		}
 
 	// make memory space multiple of (typical) cache line size
@@ -905,7 +905,7 @@ int d_part_cond_memory_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb,
 
 
 
-void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsd, int N2, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, struct d_strmat *hsBAbt2, struct d_strmat *hsRSQrq2, struct d_strmat *hsDCt2, struct d_strvec *hsd2, void *memory, void *work, int *work_space_sizes)
+void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct blasfeo_dmat *hsBAbt, struct blasfeo_dmat *hsRSQrq, struct blasfeo_dmat *hsDCt, struct blasfeo_dvec *hsd, int N2, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, struct blasfeo_dmat *hsBAbt2, struct blasfeo_dmat *hsRSQrq2, struct blasfeo_dmat *hsDCt2, struct blasfeo_dvec *hsd2, void *memory, void *work, int *work_space_sizes)
 	{
 
 	int ii, jj, kk;
@@ -917,10 +917,10 @@ void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 		for(ii=0; ii<N; ii++)
 			{
 			for(jj=0; jj<nb[ii]; jj++) hidxb2[ii][jj] = hidxb[ii][jj];
-			dgecp_libstr(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0, &hsBAbt2[ii], 0, 0);
-			dgecp_libstr(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0, &hsRSQrq2[ii], 0, 0);
-			dgecp_libstr(nu[ii]+nx[ii]+1, ng[ii], &hsDCt[ii], 0, 0, &hsDCt2[ii], 0, 0);
-			dveccp_libstr(2*nb[ii]+2*ng[ii], &hsd[ii], 0, &hsd2[ii], 0);
+			blasfeo_dgecp(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0, &hsBAbt2[ii], 0, 0);
+			blasfeo_dgecp(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0, &hsRSQrq2[ii], 0, 0);
+			blasfeo_dgecp(nu[ii]+nx[ii]+1, ng[ii], &hsDCt[ii], 0, 0, &hsDCt2[ii], 0, 0);
+			blasfeo_dveccp(2*nb[ii]+2*ng[ii], &hsd[ii], 0, &hsd2[ii], 0);
 			}
 		return;
 		}
@@ -941,15 +941,15 @@ void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 	// memory space
 	char *c_ptr = (char *) memory;
 	// recursion matrices (memory space)
-	struct d_strmat hsL[N]; // XXX not last stage !!!
+	struct blasfeo_dmat hsL[N]; // XXX not last stage !!!
 	for(ii=0; ii<N; ii++) // XXX not last stage !!!
 		{
-		d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
-		c_ptr += hsL[ii].memory_size;
+		blasfeo_create_dmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
+		c_ptr += hsL[ii].memsize;
 		}
 
 	// work space
-	struct d_strmat hsGamma[M1];
+	struct blasfeo_dmat hsGamma[M1];
 	int tmp_i, tmp_size;
 
 	// other stages
@@ -965,8 +965,8 @@ void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 		nu_tmp = nu[N_tmp+0];
 		for(jj=0; jj<T1; jj++)
 			{
-			d_create_strmat(nx[N_tmp+0]+nu_tmp+1, nx[N_tmp+jj+1], &hsGamma[jj], (void *) c_ptr);
-			c_ptr += hsGamma[jj].memory_size;
+			blasfeo_create_dmat(nx[N_tmp+0]+nu_tmp+1, nx[N_tmp+jj+1], &hsGamma[jj], (void *) c_ptr);
+			c_ptr += hsGamma[jj].memsize;
 			nu_tmp += nu[N_tmp+jj+1];
 			}
 		// sA
@@ -988,7 +988,7 @@ void d_part_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, 
 
 
 
-void d_part_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsd, int N2, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, struct d_strmat *hsBAbt2, struct d_strvec *hsb2, struct d_strmat *hsRSQrq2, struct d_strvec *hsrq2, struct d_strmat *hsDCt2, struct d_strvec *hsd2, void *memory, void *work, int *work_space_sizes)
+void d_part_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct blasfeo_dmat *hsBAbt, struct blasfeo_dvec *hsb, struct blasfeo_dmat *hsRSQrq, struct blasfeo_dvec *hsrq, struct blasfeo_dmat *hsDCt, struct blasfeo_dvec *hsd, int N2, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, struct blasfeo_dmat *hsBAbt2, struct blasfeo_dvec *hsb2, struct blasfeo_dmat *hsRSQrq2, struct blasfeo_dvec *hsrq2, struct blasfeo_dmat *hsDCt2, struct blasfeo_dvec *hsd2, void *memory, void *work, int *work_space_sizes)
 	{
 
 	int ii, jj, kk;
@@ -999,12 +999,12 @@ void d_part_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 		for(ii=0; ii<N; ii++)
 			{
 			for(jj=0; jj<nb[ii]; jj++) hidxb2[ii][jj] = hidxb[ii][jj];
-			dgecp_libstr(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0, &hsBAbt2[ii], 0, 0);
-			dveccp_libstr(nx[ii+1], &hsb[ii], 0, &hsb2[ii], 0);
-			dgecp_libstr(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0, &hsRSQrq2[ii], 0, 0);
-			dveccp_libstr(nu[ii]+nx[ii], &hsrq[ii], 0, &hsrq2[ii], 0);
-			dgecp_libstr(nu[ii]+nx[ii]+1, ng[ii], &hsDCt[ii], 0, 0, &hsDCt2[ii], 0, 0);
-			dveccp_libstr(2*nb[ii]+2*ng[ii], &hsd[ii], 0, &hsd2[ii], 0);
+			blasfeo_dgecp(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0, &hsBAbt2[ii], 0, 0);
+			blasfeo_dveccp(nx[ii+1], &hsb[ii], 0, &hsb2[ii], 0);
+			blasfeo_dgecp(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0, &hsRSQrq2[ii], 0, 0);
+			blasfeo_dveccp(nu[ii]+nx[ii], &hsrq[ii], 0, &hsrq2[ii], 0);
+			blasfeo_dgecp(nu[ii]+nx[ii]+1, ng[ii], &hsDCt[ii], 0, 0, &hsDCt2[ii], 0, 0);
+			blasfeo_dveccp(2*nb[ii]+2*ng[ii], &hsd[ii], 0, &hsd2[ii], 0);
 			}
 		return;
 		}
@@ -1025,15 +1025,15 @@ void d_part_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 	// memory space
 	char *c_ptr = (char *) memory;
 	// recursion matrices (memory space)
-	struct d_strmat hsL[N]; // XXX not last stage !!!
+	struct blasfeo_dmat hsL[N]; // XXX not last stage !!!
 	for(ii=0; ii<N; ii++) // XXX not last stage !!!
 		{
-		d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
-		c_ptr += hsL[ii].memory_size;
+		blasfeo_create_dmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
+		c_ptr += hsL[ii].memsize;
 		}
 
 	// work space
-	struct d_strvec hsGammab[M1];
+	struct blasfeo_dvec hsGammab[M1];
 	int tmp_i, tmp_size;
 
 	// other stages
@@ -1048,8 +1048,8 @@ void d_part_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *
 		// sGamma
 		for(jj=0; jj<T1; jj++)
 			{
-			d_create_strvec(nx[N_tmp+jj+1], &hsGammab[jj], (void *) c_ptr);
-			c_ptr += hsGammab[jj].memory_size;
+			blasfeo_create_dvec(nx[N_tmp+jj+1], &hsGammab[jj], (void *) c_ptr);
+			c_ptr += hsGammab[jj].memsize;
 			}
 		d_cond_b_libstr(T1, &nx[N_tmp], &nu[N_tmp], &hsBAbt[N_tmp], &hsb[N_tmp], hsGammab, &hsb2[ii]);
 
@@ -1073,14 +1073,14 @@ int d_part_expand_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb,
 
 	int ii, i_tmp;
 
-	int nzM = d_size_strvec(nu[0]+nx[0]);
-	int ngM = d_size_strvec(ng[0]);
+	int nzM = blasfeo_memsize_dvec(nu[0]+nx[0]);
+	int ngM = blasfeo_memsize_dvec(ng[0]);
 
 	for(ii=1; ii<=N; ii++)
 		{
-		i_tmp = d_size_strvec(nu[ii]+nx[ii]);
+		i_tmp = blasfeo_memsize_dvec(nu[ii]+nx[ii]);
 		nzM = i_tmp>nzM ? i_tmp : nzM;
-		i_tmp = d_size_strvec(ng[ii]);
+		i_tmp = blasfeo_memsize_dvec(ng[ii]);
 		ngM = i_tmp>ngM ? i_tmp : ngM;
 		}
 	
@@ -1097,14 +1097,14 @@ int d_part_expand_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb,
 
 
 
-void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsux, struct d_strvec *hspi, struct d_strvec *hslam, struct d_strvec *hst, int N2, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, struct d_strvec *hsux2, struct d_strvec *hspi2, struct d_strvec *hslam2, struct d_strvec *hst2, void *work_space, int *work_space_sizes)
+void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct blasfeo_dmat *hsBAbt, struct blasfeo_dvec *hsb, struct blasfeo_dmat *hsRSQrq, struct blasfeo_dvec *hsrq, struct blasfeo_dmat *hsDCt, struct blasfeo_dvec *hsux, struct blasfeo_dvec *hspi, struct blasfeo_dvec *hslam, struct blasfeo_dvec *hst, int N2, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, struct blasfeo_dvec *hsux2, struct blasfeo_dvec *hspi2, struct blasfeo_dvec *hslam2, struct blasfeo_dvec *hst2, void *work_space, int *work_space_sizes)
 	{
 
 	int ii, jj, ll;
 
 	int nu0, nx0, nx1, nb0, ng0, nt0, nt2;
 
-	struct d_strvec workvec[2];
+	struct blasfeo_dvec workvec[2];
 
 	double *ptr_work0, *ptr_work1, *ptr_lam, *ptr_t, *ptr_lam2, *ptr_t2;
 
@@ -1129,11 +1129,11 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 		// final stages: copy only input
 		for(jj=0; jj<T1-1; jj++)
 			{
-			dveccp_libstr(nu[N_tmp+T1-1-jj], &hsux2[ii], nu_tmp, &hsux[N_tmp+T1-1-jj], 0);
+			blasfeo_dveccp(nu[N_tmp+T1-1-jj], &hsux2[ii], nu_tmp, &hsux[N_tmp+T1-1-jj], 0);
 			nu_tmp += nu[N_tmp+T1-1-jj];
 			}
 		// first stage: copy input and state
-		dveccp_libstr(nu[N_tmp+0]+nx[N_tmp+0], &hsux2[ii], nu_tmp, &hsux[N_tmp+0], 0);
+		blasfeo_dveccp(nu[N_tmp+0]+nx[N_tmp+0], &hsux2[ii], nu_tmp, &hsux[N_tmp+0], 0);
 		//
 		N_tmp += T1;
 		}
@@ -1146,7 +1146,7 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 		T1 = ii<R1 ? M1 : N1;
 		for(jj=0; jj<T1-1; jj++) // last stage is already there !!!
 			{
-			dgemv_t_libstr(nu[N_tmp+jj]+nx[N_tmp+jj], nx[N_tmp+jj+1], 1.0, &hsBAbt[N_tmp+jj], 0, 0, &hsux[N_tmp+jj], 0, 1.0, &hsb[N_tmp+jj], 0, &hsux[N_tmp+jj+1], nu[N_tmp+jj+1]);
+			blasfeo_dgemv_t(nu[N_tmp+jj]+nx[N_tmp+jj], nx[N_tmp+jj+1], 1.0, &hsBAbt[N_tmp+jj], 0, 0, &hsux[N_tmp+jj], 0, 1.0, &hsb[N_tmp+jj], 0, &hsux[N_tmp+jj+1], nu[N_tmp+jj+1]);
 			}
 		//
 		N_tmp += T1;
@@ -1218,15 +1218,15 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 		ng0 = ng[stg];
 		nt0 = nb0 + ng0;
 		// all box as box
-		dveccp_libstr(nb0, &hslam2[ii], 0*nt2+nbb2, &hslam[stg], 0*nt0);
-		dveccp_libstr(nb0, &hslam2[ii], 1*nt2+nbb2, &hslam[stg], 1*nt0);
-		dveccp_libstr(nb0, &hst2[ii], 0*nt2+nbb2, &hst[stg], 0*nt0);
-		dveccp_libstr(nb0, &hst2[ii], 1*nt2+nbb2, &hst[stg], 1*nt0);
+		blasfeo_dveccp(nb0, &hslam2[ii], 0*nt2+nbb2, &hslam[stg], 0*nt0);
+		blasfeo_dveccp(nb0, &hslam2[ii], 1*nt2+nbb2, &hslam[stg], 1*nt0);
+		blasfeo_dveccp(nb0, &hst2[ii], 0*nt2+nbb2, &hst[stg], 0*nt0);
+		blasfeo_dveccp(nb0, &hst2[ii], 1*nt2+nbb2, &hst[stg], 1*nt0);
 		// first stage: general
-		dveccp_libstr(ng0, &hslam2[ii], nb2[ii]+0*nt2+nbg2+ngg2, &hslam[stg], nb0+0*nt0);
-		dveccp_libstr(ng0, &hslam2[ii], nb2[ii]+1*nt2+nbg2+ngg2, &hslam[stg], nb0+1*nt0);
-		dveccp_libstr(ng0, &hst2[ii], nb2[ii]+0*nt2+nbg2+ngg2, &hst[stg], nb0+0*nt0);
-		dveccp_libstr(ng0, &hst2[ii], nb2[ii]+1*nt2+nbg2+ngg2, &hst[stg], nb0+1*nt0);
+		blasfeo_dveccp(ng0, &hslam2[ii], nb2[ii]+0*nt2+nbg2+ngg2, &hslam[stg], nb0+0*nt0);
+		blasfeo_dveccp(ng0, &hslam2[ii], nb2[ii]+1*nt2+nbg2+ngg2, &hslam[stg], nb0+1*nt0);
+		blasfeo_dveccp(ng0, &hst2[ii], nb2[ii]+0*nt2+nbg2+ngg2, &hst[stg], nb0+0*nt0);
+		blasfeo_dveccp(ng0, &hst2[ii], nb2[ii]+1*nt2+nbg2+ngg2, &hst[stg], nb0+1*nt0);
 		//
 		N_tmp += T1;
 		}
@@ -1239,7 +1239,7 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 		{
 		T1 = ii<R1 ? M1 : N1;
 		// last stage: just copy
-		dveccp_libstr(nx[N_tmp+T1], &hspi2[ii+1], 0, &hspi[N_tmp+T1], 0);
+		blasfeo_dveccp(nx[N_tmp+T1], &hspi2[ii+1], 0, &hspi[N_tmp+T1], 0);
 		// middle stages: backward simulation
 		for(jj=0; jj<T1-1; jj++)
 			{
@@ -1250,20 +1250,20 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 			nb0 = nb[stg];
 			ng0 = ng[stg];
 			nt0 = nb0 + ng0;
-			d_create_strvec(nu0+nx0, &workvec[0], (void *) c_ptr[0]);
-			dveccp_libstr(nu0+nx0, &hsrq[stg], 0, &workvec[0], 0);
+			blasfeo_create_dvec(nu0+nx0, &workvec[0], (void *) c_ptr[0]);
+			blasfeo_dveccp(nu0+nx0, &hsrq[stg], 0, &workvec[0], 0);
 			ptr_work0 = workvec[0].pa;
 			ptr_lam = hslam[stg].pa;
 			for(ll=0; ll<nb0; ll++)
 				ptr_work0[hidxb[stg][ll]] += - ptr_lam[0*nt0+ll] + ptr_lam[1*nt0+ll];
-			dsymv_l_libstr(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[stg], 0, 0, &hsux[stg], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
-			dgemv_n_libstr(nu0+nx0, nx1, 1.0, &hsBAbt[stg], 0, 0, &hspi[stg+1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
-			d_create_strvec(ng0, &workvec[1], (void *) c_ptr[1]);
+			blasfeo_dsymv_l(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[stg], 0, 0, &hsux[stg], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
+			blasfeo_dgemv_n(nu0+nx0, nx1, 1.0, &hsBAbt[stg], 0, 0, &hspi[stg+1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
+			blasfeo_create_dvec(ng0, &workvec[1], (void *) c_ptr[1]);
 			ptr_work1 = workvec[1].pa;
 			for(ll=0; ll<ng0; ll++)
 				ptr_work1[ll] = ptr_lam[nb0+1*nt0+ll] - ptr_lam[nb0+0*nt0+ll];
-			dgemv_n_libstr(nu0+nx0, ng0, 1.0, &hsDCt[stg], 0, 0, &workvec[1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
-			dveccp_libstr(nx0, &workvec[0], nu0,  &hspi[stg], 0);
+			blasfeo_dgemv_n(nu0+nx0, ng0, 1.0, &hsDCt[stg], 0, 0, &workvec[1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
+			blasfeo_dveccp(nx0, &workvec[0], nu0,  &hspi[stg], 0);
 			}
 		N_tmp += T1;
 		}
@@ -1333,35 +1333,35 @@ int d_cond_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int **
 	for(ii=0; ii<N; ii++)
 		{
 		nu_tmp += nu[ii];
-		tmp_size += d_size_strmat(nx[0]+nu_tmp+1, nx[ii+1]);
+		tmp_size += blasfeo_memsize_dmat(nx[0]+nu_tmp+1, nx[ii+1]);
 		}
 	Gamma_size = tmp_size>Gamma_size ? tmp_size : Gamma_size;
 
 	// sLx : 1 => N
 	for(ii=1; ii<=N; ii++)
 		{
-		tmp_size = d_size_strmat(nx[ii]+1, nx[ii]);
+		tmp_size = blasfeo_memsize_dmat(nx[ii]+1, nx[ii]);
 		work_space_sizes[0] = tmp_size>work_space_sizes[0] ? tmp_size : work_space_sizes[0];
 		}
 
 	// sBAbtL : 0 => N-1
 	for(ii=0; ii<N; ii++)
 		{
-		tmp_size = d_size_strmat(nu[ii]+nx[ii]+1, nx[1+ii]);
+		tmp_size = blasfeo_memsize_dmat(nu[ii]+nx[ii]+1, nx[1+ii]);
 		work_space_sizes[1] = tmp_size>work_space_sizes[1] ? tmp_size : work_space_sizes[1];
 		}
 
 	// sl : 0 => N
 	for(ii=0; ii<=N; ii++)
 		{
-		tmp_size = d_size_strvec(nu[ii]+nx[ii]);
+		tmp_size = blasfeo_memsize_dvec(nu[ii]+nx[ii]);
 		work_space_sizes[2] = tmp_size>work_space_sizes[2] ? tmp_size : work_space_sizes[2];
 		}
 
 	// sPbp : 0 => N-1
 	for(ii=0; ii<N; ii++)
 		{
-		tmp_size = d_size_strvec(nx[1+ii]);
+		tmp_size = blasfeo_memsize_dvec(nx[1+ii]);
 		work_space_sizes[3] = tmp_size>work_space_sizes[3] ? tmp_size : work_space_sizes[3];
 		}
 	
@@ -1389,7 +1389,7 @@ int d_cond_memory_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int 
 	for(ii=0; ii<=N; ii++)
 		{
 		// hsL
-		size += d_size_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]);
+		size += blasfeo_memsize_dmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii]);
 		}
 
 	// make memory space multiple of (typical) cache line size
@@ -1401,7 +1401,7 @@ int d_cond_memory_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int 
 
 
 
-void d_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct d_strmat *hsBAbt, struct d_strmat *hsRSQrq, struct d_strmat *hsDCt, struct d_strvec *hsd, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, struct d_strmat *hsBAbt2, struct d_strmat *hsRSQrq2, struct d_strmat *hsDCt2, struct d_strvec *hsd2, void *memory, void *work, int *work_space_sizes)
+void d_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct blasfeo_dmat *hsBAbt, struct blasfeo_dmat *hsRSQrq, struct blasfeo_dmat *hsDCt, struct blasfeo_dvec *hsd, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, struct blasfeo_dmat *hsBAbt2, struct blasfeo_dmat *hsRSQrq2, struct blasfeo_dmat *hsDCt2, struct blasfeo_dvec *hsd2, void *memory, void *work, int *work_space_sizes)
 	{
 
 	const int N2 = 1;
@@ -1412,15 +1412,15 @@ void d_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struc
 	// memory space
 	char *c_ptr = (char *) memory;
 	// recursion matrices (memory space)
-	struct d_strmat hsL[N+1]; // XXX not last stage !!!
+	struct blasfeo_dmat hsL[N+1]; // XXX not last stage !!!
 	for(ii=0; ii<=N; ii++) // XXX not last stage !!!
 		{
-		d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
-		c_ptr += hsL[ii].memory_size;
+		blasfeo_create_dmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
+		c_ptr += hsL[ii].memsize;
 		}
 
 	// work space
-	struct d_strmat hsGamma[N];
+	struct blasfeo_dmat hsGamma[N];
 	int tmp_i, tmp_size;
 
 	c_ptr = (char *) work;
@@ -1429,8 +1429,8 @@ void d_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struc
 	nu_tmp = nu[0];
 	for(jj=0; jj<N; jj++)
 		{
-		d_create_strmat(nx[0]+nu_tmp+1, nx[jj+1], &hsGamma[jj], (void *) c_ptr);
-		c_ptr += hsGamma[jj].memory_size;
+		blasfeo_create_dmat(nx[0]+nu_tmp+1, nx[jj+1], &hsGamma[jj], (void *) c_ptr);
+		c_ptr += hsGamma[jj].memsize;
 		nu_tmp += nu[jj+1];
 		}
 	// sA
@@ -1448,7 +1448,7 @@ void d_cond_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struc
 
 
 
-void d_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsd, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, struct d_strmat *hsBAbt2, struct d_strvec *hsb2, struct d_strmat *hsRSQrq2, struct d_strvec *hsrq2, struct d_strmat *hsDCt2, struct d_strvec *hsd2, void *memory, void *work, int *work_space_sizes)
+void d_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct blasfeo_dmat *hsBAbt, struct blasfeo_dvec *hsb, struct blasfeo_dmat *hsRSQrq, struct blasfeo_dvec *hsrq, struct blasfeo_dmat *hsDCt, struct blasfeo_dvec *hsd, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, struct blasfeo_dmat *hsBAbt2, struct blasfeo_dvec *hsb2, struct blasfeo_dmat *hsRSQrq2, struct blasfeo_dvec *hsrq2, struct blasfeo_dmat *hsDCt2, struct blasfeo_dvec *hsd2, void *memory, void *work, int *work_space_sizes)
 	{
 
 	const int N2 = 1;
@@ -1458,15 +1458,15 @@ void d_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, s
 	// memory space
 	char *c_ptr = (char *) memory;
 	// recursion matrices (memory space)
-	struct d_strmat hsL[N+1];
+	struct blasfeo_dmat hsL[N+1];
 	for(ii=0; ii<=N; ii++)
 		{
-		d_create_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
-		c_ptr += hsL[ii].memory_size;
+		blasfeo_create_dmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsL[ii], (void *) c_ptr);
+		c_ptr += hsL[ii].memsize;
 		}
 
 	// work space
-	struct d_strvec hsGammab[N];
+	struct blasfeo_dvec hsGammab[N];
 	int tmp_i, tmp_size;
 
 	c_ptr = (char *) work;
@@ -1474,8 +1474,8 @@ void d_cond_rhs_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, s
 	// sGamma
 	for(jj=0; jj<N; jj++)
 		{
-		d_create_strvec(nx[jj+1], &hsGammab[jj], (void *) c_ptr);
-		c_ptr += hsGammab[jj].memory_size;
+		blasfeo_create_dvec(nx[jj+1], &hsGammab[jj], (void *) c_ptr);
+		c_ptr += hsGammab[jj].memsize;
 		}
 	d_comp_Gammab_libstr(N, nx, nu, hsBAbt, hsb, hsGammab);
 
@@ -1494,14 +1494,14 @@ int d_expand_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int 
 
 	int ii, i_tmp;
 
-	int nzM = d_size_strvec(nu[0]+nx[0]);
-	int ngM = d_size_strvec(ng[0]);
+	int nzM = blasfeo_memsize_dvec(nu[0]+nx[0]);
+	int ngM = blasfeo_memsize_dvec(ng[0]);
 
 	for(ii=1; ii<=N; ii++)
 		{
-		i_tmp = d_size_strvec(nu[ii]+nx[ii]);
+		i_tmp = blasfeo_memsize_dvec(nu[ii]+nx[ii]);
 		nzM = i_tmp>nzM ? i_tmp : nzM;
-		i_tmp = d_size_strvec(ng[ii]);
+		i_tmp = blasfeo_memsize_dvec(ng[ii]);
 		ngM = i_tmp>ngM ? i_tmp : ngM;
 		}
 	
@@ -1518,7 +1518,7 @@ int d_expand_work_space_size_bytes_libstr(int N, int *nx, int *nu, int *nb, int 
 
 
 
-void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct d_strmat *hsBAbt, struct d_strvec *hsb, struct d_strmat *hsRSQrq, struct d_strvec *hsrq, struct d_strmat *hsDCt, struct d_strvec *hsux, struct d_strvec *hspi, struct d_strvec *hslam, struct d_strvec *hst, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, struct d_strvec *hsux2, struct d_strvec *hspi2, struct d_strvec *hslam2, struct d_strvec *hst2, void *work_space, int *work_space_sizes)
+void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct blasfeo_dmat *hsBAbt, struct blasfeo_dvec *hsb, struct blasfeo_dmat *hsRSQrq, struct blasfeo_dvec *hsrq, struct blasfeo_dmat *hsDCt, struct blasfeo_dvec *hsux, struct blasfeo_dvec *hspi, struct blasfeo_dvec *hslam, struct blasfeo_dvec *hst, int *nx2, int *nu2, int *nb2, int **hidxb2, int *ng2, struct blasfeo_dvec *hsux2, struct blasfeo_dvec *hspi2, struct blasfeo_dvec *hslam2, struct blasfeo_dvec *hst2, void *work_space, int *work_space_sizes)
 	{
 
 	const int N2 = 1;
@@ -1529,7 +1529,7 @@ void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 
 	int nu_tmp, stg, nbb2, nbg2, ngg2;
 
-	struct d_strvec workvec[2];
+	struct blasfeo_dvec workvec[2];
 
 	double *ptr_work0, *ptr_work1, *ptr_lam, *ptr_t, *ptr_lam2, *ptr_t2;
 
@@ -1543,16 +1543,16 @@ void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 	for(jj=0; jj<N; jj++)
 		{
 		stg = N-jj;
-		dveccp_libstr(nu[stg], &hsux2[0], nu_tmp, &hsux[stg], 0);
+		blasfeo_dveccp(nu[stg], &hsux2[0], nu_tmp, &hsux[stg], 0);
 		nu_tmp += nu[stg];
 		}
 	// first stage: copy input and state
-	dveccp_libstr(nu[0]+nx[0], &hsux2[0], nu_tmp, &hsux[0], 0);
+	blasfeo_dveccp(nu[0]+nx[0], &hsux2[0], nu_tmp, &hsux[0], 0);
 
 	// compute missing states by simulation within each block
 	for(jj=0; jj<N; jj++)
 		{
-		dgemv_t_libstr(nu[jj]+nx[jj], nx[jj+1], 1.0, &hsBAbt[jj], 0, 0, &hsux[jj], 0, 1.0, &hsb[jj], 0, &hsux[jj+1], nu[jj+1]);
+		blasfeo_dgemv_t(nu[jj]+nx[jj], nx[jj+1], 1.0, &hsBAbt[jj], 0, 0, &hsux[jj], 0, 1.0, &hsb[jj], 0, &hsux[jj+1], nu[jj+1]);
 		}
 
 	// slack variables and ineq lagrange multipliers
@@ -1617,15 +1617,15 @@ void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 	ng0 = ng[0];
 	nt0 = nb0 + ng0;
 	// all box as box
-	dveccp_libstr(nb0, &hslam2[0], 0*nt2+nbb2, &hslam[0], 0*nt0);
-	dveccp_libstr(nb0, &hslam2[0], 1*nt2+nbb2, &hslam[0], 1*nt0);
-	dveccp_libstr(nb0, &hst2[0], 0*nt2+nbb2, &hst[0], 0*nt0);
-	dveccp_libstr(nb0, &hst2[0], 1*nt2+nbb2, &hst[0], 1*nt0);
+	blasfeo_dveccp(nb0, &hslam2[0], 0*nt2+nbb2, &hslam[0], 0*nt0);
+	blasfeo_dveccp(nb0, &hslam2[0], 1*nt2+nbb2, &hslam[0], 1*nt0);
+	blasfeo_dveccp(nb0, &hst2[0], 0*nt2+nbb2, &hst[0], 0*nt0);
+	blasfeo_dveccp(nb0, &hst2[0], 1*nt2+nbb2, &hst[0], 1*nt0);
 	// first stage: general
-	dveccp_libstr(ng0, &hslam2[0], nb2[0]+0*nt2+nbg2+ngg2, &hslam[0], nb0+0*nt0);
-	dveccp_libstr(ng0, &hslam2[0], nb2[0]+1*nt2+nbg2+ngg2, &hslam[0], nb0+1*nt0);
-	dveccp_libstr(ng0, &hst2[0], nb2[0]+0*nt2+nbg2+ngg2, &hst[0], nb0+0*nt0);
-	dveccp_libstr(ng0, &hst2[0], nb2[0]+1*nt2+nbg2+ngg2, &hst[0], nb0+1*nt0);
+	blasfeo_dveccp(ng0, &hslam2[0], nb2[0]+0*nt2+nbg2+ngg2, &hslam[0], nb0+0*nt0);
+	blasfeo_dveccp(ng0, &hslam2[0], nb2[0]+1*nt2+nbg2+ngg2, &hslam[0], nb0+1*nt0);
+	blasfeo_dveccp(ng0, &hst2[0], nb2[0]+0*nt2+nbg2+ngg2, &hst[0], nb0+0*nt0);
+	blasfeo_dveccp(ng0, &hst2[0], nb2[0]+1*nt2+nbg2+ngg2, &hst[0], nb0+1*nt0);
 
 	// lagrange multipliers of equality constraints
 	// TODO avoid to multiply by R and B (i.e. the u part)
@@ -1636,19 +1636,19 @@ void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 	nb0 = nb[stg];
 	ng0 = ng[stg];
 	nt0 = nb0 + ng0;
-	d_create_strvec(nu0+nx0, &workvec[0], (void *) c_ptr[0]);
-	dveccp_libstr(nu0+nx0, &hsrq[stg], 0, &workvec[0], 0);
+	blasfeo_create_dvec(nu0+nx0, &workvec[0], (void *) c_ptr[0]);
+	blasfeo_dveccp(nu0+nx0, &hsrq[stg], 0, &workvec[0], 0);
 	ptr_work0 = workvec[0].pa;
 	ptr_lam = hslam[stg].pa;
 	for(ll=0; ll<nb0; ll++)
 		ptr_work0[hidxb[stg][ll]] += - ptr_lam[0*nt0+ll] + ptr_lam[1*nt0+ll];
-	dsymv_l_libstr(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[stg], 0, 0, &hsux[stg], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
-	d_create_strvec(ng0, &workvec[1], (void *) c_ptr[1]);
+	blasfeo_dsymv_l(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[stg], 0, 0, &hsux[stg], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
+	blasfeo_create_dvec(ng0, &workvec[1], (void *) c_ptr[1]);
 	ptr_work1 = workvec[1].pa;
 	for(ll=0; ll<ng0; ll++)
 		ptr_work1[ll] = ptr_lam[nb0+1*nt0+ll] - ptr_lam[nb0+0*nt0+ll];
-	dgemv_n_libstr(nu0+nx0, ng0, 1.0, &hsDCt[stg], 0, 0, &workvec[1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
-	dveccp_libstr(nx0, &workvec[0], nu0,  &hspi[stg], 0);
+	blasfeo_dgemv_n(nu0+nx0, ng0, 1.0, &hsDCt[stg], 0, 0, &workvec[1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
+	blasfeo_dveccp(nx0, &workvec[0], nu0,  &hspi[stg], 0);
 	// middle stages: backward simulation
 	for(jj=0; jj<N-1; jj++)
 		{
@@ -1659,20 +1659,20 @@ void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 		nb0 = nb[stg];
 		ng0 = ng[stg];
 		nt0 = nb0 + ng0;
-		d_create_strvec(nu0+nx0, &workvec[0], (void *) c_ptr[0]);
-		dveccp_libstr(nu0+nx0, &hsrq[stg], 0, &workvec[0], 0);
+		blasfeo_create_dvec(nu0+nx0, &workvec[0], (void *) c_ptr[0]);
+		blasfeo_dveccp(nu0+nx0, &hsrq[stg], 0, &workvec[0], 0);
 		ptr_work0 = workvec[0].pa;
 		ptr_lam = hslam[stg].pa;
 		for(ll=0; ll<nb0; ll++)
 			ptr_work0[hidxb[stg][ll]] += - ptr_lam[0*nt0+ll] + ptr_lam[1*nt0+ll];
-		dsymv_l_libstr(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[stg], 0, 0, &hsux[stg], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
-		dgemv_n_libstr(nu0+nx0, nx1, 1.0, &hsBAbt[stg], 0, 0, &hspi[stg+1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
-		d_create_strvec(ng0, &workvec[1], (void *) c_ptr[1]);
+		blasfeo_dsymv_l(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[stg], 0, 0, &hsux[stg], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
+		blasfeo_dgemv_n(nu0+nx0, nx1, 1.0, &hsBAbt[stg], 0, 0, &hspi[stg+1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
+		blasfeo_create_dvec(ng0, &workvec[1], (void *) c_ptr[1]);
 		ptr_work1 = workvec[1].pa;
 		for(ll=0; ll<ng0; ll++)
 			ptr_work1[ll] = ptr_lam[nb0+1*nt0+ll] - ptr_lam[nb0+0*nt0+ll];
-		dgemv_n_libstr(nu0+nx0, ng0, 1.0, &hsDCt[stg], 0, 0, &workvec[1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
-		dveccp_libstr(nx0, &workvec[0], nu0,  &hspi[stg], 0);
+		blasfeo_dgemv_n(nu0+nx0, ng0, 1.0, &hsDCt[stg], 0, 0, &workvec[1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
+		blasfeo_dveccp(nx0, &workvec[0], nu0,  &hspi[stg], 0);
 		}
 
 	return;

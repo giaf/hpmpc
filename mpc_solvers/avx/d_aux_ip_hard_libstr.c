@@ -45,7 +45,7 @@
 
 // initialize variables
 
-void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct d_strvec *hsux, struct d_strvec *hspi, struct d_strmat *hsDCt, struct d_strvec *hsdb, struct d_strvec *hst, struct d_strvec *hslam, double mu0, int warm_start)
+void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int *ng, struct blasfeo_dvec *hsux, struct blasfeo_dvec *hspi, struct blasfeo_dmat *hsDCt, struct blasfeo_dvec *hsdb, struct blasfeo_dvec *hst, struct blasfeo_dvec *hslam, double mu0, int warm_start)
 	{
 
 	int jj, ll, ii;
@@ -129,7 +129,7 @@ void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, i
 			ptr_t   = hst[jj].pa;
 			ptr_lam = hslam[jj].pa;
 			ptr_db  = hsdb[jj].pa;
-			dgemv_t_libstr(nu[jj]+nx[jj], ng0, 1.0, &hsDCt[jj], 0, 0, &hsux[jj], 0, 0.0, &hst[jj], nb0, &hst[jj], nb0);
+			blasfeo_dgemv_t(nu[jj]+nx[jj], ng0, 1.0, &hsDCt[jj], 0, 0, &hsux[jj], 0, 0.0, &hst[jj], nb0, &hst[jj], nb0);
 			for(ll=nb0; ll<nb0+ng0; ll++)
 				{
 				ptr_t[ll+nt0] = - ptr_t[ll];
@@ -148,7 +148,7 @@ void d_init_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, i
 
 // IPM with no residuals
 
-void d_update_hessian_gradient_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, struct d_strvec *hsdb, double sigma_mu, struct d_strvec *hst, struct d_strvec *hstinv, struct d_strvec *hslam, struct d_strvec *hslamt, struct d_strvec *hsdlam, struct d_strvec *hsQx, struct d_strvec *hsqx)
+void d_update_hessian_gradient_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, struct blasfeo_dvec *hsdb, double sigma_mu, struct blasfeo_dvec *hst, struct blasfeo_dvec *hstinv, struct blasfeo_dvec *hslam, struct blasfeo_dvec *hslamt, struct blasfeo_dvec *hsdlam, struct blasfeo_dvec *hsQx, struct blasfeo_dvec *hsqx)
 	{
 	
 	int ii, jj, bs0;
@@ -279,7 +279,7 @@ void d_update_hessian_gradient_mpc_hard_libstr(int N, int *nx, int *nu, int *nb,
 
 
 
-void d_update_gradient_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double sigma_mu, struct d_strvec *hsdt, struct d_strvec *hsdlam, struct d_strvec *hstinv, struct d_strvec *hsqx)
+void d_update_gradient_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double sigma_mu, struct blasfeo_dvec *hsdt, struct blasfeo_dvec *hsdlam, struct blasfeo_dvec *hstinv, struct blasfeo_dvec *hsqx)
 	{
 
 	int ii, jj;
@@ -333,7 +333,7 @@ void d_update_gradient_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng
 	}
 
 
-void d_compute_alpha_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double *ptr_alpha, struct d_strvec *hst, struct d_strvec *hsdt, struct d_strvec *hslam, struct d_strvec *hsdlam, struct d_strvec *hslamt, struct d_strvec *hsdux, struct d_strmat *hsDCt, struct d_strvec *hsdb)
+void d_compute_alpha_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, double *ptr_alpha, struct blasfeo_dvec *hst, struct blasfeo_dvec *hsdt, struct blasfeo_dvec *hslam, struct blasfeo_dvec *hsdlam, struct blasfeo_dvec *hslamt, struct blasfeo_dvec *hsdux, struct blasfeo_dmat *hsDCt, struct blasfeo_dvec *hsdb)
 	{
 	
 	int ii, jj, ll;
@@ -420,7 +420,7 @@ void d_compute_alpha_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idx
 			ptr_dt[ll] = ptr_dux[ptr_idxb[ll]];
 
 		// general constraints
-		dgemv_t_libstr(nx0+nu0, ng0, 1.0, &hsDCt[jj], 0, 0, &hsdux[jj], 0, 0.0, &hsdt[jj], nb0, &hsdt[jj], nb0);
+		blasfeo_dgemv_t(nx0+nu0, ng0, 1.0, &hsDCt[jj], 0, 0, &hsdux[jj], 0, 0.0, &hsdt[jj], nb0, &hsdt[jj], nb0);
 
 		// all constraints
 		for(ll=0; ll<nt0-3; ll+=4)
@@ -577,7 +577,7 @@ void d_compute_alpha_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idx
 
 
 
-void d_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double *ptr_mu, double mu_scal, double alpha, struct d_strvec *hsux, struct d_strvec *hsdux, struct d_strvec *hspi, struct d_strvec *hsdpi, struct d_strvec *hst, struct d_strvec *hsdt, struct d_strvec *hslam, struct d_strvec *hsdlam)
+void d_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double *ptr_mu, double mu_scal, double alpha, struct blasfeo_dvec *hsux, struct blasfeo_dvec *hsdux, struct blasfeo_dvec *hspi, struct blasfeo_dvec *hsdpi, struct blasfeo_dvec *hst, struct blasfeo_dvec *hsdt, struct blasfeo_dvec *hslam, struct blasfeo_dvec *hsdlam)
 	{
 
 	int ii;
@@ -587,23 +587,23 @@ void d_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, dou
 	// backup and update equality constrains multipliers
 	for(ii=1; ii<=N; ii++)
 		{
-		daxpy_libstr(nx[ii], -1.0, &hspi[ii], 0, &hsdpi[ii], 0, &hsdpi[ii], 0);
-		daxpy_libstr(nx[ii], alpha, &hsdpi[ii], 0, &hspi[ii], 0, &hspi[ii], 0);
+		blasfeo_daxpy(nx[ii], -1.0, &hspi[ii], 0, &hsdpi[ii], 0, &hsdpi[ii], 0);
+		blasfeo_daxpy(nx[ii], alpha, &hsdpi[ii], 0, &hspi[ii], 0, &hspi[ii], 0);
 		}
 
 	// backup and update inputs and states
 	for(ii=0; ii<=N; ii++)
 		{
-		daxpy_libstr(nu[ii]+nx[ii], -1.0, &hsux[ii], 0, &hsdux[ii], 0, &hsdux[ii], 0);
-		daxpy_libstr(nu[ii]+nx[ii], alpha, &hsdux[ii], 0, &hsux[ii], 0, &hsux[ii], 0);
+		blasfeo_daxpy(nu[ii]+nx[ii], -1.0, &hsux[ii], 0, &hsdux[ii], 0, &hsdux[ii], 0);
+		blasfeo_daxpy(nu[ii]+nx[ii], alpha, &hsdux[ii], 0, &hsux[ii], 0, &hsux[ii], 0);
 		}
 
 	// backup and update inequality constraints multipliers and slack variables
 	for(ii=0; ii<=N; ii++)
 		{
-		daxpy_libstr(2*nb[ii]+2*ng[ii], alpha, &hsdlam[ii], 0, &hslam[ii], 0, &hslam[ii], 0);
-		daxpy_libstr(2*nb[ii]+2*ng[ii], alpha, &hsdt[ii], 0, &hst[ii], 0, &hst[ii], 0);
-		ptr_mu[0] += ddot_libstr(2*nb[ii]+2*ng[ii], &hst[ii], 0, &hslam[ii], 0);
+		blasfeo_daxpy(2*nb[ii]+2*ng[ii], alpha, &hsdlam[ii], 0, &hslam[ii], 0, &hslam[ii], 0);
+		blasfeo_daxpy(2*nb[ii]+2*ng[ii], alpha, &hsdt[ii], 0, &hst[ii], 0, &hst[ii], 0);
+		ptr_mu[0] += blasfeo_ddot(2*nb[ii]+2*ng[ii], &hst[ii], 0, &hslam[ii], 0);
 		}
 	
 	ptr_mu[0] *= mu_scal;
@@ -614,7 +614,7 @@ void d_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, dou
 
 
 
-void d_backup_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double *ptr_mu, double mu_scal, double alpha, struct d_strvec *hsux_bkp, struct d_strvec *hsux, struct d_strvec *hsdux, struct d_strvec *hspi_bkp, struct d_strvec *hspi, struct d_strvec *hsdpi, struct d_strvec *hst_bkp, struct d_strvec *hst, struct d_strvec *hsdt, struct d_strvec *hslam_bkp, struct d_strvec *hslam, struct d_strvec *hsdlam)
+void d_backup_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double *ptr_mu, double mu_scal, double alpha, struct blasfeo_dvec *hsux_bkp, struct blasfeo_dvec *hsux, struct blasfeo_dvec *hsdux, struct blasfeo_dvec *hspi_bkp, struct blasfeo_dvec *hspi, struct blasfeo_dvec *hsdpi, struct blasfeo_dvec *hst_bkp, struct blasfeo_dvec *hst, struct blasfeo_dvec *hsdt, struct blasfeo_dvec *hslam_bkp, struct blasfeo_dvec *hslam, struct blasfeo_dvec *hsdlam)
 	{
 	
 	int ii;
@@ -878,7 +878,7 @@ void d_backup_update_var_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *
 
 
 
-void d_compute_mu_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double *ptr_mu, double mu_scal, double alpha, struct d_strvec *hslam, struct d_strvec *hsdlam, struct d_strvec *hst, struct d_strvec *hsdt)
+void d_compute_mu_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double *ptr_mu, double mu_scal, double alpha, struct blasfeo_dvec *hslam, struct blasfeo_dvec *hsdlam, struct blasfeo_dvec *hst, struct blasfeo_dvec *hsdt)
 	{
 
 	int ii;
@@ -1015,7 +1015,7 @@ void d_compute_mu_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, dou
 
 // IPM with residuals
 
-void d_update_hessian_gradient_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, struct d_strvec *hsres_d, struct d_strvec *hsres_m, struct d_strvec *hst, struct d_strvec *hslam, struct d_strvec *hstinv, struct d_strvec *hsQx, struct d_strvec *hsqx)
+void d_update_hessian_gradient_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, struct blasfeo_dvec *hsres_d, struct blasfeo_dvec *hsres_m, struct blasfeo_dvec *hst, struct blasfeo_dvec *hslam, struct blasfeo_dvec *hstinv, struct blasfeo_dvec *hsQx, struct blasfeo_dvec *hsqx)
 	{
 	
 	int ii, jj, bs0;
@@ -1124,7 +1124,7 @@ void d_update_hessian_gradient_res_mpc_hard_libstr(int N, int *nx, int *nu, int 
 
 
 
-void d_compute_alpha_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, struct d_strvec *hsdux, struct d_strvec *hst, struct d_strvec *hstinv, struct d_strvec *hslam, struct d_strmat *hsDCt, struct d_strvec *hsres_d, struct d_strvec *hsres_m, struct d_strvec *hsdt, struct d_strvec *hsdlam, double *ptr_alpha)
+void d_compute_alpha_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int *ng, struct blasfeo_dvec *hsdux, struct blasfeo_dvec *hst, struct blasfeo_dvec *hstinv, struct blasfeo_dvec *hslam, struct blasfeo_dmat *hsDCt, struct blasfeo_dvec *hsres_d, struct blasfeo_dvec *hsres_m, struct blasfeo_dvec *hsdt, struct blasfeo_dvec *hsdlam, double *ptr_alpha)
 	{
 	
 	int ii, jj, ll;
@@ -1195,12 +1195,12 @@ void d_compute_alpha_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *
 		ng0 = ng[jj];
 		nt0 = nb0 + ng0;
 
-		// box constraints // TODO dvecex_sp_libstr
+		// box constraints // TODO blasfeo_dvecex_sp
 		for(ll=0; ll<nb0; ll++)
 			ptr_dt[ll] = ptr_dux[ptr_idxb[ll]];
 
 		// general constraints
-		dgemv_t_libstr(nx0+nu0, ng0, 1.0, &hsDCt[jj], 0, 0, &hsdux[jj], 0, 0.0, &hsdt[jj], nb0, &hsdt[jj], nb0);
+		blasfeo_dgemv_t(nx0+nu0, ng0, 1.0, &hsDCt[jj], 0, 0, &hsdux[jj], 0, 0.0, &hsdt[jj], nb0, &hsdt[jj], nb0);
 
 		for(ll=0; ll<nt0-3; ll+=4)
 			{
@@ -1428,7 +1428,7 @@ void d_compute_alpha_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *
 
 
 
-void d_update_var_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double alpha, struct d_strvec *hsux, struct d_strvec *hsdux, struct d_strvec *hspi, struct d_strvec *hsdpi, struct d_strvec *hst, struct d_strvec *hsdt, struct d_strvec *hslam, struct d_strvec *hsdlam)
+void d_update_var_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double alpha, struct blasfeo_dvec *hsux, struct blasfeo_dvec *hsdux, struct blasfeo_dvec *hspi, struct blasfeo_dvec *hsdpi, struct blasfeo_dvec *hst, struct blasfeo_dvec *hsdt, struct blasfeo_dvec *hslam, struct blasfeo_dvec *hsdlam)
 	{
 	
 	int ii;
@@ -1640,7 +1640,7 @@ void d_update_var_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng,
 
 
 
-void d_backup_update_var_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double alpha, struct d_strvec *hsux_bkp, struct d_strvec *hsux, struct d_strvec *hsdux, struct d_strvec *hspi_bkp, struct d_strvec *hspi, struct d_strvec *hsdpi, struct d_strvec *hst_bkp, struct d_strvec *hst, struct d_strvec *hsdt, struct d_strvec *hslam_bkp, struct d_strvec *hslam, struct d_strvec *hsdlam)
+void d_backup_update_var_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, double alpha, struct blasfeo_dvec *hsux_bkp, struct blasfeo_dvec *hsux, struct blasfeo_dvec *hsdux, struct blasfeo_dvec *hspi_bkp, struct blasfeo_dvec *hspi, struct blasfeo_dvec *hsdpi, struct blasfeo_dvec *hst_bkp, struct blasfeo_dvec *hst, struct blasfeo_dvec *hsdt, struct blasfeo_dvec *hslam_bkp, struct blasfeo_dvec *hslam, struct blasfeo_dvec *hsdlam)
 	{
 	
 	int ii;
@@ -1869,7 +1869,7 @@ void d_backup_update_var_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, i
 
 
 
-void d_compute_centering_correction_res_mpc_hard_libstr(int N, int *nb, int *ng, double sigma_mu, struct d_strvec *hsdt, struct d_strvec *hsdlam, struct d_strvec *hsres_m)
+void d_compute_centering_correction_res_mpc_hard_libstr(int N, int *nb, int *ng, double sigma_mu, struct blasfeo_dvec *hsdt, struct blasfeo_dvec *hsdlam, struct blasfeo_dvec *hsres_m)
 	{
 
 	int ii, jj;
@@ -1950,7 +1950,7 @@ void d_compute_centering_correction_res_mpc_hard_libstr(int N, int *nb, int *ng,
 
 
 
-void d_update_gradient_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, struct d_strvec *hsres_d, struct d_strvec *hsres_m, struct d_strvec *hslam, struct d_strvec *hstinv, struct d_strvec *hsqx)
+void d_update_gradient_res_mpc_hard_libstr(int N, int *nx, int *nu, int *nb, int *ng, struct blasfeo_dvec *hsres_d, struct blasfeo_dvec *hsres_m, struct blasfeo_dvec *hslam, struct blasfeo_dvec *hstinv, struct blasfeo_dvec *hsqx)
 	{
 	
 	int ii, jj;

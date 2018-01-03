@@ -220,34 +220,34 @@ int main()
 	x_bar[1] = 0.0;
 	int warm_start = 1;
 #endif
-	struct d_strvec sx_bar; d_create_strvec(nx_, &sx_bar, x_bar);
+	struct blasfeo_dvec sx_bar; blasfeo_create_dvec(nx_, &sx_bar, x_bar);
 	d_print_tran_strvec(nx_, &sx_bar, 0);
 	d_print_mat(1, nx_, x_bar, 1);
 
-	struct d_strvec sx0; d_create_strvec(nx_, &sx0, x0);
+	struct blasfeo_dvec sx0; blasfeo_create_dvec(nx_, &sx0, x0);
 	d_print_tran_strvec(nx_, &sx0, 0);
-	daxpy_libstr(nx_, -1.0, &sx_bar, 0, &sx0, 0, &sx0, 0);
+	blasfeo_daxpy(nx_, -1.0, &sx_bar, 0, &sx0, 0, &sx0, 0);
 	d_print_tran_strvec(nx_, &sx0, 0);
 	d_print_mat(1, nx_, x0, 1);
 
 	// matrix in panel-wise format to use matrix-vector multiplication routine
-	struct d_strmat sA; d_allocate_strmat(nx_, nx_, &sA);
-	d_cvt_mat2strmat(nx_, nx_, A, nx_, &sA, 0, 0);
+	struct blasfeo_dmat sA; blasfeo_allocate_dmat(nx_, nx_, &sA);
+	blasfeo_pack_dmat(nx_, nx_, A, nx_, &sA, 0, 0);
 	d_print_strmat(nx_, nx_, &sA, 0, 0);
 
 	// affine state transformation
-	struct d_strvec sb; d_create_strvec(nx_, &sb, b);
-	d_cvt_vec2strvec(nx_, b, &sb, 0);
-	dgemv_n_libstr(nx_, nx_, 1.0, &sA, 0, 0, &sx_bar, 0, 1.0, &sb, 0, &sb, 0);
+	struct blasfeo_dvec sb; blasfeo_create_dvec(nx_, &sb, b);
+	blasfeo_pack_dvec(nx_, b, &sb, 0);
+	blasfeo_dgemv_n(nx_, nx_, 1.0, &sA, 0, 0, &sx_bar, 0, 1.0, &sb, 0, &sb, 0);
 	d_print_tran_strvec(nx_, &sb, 0);
-	daxpy_libstr(nx_, -1.0, &sx_bar, 0, &sb, 0, &sb, 0);
+	blasfeo_daxpy(nx_, -1.0, &sx_bar, 0, &sb, 0, &sb, 0);
 	d_print_tran_strvec(nx_, &sb, 0);
 	d_print_mat(1, nx_, b, 1);
 
 	// initial guess
 	double *b0; d_zeros(&b0, nx_, 1);
-	struct d_strvec sb0; d_create_strvec(nx_, &sb0, b0);
-	dgemv_n_libstr(nx_, nx_, 1.0, &sA, 0, 0, &sx0, 0, 1.0, &sb, 0, &sb0, 0);
+	struct blasfeo_dvec sb0; blasfeo_create_dvec(nx_, &sb0, b0);
+	blasfeo_dgemv_n(nx_, nx_, 1.0, &sA, 0, 0, &sx0, 0, 1.0, &sb, 0, &sb0, 0);
 	d_print_tran_strvec(nx_, &sb0, 0);
 	d_print_mat(1, nx_, b0, 1);
 
@@ -269,8 +269,8 @@ int main()
 	D[0] = 0.5*dti*dti;
 	D[1] = 0.5*dto*dto;
 
-	struct d_strmat sC; d_allocate_strmat(nx_, nx_, &sC);
-	d_cvt_mat2strmat(nx_, nx_, C, nx_, &sC, 0, 0);
+	struct blasfeo_dmat sC; blasfeo_allocate_dmat(nx_, nx_, &sC);
+	blasfeo_pack_dmat(nx_, nx_, C, nx_, &sC, 0, 0);
 	d_print_strmat(nx_, nx_, &sC, 0, 0);
 
 #else
@@ -292,12 +292,12 @@ int main()
 //	d_print_mat(2, 2, C, 2);
 //	d_print_mat(2, 1, D, 2);
 
-	struct d_strmat sCi; d_allocate_strmat(1, nx_, &sCi);
-	d_cvt_mat2strmat(1, nx_, Ci, 1, &sCi, 0, 0);
+	struct blasfeo_dmat sCi; blasfeo_allocate_dmat(1, nx_, &sCi);
+	blasfeo_pack_dmat(1, nx_, Ci, 1, &sCi, 0, 0);
 	d_print_strmat(1, nx_, &sCi, 0, 0);
 
-	struct d_strmat sCo; d_allocate_strmat(1, nx_, &sCo);
-	d_cvt_mat2strmat(1, nx_, Co, 1, &sCo, 0, 0);
+	struct blasfeo_dmat sCo; blasfeo_allocate_dmat(1, nx_, &sCo);
+	blasfeo_pack_dmat(1, nx_, Co, 1, &sCo, 0, 0);
 	d_print_strmat(1, nx_, &sCo, 0, 0);
 
 #endif
@@ -355,19 +355,19 @@ int main()
 	double *ugi; d_zeros(&ugi, nb[ki], 1);
 	lgi[0] =      0.0-1e-6; //   dmin
 	ugi[0] =      0.0+1e-6; //   dmax
-	struct d_strvec slgi; d_create_strvec(nb[ki], &slgi, lgi);
-	struct d_strvec sugi; d_create_strvec(nb[ki], &sugi, ugi);
-	dgemv_n_libstr(ng[ki], nx_, -1.0, &sCi, 0, 0, &sx_bar, 0, 1.0, &slgi, 0, &slgi, 0);
-	dgemv_n_libstr(ng[ki], nx_, -1.0, &sCi, 0, 0, &sx_bar, 0, 1.0, &sugi, 0, &sugi, 0);
+	struct blasfeo_dvec slgi; blasfeo_create_dvec(nb[ki], &slgi, lgi);
+	struct blasfeo_dvec sugi; blasfeo_create_dvec(nb[ki], &sugi, ugi);
+	blasfeo_dgemv_n(ng[ki], nx_, -1.0, &sCi, 0, 0, &sx_bar, 0, 1.0, &slgi, 0, &slgi, 0);
+	blasfeo_dgemv_n(ng[ki], nx_, -1.0, &sCi, 0, 0, &sx_bar, 0, 1.0, &sugi, 0, &sugi, 0);
 
 	double *lgo; d_zeros(&lgo, ng[ko], 1);
 	double *ugo; d_zeros(&ugo, ng[ko], 1);
 	lgo[0] =      8.0-1e-6; //   dmin
 	ugo[0] =      8.0+1e-6; //   dmax
-	struct d_strvec slgo; d_create_strvec(nb[ko], &slgo, lgo);
-	struct d_strvec sugo; d_create_strvec(nb[ko], &sugo, ugo);
-	dgemv_n_libstr(ng[ko], nx_, -1.0, &sCo, 0, 0, &sx_bar, 0, 1.0, &slgo, 0, &slgo, 0);
-	dgemv_n_libstr(ng[ko], nx_, -1.0, &sCo, 0, 0, &sx_bar, 0, 1.0, &sugo, 0, &sugo, 0);
+	struct blasfeo_dvec slgo; blasfeo_create_dvec(nb[ko], &slgo, lgo);
+	struct blasfeo_dvec sugo; blasfeo_create_dvec(nb[ko], &sugo, ugo);
+	blasfeo_dgemv_n(ng[ko], nx_, -1.0, &sCo, 0, 0, &sx_bar, 0, 1.0, &slgo, 0, &slgo, 0);
+	blasfeo_dgemv_n(ng[ko], nx_, -1.0, &sCo, 0, 0, &sx_bar, 0, 1.0, &sugo, 0, &sugo, 0);
 
 #if 0
 	d_print_mat(1, nb[0], lb0, 1);
@@ -406,10 +406,10 @@ int main()
 	double *r; d_zeros(&r, nu_, 1);
 
 	// matrix in panel-wise format to use matrix-vector multiplication routine
-	struct d_strmat sQ; d_allocate_strmat(nx_, nx_, &sQ);
-	d_cvt_mat2strmat(nx_, nx_, Q, nx_, &sQ, 0, 0);
-	struct d_strvec sq; d_create_strvec(nx_, &sq, q);
-	dgemv_n_libstr(nx_, nx_, 1.0, &sQ, 0, 0, &sx_bar, 0, 1.0, &sq, 0, &sq, 0);
+	struct blasfeo_dmat sQ; blasfeo_allocate_dmat(nx_, nx_, &sQ);
+	blasfeo_pack_dmat(nx_, nx_, Q, nx_, &sQ, 0, 0);
+	struct blasfeo_dvec sq; blasfeo_create_dvec(nx_, &sq, q);
+	blasfeo_dgemv_n(nx_, nx_, 1.0, &sQ, 0, 0, &sx_bar, 0, 1.0, &sq, 0, &sq, 0);
 
 #if 0
 	d_print_mat(nx_, nx_, Q, nx_);
@@ -682,10 +682,10 @@ int main()
 	free(work_ipm);
 	free(stat);
 
-	d_free_strmat(&sA);
-	d_free_strmat(&sCi);
-	d_free_strmat(&sCo);
-	d_free_strmat(&sQ);
+	blasfeo_free_dmat(&sA);
+	blasfeo_free_dmat(&sCi);
+	blasfeo_free_dmat(&sCo);
+	blasfeo_free_dmat(&sQ);
 
 	return 0;
 	
