@@ -289,16 +289,16 @@ int d_ip2_res_mpc_hard_libstr(int *kk, int k_max, double mu0, double mu_tol, dou
 #if 0
 printf("\nux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+	blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 printf("\npi\n");
 for(ii=0; ii<N; ii++)
-	d_print_tran_strvec(nx[ii+1], &hspi[ii+1], 0);
+	blasfeo_print_tran_dvec(nx[ii+1], &hspi[ii+1], 0);
 printf("\nlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 printf("\nt\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 exit(1);
 #endif
 
@@ -340,13 +340,13 @@ exit(1);
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nb[ii]+ng[ii], &hsQx[ii], 0);
+	blasfeo_print_tran_dvec(nb[ii]+ng[ii], &hsQx[ii], 0);
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nb[ii]+ng[ii], &hsqx[ii], 0);
+	blasfeo_print_tran_dvec(nb[ii]+ng[ii], &hsqx[ii], 0);
 //if(*kk==1)
 exit(1);
 #endif
@@ -370,10 +370,10 @@ exit(1);
 #if 0
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nu[ii]+nx[ii], &hsdux[ii], 0);
+	blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsdux[ii], 0);
 printf("\ndpi\n");
 for(ii=1; ii<=N; ii++)
-	d_print_tran_strvec(nx[ii], &hsdpi[ii], 0);
+	blasfeo_print_tran_dvec(nx[ii], &hsdpi[ii], 0);
 //if(*kk==2)
 exit(1);
 #endif
@@ -444,7 +444,7 @@ exit(1);
 #if 0
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nu[ii]+nx[ii], &hsdux[ii], 0);
+	blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsdux[ii], 0);
 //if(*kk==1)
 exit(1);
 #endif
@@ -462,10 +462,10 @@ exit(1);
 printf("\nalpha = %f\n", alpha);
 printf("\ndt\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
 printf("\ndlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
 exit(2);
 #endif
 
@@ -478,16 +478,16 @@ exit(2);
 #if 0
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nu[ii]+nx[ii], &hsdux[ii], 0);
+	blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsdux[ii], 0);
 printf("\ndpi\n");
 for(ii=1; ii<=N; ii++)
-	d_print_tran_strvec(nx[ii], &hsdpi[ii], 0);
+	blasfeo_print_tran_dvec(nx[ii], &hsdpi[ii], 0);
 printf("\ndlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
 printf("\ndt\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
 //if(*kk==1)
 exit(1);
 #endif
@@ -504,16 +504,16 @@ exit(1);
 #if 0
 printf("\nux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+	blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 printf("\npi\n");
 for(ii=1; ii<=N; ii++)
-	d_print_tran_strvec(nx[ii], &hspi[ii], 0);
+	blasfeo_print_tran_dvec(nx[ii], &hspi[ii], 0);
 printf("\nlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 printf("\nt\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 //if(*kk==1)
 //exit(1);
 #endif
@@ -530,16 +530,16 @@ for(ii=0; ii<=N; ii++)
 #if 0
 	printf("\nux\n");
 	for(jj=0; jj<=N; jj++)
-		d_print_tran_strvec(nu[jj]+nx[jj], &hsux[jj], 0);
+		blasfeo_print_tran_dvec(nu[jj]+nx[jj], &hsux[jj], 0);
 	printf("\npi\n");
 	for(jj=1; jj<=N; jj++)
-		d_print_tran_strvec(nx[jj], &hspi[jj], 0);
+		blasfeo_print_tran_dvec(nx[jj], &hspi[jj], 0);
 	printf("\nlam\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 	printf("\nt\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
+		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 	exit(2);
 #endif
 
@@ -555,16 +555,16 @@ for(ii=0; ii<=N; ii++)
 	printf("kk = %d\n", *kk);
 	printf("\nres_q\n");
 	for(jj=0; jj<=N; jj++)
-		d_print_e_tran_strvec(nu[jj]+nx[jj], &hsres_rq[jj], 0);
+		blasfeo_print_exp_tran_dvec(nu[jj]+nx[jj], &hsres_rq[jj], 0);
 	printf("\nres_b\n");
 	for(jj=0; jj<N; jj++)
-		d_print_e_tran_strvec(nx[jj+1], &hsres_b[jj], 0);
+		blasfeo_print_exp_tran_dvec(nx[jj+1], &hsres_b[jj], 0);
 	printf("\nres_d\n");
 	for(jj=0; jj<=N; jj++)
-		d_print_e_tran_strvec(2*nb[jj]+2*ng[jj], &hsres_d[jj], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[jj]+2*ng[jj], &hsres_d[jj], 0);
 	printf("\nres_m\n");
 	for(jj=0; jj<=N; jj++)
-		d_print_e_tran_strvec(2*nb[jj]+2*ng[jj], &hsres_m[jj], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[jj]+2*ng[jj], &hsres_m[jj], 0);
 	printf("\nmu\n");
 	d_print_e_mat(1, 1, &mu, 1);
 	exit(2);
@@ -597,9 +597,9 @@ printf("\nIPM it %d\n", *kk);
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nb[ii]+ng[ii], &hsQx[ii], 0);
+	blasfeo_print_tran_dvec(nb[ii]+ng[ii], &hsQx[ii], 0);
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nb[ii]+ng[ii], &hsqx[ii], 0);
+	blasfeo_print_tran_dvec(nb[ii]+ng[ii], &hsqx[ii], 0);
 //if(*kk==1)
 exit(1);
 #endif
@@ -732,13 +732,13 @@ exit(1);
 #else // no iterative refinement
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(nu[ii]+nx[ii], &hsres_rq[ii], 0);
+	blasfeo_print_exp_tran_dvec(nu[ii]+nx[ii], &hsres_rq[ii], 0);
 for(ii=0; ii<N; ii++)
-	d_print_e_tran_strvec(nx[ii+1], &hsres_b[ii], 0);
+	blasfeo_print_exp_tran_dvec(nx[ii+1], &hsres_b[ii], 0);
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nb[ii]+ng[ii], &hsQx[ii], 0);
+	blasfeo_print_tran_dvec(nb[ii]+ng[ii], &hsQx[ii], 0);
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nb[ii]+ng[ii], &hsqx[ii], 0);
+	blasfeo_print_tran_dvec(nb[ii]+ng[ii], &hsqx[ii], 0);
 for(ii=0; ii<=N; ii++)
 	d_print_strmat(nu[ii]+nx[ii], nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0);
 for(ii=0; ii<N; ii++)
@@ -766,10 +766,10 @@ for(ii=0; ii<=N; ii++)
 #if 0
 printf("\ndux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(nu[ii]+nx[ii], &hsdux[ii], 0);
+	blasfeo_print_exp_tran_dvec(nu[ii]+nx[ii], &hsdux[ii], 0);
 printf("\ndpi\n");
 for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(nx[ii], &hsdpi[ii], 0);
+	blasfeo_print_exp_tran_dvec(nx[ii], &hsdpi[ii], 0);
 //if(*kk==1)
 //exit(1);
 #endif
@@ -803,19 +803,19 @@ exit(1);
 #if 0
 printf("\nres_d\n");
 for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsres_d[ii], 0);
+	blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsres_d[ii], 0);
 printf("\nres_m\n");
 for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsres_m[ii], 0);
+	blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsres_m[ii], 0);
 //exit(1);
 #endif
 #if 0
 printf("\nt_inv\n");
 for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hstinv[ii], 0);
+	blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hstinv[ii], 0);
 printf("\nlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+	blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 //exit(1);
 #endif
 
@@ -826,10 +826,10 @@ for(ii=0; ii<=N; ii++)
 #if 0
 printf("\ndlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
+	blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
 printf("\ndt\n");
 for(ii=0; ii<=N; ii++)
-	d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
+	blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
 //exit(1);
 #endif
 		
@@ -888,7 +888,7 @@ for(ii=0; ii<=N; ii++)
 
 #if 0
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nb[ii]+ng[ii], &hsqx[ii], 0);
+	blasfeo_print_tran_dvec(nb[ii]+ng[ii], &hsqx[ii], 0);
 if(*kk==1)
 exit(1);
 #endif
@@ -1008,16 +1008,16 @@ exit(1);
 printf("\nalpha = %f\n", alpha);
 printf("\nd\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
 printf("\nres_d\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsres_d[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsres_d[ii], 0);
 printf("\ndt\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsdt[ii], 0);
 printf("\ndlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsdlam[ii], 0);
 exit(2);
 #endif
 
@@ -1035,16 +1035,16 @@ exit(2);
 #if 0
 printf("\nux\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+	blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 printf("\npi\n");
 for(ii=1; ii<=N; ii++)
-	d_print_tran_strvec(nx[ii], &hspi[ii], 0);
+	blasfeo_print_tran_dvec(nx[ii], &hspi[ii], 0);
 printf("\nlam\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 printf("\nt\n");
 for(ii=0; ii<=N; ii++)
-	d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
+	blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 //if(*kk==1)
 //exit(1);
 #endif
@@ -1062,16 +1062,16 @@ for(ii=0; ii<=N; ii++)
 #if 0
 	printf("\nres_q\n");
 	for(jj=0; jj<=N; jj++)
-		d_print_e_tran_strvec(nu[jj]+nx[jj], &hsres_rq[jj], 0);
+		blasfeo_print_exp_tran_dvec(nu[jj]+nx[jj], &hsres_rq[jj], 0);
 	printf("\nres_b\n");
 	for(jj=0; jj<N; jj++)
-		d_print_e_tran_strvec(nx[jj+1], &hsres_b[jj], 0);
+		blasfeo_print_exp_tran_dvec(nx[jj+1], &hsres_b[jj], 0);
 	printf("\nres_d\n");
 	for(jj=0; jj<=N; jj++)
-		d_print_e_tran_strvec(2*nb[jj]+2*ng[jj], &hsres_d[jj], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[jj]+2*ng[jj], &hsres_d[jj], 0);
 	printf("\nres_m\n");
 	for(jj=0; jj<=N; jj++)
-		d_print_e_tran_strvec(2*nb[jj]+2*ng[jj], &hsres_m[jj], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[jj]+2*ng[jj], &hsres_m[jj], 0);
 	printf("\nmu\n");
 	d_print_e_mat(1, 1, &mu, 1);
 	exit(2);

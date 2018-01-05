@@ -346,7 +346,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 //	for(ii=0; ii<N; ii++)
 //		d_print_strmat(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0);
 //	for(ii=0; ii<N; ii++)
-//		d_print_tran_strvec(nx[ii+1], &hsb[ii], 0);
+//		blasfeo_print_tran_dvec(nx[ii+1], &hsb[ii], 0);
 //	exit(1);
 
 	// general constraints
@@ -379,7 +379,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 //	for(ii=0; ii<=N; ii++)
 //		d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0);
 //	for(ii=0; ii<=N; ii++)
-//		d_print_tran_strvec(nu[ii]+nx[ii], &hsrq[ii], 0);
+//		blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsrq[ii], 0);
 //	exit(1);
 
 	// estimate mu0 if not user-provided
@@ -415,7 +415,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 		blasfeo_pack_dvec(ng[ii], ug[ii], &hsd[ii], nb[ii]+nb[ii]+ng[ii]);
 		}
 //	for(ii=0; ii<=N; ii++)
-//		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
+//		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
 //	exit(1);
 
 #if 0
@@ -426,7 +426,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 		for(ii=0; ii<=N; ii++)
 			d_print_strmat(nu[ii]+nx[ii], ng[ii], &hsDCt[ii], 0, 0);
 		for(ii=0; ii<=N; ii++)
-			d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
+			blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
 		for(ii=0; ii<=N; ii++)
 			int_print_mat(1, nb[ii], hidxb[ii], 1);
 //		exit(1);
@@ -568,7 +568,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 		for(ii=0; ii<=N2; ii++)
 			d_print_strmat(nu2[ii]+nx2[ii], ng2[ii], &hsDCt2[ii], 0, 0);
 		for(ii=0; ii<=N2; ii++)
-			d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hsd2[ii], 0);
+			blasfeo_print_tran_dvec(2*nb2[ii]+2*ng2[ii], &hsd2[ii], 0);
 		for(ii=0; ii<=N2; ii++)
 			int_print_mat(1, nb2[ii], hidxb2[ii], 1);
 		exit(1);
@@ -599,16 +599,16 @@ int fortran_order_d_ip_ocp_hard_tv(
 #if 0
 		printf("\nux\n");
 		for(ii=0; ii<=N2; ii++)
-			d_print_e_tran_strvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
+			blasfeo_print_exp_tran_dvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
 		printf("\npi\n");
 		for(ii=0; ii<N2; ii++)
-			d_print_e_tran_strvec(nx2[ii+1], &hspi2[ii], 0);
+			blasfeo_print_exp_tran_dvec(nx2[ii+1], &hspi2[ii], 0);
 		printf("\nlam\n");
 		for(ii=0; ii<=N2; ii++)
-			d_print_e_tran_strvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii], 0);
+			blasfeo_print_exp_tran_dvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii], 0);
 		printf("\nt\n");
 		for(ii=0; ii<=N2; ii++)
-			d_print_e_tran_strvec(2*nb2[ii]+2*ng2[ii], &hst2[ii], 0);
+			blasfeo_print_exp_tran_dvec(2*nb2[ii]+2*ng2[ii], &hst2[ii], 0);
 		exit(2);
 #endif
 
@@ -621,7 +621,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 		d_part_expand_solution_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsDCt, hsux, hspi, hslam, hst, N2, nx2, nu2, nb2, hidxb2, ng2, hsux2, hspi2, hslam2, hst2, work_part_expand, work_part_expand_sizes);
 
 //		for(ii=0; ii<=N; ii++)
-//			d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+//			blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 //		exit(2);
 
 		}
@@ -656,16 +656,16 @@ int fortran_order_d_ip_ocp_hard_tv(
 #if 0
 	printf("\nux\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+		blasfeo_print_exp_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 	printf("\npi\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(nx[ii], &hspi[ii], 0);
+		blasfeo_print_exp_tran_dvec(nx[ii], &hspi[ii], 0);
 	printf("\nlam\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 	printf("\nt\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 	exit(1);
 #endif
 
@@ -686,13 +686,13 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 #if 0
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
+		blasfeo_print_exp_tran_dvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
 	for(ii=0; ii<N; ii++)
-		d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
+		blasfeo_print_exp_tran_dvec(nx[ii+1], &hsrb[ii], 0);
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
 	exit(1);
 #endif
 	
@@ -947,7 +947,7 @@ int c_order_d_ip_ocp_hard_tv(
 	for(ii=0; ii<N; ii++)
 		d_print_strmat(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0);
 	for(ii=0; ii<N; ii++)
-		d_print_tran_strvec(nx[ii+1], &hsb[ii], 0);
+		blasfeo_print_tran_dvec(nx[ii+1], &hsb[ii], 0);
 //	exit(1);
 #endif
 
@@ -984,7 +984,7 @@ int c_order_d_ip_ocp_hard_tv(
 	for(ii=0; ii<=N; ii++)
 		d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0);
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(nu[ii]+nx[ii], &hsrq[ii], 0);
+		blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsrq[ii], 0);
 //	exit(1);
 #endif
 
@@ -1021,7 +1021,7 @@ int c_order_d_ip_ocp_hard_tv(
 		blasfeo_pack_dvec(ng[ii], ug[ii], &hsd[ii], nb[ii]+nb[ii]+ng[ii]);
 		}
 //	for(ii=0; ii<=N; ii++)
-//		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
+//		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
 //	exit(1);
 
 #if 0
@@ -1032,7 +1032,7 @@ int c_order_d_ip_ocp_hard_tv(
 		for(ii=0; ii<=N; ii++)
 			d_print_strmat(nu[ii]+nx[ii], ng[ii], &hsDCt[ii], 0, 0);
 		for(ii=0; ii<=N; ii++)
-			d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
+			blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
 		for(ii=0; ii<=N; ii++)
 			int_print_mat(1, nb[ii], hidxb[ii], 1);
 //		exit(1);
@@ -1174,7 +1174,7 @@ int c_order_d_ip_ocp_hard_tv(
 		for(ii=0; ii<=N2; ii++)
 			d_print_strmat(nu2[ii]+nx2[ii], ng2[ii], &hsDCt2[ii], 0, 0);
 		for(ii=0; ii<=N2; ii++)
-			d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hsd2[ii], 0);
+			blasfeo_print_tran_dvec(2*nb2[ii]+2*ng2[ii], &hsd2[ii], 0);
 		for(ii=0; ii<=N2; ii++)
 			int_print_mat(1, nb2[ii], hidxb2[ii], 1);
 		exit(1);
@@ -1205,16 +1205,16 @@ int c_order_d_ip_ocp_hard_tv(
 #if 0
 		printf("\nux\n");
 		for(ii=0; ii<=N2; ii++)
-			d_print_e_tran_strvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
+			blasfeo_print_exp_tran_dvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
 		printf("\npi\n");
 		for(ii=0; ii<N2; ii++)
-			d_print_e_tran_strvec(nx2[ii+1], &hspi2[ii], 0);
+			blasfeo_print_exp_tran_dvec(nx2[ii+1], &hspi2[ii], 0);
 		printf("\nlam\n");
 		for(ii=0; ii<=N2; ii++)
-			d_print_e_tran_strvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii], 0);
+			blasfeo_print_exp_tran_dvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii], 0);
 		printf("\nt\n");
 		for(ii=0; ii<=N2; ii++)
-			d_print_e_tran_strvec(2*nb2[ii]+2*ng2[ii], &hst2[ii], 0);
+			blasfeo_print_exp_tran_dvec(2*nb2[ii]+2*ng2[ii], &hst2[ii], 0);
 		exit(2);
 #endif
 
@@ -1227,7 +1227,7 @@ int c_order_d_ip_ocp_hard_tv(
 		d_part_expand_solution_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsDCt, hsux, hspi, hslam, hst, N2, nx2, nu2, nb2, hidxb2, ng2, hsux2, hspi2, hslam2, hst2, work_part_expand, work_part_expand_sizes);
 
 //		for(ii=0; ii<=N; ii++)
-//			d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+//			blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 //		exit(2);
 
 		}
@@ -1262,16 +1262,16 @@ int c_order_d_ip_ocp_hard_tv(
 #if 0
 	printf("\nux\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+		blasfeo_print_exp_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 	printf("\npi\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(nx[ii], &hspi[ii], 0);
+		blasfeo_print_exp_tran_dvec(nx[ii], &hspi[ii], 0);
 	printf("\nlam\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 	printf("\nt\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 //	exit(1);
 #endif
 
@@ -1293,16 +1293,16 @@ int c_order_d_ip_ocp_hard_tv(
 #if 0
 	printf("\nres_rq\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
+		blasfeo_print_exp_tran_dvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
 	printf("\nres_b\n");
 	for(ii=0; ii<N; ii++)
-		d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
+		blasfeo_print_exp_tran_dvec(nx[ii+1], &hsrb[ii], 0);
 	printf("\nres_d\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
 	printf("\nres_m\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
 //	exit(1);
 #endif
 	
@@ -1547,7 +1547,7 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 //	for(ii=0; ii<N; ii++)
 //		d_print_strmat(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0);
 //	for(ii=0; ii<N; ii++)
-//		d_print_tran_strvec(nx[ii+1], &hsb[ii], 0);
+//		blasfeo_print_tran_dvec(nx[ii+1], &hsb[ii], 0);
 //	exit(1);
 
 	// general constraints
@@ -1569,7 +1569,7 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 //	for(ii=0; ii<=N; ii++)
 //		d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0);
 //	for(ii=0; ii<=N; ii++)
-//		d_print_tran_strvec(nu[ii]+nx[ii], &hsrq[ii], 0);
+//		blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsrq[ii], 0);
 //	exit(1);
 
 	// TODO how to handle equality constraints?
@@ -1586,7 +1586,7 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 		blasfeo_pack_dvec(ng[ii], ug[ii], &hsd[ii], nb[ii]+nb[ii]+ng[ii]);
 		}
 //	for(ii=0; ii<=N; ii++)
-//		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
+//		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
 //	exit(1);
 
 	
@@ -1720,11 +1720,11 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 
 #if 0
 		for(ii=0; ii<N2; ii++)
-			d_print_tran_strvec(nx2[ii+1], &hsb2[ii], 0);
+			blasfeo_print_tran_dvec(nx2[ii+1], &hsb2[ii], 0);
 		for(ii=0; ii<=N2; ii++)
-			d_print_tran_strvec(nu2[ii]+nx2[ii], &hsrq2[ii], 0);
+			blasfeo_print_tran_dvec(nu2[ii]+nx2[ii], &hsrq2[ii], 0);
 		for(ii=0; ii<=N2; ii++)
-			d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hsd2[ii], 0);
+			blasfeo_print_tran_dvec(2*nb2[ii]+2*ng2[ii], &hsd2[ii], 0);
 		for(ii=0; ii<=N2; ii++)
 			int_print_mat(1, nb2[ii], hidxb2[ii], 1);
 		exit(1);
@@ -1735,13 +1735,13 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 
 #if 0
 		for(ii=0; ii<=N2; ii++)
-			d_print_tran_strvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
+			blasfeo_print_tran_dvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
 		for(ii=0; ii<N2; ii++)
-			d_print_tran_strvec(nx2[ii+1], &hspi2[ii], 0);
+			blasfeo_print_tran_dvec(nx2[ii+1], &hspi2[ii], 0);
 		for(ii=0; ii<=N2; ii++)
-			d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii], 0);
+			blasfeo_print_tran_dvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii], 0);
 		for(ii=0; ii<=N2; ii++)
-			d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hst2[ii], 0);
+			blasfeo_print_tran_dvec(2*nb2[ii]+2*ng2[ii], &hst2[ii], 0);
 		exit(2);
 #endif
 
@@ -1754,7 +1754,7 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 		d_part_expand_solution_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsDCt, hsux, hspi, hslam, hst, N2, nx2, nu2, nb2, hidxb2, ng2, hsux2, hspi2, hslam2, hst2, work_part_expand, work_part_expand_sizes);
 
 //		for(ii=0; ii<=N; ii++)
-//			d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+//			blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 //		exit(2);
 
 		}
@@ -1775,13 +1775,13 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 		}
 
 //	for(ii=0; ii<=N; ii++)
-//		d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+//		blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 //	for(ii=0; ii<N; ii++)
-//		d_print_tran_strvec(nx[ii+1], &hspi[ii], 0);
+//		blasfeo_print_tran_dvec(nx[ii+1], &hspi[ii], 0);
 //	for(ii=0; ii<=N; ii++)
-//		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+//		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 //	for(ii=0; ii<=N; ii++)
-//		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
+//		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 //	exit(1);
 
 	// copy back inputs and states
@@ -1800,13 +1800,13 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 	d_res_res_mpc_hard_libstr(N, nx, nu, nb, hidxb, ng, hsBAbt, hsb, hsRSQrq, hsrq, hsux, hsDCt, hsd, hspi, hslam, hst, hsrrq, hsrb, hsrd, hsrm, &mu, work_res);
 
 //	for(ii=0; ii<=N; ii++)
-//		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
+//		blasfeo_print_exp_tran_dvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
 //	for(ii=0; ii<N; ii++)
-//		d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
+//		blasfeo_print_exp_tran_dvec(nx[ii+1], &hsrb[ii], 0);
 //	for(ii=0; ii<=N; ii++)
-//		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
+//		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
 //	for(ii=0; ii<=N; ii++)
-//		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
+//		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
 //	exit(1);
 	
 	double *ptr;

@@ -408,17 +408,17 @@ int main()
 	struct blasfeo_dvec sd0;
 	blasfeo_allocate_dvec(2*nb[0]+2*ng[0], &sd0);
 	blasfeo_pack_dvec(2*nb[0]+2*ng[0], d0, &sd0, 0);
-//	d_print_tran_strvec(2*nb[0], &sd0, 0);
+//	blasfeo_print_tran_dvec(2*nb[0], &sd0, 0);
 
 	struct blasfeo_dvec sd1;
 	blasfeo_allocate_dvec(2*nb[1]+2*ng[1], &sd1);
 	blasfeo_pack_dvec(2*nb[1]+2*ng[1], d1, &sd1, 0);
-//	d_print_tran_strvec(2*nb[1], &sd1, 0);
+//	blasfeo_print_tran_dvec(2*nb[1], &sd1, 0);
 
 	struct blasfeo_dvec sdN;
 	blasfeo_allocate_dvec(2*nb[N]+2*ng[N], &sdN);
 	blasfeo_pack_dvec(2*nb[N]+2*ng[N], dN, &sdN, 0);
-//	d_print_tran_strvec(2*nb[N], &sdN, 0);
+//	blasfeo_print_tran_dvec(2*nb[N], &sdN, 0);
 
 /************************************************
 * array of data matrices
@@ -509,19 +509,19 @@ int main()
 	
 	printf("\nux =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+		blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 
 	printf("\npi =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(nx[ii], &hspi[ii], 0);
+		blasfeo_print_tran_dvec(nx[ii], &hspi[ii], 0);
 
 	printf("\nlam =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 
 	printf("\nt =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
+		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 
 	// residuals vectors
 	struct blasfeo_dvec hsrrq[N+1];
@@ -554,19 +554,19 @@ int main()
 
 	printf("\nres_rq\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
+		blasfeo_print_exp_tran_dvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
 
 	printf("\nres_b\n");
 	for(ii=0; ii<N; ii++)
-		d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
+		blasfeo_print_exp_tran_dvec(nx[ii+1], &hsrb[ii], 0);
 
 	printf("\nres_d\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
 
 	printf("\nres_m\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
 
 /************************************************
 * full condensing
@@ -662,7 +662,7 @@ int main()
 		d_print_strmat(nu2[ii]+nx2[ii], ng2[ii], &hsDCt2[ii], 0, 0);
 	printf("\nd2\n");
 	for(ii=0; ii<=N2; ii++)
-		d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hsd2[ii], 0);
+		blasfeo_print_tran_dvec(2*nb2[ii]+2*ng2[ii], &hsd2[ii], 0);
 #endif
 
 
@@ -709,36 +709,36 @@ int main()
 #if 0
 	printf("\nux2 =\n\n");
 	for(ii=0; ii<=N2; ii++)
-		d_print_tran_strvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
+		blasfeo_print_tran_dvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
 
 	printf("\npi2 =\n\n");
 	for(ii=0; ii<=N2; ii++)
-		d_print_tran_strvec(nx2[ii], &hspi2[ii], 0);
+		blasfeo_print_tran_dvec(nx2[ii], &hspi2[ii], 0);
 
 	printf("\nlam2 =\n\n");
 	for(ii=0; ii<=N2; ii++)
-		d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii], 0);
+		blasfeo_print_tran_dvec(2*nb2[ii]+2*ng2[ii], &hslam2[ii], 0);
 
 	printf("\nt2 =\n\n");
 	for(ii=0; ii<=N2; ii++)
-		d_print_tran_strvec(2*nb2[ii]+2*ng2[ii], &hst2[ii], 0);
+		blasfeo_print_tran_dvec(2*nb2[ii]+2*ng2[ii], &hst2[ii], 0);
 #endif
 
 	printf("\nux =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+		blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 
 	printf("\npi =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(nx[ii], &hspi[ii], 0);
+		blasfeo_print_tran_dvec(nx[ii], &hspi[ii], 0);
 
 	printf("\nlam =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 
 	printf("\nt =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
+		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 
 /************************************************
 * free memory full space

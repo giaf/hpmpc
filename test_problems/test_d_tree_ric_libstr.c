@@ -428,7 +428,7 @@ int main()
 	blasfeo_allocate_dvec(nx_, &sb0);
 	double *b0; d_zeros(&b0, nx_, 1); // states offset
 	blasfeo_dgemv_n(nx_, nx_, 1.0, &sA, 0, 0, &sx0, 0, 1.0, &sb, 0, &sb0, 0);
-//	d_print_tran_strvec(nx_, &sb0, 0);
+//	blasfeo_print_tran_dvec(nx_, &sb0, 0);
 
 	struct blasfeo_dmat sBbt0;
 	blasfeo_allocate_dmat(nu_+nx_+1, nx_, &sBbt0);
@@ -605,11 +605,11 @@ int main()
 	// print sol
 	printf("\nux = \n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+		blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 
 	printf("\npi = \n\n");
 	for(ii=1; ii<=N; ii++)
-		d_print_tran_strvec(nx[ii], &hspi[ii], 0);
+		blasfeo_print_tran_dvec(nx[ii], &hspi[ii], 0);
 
 //	printf("\nL = \n\n");
 //	for(ii=0; ii<=N; ii++)
@@ -780,11 +780,11 @@ int main()
 //		}
 	for(ii=0; ii<Nn; ii++)
 		{
-		d_print_tran_strvec(t_nu[ii]+t_nx[ii], &t_hsux[ii], 0);
+		blasfeo_print_tran_dvec(t_nu[ii]+t_nx[ii], &t_hsux[ii], 0);
 		}
 	for(ii=0; ii<Nn; ii++)
 		{
-		d_print_tran_strvec(t_nx[ii], &t_hspi[ii], 0);
+		blasfeo_print_tran_dvec(t_nx[ii], &t_hspi[ii], 0);
 		}
 
 	float time_tree_trf = (float) (tv2.tv_sec-tv1.tv_sec)/(nrep+0.0)+(tv2.tv_usec-tv1.tv_usec)/(nrep*1e6);
@@ -867,7 +867,7 @@ int main()
 //	for(ii=0; ii<=N; ii++)
 //		{
 //		d_print_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsRSQrq2[ii], 0, 0);
-//		d_print_tran_strvec(nu2[ii]+nx2[ii], &hsrq2[ii], 0);
+//		blasfeo_print_tran_dvec(nu2[ii]+nx2[ii], &hsrq2[ii], 0);
 //		}
 
 	// dynamical system
@@ -940,7 +940,7 @@ int main()
 //	for(ii=0; ii<N; ii++)
 //		{
 //		d_print_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii], 0, 0);
-//		d_print_tran_strvec(nx2[ii+1], &hsb2[ii], 0);
+//		blasfeo_print_tran_dvec(nx2[ii+1], &hsb2[ii], 0);
 //		}
 
 	// work space
@@ -1002,12 +1002,12 @@ int main()
 	printf("\nux\n");
 	for(ii=0; ii<=N; ii++)
 		{
-		d_print_tran_strvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
+		blasfeo_print_tran_dvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
 		}
 	printf("\npi\n");
 	for(ii=0; ii<=N; ii++)
 		{
-		d_print_tran_strvec(nx2[ii], &hspi2[ii], 0);
+		blasfeo_print_tran_dvec(nx2[ii], &hspi2[ii], 0);
 		}
 
 	printf("\ntime sv2\ttime trf2\ttime trs2\n");

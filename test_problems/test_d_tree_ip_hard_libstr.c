@@ -506,7 +506,7 @@ int main()
 	blasfeo_allocate_dvec(nx_, &sb0);
 	double *b0; d_zeros(&b0, nx_, 1); // states offset
 	blasfeo_dgemv_n(nx_, nx_, 1.0, &sA, 0, 0, &sx0, 0, 1.0, &sb, 0, &sb0, 0);
-	d_print_tran_strvec(nx_, &sb0, 0);
+	blasfeo_print_tran_dvec(nx_, &sb0, 0);
 
 	struct blasfeo_dmat sBbt0;
 	blasfeo_allocate_dmat(nu_+nx_+1, nx_, &sBbt0);
@@ -681,28 +681,28 @@ int main()
 	// print sol
 	printf("\nux = \n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+		blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 
 	printf("\npi = \n\n");
 	for(ii=1; ii<=N; ii++)
-		d_print_tran_strvec(nx[ii], &hspi[ii], 0);
+		blasfeo_print_tran_dvec(nx[ii], &hspi[ii], 0);
 
 	// print residuals
 	printf("\nres_rq\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
+		blasfeo_print_exp_tran_dvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
 
 	printf("\nres_b\n");
 	for(ii=0; ii<N; ii++)
-		d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
+		blasfeo_print_exp_tran_dvec(nx[ii+1], &hsrb[ii], 0);
 
 	printf("\nres_d\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
 
 	printf("\nres_m\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
 
 	printf("\ntime ipm\n");
 	printf("\n%e\n", time_ipm);
@@ -874,8 +874,8 @@ int main()
 		{
 //		printf("\n%d %d %d %d\n", t_nx[ii], t_nu[ii], t_nb[ii], t_ng[ii]);
 //		int_print_mat(1, t_nb[ii], t_hidxb[ii], 1);
-//		d_print_tran_strvec(t_nu[ii]+t_nx[ii], &t_hsux[ii], 0);
-//		d_print_tran_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hst[ii], 0);
+//		blasfeo_print_tran_dvec(t_nu[ii]+t_nx[ii], &t_hsux[ii], 0);
+//		blasfeo_print_tran_dvec(2*t_nb[ii]+2*t_ng[ii], &t_hst[ii], 0);
 		}
 
 	// IPM work space
@@ -915,28 +915,28 @@ int main()
 	// print sol
 	printf("\nt_ux = \n\n");
 	for(ii=0; ii<Nn; ii++)
-		d_print_tran_strvec(t_nu[ii]+t_nx[ii], &t_hsux[ii], 0);
+		blasfeo_print_tran_dvec(t_nu[ii]+t_nx[ii], &t_hsux[ii], 0);
 
 	printf("\nt_pi = \n\n");
 	for(ii=0; ii<Nn; ii++)
-		d_print_tran_strvec(t_nx[ii], &t_hspi[ii], 0);
+		blasfeo_print_tran_dvec(t_nx[ii], &t_hspi[ii], 0);
 
 	// print residuals
 	printf("\nt_res_rq\n");
 	for(ii=0; ii<Nn; ii++)
-		d_print_e_tran_strvec(t_nu[ii]+t_nx[ii], &t_hsrrq[ii], 0);
+		blasfeo_print_exp_tran_dvec(t_nu[ii]+t_nx[ii], &t_hsrrq[ii], 0);
 
 	printf("\nt_res_b\n");
 	for(ii=0; ii<Nn-1; ii++)
-		d_print_e_tran_strvec(t_nx[ii+1], &t_hsrb[ii], 0);
+		blasfeo_print_exp_tran_dvec(t_nx[ii+1], &t_hsrb[ii], 0);
 
 	printf("\nt_res_d\n");
 	for(ii=0; ii<Nn; ii++)
-		d_print_e_tran_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hsrd[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*t_nb[ii]+2*t_ng[ii], &t_hsrd[ii], 0);
 
 	printf("\nt_res_m\n");
 	for(ii=0; ii<Nn; ii++)
-		d_print_e_tran_strvec(2*t_nb[ii]+2*t_ng[ii], &t_hsrm[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*t_nb[ii]+2*t_ng[ii], &t_hsrm[ii], 0);
 
 	printf("\nstatistics from last run\n\n");
 	for(jj=0; jj<kk; jj++)
@@ -1041,7 +1041,7 @@ int main()
 //	for(ii=0; ii<=N; ii++)
 //		{
 //		d_print_strmat(nu2[ii]+nx2[ii]+1, nu2[ii]+nx2[ii], &hsRSQrq2[ii], 0, 0);
-//		d_print_tran_strvec(nu2[ii]+nx2[ii], &hsrq2[ii], 0);
+//		blasfeo_print_tran_dvec(nu2[ii]+nx2[ii], &hsrq2[ii], 0);
 //		}
 	
 	// dynamical system
@@ -1114,7 +1114,7 @@ int main()
 //	for(ii=0; ii<N; ii++)
 //		{
 //		d_print_strmat(nu2[ii]+nx2[ii]+1, nx2[ii+1], &hsBAbt2[ii], 0, 0);
-//		d_print_tran_strvec(nx2[ii+1], &hsb2[ii], 0);
+//		blasfeo_print_tran_dvec(nx2[ii+1], &hsb2[ii], 0);
 //		}
 	
 	// constraints
@@ -1174,7 +1174,7 @@ int main()
 	// print
 //	for(ii=0; ii<=N; ii++)
 //		{
-//		d_print_tran_strvec(2*nb2[ii]+ng2[ii], &hsd2[ii], 0);
+//		blasfeo_print_tran_dvec(2*nb2[ii]+ng2[ii], &hsd2[ii], 0);
 //		int_print_mat(1, nb2[ii], hidxb2[ii], 1);
 //		}
 	
@@ -1248,30 +1248,30 @@ int main()
 	printf("\nux\n");
 	for(ii=0; ii<=N; ii++)
 		{
-		d_print_tran_strvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
+		blasfeo_print_tran_dvec(nu2[ii]+nx2[ii], &hsux2[ii], 0);
 		}
 	printf("\npi\n");
 	for(ii=0; ii<=N; ii++)
 		{
-		d_print_tran_strvec(nx2[ii], &hspi2[ii], 0);
+		blasfeo_print_tran_dvec(nx2[ii], &hspi2[ii], 0);
 		}
 
 	// print residuals
 	printf("\nres_rq\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(nu2[ii]+nx2[ii], &hsrrq2[ii], 0);
+		blasfeo_print_exp_tran_dvec(nu2[ii]+nx2[ii], &hsrrq2[ii], 0);
 
 	printf("\nres_b\n");
 	for(ii=0; ii<N; ii++)
-		d_print_e_tran_strvec(nx2[ii+1], &hsrb2[ii], 0);
+		blasfeo_print_exp_tran_dvec(nx2[ii+1], &hsrb2[ii], 0);
 
 	printf("\nres_d\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb2[ii]+2*ng2[ii], &hsrd2[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb2[ii]+2*ng2[ii], &hsrd2[ii], 0);
 
 	printf("\nres_m\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb2[ii]+2*ng2[ii], &hsrm2[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb2[ii]+2*ng2[ii], &hsrm2[ii], 0);
 
 	printf("\nstatistics from last run\n\n");
 	for(jj=0; jj<kk; jj++)
@@ -1317,7 +1317,7 @@ int main()
 	FILE *file_x;
 	file_x = fopen("./test_problems/results/file_x.m", "w"); // a
 	fprintf(file_x, "x = [\n");
-	d_print_tran_to_file_strvec(file_x, nx_, &sx_now, 0);
+	blasfeo_print_to_file_tran_dvec(file_x, nx_, &sx_now, 0);
 
 	int sim_steps = 40;
 	for(ii=0; ii<sim_steps; ii++)
@@ -1328,21 +1328,21 @@ int main()
 		hpmpc_status = d_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, N, nx, nu, nb, hidxb, ng, hsBAbt, hsRSQrq, hsDCt, hsd, hsux, compute_mult, hspi, hslam, hst, work_ipm);
 		printf("\nstep %d %e\n", ii, stat[5*kk-1]);
 		printf("\nu = \n");
-		d_print_tran_strvec(nu_, &hsux[0], 0);
-		d_print_tran_to_file_strvec(file_u, nu_, &hsux[0], 0);
+		blasfeo_print_tran_dvec(nu_, &hsux[0], 0);
+		blasfeo_print_to_file_tran_dvec(file_u, nu_, &hsux[0], 0);
 		blasfeo_dgemv_n(nx_, nu_, 1.0, &sB_plant, 0, 0, &hsux[0], 0, 1.0, &sb, 0, &sx_next, 0);
 #else
 		d_print_strmat(nu_+1, nx_, &t_hsBAbt[1], 0, 0);
 		hpmpc_status = d_tree_ip2_res_mpc_hard_libstr(&kk, k_max, mu0, mu_tol, alpha_min, warm_start, stat, Nn, tree, t_nx, t_nu, t_nb, t_hidxb, t_ng, t_hsBAbt, t_hsRSQrq, t_hsDCt, t_hsd, t_hsux, compute_mult, t_hspi, t_hslam, t_hst, t_work);
 		printf("\nu = \n");
-		d_print_tran_strvec(nu_, &t_hsux[0], 0);
+		blasfeo_print_tran_dvec(nu_, &t_hsux[0], 0);
 		blasfeo_dgemv_n(nx_, nu_, 1.0, &sB_plant, 0, 0, &t_hsux[0], 0, 1.0, &sb, 0, &sx_next, 0);
 #endif
 		blasfeo_dgemv_n(nx_, nx_, 1.0, &sA_plant, 0, 0, &sx_now, 0, 1.0, &sx_next, 0, &sx_next, 0);
 		blasfeo_dveccp(nx_, 1.0, &sx_next, 0, &sx_now, 0);
 		printf("\nx = \n");
-		d_print_tran_strvec(nx_, &sx_now, 0);
-		d_print_tran_to_file_strvec(file_x, nx_, &sx_now, 0);
+		blasfeo_print_tran_dvec(nx_, &sx_now, 0);
+		blasfeo_print_to_file_tran_dvec(file_x, nx_, &sx_now, 0);
 		}
 
 	fprintf(file_u, "];\n");

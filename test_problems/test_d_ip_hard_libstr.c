@@ -311,20 +311,20 @@ int main()
 	blasfeo_allocate_dvec(nx_, &sx0);
 	blasfeo_pack_dvec(nx_, x0, &sx0, 0);
 #if PRINT
-	d_print_tran_strvec(nx_, &sx0, 0);
+	blasfeo_print_tran_dvec(nx_, &sx0, 0);
 #endif
 
 	struct blasfeo_dvec sb0;
 	blasfeo_allocate_dvec(nx_, &sb0);
 	blasfeo_pack_dvec(nx_, b, &sb0, 0);
 #if PRINT
-	d_print_tran_strvec(nx_, &sb0, 0);
+	blasfeo_print_tran_dvec(nx_, &sb0, 0);
 #endif
 #if ! KEEP_X0
 	blasfeo_dgemv_n(nx_, nx_, 1.0, &sA, 0, 0, &sx0, 0, 1.0, &sb0, 0, &sb0, 0);
 #endif
 #if PRINT
-	d_print_tran_strvec(nx_, &sb0, 0);
+	blasfeo_print_tran_dvec(nx_, &sb0, 0);
 #endif
 
 	struct blasfeo_dmat sBAbt0;
@@ -384,7 +384,7 @@ int main()
 	blasfeo_pack_dvec(nu[0], r, &srq0, 0);
 	blasfeo_pack_dvec(nx[0], q, &srq0, nu[0]);
 #if PRINT
-	d_print_tran_strvec(nu[0]+nx[0], &srq0, 0);
+	blasfeo_print_tran_dvec(nu[0]+nx[0], &srq0, 0);
 #endif
 
 	struct blasfeo_dmat sRSQrq1;
@@ -404,7 +404,7 @@ int main()
 		blasfeo_pack_dvec(nu[1], r, &srq1, 0);
 		blasfeo_pack_dvec(nx[1], q, &srq1, nu[1]);
 #if PRINT
-		d_print_tran_strvec(nu[1]+nx[1], &srq1, 0);
+		blasfeo_print_tran_dvec(nu[1]+nx[1], &srq1, 0);
 #endif
 		}
 
@@ -423,7 +423,7 @@ int main()
 	blasfeo_pack_dvec(nu[N], r, &srqN, 0);
 	blasfeo_pack_dvec(nx[N], q, &srqN, nu[N]);
 #if PRINT
-	d_print_tran_strvec(nu[N]+nx[N], &srqN, 0);
+	blasfeo_print_tran_dvec(nu[N]+nx[N], &srqN, 0);
 #endif
 
 	// maximum element in cost functions
@@ -543,7 +543,7 @@ int main()
 	blasfeo_allocate_dvec(2*nb[0]+2*ng[0], &sd0);
 	blasfeo_pack_dvec(2*nb[0]+2*ng[0], d0, &sd0, 0);
 #if PRINT
-	d_print_tran_strvec(2*nb[0]+2*ng[0], &sd0, 0);
+	blasfeo_print_tran_dvec(2*nb[0]+2*ng[0], &sd0, 0);
 #endif
 
 	struct blasfeo_dmat sDCt1;
@@ -556,7 +556,7 @@ int main()
 	blasfeo_allocate_dvec(2*nb[1]+2*ng[1], &sd1);
 	blasfeo_pack_dvec(2*nb[1]+2*ng[1], d1, &sd1, 0);
 #if PRINT
-	d_print_tran_strvec(2*nb[1]+2*ng[1], &sd1, 0);
+	blasfeo_print_tran_dvec(2*nb[1]+2*ng[1], &sd1, 0);
 #endif
 
 	struct blasfeo_dmat sDCtN;
@@ -569,7 +569,7 @@ int main()
 	blasfeo_allocate_dvec(2*nb[N]+2*ng[N], &sdN);
 	blasfeo_pack_dvec(2*nb[N]+2*ng[N], dN, &sdN, 0);
 #if PRINT
-	d_print_tran_strvec(2*nb[N]+2*ng[N], &sdN, 0);
+	blasfeo_print_tran_dvec(2*nb[N]+2*ng[N], &sdN, 0);
 #endif
 
 /************************************************
@@ -645,19 +645,19 @@ int main()
 #if PRINT
 	printf("\nux =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+		blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 
 	printf("\npi =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(nx[ii], &hspi[ii], 0);
+		blasfeo_print_tran_dvec(nx[ii], &hspi[ii], 0);
 
 	printf("\nlam =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
+		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0);
 
 	printf("\nt =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
+		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0);
 #endif
 
 	double time_ipm = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
@@ -702,19 +702,19 @@ int main()
 #if PRINT
 	printf("\nres_rq\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
+		blasfeo_print_exp_tran_dvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
 
 	printf("\nres_b\n");
 	for(ii=0; ii<N; ii++)
-		d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
+		blasfeo_print_exp_tran_dvec(nx[ii+1], &hsrb[ii], 0);
 
 	printf("\nres_d\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
 
 	printf("\nres_m\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
 #endif
 
 	printf(" Average solution time over %d runs: %5.2e seconds (IPM)\n\n", nrep, time_ipm);
@@ -761,19 +761,19 @@ int main()
 #if PRINT
 	printf("\nux2 =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(nu[ii]+nx[ii], &hsux2[ii], 0);
+		blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux2[ii], 0);
 
 	printf("\npi2 =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(nx[ii], &hspi2[ii], 0);
+		blasfeo_print_tran_dvec(nx[ii], &hspi2[ii], 0);
 
 	printf("\nlam2 =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hslam2[ii], 0);
+		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hslam2[ii], 0);
 
 	printf("\nt2 =\n\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_tran_strvec(2*nb[ii]+2*ng[ii], &hst2[ii], 0);
+		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hst2[ii], 0);
 #endif
 
 	double time_ipm2 = (tv1.tv_sec-tv0.tv_sec)/(nrep+0.0)+(tv1.tv_usec-tv0.tv_usec)/(nrep*1e6);
@@ -787,19 +787,19 @@ int main()
 #if PRINT
 	printf("\nres_rq2\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
+		blasfeo_print_exp_tran_dvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
 
 	printf("\nres_b2\n");
 	for(ii=0; ii<N; ii++)
-		d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
+		blasfeo_print_exp_tran_dvec(nx[ii+1], &hsrb[ii], 0);
 
 	printf("\nres_d2\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
 
 	printf("\nres_m2\n");
 	for(ii=0; ii<=N; ii++)
-		d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
+		blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
 #endif
 
 	printf(" Average solution time over %d runs: %5.2e seconds (IPM resolve last kkt for new rhs)\n\n", nrep, time_ipm2);

@@ -284,20 +284,20 @@ int main()
 		blasfeo_allocate_dvec(nx_, &sx0);
 		blasfeo_pack_dvec(nx_, x0, &sx0, 0);
 #if ! PERF_TEST
-		d_print_tran_strvec(nx_, &sx0, 0);
+		blasfeo_print_tran_dvec(nx_, &sx0, 0);
 #endif
 
 		struct blasfeo_dvec sb0;
 		blasfeo_allocate_dvec(nx_, &sb0);
 		blasfeo_pack_dvec(nx_, b, &sb0, 0);
 #if ! PERF_TEST
-		d_print_tran_strvec(nx_, &sb0, 0);
+		blasfeo_print_tran_dvec(nx_, &sb0, 0);
 #endif
 #if ! KEEP_X0
 		blasfeo_dgemv_n(nx_, nx_, 1.0, &sA, 0, 0, &sx0, 0, 1.0, &sb0, 0, &sb0, 0);
 #endif
 #if ! PERF_TEST
-		d_print_tran_strvec(nx_, &sb0, 0);
+		blasfeo_print_tran_dvec(nx_, &sb0, 0);
 #endif
 
 		struct blasfeo_dmat sBAbt0;
@@ -357,7 +357,7 @@ int main()
 		blasfeo_pack_dvec(nu[0], r, &srq0, 0);
 		blasfeo_pack_dvec(nx[0], q, &srq0, nu[0]);
 #if ! PERF_TEST
-		d_print_tran_strvec(nu[0]+nx[0], &srq0, 0);
+		blasfeo_print_tran_dvec(nu[0]+nx[0], &srq0, 0);
 #endif
 
 		struct blasfeo_dmat sRSQrq1;
@@ -377,7 +377,7 @@ int main()
 			blasfeo_pack_dvec(nu[1], r, &srq1, 0);
 			blasfeo_pack_dvec(nx[1], q, &srq1, nu[1]);
 #if ! PERF_TEST
-			d_print_tran_strvec(nu[1]+nx[1], &srq1, 0);
+			blasfeo_print_tran_dvec(nu[1]+nx[1], &srq1, 0);
 #endif
 			}
 
@@ -396,7 +396,7 @@ int main()
 		blasfeo_pack_dvec(nu[N], r, &srqN, 0);
 		blasfeo_pack_dvec(nx[N], q, &srqN, nu[N]);
 #if ! PERF_TEST
-		d_print_tran_strvec(nu[N]+nx[N], &srqN, 0);
+		blasfeo_print_tran_dvec(nu[N]+nx[N], &srqN, 0);
 #endif
 
 /************************************************
@@ -471,11 +471,11 @@ int main()
 #if ! PERF_TEST
 		printf("\nux =\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_tran_strvec(nu[ii]+nx[ii], &hsux[ii], 0);
+			blasfeo_print_tran_dvec(nu[ii]+nx[ii], &hsux[ii], 0);
 
 		printf("\npi =\n\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_tran_strvec(nx[ii], &hspi[ii], 0);
+			blasfeo_print_tran_dvec(nx[ii], &hspi[ii], 0);
 
 		printf("\nL =\n\n");
 		for(ii=0; ii<=N; ii++)
@@ -576,19 +576,19 @@ int main()
 #if ! PERF_TEST
 		printf("\nres_rq\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_e_tran_strvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
+			blasfeo_print_exp_tran_dvec(nu[ii]+nx[ii], &hsrrq[ii], 0);
 
 		printf("\nres_b\n");
 		for(ii=0; ii<N; ii++)
-			d_print_e_tran_strvec(nx[ii+1], &hsrb[ii], 0);
+			blasfeo_print_exp_tran_dvec(nx[ii+1], &hsrb[ii], 0);
 
 		printf("\nres_d\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
+			blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrd[ii], 0);
 
 		printf("\nres_m\n");
 		for(ii=0; ii<=N; ii++)
-			d_print_e_tran_strvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
+			blasfeo_print_exp_tran_dvec(2*nb[ii]+2*ng[ii], &hsrm[ii], 0);
 
 		printf(" Average solution time over %d runs: %5.2e seconds (IPM)\n", nrep, time_sv);
 #else

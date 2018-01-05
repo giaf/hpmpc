@@ -221,13 +221,13 @@ int main()
 	int warm_start = 1;
 #endif
 	struct blasfeo_dvec sx_bar; blasfeo_create_dvec(nx_, &sx_bar, x_bar);
-	d_print_tran_strvec(nx_, &sx_bar, 0);
+	blasfeo_print_tran_dvec(nx_, &sx_bar, 0);
 	d_print_mat(1, nx_, x_bar, 1);
 
 	struct blasfeo_dvec sx0; blasfeo_create_dvec(nx_, &sx0, x0);
-	d_print_tran_strvec(nx_, &sx0, 0);
+	blasfeo_print_tran_dvec(nx_, &sx0, 0);
 	blasfeo_daxpy(nx_, -1.0, &sx_bar, 0, &sx0, 0, &sx0, 0);
-	d_print_tran_strvec(nx_, &sx0, 0);
+	blasfeo_print_tran_dvec(nx_, &sx0, 0);
 	d_print_mat(1, nx_, x0, 1);
 
 	// matrix in panel-wise format to use matrix-vector multiplication routine
@@ -239,16 +239,16 @@ int main()
 	struct blasfeo_dvec sb; blasfeo_create_dvec(nx_, &sb, b);
 	blasfeo_pack_dvec(nx_, b, &sb, 0);
 	blasfeo_dgemv_n(nx_, nx_, 1.0, &sA, 0, 0, &sx_bar, 0, 1.0, &sb, 0, &sb, 0);
-	d_print_tran_strvec(nx_, &sb, 0);
+	blasfeo_print_tran_dvec(nx_, &sb, 0);
 	blasfeo_daxpy(nx_, -1.0, &sx_bar, 0, &sb, 0, &sb, 0);
-	d_print_tran_strvec(nx_, &sb, 0);
+	blasfeo_print_tran_dvec(nx_, &sb, 0);
 	d_print_mat(1, nx_, b, 1);
 
 	// initial guess
 	double *b0; d_zeros(&b0, nx_, 1);
 	struct blasfeo_dvec sb0; blasfeo_create_dvec(nx_, &sb0, b0);
 	blasfeo_dgemv_n(nx_, nx_, 1.0, &sA, 0, 0, &sx0, 0, 1.0, &sb, 0, &sb0, 0);
-	d_print_tran_strvec(nx_, &sb0, 0);
+	blasfeo_print_tran_dvec(nx_, &sb0, 0);
 	d_print_mat(1, nx_, b0, 1);
 
 /************************************************
