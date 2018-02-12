@@ -260,7 +260,7 @@ configure_file(${PROJECT_SOURCE_DIR}/include/target.h.in
 
 # add library
 add_library(hpmpc STATIC ${HPMPC_SRC})
-target_link_libraries(hpmpc m blasfeo)
+target_link_libraries(hpmpc blasfeo)
 
 install(TARGETS hpmpc EXPORT hpmpcConfig
 	LIBRARY DESTINATION lib
