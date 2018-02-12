@@ -38,10 +38,10 @@ set(PREFIX /usr)
 # clear compiler flags
 set(CMAKE_C_FLAGS "")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -fPIC -lm")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -fPIC")
 
 if(${USE_BLASFEO} MATCHES 1)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -fPIC -lm -DBLASFEO -I${BLASFEO_PATH}/include")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -fPIC -DBLASFEO -I${BLASFEO_PATH}/include")
 endif(${USE_BLASFEO} MATCHES 1)
 
 if(${TARGET} MATCHES C99_4X4)
