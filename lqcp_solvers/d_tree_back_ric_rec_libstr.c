@@ -97,7 +97,7 @@ static void d_back_ric_sv_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 	c_ptr += hswork_mat_0.memsize;
 	blasfeo_create_dvec(nx1t, &hswork_vec_0, (void *) c_ptr);
 	c_ptr += hswork_vec_0.memsize;
-		
+
 	tmp = 0;
 	for(ii=0; ii<nkids; ii++)
 		{
@@ -139,16 +139,16 @@ static void d_back_ric_sv_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 			blasfeo_create_dmat(nu0+nx0, ng0, &hswork_mat_0, work);
 			blasfeo_dgemm_nd(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsQx[0], nb0, 0.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0);
 			blasfeo_drowin(ng0, 1.0, &hsqx[0], nb0, &hswork_mat_0, nu0+nx0, 0);
-			blasfeo_dsyrk_dpotrf_ln(nu0+nx0+1, nu0+nx0, ng0, &hswork_mat_0, 0, 0, &hsDCt[0], 0, 0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
+			blasfeo_dsyrk_dpotrf_ln_mn(nu0+nx0+1, nu0+nx0, ng0, &hswork_mat_0, 0, 0, &hsDCt[0], 0, 0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
 			}
 		else
 			{
-			blasfeo_dsyrk_dpotrf_ln(nu0+nx0+1, nu0+nx0, nx1t, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
+			blasfeo_dsyrk_dpotrf_ln_mn(nu0+nx0+1, nu0+nx0, nx1t, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
 			}
 		}
 	else
 		{
-		blasfeo_dsyrk_dpotrf_ln(nu0+nx0+1, nu0+nx0, nx1t, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, &hsRSQrq[0], 0, 0, &hsL0[0], 0, 0);
+		blasfeo_dsyrk_dpotrf_ln_mn(nu0+nx0+1, nu0+nx0, nx1t, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, &hsRSQrq[0], 0, 0, &hsL0[0], 0, 0);
 		}
 
 	return;
@@ -183,7 +183,7 @@ static void d_back_ric_sv_back_N_libstr(int nx0, int nu0, int nb0, int *hidxb0, 
 			blasfeo_create_dmat(nu0+nx0+1, ng0, &hswork_mat_0, work);
 			blasfeo_dgemm_nd(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsQx[0], nb0, 0.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0);
 			blasfeo_drowin(ng0, 1.0, &hsqx[0], nb0, &hswork_mat_0, nu0+nx0, 0);
-			blasfeo_dsyrk_dpotrf_ln(nu0+nx0+1, nu0+nx0, ng0, &hswork_mat_0, 0, 0, &hsDCt[0], 0, 0, &hsL[0], 0, 0, &hsL[0], 0, 0);
+			blasfeo_dsyrk_dpotrf_ln_mn(nu0+nx0+1, nu0+nx0, ng0, &hswork_mat_0, 0, 0, &hsDCt[0], 0, 0, &hsL[0], 0, 0, &hsL[0], 0, 0);
 			}
 		else
 			{
@@ -275,7 +275,7 @@ static void d_back_ric_trf_1_libstr(int nkids, int nx0, int *nx1, int nu0, int *
 		nx1t += nx1[ii];
 
 	blasfeo_create_dmat(nu0+nx0, nx1t, &hswork_mat_0, work);
-		
+
 	// all kids: update
 	tmp = 0;
 	for(ii=0; ii<nkids; ii++)
@@ -298,16 +298,16 @@ static void d_back_ric_trf_1_libstr(int nkids, int nx0, int *nx1, int nu0, int *
 			blasfeo_dsyrk_ln(nu0+nx0, nx1t, 1.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, 1.0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
 			blasfeo_create_dmat(nu0+nx0, ng0, &hswork_mat_0, work);
 			blasfeo_dgemm_nd(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsQx[0], nb0, 0.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0);
-			blasfeo_dsyrk_dpotrf_ln(nu0+nx0, nu0+nx0, ng0, &hsDCt[0], 0, 0, &hswork_mat_0, 0, 0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
+			blasfeo_dsyrk_dpotrf_ln_mn(nu0+nx0, nu0+nx0, ng0, &hsDCt[0], 0, 0, &hswork_mat_0, 0, 0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
 			}
 		else
 			{
-			blasfeo_dsyrk_dpotrf_ln(nu0+nx0, nu0+nx0, nx1t, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
+			blasfeo_dsyrk_dpotrf_ln_mn(nu0+nx0, nu0+nx0, nx1t, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, &hsL0[0], 0, 0, &hsL0[0], 0, 0);
 			}
 		}
 	else
 		{
-		blasfeo_dsyrk_dpotrf_ln(nu0+nx0, nu0+nx0, nx1t, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, &hsRSQrq[0], 0, 0, &hsL0[0], 0, 0);
+		blasfeo_dsyrk_dpotrf_ln_mn(nu0+nx0, nu0+nx0, nx1t, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0, &hsRSQrq[0], 0, 0, &hsL0[0], 0, 0);
 		}
 
 	return;
@@ -334,7 +334,7 @@ static void d_back_ric_trf_N_libstr(int nx0, int nu0, int nb0, int *hidxb0, int 
 			{
 			blasfeo_create_dmat(nu0+nx0, ng0, &hswork_mat_0, work);
 			blasfeo_dgemm_nd(nu0+nx0, ng0, 1.0, &hsDCt[0], 0, 0, &hsQx[0], nb0, 0.0, &hswork_mat_0, 0, 0, &hswork_mat_0, 0, 0);
-			blasfeo_dsyrk_dpotrf_ln(nu0+nx0, nu0+nx0, ng0, &hswork_mat_0, 0, 0, &hsDCt[0], 0, 0, &hsL[0], 0, 0, &hsL[0], 0, 0);
+			blasfeo_dsyrk_dpotrf_ln_mn(nu0+nx0, nu0+nx0, ng0, &hswork_mat_0, 0, 0, &hsDCt[0], 0, 0, &hsL[0], 0, 0, &hsL[0], 0, 0);
 			}
 		else
 			{
