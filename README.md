@@ -1,6 +1,6 @@
 HPMPC is no longer under active development.
 
-The interested user is invited to use instead HPIPM, a new and modular implementation of the same algorithms (Riccati-based IPM for LQOCP and (partial-)condensing)
+The interested user is invited to use HPIPM instead, a new and modular implementation of the same algorithms (Riccati-based IPM for LQOCP and (partial-)condensing)
 
 <https://github.com/giaf/hpipm>
 
