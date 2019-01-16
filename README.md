@@ -1,4 +1,4 @@
-HPMPC is no longer under active development.
+HPMPC is maintained but no longer under active development.
 
 The interested user is invited to use HPIPM instead, a new and modular implementation of the same algorithms (Riccati-based IPM for LQOCP and (partial-)condensing)
 
