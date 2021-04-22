@@ -336,7 +336,7 @@ static void d_cond_rq_libstr(int N, int *nx, int *nu, struct blasfeo_dmat *hsBAb
 
 		blasfeo_create_dvec(nx[N-nn], &sPbp, (void *) c_ptr[1]);
 
-		blasfeo_dsymv_l(nx[N-nn], nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, 1.0, &sl, nu[N-nn], &sPbp, 0);
+		blasfeo_dsymv_l(nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, 1.0, &sl, nu[N-nn], &sPbp, 0);
 
 		blasfeo_create_dvec(nu[N-nn-1]+nx[N-nn-1], &sl, (void *) c_ptr[0]);
 
@@ -353,7 +353,7 @@ static void d_cond_rq_libstr(int N, int *nx, int *nu, struct blasfeo_dmat *hsBAb
 
 	blasfeo_create_dvec(nx[N-nn], &sPbp, (void *) c_ptr[1]);
 
-	blasfeo_dsymv_l(nx[N-nn], nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, 1.0, &sl, nu[N-nn], &sPbp, 0);
+	blasfeo_dsymv_l(nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, 1.0, &sl, nu[N-nn], &sPbp, 0);
 
 	blasfeo_create_dvec(nu[N-nn-1]+nx[N-nn-1], &sl, (void *) c_ptr[0]);
 
@@ -1256,7 +1256,7 @@ void d_part_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 			ptr_lam = hslam[stg].pa;
 			for(ll=0; ll<nb0; ll++)
 				ptr_work0[hidxb[stg][ll]] += - ptr_lam[0*nt0+ll] + ptr_lam[1*nt0+ll];
-			blasfeo_dsymv_l(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[stg], 0, 0, &hsux[stg], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
+			blasfeo_dsymv_l(nu0+nx0, 1.0, &hsRSQrq[stg], 0, 0, &hsux[stg], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
 			blasfeo_dgemv_n(nu0+nx0, nx1, 1.0, &hsBAbt[stg], 0, 0, &hspi[stg+1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
 			blasfeo_create_dvec(ng0, &workvec[1], (void *) c_ptr[1]);
 			ptr_work1 = workvec[1].pa;
@@ -1642,7 +1642,7 @@ void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 	ptr_lam = hslam[stg].pa;
 	for(ll=0; ll<nb0; ll++)
 		ptr_work0[hidxb[stg][ll]] += - ptr_lam[0*nt0+ll] + ptr_lam[1*nt0+ll];
-	blasfeo_dsymv_l(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[stg], 0, 0, &hsux[stg], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
+	blasfeo_dsymv_l(nu0+nx0, 1.0, &hsRSQrq[stg], 0, 0, &hsux[stg], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
 	blasfeo_create_dvec(ng0, &workvec[1], (void *) c_ptr[1]);
 	ptr_work1 = workvec[1].pa;
 	for(ll=0; ll<ng0; ll++)
@@ -1665,7 +1665,7 @@ void d_expand_solution_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 		ptr_lam = hslam[stg].pa;
 		for(ll=0; ll<nb0; ll++)
 			ptr_work0[hidxb[stg][ll]] += - ptr_lam[0*nt0+ll] + ptr_lam[1*nt0+ll];
-		blasfeo_dsymv_l(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[stg], 0, 0, &hsux[stg], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
+		blasfeo_dsymv_l(nu0+nx0, 1.0, &hsRSQrq[stg], 0, 0, &hsux[stg], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
 		blasfeo_dgemv_n(nu0+nx0, nx1, 1.0, &hsBAbt[stg], 0, 0, &hspi[stg+1], 0, 1.0, &workvec[0], 0, &workvec[0], 0);
 		blasfeo_create_dvec(ng0, &workvec[1], (void *) c_ptr[1]);
 		ptr_work1 = workvec[1].pa;

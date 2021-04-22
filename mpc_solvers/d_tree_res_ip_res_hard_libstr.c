@@ -101,7 +101,7 @@ void d_tree_res_res_mpc_hard_libstr(int Nn, struct node *tree, int *nx, int *nu,
 		if(ii>0)
 			blasfeo_daxpy(nx0, -1.0, &hspi[ii], 0, &hsres_rq[ii], nu0, &hsres_rq[ii], nu0);
 
-		blasfeo_dsymv_l(nu0+nx0, nu0+nx0, 1.0, &hsRSQrq[ii], 0, 0, &hsux[ii], 0, 1.0, &hsres_rq[ii], 0, &hsres_rq[ii], 0);
+		blasfeo_dsymv_l(nu0+nx0, 1.0, &hsRSQrq[ii], 0, 0, &hsux[ii], 0, 1.0, &hsres_rq[ii], 0, &hsres_rq[ii], 0);
 
 		if(nb0>0)
 			{

@@ -341,7 +341,7 @@ int fortran_order_d_ip_ocp_hard_tv(
 		blasfeo_pack_tran_dmat(nx[ii+1], nu[ii], B[ii], nx[ii+1], &hsBAbt[ii], 0, 0);
 		blasfeo_pack_tran_dmat(nx[ii+1], nx[ii], A[ii], nx[ii+1], &hsBAbt[ii], nu[ii], 0);
 		blasfeo_pack_tran_dmat(nx[ii+1], 1, b[ii], nx[ii+1], &hsBAbt[ii], nu[ii]+nx[ii], 0);
-		blasfeo_pack_dvec(nx[ii+1], b[ii], &hsb[ii], 0);
+		blasfeo_pack_dvec(nx[ii+1], b[ii], 1, &hsb[ii], 0);
 		}
 //	for(ii=0; ii<N; ii++)
 //		d_print_strmat(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0);
@@ -369,13 +369,13 @@ int fortran_order_d_ip_ocp_hard_tv(
 		blasfeo_pack_dmat(nx[ii], nx[ii], Q[ii], nx[ii], &hsRSQrq[ii], nu[ii], nu[ii]);
 		blasfeo_pack_tran_dmat(nu[ii], 1, r[ii], nu[ii], &hsRSQrq[ii], nu[ii]+nx[ii], 0);
 		blasfeo_pack_tran_dmat(nx[ii], 1, q[ii], nx[ii], &hsRSQrq[ii], nu[ii]+nx[ii], nu[ii]);
-		blasfeo_pack_dvec(nu[ii], r[ii], &hsrq[ii], 0);
-		blasfeo_pack_dvec(nx[ii], q[ii], &hsrq[ii], nu[ii]);
+		blasfeo_pack_dvec(nu[ii], r[ii], 1, &hsrq[ii], 0);
+		blasfeo_pack_dvec(nx[ii], q[ii], 1, &hsrq[ii], nu[ii]);
 		}
 	ii = N;
 	blasfeo_pack_dmat(nx[ii], nx[ii], Q[ii], nx[ii], &hsRSQrq[ii], 0, 0);
 	blasfeo_pack_tran_dmat(nx[ii], 1, q[ii], nx[ii], &hsRSQrq[ii], nx[ii], 0);
-	blasfeo_pack_dvec(nx[ii], q[ii], &hsrq[ii], 0);
+	blasfeo_pack_dvec(nx[ii], q[ii], 1, &hsrq[ii], 0);
 //	for(ii=0; ii<=N; ii++)
 //		d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0);
 //	for(ii=0; ii<=N; ii++)
@@ -405,14 +405,14 @@ int fortran_order_d_ip_ocp_hard_tv(
 	// box constraints 
 	for(ii=0; ii<=N; ii++)
 		{
-		blasfeo_pack_dvec(nb[ii], lb[ii], &hsd[ii], 0);
-		blasfeo_pack_dvec(nb[ii], ub[ii], &hsd[ii], nb[ii]+ng[ii]);
+		blasfeo_pack_dvec(nb[ii], lb[ii], 1, &hsd[ii], 0);
+		blasfeo_pack_dvec(nb[ii], ub[ii], 1, &hsd[ii], nb[ii]+ng[ii]);
 		}
 	// general constraints
 	for(ii=0; ii<=N; ii++)
 		{
-		blasfeo_pack_dvec(ng[ii], lg[ii], &hsd[ii], nb[ii]+0);
-		blasfeo_pack_dvec(ng[ii], ug[ii], &hsd[ii], nb[ii]+nb[ii]+ng[ii]);
+		blasfeo_pack_dvec(ng[ii], lg[ii], 1, &hsd[ii], nb[ii]+0);
+		blasfeo_pack_dvec(ng[ii], ug[ii], 1, &hsd[ii], nb[ii]+nb[ii]+ng[ii]);
 		}
 //	for(ii=0; ii<=N; ii++)
 //		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
@@ -641,10 +641,10 @@ int fortran_order_d_ip_ocp_hard_tv(
 			{
 
 			for(ii=0; ii<N; ii++)
-				blasfeo_pack_dvec(nu[ii], u[ii], &hsux[ii], 0);
+				blasfeo_pack_dvec(nu[ii], u[ii], 1, &hsux[ii], 0);
 
 			for(ii=0; ii<=N; ii++)
-				blasfeo_pack_dvec(nx[ii], x[ii], &hsux[ii], nu[ii]);
+				blasfeo_pack_dvec(nx[ii], x[ii], 1, &hsux[ii], nu[ii]);
 
 			}
 
@@ -671,10 +671,10 @@ int fortran_order_d_ip_ocp_hard_tv(
 
 	// copy back inputs and states
 	for(ii=0; ii<N; ii++)
-		blasfeo_unpack_dvec(nu[ii], &hsux[ii], 0, u[ii]);
+		blasfeo_unpack_dvec(nu[ii], &hsux[ii], 0, u[ii], 1);
 
 	for(ii=0; ii<=N; ii++)
-		blasfeo_unpack_dvec(nx[ii], &hsux[ii], nu[ii], x[ii]);
+		blasfeo_unpack_dvec(nx[ii], &hsux[ii], nu[ii], x[ii], 1);
 
 
 
@@ -746,11 +746,11 @@ int fortran_order_d_ip_ocp_hard_tv(
 	// copy back multipliers
 
 	for(ii=0; ii<N; ii++)
-		blasfeo_unpack_dvec(nx[ii+1], &hspi[ii+1], 0, pi[ii]);
+		blasfeo_unpack_dvec(nx[ii+1], &hspi[ii+1], 0, pi[ii], 1);
 
 	for(ii=0; ii<=N; ii++)
 		{
-		blasfeo_unpack_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0, lam[ii]);
+		blasfeo_unpack_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0, lam[ii], 1);
 //		blasfeo_unpack_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0, t[ii]);
 		}
 
@@ -941,7 +941,7 @@ int c_order_d_ip_ocp_hard_tv(
 		blasfeo_pack_dmat(nu[ii], nx[ii+1], B[ii], nu[ii], &hsBAbt[ii], 0, 0);
 		blasfeo_pack_dmat(nx[ii], nx[ii+1], A[ii], nx[ii], &hsBAbt[ii], nu[ii], 0);
 		blasfeo_pack_tran_dmat(nx[ii+1], 1, b[ii], nx[ii+1], &hsBAbt[ii], nu[ii]+nx[ii], 0);
-		blasfeo_pack_dvec(nx[ii+1], b[ii], &hsb[ii], 0);
+		blasfeo_pack_dvec(nx[ii+1], b[ii], 1, &hsb[ii], 0);
 		}
 #if 0
 	for(ii=0; ii<N; ii++)
@@ -973,13 +973,13 @@ int c_order_d_ip_ocp_hard_tv(
 		blasfeo_pack_tran_dmat(nx[ii], nx[ii], Q[ii], nx[ii], &hsRSQrq[ii], nu[ii], nu[ii]);
 		blasfeo_pack_tran_dmat(nu[ii], 1, r[ii], nu[ii], &hsRSQrq[ii], nu[ii]+nx[ii], 0);
 		blasfeo_pack_tran_dmat(nx[ii], 1, q[ii], nx[ii], &hsRSQrq[ii], nu[ii]+nx[ii], nu[ii]);
-		blasfeo_pack_dvec(nu[ii], r[ii], &hsrq[ii], 0);
-		blasfeo_pack_dvec(nx[ii], q[ii], &hsrq[ii], nu[ii]);
+		blasfeo_pack_dvec(nu[ii], r[ii], 1, &hsrq[ii], 0);
+		blasfeo_pack_dvec(nx[ii], q[ii], 1, &hsrq[ii], nu[ii]);
 		}
 	ii = N;
 	blasfeo_pack_tran_dmat(nx[ii], nx[ii], Q[ii], nx[ii], &hsRSQrq[ii], 0, 0);
 	blasfeo_pack_tran_dmat(nx[ii], 1, q[ii], nx[ii], &hsRSQrq[ii], nx[ii], 0);
-	blasfeo_pack_dvec(nx[ii], q[ii], &hsrq[ii], 0);
+	blasfeo_pack_dvec(nx[ii], q[ii], 1, &hsrq[ii], 0);
 #if 0
 	for(ii=0; ii<=N; ii++)
 		d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0);
@@ -1011,14 +1011,14 @@ int c_order_d_ip_ocp_hard_tv(
 	// box constraints 
 	for(ii=0; ii<=N; ii++)
 		{
-		blasfeo_pack_dvec(nb[ii], lb[ii], &hsd[ii], 0);
-		blasfeo_pack_dvec(nb[ii], ub[ii], &hsd[ii], nb[ii]+ng[ii]);
+		blasfeo_pack_dvec(nb[ii], lb[ii], 1, &hsd[ii], 0);
+		blasfeo_pack_dvec(nb[ii], ub[ii], 1, &hsd[ii], nb[ii]+ng[ii]);
 		}
 	// general constraints
 	for(ii=0; ii<=N; ii++)
 		{
-		blasfeo_pack_dvec(ng[ii], lg[ii], &hsd[ii], nb[ii]+0);
-		blasfeo_pack_dvec(ng[ii], ug[ii], &hsd[ii], nb[ii]+nb[ii]+ng[ii]);
+		blasfeo_pack_dvec(ng[ii], lg[ii], 1, &hsd[ii], nb[ii]+0);
+		blasfeo_pack_dvec(ng[ii], ug[ii], 1, &hsd[ii], nb[ii]+nb[ii]+ng[ii]);
 		}
 //	for(ii=0; ii<=N; ii++)
 //		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
@@ -1247,10 +1247,10 @@ int c_order_d_ip_ocp_hard_tv(
 			{
 
 			for(ii=0; ii<N; ii++)
-				blasfeo_pack_dvec(nu[ii], u[ii], &hsux[ii], 0);
+				blasfeo_pack_dvec(nu[ii], u[ii], 1, &hsux[ii], 0);
 
 			for(ii=0; ii<=N; ii++)
-				blasfeo_pack_dvec(nx[ii], x[ii], &hsux[ii], nu[ii]);
+				blasfeo_pack_dvec(nx[ii], x[ii], 1, &hsux[ii], nu[ii]);
 
 			}
 
@@ -1277,10 +1277,10 @@ int c_order_d_ip_ocp_hard_tv(
 
 	// copy back inputs and states
 	for(ii=0; ii<N; ii++)
-		blasfeo_unpack_dvec(nu[ii], &hsux[ii], 0, u[ii]);
+		blasfeo_unpack_dvec(nu[ii], &hsux[ii], 0, u[ii], 1);
 
 	for(ii=0; ii<=N; ii++)
-		blasfeo_unpack_dvec(nx[ii], &hsux[ii], nu[ii], x[ii]);
+		blasfeo_unpack_dvec(nx[ii], &hsux[ii], nu[ii], x[ii], 1);
 
 
 
@@ -1356,12 +1356,12 @@ int c_order_d_ip_ocp_hard_tv(
 	// copy back multipliers
 
 	for(ii=0; ii<N; ii++)
-		blasfeo_unpack_dvec(nx[ii+1], &hspi[ii+1], 0, pi[ii]);
+		blasfeo_unpack_dvec(nx[ii+1], &hspi[ii+1], 0, pi[ii], 1);
 
 	for(ii=0; ii<=N; ii++)
 		{
-		blasfeo_unpack_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0, lam[ii]);
-//		blasfeo_unpack_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0, t[ii]);
+		blasfeo_unpack_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0, lam[ii], 1);
+//		blasfeo_unpack_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0, t[ii], 1);
 		}
 
 //	printf("\nend of wrapper\n");
@@ -1542,7 +1542,7 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 	for(ii=0; ii<N; ii++)
 		{
 //		blasfeo_pack_tran_dmat(nx[ii+1], 1, b[ii], nx[ii+1], &hsBAbt[ii], nu[ii]+nx[ii], 0); // XXX ???
-		blasfeo_pack_dvec(nx[ii+1], b[ii], &hsb[ii], 0);
+		blasfeo_pack_dvec(nx[ii+1], b[ii], 1, &hsb[ii], 0);
 		}
 //	for(ii=0; ii<N; ii++)
 //		d_print_strmat(nu[ii]+nx[ii]+1, nx[ii+1], &hsBAbt[ii], 0, 0);
@@ -1560,12 +1560,12 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 		{
 //		blasfeo_pack_tran_dmat(nu[ii], 1, r[ii], nu[ii], &hsRSQrq[ii], nu[ii]+nx[ii], 0); // XXX ???
 //		blasfeo_pack_tran_dmat(nx[ii], 1, q[ii], nx[ii], &hsRSQrq[ii], nu[ii]+nx[ii], nu[ii]); // XXX ???
-		blasfeo_pack_dvec(nu[ii], r[ii], &hsrq[ii], 0);
-		blasfeo_pack_dvec(nx[ii], q[ii], &hsrq[ii], nu[ii]);
+		blasfeo_pack_dvec(nu[ii], r[ii], 1, &hsrq[ii], 0);
+		blasfeo_pack_dvec(nx[ii], q[ii], 1, &hsrq[ii], nu[ii]);
 		}
 	ii = N;
 //	blasfeo_pack_tran_dmat(nx[ii], 1, q[ii], nx[ii], &hsRSQrq[ii], nx[ii], 0); // XXX ???
-	blasfeo_pack_dvec(nx[ii], q[ii], &hsrq[ii], 0);
+	blasfeo_pack_dvec(nx[ii], q[ii], 1, &hsrq[ii], 0);
 //	for(ii=0; ii<=N; ii++)
 //		d_print_strmat(nu[ii]+nx[ii]+1, nu[ii]+nx[ii], &hsRSQrq[ii], 0, 0);
 //	for(ii=0; ii<=N; ii++)
@@ -1576,14 +1576,14 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 	// box constraints 
 	for(ii=0; ii<=N; ii++)
 		{
-		blasfeo_pack_dvec(nb[ii], lb[ii], &hsd[ii], 0);
-		blasfeo_pack_dvec(nb[ii], ub[ii], &hsd[ii], nb[ii]+ng[ii]);
+		blasfeo_pack_dvec(nb[ii], lb[ii], 1, &hsd[ii], 0);
+		blasfeo_pack_dvec(nb[ii], ub[ii], 1, &hsd[ii], nb[ii]+ng[ii]);
 		}
 	// general constraints
 	for(ii=0; ii<=N; ii++)
 		{
-		blasfeo_pack_dvec(ng[ii], lg[ii], &hsd[ii], nb[ii]+0);
-		blasfeo_pack_dvec(ng[ii], ug[ii], &hsd[ii], nb[ii]+nb[ii]+ng[ii]);
+		blasfeo_pack_dvec(ng[ii], lg[ii], 1, &hsd[ii], nb[ii]+0);
+		blasfeo_pack_dvec(ng[ii], ug[ii], 1, &hsd[ii], nb[ii]+nb[ii]+ng[ii]);
 		}
 //	for(ii=0; ii<=N; ii++)
 //		blasfeo_print_tran_dvec(2*nb[ii]+2*ng[ii], &hsd[ii], 0);
@@ -1786,10 +1786,10 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 
 	// copy back inputs and states
 	for(ii=0; ii<N; ii++)
-		blasfeo_unpack_dvec(nu[ii], &hsux[ii], 0, u[ii]);
+		blasfeo_unpack_dvec(nu[ii], &hsux[ii], 0, u[ii], 1);
 
 	for(ii=0; ii<=N; ii++)
-		blasfeo_unpack_dvec(nx[ii], &hsux[ii], nu[ii], x[ii]);
+		blasfeo_unpack_dvec(nx[ii], &hsux[ii], nu[ii], x[ii], 1);
 
 
 
@@ -1860,12 +1860,12 @@ void fortran_order_d_ip_last_kkt_new_rhs_ocp_hard_libstr(
 	// copy back multipliers
 
 	for(ii=0; ii<N; ii++)
-		blasfeo_unpack_dvec(nx[ii+1], &hspi[ii+1], 0, pi[ii]);
+		blasfeo_unpack_dvec(nx[ii+1], &hspi[ii+1], 0, pi[ii], 1);
 
 	for(ii=0; ii<=N; ii++)
 		{
-		blasfeo_unpack_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0, lam[ii]);
-//		blasfeo_unpack_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0, t[ii]);
+		blasfeo_unpack_dvec(2*nb[ii]+2*ng[ii], &hslam[ii], 0, lam[ii], 1);
+//		blasfeo_unpack_dvec(2*nb[ii]+2*ng[ii], &hst[ii], 0, t[ii], 1);
 		}
 
 //	printf("\nend of wrapper\n");
