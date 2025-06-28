@@ -109,7 +109,7 @@ static void d_back_ric_sv_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 		if(compute_Pb)
 			{
 			blasfeo_drowex(nx1[ii], 1.0, &hswork_mat_0, nu0+nx0, tmp, &hswork_vec_0, 0);
-			blasfeo_dtrmv_lnn(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hsPb[ii], 0);
+			blasfeo_dtrmv_lnn(nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hsPb[ii], 0);
 			}
 		blasfeo_dgead(1, nx1[ii], 1.0, &hsL1[ii], nu1[ii]+nx1[ii], nu1[ii], &hswork_mat_0, nu0+nx0, tmp);
 		tmp += nx1[ii];
@@ -219,9 +219,9 @@ static void d_back_ric_sv_forw_0_libstr(int nkids, int nx0, int *nx1, int nu0, i
 			blasfeo_create_dvec(nx1[ii], &hswork_vec_0, work);
 			blasfeo_dveccp(nx1[ii], &hsux1[ii], nu1[ii], &hspi[ii], 0);
 			blasfeo_drowex(nx1[ii], 1.0, &hsL1[ii], nu1[ii]+nx1[ii], nu1[ii], &hswork_vec_0, 0);
-			blasfeo_dtrmv_ltn(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hspi[ii], 0, &hspi[ii], 0);
+			blasfeo_dtrmv_ltn(nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hspi[ii], 0, &hspi[ii], 0);
 			blasfeo_daxpy(nx1[ii], 1.0, &hswork_vec_0, 0, &hspi[ii], 0, &hspi[ii], 0);
-			blasfeo_dtrmv_lnn(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hspi[ii], 0, &hspi[ii], 0);
+			blasfeo_dtrmv_lnn(nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hspi[ii], 0, &hspi[ii], 0);
 			}
 		}
 
@@ -249,9 +249,9 @@ static void d_back_ric_sv_forw_1_libstr(int nkids, int nx0, int *nx1, int nu0, i
 			blasfeo_create_dvec(nx1[ii], &hswork_vec_0, work);
 			blasfeo_dveccp(nx1[ii], &hsux1[ii], nu1[ii], &hspi[ii], 0);
 			blasfeo_drowex(nx1[ii], 1.0, &hsL1[ii], nu1[ii]+nx1[ii], nu1[ii], &hswork_vec_0, 0);
-			blasfeo_dtrmv_ltn(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hspi[ii], 0, &hspi[ii], 0);
+			blasfeo_dtrmv_ltn(nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hspi[ii], 0, &hspi[ii], 0);
 			blasfeo_daxpy(nx1[ii], 1.0, &hswork_vec_0, 0, &hspi[ii], 0, &hspi[ii], 0);
-			blasfeo_dtrmv_lnn(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hspi[ii], 0, &hspi[ii], 0);
+			blasfeo_dtrmv_lnn(nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hspi[ii], 0, &hspi[ii], 0);
 			}
 		}
 
@@ -387,8 +387,8 @@ static void d_back_ric_trs_back_0_libstr(int nkids, int nx0, int *nx1, int nu0, 
 		blasfeo_create_dvec(nx1[ii], &hswork_vec_0, work);
 		if(compute_Pb)
 			{
-			blasfeo_dtrmv_ltn(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hsb[ii], 0, &hsPb[ii], 0);
-			blasfeo_dtrmv_lnn(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hsPb[ii], 0, &hsPb[ii], 0);
+			blasfeo_dtrmv_ltn(nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hsb[ii], 0, &hsPb[ii], 0);
+			blasfeo_dtrmv_lnn(nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hsPb[ii], 0, &hsPb[ii], 0);
 			}
 		blasfeo_daxpy(nx1[ii], 1.0, &hsux1[ii], nu1[ii], &hsPb[ii], 0, &hswork_vec_0, 0);
 		blasfeo_dgemv_n(nu0+nx0, nx1[ii], 1.0, &hsBAbt[ii], 0, 0, &hswork_vec_0, 0, 1.0, &hsux0[0], 0, &hsux0[0], 0);
@@ -429,8 +429,8 @@ static void d_back_ric_trs_back_1_libstr(int nkids, int nx0, int *nx1, int nu0, 
 		blasfeo_create_dvec(nx1[ii], &hswork_vec_0, work);
 		if(compute_Pb)
 			{
-			blasfeo_dtrmv_ltn(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hsb[ii], 0, &hsPb[ii], 0);
-			blasfeo_dtrmv_lnn(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hsPb[ii], 0, &hsPb[ii], 0);
+			blasfeo_dtrmv_ltn(nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hsb[ii], 0, &hsPb[ii], 0);
+			blasfeo_dtrmv_lnn(nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hsPb[ii], 0, &hsPb[ii], 0);
 			}
 		blasfeo_daxpy(nx1[ii], 1.0, &hsux1[ii], nu1[ii], &hsPb[ii], 0, &hswork_vec_0, 0);
 		blasfeo_dgemv_n(nu0+nx0, nx1[ii], 1.0, &hsBAbt[ii], 0, 0, &hswork_vec_0, 0, 1.0, &hsux0[0], 0, &hsux0[0], 0);
@@ -475,8 +475,8 @@ static void d_back_ric_trs_forw_0_libstr(int nkids, int nx0, int *nx1, int nu0, 
 			{
 			blasfeo_create_dvec(nx1[ii], &hswork_vec_0, work);
 			blasfeo_dveccp(nx1[ii], &hsux1[ii], nu1[ii], &hswork_vec_0, 0);
-			blasfeo_dtrmv_ltn(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hswork_vec_0, 0);
-			blasfeo_dtrmv_lnn(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hswork_vec_0, 0);
+			blasfeo_dtrmv_ltn(nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hswork_vec_0, 0);
+			blasfeo_dtrmv_lnn(nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hswork_vec_0, 0);
 			blasfeo_daxpy(nx1[ii], 1.0, &hswork_vec_0, 0, &hspi[ii], 0, &hspi[ii], 0);
 			}
 		}
@@ -507,8 +507,8 @@ static void d_back_ric_trs_forw_1_libstr(int nkids, int nx0, int *nx1, int nu0, 
 			{
 			blasfeo_create_dvec(nx1[ii], &hswork_vec_0, work);
 			blasfeo_dveccp(nx1[ii], &hsux1[ii], nu1[ii], &hswork_vec_0, 0);
-			blasfeo_dtrmv_ltn(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hswork_vec_0, 0);
-			blasfeo_dtrmv_lnn(nx1[ii], nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hswork_vec_0, 0);
+			blasfeo_dtrmv_ltn(nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hswork_vec_0, 0);
+			blasfeo_dtrmv_lnn(nx1[ii], &hsL1[ii], nu1[ii], nu1[ii], &hswork_vec_0, 0, &hswork_vec_0, 0);
 			blasfeo_daxpy(nx1[ii], 1.0, &hswork_vec_0, 0, &hspi[ii], 0, &hspi[ii], 0);
 			}
 		}

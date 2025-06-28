@@ -142,7 +142,7 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 		if(compute_Pb)
 			{
 			blasfeo_drowex(nx[N-nn], 1.0, &hswork_mat_0, nu[N-nn-1]+nx[N-nn-1], 0, &hswork_vec_0, 0);
-			blasfeo_dtrmv_lnn(nx[N-nn], nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hswork_vec_0, 0, &hsPb[N-nn], 0);
+			blasfeo_dtrmv_lnn(nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hswork_vec_0, 0, &hsPb[N-nn], 0);
 			}
 		blasfeo_dgead(1, nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn]+nx[N-nn], nu[N-nn], &hswork_mat_0, nu[N-nn-1]+nx[N-nn-1], 0);
 		if(nb[N-nn-1]>0 | ng[N-nn-1]>0 | update_q)
@@ -195,9 +195,9 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 		c_ptr += hswork_vec_0.memsize;
 		blasfeo_dveccp(nx[nn+1], &hsux[nn+1], nu[nn+1], &hspi[nn+1], 0);
 		blasfeo_drowex(nx[nn+1], 1.0, &hsL[nn+1], nu[nn+1]+nx[nn+1], nu[nn+1], &hswork_vec_0, 0);
-		blasfeo_dtrmv_ltn(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
+		blasfeo_dtrmv_ltn(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
 		blasfeo_daxpy(nx[nn+1], 1.0, &hswork_vec_0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
-		blasfeo_dtrmv_lnn(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
+		blasfeo_dtrmv_lnn(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
 		}
 
 	// middle stages
@@ -214,9 +214,9 @@ void d_back_ric_rec_sv_libstr(int N, int *nx, int *nu, int *nb, int **hidxb, int
 			c_ptr += hswork_vec_0.memsize;
 			blasfeo_dveccp(nx[nn+1], &hsux[nn+1], nu[nn+1], &hspi[nn+1], 0);
 			blasfeo_drowex(nx[nn+1], 1.0, &hsL[nn+1], nu[nn+1]+nx[nn+1], nu[nn+1], &hswork_vec_0, 0);
-			blasfeo_dtrmv_ltn(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
+			blasfeo_dtrmv_ltn(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
 			blasfeo_daxpy(nx[nn+1], 1.0, &hswork_vec_0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
-			blasfeo_dtrmv_lnn(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
+			blasfeo_dtrmv_lnn(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
 			}
 		}
 
@@ -337,8 +337,8 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		c_ptr += hswork_vec_0.memsize;
 		if(compute_Pb)
 			{
-			blasfeo_dtrmv_ltn(nx[N-nn], nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, &hsPb[N-nn], 0);
-			blasfeo_dtrmv_lnn(nx[N-nn], nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsPb[N-nn], 0, &hsPb[N-nn], 0);
+			blasfeo_dtrmv_ltn(nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, &hsPb[N-nn], 0);
+			blasfeo_dtrmv_lnn(nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsPb[N-nn], 0, &hsPb[N-nn], 0);
 			}
 		blasfeo_dveccp(nu[N-nn-1]+nx[N-nn-1], &hsrq[N-nn-1], 0, &hsux[N-nn-1], 0);
 		if(nb[N-nn-1]>0)
@@ -361,8 +361,8 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 	c_ptr += hswork_vec_0.memsize;
 	if(compute_Pb)
 		{
-		blasfeo_dtrmv_ltn(nx[N-nn], nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, &hsPb[N-nn], 0);
-		blasfeo_dtrmv_lnn(nx[N-nn], nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsPb[N-nn], 0, &hsPb[N-nn], 0);
+		blasfeo_dtrmv_ltn(nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsb[N-nn-1], 0, &hsPb[N-nn], 0);
+		blasfeo_dtrmv_lnn(nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hsPb[N-nn], 0, &hsPb[N-nn], 0);
 		}
 	blasfeo_dveccp(nu[N-nn-1]+nx[N-nn-1], &hsrq[N-nn-1], 0, &hsux[N-nn-1], 0);
 	if(nb[N-nn-1]>0)
@@ -392,8 +392,8 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 		blasfeo_create_dvec(nx[nn+1], &hswork_vec_0, (void *) c_ptr);
 		c_ptr += hswork_vec_0.memsize;
 		blasfeo_dveccp(nx[nn+1], &hsux[nn+1], nu[nn+1], &hswork_vec_0, 0);
-		blasfeo_dtrmv_ltn(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
-		blasfeo_dtrmv_lnn(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
+		blasfeo_dtrmv_ltn(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
+		blasfeo_dtrmv_lnn(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
 		blasfeo_daxpy(nx[nn+1], 1.0, &hswork_vec_0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
 		}
 
@@ -413,8 +413,8 @@ void d_back_ric_rec_trs_libstr(int N, int *nx, int *nu, int *nb, int **idxb, int
 			blasfeo_create_dvec(nx[nn+1], &hswork_vec_0, (void *) c_ptr);
 			c_ptr += hswork_vec_0.memsize;
 			blasfeo_dveccp(nx[nn+1], &hsux[nn+1], nu[nn+1], &hswork_vec_0, 0);
-			blasfeo_dtrmv_ltn(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
-			blasfeo_dtrmv_lnn(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
+			blasfeo_dtrmv_ltn(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
+			blasfeo_dtrmv_lnn(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hswork_vec_0, 0, &hswork_vec_0, 0);
 			blasfeo_daxpy(nx[nn+1], 1.0, &hswork_vec_0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
 			}
 		}
@@ -494,7 +494,7 @@ void d_back_ric_rec_sv_back_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 		if(compute_Pb)
 			{
 			blasfeo_drowex(nx[N-nn], 1.0, &hswork_mat_0, nu[N-nn-1]+nx[N-nn-1], 0, &hswork_vec_0, 0);
-			blasfeo_dtrmv_lnn(nx[N-nn], nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hswork_vec_0, 0, &hsPb[N-nn], 0);
+			blasfeo_dtrmv_lnn(nx[N-nn], &hsL[N-nn], nu[N-nn], nu[N-nn], &hswork_vec_0, 0, &hsPb[N-nn], 0);
 			}
 		blasfeo_dgead(1, nx[N-nn], 1.0, &hsL[N-nn], nu[N-nn]+nx[N-nn], nu[N-nn], &hswork_mat_0, nu[N-nn-1]+nx[N-nn-1], 0);
 		if(nb[N-nn-1]>0 | ng[N-nn-1]>0 | update_q)
@@ -564,9 +564,9 @@ void d_back_ric_rec_sv_forw_libstr(int N, int *nx, int *nu, int *nb, int **hidxb
 			c_ptr += hswork_vec_0.memsize;
 			blasfeo_dveccp(nx[nn+1], &hsux[nn+1], nu[nn+1], &hspi[nn+1], 0);
 			blasfeo_drowex(nx[nn+1], 1.0, &hsL[nn+1], nu[nn+1]+nx[nn+1], nu[nn+1], &hswork_vec_0, 0);
-			blasfeo_dtrmv_ltn(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
+			blasfeo_dtrmv_ltn(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
 			blasfeo_daxpy(nx[nn+1], 1.0, &hswork_vec_0, 0, &hspi[nn+1], 0, &hspi[nn+1], 0);
-			blasfeo_dtrmv_lnn(nx[nn+1], nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
+			blasfeo_dtrmv_lnn(nx[nn+1], &hsL[nn+1], nu[nn+1], nu[nn+1], &hspi[nn+1], 0, &hspi[nn+1], 0);
 			}
 		}
 
